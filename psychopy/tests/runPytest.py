@@ -1,4 +1,10 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# from future import standard_library
+# standard_library.install_aliases()
+from builtins import object
+
 
 sources = """
 eNrsvV2TI0eSIDZ3J93qIO3trnRafdzuKYlSX2ayUeiqJjkfOIIjTrN7t3c5ZBu7e5dnxTIwC8hC
@@ -2411,7 +2417,7 @@ xmyBd3J2fZxjp+ULOUhv/+e++H9Pqn4x
 import sys
 import base64
 import zlib
-import imp
+
 
 class DictImporter(object):
     def __init__(self, sources):
@@ -2425,7 +2431,7 @@ class DictImporter(object):
         return None
 
     def load_module(self, fullname):
-        # print "load_module:",  fullname
+        # print("load_module:" +  fullname)
         from types import ModuleType
         try:
             s = self.sources[fullname]
@@ -2450,8 +2456,9 @@ class DictImporter(object):
             res = self.sources.get(name + '.__init__')
         return res
 
+
 if __name__ == "__main__":
-    if sys.version_info >= (3, 0):
+    if sys.version_info.major >= 3:
         exec("def do_exec(co, loc): exec(co, loc)\n")
         import pickle
         sources = sources.encode("ascii") # ensure bytes

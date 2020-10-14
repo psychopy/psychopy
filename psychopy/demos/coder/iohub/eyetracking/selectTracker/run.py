@@ -1,4 +1,6 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 """
 eye_tracker/run.py
 
@@ -9,12 +11,16 @@ with the Eye Tracker Technology chosen at the start of the demo via a
 drop down list. Exact same demo script is used regardless of the 
 Eye Tracker hardware used.
 
-Inital Version: May 6th, 2013, Sol Simpson
+Initial Version: May 6th, 2013, Sol Simpson
 """
+
+from __future__ import absolute_import, division, print_function
+
 from psychopy import visual
 from psychopy.data import TrialHandler,importConditions
-from psychopy.iohub import (EventConstants, EyeTrackerConstants, 
-                            getCurrentDateTimeString, ioHubExperimentRuntime)
+from psychopy.iohub import ioHubExperimentRuntime
+from psychopy.iohub.util import getCurrentDateTimeString
+
 import os
 
 class ExperimentRuntime(ioHubExperimentRuntime):
@@ -44,7 +50,6 @@ class ExperimentRuntime(ioHubExperimentRuntime):
         tracker=self.hub.devices.tracker
         display=self.hub.devices.display
         kb=self.hub.devices.keyboard
-        mouse=self.hub.devices.mouse            
                     
         # Start by running the eye tracker default setup procedure.
         tracker.runSetupProcedure()
@@ -56,7 +61,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
                                     units=display.getCoordinateType(),
                                     fullscr=True,
                                     allowGUI=False,
-                                    screen= display.getIndex()
+                                    screen= 0
                                     )
 
         # Create a dict of image stim for trials and a gaze blob to show gaze position.
@@ -66,14 +71,20 @@ class ExperimentRuntime(ioHubExperimentRuntime):
         image_names=['canal.jpg','fall.jpg','party.jpg','swimming.jpg','lake.jpg']
 
         for iname in image_names:
-            image_cache[iname]=visual.ImageStim(window, image=os.path.join('./images/',iname), 
-                        name=iname,units=display_coord_type)
-                        
-        gaze_dot =visual.GratingStim(window,tex=None, mask="gauss", 
-                                     pos=(0,0 ),size=(66,66),color='green', 
-                                                        units=display_coord_type)
-        instructions_text_stim = visual.TextStim(window, text='', pos = [0,0], height=24, 
-                       color=[-1,-1,-1], colorSpace='rgb',alignHoriz='center', alignVert='center',wrapWidth=window.size[0]*.9)
+            image_cache[iname] = visual.ImageStim(
+                window, image=os.path.join('./images/', iname),
+                name=iname, units=display_coord_type
+            )
+        gaze_dot = visual.GratingStim(
+            window, tex=None, mask="gauss",
+            pos=(0, 0), size=(66, 66), color='green',
+            units=display_coord_type
+        )
+        instructions_text_stim = visual.TextStim(
+            window, text='', pos=[0, 0], height=24,
+            color=[-1, -1, -1], colorSpace='rgb',
+            wrapWidth=window.size[0] * .9
+        )
 
 
         # Update Instruction Text and display on screen.
@@ -104,7 +115,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
         self.hub.clearEvents('all')
         t=0
         for trial in trials:    
-            # Update the instuction screen text...
+            # Update the instruction screen text...
             #            
             instuction_text="Press Space Key To Start Trial %d"%t
             instructions_text_stim.setText(instuction_text)        
@@ -112,8 +123,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
             flip_time=window.flip()
             self.hub.sendMessageEvent(text="EXPERIMENT_START",sec_time=flip_time)
             
-            start_trial=False
-            
+
             # wait until a space key event occurs after the instructions are displayed
             kb.waitForPresses(keys=' ')
 
@@ -184,7 +194,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
             # Save the Experiment Condition Variable Data for this trial to the
             # ioDataStore.
             #
-            self.hub.addRowToConditionVariableTable(trial.values())          
+            self.hub.addTrialHandlerRecord(trial)          
             self.hub.clearEvents('all')
             t+=1
 
@@ -192,7 +202,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
         #
         tracker.setConnectionState(False)
 
-        # Update the instuction screen text...
+        # Update the instruction screen text...
         #            
         instuction_text="Press Any Key to Exit Demo"
         instructions_text_stim.setText(instuction_text)        
@@ -215,7 +225,6 @@ class ExperimentRuntime(ioHubExperimentRuntime):
 ####### Main Script Launching Code Below #######
 
 if __name__ == "__main__":
-    import os
     from psychopy import gui
     from psychopy.iohub import module_directory
         
@@ -236,21 +245,20 @@ if __name__ == "__main__":
         # by the Experiment _runtime
         # as normal.
         eye_tracker_config_files={
-                                  'LC Technologies EyeGaze':'eyetracker_configs/eyegaze_config.yaml',
-                                  'SMI iViewX':'eyetracker_configs/iviewx_config.yaml',
-                                  'SR Research EyeLink':'eyetracker_configs/eyelink_config.yaml',
-                                  'Tobii Technologies Eye Trackers':'eyetracker_configs/tobii_config.yaml',
+                                  'GazePoint':'eyetracker_configs/gazepoint_config.yaml',
+                                  'SR Research':'eyetracker_configs/eyelink_config.yaml',
+                                  'Tobii':'eyetracker_configs/tobii_config.yaml',
                                   }
         
-        info = {'Eye Tracker Type': ['Select', 'LC Technologies EyeGaze', 
-                                     'SMI iViewX', 'SR Research EyeLink', 'Tobii Technologies Eye Trackers']}
+        info = {'Eye Tracker Type': ['Select', 'GazePoint', 'SR Research',
+                                     'Tobii']}
         
         dlg_info=dict(info)
         infoDlg = gui.DlgFromDict(dictionary=dlg_info, title='Select Eye Tracker')
         if not infoDlg.OK:
             return -1 
 
-        while dlg_info.values()[0] == u'Select' and infoDlg.OK:
+        while list(dlg_info.values())[0] == u'Select' and infoDlg.OK:
                 dlg_info=dict(info)
                 infoDlg = gui.DlgFromDict(dictionary=dlg_info, title='SELECT Eye Tracker To Continue...')
    
@@ -261,7 +269,7 @@ if __name__ == "__main__":
                                                        'iohub_config.yaml.part'))
                                                        
         eyetrack_config_file=os.path.normcase(os.path.join(configurationDirectory,
-                                eye_tracker_config_files[dlg_info.values()[0]]))
+                                eye_tracker_config_files[list(dlg_info.values())[0]]))
 
         combined_config_file_name=os.path.normcase(os.path.join(configurationDirectory,
                                                                 'iohub_config.yaml'))
@@ -271,7 +279,7 @@ if __name__ == "__main__":
 
         
         runtime=ExperimentRuntime(configurationDirectory, "experiment_config.yaml")    
-        runtime.start((dlg_info.values()[0],))
+        runtime.start((list(dlg_info.values())[0],))
 
 
     # Get the current directory, using a method that does not rely on __FILE__

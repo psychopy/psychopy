@@ -1,8 +1,11 @@
 """Test PsychoPy sound.py using pygame backend; will fail if have already used pyo
 """
+from __future__ import division
 
+from builtins import object
+from past.utils import old_div
 from psychopy import prefs, core
-prefs.general['audioLib'] = ['pygame']
+prefs.hardware['audioLib'] = ['pygame']
 
 import pytest
 from scipy.io import wavfile
@@ -24,7 +27,7 @@ class TestPygame(object):
         self.contextName='pyo'
         try:
             assert sound.Sound == sound.SoundPygame
-        except:
+        except Exception:
             pytest.xfail('need to be using pygame')
         self.tmp = mkdtemp(prefix='psychopy-tests-sound')
 
@@ -48,7 +51,7 @@ class TestPygame(object):
             sound.setaudioLib('foo')
 
         points = 100
-        snd = numpy.ones(points) / 20
+        snd = old_div(numpy.ones(points), 20)
 
         #testFile = os.path.join(self.tmp, 'green_48000.wav')
         #r, d = wavfile.read(testFile)

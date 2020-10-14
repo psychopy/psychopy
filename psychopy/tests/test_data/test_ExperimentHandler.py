@@ -1,15 +1,19 @@
 # -*- coding: utf-8 -*-
 
+from builtins import object
 from psychopy import data, logging
-from numpy import random
+import numpy as np
 import os, glob, shutil
-logging.console.setLevel(logging.DEBUG)
+import io
 from tempfile import mkdtemp
 
+logging.console.setLevel(logging.DEBUG)
 
-class TestExperimentHandler():
+
+class TestExperimentHandler(object):
     def setup_class(self):
         self.tmpDir = mkdtemp(prefix='psychopy-tests-testExp')
+        self.random_seed = 100
 
     def teardown_class(self):
         shutil.rmtree(self.tmpDir)
@@ -38,13 +42,14 @@ class TestExperimentHandler():
         training = data.TrialHandler(
             trialList=conds, nReps=3, name='train',
             method='random',
-            seed=100  # Global seed - so fixed for whole experiment.
-        )
+            seed=self.random_seed)
         exp.addLoop(training)
 
+        rng = np.random.RandomState(seed=self.random_seed)
+
         for trial in training:
-            training.addData('training.rt',random.random()*0.5+0.5)
-            if random.random() > 0.5:
+            training.addData('training.rt', rng.rand() * 0.5 + 0.5)
+            if rng.rand() > 0.5:
                 training.addData('training.key', 'left')
             else:
                 training.addData('training.key', 'right')
@@ -63,18 +68,13 @@ class TestExperimentHandler():
             exp.addLoop(staircase)
 
             for thisTrial in staircase:
-                id = random.random()
-                if random.random() > 0.5:
+                id = rng.rand()
+                if rng.rand() > 0.5:
                     staircase.addData(1)
                 else:
                     staircase.addData(0)
                 exp.addData('id', id)
                 exp.nextEntry()
-
-        #exp should then automatically save the pickle and csv data files
-        #for e in exp.entries:
-        #    print e
-        #print 'done'
 
     def test_addData_with_mutable_values(self):
         # add mutable objects to data, check that the value *at that time* is saved
@@ -94,8 +94,9 @@ class TestExperimentHandler():
 
         exp.saveAsWideText(exp.dataFileName+'.csv', delim=',')
 
-        #get data file contents:
-        contents = open(exp.dataFileName+'.csv', 'rU').read()
+        # get data file contents:
+        with io.open(exp.dataFileName + '.csv', 'r', encoding='utf-8-sig') as f:
+            contents = f.read()
         assert contents == "mutable,\n[1],\n[9999],\n"
 
     def test_unicode_conditions(self):
@@ -123,6 +124,26 @@ class TestExperimentHandler():
         trials.saveAsWideText(fileName)
         exp.saveAsWideText(fileName)
         exp.saveAsPickle(fileName)
+
+    def test_comparison_equals(self):
+        e1 = data.ExperimentHandler()
+        e2 = data.ExperimentHandler()
+        assert e1 == e2
+
+    def test_comparison_not_equal(self):
+        e1 = data.ExperimentHandler()
+        e2 = data.ExperimentHandler(name='foo')
+        assert e1 != e2
+
+    def test_comparison_equals_with_same_TrialHandler_attached(self):
+        e1 = data.ExperimentHandler()
+        e2 = data.ExperimentHandler()
+        t = data.TrialHandler([dict(foo=1)], 2)
+
+        e1.addLoop(t)
+        e2.addLoop(t)
+
+        assert e1 == e2
 
 
 if __name__ == '__main__':

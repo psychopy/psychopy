@@ -3,9 +3,9 @@
 echo DID YOU UPDATE THE CHANGELOG?
 python setup.py sdist --format=zip
 python setup.py egg_info
-python setup.py bdist_egg
+# python setup.py bdist_wheel --universal
 
 echo register with;
-echo python setup.py register
+echo twine upload ../dist/
 
 mv dist/* ../dist

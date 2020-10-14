@@ -1,37 +1,38 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-"""This provides a basic ButtonBox class, and imports the `ioLab python library
-    <http://github.com/ioLab/python-ioLabs>`_.
+"""This provides a basic ButtonBox class, and imports the
+   `ioLab python library <http://github.com/ioLab/python-ioLabs>`_.
 """
-#  This file can't be named ioLabs.py, otherwise "import ioLabs" doesn't work.
-#  And iolabs.py (lowercase) did not solve it either, something is case insensitive somewhere
 
-
-from __future__ import division
-from psychopy import core, event, logging
+from __future__ import absolute_import, division, print_function
 
 try:
     from labjack import u3
 except ImportError:
     import u3
-#Could not load the Exodriver driver "dlopen(liblabjackusb.dylib, 6): image not found"
+# Could not load the Exodriver driver
+#    "dlopen(liblabjackusb.dylib, 6): image not found"
+
 
 class U3(u3.U3):
-    def setData(self, byte, endian='big', address=6008):
+
+    def setData(self, byte, endian='big', address=6701):
         """Write 1 byte of data to the U3 port
 
         parameters:
 
             - byte: the value to write (must be an integer 0:255)
-            - endian: ['big' or 'small'] determines whether the first pin is the least significant bit or most significant bit
+            - endian: ['big' or 'small'] ignored from 1.84 onwards; automatic?
             - address: the memory address to send the byte to
-                - 6008 = EIO (the DB15 connector)
+                - 6700 = FIO
+                - 6701 (default) = EIO (the DB15 connector)
+                - 6702 = CIO
         """
-        if endian=='big':
-            byteStr = '{0:08b}'.format(byte)[-1::-1]
-        else:
-            byteStr = '{0:08b}'.format(byte)
-        [self.writeRegister(address+pin, int(entry)) for (pin, entry) in enumerate(byteStr)]
-
+        # Upper byte is the writemask, lower byte is the 8 lines/bits to set.
+        # Bit 0 = line 0, bit 1 = line 1, bit 2 = line 2, etc.
+        self.writeRegister(address, 0xFF00 + (byte & 0xFF))

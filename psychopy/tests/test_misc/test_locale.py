@@ -1,13 +1,15 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from builtins import object
 import pytest
 import locale
-from psychopy.app import localization
+from psychopy import localization
+from psychopy.localization import _translate
 
-welcome = u'Welcome to PsychoPy2!'
+welcome = u'Welcome to PsychoPy3!'
 trans = {'en': welcome,
-         'ja': u'PsychoPy2へようこそ！'
+         'ja': u'PsychoPy3へようこそ！'
          }
 
 ### needs rewriting since localization.init() no longer sets the locale

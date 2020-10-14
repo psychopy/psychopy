@@ -1,0 +1,122 @@
+eyetracker.hw.smi.iviewx.EyeTracker:
+    name: 
+        IOHUB_STRING:
+            min_length: 1
+            max_length: 32
+            first_char_alpha: True
+    enable: IOHUB_BOOL
+    save_events: IOHUB_BOOL
+    stream_events: IOHUB_BOOL
+    auto_report_events: False
+    event_buffer_length: 
+        IOHUB_INT:
+            min: 1  
+            max: 2048
+    monitor_event_types:           
+        IOHUB_LIST:
+            valid_values: [ MonocularEyeSampleEvent, BinocularEyeSampleEvent, FixationStartEvent, FixationEndEvent, SaccadeStartEvent, SaccadeEndEvent, BlinkStartEvent, BlinkEndEvent]  
+            min_length: 0
+            max_length: 8            
+    model_name: 
+        IOHUB_LIST:
+            valid_values: [NONE, RED, REDm, HiSpeed, MRI, HED, ETG, Custom]
+            min_length: 1
+            max_length: 1            
+    manufacturer_name: SensoMotoric Instruments GmbH
+    calibration:
+        type: 
+            IOHUB_LIST:
+                valid_values: [ NO_POINTS,ONE_POINT,TWO_POINTS,FIVE_POINTS,NINE_POINTS,THIRTEEN_POINTS ]
+                min_length: 0
+                max_length: 1            
+        graphics_env: INTERNAL                  
+        auto_pace: IOHUB_BOOL
+        pacing_speed: [ SLOW, FAST ]
+        screen_background_color:
+            IOHUB_INT:
+                min: 0
+                max: 255
+        target_type: [IMAGE , CIRCLE,  CROSS]
+        target_attributes:
+            target_size:
+                IOHUB_INT:
+                    min: 2
+                    max: 1024             
+            target_color:
+                IOHUB_INT:
+                    min: 0
+                    max: 255
+            target_inner_color: [ BACKGROUND, RED ]
+            file_name:
+                IOHUB_STRING:
+                    min_length: 0
+                    max_length: 32
+            # Should a Window showing the validation accuracy as a gaze point 
+            # overlay be displayed following a validation procedure?
+            show_validation_accuracy_window: IOHUB_BOOL
+
+    network_settings:
+        # IP address of iView X computer
+        send_ip_address: IOHUB_IP_ADDRESS_V4
+        # Port being used by iView X SDK for sending data to iView X 
+        send_port: 
+            IOHUB_INT:
+                min: 1
+                max: 9999
+        # IP address of local computer
+        receive_ip_address: IOHUB_IP_ADDRESS_V4
+        # port being used by iView X SDK for receiving data from iView X
+        receive_port:
+            IOHUB_INT:
+                min: 1
+                max: 9999
+    runtime_settings:
+        # The sampling rate setting in the iViewX implementation is used only to
+        # compare the sampling rate read from the device to ensure it matches
+        # the rate specified here. 
+        # It is not possible to 'set' the sampling rate via the SMI API however. 
+        sampling_rate: 
+            IOHUB_NUMBER:
+                min: 30
+                max: 1250
+        sample_filtering:
+            FILTER_ALL: 
+                IOHUB_LIST:
+                    valid_values:  [FILTER_LEVEL_OFF, FILTER_OFF, FILTER_LEVEL_1, FILTER_ON] 
+                    min_length: 1
+                    max_length: 1            
+        # The iViewX supports the following track_eyes values:  
+        # LEFT_EYE, RIGHT_EYE, BINOCULAR, BINOCULAR_AVERAGED, BINOCULAR_CUSTOM
+        track_eyes: [LEFT_EYE, RIGHT_EYE, BINOCULAR, BINOCULAR_AVERAGED, BINOCULAR_CUSTOM]
+        # VOG settings allow you to specify some eye tracker parameters related to
+        # the image processing or data collection procedure used by the eye tracker
+        # device. 
+        vog_settings:
+            # The iViewX supports one pupil_measure_types parameter that is used
+            # for any eyes being tracked. PUPIL_AREA, PUPIL_DIAMETER are
+            # valid pupil measure types for the iViewX.
+            # PUPIL_DIAMETER, PUPIL_DIAMETER_MM,
+            pupil_measure_types: [PUPIL_DIAMETER, PUPIL_DIAMETER_MM]
+    device_number: 0
+    model_number:
+        IOHUB_STRING:
+            min_length: 1
+            max_length: 32
+    serial_number:
+        IOHUB_STRING:
+            min_length: 1
+            max_length: 32
+    manufacture_date: IOHUB_DATE
+    software_version:
+        IOHUB_STRING:
+            min_length: 1
+            max_length: 8    
+    hardware_version: 
+        IOHUB_STRING:
+            min_length: 1
+            max_length: 8
+    firmware_version: 
+        IOHUB_STRING:
+            min_length: 1
+            max_length: 8
+

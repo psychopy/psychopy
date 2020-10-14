@@ -41,7 +41,7 @@ serial.Pstbox:
         byte_diff: True
 
     # device_timer: Devices that require polling to read any new native events
-    #   that have become available must specifiy a device_timer property, with an
+    #   that have become available must specify a device_timer property, with an
     #   interval sub property that specifies how frequently the device would be polled
     #   by the ioHub Server. The time is specified in sec.msec format and is a 'requested'
     #   polling interval. The actual polling interval will vary from this somewhat, the 
@@ -50,7 +50,7 @@ serial.Pstbox:
     #   attribute of events that have a parent device that is polled often can be used to
     #   determine the actual polling rate being achieved by the ioHub Process.
     device_timer:
-        interval: 0.0005
+        interval: 0.001
 
     # enable: Specifies if the device should be enabled by ioHub and monitored
     #   for events.

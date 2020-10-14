@@ -4,11 +4,14 @@ Created on Mon Dec 15 15:22:48 2014
 
 @author: lpzjwp
 """
-
-from psychopy import visual,core, event
+from __future__ import print_function  # for compatibility with python3
+from __future__ import division
+from builtins import str
+from builtins import range
+from psychopy import visual
 from psychopy.hardware import crs
 import numpy as np
-from pyglet import gl as GL
+import pytest
 
 try:
     from PIL import Image
@@ -59,38 +62,43 @@ expectedVals = {
         'lowR': array([ 36,  63,   8, 211,   3, 112,  56,  34,   0,   0]),
         'highG': array([119, 118, 120, 119, 121, 120])}}}
 
-win = visual.Window([1024,768], fullscr=0, screen=1, useFBO=True, autoLog=True)
-bits = crs.bits.BitsSharp(win, mode='bits++', noComms=True)
 
-#draw a ramp across the screenexpectedVals = range(256)
-w,h = win.size
-intended = range(256)
-testArrLums = np.resize(intended,[256,256])/127.5-1 #NB psychopy uses -1:1
-stim = visual.ImageStim(win, image=testArrLums,
-    size=[256,h], pos=[128-w/2,0], units='pix',
-    )
-expected = np.repeat(intended,3).reshape([-1,3])
-
-#stick something in the middle for fun!
-gabor = visual.GratingStim(win, mask='gauss', sf=3, ori=45, contrast=0.5)
-gabor.autoDraw = True
 def test_bitsShaders():
+
+    if _travisTesting:
+        pytest.skip("no Bits device on a virtual machine")
+
+    win = visual.Window([1024, 768], fullscr=0, screen=1, useFBO=True,
+                        autoLog=True)
+    bits = crs.bits.BitsSharp(win, mode='bits++', noComms=True)
+
+    # draw a ramp across the screenexpectedVals = range(256)
+    w, h = win.size
+    intended = list(range(256))
+    testArrLums = np.resize(intended,
+                            [256, 256]) / 127.5 - 1  # NB psychopy uses -1:1
+    stim = visual.ImageStim(win, image=testArrLums,
+                            size=[256, h], pos=[128 - w / 2, 0], units='pix',
+                            )
+    expected = np.repeat(intended, 3).reshape([-1, 3])
+
+    # stick something in the middle for fun!
+    gabor = visual.GratingStim(win, mask='gauss', sf=3, ori=45, contrast=0.5)
+    gabor.autoDraw = True
+
     #a dict of dicts for expected vals
     for mode in ['bits++', 'mono++', 'color++']:
         bits.mode=mode
         for finalVal in [255.0, 1024, 65535]:
             thisExpected = expectedVals[mode][finalVal]
 
-            #print bits.mode, finalVal
             intended = np.linspace(0.0,1,256)*255.0/finalVal
             stim.image = np.resize(intended,[256,256])*2-1 #NB psychopy uses -1:1
 
             stim.draw()
-            #fr = np.array(win._getFrame('back').transpose(Image.ROTATE_270))
-            #print 'pre r', fr[0:10,-1,0], fr[250:256,-1,0]
-            #print 'pre g', fr[0:10,-1,1], fr[250:256,-1,0]
+            #fr = np.array(win._getFrame(buffer='back').transpose(Image.ROTATE_270))
             win.flip()
-            fr = np.array(win._getFrame('front').transpose(Image.ROTATE_270))
+            fr = np.array(win._getFrame(buffer='front').transpose(Image.ROTATE_270))
             if not _travisTesting:
                 assert np.alltrue(thisExpected['lowR'] == fr[0:10,-1,0])
                 assert np.alltrue(thisExpected['lowG'] == fr[0:10,-1,1])
@@ -98,10 +106,9 @@ def test_bitsShaders():
                 assert np.alltrue(thisExpected['highG'] == fr[250:256,-1,1])
 
             if not _travisTesting:
-                print 'R', repr(fr[0:10,-1,0]), repr(fr[250:256,-1,0])
-                print 'G', repr(fr[0:10,-1,1]), repr(fr[250:256,-1,0])
+                print('R', repr(fr[0:10,-1,0]), repr(fr[250:256,-1,0]))
+                print('G', repr(fr[0:10,-1,1]), repr(fr[250:256,-1,0]))
             #event.waitKeys()
-    #print repr(expectedVals)
 
 if __name__=='__main__':
     test_bitsShaders()

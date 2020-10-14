@@ -4,6 +4,7 @@
 
 # py.test -k emulator --cov-report term-missing --cov hardware/emulator.py tests/test_hardware
 
+from builtins import object
 import os, sys
 import pytest
 
@@ -13,7 +14,7 @@ from psychopy.hardware.emulator import *
 
 # launchScan sound is not tested, nor included coverage
 
-travis = bool(str(os.environ.get('TRAVIS')).lower() == 'true')
+travis = bool("{}".format(os.environ.get('TRAVIS')).lower() == 'true')
 
 BASE_MR_SETTINGS = {
     'TR': 0.5,    # duration (sec) per volume
@@ -23,7 +24,7 @@ BASE_MR_SETTINGS = {
     }
 
 pytest.mark.emulator
-class TestLaunchScan:
+class TestLaunchScan(object):
     '''A base class to test launchScan with different MR_settings'''
     def setup(self):
         self.win = visual.Window(fullscr=False, autoLog=False)
@@ -100,7 +101,7 @@ class TestLaunchScan:
 
     def test_wait_timeout(self):
         '''Ensure that the wait_timeout happily rejects bad values.'''
-        with pytest.raises(TimeoutError):
+        with pytest.raises(RuntimeError):
             vol = launchScan(self.win, BASE_MR_SETTINGS, wait_timeout=.1,
                              mode='Scan', log=False)
         with pytest.raises(ValueError):

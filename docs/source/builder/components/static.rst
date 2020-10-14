@@ -26,9 +26,13 @@ start :
 stop : 
     The time that the static period ends. See :ref:`startStop` for details.
 
+Custom
+======
+Parameters for injecting custom code
+
 custom code :
     After running the component updates (which are defined in each component, not here) any code inserted here will also be run
 
 .. seealso::
     
-    API reference for :class:`~psychopy.core.StaticPeriod`
+    API reference for :class:`~psychopy.clock.StaticPeriod`

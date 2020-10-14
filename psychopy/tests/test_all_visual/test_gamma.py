@@ -1,3 +1,4 @@
+from builtins import range
 from psychopy import visual, monitors
 import numpy
 
@@ -42,6 +43,7 @@ def test_monitorGetGamma():
     #create window using that monitor
     win = visual.Window([100,100], monitor=mon, autoLog=False)
     assert numpy.alltrue(win.gamma==gammaVal)
+    win.close()
 
 def test_monitorGetGammaGrid():
     #create (outdated) gamma grid (new one is [4,6])
@@ -54,6 +56,7 @@ def test_monitorGetGammaGrid():
     mon.setGammaGrid(newGrid)
     win = visual.Window([100,100], monitor=mon, autoLog=False)
     assert numpy.alltrue(win.gamma==numpy.array([2.0, 2.0, 2.0]))
+    win.close()
 
 def test_monitorGetGammaAndGrid():
     """test what happens if gamma (old) and gammaGrid (new) are both present"""
@@ -69,6 +72,68 @@ def test_monitorGetGammaAndGrid():
     #create window using that monitor
     win = visual.Window([100,100], monitor=mon, autoLog=False)
     assert numpy.alltrue(win.gamma==numpy.array([2.0, 2.0, 2.0]))
+    win.close()
+
+
+def test_setGammaRamp():
+    """test that the gamma ramp is set as requested"""
+
+    testGamma = 2.2
+
+    win = visual.Window([600,600], autoLog=False)
+    desiredRamp = numpy.tile(
+        visual.gamma.createLinearRamp(
+            rampSize=win.backend.getGammaRampSize(),
+            driver=win.backend._driver
+        ),
+        (3, 1)
+    )
+
+    if numpy.all(testGamma == 1.0) == False:
+        # correctly handles 1 or 3x1 gamma vals
+        desiredRamp = desiredRamp**(1.0/numpy.array(testGamma))
+
+    win.gamma = testGamma
+
+    for n in range(5):
+        win.flip()
+
+    setRamp = win.backend.getGammaRamp()
+
+    win.close()
+
+    # can't get/set LUT in travis
+    utils.skip_under_travis()
+
+    assert numpy.allclose(desiredRamp, setRamp, atol=1.0 / desiredRamp.shape[1])
+
+
+def test_gammaSetGetMatch():
+    """test that repeatedly getting and setting the gamma table has no
+    cumulative effect."""
+
+    startGammaTable = None
+
+    n_repeats = 2
+
+    for _ in range(n_repeats):
+
+        win = visual.Window([600, 600], autoLog=False)
+
+        for _ in range(5):
+            win.flip()
+
+        if startGammaTable is None:
+            startGammaTable = win.backend.getGammaRamp()
+        else:
+            currGammaTable = win.backend.getGammaRamp()
+
+            assert numpy.all(currGammaTable == startGammaTable)
+
+        win.close()
+
+    utils.skip_under_travis()
+
 
 if __name__=='__main__':
     test_high_gamma()

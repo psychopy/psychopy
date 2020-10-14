@@ -1,44 +1,49 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """
 Demo using the new (beta) MovieStim2 to play a video file. Path of video
 needs to updated to point to a video you have. MovieStim2 does /not/ require
-avbin to be installed. But...
+avbin to be installed.
 
 Movie2 does require:
-~~~~~~~~~~~~~~~~~~~~~
-
 1. Python OpenCV package (so openCV libs and the cv2 python interface).
-    *. For Windows, a binary installer is available at http://www.lfd.uci.edu/~gohlke/pythonlibs/#opencv
-    *. For Linux, it is available via whatever package manager you use.
-    *. For OSX, ..... ?
-2. VLC application. Just install the standard VLC (32bit) for your OS. http://www.videolan.org/vlc/index.html
+    * For Windows, a binary installer is available at
+        http: //www.lfd.uci.edu/~gohlke/pythonlibs/  # opencv
+    * For Linux, it is available via whatever package manager you use.
+    * For OSX, ..... ?
+2. VLC application. The architeceture of this needs to match your psychopy/python installation 64/32 bit
+    whether or not your *operating system* is 64/32 bit
+    http: //www.videolan.org/vlc/index.html
 """
+
+from __future__ import division
 
 from psychopy import visual, core, event
 import time, os
 
-videopath=r'./jwpIntro.mov'
-videopath = os.path.join(os.getcwd(),videopath)
+videopath = r'./jwpIntro.mov'
+videopath = os.path.join(os.getcwd(), videopath)
 if not os.path.exists(videopath):
-    raise RuntimeError("Video File could not be found:"+videopath)
-    
+    raise RuntimeError("Video File could not be found:" + videopath)
+
 win = visual.Window([1024, 768])
 
 # Create your movie stim.
 mov = visual.MovieStim2(win, videopath,
-                       size=640,
-                       # pos specifies the /center/ of the movie stim location
-                       pos=[0, 100],
-                       flipVert=False,
-                       flipHoriz=False,
-                       loop=False)
+    size=640,
+    # pos specifies the /center/ of the movie stim location
+    pos=[0, 100],
+    flipVert=False, flipHoriz=False,
+    loop=False)
 
 keystext = "PRESS 'q' or 'escape' to Quit.\n"
-keystext += "#     's': Stop/restart Movie.\n"
-keystext += "#     'p': Pause/Unpause Movie.\n"
-keystext += "#     '>': Seek Forward 1 Second.\n"
-keystext += "#     '<': Seek Backward 1 Second.\n"
-keystext += "#     '-': Decrease Movie Volume.\n"
-keystext += "#     '+': Increase Movie Volume."
+keystext += "  #     's': Stop/restart Movie.\n"
+keystext += "  #     'p': Pause/Unpause Movie.\n"
+keystext += "  #     '>': Seek Forward 1 Second.\n"
+keystext += "  #     '<': Seek Backward 1 Second.\n"
+keystext += "  #     '-': Decrease Movie Volume.\n"
+keystext += "  #     '+': Increase Movie Volume."
 text = visual.TextStim(win, keystext, pos=(0, -250), units = 'pix')
 
 # Start the movie stim by preparing it to play
@@ -63,7 +68,7 @@ while mov.status != visual.FINISHED:
         if key in ['escape', 'q']:
             win.close()
             core.quit()
-        elif key in ['s',]:
+        elif key in ['s', ]:
             if mov.status in [visual.PLAYING, visual.PAUSED]:
                 # To stop the movie being played.....
                 mov.stop()
@@ -77,7 +82,7 @@ while mov.status != visual.FINISHED:
                 # To replay a movie that was stopped.....
                 mov.loadMovie(videopath)
                 shouldflip = mov.play()
-        elif key in ['p',]:
+        elif key in ['p', ]:
             # To pause the movie while it is playing....
             if mov.status == visual.PLAYING:
                 mov.pause()
@@ -88,20 +93,23 @@ while mov.status != visual.FINISHED:
                 win.flip()
         elif key == 'period':
             # To skip ahead 1 second in movie.
-            ntime = min(mov.getCurrentFrameTime()+1.0, mov.duration)
+            ntime = min(mov.getCurrentFrameTime() + 1.0, mov.duration)
             mov.seek(ntime)
         elif key == 'comma':
             # To skip back 1 second in movie ....
-            ntime = max(mov.getCurrentFrameTime()-1.0,0.0)
+            ntime = max(mov.getCurrentFrameTime() - 1.0, 0.0)
             mov.seek(ntime)
         elif key == 'minus':
             # To decrease movie sound a bit ....
-            cv = max(mov.getVolume()-5, 0)
+            cv = max(mov.getVolume() - 5, 0)
             mov.setVolume(cv)
         elif key == 'equal':
             # To increase movie sound a bit ....
             cv = mov.getVolume()
-            cv = min(mov.getVolume()+5, 100)
+            cv = min(mov.getVolume() + 5, 100)
             mov.setVolume(cv)
 
+win.close()
 core.quit()
+
+# The contents of this file are in the public domain.

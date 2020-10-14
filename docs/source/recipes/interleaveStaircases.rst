@@ -1,4 +1,4 @@
-.. _interleavedStairs::
+.. _interleavedStairs:
 
 Coder - interleave staircases
 ================================

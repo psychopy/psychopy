@@ -1,134 +1,168 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """Basic functions, including timing, rush (imported), quit
 """
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-import sys, threading
-from clock import MonotonicClock, Clock, CountdownTimer, wait, monotonicClock, getAbsTime
-# always safe to call rush, even if its not going to do anything for a particular OS
-from psychopy.platform_specific import rush
-from . import logging
-from constants import STARTED, NOT_STARTED, FINISHED
-import subprocess, shlex
+from __future__ import absolute_import, division, print_function
 
-runningThreads=[] # just for backwards compatibility?
+from builtins import object
+import sys
+import threading
+import subprocess
+import shlex
+import locale
 
-# Set getTime in core to == the monotonicClock instance created in the clockModule.
-# The logging module sets the defaultClock to == clock.monotonicClock,
-# so by default the core.getTime() and logging.defaultClock.getTime()
-# functions return the 'same' timebase.
-#
-# This way 'all' OSs have a core.getTime() timebase that starts at 0.0 when the experiment
-# is launched, instead of it being this way on Windows only (which was also a
-# descripancy between OS's when win32 was using time.clock).
-def getTime():
-    """Get the current time since psychopy.core was loaded.
+# some things are imported just to be accessible within core's namespace
+from psychopy.clock import (MonotonicClock, Clock, CountdownTimer,
+                            wait, monotonicClock, getAbsTime,
+                            StaticPeriod)  # pylint: disable=W0611
 
-    Version Notes: Note that prior to PsychoPy 1.77.00 the behaviour of getTime()
-    was platform dependent (on OSX and linux it was equivalent to :func:`psychopy.core.getAbsTime`
-    whereas on windows it returned time since loading of the module, as now)"""
-    return monotonicClock.getTime()
+# always safe to call rush, even if its not going to do anything for a
+# particular OS
+from psychopy.platform_specific import rush  # pylint: disable=W0611
+from psychopy import logging
+from psychopy.constants import STARTED, NOT_STARTED, FINISHED, PY3
 
 try:
     import pyglet
     havePyglet = True
-    checkPygletDuringWait = True # may not want to check, to preserve terminal window focus
-except:
+    # may not want to check, to preserve terminal window focus
+    checkPygletDuringWait = True
+except ImportError:
     havePyglet = False
     checkPygletDuringWait = False
+
+try:
+    import glfw
+    haveGLFW = True
+except ImportError:
+    haveGLFW = False
+
+runningThreads = []  # just for backwards compatibility?
+openWindows = []  # visual.Window updates this, event.py and clock.py use it
+
+# Set getTime in core to == the monotonicClock instance created in the
+# clockModule.
+# The logging module sets the defaultClock to == clock.monotonicClock,
+# so by default the core.getTime() and logging.defaultClock.getTime()
+# functions return the 'same' timebase.
+#
+# This way 'all' OSs have a core.getTime() timebase that starts at 0.0 when
+# the experiment is launched, instead of it being this way on Windows only
+# (which was also a descripancy between OS's when win32 was using time.clock).
+
+
+def getTime(applyZero = True):
+    """Get the current time since psychopy.core was loaded.
+
+
+
+    Version Notes: Note that prior to PsychoPy 1.77.00 the behaviour of
+    getTime() was platform dependent (on OSX and linux it was equivalent to
+    :func:`psychopy.core.getAbsTime`
+    whereas on windows it returned time since loading of the module, as now)
+    """
+    return monotonicClock.getTime(applyZero)
+
 
 def quit():
     """Close everything and exit nicely (ending the experiment)
     """
-    #pygame.quit() #safe even if pygame was never initialised
+    # pygame.quit()  # safe even if pygame was never initialised
     logging.flush()
-    for thisThread in threading.enumerate():
-        if hasattr(thisThread,'stop') and hasattr(thisThread,'running'):
-            #this is one of our event threads - kill it and wait for success
-            thisThread.stop()
-            while thisThread.running==0:
-                pass#wait until it has properly finished polling
-    sys.exit(0)#quits the python session entirely
 
-def shellCall(shellCmd, stdin='', stderr=False):
+    for thisThread in threading.enumerate():
+        if hasattr(thisThread, 'stop') and hasattr(thisThread, 'running'):
+            # this is one of our event threads - kill it and wait for success
+            thisThread.stop()
+            while thisThread.running == 0:
+                pass  # wait until it has properly finished polling
+
+    sys.exit(0)  # quits the python session entirely
+
+
+def shellCall(shellCmd, stdin='', stderr=False, env=None, encoding=None):
     """Call a single system command with arguments, return its stdout.
-    Returns stdout,stderr if stderr is True.
-    Handles simple pipes, passing stdin to shellCmd (pipes are untested on windows)
-    can accept string or list as the first argument
+    Returns stdout, stderr if stderr is True.
+    Handles simple pipes, passing stdin to shellCmd (pipes are untested
+    on windows) can accept string or list as the first argument
+
+    Parameters
+    ----------
+    shellCmd : str, or iterable
+        The command to execute, and its respective arguments.
+
+    stdin : str, or None
+        Input to pass to the command.
+
+    stderr : bool
+        Whether to return the standard error output once execution is finished.
+
+    env : dict
+        The environment variables to set during execution.
+
+    encoding : str
+        The encoding to use for communication with the executed command.
+        This argument will be ignored on Python 2.7.
+
+    Notes
+    -----
+    We use ``subprocess.Popen`` to execute the command and establish
+    `stdin` and `stdout` pipes.
+    Python 2.7 always opens the pipes in text mode; however,
+    Python 3 defaults to binary mode, unless an encoding is specified.
+    To unify pipe communication across Python 2 and 3, we now provide an
+    `encoding` parameter, enforcing `utf-8` text mode by default.
+    This parameter is present from Python 3.6 onwards; using an older
+    Python 3 version will raise an exception. The parameter will be ignored
+    when running Python 2.7.
+
     """
+    if encoding is None:
+        encoding = locale.getpreferredencoding()
+
     if type(shellCmd) == str:
-        shellCmdList = shlex.split(shellCmd) # safely split into cmd+list-of-args, no pipes here
-    elif type(shellCmd) == list: # handles whitespace in filenames
+        # safely split into cmd+list-of-args, no pipes here
+        shellCmdList = shlex.split(shellCmd)
+    elif type(shellCmd) == bytes:
+        # safely split into cmd+list-of-args, no pipes here
+        shellCmdList = shlex.split(shellCmd.decode('utf-8'))
+    elif type(shellCmd) in (list, tuple):  # handles whitespace in filenames
         shellCmdList = shellCmd
     else:
-        return None, 'shellCmd requires a list or string'
-    proc = subprocess.Popen(shellCmdList, stdin=subprocess.PIPE,
-                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        msg = 'shellCmd requires a string or iterable.'
+        raise TypeError(msg)
+
+    cmdObjects = []
+    for obj in shellCmdList:
+        if type(obj) != bytes:
+            cmdObjects.append(obj)
+        else:
+            cmdObjects.append(obj.decode('utf-8'))
+
+    # Since Python 3.6, we can use the `encoding` parameter.
+    if PY3:
+        if sys.version_info.minor >= 6:
+            proc = subprocess.Popen(cmdObjects, stdin=subprocess.PIPE,
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE,
+                                    encoding=encoding, env=env)
+        else:
+            msg = 'shellCall() requires Python 2.7, or 3.6 and newer.'
+            raise RuntimeError(msg)
+    else:
+        proc = subprocess.Popen(cmdObjects, stdin=subprocess.PIPE,
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE, env=env)
+
     stdoutData, stderrData = proc.communicate(stdin)
+
     del proc
     if stderr:
         return stdoutData.strip(), stderrData.strip()
     else:
         return stdoutData.strip()
-
-class StaticPeriod(object):
-    """A class to help insert a timing period that includes code to be run.
-
-    Typical usage::
-
-        fixation.draw()
-        win.flip()
-        ISI = StaticPeriod(screenHz=60)
-        ISI.start(0.5) #start a period of 0.5s
-        stim.image = 'largeFile.bmp' #could take some time
-        ISI.complete() #finish the 0.5s, taking into account one 60Hz frame
-
-        stim.draw()
-        win.flip() #the period takes into account the next frame flip
-        #time should now be at exactly 0.5s later than when ISI.start() was called
-
-    """
-
-    #NB - this might seem to be more sensible in the clock.py module, but that creates a circular reference
-    # with the logging module.
-
-    def __init__(self, screenHz=None, win=None, name='StaticPeriod'):
-        """
-        :param screenHz: the frame rate of the monitor (leave as None if you don't want this accounted for)
-        :param win: if a visual.Window is given then StaticPeriod will also pause/restart frame interval recording
-        :param name: give this StaticPeriod a name for more informative logging messages
-        """
-        self.status=NOT_STARTED
-        self.countdown = CountdownTimer()
-        self.name = name
-        self.win = win
-        if screenHz is None:
-            self.frameTime = 0
-        else:
-            self.frameTime = 1.0/screenHz
-    def start(self, duration):
-        """Start the period. If this is called a second time, the timer will be reset and starts again
-        """
-        self.status = STARTED
-        self.countdown.reset(duration)
-        #turn off recording of frame intervals throughout static period
-        if self.win:
-            self.win.recordFrameIntervals = False
-            self._winWasRecordingIntervals = self.win.recordFrameIntervals
-    def complete(self):
-        """Completes the period, using up whatever time is remaining with a call to wait()
-
-        :return: 1 for success, 0 for fail (the period overran)
-        """
-        self.status=FINISHED
-        timeRemaining = self.countdown.getTime()
-        if self.win:
-            self.win.recordFrameIntervals = self._winWasRecordingIntervals
-        if timeRemaining<0:
-            import logging#we only do this if we need it - circular import
-            logging.warn('We overshot the intended duration of %s by %.4fs. The intervening code took too long to execute.' %(self.name, abs(timeRemaining)))
-            return 0
-        else:
-            wait(timeRemaining)
-            return 1

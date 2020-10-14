@@ -1,11 +1,11 @@
-import pyglet
-from pyglet.window import key
-from psychopy.visual import Window, shape, TextStim, GratingStim, Circle
+from __future__ import print_function
+
+from builtins import str
+from builtins import range
+from builtins import object
+import pytest
+from psychopy.visual import Window
 from psychopy.visual.windowframepack import ProjectorFramePacker
-from psychopy import event, core
-from psychopy.constants import *
-from psychopy.tests import utils
-import pytest, copy
 
 """define ProjectorFramePack configurations, test the logic
 
@@ -16,7 +16,7 @@ import pytest, copy
 
 
 @pytest.mark.projectorframepacker
-class Test_class_ProjectorFramePacker:
+class Test_class_ProjectorFramePacker(object):
     """
     """
     def setup_class(self):
@@ -28,14 +28,14 @@ class Test_class_ProjectorFramePacker:
         self.win.close()
 
     def flip (self, frames=120):
-        for i in range(frames): 
+        for i in range(frames):
             self.win.flip()
 
 if __name__ == '__main__':
     cls = Test_class_ProjectorFramePacker()
     cls.setup_class()
     originalFPS = cls.win.fps()
-    print 'originalFPS = ' + str(originalFPS)
+    print('originalFPS = ' + str(originalFPS))
     cls.flip(3)
     assert (cls.win.frames == 3)
     assert (cls.packer.flipCounter == 3)
@@ -43,6 +43,5 @@ if __name__ == '__main__':
     assert (cls.win.frames == 36)
     assert (cls.packer.flipCounter == 36)
     finalFPS = cls.win.fps()
-    print 'finalFPS = ' + str(finalFPS)
+    print('finalFPS = ' + str(finalFPS))
     cls.teardown_class()
-

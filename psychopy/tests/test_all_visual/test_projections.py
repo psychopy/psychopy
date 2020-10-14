@@ -1,9 +1,12 @@
+from __future__ import division
+from builtins import range
+from builtins import object
+from past.utils import old_div
 import pyglet
 from pyglet.window import key
 from psychopy.visual import Window, shape, TextStim, GratingStim, Circle
 from psychopy.visual.windowwarp import Warper
-from psychopy import event, core
-from psychopy.constants import *
+from psychopy import event, core 
 from psychopy.tests import utils
 import pytest, copy
 
@@ -27,9 +30,9 @@ backgroundColor=[1,1,1]
 
 class ProjectionsLinesAndCircles(object):
     """
-    Test jig for projection warping.  
-    Switch between warpings by pressing a key 'S'pherical, 'C'ylindrical, 'N'one, warp'F'ile.  
-    Click the mouse to set the eyepoint X, Y.  
+    Test jig for projection warping.
+    Switch between warpings by pressing a key 'S'pherical, 'C'ylindrical, 'N'one, warp'F'ile.
+    Click the mouse to set the eyepoint X, Y.
     Up / Down arrow or mousewheel to move eyepoint in and out.
     """
     def __init__(self, win, warper):
@@ -37,29 +40,34 @@ class ProjectionsLinesAndCircles(object):
         self.win = win
         self.warper = warper
 
-        self.stimT = TextStim(self.win, text='Null warper', units = 'pix', pos=(0, -140), alignHoriz='center', height=20)
+        self.stimT = TextStim(self.win, text='Null warper', units = 'pix',
+                              pos=(0, -140), height=20)
 
-        self.bl = -win.size / 2.0
+        self.bl = old_div(-win.size, 2.0)
         self.tl = (self.bl[0], -self.bl[1])
-        self.tr = win.size / 2.0 
+        self.tr = old_div(win.size, 2.0)
 
         self.stims = []
         self.degrees = 120
         nLines = 12
         for x in range(-nLines, nLines+1):
-            t = GratingStim(win,tex=None,units='deg',size=[2,win.size[1]],texRes=128,color=foregroundColor, pos=[float(x) / nLines * self.degrees,0])
+            t = GratingStim(win, tex=None, units='deg', size=[2, win.size[1]],
+                            texRes=128, color=foregroundColor,
+                            pos=[float(x) / nLines * self.degrees, 0])
             self.stims.append (t)
 
         for y in range (-nLines, nLines+1):
-            t = GratingStim(win,tex=None,units='deg',size=[win.size[0],2],texRes=128,color=foregroundColor,pos=[0,float(y)/nLines * self.degrees])
-            self.stims.append (t)
+            t = GratingStim(win, tex=None, units='deg', size=[win.size[0], 2],
+                            texRes=128, color=foregroundColor,
+                            pos=[0, float(y)/nLines * self.degrees])
+            self.stims.append(t)
 
-        for c in range (1, nLines+1): 
+        for c in range (1, nLines+1):
             t = Circle (win, radius=c * 10, edges=128, units='deg', lineWidth=4)
-            self.stims.append (t)
-        
+            self.stims.append(t)
+
         self.updateInfo()
-        
+
         self.keys = key.KeyStateHandler()
         win.winHandle.push_handlers(self.keys)
         self.mouse = event.Mouse(win=self.win)
@@ -76,29 +84,34 @@ class ProjectionsLinesAndCircles(object):
         self.check_keys()
         self._handleMouse()
         self.win.flip()
-    
+
     def updateInfo(self):
         try:
-            self.stimT.setText ("%s \n   eyePoint: %.3f, %.3f \n   eyeDistance: %.2f\n\nProjection: [s]pherical, [c]ylindrical, [n]one, warp[f]ile\nFlip: [h]orizontal, [v]ertical\nMouse: wheel = eye distance, click to set eyepoint\n[q]uit" % (
+            self.stimT.setText(
+                "%s \n   eyePoint: %.3f, %.3f \n   eyeDistance: %.2f\n\n"
+                "Projection: [s]pherical, [c]ylindrical, [n]one, warp[f]ile\n"
+                "Flip: [h]orizontal, [v]ertical\n"
+                "Mouse: wheel = eye distance, click to set eyepoint\n"
+                "[q]uit" % (
                 self.warper.warp,
                 self.warper.eyepoint[0], self.warper.eyepoint[1],
                 self.warper.dist_cm))
-        except:
+        except Exception:
             pass
 
     def check_keys(self):
         """Checks key input"""
         for keys in event.getKeys(timeStamped=True):
             k = keys[0]
-            if k in ['escape', 'q']: 
+            if k in ['escape', 'q']:
                 self.win.close()
                 sys.exit()
-            elif k in ['space']: 
-                for c in range (1,2): 
+            elif k in ['space']:
+                for c in range (1,2):
                     t = Circle(self.win, radius=c)
                     self.stims.append (t)
-                #for c in range (1,2): 
-                #    t = RadialStim(self.win) 
+                #for c in range (1,2):
+                #    t = RadialStim(self.win)
                 #    self.stims.append(t)
 
             # handle projections
@@ -109,8 +122,8 @@ class ProjectionsLinesAndCircles(object):
             elif k in ['n']:
                 self.warper.changeProjection (None, None, (0.5,0.5))
             elif k in ['f']:
-                self.warper.changeProjection ('warpfile', 
-                    r'..\data\sample.meshwarp.data', 
+                self.warper.changeProjection ('warpfile',
+                    r'..\data\sample.meshwarp.data',
                      (0.5,0.5))
 
             # flip horizontal and vertical
@@ -135,7 +148,7 @@ class ProjectionsLinesAndCircles(object):
             elif k in ['left']:
                 if (self.warper.eyepoint[0] > 0.1):
                     self.warper.eyepoint = (self.warper.eyepoint[0] - 0.1, self.warper.eyepoint[1])
-                    self.warper.changeProjection (self.warper.warp, None, self.warper.eyepoint) 
+                    self.warper.changeProjection (self.warper.warp, None, self.warper.eyepoint)
 
             self.updateInfo()
 
@@ -147,7 +160,7 @@ class ProjectionsLinesAndCircles(object):
             self.warper.changeProjection (self.warper.warp, self.warper.warpfile, self.warper.eyepoint)
             self.updateInfo()
 
-        pos = (self.mouse.getPos() + 1) / 2
+        pos = old_div((self.mouse.getPos() + 1), 2)
         leftDown = self.mouse.getPressed()[0]
         if leftDown:
             self.warper.changeProjection (self.warper.warp, self.warper.warpfile, pos)
@@ -156,7 +169,7 @@ class ProjectionsLinesAndCircles(object):
 
 
 @pytest.mark.windowwarp
-class Test_class_WindowWarp:
+class Test_class_WindowWarp(object):
     def setup_class(self):
         self.win = Window(monitor='testMonitor', screen=1, fullscr=True, color='gray', useFBO = True, autoLog=False)
         self.warper = Warper (self.win, warp='spherical', warpfile = "", warpGridsize = 128, eyepoint = [0.5, 0.5], flipHorizontal = False, flipVertical = False)
@@ -168,7 +181,7 @@ class Test_class_WindowWarp:
 
     def draw_projection (self, frames=120):
         self.g.updateInfo()
-        for i in range(frames): 
+        for i in range(frames):
             self.g.update_sweep()
 
     def test_spherical(self):
@@ -225,6 +238,6 @@ if __name__ == '__main__':
         # running interactive
         cls = Test_class_WindowWarp()
         cls.setup_class()
-        for i in range(2 * 60 * 60): 
+        for i in range(2 * 60 * 60):
             cls.g.update_sweep()
         win.close()

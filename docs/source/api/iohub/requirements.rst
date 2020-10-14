@@ -31,7 +31,7 @@ constrains should be noted:
    PsychoPy Window. However, position data is reported using the full screen
    area and size the window was created in. Therefore, for accurate window position
    reporting, the PsychoPy window must be made full screen.
-3. On OS X, Assistive Device support must be enabled when using psychopy.iohub.
+3. On macOS, Assistive Device support must be enabled when using psychopy.iohub.
 
    * For OS X 10.7 - 10.8.5, instructions can be found
      `here <http://mizage.com/help/accessibility.html#10.8>`_.
@@ -42,7 +42,7 @@ constrains should be noted:
 Software Requirements
 ----------------------
 
-When running PsychoPy using the OS X or Windows standalone distribution,
+When running PsychoPy using the macOS or Windows standalone distribution,
 all the necessary python package dependencies have already been installed, so
 the rest of this section can be skipped.
 

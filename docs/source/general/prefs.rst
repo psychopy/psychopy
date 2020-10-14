@@ -5,6 +5,31 @@ The Preferences dialog allows to adjust general settings for different parts of 
 
 In rare cases, you might want to adjust the preferences on a per-experiment basis. See the API reference for the Preferences class :doc:`here</api/preferences>`.
 
+.. _generalSettings:
+
+General settings (General)
+--------------------------
+window type (winType):
+    PsychoPy can use one of two 'backends' for creating windows and drawing; pygame, pyglet and glfw. Here you can set the default backend to be used.
+
+units (units):
+    Default units for windows and visual stimuli ('deg', 'norm', 'cm', 'pix'). See :ref:`units`.  Can be overridden by individual experiments.
+
+full-screen (fullscr):
+    Should windows be created full screen by default? Can be overridden by individual experiments.
+
+allow GUI (allowGUI):
+	    When the window is created, should the frame of the window and the mouse pointer be visible. If set to False then both will be hidden.
+
+paths (paths):
+    Paths for additional Python packages can be specified. See more information :ref:`here<addModules>`.
+
+flac audio compression (flac):
+    Set flac audio compression.
+
+parallel ports (parallelPorts):
+    This list determines the addresses available in the drop-down menu for the :doc:`/builder/components/parallelout`.
+
 .. _applicationSettings:
 
 Application settings (App)
@@ -15,7 +40,7 @@ show start-up tips (showStartupTips):
     Display tips when starting PsychoPy.
 
 large icons (largeIcons):
-    Do you want large icons (on some versions of wx on OS X this has no effect)?
+    Do you want large icons (on some versions of wx on macOS this has no effect)?
 
 default view (defaultView):
     Determines which view(s) open when the PsychoPy app starts up. Default is ‘last’, which fetches the same views as were open when PsychoPy last closed.
@@ -85,7 +110,7 @@ output font size (outputFontSize):
     An integer between 6 and 24 that specifies the font size for output display in points.
 
 show source asst (showSourceAsst):
-    Do you want to show the source assistant panel (to the right of the Coder view)? On Windows this provides help about the current function if it can be found. On OS X the source assistant is of limited use and is disabled by default.
+    Do you want to show the source assistant panel (to the right of the Coder view)? On Windows this provides help about the current function if it can be found. On macOS the source assistant is of limited use and is disabled by default.
 
 show output (showOutput):
     Show the output panel in the Coder view. If shown all python output from the session will be output to this panel. Otherwise it will be directed to the original location (typically the terminal window that called PsychoPy application to open).
@@ -100,42 +125,10 @@ newline convention (newlineConvention):
     Specify which character sequence should be used to encode newlines in code files: unix = \n (line feed only), dos = \r\n (carriage return plus line feed). 
 
 
-.. _generalSettings:
-
-General settings (General)
--------------------
-window type (winType):
-    PsychoPy can use one of two 'backends' for creating windows and drawing; pygame and pyglet. Here you can set the default backend to be used.
-    
-units (units):
-    Default units for windows and visual stimuli ('deg', 'norm', 'cm', 'pix'). See :ref:`units`.  Can be overridden by individual experiments.
-    
-full-screen (fullscr):
-    Should windows be created full screen by default? Can be overridden by individual experiments.
-
-allow GUI (allowGUI):
-	    When the window is created, should the frame of the window and the mouse pointer be visible. If set to False then both will be hidden.
-
-paths (paths):
-    Paths for additional Python packages can be specified. See more information :ref:`here<addModules>`.
-
-audio library (audioLib):
-    As explained in the :doc:`Sound</api/sound>` documentation, currently two sound libraries are available, pygame and pyo.
-
-audio driver (audioDriver):
-    Also, different audio drivers are available.
-
-flac audio compression (flac):
-    Set flac audio compression.
-
-parallel ports (parallelPorts):
-    This list determines the addresses available in the drop-down menu for the :doc:`/builder/components/parallelout`.
-
-
 .. _connectionSettings:
 
 Connection settings (Connections)
----------------------------
+---------------------------------
 
 proxy (proxy):
     The proxy server used to connect to the internet if needed. Must be of the form \http://111.222.333.444:5555
@@ -152,6 +145,30 @@ check for updates (checkForUpdates):
 timeout (timeout):
     Maximum time in seconds to wait for a connection response.
 
+
+.. _hardwareSettings:
+
+Hardware settings
+---------------------
+
+audioLib :
+    Select your choice of audio library with a list of names specifying the order they should be tried.
+    We recommend `['PTB', 'sounddevice', 'pyo', 'pygame']` for lowest latency.
+
+audioLatencyMode : 0, 1, 2, 3, 4
+    Latency mode for PsychToolbox audio (3 is good for most applications. See :ref:`PTB_latency_mode`
+
+audioDriver: 'portaudio'
+    Some of PsychoPy's audio engines provide the option not to sue portaudio but go directly to another lib (e.g. to coreaudio) but some don't allow that
+
+    # audio driver to use
+    audioDriver = list(default=list('portaudio'))
+    # audio device to use (if audioLib allows control)
+    audioDevice = list(default=list('default'))
+    # a list of parallel ports
+    parallelPorts = list(default=list('0x0378', '0x03BC'))
+    # The name of the Qmix pump configuration to use
+    qmixConfiguration = string(default='qmix_config')
 
 .. _keyBindings:
 

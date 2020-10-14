@@ -3,3 +3,8 @@ branch = True
 omit =
     /usr/*
     /home/travis/virtualenv/*
+    psychopy/demos/*
+    psychopy/tests/*
+    psychopy/scripts/*
+    psychopy/iohub/*
+    psychopy/contrib/*

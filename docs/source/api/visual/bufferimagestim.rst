@@ -16,7 +16,6 @@ Attributes
     BufferImageStim.stim
     BufferImageStim.mask
     BufferImageStim.units
-    BufferImageStim.sf
     BufferImageStim.pos
     BufferImageStim.ori
     BufferImageStim.size

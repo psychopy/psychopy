@@ -1,3 +1,6 @@
+from __future__ import print_function
+from builtins import next
+from builtins import range
 from psychopy import visual, core, data, event
 from numpy.random import shuffle
 import copy, time #from the std python libs
@@ -32,8 +35,8 @@ for trialN in range(info['nTrials']):
     shuffle(stairs) #this shuffles 'in place' (ie stairs itself is changed, nothing returned)
     #then loop through our randomised order of staircases for this repeat
     for thisStair in stairs:
-        thisIntensity = thisStair.next()
-        print 'start=%.2f, current=%.4f' %(thisStair.extraInfo['thisStart'], thisIntensity)
+        thisIntensity = next(thisStair)
+        print('start=%.2f, current=%.4f' %(thisStair.extraInfo['thisStart'], thisIntensity))
         
         #---------------------
         #run your trial and get an input

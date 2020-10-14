@@ -1,4 +1,7 @@
+from __future__ import division
 
+from builtins import object
+from past.utils import old_div
 from psychopy import microphone, core, web
 from psychopy.microphone import *
 from psychopy.microphone import _getFlacPath
@@ -71,7 +74,7 @@ class TestMicrophone(object):
 
         old_size = os.path.getsize(mic.savedFile)
         new_file = mic.resample(keep=False)
-        assert old_size / 3.1 < os.path.getsize(new_file) < old_size / 2.9
+        assert old_div(old_size, 3.1) < os.path.getsize(new_file) < old_div(old_size, 2.9)
         mic.getLoudness()
 
         mic.playback()
@@ -105,7 +108,7 @@ class TestMicrophoneNoSound(object):
     def setup_class(self):
         try:
             assert _getFlacPath()
-        except:
+        except Exception:
             # some of the utils could be designed not to need flac but they
             # currently work on a file that is distributed in flac format
             pytest.skip()
@@ -137,7 +140,7 @@ class TestMicrophoneNoSound(object):
     def test_wav_flac(self):
         filename = os.path.join(self.tmp, 'test_bad_readWav')
         with open(filename, 'wb') as fd:
-            fd.write('x')
+            fd.write(b'x')
         with pytest.raises(SoundFileError):
             readWavFile(filename)
 
@@ -145,14 +148,9 @@ class TestMicrophoneNoSound(object):
         newFile = wav2flac(testFile, keep=True)
         flac2wav(newFile, keep=True)
 
-        c = core.Clock()
         newFile0 = wav2flac(testFile, keep=True, level=0)
-        t0 = c.getTime()
-        c.reset()
         newFile8 = wav2flac(testFile, keep=True, level=8)
-        t8 = c.getTime()
         assert os.path.getsize(newFile0) >= os.path.getsize(newFile8)
-        assert t0 < t8
 
         wav2flac('.', keep=True)
         flac2wav('.', keep=True)

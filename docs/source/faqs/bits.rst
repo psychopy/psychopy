@@ -10,4 +10,4 @@ There are a number of reasons why the T-lock code is not being recognised:
 * the T-lock code is on an 'odd' pixel. 
 * the graphics card is doing some additional filtering (win32). Make sure you turn off any filtering in the advanced display properties for your graphics card
 * the gamma table of the graphics card is not set to be linear (but this should normally be handled by PsychoPy, so don't worry so much about it).
-* you've got a Mac that's performing temporal dithering (new macs, around 2009). Apple have come up with a new, very annoying idea, where they continuously vary the pixel values coming out of the graphics card every frame to create additional intermediate colours. This will break the T-lock code on 1/2-2/3rds of frames. 
+* you've got a Mac that's performing temporal dithering (new Macs, around 2009). Apple have come up with a new, very annoying idea, where they continuously vary the pixel values coming out of the graphics card every frame to create additional intermediate colours. This will break the T-lock code on 1/2-2/3rds of frames.

@@ -1,0 +1,25 @@
+# The first key-value pair is used for the alerts package
+
+code: 3110
+cat: Timing
+msg: Your stimulus {type} time of {time} is less than a screen refresh for a {Hz}Hz monitor.
+
+# The following are typically used for online help pages, and support reStructured Text.
+label: Stimulus duration is less than one screen refresh
+
+synopsis: |
+  Your stimulus is scheduled to last for a duration that can't be achieved with a normal 60 Hz monitor. Duration will implicitly be round up (probably) to the next frame duration.
+  
+  Requested start or stop times of visual components cannot be presented for times requested.
+  Accurate presentation times must be in increments of your screen refresh rate.
+
+details: |
+  Stimuli can only be presented for a fixed number of screen refreshes. If you screen has a refresh rate of 60 Hz (common for standard monitors) then each screen refresh period lasts 1/60 s (roughly 16.6667 ms). That means you can present your stimulus for 16.7 ms but not for, say, 5 ms because that would require the stimulus to be presented for half of one screen refresh period.
+
+solutions: |
+  We recommend for brief stimuli that you simply specify your stimulus duration in terms of the number of frames it should be presented (e.g. 1, 2, 3, for 16.7, 33.3 and 50 ms respectively). That reminds you of what is possible and means that PsychoPy won't have to guess about what to do when the desired duration isn't achievable.
+
+  If you need stimuli to be presented for briefer durations than 16.7 ms then you should look into high-frame-rate displays (100, 120 and 144 Hz displays are all available). There are also now vraiable-frame-rate monitors that can vary the duration of each frame within limits. If you are *already* using a high- or variable-rate monitor then this alert may not be relevant to you.
+
+versions: |
+  All versions.

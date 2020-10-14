@@ -1,4 +1,10 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+from __future__ import division
+from builtins import range
+from builtins import object
+from past.utils import old_div
 import numpy as np
 import time
 import pyglet
@@ -23,11 +29,12 @@ class ProjectionsLinesAndCircles(object):
         self.window = window
         self.warper = warper
 
-        self.stimT = TextStim(self.window, text='Null warper', units = 'pix', pos=(0, -140), alignHoriz='center', height=20)
+        self.stimT = TextStim(self.window, text='Null warper',
+                              units = 'pix', pos=(0, -140), height=20)
 
-        self.bl = -window.size / 2.0
+        self.bl = old_div(-window.size, 2.0)
         self.tl = (self.bl[0], -self.bl[1])
-        self.tr = window.size / 2.0
+        self.tr = old_div(window.size, 2.0)
 
         self.stims = []
         self.degrees = 120
@@ -69,7 +76,7 @@ class ProjectionsLinesAndCircles(object):
                 self.warper.warp,
                 self.warper.eyepoint[0], self.warper.eyepoint[1],
                 self.warper.dist_cm))
-        except:
+        except Exception:
             pass
 
     def check_keys(self):
@@ -135,17 +142,19 @@ class ProjectionsLinesAndCircles(object):
             self.warper.changeProjection (self.warper.warp, self.warper.warpfile, self.warper.eyepoint)
             self.updateInfo()
 
-        pos = (self.mouse.getPos() + 1) / 2
+        pos = old_div((self.mouse.getPos() + 1), 2)
         leftDown = self.mouse.getPressed()[0]
         if leftDown:
             self.warper.changeProjection (self.warper.warp, self.warper.warpfile, pos)
             self.updateInfo()
 
 
-def mainProjectionsLinesAndCircles(params={'testlength':400}):
+def mainProjectionsLinesAndCircles(params=None):
     """
     ProjectionsLinesAndCircles test runner to test projections
     """
+    if not params:
+        params = {'testlength': 400}
     win = Window(monitor='LightCrafter4500', screen=1, fullscr=True, color='gray', useFBO = True, autoLog=False)
     warper = Warper (win, warp='spherical', warpfile = "", warpGridsize = 128, eyepoint = [0.5, 0.5], flipHorizontal = False, flipVertical = False)
 

@@ -1,10 +1,11 @@
 """ Test starting and stopping iohub server
 """
+from builtins import object
 from psychopy.tests.utils import skip_under_travis
 from psychopy.tests.test_iohub.testutil import startHubProcess, stopHubProcess
 
 @skip_under_travis
-class TestKeyboard:
+class TestKeyboard(object):
     """
     Keyboard Device tests. Starts iohub server, runs test set, then
     stops iohub server.

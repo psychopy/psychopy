@@ -1,9 +1,15 @@
+from __future__ import print_function
 
-import sys, os
+from builtins import object
+import os
+import io
 import pytest
+import warnings
 
-from psychopy.app import builder
-from psychopy.app.builder.components import getAllComponents
+from psychopy import constants
+from psychopy.experiment import getAllComponents
+from psychopy import experiment
+from pkg_resources import parse_version
 
 # use "python genComponsTemplate.py --out" to generate a new profile to test against
 #   = analogous to a baseline image to compare screenshots
@@ -16,42 +22,49 @@ profile = 'componsTemplate.txt'
 # should it be ok or an error if the param[field] order differs from the profile?
 ignoreOrder = True
 
+# ignore attributes that are there because inherit from object
+ignoreObjectAttribs = True
+ignoreList = ['<built-in method __', "<method-wrapper '__", '__slotnames__:']
+
+
 # profile is not platform specific, which can trigger false positives.
 # allowedVals can differ across platforms or with prefs:
 ignoreParallelOutAddresses = True
 
 @pytest.mark.components
-class TestComponents():
-
+class TestComponents(object):
     @classmethod
     def setup_class(cls):
-        cls.exp = builder.experiment.Experiment() # create once, not every test
+        cls.exp = experiment.Experiment() # create once, not every test
         cls.here = os.path.abspath(os.path.dirname(__file__))
         cls.baselineProfile = os.path.join(cls.here, profile)
 
         # should not need a wx.App with fetchIcons=False
         try:
             cls.allComp = getAllComponents(fetchIcons=False)
-        except:
+        except Exception:
             import wx
-            if wx.version() < '2.9':
+            if parse_version(wx.__version__) < parse_version('2.9'):
                 tmpApp = wx.PySimpleApp()
             else:
                 tmpApp = wx.App(False)
-            try: from psychopy.app import localization
-            except: pass  # not needed if can't import it
+            try:
+                from psychopy.app import localization
+            except Exception:
+                pass  # not needed if can't import it
             cls.allComp = getAllComponents(fetchIcons=False)
 
     def setup(self):
         """This setup is done for each test individually
         """
         pass
+
     def teardown(self):
         pass
 
     def test_component_attribs(self):
-
-        target = open(self.baselineProfile, 'rU').read()
+        with io.open(self.baselineProfile, 'r', encoding='utf-8-sig') as f:
+            target = f.read()
         targetLines = target.splitlines()
         targetTag = {}
         for line in targetLines:
@@ -63,33 +76,44 @@ class TestComponents():
                 # handle multi-line default values, eg TextComponent.text.default
                 targetTag[t] += '\n' + line  # previous t value
 
-        param = builder.experiment.Param('', '')  # want its namespace
-        ignore = ['__doc__', '__init__', '__module__', '__str__']
+        param = experiment.Param('', '')  # want its namespace
+        ignore = ['__doc__', '__init__', '__module__', '__str__', 'next',
+                  '__unicode__', '__native__', '__nonzero__', '__long__']
 
         # these are for display only (cosmetic) and can end up being localized
         # so typically do not want to check during automated testing, at least
         # not when things are still new-ish and subject to change:
         ignore += ['hint',
                    'label',  # comment-out to compare labels when checking
-                   'categ'
+                   'categ',
+                   'next',
                    ]
+        for field in dir(param):
+            if field.startswith("__"):
+                ignore.append(field)
         fields = set(dir(param)).difference(ignore)
 
-        err = []
+        mismatched = []
         for compName in sorted(self.allComp):
             comp = self.allComp[compName](parentName='x', exp=self.exp)
             order = '%s.order:%s' % (compName, eval("comp.order"))
-            if not order+'\n' in target:
+
+            if order+'\n' not in target:
                 tag = order.split(':',1)[0]
                 try:
                     mismatch = order + ' <== ' + targetTag[tag]
                 except IndexError: # missing
                     mismatch = order + ' <==> NEW (no matching param in the reference profile)'
-                print mismatch.encode('utf8')
+                print(mismatch.encode('utf8'))
+
                 if not ignoreOrder:
-                    err.append(mismatch)
-            for parName in comp.params.keys():
+                    mismatched.append(mismatch)
+
+            for parName in comp.params:
                 # default is what you get from param.__str__, which returns its value
+                if not constants.PY3:
+                    if isinstance(comp.params[parName].val, unicode):
+                        comp.params[parName].val = comp.params[parName].val.encode('utf8')
                 default = '%s.%s.default:%s' % (compName, parName, comp.params[parName])
                 lineFields = []
                 for field in fields:
@@ -101,9 +125,22 @@ class TestComponents():
                     lineFields.append(f)
 
                 for line in [default] + lineFields:
+                    # some attributes vary by machine so don't check those
                     if line.startswith('ParallelOutComponent.address') and ignoreParallelOutAddresses:
                         continue
-                    if not line+'\n' in target:
+                    elif line.startswith('SettingsComponent.OSF Project ID.allowedVals'):
+                        continue
+                    elif ('SettingsComponent.Use version.allowedVals' in line or
+                        'SettingsComponent.Use version.__dict__' in line):
+                        # versions available on travis-ci are only local
+                        continue
+                    origMatch = line+'\n' in target
+                    lineAlt = (line.replace(":\'", ":u'")
+                                    .replace("\\\\","\\")
+                                    .replace("\\'", "'"))
+                    # start checking params
+                    if not (line+'\n' in target
+                            or lineAlt+'\n' in target):
                         # mismatch, so report on the tag from orig file
                         # match checks tag + multi-line, because line is multi-line and target is whole file
                         tag = line.split(':',1)[0]
@@ -111,6 +148,25 @@ class TestComponents():
                             mismatch = line + ' <== ' + targetTag[tag]
                         except KeyError: # missing
                             mismatch = line + ' <==> NEW (no matching param in the reference profile)'
-                        print mismatch.encode('utf8')
-                        err.append(mismatch)
-        assert not err
+
+                        # ignore attributes that inherit from object:
+
+                        if ignoreObjectAttribs:
+                            for item in ignoreList:
+                                if item in mismatch:
+                                    break
+                            else:
+                                mismatched.append(mismatch)
+                        else:
+                            mismatched.append(mismatch)
+
+        for mismatch in mismatched:
+            warnings.warn("Non-identical Builder Param: {}".format(mismatch))
+
+
+@pytest.mark.components
+def test_flip_before_shutdown_in_settings_component():
+    exp = experiment.Experiment()
+    script = exp.writeScript()
+
+    assert 'Flip one final time' in script

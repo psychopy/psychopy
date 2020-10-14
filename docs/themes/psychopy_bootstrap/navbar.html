@@ -1,0 +1,51 @@
+  <div id="navbar" class="{{ theme_navbar_class }} navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand small-logo" href="{{ pathto('index') }}">
+          <img src="{{ pathto('_static/psychopyLogoType3_h240.png', 1) }}" alt="PsychoPy Logo">
+        </a>
+        <a class="navbar-brand large-logo" href="{{ pathto('index') }}">
+          <img src="{{ pathto('_static/psychopyLogoType3_h240.png', 1) }}" alt="PsychoPy Logo">
+        </a>
+        <!-- <span class="navbar-text navbar-version pull-right"><b>{{ version|e }}</b></span> -->
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse w-100 pull-right">
+          <ul class="nav navbar-nav ml-auto">
+            <li><a href="https://discourse.psychopy.org">Forum</a></li>
+            <li><a href="{{ pathto('download') }}" style="font-weight:bold">Download</a></li>
+            <li><a href="{{ pathto('documentation') }}">Documentation</a></li>
+
+            {% if theme_navbar_links %}
+              {%- for link in theme_navbar_links %}
+                <li><a href="{{ pathto(*link[1:]) }}">{{ link[0] }}</a></li>
+              {%- endfor %}
+            {% endif %}
+            {% block navbartoc %}
+              <!-- {% include "globaltoc.html" %} -->
+              {% if theme_navbar_pagenav %}
+                {% include "navbartoc.html" %}
+              {% endif %}
+            {% endblock %}
+            <!-- {% if theme_navbar_sidebarrel %}
+              {% block sidebarrel %}
+                {% include "relations.html" %}
+              {% endblock %}
+            {% endif %} -->
+            {% block navbarextra %}
+            {% endblock %}
+          </ul>
+
+            <!-- {% block navbarsearch %}
+              {% include "navbarsearchbox.html" %}
+            {% endblock %} -->
+
+        </div>
+    </div>
+  </div>

@@ -41,7 +41,7 @@ monitor_devices:
         simulation_mode: False
 
         # enable_interface_without_connection is a boolean specifying if the ioHub Device
-        # should be enabled without truely connecting to the underlying eye tracking
+        # should be enabled without truly connecting to the underlying eye tracking
         # hardware. If True, ioHub EyeTracker methods can be called but will
         # provide no-op results and no eye data will be received by the ioHub Server.
         # This mode can be useful for working on aspects of an eye tracking experiment when the
@@ -49,7 +49,7 @@ monitor_devices:
         # or other non eye tracker dependent experiment functionality.
         enable_interface_without_connection: False
 
-        # network_settings can be used to specify relevent network settings 
+        # network_settings can be used to specify relevant network settings 
         # by eye tracker implementations that use a net interface to connect the
         # ioHub eye tracker interface to the eye tracking system.
         # The eyetracker.hw.sr_research.eyelink.EyeTracker implementation uses this
@@ -82,8 +82,9 @@ monitor_devices:
             # Note that if FILTER_ALL is specified, and other sample data stream values are
             # ignored.
             sample_filtering:
-    #                FILTER_ALL: FILTER_LEVEL_1
-    #                FILTER_FILE: FILTER_LEVEL_2
+                #FILTER_LEVEL_1
+                #FILTER_ALL: FILTER_OFF
+                FILTER_FILE: FILTER_LEVEL_2
                 FILTER_ONLINE: FILTER_OFF
             # VOG settings allow you to specify some eye tracker parameters related to
             # the image processing or data collection procedure used by the eye tracker
@@ -157,7 +158,7 @@ monitor_devices:
             # target types CIRCLE_TARGET      
             target_type: CIRCLE_TARGET
 
-            # The asociated target attributes sub properties must be supplied
+            # The associated target attributes sub properties must be supplied
             # for the given target_type. If target type attribute sections are provided
             # for target types other than the entry associated with the specified target_type value
             # they will simple be ignored.
@@ -171,4 +172,4 @@ monitor_devices:
         # The model_name setting allows the definition of the eye tracker model being used.
         # For the eyelink implementation, valid values are:
         # 'EYELINK 1000 DESKTOP', 'EYELINK 1000 TOWER', 'EYELINK 1000 REMOTE', 'EYELINK 1000 LONG RANGE', 'EYELINK 2'
-        model_name: EYELINK 1000 TOWER
+        model_name: EYELINK 1000 DESKTOP

@@ -1,4 +1,6 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 """
 gc_cursor_demo/run.py
 
@@ -9,13 +11,16 @@ with the Eye Tracker Technology chosen at the start of the demo via a
 drop down list. Exact same demo script is used regardless of the
 Eye Tracker hardware used.
 
-Inital Version: May 6th, 2013, Sol Simpson
+Initial Version: May 6th, 2013, Sol Simpson
 Updated: July 30th, Sol
 """
+
+from __future__ import absolute_import, division, print_function
+
 from psychopy import visual
 from psychopy.data import TrialHandler,importConditions
-from psychopy.iohub import (ioHubExperimentRuntime, module_directory,
-                            getCurrentDateTimeString)
+from psychopy.iohub import ioHubExperimentRuntime, module_directory
+from psychopy.iohub.util import getCurrentDateTimeString
 import os
 
 class ExperimentRuntime(ioHubExperimentRuntime):
@@ -64,7 +69,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
         # in this demo.
         try:
             tracker=self.hub.devices.tracker
-        except:
+        except Exception:
             # No eye tracker config found in iohub_config.yaml
             from psychopy.iohub.util import MessageDialog
             md = MessageDialog(title="No Eye Tracker Configuration Found",
@@ -106,10 +111,6 @@ class ExperimentRuntime(ioHubExperimentRuntime):
                                     screen= display.getIndex() # The display index to use, assuming a multi display setup.
                                     )
 
-        # Hide the 'system mouse cursor' during the experiment.
-        #
-        mouse.setSystemCursorVisibility(False)
-
         # Create a dict of image stim for trials and a gaze blob to show the
         # reported gaze position with.
         #
@@ -125,11 +126,11 @@ class ExperimentRuntime(ioHubExperimentRuntime):
                                      pos=(0,0 ),size=(66,66),color='green',
                                                         units=coord_type)
 
-        # Create a Text Stim for use on /instuction/ type screens.
+        # Create a Text Stim for use on /instruction/ type screens.
         # Current units assume pix.
-        instructions_text_stim = visual.TextStim(window, text='', pos = [0,0],
-                                    height=24, color=[-1,-1,-1], colorSpace='rgb',
-                                    alignHoriz='center', alignVert='center',
+        instructions_text_stim = visual.TextStim(window, text='', pos=[0,0],
+                                    height=24,
+                                    color=[-1,-1,-1], colorSpace='rgb',
                                     wrapWidth=window.size[0]*.9)
 
 
@@ -278,7 +279,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
             # Save the experiment condition variable values for this
             # trial to the ioDataStore.
             #
-            self.hub.addRowToConditionVariableTable(trial.values())
+            self.hub.addTrialHandlerRecord(trial)
 
             # Clear all event buffers
             #

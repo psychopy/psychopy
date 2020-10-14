@@ -1,5 +1,0 @@
-# robots.txt for http://www.pymvpa.org
-
-User-agent: *
-Disallow: /files/pymvpa_exampledata.tar.bz2
-

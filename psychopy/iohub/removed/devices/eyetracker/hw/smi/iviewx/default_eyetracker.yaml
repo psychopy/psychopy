@@ -1,0 +1,150 @@
+eyetracker.hw.smi.iviewx.EyeTracker:
+    # Indicates if the device should actually be loaded at experiment runtime.
+    enable: True
+
+    # The variable name of the device that will be used to access the ioHub Device class
+    # during experiment run-time, via the devices.[name] attribute of the ioHub
+    # connection or experiment runtime class.
+    name: tracker
+
+    # Should eye tracker events be saved to the ioHub DataStore file when the device
+    # is recording data ?
+    save_events: True
+
+    # Should eye tracker events be sent to the Experiment process when the device
+    # is recording data ?
+    stream_events: True
+
+    # How many eye events (including samples) should be saved in the ioHub event buffer before
+    # old eye events start being replaced my new events when the event buffer reaches
+    # the maximum event length of the buffer defined here.
+    event_buffer_length: 1024
+
+    # The iViewX implementation of the common eye tracker interface supports the
+    # following event types:
+    # MonocularEyeSampleEvent, BinocularEyeSampleEvent, FixationStartEvent, FixationEndEvent  
+    # If you would like to exclude certain events from being saved or streamed during runtime, 
+    # remove them from the list below.
+    monitor_event_types: [ BinocularEyeSampleEvent, MonocularEyeSampleEvent]
+
+    # The iViewX network settings specify the pyViewX computer IIP and port and the
+    # iViewX Apllication / Server Computer IP and port. By default the configuration
+    # is set to the popular single PC configuration for the system.
+    network_settings:
+        send_ip_address: 127.0.0.1
+        # Port being used by iView X SDK for sending data to iView X 
+        send_port: 4444
+        # IP address of local computer
+        receive_ip_address: 127.0.0.1
+        # port being used by iView X SDK for receiving data from iView X
+        receive_port: 5555
+
+    runtime_settings:
+
+        # The iViewX supports, dependent on 
+        # model and mode, sampling rates of 50, 60, 120, 240, 200, 250, 350, 500, and 1250 Hz
+        # This is a READ-ONLY parameter with this implementation; it will be set at runtime by the iViewX system.
+        sampling_rate: 60
+
+        # The iViewX supports the following track_eyes values:  
+        # LEFT_EYE, RIGHT_EYE, BINOCULAR, BINOCULAR_AVERAGED
+        track_eyes: BINOCULAR_AVERAGED
+
+        # The SMI supports enabling or disabling sample filtering. Use the
+        # Sample stream type 'FILTER_ALL' with a filter level of either
+        # FILTER_OFF or FILTER_ON
+        sample_filtering:
+            FILTER_ALL: FILTER_OFF            
+
+        # VOG settings allow you to specify some eye tracker parameters related to
+        # the image processing or data collection procedure used by the eye tracker
+        # device. 
+        vog_settings:
+            # The iViewX supports one pupil_measure_types parameter that is used
+            # for any eyes being tracked. PUPIL_AREA, PUPIL_DIAMETER are
+            # valid pupil measure types for the iViewX.
+            # PUPIL_DIAMETER, PUPIL_DIAMETER_MM,
+            pupil_measure_types: PUPIL_DIAMETER
+
+    calibration:
+        # iViewX supports the following calibration type constants: 
+        type: NINE_POINTS
+
+        # auto_pace can be True or False. If True, the eye tracker will 
+        # automatically progress from one calibration point to the next.
+        # If False, a manual key or button press is needed to progress to
+        # the next point.
+        auto_pace: Yes
+
+        # pacing_speed represents how long a calibration point should
+        # be displayed before moving onto the next point when auto_pace 
+        # is set to true. iViewX supports two values for this field: FAST and SLOW
+        # If auto_pace is False, pacing_speed is ignored.
+        pacing_speed: SLOW
+
+        # For the iView system, screen_background_color specifies a greyscale 
+        # value (0 - 255) that gets used to dpecify the brightness of the calibration screen.
+        screen_background_color: 20
+
+        # target type defines what form of calibration graphic should be used
+        # during calibration, validation, etc. modes.
+        # The iView ioHub eye tracker implementation supports the following
+        # target types CIRCLE_TARGET, CROSSHAIR_TARGET, IMAGE_TARGET      
+        target_type: CIRCLE_TARGET
+        
+        # The associated target attributes sub properties must be supplied
+        # for the given target_type. If target type attribute sections are provided
+        # for target types other than the entry associated with the specified target_type value
+        # they will simple be ignored.
+        target_attributes:
+            target_size: 30
+            target_color: 239
+            target_inner_color: RED
+ 
+        # Should a Window showing the validation accuracy as a gaze point 
+        # overlay be displayed following a validation procedure?
+        show_validation_accuracy_window: True
+  
+    # The model_name setting allows the definition of the eye tracker model being used.
+    # For the iViewX implementation, valid values are:
+    # RED, REDm, HiSpeed, MRI, HED, ETG, or Custom
+    model_name: REDm
+
+    # manufacturer_name is used to store the name of the maker of the eye tracking
+    # device. This is for informational purposes only.
+    manufacturer_name: SensoMotoric Instruments GmbH
+
+    # serial_number: The serial number for the specific isnstance of device used
+    #   can be specified here. It is not used by the ioHub, so is FYI only.
+    #
+    serial_number: N/A
+
+    # manufacture_date: The date of manufactiurer of the device 
+    # can be specified here. It is not used by the ioHub,
+    # so is FYI only.
+    #   
+    manufacture_date: DD-MM-YYYY
+
+    # hardware_version: The device's hardware version can be specified here.
+    #   It is not used by the ioHub, so is FYI only.
+    #
+    hardware_version: N/A
+    
+    # firmware_version: If the device has firmware, its revision number
+    #   can be indicated here. It is not used by the ioHub, so is FYI only.
+    #
+    firmware_version: N/A
+
+    # model_number: The device model number can be specified here.
+    #   It is not used by the ioHub, so is FYI only.
+    #
+    model_number: N/A
+    
+    # software_version: The device driver and / or SDK software version number.
+    #   This field is not used by ioHub, so is FYI only. 
+    software_version: N/A
+
+    # device_number: The device number to assign to the Analog Input device. 
+    #   device_number is not used by this device type.
+    #
+    device_number: 0

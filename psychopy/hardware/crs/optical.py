@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-#coding=utf-8
+# -*- coding: utf-8 -*-
+
+from __future__ import absolute_import, division, print_function
 
 # Copyright (c) 2009-2012 Valentin Haenel <valentin.haenel@gmx.de>
 #
@@ -21,6 +23,11 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+from builtins import chr
+from builtins import str
+from builtins import range
+from builtins import object
+from past.utils import old_div
 """ Python interface to the CRS 'OptiCAL' photometer.
 
     Overview
@@ -57,8 +64,8 @@
         >>> op = pyoptical.OptiCAL('dev/dev/ttyUSB0')
         >>> try:
         >>>     op.read_luminance()
-        >>> except pyoptical.NACKException, e:
-        >>>     print e
+        >>> except pyoptical.NACKException as e:
+        >>>     print(e)
 
     Notes about the com-port
     ------------------------
@@ -168,6 +175,7 @@
     be put into 'current' mode at startup.
 
 """
+
 __version__ = "0.4"
 __author__ = "Valentin Haenel <valentin.haenel@gmx.de>"
 __docformat__ = "restructuredtext en"
@@ -270,7 +278,7 @@ class OptiCAL(object):
                 (string of bytes) - each character in the range 0<i<255
         """
         return "".join([self._read_eeprom_single(i)
-            for i in range(start, stop + 1)])
+                        for i in range(start, stop + 1)])
 
     def _read_product_type(self):
         return _to_int(self._read_eeprom(0, 1))
@@ -279,7 +287,7 @@ class OptiCAL(object):
         return _to_int(self._read_eeprom(2, 5))
 
     def _read_firmware_version(self):
-        return float(_to_int(self._read_eeprom(6, 7))) / 100
+        return old_div(float(_to_int(self._read_eeprom(6, 7))), 100)
 
     def _read_probe_serial_number(self):
         return int(self._read_eeprom(80, 95))
@@ -333,9 +341,9 @@ class OptiCAL(object):
     def read_luminance(self):
         """ the luminance in cd/m**2 """
         ADC_adjust = self._read_adc()
-        numerator = (float(ADC_adjust) / 524288) * self._V_ref * 1.e-6
+        numerator = (old_div(float(ADC_adjust), 524288)) * self._V_ref * 1.e-6
         denominator = self._R_feed * self._K_cal * 1.e-15
-        return max(0.0, numerator / denominator)
+        return max(0.0, old_div(numerator, denominator))
 
 
 def _to_int(byte_string):
@@ -358,11 +366,13 @@ class OptiCALException(Exception):
 
 class NACKException(OptiCALException):
     """ raised when the OptiCAL sends a NACK byte to signify an error"""
+
     def __str__(self):
         return "OptiCAL sent a NACK while trying to: %s" % self.message
 
 
 class TimeoutException(OptiCALException):
     """ raised when the OptiCAL does not respond within the timeout limit """
+
     def __str__(self):
         return "OptiCAL timeout while trying to: %s" % self.message

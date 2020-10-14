@@ -1,4 +1,7 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+from __future__ import print_function
 import sys, os
 import subprocess
 
@@ -44,5 +47,5 @@ if havePytest:
 else:
     command = '%s -u runPytest.py ' %(sys.executable)
     command = command + ' ' + ' '.join(extraArgs)
-print command
+print(command)
 subprocess.Popen(command, shell=True)

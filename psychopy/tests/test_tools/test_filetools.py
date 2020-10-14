@@ -4,10 +4,19 @@ Tests for psychopy.tools.filetools
 
 """
 import shutil
-from tempfile import mkdtemp
-from os.path import join as pjoin
-from psychopy.tools.filetools import genDelimiter, handleFileCollision, \
-                                     openOutputFile
+import os
+import sys
+import json
+import pickle
+import codecs
+import pytest
+
+from builtins import zip
+from builtins import object
+from tempfile import mkdtemp, mkstemp
+from psychopy.tools.filetools import (genDelimiter, genFilenameFromDelimiter,
+                                      openOutputFile, fromFile)
+from psychopy.constants import PY3
 
 
 def test_genDelimiter():
@@ -21,38 +30,99 @@ def test_genDelimiter():
         assert delimiter == correctDelimiter
 
 
-class TestOpenOutputFile():
+def test_genFilenameFromDelimiter():
+    base_name = 'testfile'
+    delims = [',', '\t', None]
+    correct_extensions = ['.csv', '.tsv', '.txt']
+
+    for delim, correct_extension in zip(delims, correct_extensions):
+        filename = genFilenameFromDelimiter(base_name, delim)
+        extension = os.path.splitext(filename)[1]
+        assert extension == correct_extension
+
+
+class TestOpenOutputFile(object):
     def setup_class(self):
         self.temp_dir = mkdtemp(prefix='psychopy-tests-testdata')
         self.rootName = 'test_data_file'
-        self.baseFileName = pjoin(self.temp_dir, self.rootName)
-        self.f = None
+        self.baseFileName = os.path.join(self.temp_dir, self.rootName)
 
     def teardown_class(self):
         shutil.rmtree(self.temp_dir)
 
-    def teardown_method(self, method):
-        self.f.close()
-
     def test_default_parameters(self):
-        self.f = openOutputFile(self.baseFileName)
+        with openOutputFile(self.baseFileName) as f:
+            assert f.encoding == 'utf-8-sig'
+            assert f.closed is False
+            assert f.stream.mode == 'wb'
 
     def test_append(self):
-        self.f = openOutputFile(self.baseFileName, append=True)
+        with openOutputFile(self.baseFileName, append=True) as f:
+            assert f.encoding == 'utf-8-sig'
+            assert f.closed is False
+            assert f.stream.mode == 'ab'
 
-    def test_delim_comma(self):
-        self.f = openOutputFile(self.baseFileName, delim=',')
+    def test_stdout(self):
+        f = openOutputFile(None)
+        assert f is sys.stdout
 
-    def test_delim_tab(self):
-        self.f = openOutputFile(self.baseFileName, delim='\t')
+        f = openOutputFile('stdout')
+        assert f is sys.stdout
 
-    def test_delim_delim_empty(self):
-        self.f = openOutputFile(self.baseFileName, delim='')
 
-    def test_append_and_delim(self):
-        self.f = openOutputFile(self.baseFileName, append=True,
-                                delim=',')
+class TestFromFile(object):
+    def setup(self):
+        self.tmp_dir = mkdtemp(prefix='psychopy-tests-%s' %
+                                      type(self).__name__)
 
-if __name__=='__main__':
-    import pytest
+    def teardown(self):
+        shutil.rmtree(self.tmp_dir)
+
+    def test_json_with_encoding(self):
+        _, path_0 = mkstemp(dir=self.tmp_dir, suffix='.json')
+        _, path_1 = mkstemp(dir=self.tmp_dir, suffix='.json')
+        encoding_0 = 'utf-8'
+        encoding_1 = 'utf-8-sig'
+
+        test_data = 'Test'
+
+        if PY3:
+            with open(path_0, 'w', encoding=encoding_0) as f:
+                json.dump(test_data, f)
+            with open(path_1, 'w', encoding=encoding_1) as f:
+                json.dump(test_data, f)
+        else:
+            with codecs.open(path_0, 'w', encoding=encoding_0) as f:
+                json.dump(test_data, f)
+            with codecs.open(path_1, 'w', encoding=encoding_1) as f:
+                json.dump(test_data, f)
+
+        assert test_data == fromFile(path_0, encoding=encoding_0)
+        assert test_data == fromFile(path_1, encoding=encoding_1)
+
+    def test_pickle(self):
+        _, path = mkstemp(dir=self.tmp_dir, suffix='.psydat')
+
+        test_data = 'Test'
+        with open(path, 'wb') as f:
+            pickle.dump(test_data, f)
+
+        assert test_data == fromFile(path)
+
+    def test_cPickle(self):
+        if PY3:
+            pytest.skip('Skipping cPickle test on Python 3')
+        else:
+            import cPickle
+
+        _, path = mkstemp(dir=self.tmp_dir, suffix='.psydat')
+
+        test_data = 'Test'
+        with open(path, 'wb') as f:
+            cPickle.dump(test_data, f)
+
+        assert test_data == fromFile(path)
+
+
+if __name__ == '__main__':
     pytest.main()

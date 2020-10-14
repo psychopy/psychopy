@@ -1,0 +1,66 @@
+monitor_devices:
+    - Display:
+        name: display
+        reporting_unit_type: pix
+        device_number: 0
+        physical_dimensions:
+            width: 590
+            height: 340
+            unit_type: mm
+        default_eye_distance:
+            surface_center: 500
+            unit_type: mm
+        psychopy_monitor_name: default
+
+    - Keyboard:
+        name: keyboard
+
+    - Mouse:
+        name: mouse
+
+    - Experiment:
+        name: experimentRuntime
+
+    - eyetracker.hw.gazepoint.gp3.EyeTracker:
+        enable: True
+    
+        # The variable name of the device that will be used to access the ioHub Device class
+        # during experiment run-time, via the devices.[name] attribute of the ioHub
+        # connection or experiment runtime class.
+        name: tracker
+    
+        # Should eye tracker events be saved to the ioHub DataStore file when the device
+        # is recording data ?
+        save_events: True
+    
+        # Should eye tracker events be sent to the Experiment process when the device
+        # is recording data ?
+        stream_events: True
+    
+        # How many eye events (including samples) should be saved in the ioHub event buffer before
+        # old eye events start being replaced by new events. When the event buffer reaches
+        # the maximum event length of the buffer defined here, older events will start to be dropped.
+        event_buffer_length: 1024
+    
+        # The GP3 implementation of the common eye tracker interface supports the
+        # BinocularEyeSampleEvent event type.
+        monitor_event_types: [ BinocularEyeSampleEvent, FixationStartEvent, FixationEndEvent]
+    
+        device_timer:
+            interval: 0.005
+    
+        calibration:        
+            # target_duration is the number of sec.msec that a calibration point should
+            # be displayed before moving onto the next point.
+            # (Sets the GP3 CALIBRATE_TIMEOUT)
+            target_duration: 1.25
+            # target_delay specifies the target animation duration in sec.msec.
+            # (Sets the GP3 CALIBRATE_DELAY)
+            target_delay: 0.5
+
+data_store:
+    enable: True
+    experiment_info:
+        code: ystart
+    session_info:
+        code: S0001    

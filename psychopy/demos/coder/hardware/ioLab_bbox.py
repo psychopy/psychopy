@@ -1,7 +1,11 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
-"""Demo to illustrate using ioLabs button box.
 """
+Demo to illustrate using ioLabs button box.
+"""
+
+from __future__ import absolute_import, division, print_function
 
 __author__ = 'Jonathan Roberts (orig demo); Jeremy Gray (rewrite 2013)'
 
@@ -16,28 +20,30 @@ bbox.setLights(buttons)  # turn on those two lights, others off
 bbox.setEnabled(buttons)  # ignore other buttons
 
 # show instructions, wait for spacebar
-myWin = visual.Window()
-instructions = visual.TextStim(myWin, wrapWidth = 1.8, height =.08,
-    text = '6 trials:\nhit the left lighted button when you see the word "left".\nhit the right lighted button when you see the word "right".\nhit space to start... <escape> to quit')
+win = visual.Window()
+instructions = visual.TextStim(win, wrapWidth = 1.8, height =.08,
+    text = '6 trials:\nhit the left lighted button when you see the word "left".\n'
+           'hit the right lighted button when you see the word "right".\n'
+           'hit space to start... < escape > to quit')
 instructions.draw()
-myWin.flip()
+win.flip()
 if 'escape' in event.waitKeys(['space', 'escape']):
     core.quit()
 
 # loop over fixation + left/right, get response
-fixation = visual.TextStim(myWin,text = '+')
-target = visual.TextStim(myWin, text = 'set during trial loop')
+fixation = visual.TextStim(win, text = '+')
+target = visual.TextStim(win, text = 'set during trial loop')
 labeledResponse = {1: 'left', 6: 'right'}
-stims = labeledResponse.values() * 3  # make a list of stims with 3 'lefts' and 3 'rights'
+stims = list(labeledResponse.values()) * 3  # ist of stims: 3 'lefts' and 3 'rights'
 random.shuffle(stims)
 
 for stim in stims:
     fixation.draw()
-    myWin.flip()
+    win.flip()
     core.wait(0.5 + random.random())
     target.setText(stim)
     target.draw()
-    myWin.flip()
+    win.flip()
     if event.getKeys(['q', 'escape']):
         break
 
@@ -46,8 +52,13 @@ for stim in stims:
     if not evt:
         break
     if  labeledResponse[evt.btn] == stim:  # evt.btn is int, evt.key is str
-        print 'correct', evt.btn, evt.rt   # evt.rt  is sec, evt.rtc is ms
+        print('correct', evt.btn, evt.rt)   # evt.rt  is sec, evt.rtc is ms
     else:
-        print 'wrong', evt.btn, evt.rt
+        print('wrong', evt.btn, evt.rt)
 
 bbox.standby()  # lights off
+
+win.close()
+core.quit()
+
+# The contents of this file are in the public domain.

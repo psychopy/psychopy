@@ -1,0 +1,5 @@
+index,questionText,options,layout,type
+1,Type an random number for your ID,,horiz,free text
+2,Please select your age,"18 - 26, 26 - 34, 34 - 42, 42 - 50, 50+",horiz,radio
+3,How many siblings do you have,"0, 1, 2, more than 2",horiz,radio
+4,Please select your current mood,"Happy, Sad",horiz,slider

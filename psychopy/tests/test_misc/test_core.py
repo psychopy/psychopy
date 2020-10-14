@@ -16,38 +16,48 @@ Tests the psychopy.core.getTime Function:
 Jan 2014, Jeremy Gray:
 - Coverage of .quit, .shellCall, and increased coverage of StaticPeriod()
 """
+from __future__ import print_function
+from __future__ import division
 
+from builtins import range
 import time
 import sys
 import numpy as np
+import gc
+import pytest
+
 import psychopy
 import psychopy.logging as logging
 from psychopy.visual import Window
-from psychopy.core import getTime, MonotonicClock, Clock, CountdownTimer, wait, StaticPeriod, shellCall
+from psychopy.core import (getTime, MonotonicClock, Clock, CountdownTimer, wait,
+                           StaticPeriod, shellCall)
 from psychopy.clock import monotonicClock
-import gc
+from psychopy.constants import PY3
 
-import pytest
 
-def testEmptyFunction():
+def test_EmptyFunction():
     pass
 
-PRINT_TEST_RESULTS=False
+PRINT_TEST_RESULTS = False
+
 
 def printf(*args):
     if PRINT_TEST_RESULTS:
         for a in args:
-            print a,
-        print ''
+            sys.stdout(a)
+        print('')
 
-py_time=None
-py_timer_name=None
+
+py_time = None
+py_timer_name = None
+
 if sys.platform == 'win32':
     py_time=time.clock
-    py_timer_name='time.clock'
+    py_timer_name = 'time.clock'
 else:
     py_time=time.time
-    py_timer_name='time.time'
+    py_timer_name = 'time.time'
+
 
 def printExceptionDetails():
     import traceback,pprint
@@ -56,13 +66,14 @@ def printExceptionDetails():
     pprint.pprint(exc_value, indent=1, width=80, depth=None)
     pprint.pprint(traceback.format_tb(exc_traceback), indent=1, width=80, depth=None)
 
+
 @pytest.mark.slow
-def testDelayDurationAccuracy(sample_size=100):
+def test_DelayDurationAccuracy(sample_size=100):
     # test with sample_size randomly selected durations between 0.05 and 1.0 msec
     durations=np.zeros((3,sample_size))
-    durations[0,:]=(np.random.random_integers(50,1000,sample_size)*0.001)
+    durations[0,:] = (np.random.randint(50, 1001, sample_size) * 0.001)
 
-    for t in xrange(sample_size):
+    for t in range(sample_size):
         cdur=durations[0][t]
         start_times=py_time(),getTime()
         stime=start_times[0]
@@ -100,12 +111,13 @@ def testDelayDurationAccuracy(sample_size=100):
         assert np.fabs(clockDurVsQpc.mean())<0.00001
         assert clockDurVsQpc.std()<0.000005
         printf("\nDuration Difference Test: PASSED")
-    except:
+    except Exception:
         printf("\nDuration Difference Test: FAILED")
     printf("-------------------------------------\n")
 
+
 @pytest.mark.slow
-def testTimebaseQuality(sample_size=1000):
+def test_TimebaseQuality(sample_size=1000):
     gc.disable()
 
     callTimes=np.zeros((5,sample_size))
@@ -113,7 +125,7 @@ def testTimebaseQuality(sample_size=1000):
     timer_clock_jumpbacks=0
     core_getTime_jumpbacks=0
 
-    for t in xrange(sample_size):
+    for t in range(sample_size):
        s=py_time()
        e=py_time()
        callTimes[0][t]=e-s
@@ -127,7 +139,7 @@ def testTimebaseQuality(sample_size=1000):
            core_getTime_jumpbacks+=1
 
        s=py_time()
-       x=testEmptyFunction()
+       x=test_EmptyFunction()
        e=py_time()
        callTimes[2][t]=e-s
 
@@ -169,7 +181,7 @@ def testTimebaseQuality(sample_size=1000):
         assert (callTimes[0].max()*1000.0)<0.1
         assert timer_clock_jumpbacks==0
         printf("\n%s Call Time / Resolution Test: PASSED"%(py_timer_name))
-    except:
+    except Exception:
         printf("\n%s Call Time / Resolution Test: FAILED"%(py_timer_name))
 
     try:
@@ -177,12 +189,13 @@ def testTimebaseQuality(sample_size=1000):
         assert (callTimes[1].max()*1000.0)<0.1
         assert core_getTime_jumpbacks==0
         printf("\ncore.getTime() Call Time / Resolution Test: PASSED")
-    except:
+    except Exception:
         printf("\ncore.getTime() Call Time / Resolution Test: FAILED")
 
     printf("-------------------------------------\n")
 
-def testMonotonicClock():
+
+def test_MonotonicClock():
     try:
         mc = MonotonicClock()
 
@@ -201,19 +214,19 @@ def testMonotonicClock():
         try:
             x=mc.timeAtLastReset
             assert 1=="MonotonicClock should not have an attribute called 'timeAtLastReset'."
-        except:
+        except Exception:
             pass
 
         try:
             x=mc.reset()
             assert 1=="MonotonicClock should not have a method 'reset()'."
-        except:
+        except Exception:
             pass
 
         try:
             x=mc.add()
             assert 1=="MonotonicClock should not have a method 'add()'."
-        except:
+        except Exception:
             pass
 
         printf(">> MonotonicClock Test: PASSED")
@@ -224,7 +237,8 @@ def testMonotonicClock():
 
     printf("-------------------------------------\n")
 
-def testClock():
+
+def test_Clock():
     try:
         c = Clock()
 
@@ -262,7 +276,8 @@ def testClock():
 
     printf("-------------------------------------\n")
 
-def testCountdownTimer():
+
+def test_CountdownTimer():
     try:
         cdt = CountdownTimer(5.0)
 
@@ -281,7 +296,8 @@ def testCountdownTimer():
 
     printf("-------------------------------------\n")
 
-def testWait(duration=1.55):
+
+def test_Wait(duration=1.55):
     try:
         t1=getTime()
         wait(duration)
@@ -313,11 +329,12 @@ def testWait(duration=1.55):
 
     printf("-------------------------------------\n")
 
-def testLoggingDefaultClock():
+
+def test_LoggingDefaultClock():
     try:
-        t1=logging.defaultClock.getTime()
-        t2=getTime()
-        t3=monotonicClock.getTime()
+        t1 = logging.defaultClock.getTime()
+        t2 = getTime()
+        t3 = monotonicClock.getTime()
 
         assert np.fabs(t1-t2) < 0.02
         assert np.fabs(t1-t3) < 0.02
@@ -333,8 +350,9 @@ def testLoggingDefaultClock():
 
     printf("-------------------------------------\n")
 
+
 @pytest.mark.staticperiod
-def testStaticPeriod():
+def test_StaticPeriod():
     static = StaticPeriod()
     static.start(0.1)
     wait(0.05)
@@ -346,9 +364,29 @@ def testStaticPeriod():
     win = Window(autoLog=False)
     static = StaticPeriod(screenHz=60, win=win)
     static.start(.002)
-    assert win.recordFrameIntervals == False
+    assert win.recordFrameIntervals is False
     static.complete()
     assert static._winWasRecordingIntervals == win.recordFrameIntervals
+    win.close()
+
+    # Test if screenHz parameter is respected, i.e., if after completion of the
+    # StaticPeriod, 1/screenHz seconds are still remaining, so the period will
+    # complete after the next flip.
+    refresh_rate = 100.0
+    period_duration = 0.1
+    timer = CountdownTimer()
+    win = Window(autoLog=False)
+
+    static = StaticPeriod(screenHz=refresh_rate, win=win)
+    static.start(period_duration)
+    timer.reset(period_duration )
+    static.complete()
+
+    assert np.allclose(timer.getTime(),
+                       1.0/refresh_rate,
+                       atol=0.001)
+    win.close()
+
 
 @pytest.mark.quit
 def test_quit():
@@ -356,25 +394,56 @@ def test_quit():
     with pytest.raises(SystemExit):
         psychopy.core.quit()
 
-@pytest.mark.shellCall
-def test_shellCall():
-    msg = 'echo'
-    cmd = ('grep', 'findstr')[sys.platform == 'win32']
 
-    for arg1 in [[cmd, msg],  cmd+' '+msg]:
-        echo = shellCall(arg1, stdin=msg)
-        assert echo == msg
-        echo, se = shellCall(arg1, stdin=msg, stderr=True)
-        assert echo == msg
-    echo, se = shellCall(12, stdin=msg)
-    assert echo is None
+@pytest.mark.shellCall
+class Test_shellCall(object):
+    def setup_class(self):
+        if sys.platform == 'win32':
+            self.cmd = 'findstr'
+        else:
+            self.cmd = 'grep'
+
+        self.msg = 'echo'
+
+    def test_invalid_argument(self):
+        with pytest.raises(TypeError):
+            shellCall(12345)
+
+    def test_stdin(self):
+        echo = shellCall([self.cmd, self.msg], stdin=self.msg)
+        assert echo == self.msg
+
+        echo = shellCall(self.cmd + ' ' + self.msg, stdin=self.msg)
+        assert echo == self.msg
+
+    def test_stderr(self):
+        _, se = shellCall([self.cmd, self.msg], stderr=True)
+        assert se == ''
+
+        _, se = shellCall(self.cmd + ' ' + self.msg, stderr=True)
+        assert se == ''
+
+    def test_stdin_and_stderr(self):
+        echo, se = shellCall([self.cmd, self.msg], stdin='echo', stderr=True)
+        assert echo == self.msg
+        assert se == ''
+
+        echo, se = shellCall(self.cmd + ' ' + self.msg, stdin='echo',
+                             stderr=True)
+        assert echo == self.msg
+        assert se == ''
+
+    def test_encoding(self):
+        shellCall([self.cmd, self.msg], stdin=self.msg, encoding='utf-8')
+
 
 if __name__ == '__main__':
-    testMonotonicClock()
-    testClock()
-    testCountdownTimer()
-    testWait()
-    testLoggingDefaultClock()
-    testTimebaseQuality()
+    test_MonotonicClock()
+    test_Clock()
+    test_CountdownTimer()
+    test_Wait()
+    test_LoggingDefaultClock()
+    test_TimebaseQuality()
+    test_StaticPeriod()
     printf("\n** Next Test will Take ~ 1 minute...**\n")
-    testDelayDurationAccuracy()
+    test_DelayDurationAccuracy()

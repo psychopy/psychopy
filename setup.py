@@ -1,81 +1,102 @@
-#!/usr/bin/env python2
-"""Requires setuptools and uses the manifest.in file for data files"""
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
-from setuptools import setup, Extension, find_packages
-################
-import glob, os
-from sys import platform, argv
+"""Install PsychoPy to your current Python dist, including requirements
 
-#regenerate __init__.py only if we're in the source repos (not in a source zip file)
+usage::
+
+    pip install psychopy
+    pip install .  # to install from within the repository
+    pip install -e .  # to install a link instead of copying the files
+
+"""
+
+from setuptools import setup, find_packages
+from setuptools.config import read_configuration
+import os
+from os.path import exists, join
+from sys import platform, argv, version_info
+
+
+PY3 = version_info >= (3, 0)
+with open('version') as f:
+    version = f.read().strip()
+
+#
+# Special handling for Anaconda / Miniconda
+#
+
+required = read_configuration('setup.cfg')['options']['install_requires']
+
+# OpenCV
+# Naming conflict with PyPI package.
+# `opencv` package should be installed via conda instead
+if 'CONDA_PREFIX' in os.environ:
+    required.remove('opencv-python')
+
+# PyQt
+# Naming conflict with PyPI package.
+# `pyqt` package should be installed via conda instead
+# cf. https://github.com/ContinuumIO/anaconda-issues/issues/1554
+if PY3 and 'CONDA_PREFIX' in os.environ:
+    required.remove('pyqt5; python_version >= "3"')
+
+# compress psychojs to a zip file for packaging
+# only takes 0.5s but could skip if you prefer
+if ('-noJS' in argv) or not exists('psychojs') or ('clean' in argv):
+    pass
+else:
+    import shutil
+    shutil.make_archive(join('psychopy', 'psychojs'),
+                        'zip', 'psychojs')
+
+# regenerate __init__.py only if we're in the source repos (not in a source
+# zip file)
 try:
-    import createInitFile#won't exist in a sdist.zip
-    writeNewInit=True
-except:
-    writeNewInit=False
+    from building import createInitFile   # won't exist in a sdist.zip
+    writeNewInit = True
+except ImportError:
+    writeNewInit = False
+
 if writeNewInit:
-    #determine what type of dist is being created
-    #(install and bdist might do compiliing and then build platform is needed)
+    # determine what type of dist is being created
+    # (install and bdist might do compiliing and then build platform is needed)
     for arg in argv:
         if arg.startswith('bdist') or arg.startswith('install'):
-            dist='bdist'
-        else: dist='sdist'
-    vStr = createInitFile.createInitFile(dist=dist)
-else:
-    #import the metadata from file we just created (or retrieve previous)
-    f = open('psychopy/__init__.py', 'r')
-    vStr = f.read()
-    f.close()
-exec(vStr)
+            dist = 'bdist'
+        else:
+            dist = 'sdist'
+    createInitFile.createInitFile(dist=dist)
 
-#define the extensions to compile if necess
 packages = find_packages()
-#for the source dist this doesn't work - use the manifest.in file
-dataExtensions = ['*.txt', '*.ico', '*.jpg', '*.gif', '*.png', '*.mov', '*.spec', '*.csv','*.psyexp', '*.xlsx']
+
+# define the extensions to compile if necessary
+# for the source dist this doesn't work - use the manifest.in file
+dataExtensions = ['*.txt', '*.ico', '*.jpg', '*.gif', '*.png', '*.mov',
+                  '*.spec', '*.csv', '*.psyexp', '*.xlsx', '.zip']
 dataFiles = []
 
-scripts = ['psychopy/app/psychopyApp.py',
-           'psychopy_post_inst.py'] #although post_install only needs installing on win32 it needs packaging in the zip
-if platform=='win32':
-    #you need the c extension for bits++ if you want to change bits modes, but not otherwise
-    #cExtensions.append(Extension('psychopy.ext._bits',
-    #sources = [os.path.join('psychopy','ext','_bits.c')],
-    #libraries=['bits']))
+if platform == 'win32':
     pass
-elif platform=='darwin':
-    #from py2app import bdist_mpkg
+elif platform == 'darwin':
     dataExtensions.extend(['*.icns'])
-elif platform=='posix':
-    dataFiles += [('share/applications', ['psychopy/app/Resources/psychopy.desktop']),
-                  ('share/pixmaps', ['psychopy/app/Resources/psychopy.png'])]
+elif platform == 'posix':
+    dataFiles += [('share/applications',
+                   ['psychopy/app/Resources/psychopy.desktop']),
+                  ('share/pixmaps',
+                   ['psychopy/app/Resources/psychopy.png'])]
 
+setup(name='PsychoPy',
+      packages=packages,
+      include_package_data=True,
+      package_data={
+          # If any package contains *.txt or *.rst files, include them:
+          '': dataExtensions,
+      },
+      data_files=dataFiles,
+      install_requires=required,
+      version=version)
 
-setup(name="PsychoPy",
-    packages=packages,
-    scripts = scripts,
-    include_package_data =True,
-    package_data = {
-        # If any package contains *.txt or *.rst files, include them:
-        '': dataExtensions,
-    },
-    data_files = dataFiles,
-    #metadata
-    version = __version__,
-    description = "Psychophysics toolkit for Python",
-    long_description = "PsychoPy uses OpenGL and Python to create a toolkit" + \
-        " for running psychology/neuroscience/psychophysics experiments",
-    author= __author__,
-    author_email= __author_email__,
-    maintainer_email= __maintainer_email__,
-    url=__url__,
-    license=__license__,
-    download_url=__downloadUrl__,
-    classifiers=['Development Status :: 4 - Beta',
-          'Operating System :: MacOS :: MacOS X',
-          'Operating System :: Microsoft :: Windows',
-          'Operating System :: POSIX',
-          'Programming Language :: Python'],
-    )
-
-#remove unwanted info about this system post-build
+# remove unwanted info about this system post-build
 if writeNewInit:
     createInitFile.createInitFile(dist=None)

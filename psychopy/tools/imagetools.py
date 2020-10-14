@@ -1,10 +1,13 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-'''Functions and classes related to image handling'''
+"""Functions and classes related to image handling"""
+
+from __future__ import absolute_import, print_function
 
 try:
     from PIL import Image
@@ -23,13 +26,17 @@ def array2image(a):
     # fredrik@pythonware.com
     # http://www.pythonware.com
     #
-    if a.dtype.kind in ['u','I', 'B']:
-            mode = "L"
+    if a.dtype.kind in ['u', 'I', 'B']:
+        mode = "L"
     elif a.dtype.kind == numpy.float32:
-            mode = "F"
+        mode = "F"
     else:
-            raise ValueError, "unsupported image mode"
-    return Image.fromstring(mode, (a.shape[1], a.shape[0]), a.tostring())
+        raise ValueError("unsupported image mode")
+    try:
+        im = Image.fromstring(mode, (a.shape[1], a.shape[0]), a.tostring())
+    except Exception:
+        im = Image.frombytes(mode, (a.shape[1], a.shape[0]), a.tostring())
+    return im
 
 
 def image2array(im):
@@ -41,11 +48,16 @@ def image2array(im):
 #     http://www.pythonware.com
 
     if im.mode not in ("L", "F"):
-            raise ValueError, "can only convert single-layer images"
+        raise ValueError("can only convert single-layer images")
+    try:
+        imdata = im.tostring()
+    except Exception:
+        imdata = im.tobytes()
     if im.mode == "L":
-            a = numpy.fromstring(im.tostring(), numpy.uint8)
+        a = numpy.fromstring(imdata, numpy.uint8)
     else:
-            a = numpy.fromstring(im.tostring(), numpy.float32)
+        a = numpy.fromstring(imdata, numpy.float32)
+
     a.shape = im.size[1], im.size[0]
     return a
 

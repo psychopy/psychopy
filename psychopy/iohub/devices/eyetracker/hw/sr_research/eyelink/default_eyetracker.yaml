@@ -53,14 +53,11 @@ eyetracker.hw.sr_research.eyelink.EyeTracker:
     #
     event_buffer_length: 1024
 
+
     # device_timer: The EyeLink EyeTracker class uses the polling method to
-    #   check for new events received from the EyeTracker device. device_timer.interval
-    #   specifies the sec.msec time between device polls. 0.004 = 4 msec, so the device will
-    #   be polled at a maxximum rate of 250 Hz. This polling rate is a 'target' value,
-    #   and may not always be achieved depending on your computer specifications and the
-    #   number and type of other devices being used. This can be checked by reviewing the
-    #   confidence_interval column of any of the eye event tables saved to the DataStore
-    #    
+    #   check for new events received from the EyeTracker device. 
+    #   device_timer.interval specifies the sec.msec time between device polls.
+    #   0.001 = 1 msec, so the device will be polled at a rate of 1000 Hz.   
     device_timer:
         interval: 0.001
 
@@ -108,7 +105,7 @@ eyetracker.hw.sr_research.eyelink.EyeTracker:
         #   
         target_type: CIRCLE_TARGET
 
-        # target_attributes: The asociated target attributes must be supplied
+        # target_attributes: The associated target attributes must be supplied
         #   for the given target_type. If target type attribute sections are provided
         #   for target types other than the entry associated with the specified
         #   target_type value they will simple be ignored.
@@ -175,7 +172,8 @@ eyetracker.hw.sr_research.eyelink.EyeTracker:
         #   the missing filter type will have filter level set to FILTER_OFF.
         #        
         sample_filtering:
-            FILTER_ALL: FILTER_LEVEL_OFF
+            FILTER_FILE: FILTER_LEVEL_2
+            FILTER_ONLINE: FILTER_LEVEL_OFF
         
         vog_settings:
             # pupil_measure_types: sr_research.eyelink.EyeTracker supports one

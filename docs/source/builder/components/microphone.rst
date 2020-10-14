@@ -1,4 +1,4 @@
-.. _microphone:
+.. _microphoneComponent:
 
 Microphone Component
 -------------------------------
@@ -25,15 +25,21 @@ For example, if `mic` is the name of your microphone component, then in the code
 Parameters
 ~~~~~~~~~~~~
 
-`name` : string
+name : string
     Everything in a PsychoPy experiment needs a unique name. The name should contain only letters, numbers and underscores (no punctuation marks or spaces).
     
-`start` : float or integer
+start : float or integer
     The time that the stimulus should first play. See :ref:`startStop` for details.
 
-`stop (duration)`: 
+stop (duration):
     The length of time (sec) to record for. An `expected duration` can be given for 
     visualisation purposes. See :ref:`startStop` for details; note that only seconds are allowed.
+
+channel : int
+    What audio channel is mic connected through?
+
+stereo : bool
+    Whether to use mono or stereo audio
 
 .. seealso::
 	

@@ -1,0 +1,119 @@
+{% extends "basic/layout.html" %}
+
+{% if theme_bootstrap_version == "3" %}
+  {% set bootstrap_version, navbar_version = "3.3.7", "" %}
+  {% set bs_span_prefix = "col-md-" %}
+{% else %}
+  {% set bootstrap_version, navbar_version = "4.2.1", "" %}
+  {% set bs_span_prefix = "col-md-" %}
+{% endif %}
+
+{% set script_files = script_files + [
+    '_static/js/jquery-1.11.0.min.js',
+    '_static/js/jquery-fix.js',
+    '_static/bootstrap-' + bootstrap_version + '/js/bootstrap.min.js',
+    '_static/bootstrap-sphinx.js'
+  ]
+%}
+
+{%- set render_sidebar = (not embedded) and (not theme_nosidebar|tobool) and sidebars %}
+
+{%- set bs_content_width = render_sidebar and "9" or "12"%}
+
+{%- block doctype -%}
+<!DOCTYPE html>
+{%- endblock %}
+
+{# Sidebar: Rework into our Bootstrap nav section. #}
+{% macro navBar() %}
+{% include "navbar" + navbar_version + ".html" %}
+{% endmacro %}
+
+{%- macro bsidebar() %}
+    {%- if render_sidebar %}
+    <div class="{{ bs_span_prefix }}3">
+      <div id="sidebar" class="bs-sidenav" role="complementary">
+        {%- for sidebartemplate in sidebars %}
+          {%- include sidebartemplate %}
+        {%- endfor %}
+      </div>
+    </div>
+    {%- endif %}
+{%- endmacro %}
+
+{%- block extrahead %}
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-4089651-2"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'UA-4089651-2');
+    </script>
+{% endblock %}
+
+{# Silence the sidebar's, relbar's #}
+{% block header %}{% endblock %}
+{% block relbar1 %}{% endblock %}
+{% block relbar2 %}{% endblock %}
+{% block sidebarsourcelink %}{% endblock %}
+
+{%- block content %}
+
+<!-- The social media icon bar -->
+<div class="social-bar">
+  <a href="https://twitter.com/psychopy" class="twitter">
+    <i class="fab fa-twitter"></i></a>
+  <a href="https://www.youtube.com/watch?v=VV6qhuQgsiI&list=PLFB5A1BE51964D587" class="youtube">
+    <i class="fab fa-youtube"></i></a>
+  <a href="https://www.facebook.com/PsychoPy/" class="facebook">
+    <i class="fab fa-facebook"></i></a>
+  <a href="https://github.com/psychopy/psychopy" class="github">
+    <i class="fab fa-github"></i></a>
+</div>
+
+{{ navBar() }}
+<div class="container">
+  <div class="row">
+    {%- block sidebar1 %}{{ bsidebar() }}{% endblock %}
+    <div class="{{ bs_span_prefix }}{{ bs_content_width }} content">
+      {% block body %}{% endblock %}
+      <br/><a href="#" class="pull-right">Back to top</a>
+    </div>
+    {% block sidebar2 %} {# possible location for sidebar #} {% endblock %}
+  </div>
+</div>
+{%- endblock %}
+
+{%- block footer %}
+<footer class="footer">
+  <div class="container">
+    <span class="pull-right">
+      {% if theme_source_link_position == "footer" %}
+        {% include "sourcelink.html" %}
+      {% endif %}<br/>
+      {%- if show_copyright %}
+
+          {% trans copyright=copyright|e %}&copy; 2002-2018 <a href="https://www.peirce.org.uk/">Jonathan Peirce</a>{% endtrans %}<br/>
+          {% trans copyright=copyright|e %}&copy; 2019 <a href="https://opensciencetools.org/">Open Science Tools Ltd.</a>{% endtrans %}<br/>
+
+      {%- endif %}
+      {%- if last_updated %}
+        {% trans last_updated=last_updated|e %}Last updated on {{ last_updated }}.{% endtrans %}<br/>
+      {%- endif %}
+      {%- if show_sphinx %}
+        {% trans sphinx_version=sphinx_version|e %}Created using <a href="http://sphinx-doc.org/">Sphinx</a> {{ sphinx_version }}.{% endtrans %}<br/>
+      {%- endif %}<br/>
+    </span>
+
+    <a href="http://www.nottingham.ac.uk/"><img src="{{ pathto('_static/UoN_Supported_RGB.png', 1) }}", alt="Uni of Nottingham" width=200></a>
+  </div>
+
+</footer>
+{%- endblock %}

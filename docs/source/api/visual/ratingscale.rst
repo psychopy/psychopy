@@ -4,4 +4,3 @@
 .. autoclass:: psychopy.visual.RatingScale
     :members:
     :undoc-members:
-    :inherited-members:

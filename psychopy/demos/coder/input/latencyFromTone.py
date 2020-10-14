@@ -1,19 +1,24 @@
-#!/usr/bin/env python2
-"""demo to illustrate and test microphone.AdvAudioCapture, and also permit
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+demo to illustrate and test microphone.AdvAudioCapture, and also permit
 external latency testing (e.g., BlackBox Toolkit) by providing visual-tone synchrony
 
 key lines: 29, 50, 61: mic = microphone.AdvAudioCapture(), mic.record(), mic.getOnset()
 """
 
-from __future__ import division
+from __future__ import absolute_import, division, print_function
+
+from builtins import range
 from psychopy import microphone, sound, core, visual, event
 from matplotlib import pyplot
 import numpy as np
 import os
 
-buffer = 128  # smaller = short play latency, but higher chance of choppy sound playback
+buffer_size = 128  # smaller = short play latency, but higher chance of choppy sound playback
 rate = 48000  # needs to be 40000 or higher
-sound.init(buffer=buffer, rate=rate)
+sound.init(buffer=buffer_size, rate=rate)
 
 def plotYX(yaxis, xaxis, description=''):
     pyplot.plot(xaxis, yaxis)
@@ -30,8 +35,8 @@ microphone.switchOn()
 mic = microphone.AdvAudioCapture()
 
 # identify the hardware microphone in use:
-names, idx = sound.pyo.pa_get_input_devices()
-inp = sound.pyo.pa_get_default_input()
+names, idx = sound.backend.get_input_devices()
+inp = sound.backend.pyo.pa_get_default_input()
 msg = 'Speaker vol > 0\nAny key to start...\n\n"%s"' % names[idx.index(inp)]
 
 instr = visual.TextStim(win, msg, color=-1, height=0.05)
@@ -46,8 +51,8 @@ win.flip()
 
 onsets = []
 rec_duration = 0.5
-print 'marker start, offset (within the saved recording):'
-for i in xrange(10):
+print('marker start, offset (within the saved recording):')
+for i in range(10):
     core.wait(0.5, 0)
 
     filename = mic.record(rec_duration)  # start recording and return immediately
@@ -60,7 +65,7 @@ for i in xrange(10):
     win.flip()
     while mic.recorder.running:
         core.wait(.01, 0)
-    
+
     # When in the file did the onset tone start and stop?
     onset, offset = mic.getMarkerOnset(chunk=64, secs=0.2)  # increase secs if miss the markers
     onsets.append(onset)
@@ -68,21 +73,23 @@ for i in xrange(10):
     # display options:
     text.draw()
     win.flip()
-    print "%.3f %.3f" % (onset, offset)
+    print("%.3f %.3f" % (onset, offset))
     if len(event.getKeys(['escape'])):
         core.quit()
     if len(event.getKeys()):
         msg2.draw()
         win.flip()
         data, sampleRate = microphone.readWavFile(filename)
-        plotYX(data, range(len(data)), "time domain @ %iHz" % sampleRate)
+        plotYX(data, list(range(len(data))), "time domain @ %iHz" % sampleRate)
         mag, freqV = microphone.getDft(data, sampleRate)
         plotYX(mag, freqV, "frequency domain (marker at %i Hz)" % mic.getMarkerInfo()[0])
 
     # no need to keep the recorded file:
     os.unlink(filename)
 
-print "\nmarker onset = %.3fs %.3f (mean SD), relative to start of file" % (np.mean(onsets), np.std(onsets))
+print("\nmarker onset = %.3fs %.3f (mean SD), relative to start of file" % (np.mean(onsets), np.std(onsets)))
 
 win.close()
 core.quit()
+
+# The contents of this file are in the public domain.

@@ -1,4 +1,7 @@
 """
-builder is the main GUI experiment building frame
+Builder is the main GUI experiment building frame
 """
-from builder import *
+from __future__ import absolute_import, print_function
+
+from ... import experiment
+from .builder import BuilderFrame

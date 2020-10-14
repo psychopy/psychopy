@@ -21,58 +21,43 @@ monitor_devices:
     - Experiment:
         name: experimentRuntime
 
-# TheEyeTribe Config (uncomment below device config to use)
-#    - eyetracker.hw.theeyetribe.EyeTracker:
-#        enable: True
-#        name: tracker
-#        monitor_event_types: [BinocularEyeSampleEvent, ]
-
-# LC EyeGaze Config (uncomment below device config to use)
-#    - eyetracker.hw.lc_technologies.eyegaze.EyeTracker:
-#        enable: True
-#        name: tracker
-#        save_events: True
-#        stream_events: True
-#        device_timer:
-#            interval: 0.002
-#        event_buffer_length: 512
-#        display_camera_image: True
-#        camera_image_screen_position: UPPER_RIGHT
-#        host_connection:
-#            type: LOCAL       
-#        monitor_event_types: [ MonocularEyeSampleEvent, BinocularEyeSampleEvent]
-
-# SMI iView Config (uncomment below device config to use)
-#    - eyetracker.hw.smi.iviewx.EyeTracker:
-#        name: tracker
-#        save_events: True
-#        stream_events: True
-#        event_buffer_length: 1024
-#        monitor_event_types: [ BinocularEyeSampleEvent, FixationStartEvent, FixationEndEvent]
-#        network_settings:
-#            send_ip_address: 127.0.0.1
-#            send_port: 4444
-#            receive_ip_address: 127.0.0.1
-#            receive_port: 5555
-#        runtime_settings:
-#            sampling_rate: 60
-#            track_eyes: BINOCULAR_AVERAGED
-#            sample_filtering:
-#                FILTER_ALL: FILTER_OFF
-#            vog_settings:
-#                pupil_measure_types: PUPIL_DIAMETER
-#        calibration:
-#            type: FIVE_POINTS
-#            auto_pace: Yes
-#            pacing_speed: FAST
-#            screen_background_color: 20
-#            target_type: CIRCLE_TARGET
-#            target_attributes:
-#                target_size: 30
-#                target_color: 239
-#                target_inner_color: RED
-#            show_validation_accuracy_window: False
-#        model_name: REDm
+# Gazepoint GP3 Config (uncomment below device config to use)
+    - eyetracker.hw.gazepoint.gp3.EyeTracker:
+        enable: True
+    
+        # The variable name of the device that will be used to access the ioHub Device class
+        # during experiment run-time, via the devices.[name] attribute of the ioHub
+        # connection or experiment runtime class.
+        name: tracker
+    
+        # Should eye tracker events be saved to the ioHub DataStore file when the device
+        # is recording data ?
+        save_events: True
+    
+        # Should eye tracker events be sent to the Experiment process when the device
+        # is recording data ?
+        stream_events: True
+    
+        # How many eye events (including samples) should be saved in the ioHub event buffer before
+        # old eye events start being replaced by new events. When the event buffer reaches
+        # the maximum event length of the buffer defined here, older events will start to be dropped.
+        event_buffer_length: 1024
+    
+        # The GP3 implementation of the common eye tracker interface supports the
+        # BinocularEyeSampleEvent event type.
+        monitor_event_types: [ BinocularEyeSampleEvent, FixationStartEvent, FixationEndEvent]
+    
+        device_timer:
+            interval: 0.005
+    
+        calibration:        
+            # target_duration is the number of sec.msec that a calibration point should
+            # be displayed before moving onto the next point.
+            # (Sets the GP3 CALIBRATE_TIMEOUT)
+            target_duration: 1.25
+            # target_delay specifies the target animation duration in sec.msec.
+            # (Sets the GP3 CALIBRATE_DELAY)
+            target_delay: 0.5
 
 # SRR EyeLink Config (uncomment below device config to use)
 #    - eyetracker.hw.sr_research.eyelink.EyeTracker:

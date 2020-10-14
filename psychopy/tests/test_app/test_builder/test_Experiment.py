@@ -1,20 +1,23 @@
-from psychopy.app import psychopyApp
-import psychopy.app.builder.experiment
+from __future__ import print_function
+from past.builtins import execfile
+from builtins import object
+
+import psychopy.experiment
+from psychopy.experiment.components.text import TextComponent
+from psychopy.experiment._experiment import RequiredImport
+from psychopy.tests.utils import TESTS_FONT
 from os import path
 import os, shutil, glob, sys
 import py_compile
 import difflib
 from tempfile import mkdtemp
 import codecs
-from psychopy import core, tests, data
+from psychopy import core, tests, prefs
 import pytest
 import locale
-import wx
 from lxml import etree
-import threading
 import numpy
-
-#from psychopy.info import _getSha1hexDigest as sha1hex
+import sys
 
 # Jeremy Gray March 2011
 
@@ -26,15 +29,18 @@ import numpy
 #   but should not do so from a load-save-load because only the first
 #   load should change things
 
-allComponents = psychopy.app.builder.experiment.getComponents(fetchIcons=False)
+allComponents = psychopy.experiment.getComponents(fetchIcons=False)
+
 
 def _filterout_legal(lines):
-    return [l
-            for l in lines
-            if not "This experiment was created using PsychoPy2 Experiment Builder (" in l
-            and not ("trialList=data.importConditions(" in l and ".xlsx'))" in l) ]
-        #-This experiment was created using PsychoPy2 Experiment Builder (v1.65.01), August 03, 2011, at 13:14
-        #+This experiment was created using PsychoPy2 Experiment Builder (v1.65.02), August 03, 2011, at 13:14
+    """Ignore first 5 lines: header info, version, date can differ no problem
+    """
+    return [line
+            for line in lines[5:]
+            if not "This experiment was created using PsychoPy3 Experiment Builder (" in line and
+            not ("trialList=data.importConditions(" in line and ".xlsx'))" in line)]
+        #-This experiment was created using PsychoPy3 Experiment Builder (v1.65.01), August 03, 2011, at 13:14
+        #+This experiment was created using PsychoPy3 Experiment Builder (v1.65.02), August 03, 2011, at 13:14
         #-    trialList=data.importConditions(u'trialTypes.xlsx'))
         #+    trialList=data.importConditions('trialTypes.xlsx'))
         #-    trialList=data.importConditions(u'mainTrials.xlsx'))
@@ -49,12 +55,11 @@ def _diff_file(a, b):
     diff = _diff(open(a).readlines(), open(b).readlines())
     return list(diff)
 
-class TestExpt():
 
+class TestExpt(object):
     @classmethod
     def setup_class(cls):
-        # print "D: CREATING THE EXP"
-        cls.exp = psychopy.app.builder.experiment.Experiment() # create once, not every test
+        cls.exp = psychopy.experiment.Experiment() # create once, not every test
         cls.tmp_dir = mkdtemp(prefix='psychopy-tests-app')
 
     def setup(self):
@@ -80,7 +85,7 @@ class TestExpt():
 
         # get schema
 
-        schema_name = path.join(self.exp.prefsPaths['appDir'], 'builder', 'experiment.xsd');
+        schema_name = path.join(self.exp.prefsPaths['psychopy'], 'experiment', 'experiment.xsd');
         schema_root = etree.parse(schema_name)
         schema = etree.XMLSchema(schema_root)
 
@@ -111,8 +116,6 @@ class TestExpt():
                      line[1].find("if self.params[") > -1 # this pattern could miss some things
                      and not (line[1].find('].val') > -1 or line[1].find('].updates') > -1) )
                      ]
-            #for num, line in lines:
-            #    print file, '#'+str(num+1), line.strip()
             missing_dotval_count += len(lines)
 
         assert missing_dotval_count == 0  # some suspicious lines were found: "if self.param[]" without .val or .updates
@@ -129,25 +132,25 @@ class TestExpt():
         assert not self.exp.namespace.getCollisions() # ... without duplicates
 
         # generate a script, like 'lastrun.py':
-        buff = self.exp.writeScript() # is a StringIO object
-        script = buff.getvalue()
-        assert len(script) > 1500 # default empty script is ~2200 chars
+        script = self.exp.writeScript()
+        assert len(script) > 1500  # default empty script is ~2200 chars
 
         # save the script:
-        f = codecs.open(py_file, 'w', 'utf-8')
-        f.write(script)
-        f.close()
+        with codecs.open(py_file, 'w', 'utf-8-sig') as f:
+            f.write(script)
+
         return py_file, psyexp_file
 
     def _checkCompile(self, py_file):
-        # compile the temp file to .pyc, catching error msgs (including no file at all):
+        # compile the temp file to .pyc, catching error msgs
+        # (including no file at all):
         py_compile.compile(py_file, doraise=True)
         return py_file + 'c'
 
     def _checkPyDiff(self, file_py, file2_py):
         """return '' for no meaningful diff, or a diff patch"""
 
-        diff_py_lines = _diff_file(file_py, file2_py)[2:] # ignore first two lines --- +++
+        diff_py_lines = _diff_file(file_py, file2_py)[5:] # ignore first five lines --- +++
         if not len(diff_py_lines):
             return ''
 
@@ -244,7 +247,9 @@ class TestExpt():
                 #sha1_second = sha1hex(file2_pyc, file=True)
 
                 # check first against second, filtering out uninteresting diffs; catch diff in any of multiple psyexp files
-                diff_in_file_py += self._checkPyDiff(file_py, file2_py)
+                d = self._checkPyDiff(file_py, file2_py)
+                if d:
+                    diff_in_file_py += os.path.basename(file) + '::' + d
                 #diff_psyexp = _diff_file(file_psyexp,file2_psyexp)[2:]
                 #diff_in_file_psyexp += diff_psyexp
                 #diff_pyc = (sha1_first != sha1_second)
@@ -261,12 +266,13 @@ class TestExpt():
         """
         expfile = path.join(self.exp.prefsPaths['tests'], 'data', 'futureParams.psyexp')
         self.exp.loadFromXML(expfile) # reload the edited file
-        script = self.exp.writeScript(expPath=expfile) #we don't test this script but make sure it builds
+        # we don't test this script but make sure it builds
+        script = self.exp.writeScript(expPath=expfile)
         py_file = os.path.join(self.tmp_dir, 'testFutureFile.py')
         # save the script:
-        f = codecs.open(py_file, 'w', 'utf-8')
-        f.write(script.getvalue())
-        f.close()
+        with codecs.open(py_file, 'w', 'utf-8-sig') as f:
+            f.write(script)
+
         #check that files compiles too
         self._checkCompile(py_file)
 
@@ -284,67 +290,63 @@ class TestExpt():
         #write the script from the experiment
         script = self.exp.writeScript(expPath=expfile)
         py_file = os.path.join(self.tmp_dir, 'testLoopBlocks.py')
+
         # save it
-        f = codecs.open(py_file, 'w', 'utf-8')
-        f.write(script.getvalue().replace("core.quit()", "pass"))
-        f.write("del thisExp\n") #garbage collect the experiment so files are auto-saved
-        f.close()
+        with codecs.open(py_file, 'w', 'utf-8-sig') as f:
+            f.write(script.replace("core.quit()", "pass"))
+            f.write("del thisExp\n") #garbage collect the experiment so files are auto-saved
+
         #run the file (and make sure we return to this location afterwards)
         wd = os.getcwd()
         execfile(py_file)
         os.chdir(wd)
         #load the data
-        print "searching..." +datafileBase
-        print glob.glob(datafileBase+'*')
-        f = open(datafileBase+".csv", 'rU')
+        print("searching..." +datafileBase)
+        print(glob.glob(datafileBase+'*'))
+        f = open(datafileBase+".csv", 'rb')
         dat = numpy.recfromcsv(f, case_sensitive=True)
         f.close()
         assert len(dat)==8 # because 4 'blocks' with 2 trials each (3 stims per trial)
+
     def test_Run_FastStroopPsyExp(self):
         # start from a psyexp file, loadXML, execute, get keypresses from a emulator thread
-
-        pytest.skip()  # test is stalling, hangs up before any text is displayed
-
         if sys.platform.startswith('linux'):
             pytest.skip("response emulation thread not working on linux yet")
 
         expfile = path.join(self.exp.prefsPaths['tests'], 'data', 'ghost_stroop.psyexp')
-        f = codecs.open(file, 'r', 'utf-8')
-        text = f.read()
-        f.close()
+        with codecs.open(expfile, 'r', encoding='utf-8-sig') as f:
+            text = f.read()
 
         # copy conditions file to tmp_dir
         shutil.copyfile(os.path.join(self.exp.prefsPaths['tests'], 'data', 'ghost_trialTypes.xlsx'),
                         os.path.join(self.tmp_dir,'ghost_trialTypes.xlsx'))
 
         # edit the file, to have a consistent font:
-        text = text.replace("'Arial'","'"+tests.utils.TESTS_FONT+"'")
-        #text = text.replace("Arial",tests.utils.TESTS_FONT) # fails
+        text = text.replace("'Arial'", "'" + TESTS_FONT +"'")
 
         expfile = path.join(self.tmp_dir, 'ghost_stroop.psyexp')
-        f = codecs.open(expfile, 'w', 'utf-8')
-        f.write(text)
-        f.close()
+        with codecs.open(expfile, 'w', encoding='utf-8-sig') as f:
+            f.write(text)
 
-        self.exp.loadFromXML(expfile) # reload the edited file
-        lastrun = path.join(self.tmp_dir, 'ghost_stroop_lastrun.py')
-        script = self.exp.writeScript(expPath=file)
+        self.exp.loadFromXML(expfile)  # reload the edited file
+        script = self.exp.writeScript()
 
         # reposition its window out from under splashscreen (can't do easily from .psyexp):
-        text = script.getvalue().replace('fullscr=False,','pos=(40,40), fullscr=False,')
-        f = codecs.open(lastrun, 'w', 'utf-8')
-        f.write(text)
-        f.close()
+        script = script.replace('fullscr=False,','pos=(40,40), fullscr=False,')
+        # Only log errors.
+        script = script.replace('logging.console.setLevel(logging.WARNING',
+                                'logging.console.setLevel(logging.ERROR')
+
+        lastrun = path.join(self.tmp_dir, 'ghost_stroop_lastrun.py')
+        with codecs.open(lastrun, 'w', encoding='utf-8-sig') as f:
+            f.write(script)
 
         # run:
-        stdout, stderr = core.shellCall('python '+lastrun, stderr=True)
-        assert not len(stderr), stderr # print stderr if it's greater than zero
+        stdout, stderr = core.shellCall([sys.executable, lastrun], stderr=True)
+        assert not stderr
 
     def test_Exp_AddRoutine(self):
-        exp = self.exp
         self.exp.addRoutine('instructions')
-        #self.exp.routines['instructions'].AddComponent(
-        #self.exp.Add
 
     def test_Exp_NameSpace(self):
         namespace = self.exp.namespace
@@ -370,64 +372,162 @@ class TestExpt():
         assert namespace.makeLoopIndex('trials_2') == 'thisTrial_2'
         assert namespace.makeLoopIndex('stimuli') == 'thisStimulus'
 
-class Test_ExptComponents():
-    """This test fetches all standard components and checks that, with default
-    settings, they can be added to a Routine and result in a script that compiles
-    """
-    def test_all_components(self):
-        for compName, compClass in allComponents.items():
-            if compName in ['SettingsComponent']:
-                continue
-            #print "testing with:", compName
-            thisComp = compClass(exp=self.exp, parentName='testRoutine', name=compName)
-            self._checkCompileWith(thisComp)
-    @classmethod
-    def setup_class(cls):
-        app = psychopyApp._app #this was created already
-        app.newBuilderFrame()
-        cls.builder = app.builderFrames[-1] # the most recent builder frame created
-        cls.exp = cls.builder.exp
-        cls.here = path.abspath(path.dirname(__file__))
-        cls.tmp_dir = mkdtemp(prefix='psychopy-tests-app')
-        cls.exp.addRoutine('testRoutine')
-        cls.testRoutine = cls.exp.routines['testRoutine']
-        cls.exp.flow.addRoutine(cls.testRoutine, 0)
 
+class TestExpImports(object):
     def setup(self):
-        # dirs and files:
-        pass
-    @classmethod
-    def teardown_class(cls):
-        shutil.rmtree(cls.tmp_dir, ignore_errors=True)
+        self.exp = psychopy.experiment.Experiment()
+        self.exp.requiredImports = []
 
-#    def _send_OK_after(self):
-#        #this is supposed to help with sending button clicks but not working
-#        def clickOK():
-#            clickEvent = wx.CommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
-#            self.builder.ProcessEvent(clickEvent)
-#            print "D: tried click"
-#        wx.CallAfter(clickOK)
+    def test_requireImportName(self):
+        import_ = RequiredImport(importName='foo', importFrom='',
+                                 importAs='')
+        self.exp.requireImport(importName='foo')
 
-    def _checkCompileWith(self, thisComp):
-        """Adds the component to the current Routine and makes sure it still
-        compiles
-        """
-        filename = thisComp.params['name'].val+'.py'
-        filepath = path.join(self.tmp_dir, filename)
+        assert import_ in self.exp.requiredImports
 
-        self.testRoutine.addComponent(thisComp)
-        #make sure the mouse code compiles
+        script = self.exp.writeScript()
+        assert 'import foo\n' in script
 
-        # generate a script, similar to 'lastrun.py':
-        buff = self.exp.writeScript() # is a StringIO object
-        script = buff.getvalue()
-        assert len(script) > 1500 # default empty script is ~2200 chars
+    def test_requireImportFrom(self):
+        import_ = RequiredImport(importName='foo', importFrom='bar',
+                                 importAs='')
+        self.exp.requireImport(importName='foo', importFrom='bar')
 
-        # save the script:
-        f = codecs.open(filepath, 'w', 'utf-8')
-        f.write(script)
-        f.close()
+        assert import_ in self.exp.requiredImports
 
-        # compile the temp file to .pyc, catching error msgs (including no file at all):
-        py_compile.compile(filepath, doraise=True)
-        return filepath + 'c'
+        script = self.exp.writeScript()
+        assert 'from bar import foo\n' in script
+
+    def test_requireImportAs(self):
+        import_ = RequiredImport(importName='foo', importFrom='',
+                                 importAs='baz')
+        self.exp.requireImport(importName='foo', importAs='baz')
+
+        assert import_ in self.exp.requiredImports
+
+        script = self.exp.writeScript()
+        assert 'import foo as baz\n' in script
+
+    def test_requireImportFromAs(self):
+        import_ = RequiredImport(importName='foo', importFrom='bar',
+                                 importAs='baz')
+        self.exp.requireImport(importName='foo', importFrom='bar',
+                               importAs='baz')
+
+        assert import_ in self.exp.requiredImports
+
+        script = self.exp.writeScript()
+        assert 'from bar import foo as baz\n' in script
+
+    def test_requirePsychopyLibs(self):
+        import_ = RequiredImport(importName='foo', importFrom='psychopy',
+                                 importAs='')
+        self.exp.requirePsychopyLibs(['foo'])
+
+        assert import_ in self.exp.requiredImports
+
+        script = self.exp.writeScript()
+        assert 'from psychopy import foo\n' in script
+
+    def test_requirePsychopyLibs2(self):
+        import_0 = RequiredImport(importName='foo', importFrom='psychopy',
+                                  importAs='')
+        import_1 = RequiredImport(importName='foo', importFrom='psychopy',
+                                  importAs='')
+        self.exp.requirePsychopyLibs(['foo', 'bar'])
+
+        assert import_0 in self.exp.requiredImports
+        assert import_1 in self.exp.requiredImports
+
+        script = self.exp.writeScript()
+        assert 'from psychopy import foo, bar\n' in script
+
+    def test_requireImportAndPsychopyLib(self):
+        import_0 = RequiredImport(importName='foo', importFrom='psychopy',
+                                  importAs='')
+        import_1 = RequiredImport(importName='bar', importFrom='',
+                                  importAs='')
+        self.exp.requirePsychopyLibs(['foo'])
+        self.exp.requireImport('bar')
+
+        assert import_0 in self.exp.requiredImports
+        assert import_1 in self.exp.requiredImports
+
+        script = self.exp.writeScript()
+        print(script)
+        assert 'from psychopy import foo\n' in script
+        assert 'import bar\n' in script
+
+
+class TestRunOnce(object):
+    def setup(self):
+        from psychopy.experiment import exports
+        self.buff = exports.IndentingBuffer()
+
+    def _doSingleTest(self, code):
+        self.buff.writeOnceIndentedLines(code)
+        assert code in self.buff._writtenOnce
+        script = self.buff.getvalue()
+        assert code + '\n' in script
+
+    def test_runOnceSingleLine(self):
+        self._doSingleTest('foo bar baz')
+
+    def test_runOnceMultiLine(self):
+        self._doSingleTest('foo bar baz\nbla bla bla')
+
+    def test_runOnceMultipleStatements(self):
+        code_0 = 'foo bar code0'
+        self.buff.writeOnceIndentedLines(code_0)
+        code_1 = 'bla bla code1'
+        self.buff.writeOnceIndentedLines(code_1)
+
+        assert code_0 in self.buff._writtenOnce
+        assert code_1 in self.buff._writtenOnce
+        script = self.buff.getvalue()
+        assert (code_0 + '\n' + code_1 + '\n') in script
+
+    def test_repeatedInsert(self):
+        code = 'uniqueBlah'
+        self.buff.writeOnceIndentedLines(code)  # write it twice
+        self.buff.writeOnceIndentedLines(code)
+        # check it appears only once
+        script = self.buff.getvalue()
+        assert script.count(code) == 1
+
+class TestDisabledComponents(object):
+    def setup(self):
+        self.exp = psychopy.experiment.Experiment()
+        self.exp.addRoutine(routineName='Test Routine')
+        self.routine = self.exp.routines['Test Routine']
+        self.exp.flow.addRoutine(self.routine, 0)
+
+    def test_component_not_disabled_by_default(self):
+        self.text = TextComponent(exp=self.exp, parentName='Test Routine')
+        assert self.text.params['disabled'].val is False
+
+    def test_component_is_written_to_script(self):
+        self.text = TextComponent(exp=self.exp, parentName='Test Routine')
+        self.routine.addComponent(self.text)
+        script = self.exp.writeScript()
+        assert 'visual.TextStim' in script
+
+    def test_disabled_component_is_not_written_to_script(self):
+        self.text = TextComponent(exp=self.exp, parentName='Test Routine')
+        self.text.params['disabled'].val = True
+
+        self.routine.addComponent(self.text)
+        script = self.exp.writeScript()
+        assert 'visual.TextStim' not in script
+
+    def test_disabling_component_does_not_remove_it_from_original_routine(self):
+        self.text = TextComponent(exp=self.exp, parentName='Test Routine')
+        self.text.params['disabled'].val = True
+        self.routine.addComponent(self.text)
+
+        # This drops the disabled component -- if working correctly, only from
+        # a copy though, leaving the original unchanged!
+        self.exp.writeScript()
+
+        # Original routine should be unchanged.
+        assert self.text in self.routine

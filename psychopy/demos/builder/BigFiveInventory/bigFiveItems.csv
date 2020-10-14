@@ -1,0 +1,45 @@
+index,questionText,options,layout,type,questionWidth,responseWidth
+1,Is talkative,"Disagree strongly, Disagree a little, Neither agree nor disagree, Agree a little, Agree strongly",horiz,radio,0.6,0.4
+2,Tends to find fault in others,"Disagree strongly, Disagree a little, Neither agree nor disagree, Agree a little, Agree strongly",horiz,radio,0.6,0.4
+3,Does a thorough job,"Disagree strongly, Disagree a little, Neither agree nor disagree, Agree a little, Agree strongly",horiz,radio,0.6,0.4
+4,"Is depressed, blue","Disagree strongly, Disagree a little, Neither agree nor disagree, Agree a little, Agree strongly",horiz,radio,0.6,0.4
+5,"Is original, comes up with new ideas","Disagree strongly, Disagree a little, Neither agree nor disagree, Agree a little, Agree strongly",horiz,radio,0.6,0.4
+6,Is reserved,"Disagree strongly, Disagree a little, Neither agree nor disagree, Agree a little, Agree strongly",horiz,radio,0.6,0.4
+7,Is helpful and unselfish with others,"Disagree strongly, Disagree a little, Neither agree nor disagree, Agree a little, Agree strongly",horiz,radio,0.6,0.4
+8,Can be somewhat careless,"Disagree strongly, Disagree a little, Neither agree nor disagree, Agree a little, Agree strongly",horiz,radio,0.6,0.4
+9,"Is relaxed, handles stress well","Disagree strongly, Disagree a little, Neither agree nor disagree, Agree a little, Agree strongly",horiz,radio,0.6,0.4
+10,Is curious about many different things,"Disagree strongly, Disagree a little, Neither agree nor disagree, Agree a little, Agree strongly",horiz,radio,0.6,0.4
+11,Is full of energy,"Disagree strongly, Disagree a little, Neither agree nor disagree, Agree a little, Agree strongly",horiz,radio,0.6,0.4
+12,Starts quarrels with others,"Disagree strongly, Disagree a little, Neither agree nor disagree, Agree a little, Agree strongly",horiz,radio,0.6,0.4
+13,Is a reliable worker,"Disagree strongly, Disagree a little, Neither agree nor disagree, Agree a little, Agree strongly",horiz,radio,0.6,0.4
+14,Can be tense,"Disagree strongly, Disagree a little, Neither agree nor disagree, Agree a little, Agree strongly",horiz,radio,0.6,0.4
+15,"Is ingenious, a deep thinker","Disagree strongly, Disagree a little, Neither agree nor disagree, Agree a little, Agree strongly",horiz,radio,0.6,0.4
+16,Generates a lot of enthusiasm,"Disagree strongly, Disagree a little, Neither agree nor disagree, Agree a little, Agree strongly",horiz,radio,0.6,0.4
+17,Has a forgiving nature,"Disagree strongly, Disagree a little, Neither agree nor disagree, Agree a little, Agree strongly",horiz,radio,0.6,0.4
+18,Tends to be organised,"Disagree strongly, Disagree a little, Neither agree nor disagree, Agree a little, Agree strongly",horiz,radio,0.6,0.4
+19,Worries a lot,"Disagree strongly, Disagree a little, Neither agree nor disagree, Agree a little, Agree strongly",horiz,radio,0.6,0.4
+20,Has an active imagination,"Disagree strongly, Disagree a little, Neither agree nor disagree, Agree a little, Agree strongly",horiz,radio,0.6,0.4
+21,Tends to be quiet,"Disagree strongly, Disagree a little, Neither agree nor disagree, Agree a little, Agree strongly",horiz,radio,0.6,0.4
+22,Is generally trusting,"Disagree strongly, Disagree a little, Neither agree nor disagree, Agree a little, Agree strongly",horiz,radio,0.6,0.4
+23,Tends to be lazy,"Disagree strongly, Disagree a little, Neither agree nor disagree, Agree a little, Agree strongly",horiz,radio,0.6,0.4
+24,"Is emotionally stable, not easily upset","Disagree strongly, Disagree a little, Neither agree nor disagree, Agree a little, Agree strongly",horiz,radio,0.6,0.4
+25,Is inventive,"Disagree strongly, Disagree a little, Neither agree nor disagree, Agree a little, Agree strongly",horiz,radio,0.6,0.4
+26,Has an assertive personality,"Disagree strongly, Disagree a little, Neither agree nor disagree, Agree a little, Agree strongly",horiz,radio,0.6,0.4
+27,Can be cold and aloof,"Disagree strongly, Disagree a little, Neither agree nor disagree, Agree a little, Agree strongly",horiz,radio,0.6,0.4
+28,Perserveres until the task is finished,"Disagree strongly, Disagree a little, Neither agree nor disagree, Agree a little, Agree strongly",horiz,radio,0.6,0.4
+29,Can be moody,"Disagree strongly, Disagree a little, Neither agree nor disagree, Agree a little, Agree strongly",horiz,radio,0.6,0.4
+30,"Values artistic, aesthetic experiences","Disagree strongly, Disagree a little, Neither agree nor disagree, Agree a little, Agree strongly",horiz,radio,0.6,0.4
+31,"Is sometimes shy, inhibited","Disagree strongly, Disagree a little, Neither agree nor disagree, Agree a little, Agree strongly",horiz,radio,0.6,0.4
+32,Is considerate and kind to almost everyone,"Disagree strongly, Disagree a little, Neither agree nor disagree, Agree a little, Agree strongly",horiz,radio,0.6,0.4
+33,Does things efficiently,"Disagree strongly, Disagree a little, Neither agree nor disagree, Agree a little, Agree strongly",horiz,radio,0.6,0.4
+34,Remains calm in tense situations,"Disagree strongly, Disagree a little, Neither agree nor disagree, Agree a little, Agree strongly",horiz,radio,0.6,0.4
+35,Prefers work that is routine,"Disagree strongly, Disagree a little, Neither agree nor disagree, Agree a little, Agree strongly",horiz,radio,0.6,0.4
+36,"Is outgoing, sociable","Disagree strongly, Disagree a little, Neither agree nor disagree, Agree a little, Agree strongly",horiz,radio,0.6,0.4
+37,Is sometimes rude to others,"Disagree strongly, Disagree a little, Neither agree nor disagree, Agree a little, Agree strongly",horiz,radio,0.6,0.4
+38,Makes plans and follows through with them,"Disagree strongly, Disagree a little, Neither agree nor disagree, Agree a little, Agree strongly",horiz,radio,0.6,0.4
+39,Gets nervous easily,"Disagree strongly, Disagree a little, Neither agree nor disagree, Agree a little, Agree strongly",horiz,radio,0.6,0.4
+40,"Likes to reflect, play with ideas","Disagree strongly, Disagree a little, Neither agree nor disagree, Agree a little, Agree strongly",horiz,radio,0.6,0.4
+41,Has few artistic interests,"Disagree strongly, Disagree a little, Neither agree nor disagree, Agree a little, Agree strongly",horiz,radio,0.6,0.4
+42,Likes to cooperate with others,"Disagree strongly, Disagree a little, Neither agree nor disagree, Agree a little, Agree strongly",horiz,radio,0.6,0.4
+43,Is easily distracted,"Disagree strongly, Disagree a little, Neither agree nor disagree, Agree a little, Agree strongly",horiz,radio,0.6,0.4
+44,"Is sophisticated in art, music, or literature","Disagree strongly, Disagree a little, Neither agree nor disagree, Agree a little, Agree strongly",horiz,radio,0.6,0.4

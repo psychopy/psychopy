@@ -1,8 +1,14 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
-""" demo for the class psychopy.visual.RatingScale()
+"""
+Demo for the class psychopy.visual.RatingScale()
+
 author: Jeremy Gray, Example 4 by Henrik Singmann
 """
+
+from __future__ import division
+from __future__ import print_function
 
 from psychopy import visual, event, core, logging
 import os
@@ -11,7 +17,7 @@ import os
 win = visual.Window(fullscr=False, size=[1100, 800], units='pix', monitor='testMonitor')
 instr = visual.TextStim(win, text="""This is a demo of visual.RatingScale(). There are four examples.
 
-Example 1 is on the next screen. Use the mouse to indicate a rating: click somewhere on the line. You can also use the arrow keys to move left or right. 
+Example 1 is on the next screen. Use the mouse to indicate a rating: click somewhere on the line. You can also use the arrow keys to move left or right.
 
 To accept your rating, either press 'enter' or click the glowing button. Pressing 'tab' will skip the rating.
 
@@ -28,24 +34,24 @@ if 'escape' in event.waitKeys():
 myRatingScale = visual.RatingScale(win, choices=['cold', 'cool', 'hot'])
 
 # Or try this one:
-#myRatingScale = visual.RatingScale(win, choices=map(str, range(1,8)), marker='hover')
+# myRatingScale = visual.RatingScale(win, choices=map(str, range(1, 8)), marker='hover')
 
 # the item to-be-rated or respond to:
 myItem = visual.TextStim(win, text="How cool was that?", height=.12, units='norm')
 
 # anything with a frame-by-frame .draw() method will work, e.g.:
-#myItem = visual.MovieStim(win, 'jwpIntro.mov')
+# myItem = visual.MovieStim(win, 'jwpIntro.mov')
 
 event.clearEvents()
-while myRatingScale.noResponse: # show & update until a response has been made
+while myRatingScale.noResponse:  # show & update until a response has been made
     myItem.draw()
     myRatingScale.draw()
     win.flip()
     if event.getKeys(['escape']):
         core.quit()
 
-print 'Example 1: rating =', myRatingScale.getRating()
-print 'history =', myRatingScale.getHistory()
+print('Example 1: rating =', myRatingScale.getRating())
+print('history =', myRatingScale.getHistory())
 
 # Example 2 --------(multiple items, multiple dimensions for each)--------
 instr = visual.TextStim(win, text="""Example 2. This example uses non-default settings for the visual display, skipping a rating is not possible, and it uses a list of images (two) to be rated on several dimensions (valence and arousal).
@@ -62,21 +68,21 @@ if 'escape' in event.waitKeys():
 
 # create a scale for Example 2, using quite a few non-default options:
 myRatingScale = visual.RatingScale(win, low=0, high=50, precision=10, skipKeys=None,
-        marker='glow', markerExpansion=10, showValue=False, pos=[0,-200], name='Example2')
+        marker='glow', markerExpansion=10, showValue=False, pos=[0, -200], name='Example2')
 
 # using a list is handy if you have a lot of items to rate on the same scale, eg personality adjectives or images:
-imageList = [f for f in os.listdir('.') if len(f) > 4 and f[-4:] in ['.jpg','.png']] # find all .png or .jpg images in the directory
-imageList = imageList[:2] # ...but lets just use the first two
+imageList = ['beach.jpg', 'face.jpg']
 
 data = []
 for image in imageList:
-    x,y = myRatingScale.win.size
+    x, y = myRatingScale.win.size
     myItem = visual.SimpleImageStim(win=win, image=image, units='pix', pos=[0, y//7])
 
     # rate each image on two dimensions
-    for dimension in ['0=very negative . . . 50=very positive', '0=very boring . . . 50=very energizing']:
-        myRatingScale.reset() # needed between repeated uses of the same rating scale
-        myRatingScale.setDescription(dimension) # reset the instructions for this rating
+    for dimension in ['0=very negative . . . 50=very positive',
+                      '0=very boring . . . 50=very energizing']:
+        myRatingScale.reset()  # reset between repeated uses of the same scale
+        myRatingScale.setDescription(dimension)  # reset the instructions
         event.clearEvents()
         while myRatingScale.noResponse:
             myItem.draw()
@@ -84,15 +90,16 @@ for image in imageList:
             win.flip()
             if event.getKeys(['escape']):
                 core.quit()
-        data.append([image, myRatingScale.scaleDescription.text, myRatingScale.getRating(), myRatingScale.getRT()]) # save for later
+        data.append([image, myRatingScale.scaleDescription.text,
+                     myRatingScale.getRating(), myRatingScale.getRT()])  # save for later
 
         # clear the screen & pause between ratings
         win.flip()
-        core.wait(0.35) # brief pause, slightly smoother for the subject
+        core.wait(0.35)  # brief pause, slightly smoother for the subject
 
-print 'Example 2 (data from 2 images, each rated on 2 dimensions, reporting rating & RT):'
+print('Example 2 (data from 2 images, each rated on 2 dimensions, reporting rating & RT):')
 for d in data:
-    print '  ',d
+    print('  ', d)
 
 # Example 3 --------(two simultaneous ratings)--------
 instr = visual.TextStim(win, text="""Example 3. This example shows how one could obtain two ratings at the same time, e.g., to allow explicit comparison between images during ratings.
@@ -107,13 +114,14 @@ win.flip()
 if 'escape' in event.waitKeys():
     core.quit()
 
-x,y = win.size # for converting norm units to pix
+x, y = win.size  # for converting norm units to pix
 leftward = -0.35 * x / 2  # use pix units, because the drawing window's units are pix
 rightward = -1 * leftward
-myRatingScaleLeft = visual.RatingScale(win, mouseOnly=True, pos=(leftward,-y/6),
+# for logging, its useful to give names, esp when there are 2 on-screen
+myRatingScaleLeft = visual.RatingScale(win, mouseOnly=True, pos=(leftward, -y/6),
     marker='circle', size=0.85, name='left')
-myRatingScaleRight = visual.RatingScale(win, mouseOnly=True, pos=(rightward,-y/6),
-    markerColor='DarkGreen', size=0.85, name='right')  # for logging, its useful to give names, esp when there are 2 on-screen
+myRatingScaleRight = visual.RatingScale(win, mouseOnly=True, pos=(rightward, -y/6),
+    markerColor='DarkGreen', size=0.85, name='right')
 
 myItemLeft = visual.SimpleImageStim(win=win, image=imageList[0], pos=[leftward, y/6.])
 myItemRight = visual.SimpleImageStim(win=win, image=imageList[1], pos=[rightward, y/6.])
@@ -121,7 +129,7 @@ myItemRight = visual.SimpleImageStim(win=win, image=imageList[1], pos=[rightward
 event.clearEvents()
 while myRatingScaleLeft.noResponse or myRatingScaleRight.noResponse:
     # you could hide the item if its been rated:
-    #if myRatingScaleLeft.noResponse: myItemLeft.draw()
+    # if myRatingScaleLeft.noResponse: myItemLeft.draw()
     # or easier: just initialize it with the disappear=True option
     # but lets just draw it every frame:
     myItemLeft.draw()
@@ -140,9 +148,8 @@ myRatingScaleRight.draw()
 win.flip()
 core.wait(1)
 
-print 'Example 3:\n  rating left=', myRatingScaleLeft.getRating(), ' rt=%.3f' % myRatingScaleLeft.getRT()
-print '  rating right=', myRatingScaleRight.getRating(), ' rt=%.3f' % myRatingScaleRight.getRT()
-
+print('Example 3:\n  rating left=', myRatingScaleLeft.getRating(), ' rt=%.3f' % myRatingScaleLeft.getRT())
+print('  rating right=', myRatingScaleRight.getRating(), ' rt=%.3f' % myRatingScaleRight.getRT())
 
 # Example 4 --------(using tickMarks argument)--------
 instr = visual.TextStim(win, text="""Example 4.
@@ -158,17 +165,22 @@ if 'escape' in event.waitKeys():
     core.quit()
 
 myRatingScale = visual.RatingScale(win, low=0, high=100, marker='slider',
-    tickMarks=[0, 50, 82, 100], stretch=1.5, tickHeight=1.5, #singleClick=True,
+    tickMarks=[0, 50, 82, 100], stretch=1.5, tickHeight=1.5,  # singleClick=True,
     labels=["0%", "half/half", "kinda", "100%"])
-myItem = visual.TextStim(win, text="How probable is it that you will use this functionality in your next experiment?", height=.08, units='norm')
+txt = "How probable is it that you will use this functionality in your next experiment?"
+myItem = visual.TextStim(win, text=txt, height=.08, units='norm')
 
-while myRatingScale.noResponse: # show & update until a response has been made
+# show & update until a response has been made
+while myRatingScale.noResponse:
     myItem.draw()
     myRatingScale.draw()
     win.flip()
     if event.getKeys(['escape']):
         core.quit()
 
-print 'Example 4: rating =', myRatingScale.getRating()
+print('Example 4: rating =', myRatingScale.getRating())
 
+win.close()
 core.quit()
+
+# The contents of this file are in the public domain.

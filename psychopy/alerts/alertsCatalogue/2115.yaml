@@ -1,0 +1,21 @@
+# The first key-value pair is used for the alerts package
+
+code: 2115
+cat: Sizing
+msg: Your stimulus size exceeds the {dimension} dimension of your window.
+
+# The following are typically used for online help pages, and support reStructured Text.
+
+label: Stimulus size is bigger than the window dimensions
+
+synopsis: |
+  Your stimulus size exceeds the X or Y window dimensions. Stimuli sized greater than the window size will not be completely visible.
+
+details: |
+  This issue is often caused by an inconsistency betwen the units of your stimulus and the values being requested. For instance a size of 3, when the units are `deg` is sensible (3 degrees would be within the screen dimensions) but a size of 3 when the units are `height` would not be sensible (3 times bigger than the height of the screen).
+
+solutions: |
+  Check the size and the :ref:`units of the stimulus <units>`_ carefully. You may also need to check the monitor calibration if you're using units that depend on the monitor size and resolution (like `cm` and `deg`).
+
+versions: |
+  All versions.

@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 
 # Copyright (c) 1996-2002 Denis G. Pelli
 # Copyright (c) 1996-9 David Brainard
@@ -31,6 +31,12 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 # DAMAGE.
 
+from __future__ import absolute_import, division, print_function
+
+from builtins import input
+from builtins import zip
+from builtins import range
+from builtins import object
 __all__ = ['QuestObject']
 
 import math
@@ -44,21 +50,27 @@ import numpy as num
 
 def getinf(x):
     return num.nonzero( num.isinf( num.atleast_1d(x) ) )
-    
 
-class QuestObject:
-    
+
+class QuestObject(object):
+
     """Measure threshold using a Weibull psychometric function.
-    
+
     Threshold 't' is measured on an abstract 'intensity' scale, which
     usually corresponds to log10 contrast.
 
     The Weibull psychometric function:
-    
+
     p2=delta*gamma+(1-delta)*(1-(1-gamma)*exp(-10**(beta*(x2+xThreshold))))
 
-    where x represents log10 contrast relative to threshold. The
-    Weibull function itself appears only in recompute(), which uses
+    where x2 represents log10 intensity relative to threshold
+    (i.e., x2 = x - T, where x is intensity, and T is threshold intensity).
+    xThreshold shifts the psychometric function along the intensity axis
+    such that threshold performance (specified as pThreshold below) will
+    occur at intensity x = T, i.e., x2 = x - T = 0. In the 
+    Watson & Pelli (1983) paper, xThreshold is denoted as epsilon and used
+    to perform testing at the "ideal sweat factor".
+    The Weibull function itself appears only in recompute(), which uses
     the specified parameter values in self to compute a psychometric
     function and store it in self. All the other methods simply use
     the psychometric function stored as instance
@@ -69,7 +81,7 @@ class QuestObject:
     __init__(), recompute(), and (if you need it) beta_analysis().
 
     instance variables:
-    
+
     tGuess is your prior threshold estimate.
 
     tGuessSd is the standard deviation you assign to that guess.
@@ -109,6 +121,7 @@ class QuestObject:
 
         This was converted from the Psychtoolbox's QuestCreate function.
         """
+        super(QuestObject, self).__init__()
         grain = float(grain) # make sure grain is a float
         if range is None:
             dim = 500
@@ -162,8 +175,8 @@ class QuestObject:
             betaSd=math.sqrt(num.sum(p2*beta2**2)/p-(num.sum(p2*beta2)/p)**2)
             iBetaMean=num.sum(p2/beta2)/p
             iBetaSd=math.sqrt(num.sum(p2/beta2**2)/p-(num.sum(p2/beta2)/p)**2)
-            stream.write('%5.2f	%5.2f	%4.1f	%4.1f	%6.3f\n'%(t,sd,1/iBetaMean,betaSd,self.gamma))
-        print 'Now re-analyzing with beta as a free parameter. . . .'
+            stream.write('%5.2f	%5.2f	%4.1f	%4.1f	%6.3f\n'%(t, sd, 1/iBetaMean, betaSd, self.gamma))
+        print('Now re-analyzing with beta as a free parameter. . . .')
         if stream is None:
             stream=sys.stdout
         stream.write('logC 	 sd 	 beta	 sd	 gamma\n');
@@ -180,7 +193,7 @@ class QuestObject:
 
     def mode(self):
         """Mode of Quest posterior pdf.
-        
+
         t,p=q.mode()
         't' is the mode threshold estimate
         'p' is the value of the (unnormalized) pdf at t.
@@ -196,10 +209,10 @@ class QuestObject:
         """probability of correct response at intensity x.
 
         p=q.p(x)
-        
+
         The probability of a correct (or yes) response at intensity x,
         assuming threshold is at x=0.
-        
+
         This was converted from the Psychtoolbox's QuestP function.
         """
         if x < self.x2[0]:
@@ -207,10 +220,10 @@ class QuestObject:
         if x > self.x2[-1]:
             return self.x2[-1]
         return num.interp(x,self.x2,self.p2)
-    
+
     def pdf_at(self,t):
         """The (unnormalized) probability density of candidate threshold 't'.
-        
+
         This was converted from the Psychtoolbox's QuestPdf function.
         """
         i=int(round((t-self.tGuess)/self.grain))+1+self.dim/2
@@ -222,7 +235,7 @@ class QuestObject:
         """Get Quest recommendation for next trial level.
 
         intensity=q.quantile([quantileOrder])
-        
+
         Gets a quantile of the pdf in the struct q.  You may specify
         the desired quantileOrder, e.g. 0.5 for median, or, making two
         calls, 0.05 and 0.95 for a 90confidence interval.  If the
@@ -262,7 +275,7 @@ class QuestObject:
         """Simulate an observer with given Quest parameters.
 
         response=QuestSimulate(q,intensity,tActual)
-        
+
         Simulate the response of an observer with threshold tActual.
 
         This was converted from the Psychtoolbox's QuestSimulate function."""
@@ -272,7 +285,7 @@ class QuestObject:
 
     def recompute(self):
         """Recompute the psychometric function & pdf.
-        
+
         Call this immediately after changing a parameter of the
         psychometric function. recompute() uses the specified
         parameters in 'self' to recompute the psychometric
@@ -287,7 +300,7 @@ class QuestObject:
         if self.gamma > self.pThreshold:
             warnings.warn( 'reducing gamma from %.2f to 0.5'%self.gamma)
             self.gamma = 0.5
-        self.i = num.arange(-self.dim/2,self.dim/2+1)
+        self.i = num.arange(-self.dim/2, self.dim/2+1)
         self.x = self.i * self.grain
         self.pdf = num.exp(-0.5*(self.x/self.tGuessSd)**2)
         self.pdf = self.pdf/num.sum(self.pdf)
@@ -319,7 +332,7 @@ class QuestObject:
         pE = pH*math.log(pH+eps)-pL*math.log(pL+eps)+(1-pH+eps)*math.log(1-pH+eps)-(1-pL+eps)*math.log(1-pL+eps)
         pE = 1/(1+math.exp(pE/(pL-pH)))
         self.quantileOrder=(pE-pL)/(pH-pL)
-        
+
         if len(getinf(self.pdf)[0]):
             raise RuntimeError('prior pdf is not finite')
 
@@ -352,7 +365,7 @@ class QuestObject:
         from scratch from the historical record.
 
         This was converted from the Psychtoolbox's QuestUpdate function."""
-        
+
         if response < 0 or response > self.s2.shape[0]:
             raise RuntimeError('response %g out of range 0 to %d'%(response,self.s2.shape[0]))
         if self.updatePdf:
@@ -377,7 +390,7 @@ class QuestObject:
         # keep a historical record of the trials
         self.intensity.append(intensity)
         self.response.append(response)
-        
+
 def demo():
     """Demo script for Quest routines.
 
@@ -411,34 +424,34 @@ def demo():
     Watson, A. B. and Pelli, D. G. (1983) QUEST: a Bayesian adaptive
     psychometric method. Percept Psychophys, 33 (2), 113-20.
     """
-    
-    print 'The intensity scale is abstract, but usually we think of it as representing log contrast.'
+
+    print('The intensity scale is abstract, but usually we think of it as representing log contrast.')
 
     tActual = None
     while tActual is None:
         sys.stdout.write('Specify true threshold of simulated observer: ')
-        input = raw_input()
+        input = input()
         try:
             tActual = float(input)
-        except:
+        except Exception:
             pass
-    
+
     tGuess = None
     while tGuess is None:
         sys.stdout.write('Estimate threshold: ')
-        input = raw_input()
+        input = input()
         try:
             tGuess = float(input)
-        except:
+        except Exception:
             pass
-    
+
     tGuessSd = 2.0 # sd of Gaussian before clipping to specified range
     pThreshold = 0.82
     beta = 3.5
     delta = 0.01
     gamma = 0.5
     q=QuestObject(tGuess,tGuessSd,pThreshold,beta,delta,gamma)
-    
+
     # Simulate a series of trials.
     trialsDesired=100
     wrongRight = 'wrong', 'right'
@@ -454,27 +467,26 @@ def demo():
         # Simulate a trial
         timeSplit=time.time(); # omit simulation and printing from reported time/trial.
         response=q.simulate(tTest,tActual)
-        print 'Trial %3d at %4.1f is %s'%(k+1,tTest,wrongRight[int(response)])
+        print('Trial %3d at %4.1f is %s'%(k+1,tTest,wrongRight[int(response)]))
         timeZero=timeZero+time.time()-timeSplit;
-        
+
         # Update the pdf
         q.update(tTest,response);
 
     # Print results of timing.
-    print '%.0f ms/trial'%(1000*(time.time()-timeZero)/trialsDesired)
+    print('%.0f ms/trial'%(1000*(time.time()-timeZero)/trialsDesired))
 
     # Get final estimate.
     t=q.mean()
     sd=q.sd()
-    print 'Mean threshold estimate is %4.2f +/- %.2f'%(t,sd)
+    print('Mean threshold estimate is %4.2f +/- %.2f'%(t,sd))
     #t=QuestMode(q);
-    #print 'Mode threshold estimate is %4.2f'%t
-
-    print '\nQuest beta analysis. Beta controls the steepness of the Weibull function.\n'
+    #print('Mode threshold estimate is %4.2f'%t)
+    print('\nQuest beta analysis. Beta controls the steepness of the Weibull function.\n')
     q.beta_analysis()
-    print 'Actual parameters of simulated observer:'
-    print 'logC	beta	gamma'
-    print '%5.2f	%4.1f	%5.2f'%(tActual,q.beta,q.gamma)
-    
+    print('Actual parameters of simulated observer:')
+    print('logC	beta	gamma')
+    print('%5.2f	%4.1f	%5.2f'%(tActual,q.beta,q.gamma))
+
 if __name__ == '__main__':
     demo() # run the demo

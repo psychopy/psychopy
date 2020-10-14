@@ -21,8 +21,8 @@ The psychopy.iohub.ioHubConnection object returned from the launchHubServer
 function provides methods for controlling the iohub process and
 accessing iohub devices and events.
 
-.. autoclass:: ioHubConnection
-    :exclude-members: addDeviceToMonitor, getHubServerConfig, getExperimentID, getExperimentMetaData, getSessionMetaData, initializeConditionVariableTable, addRowToConditionVariableTable, registerPygletWindowHandles, unregisterPygletWindowHandles, wait
+.. autoclass:: ioHubConnection(object)
+    :exclude-members: eventListToObject, eventListToDict, eventListToNamedTuple, _isErrorReply, _startServer, _createDeviceList, _addDeviceView, _sendToHubServer, _sendExperimentInfo, _sendSessionInfo, addDeviceToMonitor, getHubServerConfig, getExperimentID, getExperimentMetaData, getSessionMetaData, initializeConditionVariableTable, addRowToConditionVariableTable, registerWindowHandles, unregisterWindowHandles, wait
     :members:
     :member-order: bysource
 

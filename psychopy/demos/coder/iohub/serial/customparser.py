@@ -14,7 +14,7 @@ from psychopy import core, visual
 from psychopy.iohub import launchHubServer
 
 # Settings for serial port communication.
-SERIAL_PORT = 'COM16'
+SERIAL_PORT = 'COM226'
 BAUDRATE = 19200
 
 # event_parser_info dict:
@@ -36,7 +36,7 @@ event_parser_info = dict(parser_function="parseserial.checkForSerialEvents",
                          parser_kwargs=dict(var1='not used', var2=1234))
 # configure iohub
 exp_code = 'serial_demo'
-sess_code = 'S_{0}'.format(long(time.mktime(time.localtime())))
+sess_code = 'S_{0}'.format(int(time.mktime(time.localtime())))
 iohubkwargs = {'experiment_code': exp_code,
                'session_code': sess_code,
                'serial.Serial': dict(name='serial',
@@ -69,10 +69,14 @@ io.clearEvents('all')
 # Print any serial events.
 #
 while not keyboard.getPresses():
-    serial_device.write("TEST")
+    serial_device.write('aaa')
+    io.wait(0.05)
+    serial_device.write('bbb')
+    io.wait(0.05)
+    serial_device.write('ccc')
+    io.wait(.500)
     for serevt in serial_device.getEvents():
         print(serevt)
-    io.wait(.500)
 
 # Stop recording events from the PST box and switch off all lamps.
 serial_device.enableEventReporting(False)

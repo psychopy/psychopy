@@ -1,0 +1,21 @@
+# The first key-value pair is used for the alerts package
+
+code: 4115
+cat: Timing
+msg: Your stimulus {type} type {frameType} must be expressed as a whole number.
+
+
+# The following are typically used for online help pages, and support reStructured Text.
+label: Component start/stop in units of frames must be whole numbers
+
+synopsis: |
+  Component start and stop times/durations in frames must be given as whole numbers.
+
+details: |
+  Since it isn't possible to start or stop a stimulus part-way through a screen refresh it would be unwise to request that PsychoPy attempts that.
+
+solutions: |
+  Check your stimulus start/stop time and set to an integer value instead of a decimal value.
+
+versions: |
+  All versions.

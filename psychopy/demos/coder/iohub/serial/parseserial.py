@@ -44,11 +44,10 @@ def checkForSerialEvents(read_time, rx_data, parser_state, **kwargs):
 
     :return: list of ioHub serial device events found. None == [] here.
     """
-
-    print2err("checkForSerialEvents called: ", (read_time, rx_data, parser_state, kwargs))
+    # print2err("checkForSerialEvents called: ", (read_time, rx_data, parser_state, kwargs))
     parser_state['last_time'] = read_time
 
     serial_events = []
-    if rx_data == 'TEST':
+    if rx_data:
         serial_events.append({'data': rx_data})
     return serial_events

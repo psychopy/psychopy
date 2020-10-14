@@ -14,17 +14,16 @@ Workflow
 
 The use of git and the following workflow allows people to contribute changes that can easily be incorporated back into the project, while (hopefully) maintaining order and consistency in the code. All changes should be tracked and reversible.
 
-    - Create a fork of the central psychopy/psychopy repository
-    - Create a local clone of that fork
-    - For small changes
-        - make the changes directly in the master branch
-        - push back to your fork
-        - submit a pull request to the central repository
-    - For substantial changes (new features)
-        - create a branch
-        - when finished run unit tests
-        - when the unit tests pass merge changes back into the `master` branch
-        - submit a pull request to the central repository
+- Create a fork of the central psychopy/psychopy repository
+- Create a local clone of that fork
+- For small changes
+    - make the changes directly in the master branch
+    - push back to your fork
+    - submit a pull request to the central repository
+- For substantial changes (new features)
+    - create a branch
+    - when finished run unit tests
+    - when the unit tests pass, submit a pull request to the central repository
 
 .. createClone:
 
@@ -91,14 +90,16 @@ Commit messages
 ~~~~~~~~~~~~~~~~~~~~~
 Informative commit messages are really useful when we have to go back through the repository finding the time that a particular change to the code occurred. Precede your message with one or more of the following to help us spot easily if this is a bug fix (which might need pulling into other development branches) or new feature (which we might want to avoid pulling in if it might disrupt existing code).
 
-  * *BF* : bug fix
-  * *FF* : 'feature' fix. This is for fixes to code that hasn't been released
-  * *RF* : refactoring
-  * *NF* : new feature
-  * *ENH* : enhancement (improvement to existing code)
-  * *DOC*: for all kinds of documentation related commits
-  * *TEST*: for adding or changing tests
-  
+* *BF* : bug fix
+* *FF* : 'feature' fix. This is for fixes to code that hasn't been released
+* *RF* : refactoring
+* *NF* : new feature
+* *ENH* : enhancement (improvement to existing code)
+* *DOC*: for all kinds of documentation related commits
+* *TEST*: for adding or changing tests
+
+When making commits that fall into several commit categories (e.g., BF and TEST), **please make separate commits for each category** and **avoid concatenating commit message prefixes**. E.g., please do not use `BF/TEST`, because this will affect how commit messages are sorted when we pull in fixes for each release.
+
 NB: The difference between BF and FF is that BF indicates a fix that is appropriate for back-porting to earlier versions, whereas FF indicates a fix to code that has not been released, and so cannot be back-ported.
 
 .. _pullRequest:

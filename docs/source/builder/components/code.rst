@@ -19,9 +19,12 @@ Parameters
 
 The parameters of the `Code Component` simply specify the code that will get executed at 5 different points within the experiment. You can use as many or as few of these as you need for any `Code Component`:
 
+    Before Experiment:
+        Things that need to be done just once, like importing a supporting module, which do not need the experiment window to exist yet.
+
     Begin Experiment:
-        Things that need to be done just once, like importing a supporting module, initialising a variable for later use.
-        
+        Things that need to be done just once, like initialising a variable for later use, which may need to refer to the experiment window.
+
     Begin Routine:
         Certain things might need to be done just once at the start of a :ref:`Routine <routines>` e.g. at the beginning of each trial you might decide which side a stimulus will appear
         
@@ -54,19 +57,21 @@ There are many ways to do this, but you could add the following to the `Begin Ro
 ====================================================
 As with the above there are many different ways to create noise, but a simple method would be to add the following to the `Begin Routine` section of a `Code Component` at the top of your :ref:`Routine <routines>`. Then set the image as `$noiseTexture`.::
 
-    noiseTexture = random.rand(128,128)*2.0-1
+    noiseTexture = random.rand((128,128)) * 2.0 - 1
 
 3. Send a feedback message at the end of the experiment
 =================================================================
-Create a `Code Component` with this in the `Begin Experiment` field::
-    
-    expClock = core.Clock()
-    
-and with this in the `End Experiment` field::
-    
-    print "Thanks for participating - that took %.2f minutes in total" %(expClock.getTime()/60.0)
 
-(or you could create a Text Component with that as contents rather than printing it).
+Make a new routine, and place it at the end of the flow (i.e., the end of the experiment).
+Create a `Code Component` with this in the `Begin Experiment` field::
+
+    expClock = core.Clock()
+
+and put this in the `Begin routine` field::
+
+    msg = "Thanks for participating - that took %.2f minutes in total" %(expClock.getTime()/60.0)
+
+Next, add a `Text Component` to the routine, and set the text to `$msg`. Be sure that the text field's updating is set to "Set every repeat" (and not "Constant").
 
 4. End a loop early.
 ====================================================

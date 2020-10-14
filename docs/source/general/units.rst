@@ -66,7 +66,7 @@ There are actually three variants: 'deg', 'degFlat', and 'degFlatPos'
 
 **'degFlatPos'** : This accounts for flat screens in calculating position coordinates of visual stimuli but leaves size and spatial frequency uncorrected. This means that an evenly spaced grid of visual stimuli will appear warped in position but will 
 
-**'degFlat'**: This corrects the calculations of degrees for flatness of the screen for each vertex your your stimuli. Square stimuli in the periphery will, therefore, become more spaced apart but they will also get larger and rhomboid in the pixels that they occupy.
+**'degFlat'**: This corrects the calculations of degrees for flatness of the screen for each vertex of your stimuli. Square stimuli in the periphery will, therefore, become more spaced apart but they will also get larger and rhomboid in the pixels that they occupy.
 
 .. _unitsPix:
 

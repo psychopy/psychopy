@@ -3,5 +3,3 @@
 
 .. automodule:: psychopy.core
     :members: getTime, getAbsTime, wait, Clock, CountdownTimer, MonotonicClock, StaticPeriod
-    
-    

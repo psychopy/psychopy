@@ -1,19 +1,24 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
-
+from builtins import str
+from builtins import object
+from past.builtins import basestring
 from psychopy.visual import Window, ShapeStim
-from psychopy import event, core
+from psychopy import event, core, monitors
 from psychopy.constants import NOT_STARTED
 import pyglet
 from pyglet.window.mouse import LEFT, MIDDLE, RIGHT
 try:
     import pygame
     havePygame = True
-except:
+except Exception:
     havePygame = False
 import pytest
 import copy
 import threading
 import os
+import numpy as np
 
 """test with both pyglet and pygame:
     cd psychopy/psychopy/
@@ -22,16 +27,39 @@ import os
 
 travis = bool(str(os.environ.get('TRAVIS')).lower() == 'true')
 
-class DelayedFakeKey(threading.Thread):
-    def __init__(self, key, delay=.01):
+
+class DelayedFakeKeys(threading.Thread):
+    def __init__(self, keys, modifiers=0, delay=.01):
         threading.Thread.__init__(self, None, 'fake key', None)
-        self.key = key
+        if isinstance(keys, basestring):
+            self.keys = [keys]
+        else:
+            self.keys = keys
+        self.modifiers = modifiers
         self.delay = delay
+
     def run(self):
         core.wait(self.delay)
-        event._onPygletKey(symbol=self.key, modifiers=None, emulated=True)
+        [event._onPygletKey(key, modifiers=self.modifiers, emulated=True)
+         for key in self.keys]
 
-class _baseTest:
+
+class DelayedAddFakeKeysToBuffer(threading.Thread):
+    def __init__(self, keys, modifiers=0, delay=.01):
+        threading.Thread.__init__(self, None, 'fake key', None)
+        if isinstance(keys, basestring):
+            self.keys = [keys]
+        else:
+            self.keys = keys
+        self.modifiers = modifiers
+        self.delay = delay
+
+    def run(self):
+        core.wait(self.delay)
+        fake_events = [(key, self.modifiers, -1) for key in self.keys]
+        event._keyBuffer.extend(fake_events)
+
+class _baseTest(object):
     #this class allows others to be created that inherit all the tests for
     #a different window config
     @classmethod
@@ -101,6 +129,25 @@ class _baseTest:
         for t in ['mouse', 'joystick', 'keyboard', None]:
             event.clearEvents(t)
 
+    def test_clearEvents_keyboard(self):
+        event._onPygletKey(symbol='x', modifiers=0, emulated=True)
+        event.clearEvents('keyboard')
+        assert not event._keyBuffer
+
+    def test_clearEvents_mouse(self):
+        """Keyboard buffer should not be affected.
+        """
+        event._onPygletKey(symbol='x', modifiers=0, emulated=True)
+        event.clearEvents('mouse')
+        assert event._keyBuffer
+
+    def test_clearEvents_joystick(self):
+        """Keyboard buffer should not be affected.
+        """
+        event._onPygletKey(symbol='x', modifiers=0, emulated=True)
+        event.clearEvents('joystick')
+        assert event._keyBuffer
+
     def test_keys(self):
         if travis:
             pytest.skip()  # failing on travis-ci
@@ -110,9 +157,9 @@ class _baseTest:
         assert event.getKeys() == []
         for k in ['s', 'return']:
             event.clearEvents()
-            event._onPygletKey(symbol=k, modifiers=None, emulated=True)
+            event._onPygletKey(symbol=k, modifiers=0, emulated=True)
             assert k in event.getKeys()
-            event._onPygletKey(symbol=17, modifiers=None, emulated=False)
+            event._onPygletKey(symbol=17, modifiers=0, emulated=False)
             assert '17' in event.getKeys()
 
             # test that key-based RT is about right
@@ -120,52 +167,75 @@ class _baseTest:
             c = core.Clock()
             t = 0.05
             core.wait(t)
-            event._onPygletKey(symbol=k, modifiers=None, emulated=True)
+            event._onPygletKey(symbol=k, modifiers=0, emulated=True)
             resp = event.getKeys(timeStamped=c)
             assert k in resp[0][0]
             assert t - 0.01 < resp[0][1] < t + 0.01
 
-            event._onPygletKey(symbol=k, modifiers=None, emulated=True)
+            event._onPygletKey(symbol=k, modifiers=0, emulated=True)
             assert k in event.getKeys(timeStamped=True)[0]
-            event._onPygletKey(symbol=k, modifiers=None, emulated=True)
-            event._onPygletKey(symbol='x', modifiers=None, emulated=True)  # nontarget
+            event._onPygletKey(symbol=k, modifiers=0, emulated=True)
+            event._onPygletKey(symbol='x', modifiers=0, emulated=True)  # nontarget
             assert k in event.getKeys(keyList=[k, 'd'])
 
             # waitKeys implicitly clears events, so use a thread to add a delayed key press
             assert event.waitKeys(maxWait=-1) is None
-            keyThread = DelayedFakeKey(k)
+            keyThread = DelayedFakeKeys(k)
             keyThread.start()
             assert event.waitKeys(maxWait=.1) == [k]
-            keyThread = DelayedFakeKey(k)
+            keyThread = DelayedFakeKeys(k)
             keyThread.start()
             assert event.waitKeys(maxWait=.1, keyList=[k]) == [k]
 
             # test time-stamped waitKeys
             c = core.Clock()
             delay=0.01
-            keyThread = DelayedFakeKey(k, delay=delay)
+            keyThread = DelayedFakeKeys(k, delay=delay)
             keyThread.start()
             result = event.waitKeys(maxWait=.1, keyList=[k], timeStamped=c)
             assert result[0][0] == k
             assert result[0][1] - delay < .01  # should be ~0 except for execution time
 
-    def test_misc(self):
-        assert event.xydist([0,0], [1,1]) == sqrt(2)
+    def test_waitKeys_clearEvents_True(self):
+        key = 'x'
+        DelayedAddFakeKeysToBuffer(key).start()
+        key_events = event.waitKeys(clearEvents=True)
+        assert key_events == [key]
+
+    def test_waitKeys_clearEvents_False(self):
+        keys = ['x', 'y', 'z']
+        [event._onPygletKey(symbol=key, modifiers=0, emulated=True)
+         for key in keys]
+
+        key_events = event.waitKeys(keyList=keys[1:], clearEvents=False)
+        assert 'x' not in key_events
+        assert 'y' in key_events
+        assert 'z' in key_events
+
+    def test_waitKeys_keyList_clearEvents_True(self):
+        keys = ['x', 'y', 'z']
+        DelayedAddFakeKeysToBuffer(keys).start()
+        key_events = event.waitKeys(keyList=keys[:-1], clearEvents=True)
+
+        assert 'x' in key_events
+        assert 'y' in key_events
+        assert 'z' not in key_events
+        assert 'z' in event.getKeys()
+
+    def test_xydist(self):
+        assert event.xydist([0,0], [1,1]) == np.sqrt(2)
 
     def test_mouseMoved(self):
-        pytest.skip()  # mouse.moved() failures some of the time, blah
-
         if travis:
             pytest.skip()  # failing on travis-ci
 
         m = event.Mouse()
-        m.prevPos = [0,0]
-        m.lastPos = [0, 0]
-        m.prevPos[0] = 1  # fake movement
+        m.prevPos = [0, 0]
+        m.lastPos = [0, 1]
         assert m.mouseMoved()  # call to mouseMoved resets prev and last
-        m.prevPos = [0,0]
-        m.lastPos = [0, 0]
-        m.prevPos[0] = 1  # fake movement
+
+        m.prevPos = [0, 0]
+        m.lastPos = [0, 1]
         assert m.mouseMoved(distance=0.5)
         for reset in [True, 'here', (1,2)]:
             assert not m.mouseMoved(reset=reset)
@@ -194,10 +264,6 @@ class _baseTest:
         m.getPressed(getTime=True)
 
     def test_isPressedIn(self):
-        if travis:
-            pytest.skip()
-        # travis error: ValueError: Monitor __blank__ has no known size in pixels (SEE MONITOR CENTER)
-
         m = event.Mouse(self.win, newPos=(0,0))
         s = ShapeStim(self.win, vertices=[[10,10],[10,-10],[-10,-10],[-10,10]], autoLog=False)
         if not s.contains(m.getPos()):
@@ -224,9 +290,14 @@ class _baseTest:
 class TestPygletNorm(_baseTest):
     @classmethod
     def setup_class(self):
-        self.win = Window([128,128], winType='pyglet', pos=[50,50], autoLog=False)
+        mon = monitors.Monitor('testMonitor')
+        mon.setDistance(10.0) #exagerate the effect of flatness by setting the monitor close
+        mon.setWidth(40.0)
+        mon.setSizePix([1024,768])
+        self.win = Window([128,128], monitor=mon, winType='pyglet', pos=[50,50], autoLog=False)
         if havePygame:
             assert pygame.display.get_init() == 0
+
 
 class xxxTestPygameNorm(_baseTest):
     @classmethod
@@ -234,3 +305,8 @@ class xxxTestPygameNorm(_baseTest):
         self.win = Window([128,128], winType='pygame', pos=[50,50], autoLog=False)
         assert pygame.display.get_init() == 1
         assert event.havePygame
+
+
+if __name__ == '__main__':
+    import pytest
+    pytest.main()

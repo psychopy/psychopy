@@ -12,8 +12,10 @@
 #
 #   Please see <http://www.gnu.org/licenses/> for a copy of the GNU General Public License.
 
-from __future__ import division
+from __future__ import absolute_import, division, print_function
 
+from builtins import range
+from builtins import object
 __all__ = ['PsiObject']
 
 import math
@@ -22,7 +24,6 @@ import random
 import sys
 import time
 from numpy import *
-from scipy import stats
 
 
 class PsiObject(object):
@@ -30,17 +31,20 @@ class PsiObject(object):
     """Special class to handle internal array and functions of Psi adaptive psychophysical method (Kontsevich & Tyler, 1999)."""
     
     def __init__(self, x, alpha, beta, xPrecision, aPrecision, bPrecision, delta=0, stepType='lin', TwoAFC=False, prior=None):
+        global stats
+        from scipy import stats  # takes a while to load so do it lazy
+
         self._TwoAFC = TwoAFC
         #Save dimensions
         if stepType == 'lin':
-            self.x = linspace(x[0], x[1], round((x[1]-x[0])/xPrecision)+1, True)
+            self.x = linspace(x[0], x[1], int(round((x[1]-x[0])/xPrecision)+1), True)
         elif stepType == 'log':
             self.x = logspace(log10(x[0]), log10(x[1]), xPrecision, True)
         else:
             raise RuntimeError('Invalid step type. Unable to initialize PsiObject.')
-        self.alpha = linspace(alpha[0], alpha[1], round((alpha[1]-alpha[0])/aPrecision)+1, True)
-        self.beta = linspace(beta[0], beta[1], round((beta[1]-beta[0])/bPrecision)+1, True)
-        self.r = array(range(2))
+        self.alpha = linspace(alpha[0], alpha[1], int(round((alpha[1]-alpha[0])/aPrecision)+1), True)
+        self.beta = linspace(beta[0], beta[1], int(round((beta[1]-beta[0])/bPrecision)+1), True)
+        self.r = array(list(range(2)))
         self.delta = delta
         
         # Change x,a,b,r arrays to matrix computation compatible orthogonal 4D arrays
@@ -64,7 +68,7 @@ class PsiObject(object):
             
         #Create P(r | lambda, x)
         if TwoAFC:
-            self._probResponseGivenLambdaX = (1-self._r) + (2*self._r-1) * (stats.norm.cdf((self._x / self._alpha)**self._beta/sqrt(2))*(1-self.delta)+self.delta)
+            self._probResponseGivenLambdaX = (1-self._r) + (2*self._r-1) * ((.5 + .5 * stats.norm.cdf(self._x, self._alpha, self._beta)) * (1 - self.delta) + self.delta / 2)
         else: # Yes/No
             self._probResponseGivenLambdaX = (1-self._r) + (2*self._r-1) * (stats.norm.cdf(self._x, self._alpha, self._beta)*(1-self.delta)+self.delta/2)
         
@@ -97,7 +101,7 @@ class PsiObject(object):
         else:
             lamb = lam
         if self._TwoAFC:
-            return lamb[0]*(sqrt(2)*stats.norm.ppf((thresh-self.delta)/(1-self.delta)))**(1/lamb[1])
+            return stats.norm.ppf((2*thresh-1)/(1-self.delta), lamb[0], lamb[1])
         else:
             return stats.norm.ppf((thresh-self.delta/2)/(1-self.delta), lamb[0], lamb[1])
         

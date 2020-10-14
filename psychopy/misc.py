@@ -1,18 +1,24 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-'''Wrapper for all miscellaneous functions and classes from psychopy.tools'''
+"""Wrapper for all miscellaneous functions and classes from psychopy.tools
+"""
 
 # pylint: disable=W0611
 # W0611 = Unused import %s
 
+from __future__ import absolute_import, print_function
+
+
 from psychopy.tools.arraytools import (createXYs, extendArr, makeRadialMatrix,
                                        ratioRange, shuffleArray, val2array)
 
-from psychopy.tools.attributetools import attributeSetter, setAttribute, logAttrib
+from psychopy.tools.attributetools import (attributeSetter, setAttribute,
+                                           logAttrib)
 
 from psychopy.tools.colorspacetools import (dkl2rgb, dklCart2rgb,
                                             hsv2rgb, lms2rgb,

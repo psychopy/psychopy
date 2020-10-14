@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Mega-timing tests for Lab Based data</title>
+<script src='js/sortable.min.js'></script>
+<style>
+table {
+  border-spacing: 0;
+  width: 100%;
+  border: 1px solid #ddd;
+}
+th {
+  cursor: pointer;
+}
+th, td {
+  text-align: left;
+  padding: 16px;
+}
+tr:nth-child(even) {
+  background-color: #f2f2f2
+}
+</style>
+</head>
+<body>
+
+<p><strong>Click the headers to sort the table.</strong></p>
+<p>The first time you click, the sorting direction is ascending (A to Z).</p>
+<p>Click again, and the sorting direction will be descending (Z to A):</p>
+
+<table id="Lab Based"  class="sortable-theme-bootstrap" data-sortable>
+        <!-- sortable by clicking on headers :-->
+        <thead><tr>
+          <th>Package</th>
+  <th>Platform</th>
+  <th>Mean Precision</th>
+  <th>RT var</th>
+  <th>RT lag</th>
+  <th>Visual duration var</th>
+  <th>Visual duration bias</th>
+  <th>Visual onset var</th>
+  <th>Visual onset bias</th>
+  <th>Audio var</th>
+  <th>Audio lag</th>
+  <th>Audiovisual var</th>
+  <th>Audiovisual bias</th>
+</tr></thead>
+<tr>
+  <td style="background-color:#FFFFFF">PsychToolBox</td>
+  <td style="background-color:#FFFFFF">Ubuntu</td>
+  <td style="background-color:#DDFFDD">0.18</td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/RT_ptb_linux_desktop.png">0.31</a></td>
+  <td style="background-color:#FFFFFF"><a href="https://psychopy.org/timing/2020/plots/RT_ptb_linux_desktop.png">12.30</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/visual_dur_ptb_linux_desktop.png">0.15</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/visual_dur_ptb_linux_desktop.png">2.05</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/visual_lag_ptb_linux_desktop.png">0.18</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/visual_lag_ptb_linux_desktop.png">4.53</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/audio_lag_ptb_linux_desktop.png">0.17</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/audio_lag_ptb_linux_desktop.png">-0.74</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/audiovisual_ptb_linux_desktop.png">0.11</a></td>
+  <td style="background-color:#FFFFFF"><a href="https://psychopy.org/timing/2020/plots/audiovisual_ptb_linux_desktop.png">-5.27</a></td>
+</tr>
+<tr>
+  <td style="background-color:#FFFFFF">Presentation</td>
+  <td style="background-color:#FFFFFF">Win10</td>
+  <td style="background-color:#DDFFDD">0.29</td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/RT_nbs_win10_desktop.png">0.35</a></td>
+  <td style="background-color:#FFFFFF"><a href="https://psychopy.org/timing/2020/plots/RT_nbs_win10_desktop.png">11.48</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/visual_dur_nbs_win10_desktop.png">0.23</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/visual_dur_nbs_win10_desktop.png">-1.83</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/visual_lag_nbs_win10_desktop.png">0.34</a></td>
+  <td style="background-color:#FFFFFF"><a href="https://psychopy.org/timing/2020/plots/visual_lag_nbs_win10_desktop.png">7.07</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/audio_lag_nbs_win10_desktop.png">0.31</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/audio_lag_nbs_win10_desktop.png">0.56</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/audiovisual_nbs_win10_desktop.png">0.19</a></td>
+  <td style="background-color:#FFFFFF"><a href="https://psychopy.org/timing/2020/plots/audiovisual_nbs_win10_desktop.png">-6.51</a></td>
+</tr>
+<tr>
+  <td style="background-color:#FFFFFF">PsychToolBox</td>
+  <td style="background-color:#FFFFFF">MacOS</td>
+  <td style="background-color:#DDFFDD">0.39</td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/RT_ptb_macos_desktop.png">0.44</a></td>
+  <td style="background-color:#FFBBBB"><a href="https://psychopy.org/timing/2020/plots/RT_ptb_macos_desktop.png">22.27</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/visual_dur_ptb_macos_desktop.png">0.12</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/visual_dur_ptb_macos_desktop.png">-2.15</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/visual_lag_ptb_macos_desktop.png">0.41</a></td>
+  <td style="background-color:#FFBBBB"><a href="https://psychopy.org/timing/2020/plots/visual_lag_ptb_macos_desktop.png">21.52</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/audio_lag_ptb_macos_desktop.png">0.53</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/audio_lag_ptb_macos_desktop.png">0.09</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/audiovisual_ptb_macos_desktop.png">0.43</a></td>
+  <td style="background-color:#FFBBBB"><a href="https://psychopy.org/timing/2020/plots/audiovisual_ptb_macos_desktop.png">-21.43</a></td>
+</tr>
+<tr>
+  <td style="background-color:#FFFFFF">PsychoPy</td>
+  <td style="background-color:#FFFFFF">Ubuntu</td>
+  <td style="background-color:#DDFFDD">0.46</td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/RT_psychopy_linux_desktop.png">0.31</a></td>
+  <td style="background-color:#FFFFFF"><a href="https://psychopy.org/timing/2020/plots/RT_psychopy_linux_desktop.png">8.43</a></td>
+  <td style="background-color:#FFFFFF"><a href="https://psychopy.org/timing/2020/plots/visual_dur_psychopy_linux_desktop.png">1.19</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/visual_dur_psychopy_linux_desktop.png">3.49</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/visual_lag_psychopy_linux_desktop.png">0.34</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/visual_lag_psychopy_linux_desktop.png">4.71</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/audio_lag_psychopy_linux_desktop.png">0.31</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/audio_lag_psychopy_linux_desktop.png">-0.71</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/audiovisual_psychopy_linux_desktop.png">0.16</a></td>
+  <td style="background-color:#FFFFFF"><a href="https://psychopy.org/timing/2020/plots/audiovisual_psychopy_linux_desktop.png">-5.43</a></td>
+</tr>
+<tr>
+  <td style="background-color:#FFFFFF">E-Prime</td>
+  <td style="background-color:#FFFFFF">Win10</td>
+  <td style="background-color:#DDFFDD">0.57</td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/RT_eprime_win10_desktop.png">0.53</a></td>
+  <td style="background-color:#FFFFFF"><a href="https://psychopy.org/timing/2020/plots/RT_eprime_win10_desktop.png">9.27</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/visual_dur_eprime_win10_desktop.png">0.18</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/visual_dur_eprime_win10_desktop.png">2.51</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/visual_lag_eprime_win10_desktop.png">0.18</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/visual_lag_eprime_win10_desktop.png">4.41</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/audio_lag_eprime_win10_desktop.png">0.98</a></td>
+  <td style="background-color:#FFFFFF"><a href="https://psychopy.org/timing/2020/plots/audio_lag_eprime_win10_desktop.png">5.08</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/audiovisual_eprime_win10_desktop.png">0.97</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/audiovisual_eprime_win10_desktop.png">0.67</a></td>
+</tr>
+<tr>
+  <td style="background-color:#FFFFFF">PsychToolBox</td>
+  <td style="background-color:#FFFFFF">Win10</td>
+  <td style="background-color:#DDFFDD">0.67</td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/RT_ptb_win10_desktop.png">0.42</a></td>
+  <td style="background-color:#FFFFFF"><a href="https://psychopy.org/timing/2020/plots/RT_ptb_win10_desktop.png">10.49</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/visual_dur_ptb_win10_desktop.png">0.75</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/visual_dur_ptb_win10_desktop.png">2.24</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/visual_lag_ptb_win10_desktop.png">0.19</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/visual_lag_ptb_win10_desktop.png">4.56</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/audio_lag_ptb_win10_desktop.png">0.99</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/audio_lag_ptb_win10_desktop.png">0.77</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/audiovisual_ptb_win10_desktop.png">0.98</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/audiovisual_ptb_win10_desktop.png">-3.79</a></td>
+</tr>
+<tr>
+  <td style="background-color:#FFFFFF">PsychoPy</td>
+  <td style="background-color:#FFFFFF">Win10</td>
+  <td style="background-color:#DDFFDD">1.00</td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/RT_psychopy_win10_desktop.png">0.35</a></td>
+  <td style="background-color:#FFFFFF"><a href="https://psychopy.org/timing/2020/plots/RT_psychopy_win10_desktop.png">12.05</a></td>
+  <td style="background-color:#FFFFFF"><a href="https://psychopy.org/timing/2020/plots/visual_dur_psychopy_win10_desktop.png">2.42</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/visual_dur_psychopy_win10_desktop.png">-1.97</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/visual_lag_psychopy_win10_desktop.png">0.35</a></td>
+  <td style="background-color:#FFFFFF"><a href="https://psychopy.org/timing/2020/plots/visual_lag_psychopy_win10_desktop.png">7.10</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/audio_lag_psychopy_win10_desktop.png">0.96</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/audio_lag_psychopy_win10_desktop.png">0.85</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/audiovisual_psychopy_win10_desktop.png">0.93</a></td>
+  <td style="background-color:#FFFFFF"><a href="https://psychopy.org/timing/2020/plots/audiovisual_psychopy_win10_desktop.png">-6.25</a></td>
+</tr>
+<tr>
+  <td style="background-color:#FFFFFF">PsychoPy</td>
+  <td style="background-color:#FFFFFF">MacOS</td>
+  <td style="background-color:#FFFFFF">2.75</td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/RT_psychopy_macos_desktop.png">0.40</a></td>
+  <td style="background-color:#FFBBBB"><a href="https://psychopy.org/timing/2020/plots/RT_psychopy_macos_desktop.png">22.02</a></td>
+  <td style="background-color:#FFBBBB"><a href="https://psychopy.org/timing/2020/plots/visual_dur_psychopy_macos_desktop.png">11.56</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/visual_dur_psychopy_macos_desktop.png">1.00</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/visual_lag_psychopy_macos_desktop.png">0.55</a></td>
+  <td style="background-color:#FFFFFF"><a href="https://psychopy.org/timing/2020/plots/visual_lag_psychopy_macos_desktop.png">18.24</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/audio_lag_psychopy_macos_desktop.png">0.70</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/audio_lag_psychopy_macos_desktop.png">0.54</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/audiovisual_psychopy_macos_desktop.png">0.52</a></td>
+  <td style="background-color:#FFFFFF"><a href="https://psychopy.org/timing/2020/plots/audiovisual_psychopy_macos_desktop.png">-17.70</a></td>
+</tr>
+<tr>
+  <td style="background-color:#FFFFFF">Open Sesame</td>
+  <td style="background-color:#FFFFFF">MacOS</td>
+  <td style="background-color:#FFFFFF">3.14</td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/RT_opensesame_macos_desktop.png">0.54</a></td>
+  <td style="background-color:#FFBBBB"><a href="https://psychopy.org/timing/2020/plots/RT_opensesame_macos_desktop.png">21.21</a></td>
+  <td style="background-color:#FFFFFF"><a href="https://psychopy.org/timing/2020/plots/visual_dur_opensesame_macos_desktop.png">1.65</a></td>
+  <td style="background-color:#FFFFFF"><a href="https://psychopy.org/timing/2020/plots/visual_dur_opensesame_macos_desktop.png">18.94</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/visual_lag_opensesame_macos_desktop.png">0.79</a></td>
+  <td style="background-color:#FFFFFF"><a href="https://psychopy.org/timing/2020/plots/visual_lag_opensesame_macos_desktop.png">18.10</a></td>
+  <td style="background-color:#FFFFFF"><a href="https://psychopy.org/timing/2020/plots/audio_lag_opensesame_macos_desktop.png">6.40</a></td>
+  <td style="background-color:#FFFFFF"><a href="https://psychopy.org/timing/2020/plots/audio_lag_opensesame_macos_desktop.png">9.46</a></td>
+  <td style="background-color:#FFFFFF"><a href="https://psychopy.org/timing/2020/plots/audiovisual_opensesame_macos_desktop.png">6.30</a></td>
+  <td style="background-color:#FFFFFF"><a href="https://psychopy.org/timing/2020/plots/audiovisual_opensesame_macos_desktop.png">-8.64</a></td>
+</tr>
+<tr>
+  <td style="background-color:#FFFFFF">Open Sesame</td>
+  <td style="background-color:#FFFFFF">Ubuntu</td>
+  <td style="background-color:#FFFFFF">3.41</td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/RT_opensesame_linux_desktop.png">0.45</a></td>
+  <td style="background-color:#FFFFFF"><a href="https://psychopy.org/timing/2020/plots/RT_opensesame_linux_desktop.png">9.68</a></td>
+  <td style="background-color:#FFFFFF"><a href="https://psychopy.org/timing/2020/plots/visual_dur_opensesame_linux_desktop.png">9.16</a></td>
+  <td style="background-color:#FFBBBB"><a href="https://psychopy.org/timing/2020/plots/visual_dur_opensesame_linux_desktop.png">32.29</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/visual_lag_opensesame_linux_desktop.png">0.50</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/visual_lag_opensesame_linux_desktop.png">2.35</a></td>
+  <td style="background-color:#FFFFFF"><a href="https://psychopy.org/timing/2020/plots/audio_lag_opensesame_linux_desktop.png">3.45</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/audio_lag_opensesame_linux_desktop.png">2.05</a></td>
+  <td style="background-color:#FFFFFF"><a href="https://psychopy.org/timing/2020/plots/audiovisual_opensesame_linux_desktop.png">3.48</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/audiovisual_opensesame_linux_desktop.png">-0.30</a></td>
+</tr>
+<tr>
+  <td style="background-color:#FFFFFF">Open Sesame</td>
+  <td style="background-color:#FFFFFF">Win10</td>
+  <td style="background-color:#FFFFFF">4.02</td>
+  <td style="background-color:#FFFFFF"><a href="https://psychopy.org/timing/2020/plots/RT_opensesame_win10_desktop.png">1.22</a></td>
+  <td style="background-color:#FFFFFF"><a href="https://psychopy.org/timing/2020/plots/RT_opensesame_win10_desktop.png">8.27</a></td>
+  <td style="background-color:#FFFFFF"><a href="https://psychopy.org/timing/2020/plots/visual_dur_opensesame_win10_desktop.png">1.12</a></td>
+  <td style="background-color:#FFFFFF"><a href="https://psychopy.org/timing/2020/plots/visual_dur_opensesame_win10_desktop.png">17.04</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/visual_lag_opensesame_win10_desktop.png">0.72</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/visual_lag_opensesame_win10_desktop.png">3.85</a></td>
+  <td style="background-color:#FFFFFF"><a href="https://psychopy.org/timing/2020/plots/audio_lag_opensesame_win10_desktop.png">8.56</a></td>
+  <td style="background-color:#FFBBBB"><a href="https://psychopy.org/timing/2020/plots/audio_lag_opensesame_win10_desktop.png">47.24</a></td>
+  <td style="background-color:#FFFFFF"><a href="https://psychopy.org/timing/2020/plots/audiovisual_opensesame_win10_desktop.png">8.50</a></td>
+  <td style="background-color:#FFBBBB"><a href="https://psychopy.org/timing/2020/plots/audiovisual_opensesame_win10_desktop.png">43.39</a></td>
+</tr>
+<tr>
+  <td style="background-color:#FFFFFF">Expyriment</td>
+  <td style="background-color:#FFFFFF">Win10</td>
+  <td style="background-color:#FFFFFF">6.22</td>
+  <td style="background-color:#FFFFFF"><a href="https://psychopy.org/timing/2020/plots/RT_expyriment_win10_desktop.png">2.90</a></td>
+  <td style="background-color:#FFFFFF"><a href="https://psychopy.org/timing/2020/plots/RT_expyriment_win10_desktop.png">10.76</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/visual_dur_expyriment_win10_desktop.png">0.55</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/visual_dur_expyriment_win10_desktop.png">-0.08</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/visual_lag_expyriment_win10_desktop.png">0.19</a></td>
+  <td style="background-color:#FFFFFF"><a href="https://psychopy.org/timing/2020/plots/visual_lag_expyriment_win10_desktop.png">5.98</a></td>
+  <td style="background-color:#FFBBBB"><a href="https://psychopy.org/timing/2020/plots/audio_lag_expyriment_win10_desktop.png">13.72</a></td>
+  <td style="background-color:#FFBBBB"><a href="https://psychopy.org/timing/2020/plots/audio_lag_expyriment_win10_desktop.png">106.83</a></td>
+  <td style="background-color:#FFBBBB"><a href="https://psychopy.org/timing/2020/plots/audiovisual_expyriment_win10_desktop.png">13.72</a></td>
+  <td style="background-color:#FFBBBB"><a href="https://psychopy.org/timing/2020/plots/audiovisual_expyriment_win10_desktop.png">100.85</a></td>
+</tr>
+<tr>
+  <td style="background-color:#FFFFFF">Expyriment</td>
+  <td style="background-color:#FFFFFF">Ubuntu</td>
+  <td style="background-color:#FFFFFF">7.75</td>
+  <td style="background-color:#FFFFFF"><a href="https://psychopy.org/timing/2020/plots/RT_expyriment_linux_desktop.png">2.73</a></td>
+  <td style="background-color:#FFBBBB"><a href="https://psychopy.org/timing/2020/plots/RT_expyriment_linux_desktop.png">23.45</a></td>
+  <td style="background-color:#FFFFFF"><a href="https://psychopy.org/timing/2020/plots/visual_dur_expyriment_linux_desktop.png">8.31</a></td>
+  <td style="background-color:#FFFFFF"><a href="https://psychopy.org/timing/2020/plots/visual_dur_expyriment_linux_desktop.png">12.08</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/visual_lag_expyriment_linux_desktop.png">0.73</a></td>
+  <td style="background-color:#FFFFFF"><a href="https://psychopy.org/timing/2020/plots/visual_lag_expyriment_linux_desktop.png">16.75</a></td>
+  <td style="background-color:#FFBBBB"><a href="https://psychopy.org/timing/2020/plots/audio_lag_expyriment_linux_desktop.png">13.49</a></td>
+  <td style="background-color:#FFBBBB"><a href="https://psychopy.org/timing/2020/plots/audio_lag_expyriment_linux_desktop.png">118.67</a></td>
+  <td style="background-color:#FFBBBB"><a href="https://psychopy.org/timing/2020/plots/audiovisual_expyriment_linux_desktop.png">13.50</a></td>
+  <td style="background-color:#FFBBBB"><a href="https://psychopy.org/timing/2020/plots/audiovisual_expyriment_linux_desktop.png">101.92</a></td>
+</tr>
+<tr>
+  <td style="background-color:#FFFFFF">Expyriment</td>
+  <td style="background-color:#FFFFFF">MacOS</td>
+  <td style="background-color:#FFFFFF">9.05</td>
+  <td style="background-color:#FFFFFF"><a href="https://psychopy.org/timing/2020/plots/RT_expyriment_macos_desktop.png">4.84</a></td>
+  <td style="background-color:#FFBBBB"><a href="https://psychopy.org/timing/2020/plots/RT_expyriment_macos_desktop.png">33.83</a></td>
+  <td style="background-color:#FFFFFF"><a href="https://psychopy.org/timing/2020/plots/visual_dur_expyriment_macos_desktop.png">7.04</a></td>
+  <td style="background-color:#DDFFDD"><a href="https://psychopy.org/timing/2020/plots/visual_dur_expyriment_macos_desktop.png">-1.13</a></td>
+  <td style="background-color:#FFFFFF"><a href="https://psychopy.org/timing/2020/plots/visual_lag_expyriment_macos_desktop.png">4.82</a></td>
+  <td style="background-color:#FFBBBB"><a href="https://psychopy.org/timing/2020/plots/visual_lag_expyriment_macos_desktop.png">29.02</a></td>
+  <td style="background-color:#FFBBBB"><a href="https://psychopy.org/timing/2020/plots/audio_lag_expyriment_macos_desktop.png">13.84</a></td>
+  <td style="background-color:#FFBBBB"><a href="https://psychopy.org/timing/2020/plots/audio_lag_expyriment_macos_desktop.png">42.81</a></td>
+  <td style="background-color:#FFBBBB"><a href="https://psychopy.org/timing/2020/plots/audiovisual_expyriment_macos_desktop.png">14.72</a></td>
+  <td style="background-color:#FFFFFF"><a href="https://psychopy.org/timing/2020/plots/audiovisual_expyriment_macos_desktop.png">13.79</a></td>
+</tr>
+</table>
+
+
+<!-- <script>
+  new Tablesort(document.getElementById('Lab Based'));
+</script> -->
+
+</body>
+</html>

@@ -2,13 +2,16 @@
 
 py.test -k polygon --cov-report term-missing --cov visual/helpers.py
 """
+from __future__ import division
 
-from psychopy import visual, monitors, core
+from builtins import range
+from past.utils import old_div
+from psychopy import visual, monitors
 from psychopy.visual import helpers
-from numpy import sqrt, cos, sin, radians, array
-from numpy.linalg import norm
+from numpy import sqrt, array
 import pytest
 import matplotlib
+
 
 params = [
     {'units':'pix',   'scaleFactor':500.0},
@@ -24,7 +27,7 @@ points = [
     array((0,0)),
     array((0,unitDist)),
     array((0,unitDist*2)),
-    array((unitDist/sqrt2,unitDist/sqrt2)),
+    array((old_div(unitDist,sqrt2),old_div(unitDist,sqrt2))),
     array((unitDist*sqrt2,0)),
     array((unitDist*sqrt2,unitDist*sqrt2)) ]
 
@@ -53,8 +56,10 @@ mon.setDistance(57)
 mon.setWidth(40.0)
 mon.setSizePix([1024,768])
 
-dbgStr = '"%s" returns wrong value: unit=%s, ori=%.1f, size=%s, pos=%s, testpoint=%s, expected=%s'
+dbgStr = ('"%s" returns wrong value: unit=%s, ori=%.1f, size=%s, pos=%s, '
+          'testpoint=%s, expected=%s')
 win = visual.Window([512,512], monitor=mon, winType='pyglet', autoLog=False)
+
 
 def contains_overlaps(testType):
     for param in params:
@@ -100,30 +105,33 @@ mpl_version = matplotlib.__version__
 try:
     from matplotlib import nxutils
     have_nxutils = True
-except:
+except Exception:
     have_nxutils = False
+
 
 # if matplotlib.__version__ > '1.2': try to use matplotlib Path objects
 # else: try to use nxutils
 # else: fall through to pure python
+
 
 @pytest.mark.polygon
 def test_point():
     poly1 = [(1,1), (1,-1), (-1,-1), (-1,1)]
     poly2 = [(2,2), (1,-1), (-1,-1), (-1,1)]
     assert helpers.pointInPolygon(0, 0, poly1)
-    assert helpers.pointInPolygon(12, 12, poly1) == False
-    assert helpers.pointInPolygon(0, 0, [(0,0), (1,1)]) == False
+    assert helpers.pointInPolygon(12, 12, poly1) is False
+    assert helpers.pointInPolygon(0, 0, [(0,0), (1,1)]) is False
 
     if have_nxutils:
         helpers.nxutils = nxutils
         matplotlib.__version__ = '1.1'  # matplotlib.nxutils
         assert helpers.polygonsOverlap(poly1, poly2)
-        del(helpers.nxutils)
+        del helpers.nxutils
 
-    matplotlib.__version__ = '0.0'    # pure python
+    matplotlib.__version__ = '0.0'  # pure python
     assert helpers.polygonsOverlap(poly1, poly2)
     matplotlib.__version__ = mpl_version
+
 
 @pytest.mark.polygon
 def test_contains():
@@ -132,10 +140,11 @@ def test_contains():
         helpers.nxutils = nxutils
         matplotlib.__version__ = '1.1'  # matplotlib.nxutils
         contains_overlaps('contains')
-        del(helpers.nxutils)
+        del helpers.nxutils
     matplotlib.__version__ = '0.0'  # pure python
     contains_overlaps('contains')
     matplotlib.__version__ = mpl_version
+
 
 @pytest.mark.polygon
 def test_overlaps():
@@ -144,11 +153,75 @@ def test_overlaps():
         helpers.nxutils = nxutils
         matplotlib.__version__ = '1.1'  # matplotlib.nxutils
         contains_overlaps('overlaps')
-        del(helpers.nxutils)
+        del helpers.nxutils
     matplotlib.__version__ = '0.0'  # pure python
     contains_overlaps('overlaps')
     matplotlib.__version__ = mpl_version
 
-if __name__=='__main__':
-    test_contains_overlaps('contains')
-    test_contains_overlaps('overlaps')
+
+@pytest.mark.polygon
+def test_border_contains():
+    # tests that the .border of ShapeStim is detected and used by .contains()
+    win.units = 'height'
+    # `thing` has a fake hole and discontinuity (as the border will reveal):
+    thingVert = [(0,0),(0,.4),(.4,.4),(.4,0),(.1,0),(.1,.1),(.3,.1),(.3,.3),
+                 (.1,.3),(.1,0),(0,0),(.1,-.1),(.3,-.1),(.3,-.3),(.1,-.3),
+                 (.1,-.1)]
+
+    inside_pts = [(.05,.05), (.15,-.15)]
+    outside_pts = [(-.2,0)]
+    hole_pts = [(.2,.2)]
+
+    s = visual.ShapeStim(win, vertices=thingVert, fillColor='blue',
+                         lineWidth=1, lineColor='white')
+    s.draw()
+    win.flip()
+    for p in inside_pts:
+        assert s.contains(p)
+    for p in outside_pts + hole_pts:
+        assert not s.contains(p)
+
+    # lacking a .border attribute, contains() will improperly succeed in some cases
+    del s.border
+    for p in hole_pts:
+        assert s.contains(p), "no .border property (falls through to relying on tesselated .vertices)"
+    for p in outside_pts:
+        assert not s.contains(p)
+
+    # ... and should work properly again when restore the .border
+    s.border = thingVert
+    for p in hole_pts:
+        assert not s.contains(p)
+
+
+@pytest.mark.polygon
+def test_line_overlaps():
+    win.units = 'height'
+    circle_1 = visual.Circle(win, radius=0.25, pos=(0, 0))
+    circle_2 = visual.Circle(win, radius=0.25, pos=(0, -0.5))
+    line = visual.Line(win, start=(-1, -1), end=(1, 1))
+
+    assert line.overlaps(circle_1)
+    assert circle_1.overlaps(circle_1)
+
+    assert line.overlaps(circle_2) is False
+    assert circle_2.overlaps(line) is False
+
+
+@pytest.mark.polygon
+def test_line_contains():
+    win.units = 'height'
+    point_1 = (0, 0)
+    point_2 = (0, -0.5)
+    line = visual.Line(win, start=(-1, -1), end=(1, 1))
+
+    assert line.contains(point_1) is False
+    assert line.contains(point_2) is False
+
+
+if __name__ == '__main__':
+    test_overlaps()
+    test_contains()
+    test_border_contains()
+    test_line_overlaps()
+    test_line_contains()

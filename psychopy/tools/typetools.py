@@ -1,10 +1,13 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-'''Functions and classes related to variable type conversion'''
+"""Functions and classes related to variable type conversion
+"""
+from __future__ import absolute_import, division, print_function
 
 import numpy
 
@@ -19,7 +22,7 @@ def float_uint8(inarray):
     128
 
     """
-    retVal = numpy.around(255*(0.5+0.5*numpy.asarray(inarray)))
+    retVal = numpy.around(255 * (0.5 + 0.5 * numpy.asarray(inarray)))
     return retVal.astype(numpy.uint8)
 
 
@@ -34,7 +37,7 @@ def float_uint16(inarray):
 
     """
     i16max = 2**16 - 1
-    retVal = numpy.around(i16max*(1.0+numpy.asarray(inarray))/2.0)
+    retVal = numpy.around(i16max * (1.0 + numpy.asarray(inarray)) / 2.0)
     return retVal.astype(numpy.uint16)
 
 
@@ -48,5 +51,4 @@ def uint8_float(inarray):
     0.0
 
     """
-    return numpy.asarray(inarray,'f')/127.5 - 1
-
+    return numpy.asarray(inarray, 'f')/127.5 - 1

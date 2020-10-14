@@ -1,0 +1,73 @@
+TODO list for the isolver/psychopy lazyimport branch
+
+- Complete iohub pep8 formatting w/ manual fixing of long line wraps *
+
+- Update docstrs (add, review for errors, simplify)*
+
+- Unit Tests to cover >= 75% of iohub source. *
+
+- Full merciless API review: *
+    - Focus on main point: Asynchronous device control and event reporting.
+    - Get consistent, drop bloat.
+    - Deprecate complex in favor of simpler and/or more generic replacements.
+
+* These tasks should have a priority focus on the public / user level API
+  in the following sections:
+    - iohub/__init__.py
+    - iohub/constants.py
+    - iohub/server.py
+    - iohub/devices/__init__.py
+    - iohub/devices/keyboard/*
+    - iohub/devices/mouse/*
+    - iohub/client/*
+    - iohub/datastore/__init__.py
+
+- Remove following sections of iohub:
+    - [Done] As much of iohub.utils.* as possible.
+    - [Done] Complete removal of iohub.client.expruntime.py
+    - iohub.datastore.util.py
+    - iohub.datastore.pandas.*
+  + Move code to 'unsupported' external modules if / when needed.
+    Document ref's to alternative api's to use instead
+
+- Documentation:
+    - ioHub Developer 'Notes'
+    - How to use iohub standalone (system setup process)
+    - Psychopy ioHub User Docs
+        - Why use iohub?
+        - Extra Package Dependencies
+        - Starting iohub
+            - Specifying what devices to start
+            - Changing default device settings
+        - iohub Devices
+            - computer
+            - monitor
+            - keyboard
+            - mouse
+            - experiment
+            - eye tracker
+            - .... others .....
+        - Saving data using ioHub DataStore:
+            - device events
+            - experiment and session meta data
+            - condition variables table
+            - hdf5 file structure
+            - reading data / doing analysis from hdf5 files
+
+- Review, update, simplify iohub examples in Coder and Builder.
+  a) [Done] Always use launchHubServer
+  b) Make each as simple as possible
+  c) Remove any unnecessary demos
+
+- Python 3.4+ support
+
+- Some bigger issues that would be good to address:
+    - Consistent iohub Error / exception reporting framework:
+        - communication of issues to client process.
+        - reporting of issues by client process
+    - Consistent device status reporting after client starts iohub process.
+    - Create files in user writable folder (use OS specific standard folders)
+    - [Done] How iohub subprocess starts and how client knows server is ready:
+        -  remove use of pipe for this.
+
+- Keep ioHub Release Notes release_notes.rst updated.

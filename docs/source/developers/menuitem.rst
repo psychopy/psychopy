@@ -21,7 +21,7 @@ A new item needs to have a (numeric) ID so that `wx` can keep track of it. Here,
 
     tbIncrRoutineSize=180
 
-It's possible that, instead of hard-coding it like this, it's better to make a call to `wx.NewId()` -- wx will take care of avoiding duplicate IDs, presumably.
+It's possible that, instead of hard-coding it like this, it's better to make a call to `wx.NewIdRef()` -- wx will take care of avoiding duplicate IDs, presumably.
 
 3. Key-binding prefs
 --------------------------
@@ -30,12 +30,12 @@ I also defined a key to use to as a keyboard short-cut for activating the new me
 
     self.app.keys['largerRoutine']
 
-The actual key is defined in a preference file. Because psychopy is multi-platform, you need to add info to four different .spec files, all of them being within the `psychopy/preferences/` directory, for four operating systems (Darwin, FreeBSD, Linux, Windows). For `Darwin.spec` (meaning Mac OS X), I added two lines. The first line is not merely a comment: it is also automatically used as a tooltip (in the preferences dialog, under key-bindings), and the second being the actual short-cut key to use::
+The actual key is defined in a preference file. Because psychopy is multi-platform, you need to add info to four different .spec files, all of them being within the `psychopy/preferences/` directory, for four operating systems (Darwin, FreeBSD, Linux, Windows). For `Darwin.spec` (meaning macOS), I added two lines. The first line is not merely a comment: it is also automatically used as a tooltip (in the preferences dialog, under key-bindings), and the second being the actual short-cut key to use::
 
     # increase display size of Routines
-    largerRoutine = string(default='Ctrl++') # on mac book pro this is good
+    largerRoutine = string(default='Ctrl++') # on Mac Book Pro this is good
 
-This means that the user has to hold down the `Ctrl` key and then press the `+` key. Note that on macs, 'Ctrl' in the spec is automatically converted into 'Cmd' for the actual key to use; in the .spec, you should always specify things in terms of 'Ctrl' (and not 'Cmd'). The default value is the key-binding to use unless the user defines another one in her or his preferences (which then overrides the default). Try to pick a sensible key for each operating system, and update all four .spec files.
+This means that the user has to hold down the `Ctrl` key and then press the `+` key. Note that on Macs, 'Ctrl' in the spec is automatically converted into 'Cmd' for the actual key to use; in the .spec, you should always specify things in terms of 'Ctrl' (and not 'Cmd'). The default value is the key-binding to use unless the user defines another one in her or his preferences (which then overrides the default). Try to pick a sensible key for each operating system, and update all four .spec files.
 
 4. Your new method
 -----------------------------

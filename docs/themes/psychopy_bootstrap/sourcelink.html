@@ -1,0 +1,7 @@
+{%- if show_source and has_source and sourcename %}
+<div id="sourcelink">
+  <a href="{{ pathto('https://github.com/psychopy/psychopy/blob/master/docs/source/' +
+  sourcename[:-4], true)|e }}"
+     rel="nofollow">{{ _('Source') }}</a>
+</div>
+{%- endif %}

@@ -1,0 +1,27 @@
+monitor_devices:
+    - Display:
+        name: display
+        reporting_unit_type: pix
+        device_number: 0
+        physical_dimensions:
+            width: 500
+            height: 281
+            unit_type: mm
+        default_eye_distance:
+            surface_center: 500
+            unit_type: mm
+        origin: center
+    - Keyboard:
+        name: kb
+        save_events: True
+        stream_events: True
+    - Mouse:
+        name: mouse
+        save_events: True
+        stream_events: True
+    - Experiment:
+        name: experimentRuntime
+        save_events: True
+        stream_events: True            
+data_store:
+    enable: True

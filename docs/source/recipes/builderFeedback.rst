@@ -28,7 +28,7 @@ To create your `msg`, insert the following into the 'start experiment` section o
     
 and then insert the following into the `Begin Routine` section (this will get run every repeat of the routine)::
     
-    if len(key_resp.keys)<1:
+    if not key_resp.keys :
         msg="Failed to respond"
     elif resp.corr:#stored on last run routine
         msg="Correct! RT=%.3f" %(resp.rt)

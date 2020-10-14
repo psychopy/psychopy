@@ -3,9 +3,9 @@
 Image Component
 -------------------------------
 
-The Image stimulus allows an image to be presented, which can be a bitmap image from a variety of standard file formats, with an optional transparency mask that can effecively control the shape of the image. The mask can also be derived from an image file, or mathematical form such as a Gaussian.
+The Image stimulus allows an image to be presented, which can be a bitmap image from a variety of standard file formats, with an optional transparency mask that can effectively control the shape of the image. The mask can also be derived from an image file, or mathematical form such as a Gaussian.
 
-**It is a really good idea to get your image in roughly the size (in pixels) that it will appear on screen to save memory. If you leave the resolution at 12 megapixel camera, as taken from your camera, but then present it on a standard screen at 1680x1050 (=1.6 megapixels) then PsychPy and your graphics card have to do an awful lot of unecessary work.** There is a performance advantage (in terms of milliseconds) to using images which are square and powers of two (32, 64, 128, etc.), but this is slight and would not be noticed in the majority of experiments.
+**It is a really good idea to get your image in roughly the size (in pixels) that it will appear on screen to save memory. If you leave the resolution at 12 megapixel camera, as taken from your camera, but then present it on a standard screen at 1680x1050 (=1.6 megapixels) then PsychoPy and your graphics card have to do an awful lot of unnecessary work.** There is a performance advantage (in terms of milliseconds) to using images which are square and powers of two (32, 64, 128, etc.), but this is slight and would not be noticed in the majority of experiments.
 
 Images can have their position, orientation, size and other settings manipulated on a frame-by-frame basis.
 
@@ -25,6 +25,23 @@ Image : a filename or a standard name (sin, sqr)
     Filenames can be relative or absolute paths and can refer to most image formats (e.g. tif,
     jpg, bmp, png, etc.). If this is set to none, the patch will be a flat colour.
 
+Appearance
+==========
+How should the stimulus look? Colour, borders, etc.
+
+opacity : value from 0 to 1
+    If opacity is reduced then the underlying images/stimuli will show through
+
+foreground color : Colors can be applied to luminance-only images (not to rgb images)
+    See :doc:`../../general/colours`
+
+foreground color space : to be used if a color is supplied
+    See :doc:`../../general/colours`
+
+Layout
+======
+How should the stimulus be laid out? Padding, margins, size, position, etc.
+
 Position : [X,Y]
     The position of the centre of the stimulus, in the units specified by the stimulus or window
 
@@ -35,20 +52,21 @@ Size : [sizex, sizey] or a single value (applied to x and y)
 Orientation : degrees
     The orientation of the entire patch (texture and mask) in degrees.
 
-Opacity : value from 0 to 1
-    If opacity is reduced then the underlying images/stimuli will show through
-
 Units : deg, cm, pix, norm, or inherit from window
     See :doc:`../../general/units`
 
-Advanced Settings
-+++++++++++++++++++
+flip horizontally : bool
+    Flip the image along the horizontal axis
 
-Color : Colors can be applied to luminance-only images (not to rgb images)
-    See :doc:`../../general/colours`
+flip vertically : bool
+    Flip the image along the vertical axis
 
-Color space : to be used if a color is supplied
-    See :doc:`../../general/colours`
+spatial units : deg, cm, pix, norm, or inherit from window
+    See :doc:`../../general/units`
+
+Texture
+=======
+Control how the stimulus handles textures.
 
 Mask : a filename, a standard name (gauss, circle, raisedCos) or a numpy array of dimensions NxNx1
     The mask can define the shape (e.g. circle will make the patch circular) or something which overlays the patch e.g. noise.

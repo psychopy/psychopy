@@ -1,4 +1,6 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """
 %        Maximum length sequence assuming distinct values = baseVal
 %
@@ -67,6 +69,10 @@ from command line:
 %POSSIBILITY OF SUCH DAMAGE.
 """
 
+from __future__ import absolute_import, division, print_function
+
+from builtins import map
+from builtins import range
 import numpy
 import sys
 import time
@@ -92,7 +98,7 @@ def mseqSearch(baseVal, powerVal, shift=0, max_time=10):
     """search for an M-sequence, default time-out after 10 seconds
     """
     if not baseVal in [2,3,5,7,11,13,17,19,23,29]:
-        raise ValueError, "base must be a prime number < 30"
+        raise ValueError("base must be a prime number < 30")
     
     seqLen = baseVal**powerVal-1
     register = numpy.array([1 for i in range(powerVal)])
@@ -119,8 +125,8 @@ def mseqSearch(baseVal, powerVal, shift=0, max_time=10):
                 ms[i] = (sum(weights*register) + baseVal) % baseVal
                 register = numpy.append(ms[i], register[:-1])
             
-            foo = sum(ms[:seq/2] == ms[seq/2:seq])
-            if foo == seq/2: # first half same as last half
+            foo = sum(ms[:seq//2] == ms[seq//2:seq])
+            if foo == seq//2: # first half same as last half
                 noContinue = True
                 register = numpy.array([1 for i in range(powerVal)])
                 break
@@ -152,30 +158,30 @@ def _abs_auto(ms):
     num_acs = min(11, len(ms))
     if num_acs:
         auto_corrs = [numpy.corrcoef(ms, numpy.append(ms[i:], ms[:i]))[1][0] for i in range(1,num_acs)]
-        return map(abs, auto_corrs)
+        return list(map(abs, auto_corrs))
     
 def test():
-    print 'no tests; auto-correlations are computed for each sequence generated'
+    print('no tests; auto-correlations are computed for each sequence generated')
 
 if __name__=='__main__':
     if 'test' in sys.argv:
         test()
     else:
         try:
-            args = map(int, sys.argv[1:])
-        except:
-            raise ValueError, "expected 2-4 integer arguments: base power " +\
-                "[shift [max time to search in sec]]"
+            args = list(map(int, sys.argv[1:]))
+        except Exception:
+            raise ValueError("expected 2-4 integer arguments: base power " +\
+                "[shift [max time to search in sec]]")
         if not args[0] in [2,3,5,7,11,13,17,19,23,29]:
-            raise ValueError, "base must be a prime number < 30"
+            raise ValueError("base must be a prime number < 30")
         t0 = time.time()
         ms = mseqSearch(*args)
         t1 = time.time() - t0
-        print ms, '\ntime: %.3f' % t1, 'sec'
+        print(ms, '\ntime: %.3f' % t1, 'sec')
         if len(ms) > 1:
             ac_10 = _abs_auto(ms) # list of auto-correlations
-            print 'seq length:', len(ms), '\nauto-corr, first %d: ' % len(ac_10),
+            print('seq length:', len(ms), '\nauto-corr, first %d: ' % len(ac_10), end='')
             for a in ac_10:
-                print "%.3f" % a,
-            print
+                print("%.3f" % a, end='')
+            print()
             assert max(ac_10) < 1./(len(ms) - 3) or max(ac_10) < .10

@@ -11,7 +11,7 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys, os, psychopy
+import os, psychopy
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -22,9 +22,19 @@ import sys, os, psychopy
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.autosummary', 'sphinx.ext.todo', 'sphinx.ext.coverage',
-    'sphinx.ext.pngmath']
+extensions = ['sphinx.ext.autodoc',
+              'sphinx.ext.autosummary',
+              'sphinx.ext.todo',
+              'sphinx.ext.coverage',
+              'sphinx.ext.mathjax',
+              'sphinx.ext.napoleon',
+              'sphinx.ext.intersphinx',
+              'sphinx.ext.viewcode']
+
 autoclass_content='both'
+
+intersphinx_mapping = {'pathlib': ('https://docs.python.org/3/', None),
+                       'psychxr': ('http://psychxr.org/', None)}
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -36,18 +46,18 @@ source_suffix = '.rst'
 #source_encoding = 'utf-8'
 
 # The master toctree document.
-master_doc = 'index'
+master_doc = 'documentation'
 
 # General information about the project.
 project = u'PsychoPy'
-copyright = u'2015, Jonathan Peirce'
+copyright = u'2002-18, Jonathan Peirce; 2019 Open Science Tools Ltd.'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
 # The short X.Y version.
-version = psychopy.__version__[:-3]
+version = os.path.splitext(psychopy.__version__)[0]
 # The full version, including alpha/beta/rc tags.
 release = psychopy.__version__
 
@@ -86,22 +96,25 @@ add_module_names = True
 pygments_style = 'sphinx'
 
 # A list of ignored prefixes for module index sorting.
-#modindex_common_prefix = []
+# modindex_common_prefix =
+
+# NumPy-style doc settings.
+napoleon_numpy_docstring = True
+napoleon_include_private_with_doc = True
+napoleon_include_special_with_doc = False
 
 
 # -- Options for HTML output ---------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  Major themes that come with
 # Sphinx are currently 'default' and 'sphinxdoc'.
-html_theme = 'sphinxdoc'
+html_theme_path = ["../themes"]
+html_theme = 'psychopy_bootstrap'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 #html_theme_options = {}
-
-# Add any paths that contain custom themes here, relative to this directory.
-#html_theme_path = []
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
@@ -117,7 +130,7 @@ html_short_title = "PsychoPy"
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
 # pixels large.
-html_favicon = 'favicon.ico'
+html_favicon = '_static/favicon.ico'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -130,7 +143,7 @@ html_last_updated_fmt = '%b %d, %Y'
 
 # If true, SmartyPants will be used to convert quotes and dashes to
 # typographically correct entities.
-html_use_smartypants = True
+smart_quotes = True
 
 # Custom sidebar templates, maps document names to template names.
 html_sidebars = {}
@@ -195,5 +208,5 @@ latex_use_parts = False
 # If false, no module index is generated.
 #latex_use_modindex = True
 
-# path to mathjax on a public server (or could put on our own in static path?)
-mathjax_path = 'http://mathjax.connectmv.com/MathJax.js'
+# path to mathjax. Use default to load from cdnjs content delivery network.
+#mathjax_path = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.0.0/es5/latest?tex-mml-chtml.js'
