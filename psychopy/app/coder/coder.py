@@ -713,32 +713,35 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
         else:
             filen = self.filename
 
+        # lower case the file name
+        filen = filen.lower()
+
         # python/cython files
         if any([filen.endswith(i) for i in (
-                'py', 'pyx', 'pxd', 'pxi')]):
+                '.py', '.pyx', '.pxd', '.pxi')]):
             return 'Python'
         elif filen.endswith('html'):  # html file
             return 'HTML'
         elif any([filen.endswith(i) for i in (
-                'cpp', 'c', 'h', 'mex', 'hpp')]):  # c-like file
+                '.cpp', '.c', '.h', '.cxx', '.hxx' '.mex', '.hpp')]):  # c-like
             return 'C/C++'
         elif any([filen.endswith(i) for i in (
-                'glsl', 'vert', 'frag')]):  # OpenGL shader program
+                '.glsl', '.vert', '.frag')]):  # OpenGL shader program
             return 'GLSL'
-        elif filen.endswith('m'):  # MATLAB
+        elif filen.endswith('.m'):  # MATLAB
             return 'MATLAB'
-        elif filen.endswith('ino'):  # Arduino
+        elif filen.endswith('.ino'):  # Arduino
             return 'Arduino'
-        elif filen.endswith('R'):  # R
+        elif filen.endswith('.R'):  # R
             return 'R'
-        elif filen.endswith('yaml'):  # YAML
+        elif filen.endswith('.yaml'):  # YAML
             return 'YAML'
-        elif filen.endswith('js'):  # JavaScript
+        elif filen.endswith('.js'):  # JavaScript
             return 'JavaScript'
-        elif filen.endswith('json'):  # JSON
+        elif filen.endswith('.json'):  # JSON
             return 'JSON'
         else:
-            return 'Plain Text'  # default
+            return 'Plain Text'  # default, null lexer used
 
     def getTextUptoCaret(self):
         """Get the text upto the caret."""
