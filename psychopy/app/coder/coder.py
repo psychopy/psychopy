@@ -583,7 +583,6 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
         self.app = self.coder.app
         self.SetViewWhiteSpace(self.coder.appData['showWhitespace'])
         self.SetViewEOL(self.coder.appData['showEOLs'])
-        self.Bind(wx.EVT_DROP_FILES, self.coder.filesDropped)
         self.Bind(wx.stc.EVT_STC_MODIFIED, self.onModified)
         self.Bind(wx.stc.EVT_STC_UPDATEUI, self.OnUpdateUI)
         self.Bind(wx.EVT_KEY_DOWN, self.OnKeyPressed)
@@ -1200,6 +1199,8 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.helpMenu = self.toolsMenu = None
         self.pavloviaMenu.syncBtn.Enable(bool(self.filename))
         self.pavloviaMenu.newBtn.Enable(bool(self.filename))
+        # Link to file drop function
+        self.SetDropTarget(FileDropTarget(targetFrame=self))
 
         # Create source assistant notebook
         self.sourceAsst = aui.AuiNotebook(
@@ -1253,11 +1254,8 @@ class CoderFrame(wx.Frame, ThemeMixin):
                                  MaximizeButton(True))
         self.notebook.SetFocus()
         # Link functions
-        self.notebook.SetDropTarget(FileDropTarget(targetFrame=self.pnlMain))
         self.notebook.Bind(aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.fileClose)
         self.notebook.Bind(aui.EVT_AUINOTEBOOK_PAGE_CHANGED, self.pageChanged)
-        self.SetDropTarget(FileDropTarget(targetFrame=self.pnlMain))
-        self.Bind(wx.EVT_DROP_FILES, self.filesDropped)
         self.Bind(wx.EVT_FIND, self.OnFindNext)
         self.Bind(wx.EVT_FIND_NEXT, self.OnFindNext)
         #self.Bind(wx.EVT_FIND_CLOSE, self.OnFindClose)
@@ -2004,15 +2002,6 @@ class CoderFrame(wx.Frame, ThemeMixin):
                 self.setFileModified(False)
             self.statusBar.SetStatusText('')
             dlg.Destroy()
-
-    def filesDropped(self, event):
-        fileList = event.GetFiles()
-        for filename in fileList:
-            if os.path.isfile(filename):
-                if filename.lower().endswith('.psyexp'):
-                    self.app.newBuilderFrame(filename)
-                else:
-                    self.setCurrentDoc(filename)
 
     # def pluginManager(self, evt=None, value=True):
     #     """Show the plugin manger frame."""
