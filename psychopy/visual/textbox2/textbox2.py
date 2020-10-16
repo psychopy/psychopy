@@ -27,7 +27,6 @@ from .fontmanager import FontManager, GLFont
 from .. import shaders
 from ..rect import Rect
 from ... import core
-from ...colors import Color
 
 allFonts = FontManager()
 
@@ -205,8 +204,10 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 autoLog=False)
         self.pallette = { # If no focus
                 'lineColor': borderColor,
+                'lineRGB': self.box.lineRGB,
                 'lineWidth': borderWidth,
                 'fillColor': fillColor,
+                'fillRGB': self.box.fillRGB
         }
         # then layout the text (setting text triggers _layout())
         self.text = text if text is not None else ""
@@ -232,25 +233,18 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             pal['lineWidth'] = max(value['lineWidth'], 2) * 2
         else:
             pal['lineWidth'] = 5 * 2
-        # Convert line color to RGB
-        value['lineColor'] = Color(value['lineColor'], self.colorSpace).rgb
-        # Darken/lighten border
+        # Darken border
         if value['lineColor']:
-            lineBase = Color(value['lineColor'], 'rgb')
+            pal['lineRGB'] = pal['lineColor'] = [max(c - 0.05, 0.05) for c in value['lineRGB']]
         else:
-            lineBase = Color(self.win.color, self.win.colorSpace)
-        lineAdj = -0.1 if sum(lineBase.rgb)/3 > 0.1 else 0.1
-        pal['lineColor'] = getattr(lineBase+lineAdj, 'rgb')
-        # Convert fill color to RGB
-        value['fillColor'] = Color(value['fillColor'], self.colorSpace).rgb
-        # Lighten/Darken background
+            # Use window colour as base if border colour is none
+            pal['lineRGB'] = pal['lineColor'] = [max(c - 0.05, 0.05) for c in self.win.color]
+        # Lighten background
         if value['fillColor']:
-            fillBase = Color(value['fillColor'], 'rgb')
+            pal['fillRGB'] = pal['fillColor'] = [min(c + 0.05, 0.95) for c in value['fillRGB']]
         else:
-            fillBase = Color(self.win.color, self.win.colorSpace)
-        fillAdj = 0.1 if sum(fillBase.rgb)/3 < 0.9 else -0.1
-        pal['fillColor'] = getattr(fillBase+fillAdj, 'rgb')
-        # Construct final pallette
+            # Use window colour as base if fill colour is none
+            pal['fillRGB'] = pal['fillColor'] = [min(c + 0.05, 0.95) for c in self.win.color]
         self._pallette = {
             False: value,
             True: pal
@@ -512,10 +506,10 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.box.setLineWidth(self.pallette['lineWidth']) # Use 1 as base if border width is none
         #self.borderWidth = self.box.lineWidth
         # Border colour
-        self.box.setLineColor(self.pallette['lineColor'], colorSpace='rgb')
+        self.box.setLineColor(self.pallette['lineRGB'], colorSpace='rgb')
         #self.borderColor = self.box.lineColor
         # Background
-        self.box.setFillColor(self.pallette['fillColor'], colorSpace='rgb')
+        self.box.setFillColor(self.pallette['fillRGB'], colorSpace='rgb')
         #self.fillColor = self.box.fillColor
 
         if self._needVertexUpdate:
