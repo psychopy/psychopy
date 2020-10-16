@@ -8,7 +8,7 @@
 from __future__ import absolute_import, print_function
 
 from os import path
-from psychopy.experiment.components import Param, getInitVals, _translate, BaseComponent
+from psychopy.experiment.components import Param, getInitVals, _translate, BaseVisualComponent
 from psychopy.visual import form
 from psychopy.localization import _localized as __localized
 _localized = __localized.copy()
@@ -32,7 +32,7 @@ _localized.update({'Items': _translate('Items'),
                    })
 knownStyles = form.Form.knownStyles
 
-class FormComponent(BaseComponent):
+class FormComponent(BaseVisualComponent):
     """A class for presenting a survey as a Builder component"""
 
     categories = ['Responses']
@@ -52,10 +52,17 @@ class FormComponent(BaseComponent):
                  startEstim='', durationEstim=''):
 
         super(FormComponent, self).__init__(
-            exp, parentName, name,
+            exp, parentName, name=name,
+            pos=pos, size=size,
             startType=startType, startVal=startVal,
             stopType=stopType, stopVal=stopVal,
             startEstim=startEstim, durationEstim=durationEstim)
+
+        # these are defined by the BaseVisual but we don't want them
+        del self.params['color']
+        del self.params['colorSpace']
+        del self.params['ori']
+        del self.params['units']  # we only support height units right now
 
         self.type = 'Form'
         self.url = "http://www.psychopy.org/builder/components/"
@@ -153,15 +160,6 @@ class FormComponent(BaseComponent):
                    "  itemPadding : {Item Padding}\n"
                    "}});\n".format(**inits))
         buff.writeIndentedLines(initStr)
-
-    def writeRoutineStartCode(self, buff):
-        pass
-
-    def writeFrameCode(self, buff):
-        buff.writeIndented("%(name)s.draw()\n" % (self.params))
-
-    def writeFrameCodeJS(self, buff):
-        buff.writeIndented("%(name)s.draw();\n" % (self.params))
 
     def writeRoutineEndCode(self, buff):
         # save data, according to row/col format

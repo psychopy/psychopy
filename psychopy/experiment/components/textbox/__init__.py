@@ -47,8 +47,8 @@ class TextboxComponent(BaseVisualComponent):
                  text=_translate('Any text\n\nincluding line breaks'),
                  font='Arial', units='from exp settings', bold=False, italic=False,
                  color='white', colorSpace='rgb', opacity=1.0,
-                 pos=(0, 0), size=None, letterHeight=0.05, ori=0,
-                 lineSpacing=1.0,padding=None,  # gap between box and text
+                 pos=(0, 0), size='', letterHeight=0.05, ori=0,
+                 lineSpacing=1.0, padding=None,  # gap between box and text
                  startType='time (s)', startVal=0.0, anchor='center',
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim='',
@@ -63,6 +63,7 @@ class TextboxComponent(BaseVisualComponent):
                                             colorSpace=colorSpace,
                                             pos=pos,
                                             ori=ori,
+                                            size=size,
                                             startType=startType,
                                             startVal=startVal,
                                             stopType=stopType,
@@ -224,6 +225,7 @@ class TextboxComponent(BaseVisualComponent):
                 "  bold: %(bold)s, italic: %(italic)s,\n"
                 "  opacity: %(opacity)s,\n"
                 "  padding: %(padding)s,\n"
+                "  editable: %(editable)s,\n"
                 "  anchor: %(anchor)s,\n")
         buff.writeIndentedLines(code % inits)
 
