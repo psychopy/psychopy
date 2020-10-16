@@ -204,10 +204,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 autoLog=False)
         self.pallette = { # If no focus
                 'lineColor': borderColor,
-                'lineRGB': self.box.lineRGB,
                 'lineWidth': borderWidth,
                 'fillColor': fillColor,
-                'fillRGB': self.box.fillRGB
         }
         # then layout the text (setting text triggers _layout())
         self.text = text if text is not None else ""
@@ -227,27 +225,9 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
     @pallette.setter
     def pallette(self, value):
-        pal = {}
-        # Double border width
-        if value['lineWidth']:
-            pal['lineWidth'] = max(value['lineWidth'], 2) * 2
-        else:
-            pal['lineWidth'] = 5 * 2
-        # Darken border
-        if value['lineColor']:
-            pal['lineRGB'] = pal['lineColor'] = [max(c - 0.05, 0.05) for c in value['lineRGB']]
-        else:
-            # Use window colour as base if border colour is none
-            pal['lineRGB'] = pal['lineColor'] = [max(c - 0.05, 0.05) for c in self.win.color]
-        # Lighten background
-        if value['fillColor']:
-            pal['fillRGB'] = pal['fillColor'] = [min(c + 0.05, 0.95) for c in value['fillRGB']]
-        else:
-            # Use window colour as base if fill colour is none
-            pal['fillRGB'] = pal['fillColor'] = [min(c + 0.05, 0.95) for c in self.win.color]
         self._pallette = {
             False: value,
-            True: pal
+            True: value
         }
 
     @attributeSetter
@@ -506,10 +486,10 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.box.setLineWidth(self.pallette['lineWidth']) # Use 1 as base if border width is none
         #self.borderWidth = self.box.lineWidth
         # Border colour
-        self.box.setLineColor(self.pallette['lineRGB'], colorSpace='rgb')
+        self.box.setLineColor(self.pallette['lineColor'], colorSpace='rgb')
         #self.borderColor = self.box.lineColor
         # Background
-        self.box.setFillColor(self.pallette['fillRGB'], colorSpace='rgb')
+        self.box.setFillColor(self.pallette['fillColor'], colorSpace='rgb')
         #self.fillColor = self.box.fillColor
 
         if self._needVertexUpdate:
