@@ -841,26 +841,21 @@ class PreferencesDlg(wx.Dialog):
 
         # after validation, update the UI
         self.app.theme = self.app.theme
-        self.updateCoderUI()
-        self.updateBuilderUI()
+        self.updateFramesUI()
 
-    def updateCoderUI(self):
+    def updateFramesUI(self):
         """Update the Coder UI (eg. fonts, themes, etc.) from prefs."""
-        # start applying prefs to take effect
-        coder = self.app.coder
-        if coder is not None:
-            # apply settings over document pages
-            for ii in range(coder.notebook.GetPageCount()):
-                doc = coder.notebook.GetPage(ii)
-                doc.theme = prefs.app['theme']
-            for ii in range(coder.shelf.GetPageCount()):
-                doc = coder.shelf.GetPage(ii)
-                doc.theme = prefs.app['theme']
-
-    def updateBuilderUI(self):
-        builder = self.app.builder
-        if builder is not None:
-            builder.layoutPanes()
+        for frame in self.app.getAllFrames():
+            if frame.frameType == 'builder':
+                frame.layoutPanes()
+            elif frame.frameType == 'coder':
+                # apply settings over document pages
+                for ii in range(frame.notebook.GetPageCount()):
+                    doc = frame.notebook.GetPage(ii)
+                    doc.theme = prefs.app['theme']
+                for ii in range(frame.shelf.GetPageCount()):
+                    doc = frame.shelf.GetPage(ii)
+                    doc.theme = prefs.app['theme']
 
     def OnApplyClicked(self, event):
         """Apply button clicked, this makes changes to the UI without leaving
