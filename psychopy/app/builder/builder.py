@@ -895,8 +895,8 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         dlg = wx.MessageDialog(self, _translate("Are you sure you want to reset your preferences? This cannot be undone."),
                                caption="Reset Preferences...", style=wx.ICON_WARNING | wx.CANCEL)
         dlg.SetOKCancelLabels(
-            "I'm sure",
-            "Wait, go back!"
+            _translate("I'm sure"),
+            _translate("Wait, go back!")
         )
         if dlg.ShowModal() == wx.ID_OK:
             # If okay is pressed, remove prefs file (meaning a new one will be created on next restart)
