@@ -919,9 +919,11 @@ class Caret(ColorMixin):
         # lastChar = [bottLeft, topLeft, **bottRight**, **topRight**]
         ii = self.index
         if textbox.vertices.shape[0] == 0:
-            verts = self.textbox._getStartingVertices()
-            verts[:,1] = verts[:,1] / float(textbox._pixelScaling)
-            verts[:,1] = verts[:,1] + float(textbox._anchorOffsetY)
+            verts = textbox._getStartingVertices()*2 / textbox._pixelScaling
+            verts[:,1] = verts[:,1] \
+                         + self.textbox.glFont["A"].size[1] / textbox._pixelScaling \
+                         - float(textbox._anchorOffsetY)/2
+            verts[:,0] = verts[:,0] + float(textbox._anchorOffsetX)
         else:
             if self.index >= len(textbox._lineNs):  # caret is after last chr
                 chrVerts = textbox.vertices[range((ii-1) * 4, (ii-1) * 4 + 4)]
