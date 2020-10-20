@@ -22,6 +22,10 @@ Stop : float or integer
 Force end routine :
     If this box is checked then the :ref:`Routine <Routines>` will end as soon as one of the `allowed` buttons is pressed.
 
+Data
+====
+What information to save, how to lay it out and when to save it.
+
 Allowed buttons :
     A list of allowed buttons can be specified here, e.g. [0,1,2,3], or the name of a variable holding such a list. If this box is left blank then any button that is pressed will be read. Only `allowed buttons` count as having been pressed; any other button will not be stored and will not force the end of the Routine. Note that button numbers (0, 1, 2, 3, ...), should be separated by commas.
 
@@ -31,8 +35,9 @@ Store :
 Store correct :
     Check this box if you wish to store whether or not this button press was correct. If so then fill in the next box that defines what would constitute a correct answer e.g. 1 or `$corrAns` (note this should not be in inverted commas). This is given as Python code that should return True (1) or False (0). Often this correct answer will be defined in the settings of the :ref:`Loops`.
 
-Advanced Settings
-+++++++++++++++++++
+Hardware
+========
+Parameters for controlling hardware.
 
 Device number : integer
     Which gamepad/joystick device number to use. The first device found is numbered 0.

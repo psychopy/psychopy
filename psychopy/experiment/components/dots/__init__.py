@@ -157,10 +157,7 @@ class DotsComponent(BaseVisualComponent):
 
         # Reword colour parameters
         self.params['color'].label = _translate("Dot Color")
-        self.params['color'].categ = 'Dots'
         self.params['colorSpace'].label = _translate("Dot Color Space")
-        self.params['colorSpace'].categ = 'Dots'
-        self.params['opacity'].categ = 'Dots'
 
         del self.params['size']  # should be fieldSize
         del self.params['pos']  # should be fieldPos

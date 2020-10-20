@@ -214,8 +214,12 @@ def getInitVals(params, target="PsychoPy"):
 
         # value should be None (as code)
         elif inits[name].val in [None, 'None', 'none', '']:
-            inits[name].val = 'None'
-            inits[name].valType = 'code'
+            if name in ['text']:
+                inits[name].val = None
+                inits[name].valType = 'extendedStr'
+            else:
+                inits[name].val = 'None'
+                inits[name].valType = 'code'
 
         # is constant so don't touch the parameter value
         elif inits[name].updates in ['constant', None, 'None']:

@@ -6,7 +6,7 @@ The ioHub Mouse Device
 
 **Platforms:** Windows, macOS, Linux
 
-.. autoclass:: psychopy.iohub.devices.mouse.Mouse
+.. autoclass:: psychopy.iohub.devices.mouse.MouseDevice
     :members: getPosition, setPosition, getEvents, clearEvents, getPositionAndDelta, getScroll, setScroll
     :member-order: bysource
 
@@ -345,4 +345,3 @@ attributes.
         The type id for the event. This is used to create DeviceEvent objects
         or dictionary representations of an event based on the data from an
         event list.
-        

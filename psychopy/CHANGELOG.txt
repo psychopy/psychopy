@@ -16,6 +16,38 @@ Changelog
 CHANGES, which are identified in this dark red text, typically indicate things that alter the PsychoPy behaviour in a way that could break compatibility. Be especially wary of those!
 
 
+PsychoPy 2020.2.4
+-----------------
+
+FIXES:
+
+- improved search for resources files whne compiling JS (was crashing if using root folder and using code to specify the conditions file) #09816985d5
+- the `Before Experiment` section of Code Components wasn't being written for JavaScript components #bbfd310
+- error with wx complaining about Alignment (in wx 4.1) #a32e2ca #ae508d6
+- TextBox Component default size is None (=autoexpand)
+- TextBox `editable=True` had no effect on the Builder outputs to JavaScript
+- themes menu correctly updates what thte current them is in all open windows #c5cdc49
+- custom fonts that didn't provide a "family name" were causing the font search to crash #ef078ab
+- bug trying to us an invalid "useRunner" preference 3532e4c
+- JavaScript studies failed if there were 2 Mouse Components in a single Routine #0e0b26d4dcc #32a6be2
+- improved Big Five Inventory demo
+- blank TextBox Component should use blank string rather than None #39bf1bb
+- further fix to macOS stapling (might not have worked for users with no internet connection?)
+- Form Component now honors being set to show only at certain times (in keeping with other visual Components) #35ad5bc
+- Coder now correctly providing syntax styling for JS and C
+
+PsychoPy 2020.2.3
+-----------------
+
+FIXES:
+
+- **Mac version now fully signed and notarized for GateKeeper!** For some time it's been an annoyance that Apple would block PsychoPy because of it not being from a "known developer" but in recent updates GateKeeper has become so aggressive the app has been crashing on startup for some macOS versions. Hopefully Apple will now let us launch in peace!
+- **better handling of non-loading fonts in the application** On mac some fonts weren't being found (although this *might* be due to the now-solved gatekeeper issue)
+- **auto-translate py->js for parameters with $** We were translating code components but not parameter boxes where the user was switching to code using $  #3064
+- better handling when a piece of code fails to convert (warning not error) #3063
+- show progress (in Runner) while syncing project with Pavlovia #3061
+- various fixes and additions to Japanese translations
+
 PsychoPy 2020.2
 -----------------
 

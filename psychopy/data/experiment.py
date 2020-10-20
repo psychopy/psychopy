@@ -323,6 +323,8 @@ class ExperimentHandler(_ComparisonMixin):
         names.extend(self.dataNames)
         # names from the extraInfo dictionary
         names.extend(self._getExtraInfo()[0])
+        if len(names) < 1:
+            logging.error("No data was found, so data file may not look as expected.")
         # sort names if requested
         if sortColumns:
             names.sort()

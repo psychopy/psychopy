@@ -425,7 +425,7 @@ class MouseComponent(BaseComponent):
             buff.writeIndented(code)
             buff.setIndentLevel(1, relative=True)
             dedentAtEnd += 1
-            buff.writeIndented("prevButtonState = buttons;\n")
+            buff.writeIndented("prevButtonState = _mouseButtons;\n")
             code = ("if (_mouseButtons.reduce( (e, acc) => (e+acc) ) > 0) { // state changed to a new click\n")
             buff.writeIndentedLines(code % self.params)
             buff.setIndentLevel(1, relative=True)
@@ -586,16 +586,16 @@ class MouseComponent(BaseComponent):
 
         if store == 'final':
 
-            code = ("const xys = {name}.getPos();\n"
-                    "const buttons = {name}.getPressed();\n")
+            code = ("_mouseXYs = {name}.getPos();\n"
+                    "_mouseButtons = {name}.getPressed();\n")
 
             if currLoop.type != 'StairHandler':
                 code += (
-                    "psychoJS.experiment.addData('{name}.x', xys[0]);\n"
-                    "psychoJS.experiment.addData('{name}.y', xys[1]);\n"
-                    "psychoJS.experiment.addData('{name}.leftButton', buttons[0]);\n"
-                    "psychoJS.experiment.addData('{name}.midButton', buttons[1]);\n"
-                    "psychoJS.experiment.addData('{name}.rightButton', buttons[2]);\n"
+                    "psychoJS.experiment.addData('{name}.x', _mouseXYs[0]);\n"
+                    "psychoJS.experiment.addData('{name}.y', _mouseXYs[1]);\n"
+                    "psychoJS.experiment.addData('{name}.leftButton', _mouseButtons[0]);\n"
+                    "psychoJS.experiment.addData('{name}.midButton', _mouseButtons[1]);\n"
+                    "psychoJS.experiment.addData('{name}.rightButton', _mouseButtons[2]);\n"
                 )
                 buff.writeIndentedLines(code.format(name=name))
 

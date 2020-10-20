@@ -8,8 +8,8 @@ The best place to discuss ideas in depth is probably the dedicated
 
 For developers the best way to use PsychoPy is to install a version to your 
 own copy of python (preferably 3.6 but we try to support a reasonable range). 
-Make sure you have all the :ref:`dependencies`, including the extra 
-:ref:`suggestedPackages` for developers.
+Make sure you have all the dependencies, including the extra
+suggested packages for developers.
 
 Don't *install* PsychoPy. Instead fetch a copy of the git repository and add 
 this to the python path using a .pth file. Other users of the computer might 

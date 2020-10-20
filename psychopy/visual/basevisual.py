@@ -31,7 +31,6 @@ except ImportError:
 import copy
 import sys
 import os
-
 from psychopy import logging
 
 # tools must only be imported *after* event or MovieStim breaks on win32
@@ -39,13 +38,14 @@ from psychopy import logging
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.attributetools import (attributeSetter, logAttrib,
                                            setAttribute)
-from psychopy.tools.colorspacetools import dkl2rgb, lms2rgb
 from psychopy.tools.monitorunittools import (cm2pix, deg2pix, pix2cm,
                                              pix2deg, convertToPix)
 from psychopy.visual.helpers import (pointInPolygon, polygonsOverlap,
                                      setColor, findImageFile)
 from psychopy.tools.typetools import float_uint8
 from psychopy.tools.arraytools import makeRadialMatrix
+from psychopy.tools.colorspacetools import dkl2rgb, lms2rgb  # pylint: disable=W0611
+
 from . import globalVars
 
 import numpy
@@ -170,6 +170,10 @@ class MinimalStim(object):
             # remove from autodraw lists
             toDrawDepths.pop(toDraw.index(self))  # remove from depths
             toDraw.remove(self)  # remove from draw list
+            # Remove from editable list (if present)
+            for c in self.win._editableChildren:
+                if c() == self:
+                    self.win._editableChildren.remove(c)
             self.status = STOPPED
 
     def setAutoDraw(self, value, log=None):
