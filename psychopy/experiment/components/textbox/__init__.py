@@ -59,7 +59,7 @@ class TextboxComponent(BaseVisualComponent):
                  editable=False, autoLog=True):
         super(TextboxComponent, self).__init__(exp, parentName, name=name,
                                             units=units,
-                                            color=color,
+                                            color=color, fillColor=fillColor, borderColor=borderColor,
                                             colorSpace=colorSpace,
                                             pos=pos,
                                             ori=ori,
