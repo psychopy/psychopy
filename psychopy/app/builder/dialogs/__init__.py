@@ -2041,6 +2041,10 @@ class TableCtrl(wx.TextCtrl):
         if os.path.isfile(file) and file.endswith(tuple(self.validExt)):
             os.startfile(file)
         else:
+            dlg = wx.MessageDialog(self, _translate(
+                f"Once you have created and saved your table, please remember to add it to {self.Name}"),
+                             caption="Reminder")
+            dlg.ShowModal()
             os.startfile(self.templates[self.GetTopLevelParent().type])
 
     def findFile(self, event):
