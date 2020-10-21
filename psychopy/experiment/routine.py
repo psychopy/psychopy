@@ -295,14 +295,14 @@ class Routine(list):
         if modular:
             code = ("\nfor (const thisComponent of %(name)sComponents)\n"
                     "  if ('status' in thisComponent)\n"
-                    "    thisComponent.status = PsychoJS.Status.NOT_STARTED;\n"
-                    "\nreturn Scheduler.Event.NEXT;\n" % self.params)
+                    "    thisComponent.status = PsychoJS.Status.NOT_STARTED;\n" % self.params)
         else:
             code = ("\n%(name)sComponents.forEach( function(thisComponent) {\n"
                     "  if ('status' in thisComponent)\n"
                     "    thisComponent.status = PsychoJS.Status.NOT_STARTED;\n"
-                    "   });\n"
-                    "\nreturn Scheduler.Event.NEXT;\n" % self.params)
+                    "   });\n" % self.params)
+        buff.writeIndentedLines(code)
+
         # are we done yet?
         code = ("// check if the Routine should terminate\n"
                 "if (!continueRoutine) {"
@@ -311,7 +311,6 @@ class Routine(list):
                 "}\n")
         buff.writeIndentedLines(code)
 
-        buff.writeIndentedLines(code)
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndentedLines("};\n")
         buff.setIndentLevel(-1, relative=True)
