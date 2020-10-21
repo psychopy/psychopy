@@ -2010,7 +2010,7 @@ class TableCtrl(wx.TextCtrl):
         # Link to Excel templates for certain contexts
         cmpRoot = os.path.dirname(psychopy.experiment.components.__file__)
         self.templates = {
-            'Form': os.path.join(cmpRoot, "form", "formFields.xltx")
+            'Form': os.path.join(cmpRoot, "form", "formItems.xltx")
         }
         # Configure validation
         self.Bind(wx.EVT_TEXT, self.validateInput)
