@@ -69,7 +69,7 @@ class TrialHandler(object):
             hint=_translate("A list of dictionaries describing the "
                             "parameters in each condition"))
         self.params['conditionsFile'] = Param(
-            conditionsFile, valType='str', updates=None, allowedUpdates=None,
+            conditionsFile, valType='table', updates=None, allowedUpdates=None,
             label=_localized['conditions'],
             hint=_translate("Name of a file specifying the parameters for "
                             "each condition (.csv, .xlsx, or .pkl). Browse "

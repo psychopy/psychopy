@@ -1178,6 +1178,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         self.conditions = None
         self.conditionsFile = None
         self.warningsDict = {}
+        self.type = "Loop"
         # create a valid new name; save old name in case we need to revert
         namespace = frame.exp.namespace
         defaultName = namespace.makeValid('trials')
@@ -1309,6 +1310,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         # loop through the params
         keys = list(handler.params.keys())
         panel = wx.Panel(parent=self)
+        panel.app = self.app
         panelSizer = wx.GridBagSizer(5, 5)
         panel.SetSizer(panelSizer)
         row = 0
@@ -1338,14 +1340,10 @@ class DlgLoopProperties(_BaseParamsDlg):
             elif fieldName == 'conditionsFile':
                 ctrls = ParamCtrls(dlg=self, parent=panel, label=label,
                                    fieldName=fieldName,
-                                   param=handler.params[fieldName],
-                                   browse=True)
-                self.Bind(wx.EVT_BUTTON, self.onBrowseTrialsFile,
-                          ctrls.browseCtrl)
+                                   param=handler.params[fieldName])
                 ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.viewConditions)
                 panelSizer.Add(ctrls.nameCtrl, [row, 0])
-                panelSizer.Add(ctrls.valueCtrl, [row, 1])
-                panelSizer.Add(ctrls.browseCtrl, [row, 2])
+                panelSizer.Add(ctrls.valueCtrl._szr, [row, 1])
                 row += 1
             elif fieldName == 'conditions':
                 if 'conditions' in handler.params:
@@ -2008,8 +2006,10 @@ class TableCtrl(wx.TextCtrl):
         self._szr.Add(self.xlBtn)
         # Link to Excel templates for certain contexts
         cmpRoot = os.path.dirname(psychopy.experiment.components.__file__)
+        expRoot = os.path.dirname(psychopy.experiment.__file__)
         self.templates = {
-            'Form': os.path.join(cmpRoot, "form", "formItems.xltx")
+            'Form': os.path.join(cmpRoot, "form", "formItems.xltx"),
+            'Loop': os.path.join(expRoot, "loopTemplate.xltx")
         }
         # Configure validation
         self.Bind(wx.EVT_TEXT, self.validateInput)
@@ -2061,7 +2061,17 @@ class TableCtrl(wx.TextCtrl):
         if dlg.ShowModal() != wx.ID_OK:
             return 0
         filename = dlg.GetPath()
-        relname = os.path.relpath(filename)
+        try:
+            relname = os.path.relpath(filename)
+        except ValueError:
+            dlg = wx.MessageDialog(self, _translate(
+                f"PsychoPy could not work out a relative path for your conditions file, "
+                f"this may cause issues when running online.\n\n"
+                f"If your conditions file is on a different hard drive to your experiment, "
+                f"please move them to the same hard drive and try again."),
+                             caption="Warning", style=wx.ICON_WARNING)
+            dlg.ShowModal()
+            relname = filename
         self.SetValue(relname)
         self.validateInput(event)
 
