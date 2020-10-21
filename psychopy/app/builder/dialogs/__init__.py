@@ -1988,8 +1988,10 @@ class TableCtrl(wx.TextCtrl):
     def __init__(self, parent,
                  val="", fieldName="",
                  size=wx.Size(-1, 24)):
+        # Create self
         wx.TextCtrl.__init__(self)
         self.Create(parent, -1, val, name=fieldName, size=size)
+        # Add sizer
         self._szr = wx.BoxSizer(wx.HORIZONTAL)
         self._szr.Add(self, border=5, flag=wx.EXPAND | wx.RIGHT)
         # Add button to browse for file
@@ -2009,6 +2011,8 @@ class TableCtrl(wx.TextCtrl):
         self.templates = {
             'Form': os.path.join(cmpRoot, "form", "formFields.xltx")
         }
+        # Configure validation
+        self.Bind(wx.EVT_TEXT, self.validateInput)
         self.validExt = [".csv",".tsv",".txt",
                          ".xl",".xlsx",".xlsm",".xlsb",".xlam",".xltx",".xltm",".xls",".xlt",
                          ".htm",".html",".mht",".mhtml",
@@ -2019,20 +2023,31 @@ class TableCtrl(wx.TextCtrl):
                          ".cub",".atom",".atomsvc",
                          ".prn",".slk",".dif"]
 
+    def validateInput(self, event):
+        """Check whether input is openable and valid"""
+        valid = False
+        file = self.GetValue()
+        # Is component type available?
+        if hasattr(self.GetTopLevelParent(), 'type'):
+            # Does this component have a default template?
+            if self.GetTopLevelParent().type in self.templates:
+                valid = True
+        # Has user entered a full filepath, but it is invalid?
+        if file and file not in self.validExt:
+            valid = False
+        # Is value a valid filepath?
+        if os.path.isfile(file) and file.endswith(tuple(self.validExt)):
+            valid = True
+        # Set excel button accordingly
+        self.xlBtn.Enable(valid)
+
     def openExcel(self, event):
         """Either open the specified excel sheet, or make a new one from a template"""
         file = self.GetValue()
-        if os.path.isfile(file) and file.endswith(('.csv', '.xlsx', 'xls')):
+        if os.path.isfile(file) and file.endswith(tuple(self.validExt)):
             os.startfile(file)
-            return
-        elif hasattr(self.GetTopLevelParent(), 'type'):
-            if self.GetTopLevelParent().type in self.templates:
-                os.startfile(self.templates[self.GetTopLevelParent().type])
-            else:
-                logging.error(f"No template file found for {self.GetTopLevelParent().type} component, please choose a valid table file before opening.")
         else:
-            logging.error(f"Please choose a valid table file before opening.")
-        return
+            os.startfile(self.templates[self.GetTopLevelParent().type])
 
     def findFile(self, event):
         _wld = f"All Table Files({'*'+';*'.join(self.validExt)})|{'*'+';*'.join(self.validExt)}|All Files (*.*)|*.*"
