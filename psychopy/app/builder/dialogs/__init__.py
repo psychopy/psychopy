@@ -2036,7 +2036,7 @@ class TableCtrl(wx.TextCtrl):
         if file and file not in self.validExt:
             valid = False
         # Is value a valid filepath?
-        if os.path.isfile(file) and file.endswith(tuple(self.validExt)):
+        if os.path.isfile(os.path.abspath(file)) and file.endswith(tuple(self.validExt)):
             valid = True
         # Set excel button accordingly
         self.xlBtn.Enable(valid)
@@ -2061,8 +2061,9 @@ class TableCtrl(wx.TextCtrl):
         if dlg.ShowModal() != wx.ID_OK:
             return 0
         filename = dlg.GetPath()
-        relname = os.path.relpath(filename, self.GetTopLevelParent().frame.filename)
+        relname = os.path.relpath(filename)
         self.SetValue(relname)
+        self.validateInput(event)
 
 def _relpath(path, start='.'):
     """This code is based on os.path.relpath in the Python 2.6 distribution,
