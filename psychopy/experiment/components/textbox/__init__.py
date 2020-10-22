@@ -48,7 +48,7 @@ class TextboxComponent(BaseVisualComponent):
                  font='Arial', units='from exp settings', bold=False, italic=False,
                  color='white', colorSpace='rgb', opacity=1.0,
                  pos=(0, 0), size='', letterHeight=0.05, ori=0,
-                 lineSpacing=1.0, padding=None,  # gap between box and text
+                 lineSpacing=1.0, padding="",  # gap between box and text
                  startType='time (s)', startVal=0.0, anchor='center',
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim='',
