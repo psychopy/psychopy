@@ -155,7 +155,8 @@ class ParamCtrls(object):
         elif param.valType == 'fileList':
             self.valueCtrl = FileListCtrl(parent,
                                           choices=param.val,
-                                          size=wx.Size(self.valueWidth, 100)
+                                          size=wx.Size(self.valueWidth, 100),
+                                          pathtype="rel"
                                           )
         elif len(param.allowedVals) > 1:
             # there are limited options - use a Choice control
@@ -1936,9 +1937,10 @@ class DlgExperimentProperties(_BaseParamsDlg):
         return wx.ID_OK
 
 class FileListCtrl(wx.ListBox):
-    def __init__(self, parent, choices=[], size=None):
+    def __init__(self, parent, choices=[], size=None, pathtype="rel"):
         wx.ListBox.__init__(self)
         parent.Bind(wx.EVT_DROP_FILES, self.addItem)
+        self.app = parent.app
         if type(choices) == str:
             choices = data.utils.listFromString(choices)
         self.Create(id=wx.ID_ANY, parent=parent, choices=choices, size=size, style=wx.LB_EXTENDED | wx.LB_HSCROLL)
@@ -1960,8 +1962,12 @@ class FileListCtrl(wx.ListBox):
                                 wildcard=_translate(_wld))
             if dlg.ShowModal() != wx.ID_OK:
                 return 0
-            filename = dlg.GetPaths()
-            self.InsertItems(filename, 0)
+            filenames = dlg.GetPaths()
+            relname = []
+            for filename in filenames:
+                relname.append(
+                    os.path.relpath(filename, self.GetTopLevelParent().frame.filename))
+            self.InsertItems(relname, 0)
         else:
             fileList = event.GetFiles()
             for filename in fileList:

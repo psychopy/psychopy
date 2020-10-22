@@ -203,7 +203,21 @@ class LogFile(object):
                 stream = codecs.getwriter(_prefEncoding)(sys.stdout)
         else:
             stream = self.stream
-        stream.write(txt)
+        # try to write
+        try:
+            stream.write(txt)
+        except UnicodeEncodeError as e:  # incompatible encoding of stdout?
+            try:
+                if hasattr(stream, 'reconfigure'):
+                    stream.reconfigure(encoding='utf-8')
+                elif stream == sys.stdout:
+                    # try opening sys.stdout manually as a file
+                    sys.stdout = stream = open(sys.stdout.fileno(), mode='w',
+                                               encoding='utf-8', buffering=1)
+                stream.write(txt)  # try again with the new encoding
+            except Exception:
+                print('Failed to reconfigure logger output encoding', e)
+
         try:
             stream.flush()
         except Exception:
@@ -298,6 +312,7 @@ def flush(logger=root):
     """Send current messages in the log to all targets
     """
     logger.flush()
+
 # make sure this function gets called as python closes
 atexit.register(flush)
 

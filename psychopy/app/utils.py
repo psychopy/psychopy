@@ -205,11 +205,17 @@ class PsychopyToolbar(wx.ToolBar, ThemeMixin):
                     func=self.frame.setExperimentSettings)  # Settings
             self.AddSeparator()
             self.addPsychopyTool(
-                    name='compile',
-                    label=_translate('Compile Script'),
+                    name='compile_py',
+                    label=_translate('Compile Python Script'),
                     shortcut='compileScript',
-                    tooltip=_translate("Compile to script"),
+                    tooltip=_translate("Compile to Python script"),
                     func=self.frame.compileScript)  # Compile
+            self.addPsychopyTool(
+                    name='compile_js',
+                    label=_translate('Compile JS Script'),
+                    shortcut='compileScript',
+                    tooltip=_translate("Compile to JS script"),
+                    func=self.frame.fileExport)  # Compile
             self.frame.bldrBtnRunner = self.addPsychopyTool(
                     name='runner',
                     label=_translate('Runner'),
