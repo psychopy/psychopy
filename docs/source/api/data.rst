@@ -53,7 +53,7 @@ Curve Fitting:
 
 :class:`TrialHandlerExt`
 ---------------------------------------------------------------------------
-.. autoclass:: psychopy.data.TrialHandler2
+.. autoclass:: psychopy.data.TrialHandlerExt
     :members:
     :undoc-members:
     :inherited-members:
