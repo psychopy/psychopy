@@ -357,20 +357,20 @@ class BaseComponent(object):
             code = ("frameRemains = %(startVal)s + %(stopVal)s"
                     " - psychoJS.window.monitorFramePeriod * 0.75;"
                     "  // most of one frame period left\n"
-                    "if ((%(name)s.status === PsychoJS.Status.STARTED || {params['name']}.status === PsychoJS.Status.FINISHED) "
+                    "if ((%(name)s.status === PsychoJS.Status.STARTED || %(name)s.status === PsychoJS.Status.FINISHED) "
                     "&& t >= frameRemains) {\n")
         # start at frame and end with duratio (need to use approximate)
         elif self.params['stopType'].val == 'duration (s)':
-            code = ("if ((%(name)s.status === PsychoJS.Status.STARTED || {params['name']}.status === PsychoJS.Status.FINISHED) "
+            code = ("if ((%(name)s.status === PsychoJS.Status.STARTED || %(name)s.status === PsychoJS.Status.FINISHED) "
                     "&& t >= (%(name)s.tStart + %(stopVal)s)) {\n")
         elif self.params['stopType'].val == 'duration (frames)':
-            code = ("if ((%(name)s.status === PsychoJS.Status.STARTED || {params['name']}.status === PsychoJS.Status.FINISHED) "
+            code = ("if ((%(name)s.status === PsychoJS.Status.STARTED || %(name)s.status === PsychoJS.Status.FINISHED) "
                     "&& frameN >= (%(name)s.frameNStart + %(stopVal)s)) {\n")
         elif self.params['stopType'].val == 'frame N':
-            code = ("if ((%(name)s.status === PsychoJS.Status.STARTED || {params['name']}.status === PsychoJS.Status.FINISHED) "
+            code = ("if ((%(name)s.status === PsychoJS.Status.STARTED || %(name)s.status === PsychoJS.Status.FINISHED) "
                     "&& frameN >= %(stopVal)s) {\n")
         elif self.params['stopType'].val == 'condition':
-            code = ("if ((%(name)s.status === PsychoJS.Status.STARTED || {params['name']}.status === PsychoJS.Status.FINISHED) "
+            code = ("if ((%(name)s.status === PsychoJS.Status.STARTED || %(name)s.status === PsychoJS.Status.FINISHED) "
                     "&& Boolean(%(stopVal)s)) {\n")
         else:
             msg = ("Didn't write any stop line for startType="
