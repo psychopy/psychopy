@@ -78,6 +78,8 @@ class SourceTreePanel(wx.Panel):
                 iconCache.getBitmap(name='codervar.png', size=16)),
             'pyModule': self._treeImgList.Add(
                 iconCache.getBitmap(name='coderpython.png', size=16)),
+            'jsModule': self._treeImgList.Add(
+                iconCache.getBitmap(name='coderjs.png', size=16)),
             'noDoc': self._treeImgList.Add(
                 iconCache.getBitmap(name='docclose.png', size=16))
             # 'import': self._treeImgList.Add(
@@ -209,8 +211,15 @@ class SourceTreePanel(wx.Panel):
         self.srcTree.DeleteAllItems()
         self.root = self.srcTree.AddRoot(
             os.path.split(self.coder.currentDoc.filename)[-1])
-        self.srcTree.SetItemImage(
-            self.root, self._treeGfx['pyModule'], wx.TreeItemIcon_Normal)
+        if self.coder.currentDoc.filename.endswith('.py'):
+            self.srcTree.SetItemImage(
+                self.root, self._treeGfx['pyModule'], wx.TreeItemIcon_Normal)
+        elif self.coder.currentDoc.filename.endswith('.js'):
+            self.srcTree.SetItemImage(
+                self.root, self._treeGfx['jsModule'], wx.TreeItemIcon_Normal)
+        else:
+            self.srcTree.SetItemImage(
+                self.root, self._treeGfx['noDoc'], wx.TreeItemIcon_Normal)
 
         # start building the source tree
         nodes = deque([self.root])
