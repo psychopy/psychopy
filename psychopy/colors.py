@@ -29,183 +29,184 @@ colorExamples = {
 }
 # Dict of named colours
 colorNames = {
-        "none": (0, 0, 0, -1),
-        "aliceblue": (0.882352941176471, 0.945098039215686, 1, 1.0),
-        "antiquewhite": (0.96078431372549, 0.843137254901961, 0.686274509803922, 1.0),
-        "aqua": (-1, 1, 1, 1.0),
-        "aquamarine": (-0.00392156862745097, 1, 0.662745098039216, 1.0),
-        "azure": (0.882352941176471, 1, 1, 1.0),
-        "beige": (0.92156862745098, 0.92156862745098, 0.725490196078431, 1.0),
-        "bisque": (1, 0.788235294117647, 0.537254901960784, 1.0),
-        "black": (-1, -1, -1, 1.0),
-        "blanchedalmond": (1, 0.843137254901961, 0.607843137254902, 1.0),
-        "blue": (-1, -1, 1, 1.0),
-        "blueviolet": (0.0823529411764705, -0.662745098039216, 0.772549019607843, 1.0),
-        "brown": (0.294117647058824, -0.670588235294118, -0.670588235294118, 1.0),
-        "burlywood": (0.741176470588235, 0.443137254901961, 0.0588235294117647, 1.0),
-        "cadetblue": (-0.254901960784314, 0.23921568627451, 0.254901960784314, 1.0),
-        "chartreuse": (-0.00392156862745097, 1, -1, 1.0),
-        "chocolate": (0.647058823529412, -0.176470588235294, -0.764705882352941, 1.0),
-        "coral": (1, -0.00392156862745097, -0.372549019607843, 1.0),
-        "cornflowerblue": (-0.215686274509804, 0.168627450980392, 0.858823529411765, 1.0),
-        "cornsilk": (1, 0.945098039215686, 0.725490196078431, 1.0),
-        "crimson": (0.725490196078431, -0.843137254901961, -0.529411764705882, 1.0),
-        "cyan": (-1, 1, 1, 1.0),
-        "darkblue": (-1, -1, 0.0901960784313725, 1.0),
-        "darkcyan": (-1, 0.0901960784313725, 0.0901960784313725, 1.0),
-        "darkgoldenrod": (0.443137254901961, 0.0509803921568628, -0.913725490196078, 1.0),
-        "darkgray": (0.325490196078431, 0.325490196078431, 0.325490196078431, 1.0),
-        "darkgreen": (-1, -0.215686274509804, -1, 1.0),
-        "darkgrey": (0.325490196078431, 0.325490196078431, 0.325490196078431, 1.0),
-        "darkkhaki": (0.482352941176471, 0.435294117647059, -0.16078431372549, 1.0),
-        "darkmagenta": (0.0901960784313725, -1, 0.0901960784313725, 1.0),
-        "darkolivegreen": (-0.333333333333333, -0.16078431372549, -0.631372549019608, 1.0),
-        "darkorange": (1, 0.0980392156862746, -1, 1.0),
-        "darkorchid": (0.2, -0.607843137254902, 0.6, 1.0),
-        "darkred": (0.0901960784313725, -1, -1, 1.0),
-        "darksalmon": (0.827450980392157, 0.176470588235294, -0.0431372549019607, 1.0),
-        "darkseagreen": (0.12156862745098, 0.474509803921569, 0.12156862745098, 1.0),
-        "darkslateblue": (-0.435294117647059, -0.52156862745098, 0.0901960784313725, 1.0),
-        "darkslategray": (-0.631372549019608, -0.380392156862745, -0.380392156862745, 1.0),
-        "darkslategrey": (-0.631372549019608, -0.380392156862745, -0.380392156862745, 1.0),
-        "darkturquoise": (-1, 0.615686274509804, 0.63921568627451, 1.0),
-        "darkviolet": (0.16078431372549, -1, 0.654901960784314, 1.0),
-        "deeppink": (1, -0.843137254901961, 0.152941176470588, 1.0),
-        "deepskyblue": (-1, 0.498039215686275, 1, 1.0),
-        "dimgray": (-0.176470588235294, -0.176470588235294, -0.176470588235294, 1.0),
-        "dimgrey": (-0.176470588235294, -0.176470588235294, -0.176470588235294, 1.0),
-        "dodgerblue": (-0.764705882352941, 0.129411764705882, 1, 1.0),
-        "firebrick": (0.396078431372549, -0.733333333333333, -0.733333333333333, 1.0),
-        "floralwhite": (1, 0.96078431372549, 0.882352941176471, 1.0),
-        "forestgreen": (-0.733333333333333, 0.0901960784313725, -0.733333333333333, 1.0),
-        "fuchsia": (1, -1, 1, 1.0),
-        "gainsboro": (0.725490196078431, 0.725490196078431, 0.725490196078431, 1.0),
-        "ghostwhite": (0.945098039215686, 0.945098039215686, 1, 1.0),
-        "gold": (1, 0.686274509803922, -1, 1.0),
-        "goldenrod": (0.709803921568627, 0.294117647058824, -0.749019607843137, 1.0),
-        "gray": (0.00392156862745097, 0.00392156862745097, 0.00392156862745097, 1.0),
-        "grey": (0.00392156862745097, 0.00392156862745097, 0.00392156862745097, 1.0),
-        "green": (-1, 0.00392156862745097, -1, 1.0),
-        "greenyellow": (0.356862745098039, 1, -0.631372549019608, 1.0),
-        "honeydew": (0.882352941176471, 1, 0.882352941176471, 1.0),
-        "hotpink": (1, -0.176470588235294, 0.411764705882353, 1.0),
-        "indianred": (0.607843137254902, -0.27843137254902, -0.27843137254902, 1.0),
-        "indigo": (-0.411764705882353, -1, 0.0196078431372548, 1.0),
-        "ivory": (1, 1, 0.882352941176471, 1.0),
-        "khaki": (0.882352941176471, 0.803921568627451, 0.0980392156862746, 1.0),
-        "lavender": (0.803921568627451, 0.803921568627451, 0.96078431372549, 1.0),
-        "lavenderblush": (1, 0.882352941176471, 0.92156862745098, 1.0),
-        "lawngreen": (-0.0274509803921569, 0.976470588235294, -1, 1.0),
-        "lemonchiffon": (1, 0.96078431372549, 0.607843137254902, 1.0),
-        "lightblue": (0.356862745098039, 0.694117647058824, 0.803921568627451, 1.0),
-        "lightcoral": (0.882352941176471, 0.00392156862745097, 0.00392156862745097, 1.0),
-        "lightcyan": (0.756862745098039, 1, 1, 1.0),
-        "lightgoldenrodyellow": (0.96078431372549, 0.96078431372549, 0.647058823529412, 1.0),
-        "lightgray": (0.654901960784314, 0.654901960784314, 0.654901960784314, 1.0),
-        "lightgreen": (0.129411764705882, 0.866666666666667, 0.129411764705882, 1.0),
-        "lightgrey": (0.654901960784314, 0.654901960784314, 0.654901960784314, 1.0),
-        "lightpink": (1, 0.427450980392157, 0.513725490196078, 1.0),
-        "lightsalmon": (1, 0.254901960784314, -0.0431372549019607, 1.0),
-        "lightseagreen": (-0.749019607843137, 0.396078431372549, 0.333333333333333, 1.0),
-        "lightskyblue": (0.0588235294117647, 0.615686274509804, 0.96078431372549, 1.0),
-        "lightslategray": (-0.0666666666666667, 0.0666666666666667, 0.2, 1.0),
-        "lightslategrey": (-0.0666666666666667, 0.0666666666666667, 0.2, 1.0),
-        "lightsteelblue": (0.380392156862745, 0.537254901960784, 0.741176470588235, 1.0),
-        "lightyellow": (1, 1, 0.756862745098039, 1.0),
-        "lime": (-1, 1, -1, 1.0),
-        "limegreen": (-0.607843137254902, 0.607843137254902, -0.607843137254902, 1.0),
-        "linen": (0.96078431372549, 0.882352941176471, 0.803921568627451, 1.0),
-        "magenta": (1, -1, 1, 1.0),
-        "maroon": (0.00392156862745097, -1, -1, 1.0),
-        "mediumaquamarine": (-0.2, 0.607843137254902, 0.333333333333333, 1.0),
-        "mediumblue": (-1, -1, 0.607843137254902, 1.0),
-        "mediumorchid": (0.458823529411765, -0.333333333333333, 0.654901960784314, 1.0),
-        "mediumpurple": (0.152941176470588, -0.12156862745098, 0.717647058823529, 1.0),
-        "mediumseagreen": (-0.529411764705882, 0.403921568627451, -0.113725490196078, 1.0),
-        "mediumslateblue": (-0.0352941176470588, -0.184313725490196, 0.866666666666667, 1.0),
-        "mediumspringgreen": (-1, 0.96078431372549, 0.207843137254902, 1.0),
-        "mediumturquoise": (-0.435294117647059, 0.63921568627451, 0.6, 1.0),
-        "mediumvioletred": (0.56078431372549, -0.835294117647059, 0.0431372549019609, 1.0),
-        "midnightblue": (-0.803921568627451, -0.803921568627451, -0.12156862745098, 1.0),
-        "mintcream": (0.92156862745098, 1, 0.96078431372549, 1.0),
-        "mistyrose": (1, 0.788235294117647, 0.764705882352941, 1.0),
-        "moccasin": (1, 0.788235294117647, 0.419607843137255, 1.0),
-        "navajowhite": (1, 0.741176470588235, 0.356862745098039, 1.0),
-        "navy": (-1, -1, 0.00392156862745097, 1.0),
-        "oldlace": (0.984313725490196, 0.92156862745098, 0.803921568627451, 1.0),
-        "olive": (0.00392156862745097, 0.00392156862745097, -1, 1.0),
-        "olivedrab": (-0.16078431372549, 0.113725490196078, -0.725490196078431, 1.0),
-        "orange": (1, 0.294117647058824, -1, 1.0),
-        "orangered": (1, -0.458823529411765, -1, 1.0),
-        "orchid": (0.709803921568627, -0.12156862745098, 0.67843137254902, 1.0),
-        "palegoldenrod": (0.866666666666667, 0.819607843137255, 0.333333333333333, 1.0),
-        "palegreen": (0.192156862745098, 0.968627450980392, 0.192156862745098, 1.0),
-        "paleturquoise": (0.372549019607843, 0.866666666666667, 0.866666666666667, 1.0),
-        "palevioletred": (0.717647058823529, -0.12156862745098, 0.152941176470588, 1.0),
-        "papayawhip": (1, 0.874509803921569, 0.670588235294118, 1.0),
-        "peachpuff": (1, 0.709803921568627, 0.450980392156863, 1.0),
-        "peru": (0.607843137254902, 0.0431372549019609, -0.505882352941176, 1.0),
-        "pink": (1, 0.505882352941176, 0.592156862745098, 1.0),
-        "plum": (0.733333333333333, 0.254901960784314, 0.733333333333333, 1.0),
-        "powderblue": (0.380392156862745, 0.756862745098039, 0.803921568627451, 1.0),
-        "purple": (0.00392156862745097, -1, 0.00392156862745097, 1.0),
-        "red": (1, -1, -1, 1.0),
-        "rosybrown": (0.474509803921569, 0.12156862745098, 0.12156862745098, 1.0),
-        "royalblue": (-0.490196078431373, -0.176470588235294, 0.764705882352941, 1.0),
-        "saddlebrown": (0.0901960784313725, -0.458823529411765, -0.850980392156863, 1.0),
-        "salmon": (0.96078431372549, 0.00392156862745097, -0.105882352941176, 1.0),
-        "sandybrown": (0.913725490196079, 0.286274509803922, -0.247058823529412, 1.0),
-        "seagreen": (-0.63921568627451, 0.0901960784313725, -0.317647058823529, 1.0),
-        "seashell": (1, 0.92156862745098, 0.866666666666667, 1.0),
-        "sienna": (0.254901960784314, -0.356862745098039, -0.647058823529412, 1.0),
-        "silver": (0.505882352941176, 0.505882352941176, 0.505882352941176, 1.0),
-        "skyblue": (0.0588235294117647, 0.615686274509804, 0.843137254901961, 1.0),
-        "slateblue": (-0.168627450980392, -0.294117647058823, 0.607843137254902, 1.0),
-        "slategray": (-0.12156862745098, 0.00392156862745097, 0.129411764705882, 1.0),
-        "slategrey": (-0.12156862745098, 0.00392156862745097, 0.129411764705882, 1.0),
-        "snow": (1, 0.96078431372549, 0.96078431372549, 1.0),
-        "springgreen": (-1, 1, -0.00392156862745097, 1.0),
-        "steelblue": (-0.450980392156863, 0.0196078431372548, 0.411764705882353, 1.0),
-        "tan": (0.647058823529412, 0.411764705882353, 0.0980392156862746, 1.0),
-        "teal": (-1, 0.00392156862745097, 0.00392156862745097, 1.0),
-        "thistle": (0.694117647058824, 0.498039215686275, 0.694117647058824, 1.0),
-        "tomato": (1, -0.223529411764706, -0.443137254901961, 1.0),
-        "turquoise": (-0.498039215686275, 0.756862745098039, 0.631372549019608, 1.0),
-        "violet": (0.866666666666667, 0.0196078431372548, 0.866666666666667, 1.0),
-        "wheat": (0.92156862745098, 0.741176470588235, 0.403921568627451, 1.0),
-        "white": (1, 1, 1, 1.0),
-        "whitesmoke": (0.92156862745098, 0.92156862745098, 0.92156862745098, 1.0),
-        "yellow": (1, 1, -1, 1.0),
-        "yellowgreen": (0.207843137254902, 0.607843137254902, -0.607843137254902, 1.0)
+        "none": (0, 0, 0),
+        "aliceblue": (0.882352941176471, 0.945098039215686, 1),
+        "antiquewhite": (0.96078431372549, 0.843137254901961, 0.686274509803922),
+        "aqua": (-1, 1, 1),
+        "aquamarine": (-0.00392156862745097, 1, 0.662745098039216),
+        "azure": (0.882352941176471, 1, 1),
+        "beige": (0.92156862745098, 0.92156862745098, 0.725490196078431),
+        "bisque": (1, 0.788235294117647, 0.537254901960784),
+        "black": (-1, -1, -1),
+        "blanchedalmond": (1, 0.843137254901961, 0.607843137254902),
+        "blue": (-1, -1, 1),
+        "blueviolet": (0.0823529411764705, -0.662745098039216, 0.772549019607843),
+        "brown": (0.294117647058824, -0.670588235294118, -0.670588235294118),
+        "burlywood": (0.741176470588235, 0.443137254901961, 0.0588235294117647),
+        "cadetblue": (-0.254901960784314, 0.23921568627451, 0.254901960784314),
+        "chartreuse": (-0.00392156862745097, 1, -1),
+        "chocolate": (0.647058823529412, -0.176470588235294, -0.764705882352941),
+        "coral": (1, -0.00392156862745097, -0.372549019607843),
+        "cornflowerblue": (-0.215686274509804, 0.168627450980392, 0.858823529411765),
+        "cornsilk": (1, 0.945098039215686, 0.725490196078431),
+        "crimson": (0.725490196078431, -0.843137254901961, -0.529411764705882),
+        "cyan": (-1, 1, 1),
+        "darkblue": (-1, -1, 0.0901960784313725),
+        "darkcyan": (-1, 0.0901960784313725, 0.0901960784313725),
+        "darkgoldenrod": (0.443137254901961, 0.0509803921568628, -0.913725490196078),
+        "darkgray": (0.325490196078431, 0.325490196078431, 0.325490196078431),
+        "darkgreen": (-1, -0.215686274509804, -1),
+        "darkgrey": (0.325490196078431, 0.325490196078431, 0.325490196078431),
+        "darkkhaki": (0.482352941176471, 0.435294117647059, -0.16078431372549),
+        "darkmagenta": (0.0901960784313725, -1, 0.0901960784313725),
+        "darkolivegreen": (-0.333333333333333, -0.16078431372549, -0.631372549019608),
+        "darkorange": (1, 0.0980392156862746, -1),
+        "darkorchid": (0.2, -0.607843137254902, 0.6),
+        "darkred": (0.0901960784313725, -1, -1),
+        "darksalmon": (0.827450980392157, 0.176470588235294, -0.0431372549019607),
+        "darkseagreen": (0.12156862745098, 0.474509803921569, 0.12156862745098),
+        "darkslateblue": (-0.435294117647059, -0.52156862745098, 0.0901960784313725),
+        "darkslategray": (-0.631372549019608, -0.380392156862745, -0.380392156862745),
+        "darkslategrey": (-0.631372549019608, -0.380392156862745, -0.380392156862745),
+        "darkturquoise": (-1, 0.615686274509804, 0.63921568627451),
+        "darkviolet": (0.16078431372549, -1, 0.654901960784314),
+        "deeppink": (1, -0.843137254901961, 0.152941176470588),
+        "deepskyblue": (-1, 0.498039215686275, 1),
+        "dimgray": (-0.176470588235294, -0.176470588235294, -0.176470588235294),
+        "dimgrey": (-0.176470588235294, -0.176470588235294, -0.176470588235294),
+        "dodgerblue": (-0.764705882352941, 0.129411764705882, 1),
+        "firebrick": (0.396078431372549, -0.733333333333333, -0.733333333333333),
+        "floralwhite": (1, 0.96078431372549, 0.882352941176471),
+        "forestgreen": (-0.733333333333333, 0.0901960784313725, -0.733333333333333),
+        "fuchsia": (1, -1, 1),
+        "gainsboro": (0.725490196078431, 0.725490196078431, 0.725490196078431),
+        "ghostwhite": (0.945098039215686, 0.945098039215686, 1),
+        "gold": (1, 0.686274509803922, -1),
+        "goldenrod": (0.709803921568627, 0.294117647058824, -0.749019607843137),
+        "gray": (0.00392156862745097, 0.00392156862745097, 0.00392156862745097),
+        "grey": (0.00392156862745097, 0.00392156862745097, 0.00392156862745097),
+        "green": (-1, 0.00392156862745097, -1),
+        "greenyellow": (0.356862745098039, 1, -0.631372549019608),
+        "honeydew": (0.882352941176471, 1, 0.882352941176471),
+        "hotpink": (1, -0.176470588235294, 0.411764705882353),
+        "indianred": (0.607843137254902, -0.27843137254902, -0.27843137254902),
+        "indigo": (-0.411764705882353, -1, 0.0196078431372548),
+        "ivory": (1, 1, 0.882352941176471),
+        "khaki": (0.882352941176471, 0.803921568627451, 0.0980392156862746),
+        "lavender": (0.803921568627451, 0.803921568627451, 0.96078431372549),
+        "lavenderblush": (1, 0.882352941176471, 0.92156862745098),
+        "lawngreen": (-0.0274509803921569, 0.976470588235294, -1),
+        "lemonchiffon": (1, 0.96078431372549, 0.607843137254902),
+        "lightblue": (0.356862745098039, 0.694117647058824, 0.803921568627451),
+        "lightcoral": (0.882352941176471, 0.00392156862745097, 0.00392156862745097),
+        "lightcyan": (0.756862745098039, 1, 1),
+        "lightgoldenrodyellow": (0.96078431372549, 0.96078431372549, 0.647058823529412),
+        "lightgray": (0.654901960784314, 0.654901960784314, 0.654901960784314),
+        "lightgreen": (0.129411764705882, 0.866666666666667, 0.129411764705882),
+        "lightgrey": (0.654901960784314, 0.654901960784314, 0.654901960784314),
+        "lightpink": (1, 0.427450980392157, 0.513725490196078),
+        "lightsalmon": (1, 0.254901960784314, -0.0431372549019607),
+        "lightseagreen": (-0.749019607843137, 0.396078431372549, 0.333333333333333),
+        "lightskyblue": (0.0588235294117647, 0.615686274509804, 0.96078431372549),
+        "lightslategray": (-0.0666666666666667, 0.0666666666666667, 0.2),
+        "lightslategrey": (-0.0666666666666667, 0.0666666666666667, 0.2),
+        "lightsteelblue": (0.380392156862745, 0.537254901960784, 0.741176470588235),
+        "lightyellow": (1, 1, 0.756862745098039),
+        "lime": (-1, 1, -1),
+        "limegreen": (-0.607843137254902, 0.607843137254902, -0.607843137254902),
+        "linen": (0.96078431372549, 0.882352941176471, 0.803921568627451),
+        "magenta": (1, -1, 1),
+        "maroon": (0.00392156862745097, -1, -1),
+        "mediumaquamarine": (-0.2, 0.607843137254902, 0.333333333333333),
+        "mediumblue": (-1, -1, 0.607843137254902),
+        "mediumorchid": (0.458823529411765, -0.333333333333333, 0.654901960784314),
+        "mediumpurple": (0.152941176470588, -0.12156862745098, 0.717647058823529),
+        "mediumseagreen": (-0.529411764705882, 0.403921568627451, -0.113725490196078),
+        "mediumslateblue": (-0.0352941176470588, -0.184313725490196, 0.866666666666667),
+        "mediumspringgreen": (-1, 0.96078431372549, 0.207843137254902),
+        "mediumturquoise": (-0.435294117647059, 0.63921568627451, 0.6),
+        "mediumvioletred": (0.56078431372549, -0.835294117647059, 0.0431372549019609),
+        "midnightblue": (-0.803921568627451, -0.803921568627451, -0.12156862745098),
+        "mintcream": (0.92156862745098, 1, 0.96078431372549),
+        "mistyrose": (1, 0.788235294117647, 0.764705882352941),
+        "moccasin": (1, 0.788235294117647, 0.419607843137255),
+        "navajowhite": (1, 0.741176470588235, 0.356862745098039),
+        "navy": (-1, -1, 0.00392156862745097),
+        "oldlace": (0.984313725490196, 0.92156862745098, 0.803921568627451),
+        "olive": (0.00392156862745097, 0.00392156862745097, -1),
+        "olivedrab": (-0.16078431372549, 0.113725490196078, -0.725490196078431),
+        "orange": (1, 0.294117647058824, -1),
+        "orangered": (1, -0.458823529411765, -1),
+        "orchid": (0.709803921568627, -0.12156862745098, 0.67843137254902),
+        "palegoldenrod": (0.866666666666667, 0.819607843137255, 0.333333333333333),
+        "palegreen": (0.192156862745098, 0.968627450980392, 0.192156862745098),
+        "paleturquoise": (0.372549019607843, 0.866666666666667, 0.866666666666667),
+        "palevioletred": (0.717647058823529, -0.12156862745098, 0.152941176470588),
+        "papayawhip": (1, 0.874509803921569, 0.670588235294118),
+        "peachpuff": (1, 0.709803921568627, 0.450980392156863),
+        "peru": (0.607843137254902, 0.0431372549019609, -0.505882352941176),
+        "pink": (1, 0.505882352941176, 0.592156862745098),
+        "plum": (0.733333333333333, 0.254901960784314, 0.733333333333333),
+        "powderblue": (0.380392156862745, 0.756862745098039, 0.803921568627451),
+        "purple": (0.00392156862745097, -1, 0.00392156862745097),
+        "red": (1, -1, -1),
+        "rosybrown": (0.474509803921569, 0.12156862745098, 0.12156862745098),
+        "royalblue": (-0.490196078431373, -0.176470588235294, 0.764705882352941),
+        "saddlebrown": (0.0901960784313725, -0.458823529411765, -0.850980392156863),
+        "salmon": (0.96078431372549, 0.00392156862745097, -0.105882352941176),
+        "sandybrown": (0.913725490196079, 0.286274509803922, -0.247058823529412),
+        "seagreen": (-0.63921568627451, 0.0901960784313725, -0.317647058823529),
+        "seashell": (1, 0.92156862745098, 0.866666666666667),
+        "sienna": (0.254901960784314, -0.356862745098039, -0.647058823529412),
+        "silver": (0.505882352941176, 0.505882352941176, 0.505882352941176),
+        "skyblue": (0.0588235294117647, 0.615686274509804, 0.843137254901961),
+        "slateblue": (-0.168627450980392, -0.294117647058823, 0.607843137254902),
+        "slategray": (-0.12156862745098, 0.00392156862745097, 0.129411764705882),
+        "slategrey": (-0.12156862745098, 0.00392156862745097, 0.129411764705882),
+        "snow": (1, 0.96078431372549, 0.96078431372549),
+        "springgreen": (-1, 1, -0.00392156862745097),
+        "steelblue": (-0.450980392156863, 0.0196078431372548, 0.411764705882353),
+        "tan": (0.647058823529412, 0.411764705882353, 0.0980392156862746),
+        "teal": (-1, 0.00392156862745097, 0.00392156862745097),
+        "thistle": (0.694117647058824, 0.498039215686275, 0.694117647058824),
+        "tomato": (1, -0.223529411764706, -0.443137254901961),
+        "turquoise": (-0.498039215686275, 0.756862745098039, 0.631372549019608),
+        "violet": (0.866666666666667, 0.0196078431372548, 0.866666666666667),
+        "wheat": (0.92156862745098, 0.741176470588235, 0.403921568627451),
+        "white": (1, 1, 1),
+        "whitesmoke": (0.92156862745098, 0.92156862745098, 0.92156862745098),
+        "yellow": (1, 1, -1),
+        "yellowgreen": (0.207843137254902, 0.607843137254902, -0.607843137254902)
     }
 # Shorthand for common regexpressions
-_255 = '(\d|\d\d|1\d\d|2[0-4]\d|25[0-5])'
-_360 = '((\d|\d\d|[12]\d\d|3[0-5]\d)(\.\d)*|360|360\.0*)'
-_100 = '((\d|\d\d)(\.\d)*|100|100\.0*)'
-_1 = '(0|1|1.0*|0\.\d*)'
-_lbr = '[\[\(]\s*'
-_rbr = '\s*[\]\)]'
+_255 = r'(\d|\d\d|1\d\d|2[0-4]\d|25[0-5])'
+_360 = r'((\d|\d\d|[12]\d\d|3[0-5]\d)(\.\d)*|360|360\.0*)'
+_100 = r'((\d|\d\d)(\.\d)*|100|100\.0*)'
+_1 = r'(0|1|1.0*|0\.\d*)'
+_lbr = r'[\[\(]\s*'
+_rbr = r'\s*[\]\)]'
 # Dict of regexpressions for different formats
 colorSpaces = {
     'named': re.compile("|".join(list(colorNames))), # A named colour space
-    'hex': re.compile('#[\dabcdefABCDEF]{6}'), # Hex
-    'hexa': re.compile('#[\dabcdefABCDEF]{8}'), # Hex + alpha
-    'rgb': re.compile(_lbr+'\-?'+_1+',\s*'+'\-?'+_1+',\s*'+'\-?'+_1+_rbr), # RGB from -1 to 1
-    'rgba': re.compile(_lbr+'\-?'+_1+',\s*'+'\-?'+_1+',\s*'+'\-?'+_1+',\s*'+'\-?'+_1+_rbr),  # RGB + alpha from -1 to 1
-    'rgb1': re.compile(_lbr+_1+',\s*'+_1+',\s*'+_1+_rbr),  # RGB from 0 to 1
-    'rgba1': re.compile(_lbr+_1+',\s*'+_1+',\s*'+_1+',\s*'+_1+_rbr),  # RGB + alpha from 0 to 1
-    'rgb255': re.compile(_lbr+_255+',\s*'+_255+',\s*'+_255+_rbr), # RGB from 0 to 255
-    'rgba255': re.compile(_lbr+_255+',\s*'+_255+',\s*'+_255+',\s*'+_255+_rbr), # RGB + alpha from 0 to 255
-    'hsv': re.compile(_lbr+_360+'\°?'+',\s*'+_1+',\s*'+_1+_rbr), # HSV with hue from 0 to 360 and saturation/vibrancy from 0 to 1
-    'hsva': re.compile(_lbr+_360+'\°?'+',\s*'+_1+',\s*'+_1+',\s*'+_1+_rbr), # HSV with hue from 0 to 360 and saturation/vibrancy from 0 to 1 + alpha from 0 to 1
+    'hex': re.compile(r'#[\dabcdefABCDEF]{6}'), # Hex
+    'rgb': re.compile(_lbr+r'\-?'+_1+r',\s*'+r'\-?'+_1+r',\s*'+r'\-?'+_1+_rbr), # RGB from -1 to 1
+    'rgba': re.compile(_lbr+r'\-?'+_1+r',\s*'+r'\-?'+_1+r',\s*'+r'\-?'+_1+r',\s*'+r'\-?'+_1+_rbr),  # RGB + alpha from -1 to 1
+    'rgb1': re.compile(_lbr+_1+r',\s*'+_1+r',\s*'+_1+_rbr),  # RGB from 0 to 1
+    'rgba1': re.compile(_lbr+_1+r',\s*'+_1+r',\s*'+_1+r',\s*'+_1+_rbr),  # RGB + alpha from 0 to 1
+    'rgb255': re.compile(_lbr+_255+r',\s*'+_255+r',\s*'+_255+_rbr), # RGB from 0 to 255
+    'rgba255': re.compile(_lbr+_255+r',\s*'+_255+r',\s*'+_255+r',\s*'+_1+_rbr), # RGB + alpha from 0 to 255
+    'hsv': re.compile(_lbr+_360+r'\°?'+r',\s*'+_1+r',\s*'+_1+_rbr), # HSV with hue from 0 to 360 and saturation/vibrancy from 0 to 1
+    'hsva': re.compile(_lbr+_360+r'\°?'+r',\s*'+_1+r',\s*'+_1+r',\s*'+_1+_rbr), # HSV with hue from 0 to 360 and saturation/vibrancy from 0 to 1 + alpha from 0 to 1
 }
 
 
 class Color(object):
     """A class to store colour details, knows what colour space it's in and can supply colours in any space"""
 
-    def __init__(self, color=None, space=None):
+    def __init__(self, color=None, space=None, contrast=None):
         self._cache = {}
+        self.contrast = contrast if isinstance(contrast, (int, float)) else 1
+        self.alpha = 1
         self.set(color=color, space=space)
 
     def set(self, color=None, space=None):
@@ -215,12 +216,17 @@ class Color(object):
             color = tuple(float(c) for c in color)
         if space in ['rgb255', 'rgba255']:
             color = tuple(int(c) for c in color)
+        if isinstance(color, (int, float)):
+            color = (color, color, color)
         # If input is a Color object, duplicate all settings
         if isinstance(color, Color):
             self._requested = color._requested
             self._requestedSpace = color._requestedSpace
             self.rgba = color.rgba
             return
+        # if supplied a named color, ignore color space
+        if 'named' in self.getSpace(color, True):
+            space = 'named'
         # Store requested colour and space (or defaults, if none given)
         self._requested = color if color is not None else None
         self._requestedSpace = space \
@@ -235,6 +241,19 @@ class Color(object):
             setattr(self, self._requestedSpace, self._requested)
         else:
             self.named = None
+
+    def render(self, space='rgb'):
+        if space not in colorSpaces and space not in advancedSpaces:
+            raise ValueError(f"{space} is not a valid color space")
+        adj = []
+        for val in self.rgb:
+            val = val * self.contrast
+            val = max(val, -1)
+            val = min(val, 1)
+            adj.append(val)
+        buffer = self.copy()
+        buffer.rgb = adj
+        return getattr(buffer, space)
 
     def __repr__(self):
         """If colour is printed, it will display its class and value"""
@@ -298,7 +317,7 @@ class Color(object):
                 other = AdvancedColor(other)
             elif isinstance(other, int) or isinstance(other, float):
                 out = self.copy()
-                out.brightness += other
+                out.rgb = tuple(c + other for c in self.rgb)
                 return out
             else:
                 raise ValueError ("unsupported operand type(s) for +: '"
@@ -317,7 +336,10 @@ class Color(object):
 
     def copy(self):
         """Return a duplicate of this colour"""
-        return self.__class__(self._requested, self._requestedSpace)
+        dupe = self.__class__(self._requested, self._requestedSpace)
+        dupe.rgba = self.rgba
+        dupe.contrast = self.contrast
+        return dupe
 
     @staticmethod
     def getSpace(color, debug=False):
@@ -368,6 +390,7 @@ class Color(object):
                 color = [float(n) for n in color.strip('[]()').split(',')]
             if isinstance(color, list):
                 color = tuple(color)
+
         # If enforcing multiple
         if enforce == (tuple, int):
             color = tuple(int(round(c)) for c in color)
@@ -384,143 +407,124 @@ class Color(object):
         return None
 
     # ---adjusters---
-    @property
-    def contrast(self):
-        '''Distance from mid grey in rgb (-1 to 1)'''
-        return abs(sum(self.rgb)/3)
-    @contrast.setter
-    def contrast(self, value):
-        if self.contrast:
-            norm = tuple(c/self.contrast for c in self.rgb)
-        else:
-            norm = self.rgb
-        self.rgba = tuple(max(min(c*value,1),-1) for c in norm) + (self.rgba[-1],)
+    # @property
+    # def saturation(self):
+    #     '''Saturation in hsv (0 to 1)'''
+    #     return self.hsv[1]
+    # @saturation.setter
+    # def saturation(self, value):
+    #     h,s,v,a = self.hsva
+    #     s += value
+    #     s = min(s, 1)
+    #     s = max(s, 0)
+    #     self.hsva = (h, s, v, a)
 
-    @property
-    def saturation(self):
-        '''Saturation in hsv (0 to 1)'''
-        return self.hsv[1]
-    @saturation.setter
-    def saturation(self, value):
-        h,s,v,a = self.hsva
-        s += value
-        s = min(s, 1)
-        s = max(s, 0)
-        self.hsva = (h, s, v, a)
-
-    @property
-    def brightness(self):
-        return sum(self.rgb1)/3
-    @brightness.setter
-    def brightness(self, value):
-        adj = value-self.brightness
-        self.rgba1 = tuple(
-            max(min(c+adj, 1),0)
-            for c in self.rgb1
-        ) + (self.alpha,)
+    # @property
+    # def brightness(self):
+    #     return sum(self.rgb1)/3
+    # @brightness.setter
+    # def brightness(self, value):
+    #     adj = value-self.brightness
+    #     self.rgba1 = tuple(
+    #         max(min(c+adj, 1),0)
+    #         for c in self.rgb1
+    #     ) + (self.alpha,)
 
     @property
     def alpha(self):
-        return self.rgba1[-1]
+        return self._alpha
     @alpha.setter
     def alpha(self, value):
         value = min(value,1)
         value = max(value,0)
-        self.rgba1 = self.rgb1 + (value,)
+        self._alpha = value
 
     #---spaces---
-    # Lingua franca is rgba
+    # Lingua franca is rgb
     @property
     def rgba(self):
-        if hasattr(self, '_franca'):
-            return self._franca
+        return self.rgb + (self.alpha,)
     @rgba.setter
     def rgba(self, color):
+        self.rgb = color
+    @property
+    def rgb(self):
+        if hasattr(self, '_franca'):
+            return self._franca
+    @rgb.setter
+    def rgb(self, color):
         # Validate
         color = self.validate(color, against=['rgb', 'rgba'], enforce=tuple)
         if not color:
             return
+        # Set color
+        self._franca = color[:3]
         # Append alpha, if not present
-        if len(color) == 4:
-            self._franca = color
-        elif len(color) == 3:
-            self._franca = color + (1,)
-        else:
-            self.named = None
+        if color[3:]:
+            self.alpha = color[3]
         # Clear outdated values from cache
         self._cache = {}
 
     @property
-    def rgb(self):
-        if self.rgba:
-            return self.rgba[:-1]
-    @rgb.setter
-    def rgb(self, color):
-        self.rgba = color
-
-    @property
     def rgba255(self):
-        if not self.rgba:
-            return None
-        if 'rgba255' not in self._cache:
-            self._cache['rgba255'] = tuple(int(255*(val+1)/2) for val in self.rgba)
-        return self._cache['rgba255']
+        return self.rgb255 + (self.alpha,)
     @rgba255.setter
     def rgba255(self, color):
+        self.rgb255 = color
+    @property
+    def rgb255(self):
+        if not self.rgb:
+            return None
+        # Recalculate if not cached
+        if 'rgb255' not in self._cache:
+            self._cache['rgb255'] = tuple(int(255 * (val + 1) / 2) for val in self.rgb)
+        return self._cache['rgb255']
+    @rgb255.setter
+    def rgb255(self, color):
         # Validate
         color = self.validate(color, against=['rgb255', 'rgba255'], enforce=(tuple, int))
         if not color:
             return
         # Iterate through values and do conversion
-        self.rgba = tuple(2 * (val / 255 - 0.5) for val in color)
+        self.rgb = tuple(2 * (val / 255 - 0.5) for val in color[:3])+color[3:]
         # Clear outdated values from cache
         self._cache = {}
 
     @property
-    def rgb255(self):
-        if self.rgba255:
-            return self.rgba255[:-1]
-    @rgb255.setter
-    def rgb255(self, color):
-        self.rgba255 = color
-
-    @property
     def rgba1(self):
-        # Iterate through values and do conversion
-        if not self.rgba:
-            return
-        if 'rgba1' not in self._cache:
-            self._cache['rgba1'] = tuple((val + 1) / 2 for val in self.rgba)
-        return self._cache['rgba1']
+        return self.rgb1 + (self.alpha,)
     @rgba1.setter
     def rgba1(self, color):
+        self.rgb1 = color
+    @property
+    def rgb1(self):
+        if not self.rgb:
+            return
+        # Recalculate if not cached
+        if 'rgb1' not in self._cache:
+            self._cache['rgb1'] = tuple((val + 1) / 2 for val in self.rgb)
+        return self._cache['rgb1']
+    @rgb1.setter
+    def rgb1(self, color):
         # Validate
         color = self.validate(color, against=['rgb1', 'rgba1'], enforce=tuple)
         if not color:
             return
         # Iterate through values and do conversion
-        self.rgba = tuple(2 * (val - 0.5) for val in color)
+        self.rgb = tuple(2 * (val - 0.5) for val in color[:3])+color[3:]
         # Clear outdated values from cache
         self._cache = {}
 
     @property
-    def rgb1(self):
-        if self.rgba1:
-            return self.rgba1[:-1]
-    @rgb1.setter
-    def rgb1(self, color):
-        self.rgba1 = color
-
-    @property
-    def hexa(self):
-        if not self.rgba255:
+    def hex(self):
+        if not self.rgb255:
             return
-        if 'hexa' not in self._cache:
+        if 'hex' not in self._cache:
             # Map rgb255 values to corresponding letters in hex
             hexmap = {10: 'a', 11: 'b', 12: 'c', 13: 'd', 14: 'e', 15: 'f'}
             # Iterate and do conversion
             flatList = ['#']
-            for val in self.rgba255:
+            for val in self.rgb255:
                 dig1 = int(floor(val / 16))
                 flatList.append(
                     str(dig1) if dig1 <= 9 else hexmap[dig1]
@@ -529,16 +533,16 @@ class Color(object):
                 flatList.append(
                     str(dig2) if dig2 <= 9 else hexmap[dig2]
                 )
-            self._cache['hexa'] = "".join(flatList)
-        return self._cache['hexa']
-    @hexa.setter
-    def hexa(self, color):
+            self._cache['hex'] = "".join(flatList)
+        return self._cache['hex']
+    @hex.setter
+    def hex(self, color):
         # Validate
-        color = self.validate(color, against=['hex', 'hexa'], enforce=str)
+        color = self.validate(color, against=['hex'], enforce=str)
         if not color:
             return
         # Convert strings to list
-        colorList = [color[i - 2:i] for i in [3, 5, 7, 9] if color[i - 2:i]]
+        colorList = [color[i - 2:i] for i in [3, 5, 7] if color[i - 2:i]]
         # Map hex letters to corresponding values in rgb255
         hexmap = {'a':10, 'b':11, 'c':12, 'd':13, 'e':14, 'f':15}
         # Create adjustment for different digits
@@ -548,22 +552,14 @@ class Color(object):
             # Iterate through individual values
             flat = 0
             for i, v in enumerate(val):
-                if re.match('\d', str(v)):
+                if re.match(r'\d', str(v)):
                     flat += int(v)*adj[i]
-                elif re.match('[abcdef]', str(v).lower()):
+                elif re.match(r'[abcdef]', str(v).lower()):
                     flat += hexmap[str(v).lower()]*adj[i]
             flatList.append(flat)
-        self.rgba255 = flatList
+        self.rgb255 = flatList
         # Clear outdated values from cache
         self._cache = {}
-
-    @property
-    def hex(self):
-        if self.hexa:
-            return self.hexa[:-2]
-    @hex.setter
-    def hex(self, color):
-        self.hexa = color
 
     @property
     def named(self):
@@ -587,23 +583,31 @@ class Color(object):
         if not color:
             return
         # Retrieve named colour
-        self.rgba = colorNames[str(color).lower()]
+        self.rgb = colorNames[str(color).lower()]
+        if color.lower() == 'none':
+            self.alpha = 0
         # Clear outdated values from cache
         self._cache = {}
 
     @property
     def hsva(self):
+        return self.hsv + (self.alpha,)
+    @hsva.setter
+    def hsva(self, color):
+        self.hsv = color
+    @property
+    def hsv(self):
         # Based on https://www.geeksforgeeks.org/program-change-rgb-color-model-hsv-color-model/
         if 'hsva' not in self._cache:
-            red, green, blue, alpha = self.rgba1
+            red, green, blue = self.rgb1
             cmax = max(red, green, blue)
             cmin = min(red, green, blue)
             delta = cmax - cmin
             # Calculate hue
             if cmax == 0 and cmin == 0:
-                return (0, 0, 0, alpha)
+                return (0, 0, 0)
             elif delta == 0:
-                return (0, 0, sum(self.rgb1)/3, alpha)
+                return (0, 0, sum(self.rgb1) / 3)
 
             if cmax == red:
                 hue = (60 * ((green - blue) / delta) + 360) % 360
@@ -618,10 +622,10 @@ class Color(object):
                 saturation = (delta / cmax)
             # Calculate vibrancy
             vibrancy = cmax
-            self._cache['hsva'] = (hue, saturation, vibrancy, alpha)
-        return self._cache['hsva']
-    @hsva.setter
-    def hsva(self, color):
+            self._cache['hsv'] = (round(hue), saturation, vibrancy)
+        return self._cache['hsv']
+    @hsv.setter
+    def hsv(self, color):
         # based on method in
         # http://en.wikipedia.org/wiki/HSL_and_HSV#Converting_to_RGB
 
@@ -631,33 +635,29 @@ class Color(object):
             return
         # Extract values
         hue, saturation, vibrancy, *alpha = color
-        alpha255 = alpha[0] * 255 if alpha else None
-        # Convert hue
-        hue255 = Color.hue2rgb255(hue)
-        # Get value to move towards as saturation decreases
-        vibrancy255 = vibrancy*255
-        # Adjust by vibrancy and saturation
-        all255 = tuple(h+(vibrancy255-h)*(1-saturation) for h in hue255)
+        # Calculate pure hue
+        pureHue = self.hue2rgb255(hue)
+        # Apply value
+        hueVal = tuple(h * vibrancy for h in pureHue)
+        # Get desired value in 255
+        vibrancy255 = vibrancy * 255
+        # Apply saturation
+        all255 = tuple(round(h + (vibrancy255 - h) * (1 - saturation)) for h in hueVal)
         # Apply via rgba255
-        self.rgba255 = all255 + (alpha255,) if alpha255 is not None else all255 + (255,)
+        self.rgb255 = all255 + (alpha[0],) if alpha else all255
         # Clear outdated values from cache
         self._cache = {}
-    @property
-    def hsv(self):
-        if self.hsva:
-            return self.hsva[:-1]
-    @hsv.setter
-    def hsv(self, color):
-        self.hsva = color
 
-_rec = '(\-4\.5|\-4\.4\d*|\-4\.[0-4]\d*|\-[0-3]\.\d*|\-[0-3]|0|0\.\d*|1|1\.0)' # -4.5 to 1
+_rec = r'(\-4\.5|\-4\.4\d*|\-4\.[0-4]\d*|\-[0-3]\.\d*|\-[0-3]|0|0\.\d*|1|1\.0)' # -4.5 to 1
 advancedSpaces = {
-    'rec709TF': re.compile(_lbr+_rec+',\s*'+_rec+',\s*'+_rec+_rbr), # rec709TF adjusted RGB from -4.5 to 1 + alpha from 0 to 1
-    'rec709TFa': re.compile(_lbr+_rec+',\s*'+_rec+',\s*'+_rec+',\s*'+_1+_rbr), # rec709TF adjusted RGB from -4.5 to 1 + alpha from 0 to 1
-    'srgbTF': re.compile(_lbr+'\-?'+_1+',\s*'+'\-?'+_1+',\s*'+'\-?'+_1+_rbr), # srgbTF from -1 to 1 + alpha from 0 to 1
-    'srgbTFa': re.compile(_lbr+'\-?'+_1+',\s*'+'\-?'+_1+',\s*'+'\-?'+_1+',\s*'+_1+_rbr), # srgbTF from -1 to 1 + alpha from 0 to 1
-    'lms': re.compile(_lbr + '\-?' + _1 + ',\s*' + '\-?' + _1 + ',\s*' + '\-?' + _1 + _rbr),  # LMS from -1 to 1
-    'lmsa': re.compile(_lbr + '\-?' + _1 + ',\s*' + '\-?' + _1 + ',\s*' + '\-?' + _1 + ',\s*' + '\-?' + _1 + _rbr),  # LMS + alpha from -1 to 1
+    'rec709TF': re.compile(_lbr+_rec+r',\s*'+_rec+r',\s*'+_rec+_rbr), # rec709TF adjusted RGB from -4.5 to 1 + alpha from 0 to 1
+    'rec709TFa': re.compile(_lbr+_rec+r',\s*'+_rec+r',\s*'+_rec+r',\s*'+_1+_rbr), # rec709TF adjusted RGB from -4.5 to 1 + alpha from 0 to 1
+    'srgbTF': re.compile(_lbr+r'\-?'+_1+r',\s*'+r'\-?'+_1+r',\s*'+r'\-?'+_1+_rbr), # srgbTF from -1 to 1 + alpha from 0 to 1
+    'srgbTFa': re.compile(_lbr+r'\-?'+_1+r',\s*'+r'\-?'+_1+r',\s*'+r'\-?'+_1+r',\s*'+_1+_rbr), # srgbTF from -1 to 1 + alpha from 0 to 1
+    'lms': re.compile(_lbr + r'\-?' + _1 + r',\s*' + r'\-?' + _1 + r',\s*' + r'\-?' + _1 + _rbr),  # LMS from -1 to 1
+    'lmsa': re.compile(_lbr + r'\-?' + _1 + r',\s*' + r'\-?' + _1 + r',\s*' + r'\-?' + _1 + r',\s*' + r'\-?' + _1 + _rbr),  # LMS + alpha from -1 to 1
+    'dkl': re.compile(_lbr + r'\-?' + r'\d*.?\d*' + r',\s*' + r'\-?' + r'\d*.?\d*' + r',\s*' + r'\-?' + r'\d*.?\d*' + _rbr), # DKL placeholder: Accepts any values
+    'dkla': re.compile(_lbr + r'\-?' + r'\d*.?\d*' + r',\s*' + r'\-?' + r'\d*.?\d*' + r',\s*' + r'\-?' + r'\d*.?\d*' + r',\s*' + r'\-?' + r'\d*.?\d*' + _rbr) # DKLA placeholder: Accepts any values
 }
 
 
@@ -683,7 +683,7 @@ class AdvancedColor(Color):
         basic = Color.getSpace(color, debug=True)
         possible += basic
         # Return full list if debug or multiple, else return first value
-        if debug or len(possible) > 1:
+        if debug or len(possible) > 1 or len(possible) == 0:
             return possible
         else:
             return possible[0]
@@ -878,6 +878,38 @@ class AdvancedColor(Color):
     @lms.setter
     def lms(self, color):
         self.lmsa = color
+
+    @property
+    def dkla(self):
+        if 'dkla' in self._cache:
+            return self._cache['dkla']
+        else:
+            logging.error(f"Conversion *to* dkl is not supported, dkl values can only be retrieved when Color was originally specified in dkl")
+    @dkla.setter
+    def dkla(self, color):
+        # Extract values and convert to numpy
+        d, k, l, *a = color
+        nd = numpy.zeros(3)
+        nd[:] = [d,k,l]
+        # Do conversion
+        self.rgb = tuple( dkl2rgb(nd) )
+        if a:
+            self.alpha = a[0]
+        else:
+            self.alpha = 1
+        # Cache values
+        self._cache = {'dkl': (d, k, l),
+                       'dkla': (d, k, l, a)}
+    @property
+    def dkl(self):
+        if 'dkl' in self._cache:
+            return self._cache['dkl']
+        else:
+            logging.error(f"Conversion *to* dkl is not supported, dkl values can only be retrieved when Color was originally specified in dkl")
+    @dkl.setter
+    def dkl(self, color):
+        self.dkla = color
+
 
 """----------Legacy-----------------"""
 # Old reference tables

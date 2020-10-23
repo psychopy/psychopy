@@ -9,13 +9,37 @@ import pytest
 
 
 @pytest.mark.mathtools
-def test_quatFromAxisAngle():
-    """Test creating a quaternion from `axis` and `angle`."""
+def test_rotations():
+    """Test rotations with quaternions and matrices. Checks if quaternions and
+    matrices constructed with the same axes and angles give the same rotations
+    to sets of random points.
+
+    Tests `quatFromAxisAngle`, `rotationMatrix`, `applyMatrix` and `applyQuat`.
+
+    """
     # identity check
     axis = [0., 0., -1.]
     angle = 0.0
     q = quatFromAxisAngle(axis, angle, degrees=True)
     assert np.allclose(q, np.asarray([0., 0., 0., 1.]))
+
+    q = rotationMatrix(angle, axis)
+    assert np.allclose(q, np.identity(4))
+
+    # full check
+    np.random.seed(123456)
+    N = 1000
+    axes = np.random.uniform(-1.0, 1.0, (N, 3))  # random rotation axes
+    axes = normalize(axes, out=axes)
+    angles = np.random.uniform(-180.0, 180.0, (N,))  # random angles
+    points = np.random.uniform(-100.0, 100.0, (N, 3))  # random points to rotate
+
+    for i in range(N):
+        axis = axes[i, :]
+        angle = angles[i]
+        rotMat = rotationMatrix(angle, axis)[:3, :3]  # rotation sub-matrix only
+        rotQuat = quatFromAxisAngle(axis, angle, degrees=True)
+        assert np.allclose(applyMatrix(rotMat, points), applyQuat(rotQuat, points))
 
 
 @pytest.mark.mathtools
@@ -118,7 +142,7 @@ def test_quatToMatrix():
         q = matrixToQuat(rotationMatrix(angles[i], normalize(axes[i, :])))
         m = quatToMatrix(quatFromAxisAngle(normalize(axes[i, :]), angles[i]))
 
-        # The returned quaternion might no be the same, but will result in the
+        # The returned quaternion might not be the same, but will result in the
         # same rotation.
         assert np.allclose(applyMatrix(m, vectors[i]), applyQuat(q, vectors[i]))
 
@@ -196,6 +220,46 @@ def test_dot():
             results1[i] = dot(vectors1[i, :], vectors2[0, :])
 
         assert np.allclose(results0, results1)
+
+
+@pytest.mark.mathtools
+def test_dist():
+    """Test the distance function in mathtools. This also test the `normalize`
+    function to ensure all vectors have a length of 1.
+
+    """
+    np.random.seed(123456)
+    N = 1000
+    # check Nx2 and Nx3 cases
+    for nCol in range(2, 4):
+        vectors = np.random.uniform(-1.0, 1.0, (N, nCol,))
+        vectors = normalize(vectors, out=vectors)  # normalize
+
+        # point to check distance from
+        point = np.zeros((nCol,))
+
+        # calculate 1 to many
+        distOneToMany = distance(point, vectors)
+        # check if distances are all one
+        assert np.allclose(distOneToMany, 1.0)
+        # calculate many to 1
+        distManyToOne = distance(point, vectors)
+        # check if results are the same
+        assert np.allclose(distManyToOne, distOneToMany)
+
+        # check if output array is written to correctly
+        out = np.zeros((N,))
+        idToCheck = id(out)
+        out = distance(vectors, point, out)
+        # check result
+        assert np.allclose(out, distManyToOne)
+        # check same object
+        assert id(out) == idToCheck
+
+    # test row-by-row
+    vectors = normalize(np.random.uniform(-1.0, 1.0, (N, 3,)))
+    distRowByRow = distance(np.zeros_like(vectors), vectors)
+    assert np.allclose(distRowByRow, 1.0)
 
 
 @pytest.mark.mathtools

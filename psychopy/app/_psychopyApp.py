@@ -10,6 +10,8 @@ from __future__ import absolute_import, division, print_function
 from builtins import str
 from builtins import object
 
+from psychopy.app.colorpicker import PsychoColorPicker
+
 profiling = False  # turning on will save profile files in currDir
 
 import sys
@@ -334,8 +336,8 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         parser.add_argument('-c', dest='coder', action="store_true")
         parser.add_argument('--runner', dest='runner', action="store_true")
         parser.add_argument('-r', dest='runner', action="store_true")
+        parser.add_argument('-x', dest='direct', action='store_true')
         view, args = parser.parse_known_args(sys.argv)
-        print(args)
         # Check from filetype if any windows need to be open
         if any(arg.endswith('.psyexp') for arg in args):
             view.builder = True
@@ -359,6 +361,10 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
             self.showCoder(fileList=scripts)
         if view.builder:
             self.showBuilder(fileList=exps)
+        if view.direct:
+            self.showRunner()
+            for exp in [file for file in args if file.endswith('.psyexp') or file.endswith('.py')]:
+                self.runner.panel.runFile(exp)
 
         # send anonymous info to www.psychopy.org/usage.php
         # please don't disable this, it's important for PsychoPy's development
@@ -418,10 +424,6 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         # we wanted debug mode while loading but safe to go back to info mode
         if not self.prefs.app['debugMode']:
             logging.console.setLevel(logging.INFO)
-        # Runner captures standard streams until program closed
-        if self.runner and not self.testMode:
-            sys.stdout = self.runner.stdOut
-            sys.stderr = self.runner.stdOut
 
         return True
 
@@ -584,6 +586,10 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
             self.runner.Show()
             self.runner.Raise()
             self.SetTopWindow(self.runner)
+        # Runner captures standard streams until program closed
+        if self.runner and not self.testMode:
+            sys.stdout = self.runner.stdOut
+            sys.stderr = self.runner.stdOut
 
     def newRunnerFrame(self, event=None):
         # have to reimport because it is only local to __init__ so far
@@ -638,32 +644,10 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         Note: units are psychopy -1..+1 rgb units to three decimal places,
         preserving 24-bit color.
         """
-        class ColorPicker(wx.Panel):
-
-            def __init__(self, parent):
-                wx.Panel.__init__(self, parent, wx.ID_ANY)
-                rgb = 'None'
-                dlg = wx.ColourDialog(self)
-                dlg.GetColourData().SetChooseFull(True)
-                if dlg.ShowModal() == wx.ID_OK:
-                    data = dlg.GetColourData()
-                    rgb = data.GetColour().Get(includeAlpha=False)
-                    rgb = map(lambda x: "%.3f" %
-                              ((x - 127.5) / 127.5), list(rgb))
-                    rgb = '[' + ','.join(rgb) + ']'
-                    # http://wiki.wxpython.org/AnotherTutorial#wx.TheClipboard
-                    if wx.TheClipboard.Open():
-                        wx.TheClipboard.Clear()
-                        wx.TheClipboard.SetData(wx.TextDataObject(str(rgb)))
-                        wx.TheClipboard.Close()
-                dlg.Destroy()
-                parent.newRBG = rgb
-        frame = wx.Frame(None, wx.ID_ANY, "Color picker",
-                         size=(0, 0))  # not shown
-        ColorPicker(frame)
-        newRBG = frame.newRBG
-        frame.Destroy()
-        return newRBG  # string
+        PsychoColorPicker(self.coder)
+        #newRBG = frame.newRBG
+        #frame.Destroy()
+        #return newRBG  # string
 
     def openMonitorCenter(self, event):
         from psychopy.monitors import MonitorCenter

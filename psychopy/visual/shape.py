@@ -172,6 +172,9 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         :ref:`Operations <attrib-operations>` supported.
         """
+        if isinstance(self, psychopy.visual.line.Line) and isinstance(value, (int, float)):
+            if value > 127:
+                logging.warning("lineWidth is greater than max width supported by OpenGL. For lines thicker than 127px, please use a filled Rect instead.")
         self.__dict__['lineWidth'] = value
 
     def setLineWidth(self, value, operation='', log=None):

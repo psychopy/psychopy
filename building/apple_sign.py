@@ -18,6 +18,7 @@ ENTITLEMENTS = thisFolder / "entitlements.plist"
 BUNDLE_ID = "org.opensciencetools.psychopy"
 USERNAME = "admin@opensciencetools.org"
 
+SIGN_ALL = True
 NOTARIZE = True
 
 # handy resources for info:
@@ -230,7 +231,7 @@ class AppSigner:
         background = (thisFolder / "dmg722x241.tiff").resolve()
         dmgbuild.build_dmg(
                 filename=dmgFilename,
-                volume_name=f'PsychoPy {self.version}',
+                volume_name=f'PsychoPy-{self.version}',  # avoid spaces
                 settings={
                     'format': 'UDRW',
                     'files': [str(self.appFile)],
@@ -253,18 +254,20 @@ class AppSigner:
         appName = self.appFile.name
         """Staple the notarization to the app inside the r/w dmg file"""
         # staple the file inside the dmg
-        cmdStr = f"hdiutil detach /Volumes/PsychoPy -quiet"
-        exitcode, output = subprocess.getstatusoutput(cmdStr)
         cmdStr = f"hdiutil attach '{dmgFilename}'"
         exitcode, output = subprocess.getstatusoutput(cmdStr)
         volName = output.split('\t')[-1]
         self.staple(f"'{volName}/{appName}'")
         cmdStr = f"hdiutil detach '{volName}' -quiet"
-        exitcode, output = subprocess.getstatusoutput(cmdStr)
-        if exitcode != 0:
+        print(f'cmdStr was: {cmdStr}')
+        for n in range(5):  # if we do this too fast then it fails. Try 5 times
+            time.sleep(5)
+            exitcode, output = subprocess.getstatusoutput(cmdStr)
             print(output)
+            if exitcode == 0:
+                break  # succeeded so stop
+        if exitcode != 0:
             print(f'*********Failed to detach {volName} (wrong name?) *************')
-            print(f'cmdStr was: {cmdStr}')
             exit(1)
 
     def dmgCompress(self):
@@ -308,16 +311,8 @@ def main():
         distFolder = (thisFolder / '../dist').resolve()
         signer = AppSigner(appFile=distFolder/args.app,
                            version=args.version)
-        signer.signAll()
-
-        # print("calling deepsign.py")
-        # cmdStr = (f"python {thisFolder / 'deepsign.py'} "
-        #           f"--signing_identity={IDENTITY} "
-        #           f"--bundle_path={distFolder / args.app} "
-        #           f"--entitlements={ENTITLEMENTS.resolve()}"
-        #           )
-        # exitcode, output = subprocess.getstatusoutput(cmdStr)
-        # print(output)
+        if SIGN_ALL:
+            signer.signAll()
         signer.signCheck(verbose=False)
 
         if NOTARIZE:
