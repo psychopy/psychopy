@@ -273,17 +273,16 @@ def testDollarSyntax(component):
         if not param.valType in ["str", "extendedStr"]:
             continue
         if not re.search(r"\$", param.val):
-            # Continue if param doesn't contain a dollar sign
+            # Continue if param doesn't contain a $
             continue
         if param.val.startswith("\$") and len(re.findall(r"\$", param.val)) == 1:
-            # Continue if syntax is correct
+            # Continue if value starts with $ and this is the only one
             continue
-        if len(re.findall(r"\\\$", param.val)) >= len(re.findall(r"\$", param.val)) - param.val.startswith("\$"):
-            # Continue if all incorrect $ are marked literal
+        if not re.findall(r"(?<!\\)\$", param.val):
+            # Continue if all $ are escaped (\$)
             continue
-        else:
-            # Raise an alert if syntax is incorrect
-            alert(4315, strFields={'component': component, 'param': param})
+        # Raise an alert if loop has not continued yet
+        alert(4315, strFields={'component': component, 'param': param})
 
 def checkPythonSyntax(component, tab):
     """
