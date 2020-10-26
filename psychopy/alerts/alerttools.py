@@ -275,10 +275,10 @@ def testDollarSyntax(component):
         if not re.search(r"\$", param.val):
             # Continue if param doesn't contain a dollar sign
             continue
-        if re.match(r"\$", param.val) and len(re.findall(r"\$", param.val)) == 1:
+        if param.val.startswith("\$") and len(re.findall(r"\$", param.val)) == 1:
             # Continue if syntax is correct
             continue
-        if len(re.findall(r"\\\$", param.val)) == len(re.findall(r"\$", param.val)) - bool(re.match(r"\$", param.val)):
+        if len(re.findall(r"\\\$", param.val)) == len(re.findall(r"\$", param.val)) - param.val.startswith("\$"):
             # Continue if all incorrect $ are marked literal
             continue
         else:
