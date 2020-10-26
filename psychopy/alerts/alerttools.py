@@ -278,7 +278,7 @@ def testDollarSyntax(component):
         if param.val.startswith("\$") and len(re.findall(r"\$", param.val)) == 1:
             # Continue if syntax is correct
             continue
-        if len(re.findall(r"\\\$", param.val)) == len(re.findall(r"\$", param.val)) - param.val.startswith("\$"):
+        if len(re.findall(r"\\\$", param.val)) >= len(re.findall(r"\$", param.val)) - param.val.startswith("\$"):
             # Continue if all incorrect $ are marked literal
             continue
         else:
