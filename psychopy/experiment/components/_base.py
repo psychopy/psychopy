@@ -125,6 +125,7 @@ class BaseComponent(object):
         """
         alerttools.testDisabled(self)
         alerttools.testStartEndTiming(self)
+        alerttools.testDollarSyntax(self)
 
     def _dubiousConstantUpdates(self):
         """Return a list of fields in component that are set to be constant
@@ -437,8 +438,6 @@ class BaseComponent(object):
         # code conversions for PsychoJS
         if target == 'PsychoJS':
             endStr = ';'
-            if isinstance(val, Param):
-                val = val.val
             try:
                 valStr = str(val).strip()
             except TypeError:

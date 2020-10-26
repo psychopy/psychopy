@@ -1,4 +1,6 @@
 import ast
+import re
+
 from numpy import array
 from esprima import parseScript
 
@@ -257,6 +259,31 @@ def testDisabled(component):
 
     if component.params['disabled'].val:
         alert(4305, component)
+
+def testDollarSyntax(component):
+    """
+    Tests that use of dollar signs in Builder components to denote literal interpretation are used correctly
+
+    Parameters
+    ----------
+    component: Component
+        The component used for testing
+    """
+    for (key, param) in component.params.items():
+        if not param.valType in ["str", "extendedStr"]:
+            continue
+        if not re.search(r"\$", param.val):
+            # Continue if param doesn't contain a dollar sign
+            continue
+        if re.match(r"\$", param.val) and len(re.findall(r"\$", param.val)) == 1:
+            # Continue if syntax is correct
+            continue
+        if len(re.findall(r"\\\$", param.val)) == len(re.findall(r"\$", param.val)) - bool(re.match(r"\$", param.val)):
+            # Continue if all incorrect $ are marked literal
+            continue
+        else:
+            # Raise an alert if syntax is incorrect
+            alert(4315, strFields={'component': component, 'param': param})
 
 def checkPythonSyntax(component, tab):
     """
