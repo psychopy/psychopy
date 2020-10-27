@@ -1,7 +1,7 @@
 
 code: 4315
 cat: Components
-msg: Builder cannot interpret value "{param.val}" of {param.label} for {component.type} component "{component.params['name'].val}" as a dollar sign has been used incorrectly.
+msg: Builder cannot interpret value "{param.val}" of {param.label} for {component.type} component "{component.params[name].val}" as a dollar sign has been used incorrectly.
 
 # The following are typically used for online help pages, and support reStructured Text.
 label: Invalid dollar sign syntax.
