@@ -105,7 +105,7 @@ class PsychoColorPicker(wx.Dialog, ThemeMixin):
                 col = tuple(round(c, 2) for c in col)
             # Copy to clipboard
             wx.TheClipboard.SetData(wx.TextDataObject(
-                "Color("+str(col)+", "+self.ctrls.GetCurrentPage().space+")"
+                "Color("+str(col)+", \'"+self.ctrls.GetCurrentPage().space+"\')"
             ))
             wx.TheClipboard.Close()
 
@@ -288,7 +288,7 @@ class ColorControl(wx.Panel):
         self.sizer.Add(self.slider, pos=(0, 1))
         self.sizer.AddGrowableCol(1, 0.5)
         # Make spinner (only for integer spaces)
-        if self.parent.space in ['rgb255', 'rgba255', 'hex', 'hexa']:
+        if self.interval == 1:
             self.spinner = wx.SpinCtrl(self, name=name, min=min, max=max, size=(75,rowh-5))
             self.spinner.Bind(wx.EVT_SPIN_UP, self.spinUp)
             self.spinner.Bind(wx.EVT_SPIN_UP, self.spinDown)
