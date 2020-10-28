@@ -267,6 +267,9 @@ class Param(object):
                 if not re.findall(r"(?<!\\)\$", val):
                     # Return if all $ are escaped (\$)
                     return True, val
+        else:
+            # If valType does not interact with $, return True
+            return True, val
         # Return false if method has not returned yet
         return False, val
 
