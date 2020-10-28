@@ -37,6 +37,10 @@ FIXES:
 - more tolerant of whitespace in Emotiv Client ID file
 - Runner AddTask dialog had wrong format for file filter #3213
 - Fix to setting volume attribute with PTB backend #3215
+- Fixed fill/line colors of TextBox #3222
+- Error in JavaScript code when Movie Component had blank stop time #0b4ddcffc
+- Better handling of stdout encodings when console not set to utf-8 encoding #d77535906
+- Improved Resources box for the online (using relative references #c9558bfd8 and resize with dialog #d607271db)
 
 PsychoPy 2020.2.4
 -----------------
