@@ -268,8 +268,8 @@ class TextboxComponent(BaseVisualComponent):
         else:
             currLoop = self.exp._expHandler
         if self.params['editable']:
-            buff.writeIndented("%s.addData('%s.text',%s.text)\n" %
-                               (currLoop.params['name'], name, name))
+            buff.writeIndentedLines(f"{currLoop.params['name']}.addData('{name}.text',{name}.text)\n"
+                               f"{name}.reset()\n")
         # get parent to write code too (e.g. store onset/offset times)
         super().writeRoutineEndCode(buff)
 

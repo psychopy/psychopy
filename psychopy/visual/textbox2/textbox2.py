@@ -207,6 +207,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 'fillColor': fillColor,
         }
         # then layout the text (setting text triggers _layout())
+        self.startText = text
         self.text = text if text is not None else ""
 
         # caret
@@ -536,6 +537,14 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             self.caret.draw()
 
         gl.glPopMatrix()
+
+    def reset(self):
+        # Reset contents
+        self.text = self.startText
+        # Make sure box is still editable (if needed)
+        if self.editable and self not in self.win._editableChildren:  # may yet gain focus if the first editable obj
+            self.win.addEditable(self)
+
 
     def contains(self, x, y=None, units=None, tight=False):
         """Returns True if a point x,y is inside the stimulus' border.
