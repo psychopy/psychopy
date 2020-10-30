@@ -317,7 +317,7 @@ class Color(object):
                 other = AdvancedColor(other)
             elif isinstance(other, int) or isinstance(other, float):
                 out = self.copy()
-                out.brightness += other
+                out.rgb = tuple(c + other for c in self.rgb)
                 return out
             else:
                 raise ValueError ("unsupported operand type(s) for +: '"
@@ -683,7 +683,7 @@ class AdvancedColor(Color):
         basic = Color.getSpace(color, debug=True)
         possible += basic
         # Return full list if debug or multiple, else return first value
-        if debug or len(possible) > 1:
+        if debug or len(possible) > 1 or len(possible) == 0:
             return possible
         else:
             return possible[0]

@@ -796,10 +796,10 @@ class _BaseParamsDlg(wx.Dialog):
                     pass
 
         if fieldName in ['text']:
-            sizer.AddGrowableRow(currRow)  # doesn't seem to work though
-            # self.Bind(EVT_ETC_LAYOUT_NEEDED, self.onNewTextSize,
-            #    ctrls.valueCtrl)
+            sizer.AddGrowableRow(currRow)
             ctrls.valueCtrl.Bind(wx.EVT_KEY_UP, self.doValidate)
+        elif param.valType == 'fileList':
+            sizer.AddGrowableRow(currRow)  # doesn't seem to work though
         elif fieldName in ('color', 'fillColor', 'lineColor'):
             ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.launchColorPicker)
         elif valType == 'extendedCode':
@@ -1944,15 +1944,16 @@ class FileListCtrl(wx.ListBox):
         if type(choices) == str:
             choices = data.utils.listFromString(choices)
         self.Create(id=wx.ID_ANY, parent=parent, choices=choices, size=size, style=wx.LB_EXTENDED | wx.LB_HSCROLL)
-        self.addBtn = wx.Button(parent, -1, size=wx.Size(20,20), label="+")
+        self.addBtn = wx.Button(parent, -1, style=wx.BU_EXACTFIT, label="+")
         self.addBtn.Bind(wx.EVT_BUTTON, self.addItem)
-        self.subBtn = wx.Button(parent, -1, size=wx.Size(20,20), label="-")
+        self.subBtn = wx.Button(parent, -1, style=wx.BU_EXACTFIT, label="-")
         self.subBtn.Bind(wx.EVT_BUTTON, self.removeItem)
 
         self._szr = wx.BoxSizer(wx.HORIZONTAL)
         self.btns = wx.BoxSizer(wx.VERTICAL)
         self.btns.AddMany((self.addBtn, self.subBtn))
-        self._szr.AddMany((self, self.btns))
+        self._szr.Add(self, proportion=1, flag=wx.EXPAND)
+        self._szr.Add(self.btns)
 
     def addItem(self, event):
         if event.GetEventObject() == self.addBtn:

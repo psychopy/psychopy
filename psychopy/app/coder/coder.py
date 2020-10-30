@@ -2671,7 +2671,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.currentDoc.resetFontSize()
 
     def foldAll(self, event):
-        self.currentDoc.FoldAll()
+        self.currentDoc.FoldAll(wx.stc.STC_FOLDACTION_TOGGLE)
 
     # def unfoldAll(self, event):
     #   self.currentDoc.ToggleFoldAll(expand = False)

@@ -437,12 +437,13 @@ class BaseComponent(object):
         # code conversions for PsychoJS
         if target == 'PsychoJS':
             endStr = ';'
-            if isinstance(val, Param):
-                val = val.val
             try:
                 valStr = str(val).strip()
             except TypeError:
-                raise TypeError(f"Value of parameter {paramName} of component {compName} could not be coerced to a string. Value is of type {type(val)}")
+                if isinstance(val, Param):
+                    val = val.val
+                raise TypeError(f"Value of parameter {paramName} of component {compName} "
+                                f"could not be converted to JS. Value is {val}")
             # convert (0,0.5) to [0,0.5] but don't convert "rand()" to "rand[]"
             if valStr.startswith("(") and valStr.endswith(")"):
                 valStr = valStr.replace("(", "[", 1)
