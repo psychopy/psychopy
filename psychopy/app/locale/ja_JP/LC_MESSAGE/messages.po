@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PsychoPy 2020.1.3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-10-22 17:57+0900\n"
-"PO-Revision-Date: 2020-10-22 18:00+0900\n"
+"POT-Creation-Date: 2020-10-30 17:23+0900\n"
+"PO-Revision-Date: 2020-10-30 18:36+0900\n"
 "Last-Translator: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language-Team: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language: ja\n"
@@ -661,7 +661,7 @@ msgstr "Routineの貼り付け"
 msgid "What is the new name for the Routine?"
 msgstr "Routineの新しい名前を入力してください"
 
-#: psychopy/app/builder/builder.py:1207 psychopy/app/coder/fileBrowser.py:227
+#: psychopy/app/builder/builder.py:1207 psychopy/app/coder/fileBrowser.py:228
 msgid "Rename"
 msgstr "名前の変更"
 
@@ -980,7 +980,7 @@ msgstr ""
 msgid "Get help about this component"
 msgstr "このコンポーネントのオンラインヘルプを開きます"
 
-#: psychopy/app/builder/dialogs/__init__.py:1960
+#: psychopy/app/builder/dialogs/__init__.py:1961
 msgid "Specify file ..."
 msgstr "ファイルを選択..."
 
@@ -1382,7 +1382,7 @@ msgid "Paste"
 msgstr "貼り付け"
 
 #: psychopy/app/coder/codeEditorBase.py:120
-#: psychopy/app/coder/fileBrowser.py:235 psychopy/monitors/MonitorCenter.py:274
+#: psychopy/app/coder/fileBrowser.py:236 psychopy/monitors/MonitorCenter.py:274
 #: psychopy/monitors/MonitorCenter.py:295
 msgid "Delete"
 msgstr "削除"
@@ -1687,8 +1687,8 @@ msgstr "フォントをリセット"
 msgid "Return fonts to their original size."
 msgstr "フォントの大きさを元に戻します."
 
-#: psychopy/app/coder/coder.py:1582 psychopy/app/coder/fileBrowser.py:264
-#: psychopy/app/coder/fileBrowser.py:318
+#: psychopy/app/coder/coder.py:1582 psychopy/app/coder/fileBrowser.py:265
+#: psychopy/app/coder/fileBrowser.py:319
 msgid "Editor file location"
 msgstr "エディタで開いているファイルの位置"
 
@@ -1696,7 +1696,7 @@ msgstr "エディタで開いているファイルの位置"
 msgid "File browser pane location"
 msgstr "ファイルブラウザで表示している位置"
 
-#: psychopy/app/coder/coder.py:1595 psychopy/app/coder/fileBrowser.py:327
+#: psychopy/app/coder/coder.py:1595 psychopy/app/coder/fileBrowser.py:328
 msgid "Choose directory ..."
 msgstr "ディレクトリの選択..."
 
@@ -1758,7 +1758,7 @@ msgstr "改行文字の表示(&E)\t%s"
 
 #: psychopy/app/coder/coder.py:1665
 msgid "Enable/disable line wrapping in editors."
-msgstr ""
+msgstr "エディタでの行の折り返しを有効/無効にします."
 
 #: psychopy/app/coder/coder.py:1668
 msgid "Line wrapping"
@@ -1870,134 +1870,134 @@ msgstr ""
 msgid "Save changes to %s before running?"
 msgstr "実行する前に%sへの変更を保存しますか？"
 
-#: psychopy/app/coder/fileBrowser.py:135
+#: psychopy/app/coder/fileBrowser.py:136
 msgid "Directory:"
 msgstr "フォルダ:"
 
-#: psychopy/app/coder/fileBrowser.py:219
+#: psychopy/app/coder/fileBrowser.py:220
 msgid "New Folder"
 msgstr "新規フォルダ"
 
-#: psychopy/app/coder/fileBrowser.py:222
+#: psychopy/app/coder/fileBrowser.py:223
 msgid "Create a new folder in the current folder"
 msgstr "現在の位置に新しいフォルダを作ります"
 
-#: psychopy/app/coder/fileBrowser.py:230
+#: psychopy/app/coder/fileBrowser.py:231
 msgid "Rename the selected folder or file"
 msgstr "選択したフォルダやファイルの名前を変更します"
 
-#: psychopy/app/coder/fileBrowser.py:238
+#: psychopy/app/coder/fileBrowser.py:239
 msgid "Delete the selected folder or file"
 msgstr "選択したファイルやフォルダを削除します"
 
-#: psychopy/app/coder/fileBrowser.py:243
+#: psychopy/app/coder/fileBrowser.py:244
 msgid "Goto"
 msgstr "移動"
 
-#: psychopy/app/coder/fileBrowser.py:246
+#: psychopy/app/coder/fileBrowser.py:247
 msgid "Jump to another folder"
 msgstr "他のフォルダに移動"
 
-#: psychopy/app/coder/fileBrowser.py:253 psychopy/app/coder/fileBrowser.py:309
+#: psychopy/app/coder/fileBrowser.py:254 psychopy/app/coder/fileBrowser.py:310
 msgid "Browse ..."
 msgstr "選択..."
 
-#: psychopy/app/coder/fileBrowser.py:254 psychopy/app/coder/fileBrowser.py:310
+#: psychopy/app/coder/fileBrowser.py:255 psychopy/app/coder/fileBrowser.py:311
 msgid "Browse the file system for a directory to open"
 msgstr "開くフォルダを選択します"
 
-#: psychopy/app/coder/fileBrowser.py:259 psychopy/app/coder/fileBrowser.py:314
+#: psychopy/app/coder/fileBrowser.py:260 psychopy/app/coder/fileBrowser.py:315
 msgid "Current working directory"
 msgstr "現在の作業ディレクトリ"
 
-#: psychopy/app/coder/fileBrowser.py:260 psychopy/app/coder/fileBrowser.py:315
+#: psychopy/app/coder/fileBrowser.py:261 psychopy/app/coder/fileBrowser.py:316
 msgid "Open the current working directory"
 msgstr "現在の作業フォルダを開きます"
 
-#: psychopy/app/coder/fileBrowser.py:265 psychopy/app/coder/fileBrowser.py:319
+#: psychopy/app/coder/fileBrowser.py:266 psychopy/app/coder/fileBrowser.py:320
 msgid "Open the directory the current editor file is located"
 msgstr "現在編集中のファイルがあるフォルダを開きます"
 
-#: psychopy/app/coder/fileBrowser.py:298
+#: psychopy/app/coder/fileBrowser.py:299
 msgid ""
 "Cannot change working directory to location of file `{}`. It needs to be "
 "saved first."
 msgstr ""
 "作業ディレクトリを`{}`がある場所に変更できません. まず保存する必要があります."
 
-#: psychopy/app/coder/fileBrowser.py:338
+#: psychopy/app/coder/fileBrowser.py:339
 msgid "Enter folder name:"
 msgstr "フォルダ名:"
 
-#: psychopy/app/coder/fileBrowser.py:339
+#: psychopy/app/coder/fileBrowser.py:340
 msgid "New folder"
 msgstr "新規フォルダ"
 
-#: psychopy/app/coder/fileBrowser.py:350
+#: psychopy/app/coder/fileBrowser.py:351
 msgid "Folder name cannot be empty."
 msgstr "フォルダ名が空白です."
 
-#: psychopy/app/coder/fileBrowser.py:362
+#: psychopy/app/coder/fileBrowser.py:363
 msgid "Cannot create folder `{}`, already exists."
 msgstr "`{}`は作成できません 不正な名前かすでに存在しています."
 
-#: psychopy/app/coder/fileBrowser.py:375
+#: psychopy/app/coder/fileBrowser.py:376
 msgid "Cannot create folder `{}`, permission denied."
 msgstr "`{}`を作成する権限がありません."
 
-#: psychopy/app/coder/fileBrowser.py:417
+#: psychopy/app/coder/fileBrowser.py:418
 msgid "Rename folder `{}` to:"
 msgstr "`{}`の名前を変更:"
 
-#: psychopy/app/coder/fileBrowser.py:418
+#: psychopy/app/coder/fileBrowser.py:419
 msgid "Rename Folder"
 msgstr "フォルダ名の変更"
 
-#: psychopy/app/coder/fileBrowser.py:428 psychopy/app/coder/fileBrowser.py:464
+#: psychopy/app/coder/fileBrowser.py:429 psychopy/app/coder/fileBrowser.py:465
 msgid "Cannot rename `{}` to `{}`."
 msgstr "`{}`を`{}`に変更できません."
 
-#: psychopy/app/coder/fileBrowser.py:451
+#: psychopy/app/coder/fileBrowser.py:452
 msgid "Rename file `{}` to:"
 msgstr "`{}`の名前を変更:"
 
-#: psychopy/app/coder/fileBrowser.py:452
+#: psychopy/app/coder/fileBrowser.py:453
 msgid "Rename file"
 msgstr "ファイル名の変更"
 
-#: psychopy/app/coder/fileBrowser.py:489
+#: psychopy/app/coder/fileBrowser.py:490
 msgid "Are you sure you want to PERMANENTLY delete folder `{}`?"
 msgstr "フォルダ `{}` を完全に削除しますか？"
 
-#: psychopy/app/coder/fileBrowser.py:499
+#: psychopy/app/coder/fileBrowser.py:500
 msgid "Cannot delete folder `{}`, directory does not exist."
 msgstr "`{}`は存在しないので削除できません."
 
-#: psychopy/app/coder/fileBrowser.py:506
+#: psychopy/app/coder/fileBrowser.py:507
 msgid "Cannot delete folder `{}`, directory is not empty or permission denied."
 msgstr "`{}`を削除できません. 中が空ではないか、権限がありません."
 
-#: psychopy/app/coder/fileBrowser.py:518
+#: psychopy/app/coder/fileBrowser.py:519
 msgid "Are you sure you want to PERMANENTLY delete file `{}`?"
 msgstr "ファイル `{}` を完全に削除しますか？"
 
-#: psychopy/app/coder/fileBrowser.py:528
+#: psychopy/app/coder/fileBrowser.py:529
 msgid "Cannot delete folder `{}`, file does not exist."
 msgstr "`{}`は存在しないので削除できません."
 
-#: psychopy/app/coder/fileBrowser.py:535
+#: psychopy/app/coder/fileBrowser.py:536
 msgid "Cannot delete file `{}`, permission denied."
 msgstr "`{}`を削除する権限がありません."
 
-#: psychopy/app/coder/fileBrowser.py:556
+#: psychopy/app/coder/fileBrowser.py:557
 msgid "Specified path `{}` is not a directory."
 msgstr "`{}`はフォルダではありません."
 
-#: psychopy/app/coder/fileBrowser.py:616
+#: psychopy/app/coder/fileBrowser.py:617
 msgid "Cannot access directory `{}`, permission denied."
 msgstr "`{}`は権限がないのでアクセスできません."
 
-#: psychopy/app/coder/fileBrowser.py:661
+#: psychopy/app/coder/fileBrowser.py:662
 msgid "Cannot access directory `{}`, not a directory."
 msgstr "'{}'はフォルダではないのでアクセスできません."
 
@@ -3421,11 +3421,11 @@ msgstr "このコンポーネントを無効にします"
 msgid "Disable component"
 msgstr "コンポーネントの無効化"
 
-#: psychopy/experiment/components/_base.py:595
+#: psychopy/experiment/components/_base.py:596
 msgid "Units of dimensions for this stimulus"
 msgstr "この刺激に適用する単位を指定します"
 
-#: psychopy/experiment/components/_base.py:603
+#: psychopy/experiment/components/_base.py:604
 msgid ""
 "Foreground color of this stimulus (e.g. $[1,1,0], red ); Right-click to "
 "bring up a color-picker (rgb only)"
@@ -3433,13 +3433,13 @@ msgstr ""
 "前景色($[1.0,1.0,0.0],redなど)を指定します; 右クリックで色選択ダイアログを表"
 "示します"
 
-#: psychopy/experiment/components/_base.py:612
+#: psychopy/experiment/components/_base.py:613
 msgid ""
 "In what format (color space) have you specified the foreground color? (rgb, "
 "dkl, lms, hsv)"
 msgstr "前景色の色空間を指定します (rgb, dkl, lms, hsv)"
 
-#: psychopy/experiment/components/_base.py:621
+#: psychopy/experiment/components/_base.py:622
 msgid ""
 "Fill color of this stimulus (e.g. $[1,1,0], red ); Right-click to bring up a "
 "color-picker (rgb only)"
@@ -3447,13 +3447,13 @@ msgstr ""
 "塗りつぶし色($[1.0,1.0,0.0],redなど)を指定します; 右クリックで色選択ダイアロ"
 "グを表示します"
 
-#: psychopy/experiment/components/_base.py:630
+#: psychopy/experiment/components/_base.py:631
 msgid ""
 "In what format (color space) have you specified the fill color? (rgb, dkl, "
 "lms, hsv)"
 msgstr "塗りつぶし色の色空間を指定します (rgb, dkl, lms, hsv)"
 
-#: psychopy/experiment/components/_base.py:639
+#: psychopy/experiment/components/_base.py:640
 msgid ""
 "Color of this stimulus (e.g. $[1,1,0], red ); Right-click to bring up a "
 "color-picker (rgb only)"
@@ -3461,28 +3461,28 @@ msgstr ""
 "色($[1.0,1.0,0.0],redなど)を指定します; 右クリックで色選択ダイアログを表示し"
 "ます"
 
-#: psychopy/experiment/components/_base.py:648
+#: psychopy/experiment/components/_base.py:649
 msgid ""
 "In what format (color space) have you specified the border color? (rgb, dkl, "
 "lms, hsv)"
 msgstr "枠線の色空間を指定します (rgb, dkl, lms, hsv)"
 
-#: psychopy/experiment/components/_base.py:657
+#: psychopy/experiment/components/_base.py:658
 msgid ""
 "Opacity of the stimulus (1=opaque, 0=fully transparent, 0.5=translucent)"
 msgstr "刺激の不透明度を指定します (1=不透明, 0=完全に透明, 0.5=半透明)"
 
-#: psychopy/experiment/components/_base.py:666
+#: psychopy/experiment/components/_base.py:667
 msgid "Position of this stimulus (e.g. [1,2] )"
 msgstr "刺激の位置を指定します (例:[1,2])"
 
-#: psychopy/experiment/components/_base.py:674
+#: psychopy/experiment/components/_base.py:675
 msgid ""
 "Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2] "
 msgstr ""
 "刺激の大きさを指定します (単一の値または縦横の値のペア, 例: 2.5, [1,2]) "
 
-#: psychopy/experiment/components/_base.py:687
+#: psychopy/experiment/components/_base.py:688
 msgid "Orientation of this stimulus (in deg)"
 msgstr "刺激の回転方向を指定します (単位は度)"
 
@@ -4303,7 +4303,7 @@ msgstr "記録"
 
 #: psychopy/experiment/components/joyButtons/__init__.py:29
 #: psychopy/experiment/components/keyboard/__init__.py:36
-#: psychopy/experiment/components/movie/__init__.py:23
+#: psychopy/experiment/components/movie/__init__.py:24
 #: psychopy/experiment/components/ratingScale/__init__.py:40
 #: psychopy/experiment/components/slider/__init__.py:32
 msgid "Force end of Routine"
@@ -4535,36 +4535,36 @@ msgstr ""
 "値を保存したいものの名前を指定します すべてのクリック可能な刺激がここに挙げた"
 "パラメータを全て持っていなければいけません."
 
-#: psychopy/experiment/components/movie/__init__.py:19
+#: psychopy/experiment/components/movie/__init__.py:20
 msgid "Movie: play movie files"
 msgstr "Movie: 動画ファイルを再生します"
 
-#: psychopy/experiment/components/movie/__init__.py:22
+#: psychopy/experiment/components/movie/__init__.py:23
 msgid "Movie file"
 msgstr "動画ファイル"
 
-#: psychopy/experiment/components/movie/__init__.py:24
+#: psychopy/experiment/components/movie/__init__.py:25
 msgid "backend"
 msgstr "バックエンド"
 
-#: psychopy/experiment/components/movie/__init__.py:25
+#: psychopy/experiment/components/movie/__init__.py:26
 msgid "No audio"
 msgstr "音声無し"
 
-#: psychopy/experiment/components/movie/__init__.py:57
+#: psychopy/experiment/components/movie/__init__.py:58
 #: psychopy/experiment/components/sound/__init__.py:53
 msgid "When does the component end? (blank to use the duration of the media)"
 msgstr "終了時刻を指定します (空白の場合はメディアの終了まで)"
 
-#: psychopy/experiment/components/movie/__init__.py:60
+#: psychopy/experiment/components/movie/__init__.py:61
 msgid "A filename for the movie (including path)"
 msgstr "動画ファイル名(パスを含む)"
 
-#: psychopy/experiment/components/movie/__init__.py:67
+#: psychopy/experiment/components/movie/__init__.py:68
 msgid "What underlying lib to use for loading movies"
 msgstr "動画再生に使用するライブラリを選択します"
 
-#: psychopy/experiment/components/movie/__init__.py:74
+#: psychopy/experiment/components/movie/__init__.py:75
 msgid ""
 "Prevent the audio stream from being loaded/processed (moviepy and opencv "
 "only)"
@@ -4572,15 +4572,15 @@ msgstr ""
 "オーディオストリームの読み込みおよび処理を行いません (moviepyとopencvバックエ"
 "ンドのみ)"
 
-#: psychopy/experiment/components/movie/__init__.py:81
+#: psychopy/experiment/components/movie/__init__.py:82
 msgid "Should the end of the movie cause the end of the routine (e.g. trial)?"
 msgstr "動画再生終了時にRoutineを終了します."
 
-#: psychopy/experiment/components/movie/__init__.py:89
+#: psychopy/experiment/components/movie/__init__.py:90
 msgid "Whether the movie should loop back to the beginning on completion."
 msgstr "動画が終了した時に最初に戻って再生するか否かを指定します."
 
-#: psychopy/experiment/components/movie/__init__.py:94
+#: psychopy/experiment/components/movie/__init__.py:95
 msgid "Loop playback"
 msgstr "ループ再生"
 
