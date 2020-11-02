@@ -618,6 +618,15 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self._needUpdate = False
 
     @attributeSetter
+    def opacity(self, value):
+        BaseVisualStim.opacity.func(self, value)
+        self._setTextShaders()
+
+    def setOpacity(self, newOpacity, operation='', log=None):
+        BaseVisualStim.setOpacity(self, newOpacity, operation='', log=None)
+        self._setTextShaders()
+
+    @attributeSetter
     def flipHoriz(self, value):
         """If set to True then the text will be flipped left-to-right.  The
         flip is relative to the original, not relative to the current state.
