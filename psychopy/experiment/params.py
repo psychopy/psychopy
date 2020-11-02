@@ -177,7 +177,7 @@ class Param(object):
                             # if target is python2.x then unicode will be u'something'
                             # but for other targets that will raise an annoying error
                             val = val[1:]
-                    return val
+                    return f"\"{val}\""
             return repr(self.val)
         elif self.valType in ['code', 'extendedCode']:
             isStr = isinstance(self.val, basestring)
