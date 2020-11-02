@@ -177,6 +177,7 @@ class Param(object):
                             # if target is python2.x then unicode will be u'something'
                             # but for other targets that will raise an annoying error
                             val = val[1:]
+                    val=re.sub("\n", "\\\\n", val) # Replace line breaks with escaped line break character
                     return f"\"{val}\""
             return repr(self.val)
         elif self.valType in ['code', 'extendedCode']:
