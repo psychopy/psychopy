@@ -99,7 +99,7 @@ class Param(object):
     $myPathologicalVa$rName
     """
 
-    def __init__(self, val, valType, allowedVals=None, allowedTypes=None,
+    def __init__(self, val, valType, inputType=None, allowedVals=None, allowedTypes=None,
                  hint="", label="", updates=None, allowedUpdates=None,
                  allowedLabels=None,
                  categ="Basic"):
