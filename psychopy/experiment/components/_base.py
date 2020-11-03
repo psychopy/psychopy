@@ -125,7 +125,6 @@ class BaseComponent(object):
         """
         alerttools.testDisabled(self)
         alerttools.testStartEndTiming(self)
-        alerttools.testDollarSyntax(self)
 
     def _dubiousConstantUpdates(self):
         """Return a list of fields in component that are set to be constant
@@ -576,7 +575,7 @@ class BaseVisualComponent(BaseComponent):
     categories = ['Stimuli']
 
     def __init__(self, exp, parentName, name='',
-                 units='from exp settings', color='$[1,1,1]', borderColor="", fillColor="",
+                 units='from exp settings', color='$[1,1,1]',
                  pos=(0, 0), size=(0, 0), ori=0, colorSpace='rgb', opacity=1,
                  startType='time (s)', startVal='',
                  stopType='duration (s)', stopVal='',
@@ -605,7 +604,7 @@ class BaseVisualComponent(BaseComponent):
         msg = _translate("Foreground color of this stimulus (e.g. $[1,1,0], red );"
                          " Right-click to bring up a color-picker (rgb only)")
         self.params['color'] = Param(
-            color, valType='str', allowedTypes=[], categ='Appearance',
+            color, valType='color', allowedTypes=[], categ='Appearance',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
@@ -623,7 +622,7 @@ class BaseVisualComponent(BaseComponent):
         msg = _translate("Fill color of this stimulus (e.g. $[1,1,0], red );"
                          " Right-click to bring up a color-picker (rgb only)")
         self.params['fillColor'] = Param(
-            fillColor, valType='str', allowedTypes=[], categ='Appearance',
+            color, valType='color', allowedTypes=[], categ='Appearance',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
@@ -641,7 +640,7 @@ class BaseVisualComponent(BaseComponent):
         msg = _translate("Color of this stimulus (e.g. $[1,1,0], red );"
                          " Right-click to bring up a color-picker (rgb only)")
         self.params['borderColor'] = Param(
-            borderColor, valType='str', allowedTypes=[], categ='Appearance',
+            color, valType='color', allowedTypes=[], categ='Appearance',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,

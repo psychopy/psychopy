@@ -144,7 +144,7 @@ class ParamCtrls(object):
         elif param.inputType == 'Color':
             self.valueCtrl = paramCtrls.ColorCtrl(parent,
                  val=param.val, fieldName=fieldName,
-                 size=wx.Size(self.valueWidth, 16))
+                 size=wx.Size(self.valueWidth, 24))
         elif param.inputType == 'Num':
             self.valueCtrl = paramCtrls.NumCtrl(parent, val=param.val, fieldName=fieldName,
                                        size=wx.Size(self.valueWidth, 24))
@@ -154,7 +154,7 @@ class ParamCtrls(object):
         elif param.inputType == 'Code':
             self.valueCtrl = paramCtrls.CodeCtrl(parent,
                  val=str(param.val), fieldName=fieldName,
-                 size=wx.Size(self.valueWidth, 16))
+                 size=wx.Size(self.valueWidth, 24))
         elif param.inputType == 'File':
             self.valueCtrl = paramCtrls.FileCtrl(parent,
                                                  val=str(param.val), fieldName=fieldName,
@@ -163,15 +163,15 @@ class ParamCtrls(object):
             self.valueCtrl = paramCtrls.ListCtrl(parent,
                                                  val=str(param.val), fieldName=fieldName,
                                                  size=wx.Size(self.valueWidth, 24))
+        else:
+            self.valueCtrl = paramCtrls.StringCtrl(parent,
+                                                 val=str(param.val), fieldName=fieldName,
+                                                 size=wx.Size(self.valueWidth, 24))
         if fieldName == 'Experiment info':
             # for expInfo convert from a string to the list-of-dicts
             val = self.expInfoToListWidget(param.val)
             self.valueCtrl = dialogs.ListWidget(
                 parent, val, order=['Field', 'Default'])
-        else:
-            self.valueCtrl = paramCtrls.StringCtrl(parent,
-                                                 val=str(param.val), fieldName=fieldName,
-                                                 size=wx.Size(self.valueWidth, 24))
 
         try:
             self.valueCtrl.SetToolTip(wx.ToolTip(_translate(param.hint)))

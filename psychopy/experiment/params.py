@@ -150,7 +150,7 @@ class Param(object):
         self.readOnly = False
         if inputType:
             self.inputType = inputType
-        elif inputType in inputDefaults:
+        elif valType in inputDefaults:
             self.inputType = inputDefaults[valType]
         else:
             self.inputType = "String"

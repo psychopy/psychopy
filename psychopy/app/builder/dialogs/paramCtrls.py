@@ -131,7 +131,7 @@ class ColorCtrl(wx.TextCtrl):
         # Bind to validation
         self.Bind(wx.EVT_TEXT, self.validate)
 
-    def colorPicker(self):
+    def colorPicker(self, evt):
         return
 
     def validate(self):
