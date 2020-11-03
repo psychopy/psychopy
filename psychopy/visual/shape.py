@@ -32,7 +32,7 @@ from psychopy.tools.arraytools import val2array
 from psychopy.visual.basevisual import (BaseVisualStim, ColorMixin,
                                         ContainerMixin)
 from psychopy.visual.helpers import setColor
-
+import psychopy.visual.line
 from psychopy.contrib import tesselate
 import copy
 import numpy
