@@ -5,8 +5,47 @@ import psychopy
 from psychopy.app.themes import ThemeMixin
 from psychopy.localization import _translate
 from psychopy import data, logging, prefs
+import re
 
 BoolCtrl = wx.CheckBox
+
+
+ChoiceCtrl = wx.Choice
+
+
+class ListCtrl(wx.TextCtrl):
+    def __init__(self, parent,
+                 val="", fieldName="",
+                 size=wx.Size(-1, 24)):
+        wx.TextCtrl.__init__(self)
+        self.Create(parent, -1, val, name=fieldName, size=size)
+        self.Bind(wx.EVT_TEXT, self.validate)
+        self.style = 'empty'
+
+    def validate(self):
+        val = self.GetValue()
+        # Start with regular colour
+        self.SetForegroundColour(wx.Colour(
+            ThemeMixin.codeColors['base']['fg']
+        ))
+        if not val:
+            # If empty, style is empty
+            self.style = 'empty'
+        elif re.match(r"[\(\[].*[\]\)]", val):
+            # If user put contents in parentheses, style is full
+            self.style = 'full'
+        elif "," in val:
+            # If user has comma separated contents, style is partial
+            self.style = 'partial'
+        elif " " not in val or re.match(r"[\"\'].*[\"\']", val):
+            # If user has given a single value, style is single
+            self.style = 'single'
+        else:
+            # If none of the above, colour text red to mark error
+            self.SetForegroundColour(wx.Colour(
+                1, 0, 0
+            ))
+
 
 class NumCtrl(wx.TextCtrl):
     def __init__(self, parent,
@@ -28,12 +67,23 @@ class NumCtrl(wx.TextCtrl):
                 ThemeMixin.codeColors['base']['fg']
             ))
 
+
+IntCtrl = wx.SpinCtrl
+
+
 class CodeCtrl(wx.TextCtrl):
     def __init__(self, parent,
                  val="", fieldName="",
                  size=wx.Size(-1, 24)):
         wx.TextCtrl.__init__(self)
         self.Create(parent, -1, val, name=fieldName, size=size)
+
+class ExtendedCodeCtrl(CodeCtrl):
+    def __init__(self, parent,
+                 val="", fieldName="",
+                 size=wx.Size(-1, 72)):
+        CodeCtrl.__init__(self, parent, val, fieldName, size)
+        self.SetWindowStyleFlag(wx.TE_MULTILINE)
 
 class StringCtrl(wx.TextCtrl):
     def __init__(self, parent,
@@ -158,6 +208,59 @@ class TableCtrl(wx.TextCtrl):
         relname = os.path.relpath(filename)
         self.SetValue(relname)
         self.validateInput(event)
+
+
+class FileCtrl(wx.TextCtrl):
+    def __init__(self, parent,
+                 val="", fieldName="",
+                 size=wx.Size(-1, 24)):
+        # Create self
+        wx.TextCtrl.__init__(self)
+        self.Create(parent, -1, val, name=fieldName, size=size)
+        # Add sizer
+        self._szr = wx.BoxSizer(wx.HORIZONTAL)
+        self._szr.Add(self, border=5, flag=wx.EXPAND | wx.RIGHT)
+        # Add button to browse for file
+        fldr = parent.app.iconCache.getBitmap(name="folder", size=16, theme="light")
+        self.findBtn = wx.BitmapButton(parent, -1, size=wx.Size(24, 24), bitmap=fldr)
+        self.findBtn.SetToolTip(_translate("Specify file ..."))
+        self.findBtn.Bind(wx.EVT_BUTTON, self.findFile)
+        self._szr.Add(self.findBtn)
+        # Configure validation
+        self.Bind(wx.EVT_TEXT, self.validate)
+
+    def findFile(self, evt):
+        _wld = f"All Files (*.*)|*.*"
+        dlg = wx.FileDialog(self, message=_translate("Specify file ..."),
+                            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST,
+                            wildcard=_translate(_wld))
+        if dlg.ShowModal() != wx.ID_OK:
+            return 0
+        filename = dlg.GetPath()
+        relname = os.path.relpath(filename)
+        self.SetValue(relname)
+        self.validate()
+
+    def validate(self):
+        """Check whether input is openable and valid"""
+        valid = False
+        file = self.GetValue()
+        # Has user entered a full filepath, but it is invalid?
+        if file and file not in self.validExt:
+            valid = False
+        # Is value a valid filepath?
+        if os.path.isfile(os.path.abspath(file)) and file.endswith(tuple(self.validExt)):
+            valid = True
+        # Set color accordingly
+        if valid:
+            self.SetForegroundColour(wx.Colour(
+                ThemeMixin.codeColors['base']['fg']
+            ))
+        else:
+            self.SetForegroundColour(wx.Colour(
+                1, 0, 0
+            ))
+
 
 class FileListCtrl(wx.ListBox):
     def __init__(self, parent, choices=[], size=None, pathtype="rel"):
