@@ -112,100 +112,66 @@ class ParamCtrls(object):
                 options = vc._versionFilter(vc.versionOptions(local=False), wx.__version__)
                 versions = vc._versionFilter(vc.availableVersions(local=False), wx.__version__)
                 param.allowedVals = (options + [''] + versions)
-        if (param.valType == 'extendedStr'
-                or fieldName == 'text'):  # because text used to be 'str' until 2020.2
-            # for text input we need a bigger (multiline) box
-            if fieldName == 'customize_everything':
-                sx, sy = 300, 400
-            elif fieldName == 'customize':
-                sx, sy = 300, 200
-            else:
-                sx, sy = 100, 200
-            # set viewer small, then it SHOULD increase with wx.aui control
+        if param.inputType == 'ExtendedString':
+            # Create multiline string control
             self.valueCtrl = paramCtrls.ExtendedStringCtrl(parent, val=str(param.val), fieldName=fieldName,
-                                         size=wx.Size(sx, sy))
+                                         size=wx.Size(self.valueWidth, -1))
+            # Set focus if field is text of a Textbox or Text component
             if fieldName == 'text':
                 self.valueCtrl.SetFocus()
-        elif fieldName == 'Experiment info':
-            # for expInfo convert from a string to the list-of-dicts
-            val = self.expInfoToListWidget(param.val)
-            self.valueCtrl = dialogs.ListWidget(
-                parent, val, order=['Field', 'Default'])
-        elif param.valType == 'extendedCode':
-            # set viewer small, then it will increase with wx.aui control
-            self.valueCtrl = CodeBox(parent, -1, pos=wx.DefaultPosition,
-                                     size=wx.Size(100, 100), style=0,
-                                     prefs=appPrefs)
-            if len(param.val):
-                self.valueCtrl.AddText(str(param.val))
-            # code input fields: one day change these to wx.stc fields?
-            # self.valueCtrl = wx.TextCtrl(parent,-1,unicode(param.val),
-            #    style=wx.TE_MULTILINE,
-            #    size=wx.Size(self.valueWidth*2,160))
-        elif param.valType == 'fixedList':
-            self.valueCtrl = wx.CheckListBox(parent, -1, pos=wx.DefaultPosition,
-                                             size=wx.Size(100, 200),
-                                             choices=param.allowedVals)
+        elif param.inputType == 'ExtendedCode':
+            self.valueCtrl = paramCtrls.ExtendedCodeCtrl(self, parent,
+                 val=str(param.val), fieldName=fieldName,
+                 size=wx.Size(self.valueWidth, -1))
+        elif param.inputType == 'Choice':
+            self.valueCtrl = paramCtrls.ChoiceCtrl(parent, -1, pos=wx.DefaultPosition,
+                size=wx.Size(self.valueWidth, 200),
+                choices = param.allowedVals)
             self.valueCtrl.SetCheckedStrings(param.val)
-        elif param.valType == 'bool':
-            # only True or False - use a checkbox
+        elif param.inputType == 'Bool':
             self.valueCtrl = paramCtrls.BoolCtrl(parent,
                                          name=fieldName,
-                                         size=wx.Size(self.valueWidth, -1))
+                                         size=wx.Size(self.valueWidth, 24))
             self.valueCtrl.SetValue(param.val)
-        elif param.valType == 'fileList':
+        elif param.inputType == 'FileList':
             self.valueCtrl = paramCtrls.FileListCtrl(parent,
                                           choices=param.val,
                                           size=wx.Size(self.valueWidth, 100),
                                           pathtype="rel")
-        elif param.valType == 'table':
+        elif param.inputType == 'Table':
             self.valueCtrl = paramCtrls.TableCtrl(parent, val=param.val, fieldName=fieldName,
-                                       size=wx.Size(self.valueWidth, 16))
-        elif len(param.allowedVals) > 1:
-            # there are limited options - use a Choice control
-            # use localized text or fall through to non-localized,
-            # for future-proofing, parallel-port addresses, etc:
-            if param.allowedLabels:
-                labels = param.allowedLabels
-            else:
-                labels = param.allowedVals
-            # add each label to the dropdown
-            choiceLabels = []
-            for val in labels:
-                try:
-                    choiceLabels.append(_localized[val])
-                except KeyError:
-                    choiceLabels.append(val)
-            self.valueCtrl = wx.Choice(parent, choices=choiceLabels,
-                                       name=fieldName,
-                                       size=wx.Size(self.valueWidth, -1))
-            # stash original non-localized choices:
-            self.valueCtrl._choices = copy.copy(param.allowedVals)
-            # set display to the localized version of the currently selected
-            # value:
-            try:
-                index = param.allowedVals.index(param.val)
-            except Exception:
-                msg = ("%r was given as parameter %r but it isn't "
-                       "in the list of allowed values %s. "
-                       "Reverting to use %r for this Component")
-                vals = (param.val, fieldName,
-                        param.allowedVals,
-                        param.allowedVals[0])
-                logging.warn(msg % vals)
-                logging.flush()
-                index = 0
-            self.valueCtrl.SetSelection(index)
+                                       size=wx.Size(self.valueWidth, 24))
+        elif param.inputType == 'Color':
+            self.valueCtrl = paramCtrls.ColorCtrl(parent,
+                 val=param.val, fieldName=fieldName,
+                 size=wx.Size(self.valueWidth, 16))
+        elif param.inputType == 'Num':
+            self.valueCtrl = paramCtrls.NumCtrl(parent, val=param.val, fieldName=fieldName,
+                                       size=wx.Size(self.valueWidth, 24))
+        elif param.inputType == 'Int':
+            self.valueCtrl = paramCtrls.IntCtrl(parent, val=param.val, fieldName=fieldName,
+                                                size=wx.Size(self.valueWidth, 24))
+        elif param.inputType == 'Code':
+            self.valueCtrl = paramCtrls.CodeCtrl(parent,
+                 val=str(param.val), fieldName=fieldName,
+                 size=wx.Size(self.valueWidth, 16))
+        elif param.inputType == 'File':
+            self.valueCtrl = paramCtrls.FileCtrl(parent,
+                                                 val=str(param.val), fieldName=fieldName,
+                                                 size=wx.Size(self.valueWidth, 24))
+        elif param.inputType == 'List':
+            self.valueCtrl = paramCtrls.ListCtrl(parent,
+                                                 val=str(param.val), fieldName=fieldName,
+                                                 size=wx.Size(self.valueWidth, 24))
+        if fieldName == 'Experiment info':
+            # for expInfo convert from a string to the list-of-dicts
+            val = self.expInfoToListWidget(param.val)
+            self.valueCtrl = dialogs.ListWidget(
+                parent, val, order=['Field', 'Default'])
         else:
-            # create the full set of ctrls
-            val = str(param.val)
-            self.valueCtrl = wx.TextCtrl(parent, -1, val, name=fieldName,
-                                         size=wx.Size(self.valueWidth, -1))
-            # set focus for these fields; seems to get reset elsewhere (?)
-            focusFields = ('allowedKeys', 'image', 'movie', 'sound',
-                           'scaleDescription', 'Begin Routine')
-            if fieldName in focusFields:
-                self.valueCtrl.SetFocus()
+            self.valueCtrl = paramCtrls.StringCtrl(parent,
+                                                 val=str(param.val), fieldName=fieldName,
+                                                 size=wx.Size(self.valueWidth, 24))
 
         try:
             self.valueCtrl.SetToolTip(wx.ToolTip(_translate(param.hint)))

@@ -3,6 +3,7 @@ import wx
 
 import psychopy
 from psychopy.app.themes import ThemeMixin
+from psychopy.colors import Color
 from psychopy.localization import _translate
 from psychopy import data, logging, prefs
 import re
@@ -10,7 +11,7 @@ import re
 BoolCtrl = wx.CheckBox
 
 
-ChoiceCtrl = wx.Choice
+ChoiceCtrl = wx.CheckListBox
 
 
 class ListCtrl(wx.TextCtrl):
@@ -123,10 +124,35 @@ class ColorCtrl(wx.TextCtrl):
         self._szr.Add(self, border=5, flag=wx.EXPAND | wx.RIGHT)
         # Add button to activate color picker
         fldr = parent.app.iconCache.getBitmap(name="color", size=16, theme="light")
-        self.findBtn = wx.BitmapButton(parent, -1, size=wx.Size(24,24), bitmap=fldr)
-        self.findBtn.SetToolTip(_translate("Specify file ..."))
-        self.findBtn.Bind(wx.EVT_BUTTON, self.findFile)
-        self._szr.Add(self.findBtn)
+        self.pickerBtn = wx.BitmapButton(parent, -1, size=wx.Size(24,24), bitmap=fldr)
+        self.pickerBtn.SetToolTip(_translate("Specify color ..."))
+        self.pickerBtn.Bind(wx.EVT_BUTTON, self.colorPicker)
+        self._szr.Add(self.pickerBtn)
+        # Bind to validation
+        self.Bind(wx.EVT_TEXT, self.validate)
+
+    def colorPicker(self):
+        return
+
+    def validate(self):
+        val = self.GetValue()
+        if re.fullmatch(r"\$?(Advanced)?Color\(.*\)", val):
+            # Strip function calls
+            val = re.sub(r"\$?(Advanced)?Color\(", "", val[:-1])
+        try:
+            self.color = Color(val)
+            if self.color:
+                self.SetForegroundColour(wx.Colour(
+                    ThemeMixin.codeColors['base']['fg']
+                ))
+            else:
+                self.SetForegroundColour(wx.Colour(
+                    1, 0, 0
+                ))
+        except ValueError:
+            self.SetForegroundColour(wx.Colour(
+                1, 0, 0
+            ))
 
 class TableCtrl(wx.TextCtrl):
     def __init__(self, parent,
