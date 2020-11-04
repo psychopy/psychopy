@@ -42,14 +42,13 @@ def _findParam(name, node):
             return attr
 
 inputDefaults = {
-    'list': 'code',
-    'color': 'color',
-    'str': 'string',
-    'code': 'code',
-    'num': 'string',
+    'str': 'single',
+    'code': 'single',
+    'num': 'single',
     'bool': 'bool',
-    'int': 'int',
-    'file': 'file'
+    'list': 'single',
+    'file': 'file',
+    'color': 'color',
 }
 
 class Param(object):
