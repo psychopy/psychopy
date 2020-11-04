@@ -115,7 +115,7 @@ class ParamCtrls(object):
             self.valueCtrl = paramCtrls.SingleLineCtrl(parent,
                                                    val=str(param.val), valType=param.valType,
                                                    fieldName=fieldName,size=wx.Size(self.valueWidth, 24))
-        if param.inputType == 'multi':
+        elif param.inputType == 'multi':
             # Create multiline string control
             self.valueCtrl = paramCtrls.MultiLineCtrl(parent,
                                                            val=str(param.val), valType=param.valType,
