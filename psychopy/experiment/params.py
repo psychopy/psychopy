@@ -210,6 +210,8 @@ class Param(object):
                 return ("%s" % self.val).lower()  # make True -> "true"
             else:
                 return "%s" % self.val
+        elif self.valType == "table":
+            return "%s" % self.val
         else:
             raise TypeError("Can't represent a Param of type %s" %
                             self.valType)
