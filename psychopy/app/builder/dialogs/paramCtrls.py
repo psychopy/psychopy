@@ -8,90 +8,82 @@ from psychopy.localization import _translate
 from psychopy import data, logging, prefs
 import re
 
-BoolCtrl = wx.CheckBox
 
-
-ChoiceCtrl = wx.CheckListBox
-
-
-class ListCtrl(wx.TextCtrl):
-    def __init__(self, parent,
-                 val="", fieldName="",
-                 size=wx.Size(-1, 24)):
-        wx.TextCtrl.__init__(self)
-        self.Create(parent, -1, val, name=fieldName, size=size)
-        self.Bind(wx.EVT_TEXT, self.validate)
-        self.style = 'empty'
-
-    def validate(self):
-        val = self.GetValue()
-        # Start with regular colour
-        self.SetForegroundColour(wx.Colour(
-            ThemeMixin.codeColors['base']['fg']
-        ))
-        if not val:
-            # If empty, style is empty
-            self.style = 'empty'
-        elif re.match(r"[\(\[].*[\]\)]", val):
-            # If user put contents in parentheses, style is full
-            self.style = 'full'
-        elif "," in val:
-            # If user has comma separated contents, style is partial
-            self.style = 'partial'
-        elif " " not in val or re.match(r"[\"\'].*[\"\']", val):
-            # If user has given a single value, style is single
-            self.style = 'single'
-        else:
-            # If none of the above, colour text red to mark error
-            self.SetForegroundColour(wx.Colour(
-                1, 0, 0
-            ))
-
-
-class NumCtrl(wx.TextCtrl):
-    def __init__(self, parent,
-                 val="", fieldName="",
-                 size=wx.Size(-1, 24)):
-        wx.TextCtrl.__init__(self)
-        self.Create(parent, -1, val, name=fieldName, size=size)
-        self.Bind(wx.EVT_TEXT, self.validate)
-
+class _ValidatorMixin():
     def validate(self, evt):
-        try:
-            float(self.GetValue())
-        except ValueError:
-            self.SetForegroundColour(wx.Colour(
-                1, 0, 0
-            ))
-        else:
+        """Redirect validate calls to global validate method, assigning appropriate valType"""
+        validate(self, self.valType)
+
+    def showValid(self, valid):
+        """Style input box according to valid"""
+        if not hasattr(self, "SetForegroundColour"):
+            return
+        if valid:
             self.SetForegroundColour(wx.Colour(
                 ThemeMixin.codeColors['base']['fg']
             ))
+        else:
+            self.SetForegroundColour(wx.Colour(
+                1, 0, 0
+            ))
 
 
-IntCtrl = wx.SpinCtrl
+BoolCtrl = wx.CheckBox
 
 
-class CodeCtrl(wx.TextCtrl):
-    def __init__(self, parent,
+class ChoiceCtrl(wx.Choice, _ValidatorMixin):
+    def __init__(self, parent, valType,
+                 val="", choices=[], fieldName="",
+                 size=wx.Size(-1, 24)):
+        wx.Choice.__init__(self)
+        self.Create(parent, -1, size=size, choices=choices, name=fieldName)
+        self.valType = valType
+        if val in choices:
+            self.SetStringSelection(val)
+
+
+class IntCtrl(wx.SpinCtrl, _ValidatorMixin):
+    def __init__(self, parent, valType,
+                 val="", fieldName="",
+                 size=wx.Size(-1, 24)):
+        wx.SpinCtrl.__init__(self)
+        self.Create(parent, -1, str(val), name=fieldName, size=size)
+        self.valType = valType
+        self.Bind(wx.EVT_SPINCTRL, self.spin)
+
+    def spin(self, evt):
+        """Redirect validate calls to global validate method, assigning appropriate valType"""
+        if evt.EventType == wx.EVT_SPIN_UP.evtType[0]:
+            self.SetValue(str(int(self.GetValue())+1))
+        elif evt.EventType == wx.EVT_SPIN_DOWN.evtType[0]:
+            self.SetValue(str(int(self.GetValue()) - 1))
+        validate(self, "int")
+
+
+class CodeCtrl(wx.TextCtrl, _ValidatorMixin):
+    def __init__(self, parent, valType,
                  val="", fieldName="",
                  size=wx.Size(-1, 24)):
         wx.TextCtrl.__init__(self)
         self.Create(parent, -1, val, name=fieldName, size=size)
+        self.valType = valType
+        self.Bind(wx.EVT_TEXT, self.validate)
 
-class ExtendedCodeCtrl(CodeCtrl):
-    def __init__(self, parent,
+class ExtendedCodeCtrl(CodeCtrl, _ValidatorMixin):
+    def __init__(self, parent, valType,
                  val="", fieldName="",
                  size=wx.Size(-1, 72)):
         CodeCtrl.__init__(self, parent, val, fieldName, size)
         self.SetWindowStyleFlag(wx.TE_MULTILINE)
 
-class StringCtrl(wx.TextCtrl):
-    def __init__(self, parent,
+
+class StringCtrl(wx.TextCtrl, _ValidatorMixin):
+    def __init__(self, parent, valType,
                  val="", fieldName="",
                  size=wx.Size(-1, 24)):
         wx.TextCtrl.__init__(self)
         self.Create(parent, -1, val, name=fieldName, size=size)
+        self.valType = valType
         self.Bind(wx.EVT_TEXT, self.codeWanted)
 
     def codeWanted(self, evt):
@@ -101,24 +93,27 @@ class StringCtrl(wx.TextCtrl):
             # Override base font with user spec if present
             if prefs.coder['codeFont'].lower() != "From Theme...".lower():
                 base['font'] = prefs.coder['codeFont']
+            validate(self, "code")
         else:
-            return
+            validate(self, self.valType)
 
 
-class ExtendedStringCtrl(StringCtrl):
-    def __init__(self, parent,
+class ExtendedStringCtrl(StringCtrl, _ValidatorMixin):
+    def __init__(self, parent, valType,
                  val="", fieldName="",
                  size=wx.Size(-1, 72)):
         StringCtrl.__init__(self, parent, val, fieldName, size)
         self.SetWindowStyleFlag(wx.TE_MULTILINE)
 
-class ColorCtrl(wx.TextCtrl):
-    def __init__(self, parent,
+
+class ColorCtrl(wx.TextCtrl, _ValidatorMixin):
+    def __init__(self, parent, valType,
                  val="", fieldName="",
                  size=wx.Size(-1, 24)):
         # Create self
         wx.TextCtrl.__init__(self)
         self.Create(parent, -1, val, name=fieldName, size=size)
+        self.valType = valType
         # Add sizer
         self._szr = wx.BoxSizer(wx.HORIZONTAL)
         self._szr.Add(self, border=5, flag=wx.EXPAND | wx.RIGHT)
@@ -134,33 +129,15 @@ class ColorCtrl(wx.TextCtrl):
     def colorPicker(self, evt):
         return
 
-    def validate(self):
-        val = self.GetValue()
-        if re.fullmatch(r"\$?(Advanced)?Color\(.*\)", val):
-            # Strip function calls
-            val = re.sub(r"\$?(Advanced)?Color\(", "", val[:-1])
-        try:
-            self.color = Color(val)
-            if self.color:
-                self.SetForegroundColour(wx.Colour(
-                    ThemeMixin.codeColors['base']['fg']
-                ))
-            else:
-                self.SetForegroundColour(wx.Colour(
-                    1, 0, 0
-                ))
-        except ValueError:
-            self.SetForegroundColour(wx.Colour(
-                1, 0, 0
-            ))
 
-class TableCtrl(wx.TextCtrl):
-    def __init__(self, parent,
+class TableCtrl(wx.TextCtrl, _ValidatorMixin):
+    def __init__(self, parent, valType,
                  val="", fieldName="",
                  size=wx.Size(-1, 24)):
         # Create self
         wx.TextCtrl.__init__(self)
         self.Create(parent, -1, val, name=fieldName, size=size)
+        self.valType = valType
         # Add sizer
         self._szr = wx.BoxSizer(wx.HORIZONTAL)
         self._szr.Add(self, border=5, flag=wx.EXPAND | wx.RIGHT)
@@ -182,7 +159,7 @@ class TableCtrl(wx.TextCtrl):
             'Form': os.path.join(cmpRoot, "form", "formItems.xltx")
         }
         # Configure validation
-        self.Bind(wx.EVT_TEXT, self.validateInput)
+        self.Bind(wx.EVT_TEXT, self.validate)
         self.validExt = [".csv",".tsv",".txt",
                          ".xl",".xlsx",".xlsm",".xlsb",".xlam",".xltx",".xltm",".xls",".xlt",
                          ".htm",".html",".mht",".mhtml",
@@ -192,24 +169,16 @@ class TableCtrl(wx.TextCtrl):
                          ".iqy",".dqy",".rqy",".oqy",
                          ".cub",".atom",".atomsvc",
                          ".prn",".slk",".dif"]
-
-    def validateInput(self, event):
-        """Check whether input is openable and valid"""
-        valid = False
-        file = self.GetValue()
+    def validate(self, evt):
+        """Redirect validate calls to global validate method, assigning appropriate valType"""
+        validate(self, "file")
+        # Enable Excel button if valid
+        self.xlBtn.Enable(self.valid)
         # Is component type available?
         if hasattr(self.GetTopLevelParent(), 'type'):
             # Does this component have a default template?
             if self.GetTopLevelParent().type in self.templates:
-                valid = True
-        # Has user entered a full filepath, but it is invalid?
-        if file and file not in self.validExt:
-            valid = False
-        # Is value a valid filepath?
-        if os.path.isfile(os.path.abspath(file)) and file.endswith(tuple(self.validExt)):
-            valid = True
-        # Set excel button accordingly
-        self.xlBtn.Enable(valid)
+                self.xlBtn.Enable(True)
 
     def openExcel(self, event):
         """Either open the specified excel sheet, or make a new one from a template"""
@@ -236,13 +205,14 @@ class TableCtrl(wx.TextCtrl):
         self.validateInput(event)
 
 
-class FileCtrl(wx.TextCtrl):
-    def __init__(self, parent,
+class FileCtrl(wx.TextCtrl, _ValidatorMixin):
+    def __init__(self, parent, valType,
                  val="", fieldName="",
                  size=wx.Size(-1, 24)):
         # Create self
         wx.TextCtrl.__init__(self)
         self.Create(parent, -1, val, name=fieldName, size=size)
+        self.valType = valType
         # Add sizer
         self._szr = wx.BoxSizer(wx.HORIZONTAL)
         self._szr.Add(self, border=5, flag=wx.EXPAND | wx.RIGHT)
@@ -267,30 +237,12 @@ class FileCtrl(wx.TextCtrl):
         self.SetValue(relname)
         self.validate()
 
-    def validate(self):
-        """Check whether input is openable and valid"""
-        valid = False
-        file = self.GetValue()
-        # Has user entered a full filepath, but it is invalid?
-        if file and file not in self.validExt:
-            valid = False
-        # Is value a valid filepath?
-        if os.path.isfile(os.path.abspath(file)) and file.endswith(tuple(self.validExt)):
-            valid = True
-        # Set color accordingly
-        if valid:
-            self.SetForegroundColour(wx.Colour(
-                ThemeMixin.codeColors['base']['fg']
-            ))
-        else:
-            self.SetForegroundColour(wx.Colour(
-                1, 0, 0
-            ))
 
-
-class FileListCtrl(wx.ListBox):
-    def __init__(self, parent, choices=[], size=None, pathtype="rel"):
+class FileListCtrl(wx.ListBox, _ValidatorMixin):
+    def __init__(self, parent, valType,
+                 choices=[], size=None, pathtype="rel"):
         wx.ListBox.__init__(self)
+        self.valType = valType
         parent.Bind(wx.EVT_DROP_FILES, self.addItem)
         self.app = parent.app
         if type(choices) == str:
@@ -337,3 +289,76 @@ class FileListCtrl(wx.ListBox):
 
     def GetValue(self):
         return self.Items
+
+def validate(obj, valType):
+    val = str(obj.GetValue())
+    valid = True
+    if val.startswith("$"):
+        # If indicated as code, cancel and restart with different valType
+        val = val[1:]
+        valType = "code"
+        return
+    # Validate string
+    if valType == "str":
+        if re.findall(r"(?<!\\)\"", val):
+            # If there are unescaped "
+            valid = False
+        if re.findall(r"(?<!\\)\'", val):
+            # If there are unescaped '
+            valid = False
+    # Validate code
+    if valType == "code":
+        # For now, accept all code
+        pass
+    # Validate num
+    if valType == "num":
+        try:
+            # Try to convert value to a float
+            float(val)
+        except ValueError:
+            # If conversion fails, value is invalid
+            valid = False
+    # Validate int
+    if valType == "int":
+        try:
+            # Try to convert value to int
+            int(val)
+        except ValueError:
+            # If conversion fails, value is invalid
+            valid = False
+    # Validate list
+    if valType == "list":
+        empty = not bool(val) # Is value empty?
+        fullList = re.fullmatch(r"[\(\[].*[\]\)]", val) # Is value full list with parentheses?
+        partList = "," in val and not re.match(r"[\(\[].*[\]\)]", val) # Is value list without parentheses?
+        singleVal = not " " in val or re.match(r"[\"\'].*[\"\']", val) # Is value a single value?
+        if not any([empty, fullList, partList, singleVal]):
+            # If value is not any of valid types, it is invalid
+            valid = False
+    # Validate color
+    if valType == "color":
+        # Strip function calls
+        if re.fullmatch(r"\$?(Advanced)?Color\(.*\)", val):
+            val = re.sub(r"\$?(Advanced)?Color\(", "", val[:-1])
+        try:
+            # Try to create a Color object from value
+            obj.color = Color(val)
+            if not obj.color:
+                # If invalid object is created, input is invalid
+                valid = False
+        except:
+            # If object creation fails, input is invalid
+            valid = False
+    if valType == "file":
+        if not os.path.isfile(os.path.abspath(val)):
+            # Is value a valid filepath?
+            valid = False
+        if hasattr(obj, "validExt"):
+            if not val.endswith(tuple(obj.validExt)):
+                # If control has specified list of ext, does value end in correct ext?
+                valid = False
+
+    # Apply valid status to object
+    obj.valid = valid
+    if hasattr(obj, "showValid"):
+        obj.showValid(valid)
