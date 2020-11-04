@@ -98,10 +98,7 @@ class ParamCtrls(object):
 
         if type(param.val) == numpy.ndarray:
             initial = param.val.tolist()  # convert numpy arrays to lists
-        _nonCode = ('name', 'Experiment info')
         label = _translate(label)
-        if param.valType == 'code' and fieldName not in _nonCode:
-            label += ' $'
         self.nameCtrl = wx.StaticText(parent, -1, label, size=wx.DefaultSize)
 
         if fieldName == 'Use version':

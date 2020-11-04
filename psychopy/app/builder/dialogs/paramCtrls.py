@@ -64,17 +64,21 @@ class CodeCtrl(wx.TextCtrl, _ValidatorMixin):
     def __init__(self, parent, valType,
                  val="", fieldName="",
                  size=wx.Size(-1, 24)):
+
+        # Create self
         wx.TextCtrl.__init__(self)
         self.Create(parent, -1, val, name=fieldName, size=size)
         self.valType = valType
+        # Add sizer
+        self._szr = wx.BoxSizer(wx.HORIZONTAL)
+        # Add $
+        self.dollarLbl = wx.StaticText(parent, -1, "$", size=wx.Size(-1, -1), style=wx.ALIGN_RIGHT)
+        self.dollarLbl.SetToolTipString(_translate("This parameter will be treated as code - we have already put in the $, so you don't have to."))
+        self._szr.Add(self.dollarLbl, border=5, flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT)
+        # Add self to sizer
+        self._szr.Add(self, border=5, flag=wx.EXPAND | wx.RIGHT)
+        # Bind to validation
         self.Bind(wx.EVT_TEXT, self.validate)
-
-class ExtendedCodeCtrl(CodeCtrl, _ValidatorMixin):
-    def __init__(self, parent, valType,
-                 val="", fieldName="",
-                 size=wx.Size(-1, 72)):
-        CodeCtrl.__init__(self, parent, val, fieldName, size)
-        self.SetWindowStyleFlag(wx.TE_MULTILINE)
 
 
 class StringCtrl(wx.TextCtrl, _ValidatorMixin):
@@ -104,6 +108,11 @@ class ExtendedStringCtrl(StringCtrl, _ValidatorMixin):
                  size=wx.Size(-1, 72)):
         StringCtrl.__init__(self, parent, val, fieldName, size)
         self.SetWindowStyleFlag(wx.TE_MULTILINE)
+
+
+class ExtendedCodeCtrl(ExtendedStringCtrl, _ValidatorMixin):
+    def codeWanted(self, evt):
+        validate(self, "code")
 
 
 class ColorCtrl(wx.TextCtrl, _ValidatorMixin):
