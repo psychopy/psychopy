@@ -65,7 +65,9 @@ class MultiLineCtrl(SingleLineCtrl, _ValidatorMixin):
     def __init__(self, parent, valType,
                  val="", fieldName="",
                  size=wx.Size(-1, 72)):
-        SingleLineCtrl.__init__(self, parent, val, fieldName, size)
+        SingleLineCtrl.__init__(self, parent, valType,
+                                val=val, fieldName=fieldName,
+                                size=size)
         self.SetWindowStyleFlag(wx.TE_MULTILINE)
 
 
