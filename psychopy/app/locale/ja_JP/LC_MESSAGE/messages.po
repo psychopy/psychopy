@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PsychoPy 2020.1.3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-10-30 17:23+0900\n"
-"PO-Revision-Date: 2020-10-30 18:36+0900\n"
+"POT-Creation-Date: 2020-11-04 19:40+0900\n"
+"PO-Revision-Date: 2020-11-04 19:45+0900\n"
 "Last-Translator: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language-Team: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language: ja\n"
@@ -192,7 +192,7 @@ msgid "Responses"
 msgstr "反応"
 
 #: psychopy/app/builder/builder.py:66
-#: psychopy/app/builder/dialogs/__init__.py:503
+#: psychopy/app/builder/dialogs/__init__.py:505
 msgid "Custom"
 msgstr "カスタム"
 
@@ -598,7 +598,7 @@ msgid "PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*"
 msgstr "PsychoPy実験ファイル (*.psyexp)|*.psyexp|すべてのファイル (*.*)|*"
 
 #: psychopy/app/builder/builder.py:596
-#: psychopy/app/builder/dialogs/__init__.py:1592
+#: psychopy/app/builder/dialogs/__init__.py:1594
 #: psychopy/app/coder/coder.py:2372
 msgid "Open file ..."
 msgstr "ファイルを開く..."
@@ -758,140 +758,140 @@ msgstr ""
 msgid "Impending Loop collapse"
 msgstr "Loopが空になろうとしています"
 
-#: psychopy/app/builder/dialogs/__init__.py:245
+#: psychopy/app/builder/dialogs/__init__.py:247
 msgid "set during: "
 msgstr "更新期間: "
 
-#: psychopy/app/builder/dialogs/__init__.py:266
+#: psychopy/app/builder/dialogs/__init__.py:268
 #: psychopy/app/pavlovia_ui/project.py:77
 #: psychopy/app/pavlovia_ui/project.py:197
 msgid "Browse..."
 msgstr "選択..."
 
-#: psychopy/app/builder/dialogs/__init__.py:415
-#: psychopy/app/builder/dialogs/__init__.py:1161
+#: psychopy/app/builder/dialogs/__init__.py:417
+#: psychopy/app/builder/dialogs/__init__.py:1163
 #: psychopy/app/builder/dialogs/dlgsCode.py:47
 msgid " Properties"
 msgstr " のプロパティ"
 
-#: psychopy/app/builder/dialogs/__init__.py:495
+#: psychopy/app/builder/dialogs/__init__.py:497
 msgid "Basic"
 msgstr "基本"
 
-#: psychopy/app/builder/dialogs/__init__.py:496
+#: psychopy/app/builder/dialogs/__init__.py:498
 #: psychopy/experiment/components/settings/__init__.py:51
 msgid "Color"
 msgstr "色"
 
-#: psychopy/app/builder/dialogs/__init__.py:497
+#: psychopy/app/builder/dialogs/__init__.py:499
 msgid "Layout"
 msgstr "レイアウト"
 
-#: psychopy/app/builder/dialogs/__init__.py:498
+#: psychopy/app/builder/dialogs/__init__.py:500
 msgid "Data"
 msgstr "データ"
 
-#: psychopy/app/builder/dialogs/__init__.py:499
+#: psychopy/app/builder/dialogs/__init__.py:501
 #: psychopy/experiment/components/settings/__init__.py:49
 msgid "Screen"
 msgstr "スクリーン"
 
-#: psychopy/app/builder/dialogs/__init__.py:500
+#: psychopy/app/builder/dialogs/__init__.py:502
 msgid "Dots"
 msgstr "ドット"
 
-#: psychopy/app/builder/dialogs/__init__.py:501
+#: psychopy/app/builder/dialogs/__init__.py:503
 msgid "Grating"
 msgstr "グレーティング"
 
-#: psychopy/app/builder/dialogs/__init__.py:502
+#: psychopy/app/builder/dialogs/__init__.py:504
 msgid "Advanced"
 msgstr "高度"
 
-#: psychopy/app/builder/dialogs/__init__.py:504
+#: psychopy/app/builder/dialogs/__init__.py:506
 msgid "Carrier"
 msgstr "キャリア"
 
-#: psychopy/app/builder/dialogs/__init__.py:505
+#: psychopy/app/builder/dialogs/__init__.py:507
 msgid "Envelope"
 msgstr "エンベロープ"
 
-#: psychopy/app/builder/dialogs/__init__.py:506
+#: psychopy/app/builder/dialogs/__init__.py:508
 msgid "Appearance"
 msgstr "外観"
 
-#: psychopy/app/builder/dialogs/__init__.py:507 psychopy/app/utils.py:171
+#: psychopy/app/builder/dialogs/__init__.py:509 psychopy/app/utils.py:171
 #: psychopy/app/utils.py:241 psychopy/monitors/MonitorCenter.py:267
 msgid "Save"
 msgstr "保存"
 
-#: psychopy/app/builder/dialogs/__init__.py:508
+#: psychopy/app/builder/dialogs/__init__.py:510
 msgid "Online"
 msgstr "オンライン"
 
-#: psychopy/app/builder/dialogs/__init__.py:509
+#: psychopy/app/builder/dialogs/__init__.py:511
 msgid "Testing"
 msgstr "テスト"
 
-#: psychopy/app/builder/dialogs/__init__.py:510 psychopy/tools/wizard.py:51
+#: psychopy/app/builder/dialogs/__init__.py:512 psychopy/tools/wizard.py:51
 msgid "Audio"
 msgstr "オーディオ"
 
-#: psychopy/app/builder/dialogs/__init__.py:511
+#: psychopy/app/builder/dialogs/__init__.py:513
 msgid "Format"
 msgstr "フォーマット"
 
-#: psychopy/app/builder/dialogs/__init__.py:512
+#: psychopy/app/builder/dialogs/__init__.py:514
 msgid "Formatting"
 msgstr "フォーマット"
 
-#: psychopy/app/builder/dialogs/__init__.py:513
+#: psychopy/app/builder/dialogs/__init__.py:515
 #: psychopy/experiment/components/grating/__init__.py:23
 msgid "Texture"
 msgstr "テクスチャ"
 
-#: psychopy/app/builder/dialogs/__init__.py:514
+#: psychopy/app/builder/dialogs/__init__.py:516
 msgid "Timing"
 msgstr "タイミング"
 
-#: psychopy/app/builder/dialogs/__init__.py:515
+#: psychopy/app/builder/dialogs/__init__.py:517
 msgid "Playback"
 msgstr "再生"
 
-#: psychopy/app/builder/dialogs/__init__.py:653
+#: psychopy/app/builder/dialogs/__init__.py:655
 #: psychopy/localization/__init__.py:160
 msgid "Start"
 msgstr "開始"
 
-#: psychopy/app/builder/dialogs/__init__.py:656
+#: psychopy/app/builder/dialogs/__init__.py:658
 #: psychopy/localization/__init__.py:162
 msgid "Expected start (s)"
 msgstr "予想開始時刻 (s)"
 
-#: psychopy/app/builder/dialogs/__init__.py:698
+#: psychopy/app/builder/dialogs/__init__.py:700
 #: psychopy/localization/__init__.py:161
 msgid "Stop"
 msgstr "終了"
 
-#: psychopy/app/builder/dialogs/__init__.py:701
+#: psychopy/app/builder/dialogs/__init__.py:703
 #: psychopy/localization/__init__.py:163
 msgid "Expected duration (s)"
 msgstr "予想実行時間 (s)"
 
-#: psychopy/app/builder/dialogs/__init__.py:859
-#: psychopy/app/builder/dialogs/__init__.py:1896
+#: psychopy/app/builder/dialogs/__init__.py:861
+#: psychopy/app/builder/dialogs/__init__.py:1899
 #: psychopy/app/builder/dialogs/dlgsCode.py:132
 #: psychopy/app/builder/dialogs/dlgsConditions.py:516
 msgid " Help "
 msgstr " ヘルプ "
 
-#: psychopy/app/builder/dialogs/__init__.py:860
+#: psychopy/app/builder/dialogs/__init__.py:862
 #: psychopy/app/builder/dialogs/dlgsCode.py:133
 msgid "Go to online help about this component"
 msgstr "このコンポーネントのオンラインヘルプを開きます"
 
-#: psychopy/app/builder/dialogs/__init__.py:866
-#: psychopy/app/builder/dialogs/__init__.py:1902
+#: psychopy/app/builder/dialogs/__init__.py:868
+#: psychopy/app/builder/dialogs/__init__.py:1905
 #: psychopy/app/builder/dialogs/dlgsCode.py:135
 #: psychopy/app/builder/dialogs/dlgsConditions.py:521 psychopy/gui/qtgui.py:95
 #: psychopy/gui/wxgui.py:73 psychopy/monitors/MonitorCenter.py:1112
@@ -899,8 +899,8 @@ msgstr "このコンポーネントのオンラインヘルプを開きます"
 msgid " OK "
 msgstr " OK "
 
-#: psychopy/app/builder/dialogs/__init__.py:873
-#: psychopy/app/builder/dialogs/__init__.py:1904
+#: psychopy/app/builder/dialogs/__init__.py:875
+#: psychopy/app/builder/dialogs/__init__.py:1907
 #: psychopy/app/builder/dialogs/dlgsCode.py:138
 #: psychopy/app/builder/dialogs/dlgsConditions.py:529 psychopy/gui/qtgui.py:96
 #: psychopy/gui/wxgui.py:74 psychopy/monitors/MonitorCenter.py:1114
@@ -908,33 +908,33 @@ msgstr " OK "
 msgid " Cancel "
 msgstr " キャンセル "
 
-#: psychopy/app/builder/dialogs/__init__.py:1123
+#: psychopy/app/builder/dialogs/__init__.py:1125
 #: psychopy/app/builder/validators.py:100
 msgid "Missing name"
 msgstr "名前がありません"
 
-#: psychopy/app/builder/dialogs/__init__.py:1130
+#: psychopy/app/builder/dialogs/__init__.py:1132
 #, python-format
 msgid "That name is in use (it's a %s). Try another name."
 msgstr "その名前は使用されています(%s) 名前を変更してください."
 
-#: psychopy/app/builder/dialogs/__init__.py:1133
+#: psychopy/app/builder/dialogs/__init__.py:1135
 #: psychopy/app/builder/dialogs/dlgsConditions.py:304
 #: psychopy/app/builder/dialogs/dlgsConditions.py:579
 #: psychopy/app/builder/validators.py:110
 msgid "Name must be alpha-numeric or _, no spaces"
 msgstr "名前に使えるのは英数字と_です スペースを含んではいけません"
 
-#: psychopy/app/builder/dialogs/__init__.py:1357
-#: psychopy/app/builder/dialogs/__init__.py:1517
+#: psychopy/app/builder/dialogs/__init__.py:1359
+#: psychopy/app/builder/dialogs/__init__.py:1519
 msgid "No parameters set"
 msgstr "パラメータが定義されていません"
 
-#: psychopy/app/builder/dialogs/__init__.py:1434
+#: psychopy/app/builder/dialogs/__init__.py:1436
 msgid "No parameters set (select a file above)"
 msgstr "パラメータが定義されていません(ファイルを選んでください)"
 
-#: psychopy/app/builder/dialogs/__init__.py:1506
+#: psychopy/app/builder/dialogs/__init__.py:1508
 #, python-format
 msgid ""
 "%(nCondition)i conditions, with %(nParam)i parameters\n"
@@ -943,32 +943,32 @@ msgstr ""
 "%(nParam)iパラメータ, %(nCondition)i条件\n"
 "%(paramStr)s"
 
-#: psychopy/app/builder/dialogs/__init__.py:1515
-#: psychopy/app/builder/dialogs/__init__.py:1764
+#: psychopy/app/builder/dialogs/__init__.py:1517
+#: psychopy/app/builder/dialogs/__init__.py:1766
 msgid "No parameters set (conditionsFile not found)"
 msgstr "パラメータが定義されていません (条件ファイルが見つかりません)"
 
-#: psychopy/app/builder/dialogs/__init__.py:1613
+#: psychopy/app/builder/dialogs/__init__.py:1615
 msgid "Could not read conditions from:\n"
 msgstr "条件を読み込めません\n"
 
-#: psychopy/app/builder/dialogs/__init__.py:1634
+#: psychopy/app/builder/dialogs/__init__.py:1636
 msgid "Configuration error in conditions file"
 msgstr "条件ファイルにエラーがあります"
 
-#: psychopy/app/builder/dialogs/__init__.py:1638
+#: psychopy/app/builder/dialogs/__init__.py:1640
 msgid "Bad condition name(s) in file:\n"
 msgstr "不適切な条件名がファイルに含まれています:\n"
 
-#: psychopy/app/builder/dialogs/__init__.py:1654
+#: psychopy/app/builder/dialogs/__init__.py:1656
 msgid "Builder variable(s) ({}) in file:{}"
 msgstr "Builderの変数名({})が{}で使用されています"
 
-#: psychopy/app/builder/dialogs/__init__.py:1752
+#: psychopy/app/builder/dialogs/__init__.py:1754
 msgid "Badly formed condition name(s) in file:\n"
 msgstr "不適切な条件名がファイルに含まれています:\n"
 
-#: psychopy/app/builder/dialogs/__init__.py:1753
+#: psychopy/app/builder/dialogs/__init__.py:1755
 msgid ""
 ".\n"
 "Need to be legal as var name; edit file, try again."
@@ -976,13 +976,26 @@ msgstr ""
 ".\n"
 "条件名はPythonの変数として使用できる文字列でなければいけません."
 
-#: psychopy/app/builder/dialogs/__init__.py:1897
+#: psychopy/app/builder/dialogs/__init__.py:1900
 msgid "Get help about this component"
 msgstr "このコンポーネントのオンラインヘルプを開きます"
 
-#: psychopy/app/builder/dialogs/__init__.py:1961
+#: psychopy/app/builder/dialogs/__init__.py:1964
+#: psychopy/app/builder/dialogs/__init__.py:2005
+#: psychopy/app/builder/dialogs/__init__.py:2063
 msgid "Specify file ..."
 msgstr "ファイルを選択..."
+
+#: psychopy/app/builder/dialogs/__init__.py:2011
+msgid "Open/create in your default table editor"
+msgstr "標準の表エディタで開きます"
+
+#: psychopy/app/builder/dialogs/__init__.py:2056
+#, python-brace-format
+msgid ""
+"Once you have created and saved your table, please remember to add it to "
+"{self.Name}"
+msgstr "表を作成、保存したら忘れずに{self.Name}に追加してください"
 
 #: psychopy/app/builder/dialogs/dlgsConditions.py:87
 msgid "New (no file)"
@@ -2297,6 +2310,65 @@ msgstr "いいえ"
 #: psychopy/app/pavlovia_ui/user.py:65
 msgid "OK"
 msgstr "OK"
+
+#: psychopy/app/errorDlg.py:27
+msgid "PsychoPy3 Error"
+msgstr "PsychoPy3 エラー"
+
+#: psychopy/app/errorDlg.py:34
+msgid ""
+"PsychoPy encountered an unhandled internal error! Please send the report "
+"under \"Details\" to the developers with a description of what you were "
+"doing with the software when the error occurred."
+msgstr ""
+"PsychoPy3の内部でハンドルされていないエラーが生じました！ 「詳細」欄の内容"
+"と、エラーが生じた時にこのソフトウェアでしていた作業の内容を開発者に報告して"
+"ください。"
+
+#: psychopy/app/errorDlg.py:56
+msgid "&OK"
+msgstr "OK(&O)"
+
+#: psychopy/app/errorDlg.py:59
+msgid "E&xit PsychoPy"
+msgstr "PsychoPyを終了(&E)"
+
+#: psychopy/app/errorDlg.py:66
+msgid "&Details"
+msgstr "詳細(&D)"
+
+#: psychopy/app/errorDlg.py:78
+msgid "&Copy"
+msgstr "コピー(&C)"
+
+#: psychopy/app/errorDlg.py:82
+msgid "&Save"
+msgstr "保存(&S)"
+
+#: psychopy/app/errorDlg.py:125
+msgid ""
+"Are you sure you want to exit PsychoPy? Unsaved work may be lost (but we'll "
+"try to save opened files)."
+msgstr ""
+"本当にPsychoPyを終了しますか？ 保存されていない作業が失われる可能性があります"
+"(開かれているファイルの保存を試みます)."
+
+#: psychopy/app/errorDlg.py:127
+msgid "Exit PsychoPy?"
+msgstr "PsychoPyを終了しますか？"
+
+#: psychopy/app/errorDlg.py:163
+msgid "Save error traceback"
+msgstr "エラーの詳細を保存"
+
+#: psychopy/app/errorDlg.py:180
+#, python-format
+msgid "Cannot save to file '%s'."
+msgstr "ファイル '%s' に保存できません."
+
+#: psychopy/app/errorDlg.py:181
+msgid "File save error"
+msgstr "ファイル保存エラー"
 
 #: psychopy/app/pavlovia_ui/_base.py:32
 #, python-format
