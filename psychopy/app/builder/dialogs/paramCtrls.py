@@ -2,6 +2,7 @@ import os
 import wx
 
 import psychopy
+from psychopy.app.colorpicker import PsychoColorPicker
 from psychopy.app.themes import ThemeMixin
 from psychopy.colors import Color
 from psychopy.localization import _translate
@@ -136,7 +137,7 @@ class ColorCtrl(wx.TextCtrl, _ValidatorMixin):
         self.Bind(wx.EVT_TEXT, self.validate)
 
     def colorPicker(self, evt):
-        return
+        PsychoColorPicker(self.GetTopLevelParent().frame)
 
 
 class TableCtrl(wx.TextCtrl, _ValidatorMixin):

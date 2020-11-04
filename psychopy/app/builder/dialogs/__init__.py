@@ -31,7 +31,7 @@ from . import paramCtrls
 from psychopy import data, logging
 from psychopy.localization import _translate
 from psychopy.tools import versionchooser as vc
-
+from ...colorpicker import PsychoColorPicker
 
 white = wx.Colour(255, 255, 255, 255)
 codeSyntaxOkay = wx.Colour(220, 250, 220, 255)  # light green
@@ -777,14 +777,7 @@ class _BaseParamsDlg(wx.Dialog):
 
     def launchColorPicker(self, event):
         # bring up a colorPicker
-        rgb = self.app.colorPicker(None)  # str, remapped to -1..+1
-        # apply to color ctrl
-        ctrlName = event.GetEventObject().GetName()
-        thisParam = self.paramCtrls[ctrlName]
-        thisParam.valueCtrl.SetValue('$' + rgb)  # $ flag as code
-        # make sure we set colorspace to rgb
-        colorSpace = self.paramCtrls[ctrlName + 'Space']
-        colorSpace.valueCtrl.SetStringSelection('rgb')
+        PsychoColorPicker(self.frame)
 
     def onNewTextSize(self, event):
         self.Fit()  # for ExpandoTextCtrl this is needed
