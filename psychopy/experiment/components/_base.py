@@ -53,7 +53,7 @@ class BaseComponent(object):
         msg = _translate(
             "Name of this component (alpha-numeric or _, no spaces)")
         self.params['name'] = Param(name,
-            valType='code', inputType="string", categ='Basic',
+            valType='code', inputType="single", categ='Basic',
             hint=msg,
             label=_localized['name'])
 
@@ -66,19 +66,19 @@ class BaseComponent(object):
 
         msg = _translate("How do you want to define your end point?")
         self.params['stopType'] = Param(stopType,
-            valType='str', inputType="string", categ='Basic',
+            valType='str', inputType="choice", categ='Basic',
             allowedVals=['duration (s)', 'duration (frames)', 'time (s)',
                          'frame N', 'condition'],
             hint=msg,
             label=_localized['stopType'])
 
         self.params['startVal'] = Param(startVal,
-            valType='num', inputType="string", categ='Basic',
+            valType='num', inputType="single", categ='Basic',
             hint=_translate("When does the component start?"), allowedTypes=[],
             label=_localized['startVal'])
 
         self.params['stopVal'] = Param(stopVal,
-            valType='num', inputType="string", categ='Basic',
+            valType='num', inputType="single", categ='Basic',
             updates='constant', allowedUpdates=[], allowedTypes=[],
             hint=_translate("When does the component end? (blank is endless)"),
             label=_localized['stopVal'])
@@ -86,14 +86,14 @@ class BaseComponent(object):
         msg = _translate("(Optional) expected start (s), purely for "
                          "representing in the timeline")
         self.params['startEstim'] = Param(startEstim,
-            valType='num', inputType="string", categ='Basic',
+            valType='num', inputType="single", categ='Basic',
             hint=msg,allowedTypes=[],
             label=_localized['startEstim'])
 
         msg = _translate("(Optional) expected duration (s), purely for "
                          "representing in the timeline")
         self.params['durationEstim'] = Param(durationEstim,
-            valType='num', inputType="string", categ='Basic',
+            valType='num', inputType="single", categ='Basic',
             hint=msg, allowedTypes=[],
             label=_localized['durationEstim'])
 
@@ -659,7 +659,7 @@ class BaseVisualComponent(BaseComponent):
         msg = _translate("Opacity of the stimulus (1=opaque, 0=fully "
                          "transparent, 0.5=translucent)")
         self.params['opacity'] = Param(opacity,
-            valType='code', inputType="num", categ='Appearance',
+            valType='num', inputType="single", categ='Appearance',
             updates='constant', allowedTypes=[],
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
@@ -667,7 +667,7 @@ class BaseVisualComponent(BaseComponent):
 
         msg = _translate("Position of this stimulus (e.g. [1,2] )")
         self.params['pos'] = Param(pos,
-            valType='list', inputType="code", categ='Layout',
+            valType='list', inputType="single", categ='Layout',
             updates='constant', allowedTypes=[],
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
@@ -676,14 +676,14 @@ class BaseVisualComponent(BaseComponent):
         msg = _translate("Size of this stimulus (either a single value or "
                          "x,y pair, e.g. 2.5, [1,2] ")
         self.params['size'] = Param(size,
-            valType='list', inputType="code", categ='Layout',
+            valType='list', inputType="single", categ='Layout',
             updates='constant', allowedTypes=[],
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
             label=_localized['size'])
 
         self.params['ori'] = Param(ori,
-            valType='int', inputType="int", categ='Layout',
+            valType='num', inputType="spin", categ='Layout',
             updates='constant', allowedTypes=[],
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=_translate("Orientation of this stimulus (in deg)"),

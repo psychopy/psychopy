@@ -48,7 +48,7 @@ class EyetrackerComponent(BaseComponent):
             "pupilsize...) be stored? On every video frame, every click "
             "or just at the end of the Routine?")
         self.params['saveState'] = Param(
-            save, valType='str', categ='Data',
+            save, valType='str', inputType="choice", categ='Data',
             allowedVals=['final', 'every frame', 'never'],
             hint=msg,
             label="Save eyetracker state")

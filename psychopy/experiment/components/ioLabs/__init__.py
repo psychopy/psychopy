@@ -84,20 +84,20 @@ class ioLabsButtonBoxComponent(KeyboardComponent):
         msg = _translate("Active buttons, such as '1,6', '(1,2,5,6)' or '0' "
                          "(without quotes)")
         self.params['active'] = Param(
-            active, valType='code', allowedTypes=[], categ='Data',
+            active, valType='code', inputType="single", allowedTypes=[], categ='Data',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat'],
             hint=msg,
             label=_localized['active'])
 
         self.params['lights'] = Param(
-            lights, valType='bool', allowedTypes=[], categ='Hardware',
+            lights, valType='bool', inputType="bool", allowedTypes=[], categ='Hardware',
             updates='constant', allowedUpdates=[],
             hint=_translate("Turn ON the lights for the active buttons?"),
             label=_localized['lights'])
 
         self.params['lights off'] = Param(
-            lightsOff, valType='bool', allowedTypes=[], categ='Hardware',
+            lightsOff, valType='bool', inputType="bool", allowedTypes=[], categ='Hardware',
             updates='constant', allowedUpdates=[],
             hint=_translate("Turn OFF all lights at the end of each routine?"),
             label=_localized['lights off'])

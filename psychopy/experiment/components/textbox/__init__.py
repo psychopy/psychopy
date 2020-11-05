@@ -82,60 +82,60 @@ class TextboxComponent(BaseVisualComponent):
         self.params['color'].label = _translate("Text Color")
 
         self.params['text'] = Param(
-            text, valType='extendedStr', allowedTypes=[], categ='Basic',
+            text, valType='str', inputType="multi", allowedTypes=[], categ='Basic',
             updates='constant', allowedUpdates=_allow3[:],  # copy the list
             hint=_translate("The text to be displayed"),
             label=_localized['text'])
         self.params['font'] = Param(
-            font, valType='str', allowedTypes=[], categ='Formatting',
+            font, valType='str', inputType="single", allowedTypes=[], categ='Formatting',
             updates='constant', allowedUpdates=_allow3[:],  # copy the list
             hint=_translate("The font name (e.g. Comic Sans)"),
             label=_localized['font'])
         self.params['letterHeight'] = Param(
-            letterHeight, valType='code', allowedTypes=[], categ='Formatting',
+            letterHeight, valType='num', inputType="single", allowedTypes=[], categ='Formatting',
             updates='constant', allowedUpdates=_allow3[:],  # copy the list
             hint=_translate("Specifies the height of the letter (the width"
                             " is then determined by the font)"),
             label=_localized['letterHeight'])
         self.params['flipHoriz'] = Param(
-            flipHoriz, valType='bool', allowedTypes=[], categ='Layout',
+            flipHoriz, valType='bool', inputType="bool", allowedTypes=[], categ='Layout',
             updates='constant',
             hint=_translate("horiz = left-right reversed; vert = up-down"
                             " reversed; $var = variable"),
             label=_localized['flipHorizontal'])
         self.params['flipVert'] = Param(
-            flipVert, valType='bool', allowedTypes=[], categ='Layout',
+            flipVert, valType='bool', inputType="bool", allowedTypes=[], categ='Layout',
             updates='constant',
             hint=_translate("horiz = left-right reversed; vert = up-down"
                             " reversed; $var = variable"),
             label=_localized['flipVertical'])
         self.params['languageStyle'] = Param(
-            languageStyle, valType='str', categ='Formatting',
+            languageStyle, valType='str', inputType="choice", categ='Formatting',
             allowedVals=['LTR', 'RTL', 'Arabic'],
             hint=_translate("Handle right-to-left (RTL) languages and Arabic reshaping"),
             label=_localized['languageStyle'])
         self.params['italic'] = Param(
-            italic, valType='bool', allowedTypes=[], categ='Formatting',
+            italic, valType='bool', inputType="bool", allowedTypes=[], categ='Formatting',
             updates='constant',
             hint=_translate("Should text be italic?"),
             label=_localized['italic'])
         self.params['bold'] = Param(
-            bold, valType='bool', allowedTypes=[], categ='Formatting',
+            bold, valType='bool', inputType="bool", allowedTypes=[], categ='Formatting',
             updates='constant',
             hint=_translate("Should text be bold?"),
             label=_localized['bold'])
         self.params['lineSpacing'] = Param(
-            lineSpacing, valType='num', allowedTypes=[], categ='Formatting',
+            lineSpacing, valType='num', inputType="single", allowedTypes=[], categ='Formatting',
             updates='constant',
             hint=_translate("Defines the space between lines"),
             label=_localized['lineSpacing'])
         self.params['padding'] = Param(
-            padding, valType='code', allowedTypes=[], categ='Layout',
+            padding, valType='num', inputType="single", allowedTypes=[], categ='Layout',
             updates='constant', allowedUpdates=_allow3[:],
             hint=_translate("Defines the space between text and the textbox border"),
             label=_localized['padding'])
         self.params['anchor'] = Param(
-            anchor, valType='str', categ='Layout',
+            anchor, valType='str', inputType="choice", categ='Layout',
             allowedVals=['center',
                          'top-center',
                          'bottom-center',
@@ -150,17 +150,17 @@ class TextboxComponent(BaseVisualComponent):
             hint=_translate("Should text anchor to the top, center or bottom of the box?"),
             label=_localized['anchor'])
         self.params['borderWidth'] = Param(
-            borderWidth, valType='num', allowedTypes=[], categ='Appearance',
+            borderWidth, valType='num', inputType="single", allowedTypes=[], categ='Appearance',
             updates='constant', allowedUpdates=_allow3[:],
             hint=_translate("Textbox border width"),
             label=_localized['borderWidth'])
         self.params['editable'] = Param(
-            editable, valType='bool', allowedTypes=[], categ='Basic',
+            editable, valType='bool', inputType="bool", allowedTypes=[], categ='Basic',
             updates='constant',
             hint=_translate("Should textbox be editable?"),
             label=_localized['editable'])
         self.params['autoLog'] = Param(
-            autoLog, valType='bool', allowedTypes=[], categ='Data',
+            autoLog, valType='bool', inputType="bool", allowedTypes=[], categ='Data',
             updates='constant',
             hint=_translate(
                     'Automatically record all changes to this in the log file'),
