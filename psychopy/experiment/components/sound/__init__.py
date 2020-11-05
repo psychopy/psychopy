@@ -57,13 +57,13 @@ class SoundComponent(BaseComponent):
         hnt = _translate("A sound can be a note name (e.g. A or Bf), a number"
                          " to specify Hz (e.g. 440) or a filename")
         self.params['sound'] = Param(
-            sound, valType='str', inputType="string", allowedTypes=[], updates='constant', categ='Basic',
+            sound, valType='str', inputType="single", allowedTypes=[], updates='constant', categ='Basic',
             allowedUpdates=['constant', 'set every repeat'],
             hint=hnt,
             label=_localized['sound'])
         _allowed = ['constant', 'set every repeat', 'set every frame']
         self.params['volume'] = Param(
-            volume, valType='num', inputType="num", allowedTypes=[], updates='constant', categ='Playback',
+            volume, valType='num', inputType="single", allowedTypes=[], updates='constant', categ='Playback',
             allowedUpdates=_allowed[:],  # use a copy
             hint=_translate("The volume (in range 0 to 1)"),
             label=_localized["volume"])
