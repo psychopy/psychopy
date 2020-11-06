@@ -1,4 +1,6 @@
 import ast
+import re
+
 from numpy import array
 from esprima import parseScript
 
@@ -257,6 +259,53 @@ def testDisabled(component):
 
     if component.params['disabled'].val:
         alert(4305, component)
+
+def testDollarSyntax(component):
+    """
+    Tests that use of dollar signs in Builder components to denote literal interpretation are used correctly
+
+    Parameters
+    ----------
+    component: Component
+        The component used for testing
+    """
+    valid = {}
+    for (key, param) in component.params.items():
+        if not param.valType in ["str", "extendedStr"]:
+            # Continue if param is not a string
+            valid.update({key: True})
+            continue
+        if not re.search(r"\$", param.val):
+            # Continue if param doesn't contain a $
+            valid.update({key: True})
+            continue
+        if param.val.startswith("$"):
+            # If value begins with an unescaped $, remove the first char and treat the rest as code
+            val = param.val[1:]
+            inComment = "".join(re.findall("\#.*", val))
+            inQuotes = "".join(re.findall("[\'\"][^\"|^\']*[\'\"]", val))
+            if not re.findall(r"\$", val):
+                # Continue if there are no further dollar signs
+                valid.update({key: True})
+                continue
+            if len(re.findall(r"\$", val)) == len(re.findall(r"\$", inComment)):
+                # Continue if all $ are commented out
+                valid.update({key: True})
+                continue
+            if len(re.findall(r"\$", val)) - len(re.findall(r"\$", inComment)) == len(re.findall(r"\\\$", inQuotes)):
+                # Continue if all non-commended $ are in strings and escaped
+                valid.update({key: True})
+                continue
+        else:
+            # If value does not begin with an unescaped $, treat it as a string
+            if not re.findall(r"(?<!\\)\$", param.val):
+                # Continue if all $ are escaped (\$)
+                valid.update({key: True})
+                continue
+        # Raise an alert if loop has not continued yet
+        valid.update({key: False})
+        alert(4315, strFields={'component': component, 'param': param})
+    return valid
 
 def checkPythonSyntax(component, tab):
     """
