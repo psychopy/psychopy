@@ -1997,7 +1997,7 @@ class RoutineCanvas(wx.ScrolledWindow):
                    title=component.params['name'].val + ' Properties',
                    params=component.params,
                    order=component.order, helpUrl=helpUrl, editing=True,
-                   depends=component.depends)
+                   depends=component.depends, type=component.type)
         if dlg.OK:
             # Redraw if force end routine has changed
             if 'forceEndRoutine' in component.params \
@@ -2280,7 +2280,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
                    params=newComp.params, order=newComp.order,
                    helpUrl=helpUrl,
                    depends=newComp.depends,
-                   timeout=timeout)
+                   timeout=timeout, type=newComp.type)
 
         compName = newComp.params['name']
         if dlg.OK:
