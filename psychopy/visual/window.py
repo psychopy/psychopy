@@ -1045,7 +1045,6 @@ class Window(object):
                     # If editable was clicked on, give it focus
                     self.currentEditable = thisObj
             # If there is only one editable on screen, make sure it starts off with focus
-            print(editablesOnScreen)
             if sum(editablesOnScreen) == 1:
                 self.currentEditable = self._editableChildren[editablesOnScreen.index(True)]
 
