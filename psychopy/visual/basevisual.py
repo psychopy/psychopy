@@ -430,6 +430,24 @@ class ColorMixin(object):
         logAttrib(self, log, 'color',
                   value='%s (%s)' % (self.color, self.colorSpace))
 
+    def setFillColor(self, color, colorSpace=None, operation='', log=None):
+        setColor(self, color, colorSpace=colorSpace, operation=operation,
+                 rgbAttrib='fillRGB',  # or 'fillRGB' etc
+                 colorAttrib='fillColor')
+        if self.__class__.__name__ == 'TextStim' and not self.useShaders:
+            self._needSetText = True
+        logAttrib(self, log, 'color',
+                  value='%s (%s)' % (self.color, self.colorSpace))
+
+    def setBorderColor(self, color, colorSpace=None, operation='', log=None):
+        setColor(self, color, colorSpace=colorSpace, operation=operation,
+                 rgbAttrib='borderRGB',  # or 'fillRGB' etc
+                 colorAttrib='borderColor')
+        if self.__class__.__name__ == 'TextStim' and not self.useShaders:
+            self._needSetText = True
+        logAttrib(self, log, 'color',
+                  value='%s (%s)' % (self.color, self.colorSpace))
+
     def setContrast(self, newContrast, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
