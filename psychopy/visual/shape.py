@@ -32,7 +32,7 @@ from psychopy.tools.arraytools import val2array
 from psychopy.visual.basevisual import (BaseVisualStim, ColorMixin,
                                         ContainerMixin)
 from psychopy.visual.helpers import setColor
-import psychopy.visual
+import psychopy.visual.line
 from psychopy.contrib import tesselate
 import copy
 import numpy
@@ -172,7 +172,7 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         :ref:`Operations <attrib-operations>` supported.
         """
-        if isinstance(self, psychopy.visual.Line) and isinstance(value, (int, float)):
+        if isinstance(self, psychopy.visual.line.Line) and isinstance(value, (int, float)):
             if value > 127:
                 logging.warning("lineWidth is greater than max width supported by OpenGL. For lines thicker than 127px, please use a filled Rect instead.")
         self.__dict__['lineWidth'] = value
