@@ -80,7 +80,7 @@ class FormComponent(BaseVisualComponent):
         # = the usual as inherited from BaseComponent plus:
 
         self.params['Items'] = Param(
-            items, valType='str', allowedTypes=[], categ='Basic',
+            items, valType='table', allowedTypes=[], categ='Basic',
             updates='constant',
             hint=_translate("The csv filename containing the items for your survey."),
             label=_localized['Items'])

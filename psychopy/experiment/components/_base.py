@@ -125,6 +125,7 @@ class BaseComponent(object):
         """
         alerttools.testDisabled(self)
         alerttools.testStartEndTiming(self)
+        alerttools.testDollarSyntax(self)
 
     def _dubiousConstantUpdates(self):
         """Return a list of fields in component that are set to be constant
@@ -437,8 +438,14 @@ class BaseComponent(object):
         # code conversions for PsychoJS
         if target == 'PsychoJS':
             endStr = ';'
+            try:
+                valStr = str(val).strip()
+            except TypeError:
+                if isinstance(val, Param):
+                    val = val.val
+                raise TypeError(f"Value of parameter {paramName} of component {compName} "
+                                f"could not be converted to JS. Value is {val}")
             # convert (0,0.5) to [0,0.5] but don't convert "rand()" to "rand[]"
-            valStr = str(val).strip()
             if valStr.startswith("(") and valStr.endswith(")"):
                 valStr = valStr.replace("(", "[", 1)
                 valStr = valStr[::-1].replace(")", "]", 1)[
@@ -569,7 +576,7 @@ class BaseVisualComponent(BaseComponent):
     categories = ['Stimuli']
 
     def __init__(self, exp, parentName, name='',
-                 units='from exp settings', color='$[1,1,1]',
+                 units='from exp settings', color='$[1,1,1]', borderColor="", fillColor="",
                  pos=(0, 0), size=(0, 0), ori=0, colorSpace='rgb', opacity=1,
                  startType='time (s)', startVal='',
                  stopType='duration (s)', stopVal='',
@@ -616,7 +623,7 @@ class BaseVisualComponent(BaseComponent):
         msg = _translate("Fill color of this stimulus (e.g. $[1,1,0], red );"
                          " Right-click to bring up a color-picker (rgb only)")
         self.params['fillColor'] = Param(
-            color, valType='str', allowedTypes=[], categ='Appearance',
+            fillColor, valType='str', allowedTypes=[], categ='Appearance',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
@@ -634,7 +641,7 @@ class BaseVisualComponent(BaseComponent):
         msg = _translate("Color of this stimulus (e.g. $[1,1,0], red );"
                          " Right-click to bring up a color-picker (rgb only)")
         self.params['borderColor'] = Param(
-            color, valType='str', allowedTypes=[], categ='Appearance',
+            borderColor, valType='str', allowedTypes=[], categ='Appearance',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,

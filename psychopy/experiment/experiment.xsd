@@ -23,6 +23,7 @@
        <xsd:enumeration value="list"/>
        <xsd:enumeration value="fixedList"/>
        <xsd:enumeration value="fileList"/>
+       <xsd:enumeration value="table"/>
      </xsd:restriction>
   </xsd:simpleType>
 

@@ -15,6 +15,32 @@ Changelog
 
 CHANGES, which are identified in this dark red text, typically indicate things that alter the PsychoPy behaviour in a way that could break compatibility. Be especially wary of those!
 
+PsychoPy 2020.2.5
+-----------------
+
+FIXES:
+
+- Failing to send print statements to output, depending on how PsychoPy was launched #4773ec32dcf Only occured if you launch by double-clicking file or if you close Runner
+- Coder crashing on macOS when using editor with autocomplete=True #687e81dfb
+- ioHub fix for unicode strings #5451ea49a
+- Marker color on RatingScale was not resetting (but use Slider anyway!) #3140
+- Runner sometimes ran wrong script (and never knew which to stop). Now better tracking of running process #3142
+- Slider not honoring the order from the Routine (should render in order from top down) #9e0299544
+- JavaScript Code Components for Before Experiment were having no effect #3151
+- error with trying to poll() on a script process that was NoneType #cc56713cc
+- Editable textboxes were still able to be drawn if you clicked on them (even when they were not told to draw()) #8253f0696
+- warn against using global JS names in experiment #3177
+- Brush not being reset in JavaScript #88812c3bd
+- Movie reset issue #3183
+- countinueRoutine=False had no effect for online studies if in Begin Routine block
+- errors that should have appeared in the console were sometimes appearing in the (app) error dialog #d44f24d63
+- more tolerant of whitespace in Emotiv Client ID file
+- Runner AddTask dialog had wrong format for file filter #3213
+- Fix to setting volume attribute with PTB backend #3215
+- Fixed fill/line colors of TextBox #3222
+- Error in JavaScript code when Movie Component had blank stop time #0b4ddcffc
+- Better handling of stdout encodings when console not set to utf-8 encoding #d77535906
+- Improved Resources box for the online (using relative references #c9558bfd8 and resize with dialog #d607271db)
 
 PsychoPy 2020.2.4
 -----------------

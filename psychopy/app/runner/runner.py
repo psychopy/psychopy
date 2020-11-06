@@ -24,7 +24,7 @@ from pathlib import Path
 from subprocess import Popen, PIPE
 
 from psychopy import experiment
-from psychopy.app.utils import PsychopyPlateBtn, PsychopyToolbar, FrameSwitcher
+from psychopy.app.utils import PsychopyPlateBtn, PsychopyToolbar, FrameSwitcher, FileDropTarget
 from psychopy.constants import PY3
 from psychopy.localization import _translate
 from psychopy.app.stdOutRich import StdOutRich
@@ -67,6 +67,8 @@ class RunnerFrame(wx.Frame, ThemeMixin):
         self.runnerMenu = wx.MenuBar()
         self.makeMenu()
         self.SetMenuBar(self.runnerMenu)
+        # Link to file drop function
+        self.SetDropTarget(FileDropTarget(targetFrame=self))
 
         # create icon
         if sys.platform != 'darwin':
@@ -737,7 +739,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
                 return
             filePaths = [fileName]
         else:
-            with wx.FileDialog(self, "Open task...", wildcard="*.py; *.psyexp | *.py; *.psyexp",
+            with wx.FileDialog(self, "Open task...", wildcard="Tasks (*.py;*.psyexp)|*.py;*.psyexp",
                                style=wx.FD_MULTIPLE | wx.FD_FILE_MUST_EXIST) as fileDialog:
 
                 if fileDialog.ShowModal() == wx.ID_CANCEL:

@@ -48,7 +48,7 @@ class pythonTransformer(ast.NodeTransformer):
     subtitutableOperations = []
 
     # operations from the math python module or builtin operations that exist in JavaScript Math:
-    directMathOperations = ['abs', 'min', 'max', 'round', 'ceil', 'fabs', 'floor', 'trunc', 'exp', 'log', 'log2', 'pow',
+    directMathOperations = ['abs', 'min', 'max', 'ceil', 'fabs', 'floor', 'trunc', 'exp', 'log', 'log2', 'pow',
                             'sqrt', 'acos', 'asin', 'atan2', 'cos', 'sin', 'tan', 'acosh', 'asinh', 'atanh', 'cosh',
                             'sinh', 'tanh']
 
