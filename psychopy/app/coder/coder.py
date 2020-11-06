@@ -2523,8 +2523,9 @@ class CoderFrame(wx.Frame, ThemeMixin):
             self.currentDoc.setLexerFromFileName()
             # re-analyse the document
             self.currentDoc.analyseScript()
-
+            # Update status bar and title bar labels
             self.statusBar.SetStatusText(self.currentDoc.getFileType(), 2)
+            self.SetLabel(f'{self.currentDoc.filename} - PsychoPy Coder')
 
         dlg.Destroy()
 
