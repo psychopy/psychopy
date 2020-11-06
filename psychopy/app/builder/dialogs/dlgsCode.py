@@ -40,7 +40,7 @@ class DlgCodeComponentProperties(wx.Dialog):
     def __init__(self, frame, title, params, order,
                  helpUrl=None, suppressTitles=True, size=(800,400),
                  style=_style, editing=False, depends=[],
-                 timeout=None):
+                 timeout=None, type="Code"):
 
         # translate title
         localizedTitle = title.replace(' Properties',
