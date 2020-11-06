@@ -45,10 +45,9 @@ def startApp(safeMode=False, showSplash=True):
     global _psychopyApp
     global _safeMode
     if _psychopyApp is None:
+        _safeMode = safeMode
         _psychopyApp = PsychoPyApp(0, showSplash=showSplash)
         _psychopyApp.MainLoop()
-
-    _safeMode = safeMode
 
 
 def getApp():
@@ -80,6 +79,9 @@ def getAppFrame(frameName):
     """Get the reference to one of PsychoPy's application frames. Returns `None`
     if a frame has not been realized or PsychoPy is not in GUI mode.
 
+    The returned object can be used to manipulate GUI elements (invoke events,
+    add/update widgets, etc.) while the application is running.
+
     Parameters
     ----------
     frameName : str
@@ -92,6 +94,15 @@ def getAppFrame(frameName):
         Reference to the frame (i.e. `CoderFrame`, `BuilderFrame` or
         `RunnerFrame`). `None` is returned if the frame has not been created or
         the app is not running.
+
+    Examples
+    --------
+    Get the reference to the Coder frame then set the current document::
+
+        import psychopy.app as app
+
+        coderFrame = app.getAppFrame('coder')
+        coderFrame.setCurrentDoc('path/to/my/doc.py')
 
     """
     if _psychopyApp is None:  # PsychoPy is not in GUI mode
