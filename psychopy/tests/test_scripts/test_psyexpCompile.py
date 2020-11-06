@@ -88,8 +88,6 @@ class TestComponents(object):
             tykeComponent.params.update({
                 str(i): Param(val, "str")
             })
-        # Run alert tool on tyke component
-        tested = alerttools.testDollarSyntax(tykeComponent)
-        # Check the validity of each tyke param against the expected value
         for (i, val) in enumerate(tykes):
-            assert tykes[val] == tested[str(i)]
+            # Check the validity of each tyke param against the expected value
+            assert tykeComponent.params[str(i)].dollarSyntax()[0] == tykes[val]
