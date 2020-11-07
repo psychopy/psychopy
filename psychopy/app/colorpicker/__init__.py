@@ -35,7 +35,7 @@ class PsychoColorPicker(wx.Dialog, ThemeMixin):
         self.ctrls.AddPage(ColorPage(self.ctrls, self, 'rgba1'), 'RGB (0 to 1)')
         self.ctrls.AddPage(ColorPage(self.ctrls, self, 'rgba255'), 'RGB (0 to 255)')
         self.ctrls.AddPage(ColorPage(self.ctrls, self, 'hsva'), 'HSV')
-        self.ctrls.AddPage(ColorPage(self.ctrls, self, 'hexa'), 'Hex')
+        self.ctrls.AddPage(ColorPage(self.ctrls, self, 'hex'), 'Hex')
         # Add array of named colours
         self.presets = ColorPresets(parent=self)
         self.sizer.Add(self.presets, pos=(0,2), border=5, flag=wx.ALL)
@@ -105,7 +105,7 @@ class PsychoColorPicker(wx.Dialog, ThemeMixin):
                 col = tuple(round(c, 2) for c in col)
             # Copy to clipboard
             wx.TheClipboard.SetData(wx.TextDataObject(
-                "Color("+str(col)+", "+self.ctrls.GetCurrentPage().space+")"
+                "colors.Color("+str(col)+", \'"+self.ctrls.GetCurrentPage().space+"\')"
             ))
             wx.TheClipboard.Close()
 
@@ -140,8 +140,8 @@ class ColorPreview(wx.Window):
             for y in range(0+(x%2)*h, self.GetSize()[1], h*2):
                 self.pdc.DrawRectangle(x, y, w, h)
                 self.pdc.DrawRectangle(x+w, y+h, w, h)
-        self.dc.SetBrush(wx.Brush(self.color.rgba255, wx.BRUSHSTYLE_TRANSPARENT))
-        self.dc.SetPen(wx.Pen(self.color.rgba255, wx.PENSTYLE_TRANSPARENT))
+        self.dc.SetBrush(wx.Brush(self.color.rgb255 + (self.color.alpha*255,), wx.BRUSHSTYLE_TRANSPARENT))
+        self.dc.SetPen(wx.Pen(self.color.rgb255 + (self.color.alpha*255,), wx.PENSTYLE_TRANSPARENT))
         self.dc.DrawRectangle(0, 0, self.GetSize()[0], self.GetSize()[1])
 
 class ColorPresets(ScrolledPanel):
@@ -181,7 +181,7 @@ class ColorPage(wx.Window, ThemeMixin):
                 ColorControl(parent=self, id=wx.ID_ANY, name="Blue", value=0, min=-1, max=1, interval=0.01)]
             if space == 'rgba':
                 self.ctrls.append(
-                    ColorControl(parent=self, id=wx.ID_ANY, name="Alpha", value=1, min=-1, max=1, interval=0.01))
+                    ColorControl(parent=self, id=wx.ID_ANY, name="Alpha", value=1, min=0, max=1, interval=0.01))
         elif space in ['rgb1', 'rgba1']:
             self.ctrls = [
                 ColorControl(parent=self, id=wx.ID_ANY, name="Red", value=0.5, min=0, max=1, interval=0.01),
@@ -197,7 +197,7 @@ class ColorPage(wx.Window, ThemeMixin):
                 ColorControl(parent=self, id=wx.ID_ANY, name="Blue", value=127, min=0, max=255, interval=1)]
             if space == 'rgba255':
                 self.ctrls.append(
-                    ColorControl(parent=self, id=wx.ID_ANY, name="Alpha", value=255, min=0, max=255, interval=1))
+                    ColorControl(parent=self, id=wx.ID_ANY, name="Alpha", value=1, min=0, max=1, interval=0.01))
         elif space in ['hsv', 'hsva']:
             self.ctrls = [
                 ColorControl(parent=self, id=wx.ID_ANY, name="Hue", value=180, min=0, max=360, interval=0.01),
@@ -206,14 +206,11 @@ class ColorPage(wx.Window, ThemeMixin):
             if space == 'hsva':
                 self.ctrls.append(
                     ColorControl(parent=self, id=wx.ID_ANY, name="Alpha", value=1, min=0, max=1, interval=0.01))
-        elif space in ['hex', 'hexa']:
+        elif space in ['hex']:
             self.ctrls = [
                 ColorControl(parent=self, id=wx.ID_ANY, name="Red", value=127, min=0, max=255, interval=1),
                 ColorControl(parent=self, id=wx.ID_ANY, name="Green", value=127, min=0, max=255, interval=1),
                 ColorControl(parent=self, id=wx.ID_ANY, name="Blue", value=127, min=0, max=255, interval=1)]
-            if space == 'hexa':
-                self.ctrls.append(
-                    ColorControl(parent=self, id=wx.ID_ANY, name="Alpha", value=255, min=0, max=255, interval=1))
             for ctrl in self.ctrls:
                 ctrl.spinner.SetBase(16)
         self.valCtrl = ColorValue(self)
@@ -235,8 +232,6 @@ class ColorPage(wx.Window, ThemeMixin):
         # Get values from color
         if self.space =='hex':
             col = color.rgb255
-        elif self.space == 'hexa':
-            col = color.rgba255
         else:
             col = getattr(color, self.space)
         # Apply values to relevant controls
@@ -244,7 +239,7 @@ class ColorPage(wx.Window, ThemeMixin):
             self.ctrls[i].value = col[i]
 
     def onChange(self):
-        if self.space in ['hex', 'hexa']:
+        if self.space in ['hex']:
             col = tuple(ctrl.value for ctrl in self.ctrls)
             self.dlg.setColor(col, 'rgba255')
             return
@@ -293,7 +288,7 @@ class ColorControl(wx.Panel):
         self.sizer.Add(self.slider, pos=(0, 1))
         self.sizer.AddGrowableCol(1, 0.5)
         # Make spinner (only for integer spaces)
-        if self.parent.space in ['rgb255', 'rgba255', 'hex', 'hexa']:
+        if self.interval == 1:
             self.spinner = wx.SpinCtrl(self, name=name, min=min, max=max, size=(75,rowh-5))
             self.spinner.Bind(wx.EVT_SPIN_UP, self.spinUp)
             self.spinner.Bind(wx.EVT_SPIN_UP, self.spinDown)

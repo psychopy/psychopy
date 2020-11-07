@@ -125,6 +125,7 @@ class BaseComponent(object):
         """
         alerttools.testDisabled(self)
         alerttools.testStartEndTiming(self)
+        alerttools.testDollarSyntax(self)
 
     def _dubiousConstantUpdates(self):
         """Return a list of fields in component that are set to be constant

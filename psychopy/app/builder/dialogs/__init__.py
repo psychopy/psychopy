@@ -1347,6 +1347,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                 self.Bind(wx.EVT_BUTTON, self.onBrowseTrialsFile,
                           ctrls.browseCtrl)
                 ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.viewConditions)
+                ctrls.valueCtrl.Bind(wx.EVT_TEXT, self.doValidate)
                 panelSizer.Add(ctrls.nameCtrl, [row, 0])
                 panelSizer.Add(ctrls.valueCtrl, [row, 1])
                 panelSizer.Add(ctrls.browseCtrl, [row, 2])
