@@ -287,7 +287,7 @@ class Flow(list):
         script.writeIndentedLines(code)
 
         # Write resource list
-        resourceFiles = set([resource['rel'].replace("\\", "/") for resource in self.exp.getResourceFiles()])
+        resourceFiles = set([resource['rel'] for resource in self.exp.getResourceFiles()])
         if self.exp.htmlFolder:
             resourceFolderStr = "resources/"
         else:

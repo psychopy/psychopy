@@ -18,6 +18,8 @@ The code that writes out a *_lastrun.py experiment file is (in order):
 
 from __future__ import absolute_import, print_function
 # from future import standard_library
+import re
+
 from past.builtins import basestring
 from builtins import object
 import os
@@ -758,12 +760,14 @@ class Experiment(object):
             #    but os.path.relpath('/folder/file.xlsx', '/Applications') correctly uses ../
             if len(filePath) > 2 and (filePath[0] == "/" or filePath[1] == ":")\
                     and os.path.isfile(filePath):
+                # If path, as is, exists, then it is absolute and so needs converting to relative
                 thisFile['abs'] = filePath
-                thisFile['rel'] = os.path.relpath(filePath, srcRoot)
+                thisFile['rel'] = os.path.relpath(filePath, self.filename)
                 return thisFile
             else:
+                # Otherwise, it is relative and so needs converting to absolute
                 thisFile['rel'] = filePath
-                thisFile['abs'] = os.path.normpath(join(srcRoot, filePath))
+                thisFile['abs'] = os.path.normpath(join(self.filename, filePath))
                 if os.path.isfile(thisFile['abs']):
                     return thisFile
 
@@ -845,6 +849,15 @@ class Experiment(object):
 
         # Add files from additional resources box
         val = self.settings.params['Resources'].val
+        if isinstance(val, str):
+            # If val is a list as a string, convert to a list
+            if re.match(r"\[[\'\"]?.*[\'\"]?\]", val):
+                # Remove any [, ' or " from either end and split into list
+                offset = min(
+                    [y-x for (x,y) in (re.search("\[[\'\"]*", val).span(),)][0],
+                    [y-x for (x,y) in (re.search("[\'\"]*\]", val).span(),)][0]
+                )
+                val = val[offset:-offset].split(",")
         for thisEntry in val:
             thisFile = getPaths(thisEntry)
             if thisFile:
