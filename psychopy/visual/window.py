@@ -922,20 +922,14 @@ class Window(object):
     @currentEditable.setter
     def currentEditable(self, editable):
         """Keeps the current editable stored as a weak ref"""
+        # Save previous editable
         lastEditable = self.currentEditable
+        # Remove focus from last editable
         if lastEditable is not None and lastEditable is not editable:
             lastEditable.hasFocus = False
-        # we want both the weakref and the actual object
-        if not isinstance(editable, weakref.ref):
-            thisRef = weakref.ref(editable)
-        else:
-            thisRef = editable
-            editable = thisRef()
-        # then get/set index in list
-        if thisRef not in self._editableChildren:
-            self._currentEditableIndex = self.addEditable(thisRef)
-        else:
-            self._currentEditableIndex = self._editableChildren.index(thisRef)
+        # Ensure that item is added to editables list
+        self._currentEditableIndex = self.addEditable(editable)
+        # Give focus to new current editable
         editable.hasFocus = True
 
     def addEditable(self, editable):
@@ -947,12 +941,32 @@ class Window(object):
         :param editable:
         :return:
         """
+        # Ignore if object is not editable
+        if not hasattr(editable, "editable"):
+            return
+        if not editable.editable:
+            return
+        # If editable is already present, return its index
+        for ref in weakref.getweakrefs(editable):
+            if ref in self._editableChildren:
+                return self._editableChildren.index(ref)
+        # If editable is not already present, add it to the editables list
         self._editableChildren.append(weakref.ref(editable))
-        ii = len(self._editableChildren)-1  # the index of appended item
-        # if this is the first editable obj then make it the
+        # If this is the first editable obj then make it the current
         if len(self._editableChildren) == 1:
             self.currentEditable = editable
-        return ii
+        # Return the index of the appended item
+        return len(self._editableChildren) - 1
+
+
+    def removeEditable(self, editable):
+        # If editable is present, remove it from editables list
+        for ref in weakref.getweakrefs(editable):
+            if ref in self._editableChildren:
+                self._editableChildren.remove(ref)
+                # If editable was current, move on to next current
+                if self.currentEditable == self:
+                    self.nextEditable()
 
     def nextEditable(self, chars=''):
         """Moves focus of the cursor to the next editable window"""

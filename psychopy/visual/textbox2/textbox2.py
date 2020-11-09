@@ -215,8 +215,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.editable = editable
         self.caret = Caret(self, color=self.color, width=5)
         self._hasFocus = False
-        if editable:  # may yet gain focus if the first editable obj
-            self.win.addEditable(self)
 
         self.autoLog = autoLog
 
@@ -542,9 +540,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
     def reset(self):
         # Reset contents
         self.text = self.startText
-        # Make sure box is still editable (if needed)
-        if self.editable and self not in self.win._editableChildren:  # may yet gain focus if the first editable obj
-            self.win.addEditable(self)
 
 
     def contains(self, x, y=None, units=None, tight=False):
