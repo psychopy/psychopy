@@ -2523,8 +2523,9 @@ class CoderFrame(wx.Frame, ThemeMixin):
             self.currentDoc.setLexerFromFileName()
             # re-analyse the document
             self.currentDoc.analyseScript()
-
+            # Update status bar and title bar labels
             self.statusBar.SetStatusText(self.currentDoc.getFileType(), 2)
+            self.SetLabel(f'{self.currentDoc.filename} - PsychoPy Coder')
 
         dlg.Destroy()
 
@@ -2671,7 +2672,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.currentDoc.resetFontSize()
 
     def foldAll(self, event):
-        self.currentDoc.FoldAll()
+        self.currentDoc.FoldAll(wx.stc.STC_FOLDACTION_TOGGLE)
 
     # def unfoldAll(self, event):
     #   self.currentDoc.ToggleFoldAll(expand = False)

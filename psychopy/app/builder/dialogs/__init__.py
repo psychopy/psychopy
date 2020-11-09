@@ -156,8 +156,10 @@ class ParamCtrls(object):
             self.valueCtrl = FileListCtrl(parent,
                                           choices=param.val,
                                           size=wx.Size(self.valueWidth, 100),
-                                          pathtype="rel"
-                                          )
+                                          pathtype="rel")
+        elif param.valType == 'table':
+            self.valueCtrl = TableCtrl(parent, val=param.val, fieldName=fieldName,
+                                       size=wx.Size(self.valueWidth, 16))
         elif len(param.allowedVals) > 1:
             # there are limited options - use a Choice control
             # use localized text or fall through to non-localized,
@@ -1341,6 +1343,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                 self.Bind(wx.EVT_BUTTON, self.onBrowseTrialsFile,
                           ctrls.browseCtrl)
                 ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.viewConditions)
+                ctrls.valueCtrl.Bind(wx.EVT_TEXT, self.doValidate)
                 panelSizer.Add(ctrls.nameCtrl, [row, 0])
                 panelSizer.Add(ctrls.valueCtrl, [row, 1])
                 panelSizer.Add(ctrls.browseCtrl, [row, 2])
@@ -1778,7 +1781,7 @@ class DlgComponentProperties(_BaseParamsDlg):
                  helpUrl=None, suppressTitles=True, size=wx.DefaultSize,
                  style=wx.DEFAULT_DIALOG_STYLE | wx.DIALOG_NO_PARENT,
                  editing=False, depends=[],
-                 timeout=None):
+                 timeout=None, type=None):
         style = style | wx.RESIZE_BORDER
         _BaseParamsDlg.__init__(self, frame, title, params, order,
                                 helpUrl=helpUrl, size=size, style=style,
@@ -1787,6 +1790,7 @@ class DlgComponentProperties(_BaseParamsDlg):
         self.frame = frame
         self.app = frame.app
         self.dpi = self.app.dpi
+        self.type = type
 
         # for input devices:
         if 'storeCorrect' in self.params:
@@ -1982,6 +1986,86 @@ class FileListCtrl(wx.ListBox):
     def GetValue(self):
         return self.Items
 
+class TableCtrl(wx.TextCtrl):
+    def __init__(self, parent,
+                 val="", fieldName="",
+                 size=wx.Size(-1, 24)):
+        # Create self
+        wx.TextCtrl.__init__(self)
+        self.Create(parent, -1, val, name=fieldName, size=size)
+        # Add sizer
+        self._szr = wx.BoxSizer(wx.HORIZONTAL)
+        self._szr.Add(self, border=5, flag=wx.EXPAND | wx.RIGHT)
+        # Add button to browse for file
+        fldr = parent.app.iconCache.getBitmap(name="folder", size=16, theme="light")
+        self.findBtn = wx.BitmapButton(parent, -1, size=wx.Size(24,24), bitmap=fldr)
+        self.findBtn.SetToolTip(_translate("Specify file ..."))
+        self.findBtn.Bind(wx.EVT_BUTTON, self.findFile)
+        self._szr.Add(self.findBtn)
+        # Add button to open in Excel
+        xl = parent.app.iconCache.getBitmap(name="filecsv", size=16, theme="light")
+        self.xlBtn = wx.BitmapButton(parent, -1, size=wx.Size(24,24), bitmap=xl)
+        self.xlBtn.SetToolTip(_translate("Open/create in your default table editor"))
+        self.xlBtn.Bind(wx.EVT_BUTTON, self.openExcel)
+        self._szr.Add(self.xlBtn)
+        # Link to Excel templates for certain contexts
+        cmpRoot = os.path.dirname(psychopy.experiment.components.__file__)
+        self.templates = {
+            'Form': os.path.join(cmpRoot, "form", "formItems.xltx")
+        }
+        # Configure validation
+        self.Bind(wx.EVT_TEXT, self.validateInput)
+        self.validExt = [".csv",".tsv",".txt",
+                         ".xl",".xlsx",".xlsm",".xlsb",".xlam",".xltx",".xltm",".xls",".xlt",
+                         ".htm",".html",".mht",".mhtml",
+                         ".xml",".xla",".xlm",
+                         ".odc",".ods",
+                         ".udl",".dsn",".mdb",".mde",".accdb",".accde",".dbc",".dbf",
+                         ".iqy",".dqy",".rqy",".oqy",
+                         ".cub",".atom",".atomsvc",
+                         ".prn",".slk",".dif"]
+
+    def validateInput(self, event):
+        """Check whether input is openable and valid"""
+        valid = False
+        file = self.GetValue()
+        # Is component type available?
+        if hasattr(self.GetTopLevelParent(), 'type'):
+            # Does this component have a default template?
+            if self.GetTopLevelParent().type in self.templates:
+                valid = True
+        # Has user entered a full filepath, but it is invalid?
+        if file and file not in self.validExt:
+            valid = False
+        # Is value a valid filepath?
+        if os.path.isfile(os.path.abspath(file)) and file.endswith(tuple(self.validExt)):
+            valid = True
+        # Set excel button accordingly
+        self.xlBtn.Enable(valid)
+
+    def openExcel(self, event):
+        """Either open the specified excel sheet, or make a new one from a template"""
+        file = self.GetValue()
+        if os.path.isfile(file) and file.endswith(tuple(self.validExt)):
+            os.startfile(file)
+        else:
+            dlg = wx.MessageDialog(self, _translate(
+                f"Once you have created and saved your table, please remember to add it to {self.Name}"),
+                             caption="Reminder")
+            dlg.ShowModal()
+            os.startfile(self.templates[self.GetTopLevelParent().type])
+
+    def findFile(self, event):
+        _wld = f"All Table Files({'*'+';*'.join(self.validExt)})|{'*'+';*'.join(self.validExt)}|All Files (*.*)|*.*"
+        dlg = wx.FileDialog(self, message=_translate("Specify file ..."),
+                            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST,
+                            wildcard=_translate(_wld))
+        if dlg.ShowModal() != wx.ID_OK:
+            return 0
+        filename = dlg.GetPath()
+        relname = os.path.relpath(filename)
+        self.SetValue(relname)
+        self.validateInput(event)
 
 def _relpath(path, start='.'):
     """This code is based on os.path.relpath in the Python 2.6 distribution,
