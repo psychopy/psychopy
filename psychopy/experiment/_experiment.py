@@ -18,8 +18,6 @@ The code that writes out a *_lastrun.py experiment file is (in order):
 
 from __future__ import absolute_import, print_function
 # from future import standard_library
-import re
-
 from past.builtins import basestring
 from builtins import object
 import os
