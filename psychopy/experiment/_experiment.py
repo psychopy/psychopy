@@ -46,6 +46,9 @@ import locale
 # standard_library.install_aliases()
 
 from collections import OrderedDict, namedtuple
+
+from ..data.utils import listFromString
+
 RequiredImport = namedtuple('RequiredImport',
                             field_names=('importName',
                                          'importFrom',
@@ -848,16 +851,9 @@ class Experiment(object):
                             resources.append(thisFile)
 
         # Add files from additional resources box
-        val = self.settings.params['Resources'].val
-        if isinstance(val, str):
-            # If val is a list as a string, convert to a list
-            if re.match(r"\[[\'\"]?.*[\'\"]?\]", val):
-                # Remove any [, ' or " from either end and split into list
-                offset = min(
-                    [y-x for (x,y) in (re.search("\[[\'\"]*", val).span(),)][0],
-                    [y-x for (x,y) in (re.search("[\'\"]*\]", val).span(),)][0]
-                )
-                val = val[offset:-offset].split(",")
+        val = listFromString(
+            self.settings.params['Resources'].val
+        )
         for thisEntry in val:
             thisFile = getPaths(thisEntry)
             if thisFile:
