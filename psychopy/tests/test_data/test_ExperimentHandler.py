@@ -7,6 +7,8 @@ import os, glob, shutil
 import io
 from tempfile import mkdtemp
 
+from psychopy.tools.filetools import openOutputFile
+
 logging.console.setLevel(logging.DEBUG)
 
 
@@ -144,6 +146,25 @@ class TestExperimentHandler(object):
         e2.addLoop(t)
 
         assert e1 == e2
+
+    def test_save_unicode(self):
+        exp = data.ExperimentHandler()
+        # Try to save data to csv
+        for encoding in ['utf-8', 'utf-16']:
+            for asDecimal in range(143859):
+                # Add each unicode character to the data file
+                try:
+                    chr(asDecimal).encode(encoding)
+                except UnicodeEncodeError:
+                    # Skip if not a valid unicode
+                    continue
+                exp.addData("char", chr(asDecimal))
+                exp.nextEntry()
+            try:
+                exp.saveAsWideText(self.tmpDir + '\\unicode_chars.csv', encoding=encoding)
+            except UnicodeEncodeError as err:
+                # If failed, remove and store character which failed
+                raise UnicodeEncodeError(*err.args[:4], "character failing to save to csv")
 
 
 if __name__ == '__main__':
