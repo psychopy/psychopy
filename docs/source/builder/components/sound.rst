@@ -22,9 +22,15 @@ sound :
       * a number can specify the frequency in Hz (e.g. 440)
       * a letter gives a note name (e.g. "C") and sharp or flat can also be added (e.g. "Csh" "Bf")
       * a filename, which can be a relative or absolute path (mid, wav, and ogg are supported).
+Playback
+========
+How should stimulus play? Speed, volume, etc.
 
 volume : float or integer
     The volume with which the sound should be played. It's a normalized value between 0 (minimum) and 1 (maximum).
+
+hamming window : bool
+    Should there be a hamming window between stimuli?
 
 .. seealso::
 	

@@ -121,6 +121,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         self.itemPadding = itemPadding
         self.scrollSpeed = self.setScrollSpeed(self.items, 4)
         self.units = units
+        self.depth = 0
 
 
         self.textHeight = textHeight

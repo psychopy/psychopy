@@ -8,7 +8,16 @@ TrialHandler
 
 This is what underlies the random and sequential loop types in :ref:`builder`, they work using the :term:`method of constants`. The trialHandler presents a predetermined list of conditions in either a sequential or random (without replacement) order.
 
-see :class:`TrialHandler` for more details.
+see :class:`~psychopy.data.TrialHandler` for more details.
+
+TrialHandlerExt (For oddball paradigms)
+=======================================
+
+For handling trial sequences in a *non-counterbalanced design* (i.e. *oddball paradigms*, https://en.wikipedia.org/wiki/Oddball_paradigm). The oddball paradigm is very popular in EEG research.
+
+Its functions are a superset of the class TrialHandler, and as such, can also be used for normal trial handling.
+
+see :class:`~psychopy.data.TrialHandlerExt` for more details.
 
 StairHandler
 ============

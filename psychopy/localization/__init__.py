@@ -163,9 +163,13 @@ _localized = {
     'durationEstim': _translate('Expected duration (s)'),
 
     # for BaseVisualComponent:
-    'units': _translate('Units'),
-    'color': _translate('Color'),
-    'colorSpace': _translate('Color space'),
+    'units': _translate('Spatial Units'),
+    'color': _translate('Foreground Color'),
+    'colorSpace': _translate('Foreground Color Space'),
+    'fillColor': _translate('Fill Color'),
+    'fillColorSpace': _translate('Fill Color Space'),
+    'borderColor': _translate('Border Color'),
+    'borderColorSpace': _translate('Border Color Space'),
     'opacity': _translate('Opacity'),
     'pos': _translate('Position [x,y]'),
     'ori': _translate('Orientation'),

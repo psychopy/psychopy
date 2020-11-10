@@ -15,7 +15,8 @@ from psychopy.constants import PY3
 from psychopy.experiment.components import Param, _translate
 from psychopy.experiment.components.keyboard import KeyboardComponent
 from psychopy.experiment import CodeGenerationException, valid_var_re
-
+from psychopy.localization import _localized as __localized
+_localized = __localized.copy()
 __author__ = 'Jon Peirce'
 
 # abs path to the folder containing this path
@@ -25,8 +26,8 @@ tooltip = _translate('Cedrus Button Box: Cedrus response boxes, using the '
                      'pyxid library provided by Cedrus')
 
 # only use _localized values for label values, nothing functional:
-_localized = {'deviceNumber': _translate('Device number'),
-              'useBoxTimer': _translate("Use box timer")}
+_localized.update({'deviceNumber': _translate('Device number'),
+                   'useBoxTimer': _translate("Use box timer")})
 
 
 class cedrusButtonBoxComponent(KeyboardComponent):
@@ -80,10 +81,10 @@ class cedrusButtonBoxComponent(KeyboardComponent):
         msg = _translate('Device number, if you have multiple devices which'
                          ' one do you want (0, 1, 2...)')
         self.params['deviceNumber'] = Param(
-            deviceNumber, valType='code', allowedTypes=[],
+            deviceNumber, valType='code', allowedTypes=[], categ='Hardware',
             updates='constant', allowedUpdates=[],
             hint=msg,
-            label=_localized['deviceNumber'], categ='Advanced')
+            label=_localized['deviceNumber'])
 
         # self.params['getReleaseTime'] = Param(getReleaseTime,
         #    valType='bool', allowedVals=[True, False],
@@ -95,10 +96,10 @@ class cedrusButtonBoxComponent(KeyboardComponent):
         msg = _translate('According to Cedrus the response box timer has '
                          'a drift - use with caution!')
         self.params['useBoxTimer'] = Param(
-            getReleaseTime, valType='bool', allowedVals=[True, False],
+            getReleaseTime, valType='bool', allowedVals=[True, False], categ='Hardware',
             updates='constant', allowedUpdates=[],
             hint=msg,
-            label=_localized['useBoxTimer'], categ='Advanced')
+            label=_localized['useBoxTimer'])
 
     def writeRunOnceInitCode(self, buff):
         code = ("try:  # to use the Cedrus response box\n"

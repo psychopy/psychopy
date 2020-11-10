@@ -12,6 +12,8 @@ from os import path
 import copy
 from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals, _translate
 from psychopy import logging
+from psychopy.localization import _localized as __localized
+_localized = __localized.copy()
 
 # the absolute path to the folder containing this path
 thisFolder = path.abspath(path.dirname(__file__))
@@ -20,15 +22,16 @@ tooltip = _translate('Polygon: any regular polygon (line, triangle, square'
                      '...circle)')
 
 # only use _localized values for label values, nothing functional:
-_localized = {'nVertices': _translate('Num. vertices'),
-              'fillColorSpace': _translate('Fill color-space'),
-              'fillColor': _translate('Fill color'),
-              'lineColorSpace': _translate('Line color-space'),
-              'lineColor': _translate('Line color'),
-              'lineWidth': _translate('Line width'),
-              'interpolate': _translate('Interpolate'),
-              'size': _translate("Size [w,h]"),
-              'shape': _translate("Shape")}
+_localized = _localized.copy()
+_localized.update({'nVertices': _translate('Num. vertices'),
+                   'fillColorSpace': _translate('Fill color-space'),
+                   'fillColor': _translate('Fill color'),
+                   'lineColorSpace': _translate('Line color-space'),
+                   'lineColor': _translate('Line color'),
+                   'lineWidth': _translate('Line width'),
+                   'interpolate': _translate('Interpolate'),
+                   'size': _translate("Size [w,h]"),
+                   'shape': _translate("Shape")})
 
 
 class PolygonComponent(BaseVisualComponent):
@@ -67,7 +70,7 @@ class PolygonComponent(BaseVisualComponent):
         # params
         msg = _translate("How many vertices in your regular polygon?")
         self.params['nVertices'] = Param(
-            nVertices, valType='int',
+            nVertices, valType='int', categ='Basic',
             updates='constant',
             allowedUpdates=['constant'],
             hint=msg,
@@ -76,7 +79,7 @@ class PolygonComponent(BaseVisualComponent):
         msg = _translate("What shape is this? With 'regular polygon...' you "
                          "can set number of vertices")
         self.params['shape'] = Param(
-            shape, valType='str',
+            shape, valType='str', categ='Basic',
             allowedVals=["line", "triangle", "rectangle", "cross", "star",
                          "regular polygon..."],
             updates='constant',
@@ -84,46 +87,15 @@ class PolygonComponent(BaseVisualComponent):
             hint=msg,
             label=_localized['shape'])
 
-        msg = _translate("Choice of color space for the fill color "
-                         "(rgb, dkl, lms, hsv)")
-        self.params['fillColorSpace'] = Param(
-            fillColorSpace,
-            valType='str', allowedVals=['rgb', 'dkl', 'lms', 'hsv', 'rgb255'],
-            updates='constant',
-            hint=msg,
-            label=_localized['fillColorSpace'], categ='Advanced')
-
-        msg = _translate("Fill color of this shape; Right-click to bring up a"
-                         " color-picker (rgb only)")
-        self.params['fillColor'] = Param(
-            fillColor, valType='str', allowedTypes=[],
-            updates='constant',
-            allowedUpdates=['constant', 'set every repeat', 'set every frame'],
-            hint=msg,
-            label=_localized['fillColor'], categ='Advanced')
-
-        msg = _translate("Choice of color space for the fill color "
-                         "(rgb, dkl, lms, hsv)")
-        self.params['lineColorSpace'] = Param(
-            lineColorSpace, valType='str',
-            allowedVals=['rgb', 'dkl', 'lms', 'hsv'],
-            updates='constant',
-            hint=msg,
-            label=_localized['lineColorSpace'], categ='Advanced')
-
-        msg = _translate("Line color of this shape; Right-click to bring"
-                         " up a color-picker (rgb only)")
-        self.params['lineColor'] = Param(
-            lineColor, valType='str', allowedTypes=[],
-            updates='constant',
-            allowedUpdates=['constant', 'set every repeat', 'set every frame'],
-            hint=msg,
-            label=_localized['lineColor'], categ='Advanced')
+        self.params['lineColorSpace'] = self.params['borderColorSpace']
+        del self.params['borderColorSpace']
+        self.params['lineColor'] = self.params['borderColor']
+        del self.params['borderColor']
 
         msg = _translate("Width of the shape's line (always in pixels - this"
                          " does NOT use 'units')")
         self.params['lineWidth'] = Param(
-            lineWidth, valType='code', allowedTypes=[],
+            lineWidth, valType='code', allowedTypes=[], categ='Appearance',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
@@ -132,22 +104,17 @@ class PolygonComponent(BaseVisualComponent):
         msg = _translate(
             "How should the image be interpolated if/when rescaled")
         self.params['interpolate'] = Param(
-            interpolate, valType='str', allowedVals=['linear', 'nearest'],
+            interpolate, valType='str', allowedVals=['linear', 'nearest'], categ='Texture',
             updates='constant', allowedUpdates=[],
             hint=msg,
-            label=_localized['interpolate'], categ='Advanced')
+            label=_localized['interpolate'])
 
-        msg = _translate(
+
+        self.params['size'].hint = _translate(
             "Size of this stimulus [w,h]. Note that for a line only the "
             "first value is used, for triangle and rect the [w,h] is as "
             "expected,\n but for higher-order polygons it represents the "
             "[w,h] of the ellipse that the polygon sits on!! ")
-        self.params['size'] = Param(
-            size, valType='code', allowedTypes=[],
-            updates='constant',
-            allowedUpdates=['constant', 'set every repeat', 'set every frame'],
-            hint=msg,
-            label=_localized['size'])
 
         del self.params['color']
         del self.params['colorSpace']

@@ -65,6 +65,7 @@ class ThemeMixin:
         stc.STC_LEX_PYTHON: "python",
         stc.STC_LEX_CPP: "c++",
         stc.STC_LEX_R: "R"
+        #stc.STC_LEX_JSON: "json"
     }
     # these are populated and modified by PsychoPyApp.theme.setter
     spec = None
@@ -365,10 +366,11 @@ class ThemeMixin:
             0: ['typedef', 'if', 'else', 'return', 'struct', 'for', 'while', 'do',
                 'using', 'namespace', 'union', 'break', 'enum', 'new', 'case',
                 'switch', 'continue', 'volatile', 'finally', 'throw', 'try',
-                'delete', 'typeof', 'sizeof', 'class', 'volatile'],
-            1: ['int', 'float', 'double', 'char', 'short', 'byte', 'void', 'const',
+                'delete', 'typeof', 'sizeof', 'class', 'volatile', 'int',
+                'float', 'double', 'char', 'short', 'byte', 'void', 'const',
                 'unsigned', 'signed', 'NULL', 'true', 'false', 'bool', 'size_t',
-                'long', 'long long']
+                'long', 'long long'],
+            1: []
         }
         if self.GetLexer() == stc.STC_LEX_PYTHON:
             # Python
@@ -383,17 +385,42 @@ class ThemeMixin:
                  'break', 'local', 'global'],
                 0: ['NA']
             }
-        elif self.GetLexer == stc.STC_LEX_CPP:
+        elif self.GetLexer() == stc.STC_LEX_CPP:
             # C/C++
-            keywords = baseC
+            keywords = baseC.copy()
             if hasattr(self, 'filename'):
                 if self.filename.endswith('.js'):
                     # JavaScript
                     keywords = {
-                        0: ['var', 'let', 'import', 'function', 'if', 'else', 'return', 'struct', 'for', 'while', 'do',
-                            'finally', 'throw', 'try', 'switch', 'case', 'break'],
+                        0: ['var', 'const', 'let', 'import', 'function', 'if',
+                            'else', 'return', 'struct', 'for', 'while', 'do',
+                            'finally', 'throw', 'try', 'switch', 'case',
+                            'break'],
                         1: ['null', 'false', 'true']
                     }
+                elif any([self.filename.lower().endswith(ext) for ext in (
+                        '.glsl', '.vert', '.frag')]):
+                    # keywords
+                    keywords[0] += [
+                        'invariant', 'precision', 'highp', 'mediump', 'lowp',
+                        'coherent', 'sampler', 'sampler2D', 'layout', 'out',
+                        'in', 'varying', 'uniform', 'attribute']
+                    # types
+                    keywords[0] += [
+                        'vec2', 'vec3', 'vec4', 'mat2', 'mat3', 'mat4',
+                        'ivec2', 'ivec3', 'ivec4', 'imat2', 'imat3', 'imat4',
+                        'bvec2', 'bvec3', 'bvec4', 'bmat2', 'bmat3', 'bmat4',
+                        'dvec2', 'dvec3', 'dvec4', 'dmat2', 'dmat3', 'dmat4']
+                    # reserved
+                    keywords[1] += [
+                        'gl_Position', 'gl_LightSourceParameters',
+                        'gl_MaterialParameters', 'gl_LightModelProducts',
+                        'gl_FrontLightProduct', 'gl_BackLightProduct',
+                        'gl_FrontMaterial', 'gl_BackMaterial', 'gl_FragColor',
+                        'gl_ModelViewMatrix', 'gl_ModelViewProjectionMatrix',
+                        'gl_Vertex', 'gl_NormalMatrix', 'gl_Normal',
+                        'gl_ProjectionMatrix', 'gl_LightSource']
+
         # elif self.GetLexer() == stc.STC_LEX_ARDUINO:
         #     # Arduino
         #     keywords = {
@@ -488,8 +515,28 @@ class ThemeMixin:
                 "commenterror": stc.STC_C_COMMENTDOCKEYWORDERROR,
                 "documentation": stc.STC_C_COMMENTLINEDOC,
                 "documentation2": stc.STC_C_COMMENTDOC,
-                "whitespace": stc.STC_C_DEFAULT
+                "whitespace": stc.STC_C_DEFAULT,
+                "preprocessor": stc.STC_C_PREPROCESSOR,
+                "preprocessorcomment": stc.STC_C_PREPROCESSORCOMMENT
             })
+        # elif self.GetLexer() == stc.STC_LEX_JSON:
+        #     # JSON
+        #     tags.update({
+        #         "operator": stc.STC_JSON_OPERATOR,
+        #         "keyword": stc.STC_JSON_KEYWORD,
+        #         "uri": stc.STC_JSON_URI,
+        #         "compactiri": stc.STC_JSON_COMPACTIRI,
+        #         "error": stc.STC_JSON_ERROR,
+        #         "espacesequence": stc.STC_JSON_ESCAPESEQUENCE,
+        #         "propertyname": stc.STC_JSON_PROPERTYNAME,
+        #         "ldkeyword": stc.STC_JSON_LDKEYWORD,
+        #         "num": stc.STC_JSON_NUMBER,
+        #         "str": stc.STC_JSON_STRING,
+        #         "openstr": stc.STC_JSON_STRINGEOL,
+        #         "comment": stc.STC_JSON_LINECOMMENT,
+        #         "commentblock": stc.STC_JSON_BLOCKCOMMENT,
+        #         "whitespace": stc.STC_JSON_DEFAULT
+        #     })
         return tags
 
     def hex2rgb(self, hex, base=(0, 0, 0, 255)):

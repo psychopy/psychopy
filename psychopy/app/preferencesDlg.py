@@ -723,6 +723,12 @@ class PreferencesDlg(wx.Dialog):
                             labels=labels,
                             values=[i for i in range(len(labels))],
                             value=default, helpText=helpText)
+                    if prefName == 'builderLayout':
+                        item = self.proPrefs.sections[sectionName][prefName]
+                        for i in range(len(item.GetChoices())):
+                            choice = item.GetChoices()[i]
+                            icon = self.app.iconCache.getBitmap(choice.Text)
+                            choice.SetBitmap(icon)
                 # # lists are given a property that can edit and reorder items
                 elif thisSpec.startswith('list'):  # list
                     self.proPrefs.addStringArrayItem(
@@ -836,6 +842,7 @@ class PreferencesDlg(wx.Dialog):
         # after validation, update the UI
         self.app.theme = self.app.theme
         self.updateCoderUI()
+        self.updateBuilderUI()
 
     def updateCoderUI(self):
         """Update the Coder UI (eg. fonts, themes, etc.) from prefs."""
@@ -849,6 +856,11 @@ class PreferencesDlg(wx.Dialog):
             for ii in range(coder.shelf.GetPageCount()):
                 doc = coder.shelf.GetPage(ii)
                 doc.theme = prefs.app['theme']
+
+    def updateBuilderUI(self):
+        builder = self.app.builder
+        if builder is not None:
+            builder.layoutPanes()
 
     def OnApplyClicked(self, event):
         """Apply button clicked, this makes changes to the UI without leaving

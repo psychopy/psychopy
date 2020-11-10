@@ -35,16 +35,29 @@ class FileDropTarget(wx.FileDropTarget):
     def __init__(self, targetFrame):
         wx.FileDropTarget.__init__(self)
         self.target = targetFrame
+        self.app = targetFrame.app
 
     def OnDropFiles(self, x, y, filenames):
         logging.debug(
             'PsychoPyBuilder: received dropped files: %s' % filenames)
         for fname in filenames:
-            if fname.endswith('.psyexp') or fname.lower().endswith('.py'):
-                self.target.fileOpen(filename=fname)
+            if isinstance(self.target, psychopy.app.coder.CoderFrame) and wx.GetKeyState(wx.WXK_ALT):
+                # If holding ALT and on coder, insert filename into current coder doc
+                if self.app.coder:
+                    if self.app.coder.currentDoc:
+                        self.app.coder.currentDoc.AddText(fname)
+            if isinstance(self.target, psychopy.app.runner.RunnerFrame):
+                # If on Runner, load file to run
+                self.app.showRunner()
+                self.app.runner.addTask(fileName=fname)
+            elif fname.lower().endswith('.psyexp'):
+                # If they dragged on a .psyexp file, open it in in Builder
+                self.app.showBuilder()
+                self.app.builder.fileOpen(filename=fname)
             else:
-                logging.warning(
-                    'dropped file ignored: did not end in .psyexp or .py')
+                # If they dragged on any other file, try to open it in Coder (if it's not text, this will give error)
+                self.app.showCoder()
+                self.app.coder.fileOpen(filename=fname)
         return True
 
 
@@ -192,11 +205,17 @@ class PsychopyToolbar(wx.ToolBar, ThemeMixin):
                     func=self.frame.setExperimentSettings)  # Settings
             self.AddSeparator()
             self.addPsychopyTool(
-                    name='compile',
-                    label=_translate('Compile Script'),
+                    name='compile_py',
+                    label=_translate('Compile Python Script'),
                     shortcut='compileScript',
-                    tooltip=_translate("Compile to script"),
+                    tooltip=_translate("Compile to Python script"),
                     func=self.frame.compileScript)  # Compile
+            self.addPsychopyTool(
+                    name='compile_js',
+                    label=_translate('Compile JS Script'),
+                    shortcut='compileScript',
+                    tooltip=_translate("Compile to JS script"),
+                    func=self.frame.fileExport)  # Compile
             self.frame.bldrBtnRunner = self.addPsychopyTool(
                     name='runner',
                     label=_translate('Runner'),

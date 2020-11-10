@@ -18,9 +18,12 @@
        <xsd:enumeration value="extendedCode"/>
        <xsd:enumeration value="num"/>
        <xsd:enumeration value="str"/>
+       <xsd:enumeration value="extendedStr"/>
        <xsd:enumeration value="int"/>
        <xsd:enumeration value="list"/>
        <xsd:enumeration value="fixedList"/>
+       <xsd:enumeration value="fileList"/>
+       <xsd:enumeration value="table"/>
      </xsd:restriction>
   </xsd:simpleType>
 
@@ -64,6 +67,7 @@
   <xsd:group name="ComponentGroup">
     <xsd:choice>
       <xsd:element name="ApertureComponent" type="Component"/>
+      <xsd:element name="ButtonComponent" type="Component"/>
       <xsd:element name="cedrusButtonBoxComponent" type="Component"/>
       <xsd:element name="CodeComponent" type="Component"/>
       <xsd:element name="DotsComponent" type="Component"/>
@@ -82,6 +86,7 @@
       <xsd:element name="SoundComponent" type="Component"/>
       <xsd:element name="StaticComponent" type="Component"/>
       <xsd:element name="TextComponent" type="Component"/>
+      <xsd:element name="TextboxComponent" type="Component"/>
       <xsd:element name="SliderComponent" type="Component"/>
       <xsd:element name="NoiseStimComponent" type="Component"/>
       <xsd:element name="EnvGratingComponent" type="Component"/>

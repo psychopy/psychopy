@@ -172,36 +172,36 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         self.updateReadme()
 
         # control the panes using aui manager
-        self._mgr = aui.AuiManager(self)
+        self._mgr = aui.AuiManager(
+            self,
+            aui.AUI_MGR_DEFAULT | aui.AUI_MGR_RECTANGLE_HINT)
+
         #self._mgr.SetArtProvider(PsychopyDockArt())
         #self._art = self._mgr.GetArtProvider()
         # Create panels
         self._mgr.AddPane(self.routinePanel,
                           aui.AuiPaneInfo().
                           Name("Routines").Caption("Routines").CaptionVisible(True).
+                          Floatable(False).
                           CloseButton(False).MaximizeButton(True).PaneBorder(False).
                           Center())  # 'center panes' expand
         rtPane = self._mgr.GetPane('Routines')
         self._mgr.AddPane(self.componentButtons,
                           aui.AuiPaneInfo().
                           Name("Components").Caption("Components").CaptionVisible(True).
+                          Floatable(False).
                           RightDockable(True).LeftDockable(True).
-                          CloseButton(False).PaneBorder(False).
-                          Right())
+                          CloseButton(False).PaneBorder(False))
         compPane = self._mgr.GetPane('Components')
         self._mgr.AddPane(self.flowPanel,
                           aui.AuiPaneInfo().
                           Name("Flow").Caption("Flow").CaptionVisible(True).
                           BestSize((8 * self.dpi, 2 * self.dpi)).
+                          Floatable(False).
                           RightDockable(True).LeftDockable(True).
-                          CloseButton(False).PaneBorder(False).
-                          Bottom())
+                          CloseButton(False).PaneBorder(False))
         flowPane = self._mgr.GetPane('Flow')
-        # Arrange panes
-        if self.prefs['topFlow']:
-            flowPane.Top()
-            compPane.Left()
-            rtPane.CenterPane()
+        self.layoutPanes()
         rtPane.CaptionVisible(True)
         # tell the manager to 'commit' all the changes just made
         self._mgr.Update()
@@ -293,6 +293,10 @@ class BuilderFrame(wx.Frame, ThemeMixin):
             wx.ID_PREFERENCES,
             _translate("&Preferences\t%s") % keys['preferences'])
         self.Bind(wx.EVT_MENU, self.app.showPrefs, item)
+        item = menu.Append(
+            wx.ID_ANY, _translate("Reset preferences...")
+        )
+        self.Bind(wx.EVT_MENU, self.resetPrefs, item)
         # item = menu.Append(wx.NewId(), "Plug&ins")
         # self.Bind(wx.EVT_MENU, self.pluginManager, item)
         menu.AppendSeparator()
@@ -717,6 +721,10 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         self.generateScript(experimentPath=exportPath,
                             exp=self.exp,
                             target="PsychoJS")
+        # Open exported files
+        self.app.showCoder()
+        self.app.coder.fileOpen(filename=exportPath)
+        self.app.coder.fileOpen(filename=htmlPath)
 
     def getShortFilename(self):
         """returns the filename without path or extension
@@ -862,6 +870,42 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         self.flowPanel.draw()
         self.routinePanel.redrawRoutines()
         self.updateWindowTitle()
+
+    def layoutPanes(self):
+        # Get panes
+        flowPane = self._mgr.GetPane('Flow')
+        compPane = self._mgr.GetPane('Components')
+        rtPane = self._mgr.GetPane('Routines')
+        # Arrange panes according to prefs
+        if 'FlowBottom' in self.prefs['builderLayout']:
+            flowPane.Bottom()
+        elif 'FlowTop' in self.prefs['builderLayout']:
+            flowPane.Top()
+        if 'CompRight' in self.prefs['builderLayout']:
+            compPane.Right()
+        if 'CompLeft' in self.prefs['builderLayout']:
+            compPane.Left()
+        rtPane.Center()
+        # Commit
+        self._mgr.Update()
+
+    def resetPrefs(self, event):
+        """Reset preferences to default"""
+        # Present "are you sure" dialog
+        dlg = wx.MessageDialog(self, _translate("Are you sure you want to reset your preferences? This cannot be undone."),
+                               caption="Reset Preferences...", style=wx.ICON_WARNING | wx.CANCEL)
+        dlg.SetOKCancelLabels(
+            "I'm sure",
+            "Wait, go back!"
+        )
+        if dlg.ShowModal() == wx.ID_OK:
+            # If okay is pressed, remove prefs file (meaning a new one will be created on next restart)
+            os.remove(prefs.paths['userPrefsFile'])
+            # Show confirmation
+            dlg = wx.MessageDialog(self, _translate("Done! Your preferences have been reset. Changes will be applied when you next open PsychoPy."))
+            dlg.ShowModal()
+        else:
+            pass
 
     def updateWindowTitle(self, newTitle=None):
         """Defines behavior to update window Title
@@ -1552,7 +1596,7 @@ class RoutineCanvas(wx.ScrolledWindow):
             x, y = self.ConvertEventCoords(event)
             icons = self.pdc.FindObjectsByBBox(x, y)
             menuPos = event.GetPosition()
-            if self.app.prefs.builder['topFlow']:
+            if 'flowTop' in self.app.prefs.builder['builderLayout']:
                 # width of components panel
                 menuPos[0] += self.frame.componentButtons.GetSize()[0]
                 # height of flow panel
@@ -1953,7 +1997,7 @@ class RoutineCanvas(wx.ScrolledWindow):
                    title=component.params['name'].val + ' Properties',
                    params=component.params,
                    order=component.order, helpUrl=helpUrl, editing=True,
-                   depends=component.depends)
+                   depends=component.depends, type=component.type)
         if dlg.OK:
             # Redraw if force end routine has changed
             if 'forceEndRoutine' in component.params \
@@ -2236,7 +2280,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
                    params=newComp.params, order=newComp.order,
                    helpUrl=helpUrl,
                    depends=newComp.depends,
-                   timeout=timeout)
+                   timeout=timeout, type=newComp.type)
 
         compName = newComp.params['name']
         if dlg.OK:

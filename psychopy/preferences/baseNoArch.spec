@@ -107,8 +107,8 @@
     unpackedDemosDir = string(default='')
     # name of the folder where subject data should be saved (relative to the script)
     savedDataFolder = string(default='data')
-    # Panels arrangement: topFlow = Flow on top, Components on left
-    topFlow = boolean(default=False)
+    # Panels arrangement: Should Flow be on the top or bottom, and should Components be on the left or right?
+    builderLayout = option('FlowBottom_CompRight','FlowBottom_CompLeft','FlowTop_CompRight','FlowTop_CompLeft',default='FlowBottom_CompRight')
     # Display text in a floating window that describes the experiment
     alwaysShowReadme = boolean(default=True)
     # Upper limit on how many components can be in favorites

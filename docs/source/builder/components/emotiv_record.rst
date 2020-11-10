@@ -41,7 +41,9 @@ Name : string
     letters, numbers and underscores (no punctuation marks or spaces).
 
 Start :
-    Has no effect
+    Set this to 0
 
 Stop :
-    Has no effect
+    Set this to 1 seconds
+
+Setting these values just allows the routine to finish

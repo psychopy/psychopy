@@ -51,6 +51,13 @@ class Line(ShapeStim):
         kwargs['fillColor'] = None
         super(Line, self).__init__(win, **kwargs)
 
+    @property
+    def color(self):
+        return self.lineColor
+    @color.setter
+    def color(self, value):
+        self.lineColor = value
+
     @attributeSetter
     def start(self, start):
         """tuple, list or 2x1 array.

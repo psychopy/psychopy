@@ -66,7 +66,7 @@ pylab.xlabel('frame N')
 pylab.title(droppedString)
 
 pylab.subplot(1, 2, 2)
-pylab.hist(intervalsMS, 50, normed=0, histtype='stepfilled')
+pylab.hist(intervalsMS, 50, histtype='stepfilled')
 pylab.xlabel('t (ms)')
 pylab.ylabel('n frames')
 pylab.title(distString)

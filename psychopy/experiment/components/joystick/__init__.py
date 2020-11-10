@@ -11,6 +11,9 @@ from builtins import super  # provides Py3-style super() using python-future
 from os import path
 from psychopy.experiment.components import BaseComponent, Param, _translate
 from psychopy.experiment import valid_var_re
+from psychopy.experiment import CodeGenerationException, valid_var_re
+from psychopy.localization import _localized as __localized
+_localized = __localized.copy()
 import re
 
 # the absolute path to the folder containing this path
@@ -19,13 +22,13 @@ iconFile = path.join(thisFolder, 'joystick.png')
 tooltip = _translate('Joystick: query joystick position and buttons')
 
 # only use _localized values for label values, nothing functional:
-_localized = {'saveJoystickState': _translate('Save joystick state'),
-              'forceEndRoutineOnPress': _translate('End Routine on press'),
-              'timeRelativeTo': _translate('Time relative to'),
-              'Clickable stimuli': _translate('Clickable stimuli'),
-              'Store params for clicked': _translate('Store params for clicked'),
-              'deviceNumber': _translate('Device number'),
-              'allowedButtons': _translate('Allowed Buttons')}
+_localized.update({'saveJoystickState': _translate('Save joystick state'),
+                   'forceEndRoutineOnPress': _translate('End Routine on press'),
+                   'timeRelativeTo': _translate('Time relative to'),
+                   'Clickable stimuli': _translate('Clickable stimuli'),
+                   'Store params for clicked': _translate('Store params for clicked'),
+                   'deviceNumber': _translate('Device number'),
+                   'allowedButtons': _translate('Allowed Buttons')})
 
 class JoystickComponent(BaseComponent):
     """An event class for checking the joystick location and buttons
@@ -62,7 +65,7 @@ class JoystickComponent(BaseComponent):
             "On every video frame, every click or just at the end of the "
             "Routine?")
         self.params['saveJoystickState'] = Param(
-            save, valType='str',
+            save, valType='str', categ='Data',
             allowedVals=['final', 'on click', 'every frame', 'never'],
             hint=msg,
             label=_localized['saveJoystickState'])
@@ -74,7 +77,7 @@ class JoystickComponent(BaseComponent):
         elif forceEndRoutineOnPress is False:
             forceEndRoutineOnPress = 'never'
         self.params['forceEndRoutineOnPress'] = Param(
-            forceEndRoutineOnPress, valType='str',
+            forceEndRoutineOnPress, valType='str', categ='Basic',
             allowedVals=['never', 'any click', 'valid click'],
             updates='constant',
             hint=msg,
@@ -83,7 +86,7 @@ class JoystickComponent(BaseComponent):
         msg = _translate("What should the values of joystick.time should be "
                          "relative to?")
         self.params['timeRelativeTo'] = Param(
-            timeRelativeTo, valType='str',
+            timeRelativeTo, valType='str', categ='Data',
             allowedVals=['joystick onset', 'experiment', 'routine'],
             updates='constant',
             hint=msg,
@@ -94,7 +97,7 @@ class JoystickComponent(BaseComponent):
                          'e.g. target, foil'
                          )
         self.params['clickable'] = Param(
-            '', valType='code',
+            '', valType='code', categ='Data',
             updates='constant',
             hint=msg,
             label=_localized['Clickable stimuli'])
@@ -105,7 +108,7 @@ class JoystickComponent(BaseComponent):
                          'clickable objects have all these params.'
                          )
         self.params['saveParamsClickable'] = Param(
-            'name,', valType='code',
+            'name,', valType='code', categ='Data',
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized['Store params for clicked'])
@@ -114,19 +117,19 @@ class JoystickComponent(BaseComponent):
                          ' one do you want (0, 1, 2...)')
 
         self.params['deviceNumber'] = Param(
-            deviceNumber, valType='code', allowedTypes=[],
+            deviceNumber, valType='code', allowedTypes=[], categ='Hardware',
             updates='constant', allowedUpdates=[],
             hint=msg,
-            label=_localized['deviceNumber'], categ='Advanced')
+            label=_localized['deviceNumber'])
 
         msg = _translate('Buttons to be read (blank for any) numbers separated by '
                          'commas')
 
         self.params['allowedButtons'] = Param(
-            allowedButtons, valType='code', allowedTypes=[],
+            allowedButtons, valType='code', allowedTypes=[], categ='Data',
             updates='constant', allowedUpdates=[],
             hint=msg,
-            label=_localized['allowedButtons'], categ='Advanced')
+            label=_localized['allowedButtons'])
 
     @property
     def _clickableParamsList(self):

@@ -8,8 +8,10 @@
 from __future__ import absolute_import, print_function
 
 from os import path
-from psychopy.experiment.components import Param, getInitVals, _translate, BaseComponent
+from psychopy.experiment.components import Param, getInitVals, _translate, BaseVisualComponent
 from psychopy.visual import form
+from psychopy.localization import _localized as __localized
+_localized = __localized.copy()
 
 __author__ = 'Jon Peirce, David Bridges, Anthony Haffey'
 
@@ -19,18 +21,18 @@ iconFile = path.join(thisFolder, 'form.png')
 tooltip = _translate('Form: a Psychopy survey tool')
 
 # only use _localized values for label values, nothing functional:
-_localized = {'Items': _translate('Items'),
-              'Text Height': _translate('Text Height'),
-              'Size': _translate('Size'),
-              'Pos': _translate('Pos'),
-              'Style': _translate('Styles'),
-              'Item Padding': _translate('Item Padding'),
-              'Data Format': _translate('Data Format'),
-              'Randomize': _translate('Randomize')
-              }
+_localized.update({'Items': _translate('Items'),
+                   'Text Height': _translate('Text Height'),
+                   'Size': _translate('Size'),
+                   'Pos': _translate('Pos'),
+                   'Style': _translate('Styles'),
+                   'Item Padding': _translate('Item Padding'),
+                   'Data Format': _translate('Data Format'),
+                   'Randomize': _translate('Randomize')
+                   })
 knownStyles = form.Form.knownStyles
 
-class FormComponent(BaseComponent):
+class FormComponent(BaseVisualComponent):
     """A class for presenting a survey as a Builder component"""
 
     categories = ['Responses']
@@ -50,10 +52,17 @@ class FormComponent(BaseComponent):
                  startEstim='', durationEstim=''):
 
         super(FormComponent, self).__init__(
-            exp, parentName, name,
+            exp, parentName, name=name,
+            pos=pos, size=size,
             startType=startType, startVal=startVal,
             stopType=stopType, stopVal=stopVal,
             startEstim=startEstim, durationEstim=durationEstim)
+
+        # these are defined by the BaseVisual but we don't want them
+        del self.params['color']
+        del self.params['colorSpace']
+        del self.params['ori']
+        del self.params['units']  # we only support height units right now
 
         self.type = 'Form'
         self.url = "http://www.psychopy.org/builder/components/"
@@ -71,13 +80,13 @@ class FormComponent(BaseComponent):
         # = the usual as inherited from BaseComponent plus:
 
         self.params['Items'] = Param(
-            items, valType='str', allowedTypes=[],
+            items, valType='table', allowedTypes=[], categ='Basic',
             updates='constant',
             hint=_translate("The csv filename containing the items for your survey."),
             label=_localized['Items'])
 
         self.params['Size'] = Param(
-            size, valType='code', allowedTypes=[],
+            size, valType='code', allowedTypes=[], categ='Layout',
             updates='constant',
             hint=_translate(
                 "Size of the Form on screen in 'height' units. e.g. (1, .7) height units for horizontal,"
@@ -85,41 +94,38 @@ class FormComponent(BaseComponent):
             label=_localized['Size'])
 
         self.params['Pos'] = Param(
-            pos, valType='code', allowedTypes=[],
+            pos, valType='code', allowedTypes=[], categ='Layout',
             updates='constant',
             hint=_translate("x,y position of the form on screen"),
             label=_localized['Pos'])
 
         self.params['Text Height'] = Param(
-            textHeight, valType='code', allowedTypes=[],
+            textHeight, valType='code', allowedTypes=[], categ='Formatting',
             updates='constant',
             hint=_translate("The size of the item text for Form"),
-            label=_localized['Text Height'],
-            categ="Appearance")
+            label=_localized['Text Height'])
 
         self.params['Randomize'] = Param(
-            randomize, valType='bool', allowedTypes=[],
+            randomize, valType='bool', allowedTypes=[], categ='Basic',
             updates='constant',
             hint=_translate("Do you want to randomize the order of your questions?"),
             label=_localized['Randomize'])
 
         self.params['Style'] = Param(
-            style, valType='fixedList',
+            style, valType='fixedList', categ="Appearance",
             updates='constant', allowedVals=knownStyles,
             hint=_translate(
                     "Styles determine the appearance of the form"),
-            label=_localized['Style'],
-            categ="Appearance")
+            label=_localized['Style'])
 
         self.params['Item Padding'] = Param(
-            itemPadding, valType='code', allowedTypes=[],
+            itemPadding, valType='code', allowedTypes=[], categ='Layout',
             updates='constant',
             hint=_translate("The padding or space between items."),
-            label=_localized['Item Padding'],
-            categ="Appearance")
+            label=_localized['Item Padding'])
 
         self.params['Data Format'] = Param(
-            'rows', valType='str', allowedTypes=[],
+            'rows', valType='str', allowedTypes=[], categ='Basic',
             allowedVals=['columns', 'rows'],
             updates='constant',
             hint=_translate("Store item data by columns, or rows"),
@@ -154,15 +160,6 @@ class FormComponent(BaseComponent):
                    "  itemPadding : {Item Padding}\n"
                    "}});\n".format(**inits))
         buff.writeIndentedLines(initStr)
-
-    def writeRoutineStartCode(self, buff):
-        pass
-
-    def writeFrameCode(self, buff):
-        buff.writeIndented("%(name)s.draw()\n" % (self.params))
-
-    def writeFrameCodeJS(self, buff):
-        buff.writeIndented("%(name)s.draw();\n" % (self.params))
 
     def writeRoutineEndCode(self, buff):
         # save data, according to row/col format

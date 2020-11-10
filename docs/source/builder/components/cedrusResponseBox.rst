@@ -22,6 +22,10 @@ Stop :
 Force end of Routine : true/false
     If this is checked, the first response will end the routine.
 
+Data
+====
+What information to save, how to lay it out and when to save it.
+
 Allowed keys : None, or an integer, list, or tuple of integers 0-7
     This field lets you specify which buttons (None, or some or all of 0 through 7) to listen to.
 
@@ -31,14 +35,12 @@ Store : (choice of: first, last, all, nothing)
 Store correct : true/false
     If selected, a correctness value will be saved in the data file, based on a match with the given correct answer.
 
-Correct answer: button
-    The correct answer, used by Store correct.
-
 Discard previous : true/false
     If selected, any previous responses will be ignored (typically this is what you want).
 
-Advanced
-+++++++++++++
+Hardware
+========
+Parameters for controlling hardware.
 
 Device number: integer
     This is only needed if you have multiple Cedrus devices connected and you need to specify which to use.

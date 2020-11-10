@@ -14,7 +14,8 @@ If you also have PsychoPy materials/course then please let us know so that we ca
 Workshops
 ---------------------------------------------------------------
 
-At Nottingham we run an annual workshop on Python/PsychoPy (ie. programming, not Builder). Please see the page on :ref:`officialWorkshops` for further details.
+We are currently running virtual workshops in several formats, see
+`our workshops pages <https://workshops.psychopy.org/>`_ for details
 
 .. _youtube:
 

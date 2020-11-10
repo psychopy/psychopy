@@ -787,7 +787,7 @@ class PavloviaProject(dict):
             raise AttributeError("Cannot fetch a PavloviaProject until we have "
                                  "chosen a local folder.")
         if not os.path.exists(self.localRoot):
-            os.mkdirs(self.localRoot)
+            os.makedirs(self.localRoot)
 
         # check if the remote repo is empty (if so then to init/push)
         if self.pavlovia:

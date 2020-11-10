@@ -6,8 +6,8 @@ Created on Fri Apr 28 11:20:49 2017
 """
 from os import path
 from psychopy.experiment.components import BaseComponent, getInitVals
-from psychopy.localization import _translate
-
+from psychopy.localization import _translate, _localized as __localized
+_localized = __localized.copy()
 
 CORTEX_OBJ = 'cortex_obj'
 
@@ -21,7 +21,7 @@ class EmotivRecordingComponent(BaseComponent):  # or (VisualComponent)
         super(EmotivRecordingComponent, self).__init__(
             exp, parentName, name=name,
             startType='time (s)', startVal=0,
-            stopType='duration (s)', stopVal="",
+            stopType='duration (s)', stopVal=1,
             startEstim='', durationEstim='',
             saveStartStop=False
         )

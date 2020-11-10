@@ -87,6 +87,14 @@ class Routine(list):
             if hasattr(thisCompon, 'writePreCode'):
                 thisCompon.writePreCode(buff)
 
+    def writePreCodeJS(self, buff):
+        """This is start of the script (before window is created)
+        """
+        for thisCompon in self:
+            # check just in case; try to ensure backwards compatibility _base
+            if hasattr(thisCompon, 'writePreCodeJS'):
+                thisCompon.writePreCodeJS(buff)
+
     def writeStartCode(self, buff):
         """This is start of the *experiment* (after window is created)
         """
@@ -287,16 +295,22 @@ class Routine(list):
         if modular:
             code = ("\nfor (const thisComponent of %(name)sComponents)\n"
                     "  if ('status' in thisComponent)\n"
-                    "    thisComponent.status = PsychoJS.Status.NOT_STARTED;\n"
-                    "\nreturn Scheduler.Event.NEXT;\n" % self.params)
+                    "    thisComponent.status = PsychoJS.Status.NOT_STARTED;\n" % self.params)
         else:
             code = ("\n%(name)sComponents.forEach( function(thisComponent) {\n"
                     "  if ('status' in thisComponent)\n"
                     "    thisComponent.status = PsychoJS.Status.NOT_STARTED;\n"
-                    "   });\n"
-                    "\nreturn Scheduler.Event.NEXT;\n" % self.params)
-
+                    "   });\n" % self.params)
         buff.writeIndentedLines(code)
+
+        # are we done yet?
+        code = ("// check if the Routine should terminate\n"
+                "if (!continueRoutine) {"
+                "  // a component has requested a forced-end of Routine\n"
+                "  return Scheduler.Event.NEXT;\n"
+                "}\n")
+        buff.writeIndentedLines(code)
+
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndentedLines("};\n")
         buff.setIndentLevel(-1, relative=True)

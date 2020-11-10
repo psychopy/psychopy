@@ -9,6 +9,8 @@ from __future__ import absolute_import, print_function
 
 from os import path
 from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals, _translate
+from psychopy.localization import _localized as __localized
+_localized = __localized.copy()
 
 # the absolute path to the folder containing this path
 thisFolder = path.abspath(path.dirname(__file__))
@@ -17,12 +19,12 @@ tooltip = _translate('Patch: present images (bmp, jpg, tif...) or textures '
                      'like gratings')
 
 # only use _localized values for label values, nothing functional:
-_localized = {'image': _translate('Image/tex'),
-              'mask': _translate('Mask'),
-              'sf': _translate('Spatial frequency'),
-              'phase': _translate('Phase (in cycles)'),
-              'texture resolution': _translate('Texture resolution'),
-              'interpolate': _translate('Interpolate')}
+_localized.update({'image': _translate('Image/tex'),
+                   'mask': _translate('Mask'),
+                   'sf': _translate('Spatial frequency'),
+                   'phase': _translate('Phase (in cycles)'),
+                   'texture resolution': _translate('Texture resolution'),
+                   'interpolate': _translate('Interpolate')})
 
 
 class PatchComponent(BaseVisualComponent):
@@ -52,7 +54,7 @@ class PatchComponent(BaseVisualComponent):
         msg = _translate("The image to be displayed - 'sin','sqr'... or a "
                          "filename (including path)")
         self.params['image'] = Param(
-            image, valType='str', allowedTypes=[],
+            image, valType='str', allowedTypes=[], categ='Basic',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
@@ -61,7 +63,7 @@ class PatchComponent(BaseVisualComponent):
         msg = _translate("An image to define the alpha mask (ie shape)- "
                          "gauss, circle... or a filename (including path)")
         self.params['mask'] = Param(
-            mask, valType='str', allowedTypes=[],
+            mask, valType='str', allowedTypes=[], categ='Texture',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
@@ -70,38 +72,38 @@ class PatchComponent(BaseVisualComponent):
         msg = _translate("Spatial frequency of image repeats across the "
                          "patch, e.g. 4 or [2,3]")
         self.params['sf'] = Param(
-            sf, valType='code', allowedTypes=[],
+            sf, valType='code', allowedTypes=[], categ='Texture',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_localized['sf'], categ="Advanced")
+            label=_localized['sf'])
 
         msg = _translate(
             "Spatial positioning of the image on the patch (in range 0-1.0)")
         self.params['phase'] = Param(
-            phase, valType='code', allowedTypes=[],
+            phase, valType='code', allowedTypes=[], categ='Texture',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_localized['phase'], categ="Advanced")
+            label=_localized['phase'])
 
         msg = _translate(
             "Resolution of the texture for standard ones such as sin, sqr "
             "etc. For most cases a value of 256 pixels will suffice")
         self.params['texture resolution'] = Param(
-            texRes, valType='code',
+            texRes, valType='code', categ='Texture',
             allowedVals=['32', '64', '128', '256', '512'],
             updates='constant', allowedUpdates=[],
             hint=msg,
-            label=_localized['texture resolution'], categ="Advanced")
+            label=_localized['texture resolution'])
 
         msg = _translate(
             "How should the image be interpolated if/when rescaled")
         self.params['interpolate'] = Param(
-            interpolate, valType='str', allowedVals=['linear', 'nearest'],
+            interpolate, valType='str', allowedVals=['linear', 'nearest'], categ='Texture',
             updates='constant', allowedUpdates=[],
             hint=msg,
-            label=_localized['interpolate'], categ="Advanced")
+            label=_localized['interpolate'])
 
     def writeInitCode(self, buff):
         # do we need units code?

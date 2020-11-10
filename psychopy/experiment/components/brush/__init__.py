@@ -11,6 +11,8 @@ from builtins import str
 from os import path
 from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals, _translate
 from psychopy import logging
+from psychopy.localization import _localized as __localized
+_localized = __localized.copy()
 
 # the absolute path to the folder containing this path
 thisFolder = path.abspath(path.dirname(__file__))
@@ -18,12 +20,9 @@ iconFile = path.join(thisFolder, 'brush.png')
 tooltip = _translate('Brush: a drawing tool')
 
 # only use _localized values for label values, nothing functional:
-_localized = {'lineColorSpace': _translate('Line color-space'),
-              'lineColor': _translate('Line color'),
-              'lineWidth': _translate('Line width'),
-              'opacity': _translate('Opacity'),
-              'buttonRequired':_translate('Press button')
-              }
+_localized.update({'lineWidth': _translate('Brush Size'),
+                   'lineColor': _translate('Brush Color'),
+                   'buttonRequired':_translate('Press Button')})
 
 class BrushComponent(BaseVisualComponent):
     """A class for drawing freehand responses"""
@@ -49,26 +48,19 @@ class BrushComponent(BaseVisualComponent):
         self.targets = ['PsychoPy', 'PsychoJS']
         self.order = ['lineWidth', 'opacity', 'buttonRequired']
 
-        del self.params['color']  # because color is defined by lineColor
-        del self.params['colorSpace']
-        del self.params['size']  # because size determined by lineWidth
-        del self.params['ori']
-        del self.params['pos']
-        del self.params['units']  # always in pix
-
         # params
-        msg = _translate("Line color of this brush; Right-click to bring"
+        msg = _translate("Fill color of this brush; Right-click to bring"
                          " up a color-picker (rgb only)")
         self.params['lineColor'] = Param(
-            lineColor, valType='str', allowedTypes=[],
+            lineColor, valType='str', allowedTypes=[], categ='Appearance',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat'],
             hint=msg,
-            label=_localized['lineColor'], categ='Advanced')
+            label=_localized['lineColor'])
 
         msg = _translate("Width of the brush's line (always in pixels and limited to 10px max width)")
         self.params['lineWidth'] = Param(
-            lineWidth, valType='code', allowedTypes=[],
+            lineWidth, valType='code', allowedTypes=[], categ='Appearance',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat'],
             hint=msg,
@@ -77,27 +69,34 @@ class BrushComponent(BaseVisualComponent):
         msg = _translate("Choice of color space for the fill color "
                          "(rgb, dkl, lms, hsv)")
         self.params['lineColorSpace'] = Param(
-            lineColorSpace, valType='str',
+            lineColorSpace, valType='str', categ='Appearance',
             allowedVals=['rgb', 'dkl', 'lms', 'hsv'],
             updates='constant',
             hint=msg,
-            label=_localized['lineColorSpace'], categ='Advanced')
+            label=_localized['fillColorSpace'])
 
         msg = _translate("The line opacity")
-        self.params['opacity'] = Param(
-            opacity, valType='code', allowedTypes=[],
-            updates='constant',
-            allowedUpdates=['constant', 'set every repeat'],
-            hint=msg,
-            label=_localized['opacity'])
+        self.params['opacity'].hint=msg
 
         msg = _translate("Whether a button needs to be pressed to draw (True/False)")
         self.params['buttonRequired'] = Param(
-            buttonRequired, valType='code', allowedTypes=[],
+            buttonRequired, valType='code', allowedTypes=[], categ='Basic',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat'],
             hint=msg,
-            label=_localized['buttonRequired'], categ='Advanced')
+            label=_localized['buttonRequired'])
+
+        # Remove BaseVisual params which are not needed
+        del self.params['color']  # because color is defined by lineColor
+        del self.params['colorSpace']
+        del self.params['fillColor']
+        del self.params['fillColorSpace']
+        del self.params['borderColor']
+        del self.params['borderColorSpace']
+        del self.params['size']  # because size determined by lineWidth
+        del self.params['ori']
+        del self.params['pos']
+        del self.params['units']  # always in pix
 
     def writeInitCode(self, buff):
         params = getInitVals(self.params)
@@ -136,7 +135,7 @@ class BrushComponent(BaseVisualComponent):
 
         buff.writeIndentedLines(code)
         # add reset function
-        code = ("{name}Reset = function() {{\n"
+        code = ("{name}Reset = {name}.reset = function() {{\n"
                 "  if ({name}Shapes.length > 0) {{\n"
                 "    for (let shape of {name}Shapes) {{\n"
                 "      shape.setAutoDraw(false);\n"

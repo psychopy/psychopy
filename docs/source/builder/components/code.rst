@@ -19,9 +19,12 @@ Parameters
 
 The parameters of the `Code Component` simply specify the code that will get executed at 5 different points within the experiment. You can use as many or as few of these as you need for any `Code Component`:
 
+    Before Experiment:
+        Things that need to be done just once, like importing a supporting module, which do not need the experiment window to exist yet.
+
     Begin Experiment:
-        Things that need to be done just once, like importing a supporting module, initialising a variable for later use.
-        
+        Things that need to be done just once, like initialising a variable for later use, which may need to refer to the experiment window.
+
     Begin Routine:
         Certain things might need to be done just once at the start of a :ref:`Routine <routines>` e.g. at the beginning of each trial you might decide which side a stimulus will appear
         

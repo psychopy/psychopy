@@ -47,6 +47,10 @@ stop :
 Force End Routine on Press
     If this box is checked then the :ref:`Routine <Routines>` will end as soon as one of the joystick buttons is pressed.
 
+Data
+====
+What information to save, how to lay it out and when to save it.
+
 Save Joystick State
     How often do you need to save the state of the joystick? Every time the subject presses a joystick button, at the end of the trial, or every single frame?
     Note that the text output for cases where you store the joystick data repeatedly per trial
@@ -64,14 +68,17 @@ Store params for clicked
     The params (e.g. name, text), for which you want to store the current value, for the stimulus that was "clicked" by the joystick.
     Make sure that all the clickable objects have all these params.
 
-Parameters Advanced
-~~~~~~~~~~~~~~~~~~~~~
+Allowed Buttons
+    Joystick buttons accepted for input (blank for any) numbers separated by 'commas'.
+
+Hardware
+========
+Parameters for controlling hardware.
 
 Device Number
     If you have multiple joystick/gamepad devices which one do you want (0, 1, 2, ...).
 
-Allowed Buttons
-    Joystick buttons accepted for input (blank for any) numbers separated by 'commas'.
+
 
 .. seealso::
 
