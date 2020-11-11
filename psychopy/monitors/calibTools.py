@@ -34,7 +34,6 @@ import sys
 from copy import deepcopy, copy
 
 import numpy as np
-import scipy.optimize as optim
 from scipy import interpolate
 import json_tricks  # allows json to dump/load np.arrays and dates
 
@@ -746,6 +745,7 @@ class GammaCalculator(object):
             -yVals are the measured luminances from a photometer/spectrometer
 
         """
+        import scipy.optimize as optim
         minGamma = 0.8
         maxGamma = 20.0
         gammaGuess = 2.0
