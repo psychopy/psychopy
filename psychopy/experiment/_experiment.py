@@ -479,6 +479,24 @@ class Experiment(object):
                 # lowAnchorText highAnchorText will trigger obsolete error
                 # when run the script
                 params[name].val = v
+            elif name == 'storeResponseTime':
+                return  # deprecated in v1.70.00 because it was redundant
+            elif name == 'Resources':
+                # if the xml import hasn't automatically converted from string?
+                if type(val) == str:
+                    resources = data.utils.listFromString(val)
+                if self.psychopyVersion == '2020.2.5':
+                    # in 2020.2.5 only, problems were:
+                    #   a) resources list was saved as a string and
+                    #   b) with wrong root folder
+                    resList = []
+                    for resourcePath in resources:
+                        # doing this the blunt way but should we check for existence?
+                        resourcePath = resourcePath.replace("../", "")  # it was created using wrong root
+                        resourcePath = resourcePath.replace("\\", "/")  # created using windows \\
+                        resList.append(resourcePath)
+                    resources = resList  # push our new list back to resources
+                params[name].val = resources
             else:
                 if name in params:
                     params[name].val = val
