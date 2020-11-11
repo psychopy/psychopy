@@ -479,6 +479,21 @@ class Experiment(object):
                 # lowAnchorText highAnchorText will trigger obsolete error
                 # when run the script
                 params[name].val = v
+            elif name == 'storeResponseTime':
+                return  # deprecated in v1.70.00 because it was redundant
+            elif name == 'Resources':
+                # in 2020.2.4 only, problems were:
+                #   a) resources list was saved as a string and
+                #   b) with wrong root folder
+                if type(val) == str:
+                    resources = data.utils.listFromString(val)
+                resList = []
+                for resourcePath in resources:
+                    # doign this the blunt way but should we check for existence?
+                    resourcePath = resourcePath.replace("..", ".")  # it was created using wrong root
+                    resourcePath = resourcePath.replace("\\", "/")  # created using windows \\
+                    resList.append(resourcePath)
+                params[name].val = resList
             else:
                 if name in params:
                     params[name].val = val
