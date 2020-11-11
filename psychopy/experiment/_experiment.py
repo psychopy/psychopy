@@ -482,18 +482,21 @@ class Experiment(object):
             elif name == 'storeResponseTime':
                 return  # deprecated in v1.70.00 because it was redundant
             elif name == 'Resources':
-                # in 2020.2.4 only, problems were:
-                #   a) resources list was saved as a string and
-                #   b) with wrong root folder
+                # if the xml import hasn't automatically converted from string?
                 if type(val) == str:
                     resources = data.utils.listFromString(val)
-                resList = []
-                for resourcePath in resources:
-                    # doign this the blunt way but should we check for existence?
-                    resourcePath = resourcePath.replace("..", ".")  # it was created using wrong root
-                    resourcePath = resourcePath.replace("\\", "/")  # created using windows \\
-                    resList.append(resourcePath)
-                params[name].val = resList
+                if self.psychopyVersion == '2020.2.5':
+                    # in 2020.2.5 only, problems were:
+                    #   a) resources list was saved as a string and
+                    #   b) with wrong root folder
+                    resList = []
+                    for resourcePath in resources:
+                        # doing this the blunt way but should we check for existence?
+                        resourcePath = resourcePath.replace("../", "")  # it was created using wrong root
+                        resourcePath = resourcePath.replace("\\", "/")  # created using windows \\
+                        resList.append(resourcePath)
+                    resources = resList  # push our new list back to resources
+                params[name].val = resources
             else:
                 if name in params:
                     params[name].val = val
