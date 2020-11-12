@@ -208,8 +208,18 @@ class Experiment(object):
             script = script.getvalue()
         elif target == "PsychoJS":
             script.oneIndent = "  "  # use 2 spaces rather than python 4
+
+
             self_copy.settings.writeInitCodeJS(script,self_copy.psychopyVersion,
                                                localDateTime, modular)
+
+            script.writeIndentedLines("// Start code blocks for 'Before Experiment'")
+            for entry in self_copy.flow:
+                # NB each entry is a routine or LoopInitiator/Terminator
+                self_copy._currentRoutine = entry
+                if hasattr(entry, 'writePreCodeJS'):
+                    entry.writePreCodeJS(script)
+
             self_copy.flow.writeFlowSchedulerJS(script)
             self_copy.settings.writeExpSetupCodeJS(script,
                                                    self_copy.psychopyVersion)
@@ -221,8 +231,6 @@ class Experiment(object):
             # routine init sections
             for entry in self_copy.flow:
                 # NB each entry is a routine or LoopInitiator/Terminator
-                if hasattr(entry, 'writePreCodeJS'):
-                    entry.writePreCodeJS(script)
                 self_copy._currentRoutine = entry
                 if hasattr(entry, 'writeInitCodeJS'):
                     entry.writeInitCodeJS(script)
