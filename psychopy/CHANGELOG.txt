@@ -15,6 +15,22 @@ Changelog
 
 CHANGES, which are identified in this dark red text, typically indicate things that alter the PsychoPy behaviour in a way that could break compatibility. Be especially wary of those!
 
+PsychoPy 2020.2.6
+-----------------
+
+FIXES:
+
+- missing resource error in some online experiments, caused by incorrect relative relative paths in Settings>Online>Resources #3285
+- JavaScript Code Components for Before Experiment is now moved earlier in the script - it needed to be positioned before first function opens #3289
+- TextBox was missing setBorderColor and setFillColor so these needed code to change dynamically #eb915732d
+- TextBox was carrying the text from one trial into the next #330f5fa1d
+- Coder FoldAll menu item was having no effect #6d4f66b0d
+- TextStim opacity can now be set dynamically #1045
+- Loop OK button was sometimes left disabled if invalid inputs #3a1104f71
+- fixed non-uniform probabilities of conditions file row selection suggested in docs #3256
+- workaround for scipy.optimize import error on windows machines that are using BitLocker #3287
+- if a TextBox is the only editable thing on the screen then give it focus #3269
+
 PsychoPy 2020.2.5
 -----------------
 
