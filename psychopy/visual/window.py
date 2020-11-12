@@ -1028,12 +1028,25 @@ class Window(object):
         self.useLights = False
 
         # Check for mouse clicks on editables
-        if hasattr(self, '_editableChildren'):  # Make sure _editableChildren has actually been created
+        if hasattr(self, '_editableChildren'):
+            # Make sure _editableChildren has actually been created
+            editablesOnScreen = []
             for thisObj in self._editableChildren:
+                # Iterate through editables and decide which one should have focus
                 if isinstance(thisObj, weakref.ref):
-                    thisObj = thisObj()  # Solidify weakref
+                    # Solidify weakref if necessary
+                    thisObj = thisObj()
+                if isinstance(thisObj.autoDraw, (bool, int, float)):
+                    # Store whether this editable is on screen
+                    editablesOnScreen.append(thisObj.autoDraw)
+                else:
+                    editablesOnScreen.append(False)
                 if self._mouse.isPressedIn(thisObj):
+                    # If editable was clicked on, give it focus
                     self.currentEditable = thisObj
+            # If there is only one editable on screen, make sure it starts off with focus
+            if sum(editablesOnScreen) == 1:
+                self.currentEditable = self._editableChildren[editablesOnScreen.index(True)]
 
         flipThisFrame = self._startOfFlip()
         if self.useFBO and flipThisFrame:
