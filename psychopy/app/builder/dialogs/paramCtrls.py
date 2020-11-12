@@ -214,8 +214,10 @@ class TableCtrl(wx.TextCtrl, _ValidatorMixin):
         self._szr.Add(self.xlBtn)
         # Link to Excel templates for certain contexts
         cmpRoot = os.path.dirname(psychopy.experiment.components.__file__)
+        expRoot = os.path.normpath(os.path.join(cmpRoot, ".."))
         self.templates = {
-            'Form': os.path.join(cmpRoot, "form", "formItems.xltx")
+            'Form': os.path.join(cmpRoot, "form", "formItems.xltx"),
+            'Loop': os.path.join(expRoot, "loopTemplate.xltx")
         }
         # Configure validation
         self.Bind(wx.EVT_TEXT, self.validate)
