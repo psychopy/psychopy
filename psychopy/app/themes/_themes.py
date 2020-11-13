@@ -1053,7 +1053,15 @@ class ThemeSwitcher(wx.Menu):
         frame.Bind(wx.EVT_MENU, self.openThemeFolder, item)
 
     def openThemeFolder(self, event):
-        subprocess.call("explorer %(themes)s" % prefs.paths, shell=True)
+        # Choose a command according to OS
+        if sys.platform in ['win32']:
+            comm = "explorer"
+        elif sys.platform in ['darwin']:
+            comm = "open"
+        elif sys.platform in ['linux', 'linux2']:
+            comm = "dolphin"
+        # Use command to open themes folder
+        subprocess.call(f"{comm} {prefs.paths['themes']}", shell=True)
 
     def _applyAppTheme(self):
         for item in self.GetMenuItems():
