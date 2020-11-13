@@ -142,10 +142,14 @@ class AppSigner:
         cmdStr += f"-p {PWORD}"
         t0 = time.time()
         exitcode, output = subprocess.getstatusoutput(cmdStr)
-        if (exitcode == 0) and not ('No errors uploading' in output):
+        m = re.match('.*RequestUUID = (.*)\n', output, re.S)
+        if 'Please sign in with an app-specific password' in output:
+            print("[Error] Upload failed: You probably need a new app-specific "
+                  "password from https://appleid.apple.com/account/manage")
+            exit(1)
+        elif m is None or not ('No errors uploading' in output):
             print(f'[Error] Upload failed: {output}')
             exit(1)
-        m = re.match('.*RequestUUID = (.*)\n', output, re.S)
         uuid = m.group(1).strip()
         self._appNotarizeUUID = uuid
         print(f'Uploaded file {filename} in {time.time()-t0:.03f}s: {uuid}')
