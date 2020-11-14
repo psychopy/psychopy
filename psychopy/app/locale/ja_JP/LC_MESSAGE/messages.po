@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: PsychoPy 2020.1.3\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-11-04 19:40+0900\n"
-"PO-Revision-Date: 2020-11-04 19:45+0900\n"
+"PO-Revision-Date: 2020-11-14 19:13+0900\n"
 "Last-Translator: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language-Team: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language: ja\n"
@@ -4996,15 +4996,15 @@ msgstr "塗りつぶしの色"
 
 #: psychopy/experiment/components/polygon/__init__.py:29
 msgid "Line color-space"
-msgstr "輪郭線の色空間"
+msgstr "枠線の色空間"
 
 #: psychopy/experiment/components/polygon/__init__.py:30
 msgid "Line color"
-msgstr "輪郭線の色"
+msgstr "枠線の色"
 
 #: psychopy/experiment/components/polygon/__init__.py:31
 msgid "Line width"
-msgstr "輪郭線の幅"
+msgstr "枠線の幅"
 
 #: psychopy/experiment/components/polygon/__init__.py:33
 #: psychopy/localization/__init__.py:176
@@ -5027,7 +5027,7 @@ msgstr "形状を選択します regular polygonを選んだ場合は頂点数�
 #: psychopy/experiment/components/polygon/__init__.py:95
 msgid ""
 "Width of the shape's line (always in pixels - this does NOT use 'units')"
-msgstr "輪郭線の幅を指定します (単位の設定に関わらずpixで指定)"
+msgstr "枠線の幅を指定します (単位の設定に関わらずpixで指定)"
 
 #: psychopy/experiment/components/polygon/__init__.py:114
 msgid ""
