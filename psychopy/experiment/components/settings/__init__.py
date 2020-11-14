@@ -64,6 +64,7 @@ _localized = {'expName': _translate("Experiment name"),
               'Completed URL': _translate("Completed URL"),
               'Incomplete URL': _translate("Incomplete URL"),
               'Output path': _translate("Output path"),
+              'Additional Resources': _translate("Additional Resources"),
               'JS libs': _translate("JS libs"),
               'Force stereo': _translate("Force stereo"),
               'Export HTML': _translate("Export HTML")}

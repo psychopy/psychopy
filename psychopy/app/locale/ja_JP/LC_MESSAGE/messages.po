@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PsychoPy 2020.1.3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-11-14 21:16+0900\n"
-"PO-Revision-Date: 2020-11-14 21:42+0900\n"
+"POT-Creation-Date: 2020-11-14 22:14+0900\n"
+"PO-Revision-Date: 2020-11-14 22:15+0900\n"
 "Last-Translator: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language-Team: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language: ja\n"
@@ -3126,27 +3126,27 @@ msgid "use Runner"
 msgstr "Runnerを利用"
 
 #: psychopy/app/preferencesDlg.py:175
-#: psychopy/experiment/components/settings/__init__.py:226
+#: psychopy/experiment/components/settings/__init__.py:227
 msgid "Latency not important"
 msgstr "遅延にはこだわらない"
 
 #: psychopy/app/preferencesDlg.py:176
-#: psychopy/experiment/components/settings/__init__.py:227
+#: psychopy/experiment/components/settings/__init__.py:228
 msgid "Share low-latency driver"
 msgstr "共有可能な範囲で遅延が短いデバイスを選択"
 
 #: psychopy/app/preferencesDlg.py:177
-#: psychopy/experiment/components/settings/__init__.py:228
+#: psychopy/experiment/components/settings/__init__.py:229
 msgid "Exclusive low-latency"
 msgstr "遅延が短いデバイスを排他利用する"
 
 #: psychopy/app/preferencesDlg.py:178
-#: psychopy/experiment/components/settings/__init__.py:229
+#: psychopy/experiment/components/settings/__init__.py:230
 msgid "Aggressive low-latency"
 msgstr "2.に加えて遅延を最も短くする設定を要求"
 
 #: psychopy/app/preferencesDlg.py:179
-#: psychopy/experiment/components/settings/__init__.py:230
+#: psychopy/experiment/components/settings/__init__.py:231
 msgid "Latency critical"
 msgstr "3.で厳密に要求が満たされない場合はエラー"
 
@@ -5298,7 +5298,7 @@ msgid "Data filename"
 msgstr "データファイル名"
 
 #: psychopy/experiment/components/settings/__init__.py:46
-#: psychopy/experiment/components/settings/__init__.py:249
+#: psychopy/experiment/components/settings/__init__.py:250
 msgid "Data file delimiter"
 msgstr "データファイルの区切り文字"
 
@@ -5371,35 +5371,39 @@ msgid "Output path"
 msgstr "出力パス"
 
 #: psychopy/experiment/components/settings/__init__.py:67
+msgid "Additional Resources"
+msgstr "追加リソース"
+
+#: psychopy/experiment/components/settings/__init__.py:68
 msgid "JS libs"
 msgstr "JSライブラリ"
 
-#: psychopy/experiment/components/settings/__init__.py:68
+#: psychopy/experiment/components/settings/__init__.py:69
 msgid "Force stereo"
 msgstr "ステレオを強制"
 
-#: psychopy/experiment/components/settings/__init__.py:69
+#: psychopy/experiment/components/settings/__init__.py:70
 msgid "Export HTML"
 msgstr "HTML形式でエクスポート"
 
-#: psychopy/experiment/components/settings/__init__.py:136
+#: psychopy/experiment/components/settings/__init__.py:137
 msgid ""
 "Name of the entire experiment (taken by default from the filename on save)"
 msgstr "この実験の名前を指定します(初期値はこの実験を保存したファイル名です)"
 
-#: psychopy/experiment/components/settings/__init__.py:141
+#: psychopy/experiment/components/settings/__init__.py:142
 msgid ""
 "Start the experiment with a dialog to set info (e.g.participant or condition)"
 msgstr ""
 "実験開始時に実験情報(参加者名や条件名など)を入力するためのダイアログを表示し"
 "ます"
 
-#: psychopy/experiment/components/settings/__init__.py:146
+#: psychopy/experiment/components/settings/__init__.py:147
 msgid ""
 "Enable the <esc> key, to allow subjects to quit / break out of the experiment"
 msgstr "Escapeキーによる実験の中断/終了を許可します"
 
-#: psychopy/experiment/components/settings/__init__.py:151
+#: psychopy/experiment/components/settings/__init__.py:152
 msgid ""
 "The info to present in a dialog box. Right-click to check syntax and preview "
 "the dialog box."
@@ -5407,30 +5411,30 @@ msgstr ""
 "実験情報ダイアログに表示する情報を指定します 右クリックすると文法の確認とダイ"
 "アログのプレビューを行います."
 
-#: psychopy/experiment/components/settings/__init__.py:160
+#: psychopy/experiment/components/settings/__init__.py:161
 msgid "The version of PsychoPy to use when running the experiment."
 msgstr "実験の実行に使用するPsychoPyのバージョン."
 
-#: psychopy/experiment/components/settings/__init__.py:165
+#: psychopy/experiment/components/settings/__init__.py:166
 msgid "Force audio to stereo (2-channel) output"
 msgstr "強制的に音声をステレオ(2ch)出力します"
 
-#: psychopy/experiment/components/settings/__init__.py:171
+#: psychopy/experiment/components/settings/__init__.py:172
 msgid "Run the experiment full-screen (recommended)"
 msgstr "実験をフルスクリーンモードで実行します(推奨)"
 
-#: psychopy/experiment/components/settings/__init__.py:175
+#: psychopy/experiment/components/settings/__init__.py:176
 msgid "Size of window (if not fullscreen)"
 msgstr ""
 "フルスクリーンモードを使用しない時の刺激描画ウィンドウのサイズを指定します"
 
-#: psychopy/experiment/components/settings/__init__.py:179
+#: psychopy/experiment/components/settings/__init__.py:180
 msgid "Which physical screen to run on (1 or 2)"
 msgstr ""
 "2台のモニターが接続されている時にどちらのモニターを使用するかを指定します(1ま"
 "たは2)"
 
-#: psychopy/experiment/components/settings/__init__.py:183
+#: psychopy/experiment/components/settings/__init__.py:184
 msgid ""
 "Name of the monitor (from Monitor Center). Right-click to go there, then "
 "copy & paste a monitor name here."
@@ -5438,7 +5442,7 @@ msgstr ""
 "モニターセンターで定義されたモニター名を指定します; 右クリックでモニターセン"
 "ターを開きます."
 
-#: psychopy/experiment/components/settings/__init__.py:189
+#: psychopy/experiment/components/settings/__init__.py:190
 msgid ""
 "Color of the screen (e.g. black, $[1.0,1.0,1.0], $variable. Right-click to "
 "bring up a color-picker.)"
@@ -5446,41 +5450,41 @@ msgstr ""
 "スクリーンを塗りつぶす色($[1.0,1.0,1.0],$variable,blackなど)を指定します; 右"
 "クリックで色選択ダイアログを表示します"
 
-#: psychopy/experiment/components/settings/__init__.py:195
+#: psychopy/experiment/components/settings/__init__.py:196
 msgid ""
 "Needed if color is defined numerically (see PsychoPy documentation on color "
 "spaces)"
 msgstr "スクリーンの色を数値で指定する場合の色空間を選択します"
 
-#: psychopy/experiment/components/settings/__init__.py:203
+#: psychopy/experiment/components/settings/__init__.py:204
 msgid "Units to use for window/stimulus coordinates (e.g. cm, pix, deg)"
 msgstr ""
 "この実験においてウィンドウや刺激の描画に用いられる標準の単位(cm, pix, degな"
 "ど)を指定します"
 
-#: psychopy/experiment/components/settings/__init__.py:209
+#: psychopy/experiment/components/settings/__init__.py:210
 msgid ""
 "Should new stimuli be added or averaged with the stimuli that have been "
 "drawn already"
 msgstr "描画済みの刺激に新しい刺激をブレンドする時の方法を指定します"
 
-#: psychopy/experiment/components/settings/__init__.py:214
+#: psychopy/experiment/components/settings/__init__.py:215
 msgid "Should the mouse be visible on screen?"
 msgstr "マウスカーソルを描画するか否かを指定します"
 
-#: psychopy/experiment/components/settings/__init__.py:221
+#: psychopy/experiment/components/settings/__init__.py:222
 msgid "Which Python sound engine do you want to play your sounds?"
 msgstr "どのPythonサウンドエンジンを音声の再生に使用しますか？"
 
-#: psychopy/experiment/components/settings/__init__.py:222
+#: psychopy/experiment/components/settings/__init__.py:223
 msgid "Audio library"
 msgstr "オーディオライブラリ"
 
-#: psychopy/experiment/components/settings/__init__.py:225
+#: psychopy/experiment/components/settings/__init__.py:226
 msgid "use prefs"
 msgstr "PsychoPyの設定を用いる"
 
-#: psychopy/experiment/components/settings/__init__.py:236
+#: psychopy/experiment/components/settings/__init__.py:237
 msgid ""
 "How important is audio latency for you? If essential then you may need to "
 "get all your sounds in correct formats."
@@ -5488,11 +5492,11 @@ msgstr ""
 "オーディオ遅延の短さを重視しますか？遅延の短さが必須ならすべてのサウンドデー"
 "タを適切なフォーマットにする必要があるでしょう."
 
-#: psychopy/experiment/components/settings/__init__.py:237
+#: psychopy/experiment/components/settings/__init__.py:238
 msgid "Audio latency priority"
 msgstr "オーディオ遅延の優先度"
 
-#: psychopy/experiment/components/settings/__init__.py:242
+#: psychopy/experiment/components/settings/__init__.py:243
 msgid ""
 "Code to create your custom file name base. Don't give a file extension - "
 "this will be added."
@@ -5500,7 +5504,7 @@ msgstr ""
 "実験記録ファイルの名前をカスタマイズするためのコードを入力します - 拡張子は自"
 "動的に付加されるので指定しないでください."
 
-#: psychopy/experiment/components/settings/__init__.py:248
+#: psychopy/experiment/components/settings/__init__.py:249
 msgid ""
 "What symbol should the data file use to separate columns? Auto will select a "
 "delimiter automatically from the filename."
@@ -5508,14 +5512,14 @@ msgstr ""
 "データファイルで列を区切る文字を指定します Autoにするとファイル名から自動的に"
 "区切り文字を判別します."
 
-#: psychopy/experiment/components/settings/__init__.py:253
+#: psychopy/experiment/components/settings/__init__.py:254
 msgid ""
 "Save a detailed log (more detailed than the excel/csv files) of the entire "
 "experiment"
 msgstr "(CSV/Excelファイルに出力されるよりも)詳細な実験のログを出力します"
 
-#: psychopy/experiment/components/settings/__init__.py:258
-#: psychopy/experiment/components/settings/__init__.py:263
+#: psychopy/experiment/components/settings/__init__.py:259
+#: psychopy/experiment/components/settings/__init__.py:264
 msgid ""
 "Save data from loops in comma-separated-value (.csv) format for maximum "
 "portability"
@@ -5523,11 +5527,11 @@ msgstr ""
 "実験データをカンマ区切りのテキストファイル(.csv)で保存します; さまざまな環境"
 "やソフトウェアから利用できます"
 
-#: psychopy/experiment/components/settings/__init__.py:268
+#: psychopy/experiment/components/settings/__init__.py:269
 msgid "Save data from loops in Excel (.xlsx) format"
 msgstr "実験で得られたデータをExcel形式(.xlsx)で保存します"
 
-#: psychopy/experiment/components/settings/__init__.py:272
+#: psychopy/experiment/components/settings/__init__.py:273
 msgid ""
 "Save data from loops in psydat format. This is useful for python programmers "
 "to generate analysis scripts."
@@ -5535,35 +5539,35 @@ msgstr ""
 "実験で得られたデータをpydat形式で保存します; Pythonで独自の解析スクリプトを書"
 "く時に便利です."
 
-#: psychopy/experiment/components/settings/__init__.py:279
+#: psychopy/experiment/components/settings/__init__.py:280
 msgid ""
 "How much output do you want in the log files? ('error' is fewest messages, "
 "'debug' is most)"
 msgstr ""
 "実験ログの出力レベルを指定します('error'が最も簡潔で'debug'が最も詳細です)"
 
-#: psychopy/experiment/components/settings/__init__.py:290
+#: psychopy/experiment/components/settings/__init__.py:291
 msgid "Place the HTML files will be saved locally "
 msgstr "HTMLファイルがローカルに保存される場所 "
 
-#: psychopy/experiment/components/settings/__init__.py:294
+#: psychopy/experiment/components/settings/__init__.py:295
 msgid "Any additional resources needed"
 msgstr "追加で必要なリソース"
 
-#: psychopy/experiment/components/settings/__init__.py:298
+#: psychopy/experiment/components/settings/__init__.py:299
 msgid ""
 "Where should participants be redirected after the experiment on completion\n"
 " INSERT COMPLETION URL E.G.?"
 msgstr "実験終了時にリダイレクトされるページのURLを入力してください"
 
-#: psychopy/experiment/components/settings/__init__.py:303
+#: psychopy/experiment/components/settings/__init__.py:304
 msgid ""
 "Where participants are redirected if they do not complete the task\n"
 " INSERT INCOMPLETION URL E.G.?"
 msgstr ""
 "実験が途中で中断された時にリダイレクトされるページのURLを入力してください"
 
-#: psychopy/experiment/components/settings/__init__.py:309
+#: psychopy/experiment/components/settings/__init__.py:310
 msgid "When to export experiment to the HTML folder."
 msgstr "実験がHTMLにエクスポートされるタイミングを指定します."
 
