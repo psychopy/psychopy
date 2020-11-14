@@ -643,11 +643,10 @@ class SettingsComponent(object):
         buff.writeIndented("expInfo = %s\n" % repr(expInfoDict))
         if self.params['Show info dlg'].val:
             buff.writeIndentedLines(
-                "dlg = gui.DlgFromDict(dictionary=expInfo, "
-                "sort_keys={}, title=expName)\n"
-                "if dlg.OK == False:\n"
-                "    core.quit()  # user pressed cancel\n"
-                .format(sorting)
+                f"dlg = gui.DlgFromDict(dictionary=expInfo, "
+                f"sortKeys={sorting}, title=expName)\n"
+                f"if dlg.OK == False:\n"
+                f"    core.quit()  # user pressed cancel\n"
             )
         buff.writeIndentedLines(
             "expInfo['date'] = data.getDateStr()  # add a simple timestamp\n"
