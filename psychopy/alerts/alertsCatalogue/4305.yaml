@@ -15,7 +15,7 @@ details: |
   Most likely you disabled the Component deliberately while testing things out, but this Alert is making sure you remember that it isn't currently operational.
 
 solutions: |
-  Re-enable the Component in the Builder view (component dialog boxes each have a “testing” tab: unselect the “Disable component” setting there). Otherwise just ignore this Alert if you intended it to be disabled.
+  Re-enable the Component in the Builder view (component dialog boxes each have a "testing" tab: unselect the "Disable component" setting there). Otherwise just ignore this Alert if you intended it to be disabled.
 
 versions: |
   >= 3.1.0
