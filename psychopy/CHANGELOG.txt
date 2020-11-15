@@ -6,7 +6,7 @@ Changelog
 
   PsychoPy versions take the format: Major.Version.Bugfix
 
-  - Until 2019 Major was the overal PsychoPy version (1, 2, or 3) but from 2020 that indicates the year.
+  - Until 2019 Major was the overall PsychoPy version (1, 2, or 3) but from 2020 that indicates the year.
   - Version (middle number) indicates a release with new features, which we try to limit to 2-3 times per year.
     We don't recommend you change versions during mid-experiment but you can fix a version for your study with
     :ref:`useVersion`.
@@ -15,13 +15,29 @@ Changelog
 
 CHANGES, which are identified in this dark red text, typically indicate things that alter the PsychoPy behaviour in a way that could break compatibility. Be especially wary of those!
 
+PsychoPy 2020.2.6
+-----------------
+
+FIXES:
+
+- missing resource error in some online experiments, caused by incorrect relative relative paths in Settings>Online>Resources #3285
+- JavaScript Code Components for Before Experiment is now moved earlier in the script - it needed to be positioned before first function opens #3289
+- TextBox was missing setBorderColor and setFillColor so these needed code to change dynamically #eb915732d
+- TextBox was carrying the text from one trial into the next #330f5fa1d
+- Coder FoldAll menu item was having no effect #6d4f66b0d
+- TextStim opacity can now be set dynamically #1045
+- Loop OK button was sometimes left disabled if invalid inputs #3a1104f71
+- fixed non-uniform probabilities of conditions file row selection suggested in docs #3256
+- workaround for scipy.optimize import error on windows machines that are using BitLocker #3287
+- if a TextBox is the only editable thing on the screen then give it focus #3269
+
 PsychoPy 2020.2.5
 -----------------
 
 FIXES:
 
 - Now code-signing the installer on Windows as well as macOS
-- Failing to send print statements to output, depending on how PsychoPy was launched #4773ec32dcf Only occured if you launch by double-clicking file or if you close Runner
+- Failing to send print statements to output, depending on how PsychoPy was launched #4773ec32dcf Only occurred if you launch by double-clicking file or if you close Runner
 - Coder crashing on macOS when using editor with autocomplete=True #687e81dfb
 - ioHub fix for unicode strings #5451ea49a
 - Marker color on RatingScale was not resetting (but use Slider anyway!) #3140
