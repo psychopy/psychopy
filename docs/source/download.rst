@@ -15,7 +15,7 @@ For the easiest installation download and install the Standalone package.
 
     let filename;
     let url;
-    let version='2020.2.4'
+    let version='2020.2.6'
 
     let clientInfo = UAParser(navigator.userAgent);
     var osLabel;
@@ -49,6 +49,8 @@ For the easiest installation download and install the Standalone package.
    </script>
 
 **For all versions** see the `PsychoPy releases on github <https://github.com/psychopy/psychopy/releases>`_
+
+PsychoPy is distributed under the `GPL3 license <https://github.com/psychopy/psychopy/blob/master/LICENSE>`_
 
 .. _manual_install:
 

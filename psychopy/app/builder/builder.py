@@ -589,10 +589,13 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         """Open a FileDialog, then load the file if possible.
         """
         if filename is None:
-            _wld = "PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*"
+            if sys.platform != 'darwin':
+                wildcard = _translate("PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*.*")
+            else:
+                wildcard = _translate("PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*")
             dlg = wx.FileDialog(self, message=_translate("Open file ..."),
                                 style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST,
-                                wildcard=_translate(_wld))
+                                wildcard=wildcard)
             if dlg.ShowModal() != wx.ID_OK:
                 return 0
             filename = dlg.GetPath()
@@ -669,10 +672,10 @@ class BuilderFrame(wx.Frame, ThemeMixin):
             filename = self.filename
         initPath, filename = os.path.split(filename)
 
-        _w = "PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*"
         if sys.platform != 'darwin':
-            _w += '.*'
-        wildcard = _translate(_w)
+            wildcard = _translate("PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*.*")
+        else:
+            wildcard = _translate("PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*")
         returnVal = False
         dlg = wx.FileDialog(
             self, message=_translate("Save file as ..."), defaultDir=initPath,
@@ -895,8 +898,8 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         dlg = wx.MessageDialog(self, _translate("Are you sure you want to reset your preferences? This cannot be undone."),
                                caption="Reset Preferences...", style=wx.ICON_WARNING | wx.CANCEL)
         dlg.SetOKCancelLabels(
-            "I'm sure",
-            "Wait, go back!"
+            _translate("I'm sure"),
+            _translate("Wait, go back!")
         )
         if dlg.ShowModal() == wx.ID_OK:
             # If okay is pressed, remove prefs file (meaning a new one will be created on next restart)
