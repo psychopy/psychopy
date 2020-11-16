@@ -155,6 +155,9 @@ class VisualSystemHD(window.Window):
         self.buffer = None
         self._eyeBuffers = dict()
 
+        # VAOs for distortion mesh
+        self._warpVAOs = dict()
+
         # extents of the barrel distortion needed to compute FOV after
         # distortion
         self._distExtents = {
@@ -348,6 +351,11 @@ class VisualSystemHD(window.Window):
         # don't create warp mesh if direct draw enabled
         if self._directDraw:
             return
+
+        # clean up previous distortion data
+        if self._warpVAOs:
+            for vao in self._warpVAOs.values():
+                gt.deleteVAO(vao)
 
         self._warpVAOs = {}
         for eye in ('left', 'right'):
