@@ -26,7 +26,7 @@ Keep checking the :ref:`onlineStatus` to see what is supported. You might want t
 .. _onlineExpSettings:
 
 Check your experiment settings
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 In your Experiment Settings there is an "Online" tab to control the settings.
 
@@ -38,17 +38,17 @@ Path: When you upload your study to Pavlovia it will expect to find an 'html' fo
 .. _onlineExportHTML:
 
 Export the HTML files
-~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Once you've checked your settings you can simply go to `>File>Export HTML` from the Builder view with your experiment open.
+Once you've checked your settings you can either go to `>File>Export HTML` from the Builder view with your experiment open OR press 'sync' from the globe icons.
 
-That will generate all the necessary files (HTML and JS) that you need for your study
+Both of these will generate all the necessary files (HTML and JS) that you need for your study, however sync will also create a project in pavlovia.org
 
 
 .. _onlineUploadServer:
 
 Uploading files to your own server
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 We really don't recommend this and can only provide limited help if you go this route. If you do want to use your own server:
 
@@ -63,7 +63,7 @@ You will need some way to save the data. PsychoJS can output to either:
 .. _onlineDebugging:
 
 Debug your online experiments
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This is going to be trickier (for now) than the PsychoPy/Python scripts. The main resources we recommend are:
 
@@ -145,14 +145,14 @@ To make your task public navigate to your experiment page then select > View cod
 If you cannot make your task public share your problem and what you tried on the discourse and add a member of the team to your project (settings> members>add member - use the user name given by whoever is supporting you)
 
 Activate on Pavlovia
-~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Once your experiment is online you will see your experiment in dashboard> experiment, you can read more about the `Experiment page here <https://pavlovia.org/docs/experiments/experiment-page>`_.
 
 .. _onlineParticipants:
 
 Recruiting participants
-~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Once you've uploaded your folder with the correct permissions you can simply provide that as a URL/link to your prospective participants. When they go to this link they'll see the info dialog box (with the same settings as the one you use in your standard PsychoPy study locally, but a little prettier). That dialog box may show a progress bar while the resources (e.g. image files) are downloading to the local computer. When they've finished downloading the 'OK' button will be available and the participant can carry on to your study.
 
@@ -162,7 +162,7 @@ Alternatively you may well want to recruit participants using an online service 
 .. _fetchingData:
 
 Fetching your data
-~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The data are saved in a data folder next to the html file. You should see csv files there that are similar to your PsychoPy standard output files. (There won't be any psydat files though - that isn't possible from JavaScript).
 
