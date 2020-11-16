@@ -2063,7 +2063,8 @@ class TableCtrl(wx.TextCtrl):
         if dlg.ShowModal() != wx.ID_OK:
             return 0
         filename = dlg.GetPath()
-        relname = os.path.relpath(filename)
+        relname = os.path.relpath(filename,
+                                  os.path.normpath(os.path.join(self.GetTopLevelParent().frame.filename, "..")))
         self.SetValue(relname)
         self.validateInput(event)
 
