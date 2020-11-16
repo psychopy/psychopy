@@ -34,21 +34,22 @@ Youtube tutorials
 Materials for Builder
 ---------------------
 
-- The **most comprehensive guide** is the book `Building Experiments in PsychoPy`_ by Peirce and MacAskill.
+The **most comprehensive guide** is the book `Building Experiments in PsychoPy`_ by Peirce and MacAskill.
   The book is suitable for a wide range of needs and skill sets, with 3 sections for:
 
-    - The Beginner (suitable for undergraduate teaching)
-    - The Professional (more detail for creating more precise studies)
-    - The Specialist (with info about specialist needs such as studies in fMRI, EEG, ...)
+- The Beginner (suitable for undergraduate teaching)
+- The Professional (more detail for creating more precise studies)
+- The Specialist (with info about specialist needs such as studies in fMRI, EEG, ...)
 
-- At `School of Psychology, University of Nottingham`_, PsychoPy is now used for all first year practical class teaching. The classes that comprise that first year course are provided below. They were created partially with funding from the former `Higher Education Academy Psychology Network`_. Note that the materials here will be updated frequently as they are further developed (e.g. to update screenshots etc) so make sure you have the latest version of them!
+At `School of Psychology, University of Nottingham`_, PsychoPy is now used for all first year practical class teaching. The classes that comprise that first year course are provided below. They were created partially with funding from the former `Higher Education Academy Psychology Network`_. Note that the materials here will be updated frequently as they are further developed (e.g. to update screenshots etc) so make sure you have the latest version of them!
 
-        `PsychoPy_pracs_2011v2.zip (21MB) <PsychoPy_pracs_2011v2.zip>`_ (last updated: 15 Dec 2011)
+- `PsychoPy_pracs_2011v2.zip (21MB) <PsychoPy_pracs_2011v2.zip>`_ (last updated: 15 Dec 2011)
 
-- The `GestaltReVision group (University of Leuven) wiki <http://gestaltrevision.be/wiki/python>`_ covering PsychoPy (some Builder info and great tutorials for Python/PsychoPy coding of experiments).
-- There's a set of tools for `teaching psychophysics using PsychoPy <https://github.com/jamesferwerda/PsychoPysics>`_
-  and a `PsychoPysics poster from VSS <https://github.com/jamesferwerda/PsychoPysics/blob/master/ferwerda18_vss_poster.key.pdf>`_.
-  Thanks `James Ferwerda <https://jamesferwerda.wordpress.com>`_
+The `GestaltReVision group (University of Leuven) wiki <http://gestaltrevision.be/wiki/python>`_ covering PsychoPy (some Builder info and great tutorials for Python/PsychoPy coding of experiments).
+
+There's a set of tools for `teaching psychophysics using PsychoPy <https://github.com/jamesferwerda/PsychoPysics>`_
+and a `PsychoPysics poster from VSS <https://github.com/jamesferwerda/PsychoPysics/blob/master/ferwerda18_vss_poster.key.pdf>`_.
+Thanks `James Ferwerda <https://jamesferwerda.wordpress.com>`_
 
 Materials for Coder
 -------------------

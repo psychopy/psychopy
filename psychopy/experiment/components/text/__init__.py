@@ -151,7 +151,7 @@ class TextComponent(BaseVisualComponent):
             if inits[param] in [None, 'None', '']:
                 inits[param].val = 'undefined'
                 if param == 'text':
-                    inits[param].val = "''"
+                    inits[param].val = ""
 
         code = ("%(name)s = new visual.TextStim({\n"
                 "  win: psychoJS.window,\n"

@@ -185,11 +185,10 @@ class Flow(list):
                 entry.writePreCode(script)
 
     def writeStartCode(self, script):
-        """Write the code that comes before the Window is created
+        """Write the code that comes after the Window is created
         """
-        #todo: Comment is incorrect, this happens after window is created
         script.writeIndentedLines("\n# Start Code - component code to be "
-                                  "run before the window creation\n")
+                                  "run after the window creation\n")
         for entry in self:
             # NB each entry is a routine or LoopInitiator/Terminator
             self._currentRoutine = entry
