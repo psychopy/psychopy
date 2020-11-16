@@ -44,8 +44,8 @@ vshdModels = {
             -3: {'vfov': 30.04, 'dist': 0.333},
             -2: {'vfov': 30.08, 'dist': 0.5},
             -1: {'vfov': 30.14, 'dist': 1.0},
-            0:  {'vfov': 30.18, 'dist': 1.0},
-            1:  {'vfov': 30.24, 'dist': -1.0},
+            0:  {'vfov': 30.18, 'dist': 1.0},  # TODO: handle this case
+            1:  {'vfov': 30.24, 'dist': -1.0},  # image gets inverted
             2:  {'vfov': 30.3, 'dist': -0.5},
             3:  {'vfov': 30.36, 'dist': -0.333},
             4:  {'vfov': 30.42, 'dist': -0.25},
@@ -224,10 +224,9 @@ class VisualSystemHD(window.Window):
         """
         eye = self.buffer if eye is None else eye
 
-        # check if diopters is in a valid range
-        if self._hwDesc['diopterMin'] > diopters > self._hwDesc['diopterMax']:
-            raise ValueError(
-                "Diopter setting out of range, must be between -7 and +5.")
+        # check if diopters value in config
+        if diopters not in self._hwDesc['configByDiopters'].keys():
+            raise ValueError("Diopter setting invalid for display model.")
 
         try:
             self._diopters[eye] = int(diopters)
@@ -235,80 +234,80 @@ class VisualSystemHD(window.Window):
             raise ValueError(
                 "Invalid `eye` specified, must be 'left' or 'right'.")
 
-    def _getFocalLength(self, eye=None):
-        """Get the focal length for a given `eye` in meters.
-
-        Parameters
-        ----------
-        eye : str or None
-            Eye to use, either 'left' or 'right'. If `None`, the currently
-            set buffer will be used.
-
-        """
-        try:
-            focalLength = 1. / self._diopters[eye]
-        except KeyError:
-            raise ValueError(
-                "Invalid value for `eye`, must be 'left' or 'right'.")
-        except ZeroDivisionError:
-            raise ValueError("Value for diopters cannot be zero.")
-
-        return focalLength
-
-    def _getMagFactor(self, eye=None):
-        """Get the magnification factor of the lens for a given eye. Used to
-        in part to compute the actual size of the object.
-
-        Parameters
-        ----------
-        eye : str or None
-            Eye to use, either 'left' or 'right'. If `None`, the currently
-            set buffer will be used.
-
-        """
-        eye = self.buffer if eye is None else eye
-        return (self._diopters[eye] / 4.) + 1.
-
-    def _getScreenFOV(self, eye, direction='horizontal', degrees=True):
-        """Compute the FOV of the the display."""
-        if direction not in ('horizontal', 'vertical'):
-            raise ValueError("Invalid `direction` specified, must be "
-                             "'horizontal' or 'vertical'.")
-
-        # todo: figure this out
-
-    def _getPredictedFOV(self, size, eye=None):
-        """Get the predicted vertical FOV of the display for a given eye.
-
-        Parameters
-        ----------
-        size : float
-            Size of the object on screen in meters.
-        eye : str or None
-            Eye to use, either 'left' or 'right'. If `None`, the currently
-            set buffer will be used.
-
-        """
-        return np.degrees(2. * np.arctan(size / (2. * self._getFocalLength(eye))))
-
-    def _getActualFOV(self, size, eye=None):
-        """Get the actual FOV of an object of `size` for a given eye."""
-        if eye not in ('left', 'right'):
-            raise ValueError(
-                "Invalid value for `eye`, must be 'left' or 'right'.")
-
-        # predFOV = self._getPredictedFOV(size, eye)
-        actualFOV = 0.0098 * size ** 3 - 0.0576 * size ** 2 + 2.6728 * size - 0.0942
-
-        return actualFOV
-
-    def getDistortion(self, size, eye=None):
-        """Get the optical distortion amount (percent) for a stimulus of given
-        `size` in degrees positioned at the center of the display."""
-        predFOV = self._getPredictedFOV(size, eye)
-        actualFOV = self._getActualFOV(size, eye)
-
-        return ((actualFOV - predFOV) * predFOV) * 100.
+    # def _getFocalLength(self, eye=None):
+    #     """Get the focal length for a given `eye` in meters.
+    #
+    #     Parameters
+    #     ----------
+    #     eye : str or None
+    #         Eye to use, either 'left' or 'right'. If `None`, the currently
+    #         set buffer will be used.
+    #
+    #     """
+    #     try:
+    #         focalLength = 1. / self._diopters[eye]
+    #     except KeyError:
+    #         raise ValueError(
+    #             "Invalid value for `eye`, must be 'left' or 'right'.")
+    #     except ZeroDivisionError:
+    #         raise ValueError("Value for diopters cannot be zero.")
+    #
+    #     return focalLength
+    #
+    # def _getMagFactor(self, eye=None):
+    #     """Get the magnification factor of the lens for a given eye. Used to
+    #     in part to compute the actual size of the object.
+    #
+    #     Parameters
+    #     ----------
+    #     eye : str or None
+    #         Eye to use, either 'left' or 'right'. If `None`, the currently
+    #         set buffer will be used.
+    #
+    #     """
+    #     eye = self.buffer if eye is None else eye
+    #     return (self._diopters[eye] / 4.) + 1.
+    #
+    # def _getScreenFOV(self, eye, direction='horizontal', degrees=True):
+    #     """Compute the FOV of the the display."""
+    #     if direction not in ('horizontal', 'vertical'):
+    #         raise ValueError("Invalid `direction` specified, must be "
+    #                          "'horizontal' or 'vertical'.")
+    #
+    #     # todo: figure this out
+    #
+    # def _getPredictedFOV(self, size, eye=None):
+    #     """Get the predicted vertical FOV of the display for a given eye.
+    #
+    #     Parameters
+    #     ----------
+    #     size : float
+    #         Size of the object on screen in meters.
+    #     eye : str or None
+    #         Eye to use, either 'left' or 'right'. If `None`, the currently
+    #         set buffer will be used.
+    #
+    #     """
+    #     return np.degrees(2. * np.arctan(size / (2. * self._getFocalLength(eye))))
+    #
+    # def _getActualFOV(self, size, eye=None):
+    #     """Get the actual FOV of an object of `size` for a given eye."""
+    #     if eye not in ('left', 'right'):
+    #         raise ValueError(
+    #             "Invalid value for `eye`, must be 'left' or 'right'.")
+    #
+    #     # predFOV = self._getPredictedFOV(size, eye)
+    #     actualFOV = 0.0098 * size ** 3 - 0.0576 * size ** 2 + 2.6728 * size - 0.0942
+    #
+    #     return actualFOV
+    #
+    # def getDistortion(self, size, eye=None):
+    #     """Get the optical distortion amount (percent) for a stimulus of given
+    #     `size` in degrees positioned at the center of the display."""
+    #     predFOV = self._getPredictedFOV(size, eye)
+    #     actualFOV = self._getActualFOV(size, eye)
+    #
+    #     return ((actualFOV - predFOV) * predFOV) * 100.
 
     def _getWarpExtents(self, eye):
         """Get the horizontal and vertical extents of the barrel distortion in
