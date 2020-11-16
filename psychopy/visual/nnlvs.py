@@ -76,9 +76,108 @@ class VisualSystemHD(window.Window):
     which eye to draw to by calling `setBuffer`, much like how stereoscopic
     rendering is implemented in the base `Window` class.
 
+    Notes
+    -----
+    * This class handles drawing differently than the default window class, as
+      a result, stimuli `autoDraw` is not supported.
+
+    Examples
+    --------
+    Here is a basic example of 2D rendering using the VisualSystemHD(tm). This
+    is the binocular version of the dynamic 'plaid.py' demo::
+
+        from psychopy import visual, core, event
+
+        # Create a visual window
+        win = visual.VisualSystemHD(fullscr=True, screen=1)
+
+        # Initialize some stimuli, note contrast, opacity, ori
+        grating1 = visual.GratingStim(win, mask="circle", color='white',
+            contrast=0.5, size=(1.0, 1.0), sf=(4, 0), ori = 45, autoLog=False)
+        grating2 = visual.GratingStim(win, mask="circle", color='white',
+            opacity=0.5, size=(1.0, 1.0), sf=(4, 0), ori = -45, autoLog=False,
+            pos=(0.1, 0.1))
+
+        trialClock = core.Clock()
+        t = 0
+        while not event.getKeys() and t < 20:
+            t = trialClock.getTime()
+
+            for eye in ('left', 'right'):
+                win.setBuffer(eye)  # change the buffer
+                grating1.phase = 1 * t  # drift at 1Hz
+                grating1.draw()  # redraw it
+                grating2.phase = 2 * t    # drift at 2Hz
+                grating2.draw()  # redraw it
+
+            win.flip()
+
+        win.close()
+        core.quit()
+
+    As you can see above, there are few changes needed to convert an existing 2D
+    experiment to run on the VSHD. For 3D rendering with perspective, you need
+    set `eyeOffset` and apply the projection by calling `setPerspectiveView`.
+    (other projection modes are not implemented or supported right now)::
+
+        from psychopy import visual, core, event
+
+        # Create a visual window
+        win = visual.VisualSystemHD(fullscr=True, screen=1)
+
+        # text to display
+        instr = visual.TextStim(win, text="Any key to quit", pos=(0, -.7))
+
+        # create scene light at the pivot point
+        win.lights = [
+            visual.LightSource(win, pos=(0.4, 4.0, -2.0), lightType='point',
+                        diffuseColor=(0, 0, 0), specularColor=(1, 1, 1))
+        ]
+        win.ambientLight = (0.2, 0.2, 0.2)
+
+        # Initialize some stimuli, note contrast, opacity, ori
+        ball = visual.SphereStim(win, radius=0.1, pos=(0, 0, -2), color='green',
+            useShaders=False)
+
+        iod = 6.2  # interocular separation in CM
+
+        trialClock = core.Clock()
+        t = 0
+        while not event.getKeys() and t < 20:
+            t = trialClock.getTime()
+
+            for eye in ('left', 'right'):
+                win.setBuffer(eye)  # change the buffer
+
+                # set eye offset for stereo
+                if eye == 'left':
+                    win.eyeOffset = -iod / 2.0
+                else:
+                    win.eyeOffset = iod / 2.0
+
+                # setup drawing with perspective
+                win.setPerspectiveView()
+
+                win.useLights = True  # switch on lights
+                ball.draw()  # draw the ball
+                # shut the lights, needed to prevent light color from affecting
+                # 2D stim
+                win.useLights = False
+
+                # reset transform to draw text correctly
+                win.resetEyeTransform()
+
+                instr.draw()
+
+            win.flip()
+
+        win.close()
+        core.quit()
+
     """
-    def __init__(self, monoscopic=False, lensCorrection=True, distCoef=None,
-                 directDraw=False, model='vshd', *args, **kwargs):
+    def __init__(self, monoscopic=False, diopters=(-1, -1), lensCorrection=True,
+                 distCoef=None, directDraw=False, model='vshd', *args,
+                 **kwargs):
         """
         Parameters
         ----------
@@ -87,22 +186,27 @@ class VisualSystemHD(window.Window):
             both eye buffers. You will not need to call `setBuffer`. It is not
             possible to set monoscopic mode after the window is created. It is
             recommended that you use monoscopic mode if you intend to display
-            only 2D stimuli as it uses a less memory intensive rendering
-            pipeline.
+            only 2D stimuli about the center of the display as it uses a less
+            memory intensive rendering pipeline.
+        diopters : tuple or list
+            Initial diopter values for the left and right eye. Default is
+            `(-1, -1)`, values must be integers.
         lensCorrection : bool
             Apply lens correction (barrel distortion) to the output. The amount
             of distortion applied can be specified using `distCoef`. If `False`,
             no distortion will be applied to the output and the entire display
-            will be used.
+            will be used. Not applying correction will result in pincushion
+            distortion which produces a non-rectilinear output.
         distCoef : float
             Distortion coefficient for barrel distortion. If `None`, the
-            recommended value will be used.
+            recommended value will be used for the model of display. You can
+            adjust the value to fine-tune the barrel distortion.
         directDraw : bool
             Direct drawing mode. Stimuli are drawn directly to the back buffer
             instead of creating separate buffer. This saves video memory but
             does not permit barrel distortion or monoscopic rendering. If
             `False`, drawing is done with two FBOs containing each eye's image.
-        model : str
+        hwModel : str
             Model of the VisualSystemHD in use. Used to set viewing parameters
             accordingly. Default is 'vshd'. Cannot be changed after starting the
             application.
@@ -125,15 +229,15 @@ class VisualSystemHD(window.Window):
 
         # hardware information for a given model of the display, used for
         # configuration
-        self._model = model
-        self._hwDesc = vshdModels[self._model]
+        self._hwModel = model
+        self._hwDesc = vshdModels[self._hwModel]
 
         # distortion coefficent
         self._distCoef = \
             self._hwDesc['distCoef'] if distCoef is None else float(distCoef)
 
         # diopter settings for each eye, needed to compute actual FOV
-        self._diopters = {'left': 1, 'right': 1}
+        self._diopters = {'left': diopters[0], 'right': diopters[1]}
 
         # look-up table of FOV values for each diopter setting
         self._fovLUT = self._hwDesc['configByDiopters']
@@ -203,6 +307,8 @@ class VisualSystemHD(window.Window):
             self._distCoef = self._hwDesc['distCoef']
         else:
             raise ValueError('Invalid value for `distCoef`.')
+
+        self._setupLensCorrection()  # deletes old VAOs
 
     @property
     def diopters(self):
