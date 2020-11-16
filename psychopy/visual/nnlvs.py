@@ -33,8 +33,24 @@ reportNDroppedFrames = 5
 
 vshdModels = {
     'vshd': {
-        'diopterMin': -7.,  # minimum diopter value for the display
-        'diopterMax': 5,  # maximum diopter value for the display
+        # store the configuration for FOV and viewing distance by diopters
+        'configByDiopters': {
+            -9: {'vfov': 29.70, 'dist': 0.111},
+            -8: {'vfov': 29.75, 'dist': 0.125},
+            -7: {'vfov': 29.8, 'dist': 0.143},
+            -6: {'vfov': 29.86, 'dist': 0.167},
+            -5: {'vfov': 29.92, 'dist': 0.20},
+            -4: {'vfov': 29.98, 'dist': 0.25},
+            -3: {'vfov': 30.04, 'dist': 0.333},
+            -2: {'vfov': 30.08, 'dist': 0.5},
+            -1: {'vfov': 30.14, 'dist': 1.0},
+            0:  {'vfov': 30.18, 'dist': 1.0},
+            1:  {'vfov': 30.24, 'dist': -1.0},
+            2:  {'vfov': 30.3, 'dist': -0.5},
+            3:  {'vfov': 30.36, 'dist': -0.333},
+            4:  {'vfov': 30.42, 'dist': -0.25},
+            5:  {'vfov': 30.46, 'dist': -0.2},
+        },
         'scrHeightM': 9.6 * 1200. / 1e-6,  # screen height in meters
         'scrWidthM': 9.6 * 1920. / 1e-6,  # screen width in meters
         'distCoef': -0.02,  # distortion coef. depends on screen size
@@ -62,7 +78,7 @@ class VisualSystemHD(window.Window):
 
     """
     def __init__(self, monoscopic=False, lensCorrection=True, distCoef=None,
-                 directDraw=False, *args, **kwargs):
+                 directDraw=False, model='vshd', *args, **kwargs):
         """
         Parameters
         ----------
@@ -86,6 +102,10 @@ class VisualSystemHD(window.Window):
             instead of creating separate buffer. This saves video memory but
             does not permit barrel distortion or monoscopic rendering. If
             `False`, drawing is done with two FBOs containing each eye's image.
+        model : str
+            Model of the VisualSystemHD in use. Used to set viewing parameters
+            accordingly. Default is 'vshd'. Cannot be changed after starting the
+            application.
 
         """
         # warn if given `useFBO`
@@ -105,14 +125,8 @@ class VisualSystemHD(window.Window):
 
         # hardware information for a given model of the display, used for
         # configuration
-        self._hwDesc = {
-            'diopterMin': -7.,  # minimum diopter value for the display
-            'diopterMax': 5,  # maximum diopter value for the display
-            'scrHeightM': 9.6 * 1200. / 1e-6,  # screen height in meters
-            'scrWidthM': 9.6 * 1920. / 1e-6,  # screen width in meters
-            'distCoef': -0.02,  # distortion coef. depends on screen size
-            'resolution': (1920, 1200)  # resolution for the display per eye
-        }
+        self._model = model
+        self._hwDesc = vshdModels[self._model]
 
         # distortion coefficent
         self._distCoef = \
@@ -122,22 +136,7 @@ class VisualSystemHD(window.Window):
         self._diopters = {'left': 1, 'right': 1}
 
         # look-up table of FOV values for each diopter setting
-        self._fovLUT = {
-            -9: {'hfov': 29.70, 'vdist': 111},
-            -8: {'hfov': 29.12, 'vdist': 125},
-            -7: {'hfov': 29.20, 'vdist': 143},
-            -6: {'hfov': 29.33, 'vdist': 167},
-            -5: {'hfov': 29.43, 'vdist': 200},
-            -4: {'hfov': 29.43, 'vdist': 250},
-            -3: {'hfov': 29.43, 'vdist': 333},
-            -2: {'hfov': 29.43, 'vdist': 500},
-            -1: {'hfov': 29.43, 'vdist': 1000},
-            0:  {'hfov': 29.43, 'vdist': 1000},
-            1:  {'hfov': 29.43, 'vdist': 1000},
-            2:  {'hfov': 29.23, 'vdist': 500},
-            3:  {'hfov': 29.37, 'vdist': 250},
-            4:  {'hfov': 29.49, 'vdist': 200}
-        }
+        self._fovLUT = self._hwDesc['configByDiopters']
 
         # get the dimensions of the buffer for each eye
         bufferWidth, bufferHieght = self.frameBufferSize
@@ -538,8 +537,10 @@ class VisualSystemHD(window.Window):
         # Not in full screen mode? Need to compute the dimensions of the display
         # area to ensure disparities are correct even when in windowed-mode.
         aspect = self.size[0] / self.size[1]
-        vfov = self._fovLUT[self._diopters[self.buffer]]['hfov']
-        scrDist = self._fovLUT[self._diopters[self.buffer]]['vdist'] / 1000.
+
+        # use these instead of those from the monitor configration
+        vfov = self._fovLUT[self._diopters[self.buffer]]['vfov']
+        scrDist = self._fovLUT[self._diopters[self.buffer]]['dist']
 
         frustum = vt.computeFrustumFOV(
             vfov,
