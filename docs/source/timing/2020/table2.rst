@@ -2,7 +2,7 @@ Table2: lab-based timing data
 ==============================
 
 This is a sortable version of Table2 from
-`The timing mega-study: comparing a range of experiment generators, both lab-based and online <https://psyarxiv.com/d6nu5/>`_
+`The timing mega-study: comparing a range of experiment generators, both lab-based and online <https://peerj.com/articles/9414/>`_
 
 **Timing summaries of lab-based software** by package and platform.
 The Var(iability) measures are the inter-trial standard deviations of the

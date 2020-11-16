@@ -208,8 +208,18 @@ class Experiment(object):
             script = script.getvalue()
         elif target == "PsychoJS":
             script.oneIndent = "  "  # use 2 spaces rather than python 4
+
+
             self_copy.settings.writeInitCodeJS(script,self_copy.psychopyVersion,
                                                localDateTime, modular)
+
+            script.writeIndentedLines("// Start code blocks for 'Before Experiment'")
+            for entry in self_copy.flow:
+                # NB each entry is a routine or LoopInitiator/Terminator
+                self_copy._currentRoutine = entry
+                if hasattr(entry, 'writePreCodeJS'):
+                    entry.writePreCodeJS(script)
+
             self_copy.flow.writeFlowSchedulerJS(script)
             self_copy.settings.writeExpSetupCodeJS(script,
                                                    self_copy.psychopyVersion)
@@ -221,8 +231,6 @@ class Experiment(object):
             # routine init sections
             for entry in self_copy.flow:
                 # NB each entry is a routine or LoopInitiator/Terminator
-                if hasattr(entry, 'writePreCodeJS'):
-                    entry.writePreCodeJS(script)
                 self_copy._currentRoutine = entry
                 if hasattr(entry, 'writeInitCodeJS'):
                     entry.writeInitCodeJS(script)
@@ -479,6 +487,24 @@ class Experiment(object):
                 # lowAnchorText highAnchorText will trigger obsolete error
                 # when run the script
                 params[name].val = v
+            elif name == 'storeResponseTime':
+                return  # deprecated in v1.70.00 because it was redundant
+            elif name == 'Resources':
+                # if the xml import hasn't automatically converted from string?
+                if type(val) == str:
+                    resources = data.utils.listFromString(val)
+                if self.psychopyVersion == '2020.2.5':
+                    # in 2020.2.5 only, problems were:
+                    #   a) resources list was saved as a string and
+                    #   b) with wrong root folder
+                    resList = []
+                    for resourcePath in resources:
+                        # doing this the blunt way but should we check for existence?
+                        resourcePath = resourcePath.replace("../", "")  # it was created using wrong root
+                        resourcePath = resourcePath.replace("\\", "/")  # created using windows \\
+                        resList.append(resourcePath)
+                    resources = resList  # push our new list back to resources
+                params[name].val = resources
             else:
                 if name in params:
                     params[name].val = val

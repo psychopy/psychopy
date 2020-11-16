@@ -32,7 +32,8 @@ _localized.update({'categoryChoices': _translate('Category choices'),
                    'forceEndRoutine': _translate('Force end of Routine'),
                    'storeHistory': _translate('Store history'),
                    'storeRating': _translate('Store rating'),
-                   'storeRatingTime': _translate('Store rating time')})
+                   'storeRatingTime': _translate('Store rating time'),
+                   'readOnly': _translate('readOnly')})
 
 knownStyles = slider.Slider.knownStyles
 
@@ -70,7 +71,7 @@ class SliderComponent(BaseVisualComponent):
                  stopType='condition', stopVal='',
                  startEstim='', durationEstim='',
                  forceEndRoutine=True,
-                 storeRating=True, storeRatingTime=True, storeHistory=False):
+                 storeRating=True, storeRatingTime=True, storeHistory=False, readOnly=False):
         super(SliderComponent, self).__init__(
                 exp, parentName, name,
                 startType=startType, startVal=startVal,
@@ -118,6 +119,11 @@ class SliderComponent(BaseVisualComponent):
                 hint=_translate("Should setting a rating (releasing the mouse) "
                                 "cause the end of the routine (e.g. trial)?"),
                 label=_localized['forceEndRoutine'])
+        self.params['readOnly'] = Param(
+            readOnly, valType='bool', allowedTypes=[], categ='Data',
+            updates='constant', allowedUpdates=[],
+            hint=_translate("Should participant be able to change the rating on the Slider?"),
+            label=_localized['readOnly'])
 
         # advanced params:
         self.params['flip'] = Param(
@@ -185,7 +191,7 @@ class SliderComponent(BaseVisualComponent):
                    "    labels={labels}, ticks={ticks},\n"
                    "    granularity={granularity}, style={styles},\n"
                    "    color={color}, font={font},\n"
-                   "    flip={flip}, depth={depth})\n"
+                   "    flip={flip}, depth={depth}, readOnly={readOnly})\n"
                    .format(**inits))
         buff.writeIndented(initStr)
 

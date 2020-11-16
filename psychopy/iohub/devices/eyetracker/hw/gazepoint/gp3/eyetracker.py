@@ -292,6 +292,8 @@ class EyeTracker(EyeTrackerDevice):
                 init_connection_str += '<SET ID="ENABLE_SEND_PUPIL_RIGHT" STATE="1" />\r\n'
                 init_connection_str += '<SET ID="ENABLE_SEND_POG_FIX" STATE="1" />\r\n'
                 init_connection_str += '<SET ID="ENABLE_SEND_POG_BEST" STATE="1" />\r\n'
+                init_connection_str += '<SET ID="ENABLE_SEND_EYE_LEFT" STATE="1" />\r\n'
+                init_connection_str += '<SET ID="ENABLE_SEND_EYE_RIGHT" STATE="1" />\r\n'
                 init_connection_str += '<SET ID="ENABLE_SEND_COUNTER" STATE="1" />\r\n'
                 init_connection_str += '<SET ID="ENABLE_SEND_TIME" STATE="1" />\r\n'
                 init_connection_str += '<SET ID="ENABLE_SEND_TIME_TICK" STATE="1" />\r\n'
@@ -711,6 +713,7 @@ class EyeTracker(EyeTrackerDevice):
             (left_gaze_x, left_gaze_y))
         left_pupil_size = m.get(
             'LPD', ET_UNDEFINED)  # diameter of pupil in pixels
+        left_pupil_size_2 = m.get("LPUPILD", ET_UNDEFINED) # diameter of pupil in meters (sic!)
 
         right_gaze_x = m.get('RPOGX', ET_UNDEFINED)
         right_gaze_y = m.get('RPOGY', ET_UNDEFINED)
@@ -718,6 +721,8 @@ class EyeTracker(EyeTrackerDevice):
             (right_gaze_x, right_gaze_y))
         right_pupil_size = m.get(
             'RPD', ET_UNDEFINED)  # diameter of pupil in pixels
+        right_pupil_size_2 = m.get("RPUPILD", ET_UNDEFINED) # diameter of pupil in meters (sic!)
+
 
         #
         # The X and Y-coordinates of the left and right eye pupil
@@ -767,8 +772,8 @@ class EyeTracker(EyeTrackerDevice):
             left_raw_y,
             left_pupil_size,
             EyeTrackerConstants.PUPIL_DIAMETER,
-            ET_UNDEFINED,
-            ET_UNDEFINED,
+            left_pupil_size_2 * 1000, # converting to MM
+            EyeTrackerConstants.PUPIL_DIAMETER_MM,
             ET_UNDEFINED,
             ET_UNDEFINED,
             ET_UNDEFINED,
@@ -786,8 +791,8 @@ class EyeTracker(EyeTrackerDevice):
             right_raw_y,
             right_pupil_size,
             EyeTrackerConstants.PUPIL_DIAMETER,
-            ET_UNDEFINED,
-            ET_UNDEFINED,
+            right_pupil_size_2 * 1000, # converting to MM
+            EyeTrackerConstants.PUPIL_DIAMETER_MM,
             ET_UNDEFINED,
             ET_UNDEFINED,
             ET_UNDEFINED,
