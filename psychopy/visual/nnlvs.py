@@ -38,7 +38,7 @@ vshdModels = {
         'scrHeightM': 9.6 * 1200. / 1e-6,  # screen height in meters
         'scrWidthM': 9.6 * 1920. / 1e-6,  # screen width in meters
         'distCoef': -0.02,  # distortion coef. depends on screen size
-        'resolution': (1920, 1200)  # resolution fo the display
+        'resolution': (1920, 1200)  # resolution for the display per eye
     }
 }
 
@@ -62,7 +62,7 @@ class VisualSystemHD(window.Window):
 
     """
     def __init__(self, monoscopic=False, lensCorrection=True, distCoef=None,
-                 directDraw=False, hwModel='vshd', *args, **kwargs):
+                 directDraw=False, *args, **kwargs):
         """
         Parameters
         ----------
@@ -86,9 +86,6 @@ class VisualSystemHD(window.Window):
             instead of creating separate buffer. This saves video memory but
             does not permit barrel distortion or monoscopic rendering. If
             `False`, drawing is done with two FBOs containing each eye's image.
-        hwModel : str
-            VisualSystemHD hardware model in use. This value is used to
-            configure the display. Cannot be changed after initialization.
 
         """
         # warn if given `useFBO`
@@ -108,15 +105,39 @@ class VisualSystemHD(window.Window):
 
         # hardware information for a given model of the display, used for
         # configuration
-        self._model = hwModel
-        self._hwDesc = vshdModels[self._model]
+        self._hwDesc = {
+            'diopterMin': -7.,  # minimum diopter value for the display
+            'diopterMax': 5,  # maximum diopter value for the display
+            'scrHeightM': 9.6 * 1200. / 1e-6,  # screen height in meters
+            'scrWidthM': 9.6 * 1920. / 1e-6,  # screen width in meters
+            'distCoef': -0.02,  # distortion coef. depends on screen size
+            'resolution': (1920, 1200)  # resolution for the display per eye
+        }
 
         # distortion coefficent
         self._distCoef = \
             self._hwDesc['distCoef'] if distCoef is None else float(distCoef)
 
         # diopter settings for each eye, needed to compute actual FOV
-        self._diopters = {'left': 1., 'right': 1.}
+        self._diopters = {'left': 1, 'right': 1}
+
+        # look-up table of FOV values for each diopter setting
+        self._fovLUT = {
+            -9: {'hfov': 29.70, 'vdist': 111},
+            -8: {'hfov': 29.12, 'vdist': 125},
+            -7: {'hfov': 29.20, 'vdist': 143},
+            -6: {'hfov': 29.33, 'vdist': 167},
+            -5: {'hfov': 29.43, 'vdist': 200},
+            -4: {'hfov': 29.43, 'vdist': 250},
+            -3: {'hfov': 29.43, 'vdist': 333},
+            -2: {'hfov': 29.43, 'vdist': 500},
+            -1: {'hfov': 29.43, 'vdist': 1000},
+            0:  {'hfov': 29.43, 'vdist': 1000},
+            1:  {'hfov': 29.43, 'vdist': 1000},
+            2:  {'hfov': 29.23, 'vdist': 500},
+            3:  {'hfov': 29.37, 'vdist': 250},
+            4:  {'hfov': 29.49, 'vdist': 200}
+        }
 
         # get the dimensions of the buffer for each eye
         bufferWidth, bufferHieght = self.frameBufferSize
@@ -195,7 +216,7 @@ class VisualSystemHD(window.Window):
 
         Parameters
         ----------
-        diopters : float
+        diopters : int
             Set diopters for a given eye, ranging between -7 and +5.
         eye : str or None
             Eye to set, either 'left' or 'right'. If `None`, the currently
@@ -210,7 +231,7 @@ class VisualSystemHD(window.Window):
                 "Diopter setting out of range, must be between -7 and +5.")
 
         try:
-            self._diopters[eye] = float(diopters)
+            self._diopters[eye] = int(diopters)
         except KeyError:
             raise ValueError(
                 "Invalid `eye` specified, must be 'left' or 'right'.")
@@ -490,6 +511,53 @@ class VisualSystemHD(window.Window):
 
         GL.glDisable(GL.GL_TEXTURE_2D)
         GL.glEnable(GL.GL_BLEND)
+
+    def setPerspectiveView(self, applyTransform=True, clearDepth=True):
+        """Set the projection and view matrix to render with perspective.
+
+        Matrices are computed using values specified in the monitor
+        configuration with the scene origin on the screen plane. Calculations
+        assume units are in meters. If `eyeOffset != 0`, the view will be
+        transformed laterally, however the frustum shape will remain the
+        same.
+
+        Note that the values of :py:attr:`~Window.projectionMatrix` and
+        :py:attr:`~Window.viewMatrix` will be replaced when calling this
+        function.
+
+        Parameters
+        ----------
+        applyTransform : bool
+            Apply transformations after computing them in immediate mode. Same
+            as calling :py:attr:`~Window.applyEyeTransform()` afterwards if
+            `False`.
+        clearDepth : bool, optional
+            Clear the depth buffer.
+
+        """
+        # Not in full screen mode? Need to compute the dimensions of the display
+        # area to ensure disparities are correct even when in windowed-mode.
+        aspect = self.size[0] / self.size[1]
+        vfov = self._fovLUT[self._diopters[self.buffer]]['hfov']
+        scrDist = self._fovLUT[self._diopters[self.buffer]]['vdist'] / 1000.
+
+        frustum = vt.computeFrustumFOV(
+            vfov,
+            aspect,  # aspect ratio
+            scrDist,
+            nearClip=self._nearClip,
+            farClip=self._farClip)
+
+        self._projectionMatrix = \
+            vt.perspectiveProjectionMatrix(*frustum, dtype=np.float32)
+
+        # translate away from screen
+        self._viewMatrix = np.identity(4, dtype=np.float32)
+        self._viewMatrix[0, 3] = -self._eyeOffset  # apply eye offset
+        self._viewMatrix[2, 3] = -scrDist  # displace scene away from viewer
+
+        if applyTransform:
+            self.applyEyeTransform(clearDepth=clearDepth)
 
     def _blitEyeBuffer(self, eye):
         """Warp and blit to the appropriate eye buffer.
