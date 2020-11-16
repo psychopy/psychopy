@@ -2013,6 +2013,8 @@ class TableCtrl(wx.TextCtrl):
         self.templates = {
             'Form': os.path.join(cmpRoot, "form", "formItems.xltx")
         }
+        # Store location of root directory
+        self.rootDir = os.path.normpath(os.path.join(self.GetTopLevelParent().frame.filename, ".."))
         # Configure validation
         self.Bind(wx.EVT_TEXT, self.validateInput)
         self.validExt = [".csv",".tsv",".txt",
@@ -2045,7 +2047,7 @@ class TableCtrl(wx.TextCtrl):
 
     def openExcel(self, event):
         """Either open the specified excel sheet, or make a new one from a template"""
-        file = self.GetValue()
+        file = os.path.normpath(os.path.join(self.rootDir, self.GetValue()))
         if os.path.isfile(file) and file.endswith(tuple(self.validExt)):
             os.startfile(file)
         else:
@@ -2064,7 +2066,7 @@ class TableCtrl(wx.TextCtrl):
             return 0
         filename = dlg.GetPath()
         relname = os.path.relpath(filename,
-                                  os.path.normpath(os.path.join(self.GetTopLevelParent().frame.filename, "..")))
+                                  self.rootDir)
         self.SetValue(relname)
         self.validateInput(event)
 
