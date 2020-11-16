@@ -31,6 +31,7 @@ except ImportError:
 import copy
 import sys
 import os
+import re
 from psychopy import logging
 
 # tools must only be imported *after* event or MovieStim breaks on win32
@@ -736,6 +737,13 @@ class TextureMixin(object):
             onePeriodX, onePeriodY = numpy.mgrid[0:res, 0:2 * pi:1j * res]
             sinusoid = numpy.sin(onePeriodY - pi / 2)
             intensity = numpy.where(sinusoid > 0, 1, -1)
+            wasLum = True
+        elif re.search("sqrt[0-9]+", tex):  # square wave with duty cycle
+            dutycycle = int(tex[3:])/100
+            intensity = (numpy.linspace(-1.0, 1.0, res, endpoint=True) *
+                         numpy.ones([res, 1]))
+            intensity = numpy.roll(intensity, int((1 - dutycycle) * res/2))
+            intensity = numpy.where(intensity > 2 * dutycycle - 1, 1, -1)
             wasLum = True
         elif tex == "saw":
             intensity = (numpy.linspace(-1.0, 1.0, res, endpoint=True) *
