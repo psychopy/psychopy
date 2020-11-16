@@ -773,3 +773,7 @@ class VisualSystemHD(window.Window):
         # nop if we are still setting up the window
         if hasattr(self, '_eyeBuffers'):
             self.setBuffer('left', clear=clearBuffer)
+
+
+if __name__ == "__main__":
+    pass
