@@ -38,7 +38,7 @@ Start PsychoPy, and be sure to be in the Builder view.
 * If you have poked around a bit in the Builder already, be sure to start with a clean slate. To get a new Builder view, type `Ctrl-N` on Windows or Linux, or `Cmd-N` on Mac.
 * Click on a Text component
 
-.. image:: ../../psychopy/experiment/components/text/text.png
+.. image:: ../../psychopy/experiment/components/text/light/text.png
 
 and a Text Properties dialog will pop up.
   .. image:: images/textdialog.png
@@ -50,7 +50,7 @@ and a Text Properties dialog will pop up.
 * Your text component now resides in a routine called `trial`. You can click on it to view or edit it. (Components, Routines, and other Builder concepts are explained in the :doc:`Builder documentation <builder/index>`.)
 * Back in the main Builder, type `Ctrl-R` (Windows, Linux) or `Cmd-R` (Mac), or use the mouse to click the `Run` icon.
 
-.. image:: ../../psychopy/app/Resources/run32.png
+.. image:: ../../psychopy/app/Resources/light/run32.png
 
 Assuming you typed in "Hello world!", your screen should have looked like this (briefly):
 
@@ -89,7 +89,7 @@ To get a better feel for what was happening "behind the scenes" in the Builder p
 * In the Builder, load or recreate your "hello world" program.
 * Instead of running the program, explicitly convert it into python: Type `F5`, or click the `Compile` icon:
 
-.. image:: ../../psychopy/app/Resources/compile32.png
+.. image:: ../../psychopy/app/Resources/light/compile32.png
 
 The view will automatically switch to the Coder, and display the python code. If you then save and run this code, it would look the same as running it directly from the Builder.
 

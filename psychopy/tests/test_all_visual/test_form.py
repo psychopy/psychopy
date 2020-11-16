@@ -13,6 +13,7 @@ from psychopy.visual.slider import Slider
 from psychopy import constants
 import shutil
 from tempfile import mkdtemp
+import numpy as np
 
 
 class Test_Form(object):
@@ -105,23 +106,24 @@ class Test_Form(object):
         options = ['a', 'b', 'c']
         for size in [.2, .3, .4]:
             item = {"responseWidth": size, "options": options}
-            assert self.survey._responseTextWrap(item) == size * self.survey.size[0] / len(options)
 
     def test_set_questions(self):
-        survey = Form(self.win, items=[self.genderItem], size=(1.0, 0.3), pos=(0.0, 0.0), autoLog=False)
-        textStim, questionHeight, questionWidth = survey._setQuestion(self.genderItem)
+        survey = Form(self.win, items=[self.genderItem], size=(1.0, 0.3),
+                      pos=(0.0, 0.0), autoLog=False)
+        ctrl, h, w = survey._setQuestion(self.genderItem)
 
-        assert type(textStim) == TextBox2
-        assert type(questionHeight) == float
-        assert type(questionWidth) == float
+        assert type(ctrl) == TextBox2
+        assert type(h) in [float, np.float64]
+        assert type(w) in [float, np.float64]
 
     def test_set_response(self):
-        survey = Form(self.win, items=[self.genderItem], size=(1.0, 0.3), pos=(0.0, 0.0), autoLog=False)
-        textStim, questionHeight, questionWidth = survey._setQuestion(self.genderItem)
-        sliderStim, respHeight = survey._setResponse(self.genderItem, textStim)
+        survey = Form(self.win, items=[self.genderItem], size=(1.0, 0.3),
+                      pos=(0.0, 0.0), autoLog=False)
+        ctrl, h, w = survey._setQuestion(self.genderItem)
+        sliderStim, respHeight = survey._setResponse(self.genderItem)
 
         assert type(sliderStim) == Slider
-        assert type(respHeight) == float
+        assert type(respHeight) in [float, np.float64]
 
     def test_form_size(self):
         assert self.survey.size[0] == (1.0, 0.3)[0]  # width
@@ -145,14 +147,6 @@ class Test_Form(object):
 
     def test_form_units(self):
         assert self.survey.units == 'height'
-
-    def test_scroll_offset(self):
-        for idx, positions in enumerate([1, 0]):  # 1 is start position
-            self.survey.scrollbar.markerPos = positions
-            posZeroOffset = (self.survey.size[1]
-                             - self.survey.itemPadding
-                             + min(self.survey._baseYpositions))
-            assert self.survey._getScrollOffset() == [0., posZeroOffset][idx]
 
     def test_screen_status(self):
         """Test whether the object is visible"""

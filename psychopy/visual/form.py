@@ -3,18 +3,19 @@
 
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 from __future__ import division
-from collections import deque
+import copy
 import psychopy
 from .text import TextStim
-from psychopy.data.utils import importConditions
+from psychopy.data.utils import importConditions, listFromString
 from psychopy.visual.basevisual import (BaseVisualStim,
                                         ContainerMixin,
                                         ColorMixin)
 from psychopy import logging
 from random import shuffle
+from pathlib import Path
 
 from psychopy.constants import PY3
 
@@ -26,16 +27,22 @@ _REQUIRED = -12349872349873  # an unlikely int
 _knownFields = {
     'index': None,  # optional field to index into the rows
     'itemText': _REQUIRED,  # (question used until 2020.2)
-    'itemColor': 'white',
+    'itemColor': 'fg',
     'itemWidth': 0.8,  # fraction of the form
     'type': _REQUIRED,  # type of response box (see below)
     'options': ('Yes', 'No'),  # for choice box
-    'ticks': (1, 2, 3, 4, 5, 6, 7), 'tickLabels': None,
+    'ticks': (1, 2, 3, 4, 5, 6, 7),
+    'tickLabels': None,
     # for rating/slider
     'responseWidth': 0.8,  # fraction of the form
-    'responseColor': 'white',
+    'responseColor': 'fg',
     'layout': 'horiz',  # can be vert or horiz
 }
+_doNotSave = [
+    'itemCtrl', 'responseCtrl',  # these genuinely can't be save
+    'itemColor', 'itemWidth', 'options', 'ticks', 'tickLabels',  # not useful?
+    'responseWidth', 'responseColor', 'layout',
+]
 _knownRespTypes = {
     'heading', 'description',  # no responses
     'rating', 'slider',  # slider is continuous
@@ -47,6 +54,7 @@ _synonyms = {
     'choice': 'radio',
     'free text': 'textBox'
 }
+
 
 class Form(BaseVisualStim, ContainerMixin, ColorMixin):
     """A class to add Forms to a `psycopy.visual.Window`
@@ -94,6 +102,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                  textHeight=.02,
                  size=(.5, .5),
                  pos=(0, 0),
+                 style='dark',
                  itemPadding=0.05,
                  units='height',
                  randomize=False,
@@ -104,6 +113,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         self.win = win
         self.autoLog = autoLog
         self.name = name
+        self.style = style
         self.randomize = randomize
         self.items = self.importItems(items)
         self.size = size
@@ -111,6 +121,8 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         self.itemPadding = itemPadding
         self.scrollSpeed = self.setScrollSpeed(self.items, 4)
         self.units = units
+        self.depth = 0
+
 
         self.textHeight = textHeight
         self._scrollBarSize = (0.016, size[1])
@@ -118,7 +130,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         self.leftEdge = None
         self.rightEdge = None
         self.topEdge = None
-        self.virtualHeight = 0  # Virtual height determines pos from boundary box
+        self._currentVirtualY = 0  # Y position in the virtual sheet
         self._decorations = []
         # Check units - only works with height units for now
         if self.win.units != 'height':
@@ -126,16 +138,18 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 "Form currently only formats correctly using height units. "
                 "Please change the units in Experiment Settings to 'height'")
 
-        self.complete = False
+        self._complete = False
 
         # Create layout of form
-        self._doLayout()
+        self._createItemCtrls()
 
         if self.autoLog:
             logging.exp("Created {} = {}".format(self.name, repr(self)))
 
     def __repr__(self, complete=False):
         return self.__str__(complete=complete)  # from MinimalStim
+
+    knownStyles = ['light', 'dark']
 
     def importItems(self, items):
         """Import items from csv or excel sheet and convert to list of dicts.
@@ -156,6 +170,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         """
         def _checkSynonyms(items, fieldNames):
             """Checks for updated names for fields (i.e. synonyms)"""
+
             replacedFields = set()
             for field in _synonyms:
                 synonym = _synonyms[field]
@@ -166,7 +181,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                         del item[synonym]
                         replacedFields.add(field)
             for field in replacedFields:
-                fieldNames.add(field)
+                fieldNames.append(field)
                 fieldNames.remove(_synonyms[field])
                 logging.warning("Form {} included field no longer used {}. "
                                 "Replacing with new name '{}'"
@@ -182,17 +197,24 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                                      .format(hdr, self.name, fieldNames))
 
 
-        def _checkTypes(types):
+        def _checkTypes(types, itemText):
             """A nested function for testing the number of options given
 
             Raises ValueError if n Options not > 1
             """
             itemDiff = set([types]) - set(_knownRespTypes)
 
-            if len(itemDiff) > 0:
-                msg = ("In Forms, {} is not allowed. You can only use types {}."
-                       " Please amend your item types in your item list"
-                       .format(itemDiff, _knownRespTypes))
+            for incorrItemType in itemDiff:
+                if incorrItemType == _REQUIRED:
+                    if self._itemsFile:
+                        itemsFileStr =  ("in items file '{}'"
+                                         .format(self._itemsFile))
+                    else:
+                        itemsFileStr = ""
+                    msg = ("Item {}{} is missing a required "
+                           "value for its response type. Permitted types are "
+                           "{}.".format(itemText, itemsFileStr,
+                                        _knownRespTypes))
                 if self.autoLog:
                     logging.error(msg)
                 raise ValueError(msg)
@@ -226,8 +248,11 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                                 .format(oldHeader, header)
                             )
                             continue
-
-                        item[header] = defaultValues[header]
+                        # Default to colour scheme if specified
+                        if defaultValues[header] in ['fg', 'bg', 'em']:
+                            item[header] = self.colorScheme[defaultValues[header]]
+                        else:
+                            item[header] = defaultValues[header]
                         missingHeaders.append(header)
 
             msg = "Using default values for the following headers: {}".format(
@@ -240,11 +265,14 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
         if not isinstance(items, list):
             # items is a conditions file
+            self._itemsFile = Path(items)
             items, fieldNames = importConditions(items, returnFieldNames=True)
         else:  # we already have a list so lets find the fieldnames
             fieldNames = set()
             for item in items:
                 fieldNames = fieldNames.union(item)
+            fieldNames = list(fieldNames)  # convert to list at the end
+            self._itemsFile = None
 
         _checkSynonyms(items, fieldNames)
         _checkRequiredFields(fieldNames)
@@ -253,15 +281,15 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
         # Convert options to list of strings
         for idx, item in enumerate(items):
-            if PY3:
-                if isinstance(item['options'], str):
-                    items[idx]['options'] = item['options'].split(',')
-            else:  # Python2
-                if isinstance(item['options'], basestring):
-                    items[idx]['options'] = item['options'].split(',')
+            if item['ticks']:
+                item['ticks'] = listFromString(item['ticks'])
+            if 'tickLabels' in item and item['tickLabels']:
+                item['tickLabels'] = listFromString(item['tickLabels'])
+            if 'options' in item and item['options']:
+                item['options'] = listFromString(item['options'])
 
         # Check types
-        [_checkTypes(item['type']) for item in items]
+        [_checkTypes(item['type'], item['itemText']) for item in items]
         # Check N options > 1
         # Randomise items if requested
         if self.randomize:
@@ -301,23 +329,6 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         """
         return size * self.size[0] - (self.itemPadding * 2)
 
-    def _responseTextWrap(self, item):
-        """
-        Returns width for each response label text based on responseWidth
-        and N responses given for item.
-
-        Parameters
-        ----------
-        item : dict
-            The dict entry for a single item
-
-        Returns
-        -------
-        float
-            Wrap width for response label text
-        """
-        return (item['responseWidth'] * self.size[0]) / (len(item['options']))
-
     def _setQuestion(self, item):
         """Creates TextStim object containing question
 
@@ -351,27 +362,29 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 text=item['itemText'],
                 units=self.units,
                 letterHeight=self.textHeight * letterScale,
-                anchor='center-left',
-                size=[w, 0.05],
+                anchor='top-left',
+                pos=(self.leftEdge+self.itemPadding, 0),  # y pos irrelevant
+                size=[w, None],  # expand height with text
                 autoLog=False,
                 color=item['itemColor'],
+                padding=0,  # handle this by padding between items
                 borderWidth=1,
+                borderColor=None,  # add borderColor to help debug
                 editable=False,
                 bold=bold,
                 font='Arial')
 
-        questionHeight = self._getQuestionHeight(question)
-        questionWidth = self._getQuestionWidth(question)
-
-        # Position text relative to boundaries defined according to pos and size
-        question.pos = self._getQuestionPos(questionHeight)
+        questionHeight = question.size[1]
+        questionWidth = question.size[0]
+        # store virtual pos to combine with scroll bar for actual pos
+        question._baseY = self._currentVirtualY
 
         # Add question objects to Form element dict
         item['itemCtrl'] = question
 
-        return question, float(questionHeight), float(questionWidth)
+        return question, questionHeight, questionWidth
 
-    def _setResponse(self, item, question):
+    def _setResponse(self, item):
         """Makes calls to methods which make Slider or TextBox response objects
         for Form
 
@@ -392,66 +405,21 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
             The height of the response object as type float
         """
         if self.autoLog:
-            logging.exp("Response type: {}".format(item['type']))
-            logging.exp("Response layout: {}".format(item['layout']))
-            logging.exp(u"Response options: {}".format(item['options']))
-
-        # Create position of response object
-        pos = self._getResponsePos(item, question)
+            logging.info(
+                    "Adding response to Form type: {}, layout: {}, options: {}"
+                    .format(item['type'], item['layout'], item['options']))
 
         if item['type'].lower() == 'free text':
-            respCtrl, respHeight = self._makeTextBox(item, pos)
+            respCtrl, respHeight = self._makeTextBox(item)
         elif item['type'].lower() in ['heading', 'description']:
-            respCtrl, respHeight = None, self.textHeight
+            respCtrl, respHeight = None, 0
         elif item['type'].lower() in ['rating', 'slider', 'choice', 'radio']:
-            respCtrl, respHeight = self._makeSlider(item, pos)
+            respCtrl, respHeight = self._makeSlider(item)
 
         item['responseCtrl'] = respCtrl
         return respCtrl, float(respHeight)
 
-    def _getQuestionPos(self, questionHeight):
-        """Sets initial position of question text object
-
-        Parameters
-        ----------
-        questionHeight : float
-            The height of the question bounding box
-
-        Returns
-        -------
-        Tuple
-            The position of the text object
-        """
-        pos = (self.leftEdge + (self.itemPadding / 2),
-               self.topEdge
-               + self.virtualHeight
-               - questionHeight / 2 - self.itemPadding)
-        return pos
-
-    def _getResponsePos(self, item, question):
-        """Sets initial position of question object
-
-        Parameters
-        ----------
-        question : TextStim
-            The question text object
-        item : dict
-            The dict entry for a single item
-
-        Returns
-        -------
-        Tuple
-            The position of the response object
-        """
-        pos = (self.rightEdge
-               - ((item['responseWidth'] * self.size[0]) / 2)
-               - self._scrollBarSize[0]
-               - self.itemPadding
-               * self.size[0],
-               question.pos[1])
-        return pos
-
-    def _makeSlider(self, item, pos):
+    def _makeSlider(self, item):
         """Creates Slider object for Form class
 
         Parameters
@@ -470,46 +438,103 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         """
         # Slider dict
 
-        sliderType = {'slider': {'ticks': range(0, len(item['options'])),
-                                 'style': 'slider', 'granularity': 0},
-                      'rating': {'ticks': range(0, len(item['options'])),
-                                 'style': 'rating', 'granularity': 1},
-                      'choice': {'ticks': None,
-                                 'style': 'radio', 'granularity': 1}}
-        sliderType['radio'] = sliderType['choice']  # synonyms
+        def _sliderLabelWidths():
+            return (item['responseWidth'] * self.size[0]) \
+                   / (len(item['options']))
+        kind = item['type'].lower()
 
-        # Get height of response object
-        respHeight = self._getSliderHeight(item)
+        # what are the ticks for the scale/slider?
+        if item['type'].lower() in ['radio', 'choice']:
+            ticks = None
+            tickLabels = item['tickLabels'] or item['options'] or item['ticks']
+            granularity = 1
+            style = 'radio'
+        else:
+            if item['ticks']:
+                ticks = item['ticks']
+            elif item['options']:
+                ticks = range(0, len(item['options']))
 
+            else:
+                raise ValueError("We don't appear to have either options or "
+                                 "ticks for item '{}' of {}."
+                                 .format(item['itemText'], self.name))
+            # how to label those ticks
+            if item['tickLabels']:
+                tickLabels = [str(i).strip() for i in item['tickLabels']]
+            elif 'options' in item and item['options']:
+                tickLabels = [str(i).strip() for i in item['options']]
+            else:
+                tickLabels = None
+            # style/granularity
+            if kind == 'slider':
+                granularity = 0
+            else:
+                granularity = 1
+            style = kind
+
+        # Create x position of response object
+        xPos = (self.rightEdge
+                - ((item['responseWidth'] * self.size[0]) / 2)
+                - self._scrollBarSize[0]
+                - self.itemPadding)
         # Set radio button layout
         if item['layout'] == 'horiz':
-            respSize = ((item['responseWidth'])
-                        * self.size[0]
-                        - self._scrollBarSize[0]
-                        - self.itemPadding,
-                        0.03)
+            w = (item['responseWidth'] * self.size[0]
+                - self._scrollBarSize[0] - self.itemPadding) * 0.8
+            h = 0.03
         elif item['layout'] == 'vert':
-            respSize = (0.03, respHeight)
+            # for vertical take into account the nOptions
+            w = 0.03
+            h = self.textHeight*len(item['options'])
             item['options'].reverse()
 
         # Create Slider
+        x = xPos - self._scrollBarSize[0] - self.itemPadding
         resp = psychopy.visual.Slider(
                 self.win,
-                pos=pos, size=respSize,
-                ticks=sliderType[item['type'].lower()]['ticks'],
-                labels=[i.strip(' ') for i in item['options']],
+                pos=(x, 0),  # NB y pos is irrelevant here - handled later
+                size=(w, h),
+                ticks=ticks,
+                labels=tickLabels,
                 units=self.units,
                 labelHeight=self.textHeight,
-                labelWrapWidth=self._responseTextWrap(item),
-                granularity=sliderType[item['type'].lower()]['granularity'],
+                labelWrapWidth=_sliderLabelWidths(),
+                granularity=granularity,
                 flip=True,
-                style=sliderType[item['type'].lower()]['style'],
+                style=style,
                 autoLog=False,
                 color=item['responseColor'])
+        resp.line.lineColorSpace = self.colorScheme['space']
+        resp.line.lineColor = self.colorScheme['fg']
+        resp.line.fillColorSpace = self.colorScheme['space']
+        resp.line.fillColor = self.colorScheme['fg']
+        resp.marker.lineColorSpace = self.colorScheme['space']
+        resp.marker.lineColor = self.colorScheme['em']
+        resp.marker.fillColorSpace = self.colorScheme['space']
+        resp.marker.fillColor = self.colorScheme['em']
 
-        return resp, respHeight
+        if item['layout'] == 'horiz':
+            h += self.textHeight*2
 
-    def _makeTextBox(self, item, pos):
+        # store virtual pos to combine with scroll bar for actual pos
+        resp._baseY = self._currentVirtualY - h/2 - self.itemPadding
+
+        return resp, h
+
+    def _getItemHeight(self, item, ctrl=None):
+        """Returns the full height of the item to be inserted in the form"""
+        if type(ctrl) == psychopy.visual.TextBox2:
+            return ctrl.size[1]
+        if type(ctrl) == psychopy.visual.Slider:
+            # Set radio button layout
+            if item['layout'] == 'horiz':
+                return 0.03 + ctrl.labelHeight*3
+            elif item['layout'] == 'vert':
+                # for vertical take into account the nOptions
+                return ctrl.labelHeight*len(item['options'])
+
+    def _makeTextBox(self, item):
         """Creates TextBox object for Form class
 
         NOTE: The TextBox 2 in work in progress, and has not been added to Form class yet.
@@ -527,84 +552,32 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         respHeight
             The height of the response object as type float
         """
+        w = (item['responseWidth']*self.size[0]
+             - self.itemPadding - self._scrollBarSize[0])
+        x = self.rightEdge-self.itemPadding-self._scrollBarSize[0]
         resp = psychopy.visual.TextBox2(
                 self.win,
                 text='',
-                pos=pos,
-                size=(item['responseWidth'], .25),
+                pos=(x, 0),  # y pos irrelevant now (handled by scrollbar)
+                size=(w, None),
                 letterHeight=self.textHeight,
                 units=self.units,
-                color='white',
+                anchor='top-right',
+                color=self.colorScheme['fg'],
+                colorSpace=self.colorScheme['space'],
                 font='Arial',
                 editable=True,
-                borderColor='orange',
-                fillColor='lightgray',
+                borderColor=self.colorScheme['fg'],
+                borderWidth=2,
+                fillColor=self.colorScheme['bg'],
+                onTextCallback=self._layoutY,
         )
 
-        respHeight = resp.size[1] / 2
+        respHeight = resp.size[1]
+        # store virtual pos to combine with scroll bar for actual pos
+        resp._baseY = self._currentVirtualY
+
         return resp, respHeight
-
-    def _getQuestionHeight(self, question=None):
-        """Takes TextStim and calculates height of bounding box relative to height units of win
-
-        Parameters
-        ----------
-        question : TextStim
-            The question text object
-
-        Returns
-        -------
-        float
-            The height of the question bounding box
-        """
-        return question.box.size[1] / float(self.win.size[1])
-
-    def _getQuestionWidth(self, question=None):
-        """Takes TextStim and calculates width of bounding box relative to height units of win
-
-        Parameters
-        ----------
-        question : TextStim
-            The question text object
-
-        Returns
-        -------
-        float
-            The width of the question bounding box
-        """
-        return question.box.size[1] / float(self.win.size[1])
-
-    def _getSliderHeight(self, item):
-        """Takes response items and calculates height of response object
-        based on the size of the textstim bounding box
-
-        Parameters
-        ----------
-        item : dict
-            The dict entry for a single item
-
-        Returns
-        -------
-        float
-            The height of the response object
-        """
-        longest = max(item['options'], key=len)  # Get longest response item
-        LongestIndex = item['options'].index(longest)  # index longest item
-        tempText = TextStim(self.win,
-                            item['options'][LongestIndex],
-                            height=self.textHeight,
-                            wrapWidth=self._responseTextWrap(item))
-        size = tempText.boundingBox[1]
-        del (tempText)
-
-        # set response height from layout
-        if item['layout'] == 'vert':
-            respHeight = len(item['options']) * size
-        elif item['layout'] == 'horiz':
-            respHeight = size
-
-        # return size converted to height units
-        return respHeight / self.win.size[1] + self.itemPadding
 
     def _setScrollBar(self):
         """Creates Slider object for scrollbar
@@ -614,12 +587,22 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         psychopy.visual.slider.Slider
             The Slider object for scroll bar
         """
-        return psychopy.visual.Slider(win=self.win,
+        scroll = psychopy.visual.Slider(win=self.win,
                                       size=self._scrollBarSize,
                                       ticks=[0, 1],
                                       style='slider',
                                       pos=(self.rightEdge - .008, self.pos[1]),
                                       autoLog=False)
+        scroll.line.lineColorSpace = self.colorScheme['space']
+        scroll.line.lineColor = self.colorScheme['bg']
+        scroll.line.fillColorSpace = self.colorScheme['space']
+        scroll.line.fillColor = self.colorScheme['bg']
+        scroll.marker.lineColorSpace = self.colorScheme['space']
+        scroll.marker.lineColor = self.colorScheme['em']
+        scroll.marker.fillColorSpace = self.colorScheme['space']
+        scroll.marker.fillColor = self.colorScheme['em']
+
+        return scroll
 
     def _setBorder(self):
         """Creates border using Rect
@@ -634,6 +617,10 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                                     pos=self.pos,
                                     width=self.size[0],
                                     height=self.size[1],
+                                    fillColorSpace=self.colorScheme['space'],
+                                    fillColor=self.colorScheme['bg'],
+                                    lineColorSpace=self.colorScheme['space'],
+                                    lineColor=self.colorScheme['bg'],
                                     autoLog=False)
 
     def _setAperture(self):
@@ -662,38 +649,13 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         float
             Offset position of items proportionate to scroll bar
         """
-        sizeOffset = (1 - self.scrollbar.markerPos) * (
-                    self.size[1] - self.itemPadding)
-        maxItemPos = min(self._baseYpositions)
+        sizeOffset = (1-self.scrollbar.markerPos) * self.size[1]
+        maxItemPos = self._currentVirtualY - self.size[1]
         if maxItemPos > -self.size[1]:
             return 0
-        return (maxItemPos - (
-                    self.scrollbar.markerPos * maxItemPos) + sizeOffset)
+        return maxItemPos*(1- self.scrollbar.markerPos) + sizeOffset
 
-    def _setBaseYPosition(self, respHeight, questionHeight, layout):
-        """Sets the item position based on question vs. response height
-
-        Parameters
-        ----------
-        respHeight : float
-            The height of a response object
-        questionHeight : float
-            The height of a question text object
-        layout : string
-            The layout of the Form item - vert or horiz
-        """
-        # Append item height
-        self._baseYpositions.append(self.virtualHeight
-                                    - max(respHeight,
-                                          questionHeight)  # Positionining based on larger of the two
-                                    + (respHeight / 2) * (
-                                                layout == 'vert')  # aligns to center
-                                    - self.itemPadding)  # Padding for unaccounted marker size in slider height
-        # update height ready for next item/row
-        self.virtualHeight -= (max(respHeight, questionHeight)
-                               + self.itemPadding)
-
-    def _doLayout(self):
+    def _createItemCtrls(self):
         """Define layout of form"""
         # Define boundaries of form
         if self.autoLog:
@@ -701,32 +663,80 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
         self.leftEdge = self.pos[0] - self.size[0] / 2.0
         self.rightEdge = self.pos[0] + self.size[0] / 2.0
-        self.topEdge = self.pos[1] + self.size[1] / 2.0
 
         # For each question, create textstim and rating scale
         for item in self.items:
             # set up the question object
-            question, questionHeight, questionWidth = self._setQuestion(item)
+            self._setQuestion(item)
             # set up the response object
-            response, respHeight, = self._setResponse(item, question)
-            # Calculate position of item based on larger questionHeight vs respHeight.
-            self._setBaseYPosition(respHeight, questionHeight, item['layout'])
+            self._setResponse(item)
+
 
         # position a slider on right-hand edge
         self.scrollbar = self._setScrollBar()
         self.scrollbar.markerPos = 1  # Set scrollbar to start position
         self.border = self._setBorder()
         self.aperture = self._setAperture()
-        self._setDecorations()
+        # then layout the Y positions
+        self._layoutY()
 
         if self.autoLog:
             logging.info("Layout set for Form: {}.".format(self.name))
+
+    def _layoutY(self):
+        """This needs to be done when editable textboxes change their size
+        because everything below them needs to move too"""
+
+        self.topEdge = self.pos[1] + self.size[1] / 2.0
+
+        self._currentVirtualY = self.topEdge - self.itemPadding
+        # For each question, create textstim and rating scale
+        for item in self.items:
+            question = item['itemCtrl']
+            response = item['responseCtrl']
+
+            # update item baseY
+            question._baseY = self._currentVirtualY
+            # and get height to update current Y
+            questionHeight = self._getItemHeight(item=item, ctrl=question)
+
+            # go on to next line if together they're too wide
+            oneLine = (item['itemWidth']+item['responseWidth'] > 1
+                       or not response)
+            if oneLine:
+                # response on next line
+                self._currentVirtualY -= questionHeight + self.itemPadding
+
+            # update response baseY
+            if not response:
+                continue
+            # get height to update current Y
+            respHeight = self._getItemHeight(item=item, ctrl=response)
+
+            # update item baseY
+            # slider needs to align by middle
+            if type(response) == psychopy.visual.Slider:
+                response._baseY = self._currentVirtualY - respHeight/2
+            else:  # hopefully we have an object that can anchor at top?
+                response._baseY = self._currentVirtualY
+
+            # go on to next line if together they're too wide
+            if oneLine:
+                # response on same line - work out which is bigger
+                self._currentVirtualY -= (
+                    max(questionHeight, respHeight) + self.itemPadding
+                )
+            else:
+                # response on next line
+                self._currentVirtualY -= respHeight + self.itemPadding
+
+        self._setDecorations()  # choose whether show/hide scroolbar
 
     def _setDecorations(self):
         """Sets Form decorations i.e., Border and scrollbar"""
         # add scrollbar if it's needed
         self._decorations = [self.border]
-        fractionVisible = self.size[1] / (-self.virtualHeight)
+        fractionVisible = self.size[1] / (-self._currentVirtualY)
         if fractionVisible < 1.0:
             self._decorations.append(self.scrollbar)
 
@@ -764,9 +774,8 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 if element is None:  # e.g. because this has no resp obj
                     continue
 
-                element.pos = (element.pos[0], self.size[1] / 2
-                               + self._baseYpositions[idx]
-                               - self._getScrollOffset())
+                element.pos = (element.pos[0],
+                               element._baseY - self._getScrollOffset())
                 if self._inRange(element):
                     element.draw()
 
@@ -785,19 +794,18 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         self.aperture.disable()
 
     def getData(self):
-        """Extracts form questions, response ratings and response times from Form items
+        """Extracts form questions, response ratings and response times from
+        Form items
 
         Returns
         -------
-        dict
-            A dictionary storing lists of questions, response ratings and response times
+        list
+            A copy of the data as a list of dicts
         """
-        formData = {'itemIndex': deque([]), 'questions': deque([]),
-                    'ratings': deque([]), 'rt': deque([])}
         nIncomplete = 0
         nIncompleteRequired = 0
         for thisItem in self.items:
-            if 'responseCtrl' not in thisItem:
+            if 'responseCtrl' not in thisItem or not thisItem['responseCtrl']:
                 continue  # maybe a heading or similar
             responseCtrl = thisItem['responseCtrl']
             # get response if available
@@ -805,7 +813,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 thisItem['response'] = responseCtrl.getRating()
             else:
                 thisItem['response'] = responseCtrl.text
-            if thisItem['response'] in [None,'']:
+            if thisItem['response'] in [None, '']:
                 # todo : handle required items here (e.g. ending with * ?)
                 nIncomplete += 1
             # get RT if available
@@ -813,16 +821,95 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 thisItem['rt'] = responseCtrl.getRT()
             else:
                 thisItem['rt'] = None
-        self.complete = (nIncomplete==0)
-        return self.items
+        self._complete = (nIncomplete == 0)
+        return copy.copy(self.items)  # don't want users changing orig
 
-    def formComplete(self):
-        """Checks all Form items for a response
+    def addDataToExp(self, exp, itemsAs='rows'):
+        """Gets the current Form data and inserts into an
+        :class:`~psychopy.experiment.ExperimentHandler` object either as rows
+        or as columns
+
+        Parameters
+        ----------
+        exp : :class:`~psychopy.experiment.ExperimentHandler`
+        itemsAs: 'rows','cols' (or 'columns')
 
         Returns
         -------
-        bool
-            True if all items contain a response, False otherwise.
+
         """
-        self.getData()
+        data = self.getData()  # will be a copy of data (we can trash it)
+        asCols = itemsAs.lower() in ['cols', 'columns']
+        # iterate over items and fields within each item
+        # iterate all items and all fields before calling nextEntry
+        for ii, thisItem in enumerate(data):  # data is a list of dicts
+            for fieldName in thisItem:
+                if fieldName in _doNotSave:
+                    continue
+                if asCols:  # for columns format, we need index for item
+                    columnName = "{}[{}].{}".format(self.name, ii, fieldName)
+                else:
+                    columnName = "{}.{}".format(self.name, fieldName)
+                exp.addData(columnName, thisItem[fieldName])
+                # finished field
+            if not asCols:  # for rows format we add a newline each item
+                exp.nextEntry()
+            # finished item
+        # finished form
+        if asCols:  # for cols format we add a newline each item
+            exp.nextEntry()
+
+    def formComplete(self):
+        """Deprecated in version 2020.2. Please use the Form.complete property
+        """
         return self.complete
+
+    @property
+    def complete(self):
+        """A read-only property to determine if the current form is complete"""
+        self.getData()
+        return self._complete
+
+    @property
+    def style(self):
+        return self._style
+
+    @style.setter
+    def style(self, style):
+        """Sets some predefined styles or use these to create your own.
+
+        If you fancy creating and including your own styles that would be great!
+
+        Parameters
+        ----------
+        style: string
+
+            Known styles currently include:
+
+                'light': black text on a light background
+                'dark': white text on a dark background
+
+        """
+        self._style = style
+        # Default colours
+        self.colorScheme = {
+            'space': 'rgb',  # Colour space
+            'em': [0.89, -0.35, -0.28],  # emphasis
+            'bg': [0,0,0],  # background
+            'fg': [1,1,1],  # foreground
+        }
+        if 'light' in style:
+            self.colorScheme = {
+                'space': 'rgb', # Colour space
+                'em': [0.89, -0.35, -0.28],  # emphasis
+                'bg': [0.89,0.89,0.89],  # background
+                'fg': [-1,-1,-1],  # foreground
+            }
+
+        if 'dark' in style:
+            self.colorScheme = {
+                'space': 'rgb',  # Colour space
+                'em': [0.89, -0.35, -0.28],  # emphasis
+                'bg': [-0.19,-0.19,-0.14],  # background
+                'fg': [0.89,0.89,0.89],  # foreground
+            }

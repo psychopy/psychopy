@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Conditions-file preview and mini-editor for the Builder
@@ -236,7 +236,7 @@ class DlgConditions(wx.Dialog):
             rowLabel.SetForegroundColour(darkgrey)
             if sys.platform == 'darwin':
                 self.SetWindowVariant(variant=wx.WINDOW_VARIANT_NORMAL)
-        labelBox.Add(rowLabel, 1, flag=wx.ALIGN_RIGHT | wx.ALIGN_BOTTOM)
+        labelBox.Add(rowLabel, 1, flag=wx.ALIGN_BOTTOM)
         self.sizer.Add(labelBox, 1, flag=wx.ALIGN_CENTER)
         lastRow = []
         for col in range(self.cols):

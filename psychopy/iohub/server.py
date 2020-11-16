@@ -73,7 +73,10 @@ class udpServer(DatagramServer):
         self.feed(request)
         request = self.unpack()
         # print2err(">> Rx Packet: {}, {}".format(request, replyTo))
-        request_type = unicode(request.pop(0), 'utf-8') # convert bytes to string for compatibility
+        request_type = request.pop(0)
+        if not isinstance(request_type, unicode):
+            request_type = unicode(request_type, 'utf-8') # convert bytes to string for compatibility
+
         if request_type == 'SYNC_REQ':
             self.sendResponse(['SYNC_REPLY', getTime()], replyTo)
             return True
@@ -209,7 +212,9 @@ class udpServer(DatagramServer):
             return False
 
     def handleExperimentDeviceRequest(self, request, replyTo):
-        request_type = unicode(request.pop(0), 'utf-8') # convert bytes to string for compatibility
+        request_type = request.pop(0)
+        if not isinstance(request_type, unicode):
+            request_type = unicode(request_type, 'utf-8') # convert bytes to string for compatibility
         io_dev_dict = ioServer.deviceDict
         if request_type == 'EVENT_TX':
             exp_events = request.pop(0)
@@ -219,8 +224,12 @@ class udpServer(DatagramServer):
             self.sendResponse(('EVENT_TX_RESULT', len(exp_events)), replyTo)
             return True
         elif request_type == 'DEV_RPC':
-            dclass = unicode(request.pop(0), 'utf-8')
-            dmethod = unicode(request.pop(0), 'utf-8')
+            dclass = request.pop(0)
+            if not isinstance(dclass, unicode):
+                dclass = unicode(dclass, 'utf-8')
+            dmethod = request.pop(0)
+            if not isinstance(dmethod, unicode):
+                dmethod = unicode(dmethod, 'utf-8')
             args = None
             kwargs = None
             if len(request) == 1:
@@ -287,7 +296,9 @@ class udpServer(DatagramServer):
                 return False
 
         elif request_type == 'GET_DEV_INTERFACE':
-            dclass = unicode(request.pop(0), 'utf-8')
+            dclass = request.pop(0)
+            if not isinstance(dclass, unicode):
+                dclass = unicode(dclass, 'utf-8')
             data = None
             if dclass in ['EyeTracker', 'DAQ']:
                 for dname, hdevice in ioServer.deviceDict.items():

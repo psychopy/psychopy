@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
+import glob
 import json
 
 from psychopy.app.themes._themes import ThemeSwitcher
@@ -23,13 +24,16 @@ from pathlib import Path
 from subprocess import Popen, PIPE
 
 from psychopy import experiment
-from psychopy.app.utils import PsychopyPlateBtn, PsychopyToolbar, FrameSwitcher
+from psychopy.app.utils import PsychopyPlateBtn, PsychopyToolbar, FrameSwitcher, FileDropTarget
 from psychopy.constants import PY3
 from psychopy.localization import _translate
 from psychopy.app.stdOutRich import StdOutRich
 from psychopy.projects.pavlovia import getProject
 from psychopy.scripts.psyexpCompile import generateScript
 from psychopy.app.runner.scriptProcess import ScriptProcess
+
+folderColumn = 1
+filenameColumn = 0
 
 
 class RunnerFrame(wx.Frame, ThemeMixin):
@@ -63,6 +67,8 @@ class RunnerFrame(wx.Frame, ThemeMixin):
         self.runnerMenu = wx.MenuBar()
         self.makeMenu()
         self.SetMenuBar(self.runnerMenu)
+        # Link to file drop function
+        self.SetDropTarget(FileDropTarget(targetFrame=self))
 
         # create icon
         if sys.platform != 'darwin':
@@ -75,8 +81,10 @@ class RunnerFrame(wx.Frame, ThemeMixin):
         self.mainSizer.Add(self.panel, 1, wx.EXPAND | wx.ALL)
         self.SetSizerAndFit(self.mainSizer)
         self.appData = self.app.prefs.appData['runner']
-        self.loadTaskList()
-
+        # Load previous tasks
+        for filePath in self.appData['taskList']:
+            if os.path.exists(filePath):
+                self.addTask(fileName=filePath)
         self.Bind(wx.EVT_CLOSE, self.onClose)
         self.theme = app.theme
 
@@ -84,11 +92,6 @@ class RunnerFrame(wx.Frame, ThemeMixin):
     def filename(self):
         if self.panel.currentSelection or self.panel.currentSelection == 0:
             return self.panel.expCtrl.GetItem(self.panel.currentSelection).Text
-
-    def Close(self, event=None):
-        self.app.runner = None
-        self.app.updateWindowMenu()
-        super(self).Close(self)
 
     def addTask(self, evt=None, fileName=None):
         self.panel.addTask(fileName=fileName)
@@ -111,6 +114,7 @@ class RunnerFrame(wx.Frame, ThemeMixin):
         fileMenu = wx.Menu()
         viewMenu = wx.Menu()
         runMenu = wx.Menu()
+        demosMenu = wx.Menu()
 
         # Menu items
         fileMenuItems = [
@@ -160,10 +164,22 @@ class RunnerFrame(wx.Frame, ThemeMixin):
              'func': self.panel.runOnline},
             ]
 
+        demosMenuItems = [
+            {'id': wx.ID_ANY,
+             'label': _translate("Builder Demos"),
+             'status': _translate("Loading builder demos"),
+             'func': self.loadBuilderDemos},
+            {'id': wx.ID_ANY,
+             'label': _translate("Coder Demos"),
+             'status': _translate("Loading coder demos"),
+             'func': self.loadCoderDemos},
+        ]
+
         menus = [
             {'menu': fileMenu, 'menuItems': fileMenuItems, 'separators': ['clear all', 'load list']},
             {'menu': viewMenu, 'menuItems': viewMenuItems, 'separators': []},
             {'menu': runMenu, 'menuItems': runMenuItems, 'separators': []},
+            {'menu': demosMenu, 'menuItems': demosMenuItems, 'separators': []},
         ]
 
         # Add items to menus
@@ -181,10 +197,11 @@ class RunnerFrame(wx.Frame, ThemeMixin):
         self.windowMenu = FrameSwitcher(self)
 
         # Create menus
-        self.runnerMenu.Append(fileMenu, 'File')
-        self.runnerMenu.Append(viewMenu, 'View')
-        self.runnerMenu.Append(runMenu, 'Run')
-        self.runnerMenu.Append(self.windowMenu, 'Window')
+        self.runnerMenu.Append(fileMenu, _translate('File'))
+        self.runnerMenu.Append(viewMenu, _translate('View'))
+        self.runnerMenu.Append(runMenu, _translate('Run'))
+        self.runnerMenu.Append(demosMenu, _translate('Demos'))
+        self.runnerMenu.Append(self.windowMenu, _translate('Window'))
 
     def onURL(self, evt):
         """Open link in default browser."""
@@ -205,15 +222,61 @@ class RunnerFrame(wx.Frame, ThemeMixin):
         wx.EndBusyCursor()
 
     def saveTaskList(self, evt=None):
-        """Save task list to appData."""
-        self.appData['taskList'] = self.taskList
-        self.app.prefs.saveAppData()
+        """Save task list as psyrun file."""
+        if hasattr(self, 'listname'):
+            filename = self.listname
+        else:
+            filename = "untitled.psyrun"
+        initPath, filename = os.path.split(filename)
+
+        _w = "PsychoPy task lists (*.psyrun)|*.psyrun|Any file (*.*)|*"
+        if sys.platform != 'darwin':
+            _w += '.*'
+        wildcard = _translate(_w)
+        dlg = wx.FileDialog(
+            self, message=_translate("Save task list as ..."), defaultDir=initPath,
+            defaultFile=filename, style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
+            wildcard=wildcard)
+
+        if dlg.ShowModal() == wx.ID_OK:
+            newPath = dlg.GetPath()
+            # actually save
+            experiments = []
+            for i in range(self.panel.expCtrl.GetItemCount()):
+                experiments.append(
+                    {'path': self.panel.expCtrl.GetItem(i, folderColumn).Text,
+                     'file': self.panel.expCtrl.GetItem(i, filenameColumn).Text}
+                )
+            with open(newPath, 'w') as file:
+                json.dump(experiments, file)
+            self.listname = newPath
+
+        dlg.Destroy()
 
     def loadTaskList(self, evt=None):
         """Load saved task list from appData."""
-        for filePath in self.appData['taskList']:
-            if os.path.exists(filePath):
-                self.addTask(fileName=filePath)
+        if hasattr(self, 'listname'):
+            filename = self.listname
+        else:
+            filename = "untitled.psyrun"
+        initPath, filename = os.path.split(filename)
+
+        _w = "PsychoPy task lists (*.psyrun)|*.psyrun|Any file (*.*)|*"
+        if sys.platform != 'darwin':
+            _w += '.*'
+        wildcard = _translate(_w)
+        dlg = wx.FileDialog(
+            self, message=_translate("Open task list ..."), defaultDir=initPath,
+            defaultFile=filename, style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST,
+            wildcard=wildcard)
+        if dlg.ShowModal() == wx.ID_OK:
+            newPath = dlg.GetPath()
+            with open(newPath, 'r') as file:
+                experiments = json.load(file)
+            self.panel.expCtrl.DeleteAllItems()
+            for exp in experiments:
+                self.panel.addTask(fileName=os.path.join(exp['path'], exp['file']))
+            self.listname = newPath
 
     def clearTasks(self, evt=None):
         """Clear all items from the panels expCtrl ListCtrl."""
@@ -224,13 +287,15 @@ class RunnerFrame(wx.Frame, ThemeMixin):
 
     def onClose(self, event=None):
         """Define Frame closing behavior."""
+        self.app.runner = None
         allFrames = self.app.getAllFrames()
         lastFrame = len(allFrames) == 1
-
         if lastFrame:
             self.onQuit()
         else:
             self.Hide()
+        self.app.forgetFrame(self)
+        self.app.updateWindowMenu()
 
     def onQuit(self, evt=None):
         sys.stderr = sys.stdout = sys.__stdout__
@@ -238,11 +303,6 @@ class RunnerFrame(wx.Frame, ThemeMixin):
         self.app.quit(evt)
 
     def checkSave(self):
-        try:
-            self.saveTaskList()
-        except Exception as e:
-            print("##### Task List not saved correctly. #####\n")
-            print(e)
         return True
 
     def viewBuilder(self, evt):
@@ -269,6 +329,65 @@ class RunnerFrame(wx.Frame, ThemeMixin):
     def showRunner(self):
         self.app.showRunner()
 
+    def loadBuilderDemos(self, event):
+        """Load Builder demos"""
+        self.panel.expCtrl.DeleteAllItems()
+        unpacked = self.app.prefs.builder['unpackedDemosDir']
+        if not unpacked:
+            return
+        # list available demos
+        demoList = sorted(glob.glob(os.path.join(unpacked, '*')))
+        demos = {wx.NewIdRef(): demoList[n]
+                 for n in range(len(demoList))}
+        for thisID in demos:
+            junk, shortname = os.path.split(demos[thisID])
+            if (shortname.startswith('_') or
+                    shortname.lower().startswith('readme.')):
+                continue  # ignore 'private' or README files
+            for file in os.listdir(demos[thisID]):
+                if file.endswith('.psyexp'):
+                    self.addTask(fileName=os.path.join(demos[thisID], file))
+
+    def loadCoderDemos(self, event):
+        """Load Coder demos"""
+        self.panel.expCtrl.DeleteAllItems()
+        _localized = {'basic': _translate('basic'),
+                      'input': _translate('input'),
+                      'stimuli': _translate('stimuli'),
+                      'experiment control': _translate('exp control'),
+                      'iohub': 'ioHub',  # no translation
+                      'hardware': _translate('hardware'),
+                      'timing': _translate('timing'),
+                      'misc': _translate('misc')}
+        folders = glob.glob(os.path.join(self.paths['demos'], 'coder', '*'))
+        for folder in folders:
+            # if it isn't a folder then skip it
+            if (not os.path.isdir(folder)):
+                continue
+            # otherwise create a submenu
+            folderDisplayName = os.path.split(folder)[-1]
+            if folderDisplayName.startswith('_'):
+                continue  # don't include private folders
+            if folderDisplayName in _localized:
+                folderDisplayName = _localized[folderDisplayName]
+
+            # find the files in the folder (search two levels deep)
+            demoList = glob.glob(os.path.join(folder, '*.py'))
+            demoList += glob.glob(os.path.join(folder, '*', '*.py'))
+            demoList += glob.glob(os.path.join(folder, '*', '*', '*.py'))
+
+            demoList.sort()
+
+            for thisFile in demoList:
+                shortname = thisFile.split(os.path.sep)[-1]
+                if shortname == "run.py":
+                    # file is just "run" so get shortname from directory name
+                    # instead
+                    shortname = thisFile.split(os.path.sep)[-2]
+                elif shortname.startswith('_'):
+                    continue  # remove any 'private' files
+                self.addTask(fileName=thisFile)
+
     @property
     def taskList(self):
         """
@@ -280,8 +399,8 @@ class RunnerFrame(wx.Frame, ThemeMixin):
         """
         temp = []
         for idx in range(self.panel.expCtrl.GetItemCount()):
-            filename = self.panel.expCtrl.GetItem(idx, 0).Text
-            folder = self.panel.expCtrl.GetItem(idx, 1).Text
+            filename = self.panel.expCtrl.GetItem(idx, filenameColumn).Text
+            folder = self.panel.expCtrl.GetItem(idx, folderColumn).Text
             temp.append(str(Path(folder) / filename))
         return temp
 
@@ -312,6 +431,8 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
         self.parent = parent
         self.serverProcess = None
 
+        # self.entries is dict of dicts: {filepath: {'index': listCtrlInd}} and may store ore info later
+        self.entries = {}
         self.currentFile = None
         self.currentProject = None  # access from self.currentProject property
         self.currentSelection = None
@@ -329,13 +450,13 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
         self.expCtrl.Bind(wx.EVT_LIST_ITEM_DESELECTED,
                           self.onItemDeselected, self.expCtrl)
         self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.onDoubleClick, self.expCtrl)
-        self.expCtrl.InsertColumn(0, 'File')
-        self.expCtrl.InsertColumn(1, 'Path')
+        self.expCtrl.InsertColumn(filenameColumn, _translate('File'))
+        self.expCtrl.InsertColumn(folderColumn, _translate('Path'))
 
         _style = platebtn.PB_STYLE_DROPARROW | platebtn.PB_STYLE_SQUARE
         # Alerts
         self._selectedHiddenAlerts = False  # has user manually hidden alerts?
-        self.alertsToggleBtn = PsychopyPlateBtn(self, -1, 'Alerts',
+        self.alertsToggleBtn = PsychopyPlateBtn(self, -1, _translate('Alerts'),
                                           style=_style, name='Alerts')
         # mouse event must be bound like this
         self.alertsToggleBtn.Bind(wx.EVT_LEFT_DOWN, self.setAlertsVisible)
@@ -348,7 +469,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
         self.setAlertsVisible(True)
 
         # StdOut
-        self.stdoutToggleBtn = PsychopyPlateBtn(self, -1, 'Stdout',
+        self.stdoutToggleBtn = PsychopyPlateBtn(self, -1, _translate('Stdout'),
                                           style=_style, name='Stdout')
         # mouse event must be bound like this
         self.stdoutToggleBtn.Bind(wx.EVT_LEFT_DOWN, self.setStdoutVisible)
@@ -383,9 +504,10 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
         self.alertsCtrl._applyAppTheme()
         self.stdoutCtrl._applyAppTheme()
         ThemeMixin._applyAppTheme(self.expCtrl)
-        for btn in [self.plusBtn, self.negBtn, self.runBtn, self.stopBtn,
-                    self.onlineBtn, self.onlineDebugBtn]:
-            btn.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
+        for btn in self.buttonSizer.GetChildren():
+            if btn.Window:
+                btn = btn.Window
+                btn.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
 
     def makeButtons(self):
         # Set buttons
@@ -397,29 +519,50 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
                 tip=_translate(
                         "Add experiment to list"),
                 size=32)
+        self.Bind(wx.EVT_BUTTON, self.addTask, self.plusBtn)
         self.negBtn = icons.makeBitmapButton(
                 parent=self,
                 filename='removeExp.png',
                 name='removeExp',
                 tip=_translate(
-                        "Remove experiment to list"),
+                        "Remove experiment from list"),
                 size=32)
+        self.Bind(wx.EVT_BUTTON, self.removeTask, self.negBtn)
+        self.saveBtn = icons.makeBitmapButton(
+            parent=self,
+            filename='filesaveas.png',
+            name='saveTasks',
+            tip=_translate(
+                "Save task list to a file"),
+            size=32)
+        self.Bind(wx.EVT_BUTTON, self.parent.saveTaskList, self.saveBtn)
+        self.loadBtn = icons.makeBitmapButton(
+            parent=self,
+            filename='fileopen.png',
+            name='loadTasks',
+            tip=_translate(
+                "Load tasks from a file"),
+            size=32)
+        self.Bind(wx.EVT_BUTTON, self.parent.loadTaskList, self.loadBtn)
         self.runBtn = icons.makeBitmapButton(
                 parent=self, filename='run.png',
                 name='run',
                 tip=_translate(
                         "Run the current script in Python"),
                 size=32)
+        self.Bind(wx.EVT_BUTTON, self.runLocal, self.runBtn)
         self.stopBtn = icons.makeBitmapButton(
                 parent=self, filename='stop.png',
                 name='stop',
                 tip=_translate("Stop task"),
                 size=32)
+        self.Bind(wx.EVT_BUTTON, self.stopTask, self.stopBtn)
         self.onlineBtn = icons.makeBitmapButton(
                 parent=self,
                 filename='globe.png',
                 emblem='run', tip=_translate(
                         "Run PsychoJS task from Pavlovia"), size=32)
+        self.Bind(wx.EVT_BUTTON, self.runOnline, self.onlineBtn)
         self.onlineDebugBtn = icons.makeBitmapButton(
                 parent=self,
                 filename='globe.png',
@@ -428,23 +571,17 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
                 tip=_translate(
                         "Run PsychoJS task in local debug mode"),
                 size=32)
-
-        # Bind events to buttons
-        self.Bind(wx.EVT_BUTTON, self.addTask, self.plusBtn)
-        self.Bind(wx.EVT_BUTTON, self.removeTask, self.negBtn)
-        self.Bind(wx.EVT_BUTTON, self.runLocal, self.runBtn)
-        self.Bind(wx.EVT_BUTTON, self.stopTask, self.stopBtn)
-        self.Bind(wx.EVT_BUTTON, self.runOnline, self.onlineBtn)
         self.Bind(wx.EVT_BUTTON, self.runOnlineDebug, self.onlineDebugBtn)
-
-        self.buttonSizer.Add(self.plusBtn, 0, wx.ALL | wx.ALIGN_TOP, 5)
-        self.buttonSizer.Add(self.negBtn, 0, wx.ALL | wx.ALIGN_TOP, 5)
-        self.buttonSizer.AddStretchSpacer()
-        self.buttonSizer.AddMany([(self.runBtn, 0, wx.ALL, 5),
-                                  (self.stopBtn, 0, wx.ALL, 5),
-                                  (self.onlineBtn, 0, wx.ALL, 5),
-                                  (self.onlineDebugBtn, 0, wx.ALL, 5),
-                                  ])
+        # Add buttons to sizer
+        self.buttonSizer.AddMany([(self.plusBtn, 0, wx.ALL | wx.ALIGN_TOP, 5),
+                                      (self.negBtn, 0, wx.ALL | wx.ALIGN_TOP, 5),
+                                      (self.saveBtn, 0, wx.ALL, 5),
+                                      (self.loadBtn, 0, wx.ALL, 5),
+                                      (self.runBtn, 0, wx.ALL, 5),
+                                      (self.stopBtn, 0, wx.ALL, 5),
+                                      (self.onlineBtn, 0, wx.ALL, 5),
+                                      (self.onlineDebugBtn, 0, wx.ALL, 5),
+                                      ])
         self.stopBtn.Disable()
         self.SetSizerAndFit(self.mainSizer)
         self.SetMinSize(self.Size)
@@ -484,7 +621,8 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
             self.stopFile(event)
 
         self.stopBtn.Disable()
-        self.runBtn.Enable()
+        if self.currentSelection:
+            self.runBtn.Enable()
 
     def runLocal(self, evt):
         """Run experiment from new process using inherited ScriptProcess class methods."""
@@ -601,7 +739,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
                 return
             filePaths = [fileName]
         else:
-            with wx.FileDialog(self, "Open task...", wildcard="*.py; *.psyexp | *.py; *.psyexp",
+            with wx.FileDialog(self, "Open task...", wildcard="Tasks (*.py;*.psyexp)|*.py;*.psyexp",
                                style=wx.FD_MULTIPLE | wx.FD_FILE_MUST_EXIST) as fileDialog:
 
                 if fileDialog.ShowModal() == wx.ID_CANCEL:
@@ -609,37 +747,28 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
 
                 filePaths = fileDialog.GetPaths()
 
-        for file in filePaths:
-            temp = Path(file)
-
-            # Check list for items
-            start = -1
-            fullPaths = []
-            while start < self.expCtrl.GetItemCount()-1:
-                index = self.expCtrl.FindItem(start, temp.name)
-                if index > -1:
-                    fullPaths += [Path(self.expCtrl.GetItem(index, 1).Text, self.expCtrl.GetItem(index, 0).Text)]
-                    start = index+1
-                else:
-                    start = self.expCtrl.GetItemCount()
-            if temp in fullPaths:
-                continue
-
-            # Set new item in listCtrl
-            index = self.expCtrl.InsertItem(self.expCtrl.GetItemCount(),
-                                            str(temp.name))
-            self.expCtrl.SetItem(index, 1, str(temp.parent))  # add the folder name
+        for thisFile in filePaths:
+            thisFile = Path(thisFile)
+            if thisFile.absolute() in self.entries:
+                thisIndex = self.entries[thisFile.absolute()]['index']
+            else:
+                # Set new item in listCtrl
+                thisIndex = self.expCtrl.InsertItem(self.expCtrl.GetItemCount(),
+                                                str(thisFile.name))  # implicitly filenameColumn
+                self.expCtrl.SetItem(thisIndex, folderColumn, str(thisFile.parent))  # add the folder name
+                # add the new item to our list of files
+                self.entries[thisFile.absolute()] = {'index': thisIndex}
 
         if filePaths:  # set selection to the final item to be added
             # Set item selection
             # de-select previous
             self.expCtrl.SetItemState(self.currentSelection or 0, 0, wx.LIST_STATE_SELECTED)
             # select new
-            self.expCtrl.Select(index)
+            self.expCtrl.Select(thisIndex)  # calls onSelectItem which updates other info
 
         # Set column width
-        self.expCtrl.SetColumnWidth(0, wx.LIST_AUTOSIZE)
-        self.expCtrl.SetColumnWidth(1, wx.LIST_AUTOSIZE)
+        self.expCtrl.SetColumnWidth(filenameColumn, wx.LIST_AUTOSIZE)
+        self.expCtrl.SetColumnWidth(folderColumn, wx.LIST_AUTOSIZE)
 
     def removeTask(self, evt):
         """Remove experiment entry from the expList listctrl."""
@@ -647,24 +776,28 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
             self.currentProject = None
             return
 
-        self.expCtrl.DeleteItem(self.currentSelection)
         if self.expCtrl.GetItemCount() == 0:
             self.currentSelection = None
             self.currentFile = None
             self.currentExperiment = None
             self.currentProject = None
+
+        del self.entries[self.currentFile]  # remove from our tracking dictionary
+        self.expCtrl.DeleteItem(self.currentSelection) # from wx control
         self.app.updateWindowMenu()
 
     def onItemSelected(self, evt):
         """Set currentSelection to index of currently selected list item."""
         self.currentSelection = evt.Index
-        filename = self.expCtrl.GetItem(self.currentSelection, 0).Text
-        folder = self.expCtrl.GetItem(self.currentSelection, 1).Text
+        filename = self.expCtrl.GetItemText(self.currentSelection, filenameColumn)
+        folder = self.expCtrl.GetItemText(self.currentSelection, folderColumn)
         self.currentFile = Path(folder, filename)
         self.currentExperiment = self.loadExperiment()
         self.currentProject = None  # until it's needed (slow to update)
-        self.runBtn.Enable()
-        self.stopBtn.Disable()
+        thisItem = self.entries[self.currentFile]
+
+        if not self.running:  # if we aren't already running we can enable run button
+            self.runBtn.Enable()
         if self.currentFile.suffix == '.psyexp':
             self.onlineBtn.Enable()
             self.onlineDebugBtn.Enable()
@@ -672,6 +805,18 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
             self.onlineBtn.Disable()
             self.onlineDebugBtn.Disable()
         self.updateAlerts()
+        self.app.updateWindowMenu()
+
+    def onItemDeselected(self, evt):
+        """Set currentSelection, currentFile, currentExperiment and currentProject to None."""
+        self.expCtrl.SetItemState(self.currentSelection, 0, wx.LIST_STATE_SELECTED)
+        self.currentSelection = None
+        self.currentFile = None
+        self.currentExperiment = None
+        self.currentProject = None
+        self.runBtn.Disable()
+        self.onlineBtn.Disable()
+        self.onlineDebugBtn.Disable()
         self.app.updateWindowMenu()
 
     def updateAlerts(self):
@@ -685,7 +830,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
         else:
             nAlerts = 0
         # update labels and text accordingly
-        self.alertsToggleBtn.SetLabelText("Alerts ({})".format(nAlerts))
+        self.alertsToggleBtn.SetLabelText(_translate("Alerts ({})").format(nAlerts))
         sys.stdout.flush()
         sys.stdout = sys.stderr = prev
         if nAlerts == 0:
@@ -693,19 +838,6 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
         # elif selected hidden then don't touch
         elif not self._selectedHiddenAlerts:
             self.setAlertsVisible(True)
-
-    def onItemDeselected(self, evt):
-        """Set currentSelection, currentFile, currentExperiment and currentProject to None."""
-        self.expCtrl.SetItemState(self.currentSelection, 0, wx.LIST_STATE_SELECTED)
-        self.currentSelection = None
-        self.currentFile = None
-        self.currentExperiment = None
-        self.currentProject = None
-        self.runBtn.Disable()
-        self.stopBtn.Disable()
-        self.onlineBtn.Disable()
-        self.onlineDebugBtn.Disable()
-        self.app.updateWindowMenu()
 
     def onDoubleClick(self, evt):
         self.currentSelection = evt.Index

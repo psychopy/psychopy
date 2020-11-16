@@ -4,7 +4,7 @@
 """Create geometric (vector) shapes by defining vertex locations."""
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL)
 
 from __future__ import absolute_import, print_function
@@ -32,7 +32,7 @@ from psychopy.tools.arraytools import val2array
 from psychopy.visual.basevisual import (BaseVisualStim, ColorMixin,
                                         ContainerMixin)
 from psychopy.visual.helpers import setColor
-
+import psychopy.visual
 from psychopy.contrib import tesselate
 import copy
 import numpy
@@ -172,6 +172,9 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         :ref:`Operations <attrib-operations>` supported.
         """
+        if isinstance(self, psychopy.visual.Line) and isinstance(value, (int, float)):
+            if value > 127:
+                logging.warning("lineWidth is greater than max width supported by OpenGL. For lines thicker than 127px, please use a filled Rect instead.")
         self.__dict__['lineWidth'] = value
 
     def setLineWidth(self, value, operation='', log=None):

@@ -1,6 +1,7 @@
 {
   "app": "dark",
   "icons": "dark",
+  "info": "Psychopy Dark with more minimal code colours",
   "base": {
     "fg": "#F2F2F2",
     "bg": "#75757D",
@@ -143,6 +144,9 @@
 
   },
   "r": {
+
+  },
+  "json": {
 
   }
 }

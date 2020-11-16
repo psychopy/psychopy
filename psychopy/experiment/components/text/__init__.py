@@ -2,13 +2,15 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
 
 from os import path
 from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals, _translate
+from psychopy.localization import _localized as __localized
+_localized = __localized.copy()
 
 # the absolute path to the folder containing this path
 thisFolder = path.abspath(path.dirname(__file__))
@@ -16,12 +18,12 @@ iconFile = path.join(thisFolder, 'text.png')
 tooltip = _translate('Text: present text stimuli')
 
 # only use _localized values for label values, nothing functional:
-_localized = {'text': _translate('Text'),
-              'font': _translate('Font'),
-              'letterHeight': _translate('Letter height'),
-              'wrapWidth': _translate('Wrap width'),
-              'flip': _translate('Flip (mirror)'),
-              'languageStyle': _translate('Language style')}
+_localized.update({'text': _translate('Text'),
+                   'font': _translate('Font'),
+                   'letterHeight': _translate('Letter height'),
+                   'wrapWidth': _translate('Wrap width'),
+                   'flip': _translate('Flip (mirror)'),
+                   'languageStyle': _translate('Language style')})
 
 
 class TextComponent(BaseVisualComponent):
@@ -57,43 +59,45 @@ class TextComponent(BaseVisualComponent):
         # params
         _allow3 = ['constant', 'set every repeat', 'set every frame']  # list
         self.params['text'] = Param(
-            text, valType='extendedStr', allowedTypes=[],
+            text, valType='extendedStr', allowedTypes=[], categ='Basic',
             updates='constant', allowedUpdates=_allow3[:],  # copy the list
             hint=_translate("The text to be displayed"),
             label=_localized['text'])
         self.params['font'] = Param(
-            font, valType='str', allowedTypes=[],
+            font, valType='str', allowedTypes=[], categ='Formatting',
             updates='constant', allowedUpdates=_allow3[:],  # copy the list
             hint=_translate("The font name (e.g. Comic Sans)"),
             label=_localized['font'])
         del self.params['size']  # because you can't specify width for text
         self.params['letterHeight'] = Param(
-            letterHeight, valType='code', allowedTypes=[],
+            letterHeight, valType='code', allowedTypes=[], categ='Formatting',
             updates='constant', allowedUpdates=_allow3[:],  # copy the list
             hint=_translate("Specifies the height of the letter (the width"
                             " is then determined by the font)"),
             label=_localized['letterHeight'])
 
         self.params['wrapWidth'] = Param(
-            wrapWidth, valType='code', allowedTypes=[],
+            wrapWidth, valType='code', allowedTypes=[], categ='Layout',
             updates='constant', allowedUpdates=['constant'],
             hint=_translate("How wide should the text get when it wraps? (in"
                             " the specified units)"),
             label=_localized['wrapWidth'])
         self.params['flip'] = Param(
-            flip, valType='str', allowedTypes=[],
+            flip, valType='str', allowedTypes=[], categ='Layout',
             updates='constant', allowedUpdates=_allow3[:],  # copy the list
             hint=_translate("horiz = left-right reversed; vert = up-down"
                             " reversed; $var = variable"),
             label=_localized['flip'])
         self.params['languageStyle'] = Param(
-            languageStyle, valType='str',
+            languageStyle, valType='str', categ='Formatting',
             allowedVals=['LTR', 'RTL', 'Arabic'],
             hint=_translate("Handle right-to-left (RTL) languages and Arabic reshaping"),
             label=_localized['languageStyle'])
-        for prm in ('ori', 'opacity', 'colorSpace', 'units', 'wrapWidth',
-                    'flip', 'languageStyle'):
-            self.params[prm].categ = 'Advanced'
+
+        del self.params['fillColor']
+        del self.params['fillColorSpace']
+        del self.params['borderColor']
+        del self.params['borderColorSpace']
 
     def writeInitCode(self, buff):
         # do we need units code?

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
@@ -10,6 +10,8 @@ from builtins import super  # provides Py3-style super() using python-future
 
 from os import path
 from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals, _translate
+from psychopy.localization import _localized as __localized
+_localized = __localized.copy()
 
 # the absolute path to the folder containing this path
 thisFolder = path.abspath(path.dirname(__file__))
@@ -18,23 +20,22 @@ tooltip = _translate('Envelope Grating: present cyclic textures including 2nd or
                      'file')
 
 # only use _localized values for label values, nothing functional:
-_localized = {'carrier': _translate('Carrier texture'),
-              'ori': _translate('Carrier Orientation'),
-              'mask': _translate('Mask'),
-              'sf': _translate('Carrier spatial frequency'),
-              'phase': _translate('Carrier phase (in cycles)'),
-              'contrast': _translate('Carrier contrast'),
-              'texture resolution': _translate('Texture resolution'),
-              'interpolate': _translate('Interpolate'),
-              'envelope': _translate('Envelope texture'),
-              'envsf':_translate('Envelope spatial frequency'),
-              'envori':_translate('Envelope orientation'),
-              'envphase':_translate('Envelope phase'),
-              'moddepth':_translate('Envelope modulation depth'),
-              'power':_translate('Power to which envelope is raised'),
-              'beat':_translate('Is modulation a beat'),
-              'blendmode':_translate('OpenGL blend mode')
-              }
+_localized.update({'carrier': _translate('Carrier texture'),
+                   'ori': _translate('Carrier Orientation'),
+                   'mask': _translate('Mask'),
+                   'sf': _translate('Carrier spatial frequency'),
+                   'phase': _translate('Carrier phase (in cycles)'),
+                   'contrast': _translate('Carrier contrast'),
+                   'texture resolution': _translate('Texture resolution'),
+                   'interpolate': _translate('Interpolate'),
+                   'envelope': _translate('Envelope texture'),
+                   'envsf': _translate('Envelope spatial frequency'),
+                   'envori': _translate('Envelope orientation'),
+                   'envphase': _translate('Envelope phase'),
+                   'moddepth': _translate('Envelope modulation depth'),
+                   'power': _translate('Power to which envelope is raised'),
+                   'beat': _translate('Is modulation a beat'),
+                   'blendmode': _translate('OpenGL blend mode')})
 
 
 class EnvGratingComponent(BaseVisualComponent):
@@ -64,119 +65,113 @@ class EnvGratingComponent(BaseVisualComponent):
 
         # params
 
-        self.params['ori'] = Param(
-            ori, valType='code', allowedTypes=[],
-            updates='constant',
-            allowedUpdates=['constant', 'set every repeat', 'set every frame'],
-            hint=_translate("Orientation of this stimulus (in deg)"),
-            label=_localized['ori'],categ="Carrier")
+        self.params['ori'].categ = "Carrier"
 
         msg = _translate("The (2D) texture of the background - can be sin, sqr,"
                          " sinXsin... or a filename (including path)")
         self.params['carrier'] = Param(
-            carrier, valType='str', allowedTypes=[],
+            carrier, valType='str', allowedTypes=[], categ="Carrier",
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_localized['carrier'], categ="Carrier")
+            label=_localized['carrier'])
 
         msg = _translate("An image to define the alpha mask (ie shape)- "
                          "gauss, circle... or a filename (including path)")
         self.params['mask'] = Param(
-            mask, valType='str', allowedTypes=[],
+            mask, valType='str', allowedTypes=[], categ="Carrier",
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_localized['mask'], categ="Carrier")
+            label=_localized['mask'])
 
         msg = _translate("Contrast of background carrier")
         self.params['contrast'] = Param(
-            contrast, valType='code', allowedTypes=[],
+            contrast, valType='code', allowedTypes=[], categ="Carrier",
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_localized['contrast'], categ="Carrier")
+            label=_localized['contrast'])
 
         msg = _translate("Spatial frequency of background carrier repeats across the "
                          "grating in 1 or 2 dimensions, e.g. 4 or [2,3]")
         self.params['sf'] = Param(
-            sf, valType='code', allowedTypes=[],
+            sf, valType='code', allowedTypes=[], categ="Carrier",
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_localized['sf'], categ="Carrier")
+            label=_localized['sf'])
 
         msg = _translate("Spatial positioning of the background carrier "
                          "(wraps in range 0-1.0)")
         self.params['phase'] = Param(
-            phase, valType='code', allowedTypes=[],
+            phase, valType='code', allowedTypes=[], categ="Carrier",
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_localized['phase'], categ="Carrier")
+            label=_localized['phase'])
 
         msg = _translate(
             "Resolution of the texture for standard ones such as sin, sqr "
             "etc. For most cases a value of 256 pixels will suffice")
         self.params['texture resolution'] = Param(
             texRes,
-            valType='code', allowedVals=['32', '64', '128', '256', '512'],
+            valType='code', allowedVals=['32', '64', '128', '256', '512'], categ="Carrier",
             updates='constant', allowedUpdates=[],
             hint=msg,
-            label=_localized['texture resolution'], categ="Carrier")
+            label=_localized['texture resolution'])
 
         msg = _translate("How should the image be interpolated if/when "
                          "rescaled")
         self.params['interpolate'] = Param(
-            interpolate, valType='str', allowedVals=['linear', 'nearest'],
+            interpolate, valType='str', allowedVals=['linear', 'nearest'], categ="Carrier",
             updates='constant', allowedUpdates=[],
             hint=msg,
-            label=_localized['interpolate'], categ="Carrier")
-
+            label=_localized['interpolate'])
 
         msg = _translate("The (2D) texture of the envelope - can be sin, sqr,"
                          " sinXsin... or a filename (including path)")
         self.params['envelope'] = Param(
-            envelope, valType='str', allowedTypes=[],
+            envelope, valType='str', allowedTypes=[], categ="Envelope",
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_localized['envelope'], categ="Envelope")
+            label=_localized['envelope'])
 
         msg = _translate("Spatial frequency of the modulation envelope repeats across the "
                          "grating in 1 or 2 dimensions, e.g. 4 or [2,3]")
         self.params['envsf'] = Param(
-            envsf, valType='code', allowedTypes=[],
+            envsf, valType='code', allowedTypes=[], categ="Envelope",
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_localized['envsf'], categ="Envelope")
+            label=_localized['envsf'])
 
         msg = _translate("Spatial positioning of the modulation envelope"
                          "(wraps in range 0-1.0)")
         self.params['envphase'] = Param(
-            envphase, valType='code', allowedTypes=[],
+            envphase, valType='code', allowedTypes=[], categ="Envelope",
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_localized['envphase'], categ="Envelope")
+            label=_localized['envphase'])
 
         msg = _translate("Orientation of the modulation envelope"
                          "(wraps in range 0-360)")
         self.params['envori'] = Param(
-            envori, valType='code', allowedTypes=[],
+            envori, valType='code', allowedTypes=[], categ="Envelope",
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_localized['envori'], categ="Envelope")
+            label=_localized['envori'])
 
         msg = _translate("Modulation depth of modulation envelope")
         self.params['moddepth'] = Param(
-            moddepth, valType='code', allowedTypes=[],
+            moddepth, valType='code', allowedTypes=[], categ="Envelope",
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_localized['moddepth'], categ="Envelope")
+            label=_localized['moddepth'])
             
         msg = _translate("Power of modulation envelope. "
                           "The modulator will be raised to this power "
@@ -194,20 +189,20 @@ class EnvGratingComponent(BaseVisualComponent):
                           "Landy and Oruc, Vis Res 2002. "
                           "Note overall contrast (apparent carrier contrast) will be altered.")
         self.params['power'] = Param(
-            moddepth, valType='code', allowedTypes=[],
+            moddepth, valType='code', allowedTypes=[], categ="Envelope",
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_localized['power'], categ="Envelope")
+            label=_localized['power'])
 
         msg = _translate("Do you want a 'beat'? [beat = carrier*envelope, "
                          "no beat = carrier*(1+envelope), True/False, Y/N]")
         self.params['beat'] = Param(
-            beat, valType='str', allowedTypes=[],
+            beat, valType='str', allowedTypes=[], categ="Envelope",
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_localized['beat'], categ="Envelope")
+            label=_localized['beat'])
 
         msg = _translate("OpenGL Blendmode. Avg is most common mode"
                          " in PsychoPy, add is useful if combining a beat with"
@@ -217,7 +212,12 @@ class EnvGratingComponent(BaseVisualComponent):
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_localized['blendmode'], categ="Basic")
+            label=_localized['blendmode'], categ="Appearance")
+
+        del self.params['fillColor']
+        del self.params['fillColorSpace']
+        del self.params['borderColor']
+        del self.params['borderColorSpace']
 
     def writeInitCode(self, buff):
         # do we need units code?

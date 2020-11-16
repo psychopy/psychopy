@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Converting code parameters and components from python (PsychoPy)
@@ -21,6 +21,7 @@ if PY3:
     from io import StringIO
 else:
     from StringIO import StringIO
+from psychopy.experiment.py2js_transpiler import translatePythonToJavaScript
 
 
 class NamesJS(dict):
@@ -38,6 +39,11 @@ namesJS['tan'] = 'Math.tan'
 namesJS['pi'] = 'Math.PI'
 namesJS['rand'] = 'Math.random'
 namesJS['random'] = 'Math.random'
+namesJS['sqrt'] = 'Math.sqrt'
+namesJS['abs'] = 'Math.abs'
+namesJS['randint'] = 'util.randint'
+namesJS['round'] = 'util.round'  # better than Math.round, supports n DPs arg
+namesJS['sum'] = 'util.sum'
 
 
 class TupleTransformer(ast.NodeTransformer):
@@ -101,6 +107,14 @@ def expression2js(expr):
                 continue
             node.id = namesJS[node.id]
     jsStr = unparse(syntaxTree).strip()
+    if not any(ch in jsStr for ch in ("=",";","\n")):
+        try:
+            jsStr = translatePythonToJavaScript(jsStr)
+            if jsStr.endswith(';\n'):
+                jsStr = jsStr[:-2]
+        except:
+            # If translation fails, just use old translation
+            pass
     return jsStr
 
 def snippet2js(expr):

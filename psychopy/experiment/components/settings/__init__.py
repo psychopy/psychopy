@@ -43,7 +43,7 @@ _localized = {'expName': _translate("Experiment name"),
               'Enable Escape':  _translate("Enable Escape key"),
               'Experiment info':  _translate("Experiment info"),
               'Data filename':  _translate("Data filename"),
-              'Data file delimiter':  _translate("Data file delimeter"),
+              'Data file delimiter':  _translate("Data file delimiter"),
               'Full-screen window':  _translate("Full-screen window"),
               'Window size (pixels)':  _translate("Window size (pixels)"),
               'Screen': _translate('Screen'),
@@ -286,7 +286,7 @@ class SettingsComponent(object):
         #     hint=_translate("The ID of this project (e.g. 5bqpc)"),
         #     label="OSF Project ID", categ='Online')
         self.params['HTML path'] = Param(
-            'html', valType='str', allowedTypes=[],
+            '', valType='str', allowedTypes=[],
             hint=_translate("Place the HTML files will be saved locally "),
             label="Output path", categ='Online')
         self.params['Resources'] = Param(
@@ -569,9 +569,12 @@ class SettingsComponent(object):
                     "import * as core from './lib/core{version}.js';\n"
                     "import {{ TrialHandler }} from './lib/data{version}.js';\n"
                     "import {{ Scheduler }} from './lib/util{version}.js';\n"
-                    "import * as util from './lib/util{version}.js';\n"
                     "import * as visual from './lib/visual{version}.js';\n"
                     "import * as sound from './lib/sound{version}.js';\n"
+                    "import * as util from './lib/util{version}.js';\n"
+                    "//some handy aliases as in the psychopy scripts;\n"
+                    "const {{ abs, sin, cos, PI: pi, sqrt }} = Math;\n"
+                    "const {{ round }} = util;\n"
                     "\n").format(version=versionStr)
             buff.writeIndentedLines(code)
 
@@ -831,22 +834,21 @@ class SettingsComponent(object):
         buff.writeIndentedLines(code)
 
     def writeEndCodeJS(self, buff):
-
-        endLoopInteration = ("\nfunction endLoopIteration(thisScheduler, loop) {\n"
+        endLoopInteration = ("\nfunction endLoopIteration(scheduler, snapshot) {\n"
                     "  // ------Prepare for next entry------\n"
                     "  return function () {\n"
-                    "    if (typeof loop !== 'undefined') {\n"
+                    "    if (typeof snapshot !== 'undefined') {\n"
                     "      // ------Check if user ended loop early------\n"
-                    "      if (loop.finished) {\n"
+                    "      if (snapshot.finished) {\n"
                     "        // Check for and save orphaned data\n"
                     "        if (psychoJS.experiment.isEntryEmpty()) {\n"
-                    "          psychoJS.experiment.nextEntry(loop);\n"
+                    "          psychoJS.experiment.nextEntry(snapshot);\n"
                     "        }\n"
-                    "      thisScheduler.stop();\n"
+                    "        scheduler.stop();\n"
                     "      } else {\n"
-                    "        const thisTrial = loop.getCurrentTrial();\n"
+                    "        const thisTrial = snapshot.getCurrentTrial();\n"
                     "        if (typeof thisTrial === 'undefined' || !('isTrials' in thisTrial) || thisTrial.isTrials) {\n"
-                    "          psychoJS.experiment.nextEntry(loop);\n"
+                    "          psychoJS.experiment.nextEntry(snapshot);\n"
                     "        }\n"
                     "      }\n"
                     "    return Scheduler.Event.NEXT;\n"
@@ -855,9 +857,9 @@ class SettingsComponent(object):
                     "}\n")
         buff.writeIndentedLines(endLoopInteration)
 
-        recordLoopIterationFunc = ("\nfunction importConditions(trials) {\n"
+        recordLoopIterationFunc = ("\nfunction importConditions(currentLoop) {\n"
                     "  return function () {\n"
-                    "    psychoJS.importAttributes(trials.getCurrentTrial());\n"
+                    "    psychoJS.importAttributes(currentLoop.getCurrentTrial());\n"
                     "    return Scheduler.Event.NEXT;\n"
                     "    };\n"
                     "}\n")

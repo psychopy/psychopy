@@ -7,7 +7,7 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import wx
@@ -18,6 +18,8 @@ from psychopy.constants import PY3
 from psychopy import logging
 from psychopy import prefs
 from ..themes import ThemeMixin
+
+from psychopy.localization import _translate
 
 
 class BaseCodeEditor(wx.stc.StyledTextCtrl, ThemeMixin):
@@ -110,13 +112,13 @@ class BaseCodeEditor(wx.stc.StyledTextCtrl, ThemeMixin):
 
         # Create menu and menu items
         menu = wx.Menu()
-        undoItem = wx.MenuItem(menu, self.UndoID, "Undo")
-        redoItem = wx.MenuItem(menu, self.RedoID, "Redo")
-        cutItem = wx.MenuItem(menu, self.CutID, "Cut")
-        copyItem = wx.MenuItem(menu, self.CopyID, "Copy")
-        pasteItem = wx.MenuItem(menu, self.PasteID, "Paste")
-        deleteItem = wx.MenuItem(menu, self.DeleteID, "Delete")
-        selectItem = wx.MenuItem(menu, self.SelectAllID, "Select All")
+        undoItem = wx.MenuItem(menu, self.UndoID, _translate("Undo"))
+        redoItem = wx.MenuItem(menu, self.RedoID, _translate("Redo"))
+        cutItem = wx.MenuItem(menu, self.CutID, _translate("Cut"))
+        copyItem = wx.MenuItem(menu, self.CopyID, _translate("Copy"))
+        pasteItem = wx.MenuItem(menu, self.PasteID, _translate("Paste"))
+        deleteItem = wx.MenuItem(menu, self.DeleteID, _translate("Delete"))
+        selectItem = wx.MenuItem(menu, self.SelectAllID, _translate("Select All"))
 
         # Check whether items should be enabled
         undoItem.Enable(self.CanUndo())

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
@@ -10,6 +10,8 @@ from builtins import super  # provides Py3-style super() using python-future
 
 from os import path
 from psychopy.experiment.components import BaseComponent, Param, _translate
+from psychopy.localization import _localized as __localized
+_localized = __localized.copy()
 
 # the absolute path to the folder containing this path
 thisFolder = path.abspath(path.dirname(__file__))
@@ -36,57 +38,17 @@ class EyetrackerComponent(BaseComponent):
         self.params = {}
         self.order = ['Config file']  # first param after the name
 
-        # standard params (can ignore)
-        msg = _translate(
-            "Name of this component (alpha-numeric or _, no spaces)")
-        self.params['name'] = Param(
-            name, valType='code', allowedTypes=[],
-            hint=msg,
-            label="Name")
-
-        self.params['startType'] = Param(
-            startType, valType='str',
-            allowedVals=['time (s)', 'frame N', 'condition'],
-            hint=_translate("How do you want to define your start point?"))
-
-        self.params['stopType'] = Param(
-            stopType, valType='str',
-            allowedVals=['duration (s)', 'duration (frames)', 'time (s)',
-                         'frame N', 'condition'],
-            hint=_translate("How do you want to define your end point?"))
-
-        self.params['startVal'] = Param(
-            startVal, valType='code', allowedTypes=[],
-            hint=_translate("When does the component start?"))
-
-        self.params['stopVal'] = Param(
-            stopVal, valType='code', allowedTypes=[],
-            updates='constant', allowedUpdates=[],
-            hint=_translate("When does the component end? (blank is endless)"))
-
-        msg = _translate("(Optional) expected start (s), purely for "
-                         "representing in the timeline")
-        self.params['startEstim'] = Param(
-            startEstim, valType='code', allowedTypes=[],
-            hint=msg)
-
-        msg = _translate("(Optional) expected duration (s), purely for "
-                         "representing in the timeline")
-        self.params['durationEstim'] = Param(
-            durationEstim, valType='code', allowedTypes=[],
-            hint=msg)
-
         # useful params for the eyetracker - keep to a minimum if possible! ;-)
         self.params['Config file'] = Param(
-            configFile, valType='str',
-            hint=_translate("How do you want to define your start point?"))
+            configFile, valType='str', categ='Hardware',
+            hint=_translate("Config file for eyetracker parameters"))
 
         msg = _translate(
             "How often should the eyetracker state (x,y,"
             "pupilsize...) be stored? On every video frame, every click "
             "or just at the end of the Routine?")
         self.params['saveState'] = Param(
-            save, valType='str',
+            save, valType='str', categ='Data',
             allowedVals=['final', 'every frame', 'never'],
             hint=msg,
             label="Save eyetracker state")

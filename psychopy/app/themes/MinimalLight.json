@@ -1,6 +1,7 @@
 {
   "app": "light",
   "icons": "light",
+  "info": "Psychopy Light with more minimal code colours",
   "base": {
     "fg": "#030308",
     "bg": "#FFFFFF",
@@ -143,6 +144,9 @@
 
   },
   "r": {
+
+  },
+  "json": {
 
   }
 }

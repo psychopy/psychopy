@@ -17,7 +17,7 @@ The table below shows you the current state of play with capabilities of online 
      , ,Multi-touch devices
       __, __, __
     ,**Stimuli**,
-  Image, ,
+  Image, ,Noise
   Text, ,Gratings
   Sounds, ,Apertures
   Movies, ,Dots (RDKs)

@@ -5,7 +5,7 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
@@ -1103,7 +1103,7 @@ def getRGBspectra(stimSize=0.3, winSize=(800, 600), photometer='COM1'):
     :params:
 
         - 'photometer' could be a photometer object or a serial port
-        name on which a photometer might be found (not recommended)
+          name on which a photometer might be found (not recommended)
 
     """
     import psychopy.event

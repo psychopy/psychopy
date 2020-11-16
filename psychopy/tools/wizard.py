@@ -5,7 +5,7 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 # Author: Jeremy Gray, Oct 2012; localization 2014
@@ -456,7 +456,7 @@ class BaseWizard(object):
             htmlDoc += _translate('''<p>Resources:
                 | <a href="http://www.psychopy.org/documentation.html">On-line documentation</a>
                 | Download <a href="http://www.psychopy.org/PsychoPyManual.pdf">PDF manual</a>
-                | <a href="https://discourse.osychopy.org">Search the user-group archives</a>
+                | <a href="https://discourse.psychopy.org">Search the user-group archives</a>
                 </p>''')
             htmlDoc += '<hr><p></p>    <table cellspacing=8 border=0>\n'
             htmlDoc += '    <tr><td><font size=+1><strong>' + \

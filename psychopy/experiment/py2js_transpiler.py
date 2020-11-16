@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import ast
@@ -45,10 +45,10 @@ class pythonTransformer(ast.NodeTransformer):
     """
 
     # builtin python operations that require substitution by specific JavaScript code:
-    subtitutableOperations = ['sum', 'randint']
+    subtitutableOperations = []
 
     # operations from the math python module or builtin operations that exist in JavaScript Math:
-    directMathOperations = ['abs', 'min', 'max', 'round', 'ceil', 'fabs', 'floor', 'trunc', 'exp', 'log', 'log2', 'pow',
+    directMathOperations = ['abs', 'min', 'max', 'ceil', 'fabs', 'floor', 'trunc', 'exp', 'log', 'log2', 'pow',
                             'sqrt', 'acos', 'asin', 'atan2', 'cos', 'sin', 'tan', 'acosh', 'asinh', 'atanh', 'cosh',
                             'sinh', 'tanh']
 
@@ -175,67 +175,7 @@ class pythonTransformer(ast.NodeTransformer):
         # substitutable operations, e.g. a = sum(b,c) => a = [b,c].reduce( function(x,y) { return x+y: })
         elif attribute in self.subtitutableOperations:
             # a = sum(b,c) => a = [b,c].reduce( function(x,y) { return x+y: })
-            if attribute == 'sum':
-                func = ast.Attribute(
-                    value=ast.List(
-                        elts=args,
-                        ctx=ast.Load()
-                    ),
-                    attr='reduce',
-                    ctx=ast.Load()
-                )
-
-                args = [
-                    ast.Call(
-                        func=ast.Name(id='JS', ctx=ast.Load()),
-                        args=[ast.Str(s=' function(x,y) { return x+y; }')],
-                        keywords=[]
-                    )
-                ]
-
-                return ast.Call(
-                    func=func,
-                    args=args,
-                    keywords=[]
-                )
-
-            # randint(a,b) => Math.floor(Math.random() * (b - a)) + a
-            elif attribute == 'randint':
-
-                left = ast.Call(
-                    func=ast.Attribute(
-                        value=ast.Name(id='Math', ctx=ast.Load()),
-                        attr='floor',
-                        ctx=ast.Load()
-                    ),
-                    args=[
-                        ast.BinOp(
-                            left=ast.Call(
-                                func=ast.Attribute(
-                                    value=ast.Name(id='Math', ctx=ast.Load()),
-                                    attr='random',
-                                    ctx=ast.Load()
-                                ),
-                                args=[],
-                                keywords=[]
-                            ),
-                            op=ast.Mult(),
-                            right=ast.BinOp(
-                                    left=args[1],
-                                    op=ast.Sub(),
-                                    right=args[0]
-                                ))
-                    ],
-                    keywords=[]
-                )
-
-                right = args[0]
-
-                return ast.BinOp(
-                    left=left,
-                    op=ast.Add(),
-                    right=right
-                )
+            pass  # removed for now in preference for creating the func in utils
 
         else:
             return None

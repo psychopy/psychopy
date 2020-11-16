@@ -3,6 +3,7 @@
 
 import os
 import pytest
+import numpy as np
 from psychopy.data import utils
 from psychopy.constants import PY3
 from os.path import join
@@ -59,6 +60,17 @@ class Test_utilsClass:
         with pytest.raises(IOError) as errMsg:
             utils.importConditions(fileName_docx)
         assert ('Your conditions file should be an ''xlsx, csv, dlm, tsv or pkl file') == str(errMsg.value)
+
+        # test random selection of conditions
+        all_conditions = utils.importConditions(standard_files[0])
+        assert len(all_conditions) == 6
+        num_selected_conditions = 1001
+        selected_conditions = utils.importConditions(
+            standard_files[0],
+            selection=(np.concatenate(
+                ([0.9], np.random.random(num_selected_conditions - 1)*len(all_conditions)))))
+        assert selected_conditions[0] == expected_cond
+        assert len(selected_conditions) == num_selected_conditions
 
     def test_isValidVariableName(self):
         assert utils.isValidVariableName('Name') == (True, '')
@@ -130,6 +142,17 @@ class Test_utilsClass:
         assert len(conds) == 6
         assert len(list(conds[0].keys())) == 6
 
+def test_listFromString():
+    assert ['yes', 'no'] == utils.listFromString("yes, no")
+    assert ['yes', 'no'] == utils.listFromString("[yes, no]")
+    assert ['yes', 'no'] == utils.listFromString("(yes, no)")
+    assert ['yes', 'no'] == utils.listFromString("'yes', 'no'")
+    assert ['yes', 'no'] == utils.listFromString("['yes', 'no']")
+    assert ['yes', 'no'] == utils.listFromString("('yes', 'no')")
+    # this should be returned without ast.literal_eval being used
+    assert ['yes', 'no'] == utils.listFromString(('yes', 'no'))
+    # this would create a syntax error in ast.literal_eval
+    assert ["Don't", "Do"] == utils.listFromString("Don't, Do")
 
 if __name__ == '__main__':
     pytest.main()

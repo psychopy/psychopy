@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """
@@ -104,7 +104,7 @@ class NameValidator(BaseValidator):
             used = namespace.exists(newName)
             sameAsOldName = bool(newName == parent.params['name'].val)
             if used and not sameAsOldName:
-                msg = _translate("That name is in use (by %s). Try another name.") % used
+                msg = _translate("That name is in use (by %s). Try another name.") % _translate(used)
                 OK = False
             elif not namespace.isValid(newName):  # valid as a var name
                 msg = _translate("Name must be alpha-numeric or _, no spaces")
@@ -203,7 +203,7 @@ class CodeSnippetValidator(BaseValidator):
             code = experiment.getCodeFromParamStr(val)
             try:
                 names = compile(code, '', 'exec').co_names
-            except SyntaxError as e:
+            except (SyntaxError, TypeError) as e:
                 # empty '' compiles to a syntax error, ignore
                 if not code.strip() == '':
                     _highlightParamVal(parent, True)
@@ -238,6 +238,16 @@ class CodeSnippetValidator(BaseValidator):
                             msg = msg.format(name, self.displayName)
                             OK = True
 
+                    for newName in names:
+                        namespace = parent.frame.exp.namespace
+                        if newName in namespace.user or newName in namespace.builder:
+                            continue
+                        used = namespace.exists(newName)
+                        sameAsOldName = bool(newName == parent.params['name'].val)
+                        if used and not sameAsOldName:
+                            msg = _translate("Variable name $%s is in use (by %s). Try another name.") % (newName, _translate(used))
+                            # let the user continue if this is what they intended
+                            OK = True
 
         parent.warningsDict[field] = msg
         return msg, OK

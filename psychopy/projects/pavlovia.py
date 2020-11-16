@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Helper functions in PsychoPy for interacting with Pavlovia.org
@@ -787,7 +787,7 @@ class PavloviaProject(dict):
             raise AttributeError("Cannot fetch a PavloviaProject until we have "
                                  "chosen a local folder.")
         if not os.path.exists(self.localRoot):
-            os.mkdirs(self.localRoot)
+            os.makedirs(self.localRoot)
 
         # check if the remote repo is empty (if so then to init/push)
         if self.pavlovia:

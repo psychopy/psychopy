@@ -26,11 +26,12 @@ a client_secret that you need to copy into a file called .emotiv_creds in your h
 One line should have "client_id" (without the quotes) then a space and then the client_id,
 another line should have "client_secret" (without the quotes and then as space and then the
 client secret.  A line beginning with a hash will be ignored. eg
----begin file ---
-# client_id and client_secret for Cortex application
-client_id abc123...
-client_secret xyz8910....
----end file---
+
+| ---begin file ---
+| # client_id and client_secret for Emotiv application
+| client_id abcd1234...
+| client_secret wxyz78910....
+| ---end file---
 
 Parameters
 ~~~~~~~~~~~~
@@ -40,7 +41,9 @@ Name : string
     letters, numbers and underscores (no punctuation marks or spaces).
 
 Start :
-    Has no effect
+    Set this to 0
 
 Stop :
-    Has no effect
+    Set this to 1 seconds
+
+Setting these values just allows the routine to finish

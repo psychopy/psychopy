@@ -2,14 +2,15 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
 
 from os import path
 from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals
-from psychopy.localization import _translate
+from psychopy.localization import _translate, _localized as __localized
+_localized = __localized.copy()
 
 # the absolute path to the folder containing this path
 thisFolder = path.abspath(path.dirname(__file__))
@@ -17,12 +18,12 @@ iconFile = path.join(thisFolder, 'image.png')
 tooltip = _translate('Image: present images (bmp, jpg, tif...)')
 
 # only use _localized values for label values, nothing functional:
-_localized = {'image': _translate('Image'),
-              'mask': _translate('Mask'),
-              'texture resolution': _translate('Texture resolution'),
-              'flipVert': _translate('Flip vertically'),
-              'flipHoriz': _translate('Flip horizontally'),
-              'interpolate': _translate('Interpolate')}
+_localized.update({'image': _translate('Image'),
+                   'mask': _translate('Mask'),
+                   'texture resolution': _translate('Texture resolution'),
+                   'flipVert': _translate('Flip vertically'),
+                   'flipHoriz': _translate('Flip horizontally'),
+                   'interpolate': _translate('Interpolate')})
 
 
 class ImageComponent(BaseVisualComponent):
@@ -48,15 +49,12 @@ class ImageComponent(BaseVisualComponent):
         self.url = "http://www.psychopy.org/builder/components/image.html"
         self.exp.requirePsychopyLibs(['visual'])
         # params
-        # was set by BaseVisual but for this stim it's advanced
-        self.params['color'].categ = "Advanced"
-        self.params['colorSpace'].categ = "Advanced"
         self.order += ['image', 'pos', 'size', 'ori', 'opacity']
 
         msg = _translate(
             "The image to be displayed - a filename, including path")
         self.params['image'] = Param(
-            image, valType='str', allowedTypes=[],
+            image, valType='str', allowedTypes=[], categ='Basic',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
@@ -66,43 +64,48 @@ class ImageComponent(BaseVisualComponent):
             "An image to define the alpha mask through which the image is "
             "seen - gauss, circle, None or a filename (including path)")
         self.params['mask'] = Param(
-            mask, valType='str', allowedTypes=[],
+            mask, valType='str', allowedTypes=[], categ='Texture',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
-            label=_localized["mask"], categ="Advanced")
+            label=_localized["mask"])
 
         msg = _translate("Resolution of the mask if one is used.")
         self.params['texture resolution'] = Param(
-            texRes, valType='code',
+            texRes, valType='code', categ='Texture',
             allowedVals=['32', '64', '128', '256', '512'],
             updates='constant', allowedUpdates=[],
             hint=msg,
-            label=_localized["texture resolution"], categ="Advanced")
+            label=_localized["texture resolution"])
 
         msg = _translate(
             "How should the image be interpolated if/when rescaled")
         self.params['interpolate'] = Param(
-            interpolate, valType='str', allowedVals=['linear', 'nearest'],
+            interpolate, valType='str', allowedVals=['linear', 'nearest'], categ='Texture',
             updates='constant', allowedUpdates=[],
             hint=msg,
-            label=_localized["interpolate"], categ="Advanced")
+            label=_localized["interpolate"])
 
         msg = _translate(
             "Should the image be flipped vertically (top to bottom)?")
         self.params['flipVert'] = Param(
-            flipVert, valType='bool',
+            flipVert, valType='bool', categ='Layout',
             updates='constant', allowedUpdates=[],
             hint=msg,
-            label=_localized["flipVert"], categ="Advanced")
+            label=_localized["flipVert"])
 
         msg = _translate(
             "Should the image be flipped horizontally (left to right)?")
         self.params['flipHoriz'] = Param(
-            flipHoriz, valType='bool',
+            flipHoriz, valType='bool', categ='Layout',
             updates='constant', allowedUpdates=[],
             hint=msg,
-            label=_localized["flipHoriz"], categ="Advanced")
+            label=_localized["flipHoriz"])
+
+        del self.params['fillColor']
+        del self.params['fillColorSpace']
+        del self.params['borderColor']
+        del self.params['borderColorSpace']
 
     def writeInitCode(self, buff):
         # do we need units code?

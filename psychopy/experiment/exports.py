@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Experiment classes:
@@ -160,20 +160,6 @@ class NameSpace(object):
         self.user = []
         self.nonUserBuilder = self.numpy + self.keywords + self.psychopy
 
-        # strings used as codes, separate function from display value:
-        # need the actual strings to be inside _translate for poedit discovery
-        toTranslate = [
-            "one of your Components, Routines, or condition parameters",
-            " Avoid `this`, `these`, `continue`, `Clock`, or `component` in name",
-            "Builder variable",
-            "Psychopy module",
-            "numpy function",
-            "python keyword"
-        ]
-        self._localized = {None: ''}  # start with this so None=""
-        for transStr in toTranslate:
-            self._localized[transStr] = _translate(transStr)
-
     def __str__(self, numpy_count_only=True):
         varibs = self.user + self.builder + self.psychopy
         if numpy_count_only:
@@ -247,8 +233,7 @@ class NameSpace(object):
 
         # check getDerived:
 
-        # check in this order: return a key from NameSpace._localized.keys(),
-        # not a localized value
+        # check in this order: return unlocalized value
         if name in self.user:
             return "one of your Components, Routines, or condition parameters"
         if name in self.builder:

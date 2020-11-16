@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 import time
 import os
@@ -223,13 +223,13 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
         #                border=5)
         if not noTitle:
             self.sizer.Add(self.title, border=5,
-                           flag=wx.ALL | wx.ALIGN_CENTER)
+                           flag=wx.ALL | wx.CENTER)
         self.sizer.Add(self.url, border=5,
-                       flag=wx.ALL | wx.ALIGN_CENTER)
+                       flag=wx.ALL | wx.CENTER)
         self.sizer.Add(self.localFolderCtrl, border=5,
                              flag=wx.ALL | wx.EXPAND),
         self.sizer.Add(self.browseLocalBtn, border=5,
-                             flag=wx.ALL | wx.ALIGN_LEFT)
+                             flag=wx.ALL | wx.LEFT)
         self.sizer.Add(self.tags, border=5, flag=wx.ALL | wx.EXPAND)
         self.sizer.Add(self.visibility, border=5, flag=wx.ALL | wx.EXPAND)
         self.sizer.Add(wx.StaticLine(self, -1, style=wx.LI_HORIZONTAL),
@@ -239,7 +239,7 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
         self.sizer.Add(wx.StaticLine(self, -1, style=wx.LI_HORIZONTAL),
                        flag=wx.ALL | wx.EXPAND)
         self.sizer.Add(self.syncButton,
-                       flag=wx.ALL | wx.ALIGN_RIGHT, border=5)
+                       flag=wx.ALL | wx.RIGHT, border=5)
         self.sizer.Add(self.syncPanel, border=5, proportion=1,
                        flag=wx.ALL | wx.RIGHT | wx.EXPAND)
 
@@ -494,6 +494,7 @@ def syncProject(parent, project=None, closeFrameWhenDone=False):
             return 0
 
     # a sync will be necessary so set the target to Runner stdout
+    parent.app.showRunner()
     syncFrame = parent.app.runner.stdOut
 
     if project._newRemote:
@@ -608,9 +609,9 @@ class ProjectRecreator(wx.Dialog):
         mainSizer = wx.BoxSizer(wx.VERTICAL)
         buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
         buttonSizer.Add(wx.Button(self, id=wx.ID_OK, label=_translate("OK")),
-                      1, wx.ALL | wx.ALIGN_RIGHT, 5)
+                      1, wx.ALL, 5)
         buttonSizer.Add(wx.Button(self, id=wx.ID_CANCEL, label=_translate("Cancel")),
-                      1, wx.ALL | wx.ALIGN_RIGHT, 5)
+                      1, wx.ALL, 5)
         mainSizer.Add(msg, 1, wx.ALL, 5)
         mainSizer.Add(self.radioCtrl, 1, wx.ALL | wx.ALIGN_CENTER_HORIZONTAL, 5)
         mainSizer.Add(buttonSizer, 1, wx.ALL | wx.ALIGN_RIGHT, 1)

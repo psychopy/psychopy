@@ -9,7 +9,7 @@ translation _translate():
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 # Author: Jeremy Gray, July 2014
@@ -163,9 +163,13 @@ _localized = {
     'durationEstim': _translate('Expected duration (s)'),
 
     # for BaseVisualComponent:
-    'units': _translate('Units'),
-    'color': _translate('Color'),
-    'colorSpace': _translate('Color space'),
+    'units': _translate('Spatial Units'),
+    'color': _translate('Foreground Color'),
+    'colorSpace': _translate('Foreground Color Space'),
+    'fillColor': _translate('Fill Color'),
+    'fillColorSpace': _translate('Fill Color Space'),
+    'borderColor': _translate('Border Color'),
+    'borderColorSpace': _translate('Border Color Space'),
     'opacity': _translate('Opacity'),
     'pos': _translate('Position [x,y]'),
     'ori': _translate('Orientation'),

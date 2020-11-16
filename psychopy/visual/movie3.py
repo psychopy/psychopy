@@ -25,7 +25,7 @@ movie is long then audio will be huge and currently the whole thing gets
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
@@ -131,6 +131,11 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
             from psychopy import sound
             self.sound = sound
 
+        # set autoLog (now that params have been initialised)
+        self.autoLog = autoLog
+        if autoLog:
+            logging.exp("Created %s = %s" % (self.name, str(self)))
+
         self._videoClock = Clock()
         self.loadMovie(self.filename)
         self.setVolume(volume)
@@ -144,10 +149,6 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
             self.size = val2array(size)
         self.ori = ori
         self._updateVertices()
-        # set autoLog (now that params have been initialised)
-        self.autoLog = autoLog
-        if autoLog:
-            logging.exp("Created %s = %s" % (self.name, str(self)))
 
     def reset(self):
         self._numpyFrame = None

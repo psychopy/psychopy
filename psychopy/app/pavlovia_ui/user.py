@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from .functions import logInPavlovia, logOutPavlovia
@@ -44,13 +44,14 @@ class UserEditor(wx.Dialog):
                                        label=self.user.url, URL=self.user.url)
         logoutBtn = wx.Button(panel, label="Logout")
         logoutBtn.Bind(wx.EVT_BUTTON, self.onLogout)
-        nameLabel = wx.StaticText(panel, id=wx.ID_ANY, label=_translate("Full name:"))
+        nameLabel = wx.StaticText(panel, id=wx.ID_ANY,
+                                  label=_translate("Full name:"))
         self.nameField = wx.StaticText(panel, wx.ID_ANY, self.user.name)
-        bitmapFile = self.user.avatar or "user128invisible.png"
+        bitmapFile = self.user.avatar or "user_invisible.png"
         self.avatarBtn = self.app.iconCache.makeBitmapButton(
                     parent=panel,
-                    filename=bitmapFile, label=nameLabel, name=nameLabel,
-                    size=self.tbSize)
+                    filename=bitmapFile,
+                    label=self.user.name, name=self.user.name)
 
         org = self.user.organization or ""
         orgLabel = wx.StaticText(panel, wx.ID_ANY, _translate("Organization:"))
@@ -86,7 +87,7 @@ class UserEditor(wx.Dialog):
         ])
 
         btnSizer = wx.BoxSizer(wx.HORIZONTAL)
-        btnSizer.Add(updateBtn, flag=wx.ALIGN_RIGHT)
+        btnSizer.Add(updateBtn)
 
         border = wx.BoxSizer(wx.VERTICAL)
         border.Add(topRow, 0, wx.ALL| wx.EXPAND, 5)

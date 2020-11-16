@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """A Backend class defines the core low-level functions required by a Window
@@ -32,6 +32,10 @@ class BaseBackend(object):
     """
     # define GL here as a class attribute that includes all the opengl funcs
     # e.g. GL = pyglet.gl
+
+    # define the name of the backend, used to register the name to use when
+    # specifying `winType`
+    # e.g. winTypeName = 'custom'
 
     def __init__(self, win):
         """Set up the backend window according the params of the PsychoPy win

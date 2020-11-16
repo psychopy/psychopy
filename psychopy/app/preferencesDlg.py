@@ -22,48 +22,44 @@ import collections
 
 # labels mappings for display:
 _localized = {
-    # section labels:
-    'general': _translate('General'),
-    'app': _translate('App'),
+    # category labels
+    'General': _translate('General'),
+    'Application': _translate('Application'),
+    'Key Bindings': _translate('Key Bindings'),
+    'Hardware': _translate('Hardware'),
+    'Connections': _translate('Connections'),
+    # section labels
+    'general': _translate('general'),
+    'app': _translate('app'),
     'builder': "Builder",  # not localized
     'coder': "Coder",  # not localized
+    'runner': "Runner",  # not localized
     'hardware': _translate('Hardware'),
-    'connections': _translate('Connections'),
-    'keyBindings': _translate('Key bindings'),
-    # pref labels:
+    'connections': _translate('Connections'), # not 'connections'
+    'keyBindings': _translate('Key Bindings'), # not 'keyBindings'
+    # pref labels in General section
     'winType': _translate("window type"),
     'units': _translate("units"),
     'fullscr': _translate("full-screen"),
     'allowGUI': _translate("allow GUI"),
     'paths': _translate('paths'),
-    'audioLib': _translate("audio library"),
-    'audioDriver': _translate("audio driver"),
-    'audioDevice': _translate("audio device"),
-    'audioLatencyMode': _translate("audio latency mode"),
     'flac': _translate('flac audio compression'),
-    'parallelPorts': _translate("parallel ports"),
-    'qmixConfiguration': _translate("Qmix configuration"),
     'shutdownKey': _translate("shutdown key"),
     'shutdownKeyModifiers': _translate("shutdown key modifier keys"),
+    'gammaErrorPolicy': _translate("gammaErrorPolicy"),
+    'startUpPlugins': _translate("start up plugins"),
+    # pref labels in App section
     'showStartupTips': _translate("show start-up tips"),
-    'largeIcons': _translate("large icons"),
     'defaultView': _translate("default view"),
-    'darkMode': _translate("dark mode"),
     'resetPrefs': _translate('reset preferences'),
     'autoSavePrefs': _translate('auto-save prefs'),
     'debugMode': _translate('debug mode'),
     'locale': _translate('locale'),
-    'readonly': _translate('read-only'),
-    'codeFont': _translate('code font'),
-    'commentFont': _translate('comment font'),
-    'outputFont': _translate('output font'),
-    'outputFontSize': _translate('output font size'),
-    'codeFontSize': _translate('code font size'),
-    'showSourceAsst': _translate('show source asst'),
-    'showOutput': _translate('show output'),
-    'reloadPrevFiles': _translate('reload previous files'),
-    'preferredShell': _translate('preferred shell'),
+    'errorDialog': _translate('error dialog'),
+    'theme': _translate('theme'),
+    # pref labels in Builder section
     'reloadPrevExp': _translate('reload previous exp'),
+    'codeComponentLanguage': _translate('Code component language'),
     'unclutteredNamespace': _translate('uncluttered namespace'),
     'componentsFolders': _translate('components folders'),
     'hiddenComponents': _translate('hidden components'),
@@ -72,11 +68,20 @@ _localized = {
     'topFlow': _translate('Flow at top'),
     'alwaysShowReadme': _translate('always show readme'),
     'maxFavorites': _translate('max favorites'),
-    'proxy': _translate('proxy'),
-    'autoProxy': _translate('auto-proxy'),
-    'allowUsageStats': _translate('allow usage stats'),
-    'checkForUpdates': _translate('check for updates'),
-    'timeout': _translate('timeout'),
+    # pref labels in Coder section
+    'readonly': _translate('read-only'),
+    'outputFont': _translate('output font'),
+    'codeFont': _translate('code font'),
+    'outputFontSize': _translate('output font size'),
+    'codeFontSize': _translate('code font size'),
+    'lineSpacing': _translate('lineSpacing'),
+    'edgeGuideColumn': _translate('edgeGuideColumn'),
+    'showSourceAsst': _translate('show source asst'),
+    'showOutput': _translate('show output'),
+    'autocomplete': _translate('auto complete'),
+    'reloadPrevFiles': _translate('reload previous files'),
+    'preferredShell': _translate('preferred shell'),
+    # pref labels in KeyBindings section
     'open': _translate('open'),
     'new': _translate('new'),
     'save': _translate('save'),
@@ -106,6 +111,7 @@ _localized = {
     'analyseCode': _translate('analyze code'),
     'compileScript': _translate('compile script'),
     'runScript': _translate('run script'),
+    'runnerScript': _translate('runner script'),
     'stopScript': _translate('stop script'),
     'toggleWhitespace': _translate('toggle whitespace'),
     'toggleEOLs': _translate('toggle EOLs'),
@@ -116,24 +122,33 @@ _localized = {
     'pasteCompon': _translate('paste Component'),
     'toggleOutputPanel': _translate('toggle output panel'),
     'renameRoutine': _translate('rename Routine'),
-    'switchToBuilder': _translate('switch to Builder'),
-    'switchToCoder': _translate('switch to Coder'),
-    'switchToRunner': _translate('switch to Runner'),
+    'cycleWindows': _translate('cycle windows'),
     'largerFlow': _translate('larger Flow'),
     'smallerFlow': _translate('smaller Flow'),
     'largerRoutine': _translate('larger routine'),
     'smallerRoutine': _translate('smaller routine'),
     'toggleReadme': _translate('toggle readme'),
-    'projectsLogIn': _translate('login to projects'),
     'pavlovia_logIn': _translate('login to pavlovia'),
     'OSF_logIn': _translate('login to OSF'),
     'projectsSync': _translate('sync projects'),
     'projectsFind': _translate('find projects'),
     'projectsOpen': _translate('open projects'),
     'projectsNew': _translate('new projects'),
+    # pref labels in Hardware section
+    'audioLib': _translate("audio library"),
+    'audioLatencyMode': _translate("audio latency mode"),
+    'audioDriver': _translate("audio driver"),
+    'audioDevice': _translate("audio device"),
+    'parallelPorts': _translate("parallel ports"),
+    'qmixConfiguration': _translate("Qmix configuration"),
+    # pref labels in Connections section
+    'proxy': _translate('proxy'),
+    'autoProxy': _translate('auto-proxy'),
+    'allowUsageStats': _translate('allow usage stats'),
+    'checkForUpdates': _translate('check for updates'),
+    'timeout': _translate('timeout'),
     # pref wxChoice lists:
-    'last': _translate('same as last session'),
-    'both': _translate('both Builder & Coder'),
+    'all': _translate('Builder, Coder and Runner'),
     'keep': _translate('same as in the file'),  # line endings
     # not translated:
     'pix': 'pix',
@@ -142,7 +157,17 @@ _localized = {
     'norm': 'norm',
     'height': 'height',
     'pyshell': 'pyshell',
-    'iPython': 'iPython'
+    'iPython': 'iPython',
+    # obsolete labels
+    'largeIcons': _translate("large icons"),
+    'darkMode': _translate("dark mode"),
+    'highDPI': _translate('highDPI'),
+    'commentFont': _translate('comment font'),
+    'switchToBuilder': _translate('switch to Builder'),
+    'switchToCoder': _translate('switch to Coder'),
+    'switchToRunner': _translate('switch to Runner'),
+    'projectsLogIn': _translate('login to projects'),
+    'useRunner': _translate("use Runner"),
 }
 # add pre-translated names-of-langauges, for display in locale pref:
 _localized.update(localization.locname)
@@ -235,7 +260,7 @@ class PrefPropGrid(wx.Panel):
                                     list(sections))
         self.pageNames[name] = self.pageIdx
         self.lstPrefPages.InsertItem(
-            self.lstPrefPages.GetItemCount(), label, self.pageIdx)
+            self.lstPrefPages.GetItemCount(), _localized[label], self.pageIdx)
 
         self.pageIdx += 1
 
@@ -356,7 +381,7 @@ class PrefPropGrid(wx.Panel):
             pagePtr.Clear()
 
             for s in sections:
-                _ = pagePtr.Append(pg.PropertyCategory(s, s))
+                _ = pagePtr.Append(pg.PropertyCategory(_localized[s], s))
                 for name, prop in self.sections[s].items():
                     item = pagePtr.Append(prop)
 
@@ -416,7 +441,8 @@ class PreferencesDlg(wx.Dialog):
     """
     def __init__(self, app):
         wx.Dialog.__init__(
-            self, None, id=wx.ID_ANY, title=u"PsychoPy Preferences",
+            self, None, id=wx.ID_ANY,
+            title=_translate('PsychoPy Preferences'),
             pos=wx.DefaultPosition, size=wx.Size(800, 600),
             style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
 
@@ -600,17 +626,21 @@ class PreferencesDlg(wx.Dialog):
                             value=default, helpText=helpText)
                 elif prefName == 'locale':
                     thisPref = self.app.prefs.app['locale']
-                    locales = self.app.localization.available
+                    # '' corresponds to system locale
+                    locales = [''] + self.app.localization.available
                     try:
                         default = locales.index(thisPref)
                     except ValueError:
-                        # default to US english
-                        default = locales.index('en_US')
+                        # set default locale ''
+                        default = locales.index('')
+                    # '' must be appended after other labels are translated
+                    labels = ['system locale'] + [_localized[i] 
+                                     for i in self.app.localization.available]
                     self.proPrefs.addEnumItem(
                             sectionName,
                             pLabel,
                             prefName,
-                            labels=[_localized[i] for i in locales],
+                            labels=labels,
                             values=[i for i in range(len(locales))],
                             value=default, helpText=helpText)
                 # # single directory
@@ -693,6 +723,12 @@ class PreferencesDlg(wx.Dialog):
                             labels=labels,
                             values=[i for i in range(len(labels))],
                             value=default, helpText=helpText)
+                    if prefName == 'builderLayout':
+                        item = self.proPrefs.sections[sectionName][prefName]
+                        for i in range(len(item.GetChoices())):
+                            choice = item.GetChoices()[i]
+                            icon = self.app.iconCache.getBitmap(choice.Text)
+                            choice.SetBitmap(icon)
                 # # lists are given a property that can edit and reorder items
                 elif thisSpec.startswith('list'):  # list
                     self.proPrefs.addStringArrayItem(
@@ -737,11 +773,12 @@ class PreferencesDlg(wx.Dialog):
                         self.audioDevNames[thisPref]
                     continue
                 elif prefName == 'locale':
-                    # fake spec -> option: use available locale info not spec file
+                    # '' corresponds to system locale
+                    locales = [''] + self.app.localization.available
                     self.app.prefs.app['locale'] = \
-                        self.app.localization.available[thisPref]
+                        locales[thisPref]
                     self.prefsCfg[sectionName][prefName] = \
-                        self.app.localization.available[thisPref]
+                        locales[thisPref]
                     continue
 
                 # remove invisible trailing whitespace:
@@ -805,6 +842,7 @@ class PreferencesDlg(wx.Dialog):
         # after validation, update the UI
         self.app.theme = self.app.theme
         self.updateCoderUI()
+        self.updateBuilderUI()
 
     def updateCoderUI(self):
         """Update the Coder UI (eg. fonts, themes, etc.) from prefs."""
@@ -818,6 +856,11 @@ class PreferencesDlg(wx.Dialog):
             for ii in range(coder.shelf.GetPageCount()):
                 doc = coder.shelf.GetPage(ii)
                 doc.theme = prefs.app['theme']
+
+    def updateBuilderUI(self):
+        builder = self.app.builder
+        if builder is not None:
+            builder.layoutPanes()
 
     def OnApplyClicked(self, event):
         """Apply button clicked, this makes changes to the UI without leaving

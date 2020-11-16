@@ -1,6 +1,7 @@
 {
   "app": "dark",
   "icons": "dark",
+  "info": "A darker version of Psychopy's default look",
   "base": {
     "fg": "#f2f2f2",
     "bg": "#66666E",
@@ -139,5 +140,8 @@
   "python": {
   },
   "c++": {
+  },
+  "json": {
+
   }
 }

@@ -15,6 +15,118 @@ Changelog
 
 CHANGES, which are identified in this dark red text, typically indicate things that alter the PsychoPy behaviour in a way that could break compatibility. Be especially wary of those!
 
+PsychoPy 2020.2.5
+-----------------
+
+FIXES:
+
+- Failing to send print statements to output, depending on how PsychoPy was launched #4773ec32dcf Only occured if you launch by double-clicking file or if you close Runner
+- Coder crashing on macOS when using editor with autocomplete=True #687e81dfb
+- ioHub fix for unicode strings #5451ea49a
+- Marker color on RatingScale was not resetting (but use Slider anyway!) #3140
+- Runner sometimes ran wrong script (and never knew which to stop). Now better tracking of running process #3142
+- Slider not honoring the order from the Routine (should render in order from top down) #9e0299544
+- JavaScript Code Components for Before Experiment were having no effect #3151
+- error with trying to poll() on a script process that was NoneType #cc56713cc
+- Editable textboxes were still able to be drawn if you clicked on them (even when they were not told to draw()) #8253f0696
+- warn against using global JS names in experiment #3177
+- Brush not being reset in JavaScript #88812c3bd
+- Movie reset issue #3183
+- countinueRoutine=False had no effect for online studies if in Begin Routine block
+- errors that should have appeared in the console were sometimes appearing in the (app) error dialog #d44f24d63
+- more tolerant of whitespace in Emotiv Client ID file
+- Runner AddTask dialog had wrong format for file filter #3213
+- Fix to setting volume attribute with PTB backend #3215
+- Fixed fill/line colors of TextBox #3222
+- Error in JavaScript code when Movie Component had blank stop time #0b4ddcffc
+- Better handling of stdout encodings when console not set to utf-8 encoding #d77535906
+- Improved Resources box for the online (using relative references #c9558bfd8 and resize with dialog #d607271db)
+
+PsychoPy 2020.2.4
+-----------------
+
+FIXES:
+
+- improved search for resources files whne compiling JS (was crashing if using root folder and using code to specify the conditions file) #09816985d5
+- the `Before Experiment` section of Code Components wasn't being written for JavaScript components #bbfd310
+- error with wx complaining about Alignment (in wx 4.1) #a32e2ca #ae508d6
+- TextBox Component default size is None (=autoexpand)
+- TextBox `editable=True` had no effect on the Builder outputs to JavaScript
+- themes menu correctly updates what thte current them is in all open windows #c5cdc49
+- custom fonts that didn't provide a "family name" were causing the font search to crash #ef078ab
+- bug trying to us an invalid "useRunner" preference 3532e4c
+- JavaScript studies failed if there were 2 Mouse Components in a single Routine #0e0b26d4dcc #32a6be2
+- improved Big Five Inventory demo
+- blank TextBox Component should use blank string rather than None #39bf1bb
+- further fix to macOS stapling (might not have worked for users with no internet connection?)
+- Form Component now honors being set to show only at certain times (in keeping with other visual Components) #35ad5bc
+- Coder now correctly providing syntax styling for JS and C
+
+PsychoPy 2020.2.3
+-----------------
+
+FIXES:
+
+- **Mac version now fully signed and notarized for GateKeeper!** For some time it's been an annoyance that Apple would block PsychoPy because of it not being from a "known developer" but in recent updates GateKeeper has become so aggressive the app has been crashing on startup for some macOS versions. Hopefully Apple will now let us launch in peace!
+- **better handling of non-loading fonts in the application** On mac some fonts weren't being found (although this *might* be due to the now-solved gatekeeper issue)
+- **auto-translate py->js for parameters with $** We were translating code components but not parameter boxes where the user was switching to code using $  #3064
+- better handling when a piece of code fails to convert (warning not error) #3063
+- show progress (in Runner) while syncing project with Pavlovia #3061
+- various fixes and additions to Japanese translations
+
+PsychoPy 2020.2
+-----------------
+
+NEW FEATURES:
+
+- New look, including dark mode, customizable themes and new flat buttons (you can choose a Classic theme to get the old buttons back for comfort)
+- Now have an class for /editable/ text called **TextBox2**:
+
+  - very fast rendering (faster than the original TextStim)once the font characters are uploaded
+  - supports an editable flag which allows it to pick up text input to the window including full unicode support for your keyboard
+  - you can apply (fake) bold and italics within the text using <i></i> and <b></b>
+  - if multiple editable TextBoxes are onscreen together you can tab between them
+
+- **Form** components now work online and support (in both lab-based and online versions):
+
+  - free text
+  - ratings and sliders
+  - choice boxes (radio buttons)
+  - descriptions (no response)
+  - headings
+
+- Improved Coder:
+
+  - call-tips for code and better auto-completion
+  - view the folders and the structure of the current file
+
+- Improved Runner:
+
+  - Builder/Coder provide options to run directly (Ctrl-R) and Runner only then used to show stdout
+  - more visible how to save/open Runner filelists
+  - Runner filelists saved as `.psyrun` files and can be loaded into PsychoPy with a double-click
+
+- Online studies don't need to use html folder. Keep everything where it is! If resources aren't found automatically (and you would have put them in to the Resources folder) you can now add them to the ExperimentSettings>Online>AdditionalResources
+- Added support for Emotive and BrainProducts EEG hardware
+- CSV data outputs now have an option to set the delimitter (e.g. `;` or `\t` rather than `,`)
+- Brush component now has an option to allow drawing without having to hold down the mouse button #2980
+
+CHANGES:
+
+- _PsychoJS_ code now uses the same syntax for loop termination as _PsychoPy_ allowing either `nameOfLoop.finished=true` or `currentLoop.finished=true`
+- Python 2.7 is no longer supported. We recommend Python versions 3.6 or 3.7 (3.8 is not tested likely to work)
+
+FIXES:
+
+- Various compatibility fixes for JS code from PsychoPy
+
+  - loop termination now working the same as Python and correctly auto-translated
+  - movies *should* now restart correctly, at least on browsers that support the seek behavior
+  - randint is now included and imported in all scripts
+  - sin, cos, pi etc are also imported in all scripts
+
+- support for wxPython 4.1
+- so many more small fixes!
 
 PsychoPy 2020.1
 ----------------

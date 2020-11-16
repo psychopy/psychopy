@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 # Author: Jeremy R. Gray, 2012
@@ -12,6 +12,8 @@ from builtins import super  # provides Py3-style super() using python-future
 
 from os import path
 from psychopy.experiment.components import BaseComponent, Param, getInitVals, _translate
+from psychopy.localization import _localized as __localized
+_localized = __localized.copy()
 
 # the absolute path to the folder containing this path
 thisFolder = path.abspath(path.dirname(__file__))
@@ -19,7 +21,8 @@ iconFile = path.join(thisFolder, 'microphone.png')
 tooltip = _translate('Microphone: basic sound capture (fixed onset & '
                      'duration), okay for spoken words')
 
-_localized = {'stereo': _translate('Stereo'),'channel': _translate('Channel')}
+_localized.update({'stereo': _translate('Stereo'),
+                   'channel': _translate('Channel')})
 
 
 class MicrophoneComponent(BaseComponent):
@@ -44,7 +47,7 @@ class MicrophoneComponent(BaseComponent):
         msg = _translate(
             "Record two channels (stereo) or one (mono, smaller file)")
         self.params['stereo'] = Param(
-            stereo, valType='bool',
+            stereo, valType='bool', categ='Basic',
             hint=msg,
             label=_localized['stereo'])
 

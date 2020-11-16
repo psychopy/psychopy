@@ -5,13 +5,14 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
 
 from builtins import object
 from past.builtins import basestring
+from pathlib import Path
 
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
 # other calls to pyglet or pyglet submodules, otherwise it may not get picked
@@ -30,7 +31,6 @@ except ImportError:
 import copy
 import sys
 import os
-
 from psychopy import logging
 
 # tools must only be imported *after* event or MovieStim breaks on win32
@@ -38,13 +38,14 @@ from psychopy import logging
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.attributetools import (attributeSetter, logAttrib,
                                            setAttribute)
-from psychopy.tools.colorspacetools import dkl2rgb, lms2rgb
 from psychopy.tools.monitorunittools import (cm2pix, deg2pix, pix2cm,
                                              pix2deg, convertToPix)
 from psychopy.visual.helpers import (pointInPolygon, polygonsOverlap,
                                      setColor, findImageFile)
 from psychopy.tools.typetools import float_uint8
 from psychopy.tools.arraytools import makeRadialMatrix
+from psychopy.tools.colorspacetools import dkl2rgb, lms2rgb  # pylint: disable=W0611
+
 from . import globalVars
 
 import numpy
@@ -169,6 +170,10 @@ class MinimalStim(object):
             # remove from autodraw lists
             toDrawDepths.pop(toDraw.index(self))  # remove from depths
             toDraw.remove(self)  # remove from draw list
+            # Remove from editable list (if present)
+            for c in self.win._editableChildren:
+                if c() == self:
+                    self.win._editableChildren.remove(c)
             self.status = STOPPED
 
     def setAutoDraw(self, value, log=None):
@@ -420,6 +425,24 @@ class ColorMixin(object):
         setColor(self, color, colorSpace=colorSpace, operation=operation,
                  rgbAttrib='rgb',  # or 'fillRGB' etc
                  colorAttrib='color')
+        if self.__class__.__name__ == 'TextStim' and not self.useShaders:
+            self._needSetText = True
+        logAttrib(self, log, 'color',
+                  value='%s (%s)' % (self.color, self.colorSpace))
+
+    def setFillColor(self, color, colorSpace=None, operation='', log=None):
+        setColor(self, color, colorSpace=colorSpace, operation=operation,
+                 rgbAttrib='fillRGB',  # or 'fillRGB' etc
+                 colorAttrib='fillColor')
+        if self.__class__.__name__ == 'TextStim' and not self.useShaders:
+            self._needSetText = True
+        logAttrib(self, log, 'color',
+                  value='%s (%s)' % (self.color, self.colorSpace))
+
+    def setBorderColor(self, color, colorSpace=None, operation='', log=None):
+        setColor(self, color, colorSpace=colorSpace, operation=operation,
+                 rgbAttrib='borderRGB',  # or 'fillRGB' etc
+                 colorAttrib='borderColor')
         if self.__class__.__name__ == 'TextStim' and not self.useShaders:
             self._needSetText = True
         logAttrib(self, log, 'color',
@@ -808,7 +831,7 @@ class TextureMixin(object):
             intensity[artifactIdx] = 0
 
         else:
-            if isinstance(tex, basestring):
+            if isinstance(tex, (basestring, Path)):
                 # maybe tex is the name of a file:
                 filename = findImageFile(tex)
                 if not filename:
@@ -1285,7 +1308,7 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
         """
         array = numpy.array
         value = val2array(value)  # Check correct user input
-        self._requestedSize = value  # to track whether we're using a default
+        self._requestedSize = copy.copy(value)  # to track whether we're using a default
         # None --> set to default
         if value is None:
             # Set the size to default (e.g. to the size of the loaded image

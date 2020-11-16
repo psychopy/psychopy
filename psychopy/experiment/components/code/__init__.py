@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
@@ -179,10 +179,38 @@ class CodeComponent(BaseComponent):
             if p in self.params:
                 del self.params[p]
 
+    def integrityCheck(self):
+        python_parts = {
+            'Before Experiment',
+            'Begin Experiment',
+            'Begin Routine',
+            'Each Frame',
+            'End Routine',
+            'End Experiment'}
+        js_parts = {
+            'Before JS Experiment',
+            'Begin JS Experiment',
+            'Begin JS Routine',
+            'Each JS Frame',
+            'End JS Routine',
+            'End JS Experiment'}
+        for part in python_parts:
+            if len(str(self.params[part])):
+                alerttools.checkPythonSyntax(self, part)
+
+        for part in js_parts:
+            if len(str(self.params[part])):
+                alerttools.checkJavaScriptSyntax(self, part)
+
     def writePreCode(self, buff):
         if len(str(self.params['Before Experiment'])):
             alerttools.checkPythonSyntax(self, 'Before Experiment')
             buff.writeIndentedLines(str(self.params['Before Experiment']) + '\n')
+
+    def writePreCodeJS(self, buff):
+        if len(str(self.params['Before JS Experiment'])):
+            alerttools.checkJavaScriptSyntax(self, 'Before JS Experiment')
+            buff.writeIndentedLines(str(self.params['Before JS Experiment']) + '\n')
 
     def writeInitCode(self, buff):
         if len(str(self.params['Begin Experiment'])):

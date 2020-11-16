@@ -26,8 +26,20 @@ Start :
     The time to send the marker to the EEG datastream
 
 Stop Marker:
-    If selected the stop marker will be sent as specified by the Stop parameter
+    If selected the stop marker will be sent as specified by the Stop parameter. If no stop
+    marker is sent then the marker will be an "instance" marker and will indicate a point in
+    time. If a stop marker is sent the marker will be an "interval" marker and have a
+    startDatetime and endDatetime associated with it.
 
 Stop :
     Governs the duration for which the stimulus is presented. See :ref:`startStop` for details.
+
+marker label : string
+    The label assigned to this marker
+
+marker value : int
+    The value assigned to this marker
+
+stop marker : bool
+    Whether or not this is a stop marker
 

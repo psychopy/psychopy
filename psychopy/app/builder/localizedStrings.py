@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """
@@ -98,7 +98,17 @@ _localizedDialogs = {
     'first': _translate('first'),
     'last': _translate('last'),
     'all': _translate('all'),
-    'average': _translate('average')}
+    'average': _translate('average'),
+    # NameSpace
+    'one of your Components, Routines, or condition parameters': 
+    _translate('one of your Components, Routines, or condition parameters'),
+    ' Avoid `this`, `these`, `continue`, `Clock`, or `component` in name': 
+    _translate(' Avoid `this`, `these`, `continue`, `Clock`, or `component` in name'),
+    'Builder variable': _translate('Builder variable'),
+    'Psychopy module': _translate('Psychopy module'),
+    'numpy function': _translate('numpy function'),
+    'python keyword': _translate('python keyword')}
+
 
 _localized = copy.copy(_localizedBase)
 _localized.update(_localizedDialogs)

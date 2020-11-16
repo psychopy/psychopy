@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Describes the Flow of an experiment
@@ -86,6 +86,14 @@ class Routine(list):
             # check just in case; try to ensure backwards compatibility _base
             if hasattr(thisCompon, 'writePreCode'):
                 thisCompon.writePreCode(buff)
+
+    def writePreCodeJS(self, buff):
+        """This is start of the script (before window is created)
+        """
+        for thisCompon in self:
+            # check just in case; try to ensure backwards compatibility _base
+            if hasattr(thisCompon, 'writePreCodeJS'):
+                thisCompon.writePreCodeJS(buff)
 
     def writeStartCode(self, buff):
         """This is start of the *experiment* (after window is created)
@@ -253,7 +261,7 @@ class Routine(list):
 
         # create the frame loop for this routine
 
-        code = ("\nfunction %(name)sRoutineBegin(trials) {\n" % self.params)
+        code = ("\nfunction %(name)sRoutineBegin(snapshot) {\n" % self.params)
         buff.writeIndentedLines(code)
         buff.setIndentLevel(1, relative=True)
         buff.writeIndentedLines("return function () {\n")
@@ -287,16 +295,22 @@ class Routine(list):
         if modular:
             code = ("\nfor (const thisComponent of %(name)sComponents)\n"
                     "  if ('status' in thisComponent)\n"
-                    "    thisComponent.status = PsychoJS.Status.NOT_STARTED;\n"
-                    "\nreturn Scheduler.Event.NEXT;\n" % self.params)
+                    "    thisComponent.status = PsychoJS.Status.NOT_STARTED;\n" % self.params)
         else:
             code = ("\n%(name)sComponents.forEach( function(thisComponent) {\n"
                     "  if ('status' in thisComponent)\n"
                     "    thisComponent.status = PsychoJS.Status.NOT_STARTED;\n"
-                    "   });\n"
-                    "\nreturn Scheduler.Event.NEXT;\n" % self.params)
-
+                    "   });\n" % self.params)
         buff.writeIndentedLines(code)
+
+        # are we done yet?
+        code = ("// check if the Routine should terminate\n"
+                "if (!continueRoutine) {"
+                "  // a component has requested a forced-end of Routine\n"
+                "  return Scheduler.Event.NEXT;\n"
+                "}\n")
+        buff.writeIndentedLines(code)
+
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndentedLines("};\n")
         buff.setIndentLevel(-1, relative=True)
@@ -308,7 +322,7 @@ class Routine(list):
 
         # write code for each frame
 
-        code = ("\nfunction %(name)sRoutineEachFrame(trials) {\n" % self.params)
+        code = ("\nfunction %(name)sRoutineEachFrame(snapshot) {\n" % self.params)
         buff.writeIndentedLines(code)
         buff.setIndentLevel(1, relative=True)
         buff.writeIndentedLines("return function () {\n")
@@ -383,7 +397,7 @@ class Routine(list):
         # can we use non-slip timing?
         maxTime, useNonSlip = self.getMaxTime()
 
-        code = ("\nfunction %(name)sRoutineEnd(trials) {\n" % self.params)
+        code = ("\nfunction %(name)sRoutineEnd(snapshot) {\n" % self.params)
         buff.writeIndentedLines(code)
         buff.setIndentLevel(1, relative=True)
         buff.writeIndentedLines("return function () {\n")

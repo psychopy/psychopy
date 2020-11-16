@@ -1,7 +1,7 @@
 .. _brush:
 
 Brush Component
---------------
+---------------
 
 The Brush component is a freehand drawing tool.
 
@@ -17,11 +17,24 @@ Start : int, float
 Stop : int, float
     Governs the duration for which the stimulus is presented.
 
-line settings:
-    Control color and width of the line. The line width is always specified in pixels - it does not honour the `units` parameter.
+Press Button : bool
+    Should the participant have to press a button to paint, or should it be always on?
 
-opacity :
+Appearance
+==========
+How should the stimulus look? Colour, borders, etc.
+
+Brush Size : int, float
+    Width of the line drawn by the brush, in pixels
+
+Opacity :
     Vary the transparency, from 0.0 = invisible to 1.0 = opaque
+
+Brush Color : color
+    Colour of the brush
+
+Brush Color Space : rgb, dkl, lms, hsv
+    See :ref:`colorspaces`
 
 .. seealso::
 	API reference for :class:`~psychopy.visual.Brush`

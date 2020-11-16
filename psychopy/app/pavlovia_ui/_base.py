@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import wx
@@ -155,11 +155,11 @@ class PavloviaCommitDialog(wx.Dialog):
         super(PavloviaCommitDialog, self).__init__(*args, **kwargs)
 
         # Set Text widgets
-        wx.Dialog(None, id=wx.ID_ANY, title="Committing changes")
+        wx.Dialog(None, id=wx.ID_ANY, title=_translate("Committing changes"))
         self.updatesInfo = wx.StaticText(self, label=changeInfo)
-        self.commitTitleLbl = wx.StaticText(self, label='Summary of changes')
+        self.commitTitleLbl = wx.StaticText(self, label=_translate('Summary of changes'))
         self.commitTitleCtrl = wx.TextCtrl(self, size=(500, -1), value=initMsg)
-        self.commitDescrLbl = wx.StaticText(self, label='Details of changes\n (optional)')
+        self.commitDescrLbl = wx.StaticText(self, label=_translate('Details of changes\n (optional)'))
         self.commitDescrCtrl = wx.TextCtrl(self, size=(500, 200), style=wx.TE_MULTILINE | wx.TE_AUTO_URL)
 
         # Set buttons
