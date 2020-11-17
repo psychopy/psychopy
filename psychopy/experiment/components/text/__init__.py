@@ -8,6 +8,8 @@
 from __future__ import absolute_import, print_function
 
 from os import path
+
+from psychopy import logging
 from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals, _translate
 from psychopy.localization import _localized as __localized
 _localized = __localized.copy()
@@ -39,7 +41,7 @@ class TextComponent(BaseVisualComponent):
                  pos=(0, 0), letterHeight=0.1, ori=0,
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
-                 flip='', startEstim='', durationEstim='', wrapWidth='',
+                 flip='None', startEstim='', durationEstim='', wrapWidth='',
                  languageStyle='LTR'):
         super(TextComponent, self).__init__(exp, parentName, name=name,
                                             units=units,
@@ -84,7 +86,7 @@ class TextComponent(BaseVisualComponent):
             label=_localized['wrapWidth'])
         self.params['flip'] = Param(
             flip, valType='str', inputType="choice", allowedTypes=[], categ='Layout',
-            allowedVals=["horiz", "vert"], updates='constant', allowedUpdates=_allow3[:],  # copy the list
+            allowedVals=["horiz", "vert", "None"], updates='constant', allowedUpdates=_allow3[:],  # copy the list
             hint=_translate("horiz = left-right reversed; vert = up-down"
                             " reversed; $var = variable"),
             label=_localized['flip'])
@@ -127,10 +129,6 @@ class TextComponent(BaseVisualComponent):
             flipStr = 'flipHoriz=True, '
         elif flip == 'vert':
             flipStr = 'flipVert=True, '
-        elif flip:
-            msg = ("flip value should be 'horiz' or 'vert' (no quotes)"
-                   " in component '%s'")
-            raise ValueError(msg % self.params['name'].val)
         else:
             flipStr = ''
         depth = -self.getPosInRoutine()
