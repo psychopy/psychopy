@@ -6,7 +6,7 @@ Blocks of trials and counterbalancing
 Many people ask how to create blocks of trials, how to randomise them, and how to counterbalance their order. This isn't all that hard, although it does require a bit of thinking!
 
 Blocking similar conditions
-~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The key thing to understand is that you should not create different Routines for different trials in your blocks (if at all possible). Try to define your trials with a single Routine. For instance, let's imagine you're trying to create an experiment that presents a block of pictures of houses or a block of faces. It would be tempting to create a Routine called `presentFace` and another called `presentHouse` but you actually want just one called `presentStim` (or just `trial`) and then set that to differ as needed across different stimuli.
 
@@ -30,7 +30,7 @@ Your `chooseBlocks.xlsx` can contain other values as well, such as useful identi
 Variables that are defined in the loops are available anywhere within those. In this case, of course, the values in the outer loop are changing less often than the values in the inner loop.
 
 Counterbalancing similar conditions
-~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Counterbalancing is simply an extension of blocking. Until now, we have a *randomised block design*, where the order of blocks is set to random. At the moment we also only have one repeat of each block, but we could also present more than one repeat of each block by controlling the number of rows assigned to each block in our 'chooseBlocks' file.
 
@@ -58,7 +58,7 @@ This will concatinate the string "chooseBlocks" with our selected group ("A" or 
 Even though our outer loop is now sequential, your inner loop still probably wants to be random (to shuffle the image order within a block).
 
 Counterbalancing different subtasks
-~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The above example is useful when we have multiple blocks where the routines we present would be largely similar (i.e. both blocks present an image component), but what about situations where we have totally different tasks we need to counterbalance (e.g. an auditory stroop and an n-back task). The following method is an extension of the logic used in the 'branchedExp' demo available in PsychoPy builderview.
 A working version of the example we will work through here is available  `here <https://gitlab.pavlovia.org/lpxrh6/counterbalance_multiple_tasks_demo>`_
