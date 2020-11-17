@@ -28,6 +28,7 @@ from . import utils
 from . import py2js
 
 # standard_library.install_aliases()
+from ..colors import Color
 
 
 def _findParam(name, node):
@@ -227,6 +228,11 @@ class Param(object):
                 return "%s" % self.val
         elif self.valType == "table":
             return "%s" % self.val
+        elif self.valType == "color":
+            if re.match(r"\$", self.val):
+                return self.val.strip('$')
+            else:
+                return f"\"{self.val}\""
         else:
             raise TypeError("Can't represent a Param of type %s" %
                             self.valType)
