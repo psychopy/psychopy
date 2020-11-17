@@ -98,6 +98,7 @@ class ChoiceCtrl(wx.Choice, _ValidatorMixin):
                  size=wx.Size(-1, 24)):
         wx.Choice.__init__(self)
         self.Create(parent, -1, size=size, choices=choices, name=fieldName)
+        self._choices = choices
         self.valType = valType
         if val in choices:
             self.SetStringSelection(val)
