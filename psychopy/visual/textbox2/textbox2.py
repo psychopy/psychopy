@@ -473,9 +473,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
     def _getStartingVertices(self):
         """Returns vertices for a single non-printing char as a proxy
         (needed to get location for caret when there are no actual chars)"""
-        glyph = self.glFont["A"]  # just to get height
-        yTop = 0
-        yBot = yTop - glyph.size[1]
+        yTop = self._anchorOffsetY - (self.glFont.height - self.glFont.ascender) * self.lineSpacing
+        yBot = yTop - self._lineHeight
         x = 0
         theseVertices = np.array([[x, yTop], [x, yBot], [x, yBot], [x, yTop]])
         return theseVertices
@@ -927,10 +926,8 @@ class Caret(ColorMixin):
         # lastChar = [bottLeft, topLeft, **bottRight**, **topRight**]
         ii = self.index
         if textbox.vertices.shape[0] == 0:
-            verts = textbox._getStartingVertices()*2 / textbox._pixelScaling
-            verts[:,1] = verts[:,1] \
-                         + self.textbox.glFont["A"].size[1] / textbox._pixelScaling \
-                         - float(textbox._anchorOffsetY)/2
+            verts = textbox._getStartingVertices() / textbox._pixelScaling
+            verts[:,1] = verts[:,1]
             verts[:,0] = verts[:,0] + float(textbox._anchorOffsetX)
         else:
             if self.index >= len(textbox._lineNs):  # caret is after last chr
