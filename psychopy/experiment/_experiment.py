@@ -18,6 +18,8 @@ The code that writes out a *_lastrun.py experiment file is (in order):
 
 from __future__ import absolute_import, print_function
 # from future import standard_library
+import re
+
 from past.builtins import basestring
 from builtins import object
 import os
@@ -800,9 +802,10 @@ class Experiment(object):
             :param filePath: str to a potential file path (rel or abs)
             :return: list of dicts{'rel','abs'} of valid file paths
             """
-
+            # Regex to spot Microsoft Office temp files
+            tempReg = re.compile(r"\~\$.*\.(xls*|doc*|ppt*)")
             # Clean up filePath that cannot be eval'd
-            if '$' in filePath:
+            if filePath.startswith('$') and not tempReg.match(filePath):
                 try:
                     filePath = filePath.strip('$')
                     filePath = eval(filePath)
