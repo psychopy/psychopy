@@ -1058,7 +1058,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
             ok = self.fileSave(self.filename)
             if not ok:
                 return  # save file before compiling script
-
+        self.app.showRunner()
         self.stdoutFrame.addTask(fileName=self.filename)
         self.app.runner.Raise()
         if event:
@@ -1191,7 +1191,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         Gets Experiment Runner stdout.
         """
         if not self.app.runner:
-            self.app.runner = self.app.newRunnerFrame()
+            self.app.runner = self.app.showRunner()
         return self.app.runner
 
     def _getHtmlPath(self, filename):
