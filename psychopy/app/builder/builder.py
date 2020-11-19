@@ -1514,6 +1514,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_ERASE_BACKGROUND, lambda x: None)
         self.Bind(wx.EVT_MOUSE_EVENTS, self.OnMouse)
+        self.Bind(wx.EVT_MOUSEWHEEL, self.OnScroll)
         self.Bind(wx.EVT_SIZE, self.onResize)
         # crashes if drop on OSX:
         # self.SetDropTarget(FileDropTarget(builder = self.frame))
@@ -1573,6 +1574,11 @@ class RoutineCanvas(wx.ScrolledWindow):
                 self.frame.SetStatusText("Component: "+component.params['name'].val)
             except IndexError:
                 self.frame.SetStatusText("")
+
+    def OnScroll(self, event):
+        xy = self.GetViewStart()
+        multiplier = self.dpi / 1600
+        self.Scroll(xy[0], xy[1] - event.WheelRotation*multiplier)
 
     def showContextMenu(self, component, xy):
         menu = wx.Menu()
