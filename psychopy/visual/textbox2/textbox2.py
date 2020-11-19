@@ -17,7 +17,7 @@ some more added:
 
 """
 import numpy as np
-import OpenGL.GL as gl
+from pyglet import gl  # import OpenGL.GL not compatible with Big Sur (2020)
 
 from ..basevisual import BaseVisualStim, ColorMixin, ContainerMixin
 from psychopy.tools.attributetools import attributeSetter, setAttribute
