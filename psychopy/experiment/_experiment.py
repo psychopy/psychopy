@@ -802,10 +802,8 @@ class Experiment(object):
             :param filePath: str to a potential file path (rel or abs)
             :return: list of dicts{'rel','abs'} of valid file paths
             """
-            # Regex to spot Microsoft Office temp files
-            tempReg = re.compile(r"\~\$.*\.(xls*|doc*|ppt*)")
             # Clean up filePath that cannot be eval'd
-            if filePath.startswith('$') and not tempReg.match(filePath):
+            if filePath.startswith('$'):
                 try:
                     filePath = filePath.strip('$')
                     filePath = eval(filePath)
