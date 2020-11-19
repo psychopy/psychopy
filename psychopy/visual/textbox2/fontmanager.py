@@ -19,7 +19,7 @@ import sys, os
 import math
 import numpy as np
 import freetype as ft
-import OpenGL.GL as gl
+from pyglet import gl  # import OpenGL.GL not compatible with Big Sur (2020)
 import glob
 from pathlib import Path
 
