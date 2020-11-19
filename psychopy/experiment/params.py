@@ -154,7 +154,7 @@ class Param(object):
                 return "%i" % self.val  # int and float -> str(int)
             except TypeError:
                 return "{}".format(self.val)  # try array of float instead?
-        elif self.valType in ['extendedStr', 'str']:
+        elif self.valType in ['extendedStr','str', 'file', 'table']:
             # at least 1 non-escaped '$' anywhere --> code wanted
             # return str if code wanted
             # return repr if str wanted; this neatly handles "it's" and 'He
@@ -178,6 +178,9 @@ class Param(object):
                             # but for other targets that will raise an annoying error
                             val = val[1:]
                     val=re.sub("\n", "\\\\n", val) # Replace line breaks with escaped line break character
+                    if self.valType in ['file', 'table']:
+                        # If param is a file of any kind, escape any \
+                        val = re.sub(r"\\", r"\\\\", val)
                     return f"\"{val}\""
             return repr(self.val)
         elif self.valType in ['code', 'extendedCode']:
