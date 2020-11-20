@@ -15,7 +15,7 @@ Changelog
 
 CHANGES, which are identified in this dark red text, typically indicate things that alter the PsychoPy behaviour in a way that could break compatibility. Be especially wary of those!
 
-PsychoPy 2020.2.7
+PsychoPy 2020.2.8
 -----------------
 
 FIXES:
@@ -27,6 +27,11 @@ FIXES:
 - fixed annoying (but harmless) error 'ModuleNotFoundError: import of pyglet halted; None in sys.modules' 
 - further fixes to Runner not showing print() statements #e0ec67e6f
 - Routine panels now support mouse scroll wheel to navigate #6da3707d3
+
+PsychoPy 2020.2.7
+-----------------
+
+(Binaries never released)
 
 PsychoPy 2020.2.6
 -----------------
