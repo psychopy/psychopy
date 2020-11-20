@@ -15,6 +15,19 @@ Changelog
 
 CHANGES, which are identified in this dark red text, typically indicate things that alter the PsychoPy behaviour in a way that could break compatibility. Be especially wary of those!
 
+PsychoPy 2020.2.7
+-----------------
+
+FIXES:
+
+- support for macOS 11.1 Big Sur (updated mac pyglet to 1.5.11 and mac Python to 3.6.8)
+- fixed default blank text in textBox for online studies actually showing a pair of quotes #786e1d3f7
+- flag to alphabetically sort Exp Info fields was being set always true #3279
+- Position and Size params for Form Component were being requested twice #d45ca99c9
+- fixed annoying (but harmless) error 'ModuleNotFoundError: import of pyglet halted; None in sys.modules' 
+- further fixes to Runner not showing print() statements #e0ec67e6f
+- Routine panels now support mouse scroll wheel to navigate #6da3707d3
+
 PsychoPy 2020.2.6
 -----------------
 
