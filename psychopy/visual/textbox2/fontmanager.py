@@ -18,6 +18,7 @@
 import sys, os
 import math
 import numpy as np
+import ctypes
 import freetype as ft
 from pyglet import gl  # import OpenGL.GL not compatible with Big Sur (2020)
 import glob
@@ -281,7 +282,8 @@ class _TextureAtlas:
         """Upload the local atlas data into graphics card memory
         """
         if not self.textureID:
-            self.textureID = gl.glGenTextures(1)
+            self.textureID = gl.GLuint(0)
+            self.textureID = gl.glGenTextures(1, ctypes.byref(self.texid))
         logging.debug("Uploading Texture Font {} to graphics card"
                       .format(self.name))
         gl.glBindTexture(gl.GL_TEXTURE_2D, self.textureID)
