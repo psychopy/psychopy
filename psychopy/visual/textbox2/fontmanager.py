@@ -283,7 +283,7 @@ class _TextureAtlas:
         """
         if not self.textureID:
             self.textureID = gl.GLuint(0)
-            self.textureID = gl.glGenTextures(1, ctypes.byref(self.texid))
+            gl.glGenTextures(1, ctypes.byref(self.textureID))
         logging.debug("Uploading Texture Font {} to graphics card"
                       .format(self.name))
         gl.glBindTexture(gl.GL_TEXTURE_2D, self.textureID)
