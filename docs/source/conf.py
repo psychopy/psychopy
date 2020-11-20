@@ -177,6 +177,11 @@ htmlhelp_basename = 'PsychoPydoc'
 
 
 # -- Options for LaTeX output --------------------------------------------------
+latex_engine = 'xelatex'
+# latex_elements = {
+#    'babel': '\\usepackage{babel}',
+#    'inputenc': '\\usepackage[utf8]{inputenc}'
+# }
 
 # The paper size ('letter' or 'a4').
 #latex_paper_size = 'letter'
@@ -188,7 +193,7 @@ htmlhelp_basename = 'PsychoPydoc'
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
   ('documentation', 'PsychoPyManual.tex', u'PsychoPy - Psychology software for Python',
-   u'Jonathan Peirce', 'manual'),
+   u'Open Science Tools Ltd', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of

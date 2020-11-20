@@ -1,4 +1,3 @@
-.. _starting_iohub:
 
 .. module:: psychopy.iohub.client
 
