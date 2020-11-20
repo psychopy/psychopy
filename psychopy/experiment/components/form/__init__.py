@@ -19,16 +19,18 @@ iconFile = path.join(thisFolder, 'form.png')
 tooltip = _translate('Form: a Psychopy survey tool')
 
 # only use _localized values for label values, nothing functional:
-_localized = {'Items': _translate('Items'),
-              'Text Height': _translate('Text Height'),
-              'Size': _translate('Size'),
-              'Pos': _translate('Pos'),
-              'Style': _translate('Styles'),
-              'Item Padding': _translate('Item Padding'),
-              'Data Format': _translate('Data Format'),
-              'Randomize': _translate('Randomize')
-              }
+_localized = {
+    'Items': _translate('Items'),
+    'Text Height': _translate('Text Height'),
+    'Size': _translate('Size'),
+    'Pos': _translate('Pos'),
+    'Style': _translate('Styles'),
+    'Item Padding': _translate('Item Padding'),
+    'Data Format': _translate('Data Format'),
+    'Randomize': _translate('Randomize')
+    }
 knownStyles = form.Form.knownStyles
+
 
 class FormComponent(BaseVisualComponent):
     """A class for presenting a survey as a Builder component"""
@@ -83,20 +85,6 @@ class FormComponent(BaseVisualComponent):
             hint=_translate("The csv filename containing the items for your survey."),
             label=_localized['Items'])
 
-        self.params['Size'] = Param(
-            size, valType='code', allowedTypes=[],
-            updates='constant',
-            hint=_translate(
-                "Size of the Form on screen in 'height' units. e.g. (1, .7) height units for horizontal,"
-                "and vertical, respectively"),
-            label=_localized['Size'])
-
-        self.params['Pos'] = Param(
-            pos, valType='code', allowedTypes=[],
-            updates='constant',
-            hint=_translate("x,y position of the form on screen"),
-            label=_localized['Pos'])
-
         self.params['Text Height'] = Param(
             textHeight, valType='code', allowedTypes=[],
             updates='constant',
@@ -140,8 +128,8 @@ class FormComponent(BaseVisualComponent):
                    "    items={Items},\n"
                    "    textHeight={Text Height},\n"
                    "    randomize={Randomize},\n"
-                   "    size={Size},\n"
-                   "    pos={Pos},\n"
+                   "    size={size},\n"
+                   "    pos={pos},\n"
                    "    style={Style},\n"
                    "    itemPadding={Item Padding},"
                    ")\n".format(**inits))
@@ -155,8 +143,8 @@ class FormComponent(BaseVisualComponent):
                    "  items : {Items},\n"
                    "  textHeight : {Text Height},\n"
                    "  randomize : {Randomize},\n"
-                   "  size : {Size},\n"
-                   "  pos : {Pos},\n"
+                   "  size : {size},\n"
+                   "  pos : {pos},\n"
                    "  style : {Style},\n"
                    "  itemPadding : {Item Padding}\n"
                    "}});\n".format(**inits))
