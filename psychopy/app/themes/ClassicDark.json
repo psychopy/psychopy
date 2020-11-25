@@ -130,12 +130,12 @@
   "documentation2": {
     "fg": "#CDCDCD",
     "bg": "",
-    "font": ""
+    "font": "italic"
   },
   "whitespace": {
     "fg": "#CDCDCD",
     "bg": "",
-    "font": ""
+    "font": "italic"
   },
   "python": {
 

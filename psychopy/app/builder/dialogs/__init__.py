@@ -10,6 +10,7 @@
 
 from __future__ import absolute_import, division, print_function
 import sys
+from pathlib import Path
 
 from builtins import map
 from builtins import str
@@ -510,7 +511,11 @@ class _BaseParamsDlg(wx.Dialog):
                       'Online':_translate('Online'),
                       'Testing':_translate('Testing'),
                       'Audio':_translate('Audio'),
-                      'Format':_translate('Format')}
+                      'Format':_translate('Format'),
+                      'Formatting':_translate('Formatting'),
+                      'Texture':_translate('Texture'),
+                      'Timing':_translate('Timing'),
+                      'Playback':_translate('Playback')}
         for categName in categNames:
             theseParams = categs[categName]
             page = wx.Panel(self.ctrls, -1)
@@ -1940,10 +1945,12 @@ class FileListCtrl(wx.ListBox):
     def __init__(self, parent, choices=[], size=None, pathtype="rel"):
         wx.ListBox.__init__(self)
         parent.Bind(wx.EVT_DROP_FILES, self.addItem)
-        self.app = parent.app
         if type(choices) == str:
             choices = data.utils.listFromString(choices)
         self.Create(id=wx.ID_ANY, parent=parent, choices=choices, size=size, style=wx.LB_EXTENDED | wx.LB_HSCROLL)
+        # can now get/set things like self.parent
+        self.app = parent.app
+        self.builderFrame = self.GetTopLevelParent().frame
         self.addBtn = wx.Button(parent, -1, style=wx.BU_EXACTFIT, label="+")
         self.addBtn.Bind(wx.EVT_BUTTON, self.addItem)
         self.subBtn = wx.Button(parent, -1, style=wx.BU_EXACTFIT, label="-")
@@ -1963,17 +1970,16 @@ class FileListCtrl(wx.ListBox):
                                 wildcard=_translate(_wld))
             if dlg.ShowModal() != wx.ID_OK:
                 return 0
-            filenames = dlg.GetPaths()
-            relname = []
-            for filename in filenames:
-                relname.append(
-                    os.path.relpath(filename, self.GetTopLevelParent().frame.filename))
-            self.InsertItems(relname, 0)
+            fileList = dlg.GetPaths()
         else:
             fileList = event.GetFiles()
-            for filename in fileList:
-                if os.path.isfile(filename):
-                    self.InsertItems(filename, 0)
+        relPaths = []
+        expFile = self.builderFrame.filename
+        folder = Path(expFile).parent
+        for filename in fileList:
+            relPaths.append(
+                os.path.relpath(filename, folder))
+        self.InsertItems(relPaths, 0)
 
     def removeItem(self, event):
         i = self.GetSelections()
@@ -2013,6 +2019,8 @@ class TableCtrl(wx.TextCtrl):
         self.templates = {
             'Form': os.path.join(cmpRoot, "form", "formItems.xltx")
         }
+        # Store location of root directory
+        self.rootDir = os.path.normpath(os.path.join(self.GetTopLevelParent().frame.filename, ".."))
         # Configure validation
         self.Bind(wx.EVT_TEXT, self.validateInput)
         self.validExt = [".csv",".tsv",".txt",
@@ -2045,7 +2053,7 @@ class TableCtrl(wx.TextCtrl):
 
     def openExcel(self, event):
         """Either open the specified excel sheet, or make a new one from a template"""
-        file = self.GetValue()
+        file = os.path.normpath(os.path.join(self.rootDir, self.GetValue()))
         if os.path.isfile(file) and file.endswith(tuple(self.validExt)):
             os.startfile(file)
         else:
@@ -2063,7 +2071,8 @@ class TableCtrl(wx.TextCtrl):
         if dlg.ShowModal() != wx.ID_OK:
             return 0
         filename = dlg.GetPath()
-        relname = os.path.relpath(filename)
+        relname = os.path.relpath(filename,
+                                  self.rootDir)
         self.SetValue(relname)
         self.validateInput(event)
 

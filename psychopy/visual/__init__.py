@@ -16,6 +16,7 @@ if sys.platform == 'win32':
     from ctypes import *
     win32.PUINT = POINTER(wintypes.UINT)
 
+from psychopy import event  # import before visual or
 from psychopy.visual import filters
 from psychopy.visual.backends import gamma
 # absolute essentials (nearly all experiments will need these)

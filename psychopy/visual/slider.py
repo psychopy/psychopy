@@ -521,6 +521,8 @@ class Slider(MinimalStim):
         ----------
         A rating value or None
         """
+        if self.readOnly:
+            return
         click = bool(self.mouse.getPressed()[0])
         xy = self.mouse.getPos()
 
