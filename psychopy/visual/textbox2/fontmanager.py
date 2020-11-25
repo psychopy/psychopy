@@ -298,11 +298,11 @@ class _TextureAtlas:
         if self.format == 'alpha':
             gl.glTexImage2D(gl.GL_TEXTURE_2D, 0, gl.GL_ALPHA,
                             self.width, self.height, 0,
-                            gl.GL_ALPHA, gl.GL_UNSIGNED_BYTE, self.data)
+                            gl.GL_ALPHA, gl.GL_UNSIGNED_BYTE, self.data.ctypes)
         else:
             gl.glTexImage2D(gl.GL_TEXTURE_2D, 0, gl.GL_RGB,
                             self.width, self.height, 0,
-                            gl.GL_RGB, gl.GL_UNSIGNED_BYTE, self.data)
+                            gl.GL_RGB, gl.GL_UNSIGNED_BYTE, self.data.ctypes)
         logging.debug("Upload of Texture Font {} complete"
                       .format(self.name))
 

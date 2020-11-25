@@ -511,16 +511,16 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         gl.glEnableClientState(gl.GL_TEXTURE_COORD_ARRAY)
         gl.glEnableClientState(gl.GL_VERTEX_ARRAY)
 
-        gl.glVertexPointer(2, gl.GL_FLOAT, 0, self.verticesPix)
-        gl.glColorPointer(4, gl.GL_FLOAT, 0, self._colors)
-        gl.glTexCoordPointer(2, gl.GL_FLOAT, 0, self._texcoords)
+        gl.glVertexPointer(2, gl.GL_FLOAT, 0, self.verticesPix.ctypes)
+        gl.glColorPointer(4, gl.GL_FLOAT, 0, self._colors.ctypes)
+        gl.glTexCoordPointer(2, gl.GL_FLOAT, 0, self._texcoords.ctypes)
 
         self.shader.bind()
         self.shader.setInt('texture', 0)
         self.shader.setFloat('pixel', [1.0 / 512, 1.0 / 512])
         nVerts = len(self.text)*4
         gl.glDrawElements(gl.GL_QUADS, nVerts,
-                          gl.GL_UNSIGNED_INT, list(range(nVerts)))
+                          gl.GL_UNSIGNED_INT, np.arange(nVerts, dtype=int).ctypes)
         self.shader.unbind()
 
         # removed the colors and font texture

@@ -18,27 +18,38 @@ PsychoPy data file (.psydat)
 ------------------------------------
 This is actually a :class:`~psychopy.data.TrialHandler` or :class:`~psychopy.data.StairHandler` object that has been saved to disk with the python `cPickle <http://docs.python.org/library/pickle.html#module-cPickle>`_ module.
 
-These files are designed to be used by experienced users with previous experience of python and, probably, matplotlib. The contents of the file can be explored with dir(), as any other python object. 
+.psydat files can be useful for retrieving data that you forgot to explicitly tell PsychoPy to save. They can also be more directly used by experienced users with previous experience of python and, probably, matplotlib. The contents of the file can be explored with dir(), as any other python object.
 
-These files are ideal for batch analysis with a python script and plotting via `matplotlib`. They contain more information than the Excel or csv data files, and can even be used to (re)create those files. 
+.psydat files are ideal for batch analysis with a python script and plotting via `matplotlib`. They contain more information than the Excel or csv data files, and can even be used to (re)create those files.
 
-Of particular interest might be the attributes of the Handler:
-    :extraInfo: the `extraInfo` dictionary provided to the Handler during its creation
-    :trialList: the list of dictionaries provided to the Handler during its creation
-    :data: a dictionary of 2D numpy arrays. Each entry in the dictionary represents a type of data (e.g. if you added 'rt' data during your experiment using :ref:`~psychopy.data.TrialHandler.addData` then 'rt' will be a key). For each of those entries the 2D array represents the condition number and repeat number (remember that these start at 0 in python, unlike Matlab(TM) which starts at 1)
+Of particular interest might be the following attributes and methods of the Handler:
+    :entries: a list of dictionaries. Each entry/dictionary in the list represents a single trial's (a single routine 'run'/iteration) data.
+    :saveAsPickle(): a method for saving all of the entries' data in a Python pickle file
+    :saveAsWideText(): a method for saving all of the entrie's data in a .csv file.
 
-For example, to open a psydat file and examine some of its contents with::
+If you just want to recover data or first wish to try things out in a familiar format you can put all of the data in a .csv file, very similar to the .csv files that are produced by default when running PsychoPy experiments. The following script assumes you're using a command-line interface (e. g. Terminal on Mac, or the Command Prompt on Windows) where you've opened up a Python shell, and that you have installed PsychoPy as a Python package.
+
+    # import PsychoPy function for loading Pickle/JSON data
+    from psychopy.misc import fromFile
+    # (replace with the file path to your .psydat file)
+    fpath = '/Users/my_user/myexperiments/myexperiment/participant_expname_date.psydat'
+    # load in the data
+    psydata = fromFile(fpath)
+    # (replace with the file path to where you want the resulting .csv
+    # to be saved)
+    save_path = '/Users/my_user/Desktop/test_out.csv'
+    # save the data as a .csv file, ie separating the values with a
+    # comma. 'CSV' simply means 'comma-separated values'
+    psydata.saveAsWideText(save_path, delim=',')
+
+To get started using the data directly in Python, you can try opening a psydat file and printing all its entries::
 
     from psychopy.misc import fromFile
-    datFile = fromFile('fileName.psydat')
-    #get info (added when the handler was created)
-    print datFile.extraInfo 
-    #get data
-    print datFile.data
-    #get list of conditions
-    conditions = datFile.trialList
-    for condN, condition in enumerate(conditions):
-        print condition, datFile.data['response'][condN], numpy.mean(datFile.data['response'][condN])
+    # (replace with the file path to your .psydat file)
+    fpath = 'path/to/file.psydat'
+    psydata = fromFile(fpath)
+    for entry in psydata.entries:
+        print(entry)
 
 Ideally, we should provide a demo script here for fetching and plotting some data (feel free to :ref:`contribute <contribute>`).
 
