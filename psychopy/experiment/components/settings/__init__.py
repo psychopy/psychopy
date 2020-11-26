@@ -64,6 +64,7 @@ _localized = {'expName': _translate("Experiment name"),
               'Completed URL': _translate("Completed URL"),
               'Incomplete URL': _translate("Incomplete URL"),
               'Output path': _translate("Output path"),
+              'Additional Resources': _translate("Additional Resources"),
               'JS libs': _translate("JS libs"),
               'Force stereo': _translate("Force stereo"),
               'Export HTML': _translate("Export HTML")}
@@ -574,6 +575,7 @@ class SettingsComponent(object):
                     "import * as util from './lib/util{version}.js';\n"
                     "//some handy aliases as in the psychopy scripts;\n"
                     "const {{ abs, sin, cos, PI: pi, sqrt }} = Math;\n"
+                    "const {{ round }} = util;\n"
                     "\n").format(version=versionStr)
             buff.writeIndentedLines(code)
 
@@ -642,11 +644,10 @@ class SettingsComponent(object):
         buff.writeIndented("expInfo = %s\n" % repr(expInfoDict))
         if self.params['Show info dlg'].val:
             buff.writeIndentedLines(
-                "dlg = gui.DlgFromDict(dictionary=expInfo, "
-                "sort_keys={}, title=expName)\n"
-                "if dlg.OK == False:\n"
-                "    core.quit()  # user pressed cancel\n"
-                .format(sorting)
+                f"dlg = gui.DlgFromDict(dictionary=expInfo, "
+                f"sortKeys={sorting}, title=expName)\n"
+                f"if dlg.OK == False:\n"
+                f"    core.quit()  # user pressed cancel\n"
             )
         buff.writeIndentedLines(
             "expInfo['date'] = data.getDateStr()  # add a simple timestamp\n"

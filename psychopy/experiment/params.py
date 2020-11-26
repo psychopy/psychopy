@@ -28,6 +28,7 @@ from . import utils
 from . import py2js
 
 # standard_library.install_aliases()
+from ..alerts import alert
 
 
 def _findParam(name, node):
@@ -139,6 +140,7 @@ class Param(object):
         self.staticUpdater = None
         self.categ = categ
         self.readOnly = False
+        self.codeWanted = False
 
     def __str__(self):
         if self.valType == 'num':
@@ -152,30 +154,34 @@ class Param(object):
                 return "%i" % self.val  # int and float -> str(int)
             except TypeError:
                 return "{}".format(self.val)  # try array of float instead?
-        elif self.valType in ['extendedStr','str']:
+        elif self.valType in ['extendedStr','str', 'file', 'table']:
             # at least 1 non-escaped '$' anywhere --> code wanted
             # return str if code wanted
             # return repr if str wanted; this neatly handles "it's" and 'He
             # says "hello"'
             if isinstance(self.val, basestring):
-                codeWanted = utils.unescapedDollarSign_re.search(self.val)
-                if codeWanted:
+                valid, val = self.dollarSyntax()
+                if self.codeWanted and valid:
+                    # If code is wanted, return code (translated to JS if needed)
                     if utils.scriptTarget == 'PsychoJS':
-                        valJS = py2js.expression2js(self.val.strip('$'))
+                        valJS = py2js.expression2js(val)
                         if self.val != valJS:
                             logging.debug("Rewriting with py2js: {} -> {}".format(self.val, valJS))
                         return valJS
                     else:
-                        return "%s" % getCodeFromParamStr(self.val)
-                else:  # str wanted
-                    # remove \ from all \$
-                    s = repr(re.sub(r"[\\]\$", '$', self.val))
-                    # if target is python2.x then unicode will be u'something'
-                    # but for other targets that will raise an annoying error
+                        return val
+                else:
+                    # If str is wanted, return literal
                     if utils.scriptTarget != 'PsychoPy':
-                        if s.startswith("u'") or s.startswith('u"'):
-                            s = s[1:]
-                    return s
+                        if val.startswith("u'") or val.startswith('u"'):
+                            # if target is python2.x then unicode will be u'something'
+                            # but for other targets that will raise an annoying error
+                            val = val[1:]
+                    val=re.sub("\n", "\\\\n", val) # Replace line breaks with escaped line break character
+                    if self.valType in ['file', 'table']:
+                        # If param is a file of any kind, escape any \
+                        val = re.sub(r"\\", r"\\\\", val)
+                    return f"\"{val}\""
             return repr(self.val)
         elif self.valType in ['code', 'extendedCode']:
             isStr = isinstance(self.val, basestring)
@@ -210,6 +216,8 @@ class Param(object):
                 return ("%s" % self.val).lower()  # make True -> "true"
             else:
                 return "%s" % self.val
+        elif self.valType == "table":
+            return "%s" % self.val
         else:
             raise TypeError("Can't represent a Param of type %s" %
                             self.valType)
@@ -230,6 +238,46 @@ class Param(object):
         """Return a bool, so we can do `if thisParam`
         rather than `if thisParam.val`"""
         return bool(self.val)
+
+    def dollarSyntax(self):
+        """
+        Interpret string according to dollar syntax, return:
+        1: Whether syntax is valid (True/False)
+        2: Whether code is wanted (True/False)
+        3: The value, stripped of any unnecessary $
+        """
+        val = self.val
+        if self.valType in ["str", "extendedStr"]:
+            # How to handle dollar signs in a string param
+            self.codeWanted = val.startswith("$")
+
+            if not re.search(r"\$", str(val)):
+                # Return if there are no $
+                return True, val
+            if self.codeWanted:
+                # If value begins with an unescaped $, remove the first char and treat the rest as code
+                val = val[1:]
+                inComment = "".join(re.findall("\#.*", val))
+                inQuotes = "".join(re.findall("[\'\"][^\"|^\']*[\'\"]", val))
+                if not re.findall(r"\$", val):
+                    # Return if there are no further dollar signs
+                    return True, val
+                if len(re.findall(r"\$", val)) == len(re.findall(r"\$", inComment)):
+                    # Return if all $ are commented out
+                    return True, val
+                if len(re.findall(r"\$", val)) - len(re.findall(r"\$", inComment)) == len(re.findall(r"\\\$", inQuotes)):
+                    # Return if all non-commended $ are in strings and escaped
+                    return True, val
+            else:
+                # If value does not begin with an unescaped $, treat it as a string
+                if not re.findall(r"(?<!\\)\$", val):
+                    # Return if all $ are escaped (\$)
+                    return True, val
+        else:
+            # If valType does not interact with $, return True
+            return True, val
+        # Return false if method has not returned yet
+        return False, val
 
     __nonzero__ = __bool__  # for python2 compatibility
 

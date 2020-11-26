@@ -94,10 +94,10 @@ def launchHubServer(**kwargs):
             # experiment to access iohub devices and read iohub device events.
             io=launchHubServer()
 
-            print "Press any Key to Exit Example....."
+            print("Press any Key to Exit Example.....")
 
             # Wait until a keyboard event occurs
-            keys = io.devices.keyboard.waitForKeys(['q',])
+            keys = io.devices.keyboard.waitForKeys(keys=['q',])
 
             print("Key press detected: {}".format(keys))
             print("Exiting experiment....")

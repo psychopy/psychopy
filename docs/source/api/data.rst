@@ -8,6 +8,7 @@ Contents:
 - :class:`ExperimentHandler` - to combine multiple loops in one study
 - :class:`TrialHandler` - basic predefined trial matrix
 - :class:`TrialHandler2` - similar to TrialHandler but with ability to update mid-run
+- :class:`TrialHandlerExt` - similar to TrialHandler but with ability to run oddball designs
 - :class:`StairHandler` - for basic up-down (fixed step) staircases
 - :class:`QuestHandler` - for traditional QUEST algorithm
 - :class:`QuestPlusHandler` - for the updated QUEST+ algorithm (Watson, 2017)
@@ -46,6 +47,13 @@ Curve Fitting:
 :class:`TrialHandler2`
 ---------------------------------------------------------------------------
 .. autoclass:: psychopy.data.TrialHandler2
+    :members:
+    :undoc-members:
+    :inherited-members:
+
+:class:`TrialHandlerExt`
+---------------------------------------------------------------------------
+.. autoclass:: psychopy.data.TrialHandlerExt
     :members:
     :undoc-members:
     :inherited-members:

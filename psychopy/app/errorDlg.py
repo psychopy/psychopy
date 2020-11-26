@@ -12,6 +12,8 @@ import wx
 import traceback
 import psychopy.preferences
 import sys
+from psychopy.localization import _translate
+
 
 _error_dlg = None  # keep error dialogs from stacking
 
@@ -21,17 +23,18 @@ class ErrorMsgDialog(wx.Dialog):
     directly.
     """
     def __init__(self, parent, traceback=''):
-        wx.Dialog.__init__(self, parent, id=wx.ID_ANY, title=u"PsychoPy3 Error",
+        wx.Dialog.__init__(self, parent, id=wx.ID_ANY,
+                           title=_translate(u"PsychoPy3 Error"),
                            pos=wx.DefaultPosition, size=wx.Size(750, -1),
                            style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
 
         self.details = traceback
 
         # message to show at the top of the error box, needs translation
-        msg = u"PsychoPy encountered an unhandled internal error! " \
-              u"Please send the report under \"Details\" to the " \
-              u"developers with a description of what you were doing " \
-              u"with the software when the error occurred."
+        msg = _translate(u"PsychoPy encountered an unhandled internal error! " \
+                u"Please send the report under \"Details\" to the " \
+                u"developers with a description of what you were doing " \
+                u"with the software when the error occurred.")
 
         self.SetSizeHints(wx.DefaultSize, wx.DefaultSize)
         szErrorMsg = wx.BoxSizer(wx.VERTICAL)
@@ -50,17 +53,17 @@ class ErrorMsgDialog(wx.Dialog):
         szHeader.Add(self.lblErrorMsg, 0, wx.ALL, 5)
         szHeaderButtons = wx.BoxSizer(wx.VERTICAL)
         self.cmdOK = wx.Button(
-            self, wx.ID_OK, u"&OK", wx.DefaultPosition, wx.DefaultSize, 0)
+            self, wx.ID_OK, _translate(u"&OK"), wx.DefaultPosition, wx.DefaultSize, 0)
         szHeaderButtons.Add(self.cmdOK, 0, wx.LEFT | wx.EXPAND, 5)
         self.cmdExit = wx.Button(
-            self, wx.ID_EXIT, u"E&xit PsychoPy", wx.DefaultPosition,
+            self, wx.ID_EXIT, _translate(u"E&xit PsychoPy"), wx.DefaultPosition,
             wx.DefaultSize, 0)
         szHeaderButtons.Add(self.cmdExit, 0, wx.TOP | wx.LEFT | wx.EXPAND, 5)
         szHeader.Add(szHeaderButtons, 0, wx.ALL | wx.EXPAND, 5)
         szErrorMsg.Add(szHeader, 0, wx.TOP | wx.LEFT | wx.RIGHT | wx.EXPAND, 5)
 
         self.pnlDetails = wx.CollapsiblePane(
-            self, wx.ID_ANY, u"&Details", wx.DefaultPosition, wx.DefaultSize,
+            self, wx.ID_ANY, _translate(u"&Details"), wx.DefaultPosition, wx.DefaultSize,
             wx.CP_DEFAULT_STYLE)
         self.pnlDetails.Collapse(True)
         szDetailsPane = wx.BoxSizer(wx.VERTICAL)
@@ -72,11 +75,11 @@ class ErrorMsgDialog(wx.Dialog):
         szDetailsPane.Add(self.txtErrorOutput, 1, wx.ALL | wx.EXPAND, 5)
         szTextButtons = wx.BoxSizer(wx.HORIZONTAL)
         self.cmdCopyError = wx.Button(
-            self.pnlDetails.GetPane(), wx.ID_ANY, u"&Copy", wx.DefaultPosition,
+            self.pnlDetails.GetPane(), wx.ID_ANY, _translate(u"&Copy"), wx.DefaultPosition,
             wx.DefaultSize, 0)
         szTextButtons.Add(self.cmdCopyError, 0, wx.RIGHT, 5)
         self.cmdSaveError = wx.Button(
-            self.pnlDetails.GetPane(), wx.ID_ANY, u"&Save", wx.DefaultPosition,
+            self.pnlDetails.GetPane(), wx.ID_ANY, _translate(u"&Save"), wx.DefaultPosition,
             wx.DefaultSize, 0)
         szTextButtons.Add(self.cmdSaveError, 0)
         szDetailsPane.Add(szTextButtons, 0, wx.ALL | wx.ALIGN_RIGHT, 5)
@@ -119,9 +122,9 @@ class ErrorMsgDialog(wx.Dialog):
         """
         dlg = wx.MessageDialog(
             self,
-            "Are you sure you want to exit PsychoPy? Unsaved work may be lost "
-            "(but we'll try to save opened files).",
-            "Exit PsychoPy?",
+            _translate("Are you sure you want to exit PsychoPy? Unsaved work may be lost "
+            "(but we'll try to save opened files)."),
+            _translate("Exit PsychoPy?"),
             wx.YES_NO | wx.NO_DEFAULT | wx.ICON_WARNING | wx.CENTRE)
         if dlg.ShowModal() == wx.ID_YES:
             wx.GetApp().quit()
@@ -157,7 +160,7 @@ class ErrorMsgDialog(wx.Dialog):
 
         """
         with wx.FileDialog(
-                self, "Save error traceback",
+                self, _translate("Save error traceback"),
                 wildcard="Text files (*.txt)|*.txt",
                 defaultFile='psychopy_traceback.txt',
                 style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT) as fileDialog:
@@ -174,8 +177,8 @@ class ErrorMsgDialog(wx.Dialog):
                 # error in an error ... ;)
                 errdlg = wx.MessageDialog(
                     self,
-                    "Cannot save to file '%s'." % pathname,
-                    "File save error",
+                    _translate("Cannot save to file '%s'.") % pathname,
+                    _translate("File save error"),
                     wx.OK_DEFAULT | wx.ICON_ERROR | wx.CENTRE)
                 errdlg.ShowModal()
                 errdlg.Destroy()

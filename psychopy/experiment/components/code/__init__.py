@@ -19,7 +19,7 @@ thisFolder = path.abspath(path.dirname(__file__))
 iconFile = path.join(thisFolder, 'code.png')
 tooltip = _translate('Code: insert python commands into an experiment')
 _localized = {'Code Type': _translate('Code Type'),
-              'Before Experiment': _translate('BeforeExperiment'),
+              'Before Experiment': _translate('Before Experiment'),
               'Begin Experiment': _translate('Begin Experiment'),
               'Begin Routine': _translate('Begin Routine'),
               'Each Frame': _translate('Each Frame'),

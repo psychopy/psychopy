@@ -50,3 +50,7 @@ _translate(
 
 # Alert 4310
 _translate("Cannot calculate parameter.")
+
+# Alert 4315
+_translate(
+    "Builder cannot interpret value \"{param.val}\" of {param.label} for {component.type} component \"{component.params[name].val}\" as a dollar sign has been used incorrectly.")
