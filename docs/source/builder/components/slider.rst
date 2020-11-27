@@ -1,95 +1,72 @@
 .. _slider:
 
 Slider Component
--------------------------------
+________________
 
-A slider is used to collect a numeric rating or a choice from a few alternatives, via the mouse, the keyboard, or both. Both the response and time taken to make it are returned.
-
-A given routine might involve an image (patch component), along with a slider to collect the response. A routine from a personality questionnaire could have text plus a rating scale.
-
-Three common usage styles are enabled on the first settings page:
-    'visual analog scale': the subject uses the mouse to position a marker on an unmarked line
-    
-    'category choices': choose among verbal labels (categories, e.g., "True, False" or "Yes, No, Not sure")
-    
-    'scale description': used for numeric choices, e.g., 1 to 7 rating
-    
-Complete control over the display options is available as an advanced setting, 'customize_everything'.
+A slider uses mouse input to collect ratings, either on a continuous scale or Likert scale (1-to-7).
 
 Properties
-~~~~~~~~~~~
+~~~~~~~~~~
 
-name : string
+Name : string
     Everything in a PsychoPy experiment needs a unique name. The name should contain only letters, numbers and underscores (no punctuation marks or spaces).
 
-start :
+Start :
     The time that the stimulus should first appear. See :ref:`startStop` for details.
 
-stop : 
+Stop :
     The duration for which the stimulus is presented. See :ref:`startStop` for details.
 
-forceEndRoutine :
-    If checked, when the subject makes a rating the routine will be ended.
+Size : (width, height)
+    The size controls the width and height of the slider.
+    The slider is oriented horizontally when the width is greater than the height,
+    and oriented vertically otherwise. Default is (1.0, 0.1)
 
-Appearance
-==========
-How should the stimulus look? Colour, borders, etc.
-
-font : string
-    What font should be used for the slider's labels?
-
-foreground color : color
-    See :ref:`colorspaces`
-
-foreground color space : rgb, dkl, lms, hsv
-    See :ref:`colorspaces`
-
-styles : slider, rating, radio, labels45, whiteOnBlack, triangleMarker
-    Different ways for the slider to look.
-
-opacity : float
-    Vary the transparency, from 0.0 = invisible to 1.0 = opaque
-
-Layout
-======
-How should the stimulus be laid out? Padding, margins, size, position, etc.
-
-size : (width, height)
-    Size of the stimulus on screen
-position : (x, y)
+Position : (X,Y)
     The position of the centre of the stimulus, in the units specified by the stimulus or window. Default is centered left-right, and somewhat lower than the vertical center (0, -0.4).
 
-flip : bool
-    Should the scale be flipped?
+Ticks : (list or tuple of integers)
+    The ticks that will be place on the slider scale. The first and last ticks will be placed
+    on the ends of the slider, and the remaining are spaced between the endpoints corresponding
+    to their values. For example, (1, 2, 3, 4, 5) will create 5 evenly spaced ticks.
+    (1, 3, 5) will create three ticks, one at each end and one in the middle.
 
-ori : degrees
-    The orientation of the stimulus in degrees.
+Labels : (list or tuple of strings)
+    The text to go with each tick (or spaced evenly across the ticks).
+    If you give 3 labels but 5 tick locations then the end and middle ticks
+    will be given labels. If the labels can’t be distributed across the ticks
+    then an error will be raised. If you want an uneven distribution you should
+    include a list matching the length of ticks but with some values set to None.
 
-spatial units : deg, cm, pix, norm, or inherit from window
-    See :doc:`../../general/units`
+Granularity :
+    Specifies step size for rating. 0 corresponds to a continuous scale,
+    1 corresponds to an integer or discrete scale.
 
-Data
-====
-What information to save, how to lay it out and when to save it.
+Force end of Routine :
+    If checked, when the subject makes a rating the routine will be ended.
 
-ticks : list
-    List of numbers indicating where the ticks on the scale are
+Opacity : value from 0 to 1
+    If opacity is reduced then the underlying images/stimuli will show through.
 
-labels : list
-    List of strings, one for each tick, indicating what it should be labeled as. If blank, ticks will just be labelled as their number.
+Units :
+    See :doc:`../../general/units`.
 
-granularity : float
-    What should the interval of the scale be? 0 for entirely continuous, 1 for integers only.
+Appearance
+++++++++++
 
-store history : bool
-    Store full record of how participant moved on the slider
+Font :
+    Font for labels.
 
-store rating : bool
-    Save the rating that was selected
+Flip :
+    By default labels are below the scale or left of the scale.
+    By checking this checkbox, the labels are placed above the scale or to the right of the scale.
 
-store rating time : bool
-    Save the time from the beginning of the trial until the participant responds.
+Color :
+    Color of the line, ticks, and labels. See :ref:`colorspaces`.
+
+Styles :
+   A selection of pre-defined styles. Multiple styles can be selected.
 
 .. seealso::
-	
-	API reference for :class:`~psychopy.visual.RatingScale`
+
+    API reference for :class:`~psychopy.visual.Slider`
