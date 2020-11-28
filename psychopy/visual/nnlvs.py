@@ -239,6 +239,10 @@ class VisualSystemHD(window.Window):
         # diopter settings for each eye, needed to compute actual FOV
         self._diopters = {'left': diopters[0], 'right': diopters[1]}
 
+        # eye offsets, this will be standard when multi-buffer rendering gets
+        # implemented in the main window class
+        self._eyeOffsets = {'left': -3.1, 'right': 3.1}
+
         # look-up table of FOV values for each diopter setting
         self._fovLUT = self._hwDesc['configByDiopters']
 
@@ -339,6 +343,42 @@ class VisualSystemHD(window.Window):
 
         try:
             self._diopters[eye] = int(diopters)
+        except KeyError:
+            raise ValueError(
+                "Invalid `eye` specified, must be 'left' or 'right'.")
+
+    @property
+    def eyeOffset(self):
+        """Eye offset for the current buffer in centimeters used for
+        stereoscopic rendering. This works differently than the main window
+        class as it sets the offset for the current buffer. The offset is saved
+        and automatically restored when the buffer is selected.
+        """
+        return self._eyeOffsets[self.buffer] * 100.  # to centimeters
+
+    @eyeOffset.setter
+    def eyeOffset(self, value):
+        self._eyeOffsets[self.buffer] = float(value) / 100.  # to meters
+
+    def setEyeOffset(self, dist, eye=None):
+        """Set the eye offset in centimeters.
+
+        When set, successive rendering operations will use the new offset.
+
+        Parameters
+        ----------
+        dist : float or int
+            Lateral offset in centimeters from the nose, usually half the
+            interocular separation. The distance is signed.
+        eye : str or None
+            Eye offset to set. Can eithr be 'left', 'right' or `None`. If
+            `None`, the offset of the current buffer is used.
+
+        """
+        eye = self.buffer if eye is None else eye
+
+        try:
+            self._eyeOffsets[eye] = float(dist) / 100.  # to meters
         except KeyError:
             raise ValueError(
                 "Invalid `eye` specified, must be 'left' or 'right'.")
