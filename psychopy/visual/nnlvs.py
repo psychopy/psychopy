@@ -140,6 +140,8 @@ class VisualSystemHD(window.Window):
             useShaders=False)
 
         iod = 6.2  # interocular separation in CM
+        win.eyeOffset(-iod / 2.0, 'left')
+        win.eyeOffset(iod / 2.0, 'right')
 
         trialClock = core.Clock()
         t = 0
@@ -148,12 +150,6 @@ class VisualSystemHD(window.Window):
 
             for eye in ('left', 'right'):
                 win.setBuffer(eye)  # change the buffer
-
-                # set eye offset for stereo
-                if eye == 'left':
-                    win.eyeOffset = -iod / 2.0
-                else:
-                    win.eyeOffset = iod / 2.0
 
                 # setup drawing with perspective
                 win.setPerspectiveView()
@@ -371,7 +367,7 @@ class VisualSystemHD(window.Window):
             Lateral offset in centimeters from the nose, usually half the
             interocular separation. The distance is signed.
         eye : str or None
-            Eye offset to set. Can eithr be 'left', 'right' or `None`. If
+            Eye offset to set. Can either be 'left', 'right' or `None`. If
             `None`, the offset of the current buffer is used.
 
         """
