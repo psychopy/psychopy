@@ -62,8 +62,8 @@ class DeviceRPC(object):
                             self.method_name, args, kwargs))
         
         if r is None:
-            print("r is None:",('EXP_DEVICE', 'DEV_RPC', self.device_class,
-                            self.method_name, args, kwargs))
+            # print("r is None:",('EXP_DEVICE', 'DEV_RPC', self.device_class,
+            #                 self.method_name, args, kwargs))
             return None
         
         r = r[1:]
@@ -1280,15 +1280,16 @@ class ioHubConnection(object):
             self._shutdown_attempted = True
             TimeoutError = psutil.TimeoutExpired
             try:
-                self.udp_client.sendTo(('STOP_IOHUB_SERVER',))
-                self.udp_client.close()
+                if self.udp_client:  # if it isn't already garbage-collected
+                    self.udp_client.sendTo(('STOP_IOHUB_SERVER',))
+                    self.udp_client.close()
                 if Computer.iohub_process:
                     r = Computer.iohub_process.wait(timeout=5)
                     print('ioHub Server Process Completed With Code: ', r)
             except TimeoutError:
                 print('Warning: TimeoutExpired, Killing ioHub Server process.')
                 Computer.iohub_process.kill()
-            except Exception: # pylint: disable=broad-except
+            except Exception:  # pylint: disable=broad-except
                 print("Warning: Unhandled Exception. "
                       "Killing ioHub Server process.")
                 if Computer.iohub_process:
