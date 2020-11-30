@@ -240,7 +240,7 @@ class CodeSnippetValidator(BaseValidator):
 
                     for newName in names:
                         namespace = parent.frame.exp.namespace
-                        if newName in namespace.user or newName in namespace.builder:
+                        if newName in [*namespace.user, *namespace.builder, *namespace.constants]:
                             continue
                         used = namespace.exists(newName)
                         sameAsOldName = bool(newName == parent.params['name'].val)
