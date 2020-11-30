@@ -168,21 +168,23 @@ class CodeSnippetValidator(BaseValidator):
             except KeyError:
                 pass
 
+        # Get attributes of value control
         control = self.GetWindow()
         if not hasattr(control, 'GetValue'):
             return '', True
         val = control.GetValue()  # same as parent.params[self.fieldName].val
         if not isinstance(val, basestring):
             return '', True
-
         field = self.fieldName
+        allowedUpdates = ['set every repeat', 'set every frame']
+        # Set initials
         msg, OK = '', True  # until we find otherwise
         _highlightParamVal(parent)
+        # What valType should code be treated as?
         codeWanted = psychopy.experiment.utils.unescapedDollarSign_re.search(val)
         isCodeField = bool(parent.params[self.fieldName].valType == 'code')
-        allowedUpdates = ['set every repeat', 'set every frame']
 
-        # Check if variable incorrectly defined in correct answer
+        # Validate as list
         allKeyBoardKeys = list(key._key_names.values()) + [str(num) for num in range(10)]
         if self.fieldName == 'correctAns' and not val.startswith('$'):
             if ',' in val:  # comma separated
@@ -198,6 +200,7 @@ class CodeSnippetValidator(BaseValidator):
                 msg = _translate("It looks like your 'Correct answer' contains a variable - prepend variables with '$' e.g. ${val}")
                 msg = msg.format(val=potentialVars[0].lower())
 
+        # Validate as code
         if codeWanted or isCodeField:
             # get var names from val, check against namespace:
             code = experiment.getCodeFromParamStr(val)
