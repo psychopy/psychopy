@@ -25,6 +25,7 @@ The ideal model, is to contribute via the repository on github. There is more in
 
 Contribute to the Forum (mailing list)
 ----------------------------------------------------------
+
 The easiest way to help the project is to write to the forum (mailing list) with suggestions and solutions.
 
 *For documentation suggestions* please try to provide actual replacement text. You, as a user, are probably better placed to write this than the actual developers (they know too much to write good docs)!

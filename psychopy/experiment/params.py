@@ -168,7 +168,7 @@ class Param(object):
                 return "%i" % self.val  # int and float -> str(int)
             except TypeError:
                 return "{}".format(self.val)  # try array of float instead?
-        elif self.valType in ['extendedStr','str']:
+        elif self.valType in ['extendedStr','str', 'file', 'table']:
             # at least 1 non-escaped '$' anywhere --> code wanted
             # return str if code wanted
             # return repr if str wanted; this neatly handles "it's" and 'He
@@ -182,16 +182,19 @@ class Param(object):
                             logging.debug("Rewriting with py2js: {} -> {}".format(self.val, valJS))
                         return valJS
                     else:
-                        return "%s" % getCodeFromParamStr(self.val)
-                else:  # str wanted
-                    # remove \ from all \$
-                    s = repr(re.sub(r"[\\]\$", '$', self.val))
-                    # if target is python2.x then unicode will be u'something'
-                    # but for other targets that will raise an annoying error
+                        return val
+                else:
+                    # If str is wanted, return literal
                     if utils.scriptTarget != 'PsychoPy':
-                        if s.startswith("u'") or s.startswith('u"'):
-                            s = s[1:]
-                    return s
+                        if val.startswith("u'") or val.startswith('u"'):
+                            # if target is python2.x then unicode will be u'something'
+                            # but for other targets that will raise an annoying error
+                            val = val[1:]
+                    val=re.sub("\n", "\\\\n", val) # Replace line breaks with escaped line break character
+                    if self.valType in ['file', 'table']:
+                        # If param is a file of any kind, escape any \
+                        val = re.sub(r"\\", r"\\\\", val)
+                    return f"\"{val}\""
             return repr(self.val)
         elif self.valType in ['code', 'extendedCode']:
             isStr = isinstance(self.val, basestring)

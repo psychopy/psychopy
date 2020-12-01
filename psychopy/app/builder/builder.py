@@ -1105,7 +1105,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
             ok = self.fileSave(self.filename)
             if not ok:
                 return  # save file before compiling script
-
+        self.app.showRunner()
         self.stdoutFrame.addTask(fileName=self.filename)
         self.app.runner.Raise()
         if event:
@@ -1238,7 +1238,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         Gets Experiment Runner stdout.
         """
         if not self.app.runner:
-            self.app.runner = self.app.newRunnerFrame()
+            self.app.runner = self.app.showRunner()
         return self.app.runner
 
     def _getHtmlPath(self, filename):
@@ -1561,6 +1561,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_ERASE_BACKGROUND, lambda x: None)
         self.Bind(wx.EVT_MOUSE_EVENTS, self.OnMouse)
+        self.Bind(wx.EVT_MOUSEWHEEL, self.OnScroll)
         self.Bind(wx.EVT_SIZE, self.onResize)
         # crashes if drop on OSX:
         # self.SetDropTarget(FileDropTarget(builder = self.frame))
@@ -1620,6 +1621,11 @@ class RoutineCanvas(wx.ScrolledWindow):
                 self.frame.SetStatusText("Component: "+component.params['name'].val)
             except IndexError:
                 self.frame.SetStatusText("")
+
+    def OnScroll(self, event):
+        xy = self.GetViewStart()
+        multiplier = self.dpi / 1600
+        self.Scroll(xy[0], xy[1] - event.WheelRotation*multiplier)
 
     def showContextMenu(self, component, xy):
         menu = wx.Menu()

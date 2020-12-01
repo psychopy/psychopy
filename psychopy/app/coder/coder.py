@@ -1339,7 +1339,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
 
         # Link to Runner output
         if self.app.runner is None:
-            self.app.newRunnerFrame()
+            self.app.showRunner()
         self.outputWindow = self.app.runner.stdOut
         self.outputWindow.write(_translate('Welcome to PsychoPy3!') + '\n')
         self.outputWindow.write("v%s\n" % self.app.version)

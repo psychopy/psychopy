@@ -17,7 +17,7 @@ some more added:
 
 """
 import numpy as np
-import OpenGL.GL as gl
+from pyglet import gl  # import OpenGL.GL not compatible with Big Sur (2020)
 
 from ..basevisual import BaseVisualStim, ColorMixin, ContainerMixin
 from psychopy.tools.attributetools import attributeSetter, setAttribute
@@ -215,8 +215,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.editable = editable
         self.caret = Caret(self, color=self.color, width=5)
         self._hasFocus = False
-        if editable:  # may yet gain focus if the first editable obj
-            self.win.addEditable(self)
 
         self.autoLog = autoLog
 
@@ -474,9 +472,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
     def _getStartingVertices(self):
         """Returns vertices for a single non-printing char as a proxy
         (needed to get location for caret when there are no actual chars)"""
-        glyph = self.glFont["A"]  # just to get height
-        yTop = 0
-        yBot = yTop - glyph.size[1]
+        yTop = self._anchorOffsetY - (self.glFont.height - self.glFont.ascender) * self.lineSpacing
+        yBot = yTop - self._lineHeight
         x = 0
         theseVertices = np.array([[x, yTop], [x, yBot], [x, yBot], [x, yTop]])
         return theseVertices
@@ -512,16 +509,16 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         gl.glEnableClientState(gl.GL_TEXTURE_COORD_ARRAY)
         gl.glEnableClientState(gl.GL_VERTEX_ARRAY)
 
-        gl.glVertexPointer(2, gl.GL_FLOAT, 0, self.verticesPix)
-        gl.glColorPointer(4, gl.GL_FLOAT, 0, self._colors)
-        gl.glTexCoordPointer(2, gl.GL_FLOAT, 0, self._texcoords)
+        gl.glVertexPointer(2, gl.GL_FLOAT, 0, self.verticesPix.ctypes)
+        gl.glColorPointer(4, gl.GL_FLOAT, 0, self._colors.ctypes)
+        gl.glTexCoordPointer(2, gl.GL_FLOAT, 0, self._texcoords.ctypes)
 
         self.shader.bind()
         self.shader.setInt('texture', 0)
         self.shader.setFloat('pixel', [1.0 / 512, 1.0 / 512])
         nVerts = len(self.text)*4
         gl.glDrawElements(gl.GL_QUADS, nVerts,
-                          gl.GL_UNSIGNED_INT, list(range(nVerts)))
+                          gl.GL_UNSIGNED_INT, np.arange(nVerts, dtype=int).ctypes)
         self.shader.unbind()
 
         # removed the colors and font texture
@@ -542,9 +539,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
     def reset(self):
         # Reset contents
         self.text = self.startText
-        # Make sure box is still editable (if needed)
-        if self.editable and self not in self.win._editableChildren:  # may yet gain focus if the first editable obj
-            self.win.addEditable(self)
 
 
     def contains(self, x, y=None, units=None, tight=False):
@@ -928,10 +922,8 @@ class Caret(ColorMixin):
         # lastChar = [bottLeft, topLeft, **bottRight**, **topRight**]
         ii = self.index
         if textbox.vertices.shape[0] == 0:
-            verts = textbox._getStartingVertices()*2 / textbox._pixelScaling
-            verts[:,1] = verts[:,1] \
-                         + self.textbox.glFont["A"].size[1] / textbox._pixelScaling \
-                         - float(textbox._anchorOffsetY)/2
+            verts = textbox._getStartingVertices() / textbox._pixelScaling
+            verts[:,1] = verts[:,1]
             verts[:,0] = verts[:,0] + float(textbox._anchorOffsetX)
         else:
             if self.index >= len(textbox._lineNs):  # caret is after last chr

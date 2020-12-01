@@ -139,8 +139,8 @@ class FormComponent(BaseVisualComponent):
                    "    items={Items},\n"
                    "    textHeight={Text Height},\n"
                    "    randomize={Randomize},\n"
-                   "    size={Size},\n"
-                   "    pos={Pos},\n"
+                   "    size={size},\n"
+                   "    pos={pos},\n"
                    "    style={Style},\n"
                    "    itemPadding={Item Padding},"
                    ")\n".format(**inits))
@@ -154,8 +154,8 @@ class FormComponent(BaseVisualComponent):
                    "  items : {Items},\n"
                    "  textHeight : {Text Height},\n"
                    "  randomize : {Randomize},\n"
-                   "  size : {Size},\n"
-                   "  pos : {Pos},\n"
+                   "  size : {size},\n"
+                   "  pos : {pos},\n"
                    "  style : {Style},\n"
                    "  itemPadding : {Item Padding}\n"
                    "}});\n".format(**inits))
