@@ -19,6 +19,8 @@ from . import experiment
 from .localizedStrings import _localized
 from pkg_resources import parse_version
 
+from ...data.utils import listFromString
+
 if parse_version(wx.__version__) < parse_version('4.0.0a1'):
     _ValidatorBase = wx.PyValidator
 else:
@@ -186,14 +188,11 @@ class CodeSnippetValidator(BaseValidator):
 
         # Validate as list
         allKeyBoardKeys = list(key._key_names.values()) + [str(num) for num in range(10)]
+        allKeyBoardKeys = [key.lower() for key in allKeyBoardKeys]
         if self.fieldName == 'correctAns' and not val.startswith('$'):
-            if ',' in val:  # comma separated
-                keyList = val.upper().split(',')
-                keyList = [thisKey.replace(' ', '') for thisKey in keyList if len(thisKey) > 0]
-            else:  # whitespace separated
-                keyList = val.upper().split(' ')
-                keyList = [thisKey.replace(' ', '') for thisKey in keyList if len(thisKey) > 0]
-
+            keyList = listFromString(val)
+            if isinstance(keyList, str):
+                keyList = [keyList]
             potentialVars = list(set(keyList) - set(allKeyBoardKeys))  # Elements of keyList not in allKeyBoardKeys
             _highlightParamVal(parent, bool(potentialVars))
             if len(potentialVars):
