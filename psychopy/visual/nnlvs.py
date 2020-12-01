@@ -80,6 +80,9 @@ class VisualSystemHD(window.Window):
     -----
     * This class handles drawing differently than the default window class, as
       a result, stimuli `autoDraw` is not supported.
+    * Edges of the warped image may appear jagged. To correct this, create a
+      window using `multiSample=True` and `numSamples > 1` to smooth out these
+      artifacts.
 
     Examples
     --------
@@ -687,7 +690,7 @@ class VisualSystemHD(window.Window):
         # area to ensure disparities are correct even when in windowed-mode.
         aspect = self.size[0] / self.size[1]
 
-        # use these instead of those from the monitor configration
+        # use these instead of those from the monitor configuration
         vfov = self._fovLUT[self._diopters[self.buffer]]['vfov']
         scrDist = self._fovLUT[self._diopters[self.buffer]]['dist']
 
@@ -703,7 +706,7 @@ class VisualSystemHD(window.Window):
 
         # translate away from screen
         self._viewMatrix = np.identity(4, dtype=np.float32)
-        self._viewMatrix[0, 3] = -self._eyeOffset  # apply eye offset
+        self._viewMatrix[0, 3] = -self._eyeOffsets[self.buffer]  # apply eye offset
         self._viewMatrix[2, 3] = -scrDist  # displace scene away from viewer
 
         if applyTransform:
@@ -734,11 +737,16 @@ class VisualSystemHD(window.Window):
         GL.glMatrixMode(GL.GL_MODELVIEW)
         GL.glLoadIdentity()
 
+        # anti-aliasing the edges of the polygon
+        GL.glEnable(GL.GL_MULTISAMPLE)
+
         # blit the quad covering the side of the display the eye is viewing
         if self.lensCorrection:
             gt.drawVAO(self._warpVAOs[eye])
         else:
             self._renderFBO()
+
+        GL.glDisable(GL.GL_MULTISAMPLE)
 
         # reset
         GL.glDisable(GL.GL_SCISSOR_TEST)
