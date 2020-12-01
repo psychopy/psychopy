@@ -221,7 +221,7 @@ class CodeSnippetValidator(BaseValidator):
                             eval(code)
                         except NameError as e:
                             _highlightParamVal(parent, True)
-                            msg = _translate("Looks like your variable '{code}' in '{displayName}' should be set to update.")
+                            msg = _translate(f"Looks like your variable '{code}' in '{self.displayName}' should be set to update.")
                             msg = msg.format(code=code, displayName=self.displayName)
                         except SyntaxError as e:
                             msg = ''
