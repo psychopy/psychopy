@@ -112,7 +112,8 @@ class Test_BuilderFrame(object):
 
         # Define 'tykes' - combinations of values likely to cause an error if certain features aren't working
         tykes = [
-            {'fieldName': "startVal", 'param': Param(val="for + :", valType="code"), 'msg': "Python syntax error in field `Start`:  for + :"},
+            {'fieldName': "brokenCode", 'param': Param(val="for + :", valType="code"), 'msg': "Python syntax error in field `{fieldName}`:  {param.val}"}, # Make sure it's picking up clearly broken code
+            {'fieldName': "correctAns", 'param': Param(val="'space'", valType="code"), 'msg': ""}, # Single-element lists should not cause warning
         ]
         for tyke in tykes:
             # For each tyke, create a dummy environment
@@ -126,6 +127,6 @@ class Test_BuilderFrame(object):
             # Does the message delivered by the validator match what is expected?
             warnings = [w for w in list(parent.warningsDict.values()) if w] or ['']
             msg = warnings[0]
-            assert msg == tyke['msg']
+            assert msg == tyke['msg'].format(**tyke)
             # Cleanup
             parent.Destroy()
