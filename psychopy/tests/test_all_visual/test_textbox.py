@@ -28,7 +28,8 @@ class Test_textbox(object):
                                         "Noto Sans KR",
                                         "Noto Sans SC",
                                         "Noto Sans TC",
-                                        "Niramit"])
+                                        "Niramit",
+                                        "Indie Flower"])
         # Some exemplar text to test basic TextBox rendering
         exemplars = [
             # An English pangram
@@ -38,7 +39,12 @@ class Test_textbox(object):
             # The same pangram in Hangul
             {"text": "아 프시초피 제알롣 크노W스 코데 콤포넨트스 아레 엑스트르",
              "font": "Noto Sans KR",
-             "screenshot": "textbox_exemplar_2.png"}
+             "screenshot": "textbox_exemplar_2.png"},
+            # A noticeably non-standard font
+            {"text": "A PsychoPy zealot knows code components are extra fragile, but is it a question of JavaScript?",
+             "font": "Indie Flower",
+             "screenshot": "textbox_exemplar_3.png",
+            }
         ]
         # Some text which is likely to cause problems if something isn't working
         tykes = [
@@ -55,6 +61,7 @@ class Test_textbox(object):
         # Test each case and compare against screenshot
         for case in exemplars + tykes:
             textbox.reset()
+            textbox.fontMGR.addGoogleFont(case['font'])
             textbox.font = case['font']
             textbox.text = case['text']
             self.win.flip()
