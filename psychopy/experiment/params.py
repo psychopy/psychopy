@@ -181,7 +181,7 @@ class Param(object):
                     if self.valType in ['file', 'table']:
                         # If param is a file of any kind, escape any \
                         val = re.sub(r"\\", r"\\\\", val)
-                    return f"\"{val}\""
+                    return f"f\"{val}\""
             return repr(self.val)
         elif self.valType in ['code', 'extendedCode']:
             isStr = isinstance(self.val, basestring)
