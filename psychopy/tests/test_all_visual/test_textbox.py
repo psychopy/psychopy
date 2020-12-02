@@ -57,10 +57,6 @@ class Test_textbox(object):
                 #self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / case['screenshot'])
                 utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / case['screenshot'], self.win, crit=20)
 
-    def test_rep(self):
-        for n in range(100):
-            self.test_glyph_rendering()
-
     def test_basic(self):
         pass
 
