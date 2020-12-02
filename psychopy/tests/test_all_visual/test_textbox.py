@@ -27,7 +27,8 @@ class Test_textbox(object):
                                         "Noto Sans JP",
                                         "Noto Sans KR",
                                         "Noto Sans SC",
-                                        "Noto Sans TC"])
+                                        "Noto Sans TC",
+                                        "Niramit"])
         # Some exemplar text to test basic TextBox rendering
         exemplars = [
             # An English pangram
@@ -41,9 +42,15 @@ class Test_textbox(object):
         ]
         # Some text which is likely to cause problems if something isn't working
         tykes = [
+            # Text which doesn't render properly on Mac (Issue #3203)
             {"text": "कोशिकायें",
              "font": "Noto Sans",
-             "screenshot": "textbox_tyke_1.png"}
+             "screenshot": "textbox_tyke_1.png"},
+            # Thai text which old Text component couldn't handle due to Pyglet
+            {"text": "ขาว แดง เขียว เหลือง ชมพู ม่วง เทา",
+             "font": "Niramit",
+             "screenshot": "textbox_tyke_2.png"
+             }
         ]
         # Test each case and compare against screenshot
         for case in exemplars + tykes:
