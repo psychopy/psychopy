@@ -746,18 +746,6 @@ class FontManager(object):
         # Add font and return
         return self.addFontFile(fileName)
 
-    def addGoogleFonts(self, fontList):
-        """Add a list of fonts directly from the Google Font repository, saving them to the user prefs folder"""
-        # Blank list to store output in
-        outList = []
-        # Call addFontFile for each font
-        for font in fontList:
-            outList.append(self.addFontFile(font))
-        # Sort fonts
-        self.fontStyles.sort()
-        # Return
-        return outList
-
     def addFontFile(self, fontPath, monospaceOnly=False):
         """Add a Font File to the FontManger font search space. The
         fontPath must be a valid path including the font file name.
