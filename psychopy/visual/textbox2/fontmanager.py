@@ -829,9 +829,18 @@ class FontManager(object):
         then the existing FontAtlas is returned. Otherwise, a new FontAtlas is
         created , added to the cache, and returned.
         """
-        fontInfos = self.getFontsMatching(name, bold, italic)
+        fontInfos = self.getFontsMatching(name, bold, italic, fallback=False)
         if not fontInfos:
-            return False
+            # If font not found, try to retrieve it from Google
+            try:
+                fontInfos = list(self.addGoogleFont(name))
+            except MissingFontError:
+                return False
+            # Then try again with fallback
+            fontInfos = self.getFontsMatching(name, bold, italic, fallback=True)
+            if not fontInfos:
+                return False
+        # If font is found, make glfont
         fontInfo = fontInfos[0]
         identifier = "{}_{}".format(str(fontInfo), size)
         glFont = self._glFonts.get(identifier)
