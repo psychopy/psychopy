@@ -735,12 +735,13 @@ class FontManager(object):
             raise MissingFontError(f"Font `{fontName}` could not be retrieved from the Google Font library.")
         # Get and send file url from returned CSS data
         fileURL = re.findall("(?<=src: url\().*(?=\) format)", repoResp.content.decode())[0]
+        fileFormat = re.findall("(?<=format\(\').*(?=\'\)\;)", repoResp.content.decode())[0]
         fileResp = requests.get(fileURL)
         if not fileResp.ok:
             # If font file is not available, raise error
             raise MissingFontError(f"OST file for Google font `{fontName}` could not be accessed")
         # Save retrieved font as an OST file
-        fileName = Path(prefs.paths['resources']) / f"{fontName}.ost"
+        fileName = Path(prefs.paths['resources']) / f"{fontName}.{fileFormat}"
         with open(fileName, "wb") as fileObj:
             fileObj.write(fileResp.content)
         # Add font and return
