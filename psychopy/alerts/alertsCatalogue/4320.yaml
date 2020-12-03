@@ -1,0 +1,19 @@
+
+code: 4320
+cat: Components
+msg: Font `{param.val}` not found locally, will check Google Fonts on next run.
+
+# The following are typically used for online help pages, and support reStructured Text.
+label: Non-local font.
+
+synopsis: |
+  This alert is received when a font has been specified which PsychoPy cannot find on your local machine.
+
+details: |
+  Google Fonts is a repository of thousands of free fonts, which PsychoPy is able to access on-the-fly, allowing you to use any font within the Google Fonts library (fonts.google.com) as if it were installed on your machine. However, retrieving this font requires PsychoPy to connect to the internet and send/receive some data, so we raised this alert to give you some warning that this will happen. Font files are tiny, so in most cases this will not noticeable, however if you are on a strictly metered connection or you are not connected to the internet at all then this may cause some issues.
+
+solutions: |
+  If your computer is connected to the internet and you don't have any limits on how much data you can send/receive, then no action is needed! PsychoPy will happily go off and find this font for you. However, if you are running offline or you have strict data limits, then you should install this font locally instead. Google Fonts can be downloaded for free from fonts.google.com as .ttf files, once downloaded these can be copied to a memory stick and installed on any machine you need by simply opening the file and clicking "Install".
+
+versions: |
+  All

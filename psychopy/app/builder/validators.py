@@ -206,7 +206,7 @@ class CodeSnippetValidator(BaseValidator):
         if self.fieldName == 'font' and not val.startswith('$'):
             fontInfo = fontMGR.getFontNamesSimilar(val)
             if not fontInfo:
-                msg = _translate(f"Font `{val}` not found locally, will attempt to retrieve from Google Fonts when this experiment first runs")
+                msg = _translate(f"Font `{val}` not found locally, will attempt to retrieve from Google Fonts when this experiment next runs")
 
         if codeWanted or isCodeField:
             # get var names from val, check against namespace:

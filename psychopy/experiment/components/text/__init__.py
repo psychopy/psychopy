@@ -8,6 +8,8 @@
 from __future__ import absolute_import, print_function
 
 from os import path
+
+from psychopy.alerts import alerttools
 from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals, _translate
 from psychopy.localization import _localized as __localized
 _localized = __localized.copy()
@@ -179,3 +181,7 @@ class TextComponent(BaseVisualComponent):
         code = ("  %sdepth: %.1f \n"
                 "});\n\n" % (flipStr, depth))
         buff.writeIndentedLines(code)
+
+    def integrityCheck(self):
+        super().integrityCheck()  # run parent class checks first
+        alerttools.testFont(self)  # Test whether font is available locally
