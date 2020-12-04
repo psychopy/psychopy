@@ -56,9 +56,9 @@ In the standard :ref:`trialTypes` you would use all the rows/conditions within y
 
 The parameter `Select rows` allows this. You can specify which rows you want to use by inserting values here:
 
-    - `0,2,5` gives the 1st, 3rd and 5th entry of a list - Python starts with index zero)
-    - `random(4)*10` gives 4 indices from 0 to 10 (so selects 4 out of 11 conditions)
-    - `5:10` selects the 6th to 9th rows
+    - `0,2,5` gives the 1st, 3rd and 6th entry of a list - Python starts with index zero)
+    - `$random(4)*10` gives 4 indices from 0 to 9 (so selects 4 out of 10 conditions)
+    - `5:10` selects the 6th to 10th rows
     - `$myIndices` uses a variable that you've already created
 
 Note in the last case that `5:8` isn't valid syntax for a variable so you cannot do::

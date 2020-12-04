@@ -418,10 +418,6 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         # we wanted debug mode while loading but safe to go back to info mode
         if not self.prefs.app['debugMode']:
             logging.console.setLevel(logging.INFO)
-        # Runner captures standard streams until program closed
-        if self.runner and not self.testMode:
-            sys.stdout = self.runner.stdOut
-            sys.stderr = self.runner.stdOut
 
         return True
 
@@ -584,6 +580,10 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
             self.runner.Show()
             self.runner.Raise()
             self.SetTopWindow(self.runner)
+        # Runner captures standard streams until program closed
+        if self.runner and not self.testMode:
+            sys.stdout = self.runner.stdOut
+            sys.stderr = self.runner.stdOut
 
     def newRunnerFrame(self, event=None):
         # have to reimport because it is only local to __init__ so far

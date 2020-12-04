@@ -236,7 +236,10 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
     def __del__(self):
         if GL:  # because of pytest fail otherwise
-            GL.glDeleteLists(self._listID, 1)
+            try:
+                GL.glDeleteLists(self._listID, 1)
+            except ModuleNotFoundError:
+                pass  # if pyglet no longer exists
 
     @attributeSetter
     def height(self, height):
@@ -616,6 +619,15 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
         GL.glDisable(GL.GL_TEXTURE_2D)
         GL.glEndList()
         self._needUpdate = False
+
+    @attributeSetter
+    def opacity(self, value):
+        BaseVisualStim.opacity.func(self, value)
+        self._setTextShaders()
+
+    def setOpacity(self, newOpacity, operation='', log=None):
+        BaseVisualStim.setOpacity(self, newOpacity, operation='', log=None)
+        self._setTextShaders()
 
     @attributeSetter
     def flipHoriz(self, value):

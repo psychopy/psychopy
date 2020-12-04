@@ -106,6 +106,9 @@ class udpServer(DatagramServer):
             result = None
             try:
                 result = getattr(self, unicode(callable_name, 'utf-8'))
+            except TypeError as e:
+                if "decoding str is not supported" in e:
+                    pass
             except Exception:
                 print2err('RPC_ATTRIBUTE_ERROR')
                 printExceptionDetailsToStdErr()
@@ -225,10 +228,10 @@ class udpServer(DatagramServer):
             return True
         elif request_type == 'DEV_RPC':
             dclass = request.pop(0)
-            if isinstance(dclass, unicode):
+            if not isinstance(dclass, unicode):
                 dclass = unicode(dclass, 'utf-8')
             dmethod = request.pop(0)
-            if isinstance(dmethod, unicode):
+            if not isinstance(dmethod, unicode):
                 dmethod = unicode(dmethod, 'utf-8')
             args = None
             kwargs = None

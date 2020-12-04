@@ -357,20 +357,20 @@ class BaseComponent(object):
             code = ("frameRemains = %(startVal)s + %(stopVal)s"
                     " - psychoJS.window.monitorFramePeriod * 0.75;"
                     "  // most of one frame period left\n"
-                    "if (%(name)s.status === PsychoJS.Status.STARTED "
+                    "if ((%(name)s.status === PsychoJS.Status.STARTED || %(name)s.status === PsychoJS.Status.FINISHED) "
                     "&& t >= frameRemains) {\n")
         # start at frame and end with duratio (need to use approximate)
         elif self.params['stopType'].val == 'duration (s)':
-            code = ("if (%(name)s.status === PsychoJS.Status.STARTED "
+            code = ("if ((%(name)s.status === PsychoJS.Status.STARTED || %(name)s.status === PsychoJS.Status.FINISHED) "
                     "&& t >= (%(name)s.tStart + %(stopVal)s)) {\n")
         elif self.params['stopType'].val == 'duration (frames)':
-            code = ("if (%(name)s.status === PsychoJS.Status.STARTED "
+            code = ("if ((%(name)s.status === PsychoJS.Status.STARTED || %(name)s.status === PsychoJS.Status.FINISHED) "
                     "&& frameN >= (%(name)s.frameNStart + %(stopVal)s)) {\n")
         elif self.params['stopType'].val == 'frame N':
-            code = ("if (%(name)s.status === PsychoJS.Status.STARTED "
+            code = ("if ((%(name)s.status === PsychoJS.Status.STARTED || %(name)s.status === PsychoJS.Status.FINISHED) "
                     "&& frameN >= %(stopVal)s) {\n")
         elif self.params['stopType'].val == 'condition':
-            code = ("if (%(name)s.status === PsychoJS.Status.STARTED "
+            code = ("if ((%(name)s.status === PsychoJS.Status.STARTED || %(name)s.status === PsychoJS.Status.FINISHED) "
                     "&& Boolean(%(stopVal)s)) {\n")
         else:
             msg = ("Didn't write any stop line for startType="
@@ -431,8 +431,14 @@ class BaseComponent(object):
         # code conversions for PsychoJS
         if target == 'PsychoJS':
             endStr = ';'
+            try:
+                valStr = str(val).strip()
+            except TypeError:
+                if isinstance(val, Param):
+                    val = val.val
+                raise TypeError(f"Value of parameter {paramName} of component {compName} "
+                                f"could not be converted to JS. Value is {val}")
             # convert (0,0.5) to [0,0.5] but don't convert "rand()" to "rand[]"
-            valStr = str(val).strip()
             if valStr.startswith("(") and valStr.endswith(")"):
                 valStr = valStr.replace("(", "[", 1)
                 valStr = valStr[::-1].replace(")", "]", 1)[
@@ -447,6 +453,8 @@ class BaseComponent(object):
         # then write the line
         if updateType == 'set every frame' and target == 'PsychoPy':
             loggingStr = ', log=False'
+        if updateType == 'set every frame' and target == 'PsychoJS':
+            loggingStr = ', false'  # don't give the keyword 'log' in JS
         else:
             loggingStr = ''
 

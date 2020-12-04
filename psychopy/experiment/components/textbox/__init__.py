@@ -238,7 +238,7 @@ class TextboxComponent(BaseVisualComponent):
             if inits[param] in [None, 'None', '']:
                 inits[param].val = 'undefined'
                 if param == 'text':
-                    inits[param].val = "''"
+                    inits[param].val = ""
 
         code = ("%(name)s = new visual.TextBox({\n"
                 "  win: psychoJS.window,\n"
@@ -268,8 +268,8 @@ class TextboxComponent(BaseVisualComponent):
         else:
             currLoop = self.exp._expHandler
         if self.params['editable']:
-            buff.writeIndented("%s.addData('%s.text',%s.text)\n" %
-                               (currLoop.params['name'], name, name))
+            buff.writeIndentedLines(f"{currLoop.params['name']}.addData('{name}.text',{name}.text)\n"
+                               f"{name}.reset()\n")
         # get parent to write code too (e.g. store onset/offset times)
         super().writeRoutineEndCode(buff)
 

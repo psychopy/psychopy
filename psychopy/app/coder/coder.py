@@ -39,6 +39,7 @@ from psychopy.localization import _translate
 from ..utils import FileDropTarget, PsychopyToolbar, FrameSwitcher
 from psychopy.projects import pavlovia
 import psychopy.app.pavlovia_ui.menu
+from psychopy.app.errorDlg import exceptionCallback
 from psychopy.app.coder.codeEditorBase import BaseCodeEditor
 from psychopy.app.coder.fileBrowser import FileBrowserPanel
 from psychopy.app.coder.sourceTree import SourceTreePanel
@@ -103,16 +104,38 @@ def fromPickle(filename):
 
 
 class PsychopyPyShell(wx.py.shell.Shell, ThemeMixin):
-    '''Simple class wrapper for Pyshell which uses the Psychopy ThemeMixin'''
+    """Simple class wrapper for Pyshell which uses the Psychopy ThemeMixin."""
     def __init__(self, coder):
         msg = _translate('PyShell in PsychoPy - type some commands!')
-        wx.py.shell.Shell.__init__(self, coder.shelf, -1, introText=msg + '\n\n', style=wx.BORDER_NONE)
+        wx.py.shell.Shell.__init__(
+            self, coder.shelf, -1, introText=msg + '\n\n', style=wx.BORDER_NONE)
         self.prefs = coder.prefs
         self.paths = coder.paths
         self.app = coder.app
 
+        self.Bind(wx.EVT_SET_FOCUS, self.OnSetFocus)
+        self.Bind(wx.EVT_KILL_FOCUS, self.OnKillFocus)
+
         # Set theme to match code editor
         self._applyAppTheme()
+
+    def OnSetFocus(self, evt=None):
+        """Called when the shell gets focus."""
+        # Switch to the default callback when in console, prevents the PsychoPy
+        # error dialog from opening.
+        sys.excepthook = sys.__excepthook__
+
+        if evt:
+            evt.Skip()
+
+    def OnKillFocus(self, evt=None):
+        """Called when the shell loses focus."""
+        # Set the callback to use the dialog when errors occur outside the
+        # shell.
+        sys.excepthook = exceptionCallback
+
+        if evt:
+            evt.Skip()
 
     def GetContextMenu(self):
         """Override original method (wx.py.shell.Shell.GetContextMenu)
@@ -1069,9 +1092,6 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
                 start = 0
                 loc = textstring.find(findstring, start)
 
-        # Adjust for offset
-        loc += 2
-
         # was it still not found?
         if loc == -1:
             dlg = dialogs.MessageDialog(self, message=_translate(
@@ -1294,7 +1314,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
 
         # Link to Runner output
         if self.app.runner is None:
-            self.app.newRunnerFrame()
+            self.app.showRunner()
         self.outputWindow = self.app.runner.stdOut
         self.outputWindow.write(_translate('Welcome to PsychoPy3!') + '\n')
         self.outputWindow.write("v%s\n" % self.app.version)
@@ -2435,6 +2455,13 @@ class CoderFrame(wx.Frame, ThemeMixin):
             self.setFileModified(False)
             # JRG: 'doc.filename' should = newPath = dlg.getPath()
             doc.fileModTime = os.path.getmtime(doc.filename)
+            # update the lexer since the extension could have changed
+            self.currentDoc.setLexerFromFileName()
+            # re-analyse the document
+            self.currentDoc.analyseScript()
+            # Update status bar and title bar labels
+            self.statusBar.SetStatusText(self.currentDoc.getFileType(), 2)
+            self.SetLabel(f'{self.currentDoc.filename} - PsychoPy Coder')
 
         dlg.Destroy()
 
@@ -2571,7 +2598,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.currentDoc.resetFontSize()
 
     def foldAll(self, event):
-        self.currentDoc.FoldAll()
+        self.currentDoc.FoldAll(wx.stc.STC_FOLDACTION_TOGGLE)
 
     # def unfoldAll(self, event):
     #   self.currentDoc.ToggleFoldAll(expand = False)

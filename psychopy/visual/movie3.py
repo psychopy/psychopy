@@ -495,7 +495,10 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
                                level=logging.EXP, obj=self)
 
     def __del__(self):
-        self._unload()
+        try:
+            self._unload()
+        except ModuleNotFoundError:
+            pass  # has probably been garbage-collected already
 
     def setAutoDraw(self, val, log=None):
         """Add or remove a stimulus from the list of stimuli that will be

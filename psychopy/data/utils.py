@@ -229,7 +229,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
         - "2:5"       # 2, 3, 4 (doesn't include last whole value)
         - "-10:2:"    # tenth from last to the last in steps of 2
         - slice(-10, 2, None)  # the same as above
-        - random(5) * 8  # five random vals 0-8
+        - random(5) * 8  # five random vals 0-7
 
     """
 
@@ -438,8 +438,10 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
     elif len(selection) > 0:
         allConds = trialList
         trialList = []
+        print(selection)
+        print(len(allConds))
         for ii in selection:
-            trialList.append(allConds[int(round(ii))])
+            trialList.append(allConds[int(ii)])
 
     logging.exp('Imported %s as conditions, %d conditions, %d params' %
                 (fileName, len(trialList), len(fieldNames)))

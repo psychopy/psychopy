@@ -8,6 +8,7 @@
 from __future__ import absolute_import, print_function
 
 from os import path
+import copy
 from psychopy import logging
 from psychopy.experiment.components import BaseVisualComponent, getInitVals, Param, _translate
 
@@ -150,7 +151,7 @@ class MovieComponent(BaseVisualComponent):
         if useInits:
             inits = getInitVals(self.params)
         else:
-            inits = self.params
+            inits = copy.deepcopy(self.params)
 
         noAudio = '{}'.format(inits['No audio'].val).lower()
         loop = '{}'.format(inits['loop'].val).lower()
