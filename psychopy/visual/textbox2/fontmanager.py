@@ -836,7 +836,7 @@ class FontManager(object):
             try:
                 fontInfos = list(self.addGoogleFont(name))
             except MissingFontError:
-                return False
+                pass
             # Then try again with fallback
             fontInfos = self.getFontsMatching(name, bold, italic, fallback=True)
             if not fontInfos:
