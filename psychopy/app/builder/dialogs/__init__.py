@@ -840,7 +840,7 @@ class _BaseParamsDlg(wx.Dialog):
     def onNewTextSize(self, event):
         self.Fit()  # for ExpandoTextCtrl this is needed
 
-    def show(self):
+    def show(self, testing=False):
         """Adds an OK and cancel button, shows dialogue.
 
         This method returns wx.ID_OK (as from ShowModal), but also
@@ -908,8 +908,11 @@ class _BaseParamsDlg(wx.Dialog):
         if self.timeout is not None:
             timeout = wx.CallLater(self.timeout, self.autoTerminate)
             timeout.Start()
-        retVal = self.ShowModal()
-        self.OK = bool(retVal == wx.ID_OK)
+        if testing:
+            self.Show()
+        else:
+            retVal = self.ShowModal()
+            self.OK = bool(retVal == wx.ID_OK)
         return wx.ID_OK
 
     def autoTerminate(self, event=None, retval=1):
@@ -1788,7 +1791,7 @@ class DlgComponentProperties(_BaseParamsDlg):
                  helpUrl=None, suppressTitles=True, size=wx.DefaultSize,
                  style=wx.DEFAULT_DIALOG_STYLE | wx.DIALOG_NO_PARENT,
                  editing=False, depends=[],
-                 timeout=None, type=None):
+                 timeout=None, testing=False, type=None):
         style = style | wx.RESIZE_BORDER
         _BaseParamsDlg.__init__(self, frame, title, params, order,
                                 helpUrl=helpUrl, size=size, style=style,
@@ -1807,10 +1810,11 @@ class DlgComponentProperties(_BaseParamsDlg):
                       self.paramCtrls['storeCorrect'].valueCtrl)
 
         # for all components
-        self.show()
-        if self.OK:
-            self.params = self.getParams()  # get new vals from dlg
-        self.Destroy()
+        self.show(testing)
+        if not testing:
+            if self.OK:
+                self.params = self.getParams()  # get new vals from dlg
+            self.Destroy()
 
     def onStoreCorrectChange(self, event=None):
         """store correct has been checked/unchecked. Show or hide the

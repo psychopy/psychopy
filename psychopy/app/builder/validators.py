@@ -19,6 +19,8 @@ from . import experiment
 from .localizedStrings import _localized
 from pkg_resources import parse_version
 
+from ...data.utils import listFromString
+
 if parse_version(wx.__version__) < parse_version('4.0.0a1'):
     _ValidatorBase = wx.PyValidator
 else:
@@ -168,36 +170,36 @@ class CodeSnippetValidator(BaseValidator):
             except KeyError:
                 pass
 
+        # Get attributes of value control
         control = self.GetWindow()
         if not hasattr(control, 'GetValue'):
             return '', True
         val = control.GetValue()  # same as parent.params[self.fieldName].val
         if not isinstance(val, basestring):
             return '', True
-
         field = self.fieldName
+        allowedUpdates = ['set every repeat', 'set every frame']
+        # Set initials
         msg, OK = '', True  # until we find otherwise
         _highlightParamVal(parent)
+        # What valType should code be treated as?
         codeWanted = psychopy.experiment.utils.unescapedDollarSign_re.search(val)
         isCodeField = bool(parent.params[self.fieldName].valType == 'code')
-        allowedUpdates = ['set every repeat', 'set every frame']
 
-        # Check if variable incorrectly defined in correct answer
+        # Validate as list
         allKeyBoardKeys = list(key._key_names.values()) + [str(num) for num in range(10)]
+        allKeyBoardKeys = [key.lower() for key in allKeyBoardKeys]
         if self.fieldName == 'correctAns' and not val.startswith('$'):
-            if ',' in val:  # comma separated
-                keyList = val.upper().split(',')
-                keyList = [thisKey.replace(' ', '') for thisKey in keyList if len(thisKey) > 0]
-            else:  # whitespace separated
-                keyList = val.upper().split(' ')
-                keyList = [thisKey.replace(' ', '') for thisKey in keyList if len(thisKey) > 0]
-
+            keyList = listFromString(val)
+            if isinstance(keyList, str):
+                keyList = [keyList]
             potentialVars = list(set(keyList) - set(allKeyBoardKeys))  # Elements of keyList not in allKeyBoardKeys
             _highlightParamVal(parent, bool(potentialVars))
             if len(potentialVars):
                 msg = _translate("It looks like your 'Correct answer' contains a variable - prepend variables with '$' e.g. ${val}")
                 msg = msg.format(val=potentialVars[0].lower())
 
+        # Validate as code
         if codeWanted or isCodeField:
             # get var names from val, check against namespace:
             code = experiment.getCodeFromParamStr(val)
@@ -218,7 +220,7 @@ class CodeSnippetValidator(BaseValidator):
                             eval(code)
                         except NameError as e:
                             _highlightParamVal(parent, True)
-                            msg = _translate("Looks like your variable '{code}' in '{displayName}' should be set to update.")
+                            msg = _translate(f"Looks like your variable '{code}' in '{self.displayName}' should be set to update.")
                             msg = msg.format(code=code, displayName=self.displayName)
                         except SyntaxError as e:
                             msg = ''
@@ -240,7 +242,7 @@ class CodeSnippetValidator(BaseValidator):
 
                     for newName in names:
                         namespace = parent.frame.exp.namespace
-                        if newName in namespace.user or newName in namespace.builder:
+                        if newName in [*namespace.user, *namespace.builder, *namespace.constants]:
                             continue
                         used = namespace.exists(newName)
                         sameAsOldName = bool(newName == parent.params['name'].val)

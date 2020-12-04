@@ -147,7 +147,8 @@ class NameSpace(object):
         # noinspection PyUnresolvedReferences
         self.keywords = keyword.kwlist + dir(__builtins__)
         # these are based on a partial test, known to be incomplete:
-        self.psychopy = psychopy.__all__ + ['psychopy', 'os'] + dir(constants)
+        self.psychopy = psychopy.__all__ + ['psychopy', 'os']
+        self.constants = dir(constants)
         self.builder = ['KeyResponse', 'keyboard', 'buttons',
                         'continueRoutine', 'expInfo', 'expName', 'thisExp',
                         'filename', 'logFile', 'paramName',
