@@ -102,6 +102,7 @@ function trialRoutineBegin() {
   trialClock.reset(); // clock
   frameN = -1;
   routineTimer.add(1.000000);
+
   // update component parameters for each repeat
   // keep track of which components have finished
   trialComponents = [];
@@ -118,7 +119,7 @@ var frameRemains;
 var continueRoutine;
 function trialRoutineEachFrame() {
   //------Loop for each frame of Routine 'trial'-------
-  let continueRoutine = true; // until we're told otherwise
+
   // get current time
   t = trialClock.getTime();
   frameN = frameN + 1;// number of completed frames (so 0 is the first frame)

@@ -262,7 +262,9 @@ class Routine(list):
         code = ("//------Prepare to start Routine '%(name)s'-------\n"
                 "t = 0;\n"
                 "%(name)sClock.reset(); // clock\n"
-                "frameN = -1;\n" % self.params)
+                "frameN = -1;\n"
+                "continueRoutine = true; // until we're told otherwise\n"
+                % self.params)
         buff.writeIndentedLines(code)
         # can we use non-slip timing?
         maxTime, useNonSlip = self.getMaxTime()
@@ -287,18 +289,20 @@ class Routine(list):
         if modular:
             code = ("\nfor (const thisComponent of %(name)sComponents)\n"
                     "  if ('status' in thisComponent)\n"
-                    "    thisComponent.status = PsychoJS.Status.NOT_STARTED;\n"
-                    "\nreturn Scheduler.Event.NEXT;\n" % self.params)
+                    "    thisComponent.status = PsychoJS.Status.NOT_STARTED;\n" % self.params)
         else:
             code = ("\n%(name)sComponents.forEach( function(thisComponent) {\n"
                     "  if ('status' in thisComponent)\n"
                     "    thisComponent.status = PsychoJS.Status.NOT_STARTED;\n"
-                    "   });\n"
-                    "\nreturn Scheduler.Event.NEXT;\n" % self.params)
-
+                    "   });\n" % self.params)
         buff.writeIndentedLines(code)
+
+        # are we done yet?
+        code = ("return Scheduler.Event.NEXT;\n")
+        buff.writeIndentedLines(code)
+
         buff.setIndentLevel(-1, relative=True)
-        buff.writeIndentedLines("};\n")
+        buff.writeIndentedLines("}\n")
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndentedLines("}\n")
 
@@ -315,7 +319,6 @@ class Routine(list):
         buff.setIndentLevel(1, relative=True)
 
         code = ("//------Loop for each frame of Routine '%(name)s'-------\n"
-                "let continueRoutine = true; // until we're told otherwise\n"
                 "// get current time\n"
                 "t = %(name)sClock.getTime();\n"
                 "frameN = frameN + 1;"
