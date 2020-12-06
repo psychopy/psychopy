@@ -20,7 +20,7 @@ import sys
 import string
 import copy
 import numpy
-from collections import namedtuple, OrderedDict, MutableMapping
+from collections import namedtuple, OrderedDict
 from psychopy.preferences import prefs
 
 # try to import pyglet & pygame and hope the user has at least one of them!
@@ -41,6 +41,11 @@ try:
     haveGLFW = True
 except ImportError:
     haveGLFW = False
+
+try:
+    from collections.abc import MutableMapping
+except ImportError:
+    from collections import MutableMapping
 
 if havePygame:
     usePygame = True  # will become false later if win not initialised
