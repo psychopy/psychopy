@@ -245,13 +245,14 @@ class CodeSnippetValidator(BaseValidator):
                     for newName in names:
                         namespace = parent.frame.exp.namespace
                         if newName in [*namespace.user, *namespace.builder, *namespace.constants]:
+                            # Continue if name is a variable
+                            continue
+                        if newName in [*namespace.nonUserBuilder, *namespace.numpy] and not re.search(newName+"(?!\(\))", val):
+                            # Continue if name is an external function being called correctly
                             continue
                         used = namespace.exists(newName)
-                        if newName in namespace.nonUserBuilder + namespace.numpy:
-                            # If name is an external function, silence warning when used correctly (i.e. with brackets)
-                            usedCorrect = not re.search(newName+"(?!\(\))", val)
                         sameAsOldName = bool(newName == parent.params['name'].val)
-                        if used and not sameAsOldName and not usedCorrect:
+                        if used and not sameAsOldName:
                             msg = _translate(f"Variable name ${newName} is in use (by {_translate(used)}). Try another name.")
                             # let the user continue if this is what they intended
                             OK = True
