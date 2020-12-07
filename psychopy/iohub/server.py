@@ -105,12 +105,15 @@ class udpServer(DatagramServer):
 
             result = None
             try:
-                result = getattr(self, unicode(callable_name, 'utf-8'))
+                result = getattr(self, callable_name)  # should work for PY3
             except Exception:
-                print2err('RPC_ATTRIBUTE_ERROR')
-                printExceptionDetailsToStdErr()
-                self.sendResponse('RPC_ATTRIBUTE_ERROR', replyTo)
-                return False
+                try:
+                    result = getattr(self, unicode(callable_name, 'utf-8'))  # fall-back onto PY2 retro-compatibility
+                except Exception:
+                    print2err('RPC_ATTRIBUTE_ERROR')
+                    printExceptionDetailsToStdErr()
+                    self.sendResponse('RPC_ATTRIBUTE_ERROR', replyTo)
+                    return False
 
             if result and callable(result):
                 funcPtr = result
