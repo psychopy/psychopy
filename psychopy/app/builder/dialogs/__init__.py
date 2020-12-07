@@ -515,7 +515,9 @@ class _BaseParamsDlg(wx.Dialog):
                       'Formatting':_translate('Formatting'),
                       'Texture':_translate('Texture'),
                       'Timing':_translate('Timing'),
-                      'Playback':_translate('Playback')}
+                      'Playback':_translate('Playback'),
+                      'Hardware':_translate('Hardware'),
+                      'Interface':_translate('Interface')}
         for categName in categNames:
             theseParams = categs[categName]
             page = wx.Panel(self.ctrls, -1)
@@ -838,7 +840,7 @@ class _BaseParamsDlg(wx.Dialog):
     def onNewTextSize(self, event):
         self.Fit()  # for ExpandoTextCtrl this is needed
 
-    def show(self):
+    def show(self, testing=False):
         """Adds an OK and cancel button, shows dialogue.
 
         This method returns wx.ID_OK (as from ShowModal), but also
@@ -906,8 +908,11 @@ class _BaseParamsDlg(wx.Dialog):
         if self.timeout is not None:
             timeout = wx.CallLater(self.timeout, self.autoTerminate)
             timeout.Start()
-        retVal = self.ShowModal()
-        self.OK = bool(retVal == wx.ID_OK)
+        if testing:
+            self.Show()
+        else:
+            retVal = self.ShowModal()
+            self.OK = bool(retVal == wx.ID_OK)
         return wx.ID_OK
 
     def autoTerminate(self, event=None, retval=1):
@@ -1786,7 +1791,7 @@ class DlgComponentProperties(_BaseParamsDlg):
                  helpUrl=None, suppressTitles=True, size=wx.DefaultSize,
                  style=wx.DEFAULT_DIALOG_STYLE | wx.DIALOG_NO_PARENT,
                  editing=False, depends=[],
-                 timeout=None, type=None):
+                 timeout=None, testing=False, type=None):
         style = style | wx.RESIZE_BORDER
         _BaseParamsDlg.__init__(self, frame, title, params, order,
                                 helpUrl=helpUrl, size=size, style=style,
@@ -1805,10 +1810,11 @@ class DlgComponentProperties(_BaseParamsDlg):
                       self.paramCtrls['storeCorrect'].valueCtrl)
 
         # for all components
-        self.show()
-        if self.OK:
-            self.params = self.getParams()  # get new vals from dlg
-        self.Destroy()
+        self.show(testing)
+        if not testing:
+            if self.OK:
+                self.params = self.getParams()  # get new vals from dlg
+            self.Destroy()
 
     def onStoreCorrectChange(self, event=None):
         """store correct has been checked/unchecked. Show or hide the
@@ -2019,6 +2025,8 @@ class TableCtrl(wx.TextCtrl):
         self.templates = {
             'Form': os.path.join(cmpRoot, "form", "formItems.xltx")
         }
+        # Store location of root directory
+        self.rootDir = os.path.normpath(os.path.join(self.GetTopLevelParent().frame.filename, ".."))
         # Configure validation
         self.Bind(wx.EVT_TEXT, self.validateInput)
         self.validExt = [".csv",".tsv",".txt",
@@ -2051,7 +2059,7 @@ class TableCtrl(wx.TextCtrl):
 
     def openExcel(self, event):
         """Either open the specified excel sheet, or make a new one from a template"""
-        file = self.GetValue()
+        file = os.path.normpath(os.path.join(self.rootDir, self.GetValue()))
         if os.path.isfile(file) and file.endswith(tuple(self.validExt)):
             os.startfile(file)
         else:
@@ -2069,7 +2077,8 @@ class TableCtrl(wx.TextCtrl):
         if dlg.ShowModal() != wx.ID_OK:
             return 0
         filename = dlg.GetPath()
-        relname = os.path.relpath(filename)
+        relname = os.path.relpath(filename,
+                                  self.rootDir)
         self.SetValue(relname)
         self.validateInput(event)
 

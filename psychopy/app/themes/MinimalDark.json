@@ -125,12 +125,12 @@
   "documentation": {
     "fg": "#ACACB0",
     "bg": "",
-    "font": ""
+    "font": "italic"
   },
   "documentation2": {
     "fg": "#ACACB0",
     "bg": "",
-    "font": ""
+    "font": "italic"
   },
   "whitespace": {
     "fg": "#7C7C86",

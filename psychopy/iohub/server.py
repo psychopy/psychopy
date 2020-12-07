@@ -105,7 +105,10 @@ class udpServer(DatagramServer):
 
             result = None
             try:
-                result = getattr(self, callable_name)  # should work for PY3
+                result = getattr(self, unicode(callable_name, 'utf-8'))
+            except TypeError as e:
+                if "decoding str is not supported" in str(e):
+                    result = getattr(self, callable_name)
             except Exception:
                 try:
                     result = getattr(self, unicode(callable_name, 'utf-8'))  # fall-back onto PY2 retro-compatibility

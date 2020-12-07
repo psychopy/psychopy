@@ -30,15 +30,14 @@
                         role="menu"
                         aria-labelledby="dLabelGlobalToc">
                         <ul>
-                            <li class="toctree-l1"><a class="reference internal" href="about/index.html">About</a>
+                            <li class="toctree-l1"><a class="reference internal" href="{{ pathto('about/index') }}">About</a>
                             </li>
-                            <li class="toctree-l1"><a class="reference internal"
-                                                      href="documentation.html">Documentation</a></li>
-                            <li class="toctree-l1"><a class="reference internal" href="api/api.html">Reference Manual
+                            <li class="toctree-l1"><a class="reference internal" href="{{ pathto('documentation') }}">Documentation</a></li>
+                            <li class="toctree-l1"><a class="reference internal" href="{{ pathto('api/index') }}">Reference Manual
                                 (API)</a></li>
-                            <li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a>
+                            <li class="toctree-l1"><a class="reference internal" href="{{ pathto('changelog') }}">Changelog</a>
                             </li>
-                            <li class="toctree-l1"><a class="reference internal" href="resources/index.html">Resources
+                            <li class="toctree-l1"><a class="reference internal" href="{{ pathto('resources/index') }}">Resources
                                 (e.g. for teaching)</a></li>
                         </ul>
                     </ul>

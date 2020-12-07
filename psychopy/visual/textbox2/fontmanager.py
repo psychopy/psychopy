@@ -14,14 +14,16 @@
 # Distributed under the Boost Software License, Version 1.0
 # (see http://www.boost.org/LICENSE_1_0.txt)
 #
-
+import re
 import sys, os
 import math
 import numpy as np
+import ctypes
 import freetype as ft
-import OpenGL.GL as gl
+from pyglet import gl  # import OpenGL.GL not compatible with Big Sur (2020)
 import glob
 from pathlib import Path
+import requests
 
 from psychopy import logging
 from psychopy import prefs
@@ -281,7 +283,8 @@ class _TextureAtlas:
         """Upload the local atlas data into graphics card memory
         """
         if not self.textureID:
-            self.textureID = gl.glGenTextures(1)
+            self.textureID = gl.GLuint(0)
+            gl.glGenTextures(1, ctypes.byref(self.textureID))
         logging.debug("Uploading Texture Font {} to graphics card"
                       .format(self.name))
         gl.glBindTexture(gl.GL_TEXTURE_2D, self.textureID)
@@ -296,11 +299,11 @@ class _TextureAtlas:
         if self.format == 'alpha':
             gl.glTexImage2D(gl.GL_TEXTURE_2D, 0, gl.GL_ALPHA,
                             self.width, self.height, 0,
-                            gl.GL_ALPHA, gl.GL_UNSIGNED_BYTE, self.data)
+                            gl.GL_ALPHA, gl.GL_UNSIGNED_BYTE, self.data.ctypes)
         else:
             gl.glTexImage2D(gl.GL_TEXTURE_2D, 0, gl.GL_RGB,
                             self.width, self.height, 0,
-                            gl.GL_RGB, gl.GL_UNSIGNED_BYTE, self.data)
+                            gl.GL_RGB, gl.GL_UNSIGNED_BYTE, self.data.ctypes)
         logging.debug("Upload of Texture Font {} complete"
                       .format(self.name))
 
@@ -720,6 +723,40 @@ class FontManager(object):
         similar = [this for this in allNames if
                    (fontName.lower() in this.lower())]
         return similar
+
+    def addGoogleFont(self, fontName):
+        """Add a font directly from the Google Font repository, saving it to the user prefs folder"""
+
+        # Construct and send Google Font url from name
+        repoURL = f"https://fonts.googleapis.com/css2?family={ fontName.replace(' ', '+') }&display=swap"
+        repoResp = requests.get(repoURL)
+        if not repoResp.ok:
+            # If font name is not found, raise error
+            raise MissingFontError(f"Font `{fontName}` could not be retrieved from the Google Font library.")
+        # Get and send file url from returned CSS data
+        fileURL = re.findall("(?<=src: url\().*(?=\) format)", repoResp.content.decode())[0]
+        fileResp = requests.get(fileURL)
+        if not fileResp.ok:
+            # If font file is not available, raise error
+            raise MissingFontError(f"OST file for Google font `{fontName}` could not be accessed")
+        # Save retrieved font as an OST file
+        fileName = Path(prefs.paths['resources']) / f"{fontName}.ost"
+        with open(fileName, "wb") as fileObj:
+            fileObj.write(fileResp.content)
+        # Add font and return
+        return self.addFontFile(fileName)
+
+    def addGoogleFonts(self, fontList):
+        """Add a list of fonts directly from the Google Font repository, saving them to the user prefs folder"""
+        # Blank list to store output in
+        outList = []
+        # Call addFontFile for each font
+        for font in fontList:
+            outList.append(self.addFontFile(font))
+        # Sort fonts
+        self.fontStyles.sort()
+        # Return
+        return outList
 
     def addFontFile(self, fontPath, monospaceOnly=False):
         """Add a Font File to the FontManger font search space. The

@@ -16,7 +16,6 @@ import os
 import pickle
 import copy
 import warnings
-import collections
 import numpy as np
 from pkg_resources import parse_version
 
@@ -28,6 +27,11 @@ from psychopy.contrib.quest import QuestObject
 from psychopy.contrib.psi import PsiObject
 from .base import _BaseTrialHandler, _ComparisonMixin
 from .utils import _getExcelCellName
+
+try:
+    from collections.abc import Iterable
+except ImportError:
+    from collections import Iterable
 
 try:
     # import openpyxl
@@ -1836,7 +1840,7 @@ class MultiStairHandler(_BaseTrialHandler):
 
     def _checkArguments(self):
         # Did we get a `conditions` parameter, correctly formatted?
-        if not isinstance(self.conditions, collections.Iterable):
+        if not isinstance(self.conditions, Iterable):
             raise TypeError(
                 '`conditions` parameter passed to MultiStairHandler '
                 'should be a list, not a %s.' % type(self.conditions))
