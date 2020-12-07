@@ -407,9 +407,9 @@ class udpServer(DatagramServer):
                     self.iohub._pyglet_window_hnds.remove(wh)
 
     def createExperimentSessionEntry(self, sessionInfoDict):
-        if PY3:
-            sessionInfoDict = {str(k, 'utf-8'): str(v, 'utf-8')
-                               for k, v in sessionInfoDict.items()}
+        # if PY3:
+        #     sessionInfoDict = {str(k, 'utf-8'): str(v, 'utf-8')
+        #                        for k, v in sessionInfoDict.items()}
         self.iohub.sessionInfoDict = sessionInfoDict
         dsfile = self.iohub.dsfile
         if dsfile:
