@@ -32,7 +32,7 @@ def readTextFile(relPath):
 # used when writing scripts and in namespace:
 _numpyImports = ['sin', 'cos', 'tan', 'log', 'log10', 'pi', 'average',
                  'sqrt', 'std', 'deg2rad', 'rad2deg', 'linspace', 'asarray']
-_numpyRandomImports = ['random', 'randint', 'normal', 'shuffle']
+_numpyRandomImports = ['random', 'randint', 'normal', 'shuffle', 'choice as randchoice']
 
 # this is not a standard component - it will appear on toolbar not in
 # components panel
