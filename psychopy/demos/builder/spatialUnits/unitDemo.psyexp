@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" ?>
-<PsychoPy2experiment encoding="utf-8" version="2020.2.9">
+<PsychoPy2experiment encoding="utf-8" version="2020.2.8">
   <Settings>
     <Param name="Audio latency priority" updates="None" val="use prefs" valType="str"/>
     <Param name="Audio lib" updates="None" val="use prefs" valType="str"/>
@@ -20,7 +20,7 @@
     <Param name="Save psydat file" updates="None" val="True" valType="bool"/>
     <Param name="Save wide csv file" updates="None" val="True" valType="bool"/>
     <Param name="Screen" updates="None" val="1" valType="num"/>
-    <Param name="Show info dlg" updates="None" val="True" valType="bool"/>
+    <Param name="Show info dlg" updates="None" val="False" valType="bool"/>
     <Param name="Show mouse" updates="None" val="False" valType="bool"/>
     <Param name="Units" updates="None" val="height" valType="str"/>
     <Param name="Use version" updates="None" val="" valType="str"/>
@@ -30,7 +30,7 @@
     <Param name="colorSpace" updates="None" val="rgb" valType="str"/>
     <Param name="expName" updates="None" val="unitDemo2" valType="str"/>
     <Param name="exportHTML" updates="None" val="on Sync" valType="str"/>
-    <Param name="logging level" updates="None" val="exp" valType="code"/>
+    <Param name="logging level" updates="None" val="debug" valType="code"/>
   </Settings>
   <Routines>
     <Routine name="rectMover">
@@ -51,30 +51,6 @@
         <Param name="disabled" updates="None" val="False" valType="bool"/>
         <Param name="name" updates="None" val="code" valType="code"/>
       </CodeComponent>
-      <TextComponent name="inst">
-        <Param name="color" updates="constant" val="white" valType="str"/>
-        <Param name="colorSpace" updates="constant" val="rgb" valType="str"/>
-        <Param name="disabled" updates="None" val="False" valType="bool"/>
-        <Param name="durationEstim" updates="None" val="" valType="code"/>
-        <Param name="flip" updates="constant" val="" valType="str"/>
-        <Param name="font" updates="constant" val="Arial" valType="str"/>
-        <Param name="languageStyle" updates="None" val="LTR" valType="str"/>
-        <Param name="letterHeight" updates="constant" val="0.025" valType="code"/>
-        <Param name="name" updates="None" val="inst" valType="code"/>
-        <Param name="opacity" updates="constant" val="1" valType="code"/>
-        <Param name="ori" updates="constant" val="0" valType="code"/>
-        <Param name="pos" updates="constant" val="(0, -0.4)" valType="code"/>
-        <Param name="saveStartStop" updates="None" val="True" valType="bool"/>
-        <Param name="startEstim" updates="None" val="" valType="code"/>
-        <Param name="startType" updates="None" val="time (s)" valType="str"/>
-        <Param name="startVal" updates="None" val="0.0" valType="code"/>
-        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
-        <Param name="stopVal" updates="constant" val="" valType="code"/>
-        <Param name="syncScreenRefresh" updates="None" val="True" valType="bool"/>
-        <Param name="text" updates="constant" val="Move: up, down, left, right&amp;#10;Scale: minus = shrink, equals = grow&amp;#10;Units: p = pix, h = height, n = norm, c = cm, d = deg&amp;#10;Reset: r" valType="extendedStr"/>
-        <Param name="units" updates="None" val="from exp settings" valType="str"/>
-        <Param name="wrapWidth" updates="constant" val="" valType="code"/>
-      </TextComponent>
       <PolygonComponent name="stim">
         <Param name="disabled" updates="None" val="False" valType="bool"/>
         <Param name="durationEstim" updates="None" val="" valType="code"/>
@@ -100,6 +76,30 @@
         <Param name="syncScreenRefresh" updates="None" val="True" valType="bool"/>
         <Param name="units" updates="None" val="from exp settings" valType="str"/>
       </PolygonComponent>
+      <TextComponent name="inst">
+        <Param name="color" updates="constant" val="black" valType="str"/>
+        <Param name="colorSpace" updates="constant" val="rgb" valType="str"/>
+        <Param name="disabled" updates="None" val="False" valType="bool"/>
+        <Param name="durationEstim" updates="None" val="" valType="code"/>
+        <Param name="flip" updates="constant" val="" valType="str"/>
+        <Param name="font" updates="constant" val="Arial" valType="str"/>
+        <Param name="languageStyle" updates="None" val="LTR" valType="str"/>
+        <Param name="letterHeight" updates="constant" val="0.025" valType="code"/>
+        <Param name="name" updates="None" val="inst" valType="code"/>
+        <Param name="opacity" updates="constant" val="1" valType="code"/>
+        <Param name="ori" updates="constant" val="0" valType="code"/>
+        <Param name="pos" updates="constant" val="(0, -0.4)" valType="code"/>
+        <Param name="saveStartStop" updates="None" val="True" valType="bool"/>
+        <Param name="startEstim" updates="None" val="" valType="code"/>
+        <Param name="startType" updates="None" val="time (s)" valType="str"/>
+        <Param name="startVal" updates="None" val="0.0" valType="code"/>
+        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
+        <Param name="stopVal" updates="constant" val="" valType="code"/>
+        <Param name="syncScreenRefresh" updates="None" val="True" valType="bool"/>
+        <Param name="text" updates="constant" val="Move: up, down, left, right&amp;#10;Scale: minus = shrink, equals = grow&amp;#10;Units: p = pix, h = height, n = norm, c = cm, d = deg&amp;#10;Reset: r" valType="extendedStr"/>
+        <Param name="units" updates="None" val="from exp settings" valType="str"/>
+        <Param name="wrapWidth" updates="constant" val="" valType="code"/>
+      </TextComponent>
       <TextComponent name="poslog">
         <Param name="color" updates="constant" val="black" valType="str"/>
         <Param name="colorSpace" updates="constant" val="rgb" valType="str"/>
