@@ -10,6 +10,8 @@ Module containing validators for various parameters.
 """
 from __future__ import absolute_import, print_function
 
+import re
+
 from past.builtins import basestring
 import wx
 
@@ -243,11 +245,15 @@ class CodeSnippetValidator(BaseValidator):
                     for newName in names:
                         namespace = parent.frame.exp.namespace
                         if newName in [*namespace.user, *namespace.builder, *namespace.constants]:
+                            # Continue if name is a variable
+                            continue
+                        if newName in [*namespace.nonUserBuilder, *namespace.numpy] and not re.search(newName+"(?!\(\))", val):
+                            # Continue if name is an external function being called correctly
                             continue
                         used = namespace.exists(newName)
                         sameAsOldName = bool(newName == parent.params['name'].val)
                         if used and not sameAsOldName:
-                            msg = _translate("Variable name $%s is in use (by %s). Try another name.") % (newName, _translate(used))
+                            msg = _translate(f"Variable name ${newName} is in use (by {_translate(used)}). Try another name.")
                             # let the user continue if this is what they intended
                             OK = True
 
