@@ -241,6 +241,16 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                     size=int(round(self._pixLetterHeight)),
                     bold=self.bold, italic=self.italic)
 
+    @property
+    def fontMGR(self):
+            return allFonts
+    @fontMGR.setter
+    def fontMGR(self, mgr):
+        if isinstance(mgr, FontManager):
+            allFonts = mgr
+        else:
+            raise TypeError(f"Could not set font manager for TextBox2 object `{self.name}`, must be supplied with a FontManager object")
+
     @attributeSetter
     def anchor(self, anchor):
         """anchor is a string of terms, top, bottom, left, right, center
