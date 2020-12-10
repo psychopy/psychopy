@@ -10,6 +10,7 @@
 
 from __future__ import absolute_import, division, print_function
 import sys
+from pathlib import Path
 
 from builtins import map
 from builtins import str
@@ -510,7 +511,13 @@ class _BaseParamsDlg(wx.Dialog):
                       'Online':_translate('Online'),
                       'Testing':_translate('Testing'),
                       'Audio':_translate('Audio'),
-                      'Format':_translate('Format')}
+                      'Format':_translate('Format'),
+                      'Formatting':_translate('Formatting'),
+                      'Texture':_translate('Texture'),
+                      'Timing':_translate('Timing'),
+                      'Playback':_translate('Playback'),
+                      'Hardware':_translate('Hardware'),
+                      'Interface':_translate('Interface')}
         for categName in categNames:
             theseParams = categs[categName]
             page = wx.Panel(self.ctrls, -1)
@@ -794,10 +801,10 @@ class _BaseParamsDlg(wx.Dialog):
                     pass
 
         if fieldName in ['text']:
-            sizer.AddGrowableRow(currRow)  # doesn't seem to work though
-            # self.Bind(EVT_ETC_LAYOUT_NEEDED, self.onNewTextSize,
-            #    ctrls.valueCtrl)
+            sizer.AddGrowableRow(currRow)
             ctrls.valueCtrl.Bind(wx.EVT_KEY_UP, self.doValidate)
+        elif param.valType == 'fileList':
+            sizer.AddGrowableRow(currRow)  # doesn't seem to work though
         elif fieldName in ('color', 'fillColor', 'lineColor'):
             ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.launchColorPicker)
         elif valType == 'extendedCode':
@@ -833,7 +840,7 @@ class _BaseParamsDlg(wx.Dialog):
     def onNewTextSize(self, event):
         self.Fit()  # for ExpandoTextCtrl this is needed
 
-    def show(self):
+    def show(self, testing=False):
         """Adds an OK and cancel button, shows dialogue.
 
         This method returns wx.ID_OK (as from ShowModal), but also
@@ -901,8 +908,11 @@ class _BaseParamsDlg(wx.Dialog):
         if self.timeout is not None:
             timeout = wx.CallLater(self.timeout, self.autoTerminate)
             timeout.Start()
-        retVal = self.ShowModal()
-        self.OK = bool(retVal == wx.ID_OK)
+        if testing:
+            self.Show()
+        else:
+            retVal = self.ShowModal()
+            self.OK = bool(retVal == wx.ID_OK)
         return wx.ID_OK
 
     def autoTerminate(self, event=None, retval=1):
@@ -1178,7 +1188,6 @@ class DlgLoopProperties(_BaseParamsDlg):
         self.conditions = None
         self.conditionsFile = None
         self.warningsDict = {}
-        self.type = "Loop"
         # create a valid new name; save old name in case we need to revert
         namespace = frame.exp.namespace
         defaultName = namespace.makeValid('trials')
@@ -1310,7 +1319,6 @@ class DlgLoopProperties(_BaseParamsDlg):
         # loop through the params
         keys = list(handler.params.keys())
         panel = wx.Panel(parent=self)
-        panel.app = self.app
         panelSizer = wx.GridBagSizer(5, 5)
         panel.SetSizer(panelSizer)
         row = 0
@@ -1340,10 +1348,15 @@ class DlgLoopProperties(_BaseParamsDlg):
             elif fieldName == 'conditionsFile':
                 ctrls = ParamCtrls(dlg=self, parent=panel, label=label,
                                    fieldName=fieldName,
-                                   param=handler.params[fieldName])
+                                   param=handler.params[fieldName],
+                                   browse=True)
+                self.Bind(wx.EVT_BUTTON, self.onBrowseTrialsFile,
+                          ctrls.browseCtrl)
                 ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.viewConditions)
+                ctrls.valueCtrl.Bind(wx.EVT_TEXT, self.doValidate)
                 panelSizer.Add(ctrls.nameCtrl, [row, 0])
-                panelSizer.Add(ctrls.valueCtrl._szr, [row, 1])
+                panelSizer.Add(ctrls.valueCtrl, [row, 1])
+                panelSizer.Add(ctrls.browseCtrl, [row, 2])
                 row += 1
             elif fieldName == 'conditions':
                 if 'conditions' in handler.params:
@@ -1778,7 +1791,7 @@ class DlgComponentProperties(_BaseParamsDlg):
                  helpUrl=None, suppressTitles=True, size=wx.DefaultSize,
                  style=wx.DEFAULT_DIALOG_STYLE | wx.DIALOG_NO_PARENT,
                  editing=False, depends=[],
-                 timeout=None, type=None):
+                 timeout=None, testing=False, type=None):
         style = style | wx.RESIZE_BORDER
         _BaseParamsDlg.__init__(self, frame, title, params, order,
                                 helpUrl=helpUrl, size=size, style=style,
@@ -1797,10 +1810,11 @@ class DlgComponentProperties(_BaseParamsDlg):
                       self.paramCtrls['storeCorrect'].valueCtrl)
 
         # for all components
-        self.show()
-        if self.OK:
-            self.params = self.getParams()  # get new vals from dlg
-        self.Destroy()
+        self.show(testing)
+        if not testing:
+            if self.OK:
+                self.params = self.getParams()  # get new vals from dlg
+            self.Destroy()
 
     def onStoreCorrectChange(self, event=None):
         """store correct has been checked/unchecked. Show or hide the
@@ -1937,19 +1951,22 @@ class FileListCtrl(wx.ListBox):
     def __init__(self, parent, choices=[], size=None, pathtype="rel"):
         wx.ListBox.__init__(self)
         parent.Bind(wx.EVT_DROP_FILES, self.addItem)
-        self.app = parent.app
         if type(choices) == str:
             choices = data.utils.listFromString(choices)
         self.Create(id=wx.ID_ANY, parent=parent, choices=choices, size=size, style=wx.LB_EXTENDED | wx.LB_HSCROLL)
-        self.addBtn = wx.Button(parent, -1, size=wx.Size(20,20), label="+")
+        # can now get/set things like self.parent
+        self.app = parent.app
+        self.builderFrame = self.GetTopLevelParent().frame
+        self.addBtn = wx.Button(parent, -1, style=wx.BU_EXACTFIT, label="+")
         self.addBtn.Bind(wx.EVT_BUTTON, self.addItem)
-        self.subBtn = wx.Button(parent, -1, size=wx.Size(20,20), label="-")
+        self.subBtn = wx.Button(parent, -1, style=wx.BU_EXACTFIT, label="-")
         self.subBtn.Bind(wx.EVT_BUTTON, self.removeItem)
 
         self._szr = wx.BoxSizer(wx.HORIZONTAL)
         self.btns = wx.BoxSizer(wx.VERTICAL)
         self.btns.AddMany((self.addBtn, self.subBtn))
-        self._szr.AddMany((self, self.btns))
+        self._szr.Add(self, proportion=1, flag=wx.EXPAND)
+        self._szr.Add(self.btns)
 
     def addItem(self, event):
         if event.GetEventObject() == self.addBtn:
@@ -1959,17 +1976,16 @@ class FileListCtrl(wx.ListBox):
                                 wildcard=_translate(_wld))
             if dlg.ShowModal() != wx.ID_OK:
                 return 0
-            filenames = dlg.GetPaths()
-            relname = []
-            for filename in filenames:
-                relname.append(
-                    os.path.relpath(filename, self.GetTopLevelParent().frame.filename))
-            self.InsertItems(relname, 0)
+            fileList = dlg.GetPaths()
         else:
             fileList = event.GetFiles()
-            for filename in fileList:
-                if os.path.isfile(filename):
-                    self.InsertItems(filename, 0)
+        relPaths = []
+        expFile = self.builderFrame.filename
+        folder = Path(expFile).parent
+        for filename in fileList:
+            relPaths.append(
+                os.path.relpath(filename, folder))
+        self.InsertItems(relPaths, 0)
 
     def removeItem(self, event):
         i = self.GetSelections()
@@ -2006,11 +2022,11 @@ class TableCtrl(wx.TextCtrl):
         self._szr.Add(self.xlBtn)
         # Link to Excel templates for certain contexts
         cmpRoot = os.path.dirname(psychopy.experiment.components.__file__)
-        expRoot = os.path.dirname(psychopy.experiment.__file__)
         self.templates = {
-            'Form': os.path.join(cmpRoot, "form", "formItems.xltx"),
-            'Loop': os.path.join(expRoot, "loopTemplate.xltx")
+            'Form': os.path.join(cmpRoot, "form", "formItems.xltx")
         }
+        # Store location of root directory
+        self.rootDir = os.path.normpath(os.path.join(self.GetTopLevelParent().frame.filename, ".."))
         # Configure validation
         self.Bind(wx.EVT_TEXT, self.validateInput)
         self.validExt = [".csv",".tsv",".txt",
@@ -2043,7 +2059,7 @@ class TableCtrl(wx.TextCtrl):
 
     def openExcel(self, event):
         """Either open the specified excel sheet, or make a new one from a template"""
-        file = self.GetValue()
+        file = os.path.normpath(os.path.join(self.rootDir, self.GetValue()))
         if os.path.isfile(file) and file.endswith(tuple(self.validExt)):
             os.startfile(file)
         else:
@@ -2061,17 +2077,8 @@ class TableCtrl(wx.TextCtrl):
         if dlg.ShowModal() != wx.ID_OK:
             return 0
         filename = dlg.GetPath()
-        try:
-            relname = os.path.relpath(filename)
-        except ValueError:
-            dlg = wx.MessageDialog(self, _translate(
-                f"PsychoPy could not work out a relative path for your conditions file, "
-                f"this may cause issues when running online.\n\n"
-                f"If your conditions file is on a different hard drive to your experiment, "
-                f"please move them to the same hard drive and try again."),
-                             caption="Warning", style=wx.ICON_WARNING)
-            dlg.ShowModal()
-            relname = filename
+        relname = os.path.relpath(filename,
+                                  self.rootDir)
         self.SetValue(relname)
         self.validateInput(event)
 

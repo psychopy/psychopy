@@ -37,7 +37,7 @@ Monitors have fixed refresh rates
 
 Most monitors have fixed refresh rates, typically 60 Hz for a flat-panel display. You probably knew that but it's very easy to forget that this means certain stimulus durations won't be possible. If your screen is a standard 60 Hz monitor then your frame period is 1/60 s, roughly 16.7 ms. That means you can generate stimuli that last for 16.7 ms, or 33.3 ms or 50 ms, but you **cannot** present a stimulus for 20, 40, or 60 ms.
 
-The caveat to this is that you can now buy specialist monitors that support variable refresh rates (although not below at least 5 ms between refreshes). These are using a technology called G-Sync (nVidia) or FreeSync (everyone else) and PsychoPy can make use of those technologies but support isn't built in to the library. See the publication by `Poth et al (2018)<https://link.springer.com/article/10.3758/s13428-017-1003-6>`_ for example code.
+The caveat to this is that you can now buy specialist monitors that support variable refresh rates (although not below at least 5 ms between refreshes). These are using a technology called G-Sync (nVidia) or FreeSync (everyone else) and PsychoPy can make use of those technologies but support isn't built in to the library. See the publication by `Poth et al (2018) <https://link.springer.com/article/10.3758/s13428-017-1003-6>`_ for example code.
 
 .. _monitorRendersTopFirst:
 
@@ -59,7 +59,7 @@ For most monitor technologies, the lines of pixels are drawn sequentially from t
 Additional delays caused by monitors
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Monitors themselves often cause delays **on top of** the unavoidable issue of having a refresh rate. Modern displays often have features to optimize the image, which will be often labelled as modes like "Movie Mode", Game Mode" etc. If your display has any such settings then you want to turn them off so as not to change your image. Not only do these settings ential altering the color of the pixels that your experiment generator is send to the screen (if you've spent time carefully calibrating your colors and then the monitor changes them it would be annoying) but these forms of "post-processing" take time and often a *variable* time. 
+Monitors themselves often cause delays **on top of** the unavoidable issue of having a refresh rate. Modern displays often have features to optimize the image, which will be often labelled as modes like "Movie Mode", Game Mode" etc. If your display has any such settings then you want to turn them off so as not to change your image. Not only do these settings entail altering the color of the pixels that your experiment generator is send to the screen (if you've spent time carefully calibrating your colors and then the monitor changes them it would be annoying) but these forms of "post-processing" take time and often a *variable* time.
 
 If your monitor has any such "post-processing" enabled then you might well be seeing an additional 20-30 ms of (variable) lag added to the stimulus onset as a result. This **will not** be detected by psychoPy (or any other system) and will not show up in your log files.
 

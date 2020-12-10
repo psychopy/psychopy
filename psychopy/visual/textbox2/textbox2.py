@@ -17,7 +17,7 @@ some more added:
 
 """
 import numpy as np
-import OpenGL.GL as gl
+from pyglet import gl
 
 from ..basevisual import BaseVisualStim, ColorMixin, ContainerMixin
 from psychopy.tools.attributetools import attributeSetter, setAttribute
@@ -204,20 +204,17 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 autoLog=False)
         self.pallette = { # If no focus
                 'lineColor': borderColor,
-                'lineRGB': self.box.lineRGB,
                 'lineWidth': borderWidth,
                 'fillColor': fillColor,
-                'fillRGB': self.box.fillRGB
         }
         # then layout the text (setting text triggers _layout())
+        self.startText = text
         self.text = text if text is not None else ""
 
         # caret
         self.editable = editable
         self.caret = Caret(self, color=self.color, width=5)
         self._hasFocus = False
-        if editable:  # may yet gain focus if the first editable obj
-            self.win.addEditable(self)
 
         self.autoLog = autoLog
 
@@ -227,27 +224,9 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
     @pallette.setter
     def pallette(self, value):
-        pal = {}
-        # Double border width
-        if value['lineWidth']:
-            pal['lineWidth'] = max(value['lineWidth'], 2) * 2
-        else:
-            pal['lineWidth'] = 5 * 2
-        # Darken border
-        if value['lineColor']:
-            pal['lineRGB'] = pal['lineColor'] = [max(c - 0.05, 0.05) for c in value['lineRGB']]
-        else:
-            # Use window colour as base if border colour is none
-            pal['lineRGB'] = pal['lineColor'] = [max(c - 0.05, 0.05) for c in self.win.color]
-        # Lighten background
-        if value['fillColor']:
-            pal['fillRGB'] = pal['fillColor'] = [min(c + 0.05, 0.95) for c in value['fillRGB']]
-        else:
-            # Use window colour as base if fill colour is none
-            pal['fillRGB'] = pal['fillColor'] = [min(c + 0.05, 0.95) for c in self.win.color]
         self._pallette = {
             False: value,
-            True: pal
+            True: value
         }
 
     @attributeSetter
@@ -261,6 +240,16 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                     fontName,
                     size=int(round(self._pixLetterHeight)),
                     bold=self.bold, italic=self.italic)
+
+    @property
+    def fontMGR(self):
+            return allFonts
+    @fontMGR.setter
+    def fontMGR(self, mgr):
+        if isinstance(mgr, FontManager):
+            allFonts = mgr
+        else:
+            raise TypeError(f"Could not set font manager for TextBox2 object `{self.name}`, must be supplied with a FontManager object")
 
     @attributeSetter
     def anchor(self, anchor):
@@ -331,8 +320,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         # then they are converted back during rendering using standard BaseStim
         vertices = np.zeros((len(text) * 4, 2), dtype=np.float32)
         self._charIndices = np.zeros((len(text)), dtype=int)
-        self._colors = np.zeros((len(text) * 4, 4), dtype=np.float32)
-        self._texcoords = np.zeros((len(text) * 4, 2), dtype=np.float32)
+        self._colors = np.zeros((len(text) * 4, 4), dtype=np.double)
+        self._texcoords = np.zeros((len(text) * 4, 2), dtype=np.double)
         self._glIndices = np.zeros((len(text) * 4), dtype=int)
 
         # the following are used internally for layout
@@ -493,9 +482,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
     def _getStartingVertices(self):
         """Returns vertices for a single non-printing char as a proxy
         (needed to get location for caret when there are no actual chars)"""
-        glyph = self.glFont["A"]  # just to get height
-        yTop = 0
-        yBot = yTop - glyph.size[1]
+        yTop = self._anchorOffsetY - (self.glFont.height - self.glFont.ascender) * self.lineSpacing
+        yBot = yTop - self._lineHeight
         x = 0
         theseVertices = np.array([[x, yTop], [x, yBot], [x, yBot], [x, yTop]])
         return theseVertices
@@ -506,10 +494,10 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.box.setLineWidth(self.pallette['lineWidth']) # Use 1 as base if border width is none
         #self.borderWidth = self.box.lineWidth
         # Border colour
-        self.box.setLineColor(self.pallette['lineRGB'], colorSpace='rgb')
+        self.box.setLineColor(self.pallette['lineColor'], colorSpace='rgb')
         #self.borderColor = self.box.lineColor
         # Background
-        self.box.setFillColor(self.pallette['fillRGB'], colorSpace='rgb')
+        self.box.setFillColor(self.pallette['fillColor'], colorSpace='rgb')
         #self.fillColor = self.box.fillColor
 
         if self._needVertexUpdate:
@@ -531,16 +519,16 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         gl.glEnableClientState(gl.GL_TEXTURE_COORD_ARRAY)
         gl.glEnableClientState(gl.GL_VERTEX_ARRAY)
 
-        gl.glVertexPointer(2, gl.GL_FLOAT, 0, self.verticesPix)
-        gl.glColorPointer(4, gl.GL_FLOAT, 0, self._colors)
-        gl.glTexCoordPointer(2, gl.GL_FLOAT, 0, self._texcoords)
+        gl.glVertexPointer(2, gl.GL_DOUBLE, 0, self.verticesPix.ctypes)
+        gl.glColorPointer(4, gl.GL_DOUBLE, 0, self._colors.ctypes)
+        gl.glTexCoordPointer(2, gl.GL_DOUBLE, 0, self._texcoords.ctypes)
 
         self.shader.bind()
         self.shader.setInt('texture', 0)
         self.shader.setFloat('pixel', [1.0 / 512, 1.0 / 512])
         nVerts = len(self.text)*4
-        gl.glDrawElements(gl.GL_QUADS, nVerts,
-                          gl.GL_UNSIGNED_INT, list(range(nVerts)))
+
+        gl.glDrawArrays(gl.GL_QUADS, 0, nVerts)
         self.shader.unbind()
 
         # removed the colors and font texture
@@ -557,6 +545,11 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             self.caret.draw()
 
         gl.glPopMatrix()
+
+    def reset(self):
+        # Reset contents
+        self.text = self.startText
+
 
     def contains(self, x, y=None, units=None, tight=False):
         """Returns True if a point x,y is inside the stimulus' border.
@@ -939,9 +932,9 @@ class Caret(ColorMixin):
         # lastChar = [bottLeft, topLeft, **bottRight**, **topRight**]
         ii = self.index
         if textbox.vertices.shape[0] == 0:
-            verts = self.textbox._getStartingVertices()
-            verts[:,1] = verts[:,1] / float(textbox._pixelScaling)
-            verts[:,1] = verts[:,1] + float(textbox._anchorOffsetY)
+            verts = textbox._getStartingVertices() / textbox._pixelScaling
+            verts[:,1] = verts[:,1]
+            verts[:,0] = verts[:,0] + float(textbox._anchorOffsetX)
         else:
             if self.index >= len(textbox._lineNs):  # caret is after last chr
                 chrVerts = textbox.vertices[range((ii-1) * 4, (ii-1) * 4 + 4)]

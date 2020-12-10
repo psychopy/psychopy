@@ -3,7 +3,7 @@ Table3: online timing data
 
 
 This is a sortable version of Table3 from
-`The timing mega-study: comparing a range of experiment generators, both lab-based and online <https://psyarxiv.com/d6nu5/>`_
+`The timing mega-study: comparing a range of experiment generators, both lab-based and online <https://peerj.com/articles/9414/>`_
 
 
 **Timing summaries of web-based software** by package, platform, and browser.

@@ -1,0 +1,21 @@
+
+code: 4315
+cat: Components
+msg: Builder cannot interpret value "{param.val}" of {param.label} for {component.type} component "{component.params[name].val}" as a dollar sign has been used incorrectly.
+
+# The following are typically used for online help pages, and support reStructured Text.
+label: Invalid dollar sign syntax.
+
+synopsis: |
+  This alert is received when a dollar sign has been used incorrectly in a stimulus parameter.
+
+details: |
+  By putting a dollar sign at the beginning of a parameter value, you can indicate that the parameter should be interpreted as code rather than as a string. However, a dollar sign should not appear anywhere else in the parameter value, unless it is either:
+  - After a `#` when the parameter is interpreted as code (meaning it will be commented out)
+  - Immediately after a `\`, an escape character (escaped dollar signs are only valid when the parameter is not interpreted as code, or within quotation marks if it is)
+
+solutions: |
+  If the dollar sign is a part of a string, you should add an escape character (`\`) immediately before it. If it is supposed to be in a comment, it must appear after a `#`. Otherwise, remove any dollar signs which are not at the very beginning of the value.
+
+versions: |
+  All

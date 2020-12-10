@@ -41,7 +41,7 @@ class Slider(MinimalStim):
     ``getRT()`` to get the decision time, or ``getHistory()`` to obtain
     the entire set of (rating, RT) pairs.
 
-    For other examples see Coder Demos -> stimuli -> slider.py.
+    For other examples see Coder Demos -> stimuli -> ratingsNew.py.
 
     :Authors:
         - 2018: Jon Peirce
@@ -521,6 +521,8 @@ class Slider(MinimalStim):
         ----------
         A rating value or None
         """
+        if self.readOnly:
+            return
         click = bool(self.mouse.getPressed()[0])
         xy = self.mouse.getPos()
 

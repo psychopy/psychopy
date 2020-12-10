@@ -85,20 +85,6 @@ class FormComponent(BaseVisualComponent):
             hint=_translate("The csv filename containing the items for your survey."),
             label=_localized['Items'])
 
-        self.params['Size'] = Param(
-            size, valType='code', allowedTypes=[], categ='Layout',
-            updates='constant',
-            hint=_translate(
-                "Size of the Form on screen in 'height' units. e.g. (1, .7) height units for horizontal,"
-                "and vertical, respectively"),
-            label=_localized['Size'])
-
-        self.params['Pos'] = Param(
-            pos, valType='code', allowedTypes=[], categ='Layout',
-            updates='constant',
-            hint=_translate("x,y position of the form on screen"),
-            label=_localized['Pos'])
-
         self.params['Text Height'] = Param(
             textHeight, valType='code', allowedTypes=[], categ='Formatting',
             updates='constant',
@@ -139,8 +125,8 @@ class FormComponent(BaseVisualComponent):
                    "    items={Items},\n"
                    "    textHeight={Text Height},\n"
                    "    randomize={Randomize},\n"
-                   "    size={Size},\n"
-                   "    pos={Pos},\n"
+                   "    size={size},\n"
+                   "    pos={pos},\n"
                    "    style={Style},\n"
                    "    itemPadding={Item Padding},"
                    ")\n".format(**inits))
@@ -154,8 +140,8 @@ class FormComponent(BaseVisualComponent):
                    "  items : {Items},\n"
                    "  textHeight : {Text Height},\n"
                    "  randomize : {Randomize},\n"
-                   "  size : {Size},\n"
-                   "  pos : {Pos},\n"
+                   "  size : {size},\n"
+                   "  pos : {pos},\n"
                    "  style : {Style},\n"
                    "  itemPadding : {Item Padding}\n"
                    "}});\n".format(**inits))

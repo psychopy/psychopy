@@ -277,7 +277,7 @@ def setColor(obj, color, colorSpace=None, operation='',
                           " that has no known Window object")
     # convert new obj.color to rgb space
     newColor = getattr(obj, colorAttrib)
-    if colorSpace in ['rgb', 'rgb255']:
+    if colorSpace in ['rgb', 'rgb255', 'named']:
         setattr(obj, rgbAttrib, newColor)
     elif colorSpace == 'dkl':
         if (win.dkl_rgb is None or

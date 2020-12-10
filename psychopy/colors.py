@@ -215,7 +215,7 @@ class Color(object):
         if isinstance(color, numpy.ndarray):
             color = tuple(float(c) for c in color)
         if space in ['rgb255', 'rgba255']:
-            color = tuple(int(c) for c in color)
+            color = tuple(int(c) for c in color[:3])+color[3:]
         if isinstance(color, (int, float)):
             color = (color, color, color)
         # If input is a Color object, duplicate all settings
@@ -317,7 +317,7 @@ class Color(object):
                 other = AdvancedColor(other)
             elif isinstance(other, int) or isinstance(other, float):
                 out = self.copy()
-                out.brightness += other
+                out.rgb = tuple(c + other for c in self.rgb)
                 return out
             else:
                 raise ValueError ("unsupported operand type(s) for +: '"
@@ -393,7 +393,8 @@ class Color(object):
 
         # If enforcing multiple
         if enforce == (tuple, int):
-            color = tuple(int(round(c)) for c in color)
+            alpha = (color[-1],) if len(color) == 4 else ()
+            color = tuple(int(round(c)) for c in color[:3]) + alpha
         # Get possible colour spaces
         possible = Color.getSpace(color)
         if isinstance(possible, str):
@@ -683,7 +684,7 @@ class AdvancedColor(Color):
         basic = Color.getSpace(color, debug=True)
         possible += basic
         # Return full list if debug or multiple, else return first value
-        if debug or len(possible) > 1:
+        if debug or len(possible) > 1 or len(possible) == 0:
             return possible
         else:
             return possible[0]

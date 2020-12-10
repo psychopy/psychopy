@@ -589,10 +589,13 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         """Open a FileDialog, then load the file if possible.
         """
         if filename is None:
-            _wld = "PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*"
+            if sys.platform != 'darwin':
+                wildcard = _translate("PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*.*")
+            else:
+                wildcard = _translate("PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*")
             dlg = wx.FileDialog(self, message=_translate("Open file ..."),
                                 style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST,
-                                wildcard=_translate(_wld))
+                                wildcard=wildcard)
             if dlg.ShowModal() != wx.ID_OK:
                 return 0
             filename = dlg.GetPath()
@@ -669,10 +672,10 @@ class BuilderFrame(wx.Frame, ThemeMixin):
             filename = self.filename
         initPath, filename = os.path.split(filename)
 
-        _w = "PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*"
         if sys.platform != 'darwin':
-            _w += '.*'
-        wildcard = _translate(_w)
+            wildcard = _translate("PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*.*")
+        else:
+            wildcard = _translate("PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*")
         returnVal = False
         dlg = wx.FileDialog(
             self, message=_translate("Save file as ..."), defaultDir=initPath,
@@ -895,8 +898,8 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         dlg = wx.MessageDialog(self, _translate("Are you sure you want to reset your preferences? This cannot be undone."),
                                caption="Reset Preferences...", style=wx.ICON_WARNING | wx.CANCEL)
         dlg.SetOKCancelLabels(
-            "I'm sure",
-            "Wait, go back!"
+            _translate("I'm sure"),
+            _translate("Wait, go back!")
         )
         if dlg.ShowModal() == wx.ID_OK:
             # If okay is pressed, remove prefs file (meaning a new one will be created on next restart)
@@ -1102,7 +1105,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
             ok = self.fileSave(self.filename)
             if not ok:
                 return  # save file before compiling script
-
+        self.app.showRunner()
         self.stdoutFrame.addTask(fileName=self.filename)
         self.app.runner.Raise()
         if event:
@@ -1235,7 +1238,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         Gets Experiment Runner stdout.
         """
         if not self.app.runner:
-            self.app.runner = self.app.newRunnerFrame()
+            self.app.runner = self.app.showRunner()
         return self.app.runner
 
     def _getHtmlPath(self, filename):
@@ -1558,6 +1561,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_ERASE_BACKGROUND, lambda x: None)
         self.Bind(wx.EVT_MOUSE_EVENTS, self.OnMouse)
+        self.Bind(wx.EVT_MOUSEWHEEL, self.OnScroll)
         self.Bind(wx.EVT_SIZE, self.onResize)
         # crashes if drop on OSX:
         # self.SetDropTarget(FileDropTarget(builder = self.frame))
@@ -1617,6 +1621,11 @@ class RoutineCanvas(wx.ScrolledWindow):
                 self.frame.SetStatusText("Component: "+component.params['name'].val)
             except IndexError:
                 self.frame.SetStatusText("")
+
+    def OnScroll(self, event):
+        xy = self.GetViewStart()
+        multiplier = self.dpi / 1600
+        self.Scroll(xy[0], xy[1] - event.WheelRotation*multiplier)
 
     def showContextMenu(self, component, xy):
         menu = wx.Menu()

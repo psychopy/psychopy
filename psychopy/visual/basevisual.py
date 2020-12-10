@@ -165,15 +165,17 @@ class MinimalStim(object):
             else:
                 toDraw.append(self)
                 toDrawDepths.append(self.depth)
+            # Add to editable list (if needed)
+            self.win.addEditable(self)
+            # Mark as started
             self.status = STARTED
         elif value == False:
             # remove from autodraw lists
             toDrawDepths.pop(toDraw.index(self))  # remove from depths
             toDraw.remove(self)  # remove from draw list
-            # Remove from editable list (if present)
-            for c in self.win._editableChildren:
-                if c() == self:
-                    self.win._editableChildren.remove(c)
+            # Remove from editable list (if needed)
+            self.win.removeEditable(self)
+            # Mark as stopped
             self.status = STOPPED
 
     def setAutoDraw(self, value, log=None):
@@ -425,6 +427,24 @@ class ColorMixin(object):
         setColor(self, color, colorSpace=colorSpace, operation=operation,
                  rgbAttrib='rgb',  # or 'fillRGB' etc
                  colorAttrib='color')
+        if self.__class__.__name__ == 'TextStim' and not self.useShaders:
+            self._needSetText = True
+        logAttrib(self, log, 'color',
+                  value='%s (%s)' % (self.color, self.colorSpace))
+
+    def setFillColor(self, color, colorSpace=None, operation='', log=None):
+        setColor(self, color, colorSpace=colorSpace, operation=operation,
+                 rgbAttrib='fillRGB',  # or 'fillRGB' etc
+                 colorAttrib='fillColor')
+        if self.__class__.__name__ == 'TextStim' and not self.useShaders:
+            self._needSetText = True
+        logAttrib(self, log, 'color',
+                  value='%s (%s)' % (self.color, self.colorSpace))
+
+    def setBorderColor(self, color, colorSpace=None, operation='', log=None):
+        setColor(self, color, colorSpace=colorSpace, operation=operation,
+                 rgbAttrib='borderRGB',  # or 'fillRGB' etc
+                 colorAttrib='borderColor')
         if self.__class__.__name__ == 'TextStim' and not self.useShaders:
             self._needSetText = True
         logAttrib(self, log, 'color',
