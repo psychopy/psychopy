@@ -9,7 +9,6 @@ import os
 import inspect
 import warnings
 import numpy
-import collections
 import numbers  # numbers.Integral is like (int, long) but supports Py3
 import datetime
 
@@ -25,6 +24,11 @@ try:
     from yaml import CLoader as yLoader, CDumper as yDumper
 except ImportError:
     from yaml import Loader as yLoader, Dumper as yDumper
+
+try:
+    from collections.abc import Iterable
+except ImportError:
+    from collections import Iterable
 
 # Only turn on converting all strings to unicode by the YAML loader
 # if running Python 2.7 or higher. 2.6 does not seem to like unicode dict keys.
@@ -107,7 +111,7 @@ def module_directory(local_function):
 
 
 def isIterable(o):
-    return isinstance(o, collections.Iterable)
+    return isinstance(o, Iterable)
 
 if sys.platform == 'win32':
     import pythoncom

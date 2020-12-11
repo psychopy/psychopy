@@ -90,6 +90,7 @@
       <xsd:element name="SliderComponent" type="Component"/>
       <xsd:element name="NoiseStimComponent" type="Component"/>
       <xsd:element name="EnvGratingComponent" type="Component"/>
+      <xsd:element name="VariableComponent" type="Component"/>
     </xsd:choice>
   </xsd:group>
 
