@@ -1,9 +1,13 @@
 import os.path
+from pathlib import Path
+
+from psychopy.app._psychopyApp import PsychoPyApp
+from psychopy.experiment import getAllComponents, Experiment
 import io
 import shutil
 from tempfile import mkdtemp
 from psychopy.scripts import psyexpCompile
-from psychopy.tests.utils import TESTS_DATA_PATH
+from psychopy.tests.utils import compareTextFiles, TESTS_DATA_PATH
 from psychopy.alerts import alerttools
 from psychopy.experiment.components._base import BaseComponent
 from psychopy.experiment.params import Param
@@ -11,7 +15,8 @@ from psychopy.experiment.params import Param
 
 class TestComponents(object):
     def setup(self):
-        self.temp_dir = mkdtemp()
+        self.temp_dir = Path(mkdtemp())
+        self.allComp = getAllComponents(fetchIcons=False)
 
     def teardown(self):
         shutil.rmtree(self.temp_dir)
@@ -91,3 +96,39 @@ class TestComponents(object):
         for (i, val) in enumerate(tykes):
             # Check the validity of each tyke param against the expected value
             assert tykeComponent.params[str(i)].dollarSyntax()[0] == tykes[val]
+
+    def test_compile_consistency(self):
+        app = PsychoPyApp(0, showSplash=False)
+
+        del self.allComp['SettingsComponent']
+        del self.allComp['UnknownComponent']
+        exp = Experiment()
+        exp.addRoutine('trial')
+        tykes = {
+            'TextComponent': {"text": "double quotes should always be \"escaped\""}
+        }
+        for comp in self.allComp:
+            # Create one of each component
+            compObj = self.allComp[comp](parentName='trial', exp=exp)
+            exp.routines['trial'].addComponent(compObj)
+            # If component is identified as one with a particularly difficult value, create a
+            # second component with that value
+            if comp in tykes:
+                for key, val in tykes[comp].items():
+                    tykeObj = self.allComp[comp](parentName='trial', exp=exp)
+                    tykeObj.params[key].val = val
+                    exp.routines['trial'].addComponent(tykeObj)
+
+        exp.flow.addRoutine(exp.routines['trial'], 0)
+
+        # Compile purely from code
+        psyexpCompile.compileScript(infile=exp, outfile=f"{self.temp_dir / 'pureCompile'}.py")
+        psyexpCompile.compileScript(infile=exp, outfile=f"{self.temp_dir / 'pureCompile'}.js")
+        # Compile via Builder
+        app.builder.filename = str(self.temp_dir / 'builderCompile.psyexp')
+        app.builder.exp = exp
+        app.builder.compileScript()
+        app.builder.fileExport()
+        # Compare files
+        for ext in ["py", "js"]:
+            compareTextFiles(f"{self.temp_dir / 'builderCompile'}.{ext}", f"{self.temp_dir / 'pureCompile'}.{ext}", tolerance=1) # tolerance 1 as there will be 1 line different due to different file names
