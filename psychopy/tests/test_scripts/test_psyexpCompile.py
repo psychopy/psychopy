@@ -100,7 +100,8 @@ class TestComponents(object):
     def test_string_syntax(self):
         # Define several "tykes" - values which are likely to cause confusion
         tykes = {
-            "double \"quotes\" should always be escaped": "\"double \\\"quotes\\\" should always be escaped\""
+            "double \"quotes\" should always be escaped": "\"double \\\"quotes\\\" should always be escaped\"",
+            "line breaks should\nbe preserved": "\"line breaks should\\nbe preserved\"",
         }
         for val in tykes:
             param = Param(val, valType="str")
