@@ -97,6 +97,15 @@ class TestComponents(object):
             # Check the validity of each tyke param against the expected value
             assert tykeComponent.params[str(i)].dollarSyntax()[0] == tykes[val]
 
+    def test_string_syntax(self):
+        # Define several "tykes" - values which are likely to cause confusion
+        tykes = {
+            "double \"quotes\" should always be escaped": "\"double \\\"quotes\\\" should always be escaped\""
+        }
+        for val in tykes:
+            param = Param(val, valType="str")
+            assert str(param) == tykes[val]
+
     def test_compile_consistency(self):
         app = PsychoPyApp(0, showSplash=False)
 
