@@ -178,6 +178,7 @@ class Param(object):
                             # but for other targets that will raise an annoying error
                             val = val[1:]
                     val=re.sub("\n", "\\\\n", val) # Replace line breaks with escaped line break character
+                    val = re.sub("[\"\']", "\\\"", val) # Escape any quotation marks
                     if self.valType in ['file', 'table']:
                         # If param is a file of any kind, escape any \
                         val = re.sub(r"\\", r"\\\\", val)
