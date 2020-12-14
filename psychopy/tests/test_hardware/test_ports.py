@@ -1,4 +1,3 @@
-import collections
 import psychopy.hardware as hw
 import pytest
 try:
@@ -12,6 +11,11 @@ except Exception:
 else:
     def require_mock(fn):
         return fn
+
+try:
+    from collections.abc import Iterable
+except ImportError:
+    from collections import Iterable
 
 try:
     from contextlib import nested  # Python 2
@@ -77,7 +81,7 @@ def test_getCRSPhotometers():
             for p in photoms:
                 assert p.longName != "CRS ColorCAL"
 
-            assert isinstance(photoms,collections.Iterable)
+            assert isinstance(photoms, Iterable)
             # missing crs shouldn't break it
             assert len(photoms) > 0
     except (AssertionError, ImportError):
@@ -109,7 +113,7 @@ def test_getPhotometers():
     photoms = hw.getAllPhotometers()
 
     # Always iterable
-    assert isinstance(photoms,collections.Iterable)
+    assert isinstance(photoms, Iterable)
 
     photoms = list(photoms)
 
