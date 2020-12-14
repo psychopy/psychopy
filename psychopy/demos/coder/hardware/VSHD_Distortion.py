@@ -9,7 +9,7 @@ import numpy as np
 
 # Create a VSHD window. Multisampling is enabled to reduce artifacts around
 # edge of distorted image.
-win = visual.VisualSystemHD(fullscr=True, multiSample=True, nSamples=8)
+win = visual.VisualSystemHD(fullscr=False, multiSample=True, nSamples=8)
 
 # create checkerboard texture
 cbTex = np.tile([[0.5, -0.5], [-0.5, 0.5]], reps=(10, 10))
