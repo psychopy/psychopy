@@ -172,17 +172,13 @@ class Param(object):
                         return val
                 else:
                     # If str is wanted, return literal
+                    s = repr(val)
                     if utils.scriptTarget != 'PsychoPy':
-                        if val.startswith("u'") or val.startswith('u"'):
+                        if s.startswith("u'") or s.startswith('u"'):
                             # if target is python2.x then unicode will be u'something'
                             # but for other targets that will raise an annoying error
-                            val = val[1:]
-                    val=re.sub("\n", "\\\\n", val) # Replace line breaks with escaped line break character
-                    val = re.sub("[\"\']", "\\\"", val) # Escape any quotation marks
-                    if self.valType in ['file', 'table']:
-                        # If param is a file of any kind, escape any \
-                        val = re.sub(r"\\", r"\\\\", val)
-                    return f"\"{val}\""
+                            s = s[1:]
+                    return s
             return repr(self.val)
         elif self.valType in ['code', 'extendedCode']:
             isStr = isinstance(self.val, basestring)
