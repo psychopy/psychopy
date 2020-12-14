@@ -65,7 +65,7 @@ _localized = {
     'hiddenComponents': _translate('hidden components'),
     'unpackedDemosDir': _translate('unpacked demos dir'),
     'savedDataFolder': _translate('saved data folder'),
-    'topFlow': _translate('Flow at top'),
+    'builderLayout': _translate('Builder layout'),
     'alwaysShowReadme': _translate('always show readme'),
     'maxFavorites': _translate('max favorites'),
     # pref labels in Coder section
