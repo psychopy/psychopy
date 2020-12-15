@@ -37,7 +37,8 @@ __all__ = [
     'getAbsTimeGPU',
     'FramebufferInfo',
     'createFBO',
-    'attach',
+    'attachBuffer',
+    'detachBuffer',
     'isComplete',
     'deleteFBO',
     'blitFBO',
@@ -1355,11 +1356,11 @@ def createFBO(attachments=None, sizeHint=None, sRGB=False, bindAfter=False):
         frameBuffer = createFBO().name
 
     """
-    fboId = GL.GLuint()
+    fboId = GL.GLint()
     GL.glGenFramebuffers(1, ctypes.byref(fboId))
 
     # create a framebuffer descriptor
-    fboDesc = FramebufferInfo(fboId, GL.GL_FRAMEBUFFER, sizeHint, sRGB, dict())
+    fboDesc = FramebufferInfo(fboId.value, GL.GL_FRAMEBUFFER, sizeHint, sRGB, dict())
 
     # initial attachments for this framebuffer
     if attachments is not None:
@@ -1376,7 +1377,7 @@ def createFBO(attachments=None, sizeHint=None, sRGB=False, bindAfter=False):
         # bind the new FBO
         GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, fboId)
         for attachPoint, imageBuffer in attachments.items():
-            attach(fboDesc, attachPoint, imageBuffer)
+            attachBuffer(fboDesc, attachPoint, imageBuffer)
 
         # restore the previous state
         if not bindAfter:
@@ -1395,7 +1396,7 @@ def createFBO(attachments=None, sizeHint=None, sRGB=False, bindAfter=False):
 #     """Create a `Framebuffer` object from an existing FBO handle."""
 
 
-def attach(fbo, attachPoint, imageBuffer):
+def attachBuffer(fbo, attachPoint, imageBuffer):
     """Attach an image to a specified attachment point of `fbo`.
 
     Parameters
@@ -1412,14 +1413,14 @@ def attach(fbo, attachPoint, imageBuffer):
     Attach an image to attachment points on the framebuffer::
 
         GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, fbo)
-        attach(GL.GL_COLOR_ATTACHMENT0, colorTex)
-        attach(GL.GL_DEPTH_STENCIL_ATTACHMENT, depthRb)
+        attachBuffer(GL.GL_COLOR_ATTACHMENT0, colorTex)
+        attachBuffer(GL.GL_DEPTH_STENCIL_ATTACHMENT, depthRb)
         GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, lastBoundFbo)
 
         # same as above, but using a context manager
         with useFBO(fbo):
-            attach(GL.GL_COLOR_ATTACHMENT0, colorTex)
-            attach(GL.GL_DEPTH_STENCIL_ATTACHMENT, depthRb)
+            attachBuffer(GL.GL_COLOR_ATTACHMENT0, colorTex)
+            attachBuffer(GL.GL_DEPTH_STENCIL_ATTACHMENT, depthRb)
 
     """
     # We should also support binding GL names specified as integers. Right now
@@ -1441,7 +1442,7 @@ def attach(fbo, attachPoint, imageBuffer):
     fbo.attachments[attachPoint] = imageBuffer
 
 
-def detach(fbo, attachPoint):
+def detachBuffer(fbo, attachPoint):
     """Detach an image buffer from a given FBO attachment point. Framebuffer
     must be previously bound.
 
@@ -2102,6 +2103,11 @@ def createTexImage2dFromFile(imgFile, transpose=True):
                    GL.GL_TEXTURE_MIN_FILTER: GL.GL_LINEAR})
 
     return textureDesc
+
+
+def createTexture2dFromArray(arr):
+    """Convert an array to a 2D texture."""
+    pass
 
 
 class TexCubeMapInfo(object):
