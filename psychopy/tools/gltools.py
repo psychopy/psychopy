@@ -1109,6 +1109,7 @@ def getAbsTimeGPU():
     """
     global QUERY_COUNTER
     if QUERY_COUNTER is None:
+        QUERY_COUNTER = GL.GLuint()
         GL.glGenQueries(1, ctypes.byref(QUERY_COUNTER))
 
     GL.glQueryCounter(QUERY_COUNTER, GL.GL_TIMESTAMP)
@@ -1169,9 +1170,15 @@ class FramebufferInfo(object):
         self._isBound = False
         self.sizeHint = np.array(sizeHint, dtype=int)
 
+    @property
     def isBound(self):
-        """`True` if the framebuffer was previously bound using the `bindFBO`
-        function."""
+        """`True` if the framebuffer was previously bound and is current.
+
+        This is set and unset by `bindFBO` and `unbindFBO`, respectively. It
+        may not reflect the actual binding state of the FBO if the state was
+        changed by some other means.
+
+        """
         return self._isBound
 
     @property
@@ -1225,6 +1232,11 @@ class FramebufferInfo(object):
             Descriptor for the attachment. Gives `None` if there is no depth
             attachment.
 
+        Notes
+        -----
+        * If the depth and stencil buffer a combined, this function will
+          return the depth and stencil buffer.
+
         """
         if GL.GL_DEPTH_STENCIL_ATTACHMENT in self.attachments:
             return self.attachments[GL.GL_DEPTH_STENCIL_ATTACHMENT]
@@ -1241,6 +1253,11 @@ class FramebufferInfo(object):
         TexImage2DInfo, RenderbufferInfo or TexImage2DMultisampleInfo
             Descriptor for the attachment. Gives `None` if there is no stencil
             attachment.
+
+        Notes
+        -----
+        * If the depth and stencil buffer a combined, this function will
+          return the depth and stencil buffer.
 
         """
         if GL.GL_DEPTH_STENCIL_ATTACHMENT in self.attachments:
