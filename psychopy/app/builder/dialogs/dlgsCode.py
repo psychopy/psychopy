@@ -103,6 +103,10 @@ class DlgCodeComponentProperties(wx.Dialog):
                 self.codeTypeMenu.Bind(wx.EVT_CHOICE, self.onCodeChoice)
                 self.codeTypeName = wx.StaticText(self, wx.ID_ANY,
                                                   _translate(param.label))
+            elif paramName == 'disabled':
+                # Create bool control to disable/enable component
+                self.disableCtrl = wx.CheckBox(self, wx.ID_ANY, label=paramName)
+                self.disableCtrl.SetValue(bool(param.val))
             else:
                 codeType = ["Py", "JS"]["JS" in paramName]  # Give CodeBox a code type
                 tabName = paramName.replace("JS ", "")
@@ -406,6 +410,7 @@ class DlgCodeComponentProperties(wx.Dialog):
         nameSizer.Add(self.codeTypeName,
                       flag=wx.TOP | wx.RIGHT, border=13, proportion=0)
         nameSizer.Add(self.codeTypeMenu, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        nameSizer.Add(self.disableCtrl, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL, border=13)
 
         mainSizer = wx.BoxSizer(wx.VERTICAL)
         buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -448,7 +453,7 @@ class DlgCodeComponentProperties(wx.Dialog):
             elif fieldName == 'Code Type':
                 param.val = self.codeTypeMenu.GetStringSelection()
             elif fieldName == 'disabled':
-                pass
+                param.val = self.disableCtrl.GetValue()
             else:
                 codeBox = self.codeBoxes[fieldName]
                 param.val = codeBox.GetText()
