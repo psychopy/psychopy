@@ -126,7 +126,8 @@ class VisualSystemHD(window.Window):
         from psychopy import visual, core, event
 
         # Create a visual window
-        win = visual.VisualSystemHD(fullscr=True, screen=1)
+        win = visual.VisualSystemHD(fullscr=True, screen=1,
+            multiSample=True, nSamples=8)
 
         # text to display
         instr = visual.TextStim(win, text="Any key to quit", pos=(0, -.7))
@@ -143,8 +144,8 @@ class VisualSystemHD(window.Window):
             useShaders=False)
 
         iod = 6.2  # interocular separation in CM
-        win.eyeOffset(-iod / 2.0, 'left')
-        win.eyeOffset(iod / 2.0, 'right')
+        win.setEyeOffset(-iod / 2.0, 'left')
+        win.setEyeOffset(iod / 2.0, 'right')
 
         trialClock = core.Clock()
         t = 0
