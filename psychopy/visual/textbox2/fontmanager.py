@@ -876,6 +876,10 @@ class FontManager(object):
             italic = True
         if s.find('bold') >= 0:
             bold = True
+        if s.find('black') >= 0:
+            bold = "Black"
+        if s.find('narrow') >= 0:
+            bold = "Narrow"
         return bold, italic
 
     def _createFontInfo(self, fp, fface):
