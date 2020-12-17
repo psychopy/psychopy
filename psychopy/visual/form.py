@@ -636,7 +636,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                                             units=self.units,
                                             shape='square',
                                             size=self.size,
-                                            pos=(0, 0),
+                                            pos=self.pos,
                                             autoLog=False)
         aperture.disable()  # Disable on creation. Only enable on draw.
         return aperture
