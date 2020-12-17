@@ -474,10 +474,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
             style = kind
 
         # Create x position of response object
-        xPos = (self.rightEdge
-                - ((item['responseWidth'] * self.size[0]) / 2)
-                - self._scrollBarSize[0]
-                - self.itemPadding)
+        x = self.pos[0]
         # Set radio button layout
         if item['layout'] == 'horiz':
             w = (item['responseWidth'] * self.size[0]
@@ -490,7 +487,6 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
             item['options'].reverse()
 
         # Create Slider
-        x = xPos - self._scrollBarSize[0] - self.itemPadding
         resp = psychopy.visual.Slider(
                 self.win,
                 pos=(x, 0),  # NB y pos is irrelevant here - handled later
