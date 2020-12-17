@@ -913,3 +913,26 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 'bg': [-0.19,-0.19,-0.14],  # background
                 'fg': [0.89,0.89,0.89],  # foreground
             }
+
+    @property
+    def values(self):
+        # Iterate through each control and append its value to a dict
+        out = {}
+        for item in self.getData():
+            out.update(
+                {item['index']: item['response']}
+            )
+        return out
+
+    @values.setter
+    def values(self, values):
+        for item in self.items:
+            if item['index'] in values:
+                ctrl = item['responseCtrl']
+                # set response if available
+                if hasattr(ctrl, "rating"):
+                    ctrl.rating = values[item['index']]
+                elif hasattr(ctrl, "value"):
+                    ctrl.value = values[item['index']]
+                else:
+                    ctrl.text = values[item['index']]
