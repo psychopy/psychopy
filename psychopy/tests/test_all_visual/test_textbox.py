@@ -75,6 +75,55 @@ class Test_textbox(object):
                 #self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / case['screenshot'])
                 utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / case['screenshot'], self.win, crit=20)
 
+    def test_colors(self):
+        textbox = TextBox2(self.win, "A PsychoPy zealot knows a smidge of wx, but JavaScript is the question.",
+                           "Arial", pos=(0, 0), size=(1, 1), letterHeight=0.1, units='height', colorSpace="rgb")
+        # Some exemplar text to test basic colors
+        exemplars = [
+            # White on black in rgb
+            {"color": (1, 1, 1), "fillColor": (-1,-1,-1), "borderColor": (-1,-1,-1), "space": "rgb",
+             "screenshot": "textbox_colors_WOB.png"},
+            # White on black in named
+            {"color": "white", "fillColor": "black", "borderColor": "black", "space": "rgb",
+             "screenshot": "textbox_colors_WOB.png"},
+            # White on black in hex
+            {"color": "#ffffff", "fillColor": "#000000", "borderColor": "#000000", "space": "hex",
+             "screenshot": "textbox_colors_WOB.png"},
+        ]
+        # Some colors which are likely to cause problems if something isn't working
+        tykes = [
+            # Text only
+            {"color": "white", "fillColor": None, "borderColor": None, "space": "rgb",
+             "screenshot": "textbox_colors_tyke1.png"},
+            # Fill only
+            {"color": None, "fillColor": "white", "borderColor": None, "space": "rgb",
+             "screenshot": "textbox_colors_tyke2.png"},
+            # Border only
+            {"color": None, "fillColor": None, "borderColor": "white", "space": "rgb",
+             "screenshot": "textbox_colors_tyke3.png"},
+        ]
+        # Test each case and compare against screenshot
+        for case in exemplars + tykes:
+            # Raise error if case spec does not contain all necessary keys
+            if not all(key in case for key in ["color", "fillColor", "borderColor", "space", "screenshot"]):
+                raise KeyError(f"Case spec for test_colors in class {self.__class__.__name__} ({__file__}) invalid, test cannot be run.")
+            # Apply params from case spec
+            textbox.colorSpace = case['space']
+            textbox.color = case['color']
+            textbox.fillColor = case['fillColor']
+            textbox.borderColor = case['borderColor']
+            # Temporary measure until the Color class is implemented, at which point pallette will update automatically
+            textbox.pallette = {"lineColor": textbox.borderColor,
+                                "lineWidth": textbox.borderWidth,
+                                "fillColor": textbox.fillColor}
+            self.win.flip()
+            textbox.draw()
+            if case['screenshot']:
+                # Uncomment to save current configuration as desired
+                # self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / case['screenshot'])
+                utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / case['screenshot'], self.win, crit=20)
+
+
     def test_basic(self):
         pass
 
