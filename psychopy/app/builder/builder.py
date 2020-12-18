@@ -21,7 +21,11 @@ from pkg_resources import parse_version
 import wx.stc
 from wx.lib import scrolledpanel
 from wx.lib import platebtn
-
+from wx.html import HtmlWindow
+try:
+    import markdown_it as md
+except ImportError:
+    md = None
 import wx.lib.agw.aui as aui  # some versions of phoenix
 try:
     from wx.adv import PseudoDC
@@ -760,7 +764,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         else:
             self.readmeFilename = None
         self.readmeFrame.setFile(self.readmeFilename)
-        content = self.readmeFrame.ctrl.GetValue()
+        content = self.readmeFrame.ctrl.ToText()
         if content and self.prefs['alwaysShowReadme']:
             self.showReadme()
 
@@ -2429,7 +2433,7 @@ class ReadmeFrame(wx.Frame):
         self.Bind(wx.EVT_CLOSE, self.onClose)
         self.Hide()
         self.makeMenus()
-        self.ctrl = wx.TextCtrl(self, style=wx.TE_MULTILINE)
+        self.ctrl = HtmlWindow(self, wx.ID_ANY)
 
     def onClose(self, evt=None):
         """
@@ -2493,7 +2497,9 @@ class ReadmeFrame(wx.Frame):
             return False
         f.close()
         self._fileLastModTime = os.path.getmtime(filename)
-        self.ctrl.SetValue(readmeText)
+        if md:
+            readmeText = md.MarkdownIt().render(readmeText)
+        self.ctrl.SetPage(readmeText)
         self.SetTitle("%s readme (%s)" % (self.expName, filename))
 
     def fileSave(self, evt=None):
@@ -2502,7 +2508,7 @@ class ReadmeFrame(wx.Frame):
         if self._fileLastModTime and mtime > self._fileLastModTime:
             logging.warning(
                 'readme file has been changed by another programme?')
-        txt = self.ctrl.GetValue()
+        txt = self.ctrl.ToText()
         with codecs.open(self.filename, 'w', 'utf-8-sig') as f:
             f.write(txt)
 
