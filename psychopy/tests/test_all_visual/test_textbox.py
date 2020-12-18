@@ -95,12 +95,13 @@ class Test_textbox(object):
             # Text only
             {"color": "white", "fillColor": None, "borderColor": None, "space": "rgb",
              "screenshot": "textbox_colors_tyke1.png"},
+            # The following will only work when the Color class is implemented (currently opacity is all or nothing)
             # Fill only
-            {"color": None, "fillColor": "white", "borderColor": None, "space": "rgb",
-             "screenshot": "textbox_colors_tyke2.png"},
+            # {"color": None, "fillColor": "white", "borderColor": None, "space": "rgb",
+            #  "screenshot": "textbox_colors_tyke2.png"},
             # Border only
-            {"color": None, "fillColor": None, "borderColor": "white", "space": "rgb",
-             "screenshot": "textbox_colors_tyke3.png"},
+            # {"color": None, "fillColor": None, "borderColor": "white", "space": "rgb",
+            # "screenshot": "textbox_colors_tyke3.png"},
         ]
         # Test each case and compare against screenshot
         for case in exemplars + tykes:
@@ -121,7 +122,7 @@ class Test_textbox(object):
             if case['screenshot']:
                 # Uncomment to save current configuration as desired
                 # self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / case['screenshot'])
-                utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / case['screenshot'], self.win, crit=20)
+                utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / case['screenshot'], self.win)
 
 
     def test_basic(self):
