@@ -73,7 +73,7 @@ class Test_textbox(object):
             if case['screenshot']:
                 # Uncomment to save current configuration as desired
                 #self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / case['screenshot'])
-                utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / case['screenshot'], self.win, crit=20)
+                utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / case['screenshot'], self.win)
 
     def test_colors(self):
         textbox = TextBox2(self.win, "A PsychoPy zealot knows a smidge of wx, but JavaScript is the question.",

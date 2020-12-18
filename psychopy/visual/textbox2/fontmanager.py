@@ -55,6 +55,20 @@ _OSXFontDirectories = [
     ""
 ]
 
+_weightMap = {
+    # Map of various potential values for "bold" and the numeric font weight which they correspond to
+    100: 100, "thin": 100, "hairline": 100,
+    200: 200, "extralight": 200, "ultralight": 200,
+    300: 300, "light": 300,
+    400: 400, False: 400, "normal": 400, "regular": 400,
+    500: 500, "medium": 500,
+    600: 600, "semibold": 600, "demibold": 600,
+    700: 700, "bold": 700, True: 700,
+    800: 800, "extrabold": 800, "ultrabold": 800,
+    900: 900, "black": 900, "heavy": 900,
+    950: 950, "extrablack": 950, "ultrablack": 950
+}
+
 supportedExtensions = ['ttf', 'otf', 'ttc', 'dfont']
 
 
@@ -688,6 +702,11 @@ class FontManager(object):
         """
         if type(fontName) != bytes:
             fontName = bytes(fontName, sys.getfilesystemencoding())
+        # Convert value of "bold" to a numeric font weight
+        if bold in _weightMap or str(bold).lower().strip() in _weightMap:
+            bold = _weightMap[bold]
+        else:
+            bold = _weightMap[False] # Default to regular
         style_dict = self._fontInfos.get(fontName)
         if not style_dict:
             if not fallback:
@@ -870,12 +889,15 @@ class FontManager(object):
         s = style.lower().strip()
         if type(s) == bytes:
             s = s.decode('utf-8')
-        if s == 'regular':
-            return False, False
+        # Work out Italic
+        italic = False # Default false
         if s.find('italic') >= 0 or s.find('oblique') >= 0:
             italic = True
-        if s.find('bold') >= 0:
-            bold = True
+        # Work out font weight
+        bold = _weightMap[False] # Default regular weight
+        for key in _weightMap:
+            if s.find(str(key)) >= 0:
+                bold = _weightMap[key]
         return bold, italic
 
     def _createFontInfo(self, fp, fface):
