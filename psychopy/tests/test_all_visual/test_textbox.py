@@ -77,7 +77,7 @@ class Test_textbox(object):
 
     def test_colors(self):
         textbox = TextBox2(self.win, "A PsychoPy zealot knows a smidge of wx, but JavaScript is the question.",
-                           "Arial", pos=(0, 0), size=(1, 1), letterHeight=0.1, units='height', colorSpace="rgb")
+                           "Consolas", pos=(0, 0), size=(1, 1), letterHeight=0.1, units='height', colorSpace="rgb")
         # Some exemplar text to test basic colors
         exemplars = [
             # White on black in rgb
