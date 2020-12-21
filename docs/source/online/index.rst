@@ -5,31 +5,21 @@
 Running and sharing studies online
 =======================================
 
-In January 2018 we began a `Wellcome Trust <http://www.wellcome.ac.uk>`_ grant to make online studies possible from PsychoPy. This is what we call PsychoPy3 - the 3rd major phase of PsychoPy's development.
+Online studies are realized via PsychoJS; the online counterpart of PsychoPy. To run your study online, these are the basic steps:
 
-The key steps to this are basically to:
+1. :doc:`Check whether the features you need are supported by PsychoJS <status>`
+2. :doc:`Convert your media (images, sound, and video) to online-suitable formats <mediaFormats>`
+3. :doc:`Register an account on Pavlovia <usingPavlovia>`
+4. :doc:`Generate a JavaScript experiment and upload it to Pavlovia <fromBuilder>`
 
-- generate a JavaScript experiment ready to run online
-- upload it to Pavlovia.org to be launched
-- set up your recruitment procedure
+Besides the basics, we've got the following tutorials:
 
-Those steps are covered in detail here:
+- :doc:`How to code and debug PsychoJS experiments <psychoJSCodingDebugging>`
+- :doc:`How to share your experiment with other researchers <sharingExperiments>`
+- :doc:`How to recruit participants and connect with online services <onlineParticipants>`
+- :doc:`How to counterbalance participants across conditions <counterbalancingOnline>`
+- :doc:`Caveats and cautions (timing accuracy and web-browser support) <cautions>`
+- :doc:`How does it work? <tech>`
+- :doc:`Manually coding PsychoJS studies <psychojsCode>`
 
-.. toctree::
-    :maxdepth: 1
-
-    fromBuilder
-    usingPavlovia
-    psychojsCode
-    onlineParticipants
-    counterbalancingOnline
-
-but you should also be aware of the following:
-
-.. toctree::
-    :maxdepth: 1
-
-    cautions
-    status
-    tech
-	
+The first generation of PsychoJS was realized by a `Wellcome Trust <https://wellcome.org/>`_ grant, awarded in January 2018.  to make online studies possible from PsychoPy. This is what we call PsychoPy3 - the 3rd major phase of PsychoPy's development.
