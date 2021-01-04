@@ -107,13 +107,16 @@ class udpServer(DatagramServer):
             try:
                 result = getattr(self, unicode(callable_name, 'utf-8'))
             except TypeError as e:
-                if "decoding str is not supported" in e:
-                    pass
+                if "decoding str is not supported" in str(e):
+                    result = getattr(self, callable_name)
             except Exception:
-                print2err('RPC_ATTRIBUTE_ERROR')
-                printExceptionDetailsToStdErr()
-                self.sendResponse('RPC_ATTRIBUTE_ERROR', replyTo)
-                return False
+                try:
+                    result = getattr(self, unicode(callable_name, 'utf-8'))  # fall-back onto PY2 retro-compatibility
+                except Exception:
+                    print2err('RPC_ATTRIBUTE_ERROR')
+                    printExceptionDetailsToStdErr()
+                    self.sendResponse('RPC_ATTRIBUTE_ERROR', replyTo)
+                    return False
 
             if result and callable(result):
                 funcPtr = result
@@ -404,9 +407,9 @@ class udpServer(DatagramServer):
                     self.iohub._pyglet_window_hnds.remove(wh)
 
     def createExperimentSessionEntry(self, sessionInfoDict):
-        if PY3:
-            sessionInfoDict = {str(k, 'utf-8'): str(v, 'utf-8')
-                               for k, v in sessionInfoDict.items()}
+        # if PY3:
+        #     sessionInfoDict = {str(k, 'utf-8'): str(v, 'utf-8')
+        #                        for k, v in sessionInfoDict.items()}
         self.iohub.sessionInfoDict = sessionInfoDict
         dsfile = self.iohub.dsfile
         if dsfile:

@@ -14,7 +14,7 @@
 # Distributed under the Boost Software License, Version 1.0
 # (see http://www.boost.org/LICENSE_1_0.txt)
 #
-
+import re
 import sys, os
 import math
 import numpy as np
@@ -23,6 +23,7 @@ import freetype as ft
 from pyglet import gl  # import OpenGL.GL not compatible with Big Sur (2020)
 import glob
 from pathlib import Path
+import requests
 
 from psychopy import logging
 from psychopy import prefs
@@ -53,6 +54,20 @@ _OSXFontDirectories = [
     "/opt/local/share/fonts"
     ""
 ]
+
+_weightMap = {
+    # Map of various potential values for "bold" and the numeric font weight which they correspond to
+    100: 100, "thin": 100, "hairline": 100,
+    200: 200, "extralight": 200, "ultralight": 200,
+    300: 300, "light": 300,
+    400: 400, False: 400, "normal": 400, "regular": 400,
+    500: 500, "medium": 500,
+    600: 600, "semibold": 600, "demibold": 600,
+    700: 700, "bold": 700, True: 700,
+    800: 800, "extrabold": 800, "ultrabold": 800,
+    900: 900, "black": 900, "heavy": 900,
+    950: 950, "extrablack": 950, "ultrablack": 950
+}
 
 supportedExtensions = ['ttf', 'otf', 'ttc', 'dfont']
 
@@ -687,6 +702,11 @@ class FontManager(object):
         """
         if type(fontName) != bytes:
             fontName = bytes(fontName, sys.getfilesystemencoding())
+        # Convert value of "bold" to a numeric font weight
+        if bold in _weightMap or str(bold).lower().strip() in _weightMap:
+            bold = _weightMap[bold]
+        else:
+            bold = _weightMap[False] # Default to regular
         style_dict = self._fontInfos.get(fontName)
         if not style_dict:
             if not fallback:
@@ -722,6 +742,40 @@ class FontManager(object):
         similar = [this for this in allNames if
                    (fontName.lower() in this.lower())]
         return similar
+
+    def addGoogleFont(self, fontName):
+        """Add a font directly from the Google Font repository, saving it to the user prefs folder"""
+
+        # Construct and send Google Font url from name
+        repoURL = f"https://fonts.googleapis.com/css2?family={ fontName.replace(' ', '+') }&display=swap"
+        repoResp = requests.get(repoURL)
+        if not repoResp.ok:
+            # If font name is not found, raise error
+            raise MissingFontError(f"Font `{fontName}` could not be retrieved from the Google Font library.")
+        # Get and send file url from returned CSS data
+        fileURL = re.findall("(?<=src: url\().*(?=\) format)", repoResp.content.decode())[0]
+        fileResp = requests.get(fileURL)
+        if not fileResp.ok:
+            # If font file is not available, raise error
+            raise MissingFontError(f"OST file for Google font `{fontName}` could not be accessed")
+        # Save retrieved font as an OST file
+        fileName = Path(prefs.paths['resources']) / f"{fontName}.ost"
+        with open(fileName, "wb") as fileObj:
+            fileObj.write(fileResp.content)
+        # Add font and return
+        return self.addFontFile(fileName)
+
+    def addGoogleFonts(self, fontList):
+        """Add a list of fonts directly from the Google Font repository, saving them to the user prefs folder"""
+        # Blank list to store output in
+        outList = []
+        # Call addFontFile for each font
+        for font in fontList:
+            outList.append(self.addFontFile(font))
+        # Sort fonts
+        self.fontStyles.sort()
+        # Return
+        return outList
 
     def addFontFile(self, fontPath, monospaceOnly=False):
         """Add a Font File to the FontManger font search space. The
@@ -835,12 +889,15 @@ class FontManager(object):
         s = style.lower().strip()
         if type(s) == bytes:
             s = s.decode('utf-8')
-        if s == 'regular':
-            return False, False
+        # Work out Italic
+        italic = False # Default false
         if s.find('italic') >= 0 or s.find('oblique') >= 0:
             italic = True
-        if s.find('bold') >= 0:
-            bold = True
+        # Work out font weight
+        bold = _weightMap[False] # Default regular weight
+        for key in _weightMap:
+            if s.find(str(key)) >= 0:
+                bold = _weightMap[key]
         return bold, italic
 
     def _createFontInfo(self, fp, fface):
