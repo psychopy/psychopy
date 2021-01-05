@@ -57,7 +57,7 @@ class TextboxComponent(BaseVisualComponent):
                  flipHoriz=False,
                  flipVert=False,
                  editable=False, autoLog=True):
-        super(TextboxComponent, self).__init__(exp, parentName, name=name,
+        super(TextboxComponent, self).__init__(exp, parentName, name,
                                             units=units,
                                             color=color, fillColor=fillColor, borderColor=borderColor,
                                             colorSpace=colorSpace,

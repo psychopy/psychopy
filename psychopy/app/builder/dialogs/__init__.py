@@ -32,6 +32,7 @@ from psychopy import data, logging
 from psychopy.localization import _translate
 from psychopy.tools import versionchooser as vc
 from ...colorpicker import PsychoColorPicker
+from pathlib import Path
 
 white = wx.Colour(255, 255, 255, 255)
 codeSyntaxOkay = wx.Colour(220, 250, 220, 255)  # light green
