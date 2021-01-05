@@ -67,7 +67,7 @@ class DotsComponent(BaseVisualComponent):
 
         msg = _translate("Direction of motion for the signal dots (degrees)")
         self.params['dir'] = Param(
-            direction, valType='nu,', inputType="spin", categ='Dots',
+            direction, valType='num', inputType="spin", categ='Dots',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
