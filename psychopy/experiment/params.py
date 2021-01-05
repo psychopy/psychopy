@@ -30,6 +30,7 @@ from . import py2js
 # standard_library.install_aliases()
 from ..colors import Color
 from numpy import ndarray
+from ..alerts import alert
 
 
 def _findParam(name, node):
@@ -150,6 +151,7 @@ class Param(object):
         self.staticUpdater = None
         self.categ = categ
         self.readOnly = False
+        self.codeWanted = False
         if inputType:
             self.inputType = inputType
         elif valType in inputDefaults:
@@ -176,15 +178,16 @@ class Param(object):
             # says "hello"'
             val = self.val
             if isinstance(self.val, basestring):
-                codeWanted = utils.unescapedDollarSign_re.search(self.val)
-                if codeWanted:
+                valid, val = self.dollarSyntax()
+                if self.codeWanted and valid:
+                    # If code is wanted, return code (translated to JS if needed)
                     if utils.scriptTarget == 'PsychoJS':
-                        valJS = py2js.expression2js(self.val.strip('$'))
+                        valJS = py2js.expression2js(val)
                         if self.val != valJS:
                             logging.debug("Rewriting with py2js: {} -> {}".format(self.val, valJS))
                         return valJS
                     else:
-                        return val[1:]
+                        return val
                 else:
                     # If str is wanted, return literal
                     if utils.scriptTarget != 'PsychoPy':
@@ -192,10 +195,10 @@ class Param(object):
                             # if target is python2.x then unicode will be u'something'
                             # but for other targets that will raise an annoying error
                             val = val[1:]
-                    val=re.sub("\n", "\\\\n", val) # Replace line breaks with escaped line break character
                     if self.valType in ['file', 'table']:
                         # If param is a file of any kind, escape any \
                         val = re.sub(r"\\", r"\\\\", val)
+                    val=re.sub("\n", "\\\\n", val) # Replace line breaks with escaped line break character
                     return f"\"{val}\""
             return repr(self.val)
         elif self.valType in ['code', 'extendedCode']:
@@ -258,6 +261,46 @@ class Param(object):
         """Return a bool, so we can do `if thisParam`
         rather than `if thisParam.val`"""
         return bool(self.val)
+
+    def dollarSyntax(self):
+        """
+        Interpret string according to dollar syntax, return:
+        1: Whether syntax is valid (True/False)
+        2: Whether code is wanted (True/False)
+        3: The value, stripped of any unnecessary $
+        """
+        val = self.val
+        if self.valType in ["str", "extendedStr"]:
+            # How to handle dollar signs in a string param
+            self.codeWanted = val.startswith("$")
+
+            if not re.search(r"\$", str(val)):
+                # Return if there are no $
+                return True, val
+            if self.codeWanted:
+                # If value begins with an unescaped $, remove the first char and treat the rest as code
+                val = val[1:]
+                inComment = "".join(re.findall("\#.*", val))
+                inQuotes = "".join(re.findall("[\'\"][^\"|^\']*[\'\"]", val))
+                if not re.findall(r"\$", val):
+                    # Return if there are no further dollar signs
+                    return True, val
+                if len(re.findall(r"\$", val)) == len(re.findall(r"\$", inComment)):
+                    # Return if all $ are commented out
+                    return True, val
+                if len(re.findall(r"\$", val)) - len(re.findall(r"\$", inComment)) == len(re.findall(r"\\\$", inQuotes)):
+                    # Return if all non-commended $ are in strings and escaped
+                    return True, val
+            else:
+                # If value does not begin with an unescaped $, treat it as a string
+                if not re.findall(r"(?<!\\)\$", val):
+                    # Return if all $ are escaped (\$)
+                    return True, val
+        else:
+            # If valType does not interact with $, return True
+            return True, val
+        # Return false if method has not returned yet
+        return False, val
 
     __nonzero__ = __bool__  # for python2 compatibility
 
