@@ -169,7 +169,7 @@ class Param(object):
                 return "%i" % self.val  # int and float -> str(int)
             except TypeError:
                 return "{}".format(self.val)  # try array of float instead?
-        elif self.valType in ['extendedStr','str', 'file', 'table']:
+        elif self.valType in ['extendedStr','str', 'file', 'table', 'color']:
             # at least 1 non-escaped '$' anywhere --> code wanted
             # return str if code wanted
             # return repr if str wanted; this neatly handles "it's" and 'He
@@ -184,7 +184,7 @@ class Param(object):
                             logging.debug("Rewriting with py2js: {} -> {}".format(self.val, valJS))
                         return valJS
                     else:
-                        return val
+                        return val[1:]
                 else:
                     # If str is wanted, return literal
                     if utils.scriptTarget != 'PsychoPy':
