@@ -167,7 +167,7 @@ class TextComponent(BaseVisualComponent):
             flipStr = 'flipHoriz : true, '
         elif flip == 'vert':
             flipStr = 'flipVert : true, '
-        elif flip:
+        elif flip and not flip == "None":
             msg = ("flip value should be 'horiz' or 'vert' (no quotes)"
                    " in component '%s'")
             raise ValueError(msg % self.params['name'].val)
