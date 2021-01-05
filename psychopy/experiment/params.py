@@ -29,6 +29,7 @@ from . import py2js
 
 # standard_library.install_aliases()
 from ..colors import Color
+from numpy import ndarray
 
 
 def _findParam(name, node):
@@ -173,6 +174,7 @@ class Param(object):
             # return str if code wanted
             # return repr if str wanted; this neatly handles "it's" and 'He
             # says "hello"'
+            val = self.val
             if isinstance(self.val, basestring):
                 codeWanted = utils.unescapedDollarSign_re.search(self.val)
                 if codeWanted:
@@ -219,7 +221,7 @@ class Param(object):
             else:
                 return val
         elif self.valType == 'list':
-            return "%s" %(toList(self.val))
+            return "{}".format(toList(self.val))
         elif self.valType == 'fixedList':
             return "{}".format(self.val)
         elif self.valType == 'fileList':
@@ -284,7 +286,7 @@ def toList(val):
     -------
     A list of entries in the string value
     """
-    if type(val) == list:
+    if isinstance(val, (list, tuple, ndarray)):
         return val  # already a list. Nothing to do
     # we really just need to check if they need parentheses
     stripped = val.strip()
