@@ -288,6 +288,8 @@ def toList(val):
     """
     if isinstance(val, (list, tuple, ndarray)):
         return val  # already a list. Nothing to do
+    if isinstance(val, (int, float)):
+        return [val] # single value, just needs putting in a cell
     # we really just need to check if they need parentheses
     stripped = val.strip()
     if utils.scriptTarget == "PsychoJS":
