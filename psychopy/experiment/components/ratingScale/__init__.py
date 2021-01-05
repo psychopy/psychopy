@@ -195,6 +195,21 @@ class RatingScaleComponent(BaseComponent):
                             "forceEndRoutine, storeRatingTime, storeRating"),
             label=_localized['customize_everything'])
 
+        self.params['size'] = Param(size,
+            valType='list', inputType="single", categ='Layout',
+            updates='constant', allowedTypes=[],
+            allowedUpdates=['constant', 'set every repeat', 'set every frame'],
+            hint=_translate("Size of this stimulus (either a single value or "
+                         "x,y pair, e.g. 2.5, [1,2] "),
+            label=_localized['size'])
+
+        self.params['pos'] = Param(pos,
+            valType='list', inputType="single", categ='Layout',
+            updates='constant', allowedTypes=[],
+            allowedUpdates=['constant', 'set every repeat', 'set every frame'],
+            hint=_translate("Position of this stimulus (e.g. [1,2] )"),
+            label=_localized['pos'])
+
     def writeInitCode(self, buff):
         # build up an initialization string for RatingScale():
         _in = "%(name)s = visual.RatingScale(win=win, name='%(name)s'"
