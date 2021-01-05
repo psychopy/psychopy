@@ -173,11 +173,11 @@ class ParamCtrls(object):
             self.valueCtrl.Disable()  # visible but can't be changed
 
         # add a Validator to the valueCtrl
-        # if fieldName == "name":
-        #     self.valueCtrl.SetValidator(NameValidator())
-        # elif isinstance(self.valueCtrl, (wx.TextCtrl, CodeBox)):
-        #     # only want anything that is valType code, or can be with $
-        #     self.valueCtrl.SetValidator(CodeSnippetValidator(fieldName))
+        if fieldName == "name":
+            self.valueCtrl.SetValidator(NameValidator())
+        elif param.inputType in ("single", "multi"):
+            # only want anything that is valType code, or can be with $
+            self.valueCtrl.SetValidator(CodeSnippetValidator(fieldName))
 
         # create the type control
         if len(param.allowedTypes):
