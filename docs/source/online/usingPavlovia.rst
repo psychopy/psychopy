@@ -5,8 +5,6 @@
 Using Pavlovia.org
 -----------------------------------
 
-Pavlovia *n.* where behavior is studied
-
 Pavlovia.org is a site created by the PsychoPy team to make it easy to:
 
 - run studies online
@@ -20,14 +18,18 @@ Most of the main tasks you will perform with `Pavlovia`_ can be carried out eith
 Creating an account on Pavlovia
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To create and log in to your account on `Pavlovia`_, you will need an active internet connection. If you have not created your account, you can either 1) go to `Pavlovia`_ and create your account, or 2) click the login button highlighted in Figure 1, and create an account through the dialog box. Once you have an account on `Pavlovia`_, check to see that you are logged in via Builder by clicking button (4) highlighted below, in Figure 1.
+To create and log in to your account on `Pavlovia`_, you will need an active internet connection. If you have not created your account, you can either 
+- go to `Pavlovia`_ and create your account, or
+- click the login button highlighted in Figure 1, and create an account through the dialog box. 
 
-.. figure:: /images/builderViewIndexed.png
+Once you have an account on `Pavlovia`_ and are logged in, your user name should appear in the corresponding menu (tpronk in Figure 1). 
+
+.. figure:: /images/loginPavlovia.png
     :align: center
     :alt: alternate text
     :figclass: align-center
 
-*Figure 1*. PsychoPy 3 Builder icons for building and running online studies
+*Figure 1*. Logging in on Pavlovia via the PsychoPy 3 Builder
 
 .. _pavloviaUpload:
 
@@ -68,25 +70,9 @@ When you have completed all fields in the Project window, click “Create projec
 Viewing your experiment files
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-After you have uploaded your project to `Pavlovia`_ via Builder, you can go and have a look at your project online. To view your project, go to `Pavlovia`_. From the `Pavlovia`_ home page, you can explore your own existing projects, or other users public projects that have been made available to all users. To find your study, click the Explore tab on the home page (see Figure 4)
+After you have uploaded your project to `Pavlovia`_ via Builder, you can go and have a look at your project online. To view your project, go to `Pavlovia`_. 
 
-.. figure:: /images/pavlovHome.png
-    :align: center
-    :alt: alternate text
-    :figclass: align-center
 
-*Figure 4*. The `Pavlovia`_ home page
-
-When exploring studies online, you are presented with a series of thumbnail images for all of the projects on `Pavlovia`_. See Figure 5.
-
-.. figure:: /images/explorePav.png
-    :align: center
-    :alt: alternate text
-    :figclass: align-center
-
-*Figure 5*. Exploring projects on `Pavlovia`_
-
-From the “Explore” page, you can filter projects by setting the filter buttons to a) Public or Private, B) Active or Inactive, and C) sort by number of forks, name, date and number of stars. The default sorting method is Stars. You can also search for projects using the search tool using key words describing your area of interest, e.g., Stroop, or attention.
 
 .. _pavloviaActivate:
 
@@ -113,7 +99,7 @@ To run your experiment on `Pavlovia`_ via Builder, you must first ensure you hav
 Searching for experiments from Builder
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If you wish to search for your own existing projects on `Pavlovia`_, or other users public projects, you can do this via the Builder interface. To search for a project, click button (3) on the Builder Frame in Figure 1. Following this, a search dialog will appear, see Figure 7. The search dialog presents several options that allow users to search, fork and synchronize projects.
+If you wish to search for your own existing projects on `Pavlovia`_, or other users' public projects, you can do this via the Builder interface. To search for a project, click button (3) on the Builder Frame in Figure 1. Following this, a search dialog will appear, see Figure 7. The search dialog presents several options that allow users to search, fork and synchronize projects.
 
 .. figure:: /images/searchDlgAnnot.png
     :align: center
