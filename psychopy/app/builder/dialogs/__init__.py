@@ -127,7 +127,8 @@ class ParamCtrls(object):
         elif param.inputType == 'spin':
             self.valueCtrl = paramCtrls.IntCtrl(parent,
                                                 val=param.val, valType=param.valType,
-                                                fieldName=fieldName,size=wx.Size(self.valueWidth, 24))
+                                                fieldName=fieldName,size=wx.Size(self.valueWidth, 24),
+                                                limits=param.allowedVals)
         elif param.inputType == 'choice':
             self.valueCtrl = paramCtrls.ChoiceCtrl(parent,
                                                    val=str(param.val), valType=param.valType, choices=param.allowedVals,

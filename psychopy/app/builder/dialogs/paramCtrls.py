@@ -118,9 +118,10 @@ class MultiLineCtrl(SingleLineCtrl, _ValidatorMixin):
 class IntCtrl(wx.SpinCtrl, _ValidatorMixin):
     def __init__(self, parent, valType,
                  val="", fieldName="",
-                 size=wx.Size(-1, 24)):
+                 size=wx.Size(-1, 24), limits=None):
         wx.SpinCtrl.__init__(self)
-        self.Create(parent, -1, str(val), name=fieldName, size=size)
+        limits = limits or (1,100)
+        self.Create(parent, -1, str(val), name=fieldName, size=size, min=min(limits), max=max(limits))
         self.valType = valType
         self.Bind(wx.EVT_SPINCTRL, self.spin)
 

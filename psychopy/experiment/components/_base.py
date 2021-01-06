@@ -686,7 +686,7 @@ class BaseVisualComponent(BaseComponent):
 
         self.params['ori'] = Param(ori,
             valType='num', inputType="spin", categ='Layout',
-            updates='constant', allowedTypes=[],
+            updates='constant', allowedTypes=[], allowedVals=[0,360],
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=_translate("Orientation of this stimulus (in deg)"),
             label=_localized['ori'])
