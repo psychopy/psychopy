@@ -8,7 +8,7 @@ from psychopy.colors import Color
 from psychopy.localization import _translate
 from psychopy import data, logging, prefs
 import re
-
+from pathlib import Path
 
 class _ValidatorMixin():
     def validate(self, evt):
@@ -27,6 +27,50 @@ class _ValidatorMixin():
             self.SetForegroundColour(wx.Colour(
                 1, 0, 0
             ))
+
+class _FileMixin:
+    @property
+    def rootDir(self):
+        if not hasattr(self, "_rootDir"):
+            # Store location of root directory if not defined
+            self._rootDir = Path(self.GetTopLevelParent().frame.exp.filename)
+            if self._rootDir.is_file():
+                # Move up a dir if root is a file
+                self._rootDir = self._rootDir.parent
+        # Return stored rootDir
+        return self._rootDir
+    @rootDir.setter
+    def rootDir(self, value):
+        self._rootDir = value
+
+    def getFile(self, msg="Specify file ...", wildcard="All Files (*.*)|*.*"):
+        dlg = wx.FileDialog(self, message=_translate(msg), defaultDir=str(self.rootDir),
+                            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST,
+                            wildcard=_translate(wildcard))
+        if dlg.ShowModal() != wx.ID_OK:
+            return
+        file = dlg.GetPath()
+        try:
+            filename = Path(file).relative_to(self.rootDir)
+        except ValueError:
+            filename = Path(file).absolute()
+        return str(filename)
+
+    def getFiles(self, msg="Specify file or files...", wildcard="All Files (*.*)|*.*"):
+        dlg = wx.FileDialog(self, message=_translate(msg), defaultDir=str(self.rootDir),
+                            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.FD_MULTIPLE,
+                            wildcard=_translate(wildcard))
+        if dlg.ShowModal() != wx.ID_OK:
+            return
+        inList = dlg.GetPaths()
+        outList = []
+        for file in inList:
+            try:
+                filename = Path(file).relative_to(self.rootDir)
+            except ValueError:
+                filename = Path(file).absolute()
+            outList.append(str(filename))
+        return outList
 
 
 class SingleLineCtrl(wx.TextCtrl, _ValidatorMixin):
@@ -104,7 +148,7 @@ class ChoiceCtrl(wx.Choice, _ValidatorMixin):
             self.SetStringSelection(val)
 
 
-class FileCtrl(wx.TextCtrl, _ValidatorMixin):
+class FileCtrl(wx.TextCtrl, _ValidatorMixin, _FileMixin):
     def __init__(self, parent, valType,
                  val="", fieldName="",
                  size=wx.Size(-1, 24)):
@@ -125,19 +169,13 @@ class FileCtrl(wx.TextCtrl, _ValidatorMixin):
         self.Bind(wx.EVT_TEXT, self.validate)
 
     def findFile(self, evt):
-        _wld = f"All Files (*.*)|*.*"
-        dlg = wx.FileDialog(self, message=_translate("Specify file ..."),
-                            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST,
-                            wildcard=_translate(_wld))
-        if dlg.ShowModal() != wx.ID_OK:
-            return 0
-        filename = dlg.GetPath()
-        relname = os.path.relpath(filename)
-        self.SetValue(relname)
-        self.validate()
+        file = self.getFile()
+        if file:
+            self.SetValue(file)
+            self.validate(evt)
 
 
-class FileListCtrl(wx.ListBox, _ValidatorMixin):
+class FileListCtrl(wx.ListBox, _ValidatorMixin, _FileMixin):
     def __init__(self, parent, valType,
                  choices=[], size=None, pathtype="rel"):
         wx.ListBox.__init__(self)
@@ -151,7 +189,6 @@ class FileListCtrl(wx.ListBox, _ValidatorMixin):
         self.addBtn.Bind(wx.EVT_BUTTON, self.addItem)
         self.subBtn = wx.Button(parent, -1, style=wx.BU_EXACTFIT, label="-")
         self.subBtn.Bind(wx.EVT_BUTTON, self.removeItem)
-
         self._szr = wx.BoxSizer(wx.HORIZONTAL)
         self.btns = wx.BoxSizer(wx.VERTICAL)
         self.btns.AddMany((self.addBtn, self.subBtn))
@@ -159,24 +196,19 @@ class FileListCtrl(wx.ListBox, _ValidatorMixin):
         self._szr.Add(self.btns)
 
     def addItem(self, event):
+        # Get files
         if event.GetEventObject() == self.addBtn:
-            _wld = "Any file (*.*)|*"
-            dlg = wx.FileDialog(self, message=_translate("Specify file ..."),
-                                style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.FD_MULTIPLE,
-                                wildcard=_translate(_wld))
-            if dlg.ShowModal() != wx.ID_OK:
-                return 0
-            filenames = dlg.GetPaths()
-            relname = []
-            for filename in filenames:
-                relname.append(
-                    os.path.relpath(filename, self.GetTopLevelParent().frame.filename))
-            self.InsertItems(relname, 0)
+            fileList = self.getFiles()
         else:
             fileList = event.GetFiles()
-            for filename in fileList:
-                if os.path.isfile(filename):
-                    self.InsertItems(filename, 0)
+            for i, filename in enumerate(fileList):
+                try:
+                    fileList[i] = Path(filename).relative_to(self.rootDir)
+                except ValueError:
+                    fileList[i] = Path(filename).absolute()
+        # Add files to list
+        if fileList:
+            self.InsertItems(fileList, 0)
 
     def removeItem(self, event):
         i = self.GetSelections()
@@ -190,7 +222,7 @@ class FileListCtrl(wx.ListBox, _ValidatorMixin):
         return self.Items
 
 
-class TableCtrl(wx.TextCtrl, _ValidatorMixin):
+class TableCtrl(wx.TextCtrl, _ValidatorMixin, _FileMixin):
     def __init__(self, parent, valType,
                  val="", fieldName="",
                  size=wx.Size(-1, 24)):
@@ -244,8 +276,8 @@ class TableCtrl(wx.TextCtrl, _ValidatorMixin):
 
     def openExcel(self, event):
         """Either open the specified excel sheet, or make a new one from a template"""
-        file = self.GetValue()
-        if os.path.isfile(file) and file.endswith(tuple(self.validExt)):
+        file = self.rootDir / self.GetValue()
+        if file.is_file() and file.suffix in self.validExt:
             os.startfile(file)
         else:
             dlg = wx.MessageDialog(self, _translate(
@@ -256,15 +288,10 @@ class TableCtrl(wx.TextCtrl, _ValidatorMixin):
 
     def findFile(self, event):
         _wld = f"All Table Files({'*'+';*'.join(self.validExt)})|{'*'+';*'.join(self.validExt)}|All Files (*.*)|*.*"
-        dlg = wx.FileDialog(self, message=_translate("Specify file ..."),
-                            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST,
-                            wildcard=_translate(_wld))
-        if dlg.ShowModal() != wx.ID_OK:
-            return 0
-        filename = dlg.GetPath()
-        relname = os.path.relpath(filename)
-        self.SetValue(relname)
-        self.validateInput(event)
+        file = self.getFile(msg="Specify table file ...", wildcard=_wld)
+        if file:
+            self.SetValue(file)
+            self.validate(event)
 
 
 class ColorCtrl(wx.TextCtrl, _ValidatorMixin):
