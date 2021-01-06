@@ -31,7 +31,44 @@ When exploring studies online, you are presented with a series of thumbnail imag
 
 From the “Explore” page, you can filter projects by setting the filter buttons to a) Public or Private, b) Active or Inactive, and c) sort by number of forks, name, date and number of stars. The default sorting method is Stars. You can also search for projects using the search tool using key words describing your area of interest, e.g., Stroop, or attention.
 
+<<<<<<< Updated upstream
 
 Contributing an experiment to Pavlovia
 --------------------------------------
 
+=======
+Via the PsychoPy Builder
+~~~~~~~~~~~~~~~~~~~~~~~~
+If you wish to search for your own existing projects on `Pavlovia`_, or other users' public projects, you can do this via the Builder interface. To search for a project, click button (3) on the Builder Frame in Figure 1. Following this, a search dialog will appear, see Figure 5. The search dialog presents several options that allow users to search, fork and synchronize projects.
+
+.. figure:: /images/searchDlgAnnot.png
+    :align: center
+    :alt: alternate text
+    :figclass: align-center
+
+*Figure 6*. The search dialog in Builder
+
+**To search for a project** (see Figure 6, Box A), type in search terms in the text box and click the “Search” button to find related projects on Pavlovia. Use the search filters (e.g., “My group”, “Public” etc) above the text box to filter the search output. The output of your search will be listed in the search panel below the search button, where you can select your project of interest.
+
+**To fork and sync a project** is to take your own copy of a project from `Pavlovia`_ (*fork*) and copy a version to your local desktop or laptop computer (*sync*). To fork a project, select the local folder to download the project using the “Browse” button, and then click “Sync” when you are ready - (see Figure 6, Box B). You should now have a local copy of the project from `Pavlovia`_ ready to run in PsychoPy!
+
+.. _contributingToPavlovia:
+
+Contributing an experiment to Pavlovia
+--------------------------------------
+If you contribute an experiment to Pavlovia, other researchers can access it. Besides contributing to open science, this can be handy if you've got an issue with your experiment and would like other researchers to take a look.
+
+Making an experiment public
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+A public experiment is visible to anyone to clone and fork. To make your experiment public navigate to your experiment page then select > View code <> > Settings > Permissions (set to public)
+
+.. image:: gitlabPublic.png
+        :scale: 100 %
+
+Adding a team member
+~~~~~~~~~~~~~~~~~~~~
+If you'd like to share your experiment only with specific researchers, navigate to your experiment, then select > View code <> > settings > Members. At this page: select a member, give them a role (to be able to fork your experiment, they should at least be Developer), optionally an access experation date, and then add them.
+
+.. image:: /images/addingUserToGitlab.png
+        :scale: 100 %
+>>>>>>> Stashed changes

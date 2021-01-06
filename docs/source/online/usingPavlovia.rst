@@ -71,12 +71,15 @@ Viewing your experiment files
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 After you have uploaded your project to `Pavlovia`_ via Builder, you can go and have a look at your project online. To view your project, go to `Pavlovia`_. 
+<<<<<<< Updated upstream
 
 
+=======
+>>>>>>> Stashed changes
 
 .. _pavloviaActivate:
 
-When you have found your project, you have several options (see Figure 6).
+When you have found your project, you have several options (see Figure 4).
 
 |  1) Run your task from the `Pavlovia`_ server
 |  2) Activate or deactivate your experiment
@@ -87,7 +90,7 @@ When you have found your project, you have several options (see Figure 6).
     :alt: alternate text
     :figclass: align-center
 
-*Figure 6*. Projects on `Pavlovia`_
+*Figure 4*. Projects on `Pavlovia`_
 
 Running your experiment on Pavlovia.org from Builder
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -96,6 +99,7 @@ If you wish to run your experiment online, in a web-browser, you have two option
 
 To run your experiment on `Pavlovia`_ via Builder, you must first ensure you have a valid internet connection, are logged in, and have created a repository for your project on `Pavlovia`_. Once you have completed these steps, simply click button (2) in the Builder frame, as shown in Figure 1 above.
 
+<<<<<<< Updated upstream
 Searching for experiments from Builder
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -111,6 +115,8 @@ If you wish to search for your own existing projects on `Pavlovia`_, or other us
 **To search for a project** (see Fig 7, Box A), type in search terms in the text box and click the “Search” button to find related projects on Pavlovia. Use the search filters (e.g., “My group”, “Public” etc) above the text box to filter the search output. The output of your search will be listed in the search panel below the search button, where you can select your project of interest.
 
 **To fork and sync a project** is to take your own copy of a project from `Pavlovia`_ (*fork*) and copy a version to your local desktop or laptop computer (*sync*). To fork a project, select the local folder to download the project using the “Browse” button, and then click “Sync” when you are ready - (see Fig 7, Box B). You should now have a local copy of the project from `Pavlovia`_ ready to run in PsychoPy!
+=======
+>>>>>>> Stashed changes
 
 Now you can run your synced project online from `Pavlovia`_!
 

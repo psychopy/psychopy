@@ -30,7 +30,7 @@ Code components can automatically convert Python to JavaScript. However, this do
 - For common JS functions, see the `PsychoPy to JS crib sheet <https://docs.google.com/document/d/13jp0QAqQeFlYSjeZS0fDInvgaDzBXjGQNe4VNKbbNHQ/edit>`_ by `Wakefield Morys-Carter <https://twitter.com/Psych_Stats/>`_
 - For finding out how to manipulate PsychoJS components via code, see the `PsychoJS API <https://psychopy.github.io/psychojs/>`_. The `tutorial_js_expose_psychojs experiment <https://gitlab.pavlovia.org/tpronk/tutorial_js_expose_psychojs>`_ shows how to expose PsychoJS objects to the web browser, so that you can access them via the browser console, and try things out in order to see what works (or not).
 - If you're looking for a JS equivalent of a Python function, try searching 'JS equivalent/version of function X' on `stack overflow <https://stackoverflow.com/>`_ or `Google <https://google.com>`_
-- Still stuck? Try asking for help on the `forum <https://discourse.psychopy.org/c/online/14>`_
+- Still stuck? Try asking for help on the `forum <https://discourse.psychopy.org/c/online/14>`_. For giving researchers access to the repository of your experiment, see :ref:`contributingToPavlovia`
 
 Adding JS functions
 ~~~~~~~~~~~~~~~~~~~

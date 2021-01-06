@@ -11,7 +11,6 @@ Online studies are realized via PsychoJS; the online counterpart of PsychoPy. To
 2. :doc:`Convert your media (images, sound, and video) to online-suitable formats <mediaFormats>`
 3. :doc:`Register an account on Pavlovia <usingPavlovia>`
 4. :doc:`Generate a JavaScript experiment and upload it to Pavlovia <fromBuilder>`
-5. :doc:`Activate your experiment`
 
 Besides the basics, we've got the following tutorials:
 
