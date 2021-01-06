@@ -64,7 +64,7 @@ class ImageComponent(BaseVisualComponent):
             "An image to define the alpha mask through which the image is "
             "seen - gauss, circle, None or a filename (including path)")
         self.params['mask'] = Param(
-            mask, valType='str', inputType="single", allowedTypes=[], categ='Texture',
+            mask, valType='str', inputType="file", allowedTypes=[], categ='Texture',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
