@@ -120,7 +120,7 @@ class IntCtrl(wx.SpinCtrl, _ValidatorMixin):
                  val="", fieldName="",
                  size=wx.Size(-1, 24), limits=None):
         wx.SpinCtrl.__init__(self)
-        limits = limits or (1,100)
+        limits = limits or (-100,100)
         self.Create(parent, -1, str(val), name=fieldName, size=size, min=min(limits), max=max(limits))
         self.valType = valType
         self.Bind(wx.EVT_SPINCTRL, self.spin)
