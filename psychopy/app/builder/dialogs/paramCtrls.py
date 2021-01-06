@@ -305,6 +305,12 @@ class ColorCtrl(wx.TextCtrl, _ValidatorMixin):
         self.valType = valType
         # Add sizer
         self._szr = wx.BoxSizer(wx.HORIZONTAL)
+        if not valType == "str":
+            # Add $ for anything to be interpreted verbatim
+            self.dollarLbl = wx.StaticText(parent, -1, "$", size=wx.Size(-1, -1), style=wx.ALIGN_RIGHT)
+            self.dollarLbl.SetToolTip(_translate("This parameter will be treated as code - we have already put in the $, so you don't have to."))
+            self._szr.Add(self.dollarLbl, border=5, flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT)
+        # Add ctrl to sizer
         self._szr.Add(self, border=5, flag=wx.EXPAND | wx.RIGHT)
         # Add button to activate color picker
         fldr = parent.app.iconCache.getBitmap(name="color", size=16, theme="light")
