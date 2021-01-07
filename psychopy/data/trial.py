@@ -1120,6 +1120,7 @@ class TrialHandler2(_BaseTrialHandler):
                             encoding=encoding) as f:
             self.data.to_csv(path_or_buf=f,
                              sep=delim,
+                             encoding=encoding,
                              columns=self.columns,  # sets the order
                              header=(not matrixOnly),
                              index=False)
