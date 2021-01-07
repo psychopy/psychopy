@@ -2498,7 +2498,7 @@ class ReadmeFrame(wx.Frame):
         f.close()
         self._fileLastModTime = os.path.getmtime(filename)
         if md:
-            readmeText = md.MarkdownIt().render(readmeText)
+            readmeText = md.MarkdownIt().enable("table").render(readmeText)
         self.ctrl.SetPage(readmeText)
         self.SetTitle("%s readme (%s)" % (self.expName, filename))
 
