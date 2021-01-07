@@ -29,7 +29,7 @@ class PsychoColorPicker(wx.Dialog, ThemeMixin):
         self.preview = ColorPreview(color=self.color, parent=self)
         self.sizer.Add(self.preview, pos=(0,0), span=wx.GBSpan(2,1), border=5, flag=wx.RIGHT | wx.EXPAND)
         # Add notebook of controls
-        self.ctrls = aui.AuiNotebook(self, wx.ID_ANY, size=wx.Size(400, 400))
+        self.ctrls = aui.AuiNotebook(self, wx.ID_ANY, size=wx.Size(400, 400), agwStyle=0)
         self.sizer.Add(self.ctrls, pos=(0,1), border=5, flag=wx.ALL)
         self.ctrls.AddPage(ColorPage(self.ctrls, self, 'rgba'), 'RGB (-1 to 1)')
         self.ctrls.AddPage(ColorPage(self.ctrls, self, 'rgba1'), 'RGB (0 to 1)')
@@ -144,6 +144,7 @@ class ColorPreview(wx.Window):
         self.dc.SetPen(wx.Pen(self.color.rgb255 + (self.color.alpha*255,), wx.PENSTYLE_TRANSPARENT))
         self.dc.DrawRectangle(0, 0, self.GetSize()[0], self.GetSize()[1])
 
+
 class ColorPresets(ScrolledPanel):
     def __init__(self, parent):
         ScrolledPanel.__init__(self, parent, size=(120,400), style=wx.VSCROLL | wx.BORDER_NONE)
@@ -165,6 +166,7 @@ class ColorPresets(ScrolledPanel):
 
     def onClick(self, event):
         self.parent.setColor(event.GetEventObject().colorData, 'named')
+
 
 class ColorPage(wx.Window, ThemeMixin):
     def __init__(self, parent, dlg, space):
@@ -335,6 +337,7 @@ class ColorControl(wx.Panel):
             if obj == self.spinner:
                 self.value = obj.GetValue()
         self.parent.onChange()
+
 
 class HexControl(ColorControl):
     def __init__(self, parent=None, row=0, id=None, name="", value=0):
