@@ -65,7 +65,7 @@ class JoystickComponent(BaseComponent):
             "On every video frame, every click or just at the end of the "
             "Routine?")
         self.params['saveJoystickState'] = Param(
-            save, valType='str', categ='Data',
+            save, valType='str', inputType="choice", categ='Data',
             allowedVals=['final', 'on click', 'every frame', 'never'],
             hint=msg,
             label=_localized['saveJoystickState'])
@@ -77,7 +77,7 @@ class JoystickComponent(BaseComponent):
         elif forceEndRoutineOnPress is False:
             forceEndRoutineOnPress = 'never'
         self.params['forceEndRoutineOnPress'] = Param(
-            forceEndRoutineOnPress, valType='str', categ='Basic',
+            forceEndRoutineOnPress, valType='str', inputType="choice", categ='Basic',
             allowedVals=['never', 'any click', 'valid click'],
             updates='constant',
             hint=msg,
@@ -86,7 +86,7 @@ class JoystickComponent(BaseComponent):
         msg = _translate("What should the values of joystick.time should be "
                          "relative to?")
         self.params['timeRelativeTo'] = Param(
-            timeRelativeTo, valType='str', categ='Data',
+            timeRelativeTo, valType='str', inputType="choice", categ='Data',
             allowedVals=['joystick onset', 'experiment', 'routine'],
             updates='constant',
             hint=msg,
@@ -97,7 +97,7 @@ class JoystickComponent(BaseComponent):
                          'e.g. target, foil'
                          )
         self.params['clickable'] = Param(
-            '', valType='code', categ='Data',
+            '', valType='list', inputType="single", categ='Data',
             updates='constant',
             hint=msg,
             label=_localized['Clickable stimuli'])
@@ -108,7 +108,7 @@ class JoystickComponent(BaseComponent):
                          'clickable objects have all these params.'
                          )
         self.params['saveParamsClickable'] = Param(
-            'name,', valType='code', categ='Data',
+            'name,', valType='list', inputType="single", categ='Data',
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized['Store params for clicked'])
@@ -117,7 +117,7 @@ class JoystickComponent(BaseComponent):
                          ' one do you want (0, 1, 2...)')
 
         self.params['deviceNumber'] = Param(
-            deviceNumber, valType='code', allowedTypes=[], categ='Hardware',
+            deviceNumber, valType='int', inputType="single", allowedTypes=[], categ='Hardware',
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized['deviceNumber'])
@@ -126,7 +126,7 @@ class JoystickComponent(BaseComponent):
                          'commas')
 
         self.params['allowedButtons'] = Param(
-            allowedButtons, valType='code', allowedTypes=[], categ='Data',
+            allowedButtons, valType='list', inputType="single", allowedTypes=[], categ='Data',
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized['allowedButtons'])
