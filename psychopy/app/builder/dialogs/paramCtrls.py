@@ -1,12 +1,11 @@
 import os
 import wx
 
-import psychopy
 from psychopy.app.colorpicker import PsychoColorPicker
 from psychopy.app.themes import ThemeMixin
 from psychopy.colors import Color
 from psychopy.localization import _translate
-from psychopy import data, logging, prefs
+from psychopy import data, prefs, experiment
 import re
 from pathlib import Path
 
@@ -247,7 +246,7 @@ class TableCtrl(wx.TextCtrl, _ValidatorMixin, _FileMixin):
         self.xlBtn.Bind(wx.EVT_BUTTON, self.openExcel)
         self._szr.Add(self.xlBtn)
         # Link to Excel templates for certain contexts
-        cmpRoot = os.path.dirname(psychopy.experiment.components.__file__)
+        cmpRoot = os.path.dirname(experiment.components.__file__)
         expRoot = os.path.normpath(os.path.join(cmpRoot, ".."))
         self.templates = {
             'Form': os.path.join(cmpRoot, "form", "formItems.xltx"),
@@ -328,9 +327,7 @@ def validate(obj, valType):
     val = str(obj.GetValue())
     valid = True
     if val.startswith("$"):
-        # If indicated as code, cancel and restart with different valType
-        val = val[1:]
-        valType = "code"
+        # If indicated as code, cancel
         return
     # Validate string
     if valType == "str":
