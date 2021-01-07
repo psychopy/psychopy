@@ -60,14 +60,14 @@ class MovieComponent(BaseVisualComponent):
 
         msg = _translate("A filename for the movie (including path)")
         self.params['movie'] = Param(
-            movie, valType='str', allowedTypes=[], categ='Basic',
+            movie, valType='file', inputType="file", allowedTypes=[], categ='Basic',
             updates='constant', allowedUpdates=['constant', 'set every repeat'],
             hint=msg,
             label=_localized['movie'])
 
         msg = _translate("What underlying lib to use for loading movies")
         self.params['backend'] = Param(
-            backend, valType='str', categ='Playback',
+            backend, valType='str', inputType="choice", categ='Playback',
             allowedVals=['moviepy', 'avbin', 'opencv'],
             hint=msg,
             label=_localized['backend'])
@@ -75,14 +75,14 @@ class MovieComponent(BaseVisualComponent):
         msg = _translate("Prevent the audio stream from being loaded/processed "
                "(moviepy and opencv only)")
         self.params["No audio"] = Param(
-            noAudio, valType='bool', categ='Playback',
+            noAudio, valType='bool', inputType="bool", categ='Playback',
             hint=msg,
             label=_localized['No audio'])
 
         msg = _translate("Should the end of the movie cause the end of "
                          "the routine (e.g. trial)?")
         self.params['forceEndRoutine'] = Param(
-            forceEndRoutine, valType='bool', allowedTypes=[], categ='Basic',
+            forceEndRoutine, valType='bool', inputType="bool", allowedTypes=[], categ='Basic',
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized['forceEndRoutine'])
@@ -90,7 +90,7 @@ class MovieComponent(BaseVisualComponent):
         msg = _translate("Whether the movie should loop back to the beginning "
                          "on completion.")
         self.params['loop'] = Param(
-            loop, valType='bool', categ='Playback',
+            loop, valType='bool', inputType="bool", categ='Playback',
             hint=msg,
             label=_translate('Loop playback'))
 

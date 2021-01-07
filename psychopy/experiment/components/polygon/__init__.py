@@ -70,7 +70,7 @@ class PolygonComponent(BaseVisualComponent):
         # params
         msg = _translate("How many vertices in your regular polygon?")
         self.params['nVertices'] = Param(
-            nVertices, valType='int', categ='Basic',
+            nVertices, valType='int', inputType="single", categ='Basic',
             updates='constant',
             allowedUpdates=['constant'],
             hint=msg,
@@ -79,7 +79,7 @@ class PolygonComponent(BaseVisualComponent):
         msg = _translate("What shape is this? With 'regular polygon...' you "
                          "can set number of vertices")
         self.params['shape'] = Param(
-            shape, valType='str', categ='Basic',
+            shape, valType='str', inputType="choice", categ='Basic',
             allowedVals=["line", "triangle", "rectangle", "cross", "star",
                          "regular polygon..."],
             updates='constant',
@@ -95,7 +95,7 @@ class PolygonComponent(BaseVisualComponent):
         msg = _translate("Width of the shape's line (always in pixels - this"
                          " does NOT use 'units')")
         self.params['lineWidth'] = Param(
-            lineWidth, valType='code', allowedTypes=[], categ='Appearance',
+            lineWidth, valType='num', inputType="single", allowedTypes=[], categ='Appearance',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
@@ -104,7 +104,7 @@ class PolygonComponent(BaseVisualComponent):
         msg = _translate(
             "How should the image be interpolated if/when rescaled")
         self.params['interpolate'] = Param(
-            interpolate, valType='str', allowedVals=['linear', 'nearest'], categ='Texture',
+            interpolate, valType='str', inputType="choice", allowedVals=['linear', 'nearest'], categ='Texture',
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized['interpolate'])
