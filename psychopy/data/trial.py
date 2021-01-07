@@ -1118,11 +1118,12 @@ class TrialHandler2(_BaseTrialHandler):
         with openOutputFile(fileName=fileName, append=appendFile,
                             fileCollisionMethod=fileCollisionMethod,
                             encoding=encoding) as f:
-            self.data.to_csv(path_or_buf=f,
-                             sep=delim,
-                             columns=self.columns,  # sets the order
-                             header=(not matrixOnly),
-                             index=False)
+            csvData = self.data.to_csv(sep=delim,
+                                       encoding=encoding,
+                                       columns=self.columns,  # sets the order
+                                       header=(not matrixOnly),
+                                       index=False)
+            f.write(csvData)
 
         if (fileName is not None) and (fileName != 'stdout'):
             logging.info('saved wide-format data to %s' % f.name)
