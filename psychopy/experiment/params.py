@@ -270,7 +270,7 @@ class Param(object):
         3: The value, stripped of any unnecessary $
         """
         val = self.val
-        if self.valType in ["str", "extendedStr"]:
+        if self.valType in ['extendedStr','str', 'file', 'table', 'color']:
             # How to handle dollar signs in a string param
             self.codeWanted = val.startswith("$")
 
