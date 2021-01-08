@@ -2416,7 +2416,7 @@ class FavoriteComponents(object):
         return favorites
 
 
-class ReadmeFrame(wx.Frame):
+class ReadmeFrame(wx.Frame, ThemeMixin):
     """Defines construction of the Readme Frame"""
 
     def __init__(self, parent):
@@ -2501,6 +2501,7 @@ class ReadmeFrame(wx.Frame):
             readmeText = md.MarkdownIt().enable("table").render(readmeText)
         self.ctrl.SetPage(readmeText)
         self.SetTitle("%s readme (%s)" % (self.expName, filename))
+        self._applyAppTheme(self.ctrl)
 
     def fileSave(self, evt=None):
         """Defines save behavior for readme frame"""

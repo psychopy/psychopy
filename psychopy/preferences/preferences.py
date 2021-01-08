@@ -161,7 +161,7 @@ class Preferences(object):
                     join(self.paths['themes'], file)
                 )
         for file in os.listdir(baseAppThemes):
-            if file.endswith('.json'):
+            if file.endswith(('.json', '.css')):
                 shutil.copyfile(
                     join(baseAppThemes, file),
                     join(self.paths['themes'], "app", file)

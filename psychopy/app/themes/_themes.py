@@ -5,6 +5,8 @@ import sys
 import wx
 import wx.lib.agw.aui as aui
 import wx.stc as stc
+from wx.html import HtmlWindow
+import re
 from psychopy.localization import _translate
 from wx import py
 import keyword
@@ -74,6 +76,7 @@ class ThemeMixin:
     icons = 'light'
     codeColors = {}
     appColors = {}
+    appCSS = {}
     appIcons = {'components': {},
                 'resources': {}}
 
@@ -98,6 +101,13 @@ class ThemeMixin:
         except FileNotFoundError:
             with open(str(themesPath / "app/light.json"), "rb") as fp:
                 ThemeMixin.spec = appColors = json.load(fp)
+        # Get app CSS
+        try:
+            with open(str(themesPath / "app/{}.css".format(appColorMode)), "r") as fp:
+                ThemeMixin.appCSS = fp.read()
+        except FileNotFoundError:
+            with open(str(themesPath / "app/light.css"), "r") as fp:
+                ThemeMixin.appCSS = fp.read()
 
         # Set app theme
         ThemeMixin.mode = appColorMode
@@ -274,6 +284,14 @@ class ThemeMixin:
             target.SetForegroundColour(base['fg'])
             target.SetBackgroundColour(base['bg'])
 
+        def applyToHTMLWindow(target):
+            # Clear previous style
+            #html = target.GetOpenedPage()
+            #html = re.sub("<style>.*</style>", "", html)
+            #target.SetPage(html)
+            # Append new style
+            target.AppendToPage("<style>{}</style>".format(ThemeMixin.appCSS))
+
         # Define dict linking object types to subfunctions
         handlers = {
             wx.Frame: applyToFrame,
@@ -284,7 +302,8 @@ class ThemeMixin:
             wx.py.shell.Shell: applyToCodeEditor,
             wx.ToolBar: applyToToolbar,
             wx.StatusBar: applyToStatusBar,
-            wx.TextCtrl: applyToTextCtrl
+            wx.TextCtrl: applyToTextCtrl,
+            HtmlWindow: applyToHTMLWindow
         }
 
         # If no target supplied, default to using self
