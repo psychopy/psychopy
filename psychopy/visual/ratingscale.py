@@ -130,6 +130,7 @@ class RatingScale(MinimalStim):
                  rightKeys='right',
                  respKeys=(),
                  lineColor='White',
+                 colorSpace='rgb',
                  skipKeys='tab',
                  mouseOnly=False,
                  noMouse=False,
@@ -1360,7 +1361,7 @@ class RatingScale(MinimalStim):
         if self.showAccept:
             self.acceptBox.setFillColor(self.acceptFillColor, log=False)
             self.acceptBox.setLineColor(self.acceptLineColor, log=False)
-            self.accept.setColor('#444444', log=False)  # greyed out
+            self.accept.setColor('#444444', colorSpace='hex', log=False)  # greyed out
             self.accept.setText(self.keyClick, log=False)
         if log and self.autoLog:
             logging.exp('RatingScale %s: reset()' % self.name)

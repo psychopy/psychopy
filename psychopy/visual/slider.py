@@ -13,7 +13,7 @@ import copy
 import numpy as np
 
 from psychopy import core, logging, event
-from .basevisual import MinimalStim
+from .basevisual import MinimalStim, ColorMixin
 from .rect import Rect
 from .grating import GratingStim
 from .elementarray import ElementArrayStim
@@ -25,7 +25,7 @@ from ..constants import FINISHED, STARTED, NOT_STARTED
 
 
 
-class Slider(MinimalStim):
+class Slider(MinimalStim, ColorMixin):
     """A class for obtaining ratings, e.g., on a 1-to-7 or categorical scale.
 
     A simpler alternative to RatingScale, to be customised with code rather
@@ -59,6 +59,7 @@ class Slider(MinimalStim):
                  granularity=0,
                  readOnly=False,
                  color='LightGray',
+                 colorSpace='rgb',
                  font='Helvetica Bold',
                  depth=0,
                  name=None,
@@ -152,7 +153,8 @@ class Slider(MinimalStim):
 
         self.flip = flip
         self.granularity = granularity
-        self._color = color
+        self.colorSpace = colorSpace
+        self.color = color
         self.font = font
         self.autoDraw = autoDraw
         self.depth = depth
@@ -221,12 +223,6 @@ class Slider(MinimalStim):
         return self.size[0] > self.size[1]
 
     @property
-    def color(self):
-        """ Color of the line/ticks/labels according to the color space.
-        """
-        return self._color
-
-    @property
     def size(self):
         """The size for the scale defines the area taken up by the line and
             the ticks.
@@ -253,14 +249,14 @@ class Slider(MinimalStim):
         else:
             lineSize = self._lineW, self._lineL
             tickSize = self._tickL, self._lineW
-        self.line = GratingStim(win=self.win, pos=self.pos, color=self.color,
+        self.line = GratingStim(win=self.win, pos=self.pos, color=self._foreColor, colorSpace=self.colorSpace,
                                 size=lineSize, sf=0, units=self.units,
                                 autoLog=False)
         self.tickLines = ElementArrayStim(win=self.win, units=self.units,
                                           nElements=len(self.ticks),
                                           xys=self.tickLocs,
                                           elementMask=None,
-                                          colors=self.color,
+                                          colors=self._foreColor, colorSpace = self.colorSpace,
                                           sizes=tickSize, sfs=0,
                                           autoLog=False)
 
@@ -290,7 +286,7 @@ class Slider(MinimalStim):
 
                 obj = TextStim(self.win, label, font=self.font,
                                anchorHoriz=alignHoriz, anchorVert=alignVert,
-                               units=self.units, color=self.color,
+                               units=self.units, color=self._foreColor, colorSpace=self.colorSpace,
                                pos=self.labelLocs[tickN, :],
                                height=self.labelHeight, 
                                wrapWidth=self.labelWrapWidth,

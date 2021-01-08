@@ -312,7 +312,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         text = text.replace('</i>', codes['ITAL_END'])
         text = text.replace('<b>', codes['BOLD_START'])
         text = text.replace('</b>', codes['BOLD_END'])
-        rgb = self._getDesiredRGB(self.rgb, self.colorSpace, self.contrast)
+        rgb = self._foreColor.rgba
         font = self.glFont
 
         # the vertices are initially pix (natural for freetype)
@@ -409,8 +409,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
             vertices[i * 4:i * 4 + 4] = theseVertices
             self._texcoords[i * 4:i * 4 + 4] = texcoords
-            self._colors[i*4 : i*4+4, :3] = rgb
-            self._colors[i*4 : i*4+4, 3] = self.opacity
+            self._colors[i*4 : i*4+4, :4] = rgb
             self._lineNs[i] = lineN
             current[0] = current[0] + glyph.advance[0] + fakeBold / 2
             current[1] = current[1] + glyph.advance[1]

@@ -228,12 +228,12 @@ class Color(object):
         if 'named' in self.getSpace(color, True):
             space = 'named'
         # Store requested colour and space (or defaults, if none given)
-        self._requested = color if color is not None else None
-        self._requestedSpace = space \
-            if space and space in self.getSpace(self._requested, debug=True) \
-            else self.getSpace(self._requested)
-        if isinstance(self._requestedSpace, (list, type(None))):
-            logging.error("Color space could not be determined by values supplied, please specify a color space.")
+        self._requested = color or None
+        self._requestedSpace = None
+        if space in self.getSpace(self._requested, debug=True):
+            self._requestedSpace = space
+        if not self._requestedSpace:
+            logging.error("Please specify a color space.")
             return
 
         # Convert to lingua franca
@@ -267,7 +267,7 @@ class Color(object):
 
     def __bool__(self):
         """Determines truth value of object"""
-        return bool(self.rgba)
+        return bool(self._requestedSpace)
 
     # ---rich comparisons---
     def __eq__(self, target):
