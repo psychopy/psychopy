@@ -2499,6 +2499,8 @@ class ReadmeFrame(wx.Frame):
         self._fileLastModTime = os.path.getmtime(filename)
         if md:
             readmeText = md.MarkdownIt().render(readmeText)
+        else:
+            readmeText = readmeText.replace("\n", "<br>")
         self.ctrl.SetPage(readmeText)
         self.SetTitle("%s readme (%s)" % (self.expName, filename))
 
