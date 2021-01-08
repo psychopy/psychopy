@@ -92,21 +92,21 @@ class SliderComponent(BaseVisualComponent):
         # normal params:
         # = the usual as inherited from BaseVisual plus:
         self.params['ticks'] = Param(
-                ticks, valType='list', allowedTypes=[], categ='Data',
+                ticks, valType='list', inputType="single", allowedTypes=[], categ='Data',
                 updates='constant',
                 allowedUpdates=['constant', 'set every repeat'],
                 hint=_translate("Tick positions (numerical) on the scale, "
                                 "separated by commas"),
                 label=_localized['ticks'])
         self.params['labels'] = Param(
-                labels, valType='list', allowedTypes=[], categ='Data',
+                labels, valType='list', inputType="single", allowedTypes=[], categ='Data',
                 updates='constant',
                 allowedUpdates=['constant', 'set every repeat'],
                 hint=_translate("Labels for the tick marks on the scale, "
                                 "separated by commas"),
                 label=_localized['labels'])
         self.params['granularity'] = Param(
-                granularity, valType='code', allowedTypes=[], categ='Data',
+                granularity, valType='num', inputType="single", allowedTypes=[], categ='Data',
                 updates='constant',
                 allowedUpdates=['constant', 'set every repeat'],
                 hint=_translate("Specifies the minimum step size "
@@ -114,7 +114,7 @@ class SliderComponent(BaseVisualComponent):
                                 "rating scale)"),
                 label=_translate('Granularity'))
         self.params['forceEndRoutine'] = Param(
-                forceEndRoutine, valType='bool', allowedTypes=[], categ='Basic',
+                forceEndRoutine, valType='bool', inputType="bool", allowedTypes=[], categ='Basic',
                 updates='constant', allowedUpdates=[],
                 hint=_translate("Should setting a rating (releasing the mouse) "
                                 "cause the end of the routine (e.g. trial)?"),
@@ -127,7 +127,7 @@ class SliderComponent(BaseVisualComponent):
 
         # advanced params:
         self.params['flip'] = Param(
-                flip, valType='bool', categ='Layout',
+                flip, valType='bool', inputType="bool", categ='Layout',
                 updates='constant', allowedUpdates=[],
                 hint=_translate(
                         "By default the labels will be on the bottom or "
@@ -139,7 +139,7 @@ class SliderComponent(BaseVisualComponent):
         "overridden by the style setting)"
 
         self.params['font'] = Param(
-                font, valType='str', categ='Appearance',
+                font, valType='str', inputType="single", categ='Appearance',
                 updates='constant',
                 allowedUpdates=['constant', 'set every repeat'],
                 hint=_translate(
@@ -147,7 +147,7 @@ class SliderComponent(BaseVisualComponent):
                 label=_translate('Font'))
 
         self.params['styles'] = Param(
-                style, valType='fixedList', categ='Appearance',
+                style, valType='str', inputType="choice", categ='Appearance',
                 updates='constant', allowedVals=knownStyles,
                 hint=_translate(
                         "Styles determine the appearance of the slider"),
@@ -155,18 +155,18 @@ class SliderComponent(BaseVisualComponent):
 
         # data params
         self.params['storeRating'] = Param(
-                storeRating, valType='bool', allowedTypes=[], categ='Data',
+                storeRating, valType='bool', inputType="bool", allowedTypes=[], categ='Data',
                 updates='constant', allowedUpdates=[],
                 hint=_translate("store the rating"),
                 label=_localized['storeRating'])
         self.params['storeRatingTime'] = Param(
-                storeRatingTime, valType='bool', allowedTypes=[], categ='Data',
+                storeRatingTime, valType='bool', inputType="bool", allowedTypes=[], categ='Data',
                 updates='constant', allowedUpdates=[],
                 hint=_translate("Store the time taken to make the choice (in "
                                 "seconds)"),
                 label=_localized['storeRatingTime'])
         self.params['storeHistory'] = Param(
-                storeHistory, valType='bool', allowedTypes=[], categ='Data',
+                storeHistory, valType='bool', inputType="bool", allowedTypes=[], categ='Data',
                 updates='constant', allowedUpdates=[],
                 hint=_translate("store the history of (selection, time)"),
                 label=_localized['storeHistory'])

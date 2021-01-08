@@ -81,7 +81,7 @@ class cedrusButtonBoxComponent(KeyboardComponent):
         msg = _translate('Device number, if you have multiple devices which'
                          ' one do you want (0, 1, 2...)')
         self.params['deviceNumber'] = Param(
-            deviceNumber, valType='code', allowedTypes=[], categ='Hardware',
+            deviceNumber, valType='num', inputType="spin", allowedTypes=[], categ='Hardware',
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized['deviceNumber'])
@@ -96,7 +96,7 @@ class cedrusButtonBoxComponent(KeyboardComponent):
         msg = _translate('According to Cedrus the response box timer has '
                          'a drift - use with caution!')
         self.params['useBoxTimer'] = Param(
-            getReleaseTime, valType='bool', allowedVals=[True, False], categ='Hardware',
+            getReleaseTime, valType='bool', inputType="bool", allowedVals=[True, False], categ='Hardware',
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized['useBoxTimer'])

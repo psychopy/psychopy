@@ -55,7 +55,7 @@ class GratingComponent(BaseVisualComponent):
         msg = _translate("The (2D) texture of the grating - can be sin, sqr,"
                          " sinXsin... or a filename (including path)")
         self.params['tex'] = Param(
-            image, valType='str', allowedTypes=[], categ='Texture',
+            image, valType='file', inputType="file", allowedVals=["sin", "sqr", "sinXsin"], allowedTypes=[], categ='Texture',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
@@ -64,7 +64,7 @@ class GratingComponent(BaseVisualComponent):
         msg = _translate("An image to define the alpha mask (ie shape)- "
                          "gauss, circle... or a filename (including path)")
         self.params['mask'] = Param(
-            mask, valType='str', allowedTypes=[], categ='Texture',
+            mask, valType='file', inputType="file", allowedVals=["gauss, circle"], allowedTypes=[], categ='Texture',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
@@ -73,7 +73,7 @@ class GratingComponent(BaseVisualComponent):
         msg = _translate("Spatial frequency of image repeats across the "
                          "grating in 1 or 2 dimensions, e.g. 4 or [2,3]")
         self.params['sf'] = Param(
-            sf, valType='code', allowedTypes=[], categ='Texture',
+            sf, valType='num', inputType="single",  allowedTypes=[], categ='Texture',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
@@ -82,7 +82,7 @@ class GratingComponent(BaseVisualComponent):
         msg = _translate("Spatial positioning of the image on the grating "
                          "(wraps in range 0-1.0)")
         self.params['phase'] = Param(
-            phase, valType='code', allowedTypes=[], categ='Texture',
+            phase, valType='num', inputType="single", allowedTypes=[], categ='Texture',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
@@ -93,7 +93,7 @@ class GratingComponent(BaseVisualComponent):
             "etc. For most cases a value of 256 pixels will suffice")
         self.params['texture resolution'] = Param(
             texRes,
-            valType='code', allowedVals=['32', '64', '128', '256', '512'], categ='Texture',
+            valType='num', inputType="choice", allowedVals=['32', '64', '128', '256', '512'], categ='Texture',
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized['texture resolution'])
@@ -101,7 +101,7 @@ class GratingComponent(BaseVisualComponent):
         msg = _translate("How should the image be interpolated if/when "
                          "rescaled")
         self.params['interpolate'] = Param(
-            interpolate, valType='str', allowedVals=['linear', 'nearest'], categ='Texture',
+            interpolate, valType='str', inputType="choice", allowedVals=['linear', 'nearest'], categ='Texture',
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized['interpolate'])
@@ -109,7 +109,7 @@ class GratingComponent(BaseVisualComponent):
         msg = _translate("OpenGL Blendmode: avg gives traditional transparency,"
                          " add is important to combine gratings)]")
         self.params['blendmode'] = Param(
-            blendmode, valType='str', allowedVals=['avg', 'add'], categ='Appearance',
+            blendmode, valType='str', inputType="choice", allowedVals=['avg', 'add'], categ='Appearance',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,

@@ -629,6 +629,18 @@ class ListWidget(GlobSizer):
         """
         pass
 
+    def SetValidator(self, validator):
+        # Set Validator on every applicable child element
+        for child in self.Children:
+            if hasattr(child.Window, "SetValidator"):
+                child.Window.SetValidator(validator)
+
+    def Validate(self):
+        # Call Validate on every applicable child element
+        for child in self.Children:
+            if hasattr(child.Window, "Validate"):
+                child.Window.Validate()
+
 
 if __name__ == '__main__':
     if parse_version(wx.__version__) < parse_version('2.9'):
