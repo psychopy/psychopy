@@ -14,8 +14,19 @@ import sys
 if sys.platform == 'win32':
     from pyglet.libs import win32  # pyglet patch for ANACONDA install
     from ctypes import *
+    from psychopy import prefs
     win32.PUINT = POINTER(wintypes.UINT)
+    # get the preference for high DPI
+    if 'highDPI' in prefs.hardware.keys():  # check if we have the option
+        enableHighDPI = prefs.hardware['highDPI']
+        # check if we have OS support for it
+        if enableHighDPI:
+            try:
+                windll.shcore.SetProcessDpiAwareness(enableHighDPI)
+            except OSError:
+                pass
 
+from psychopy import event  # import before visual or
 from psychopy.visual import filters
 from psychopy.visual.backends import gamma
 # absolute essentials (nearly all experiments will need these)

@@ -474,10 +474,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
             style = kind
 
         # Create x position of response object
-        xPos = (self.rightEdge
-                - ((item['responseWidth'] * self.size[0]) / 2)
-                - self._scrollBarSize[0]
-                - self.itemPadding)
+        x = self.pos[0]
         # Set radio button layout
         if item['layout'] == 'horiz':
             w = (item['responseWidth'] * self.size[0]
@@ -490,7 +487,6 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
             item['options'].reverse()
 
         # Create Slider
-        x = xPos - self._scrollBarSize[0] - self.itemPadding
         resp = psychopy.visual.Slider(
                 self.win,
                 pos=(x, 0),  # NB y pos is irrelevant here - handled later
@@ -636,7 +632,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                                             units=self.units,
                                             shape='square',
                                             size=self.size,
-                                            pos=(0, 0),
+                                            pos=self.pos,
                                             autoLog=False)
         aperture.disable()  # Disable on creation. Only enable on draw.
         return aperture
@@ -913,3 +909,26 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 'bg': [-0.19,-0.19,-0.14],  # background
                 'fg': [0.89,0.89,0.89],  # foreground
             }
+
+    @property
+    def values(self):
+        # Iterate through each control and append its value to a dict
+        out = {}
+        for item in self.getData():
+            out.update(
+                {item['index']: item['response']}
+            )
+        return out
+
+    @values.setter
+    def values(self, values):
+        for item in self.items:
+            if item['index'] in values:
+                ctrl = item['responseCtrl']
+                # set response if available
+                if hasattr(ctrl, "rating"):
+                    ctrl.rating = values[item['index']]
+                elif hasattr(ctrl, "value"):
+                    ctrl.value = values[item['index']]
+                else:
+                    ctrl.text = values[item['index']]

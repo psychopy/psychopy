@@ -17,7 +17,7 @@ some more added:
 
 """
 import numpy as np
-import OpenGL.GL as gl
+from pyglet import gl
 
 from ..basevisual import BaseVisualStim, ColorMixin, ContainerMixin
 from psychopy.tools.attributetools import attributeSetter, setAttribute
@@ -215,8 +215,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.editable = editable
         self.caret = Caret(self, color=self.color, width=5)
         self._hasFocus = False
-        if editable:  # may yet gain focus if the first editable obj
-            self.win.addEditable(self)
 
         self.autoLog = autoLog
 
@@ -242,6 +240,16 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                     fontName,
                     size=int(round(self._pixLetterHeight)),
                     bold=self.bold, italic=self.italic)
+
+    @property
+    def fontMGR(self):
+            return allFonts
+    @fontMGR.setter
+    def fontMGR(self, mgr):
+        if isinstance(mgr, FontManager):
+            allFonts = mgr
+        else:
+            raise TypeError(f"Could not set font manager for TextBox2 object `{self.name}`, must be supplied with a FontManager object")
 
     @attributeSetter
     def anchor(self, anchor):
@@ -312,8 +320,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         # then they are converted back during rendering using standard BaseStim
         vertices = np.zeros((len(text) * 4, 2), dtype=np.float32)
         self._charIndices = np.zeros((len(text)), dtype=int)
-        self._colors = np.zeros((len(text) * 4, 4), dtype=np.float32)
-        self._texcoords = np.zeros((len(text) * 4, 2), dtype=np.float32)
+        self._colors = np.zeros((len(text) * 4, 4), dtype=np.double)
+        self._texcoords = np.zeros((len(text) * 4, 2), dtype=np.double)
         self._glIndices = np.zeros((len(text) * 4), dtype=int)
 
         # the following are used internally for layout
@@ -511,16 +519,16 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         gl.glEnableClientState(gl.GL_TEXTURE_COORD_ARRAY)
         gl.glEnableClientState(gl.GL_VERTEX_ARRAY)
 
-        gl.glVertexPointer(2, gl.GL_FLOAT, 0, self.verticesPix)
-        gl.glColorPointer(4, gl.GL_FLOAT, 0, self._colors)
-        gl.glTexCoordPointer(2, gl.GL_FLOAT, 0, self._texcoords)
+        gl.glVertexPointer(2, gl.GL_DOUBLE, 0, self.verticesPix.ctypes)
+        gl.glColorPointer(4, gl.GL_DOUBLE, 0, self._colors.ctypes)
+        gl.glTexCoordPointer(2, gl.GL_DOUBLE, 0, self._texcoords.ctypes)
 
         self.shader.bind()
         self.shader.setInt('texture', 0)
         self.shader.setFloat('pixel', [1.0 / 512, 1.0 / 512])
         nVerts = len(self.text)*4
-        gl.glDrawElements(gl.GL_QUADS, nVerts,
-                          gl.GL_UNSIGNED_INT, list(range(nVerts)))
+
+        gl.glDrawArrays(gl.GL_QUADS, 0, nVerts)
         self.shader.unbind()
 
         # removed the colors and font texture
@@ -541,9 +549,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
     def reset(self):
         # Reset contents
         self.text = self.startText
-        # Make sure box is still editable (if needed)
-        if self.editable and self not in self.win._editableChildren:  # may yet gain focus if the first editable obj
-            self.win.addEditable(self)
 
 
     def contains(self, x, y=None, units=None, tight=False):
