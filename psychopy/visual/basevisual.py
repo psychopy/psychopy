@@ -375,7 +375,7 @@ class ColorMixin(object):
             self._fillColor = value
         elif self.colorSpace in AdvancedColor.getSpace(value, True):
             # If supplied with a valid advanced color, use it to make an advanced color object and print tip.
-            self._foreColor = AdvancedColor(value, self.colorSpace)
+            self._fillColor = AdvancedColor(value, self.colorSpace)
         else:
             # Otherwise, make a new Color object
             self._fillColor = Color(value, self.colorSpace)
