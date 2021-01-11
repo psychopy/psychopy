@@ -227,6 +227,9 @@ class Color(object):
         # if supplied a named color, ignore color space
         if 'named' in self.getSpace(color, True):
             space = 'named'
+        # if supplied a hex color, ignore color space
+        if 'hex' in self.getSpace(color, True):
+            space = 'hex'
         # Store requested colour and space (or defaults, if none given)
         self._requested = color or None
         self._requestedSpace = None
