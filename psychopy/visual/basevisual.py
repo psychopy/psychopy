@@ -345,15 +345,15 @@ class ColorMixin(object):
     @foreColor.setter
     def foreColor(self, value):
         if isinstance(value, Color):
-            # If supplied with a color object, set as that
+            # If supplied with a Color object, set as that
             self._foreColor = value
-        elif self.colorSpace in Color.getSpace(value, True) or 'named' in Color.getSpace(value, True) or isinstance(value, (int, float)):
-            # If supplied with a valid color, use it to make a color object
-            self._foreColor = Color(value, self.colorSpace)
         elif self.colorSpace in AdvancedColor.getSpace(value, True):
             # If supplied with a valid advanced color, use it to make an advanced color object and print tip.
             self._foreColor = AdvancedColor(value, self.colorSpace)
         else:
+            # Otherwise, make a new Color object
+            self._foreColor = Color(value, self.colorSpace)
+        if not self._foreColor:
             self._foreColor = Color()
             logging.error(f"'{value}' is not a valid {self.colorSpace} color")
     @property
@@ -373,9 +373,14 @@ class ColorMixin(object):
         if isinstance(value, Color):
             # If supplied with a color object, set as that
             self._fillColor = value
+        elif self.colorSpace in AdvancedColor.getSpace(value, True):
+            # If supplied with a valid advanced color, use it to make an advanced color object and print tip.
+            self._foreColor = AdvancedColor(value, self.colorSpace)
         else:
+            # Otherwise, make a new Color object
             self._fillColor = Color(value, self.colorSpace)
         if not self._fillColor:
+            # If given an invalid color, set as transparent and log error
             self._fillColor = Color()
             logging.error(f"'{value}' is not a valid {self.colorSpace} color")
     @property
@@ -395,13 +400,14 @@ class ColorMixin(object):
         if isinstance(value, Color):
             # If supplied with a color object, set as that
             self._borderColor = value
-        elif self.colorSpace in Color.getSpace(value, True) or 'named' in Color.getSpace(value, True) or isinstance(value, (int, float)):
-            # If supplied with a valid color, use it to make a color object
-            self._borderColor = Color(value, self.colorSpace)
         elif self.colorSpace in AdvancedColor.getSpace(value, True):
             # If supplied with a valid advanced color, use it to make an advanced color object and print tip.
             self._borderColor = AdvancedColor(value, self.colorSpace)
         else:
+            # If supplied with a valid color, use it to make a color object
+            self._borderColor = Color(value, self.colorSpace)
+        if not self._borderColor:
+            # If given an invalid color, set as transparent and log error
             self._borderColor = Color()
             logging.error(f"'{value}' is not a valid {self.colorSpace} color")
     @property
