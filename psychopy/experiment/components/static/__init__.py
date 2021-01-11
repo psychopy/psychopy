@@ -44,7 +44,7 @@ class StaticComponent(BaseComponent):
         self.url = "http://www.psychopy.org/builder/components/static.html"
         hnt = _translate(
             "Custom code to be run during the static period (after updates)")
-        self.params['code'] = Param("", valType='extendedCode', categ='Custom',
+        self.params['code'] = Param("", valType='code', inputType="multi", categ='Custom',
                                     hint=hnt,
                                     label=_localized['Custom code'])
 

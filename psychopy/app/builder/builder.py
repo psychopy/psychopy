@@ -2499,6 +2499,8 @@ class ReadmeFrame(wx.Frame, ThemeMixin):
         self._fileLastModTime = os.path.getmtime(filename)
         if md:
             readmeText = md.MarkdownIt().enable("table").render(readmeText)
+        else:
+            readmeText = readmeText.replace("\n", "<br>")
         self.ctrl.SetPage(readmeText)
         self.SetTitle("%s readme (%s)" % (self.expName, filename))
         self._applyAppTheme(self.ctrl)

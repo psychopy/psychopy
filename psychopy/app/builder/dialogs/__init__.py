@@ -10,7 +10,6 @@
 
 from __future__ import absolute_import, division, print_function
 import sys
-from pathlib import Path
 
 from builtins import map
 from builtins import str
@@ -28,10 +27,12 @@ from .. import experiment
 from .. validators import NameValidator, CodeSnippetValidator
 from .dlgsConditions import DlgConditions
 from .dlgsCode import DlgCodeComponentProperties, CodeBox
+from . import paramCtrls
 from psychopy import data, logging
 from psychopy.localization import _translate
 from psychopy.tools import versionchooser as vc
-
+from ...colorpicker import PsychoColorPicker
+from pathlib import Path
 
 white = wx.Colour(255, 255, 255, 255)
 codeSyntaxOkay = wx.Colour(220, 250, 220, 255)  # light green
@@ -98,10 +99,7 @@ class ParamCtrls(object):
 
         if type(param.val) == numpy.ndarray:
             initial = param.val.tolist()  # convert numpy arrays to lists
-        _nonCode = ('name', 'Experiment info')
         label = _translate(label)
-        if param.valType == 'code' and fieldName not in _nonCode:
-            label += ' $'
         self.nameCtrl = wx.StaticText(parent, -1, label, size=wx.DefaultSize)
 
         if fieldName == 'Use version':
@@ -112,100 +110,60 @@ class ParamCtrls(object):
                 options = vc._versionFilter(vc.versionOptions(local=False), wx.__version__)
                 versions = vc._versionFilter(vc.availableVersions(local=False), wx.__version__)
                 param.allowedVals = (options + [''] + versions)
-        if (param.valType == 'extendedStr'
-                or fieldName == 'text'):  # because text used to be 'str' until 2020.2
-            # for text input we need a bigger (multiline) box
-            if fieldName == 'customize_everything':
-                sx, sy = 300, 400
-            elif fieldName == 'customize':
-                sx, sy = 300, 200
-            else:
-                sx, sy = 100, 200
-            # set viewer small, then it SHOULD increase with wx.aui control
-            self.valueCtrl = wx.TextCtrl(parent, -1, value=str(param.val), pos=wx.DefaultPosition,
-                                         size=wx.Size(sx, sy), style=wx.TE_MULTILINE)
+
+        if param.inputType == "single":
+            # Create single line string control
+            self.valueCtrl = paramCtrls.SingleLineCtrl(parent,
+                                                   val=str(param.val), valType=param.valType,
+                                                   fieldName=fieldName,size=wx.Size(self.valueWidth, 24))
+        elif param.inputType == 'multi':
+            # Create multiline string control
+            self.valueCtrl = paramCtrls.MultiLineCtrl(parent,
+                                                      val=str(param.val), valType=param.valType,
+                                                      fieldName=fieldName, size=wx.Size(self.valueWidth, 48))
+            # Set focus if field is text of a Textbox or Text component
             if fieldName == 'text':
                 self.valueCtrl.SetFocus()
-        elif fieldName == 'Experiment info':
+        elif param.inputType == 'spin':
+            self.valueCtrl = paramCtrls.IntCtrl(parent,
+                                                val=param.val, valType=param.valType,
+                                                fieldName=fieldName,size=wx.Size(self.valueWidth, 24),
+                                                limits=param.allowedVals)
+        elif param.inputType == 'choice':
+            self.valueCtrl = paramCtrls.ChoiceCtrl(parent,
+                                                   val=str(param.val), valType=param.valType, choices=param.allowedVals,
+                                                   fieldName=fieldName, size=wx.Size(self.valueWidth, -1))
+        elif param.inputType == 'bool':
+            self.valueCtrl = paramCtrls.BoolCtrl(parent,
+                                         name=fieldName,size=wx.Size(self.valueWidth, 24))
+            self.valueCtrl.SetValue(param.val)
+        elif param.inputType == 'file':
+            self.valueCtrl = paramCtrls.FileCtrl(parent,
+                                                 val=str(param.val), valType=param.valType,
+                                                 fieldName=fieldName, size=wx.Size(self.valueWidth, 24))
+            self.valueCtrl.allowedVals = param.allowedVals
+        elif param.inputType == 'fileList':
+            self.valueCtrl = paramCtrls.FileListCtrl(parent,
+                                          choices=param.val, valType=param.valType,
+                                          size=wx.Size(self.valueWidth, 100), pathtype="rel")
+        elif param.inputType == 'table':
+            self.valueCtrl = paramCtrls.TableCtrl(parent, val=param.val, valType=param.valType,
+                                                  fieldName=fieldName, size=wx.Size(self.valueWidth, 24))
+        elif param.inputType == 'color':
+            self.valueCtrl = paramCtrls.ColorCtrl(parent,
+                                                  val=param.val, valType=param.valType,
+                                                  fieldName=fieldName, size=wx.Size(self.valueWidth, 24))
+        else:
+            self.valueCtrl = paramCtrls.SingleLineCtrl(parent,
+                                                   val=str(param.val), valType=param.valType,
+                                                   fieldName=fieldName,size=wx.Size(self.valueWidth, 24))
+            logging.warn(f"Parameter {fieldName} has unrecognised inputType \"{param.inputType}\"")
+
+        if fieldName == 'Experiment info':
             # for expInfo convert from a string to the list-of-dicts
             val = self.expInfoToListWidget(param.val)
             self.valueCtrl = dialogs.ListWidget(
                 parent, val, order=['Field', 'Default'])
-        elif param.valType == 'extendedCode':
-            # set viewer small, then it will increase with wx.aui control
-            self.valueCtrl = CodeBox(parent, -1, pos=wx.DefaultPosition,
-                                     size=wx.Size(100, 100), style=0,
-                                     prefs=appPrefs)
-            if len(param.val):
-                self.valueCtrl.AddText(str(param.val))
-            # code input fields: one day change these to wx.stc fields?
-            # self.valueCtrl = wx.TextCtrl(parent,-1,unicode(param.val),
-            #    style=wx.TE_MULTILINE,
-            #    size=wx.Size(self.valueWidth*2,160))
-        elif param.valType == 'fixedList':
-            self.valueCtrl = wx.CheckListBox(parent, -1, pos=wx.DefaultPosition,
-                                             size=wx.Size(100, 200),
-                                             choices=param.allowedVals)
-            self.valueCtrl.SetCheckedStrings(param.val)
-        elif param.valType == 'bool':
-            # only True or False - use a checkbox
-            self.valueCtrl = wx.CheckBox(parent,
-                                         name=fieldName,
-                                         size=wx.Size(self.valueWidth, -1))
-            self.valueCtrl.SetValue(param.val)
-        elif param.valType == 'fileList':
-            self.valueCtrl = FileListCtrl(parent,
-                                          choices=param.val,
-                                          size=wx.Size(self.valueWidth, 100),
-                                          pathtype="rel")
-        elif param.valType == 'table':
-            self.valueCtrl = TableCtrl(parent, val=param.val, fieldName=fieldName,
-                                       size=wx.Size(self.valueWidth, 16))
-        elif len(param.allowedVals) > 1:
-            # there are limited options - use a Choice control
-            # use localized text or fall through to non-localized,
-            # for future-proofing, parallel-port addresses, etc:
-            if param.allowedLabels:
-                labels = param.allowedLabels
-            else:
-                labels = param.allowedVals
-            # add each label to the dropdown
-            choiceLabels = []
-            for val in labels:
-                try:
-                    choiceLabels.append(_localized[val])
-                except KeyError:
-                    choiceLabels.append(val)
-            self.valueCtrl = wx.Choice(parent, choices=choiceLabels,
-                                       name=fieldName,
-                                       size=wx.Size(self.valueWidth, -1))
-            # stash original non-localized choices:
-            self.valueCtrl._choices = copy.copy(param.allowedVals)
-            # set display to the localized version of the currently selected
-            # value:
-            try:
-                index = param.allowedVals.index(param.val)
-            except Exception:
-                msg = ("%r was given as parameter %r but it isn't "
-                       "in the list of allowed values %s. "
-                       "Reverting to use %r for this Component")
-                vals = (param.val, fieldName,
-                        param.allowedVals,
-                        param.allowedVals[0])
-                logging.warn(msg % vals)
-                logging.flush()
-                index = 0
-            self.valueCtrl.SetSelection(index)
-        else:
-            # create the full set of ctrls
-            val = str(param.val)
-            self.valueCtrl = wx.TextCtrl(parent, -1, val, name=fieldName,
-                                         size=wx.Size(self.valueWidth, -1))
-            # set focus for these fields; seems to get reset elsewhere (?)
-            focusFields = ('allowedKeys', 'image', 'movie', 'sound',
-                           'scaleDescription', 'Begin Routine')
-            if fieldName in focusFields:
-                self.valueCtrl.SetFocus()
 
         try:
             self.valueCtrl.SetToolTip(wx.ToolTip(_translate(param.hint)))
@@ -218,7 +176,7 @@ class ParamCtrls(object):
         # add a Validator to the valueCtrl
         if fieldName == "name":
             self.valueCtrl.SetValidator(NameValidator())
-        elif isinstance(self.valueCtrl, (wx.TextCtrl, CodeBox)):
+        elif param.inputType in ("single", "multi"):
             # only want anything that is valType code, or can be with $
             self.valueCtrl.SetValidator(CodeSnippetValidator(fieldName))
 
@@ -828,14 +786,7 @@ class _BaseParamsDlg(wx.Dialog):
 
     def launchColorPicker(self, event):
         # bring up a colorPicker
-        rgb = self.app.colorPicker(None)  # str, remapped to -1..+1
-        # apply to color ctrl
-        ctrlName = event.GetEventObject().GetName()
-        thisParam = self.paramCtrls[ctrlName]
-        thisParam.valueCtrl.SetValue('$' + rgb)  # $ flag as code
-        # make sure we set colorspace to rgb
-        colorSpace = self.paramCtrls[ctrlName + 'Space']
-        colorSpace.valueCtrl.SetStringSelection('rgb')
+        PsychoColorPicker(self.frame)
 
     def onNewTextSize(self, event):
         self.Fit()  # for ExpandoTextCtrl this is needed
@@ -1353,7 +1304,6 @@ class DlgLoopProperties(_BaseParamsDlg):
                 self.Bind(wx.EVT_BUTTON, self.onBrowseTrialsFile,
                           ctrls.browseCtrl)
                 ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.viewConditions)
-                ctrls.valueCtrl.Bind(wx.EVT_TEXT, self.doValidate)
                 panelSizer.Add(ctrls.nameCtrl, [row, 0])
                 panelSizer.Add(ctrls.valueCtrl, [row, 1])
                 panelSizer.Add(ctrls.browseCtrl, [row, 2])
@@ -1997,90 +1947,6 @@ class FileListCtrl(wx.ListBox):
 
     def GetValue(self):
         return self.Items
-
-class TableCtrl(wx.TextCtrl):
-    def __init__(self, parent,
-                 val="", fieldName="",
-                 size=wx.Size(-1, 24)):
-        # Create self
-        wx.TextCtrl.__init__(self)
-        self.Create(parent, -1, val, name=fieldName, size=size)
-        # Add sizer
-        self._szr = wx.BoxSizer(wx.HORIZONTAL)
-        self._szr.Add(self, border=5, flag=wx.EXPAND | wx.RIGHT)
-        # Add button to browse for file
-        fldr = parent.app.iconCache.getBitmap(name="folder", size=16, theme="light")
-        self.findBtn = wx.BitmapButton(parent, -1, size=wx.Size(24,24), bitmap=fldr)
-        self.findBtn.SetToolTip(_translate("Specify file ..."))
-        self.findBtn.Bind(wx.EVT_BUTTON, self.findFile)
-        self._szr.Add(self.findBtn)
-        # Add button to open in Excel
-        xl = parent.app.iconCache.getBitmap(name="filecsv", size=16, theme="light")
-        self.xlBtn = wx.BitmapButton(parent, -1, size=wx.Size(24,24), bitmap=xl)
-        self.xlBtn.SetToolTip(_translate("Open/create in your default table editor"))
-        self.xlBtn.Bind(wx.EVT_BUTTON, self.openExcel)
-        self._szr.Add(self.xlBtn)
-        # Link to Excel templates for certain contexts
-        cmpRoot = os.path.dirname(psychopy.experiment.components.__file__)
-        self.templates = {
-            'Form': os.path.join(cmpRoot, "form", "formItems.xltx")
-        }
-        # Store location of root directory
-        self.rootDir = os.path.normpath(os.path.join(self.GetTopLevelParent().frame.filename, ".."))
-        # Configure validation
-        self.Bind(wx.EVT_TEXT, self.validateInput)
-        self.validExt = [".csv",".tsv",".txt",
-                         ".xl",".xlsx",".xlsm",".xlsb",".xlam",".xltx",".xltm",".xls",".xlt",
-                         ".htm",".html",".mht",".mhtml",
-                         ".xml",".xla",".xlm",
-                         ".odc",".ods",
-                         ".udl",".dsn",".mdb",".mde",".accdb",".accde",".dbc",".dbf",
-                         ".iqy",".dqy",".rqy",".oqy",
-                         ".cub",".atom",".atomsvc",
-                         ".prn",".slk",".dif"]
-
-    def validateInput(self, event):
-        """Check whether input is openable and valid"""
-        valid = False
-        file = self.GetValue()
-        # Is component type available?
-        if hasattr(self.GetTopLevelParent(), 'type'):
-            # Does this component have a default template?
-            if self.GetTopLevelParent().type in self.templates:
-                valid = True
-        # Has user entered a full filepath, but it is invalid?
-        if file and file not in self.validExt:
-            valid = False
-        # Is value a valid filepath?
-        if os.path.isfile(os.path.abspath(file)) and file.endswith(tuple(self.validExt)):
-            valid = True
-        # Set excel button accordingly
-        self.xlBtn.Enable(valid)
-
-    def openExcel(self, event):
-        """Either open the specified excel sheet, or make a new one from a template"""
-        file = os.path.normpath(os.path.join(self.rootDir, self.GetValue()))
-        if os.path.isfile(file) and file.endswith(tuple(self.validExt)):
-            os.startfile(file)
-        else:
-            dlg = wx.MessageDialog(self, _translate(
-                f"Once you have created and saved your table, please remember to add it to {self.Name}"),
-                             caption="Reminder")
-            dlg.ShowModal()
-            os.startfile(self.templates[self.GetTopLevelParent().type])
-
-    def findFile(self, event):
-        _wld = f"All Table Files({'*'+';*'.join(self.validExt)})|{'*'+';*'.join(self.validExt)}|All Files (*.*)|*.*"
-        dlg = wx.FileDialog(self, message=_translate("Specify file ..."),
-                            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST,
-                            wildcard=_translate(_wld))
-        if dlg.ShowModal() != wx.ID_OK:
-            return 0
-        filename = dlg.GetPath()
-        relname = os.path.relpath(filename,
-                                  self.rootDir)
-        self.SetValue(relname)
-        self.validateInput(event)
 
 def _relpath(path, start='.'):
     """This code is based on os.path.relpath in the Python 2.6 distribution,
