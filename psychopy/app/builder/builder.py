@@ -12,6 +12,7 @@ from __future__ import absolute_import, division, print_function
 
 import os, sys
 import re
+import webbrowser
 from pathlib import Path
 import glob
 import copy
@@ -476,6 +477,12 @@ class BuilderFrame(wx.Frame, ThemeMixin):
                                "Unpack demos to a writable location (so that"
                                " they can be run)"))
         self.Bind(wx.EVT_MENU, self.demosUnpack, item)
+        item = menu.Append(wx.ID_ANY,
+                           _translate("Browse on Pavlovia..."),
+                           _translate("Get more demos from the online demos "
+                                      "repository on Pavlovia")
+                           )
+        self.Bind(wx.EVT_MENU, self.openPavloviaDemos, item)
         menu.AppendSeparator()
         # add any demos that are found in the prefs['demosUnpacked'] folder
         self.updateDemosMenu()
@@ -1083,6 +1090,9 @@ class BuilderFrame(wx.Frame, ThemeMixin):
             print("Found no psyexp files in %s" % fileDir)
         else:
             self.fileOpen(event=None, filename=files[0], closeCurrent=True)
+
+    def openPavloviaDemos(self, event=None):
+        webbrowser.open("https://pavlovia.org/explore")
 
     def updateDemosMenu(self):
         """Update Demos menu as needed."""
