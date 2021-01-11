@@ -57,13 +57,13 @@ class SoundComponent(BaseComponent):
         hnt = _translate("A sound can be a note name (e.g. A or Bf), a number"
                          " to specify Hz (e.g. 440) or a filename")
         self.params['sound'] = Param(
-            sound, valType='str', allowedTypes=[], updates='constant', categ='Basic',
+            sound, valType='str', inputType="single", allowedTypes=[], updates='constant', categ='Basic',
             allowedUpdates=['constant', 'set every repeat'],
             hint=hnt,
             label=_localized['sound'])
         _allowed = ['constant', 'set every repeat', 'set every frame']
         self.params['volume'] = Param(
-            volume, valType='code', allowedTypes=[], updates='constant', categ='Playback',
+            volume, valType='num', inputType="single", allowedTypes=[], updates='constant', categ='Playback',
             allowedUpdates=_allowed[:],  # use a copy
             hint=_translate("The volume (in range 0 to 1)"),
             label=_localized["volume"])
@@ -71,12 +71,12 @@ class SoundComponent(BaseComponent):
             "A reaction time to a sound stimulus should be based on when "
             "the screen flipped")
         self.params['syncScreenRefresh'] = Param(
-            syncScreenRefresh, valType='bool', categ='Basic',
+            syncScreenRefresh, valType='bool', inputType="bool", categ='Basic',
             updates='constant',
             hint=msg,
             label=_localized['syncScreenRefresh'])
         self.params['hamming'] = Param(
-            True, valType='bool', updates='constant', categ='Playback',
+            True, valType='bool', inputType="bool", updates='constant', categ='Playback',
             hint=_translate(
                   "For tones we can apply a Hamming window to prevent 'clicks' that "
                   "are caused by a sudden onset. This delays onset by roughly 1ms."),

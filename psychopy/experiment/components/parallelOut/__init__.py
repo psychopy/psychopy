@@ -58,24 +58,24 @@ class ParallelOutComponent(BaseComponent):
         msg = _translate("Parallel port to be used (you can change these "
                          "options in preferences>general)")
         self.params['address'] = Param(
-            address, valType='str', allowedVals=addressOptions, categ='Hardware',
+            address, valType='str', inputType="choice", allowedVals=addressOptions, categ='Hardware',
             hint=msg,
             label=_localized['address'])
 
         self.params['startData'] = Param(
-            startData, valType='code', allowedTypes=[], categ='Data',
+            startData, valType='code', inputType="single", allowedTypes=[], categ='Data',
             hint=_translate("Data to be sent at 'start'"),
             label=_localized['startData'])
 
         self.params['stopData'] = Param(
-            stopData, valType='code', allowedTypes=[], categ='Data',
+            stopData, valType='code', inputType="single", allowedTypes=[], categ='Data',
             hint=_translate("Data to be sent at 'end'"),
             label=_localized['stopData'])
 
         msg = _translate("If the parallel port data relates to visual "
                          "stimuli then sync its pulse to the screen refresh")
         self.params['syncScreen'] = Param(
-            syncScreen, valType='bool', categ='Data',
+            syncScreen, valType='bool', inputType="bool", categ='Data',
             allowedVals=[True, False],
             updates='constant', allowedUpdates=[],
             hint=msg,

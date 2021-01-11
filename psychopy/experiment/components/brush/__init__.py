@@ -49,10 +49,9 @@ class BrushComponent(BaseVisualComponent):
         self.order = ['lineWidth', 'opacity', 'buttonRequired']
 
         # params
-        msg = _translate("Fill color of this brush; Right-click to bring"
-                         " up a color-picker (rgb only)")
+        msg = _translate("Fill color of this brush")
         self.params['lineColor'] = Param(
-            lineColor, valType='str', allowedTypes=[], categ='Appearance',
+            lineColor, valType='color', inputType="color", allowedTypes=[], categ='Appearance',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat'],
             hint=msg,
@@ -60,7 +59,7 @@ class BrushComponent(BaseVisualComponent):
 
         msg = _translate("Width of the brush's line (always in pixels and limited to 10px max width)")
         self.params['lineWidth'] = Param(
-            lineWidth, valType='code', allowedTypes=[], categ='Appearance',
+            lineWidth, valType='num', inputType="spin", allowedTypes=[], categ='Appearance',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat'],
             hint=msg,
@@ -69,7 +68,7 @@ class BrushComponent(BaseVisualComponent):
         msg = _translate("Choice of color space for the fill color "
                          "(rgb, dkl, lms, hsv)")
         self.params['lineColorSpace'] = Param(
-            lineColorSpace, valType='str', categ='Appearance',
+            lineColorSpace, valType='str', inputType="choice", categ='Appearance',
             allowedVals=['rgb', 'dkl', 'lms', 'hsv'],
             updates='constant',
             hint=msg,
@@ -80,7 +79,7 @@ class BrushComponent(BaseVisualComponent):
 
         msg = _translate("Whether a button needs to be pressed to draw (True/False)")
         self.params['buttonRequired'] = Param(
-            buttonRequired, valType='code', allowedTypes=[], categ='Basic',
+            buttonRequired, valType='bool', inputType="bool", allowedTypes=[], categ='Basic',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat'],
             hint=msg,
