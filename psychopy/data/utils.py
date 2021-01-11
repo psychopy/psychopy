@@ -246,8 +246,11 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
             trialsArr = pd.read_csv(fileName, encoding='utf-8-sig',
                                     sep=sep, decimal=dec)
             logging.debug(u"Read csv file with pandas: {}".format(fileName))
-        elif fileName.endswith(('.xlsx', '.xls', '.xlsm')):
-            trialsArr = pd.read_excel(fileName)
+        elif fileName.endswith(('.xlsx', '.xlsm')):
+            trialsArr = pd.read_excel(fileName, engine='openpyxl')
+            logging.debug(u"Read Excel file with pandas: {}".format(fileName))
+        elif fileName.endswith('.xls'):
+            trialsArr = pd.read_excel(fileName, engine='xlrd')
             logging.debug(u"Read Excel file with pandas: {}".format(fileName))
         # then try to convert array to trialList and fieldnames
         unnamed = trialsArr.columns.to_series().str.contains('^Unnamed: ')
