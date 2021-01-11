@@ -36,11 +36,7 @@ try:
 except ImportError:
     haveOpenpyxl = False
 
-try:
-    import xlrd
-    haveXlrd = True
-except ImportError:
-    haveXlrd = False
+haveXlrd = False
 
 _nonalphanumeric_re = re.compile(r'\W')  # will match all bad var name chars
 
