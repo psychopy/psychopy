@@ -215,7 +215,7 @@ class Color(object):
         if isinstance(color, numpy.ndarray):
             color = tuple(float(c) for c in color)
         if space in ['rgb255', 'rgba255']:
-            color = tuple(int(c) for c in color[:3])+(color[3:],)
+            color = tuple(int(c) for c in color[:3])+color[3:]
         if isinstance(color, (int, float)):
             color = (color, color, color)
         # If input is a Color object, duplicate all settings
@@ -232,7 +232,7 @@ class Color(object):
             space = 'hex'
         # Store requested colour and space (or defaults, if none given)
         self._requested = color or None
-        self._requestedSpace = None
+        self._requestedSpace = space or None
         if space in self.getSpace(self._requested, debug=True):
             self._requestedSpace = space
         if not self._requestedSpace:
@@ -492,7 +492,7 @@ class Color(object):
         if not color:
             return
         # Iterate through values and do conversion
-        self.rgb = tuple(2 * (val / 255 - 0.5) for val in color[:3])+(color[3:],)
+        self.rgb = tuple(2 * (val / 255 - 0.5) for val in color[:3])+color[3:]
         # Clear outdated values from cache
         self._cache = {}
 
@@ -517,7 +517,7 @@ class Color(object):
         if not color:
             return
         # Iterate through values and do conversion
-        self.rgb = tuple(2 * (val - 0.5) for val in color[:3])+(color[3:],)
+        self.rgb = tuple(2 * (val - 0.5) for val in color[:3])+color[3:]
         # Clear outdated values from cache
         self._cache = {}
 
@@ -549,20 +549,9 @@ class Color(object):
             return
         # Convert strings to list
         colorList = [color[i - 2:i] for i in [3, 5, 7] if color[i - 2:i]]
-        # Map hex letters to corresponding values in rgb255
-        hexmap = {'a':10, 'b':11, 'c':12, 'd':13, 'e':14, 'f':15}
-        # Create adjustment for different digits
-        adj = {0:16, 1:1}
-        flatList = []
-        for val in colorList:
-            # Iterate through individual values
-            flat = 0
-            for i, v in enumerate(val):
-                if re.match(r'\d', str(v)):
-                    flat += int(v)*adj[i]
-                elif re.match(r'[abcdef]', str(v).lower()):
-                    flat += hexmap[str(v).lower()]*adj[i]
-            flatList.append(flat)
+        # Convert from base 16 to base 10
+        flatList = [int(c, 16) for c in colorList]
+        # Set rgb255 accordingly
         self.rgb255 = flatList
         # Clear outdated values from cache
         self._cache = {}
@@ -689,7 +678,7 @@ class AdvancedColor(Color):
         basic = Color.getSpace(color, debug=True)
         possible += basic
         # Return full list if debug or multiple, else return first value
-        if debug or len(possible) > 1 or len(possible) == 0:
+        if debug or not len(possible) == 1:
             return possible
         else:
             return possible[0]
