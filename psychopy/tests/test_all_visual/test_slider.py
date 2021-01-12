@@ -5,6 +5,7 @@ from __future__ import division
 
 import pytest
 
+from psychopy.colors import Color
 from psychopy.visual.window import Window
 from psychopy.visual.slider import Slider
 from psychopy.visual.grating import GratingStim
@@ -30,8 +31,8 @@ class Test_Slider(object):
         for color in colors:
             s = Slider(self.win, color=color)
 
-            assert s.line.color == color
-            assert s.tickLines.colors == color
+            assert s.line._foreColor == Color(color, s.colorSpace)
+            assert s.tickLines.colors[0] == Color(color, s.colorSpace)
 
             for l in s.labelObjs:
                 assert l.color == color
