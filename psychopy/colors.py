@@ -455,6 +455,8 @@ class Color(object):
     def rgb(self):
         if hasattr(self, '_franca'):
             return self._franca
+        else:
+            return (None)
     @rgb.setter
     def rgb(self, color):
         # Validate
@@ -462,7 +464,7 @@ class Color(object):
         if not color:
             return
         # Set color
-        self._franca = color[:3]
+        self._franca = tuple(color[:3])
         # Append alpha, if not present
         if color[3:]:
             self.alpha = color[3]
