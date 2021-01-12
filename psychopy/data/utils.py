@@ -360,20 +360,26 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
 
         # get parameter names from the first row header
         fieldNames = []
+        rangeCols = list(range(nCols))
         for colN in range(nCols):
             if parse_version(openpyxl.__version__) < parse_version('2.0'):
                 fieldName = ws.cell(_getExcelCellName(col=colN, row=0)).value
             else:
                 # From 2.0, cells are referenced with 1-indexing: A1 == cell(row=1, column=1)
                 fieldName = ws.cell(row=1, column=colN + 1).value
-            fieldNames.append(fieldName)
+            if fieldName:
+                # If column is named, add its name to fieldNames
+                fieldNames.append(fieldName)
+            else:
+                # Otherwise, ignore the column
+                rangeCols.remove(colN)
         _assertValidVarNames(fieldNames, fileName)
 
         # loop trialTypes
         trialList = []
         for rowN in range(1, nRows):  # skip header first row
             thisTrial = {}
-            for colN in range(nCols):
+            for colN in rangeCols:
                 if parse_version(openpyxl.__version__) < parse_version('2.0'):
                     val = ws.cell(_getExcelCellName(col=colN, row=0)).value
                 else:
