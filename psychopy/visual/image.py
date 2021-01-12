@@ -91,12 +91,11 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
         self.depth = depth
 
         # color and contrast etc
+        self.rgbPedestal = [0, 0, 0] # does an rgb pedestal make sense for an image?
         self.colorSpace = colorSpace  # omit decorator
         self.color = color
         self.contrast = float(contrast)
         self.opacity = float(opacity)
-        # does an rgb pedestal make sense for an image?
-        self.rgbPedestal = [0, 0, 0]
 
         # Set the image and mask-
         self.setImage(image, log=False)
@@ -264,6 +263,41 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
 
         # return the view to previous state
         GL.glPopMatrix()
+
+    # overload ColorMixin methods so tht they refresh the image after being called
+    @property
+    def foreColor(self):
+        # Call setter of parent mixin
+        return ColorMixin.foreColor.fget(self)
+    @foreColor.setter
+    def foreColor(self, value):
+        # Call setter of parent mixin
+        ColorMixin.foreColor.fset(self, value)
+        # Reset the image and mask-
+        self.setImage(self._imName, log=False)
+        self.texRes = self.__dict__['texRes']  # rebuilds the mask
+    @property
+    def contrast(self):
+        # Call setter of parent mixin
+        return ColorMixin.contrast.fget(self)
+    @contrast.setter
+    def contrast(self, value):
+        # Call setter of parent mixin
+        ColorMixin.contrast.fset(self, value)
+        # Reset the image and mask-
+        self.setImage(self._imName, log=False)
+        self.texRes = self.__dict__['texRes']  # rebuilds the mask
+    @property
+    def opacity(self):
+        # Call setter of parent mixin
+        return BaseVisualStim.opacity.fget(self)
+    @opacity.setter
+    def opacity(self, value):
+        # Call setter of parent mixin
+        BaseVisualStim.opacity.fset(self, value)
+        # Reset the image and mask-
+        self.setImage(self._imName, log=False)
+        self.texRes = self.__dict__['texRes']  # rebuilds the mask
 
     @attributeSetter
     def image(self, value):
