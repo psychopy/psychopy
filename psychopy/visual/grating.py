@@ -232,6 +232,43 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         self.__dict__['phase'] = value
         self._needUpdate = True
 
+    # overload ColorMixin methods so tht they refresh the image after being called
+    @property
+    def foreColor(self):
+        # Call setter of parent mixin
+        return ColorMixin.foreColor.fget(self)
+    @foreColor.setter
+    def foreColor(self, value):
+        # Call setter of parent mixin
+        ColorMixin.foreColor.fset(self, value)
+        # Reset texture
+        self._needTextureUpdate = True
+        self._needUpdate = True
+
+    @property
+    def contrast(self):
+        # Call setter of parent mixin
+        return ColorMixin.contrast.fget(self)
+    @contrast.setter
+    def contrast(self, value):
+        # Call setter of parent mixin
+        ColorMixin.contrast.fset(self, value)
+        # Reset texture
+        self._needTextureUpdate = True
+        self._needUpdate = True
+
+    @property
+    def opacity(self):
+        # Call setter of parent mixin
+        return BaseVisualStim.opacity.fget(self)
+    @opacity.setter
+    def opacity(self, value):
+        # Call setter of parent mixin
+        BaseVisualStim.opacity.fset(self, value)
+        # Reset texture
+        self._needTextureUpdate = True
+        self._needUpdate = True
+
     @attributeSetter
     def tex(self, value):
         """Texture to used on the stimulus as a grating (aka carrier)
