@@ -617,7 +617,7 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
     def __del__(self):
         try:
             self._unload()
-        except ModuleNotFoundError:
+        except (ModuleNotFoundError, TypeError):
             pass  # has probably been garbage-collected already
 
     def setAutoDraw(self, val, log=None):

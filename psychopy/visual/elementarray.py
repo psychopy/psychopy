@@ -733,5 +733,5 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         # remove textures from graphics card to prevent OpenGl memory leak
         try:
             self.clearTextures()
-        except ModuleNotFoundError:
+        except (ModuleNotFoundError, TypeError):
             pass  # has probably been garbage-collected already

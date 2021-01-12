@@ -238,7 +238,7 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
             if hasattr(self, '_listID'):
                 GL.glDeleteLists(self._listID, 1)
             self.clearTextures()
-        except ModuleNotFoundError:
+        except (ModuleNotFoundError, TypeError):
             pass  # has probably been garbage-collected already
 
     def draw(self, win=None):
