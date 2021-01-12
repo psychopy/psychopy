@@ -75,7 +75,7 @@ class Test_PsychoJS_from_Builder(object):
     def test_blocked(self):
         # load experiment
         exp = experiment.Experiment()
-        exp.loadFromXML(demosDir/'builder/understandingPsychoPy/images_blocks/blockedTrials.psyexp')
+        exp.loadFromXML(demosDir/'builder/understandingPsychopy/images_blocks/blockedTrials.psyexp')
         # try once packaging up the js libs
         exp.settings.params['JS libs'].val = 'packaged'
         outFolder = self.temp_dir/'blocked_packaged/html'
