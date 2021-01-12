@@ -511,7 +511,7 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
             self.width = self._pygletTextObj.width
         else:
             self._surf = self._font.render(value, self.antialias,
-                                           [self._foreColor.rgb255])
+                                           self._foreColor.render('rgba255'))
             self.width, self._fontHeightPix = self._surf.get_size()
             if self.antialias:
                 smoothing = GL.GL_LINEAR
