@@ -1172,7 +1172,8 @@ class CoderFrame(wx.Frame, ThemeMixin):
                           size=(self.appData['winW'], self.appData['winH']))
 
         # detect retina displays (then don't use double-buffering)
-        self.isRetina = self.GetContentScaleFactor() != 1 and wx.Platform == '__MACOS__'
+        self.isRetina = \
+            self.GetContentScaleFactor() != 1 and wx.Platform == '__WXMAC__'
 
         # create a panel which the aui manager can hook onto
         szr = wx.BoxSizer(wx.VERTICAL)
