@@ -2432,7 +2432,7 @@ class ReadmeFrame(wx.Frame):
                           size=(600, 500), pos=pos, style=_style)
         self.Bind(wx.EVT_CLOSE, self.onClose)
         self.Hide()
-        self.makeMenus()
+        #self.makeMenus()
         self.rawText = ""
         self.ctrl = HtmlWindow(self, wx.ID_ANY)
 
