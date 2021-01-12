@@ -215,7 +215,7 @@ class Color(object):
         if isinstance(color, numpy.ndarray):
             color = tuple(float(c) for c in color)
         if space in ['rgb255', 'rgba255']:
-            color = tuple(int(c) for c in color[:3])+color[3:]
+            color = tuple(int(c) for c in color[:3])+(color[3:] or ())
         if isinstance(color, (int, float)):
             color = (color, color, color)
         # If input is a Color object, duplicate all settings
@@ -492,7 +492,7 @@ class Color(object):
         if not color:
             return
         # Iterate through values and do conversion
-        self.rgb = tuple(2 * (val / 255 - 0.5) for val in color[:3])+color[3:]
+        self.rgb = tuple(2 * (val / 255 - 0.5) for val in color[:3])+(color[3:] or ())
         # Clear outdated values from cache
         self._cache = {}
 
@@ -517,7 +517,7 @@ class Color(object):
         if not color:
             return
         # Iterate through values and do conversion
-        self.rgb = tuple(2 * (val - 0.5) for val in color[:3])+color[3:]
+        self.rgb = tuple(2 * (val - 0.5) for val in color[:3])+(color[3:] or ())
         # Clear outdated values from cache
         self._cache = {}
 
