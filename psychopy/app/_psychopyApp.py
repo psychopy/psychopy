@@ -755,9 +755,6 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
     def showAbout(self, event):
         logging.debug('PsychoPyApp: Showing about dlg')
 
-        sys.stdout = sys.__stdout__
-        print(os.path.join(self.prefs.paths['psychopy'], 'LICENSE.txt'))
-
         with io.open(os.path.join(self.prefs.paths['psychopy'], 'LICENSE.txt'),
                      'r', encoding='utf-8-sig') as f:
             license = f.read()
