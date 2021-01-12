@@ -238,7 +238,7 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
         if GL:  # because of pytest fail otherwise
             try:
                 GL.glDeleteLists(self._listID, 1)
-            except ModuleNotFoundError:
+            except (ModuleNotFoundError, TypeError):
                 pass  # if pyglet no longer exists
 
     @attributeSetter
