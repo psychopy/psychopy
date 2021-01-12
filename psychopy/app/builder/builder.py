@@ -141,8 +141,8 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         #self.panel = wx.Panel(self)
 
         # detect retina displays (then don't use double-buffering)
-        self.isRetina = self.GetContentScaleFactor() != 1
-        self.SetDoubleBuffered(not self.isRetina)
+        self.isRetina = \
+            self.GetContentScaleFactor() != 1 and wx.Platform == '__WXMAC__'
 
         # create icon
         if sys.platform != 'darwin':
@@ -1389,7 +1389,8 @@ class RoutinesNotebook(aui.AuiNotebook, ThemeMixin):
         self.Bind(aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.onClosePane)
 
         # double buffered better rendering except if retina
-        self.SetDoubleBuffered(self.frame.IsDoubleBuffered())
+
+        self.SetDoubleBuffered(not self.frame.isRetina)
 
         self._applyAppTheme()
         if not hasattr(self.frame, 'exp'):
@@ -1401,7 +1402,7 @@ class RoutinesNotebook(aui.AuiNotebook, ThemeMixin):
         for index in range(self.GetPageCount()):
             page = self.GetPage(index)
             # double buffered better rendering except if retina
-            self.SetDoubleBuffered(self.frame.IsDoubleBuffered())
+            self.SetDoubleBuffered(not self.frame.isRetina)
             page._applyAppTheme()
         self.Refresh()
 
@@ -2108,7 +2109,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         self.SetAutoLayout(True)
         self.SetupScrolling()
         # double buffered better rendering except if retina
-        self.SetDoubleBuffered(self.frame.IsDoubleBuffered())
+        self.SetDoubleBuffered(not self.frame.isRetina)
         self._applyAppTheme()  # bitmaps only just loaded
 
     def _applyAppTheme(self, target=None):
@@ -2672,7 +2673,7 @@ class FlowPanel(wx.ScrolledWindow):
         self.SetAcceleratorTable(aTable)
 
         # double buffered better rendering except if retina
-        self.SetDoubleBuffered(self.frame.IsDoubleBuffered())
+        self.SetDoubleBuffered(not self.frame.isRetina)
 
         self._applyAppTheme()
 
