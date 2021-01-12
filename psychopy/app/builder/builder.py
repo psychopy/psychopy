@@ -2433,6 +2433,7 @@ class ReadmeFrame(wx.Frame):
         self.Bind(wx.EVT_CLOSE, self.onClose)
         self.Hide()
         self.makeMenus()
+        self.rawText = ""
         self.ctrl = HtmlWindow(self, wx.ID_ANY)
 
     def onClose(self, evt=None):
@@ -2497,11 +2498,12 @@ class ReadmeFrame(wx.Frame):
             return False
         f.close()
         self._fileLastModTime = os.path.getmtime(filename)
+        self.rawText = readmeText
         if md:
-            readmeText = md.MarkdownIt().render(readmeText)
+            renderedText = md.MarkdownIt().render(readmeText)
         else:
-            readmeText = readmeText.replace("\n", "<br>")
-        self.ctrl.SetPage(readmeText)
+            renderedText = readmeText.replace("\n", "<br>")
+        self.ctrl.SetPage(renderedText)
         self.SetTitle("%s readme (%s)" % (self.expName, filename))
 
     def fileSave(self, evt=None):
@@ -2510,7 +2512,7 @@ class ReadmeFrame(wx.Frame):
         if self._fileLastModTime and mtime > self._fileLastModTime:
             logging.warning(
                 'readme file has been changed by another programme?')
-        txt = self.ctrl.ToText()
+        txt = self.rawText
         with codecs.open(self.filename, 'w', 'utf-8-sig') as f:
             f.write(txt)
 
