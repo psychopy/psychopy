@@ -755,12 +755,15 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
     def showAbout(self, event):
         logging.debug('PsychoPyApp: Showing about dlg')
 
-        with io.open(os.path.join(self.prefs.paths['psychopy'],'LICENSE.txt'),
+        sys.stdout = sys.__stdout__
+        print(os.path.join(self.prefs.paths['psychopy'], 'LICENSE.txt'))
+
+        with io.open(os.path.join(self.prefs.paths['psychopy'], 'LICENSE.txt'),
                      'r', encoding='utf-8-sig') as f:
             license = f.read()
 
         msg = _translate(
-            "For stimulus generation and experimental control in python.\n"
+            "For stimulus generation and experimental control in Python.\n"
             "PsychoPy depends on your feedback. If something doesn't work\n"
             "then let us know at psychopy-users@googlegroups.com")
         if parse_version(wx.__version__) >= parse_version('4.0a1'):
@@ -776,7 +779,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         info.SetVersion('v' + psychopy.__version__)
         info.SetDescription(msg)
 
-        info.SetCopyright('(C) 2002-2018 Jonathan Peirce')
+        info.SetCopyright('(C) 2002-2020 Jonathan Peirce')
         info.SetWebSite('http://www.psychopy.org')
         info.SetLicence(license)
         info.AddDeveloper('Jonathan Peirce')
