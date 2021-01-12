@@ -2432,7 +2432,7 @@ class ReadmeFrame(wx.Frame):
                           size=(600, 500), pos=pos, style=_style)
         self.Bind(wx.EVT_CLOSE, self.onClose)
         self.Hide()
-        #self.makeMenus()
+        self.makeMenus()
         self.rawText = ""
         self.ctrl = HtmlWindow(self, wx.ID_ANY)
 
@@ -2453,15 +2453,10 @@ class ReadmeFrame(wx.Frame):
         menuBar.Append(self.fileMenu, _translate('&File'))
         menu = self.fileMenu
         keys = self.parent.app.keys
-        menu.Append(wx.ID_SAVE, _translate("&Save\t%s") % keys['save'])
+        menu.Append(wx.ID_EDIT, _translate("Edit"))
         menu.Append(wx.ID_CLOSE,
                     _translate("&Close readme\t%s") % keys['close'])
-        item = menu.Append(-1,
-                           _translate("&Toggle readme\t%s") % keys[
-                               'toggleReadme'],
-                           _translate("Toggle Readme"))
-        self.Bind(wx.EVT_MENU, self.toggleVisible, item)
-        self.Bind(wx.EVT_MENU, self.fileSave, id=wx.ID_SAVE)
+        self.Bind(wx.EVT_MENU, self.fileEdit, id=wx.ID_EDIT)
         self.Bind(wx.EVT_MENU, self.toggleVisible, id=wx.ID_CLOSE)
         self.SetMenuBar(menuBar)
 
@@ -2505,6 +2500,13 @@ class ReadmeFrame(wx.Frame):
             renderedText = readmeText.replace("\n", "<br>")
         self.ctrl.SetPage(renderedText)
         self.SetTitle("%s readme (%s)" % (self.expName, filename))
+
+    def fileEdit(self, evt=None):
+        self.parent.app.showCoder()
+        coder = self.parent.app.coder
+        coder.fileOpen(filename=self.filename)
+        # Close README window
+        self.Close()
 
     def fileSave(self, evt=None):
         """Defines save behavior for readme frame"""
