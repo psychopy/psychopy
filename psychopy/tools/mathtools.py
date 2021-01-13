@@ -63,7 +63,8 @@ __all__ = ['normalize',
            'fixTangentHandedness',
            'articulate',
            'forwardProject',
-           'reverseProject']
+           'reverseProject',
+           'lensCorrectionSpherical']
 
 
 import numpy as np
@@ -3881,6 +3882,74 @@ def lensCorrection(xys, coefK=(1.0,), distCenter=(0., 0.), out=None,
 
     denom = dtype(1.0) + dot(coefK, r, dtype=dtype)
     toReturn[:, :] = xys + (d_minus_c / denom[:, np.newaxis])
+
+    return toReturn
+
+
+def lensCorrectionSpherical(xys, coefK=1.0, aspect=1.0, out=None, dtype=None):
+    """Simple lens correction.
+
+    Lens correction for a spherical lenses with distortion centered at the
+    middle of the display.
+
+    Parameters
+    ----------
+    xys : array_like
+        Nx2 list of vertex positions or texture coordinates to distort. Assumes
+        the output will be rendered to normalized device coordinates where
+        points range from -1.0 to 1.0.
+    coefK : float
+        Distortion coefficent. Use positive numbers for pincushion distortion
+        and negative for barrel distortion.
+    aspect : float
+        Aspect ratio of the target window or buffer (width / height).
+    out : ndarray, optional
+        Optional output array. Must be same `shape` and `dtype` as the expected
+        output if `out` was not specified.
+    dtype : dtype or str, optional
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
+
+    Returns
+    -------
+    ndarray
+        Array of distorted vertices.
+
+    References
+    ----------
+    .. [1] Lens Distortion White Paper, Andersson Technologies LLC,
+           www.ssontech.com/content/lensalg.html (obtained 07/28/2020)
+
+    Examples
+    --------
+    Creating a lens correction mesh with barrel distortion (eg. for HMDs)::
+
+        vertices, textureCoords, normals, faces = gltools.createMeshGrid(
+            subdiv=11, tessMode='center')
+
+        # recompute vertex positions
+        vertices[:, :2] = mt.lensCorrection2(vertices[:, :2], coefK=2.0)
+
+    """
+    if out is None:
+        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+    else:
+        dtype = np.dtype(dtype).type
+
+    toReturn = np.empty_like(xys, dtype=dtype) if out is None else out
+
+    xys = np.asarray(xys, dtype=dtype)
+    toReturn[:, 0] = u = xys[:, 0]
+    toReturn[:, 1] = v = xys[:, 1]
+    coefKCubed = np.power(coefK, 3, dtype=dtype)
+
+    r2 = aspect * aspect * u * u + v * v
+    r2sqr = np.sqrt(r2, dtype=dtype)
+    f = 1. + r2 * (coefK + coefKCubed * r2sqr)
+
+    toReturn[:, 0] *= f
+    toReturn[:, 1] *= f
 
     return toReturn
 

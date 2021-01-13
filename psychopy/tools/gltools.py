@@ -2428,7 +2428,7 @@ def deleteVAO(vao):
     """
     if isinstance(vao, VertexArrayInfo):
         if vao.name:
-            GL.glDeleteVertexArrays(1, vao.name)
+            GL.glDeleteVertexArrays(1, GL.GLuint(vao.name))
             vao.name = 0
             vao.isLegacy = False
             vao.indexBuffer = None

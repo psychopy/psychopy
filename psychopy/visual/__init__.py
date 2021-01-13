@@ -97,6 +97,9 @@ from psychopy.visual.textbox import TextBox
 # rift support 
 from psychopy.visual.rift import Rift
 
+# VisualSystemHD support
+from psychopy.visual.nnlvs import VisualSystemHD
+
 # 3D stimuli support
 from psychopy.visual.stim3d import LightSource
 from psychopy.visual.stim3d import SceneSkybox
