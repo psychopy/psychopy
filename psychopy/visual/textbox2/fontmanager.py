@@ -853,7 +853,7 @@ class FontManager(object):
         if not fontInfos:
             # If font not found, try to retrieve it from Google
             try:
-                fontInfos = list(self.addGoogleFont(name))
+                self.addGoogleFont(name)
             except (MissingFontError, ValueError):
                 pass
             # Then try again with fallback
