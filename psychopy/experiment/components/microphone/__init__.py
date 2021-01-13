@@ -47,7 +47,7 @@ class MicrophoneComponent(BaseComponent):
         msg = _translate(
             "Record two channels (stereo) or one (mono, smaller file)")
         self.params['stereo'] = Param(
-            stereo, valType='bool', categ='Basic',
+            stereo, valType='bool', inputType="bool", categ='Basic',
             hint=msg,
             label=_localized['stereo'])
 

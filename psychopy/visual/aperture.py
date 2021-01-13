@@ -123,11 +123,11 @@ class Aperture(MinimalStim, ContainerMixin):
         if self.__dict__['filename']:
             self._shape = ImageStim(
                 win=self.win, image=self.__dict__['filename'],
-                pos=pos, size=size, autoLog=False)
+                pos=pos, size=size, autoLog=False, units=self.units)
         else:
             self._shape = BaseShapeStim(
                 win=self.win, vertices=vertices, fillColor=1, lineColor=None,
-                interpolate=False, pos=pos, size=size, autoLog=False)
+                interpolate=False, pos=pos, size=size, autoLog=False, units=self.units)
             self.vertices = self._shape.vertices
             self._needVertexUpdate = True
 

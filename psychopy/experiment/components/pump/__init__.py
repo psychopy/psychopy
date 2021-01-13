@@ -66,20 +66,20 @@ class QmixPumpComponent(BaseComponent):
 
         self.params['pumpIndex'] = Param(
             pumpIndex, categ='Hardware',
-            valType='code',
+            valType='code', inputType="single",
             hint=_translate('The index of the pump(s) (first pump is 0).'),
             label=_localized['pumpIndex'])
 
         self.params['syringeType'] = Param(
             syringeType, categ='Hardware',
-            valType='str',
+            valType='str', inputType="choice",
             allowedVals=qmix.syringeTypes,
             hint=_translate('Syringe type and dimensions'),
             label=_localized['syringeType'])
 
         self.params['pumpAction'] = Param(
             pumpAction, categ='Hardware',
-            valType='str',
+            valType='str', inputType="choice",
             allowedVals=['aspirate', 'dispense'],
             hint=_translate('Whether the syringe should be filled (aspirate) '
                             'or emptied (dispense'),
@@ -87,25 +87,25 @@ class QmixPumpComponent(BaseComponent):
 
         self.params['flowRate'] = Param(
             flowRate, categ='Hardware',
-            valType='code',
+            valType='num', inputType="single",
             hint='The flow rate',
             label=_localized['flowRate'])
 
         self.params['flowRateUnit'] = Param(
             flowRateUnit, categ='Hardware',
-            valType='str',
+            valType='str', inputType="choice",
             allowedVals=qmix.flowRateUnits,
             hint='The unit of the flow rate',
             label=_localized['flowRateUnit'])
 
         self.params['switchValveWhenDone'] = Param(
-            switchValveWhenDone, valType='bool', categ='Hardware',
+            switchValveWhenDone, valType='bool', inputType="bool", categ='Hardware',
             allowedVals=[True, False],
             hint=_translate('Switch the valve after pump operation'),
             label=_localized['switchValveWhenDone'])
 
         self.params['syncToScreen'] = Param(
-            syncToScreen, valType='bool', categ='Basic',
+            syncToScreen, valType='bool', inputType="bool", categ='Basic',
             allowedVals=[True, False],
             hint=_translate('Sync pump onset to the screen refresh'),
             label=_localized['syncToScreen'])

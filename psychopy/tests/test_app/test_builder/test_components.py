@@ -102,7 +102,7 @@ class TestComponents(object):
                 tag = order.split(':',1)[0]
                 try:
                     mismatch = order + ' <== ' + targetTag[tag]
-                except IndexError: # missing
+                except (IndexError, KeyError): # missing
                     mismatch = order + ' <==> NEW (no matching param in the reference profile)'
                 print(mismatch.encode('utf8'))
 
