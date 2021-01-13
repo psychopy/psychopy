@@ -21,6 +21,7 @@ from . import experiment
 from .localizedStrings import _localized
 from pkg_resources import parse_version
 
+from ...visual.textbox2.fontmanager import FontManager
 from ...data.utils import listFromString
 
 if parse_version(wx.__version__) < parse_version('4.0.0a1'):
@@ -30,6 +31,8 @@ else:
 
 from pyglet.window import key
 
+
+fontMGR = FontManager()
 
 class BaseValidator(_ValidatorBase):
     """
@@ -200,6 +203,12 @@ class CodeSnippetValidator(BaseValidator):
             if len(potentialVars):
                 msg = _translate("It looks like your 'Correct answer' contains a variable - prepend variables with '$' e.g. ${val}")
                 msg = msg.format(val=potentialVars[0].lower())
+
+        # Check if it is a Google font
+        if self.fieldName == 'font' and not val.startswith('$'):
+            fontInfo = fontMGR.getFontNamesSimilar(val)
+            if not fontInfo:
+                msg = _translate(f"Font `{val}` not found locally, will attempt to retrieve from Google Fonts when this experiment next runs")
 
         # Validate as code
         if codeWanted or isCodeField:
