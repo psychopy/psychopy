@@ -39,9 +39,7 @@ class Test_Slider(object):
 
     def test_change_color(self):
         s = Slider(self.win, color='black')
-
-        with pytest.raises(AttributeError):
-            s.color = 'blue'
+        s.color = 'blue'
 
     def test_size(self):
         sizes = [(1, 0.1), (1.5, 0.5)]
