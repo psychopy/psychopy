@@ -310,5 +310,5 @@ class Aperture(MinimalStim, ContainerMixin):
     def __del__(self):
         try:
             self.enabled = False
-        except (ModuleNotFoundError, TypeError):
+        except (ImportError, ModuleNotFoundError, TypeError):
             pass  # trying to avoid 'Exception ignored in: ....' error from pyglet when experiment exits

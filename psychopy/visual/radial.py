@@ -624,5 +624,5 @@ class RadialStim(GratingStim):
             if not self.useShaders:
                 GL.glDeleteLists(self._listID, 1)
             self.clearTextures()
-        except (ModuleNotFoundError, TypeError):
+        except (ImportError, ModuleNotFoundError, TypeError):
             pass  # has probably been garbage-collected already

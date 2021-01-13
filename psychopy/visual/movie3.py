@@ -497,7 +497,7 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
     def __del__(self):
         try:
             self._unload()
-        except (ModuleNotFoundError, TypeError):
+        except (ImportError, ModuleNotFoundError, TypeError):
             pass  # has probably been garbage-collected already
 
     def setAutoDraw(self, val, log=None):
