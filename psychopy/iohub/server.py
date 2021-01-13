@@ -181,7 +181,7 @@ class udpServer(DatagramServer):
                 class_kwargs = {}
                 if len(request):
                     class_kwargs = request.pop(0)
-                custom_tasks[tasklet_label] = task_cls(**convertByteKeysToStr(class_kwargs))
+                custom_tasks[tasklet_label] = task_cls(**convertByteStrings(class_kwargs))
                 custom_tasks[tasklet_label].start()
             except Exception:
                 print2err(
@@ -285,6 +285,7 @@ class udpServer(DatagramServer):
                     result = method(**convertByteStrings(kwargs))
                 else:
                     result = method()
+                #print2err("DEV_RPC_RESULT: ", result)
                 self.sendResponse(('DEV_RPC_RESULT', result), replyTo)
                 return True
             except Exception:
