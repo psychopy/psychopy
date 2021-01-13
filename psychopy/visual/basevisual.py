@@ -366,7 +366,7 @@ class ColorMixin(object):
 
     @property
     def fillColor(self):
-        if hasattr(self, '_foreColor'):
+        if hasattr(self, '_fillColor'):
             return getattr(self._fillColor, self.colorSpace)
     @fillColor.setter
     def fillColor(self, value):
@@ -393,7 +393,7 @@ class ColorMixin(object):
 
     @property
     def borderColor(self):
-        if hasattr(self, '_foreColor'):
+        if hasattr(self, '_borderColor'):
             return getattr(self._borderColor, self.colorSpace)
     @fillColor.setter
     def borderColor(self, value):
