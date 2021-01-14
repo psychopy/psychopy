@@ -100,7 +100,7 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
                  autoLog=None,
                  autoDraw=False,
                  color=None,
-                 colorSpace='named'):
+                 colorSpace='rgb'):
         """ """  # all doc is in the attributes
         # what local vars are defined (these are the init params) for use by
         # __repr__
@@ -122,7 +122,7 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self.colorSpace = colorSpace
         self.fillColor = fillColor
         self.lineColor = lineColor
-        if color != None and fillColor == None and lineColor == None:
+        if color and not self.fillColor and not self.lineColor:
             # if the fillColor and lineColor are not set but color is, the user probably wants color applied to both
             self.fillColor = color
             self.lineColor = color
