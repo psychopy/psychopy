@@ -228,18 +228,19 @@ class Keyboard(ioHubDeviceView):
 
         """
         kb_state = self.getCurrentDeviceState()
-        if not isinstance(kb_state,dict):
-            return
+
+        events = {int(k):v for k,v in list(kb_state.get('events').items())}
+        pressed_keys = {int(k):v for k,v in list(kb_state.get('pressed_keys',{}).items())}
+
         self._reporting = kb_state.get('reporting_events')
-        pressed_keys = kb_state.get('pressed_keys')
         self._pressed_keys.clear()
         akeyix = KeyboardEvent._attrib_index['key']
         iotimeix = DeviceEvent.EVENT_HUB_TIME_INDEX
 
-        for _, (key_array, _) in list(pressed_keys.items()):
+        for _, (key_array, _) in pressed_keys.items():
             self._pressed_keys[key_array[akeyix]] = key_array[iotimeix]
 
-        for etype, event_arrays in list(kb_state.get('events').items()):
+        for etype, event_arrays in events.items():
             ddeque = deque(maxlen=self._event_buffer_length)
             evts = [self._type2class[etype](e) for e in event_arrays]
             self._events.setdefault(etype, ddeque).extend(evts)

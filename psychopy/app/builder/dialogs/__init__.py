@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Dialog classes for the Builder, including ParamCtrls
@@ -733,9 +733,9 @@ class _BaseParamsDlg(wx.Dialog):
         _flag = wx.LEFT | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL
         sizer.Add(ctrls.nameCtrl, (currRow, 0), border=5, flag=_flag)
         if ctrls.updateCtrl:
-            sizer.Add(ctrls.updateCtrl, (currRow, 2), flag=_flag)
+            sizer.Add(ctrls.updateCtrl, (currRow, 2), border=5, flag=_flag)
         if ctrls.typeCtrl:
-            sizer.Add(ctrls.typeCtrl, (currRow, 3), flag=_flag)
+            sizer.Add(ctrls.typeCtrl, (currRow, 3), border=5, flag=_flag)
         # different flag for the value control (expand)
         _flag = wx.EXPAND | wx.ALL
         if hasattr(ctrls.valueCtrl, '_szr'):

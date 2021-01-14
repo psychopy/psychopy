@@ -88,7 +88,7 @@ class ioHubKeyboardDevice(Device):
 
     def getCurrentDeviceState(self, clear_events=True):
         mods = self.getModifierState()
-        presses = self._key_states
+        presses = {str(k):v for k,v in list(self._key_states.items())}
         dstate = Device.getCurrentDeviceState(self, clear_events)
         dstate['modifiers'] = mods
         dstate['pressed_keys'] = presses

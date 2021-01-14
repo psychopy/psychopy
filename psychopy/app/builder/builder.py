@@ -4,13 +4,16 @@
 """
 Defines the behavior of Psychopy's Builder view window
 Part of the PsychoPy library
-Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 Distributed under the terms of the GNU General Public License (GPL).
 """
 
 from __future__ import absolute_import, division, print_function
 
 import os, sys
+import re
+import webbrowser
+from pathlib import Path
 import glob
 import copy
 import traceback
@@ -47,6 +50,7 @@ from ..themes import IconCache, ThemeMixin
 from ..themes._themes import PsychopyDockArt, PsychopyTabArt, ThemeSwitcher
 from psychopy import logging, constants, data
 from psychopy.tools.filetools import mergeFolder
+from psychopy.tools.stringtools import prettyname
 from .dialogs import (DlgComponentProperties, DlgExperimentProperties,
                       DlgCodeComponentProperties, DlgLoopProperties)
 from ..utils import (PsychopyToolbar, PsychopyPlateBtn, WindowFrozen,
@@ -473,6 +477,12 @@ class BuilderFrame(wx.Frame, ThemeMixin):
                                "Unpack demos to a writable location (so that"
                                " they can be run)"))
         self.Bind(wx.EVT_MENU, self.demosUnpack, item)
+        item = menu.Append(wx.ID_ANY,
+                           _translate("Browse on Pavlovia..."),
+                           _translate("Get more demos from the online demos "
+                                      "repository on Pavlovia")
+                           )
+        self.Bind(wx.EVT_MENU, self.openPavloviaDemos, item)
         menu.AppendSeparator()
         # add any demos that are found in the prefs['demosUnpacked'] folder
         self.updateDemosMenu()
@@ -1081,22 +1091,52 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         else:
             self.fileOpen(event=None, filename=files[0], closeCurrent=True)
 
+    def openPavloviaDemos(self, event=None):
+        webbrowser.open("https://pavlovia.org/explore")
+
     def updateDemosMenu(self):
         """Update Demos menu as needed."""
-        unpacked = self.prefs['unpackedDemosDir']
+        def _makeButton(parent, menu, demo):
+            # Create menu button
+            item = menu.Append(wx.ID_ANY, prettyname(demo.name))
+            # Store in window's demos list
+            parent.demos.update({item.Id: demo})
+            # Link button to demo opening function
+            parent.Bind(wx.EVT_MENU, parent.demoLoad, item)
+
+        def _makeFolder(parent, menu, folder):
+            # Create and append menu for this folder
+            submenu = wx.Menu()
+            menu.AppendSubMenu(submenu, prettyname(folder.name))
+            # Get folder contents
+            folderContents = glob.glob(str(folder / '*'))
+            for subfolder in sorted(folderContents):
+                subfolder = Path(subfolder)
+                # Make menu/button for each subfolder according to whether it contains a psyexp
+                if subfolder.is_dir():
+                    subContents = glob.glob(str(subfolder / '*'))
+                    if any(file.endswith(".psyexp") for file in subContents):
+                        _makeButton(parent, submenu, subfolder)
+                    else:
+                        _makeFolder(parent, submenu, subfolder)
+
+        # Get unpacked demos dir
+        unpacked = Path(self.prefs['unpackedDemosDir'])
         if not unpacked:
             return
-        # list available demos
-        demoList = sorted(glob.glob(os.path.join(unpacked, '*')))
-        self.demos = {wx.NewIdRef(): demoList[n]
-                      for n in range(len(demoList))}
-        for thisID in self.demos:
-            junk, shortname = os.path.split(self.demos[thisID])
-            if (shortname.startswith('_') or
-                    shortname.lower().startswith('readme.')):
-                continue  # ignore 'private' or README files
-            self.demosMenu.Append(thisID, shortname)
-            self.Bind(wx.EVT_MENU, self.demoLoad, id=thisID)
+        self.demos = {}
+
+        # Get root folders
+        rootGlob = glob.glob(str(unpacked / '*'))
+        for folder in rootGlob:
+            folder = Path(folder)
+            # Make menus/buttons recursively for each folder according to whether it contains a psyexp
+            if folder.is_dir():
+                folderContents = glob.glob(str(folder / '*'))
+                if any(file.endswith(".psyexp") for file in folderContents):
+                    _makeButton(self, self.demosMenu, folder)
+                else:
+                    _makeFolder(self, self.demosMenu, folder)
 
     def runFile(self, event=None):
         """Open Runner for running the psyexp file."""
@@ -2434,6 +2474,7 @@ class ReadmeFrame(wx.Frame):
         self.Bind(wx.EVT_CLOSE, self.onClose)
         self.Hide()
         self.makeMenus()
+        self.rawText = ""
         self.ctrl = HtmlWindow(self, wx.ID_ANY)
 
     def onClose(self, evt=None):
@@ -2453,15 +2494,10 @@ class ReadmeFrame(wx.Frame):
         menuBar.Append(self.fileMenu, _translate('&File'))
         menu = self.fileMenu
         keys = self.parent.app.keys
-        menu.Append(wx.ID_SAVE, _translate("&Save\t%s") % keys['save'])
+        menu.Append(wx.ID_EDIT, _translate("Edit"))
         menu.Append(wx.ID_CLOSE,
                     _translate("&Close readme\t%s") % keys['close'])
-        item = menu.Append(-1,
-                           _translate("&Toggle readme\t%s") % keys[
-                               'toggleReadme'],
-                           _translate("Toggle Readme"))
-        self.Bind(wx.EVT_MENU, self.toggleVisible, item)
-        self.Bind(wx.EVT_MENU, self.fileSave, id=wx.ID_SAVE)
+        self.Bind(wx.EVT_MENU, self.fileEdit, id=wx.ID_EDIT)
         self.Bind(wx.EVT_MENU, self.toggleVisible, id=wx.ID_CLOSE)
         self.SetMenuBar(menuBar)
 
@@ -2498,12 +2534,20 @@ class ReadmeFrame(wx.Frame):
             return False
         f.close()
         self._fileLastModTime = os.path.getmtime(filename)
+        self.rawText = readmeText
         if md:
-            readmeText = md.MarkdownIt().render(readmeText)
+            renderedText = md.MarkdownIt().render(readmeText)
         else:
-            readmeText = readmeText.replace("\n", "<br>")
-        self.ctrl.SetPage(readmeText)
+            renderedText = readmeText.replace("\n", "<br>")
+        self.ctrl.SetPage(renderedText)
         self.SetTitle("%s readme (%s)" % (self.expName, filename))
+
+    def fileEdit(self, evt=None):
+        self.parent.app.showCoder()
+        coder = self.parent.app.coder
+        coder.fileOpen(filename=self.filename)
+        # Close README window
+        self.Close()
 
     def fileSave(self, evt=None):
         """Defines save behavior for readme frame"""
@@ -2511,7 +2555,7 @@ class ReadmeFrame(wx.Frame):
         if self._fileLastModTime and mtime > self._fileLastModTime:
             logging.warning(
                 'readme file has been changed by another programme?')
-        txt = self.ctrl.ToText()
+        txt = self.rawText
         with codecs.open(self.filename, 'w', 'utf-8-sig') as f:
             f.write(txt)
 

@@ -584,7 +584,7 @@ class Device(ioObject):
     def getCurrentDeviceState(self, clear_events=True):
         result_dict = {}
         self._iohub_server.processDeviceEvents()
-        events = {key: tuple(value)
+        events = {str(key): tuple(value)
                   for key, value in list(self._iohub_event_buffer.items())}
         result_dict['events'] = events
         if clear_events:

@@ -52,7 +52,7 @@ def displayDataFileSelectionDialog(starting_dir=None):
 
     filePath = fileOpenDlg(tryFilePath=starting_dir, 
                            prompt = "Select a ioHub HDF5 File",
-                           allowed='HDF5 Files (*.hdf5)|*.hdf5')
+                           allowed='HDF5 Files (*.hdf5)')
     
 
     if filePath is None:
