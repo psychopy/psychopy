@@ -662,7 +662,7 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
             self.SetTechnology(3)
 
         # double buffered better rendering except if retina
-        self.SetDoubleBuffered(self.coder.IsDoubleBuffered())
+        self.SetDoubleBuffered(not self.coder.isRetina)
 
         self.theme = self.app.prefs.app['theme']
 
@@ -1172,8 +1172,8 @@ class CoderFrame(wx.Frame, ThemeMixin):
                           size=(self.appData['winW'], self.appData['winH']))
 
         # detect retina displays (then don't use double-buffering)
-        self.isRetina = self.GetContentScaleFactor() != 1
-        self.SetDoubleBuffered(not self.isRetina)
+        self.isRetina = \
+            self.GetContentScaleFactor() != 1 and wx.Platform == '__WXMAC__'
 
         # create a panel which the aui manager can hook onto
         szr = wx.BoxSizer(wx.VERTICAL)
