@@ -87,8 +87,6 @@ class PolygonComponent(BaseVisualComponent):
             hint=msg,
             label=_localized['shape'])
 
-        self.params['lineColorSpace'] = self.params['borderColorSpace']
-        del self.params['borderColorSpace']
         self.params['lineColor'] = self.params['borderColor']
         del self.params['borderColor']
 
@@ -117,7 +115,6 @@ class PolygonComponent(BaseVisualComponent):
             "[w,h] of the ellipse that the polygon sits on!! ")
 
         del self.params['color']
-        del self.params['colorSpace']
 
     def writeInitCode(self, buff):
         # do we need units code?

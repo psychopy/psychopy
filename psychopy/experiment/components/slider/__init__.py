@@ -172,9 +172,7 @@ class SliderComponent(BaseVisualComponent):
                 label=_localized['storeHistory'])
 
         del self.params['fillColor']
-        del self.params['fillColorSpace']
         del self.params['borderColor']
-        del self.params['borderColorSpace']
 
     def writeInitCode(self, buff):
 
