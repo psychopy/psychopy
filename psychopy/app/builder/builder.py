@@ -472,25 +472,23 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         self.demosMenu = wx.Menu()
         # unpack demos option
         menu = self.demosMenu
-        manageSubmenu = wx.Menu()
-        item = manageSubmenu.Append(wx.ID_ANY,
+        item = menu.Append(wx.ID_ANY,
                            _translate("&Unpack Demos..."),
                            _translate(
                                "Unpack demos to a writable location (so that"
                                " they can be run)"))
         self.Bind(wx.EVT_MENU, self.demosUnpack, item)
-        item = manageSubmenu.Append(wx.ID_ANY,
+        item = menu.Append(wx.ID_ANY,
                            _translate("Browse on Pavlovia"),
                            _translate("Get more demos from the online demos "
                                       "repository on Pavlovia")
                            )
         self.Bind(wx.EVT_MENU, self.openPavloviaDemos, item)
-        item = manageSubmenu.Append(wx.ID_ANY,
+        item = menu.Append(wx.ID_ANY,
                            _translate("Open demos folder"),
                            _translate("Open the local folder where demos are stored")
                            )
         self.Bind(wx.EVT_MENU, self.openLocalDemos, item)
-        menu.AppendSubMenu(manageSubmenu, _translate('Manage demos...'))
         menu.AppendSeparator()
         # add any demos that are found in the prefs['demosUnpacked'] folder
         self.updateDemosMenu()
