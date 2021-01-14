@@ -30,7 +30,7 @@ from psychopy.clock import monotonicClock
 
 # try to find avbin (we'll overload pyglet's load_library tool and then
 # add some paths)
-from ..colors import Color, AdvancedColor, colorSpaces
+from ..colors import Color, AdvancedColor, colorSpaces, advancedSpaces
 
 haveAvbin = False
 
@@ -2520,7 +2520,7 @@ class Window(object):
             return 'rgb'
     @colorSpace.setter
     def colorSpace(self, value):
-        if value in colorSpaces:
+        if value in colorSpaces or value in advancedSpaces:
             self._colorSpace = value
         else:
             logging.error(f"'{value}' is not a valid color space")
