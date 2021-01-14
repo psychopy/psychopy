@@ -12,6 +12,7 @@ from __future__ import absolute_import, division, print_function
 
 import os, sys
 import re
+import subprocess
 import webbrowser
 from pathlib import Path
 import glob
@@ -471,18 +472,25 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         self.demosMenu = wx.Menu()
         # unpack demos option
         menu = self.demosMenu
-        item = menu.Append(wx.ID_ANY,
+        manageSubmenu = wx.Menu()
+        item = manageSubmenu.Append(wx.ID_ANY,
                            _translate("&Unpack Demos..."),
                            _translate(
                                "Unpack demos to a writable location (so that"
                                " they can be run)"))
         self.Bind(wx.EVT_MENU, self.demosUnpack, item)
-        item = menu.Append(wx.ID_ANY,
-                           _translate("Browse on Pavlovia..."),
+        item = manageSubmenu.Append(wx.ID_ANY,
+                           _translate("Browse on Pavlovia"),
                            _translate("Get more demos from the online demos "
                                       "repository on Pavlovia")
                            )
         self.Bind(wx.EVT_MENU, self.openPavloviaDemos, item)
+        item = manageSubmenu.Append(wx.ID_ANY,
+                           _translate("Open demos folder"),
+                           _translate("Open the local folder where demos are stored")
+                           )
+        self.Bind(wx.EVT_MENU, self.openLocalDemos, item)
+        menu.AppendSubMenu(manageSubmenu, _translate('Manage demos...'))
         menu.AppendSeparator()
         # add any demos that are found in the prefs['demosUnpacked'] folder
         self.updateDemosMenu()
@@ -1090,6 +1098,17 @@ class BuilderFrame(wx.Frame, ThemeMixin):
             print("Found no psyexp files in %s" % fileDir)
         else:
             self.fileOpen(event=None, filename=files[0], closeCurrent=True)
+
+    def openLocalDemos(self, event=None):
+        # Choose a command according to OS
+        if sys.platform in ['win32']:
+            comm = "explorer"
+        elif sys.platform in ['darwin']:
+            comm = "open"
+        elif sys.platform in ['linux', 'linux2']:
+            comm = "dolphin"
+        # Use command to open themes folder
+        subprocess.call(f"{comm} {prefs.builder['unpackedDemosDir']}", shell=True)
 
     def openPavloviaDemos(self, event=None):
         webbrowser.open("https://pavlovia.org/explore")
