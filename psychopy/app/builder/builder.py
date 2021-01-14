@@ -191,6 +191,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
                           aui.AuiPaneInfo().
                           Name("Routines").Caption("Routines").CaptionVisible(True).
                           Floatable(False).
+                          Movable(False).
                           CloseButton(False).MaximizeButton(True).PaneBorder(False).
                           Center())  # 'center panes' expand
         rtPane = self._mgr.GetPane('Routines')
