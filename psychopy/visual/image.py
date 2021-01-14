@@ -4,7 +4,7 @@
 """Display an image on `psycopy.visual.Window`"""
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
@@ -237,7 +237,7 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
             if hasattr(self, '_listID'):
                 GL.glDeleteLists(self._listID, 1)
             self.clearTextures()
-        except ModuleNotFoundError:
+        except (ImportError, ModuleNotFoundError, TypeError):
             pass  # has probably been garbage-collected already
 
     def draw(self, win=None):

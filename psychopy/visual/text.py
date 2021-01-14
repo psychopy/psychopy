@@ -5,7 +5,7 @@
 '''
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
@@ -236,7 +236,7 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
         if GL:  # because of pytest fail otherwise
             try:
                 GL.glDeleteLists(self._listID, 1)
-            except ModuleNotFoundError:
+            except (ImportError, ModuleNotFoundError, TypeError):
                 pass  # if pyglet no longer exists
 
     @attributeSetter

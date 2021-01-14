@@ -5,7 +5,7 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 __all__ = [
@@ -2428,7 +2428,7 @@ def deleteVAO(vao):
     """
     if isinstance(vao, VertexArrayInfo):
         if vao.name:
-            GL.glDeleteVertexArrays(1, vao.name)
+            GL.glDeleteVertexArrays(1, GL.GLuint(vao.name))
             vao.name = 0
             vao.isLegacy = False
             vao.indexBuffer = None

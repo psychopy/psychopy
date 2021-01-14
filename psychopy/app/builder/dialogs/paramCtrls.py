@@ -88,7 +88,7 @@ class SingleLineCtrl(wx.TextCtrl, _ValidatorMixin):
             self.dollarLbl.SetToolTip(_translate("This parameter will be treated as code - we have already put in the $, so you don't have to."))
             self._szr.Add(self.dollarLbl, border=5, flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT)
         # Add self to sizer
-        self._szr.Add(self, border=5, flag=wx.EXPAND)
+        self._szr.Add(self, proportion=1, border=5, flag=wx.EXPAND)
         # Bind to validation
         self.Bind(wx.EVT_TEXT, self.codeWanted)
 
@@ -158,7 +158,7 @@ class FileCtrl(wx.TextCtrl, _ValidatorMixin, _FileMixin):
         self.valType = valType
         # Add sizer
         self._szr = wx.BoxSizer(wx.HORIZONTAL)
-        self._szr.Add(self, border=5, flag=wx.EXPAND | wx.RIGHT)
+        self._szr.Add(self, border=5, proportion=1, flag=wx.EXPAND | wx.RIGHT)
         # Add button to browse for file
         fldr = parent.app.iconCache.getBitmap(name="folder", size=16, theme="light")
         self.findBtn = wx.BitmapButton(parent, -1, size=wx.Size(24, 24), bitmap=fldr)
@@ -185,9 +185,9 @@ class FileListCtrl(wx.ListBox, _ValidatorMixin, _FileMixin):
         if type(choices) == str:
             choices = data.utils.listFromString(choices)
         self.Create(id=wx.ID_ANY, parent=parent, choices=choices, size=size, style=wx.LB_EXTENDED | wx.LB_HSCROLL)
-        self.addBtn = wx.Button(parent, -1, style=wx.BU_EXACTFIT, label="+")
+        self.addBtn = wx.Button(parent, -1, size=(24,24), style=wx.BU_EXACTFIT, label="+")
         self.addBtn.Bind(wx.EVT_BUTTON, self.addItem)
-        self.subBtn = wx.Button(parent, -1, style=wx.BU_EXACTFIT, label="-")
+        self.subBtn = wx.Button(parent, -1, size=(24,24), style=wx.BU_EXACTFIT, label="-")
         self.subBtn.Bind(wx.EVT_BUTTON, self.removeItem)
         self._szr = wx.BoxSizer(wx.HORIZONTAL)
         self.btns = wx.BoxSizer(wx.VERTICAL)
@@ -232,7 +232,7 @@ class TableCtrl(wx.TextCtrl, _ValidatorMixin, _FileMixin):
         self.valType = valType
         # Add sizer
         self._szr = wx.BoxSizer(wx.HORIZONTAL)
-        self._szr.Add(self, border=5, flag=wx.EXPAND | wx.RIGHT)
+        self._szr.Add(self, proportion=1, border=5, flag=wx.EXPAND | wx.RIGHT)
         # Add button to browse for file
         fldr = parent.app.iconCache.getBitmap(name="folder", size=16, theme="light")
         self.findBtn = wx.BitmapButton(parent, -1, size=wx.Size(24,24), bitmap=fldr)
@@ -310,7 +310,7 @@ class ColorCtrl(wx.TextCtrl, _ValidatorMixin):
             self.dollarLbl.SetToolTip(_translate("This parameter will be treated as code - we have already put in the $, so you don't have to."))
             self._szr.Add(self.dollarLbl, border=5, flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT)
         # Add ctrl to sizer
-        self._szr.Add(self, border=5, flag=wx.EXPAND | wx.RIGHT)
+        self._szr.Add(self, proportion=1, border=5, flag=wx.EXPAND | wx.RIGHT)
         # Add button to activate color picker
         fldr = parent.app.iconCache.getBitmap(name="color", size=16, theme="light")
         self.pickerBtn = wx.BitmapButton(parent, -1, size=wx.Size(24,24), bitmap=fldr)
