@@ -66,7 +66,7 @@ class SliderComponent(BaseVisualComponent):
                  style=['rating'],
                  granularity=0,
                  color="LightGray",
-                 font="HelveticaBold",
+                 font="Open Sans",
                  startType='time (s)', startVal='0.0',
                  stopType='condition', stopVal='',
                  startEstim='', durationEstim='',
