@@ -24,9 +24,7 @@ tooltip = _translate('Polygon: any regular polygon (line, triangle, square'
 # only use _localized values for label values, nothing functional:
 _localized = _localized.copy()
 _localized.update({'nVertices': _translate('Num. vertices'),
-                   'fillColorSpace': _translate('Fill color-space'),
                    'fillColor': _translate('Fill color'),
-                   'lineColorSpace': _translate('Line color-space'),
                    'lineColor': _translate('Line color'),
                    'lineWidth': _translate('Line width'),
                    'interpolate': _translate('Interpolate'),
@@ -160,8 +158,8 @@ class PolygonComponent(BaseVisualComponent):
                     " size=%(size)s,\n" % inits)
 
         code += ("    ori=%(ori)s, pos=%(pos)s,\n"
-                 "    lineWidth=%(lineWidth)s, lineColor=%(lineColor)s, lineColorSpace=%(lineColorSpace)s,\n"
-                 "    fillColor=%(fillColor)s, fillColorSpace=%(fillColorSpace)s,\n"
+                 "    lineWidth=%(lineWidth)s, lineColor=%(lineColor)s,\n"
+                 "    fillColor=%(fillColor)s,\n"
                  "    opacity=%(opacity)s, " % inits)
 
         depth = -self.getPosInRoutine()
