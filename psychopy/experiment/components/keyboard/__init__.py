@@ -66,8 +66,9 @@ class KeyboardComponent(BaseComponent):
         # params
 
         # NB name and timing params always come 1st
-        self.order = ['forceEndRoutine', 'allowedKeys', 'store',
-                      'storeCorrect', 'correctAns']
+        self.order += ['forceEndRoutine',  # Basic tab
+                       'allowedKeys', 'store', 'storeCorrect', 'correctAns'  # Data tab
+                       ]
 
         msg = _translate(
             "A comma-separated list of keys (with quotes), such as "
