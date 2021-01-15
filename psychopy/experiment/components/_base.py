@@ -600,6 +600,7 @@ class BaseVisualComponent(BaseComponent):
             "fillColor",
             "borderColor",
             "colorSpace",
+            "opacity",
             "size",
             "pos",
             "units",

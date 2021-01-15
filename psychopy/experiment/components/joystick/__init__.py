@@ -54,17 +54,16 @@ class JoystickComponent(BaseComponent):
         self.exp.requirePsychopyLibs(['event'])
         self.categories = ['Inputs']
 
-        self.order = [
-            'forceEndRoutineOnPress',
-            'saveJoystickState', 'timeRelativeTo',
-            'clickable', 'saveParamsClickable', 'deviceNumber', 'allowedButtons']
-
+        self.order += ['forceEndRoutine',  # Basic tab
+                       'saveJoystickState', 'timeRelativeTo', 'clickable', 'saveParamsClickable', 'allowedButtons',  # Data tab
+                       'deviceNumber',  # Hardware tab
+                       ]
         # params
         msg = _translate(
             "How often should the joystick state (x,y,buttons) be stored? "
             "On every video frame, every click or just at the end of the "
             "Routine?")
-        self.params['saveJoystickState'] = Param(
+        self.params['forceEndRoutineOnPress'] = Param(
             save, valType='str', inputType="choice", categ='Data',
             allowedVals=['final', 'on click', 'every frame', 'never'],
             hint=msg,

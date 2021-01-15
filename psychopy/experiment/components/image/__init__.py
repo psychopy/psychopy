@@ -49,7 +49,9 @@ class ImageComponent(BaseVisualComponent):
         self.url = "http://www.psychopy.org/builder/components/image.html"
         self.exp.requirePsychopyLibs(['visual'])
         # params
-        self.order += ['image', 'pos', 'size', 'ori', 'opacity']
+        self.order += ['image',  # Basic tab
+                       'mask', 'texture resolution',  # Texture tab
+                       ]
 
         msg = _translate(
             "The image to be displayed - a filename, including path")
