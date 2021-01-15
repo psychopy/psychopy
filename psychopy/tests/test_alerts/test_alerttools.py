@@ -101,7 +101,7 @@ class TestAlertTools(object):
         self.polygonComp.params['startVal'].val = .5
         self.polygonComp.params['startType'].val = "duration (frames)"
         self.exp.integrityCheck()
-        assert ("Your stimulus start type \"duration (frames)\" must be expressed as a whole number" in self.error.alerts[0].msg)
+        assert ("Your stimulus start type \'duration (frames)\' must be expressed as a whole number" in self.error.alerts[0].msg)
 
     def test_python_syntax(self):
         alerttools.checkPythonSyntax(self.codeComp, 'Begin Experiment')

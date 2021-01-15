@@ -19,6 +19,7 @@ Windows and and display devices:
 * :class:`.Warper` for non-flat projection screens
 * :class:`.ProjectorFramePacker` for handling displays with 'structured light mode' to achieve high framerates
 * :class:`.Rift` for Oculus Rift support (Windows 64bit only)
+* :class:`.VisualSystemHD` for NordicNeuralLab's VisualSystemHD in-scanner display.
 
 Commonly used:
 

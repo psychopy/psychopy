@@ -16,7 +16,7 @@ Changes:
 from __future__ import absolute_import, division, print_function
 
 from numpy import zeros
-
+from scipy.stats import norm
 from psychopy import core, visual
 from psychopy.iohub import Computer, ioHubExperimentRuntime
 from psychopy.iohub.constants import EventConstants
@@ -217,7 +217,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
         # the histogram of the delay data
         n, bins, patches = hist(durations, 50, facecolor='blue', alpha=0.75)
         # add a 'best fit' line
-        y = mlab.normpdf( bins, dmean, dstd)
+        y = norm.pdf( bins, dmean, dstd)
         plot(bins, y, 'r--', linewidth=1)
         xlabel('ioHub getEvents Delay')
         ylabel('Percentage')

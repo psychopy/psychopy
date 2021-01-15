@@ -413,6 +413,14 @@ class Slider(MinimalStim):
             rating = self.labels[int(round(rating))]
         self.__dict__['rating'] = rating
 
+    @property
+    def value(self):
+        """Synonymous with .rating"""
+        return self.rating
+    @value.setter
+    def value(self, val):
+        self.rating = val
+
     @attributeSetter
     def markerPos(self, rating):
         """The position on the scale where the marker should be. Note that
