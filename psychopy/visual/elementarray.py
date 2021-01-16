@@ -241,7 +241,7 @@ class ElementArrayStim(MinimalStim, TextureMixin):
                 yyy = (self.xys[:, 1] + old_div(fsz[1], 2)) % fsz[1]
                 self.__dict__['xys'][:, 0] = xxx - old_div(fsz[0], 2)
                 self.__dict__['xys'][:, 1] = yyy - old_div(fsz[1], 2)
-            elif self.fieldShape is 'circle':
+            elif self.fieldShape == 'circle':
                 # take twice as many elements as we need (and cull the ones
                 # outside the circle)
                 # initialise a random array of X,Y

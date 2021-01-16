@@ -138,7 +138,7 @@ class ioObject(with_metaclass(ioObjectMetaClass, object)):
         rpcList = []
         dlist = dir(self)
         for d in dlist:
-            if d[0] is not '_' and d not in ['asNumpyArray', ]:
+            if d[0] != '_' and d not in ['asNumpyArray', ]:
                 if callable(getattr(self, d)):
                     rpcList.append(d)
         return rpcList
