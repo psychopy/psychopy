@@ -177,7 +177,7 @@ frame_num	frame_flip_time	playback_duration	frame_num_dx	dropped_count
 """
 
 
-from psychopy import visual, core, event
+from psychopy import visual, core, event, constants
 
 getTime = core.getTime
 import time, os, numpy as np
@@ -480,7 +480,7 @@ if __name__ == '__main__':
     display_frame_num = mov.play()
     draw_dur = getTime() - dt1
 
-    while mov.status != visual.FINISHED:
+    while mov.status != constants.FINISHED:
         # Only flip when a new frame should be displayed. Can significantly reduce
         # CPU usage. This only makes sense if the movie is the only /dynamic/ stim
         # displayed.
@@ -504,7 +504,7 @@ if __name__ == '__main__':
         # Check for action keys.....
         for key in event.getKeys():
             if key in ['escape', 'q']:
-                mov.status = visual.FINISHED
+                mov.status = constants.FINISHED
                 break
 
     createResultsFile()
@@ -516,7 +516,7 @@ if __name__ == '__main__':
 # Movie2 logic not currently used / tested by this script
 
 #        elif key in ['s', ]:
-#            if mov.status in [visual.PLAYING, visual.PAUSED]:
+#            if mov.status in [constants.PLAYING, constants.PAUSED]:
 #                # To stop the movie being played.....,
 #                mov.stop()
 #                # Clear screen of last displayed frame.
@@ -531,9 +531,9 @@ if __name__ == '__main__':
 #                display_frame_num = mov.play()
 #        elif key in ['p', ]:
 #            # To pause the movie while it is playing....
-#            if mov.status == visual.PLAYING:
+#            if mov.status == constants.PLAYING:
 #                mov.pause()
-#            elif mov.status == visual.PAUSED:
+#            elif mov.status == constants.PAUSED:
 #                # To /unpause/ the movie if pause has been called....
 #                display_frame_num = mov.play()
 #        elif key == 'period':
