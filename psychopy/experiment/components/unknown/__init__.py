@@ -37,8 +37,8 @@ class UnknownComponent(BaseComponent):
         self.params['name'] = Param(name, valType='code', inputType="multi",
                                     hint=_hint,
                                     label=_localized['name'])
-        self.order += []
         super(UnknownComponent, self).__init__(exp, parentName)
+        self.order += []
     # make sure nothing gets written into experiment for an unknown object
     # class!
 
