@@ -506,7 +506,7 @@ class RunTimeInfo(dict):
             except AttributeError:
                 msg = ('AttributeError in RuntimeInfo._setWindowInfo(): '
                        'Window instance has no attribute')
-                logging.warning(msg, winAttr)
+                logging.warning(0, msg, winAttr)
                 continue
             if hasattr(attrValue, '__call__'):
                 try:
