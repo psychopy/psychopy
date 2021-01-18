@@ -202,11 +202,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 units=self.units,
                 lineWidth=1, lineColor=None, fillColor=fillColor, opacity=0.1,
                 autoLog=False)
-        self.pallette = { # If no focus
-                'lineColor': borderColor,
-                'lineWidth': borderWidth,
-                'fillColor': fillColor,
-        }
         # then layout the text (setting text triggers _layout())
         self.startText = text
         self.text = text if text is not None else ""
@@ -220,6 +215,18 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
     @property
     def pallette(self):
+        self._pallette = {
+            False: {
+                'lineColor': self._borderColor,
+                'lineWidth': self.borderWidth,
+                'fillColor': self._fillColor
+            },
+            True: {
+                'lineColor': self._borderColor-0.1,
+                'lineWidth': self.borderWidth+1,
+                'fillColor': self._fillColor+0.1
+            }
+        }
         return self._pallette[self.hasFocus]
 
     @pallette.setter
