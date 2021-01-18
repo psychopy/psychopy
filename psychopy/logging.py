@@ -295,8 +295,12 @@ class _Logger(object):
             for thisEntry in self.toFlush:
                 if thisEntry.level >= target.level:
                     if not thisEntry in formatted:
-                        # convert the entry into a formatted string
-                        formatted[thisEntry] = self.format % thisEntry.__dict__
+                        try:
+                            # convert the entry into a formatted string
+                            formatted[thisEntry] = self.format % thisEntry.__dict__
+                        except TypeError as err:
+                            print(thisEntry.__dict__)
+                            raise err
                     target.write(formatted[thisEntry] + '\n')
             if hasattr(target.stream, 'flush'):
                 target.stream.flush()
