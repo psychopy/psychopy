@@ -398,12 +398,11 @@ def createResultsFile():
             f.write("Video File:\n")
             f.write("\tName:\t{0}\n".format(video_name))
             f.write("\tFrame Count:\t{0}\n".format(mov._total_frame_count))
-            mov_duration = mov._total_frame_count/mov._video_stream.get(cv2.cv.CV_CAP_PROP_FPS)
+            mov_duration = mov._total_frame_count/mov._video_stream.get(cv2.CAP_PROP_FPS)
             f.write("\tVideo Duration:\t{0}\n".format(mov_duration))
             f.write("\tWidth:\t{0}\n".format(mov._video_width))
             f.write("\tHeight:\t{0}\n".format(mov._video_height))
-            f.write("\tFPS (Format, Requested):\t{0}\n".format(
-                (mov._video_stream.get(cv2.cv.CV_CAP_PROP_FPS), mov._requested_fps)))
+            f.write("\tFPS:\t{0}\n".format(mov.getFPS()))
             f.write("\tPlay Audio Track:\t{0}\n".format(not mov._no_audio))
 
             f.write("Video Display:\n")

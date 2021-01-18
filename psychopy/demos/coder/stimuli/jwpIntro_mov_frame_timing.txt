@@ -1,4 +1,0 @@
- ** Video Info ** 
-Video File:
-	Name:	./jwpIntro.mov
-	Frame Count:	145.0
