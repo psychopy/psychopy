@@ -30,6 +30,8 @@ from psychopy.clock import monotonicClock
 
 # try to find avbin (we'll overload pyglet's load_library tool and then
 # add some paths)
+from ..colors import Color, AdvancedColor, colorSpaces, advancedSpaces
+
 haveAvbin = False
 
 # on windows try to load avbin now (other libs can interfere)
@@ -2488,8 +2490,43 @@ class Window(object):
         """
         setAttribute(self, 'blendMode', blendMode, log)
 
-    @attributeSetter
-    def color(self, color):
+    @property
+    def colorSpace(self):
+        """The name of the color space currently being used
+
+        Value should be: a string or None
+
+        For strings and hex values this is not needed.
+        If None the default colorSpace for the stimulus is
+        used (defined during initialisation).
+
+        Please note that changing colorSpace does not change stimulus
+        parameters. Thus you usually want to specify colorSpace before
+        setting the color. Example::
+
+            # A light green text
+            stim = visual.TextStim(win, 'Color me!',
+                                   color=(0, 1, 0), colorSpace='rgb')
+
+            # An almost-black text
+            stim.colorSpace = 'rgb255'
+
+            # Make it light green again
+            stim.color = (128, 255, 128)
+        """
+        if hasattr(self, '_colorSpace'):
+            return self._colorSpace
+        else:
+            return 'rgb'
+    @colorSpace.setter
+    def colorSpace(self, value):
+        if value in colorSpaces or value in advancedSpaces:
+            self._colorSpace = value
+        else:
+            logging.error(f"'{value}' is not a valid color space")
+
+    @property
+    def color(self):
         """Set the color of the window.
 
         This command sets the color that the blank screen will have on the
@@ -2508,24 +2545,27 @@ class Window(object):
         See :ref:`colorspaces` for further information about the ways to
         specify colors and their various implications.
         """
-        self.setColor(color)
+        if hasattr(self, '_color'):
+            return getattr(self._color, self.colorSpace)
+    @color.setter
+    def color(self, value):
+        if isinstance(value, Color):
+            # If supplied with a color object, set as that
+            self._color = value
+        elif self.colorSpace in AdvancedColor.getSpace(value, True):
+            # If supplied with a valid advanced color, use it to make an advanced color object and print tip.
+            self._color = AdvancedColor(value, self.colorSpace)
+        else:
+            # Otherwise, use it to make a color object
+            self._color = Color(value, self.colorSpace)
+        if not self._color:
+            self._color = Color()
+            logging.error(f"'{value}' is not a valid {self.colorSpace} color")
 
-    @attributeSetter
-    def colorSpace(self, colorSpace):
-        """Documentation for colorSpace is in the stimuli.
-
-        e.g. :py:attr:`GratingStim.colorSpace`
-
-        Usually used in conjunction with ``color`` like this::
-
-            win.colorSpace = 'rgb255'  # changes colorSpace but not
-                                       # the value of win.color
-            win.color = [0, 0, 255]    # clear blue in rgb255
-
-        See :ref:`colorspaces` for further information about the ways to
-        specify colors and their various implications.
-        """
-        self.__dict__['colorSpace'] = colorSpace
+        # if it is None then this will be done during window setup
+        if self.backend is not None:
+            self.backend.setCurrent()  # make sure this window is active
+            GL.glClearColor(*self._color.render('rgba1'))
 
     def setColor(self, color, colorSpace=None, operation='', log=None):
         """Usually you can use ``stim.attribute = value`` syntax instead,
@@ -2534,41 +2574,21 @@ class Window(object):
 
         See :py:attr:`~Window.color` for documentation on colors.
         """
-        # Set color
-        setColor(self, color, colorSpace=colorSpace, operation=operation,
-                 rgbAttrib='rgb',  # or 'fillRGB' etc
-                 colorAttrib='color')
-
-        # These spaces are 0-centred
-        if self.colorSpace in ['rgb', 'dkl', 'lms', 'hsv']:
-            # RGB in range 0:1 and scaled for contrast
-            desiredRGB = (self.rgb + 1) / 2.0
-        # rgb255 and named are not...
-        elif self.colorSpace in ['rgb255', 'named']:
-            desiredRGB = self.rgb / 255.0
-        elif self.colorSpace in ['hex']:
-            desiredRGB = [rgbs/255.0 for rgbs in colors.hex2rgb255(color)]
-        else:  # some array / numeric stuff
-            msg = 'invalid value %r for Window.colorSpace'
-            raise ValueError(msg % colorSpace)
-
-        # if it is None then this will be done during window setup
-        if self.backend is not None:
-            self.backend.setCurrent()  # make sure this window is active
-            GL.glClearColor(desiredRGB[0], desiredRGB[1], desiredRGB[2], 1.0)
+        self.colorSpace = colorSpace
+        self.color = color
 
     def setRGB(self, newRGB):
         """Deprecated: As of v1.61.00 please use `setColor()` instead
         """
-        global GL
-        self.rgb = val2array(newRGB, False, length=3)
-        if self.winType == 'pyglet' and globalVars.currWindow != self:
-            self.winHandle.switch_to()
-            globalVars.currWindow = self
-        GL.glClearColor(((self.rgb[0] + 1.0) / 2.0),
-                        ((self.rgb[1] + 1.0) / 2.0),
-                        ((self.rgb[2] + 1.0) / 2.0),
-                        1.0)
+        self.setColor(newRGB, colorSpace="rgb")
+
+    @property
+    def rgb(self):
+        if hasattr(self, "_color"):
+            return self._color.render("rgb")
+    @rgb.setter
+    def rgb(self, value):
+        self.color = Color(value, 'rgb')
 
     def _setupGamma(self, gammaVal):
         """A private method to work out how to handle gamma for this Window
