@@ -570,6 +570,9 @@ class Color(object):
                 self._cache['named'] = possible[0]
             else:
                 self._cache['named'] = None
+            # If opacity is 0, assume named value is 'none' regarless of RGB values
+            if self.alpha == 0:
+                self._cache['named'] = 'none'
         return self._cache['named']
     @named.setter
     def named(self, color):
