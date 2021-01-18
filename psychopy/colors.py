@@ -336,6 +336,8 @@ class Color(object):
                 rgb[c] = self.rgb1[c]*selfWeight + other.rgb1[c]*otherWeight
             return Color(rgb+[alpha], 'rgba1')
 
+    def __sub__(self, other):
+        return self + -other
 
     def copy(self):
         """Return a duplicate of this colour"""
