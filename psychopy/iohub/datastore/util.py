@@ -449,7 +449,7 @@ class ExperimentDataAccessUtility(object):
                 row.fetch_all_fields() for row in klassTables.where(
                     '(class_id == %d) & (class_type_id == 1)' %
                     (event_type_id))]
-            if len(result) is not 1:
+            if len(result) != 1:
                 raise ExperimentDataAccessException("event_type_id passed to getEventAttribute should only return one row from CLASS_MAPPINGS.")
             tablePathString = result[0][3]
             deviceEventTable = getattr(self.hdfFile, get_node)(tablePathString)

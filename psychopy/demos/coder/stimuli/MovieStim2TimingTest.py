@@ -313,7 +313,7 @@ def getSysInfo(win):
                 vattrs = ['name', 'exe', 'ppid', 'num_threads', 'memory_percent', 'cpu_percent', 'cpu_affinity', 'nice',
                           'num_ctx_switches']
                 procinfo = proc.as_dict(attrs=vattrs, ad_value=u"Access Denied")
-                if procinfo['exe'] is not u"Access Denied" and (SAVE_PER_PROCESS_DATA is True or SAVE_PER_PROCESS_DATA == procinfo['name']):
+                if procinfo['exe'] != "Access Denied" and (SAVE_PER_PROCESS_DATA is True or SAVE_PER_PROCESS_DATA == procinfo['name']):
                     sys_info['Processes'][pkey] = procinfo
         except ImportError:
             sys_info['Processes']['Failed'] = 'psutil 2.x + is required.'

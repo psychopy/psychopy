@@ -112,6 +112,10 @@ class NameValidator(BaseValidator):
             sameAsOldName = bool(newName == parent.params['name'].val)
             if used and not sameAsOldName:
                 msg = _translate("That name is in use (by %s). Try another name.") % _translate(used)
+                # NOTE: formatted string literal doesn't work with _translate().
+                # So, we have to call format() after _translate() is applied.
+                msg = _translate("That name is in use (by {used}). Try another name."
+                    ).format(used = _translate(used))
                 OK = False
             elif not namespace.isValid(newName):  # valid as a var name
                 msg = _translate("Name must be alpha-numeric or _, no spaces")
@@ -231,8 +235,10 @@ class CodeSnippetValidator(BaseValidator):
                             eval(code)
                         except NameError as e:
                             _highlightParamVal(parent, True)
-                            msg = _translate(f"Looks like your variable '{code}' in '{self.displayName}' should be set to update.")
-                            msg = msg.format(code=code, displayName=self.displayName)
+                            # NOTE: formatted string literal doesn't work with _translate().
+                            # So, we have to call format() after _translate() is applied.
+                            msg = _translate("Looks like your variable '{code}' in '{displayName}' should be set to update."
+                                ).format(code=code, displayName=self.displayName)
                         except SyntaxError as e:
                             msg = ''
 
@@ -262,7 +268,10 @@ class CodeSnippetValidator(BaseValidator):
                         used = namespace.exists(newName)
                         sameAsOldName = bool(newName == parent.params['name'].val)
                         if used and not sameAsOldName:
-                            msg = _translate(f"Variable name ${newName} is in use (by {_translate(used)}). Try another name.")
+                            # NOTE: formatted string literal doesn't work with _translate().
+                            # So, we have to call format() after _translate() is applied.
+                            msg = _translate("Variable name ${newName} is in use (by {used}). Try another name."
+                                ).format(newName=newName, used=_translate(used))
                             # let the user continue if this is what they intended
                             OK = True
 
