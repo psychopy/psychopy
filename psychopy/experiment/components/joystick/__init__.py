@@ -63,7 +63,7 @@ class JoystickComponent(BaseComponent):
             "How often should the joystick state (x,y,buttons) be stored? "
             "On every video frame, every click or just at the end of the "
             "Routine?")
-        self.params['forceEndRoutineOnPress'] = Param(
+        self.params['saveJoystickState'] = Param(
             save, valType='str', inputType="choice", categ='Data',
             allowedVals=['final', 'on click', 'every frame', 'never'],
             hint=msg,
