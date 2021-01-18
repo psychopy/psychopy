@@ -2580,15 +2580,15 @@ class Window(object):
     def setRGB(self, newRGB):
         """Deprecated: As of v1.61.00 please use `setColor()` instead
         """
-        global GL
-        self.rgb = val2array(newRGB, False, length=3)
-        if self.winType == 'pyglet' and globalVars.currWindow != self:
-            self.winHandle.switch_to()
-            globalVars.currWindow = self
-        GL.glClearColor(((self.rgb[0] + 1.0) / 2.0),
-                        ((self.rgb[1] + 1.0) / 2.0),
-                        ((self.rgb[2] + 1.0) / 2.0),
-                        1.0)
+        self.setColor(newRGB, colorSpace="rgb")
+
+    @property
+    def rgb(self):
+        if hasattr(self, "_color"):
+            return self._color.render("rgb")
+    @rgb.setter
+    def rgb(self, value):
+        self.color = Color(value, 'rgb')
 
     def _setupGamma(self, gammaVal):
         """A private method to work out how to handle gamma for this Window
