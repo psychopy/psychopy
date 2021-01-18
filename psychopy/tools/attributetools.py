@@ -99,7 +99,7 @@ def setAttribute(self, attrib, value, log,
 
             # Calculate new value using operation
             if operation in ('', None):
-                if (value.shape is () and
+                if (value.shape == () and
                         not isinstance(oldValue, attributeSetter)):  # scalar
                     # Preserves dimensions in case oldValue is array-like.
                     value = oldValue * 0 + value
