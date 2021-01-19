@@ -85,3 +85,4 @@ def test_shape_colors():
             obj.draw()
             utils.comparePixelColor(win, colors.Color('white'), coord=(1,1))
             utils.comparePixelColor(win, colors.Color(colorSet[space], space), coord=(50, 50))
+            # Testing foreColor is already done in test_textbox
