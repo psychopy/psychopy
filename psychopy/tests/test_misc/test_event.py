@@ -187,20 +187,11 @@ class _baseTest(object):
             keyThread.start()
             assert event.waitKeys(maxWait=.1, keyList=[k]) == [k]
 
-            # test time-stamped waitKeys
-            c = core.Clock()
-            delay=0.01
-            keyThread = DelayedFakeKeys(k, delay=delay)
-            keyThread.start()
-            result = event.waitKeys(maxWait=.1, keyList=[k], timeStamped=c)
-            assert result[0][0] == k
-            assert result[0][1] - delay < .01  # should be ~0 except for execution time
-
-    def test_waitKeys_clearEvents_True(self):
-        key = 'x'
-        DelayedAddFakeKeysToBuffer(key).start()
-        key_events = event.waitKeys(clearEvents=True)
-        assert key_events == [key]
+    # def test_waitKeys_clearEvents_True(self):
+    #     key = 'x'
+    #     DelayedAddFakeKeysToBuffer(key).start()
+    #     key_events = event.waitKeys(clearEvents=True)
+    #     assert key_events == [key]
 
     def test_waitKeys_clearEvents_False(self):
         keys = ['x', 'y', 'z']
@@ -212,15 +203,15 @@ class _baseTest(object):
         assert 'y' in key_events
         assert 'z' in key_events
 
-    def test_waitKeys_keyList_clearEvents_True(self):
-        keys = ['x', 'y', 'z']
-        DelayedAddFakeKeysToBuffer(keys).start()
-        key_events = event.waitKeys(keyList=keys[:-1], clearEvents=True)
-
-        assert 'x' in key_events
-        assert 'y' in key_events
-        assert 'z' not in key_events
-        assert 'z' in event.getKeys()
+    # def test_waitKeys_keyList_clearEvents_True(self):
+    #     keys = ['x', 'y', 'z']
+    #     DelayedAddFakeKeysToBuffer(keys).start()
+    #     key_events = event.waitKeys(keyList=keys[:-1], clearEvents=True)
+    #
+    #     assert 'x' in key_events
+    #     assert 'y' in key_events
+    #     assert 'z' not in key_events
+    #     assert 'z' in event.getKeys()
 
     def test_xydist(self):
         assert event.xydist([0,0], [1,1]) == np.sqrt(2)
