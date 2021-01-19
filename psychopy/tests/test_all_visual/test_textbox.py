@@ -110,10 +110,6 @@ class Test_textbox(object):
             textbox.color = case['color']
             textbox.fillColor = case['fillColor']
             textbox.borderColor = case['borderColor']
-            # Temporary measure until the Color class is implemented, at which point pallette will update automatically
-            textbox.pallette = {"lineColor": textbox.borderColor,
-                                "lineWidth": textbox.borderWidth,
-                                "fillColor": textbox.fillColor}
             self.win.flip()
             textbox.draw()
             if case['screenshot']:

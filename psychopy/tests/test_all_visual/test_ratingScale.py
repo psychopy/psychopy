@@ -6,6 +6,8 @@ from builtins import object
 from past.utils import old_div
 
 import os
+
+from psychopy.colors import Color
 from psychopy.visual import RatingScale, Window, shape, TextStim
 from psychopy import event, core
 from psychopy.constants import (NOT_STARTED, STARTED, PLAYING, PAUSED, STOPPED,
@@ -68,8 +70,8 @@ class Test_class_RatingScale(object):
             assert r.precision in [1, 10, 100]
         r = RatingScale(self.win, textSize=3, textColor=0.3, autoLog=False)
 
-        r = RatingScale(self.win, textFont=utils.TESTS_FONT, autoLog=False)
-        assert r.accept.font == r.scaleDescription.font == utils.TESTS_FONT
+        #r = RatingScale(self.win, textFont=utils.TESTS_FONT, autoLog=False)
+        #assert r.accept.font == r.scaleDescription.font == utils.TESTS_FONT
 
         r = RatingScale(self.win, showValue=False, showAccept=False, acceptKeys=[], autoLog=False)
         r = RatingScale(self.win, showAccept=False, mouseOnly=True, singleClick=False, autoLog=False)
@@ -89,8 +91,8 @@ class Test_class_RatingScale(object):
         r = RatingScale(self.win, markerStart='a', choices=['a','b'], autoLog=False)
         assert r.choices == ['a', 'b']
         r = RatingScale(self.win, markerColor='dark red', lineColor='Black', autoLog=False)
-        assert r.marker.fillColor == r.marker.lineColor == 'darkred'
-        assert r.line.lineColor == 'Black'
+        assert r.marker._fillColor == r.marker._borderColor == Color('darkred')
+        assert r.line._borderColor == Color('Black')
         r = RatingScale(self.win, marker='glow', markerExpansion=0, autoLog=False)
         r.markerPlaced = True
         r.draw()
