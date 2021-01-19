@@ -77,7 +77,6 @@ class TextboxComponent(BaseVisualComponent):
         self.order += [  # controls order of params within tabs
             "editable", "text",  # Basic tab
             "borderWidth", "opacity",  # Appearance tab
-              # Layout tab
             "font", "letterHeight", "lineSpacing", "bold", "italic",  # Formatting tab
             ]
         self.order.insert(self.order.index("units"), "padding") # Add "padding" just before spatial units
