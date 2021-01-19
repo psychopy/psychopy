@@ -43,9 +43,7 @@ class ApertureComponent(BaseVisualComponent):
 
         self.type = 'Aperture'
         self.url = "http://www.psychopy.org/builder/components/aperture.html"
-        # params:
-        # NB make some adjustments on the params defined by _visual component
-        self.order = ['name', 'size', 'pos']  # make sure this is at top
+        self.order += []
 
         msg = _translate(
             "How big is the aperture? (a single number for diameter)")
