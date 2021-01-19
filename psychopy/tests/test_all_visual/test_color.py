@@ -1,7 +1,12 @@
-from psychopy.colors import Color, colorSpaces
+from psychopy.tests import utils
+from psychopy import visual, colors
+from pathlib import Path
+
+"""All tests in this file involve rapidly changing colours, do not run these tests in a setting where you can view the 
+output if you have photosensitive epilepsy"""
 
 # Define expected values for different spaces
-sets = [
+exemplars = [
     {'rgb': ( 1.00,  1.00,  1.00), 'rgb255': (255, 255, 255), 'hsv': (  0, 0.00, 1.00), 'hex': '#ffffff', 'named': 'white'}, # Pure white
     {'rgb': ( 0.00,  0.00,  0.00), 'rgb255': (128, 128, 128), 'hsv': (  0, 0.00, 0.50), 'hex': '#808080', 'named': 'gray'}, # Mid grey
     {'rgb': (-1.00, -1.00, -1.00), 'rgb255': (  0,   0,   0), 'hsv': (  0, 0.00, 0.00), 'hex': '#000000', 'named': 'black'}, # Pure black
@@ -24,21 +29,57 @@ tykes = [
     {'rgba': ( 1.00,  1.00,  1.00, 0.50), 'rgba255': (255, 255, 255, 0.50), 'hsva': (  0, 0.00, 1.00, 0.50)} # Make sure opacities work in every space
 ]
 
+# Test window for visual objects
+win = visual.Window([128, 128], pos=[50, 50], allowGUI=False, autoLog=False)
+
 # Begin test
-def test_ColorSets():
-    for colorSet in sets:
+def test_colors():
+    for colorSet in exemplars + tykes:
         # Construct matrix of space pairs
         spaceMatrix = []
         for space1 in colorSet:
             spaceMatrix.extend([[space1, space2] for space2 in colorSet if space2 != space1])
         # Compare each space pair for consistency
         for space1, space2 in spaceMatrix:
-            col1 = Color(colorSet[space1], space1)
-            col2 = Color(colorSet[space2], space2)
+            col1 = colors.Color(colorSet[space1], space1)
+            col2 = colors.Color(colorSet[space2], space2)
             closeEnough = all(abs(col1.rgba[i]-col2.rgba[i])<0.02 for i in range(4))
+            # Check that valid color has been created
+            assert bool(col1) and bool(col2)
             # Check setters
             assert col1 == col2 or closeEnough
-def test_ColorTykes():
-    for colorSet in tykes:
+
+def test_window_colors():
+    # Iterate through color sets
+    for colorSet in exemplars + tykes:
         for space in colorSet:
-            assert bool(Color(colorSet[space], space))
+            # Set window color
+            win.colorSpace = space
+            win.color = colorSet[space]
+            win.flip()
+            utils.comparePixelColor(win, colors.Color(colorSet[space], space))
+
+def test_shape_colors():
+    # Create rectangle with chunky border
+    obj = visual.Rect(win, units="pix", pos=(0,0), size=(128, 128), lineWidth=10)
+    # Iterate through color sets
+    for colorSet in exemplars + tykes:
+        for space in colorSet:
+            # Check border color
+            obj.colorSpace = space
+            obj.borderColor = colorSet[space]
+            obj.fillColor = 'white'
+            obj.opacity = 1  # Fix opacity at full as this is not what we're testing
+            win.flip()
+            obj.draw()
+            utils.comparePixelColor(win, colors.Color(colorSet[space], space), coord=(1,1))
+            utils.comparePixelColor(win, colors.Color('white'), coord=(50, 50))
+            # Check fill color
+            obj.colorSpace = space
+            obj.fillColor = colorSet[space]
+            obj.borderColor = 'white'
+            obj.opacity = 1  # Fix opacity at full as this is not what we're testing
+            win.flip()
+            obj.draw()
+            utils.comparePixelColor(win, colors.Color('white'), coord=(1,1))
+            utils.comparePixelColor(win, colors.Color(colorSet[space], space), coord=(50, 50))
