@@ -45,10 +45,7 @@ class SoundComponent(BaseComponent):
         self.url = "http://www.psychopy.org/builder/components/sound.html"
         self.exp.requirePsychopyLibs(['sound'])
         self.targets = ['PsychoPy', 'PsychoJS']
-        self.order += [
-            "sound",  # Basic tab
-            "volume", "hammingWindow",  # Playback tab
-        ]
+        self.order = ["sound", "volume"]
         # params
         self.params['stopType'].allowedVals = ['duration (s)']
         self.params['stopType'].hint = _translate('The maximum duration of a'
