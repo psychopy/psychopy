@@ -26,7 +26,9 @@ exemplars = [
 ]
 # A few values which are likely to mess things up
 tykes = [
-    {'rgba': ( 1.00,  1.00,  1.00, 0.50), 'rgba255': (255, 255, 255, 0.50), 'hsva': (  0, 0.00, 1.00, 0.50)} # Make sure opacities work in every space
+    {'rgba': ( 1.00,  1.00,  1.00, 0.50), 'rgba255': (255, 255, 255, 0.50), 'hsva': (  0, 0.00, 1.00, 0.50)}, # Make sure opacities work in every space
+    {'rgba': "white", 'rgba255': "white", "hsva": "white", "hex": "white", "rgb255": "#ffffff"}, # Overriding colorSpace with hex or named values
+    {'rgba': None, 'named': None, 'hex': None, 'hsva': None}, # None as a value
 ]
 
 # Test window for visual objects
