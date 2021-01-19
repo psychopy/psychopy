@@ -235,11 +235,12 @@ def comparePixelColor(screen, color, coord=(0,0)):
     if isinstance(color, colors.Color):
         color = color.rgb255
     color = np.array(color)
+    pixCol = frame[coord]
     # Compare observed color to desired color
     closeEnough = True
-    for i in range(min(frame[coord].size, color.size)):
-        closeEnough = closeEnough and abs(frame[coord][i] - color[i]) <= 1 # Allow for 1/255 lenience due to rounding up/down in rgb255
-    assert all(c for c in color == frame[coord]) or closeEnough
+    for i in range(min(pixCol.size, color.size)):
+        closeEnough = closeEnough and abs(pixCol[i] - color[i]) <= 1 # Allow for 1/255 lenience due to rounding up/down in rgb255
+    assert all(c for c in color == pixCol) or closeEnough
 
 _travisTesting = bool(str(os.environ.get('TRAVIS')).lower() == 'true')  # in Travis-CI testing
 

@@ -86,3 +86,20 @@ def test_shape_colors():
             utils.comparePixelColor(win, colors.Color('white'), coord=(1,1))
             utils.comparePixelColor(win, colors.Color(colorSet[space], space), coord=(50, 50))
             # Testing foreColor is already done in test_textbox
+
+def test_element_array_colors():
+    # Create element array with two elements covering the whole window in two block colours
+    obj = visual.ElementArrayStim(win, units="pix",
+                                  fieldPos=(0, 0), fieldSize=(128, 128), fieldShape='square', nElements=2,
+                                  sizes=[[64, 128], [64, 128]], xys=[[-32, 0], [32, 0]], elementMask=None, elementTex=None)
+    # Iterate through color sets
+    for colorSet in exemplars + tykes:
+        for space in colorSet:
+            # Check that setting color arrays renders correctly
+            obj.colorSpace = space
+            obj.colors = [colorSet[space], 'black'] # Set first color to current color set, second to black
+            obj.opacity = 1  # Fix opacity at full as this is not what we're testing
+            win.flip()
+            obj.draw()
+            utils.comparePixelColor(win, colors.Color(colorSet[space], space), coord=(10, 10))
+            utils.comparePixelColor(win, colors.Color('black'), coord=(10, 100))
