@@ -19,16 +19,14 @@ import pylink
 
 
 class FixationTarget(object):
-
     def __init__(self, psychopy_eyelink_graphics):
         self.calibrationPointOuter = visual.Circle(
             psychopy_eyelink_graphics.window,
             pos=(0, 0),
             lineWidth=1.0,
             lineColor=psychopy_eyelink_graphics.CALIBRATION_POINT_OUTER_COLOR,
-            lineColorSpace='rgb255',
+            colorSpace='rgb255',
             fillColor=psychopy_eyelink_graphics.CALIBRATION_POINT_OUTER_COLOR,
-            fillColorSpace='rgb255',
             radius=psychopy_eyelink_graphics.CALIBRATION_POINT_OUTER_RADIUS,
             name='CP_OUTER',
             units='pix',
@@ -38,9 +36,8 @@ class FixationTarget(object):
             psychopy_eyelink_graphics.window,
             pos=(0, 0), lineWidth=1.0,
             lineColor=psychopy_eyelink_graphics.CALIBRATION_POINT_INNER_COLOR,
-            lineColorSpace='rgb255',
+            colorSpace='rgb255',
             fillColor=psychopy_eyelink_graphics.CALIBRATION_POINT_INNER_COLOR,
-            fillColorSpace='rgb255',
             radius=psychopy_eyelink_graphics.CALIBRATION_POINT_INNER_RADIUS,
             name='CP_INNER',
             units='pix',
@@ -65,9 +62,8 @@ class BlankScreen(object):
         self.color = color
         self.background = visual.Rect(self.win, w, h,
                                       lineColor=self.color,
-                                      lineColorSpace='rgb255',
+                                      colorSpace='rgb255',
                                       fillColor=self.color,
-                                      fillColorSpace='rgb255',
                                       units='pix',
                                       name='BACKGROUND',
                                       opacity=1.0,
