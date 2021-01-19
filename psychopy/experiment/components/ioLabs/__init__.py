@@ -64,11 +64,8 @@ class ioLabsButtonBoxComponent(KeyboardComponent):
         del self.params['allowedKeys']
 
         # NB name and timing params always come 1st
-        self.order += ['forceEndRoutine',  # Basic tab
-                       'allowedKeys', 'store', 'storeCorrect', 'correctAns'  # Data tab
-                       ]
-        #self.order = ['forceEndRoutine', 'active', 'lights', 'store',
-        #              'storeCorrect', 'correctAns']
+        self.order = ['forceEndRoutine', 'active', 'lights', 'store',
+                      'storeCorrect', 'correctAns']
 
         msg = _translate(
             "What is the 'correct' response? NB, buttons are labelled 0 to "

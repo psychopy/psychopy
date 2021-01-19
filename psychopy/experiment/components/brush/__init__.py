@@ -22,7 +22,6 @@ tooltip = _translate('Brush: a drawing tool')
 # only use _localized values for label values, nothing functional:
 _localized.update({'lineWidth': _translate('Brush Size'),
                    'lineColor': _translate('Brush Color'),
-                   'lineColorSpace': _translate('Brush Color Space'),
                    'buttonRequired':_translate('Press Button')})
 
 class BrushComponent(BaseVisualComponent):
@@ -47,10 +46,7 @@ class BrushComponent(BaseVisualComponent):
         self.url = "http://www.psychopy.org/builder/components/brush.html"
         self.exp.requirePsychopyLibs(['visual'])
         self.targets = ['PsychoPy', 'PsychoJS']
-        self.order.remove("opacity")  # Move opacity to the end
-        self.order += [
-            "lineWidth", "lineColor", "lineColorSpace", "opacity"  # Appearance tab
-        ]
+        self.order = ['lineWidth', 'opacity', 'buttonRequired']
 
         # params
         msg = _translate("Fill color of this brush")
@@ -76,7 +72,7 @@ class BrushComponent(BaseVisualComponent):
             allowedVals=['rgb', 'dkl', 'lms', 'hsv'],
             updates='constant',
             hint=msg,
-            label=_localized['lineColorSpace'])
+            label=_localized['fillColorSpace'])
 
         msg = _translate("The line opacity")
         self.params['opacity'].hint=msg

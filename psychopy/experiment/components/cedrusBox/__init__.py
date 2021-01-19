@@ -63,9 +63,6 @@ class cedrusButtonBoxComponent(KeyboardComponent):
 
         self.type = 'cedrusButtonBox'
         self.url = "http://www.psychopy.org/builder/components/cedrusButtonBox.html"
-        self.order += ['forceEndRoutine',  # Basic tab
-                       'allowedKeys', 'store', 'storeCorrect', 'correctAns'  # Data tab
-                       ]
 
         self.exp.requirePsychopyLibs(['hardware'])
 

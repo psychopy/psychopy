@@ -53,9 +53,9 @@ class MouseComponent(BaseComponent):
         self.categories = ['Inputs']
 
         self.order += [
-            'forceEndRoutineOnPress',  # Basic tab
-            'saveMouseState', 'timeRelativeTo', 'newClicksOnly', 'clickable', 'saveParamsClickable',  # Data tab
-            ]
+            'forceEndRoutineOnPress',
+            'saveMouseState', 'timeRelativeTo',
+            'newClicksOnly', 'clickable', 'saveParamsClickable']
 
         # params
         msg = _translate(

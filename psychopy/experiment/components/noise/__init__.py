@@ -27,7 +27,7 @@ _localized.update({'noiseImage': _translate('Image from which to derive noise sp
                    'texture resolution': _translate('Texture resolution'),
                    'interpolate': _translate('Interpolate'),
                    'noiseType': _translate('Type of noise'),
-                   'noiseElementSize': _translate('Noise element size'),
+                   'noiseElementSize': _translate('Noise element size for pixelated noise'),
                    'noiseFractalPower': _translate("Skew in frequency spectrum"),
                    'noiseBaseSf': _translate('Base spatial frequency'),
                    'noiseBW': _translate('Spatial frequency bandwidth'),
@@ -75,12 +75,8 @@ class NoiseStimComponent(BaseVisualComponent):
 
         self.type = 'NoiseStim'
         self.url = "http://www.psychopy.org/builder/components/NoiseStim.html"
-        self.order += [
-            'blendmode',  # Appearance tab
-            'noiseElementSize',  # Layout tab
-            'noiseNewSample', 'noiseNewSampleWhen',  # Timing tab
-            'noiseOri', 'mask']
-        self.order.insert(self.order.index("size")+1, "noiseElementSize")
+        self.order = ['noiseOri', 'mask']
+
         # params
 
         msg = _translate("An image from which to derive the frequency spectrum for the noise. Give filename (including path)")
@@ -183,7 +179,7 @@ class NoiseStimComponent(BaseVisualComponent):
             hint=msg,
             label=_localized['imageComponent'])
 
-        msg = _translate("(Binary, Normal and Uniform only) Size of noise elements in the stimulus units, for pixelated noise.")
+        msg = _translate("(Binary, Normal and Uniform only) Size of noise elements in the stimulus units.")
         self.params['noiseElementSize'] = Param(
             noiseElementSize, valType='list', inputType="single", allowedTypes=[], categ='Layout',
             updates='constant',

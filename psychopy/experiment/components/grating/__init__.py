@@ -49,9 +49,7 @@ class GratingComponent(BaseVisualComponent):
 
         self.type = 'Grating'
         self.url = "http://www.psychopy.org/builder/components/grating.html"
-        self.order += [
-            'tex', 'mask', 'phase', 'sf', 'texture resolution', 'interpolate',  # Texture tab
-        ]
+        self.order = ['tex', 'mask']
 
         # params
         msg = _translate("The (2D) texture of the grating - can be sin, sqr,"

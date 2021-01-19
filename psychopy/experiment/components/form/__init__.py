@@ -23,6 +23,8 @@ tooltip = _translate('Form: a Psychopy survey tool')
 # only use _localized values for label values, nothing functional:
 _localized.update({'Items': _translate('Items'),
                    'Text Height': _translate('Text Height'),
+                   'Size': _translate('Size'),
+                   'Pos': _translate('Pos'),
                    'Style': _translate('Styles'),
                    'Item Padding': _translate('Item Padding'),
                    'Data Format': _translate('Data Format'),
@@ -67,11 +69,12 @@ class FormComponent(BaseVisualComponent):
         self.exp.requirePsychopyLibs(['visual', 'event', 'logging'])
 
         # params
-        self.order += ['Items', 'Randomize',  # Basic tab
-                       'Data Format',  # Data tab
+        self.order = ['name',
+                      'Items',
+                      'Size', 'Pos',
+                      'Data Format',
+                      'Randomize',
                       ]
-        self.order.insert(self.order.index("colorSpace"), "Style")
-        self.order.insert(self.order.index("units"), "Item Padding")
 
         # normal params:
         # = the usual as inherited from BaseComponent plus:
@@ -81,6 +84,20 @@ class FormComponent(BaseVisualComponent):
             updates='constant',
             hint=_translate("The csv filename containing the items for your survey."),
             label=_localized['Items'])
+
+        self.params['Size'] = Param(
+            size, valType='list', inputType="single", allowedTypes=[], categ='Layout',
+            updates='constant',
+            hint=_translate(
+                "Size of the Form on screen in 'height' units. e.g. (1, .7) height units for horizontal,"
+                "and vertical, respectively"),
+            label=_localized['Size'])
+
+        self.params['Pos'] = Param(
+            pos, valType='list', inputType="single", allowedTypes=[], categ='Layout',
+            updates='constant',
+            hint=_translate("x,y position of the form on screen"),
+            label=_localized['Pos'])
 
         self.params['Text Height'] = Param(
             textHeight, valType='num', inputType="single", allowedTypes=[], categ='Formatting',
