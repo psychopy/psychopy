@@ -596,18 +596,6 @@ class BaseVisualComponent(BaseComponent):
         self.exp.requirePsychopyLibs(
             ['visual'])  # needs this psychopy lib to operate
 
-        self.order += [
-            "color",
-            "fillColor",
-            "borderColor",
-            "colorSpace",
-            "size",
-            "pos",
-            "units",
-            "anchor",
-            "ori",
-        ]
-
         msg = _translate("Units of dimensions for this stimulus")
         self.params['units'] = Param(units,
             valType='str', inputType="choice", categ='Layout',
