@@ -57,9 +57,7 @@ class PolygonComponent(BaseVisualComponent):
         self.url = "http://www.psychopy.org/builder/components/polygon.html"
         self.exp.requirePsychopyLibs(['visual'])
         self.targets = ['PsychoPy', 'PsychoJS']
-        self.order += ['shape', 'nVertices',  # Basic tab
-                      ]
-        self.order.insert(self.order.index("borderColor"), "lineColor")
+        self.order = ['shape', 'nVertices']
         self.depends = [  # allows params to turn each other off/on
             {"dependsOn": "shape",  # must be param name
              "condition": "=='regular polygon...'",  # val to check for

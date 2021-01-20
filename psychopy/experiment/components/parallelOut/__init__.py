@@ -48,10 +48,7 @@ class ParallelOutComponent(BaseComponent):
         self.exp.requirePsychopyLibs(['parallel'])
 
         # params
-        self.order += [
-            'startData', 'stopData',  # Data tab
-            'address',  # Hardware tab
-        ]
+        self.order = ['address', 'startData', 'stopData']
 
         # main parameters
         addressOptions = prefs.hardware['parallelPorts'] + [u'LabJack U3'] + [u'USB2TTL8'] 
