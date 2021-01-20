@@ -123,14 +123,14 @@ class SettingsComponent(object):
 
         # params
         self.params = {}
-        self.order = ['expName', 'Use version', 'Show info dlg', 'Enable Escape',  'Experiment info',  # Basic tab
-                      'Data filename', 'Data file delimiter', 'Save excel file', 'Save csv file', 'Save wide csv file',
-                      'Save psydat file', 'Save log file', 'logging level',  # Data tab
-                      'Audio lib', 'Audio latency priority', "Force stereo",  # Audio tab
-                      'HTML path', 'exportHTML', 'Completed URL', 'Incomplete URL', 'Resources',  # Online tab
-                      'Monitor', 'Screen', 'Full-screen window', 'Window size (pixels)', 'Units', 'color',
-                      'colorSpace'  # Screen tab
-                      ]
+        self.order = ['expName', 'Show info dlg', 'Experiment info',
+                      'Data filename',
+                      'Save excel file', 'Save csv file',
+                      'Save wide csv file', 'Save psydat file',
+                      'Save log file', 'logging level',
+                      'Monitor', 'Screen', 'Full-screen window',
+                      'Window size (pixels)',
+                      'color', 'colorSpace', 'Units', 'HTML path']
         # basic params
         self.params['expName'] = Param(
             expName, valType='str',  inputType="single", allowedTypes=[],
@@ -161,6 +161,10 @@ class SettingsComponent(object):
             hint=_translate("The version of PsychoPy to use when running "
                             "the experiment."),
             label=_localized["Use version"], categ='Basic')
+        self.params['Force stereo'] = Param(
+            enableEscape, valType='bool', inputType="bool", allowedTypes=[],
+            hint=_translate("Force audio to stereo (2-channel) output"),
+            label=_localized["Force stereo"])
 
         # screen params
         self.params['Full-screen window'] = Param(
@@ -212,10 +216,6 @@ class SettingsComponent(object):
             label=_localized["Show mouse"], categ='Screen')
 
         # sound params
-        self.params['Force stereo'] = Param(
-            enableEscape, valType='bool', inputType="bool", allowedTypes=[], categ="Audio",
-            hint=_translate("Force audio to stereo (2-channel) output"),
-            label=_localized["Force stereo"])
         self.params['Audio lib'] = Param(
             'use prefs', valType='str', inputType="choice",
             allowedVals=['use prefs', 'ptb', 'pyo', 'sounddevice', 'pygame'],
