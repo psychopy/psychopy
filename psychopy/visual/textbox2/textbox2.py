@@ -319,7 +319,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         text = text.replace('</i>', codes['ITAL_END'])
         text = text.replace('<b>', codes['BOLD_START'])
         text = text.replace('</b>', codes['BOLD_END'])
-        rgb = self._foreColor.rgba
+        rgb = self._foreColor.render('rgba1')
         font = self.glFont
 
         # the vertices are initially pix (natural for freetype)
