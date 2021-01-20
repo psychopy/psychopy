@@ -60,9 +60,9 @@ class QmixPumpComponent(BaseComponent):
 
         # Order in which the user-settable parameters will be displayed
         # in the component's properties window.
-        self.order = ['pumpIndex', 'syringeType', 'pumpAction',
-                      'flowRate', 'flowRateUnit', 'switchValveWhenDone',
-                      'syncToScreen']
+        self.order += ['syncToScreen',  # Basic tab
+                      'pumpIndex', 'syringeType', 'pumpAction', 'flowRate', 'flowRateUnit', 'switchValveWhenDone',  # Hardware tab
+                      ]
 
         self.params['pumpIndex'] = Param(
             pumpIndex, categ='Hardware',
