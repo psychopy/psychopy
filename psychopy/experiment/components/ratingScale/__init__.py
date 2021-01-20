@@ -82,7 +82,7 @@ class RatingScaleComponent(BaseComponent):
         self.exp.requirePsychopyLibs(['visual', 'event'])
 
         # params
-        self.order = ['name', 'visualAnalogScale', 'categoryChoices',
+        self.order += ['name', 'visualAnalogScale', 'categoryChoices',
                       'scaleDescription', 'low', 'high', 'labels',
                       'markerStart', 'size', 'pos', 'tickHeight']
 
