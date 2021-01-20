@@ -50,11 +50,10 @@ from ..themes import IconCache, ThemeMixin
 from ..themes._themes import PsychopyDockArt, PsychopyTabArt, ThemeSwitcher
 from psychopy import logging, constants, data
 from psychopy.tools.filetools import mergeFolder
-from psychopy.tools.stringtools import prettyname
 from .dialogs import (DlgComponentProperties, DlgExperimentProperties,
                       DlgCodeComponentProperties, DlgLoopProperties)
 from ..utils import (PsychopyToolbar, PsychopyPlateBtn, WindowFrozen,
-                     FileDropTarget, FrameSwitcher)
+                     FileDropTarget, FrameSwitcher, updateDemosMenu)
 
 from psychopy.experiment import components
 from builtins import str
@@ -486,7 +485,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         self.Bind(wx.EVT_MENU, self.openPavloviaDemos, item)
         menu.AppendSeparator()
         # add any demos that are found in the prefs['demosUnpacked'] folder
-        self.updateDemosMenu()
+        updateDemosMenu(self, self.demosMenu, self.prefs['unpackedDemosDir'], ext=".psyexp")
         menuBar.Append(self.demosMenu, _translate('&Demos'))
 
         # ---_onlineStudies---#000000#FFFFFF-------------------------------------------
@@ -1094,50 +1093,6 @@ class BuilderFrame(wx.Frame, ThemeMixin):
 
     def openPavloviaDemos(self, event=None):
         webbrowser.open("https://pavlovia.org/explore")
-
-    def updateDemosMenu(self):
-        """Update Demos menu as needed."""
-        def _makeButton(parent, menu, demo):
-            # Create menu button
-            item = menu.Append(wx.ID_ANY, prettyname(demo.name))
-            # Store in window's demos list
-            parent.demos.update({item.Id: demo})
-            # Link button to demo opening function
-            parent.Bind(wx.EVT_MENU, parent.demoLoad, item)
-
-        def _makeFolder(parent, menu, folder):
-            # Create and append menu for this folder
-            submenu = wx.Menu()
-            menu.AppendSubMenu(submenu, prettyname(folder.name))
-            # Get folder contents
-            folderContents = glob.glob(str(folder / '*'))
-            for subfolder in sorted(folderContents):
-                subfolder = Path(subfolder)
-                # Make menu/button for each subfolder according to whether it contains a psyexp
-                if subfolder.is_dir():
-                    subContents = glob.glob(str(subfolder / '*'))
-                    if any(file.endswith(".psyexp") for file in subContents):
-                        _makeButton(parent, submenu, subfolder)
-                    else:
-                        _makeFolder(parent, submenu, subfolder)
-
-        # Get unpacked demos dir
-        unpacked = Path(self.prefs['unpackedDemosDir'])
-        if not unpacked:
-            return
-        self.demos = {}
-
-        # Get root folders
-        rootGlob = glob.glob(str(unpacked / '*'))
-        for folder in rootGlob:
-            folder = Path(folder)
-            # Make menus/buttons recursively for each folder according to whether it contains a psyexp
-            if folder.is_dir():
-                folderContents = glob.glob(str(folder / '*'))
-                if any(file.endswith(".psyexp") for file in folderContents):
-                    _makeButton(self, self.demosMenu, folder)
-                else:
-                    _makeFolder(self, self.demosMenu, folder)
 
     def runFile(self, event=None):
         """Open Runner for running the psyexp file."""
