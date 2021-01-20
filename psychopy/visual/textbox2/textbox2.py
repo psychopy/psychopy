@@ -320,7 +320,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 formatted_text+='<i>%s'%(c)
             elif styles[i] == BOLD and lastFormatter != styles[i]:
                 formatted_text+='<b>%s'%(c)
-            
+
             elif styles[i] != ITALIC and lastFormatter == ITALIC:
                 formatted_text+='</i>%s'%(c)
             elif styles[i] != BOLD and lastFormatter == BOLD:
@@ -329,17 +329,17 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 formatted_text+=c
             lastFormatter = styles[i]
         return formatted_text
-    
+
     @text.setter
     def text(self, text):
         text = text.replace('<i>', codes['ITAL_START'])
         text = text.replace('</i>', codes['ITAL_END'])
         text = text.replace('<b>', codes['BOLD_START'])
-        text = text.replace('</b>', codes['BOLD_END'])      
+        text = text.replace('</b>', codes['BOLD_END'])
         visible_text = ''.join([c for c in text if c not in codes.values()])
         self._styles = [0,]*len(visible_text)
         self._text = visible_text
-        
+
         current_style=0
         ci = 0
         for c in text:
@@ -354,7 +354,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             else:
                 self._styles[ci]=current_style
                 ci+=1
-                
+
         self._layout()
 
     def addCharAtCaret(self, char):
@@ -386,14 +386,14 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             self._styles = self._styles[:ci]+self._styles[ci+1:]
             self._text = txt
             self._layout()
-        
+
     def _layout(self):
         """Layout the text, calculating the vertex locations
         """
         def getLineWidthFromPix(pixVal):
             return pixVal / self._pixelScaling + self.padding * 2
-        
-        rgb = self._foreColor.rgba
+
+        rgb = self._foreColor.render('rgba1')
         font = self.glFont
 
         # the vertices are initially pix (natural for freetype)
@@ -533,7 +533,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 self._lineBottoms.append(current[1] + font.descender)
                 self._lineTops.append(current[1] + self._lineHeight
                                       + font.descender/2)
-            
+
         # finally add length of this (unfinished) line
         self._lineWidths.append(getLineWidthFromPix(current[0]))
         self._lineLenChars.append(charsThisLine)
