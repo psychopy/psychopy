@@ -86,19 +86,24 @@ class Test_textbox(object):
             # White on black in hex
             {"color": "#ffffff", "fillColor": "#000000", "borderColor": "#000000", "space": "hex",
              "screenshot": "textbox_colors_WOB.png"},
+            {"color": "red", "fillColor": "yellow", "borderColor": "blue", "space": "rgb",
+             "screenshot": "textbox_colors_exemplar1.png"},
+            {"color": "yellow", "fillColor": "blue", "borderColor": "red", "space": "rgb",
+             "screenshot": "textbox_colors_exemplar2.png"},
+            {"color": "blue", "fillColor": "red", "borderColor": "yellow", "space": "rgb",
+             "screenshot": "textbox_colors_exemplar3.png"},
         ]
         # Some colors which are likely to cause problems if something isn't working
         tykes = [
             # Text only
             {"color": "white", "fillColor": None, "borderColor": None, "space": "rgb",
              "screenshot": "textbox_colors_tyke1.png"},
-            # The following will only work when the Color class is implemented (currently opacity is all or nothing)
             # Fill only
-            # {"color": None, "fillColor": "white", "borderColor": None, "space": "rgb",
-            #  "screenshot": "textbox_colors_tyke2.png"},
+            {"color": None, "fillColor": "white", "borderColor": None, "space": "rgb",
+             "screenshot": "textbox_colors_tyke2.png"},
             # Border only
-            # {"color": None, "fillColor": None, "borderColor": "white", "space": "rgb",
-            # "screenshot": "textbox_colors_tyke3.png"},
+            {"color": None, "fillColor": None, "borderColor": "white", "space": "rgb",
+            "screenshot": "textbox_colors_tyke3.png"},
         ]
         # Test each case and compare against screenshot
         for case in exemplars + tykes:
