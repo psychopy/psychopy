@@ -1213,7 +1213,9 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.SetAcceleratorTable(accelTable)
 
         # Setup pane and art managers
-        self.paneManager = aui.AuiManager(self.pnlMain, aui.AUI_MGR_DEFAULT | aui.AUI_MGR_RECTANGLE_HINT)
+        self.paneManager = aui.AuiManager(
+            self.pnlMain, aui.AUI_MGR_DEFAULT | aui.AUI_MGR_RECTANGLE_HINT)
+
         # Create toolbar
         self.toolbar = PsychopyToolbar(self)
         self.SetToolBar(self.toolbar)
@@ -1231,7 +1233,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.sourceAsst = aui.AuiNotebook(
             self.pnlMain,
             wx.ID_ANY,
-            size = wx.Size(350, 600),
+            size = wx.Size(450, 600),
             agwStyle=aui.AUI_NB_CLOSE_ON_ALL_TABS |
                      aui.AUI_NB_TAB_SPLIT |
                      aui.AUI_NB_TAB_MOVE)
@@ -1271,10 +1273,11 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.paneManager.AddPane(self.notebook, aui.AuiPaneInfo().
                                  Name("Editor").
                                  Caption(_translate("Editor")).
-                                 BestSize((480, 600)).
+                                 BestSize((600, 600)).
                                  Floatable(False).
                                  Movable(False).
-                                 Center().PaneBorder(False).  # 'center panes' expand
+                                 Center().
+                                 PaneBorder(True).  # 'center panes' expand
                                  CloseButton(False).
                                  MaximizeButton(True))
         self.notebook.SetFocus()
@@ -1295,7 +1298,9 @@ class CoderFrame(wx.Frame, ThemeMixin):
                 self.setCurrentDoc(filename, keepHidden=True)
 
         # Create shelf notebook
-        self.shelf = aui.AuiNotebook(self.pnlMain, wx.ID_ANY, size=wx.Size(600, 600), agwStyle=aui.AUI_NB_CLOSE_ON_ALL_TABS)
+        self.shelf = aui.AuiNotebook(
+            self.pnlMain, wx.ID_ANY, size=wx.Size(600, 600),
+            agwStyle=aui.AUI_NB_CLOSE_ON_ALL_TABS)
         #self.shelf.SetArtProvider(PsychopyTabArt())
         # Create shell
         self._useShell = None
