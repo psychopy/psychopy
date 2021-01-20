@@ -124,7 +124,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         BaseVisualStim.__init__(self, win, units=units, name=name)
         self.win = win
         self.colorSpace = colorSpace
-        self.color = color
+        ColorMixin.foreColor.fset(self, color) # Have to call the superclass directly on init as text has not been set
         self.contrast = contrast
         self.opacity = opacity
         self.onTextCallback = onTextCallback
@@ -235,6 +235,14 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             False: value,
             True: value
         }
+
+    @property
+    def foreColor(self):
+        return ColorMixin.foreColor.fget(self)
+    @foreColor.setter
+    def foreColor(self, value):
+        ColorMixin.foreColor.fset(self, value)
+        self._layout()
 
     @attributeSetter
     def font(self, fontName, italic=False, bold=False):
