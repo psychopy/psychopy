@@ -402,6 +402,7 @@ class UnitTestFrame(wx.Frame):
         item = self.menuTests.Append(
             wx.ID_PREFERENCES, _translate("&Preferences"))
         self.Bind(wx.EVT_MENU, self.app.showPrefs, item)
+
         self.SetMenuBar(menuBar)
 
         # create controls
@@ -1464,6 +1465,10 @@ class CoderFrame(wx.Frame, ThemeMixin):
         item = menu.Append(wx.ID_PREFERENCES,
                            msg % keyCodes['preferences'])
         self.Bind(wx.EVT_MENU, self.app.showPrefs, id=item.GetId())
+        item = menu.Append(
+            wx.ID_ANY, _translate("Reset preferences...")
+        )
+        self.Bind(wx.EVT_MENU, self.resetPrefs, item)
         # item = menu.Append(wx.NewId(), "Plug&ins")
         # self.Bind(wx.EVT_MENU, self.pluginManager, id=item.GetId())
         # -------------Close coder frame
@@ -1604,16 +1609,16 @@ class CoderFrame(wx.Frame, ThemeMixin):
         menuBar.Append(self.viewMenu, _translate('&View'))
 
         # Frame switcher (legacy
-        item = menu.Append(wx.ID_ANY,
-                           _translate("Go to Builder view"),
-                           _translate("Go to the Builder view"))
-        self.Bind(wx.EVT_MENU, self.app.showBuilder, id=item.GetId())
-
-        item = menu.Append(wx.ID_ANY,
-                           _translate("Open Runner view"),
-                           _translate("Open the Runner view"))
-        self.Bind(wx.EVT_MENU, self.app.showRunner, item)
-        menu.AppendSeparator()
+        # item = menu.Append(wx.ID_ANY,
+        #                    _translate("Go to Builder view"),
+        #                    _translate("Go to the Builder view"))
+        # self.Bind(wx.EVT_MENU, self.app.showBuilder, id=item.GetId())
+        #
+        # item = menu.Append(wx.ID_ANY,
+        #                    _translate("Open Runner view"),
+        #                    _translate("Open the Runner view"))
+        # self.Bind(wx.EVT_MENU, self.app.showRunner, item)
+        # menu.AppendSeparator()
         # Panel switcher
         self.panelsMenu = wx.Menu()
         menu.AppendSubMenu(self.panelsMenu,
@@ -2824,6 +2829,31 @@ class CoderFrame(wx.Frame, ThemeMixin):
     def setPavloviaUser(self, user):
         # TODO: update user icon on button to user avatar
         pass
+
+    def resetPrefs(self, event):
+        """Reset preferences to default"""
+        # Present "are you sure" dialog
+        dlg = wx.MessageDialog(
+            self,
+            _translate("Are you sure you want to reset your preferences? This "
+                       "cannot be undone."),
+            caption="Reset Preferences...", style=wx.ICON_WARNING | wx.CANCEL)
+        dlg.SetOKCancelLabels(
+            _translate("I'm sure"),
+            _translate("Wait, go back!")
+        )
+        if dlg.ShowModal() == wx.ID_OK:
+            # If okay is pressed, remove prefs file (meaning a new one will be
+            # created on next restart)
+            os.remove(prefs.paths['userPrefsFile'])
+            # Show confirmation
+            dlg = wx.MessageDialog(
+                self,
+                _translate("Done! Your preferences have been reset. Changes "
+                           "will be applied when you next open PsychoPy."))
+            dlg.ShowModal()
+        else:
+            pass
 
     def _applyAppTheme(self, target=None):
         """Overrides theme change from ThemeMixin.
