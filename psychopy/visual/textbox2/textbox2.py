@@ -128,9 +128,9 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         BaseVisualStim.__init__(self, win, units=units, name=name)
         self.win = win
         self.colorSpace = colorSpace
-        ColorMixin.foreColor.fset(self, color) # Have to call the superclass directly on init as text has not been set
         self.contrast = contrast
         self.opacity = opacity
+        ColorMixin.foreColor.fset(self, color)  # Have to call the superclass directly on init as text has not been set
         self.onTextCallback = onTextCallback
 
         if units=='norm':
