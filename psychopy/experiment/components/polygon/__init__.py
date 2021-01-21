@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
@@ -57,7 +57,9 @@ class PolygonComponent(BaseVisualComponent):
         self.url = "http://www.psychopy.org/builder/components/polygon.html"
         self.exp.requirePsychopyLibs(['visual'])
         self.targets = ['PsychoPy', 'PsychoJS']
-        self.order = ['shape', 'nVertices']
+        self.order += ['shape', 'nVertices',  # Basic tab
+                      ]
+        self.order.insert(self.order.index("borderColor"), "lineColor")
         self.depends = [  # allows params to turn each other off/on
             {"dependsOn": "shape",  # must be param name
              "condition": "=='regular polygon...'",  # val to check for
@@ -87,8 +89,8 @@ class PolygonComponent(BaseVisualComponent):
             hint=msg,
             label=_localized['shape'])
 
-        self.params['lineColorSpace'] = self.params['borderColorSpace']
         del self.params['borderColorSpace']
+        del self.params['fillColorSpace']
         self.params['lineColor'] = self.params['borderColor']
         del self.params['borderColor']
 
@@ -117,7 +119,6 @@ class PolygonComponent(BaseVisualComponent):
             "[w,h] of the ellipse that the polygon sits on!! ")
 
         del self.params['color']
-        del self.params['colorSpace']
 
     def writeInitCode(self, buff):
         # do we need units code?
@@ -163,8 +164,8 @@ class PolygonComponent(BaseVisualComponent):
                     " size=%(size)s,\n" % inits)
 
         code += ("    ori=%(ori)s, pos=%(pos)s,\n"
-                 "    lineWidth=%(lineWidth)s, lineColor=%(lineColor)s, lineColorSpace=%(lineColorSpace)s,\n"
-                 "    fillColor=%(fillColor)s, fillColorSpace=%(fillColorSpace)s,\n"
+                 "    lineWidth=%(lineWidth)s, "
+                 "    colorSpace=%(colorSpace)s,  lineColor=%(lineColor)s, fillColor=%(fillColor)s,\n"
                  "    opacity=%(opacity)s, " % inits)
 
         depth = -self.getPosInRoutine()

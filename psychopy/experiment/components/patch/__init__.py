@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
@@ -48,8 +48,6 @@ class PatchComponent(BaseVisualComponent):
         self.type = 'Patch'
         self.url = "http://www.psychopy.org/builder/components/patch.html"
         # params
-        self.params['color'].categ = "Advanced"
-        self.params['colorSpace'].categ = "Advanced"
 
         msg = _translate("The image to be displayed - 'sin','sqr'... or a "
                          "filename (including path)")

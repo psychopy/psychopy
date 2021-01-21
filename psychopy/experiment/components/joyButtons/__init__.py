@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 
@@ -58,11 +58,10 @@ class JoyButtonsComponent(BaseComponent):
         self.url = "http://www.psychopy.org/builder/components/joyButtons.html"
         self.exp.requirePsychopyLibs(['gui'])
 
-        # params
-
-        # NB name and timing params always come 1st
-        self.order = ['forceEndRoutine', 'allowedKeys', 'store',
-                      'storeCorrect', 'correctAns', 'deviceNumber']
+        self.order += ['forceEndRoutine',  # Basic tab
+                       'allowedKeys', 'store', 'storeCorrect', 'correctAns',  # Data tab
+                       'deviceNumber',  # Hardware tab
+                       ]
 
         msg = _translate(
             "A comma-separated list of button numbers, such as "

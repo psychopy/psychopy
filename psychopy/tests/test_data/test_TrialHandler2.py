@@ -34,7 +34,7 @@ class TestTrialHandler2(object):
 
     def test_underscores_in_datatype_names2(self):
         trials = data.TrialHandler2([], 1, autoLog=False)
-        for trial in trials:#need to run trials or file won't be saved
+        for trial in trials:  # need to run trials or file won't be saved
             trials.addData('with_underscore', 0)
         base_data_filename = pjoin(self.temp_dir, self.rootName)
 

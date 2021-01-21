@@ -6,7 +6,7 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
@@ -57,18 +57,18 @@ def makeGrating(res,
                                  0.0: cyclesTwoPi: old_div(cyclesTwoPi, res)]
 
     sin, cos = numpy.sin, numpy.cos
-    if gratType is "none":
+    if gratType == "none":
         res = 2
         intensity = numpy.ones((res, res), float)
-    elif gratType is "sin":
+    elif gratType == "sin":
         intensity = contr * sin(xrange * sin(ori) + yrange * cos(ori) + phase)
-    elif gratType is "ramp":
+    elif gratType == "ramp":
         intensity = contr * (xrange * cos(ori) +
                              yrange * sin(ori)) / (2 * numpy.pi)
-    elif gratType is "sqr":  # square wave (symmetric duty cycle)
+    elif gratType == "sqr":  # square wave (symmetric duty cycle)
         intensity = numpy.where(sin(xrange * sin(ori) + yrange * cos(ori) +
                                     phase + tiny) >= 0, 1, -1)
-    elif gratType is "sinXsin":
+    elif gratType == "sinXsin":
         intensity = sin(xrange) * sin(yrange)
     else:
         # might be a filename of an image

@@ -4,7 +4,7 @@
 """Classes and functions for the coder source tree."""
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
@@ -194,7 +194,12 @@ class SourceTreePanel(wx.Panel):
             lineTokens = [
                 tok.strip(stripChars) for tok in re.split(
                     ' |\(|\)', lineText) if tok]
-            defType, defName = lineTokens[:2]
+
+            # for some reason the line is valid but cannot be parsed, ignore it
+            try:
+                defType, defName = lineTokens[:2]
+            except ValueError:
+                continue
 
             lastItem = (defType, defName, df[1], df[0])
             defineList.append(lastItem)

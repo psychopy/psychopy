@@ -3,7 +3,7 @@
 
 """
 Part of the PsychoPy library
-Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 Distributed under the terms of the GNU General Public License (GPL).
 """
 
@@ -45,7 +45,10 @@ class SoundComponent(BaseComponent):
         self.url = "http://www.psychopy.org/builder/components/sound.html"
         self.exp.requirePsychopyLibs(['sound'])
         self.targets = ['PsychoPy', 'PsychoJS']
-        self.order = ["sound", "volume"]
+        self.order += [
+            "sound",  # Basic tab
+            "volume", "hammingWindow",  # Playback tab
+        ]
         # params
         self.params['stopType'].allowedVals = ['duration (s)']
         self.params['stopType'].hint = _translate('The maximum duration of a'

@@ -90,7 +90,6 @@ PsychoPy:
 * Marius Mather
 * Mark Hymers
 * Martha Robinson
-* Matthew Cutone
 * Matthew D. Cutone
 * Matthias Geier
 * Michael MacAskill

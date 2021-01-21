@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
@@ -49,7 +49,9 @@ class ImageComponent(BaseVisualComponent):
         self.url = "http://www.psychopy.org/builder/components/image.html"
         self.exp.requirePsychopyLibs(['visual'])
         # params
-        self.order += ['image', 'pos', 'size', 'ori', 'opacity']
+        self.order += ['image',  # Basic tab
+                       'mask', 'texture resolution',  # Texture tab
+                       ]
 
         msg = _translate(
             "The image to be displayed - a filename, including path")

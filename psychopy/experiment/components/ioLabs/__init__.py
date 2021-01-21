@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
@@ -64,8 +64,11 @@ class ioLabsButtonBoxComponent(KeyboardComponent):
         del self.params['allowedKeys']
 
         # NB name and timing params always come 1st
-        self.order = ['forceEndRoutine', 'active', 'lights', 'store',
-                      'storeCorrect', 'correctAns']
+        self.order += ['forceEndRoutine',  # Basic tab
+                       'allowedKeys', 'store', 'storeCorrect', 'correctAns'  # Data tab
+                       ]
+        #self.order = ['forceEndRoutine', 'active', 'lights', 'store',
+        #              'storeCorrect', 'correctAns']
 
         msg = _translate(
             "What is the 'correct' response? NB, buttons are labelled 0 to "

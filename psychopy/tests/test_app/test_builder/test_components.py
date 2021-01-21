@@ -87,6 +87,7 @@ class TestComponents(object):
                    'label',  # comment-out to compare labels when checking
                    'categ',
                    'next',
+                   'dollarSyntax',
                    ]
         for field in dir(param):
             if field.startswith("__"):

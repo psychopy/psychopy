@@ -22,14 +22,8 @@ class Test_textbox(object):
     def test_glyph_rendering(self):
         textbox = TextBox2(self.win, "", "Arial", pos=(0,0), size=(1,1), letterHeight=0.1, units='height')
         # Add all Noto Sans fonts to cover widest possible base of handles characters
-        textbox.fontMGR.addGoogleFonts(["Noto Sans",
-                                        "Noto Sans HK",
-                                        "Noto Sans JP",
-                                        "Noto Sans KR",
-                                        "Noto Sans SC",
-                                        "Noto Sans TC",
-                                        "Niramit",
-                                        "Indie Flower"])
+        for font in ["Noto Sans", "Noto Sans HK", "Noto Sans JP", "Noto Sans KR", "Noto Sans SC", "Noto Sans TC", "Niramit", "Indie Flower"]:
+            textbox.fontMGR.addGoogleFont(font)
         # Some exemplar text to test basic TextBox rendering
         exemplars = [
             # An English pangram
@@ -116,10 +110,6 @@ class Test_textbox(object):
             textbox.color = case['color']
             textbox.fillColor = case['fillColor']
             textbox.borderColor = case['borderColor']
-            # Temporary measure until the Color class is implemented, at which point pallette will update automatically
-            textbox.pallette = {"lineColor": textbox.borderColor,
-                                "lineWidth": textbox.borderWidth,
-                                "fillColor": textbox.fillColor}
             self.win.flip()
             textbox.draw()
             if case['screenshot']:

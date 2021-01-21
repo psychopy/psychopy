@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
@@ -55,6 +55,13 @@ class DotsComponent(BaseVisualComponent):
 
         self.type = 'Dots'
         self.url = "http://www.psychopy.org/builder/components/dots.html"
+        # Put dot/field size and position where regular size and position are in param order
+        self.order.insert(self.order.index("size"), "dotSize")
+        self.order.insert(self.order.index("size"), "fieldSize")
+        self.order.insert(self.order.index("pos"), "fieldPos")
+        self.order += [
+            "nDots", "dir", "speed"  # Dots tab
+        ]
 
         # params
         msg = _translate("Number of dots in the field (for circular fields"
@@ -94,7 +101,7 @@ class DotsComponent(BaseVisualComponent):
         msg = _translate("Size of the dots IN PIXELS regardless of "
                          "the set units")
         self.params['dotSize'] = Param(
-            dotSize, valType='num', inputType="spin", categ='Dots',
+            dotSize, valType='num', inputType="spin", categ='Layout',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,

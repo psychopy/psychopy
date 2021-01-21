@@ -754,28 +754,17 @@ class FontManager(object):
             raise MissingFontError(f"Font `{fontName}` could not be retrieved from the Google Font library.")
         # Get and send file url from returned CSS data
         fileURL = re.findall("(?<=src: url\().*(?=\) format)", repoResp.content.decode())[0]
+        fileFormat = re.findall("(?<=format\(\').*(?=\'\)\;)", repoResp.content.decode())[0]
         fileResp = requests.get(fileURL)
         if not fileResp.ok:
             # If font file is not available, raise error
             raise MissingFontError(f"OST file for Google font `{fontName}` could not be accessed")
         # Save retrieved font as an OST file
-        fileName = Path(prefs.paths['resources']) / f"{fontName}.ost"
+        fileName = Path(prefs.paths['resources']) / f"{fontName}.{fileFormat}"
         with open(fileName, "wb") as fileObj:
             fileObj.write(fileResp.content)
         # Add font and return
         return self.addFontFile(fileName)
-
-    def addGoogleFonts(self, fontList):
-        """Add a list of fonts directly from the Google Font repository, saving them to the user prefs folder"""
-        # Blank list to store output in
-        outList = []
-        # Call addFontFile for each font
-        for font in fontList:
-            outList.append(self.addFontFile(font))
-        # Sort fonts
-        self.fontStyles.sort()
-        # Return
-        return outList
 
     def addFontFile(self, fontPath, monospaceOnly=False):
         """Add a Font File to the FontManger font search space. The
@@ -860,9 +849,18 @@ class FontManager(object):
         then the existing FontAtlas is returned. Otherwise, a new FontAtlas is
         created , added to the cache, and returned.
         """
-        fontInfos = self.getFontsMatching(name, bold, italic)
+        fontInfos = self.getFontsMatching(name, bold, italic, fallback=False)
         if not fontInfos:
-            return False
+            # If font not found, try to retrieve it from Google
+            try:
+                self.addGoogleFont(name)
+            except (MissingFontError, ValueError):
+                pass
+            # Then try again with fallback
+            fontInfos = self.getFontsMatching(name, bold, italic, fallback=True)
+            if not fontInfos:
+                return False
+        # If font is found, make glfont
         fontInfo = fontInfos[0]
         identifier = "{}_{}".format(str(fontInfo), size)
         glFont = self._glFonts.get(identifier)

@@ -36,11 +36,7 @@ try:
 except ImportError:
     haveOpenpyxl = False
 
-try:
-    import xlrd
-    haveXlrd = True
-except ImportError:
-    haveXlrd = False
+haveXlrd = False
 
 _nonalphanumeric_re = re.compile(r'\W')  # will match all bad var name chars
 
@@ -245,9 +241,20 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
         if fileName.endswith(('.csv', '.tsv')):
             trialsArr = pd.read_csv(fileName, encoding='utf-8-sig',
                                     sep=sep, decimal=dec)
+            for col in trialsArr.columns:
+                for row, cell in enumerate(trialsArr[col]):
+                    if isinstance(cell, str):
+                        tryVal = cell.replace(",", ".")
+                        try:
+                            trialsArr[col][row] = float(tryVal)
+                        except ValueError:
+                            pass
             logging.debug(u"Read csv file with pandas: {}".format(fileName))
-        elif fileName.endswith(('.xlsx', '.xls', '.xlsm')):
-            trialsArr = pd.read_excel(fileName)
+        elif fileName.endswith(('.xlsx', '.xlsm')):
+            trialsArr = pd.read_excel(fileName, engine='openpyxl')
+            logging.debug(u"Read Excel file with pandas: {}".format(fileName))
+        elif fileName.endswith('.xls'):
+            trialsArr = pd.read_excel(fileName, engine='xlrd')
             logging.debug(u"Read Excel file with pandas: {}".format(fileName))
         # then try to convert array to trialList and fieldnames
         unnamed = trialsArr.columns.to_series().str.contains('^Unnamed: ')
@@ -361,20 +368,26 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
 
         # get parameter names from the first row header
         fieldNames = []
+        rangeCols = list(range(nCols))
         for colN in range(nCols):
             if parse_version(openpyxl.__version__) < parse_version('2.0'):
                 fieldName = ws.cell(_getExcelCellName(col=colN, row=0)).value
             else:
                 # From 2.0, cells are referenced with 1-indexing: A1 == cell(row=1, column=1)
                 fieldName = ws.cell(row=1, column=colN + 1).value
-            fieldNames.append(fieldName)
+            if fieldName:
+                # If column is named, add its name to fieldNames
+                fieldNames.append(fieldName)
+            else:
+                # Otherwise, ignore the column
+                rangeCols.remove(colN)
         _assertValidVarNames(fieldNames, fileName)
 
         # loop trialTypes
         trialList = []
         for rowN in range(1, nRows):  # skip header first row
             thisTrial = {}
-            for colN in range(nCols):
+            for colN in rangeCols:
                 if parse_version(openpyxl.__version__) < parse_version('2.0'):
                     val = ws.cell(_getExcelCellName(col=colN, row=0)).value
                 else:
@@ -385,6 +398,13 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
                         (val.startswith('[') and val.endswith(']') or
                                  val.startswith('(') and val.endswith(')'))):
                     val = eval(val)
+                # Convert from eu style decimals: replace , with . and try to make it a float
+                if isinstance(val, basestring):
+                    tryVal = val.replace(",", ".")
+                    try:
+                        val = float(tryVal)
+                    except ValueError:
+                        pass
                 fieldName = fieldNames[colN]
                 thisTrial[fieldName] = val
             trialList.append(thisTrial)

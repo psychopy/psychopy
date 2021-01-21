@@ -202,11 +202,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 units=self.units,
                 lineWidth=1, lineColor=None, fillColor=fillColor, opacity=0.1,
                 autoLog=False)
-        self.pallette = { # If no focus
-                'lineColor': borderColor,
-                'lineWidth': borderWidth,
-                'fillColor': fillColor,
-        }
         # then layout the text (setting text triggers _layout())
         self.startText = text
         self.text = text if text is not None else ""
@@ -220,6 +215,18 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
     @property
     def pallette(self):
+        self._pallette = {
+            False: {
+                'lineColor': self._borderColor,
+                'lineWidth': self.borderWidth,
+                'fillColor': self._fillColor
+            },
+            True: {
+                'lineColor': self._borderColor-0.1,
+                'lineWidth': self.borderWidth+1,
+                'fillColor': self._fillColor+0.1
+            }
+        }
         return self._pallette[self.hasFocus]
 
     @pallette.setter
@@ -312,7 +319,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         text = text.replace('</i>', codes['ITAL_END'])
         text = text.replace('<b>', codes['BOLD_START'])
         text = text.replace('</b>', codes['BOLD_END'])
-        rgb = self._getDesiredRGB(self.rgb, self.colorSpace, self.contrast)
+        rgb = self._foreColor.rgba
         font = self.glFont
 
         # the vertices are initially pix (natural for freetype)
@@ -409,8 +416,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
             vertices[i * 4:i * 4 + 4] = theseVertices
             self._texcoords[i * 4:i * 4 + 4] = texcoords
-            self._colors[i*4 : i*4+4, :3] = rgb
-            self._colors[i*4 : i*4+4, 3] = self.opacity
+            self._colors[i*4 : i*4+4, :4] = rgb
             self._lineNs[i] = lineN
             current[0] = current[0] + glyph.advance[0] + fakeBold / 2
             current[1] = current[1] + glyph.advance[1]

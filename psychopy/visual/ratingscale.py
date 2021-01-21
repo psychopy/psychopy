@@ -4,7 +4,7 @@
 """A class for getting numeric or categorical ratings, e.g., a 1-to-7 scale."""
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
@@ -130,6 +130,7 @@ class RatingScale(MinimalStim):
                  rightKeys='right',
                  respKeys=(),
                  lineColor='White',
+                 colorSpace='rgb',
                  skipKeys='tab',
                  mouseOnly=False,
                  noMouse=False,
@@ -1360,7 +1361,7 @@ class RatingScale(MinimalStim):
         if self.showAccept:
             self.acceptBox.setFillColor(self.acceptFillColor, log=False)
             self.acceptBox.setLineColor(self.acceptLineColor, log=False)
-            self.accept.setColor('#444444', log=False)  # greyed out
+            self.accept.setColor('#444444', colorSpace='hex', log=False)  # greyed out
             self.accept.setText(self.keyClick, log=False)
         if log and self.autoLog:
             logging.exp('RatingScale %s: reset()' % self.name)

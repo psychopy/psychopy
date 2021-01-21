@@ -2,12 +2,14 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
 
 from os import path
+
+from psychopy.alerts import alerttools
 from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals, _translate
 from psychopy.localization import _localized as __localized
 _localized = __localized.copy()
@@ -45,15 +47,15 @@ class TextboxComponent(BaseVisualComponent):
     def __init__(self, exp, parentName, name='textbox',
                  # effectively just a display-value
                  text=_translate('Any text\n\nincluding line breaks'),
-                 font='Arial', units='from exp settings', bold=False, italic=False,
+                 font='Open Sans', units='from exp settings', bold=False, italic=False,
                  color='white', colorSpace='rgb', opacity=1.0,
                  pos=(0, 0), size='', letterHeight=0.05, ori=0,
                  lineSpacing=1.0, padding="",  # gap between box and text
                  startType='time (s)', startVal=0.0, anchor='center',
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim='',
-                 languageStyle='LTR', fillColor=None,
-                 borderColor=None, borderWidth=2,
+                 languageStyle='LTR', fillColor="None",
+                 borderColor="None", borderWidth=2,
                  flipHoriz=False,
                  flipVert=False,
                  editable=False, autoLog=True):
@@ -72,11 +74,12 @@ class TextboxComponent(BaseVisualComponent):
                                             durationEstim=durationEstim)
         self.type = 'Textbox'
         self.url = "http://www.psychopy.org/builder/components/text.html"
-        self.order = [  # controls both tab order and params within tabs
-            "font", # Format tab
-            "color", "fillColor",  # Color tab next
-            "anchor",  # Layout tab
-                      ]
+        self.order += [  # controls order of params within tabs
+            "editable", "text",  # Basic tab
+            "borderWidth", "opacity",  # Appearance tab
+            "font", "letterHeight", "lineSpacing", "bold", "italic",  # Formatting tab
+            ]
+        self.order.insert(self.order.index("units"), "padding") # Add "padding" just before spatial units
         # params
         _allow3 = ['constant', 'set every repeat', 'set every frame']  # list
         self.params['color'].label = _translate("Text Color")
@@ -256,3 +259,7 @@ class TextboxComponent(BaseVisualComponent):
                                self.params)
         # get parent to write code too (e.g. store onset/offset times)
         super().writeRoutineEndCodeJS(buff)
+
+    def integrityCheck(self):
+        super().integrityCheck()  # run parent class checks first
+        alerttools.testFont(self) # Test whether font is available locally

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
@@ -63,6 +63,9 @@ class cedrusButtonBoxComponent(KeyboardComponent):
 
         self.type = 'cedrusButtonBox'
         self.url = "http://www.psychopy.org/builder/components/cedrusButtonBox.html"
+        self.order += ['forceEndRoutine',  # Basic tab
+                       'allowedKeys', 'store', 'storeCorrect', 'correctAns'  # Data tab
+                       ]
 
         self.exp.requirePsychopyLibs(['hardware'])
 

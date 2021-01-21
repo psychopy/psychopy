@@ -2,15 +2,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PsychoPy 2020.1.3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-11-26 17:40+0900\n"
-"PO-Revision-Date: 2020-11-26 17:45+0900\n"
+"POT-Creation-Date: 2020-12-14 22:00+0900\n"
+"PO-Revision-Date: 2020-12-14 22:01+0900\n"
 "Last-Translator: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language-Team: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 2.4.1\n"
+"X-Generator: Poedit 2.4.2\n"
 "X-Poedit-KeywordsList: _;gettext;gettext_noop;_translate\n"
 "X-Poedit-Basepath: ../../../../..\n"
 "X-Poedit-SourceCharset: UTF-8\n"
@@ -609,7 +609,7 @@ msgid "PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*"
 msgstr "PsychoPy実験ファイル (*.psyexp)|*.psyexp|すべてのファイル (*.*)|*"
 
 #: psychopy/app/builder/builder.py:596
-#: psychopy/app/builder/dialogs/__init__.py:1598
+#: psychopy/app/builder/dialogs/__init__.py:1601
 #: psychopy/app/coder/coder.py:2372
 msgid "Open file ..."
 msgstr "ファイルを開く..."
@@ -780,7 +780,7 @@ msgid "Browse..."
 msgstr "選択..."
 
 #: psychopy/app/builder/dialogs/__init__.py:418
-#: psychopy/app/builder/dialogs/__init__.py:1166
+#: psychopy/app/builder/dialogs/__init__.py:1169
 #: psychopy/app/builder/dialogs/dlgsCode.py:47
 msgid " Properties"
 msgstr " のプロパティ"
@@ -899,7 +899,7 @@ msgid "Expected duration (s)"
 msgstr "予想実行時間 (s)"
 
 #: psychopy/app/builder/dialogs/__init__.py:864
-#: psychopy/app/builder/dialogs/__init__.py:1903
+#: psychopy/app/builder/dialogs/__init__.py:1907
 #: psychopy/app/builder/dialogs/dlgsCode.py:132
 #: psychopy/app/builder/dialogs/dlgsConditions.py:516
 msgid " Help "
@@ -911,7 +911,7 @@ msgid "Go to online help about this component"
 msgstr "このコンポーネントのオンラインヘルプを開きます"
 
 #: psychopy/app/builder/dialogs/__init__.py:871
-#: psychopy/app/builder/dialogs/__init__.py:1909
+#: psychopy/app/builder/dialogs/__init__.py:1913
 #: psychopy/app/builder/dialogs/dlgsCode.py:135
 #: psychopy/app/builder/dialogs/dlgsConditions.py:521 psychopy/gui/qtgui.py:95
 #: psychopy/gui/wxgui.py:73 psychopy/monitors/MonitorCenter.py:1112
@@ -920,7 +920,7 @@ msgid " OK "
 msgstr " OK "
 
 #: psychopy/app/builder/dialogs/__init__.py:878
-#: psychopy/app/builder/dialogs/__init__.py:1911
+#: psychopy/app/builder/dialogs/__init__.py:1915
 #: psychopy/app/builder/dialogs/dlgsCode.py:138
 #: psychopy/app/builder/dialogs/dlgsConditions.py:529 psychopy/gui/qtgui.py:96
 #: psychopy/gui/wxgui.py:74 psychopy/monitors/MonitorCenter.py:1114
@@ -928,33 +928,33 @@ msgstr " OK "
 msgid " Cancel "
 msgstr " キャンセル "
 
-#: psychopy/app/builder/dialogs/__init__.py:1128
-#: psychopy/app/builder/validators.py:100
+#: psychopy/app/builder/dialogs/__init__.py:1131
+#: psychopy/app/builder/validators.py:104
 msgid "Missing name"
 msgstr "名前がありません"
 
-#: psychopy/app/builder/dialogs/__init__.py:1135
+#: psychopy/app/builder/dialogs/__init__.py:1138
 #, python-format
 msgid "That name is in use (it's a %s). Try another name."
 msgstr "その名前は使用されています(%s) 名前を変更してください."
 
-#: psychopy/app/builder/dialogs/__init__.py:1138
+#: psychopy/app/builder/dialogs/__init__.py:1141
 #: psychopy/app/builder/dialogs/dlgsConditions.py:304
 #: psychopy/app/builder/dialogs/dlgsConditions.py:579
-#: psychopy/app/builder/validators.py:110
+#: psychopy/app/builder/validators.py:118
 msgid "Name must be alpha-numeric or _, no spaces"
 msgstr "名前に使えるのは英数字と_です スペースを含んではいけません"
 
-#: psychopy/app/builder/dialogs/__init__.py:1363
-#: psychopy/app/builder/dialogs/__init__.py:1523
+#: psychopy/app/builder/dialogs/__init__.py:1366
+#: psychopy/app/builder/dialogs/__init__.py:1526
 msgid "No parameters set"
 msgstr "パラメータが定義されていません"
 
-#: psychopy/app/builder/dialogs/__init__.py:1440
+#: psychopy/app/builder/dialogs/__init__.py:1443
 msgid "No parameters set (select a file above)"
 msgstr "パラメータが定義されていません(ファイルを選んでください)"
 
-#: psychopy/app/builder/dialogs/__init__.py:1512
+#: psychopy/app/builder/dialogs/__init__.py:1515
 #, python-format
 msgid ""
 "%(nCondition)i conditions, with %(nParam)i parameters\n"
@@ -963,32 +963,32 @@ msgstr ""
 "%(nParam)iパラメータ, %(nCondition)i条件\n"
 "%(paramStr)s"
 
-#: psychopy/app/builder/dialogs/__init__.py:1521
-#: psychopy/app/builder/dialogs/__init__.py:1770
+#: psychopy/app/builder/dialogs/__init__.py:1524
+#: psychopy/app/builder/dialogs/__init__.py:1773
 msgid "No parameters set (conditionsFile not found)"
 msgstr "パラメータが定義されていません (条件ファイルが見つかりません)"
 
-#: psychopy/app/builder/dialogs/__init__.py:1619
+#: psychopy/app/builder/dialogs/__init__.py:1622
 msgid "Could not read conditions from:\n"
 msgstr "条件を読み込めません\n"
 
-#: psychopy/app/builder/dialogs/__init__.py:1640
+#: psychopy/app/builder/dialogs/__init__.py:1643
 msgid "Configuration error in conditions file"
 msgstr "条件ファイルにエラーがあります"
 
-#: psychopy/app/builder/dialogs/__init__.py:1644
+#: psychopy/app/builder/dialogs/__init__.py:1647
 msgid "Bad condition name(s) in file:\n"
 msgstr "不適切な条件名がファイルに含まれています:\n"
 
-#: psychopy/app/builder/dialogs/__init__.py:1660
+#: psychopy/app/builder/dialogs/__init__.py:1663
 msgid "Builder variable(s) ({}) in file:{}"
 msgstr "Builderの変数名({})が{}で使用されています"
 
-#: psychopy/app/builder/dialogs/__init__.py:1758
+#: psychopy/app/builder/dialogs/__init__.py:1761
 msgid "Badly formed condition name(s) in file:\n"
 msgstr "不適切な条件名がファイルに含まれています:\n"
 
-#: psychopy/app/builder/dialogs/__init__.py:1759
+#: psychopy/app/builder/dialogs/__init__.py:1762
 msgid ""
 ".\n"
 "Need to be legal as var name; edit file, try again."
@@ -996,21 +996,21 @@ msgstr ""
 ".\n"
 "条件名はPythonの変数として使用できる文字列でなければいけません."
 
-#: psychopy/app/builder/dialogs/__init__.py:1904
+#: psychopy/app/builder/dialogs/__init__.py:1908
 msgid "Get help about this component"
 msgstr "このコンポーネントのオンラインヘルプを開きます"
 
-#: psychopy/app/builder/dialogs/__init__.py:1970
-#: psychopy/app/builder/dialogs/__init__.py:2010
-#: psychopy/app/builder/dialogs/__init__.py:2070
+#: psychopy/app/builder/dialogs/__init__.py:1974
+#: psychopy/app/builder/dialogs/__init__.py:2014
+#: psychopy/app/builder/dialogs/__init__.py:2074
 msgid "Specify file ..."
 msgstr "ファイルを選択..."
 
-#: psychopy/app/builder/dialogs/__init__.py:2016
+#: psychopy/app/builder/dialogs/__init__.py:2020
 msgid "Open/create in your default table editor"
 msgstr "標準の表エディタで開きます"
 
-#: psychopy/app/builder/dialogs/__init__.py:2063
+#: psychopy/app/builder/dialogs/__init__.py:2067
 #, python-brace-format
 msgid ""
 "Once you have created and saved your table, please remember to add it to "
@@ -1358,12 +1358,17 @@ msgstr "numpyの関数"
 msgid "python keyword"
 msgstr "Pythonのキーワード"
 
-#: psychopy/app/builder/validators.py:107
+#: psychopy/app/builder/validators.py:111
 #, python-format
 msgid "That name is in use (by %s). Try another name."
 msgstr "%sで使用されている名前です. 名前を変更してください."
 
-#: psychopy/app/builder/validators.py:198
+#: psychopy/app/builder/validators.py:114
+#, python-brace-format
+msgid "That name is in use (by {used}). Try another name."
+msgstr "{used}で使用されている名前です. 名前を変更してください."
+
+#: psychopy/app/builder/validators.py:205
 #, python-brace-format
 msgid ""
 "It looks like your 'Correct answer' contains a variable - prepend variables "
@@ -1371,11 +1376,11 @@ msgid ""
 msgstr ""
 "「正答」が変数を含んでいるようです ${val}のように'$'を前につけてください"
 
-#: psychopy/app/builder/validators.py:210
+#: psychopy/app/builder/validators.py:218
 msgid "Python syntax error in field `{}`:  {}"
 msgstr "{}の`{}`にPythonの構文エラーがあります"
 
-#: psychopy/app/builder/validators.py:221
+#: psychopy/app/builder/validators.py:231
 #, python-brace-format
 msgid ""
 "Looks like your variable '{code}' in '{displayName}' should be set to update."
@@ -1383,14 +1388,14 @@ msgstr ""
 "'{displayName}'の'{code}'は更新されるように設定すべき変数を含んでいるようで"
 "す."
 
-#: psychopy/app/builder/validators.py:237
+#: psychopy/app/builder/validators.py:247
 msgid "Python var `{}` in `{}` is same as Name"
 msgstr "`{1}`の変数名`{0}`は他の名前と重複しています"
 
-#: psychopy/app/builder/validators.py:248
-#, python-format
-msgid "Variable name $%s is in use (by %s). Try another name."
-msgstr "変数名%sは%sで使用されています. 名前を変更してください."
+#: psychopy/app/builder/validators.py:264
+#, python-brace-format
+msgid "Variable name ${newName} is in use (by {used}). Try another name."
+msgstr "変数名${newName}は{used}で使用されています. 名前を変更してください."
 
 #: psychopy/app/coder/codeEditorBase.py:115 psychopy/app/coder/coder.py:144
 #: psychopy/app/utils.py:183 psychopy/app/utils.py:248
@@ -2779,8 +2784,8 @@ msgid "saved data folder"
 msgstr "データ保存フォルダ"
 
 #: psychopy/app/preferencesDlg.py:68
-msgid "Flow at top"
-msgstr "フローを上に表示"
+msgid "Builder layout"
+msgstr "Builderのレイアウト"
 
 #: psychopy/app/preferencesDlg.py:69
 msgid "always show readme"
@@ -6540,12 +6545,12 @@ msgstr ""
 "します"
 
 #: psychopy/preferences/hints.py:87
-msgid "activate the source assistant panel"
-msgstr "起動時にソースアシスタントを表示します"
+msgid "Set the source assistant panel to be visible by default"
+msgstr "ソースアシスタントをデフォルトで表示します"
 
 #: psychopy/preferences/hints.py:90
-msgid "activate the output and shell panels"
-msgstr "起動時に出力とシェルパネルを開きます"
+msgid "Set the output/shell to be visible by default"
+msgstr "出力/シェルをデフォルトで表示します"
 
 #: psychopy/preferences/hints.py:94
 msgid "Show code completion suggestion and calltips automatically when typing."
@@ -6597,10 +6602,10 @@ msgstr ""
 "ます)"
 
 #: psychopy/preferences/hints.py:126
-msgid "Panels arrangement: topFlow = Flow on top, Components on left"
-msgstr ""
-"ペインの配置を指定します: topFlowにするとFlowが上に、Componentsが左に配置され"
-"ます"
+msgid ""
+"Panels arrangement: Should Flow be on the top or bottom, and should "
+"Components be on the left or right?"
+msgstr "ペインの配置: Flowを上下、Componentsを左右のどちらに配置しますか?"
 
 #: psychopy/preferences/hints.py:129
 msgid "Display text in a floating window that describes the experiment"
@@ -6884,16 +6889,16 @@ msgstr ""
 "{}に対応するリポジトリが見つかりましたが、チェックできるユーザーでログインし"
 "ていません"
 
-#: psychopy/tools/versionchooser.py:73
+#: psychopy/tools/versionchooser.py:74
 msgid ""
 "Please request a version before importing any PsychoPy modules. (Found: {})"
 msgstr "PsychoPyのモジュールをimportする前にバージョンを指定してください ({})"
 
-#: psychopy/tools/versionchooser.py:82
+#: psychopy/tools/versionchooser.py:83
 msgid "Unknown version `{}`"
 msgstr "未知のバージョン `{}`"
 
-#: psychopy/tools/versionchooser.py:94
+#: psychopy/tools/versionchooser.py:95
 msgid ""
 "Please request a version of PsychoPy that is compatible with Python 3. You "
 "can choose from the following versions: {}. Alternatively, run a Python 2 "
@@ -6903,27 +6908,27 @@ msgstr ""
 "指定できます. 1.90以前のPsychoPyで実行する場合はPython 2を使用してくださ"
 "い. \n"
 
-#: psychopy/tools/versionchooser.py:103
+#: psychopy/tools/versionchooser.py:104
 msgid "Please install git; needed by useVersion()"
 msgstr "gitをインストールしてください (useVersion()を使用するために必要です)"
 
-#: psychopy/tools/versionchooser.py:128
+#: psychopy/tools/versionchooser.py:129
 msgid "Required minimal version `{}` not met ({})."
 msgstr "PsychoPy `{}`以上が必要です (使用中のバージョンは{})"
 
-#: psychopy/tools/versionchooser.py:164
+#: psychopy/tools/versionchooser.py:165
 msgid "'{}' is not a valid PsychoPy version."
 msgstr "'{}'は有効なPsychoPyのバージョンではありません."
 
-#: psychopy/tools/versionchooser.py:328
+#: psychopy/tools/versionchooser.py:331
 msgid "Couldn't find version {} locally. Trying github..."
 msgstr "ローカルに{}がありません githubに接続しています..."
 
-#: psychopy/tools/versionchooser.py:335
+#: psychopy/tools/versionchooser.py:338
 msgid "{} is not currently available."
 msgstr "{}は現在利用できません."
 
-#: psychopy/tools/versionchooser.py:354
+#: psychopy/tools/versionchooser.py:357
 msgid "Downloading the PsychoPy Library from Github (may take a while)"
 msgstr ""
 "PsychoPyライブラリをGithubからダウンロードしています (時間がかかります)"
@@ -7472,6 +7477,12 @@ msgstr "ベンチマークテストの全結果を確認するにはOKをクリ�
 #: psychopy/tools/wizard.py:720
 msgid "Click Cancel to stay in PsychoPy."
 msgstr "PsychoPyに戻るにはキャンセルをクリックします."
+
+#~ msgid "Flow at top"
+#~ msgstr "フローを上に表示"
+
+#~ msgid "activate the output and shell panels"
+#~ msgstr "起動時に出力とシェルパネルを開きます"
 
 #~ msgid ""
 #~ "Size of the Form on screen in 'height' units. e.g. (1, .7) height units "

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
@@ -50,7 +50,9 @@ class MovieComponent(BaseVisualComponent):
         self.type = 'Movie'
         self.url = "http://www.psychopy.org/builder/components/movie.html"
         # comes immediately after name and timing params
-        self.order = ['movie', 'backend', 'No audio', 'loop', 'forceEndRoutine']
+        self.order += ['movie', 'forceEndRoutine', # Basic tab
+                       'loop', 'No audio', 'backend',
+                       ]
         self.targets = ['PsychoPy', 'PsychoJS']
 
         # params

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Provides functions for logging error and other messages to one or more
@@ -125,6 +125,10 @@ class _LogEntry(object):
 
     def __init__(self, level, message, t=None, obj=None):
         super(_LogEntry, self).__init__()
+        try:
+            "%0.4f" % (t)
+        except (ValueError, TypeError):
+            raise ValueError("Value \"%s\" of log message \"%s\" could not be coerced to string from numeric" % (t, message))
         self.t = t
         self.t_ms = t * 1000
         self.level = level

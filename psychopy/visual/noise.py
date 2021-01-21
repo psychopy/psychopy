@@ -6,7 +6,7 @@ second order envelope carrier and envelope can vary independently for
 orientation, frequencyand phase. Also does beat stimuli. """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # some code provided by Andrew Schofield
 # Distributed under the terms of the GNU General Public License (GPL).
 
@@ -470,11 +470,7 @@ class NoiseStim(GratingStim):
         GL.glPushMatrix()  # push before the list, pop after
         win.setScale('pix')
         #the list just does the texture mapping
-
-        desiredRGB = self._getDesiredRGB(self.rgb, self.colorSpace,
-                                         self.contrast)
-        GL.glColor4f(desiredRGB[0], desiredRGB[1], desiredRGB[2],
-                     self.opacity)
+        GL.glColor4f(*self._foreColor.render('rgba1'))
 
         # re-build the noise if not done so since last parameter update
         if self._needBuild:

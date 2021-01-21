@@ -149,6 +149,7 @@ while not 'q' in events and flip_time - demo_timeout_start < 15.0:
     for kbe in events:
         key_text_stim.text = kbe.key
         char_stim.text = kbe.char
+        modifiers_stim.text = str(kbe.modifiers)
 
         psychopy_keys = event.getKeys()
         if psychopy_keys:
@@ -156,7 +157,6 @@ while not 'q' in events and flip_time - demo_timeout_start < 15.0:
         elif kbe.type == "KEYBOARD_PRESS":
             psychopy_key_stim.text = ''
 
-        modifiers_stim.text = str(kbe.modifiers)
         all_pressed_stim.text = str(list(keyboard.state.keys()))
 
         if kbe.type == "KEYBOARD_PRESS":

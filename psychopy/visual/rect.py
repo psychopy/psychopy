@@ -5,7 +5,7 @@
 :class:`~psychopy.visual.ShapeStim`"""
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
@@ -38,10 +38,11 @@ class Rect(BaseShapeStim):
                  autoLog=None,
                  units='',
                  lineWidth=1.5,
+                 colorSpace='named',
                  lineColor='white',
-                 lineColorSpace='rgb',
+                 lineColorSpace=None,
                  fillColor=None,
-                 fillColorSpace='rgb',
+                 fillColorSpace=None,
                  pos=(0, 0),
                  size=None,
                  ori=0.0,
@@ -90,6 +91,7 @@ class Rect(BaseShapeStim):
             win,
             units=units,
             lineWidth=lineWidth,
+            colorSpace=colorSpace,
             lineColor=lineColor,
             lineColorSpace=lineColorSpace,
             fillColor=fillColor,

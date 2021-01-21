@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
@@ -22,6 +22,7 @@ tooltip = _translate('Brush: a drawing tool')
 # only use _localized values for label values, nothing functional:
 _localized.update({'lineWidth': _translate('Brush Size'),
                    'lineColor': _translate('Brush Color'),
+                   'lineColorSpace': _translate('Brush Color Space'),
                    'buttonRequired':_translate('Press Button')})
 
 class BrushComponent(BaseVisualComponent):
@@ -46,7 +47,10 @@ class BrushComponent(BaseVisualComponent):
         self.url = "http://www.psychopy.org/builder/components/brush.html"
         self.exp.requirePsychopyLibs(['visual'])
         self.targets = ['PsychoPy', 'PsychoJS']
-        self.order = ['lineWidth', 'opacity', 'buttonRequired']
+        self.order.remove("opacity")  # Move opacity to the end
+        self.order += [
+            "lineWidth", "lineColor", "lineColorSpace", "opacity"  # Appearance tab
+        ]
 
         # params
         msg = _translate("Fill color of this brush")
@@ -72,7 +76,7 @@ class BrushComponent(BaseVisualComponent):
             allowedVals=['rgb', 'dkl', 'lms', 'hsv'],
             updates='constant',
             hint=msg,
-            label=_localized['fillColorSpace'])
+            label=_localized['lineColorSpace'])
 
         msg = _translate("The line opacity")
         self.params['opacity'].hint=msg

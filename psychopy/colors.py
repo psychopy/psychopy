@@ -29,7 +29,7 @@ colorExamples = {
 }
 # Dict of named colours
 colorNames = {
-        "none": (0, 0, 0),
+        "none": (1, 1, 1),
         "aliceblue": (0.882352941176471, 0.945098039215686, 1),
         "antiquewhite": (0.96078431372549, 0.843137254901961, 0.686274509803922),
         "aqua": (-1, 1, 1),
@@ -212,28 +212,34 @@ class Color(object):
     def set(self, color=None, space=None):
         """Set the colour of this object - essentially the same as what happens on creation, but without
         having to initialise a new object"""
+        # If supplied a named color, ignore color space
+        if 'named' in self.getSpace(color, True):
+            space = 'named'
+        # If supplied a hex color, ignore color space
+        if 'hex' in self.getSpace(color, True):
+            space = 'hex'
+        # Tuple-ise numpy arrays
         if isinstance(color, numpy.ndarray):
             color = tuple(float(c) for c in color)
-        if space in ['rgb255', 'rgba255']:
-            color = tuple(int(c) for c in color[:3])+color[3:]
+        # Duplicate single values
         if isinstance(color, (int, float)):
             color = (color, color, color)
+        # Round rgb255 values
+        if space in ['rgb255', 'rgba255']:
+            color = tuple(int(c) for c in color[:3]) + (color[3:] or ())
         # If input is a Color object, duplicate all settings
         if isinstance(color, Color):
             self._requested = color._requested
             self._requestedSpace = color._requestedSpace
             self.rgba = color.rgba
             return
-        # if supplied a named color, ignore color space
-        if 'named' in self.getSpace(color, True):
-            space = 'named'
         # Store requested colour and space (or defaults, if none given)
-        self._requested = color if color is not None else None
-        self._requestedSpace = space \
-            if space and space in self.getSpace(self._requested, debug=True) \
-            else self.getSpace(self._requested)
-        if isinstance(self._requestedSpace, (list, type(None))):
-            logging.error("Color space could not be determined by values supplied, please specify a color space.")
+        self._requested = color or None
+        self._requestedSpace = space or None
+        if space in self.getSpace(self._requested, debug=True):
+            self._requestedSpace = space
+        if not self._requestedSpace:
+            logging.error("Please specify a color space.")
             return
 
         # Convert to lingua franca
@@ -267,7 +273,7 @@ class Color(object):
 
     def __bool__(self):
         """Determines truth value of object"""
-        return bool(self.rgba)
+        return bool(self._requestedSpace)
 
     # ---rich comparisons---
     def __eq__(self, target):
@@ -333,6 +339,8 @@ class Color(object):
                 rgb[c] = self.rgb1[c]*selfWeight + other.rgb1[c]*otherWeight
             return Color(rgb+[alpha], 'rgba1')
 
+    def __sub__(self, other):
+        return self + -other
 
     def copy(self):
         """Return a duplicate of this colour"""
@@ -452,6 +460,8 @@ class Color(object):
     def rgb(self):
         if hasattr(self, '_franca'):
             return self._franca
+        else:
+            return (None)
     @rgb.setter
     def rgb(self, color):
         # Validate
@@ -459,7 +469,7 @@ class Color(object):
         if not color:
             return
         # Set color
-        self._franca = color[:3]
+        self._franca = tuple(color[:3])
         # Append alpha, if not present
         if color[3:]:
             self.alpha = color[3]
@@ -487,7 +497,7 @@ class Color(object):
         if not color:
             return
         # Iterate through values and do conversion
-        self.rgb = tuple(2 * (val / 255 - 0.5) for val in color[:3])+color[3:]
+        self.rgb = tuple(2 * (val / 255 - 0.5) for val in color[:3])+(color[3:] or ())
         # Clear outdated values from cache
         self._cache = {}
 
@@ -512,7 +522,7 @@ class Color(object):
         if not color:
             return
         # Iterate through values and do conversion
-        self.rgb = tuple(2 * (val - 0.5) for val in color[:3])+color[3:]
+        self.rgb = tuple(2 * (val - 0.5) for val in color[:3])+(color[3:] or ())
         # Clear outdated values from cache
         self._cache = {}
 
@@ -544,20 +554,9 @@ class Color(object):
             return
         # Convert strings to list
         colorList = [color[i - 2:i] for i in [3, 5, 7] if color[i - 2:i]]
-        # Map hex letters to corresponding values in rgb255
-        hexmap = {'a':10, 'b':11, 'c':12, 'd':13, 'e':14, 'f':15}
-        # Create adjustment for different digits
-        adj = {0:16, 1:1}
-        flatList = []
-        for val in colorList:
-            # Iterate through individual values
-            flat = 0
-            for i, v in enumerate(val):
-                if re.match(r'\d', str(v)):
-                    flat += int(v)*adj[i]
-                elif re.match(r'[abcdef]', str(v).lower()):
-                    flat += hexmap[str(v).lower()]*adj[i]
-            flatList.append(flat)
+        # Convert from base 16 to base 10
+        flatList = [int(c, 16) for c in colorList]
+        # Set rgb255 accordingly
         self.rgb255 = flatList
         # Clear outdated values from cache
         self._cache = {}
@@ -576,6 +575,9 @@ class Color(object):
                 self._cache['named'] = possible[0]
             else:
                 self._cache['named'] = None
+            # If opacity is 0, assume named value is 'none' regarless of RGB values
+            if self.alpha == 0:
+                self._cache['named'] = 'none'
         return self._cache['named']
     @named.setter
     def named(self, color):
@@ -684,7 +686,7 @@ class AdvancedColor(Color):
         basic = Color.getSpace(color, debug=True)
         possible += basic
         # Return full list if debug or multiple, else return first value
-        if debug or len(possible) > 1 or len(possible) == 0:
+        if debug or not len(possible) == 1:
             return possible
         else:
             return possible[0]
