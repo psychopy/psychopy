@@ -130,7 +130,7 @@ def act_on_choices(desired_experiment_type, desired_model, expInfo):
     if desired_experiment_type == 'delayed (Bayesian Adaptive Design)':
         from darc_toolbox.designs import BayesianAdaptiveDesignGeneratorDARC, DesignSpaceBuilder
         # regular, or magnitude effect
-        if (desired_model is 'HyperbolicMagnitudeEffect') or (desired_model is 'ExponentialMagnitudeEffect'):
+        if (desired_model == 'HyperbolicMagnitudeEffect') or (desired_model == 'ExponentialMagnitudeEffect'):
             D = DesignSpaceBuilder.delay_magnitude_effect().build()
             design_thing = BayesianAdaptiveDesignGeneratorDARC(D,
                 max_trials=expInfo['trials'])
@@ -193,34 +193,34 @@ def act_on_choices(desired_experiment_type, desired_model, expInfo):
 
 
     # chose the desired model here ============================================
-    if desired_model is 'Hyperbolic':
+    if desired_model == 'Hyperbolic':
         model = models.Hyperbolic(n_particles=expInfo['particles'])
 
-    elif desired_model is 'Exponential':
+    elif desired_model == 'Exponential':
         model = models.Exponential(n_particles=expInfo['particles'])
 
-    elif desired_model is 'MyersonHyperboloid':
+    elif desired_model == 'MyersonHyperboloid':
         model = models.MyersonHyperboloid(n_particles=expInfo['particles'])
 
-    elif desired_model is 'ModifiedRachlin':
+    elif desired_model == 'ModifiedRachlin':
         model = models.ModifiedRachlin(n_particles=expInfo['particles'])
 
-    elif desired_model is 'HyperbolicMagnitudeEffect':
+    elif desired_model == 'HyperbolicMagnitudeEffect':
         model = models.HyperbolicMagnitudeEffect(n_particles=expInfo['particles'])
 
-    elif desired_model is 'ExponentialMagnitudeEffect':
+    elif desired_model == 'ExponentialMagnitudeEffect':
         model = models.ExponentialMagnitudeEffect(
             n_particles=expInfo['particles'])
 
-    elif desired_model is 'HyperbolicNonLinearUtility':
+    elif desired_model == 'HyperbolicNonLinearUtility':
         model = models.HyperbolicNonLinearUtility(
             n_particles=expInfo['particles'])
 
-    elif desired_model is 'MultiplicativeHyperbolic':
+    elif desired_model == 'MultiplicativeHyperbolic':
         model = models.MultiplicativeHyperbolic(
             n_particles=expInfo['particles'])
 
-    elif desired_model is 'LinearInLogOdds':
+    elif desired_model == 'LinearInLogOdds':
         model = models.LinearInLogOdds(n_particles=expInfo['particles'])
 
     else:

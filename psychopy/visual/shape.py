@@ -17,6 +17,9 @@ from past.builtins import basestring
 # up by the pyglet GL engine and have no effect.
 # Shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
 import pyglet
+
+from psychopy.colors import Color
+
 pyglet.options['debug_gl'] = False
 GL = pyglet.gl
 
@@ -78,10 +81,10 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
                  win,
                  units='',
                  lineWidth=1.5,
-                 lineColor=(1.0, 1.0, 1.0),
-                 lineColorSpace='rgb',
+                 lineColor=None,
+                 lineColorSpace=None,
                  fillColor=None,
-                 fillColorSpace='rgb',
+                 fillColorSpace=None,
                  vertices=((-0.5, 0), (0, +0.5), (+0.5, 0)),
                  closeShape=True,
                  pos=(0, 0),
@@ -97,7 +100,7 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
                  autoLog=None,
                  autoDraw=False,
                  color=None,
-                 colorSpace=None):
+                 colorSpace='rgb'):
         """ """  # all doc is in the attributes
         # what local vars are defined (these are the init params) for use by
         # __repr__
@@ -109,47 +112,31 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         super(BaseShapeStim, self).__init__(win, units=units,
                                             name=name, autoLog=False)
 
-        self.contrast = float(contrast)
-        self.opacity = float(opacity)
+        self.opacity = opacity
         self.pos = numpy.array(pos, float)
         self.closeShape = closeShape
         self.lineWidth = lineWidth
         self.interpolate = interpolate
 
-        # Color stuff
-        self.useShaders = False  # don't need to combine textures with colors
-        # set color first but then potentially override
-        self.__dict__['colorSpace'] = colorSpace
-        self.__dict__['lineColorSpace'] = lineColorSpace
-        self.__dict__['fillColorSpace'] = fillColorSpace
-
+        # Appearance
+        self.colorSpace = colorSpace
+        self.fillColor = fillColor
+        self.lineColor = lineColor
+        if color and not self.fillColor and not self.lineColor:
+            # if the fillColor and lineColor are not set but color is, the user probably wants color applied to both
+            self.fillColor = color
+            self.lineColor = color
         if lineRGB is not None:
+            # Override with RGB if set
             logging.warning("Use of rgb arguments to stimuli are deprecated."
                             " Please use color and colorSpace args instead")
             self.setLineColor(lineRGB, colorSpace='rgb', log=None)
-        elif color is not None and lineColor is None:
-            pass  # user has set color but not lineColor. Don't override that
-        else:
-            self.setLineColor(lineColor, colorSpace=lineColorSpace, log=None)
-
         if fillRGB is not None:
+            # Override with RGB if set
             logging.warning("Use of rgb arguments to stimuli are deprecated."
                             " Please use color and colorSpace args instead")
             self.setFillColor(fillRGB, colorSpace='rgb', log=None)
-        elif color is not None and fillColor is None:
-            pass  # user has set color but not fillColor. Don't override that
-        else:
-            self.setFillColor(fillColor, colorSpace=fillColorSpace, log=None)
-
-        # if the fillColor and lineColor are not set but color is
-        # then the user probably wants color applied to both
-        if (lineColor is (1.0, 1.0, 1.0)  # check if exactly as the default arg
-                and fillColor is None
-                and color is not None):
-            self.color = color
-        else:
-            self.fillColor = fillColor
-            self.lineColor = lineColor
+        self.contrast = contrast
 
         # Other stuff
         self.depth = depth
@@ -202,40 +189,54 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self.fillColor = color
         self.lineColor = color
 
-    @attributeSetter
-    def fillColor(self, color):
-        """Sets the color of the shape fill.
+    #---legacy functions---
 
-        See :meth:`psychopy.visual.GratingStim.color` for further details
-        of how to use colors.
-
-        Note that shapes where some vertices point inwards will usually not
-        'fill' correctly.
+    @property
+    def fillColorSpace(self):
         """
-        setColor(self, color, rgbAttrib='fillRGB', colorAttrib='fillColor')
-
-    @attributeSetter
-    def lineColor(self, color):
-        """Sets the color of the shape lines.
-
-        See :meth:`psychopy.visual.GratingStim.color` for further details
-        of how to use colors.
+        Deprecated, please use colorSpace to set color space for the entire object
         """
-        setColor(self, color, rgbAttrib='lineRGB', colorAttrib='lineColor')
-
-    @attributeSetter
+        return self.colorSpace
+    @fillColorSpace.setter
     def fillColorSpace(self, value):
-        """
-        Sets color space for fill color. See documentation for fillColorSpace
-        """
-        self.__dict__['fillColorSpace'] = value
+        logging.warning("Setting color space by attribute rather than by object is deprecated. Value of fillColorSpace has been assigned to colorSpace.")
+        self.colorSpace = value
 
-    @attributeSetter
+    @property
+    def lineColorSpace(self):
+        """
+        Deprecated, please use colorSpace to set color space for the entire object
+        """
+        return self.colorSpace
+    @fillColorSpace.setter
     def lineColorSpace(self, value):
+        logging.warning(
+            "Setting color space by attribute rather than by object is deprecated. Value of lineColorSpace has been assigned to colorSpace.")
+        self.colorSpace = value
+
+    def setLineRGB(self, value, operation=''):
+        """DEPRECATED since v1.60.05: Please use :meth:`~ShapeStim.lineColor`
         """
-        Sets color space for line color. See documentation for lineColorSpace
+        if operation in ['', '=']:
+            self.lineColor = Color(value, 'rgb255')
+        elif operation in ['+']:
+            self._lineColor += Color(value, 'rgb255')
+        elif operation in ['-']:
+            self._lineColor -= Color(value, 'rgb255')
+        else:
+            logging.error(f"Operation '{operation}' not recognised.")
+
+    def setFillRGB(self, value, operation=''):
+        """DEPRECATED since v1.60.05: Please use :meth:`~ShapeStim.fillColor`
         """
-        self.__dict__['lineColorSpace'] = value
+        if operation in ['', '=']:
+            self.fillColor = Color(value, 'rgb255')
+        elif operation in ['+']:
+            self._fillColor += Color(value, 'rgb255')
+        elif operation in ['-']:
+            self._fillColor -= Color(value, 'rgb255')
+        else:
+            logging.error(f"Operation '{operation}' not recognised.")
 
     def setColor(self, color, colorSpace=None, operation='', log=None):
         """Sets both the line and fill to be the same color
@@ -243,26 +244,21 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self.setLineColor(color, colorSpace, operation, log)
         self.setFillColor(color, colorSpace, operation, log)
 
-    def setLineRGB(self, value, operation=''):
-        """DEPRECATED since v1.60.05: Please use :meth:`~ShapeStim.lineColor`
-        """
-        self._set('lineRGB', value, operation)
-
-    def setFillRGB(self, value, operation=''):
-        """DEPRECATED since v1.60.05: Please use :meth:`~ShapeStim.fillColor`
-        """
-        self._set('fillRGB', value, operation)
-
     def setLineColor(self, color, colorSpace=None, operation='', log=None):
         """Sets the color of the shape edge.
 
         See :meth:`psychopy.visual.GratingStim.color` for further details.
         """
-        setColor(self, color, colorSpace=colorSpace, operation=operation,
-                 rgbAttrib='lineRGB',  # the name for this rgb value
-                 colorAttrib='lineColor')  # the name for this color
-        logAttrib(self, log, 'lineColor', value='%s (%s)' %
-                  (self.lineColor, self.lineColorSpace))
+        if colorSpace is not None:
+            self.colorSpace = colorSpace
+        if operation in ['', '=']:
+            self.lineColor = color
+        elif operation in ['+']:
+            self.lineColor += color
+        elif operation in ['-']:
+            self.lineColor -= color
+        else:
+            logging.error(f"Operation '{operation}' not recognised.")
 
     def setFillColor(self, color, colorSpace=None, operation='', log=None):
         """Sets the color of the shape fill.
@@ -273,11 +269,16 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         'fill' correctly.
         """
         # run the original setColor, which creates color and
-        setColor(self, color, colorSpace=colorSpace, operation=operation,
-                 rgbAttrib='fillRGB',  # the name for this rgb value
-                 colorAttrib='fillColor')  # the name for this color
-        logAttrib(self, log, 'fillColor', value='%s (%s)' %
-                  (self.fillColor, self.fillColorSpace))
+        if colorSpace is not None:
+            self.colorSpace = colorSpace
+        if operation in ['', '=']:
+            self.fillColor = color
+        elif operation in ['+']:
+            self.fillColor += color
+        elif operation in ['-']:
+            self.fillColor -= color
+        else:
+            logging.error(f"Operation '{operation}' not recognised.")
 
     @attributeSetter
     def size(self, value):
@@ -363,19 +364,14 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
         if nVerts > 2:  # draw a filled polygon first
-            if self.fillRGB is not None:
-                # convert according to colorSpace
-                fillRGB = self._getDesiredRGB(
-                    self.fillRGB, self.fillColorSpace, self.contrast)
+            if self._fillColor != None:
                 # then draw
-                GL.glColor4f(fillRGB[0], fillRGB[1], fillRGB[2], self.opacity)
+                GL.glColor4f(*self._fillColor.render('rgba1'))
                 GL.glDrawArrays(GL.GL_POLYGON, 0, nVerts)
-        if self.lineRGB is not None and self.lineWidth != 0.0:
-            lineRGB = self._getDesiredRGB(
-                self.lineRGB, self.lineColorSpace, self.contrast)
+        if self._borderColor != None and self.lineWidth != 0.0:
             # then draw
             GL.glLineWidth(self.lineWidth)
-            GL.glColor4f(lineRGB[0], lineRGB[1], lineRGB[2], self.opacity)
+            GL.glColor4f(*self._borderColor.render('rgba1'))
             if self.closeShape:
                 GL.glDrawArrays(GL.GL_LINE_LOOP, 0, nVerts)
             else:
@@ -425,9 +421,10 @@ class ShapeStim(BaseShapeStim):
                  units='',
                  lineWidth=1.5,
                  lineColor='white',
-                 lineColorSpace='rgb',
+                 lineColorSpace=None,
+                 colorSpace='rgb',
                  fillColor=None,
-                 fillColorSpace='rgb',
+                 fillColorSpace=None,
                  vertices=((-0.5, 0), (0, +0.5), (+0.5, 0)),
                  windingRule=None,  # default GL.GLU_TESS_WINDING_ODD
                  closeShape=True,  # False for a line
@@ -450,6 +447,7 @@ class ShapeStim(BaseShapeStim):
         super(ShapeStim, self).__init__(win,
                                         units=units,
                                         lineWidth=lineWidth,
+                                        colorSpace=colorSpace,
                                         lineColor=lineColor,
                                         lineColorSpace=lineColorSpace,
                                         fillColor=fillColor,
@@ -470,6 +468,10 @@ class ShapeStim(BaseShapeStim):
         self.closeShape = closeShape
         self.windingRule = windingRule
         self.vertices = vertices
+        # Appearance
+        self.colorSpace = colorSpace
+        self.fillColor = fillColor
+        self.borderColor = lineColor
 
         # remove deprecated params (from ShapeStim.__init__):
         self._initParams = self._initParamsOrig
@@ -588,20 +590,16 @@ class ShapeStim(BaseShapeStim):
         # fill interior triangles if there are any
         if (self.closeShape and
                 self.verticesPix.shape[0] > 2 and
-                self.fillRGB is not None):
+                self._fillColor != None):
             GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self.verticesPix.ctypes)
-            fillRGB = self._getDesiredRGB(self.fillRGB, self.fillColorSpace,
-                                          self.contrast)
-            GL.glColor4f(fillRGB[0], fillRGB[1], fillRGB[2], self.opacity)
+            GL.glColor4f(*self._fillColor.render('rgba1'))
             GL.glDrawArrays(GL.GL_TRIANGLES, 0, self.verticesPix.shape[0])
 
         # draw the border (= a line connecting the non-tesselated vertices)
-        if self.lineRGB is not None and self.lineWidth:
+        if self._borderColor != None and self.lineWidth:
             GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self._borderPix.ctypes)
-            lineRGB = self._getDesiredRGB(self.lineRGB, self.lineColorSpace,
-                                          self.contrast)
             GL.glLineWidth(self.lineWidth)
-            GL.glColor4f(lineRGB[0], lineRGB[1], lineRGB[2], self.opacity)
+            GL.glColor4f(*self._borderColor.render('rgba1'))
             if self.closeShape:
                 gl_line = GL.GL_LINE_LOOP
             else:

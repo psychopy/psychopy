@@ -50,7 +50,9 @@ class MovieComponent(BaseVisualComponent):
         self.type = 'Movie'
         self.url = "http://www.psychopy.org/builder/components/movie.html"
         # comes immediately after name and timing params
-        self.order = ['movie', 'backend', 'No audio', 'loop', 'forceEndRoutine']
+        self.order += ['movie', 'forceEndRoutine', # Basic tab
+                       'loop', 'No audio', 'backend',
+                       ]
         self.targets = ['PsychoPy', 'PsychoJS']
 
         # params

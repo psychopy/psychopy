@@ -16,6 +16,9 @@ from __future__ import absolute_import, division, print_function
 # up by the pyglet GL engine and have no effect.
 # Shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
 import pyglet
+
+from psychopy.colors import Color, AdvancedColor
+
 pyglet.options['debug_gl'] = False
 import ctypes
 GL = pyglet.gl
@@ -126,21 +129,20 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         self.rgbPedestal = val2array(rgbPedestal, False, length=3)
         # No need to invoke decorator for color updating. It is done just
         # below.
-        self.__dict__['colorSpace'] = colorSpace
+        self.colorSpace = colorSpace
+        self.color = color
         if rgb != None:
             logging.warning("Use of rgb arguments to stimuli are deprecated."
                             " Please use color and colorSpace args instead")
-            self.setColor(rgb, colorSpace='rgb', log=False)
+            self.color = Color(rgb, 'rgb')
         elif dkl != None:
             logging.warning("Use of dkl arguments to stimuli are deprecated."
                             " Please use color and colorSpace args instead")
-            self.setColor(dkl, colorSpace='dkl', log=False)
+            self.color = AdvancedColor(dkl, 'dkl')
         elif lms != None:
             logging.warning("Use of lms arguments to stimuli are deprecated."
                             " Please use color and colorSpace args instead")
-            self.setColor(lms, colorSpace='lms', log=False)
-        else:
-            self.setColor(color, colorSpace=colorSpace, log=False)
+            self.color = AdvancedColor(lms, 'lms')
 
         # set other parameters
         self.ori = float(ori)
@@ -230,6 +232,43 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         self.__dict__['phase'] = value
         self._needUpdate = True
 
+    # overload ColorMixin methods so tht they refresh the image after being called
+    @property
+    def foreColor(self):
+        # Call setter of parent mixin
+        return ColorMixin.foreColor.fget(self)
+    @foreColor.setter
+    def foreColor(self, value):
+        # Call setter of parent mixin
+        ColorMixin.foreColor.fset(self, value)
+        # Reset texture
+        self._needTextureUpdate = True
+        self._needUpdate = True
+
+    @property
+    def contrast(self):
+        # Call setter of parent mixin
+        return ColorMixin.contrast.fget(self)
+    @contrast.setter
+    def contrast(self, value):
+        # Call setter of parent mixin
+        ColorMixin.contrast.fset(self, value)
+        # Reset texture
+        self._needTextureUpdate = True
+        self._needUpdate = True
+
+    @property
+    def opacity(self):
+        # Call setter of parent mixin
+        return BaseVisualStim.opacity.fget(self)
+    @opacity.setter
+    def opacity(self, value):
+        # Call setter of parent mixin
+        BaseVisualStim.opacity.fset(self, value)
+        # Reset texture
+        self._needTextureUpdate = True
+        self._needUpdate = True
+
     @attributeSetter
     def tex(self, value):
         """Texture to used on the stimulus as a grating (aka carrier)
@@ -303,11 +342,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         GL.glPushMatrix()  # push before the list, pop after
         win.setScale('pix')
         # the list just does the texture mapping
-
-        desiredRGB = self._getDesiredRGB(self.rgb, self.colorSpace,
-                                         self.contrast)
-        GL.glColor4f(desiredRGB[0], desiredRGB[1], desiredRGB[2],
-                     self.opacity)
+        GL.glColor4f(*self._foreColor.render('rgba1'))
 
         if self._needTextureUpdate:
             self.setTex(value=self.tex, log=False)

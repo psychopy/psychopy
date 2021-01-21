@@ -17,7 +17,7 @@ This requires:
 
 from __future__ import division
 
-from psychopy import visual, core, event
+from psychopy import visual, core, event, constants
 import time, os
 
 videopath = r'./jwpIntro.mov'
@@ -47,7 +47,7 @@ mov = visual.VlcMovieStim(win, videopath,
 
 # Start the movie stim by preparing it to play
 shouldflip = mov.play()
-while mov.status != visual.FINISHED:
+while mov.status != constants.FINISHED:
     # Only flip when a new frame should be displayed. Can significantly reduce
     # CPU usage. This only makes sense if the movie is the only /dynamic/ stim
     # displayed.
@@ -68,7 +68,7 @@ while mov.status != visual.FINISHED:
             win.close()
             core.quit()
         elif key in ['s', ]:
-            if mov.status in [visual.PLAYING, visual.PAUSED]:
+            if mov.status in [constants.PLAYING, constants.PAUSED]:
                 # To stop the movie being played.....
                 mov.stop()
                 # Clear screen of last displayed frame.
@@ -83,9 +83,9 @@ while mov.status != visual.FINISHED:
                 shouldflip = mov.play()
         elif key in ['p', ]:
             # To pause the movie while it is playing....
-            if mov.status == visual.PLAYING:
+            if mov.status == constants.PLAYING:
                 mov.pause()
-            elif mov.status == visual.PAUSED:
+            elif mov.status == constants.PAUSED:
                 # To /unpause/ the movie if pause has been called....
                 mov.play()
                 text.draw()

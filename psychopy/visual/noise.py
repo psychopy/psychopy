@@ -470,11 +470,7 @@ class NoiseStim(GratingStim):
         GL.glPushMatrix()  # push before the list, pop after
         win.setScale('pix')
         #the list just does the texture mapping
-
-        desiredRGB = self._getDesiredRGB(self.rgb, self.colorSpace,
-                                         self.contrast)
-        GL.glColor4f(desiredRGB[0], desiredRGB[1], desiredRGB[2],
-                     self.opacity)
+        GL.glColor4f(*self._foreColor.render('rgba1'))
 
         # re-build the noise if not done so since last parameter update
         if self._needBuild:

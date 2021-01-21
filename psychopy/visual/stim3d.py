@@ -1540,8 +1540,7 @@ class BaseRigidBodyStim(ColorMixin, WindowMixin):
                 gt.drawVAO(self._vao, GL.GL_TRIANGLES)
                 self.material.end()
         else:  # doesn't have a material, use class colors
-            r, g, b = self._getDesiredRGB(
-                self.rgb, self.colorSpace, self.contrast)
+            r, g, b = self._foreColor.render('rgb')
             color = np.ctypeslib.as_ctypes(
                 np.array((r, g, b, self.opacity), np.float32))
 
@@ -2304,8 +2303,7 @@ class ObjMeshStim(BaseRigidBodyStim):
                     gt.drawVAO(self._vao[materialName], GL.GL_TRIANGLES)
                 self.material.end()
         else:
-            r, g, b = self._getDesiredRGB(
-                self.rgb, self.colorSpace, self.contrast)
+            r, g, b = self._foreColor.render('rgb')
             color = np.ctypeslib.as_ctypes(
                 np.array((r, g, b, self.opacity), np.float32))
 

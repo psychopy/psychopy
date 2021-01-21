@@ -55,7 +55,9 @@ class PolygonComponent(BaseVisualComponent):
         self.url = "http://www.psychopy.org/builder/components/polygon.html"
         self.exp.requirePsychopyLibs(['visual'])
         self.targets = ['PsychoPy', 'PsychoJS']
-        self.order = ['shape', 'nVertices']
+        self.order += ['shape', 'nVertices',  # Basic tab
+                      ]
+        self.order.insert(self.order.index("borderColor"), "lineColor")
         self.depends = [  # allows params to turn each other off/on
             {"dependsOn": "shape",  # must be param name
              "condition": "=='regular polygon...'",  # val to check for
@@ -158,8 +160,8 @@ class PolygonComponent(BaseVisualComponent):
                     " size=%(size)s,\n" % inits)
 
         code += ("    ori=%(ori)s, pos=%(pos)s,\n"
-                 "    lineWidth=%(lineWidth)s, lineColor=%(lineColor)s,\n"
-                 "    fillColor=%(fillColor)s,\n"
+                 "    lineWidth=%(lineWidth)s, "
+                 "    colorSpace=%(colorSpace)s,  lineColor=%(lineColor)s, fillColor=%(fillColor)s,\n"
                  "    opacity=%(opacity)s, " % inits)
 
         depth = -self.getPosInRoutine()

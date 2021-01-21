@@ -590,6 +590,7 @@ class _BaseParamsDlg(wx.Dialog):
                                                         currRow)
         currRow += 1
         # loop through the prescribed order (the most important?)
+        self.order = list(dict.fromkeys(self.order)) # Remove any duplicates, keep only the first instance
         for fieldName in self.order:
             if fieldName not in paramNames:
                 continue  # skip advanced params

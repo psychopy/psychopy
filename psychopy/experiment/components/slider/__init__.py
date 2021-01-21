@@ -66,7 +66,7 @@ class SliderComponent(BaseVisualComponent):
                  style=['rating'],
                  granularity=0,
                  color="LightGray",
-                 font="HelveticaBold",
+                 font="Open Sans",
                  startType='time (s)', startVal='0.0',
                  stopType='condition', stopVal='',
                  startEstim='', durationEstim='',
@@ -83,11 +83,13 @@ class SliderComponent(BaseVisualComponent):
         self.targets = ['PsychoPy', 'PsychoJS']
 
         # params
-        self.order = ['name',
-                      'size', 'pos',
-                      'ticks', 'labels',  'granularity',
-                      'font','flip','color','styles',
+        self.order += ['forceEndRoutine',  # Basic tab
+                       'font',  # Appearance tab
+                       'flip',  # Layout tab
+                       'ticks', 'labels',  'granularity', 'readOnly',  # Data tab
                       ]
+        self.order.insert(self.order.index("colorSpace"), "style")
+        self.order.insert(self.order.index("units"), "Item Padding")
 
         # normal params:
         # = the usual as inherited from BaseVisual plus:

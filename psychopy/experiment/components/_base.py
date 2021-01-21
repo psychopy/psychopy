@@ -19,6 +19,7 @@ from psychopy.experiment.utils import CodeGenerationException
 from psychopy.experiment.utils import unescapedDollarSign_re
 from psychopy.experiment.params import getCodeFromParamStr
 from psychopy.alerts import alerttools
+from psychopy.colors import colorSpaces
 
 from psychopy.localization import _translate, _localized
 
@@ -595,6 +596,19 @@ class BaseVisualComponent(BaseComponent):
         self.exp.requirePsychopyLibs(
             ['visual'])  # needs this psychopy lib to operate
 
+        self.order += [
+            "color",
+            "fillColor",
+            "borderColor",
+            "colorSpace",
+            "opacity",
+            "size",
+            "pos",
+            "units",
+            "anchor",
+            "ori",
+        ]
+
         msg = _translate("Units of dimensions for this stimulus")
         self.params['units'] = Param(units,
             valType='str', inputType="choice", categ='Layout',
@@ -617,14 +631,14 @@ class BaseVisualComponent(BaseComponent):
                          "the colors? (rgb, dkl, lms, hsv)")
         self.params['colorSpace'] = Param(colorSpace,
             valType='str', inputType="choice", categ='Appearance',
-            allowedVals=['rgb', 'dkl', 'lms', 'hsv'],
+            allowedVals=['named', 'rgb', 'dkl', 'lms', 'hsv'],
             updates='constant',
             hint=msg,
             label=_localized['colorSpace'])
 
         msg = _translate("Fill color of this stimulus (e.g. $[1,1,0], red );"
                          " Right-click to bring up a color-picker (rgb only)")
-        self.params['fillColor'] = Param(color,
+        self.params['fillColor'] = Param(fillColor,
             valType='color', inputType="color", categ='Appearance',
             updates='constant', allowedTypes=[],
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
@@ -633,7 +647,7 @@ class BaseVisualComponent(BaseComponent):
 
         msg = _translate("Color of this stimulus (e.g. $[1,1,0], red );"
                          " Right-click to bring up a color-picker (rgb only)")
-        self.params['borderColor'] = Param(color,
+        self.params['borderColor'] = Param(borderColor,
             valType='color', inputType="color", categ='Appearance',
             updates='constant',allowedTypes=[],
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],

@@ -270,7 +270,7 @@ class DataStoreFile(object):
             max_id = np.amax(id_col)
         self.active_experiment_id = max_id + 1
         experimentInfoList[0] = self.active_experiment_id
-        experiment_metadata.append([experimentInfoList, ])
+        experiment_metadata.append([tuple(experimentInfoList), ])
         self.flush()
         return self.active_experiment_id
 

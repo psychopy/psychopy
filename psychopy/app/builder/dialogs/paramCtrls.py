@@ -327,8 +327,8 @@ def validate(obj, valType):
     val = str(obj.GetValue())
     valid = True
     if val.startswith("$"):
-        # If indicated as code, cancel
-        return
+        # If indicated as code, treat as code
+        valType = "code"
     # Validate string
     if valType == "str":
         if re.findall(r"(?<!\\)\"", val):
@@ -339,7 +339,12 @@ def validate(obj, valType):
             valid = False
     # Validate code
     if valType == "code":
-        # For now, accept all code
+        # Replace unescaped curly quotes
+        if re.findall(r"(?<!\\)[\u201c\u201d]", val):
+            pt = obj.GetInsertionPoint()
+            obj.SetValue(re.sub(r"(?<!\\)[\u201c\u201d]", "\"", val))
+            obj.SetInsertionPoint(pt)
+        # For now, ignore
         pass
     # Validate num
     if valType == "num":
