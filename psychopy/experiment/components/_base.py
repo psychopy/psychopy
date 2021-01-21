@@ -638,7 +638,7 @@ class BaseVisualComponent(BaseComponent):
 
         msg = _translate("Fill color of this stimulus (e.g. $[1,1,0], red );"
                          " Right-click to bring up a color-picker (rgb only)")
-        self.params['fillColor'] = Param(color,
+        self.params['fillColor'] = Param(fillColor,
             valType='color', inputType="color", categ='Appearance',
             updates='constant', allowedTypes=[],
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
@@ -656,7 +656,7 @@ class BaseVisualComponent(BaseComponent):
 
         msg = _translate("Color of this stimulus (e.g. $[1,1,0], red );"
                          " Right-click to bring up a color-picker (rgb only)")
-        self.params['borderColor'] = Param(color,
+        self.params['borderColor'] = Param(borderColor,
             valType='color', inputType="color", categ='Appearance',
             updates='constant',allowedTypes=[],
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
