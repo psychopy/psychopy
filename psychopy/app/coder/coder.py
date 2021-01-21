@@ -35,6 +35,7 @@ import textwrap
 from .. import stdOutRich, dialogs
 from .. import pavlovia_ui
 from psychopy import logging, prefs
+from psychopy.alerts._alerts import alert
 from psychopy.localization import _translate
 from ..utils import FileDropTarget, PsychopyToolbar, FrameSwitcher
 from psychopy.projects import pavlovia
@@ -2613,7 +2614,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         if fullPath.is_file():
             self.app.runner.addTask(fileName=fullPath)
         else:
-            raise FileNotFoundError("Could not find file {}".format(fullPath.name))
+            alert(code=6105, strFields={'path': str(fullPath)})
         self.app.runner.Raise()
         if event:
             if event.Id in [self.cdrBtnRun.Id, self.IDs.cdrRun]:
