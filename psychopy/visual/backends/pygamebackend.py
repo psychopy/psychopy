@@ -38,7 +38,7 @@ class PygameBackend(BaseBackend):
     GL = GL
     winTypeName = 'pygame'
 
-    def __init__(self, win, *args, **kwargs):
+    def __init__(self, win, backendConf=None):
         """Set up the backend window according the params of the PsychoPy win
 
         Before PsychoPy 1.90.0 this code was executed in Window._setupPygame()
