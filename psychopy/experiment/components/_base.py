@@ -579,7 +579,7 @@ class BaseVisualComponent(BaseComponent):
 
     def __init__(self, exp, parentName, name='',
                  units='from exp settings', color='white', fillColor="None", borderColor="None",
-                 pos=(0, 0), size=(0, 0), ori=0, colorSpace='rgb', opacity=1,
+                 pos=(0, 0), size=(0, 0), ori=0, colorSpace='rgb', opacity=1, contrast=1,
                  startType='time (s)', startVal='',
                  stopType='duration (s)', stopVal='',
                  startEstim='', durationEstim='',
@@ -680,6 +680,16 @@ class BaseVisualComponent(BaseComponent):
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
             label=_localized['opacity'])
+
+        msg = _translate("Contrast of the stimulus (1.0=unchanged contrast, "
+                         "0.5=decrease contrast, 0.0=uniform/no contrast, "
+                         "-0.5=slightly inverted, -1.0=totally inverted)")
+        self.params['contrast'] = Param(
+            contrast, valType='code', allowedTypes=[], categ='Appearance',
+            updates='constant',
+            allowedUpdates=['constant', 'set every repeat', 'set every frame'],
+            hint=msg,
+            label=_localized['contrast'])
 
         msg = _translate("Position of this stimulus (e.g. [1,2] )")
         self.params['pos'] = Param(pos,
