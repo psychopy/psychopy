@@ -931,7 +931,7 @@ class Window(object):
             lastEditable.hasFocus = False
         # Ensure that item is added to editables list
         self._currentEditableIndex = self.addEditable(editable)
-        # Give focus to new current editable
+        # Give focus to new current editable        
         editable.hasFocus = True
 
     def addEditable(self, editable):
@@ -975,7 +975,7 @@ class Window(object):
         ii = self._currentEditableIndex + 1
         if ii > len(self._editableChildren)-1:
             ii = 0  # wrap back to the first editable object
-        self.currentEditable = self._editableChildren[ii]
+        self.currentEditable = self._editableChildren[ii]()
         self._currentEditableIndex = ii
 
     @classmethod
@@ -1062,7 +1062,7 @@ class Window(object):
                     self.currentEditable = thisObj
             # If there is only one editable on screen, make sure it starts off with focus
             if sum(editablesOnScreen) == 1:
-                self.currentEditable = self._editableChildren[editablesOnScreen.index(True)]
+                self.currentEditable = self._editableChildren[editablesOnScreen.index(True)]()
 
         flipThisFrame = self._startOfFlip()
         if self.useFBO and flipThisFrame:
