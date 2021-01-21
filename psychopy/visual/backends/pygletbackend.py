@@ -50,14 +50,41 @@ class PygletBackend(BaseBackend):
     GL = pyglet.gl
     winTypeName = 'pyglet'
 
-    def __init__(self, win, *args, **kwargs):
+    def __init__(self, win, backendConf=None):
         """Set up the backend window according the params of the PsychoPy win
 
-        Before PsychoPy 1.90.0 this code was executed in Window._setupPygame()
+        Parameters
+        ----------
+        win : `psychopy.visual.Window` instance
+            PsychoPy Window (usually not fully created yet).
+        backendConf : `dict` or `None`
+            Backend configuration options. Options are specified as a dictionary
+            where keys are option names and values are settings. For this
+            backend the following options are available:
 
-        :param: win is a PsychoPy Window (usually not fully created yet)
+            * `bpc` (`array_like` of `int`) Bits per color (R, G, B).
+            * `depthBits` (`int`) Framebuffer (back buffer) depth bits.
+            * `stencilBits` (`int`) Framebuffer (back buffer) stencil bits.
+
+        Examples
+        --------
+        Create a window using the Pyglet backend and specify custom options::
+
+            import psychopy.visual as visual
+
+            options = {'bpc': (8, 8, 8), 'depthBits': 24, 'stencilBits': 8}
+            win = visual.Window(winType='pyglet', backendOptions=options)
+
         """
         BaseBackend.__init__(self, win)  # sets up self.win=win as weakref
+
+        # if `None`, change to `dict` to extract options
+        backendConf = backendConf if backendConf is not None else {}
+
+        if not isinstance(backendConf, dict):  # type check on options
+            raise TypeError(
+                'Object passed to `backendConf` must be type `dict`.')
+
         self._TravisTesting = (os.environ.get('TRAVIS') == 'true')
 
         self._gammaErrorPolicy = win.gammaErrorPolicy
@@ -81,16 +108,16 @@ class PygletBackend(BaseBackend):
                              "so setting to False has no effect.")
 
         # window framebuffer configuration
-        bpc = kwargs.get('bpc', (8, 8, 8))
+        bpc = backendConf.get('bpc', (8, 8, 8))
         if isinstance(bpc, int):
             win.bpc = (bpc, bpc, bpc)
         else:
             win.bpc = bpc
 
-        win.depthBits = int(kwargs.get('depthBits', 8))
+        win.depthBits = int(backendConf.get('depthBits', 8))
 
         if win.allowStencil:
-            win.stencilBits = int(kwargs.get('stencilBits', 8))
+            win.stencilBits = int(backendConf.get('stencilBits', 8))
         else:
             win.stencilBits = 0
 

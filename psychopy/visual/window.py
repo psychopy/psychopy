@@ -189,8 +189,7 @@ class Window(object):
                  bpc=(8, 8, 8),
                  depthBits=8,
                  stencilBits=8,
-                 *args,
-                 **kwargs):
+                 backendConf=None):
         """
         These attributes can only be set at initialization. See further down
         for a list of attributes which can be changed after initialization
@@ -290,6 +289,11 @@ class Window(object):
             if drawing 3D stimuli to minimize artifacts such a 'Z-fighting'.
         stencilBits : int
             Back buffer stencil bits. Default is 8.
+        backendConf : dict or None
+            Additional options to pass to the backend specified by `winType`.
+            Each backend provides functionality which may not be available
+            across all of them. This allows you to pass special configuration
+            options to a specific backend.
 
         Notes
         -----
@@ -429,11 +433,20 @@ class Window(object):
         self.winType = winType
 
         # setup the context
-        self.backend = backends.getBackend(win=self,
-                                           bpc=bpc,
-                                           depthBits=depthBits,
-                                           stencilBits=stencilBits,
-                                           *args, **kwargs)
+
+        # backend specific options are passed as a dictionary
+        backendConf = backendConf if backendConf is not None else {}
+
+        if not isinstance(backendConf, dict):  # type check on options
+            raise TypeError(
+                'Object passed to `backendConf` must be type `dict`.')
+
+        # augment settings with dedicated attributes
+        backendConf['bpc'] = bpc
+        backendConf['depthBits'] = depthBits
+        backendConf['stencilBits'] = stencilBits
+
+        self.backend = backends.getBackend(win=self, backendConf=backendConf)
 
         self.winHandle = self.backend.winHandle
         global GL
