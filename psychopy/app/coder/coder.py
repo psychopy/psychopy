@@ -9,6 +9,8 @@ from __future__ import absolute_import, print_function
 
 # from future import standard_library
 # standard_library.install_aliases()
+from pathlib import Path
+
 from past.builtins import unicode
 from builtins import chr
 from builtins import range
@@ -2590,12 +2592,11 @@ class CoderFrame(wx.Frame, ThemeMixin):
     def runFile(self, event=None):
         """Open Runner for running the script."""
 
-        fullPath = self.currentDoc.filename
-        filename = os.path.split(fullPath)[1]
+        fullPath = Path(self.currentDoc.filename)
         # does the file need saving before running?
-        if self.currentDoc.UNSAVED:
+        if self.currentDoc.UNSAVED or not fullPath.is_file():
             sys.stdout.flush()
-            msg = _translate('Save changes to %s before running?') % filename
+            msg = _translate('Save changes to %s before running?') % fullPath.name
             dlg = dialogs.MessageDialog(self, message=msg, type='Warning')
             resp = dlg.ShowModal()
             sys.stdout.flush()
@@ -2606,9 +2607,13 @@ class CoderFrame(wx.Frame, ThemeMixin):
                 self.fileSave(None)  # save then run
             elif resp == wx.ID_NO:
                 pass  # just run
+        fullPath = Path(self.currentDoc.filename) # Get full path again in case it has changed
         if self.app.runner == None:
             self.app.showRunner()
-        self.app.runner.addTask(fileName=fullPath)
+        if fullPath.is_file():
+            self.app.runner.addTask(fileName=fullPath)
+        else:
+            raise FileNotFoundError("Could not find file {}".format(fullPath.name))
         self.app.runner.Raise()
         if event:
             if event.Id in [self.cdrBtnRun.Id, self.IDs.cdrRun]:
