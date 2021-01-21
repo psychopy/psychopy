@@ -12,6 +12,7 @@ from __future__ import absolute_import, division, print_function
 
 import os, sys
 import re
+import subprocess
 import webbrowser
 from pathlib import Path
 import glob
@@ -50,11 +51,10 @@ from ..themes import IconCache, ThemeMixin
 from ..themes._themes import PsychopyDockArt, PsychopyTabArt, ThemeSwitcher
 from psychopy import logging, constants, data
 from psychopy.tools.filetools import mergeFolder
-from psychopy.tools.stringtools import prettyname
 from .dialogs import (DlgComponentProperties, DlgExperimentProperties,
                       DlgCodeComponentProperties, DlgLoopProperties)
 from ..utils import (PsychopyToolbar, PsychopyPlateBtn, WindowFrozen,
-                     FileDropTarget, FrameSwitcher)
+                     FileDropTarget, FrameSwitcher, updateDemosMenu)
 
 from psychopy.experiment import components
 from builtins import str
@@ -340,16 +340,16 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         menuBar.Append(self.viewMenu, _translate('&View'))
         menu = self.viewMenu
 
-        item = menu.Append(wx.ID_ANY,
-                           _translate("Open Coder view"),
-                           _translate("Open a new Coder view"))
-        self.Bind(wx.EVT_MENU, self.app.showCoder, item)
-
-        item = menu.Append(wx.ID_ANY,
-                           _translate("Open Runner view"),
-                           _translate("Open the Runner view"))
-        self.Bind(wx.EVT_MENU, self.app.showRunner, item)
-        menu.AppendSeparator()
+        # item = menu.Append(wx.ID_ANY,
+        #                    _translate("Open Coder view"),
+        #                    _translate("Open a new Coder view"))
+        # self.Bind(wx.EVT_MENU, self.app.showCoder, item)
+        #
+        # item = menu.Append(wx.ID_ANY,
+        #                    _translate("Open Runner view"),
+        #                    _translate("Open the Runner view"))
+        # self.Bind(wx.EVT_MENU, self.app.showRunner, item)
+        # menu.AppendSeparator()
 
         item = menu.Append(wx.ID_ANY,
                            _translate("&Toggle readme\t%s") % self.app.keys[
@@ -479,14 +479,19 @@ class BuilderFrame(wx.Frame, ThemeMixin):
                                " they can be run)"))
         self.Bind(wx.EVT_MENU, self.demosUnpack, item)
         item = menu.Append(wx.ID_ANY,
-                           _translate("Browse on Pavlovia..."),
+                           _translate("Browse on Pavlovia"),
                            _translate("Get more demos from the online demos "
                                       "repository on Pavlovia")
                            )
         self.Bind(wx.EVT_MENU, self.openPavloviaDemos, item)
+        item = menu.Append(wx.ID_ANY,
+                           _translate("Open demos folder"),
+                           _translate("Open the local folder where demos are stored")
+                           )
+        self.Bind(wx.EVT_MENU, self.openLocalDemos, item)
         menu.AppendSeparator()
         # add any demos that are found in the prefs['demosUnpacked'] folder
-        self.updateDemosMenu()
+        updateDemosMenu(self, self.demosMenu, self.prefs['unpackedDemosDir'], ext=".psyexp")
         menuBar.Append(self.demosMenu, _translate('&Demos'))
 
         # ---_onlineStudies---#000000#FFFFFF-------------------------------------------
@@ -1092,52 +1097,19 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         else:
             self.fileOpen(event=None, filename=files[0], closeCurrent=True)
 
+    def openLocalDemos(self, event=None):
+        # Choose a command according to OS
+        if sys.platform in ['win32']:
+            comm = "explorer"
+        elif sys.platform in ['darwin']:
+            comm = "open"
+        elif sys.platform in ['linux', 'linux2']:
+            comm = "dolphin"
+        # Use command to open themes folder
+        subprocess.call(f"{comm} {prefs.builder['unpackedDemosDir']}", shell=True)
+
     def openPavloviaDemos(self, event=None):
         webbrowser.open("https://pavlovia.org/explore")
-
-    def updateDemosMenu(self):
-        """Update Demos menu as needed."""
-        def _makeButton(parent, menu, demo):
-            # Create menu button
-            item = menu.Append(wx.ID_ANY, prettyname(demo.name))
-            # Store in window's demos list
-            parent.demos.update({item.Id: demo})
-            # Link button to demo opening function
-            parent.Bind(wx.EVT_MENU, parent.demoLoad, item)
-
-        def _makeFolder(parent, menu, folder):
-            # Create and append menu for this folder
-            submenu = wx.Menu()
-            menu.AppendSubMenu(submenu, prettyname(folder.name))
-            # Get folder contents
-            folderContents = glob.glob(str(folder / '*'))
-            for subfolder in sorted(folderContents):
-                subfolder = Path(subfolder)
-                # Make menu/button for each subfolder according to whether it contains a psyexp
-                if subfolder.is_dir():
-                    subContents = glob.glob(str(subfolder / '*'))
-                    if any(file.endswith(".psyexp") for file in subContents):
-                        _makeButton(parent, submenu, subfolder)
-                    else:
-                        _makeFolder(parent, submenu, subfolder)
-
-        # Get unpacked demos dir
-        unpacked = Path(self.prefs['unpackedDemosDir'])
-        if not unpacked:
-            return
-        self.demos = {}
-
-        # Get root folders
-        rootGlob = glob.glob(str(unpacked / '*'))
-        for folder in rootGlob:
-            folder = Path(folder)
-            # Make menus/buttons recursively for each folder according to whether it contains a psyexp
-            if folder.is_dir():
-                folderContents = glob.glob(str(folder / '*'))
-                if any(file.endswith(".psyexp") for file in folderContents):
-                    _makeButton(self, self.demosMenu, folder)
-                else:
-                    _makeFolder(self, self.demosMenu, folder)
 
     def runFile(self, event=None):
         """Open Runner for running the psyexp file."""

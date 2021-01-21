@@ -43,6 +43,8 @@ class MicrophoneComponent(BaseComponent):
         self.url = "http://www.psychopy.org/builder/components/microphone.html"
         self.exp.requirePsychopyLibs(['microphone'])
 
+        self.order += []
+
         # params
         msg = _translate(
             "Record two channels (stereo) or one (mono, smaller file)")
@@ -59,7 +61,10 @@ class MicrophoneComponent(BaseComponent):
 
         msg = _translate("Enter a channel number. Default value is 0. If unsure, run 'sound.backend.get_input_devices()'"
                          " to locate the system's selected device/channel.")
-        self.params['channel'] = Param(channel, valType='code', hint=msg, label=_localized['channel'])
+        self.params['channel'] = Param(
+            channel, valType='code', inputType="single", categ="Hardware",
+            hint=msg,
+            label=_localized['channel'])
 
     def writeStartCode(self, buff):
         # filename should have date_time, so filename_wav should be unique

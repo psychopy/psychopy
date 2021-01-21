@@ -212,24 +212,27 @@ class Color(object):
     def set(self, color=None, space=None):
         """Set the colour of this object - essentially the same as what happens on creation, but without
         having to initialise a new object"""
+        # If supplied a named color, ignore color space
+        if 'named' in self.getSpace(color, True):
+            space = 'named'
+        # If supplied a hex color, ignore color space
+        if 'hex' in self.getSpace(color, True):
+            space = 'hex'
+        # Tuple-ise numpy arrays
         if isinstance(color, numpy.ndarray):
             color = tuple(float(c) for c in color)
-        if space in ['rgb255', 'rgba255']:
-            color = tuple(int(c) for c in color[:3])+(color[3:] or ())
+        # Duplicate single values
         if isinstance(color, (int, float)):
             color = (color, color, color)
+        # Round rgb255 values
+        if space in ['rgb255', 'rgba255']:
+            color = tuple(int(c) for c in color[:3]) + (color[3:] or ())
         # If input is a Color object, duplicate all settings
         if isinstance(color, Color):
             self._requested = color._requested
             self._requestedSpace = color._requestedSpace
             self.rgba = color.rgba
             return
-        # if supplied a named color, ignore color space
-        if 'named' in self.getSpace(color, True):
-            space = 'named'
-        # if supplied a hex color, ignore color space
-        if 'hex' in self.getSpace(color, True):
-            space = 'hex'
         # Store requested colour and space (or defaults, if none given)
         self._requested = color or None
         self._requestedSpace = space or None
