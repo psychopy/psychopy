@@ -69,14 +69,8 @@ class BrushComponent(BaseVisualComponent):
             hint=msg,
             label=_localized['lineWidth'])
 
-        msg = _translate("Choice of color space for the fill color "
-                         "(rgb, dkl, lms, hsv)")
-        self.params['lineColorSpace'] = Param(
-            lineColorSpace, valType='str', inputType="choice", categ='Appearance',
-            allowedVals=['rgb', 'dkl', 'lms', 'hsv'],
-            updates='constant',
-            hint=msg,
-            label=_localized['lineColorSpace'])
+        self.params['lineColorSpace'] = self.params['colorSpace']
+        del self.params['colorSpace']
 
         msg = _translate("The line opacity")
         self.params['opacity'].hint=msg
@@ -91,11 +85,8 @@ class BrushComponent(BaseVisualComponent):
 
         # Remove BaseVisual params which are not needed
         del self.params['color']  # because color is defined by lineColor
-        del self.params['colorSpace']
         del self.params['fillColor']
-        del self.params['fillColorSpace']
         del self.params['borderColor']
-        del self.params['borderColorSpace']
         del self.params['size']  # because size determined by lineWidth
         del self.params['ori']
         del self.params['pos']

@@ -118,9 +118,7 @@ class GratingComponent(BaseVisualComponent):
             label=_localized['blendmode'])
 
         del self.params['fillColor']
-        del self.params['fillColorSpace']
         del self.params['borderColor']
-        del self.params['borderColorSpace']
 
     def writeInitCode(self, buff):
         # do we need units code?
