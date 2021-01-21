@@ -291,9 +291,10 @@ class Window(object):
             Back buffer stencil bits. Default is 8.
         backendConf : dict or None
             Additional options to pass to the backend specified by `winType`.
-            Each backend provides functionality which may not be available
-            across all of them. This allows you to pass special configuration
-            options to a specific backend.
+            Each backend may provide unique functionality which may not be
+            available across all of them. This allows you to pass special
+            configuration options to a specific backend to configure the
+            feature.
 
         Notes
         -----
@@ -446,6 +447,7 @@ class Window(object):
         backendConf['depthBits'] = depthBits
         backendConf['stencilBits'] = stencilBits
 
+        # get the backend, pass the options to it
         self.backend = backends.getBackend(win=self, backendConf=backendConf)
 
         self.winHandle = self.backend.winHandle
