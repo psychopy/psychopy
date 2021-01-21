@@ -402,6 +402,7 @@ class UnitTestFrame(wx.Frame):
         item = self.menuTests.Append(
             wx.ID_PREFERENCES, _translate("&Preferences"))
         self.Bind(wx.EVT_MENU, self.app.showPrefs, item)
+
         self.SetMenuBar(menuBar)
 
         # create controls
@@ -1212,7 +1213,9 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.SetAcceleratorTable(accelTable)
 
         # Setup pane and art managers
-        self.paneManager = aui.AuiManager(self.pnlMain, aui.AUI_MGR_DEFAULT | aui.AUI_MGR_RECTANGLE_HINT)
+        self.paneManager = aui.AuiManager(
+            self.pnlMain, aui.AUI_MGR_DEFAULT | aui.AUI_MGR_RECTANGLE_HINT)
+
         # Create toolbar
         self.toolbar = PsychopyToolbar(self)
         self.SetToolBar(self.toolbar)
@@ -1230,7 +1233,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.sourceAsst = aui.AuiNotebook(
             self.pnlMain,
             wx.ID_ANY,
-            size = wx.Size(350, 600),
+            size = wx.Size(450, 600),
             agwStyle=aui.AUI_NB_CLOSE_ON_ALL_TABS |
                      aui.AUI_NB_TAB_SPLIT |
                      aui.AUI_NB_TAB_MOVE)
@@ -1270,10 +1273,11 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.paneManager.AddPane(self.notebook, aui.AuiPaneInfo().
                                  Name("Editor").
                                  Caption(_translate("Editor")).
-                                 BestSize((480, 600)).
+                                 BestSize((600, 600)).
                                  Floatable(False).
                                  Movable(False).
-                                 Center().PaneBorder(False).  # 'center panes' expand
+                                 Center().
+                                 PaneBorder(True).  # 'center panes' expand
                                  CloseButton(False).
                                  MaximizeButton(True))
         self.notebook.SetFocus()
@@ -1294,7 +1298,9 @@ class CoderFrame(wx.Frame, ThemeMixin):
                 self.setCurrentDoc(filename, keepHidden=True)
 
         # Create shelf notebook
-        self.shelf = aui.AuiNotebook(self.pnlMain, wx.ID_ANY, size=wx.Size(600, 600), agwStyle=aui.AUI_NB_CLOSE_ON_ALL_TABS)
+        self.shelf = aui.AuiNotebook(
+            self.pnlMain, wx.ID_ANY, size=wx.Size(600, 600),
+            agwStyle=aui.AUI_NB_CLOSE_ON_ALL_TABS)
         #self.shelf.SetArtProvider(PsychopyTabArt())
         # Create shell
         self._useShell = None
@@ -1464,6 +1470,10 @@ class CoderFrame(wx.Frame, ThemeMixin):
         item = menu.Append(wx.ID_PREFERENCES,
                            msg % keyCodes['preferences'])
         self.Bind(wx.EVT_MENU, self.app.showPrefs, id=item.GetId())
+        item = menu.Append(
+            wx.ID_ANY, _translate("Reset preferences...")
+        )
+        self.Bind(wx.EVT_MENU, self.resetPrefs, item)
         # item = menu.Append(wx.NewId(), "Plug&ins")
         # self.Bind(wx.EVT_MENU, self.pluginManager, id=item.GetId())
         # -------------Close coder frame
@@ -1604,16 +1614,16 @@ class CoderFrame(wx.Frame, ThemeMixin):
         menuBar.Append(self.viewMenu, _translate('&View'))
 
         # Frame switcher (legacy
-        item = menu.Append(wx.ID_ANY,
-                           _translate("Go to Builder view"),
-                           _translate("Go to the Builder view"))
-        self.Bind(wx.EVT_MENU, self.app.showBuilder, id=item.GetId())
-
-        item = menu.Append(wx.ID_ANY,
-                           _translate("Open Runner view"),
-                           _translate("Open the Runner view"))
-        self.Bind(wx.EVT_MENU, self.app.showRunner, item)
-        menu.AppendSeparator()
+        # item = menu.Append(wx.ID_ANY,
+        #                    _translate("Go to Builder view"),
+        #                    _translate("Go to the Builder view"))
+        # self.Bind(wx.EVT_MENU, self.app.showBuilder, id=item.GetId())
+        #
+        # item = menu.Append(wx.ID_ANY,
+        #                    _translate("Open Runner view"),
+        #                    _translate("Open the Runner view"))
+        # self.Bind(wx.EVT_MENU, self.app.showRunner, item)
+        # menu.AppendSeparator()
         # Panel switcher
         self.panelsMenu = wx.Menu()
         menu.AppendSubMenu(self.panelsMenu,
@@ -2824,6 +2834,31 @@ class CoderFrame(wx.Frame, ThemeMixin):
     def setPavloviaUser(self, user):
         # TODO: update user icon on button to user avatar
         pass
+
+    def resetPrefs(self, event):
+        """Reset preferences to default"""
+        # Present "are you sure" dialog
+        dlg = wx.MessageDialog(
+            self,
+            _translate("Are you sure you want to reset your preferences? This "
+                       "cannot be undone."),
+            caption="Reset Preferences...", style=wx.ICON_WARNING | wx.CANCEL)
+        dlg.SetOKCancelLabels(
+            _translate("I'm sure"),
+            _translate("Wait, go back!")
+        )
+        if dlg.ShowModal() == wx.ID_OK:
+            # If okay is pressed, remove prefs file (meaning a new one will be
+            # created on next restart)
+            os.remove(prefs.paths['userPrefsFile'])
+            # Show confirmation
+            dlg = wx.MessageDialog(
+                self,
+                _translate("Done! Your preferences have been reset. Changes "
+                           "will be applied when you next open PsychoPy."))
+            dlg.ShowModal()
+        else:
+            pass
 
     def _applyAppTheme(self, target=None):
         """Overrides theme change from ThemeMixin.
