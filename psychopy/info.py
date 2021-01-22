@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """This module has tools for fetching data about the system or the
@@ -506,7 +506,7 @@ class RunTimeInfo(dict):
             except AttributeError:
                 msg = ('AttributeError in RuntimeInfo._setWindowInfo(): '
                        'Window instance has no attribute')
-                logging.warning(msg, winAttr)
+                logging.warning(0, msg, winAttr)
                 continue
             if hasattr(attrValue, '__call__'):
                 try:

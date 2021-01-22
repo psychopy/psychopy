@@ -84,10 +84,10 @@ _translate("Spacing between lines")
 _translate("Long line edge guide, specify zero to disable")
 
 # baseNoArch.spec,[coder],line79
-_translate("activate the source assistant panel")
+_translate("Set the source assistant panel to be visible by default")
 
 # baseNoArch.spec,[coder],line81
-_translate("activate the output and shell panels")
+_translate("Set the output/shell to be visible by default")
 
 # baseNoArch.spec,[coder],line83
 _translate(
@@ -123,7 +123,7 @@ _translate(
     "name of the folder where subject data should be saved (relative to the script)")
 
 # baseNoArch.spec,[builder],line104
-_translate("Panels arrangement: topFlow = Flow on top, Components on left")
+_translate("Panels arrangement: Should Flow be on the top or bottom, and should Components be on the left or right?")
 
 # baseNoArch.spec,[builder],line106
 _translate("Display text in a floating window that describes the experiment")

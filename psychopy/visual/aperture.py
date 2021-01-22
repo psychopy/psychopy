@@ -5,7 +5,7 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
@@ -123,11 +123,11 @@ class Aperture(MinimalStim, ContainerMixin):
         if self.__dict__['filename']:
             self._shape = ImageStim(
                 win=self.win, image=self.__dict__['filename'],
-                pos=pos, size=size, autoLog=False)
+                pos=pos, size=size, autoLog=False, units=self.units)
         else:
             self._shape = BaseShapeStim(
-                win=self.win, vertices=vertices, fillColor=1, lineColor=None,
-                interpolate=False, pos=pos, size=size, autoLog=False)
+                win=self.win, vertices=vertices, fillColor=1, lineColor=None, colorSpace='rgb',
+                interpolate=False, pos=pos, size=size, autoLog=False, units=self.units)
             self.vertices = self._shape.vertices
             self._needVertexUpdate = True
 
@@ -308,4 +308,7 @@ class Aperture(MinimalStim, ContainerMixin):
         self.enabled = False
 
     def __del__(self):
-        self.enabled = False
+        try:
+            self.enabled = False
+        except (ImportError, ModuleNotFoundError, TypeError):
+            pass  # trying to avoid 'Exception ignored in: ....' error from pyglet when experiment exits

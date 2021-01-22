@@ -65,7 +65,7 @@ _localized = {
     'hiddenComponents': _translate('hidden components'),
     'unpackedDemosDir': _translate('unpacked demos dir'),
     'savedDataFolder': _translate('saved data folder'),
-    'topFlow': _translate('Flow at top'),
+    'builderLayout': _translate('Builder layout'),
     'alwaysShowReadme': _translate('always show readme'),
     'maxFavorites': _translate('max favorites'),
     # pref labels in Coder section
@@ -141,6 +141,7 @@ _localized = {
     'audioDevice': _translate("audio device"),
     'parallelPorts': _translate("parallel ports"),
     'qmixConfiguration': _translate("Qmix configuration"),
+    'highDPI': _translate('Try to support display high DPI'),
     # pref labels in Connections section
     'proxy': _translate('proxy'),
     'autoProxy': _translate('auto-proxy'),

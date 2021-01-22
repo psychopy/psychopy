@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
@@ -43,9 +43,7 @@ class ApertureComponent(BaseVisualComponent):
 
         self.type = 'Aperture'
         self.url = "http://www.psychopy.org/builder/components/aperture.html"
-        # params:
-        # NB make some adjustments on the params defined by _visual component
-        self.order = ['name', 'size', 'pos']  # make sure this is at top
+        self.order += []
 
         msg = _translate(
             "How big is the aperture? (a single number for diameter)")
@@ -59,9 +57,7 @@ class ApertureComponent(BaseVisualComponent):
         del self.params['color']
         del self.params['colorSpace']
         del self.params['fillColor']
-        del self.params['fillColorSpace']
         del self.params['borderColor']
-        del self.params['borderColorSpace']
         del self.params['opacity']
 
     def writeInitCode(self, buff):

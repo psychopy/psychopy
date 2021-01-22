@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Experiment classes:
@@ -55,33 +55,33 @@ class TrialHandler(object):
         self.order = ['name']  # make name come first (others don't matter)
         self.params = {}
         self.params['name'] = Param(
-            name, valType='code', updates=None, allowedUpdates=None,
+            name, valType='code', inputType="single", updates=None, allowedUpdates=None,
             label=_localized['Name'],
             hint=_translate("Name of this loop"))
         self.params['nReps'] = Param(
-            nReps, valType='code', updates=None, allowedUpdates=None,
+            nReps, valType='num', inputType="spin", updates=None, allowedUpdates=None,
             label=_localized['nReps'],
             hint=_translate("Number of repeats (for each condition)"))
         self.params['conditions'] = Param(
-            list(conditions), valType='str',
+            list(conditions), valType='str', inputType="single",
             updates=None, allowedUpdates=None,
             label=_localized['conditions'],
             hint=_translate("A list of dictionaries describing the "
                             "parameters in each condition"))
         self.params['conditionsFile'] = Param(
-            conditionsFile, valType='str', updates=None, allowedUpdates=None,
+            conditionsFile, valType='file', inputType="table", updates=None, allowedUpdates=None,
             label=_localized['conditions'],
             hint=_translate("Name of a file specifying the parameters for "
                             "each condition (.csv, .xlsx, or .pkl). Browse "
                             "to select a file. Right-click to preview file "
                             "contents, or create a new file."))
         self.params['endPoints'] = Param(
-            list(endPoints), valType='num', updates=None, allowedUpdates=None,
+            list(endPoints), valType='num', inputType="single", updates=None, allowedUpdates=None,
             label=_localized['endPoints'],
             hint=_translate("The start and end of the loop (see flow "
                             "timeline)"))
         self.params['Selected rows'] = Param(
-            selectedRows, valType='str',
+            selectedRows, valType='str', inputType="single",
             updates=None, allowedUpdates=None,
             label=_localized['Selected rows'],
             hint=_translate("Select just a subset of rows from your condition"
@@ -89,21 +89,21 @@ class TrialHandler(object):
                             "0:5, 5:-1"))
         # NB staircase is added for the sake of the loop properties dialog:
         self.params['loopType'] = Param(
-            loopType, valType='str',
+            loopType, valType='str', inputType="choice",
             allowedVals=['random', 'sequential', 'fullRandom',
                          'staircase', 'interleaved staircases'],
             label=_localized['loopType'],
             hint=_translate("How should the next condition value(s) be "
                             "chosen?"))
         self.params['random seed'] = Param(
-            randomSeed, valType='code', updates=None, allowedUpdates=None,
+            randomSeed, valType='code', inputType="single", updates=None, allowedUpdates=None,
             label=_localized['random seed'],
             hint=_translate("To have a fixed random sequence provide an "
                             "integer of your choosing here. Leave blank to "
                             "have a new random sequence on each run of the "
                             "experiment."))
         self.params['isTrials'] = Param(
-            isTrials, valType='bool', updates=None, allowedUpdates=None,
+            isTrials, valType='bool', inputType="bool", updates=None, allowedUpdates=None,
             label=_localized["Is trials"],
             hint=_translate("Indicates that this loop generates TRIALS, "
                             "rather than BLOCKS of trials or stimuli within "

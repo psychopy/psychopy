@@ -8,9 +8,14 @@ from builtins import range
 from past.builtins import basestring
 import sys
 import glob
-import collections
 from itertools import chain
 from psychopy import logging
+
+try:
+    from collections.abc import Iterable
+except ImportError:
+    from collections import Iterable
+
 __all__ = ['forp', 'cedrus', 'minolta', 'pr', 'crs', 'iolab']
 
 
@@ -137,7 +142,7 @@ def findPhotometer(ports=None, device=None):
     """
     if isinstance(device, basestring):
         photometers = [getPhotometerByName(device)]
-    elif isinstance(device, collections.Iterable):
+    elif isinstance(device, Iterable):
         # if we find a string assume it is a name, otherwise treat it like a
         # photometer
         photometers = [getPhotometerByName(d)

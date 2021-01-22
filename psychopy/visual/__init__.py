@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Container for all visual-related functions and classes
@@ -14,7 +14,17 @@ import sys
 if sys.platform == 'win32':
     from pyglet.libs import win32  # pyglet patch for ANACONDA install
     from ctypes import *
+    from psychopy import prefs
     win32.PUINT = POINTER(wintypes.UINT)
+    # get the preference for high DPI
+    if 'highDPI' in prefs.hardware.keys():  # check if we have the option
+        enableHighDPI = prefs.hardware['highDPI']
+        # check if we have OS support for it
+        if enableHighDPI:
+            try:
+                windll.shcore.SetProcessDpiAwareness(enableHighDPI)
+            except OSError:
+                pass
 
 from psychopy import event  # import before visual or
 from psychopy.visual import filters
@@ -86,6 +96,9 @@ from psychopy.visual.textbox import TextBox
 
 # rift support 
 from psychopy.visual.rift import Rift
+
+# VisualSystemHD support
+from psychopy.visual.nnlvs import VisualSystemHD
 
 # 3D stimuli support
 from psychopy.visual.stim3d import LightSource

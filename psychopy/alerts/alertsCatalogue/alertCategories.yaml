@@ -44,9 +44,14 @@
     4305: Component disabled
     4310: Cannot calculate parameter
     4315: Invalid dollar sign syntax
+    4320: Non-local font
 
 5000: Online studies
-6000: None
+6000:
+  cat: Interface
+    6100:
+      cat: File not found
+      6105: Run nonexistant file
 7000: Python dependencies
 8000: None
 9000: None

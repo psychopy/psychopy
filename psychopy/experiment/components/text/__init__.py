@@ -2,12 +2,14 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
 
 from os import path
+from psychopy import logging
+from psychopy.alerts import alerttools
 from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals, _translate
 from psychopy.localization import _localized as __localized
 _localized = __localized.copy()
@@ -34,12 +36,12 @@ class TextComponent(BaseVisualComponent):
     def __init__(self, exp, parentName, name='text',
                  # effectively just a display-value
                  text=_translate('Any text\n\nincluding line breaks'),
-                 font='Arial', units='from exp settings',
+                 font='Open Sans', units='from exp settings',
                  color='white', colorSpace='rgb',
                  pos=(0, 0), letterHeight=0.1, ori=0,
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
-                 flip='', startEstim='', durationEstim='', wrapWidth='',
+                 flip='None', startEstim='', durationEstim='', wrapWidth='',
                  languageStyle='LTR'):
         super(TextComponent, self).__init__(exp, parentName, name=name,
                                             units=units,
@@ -59,45 +61,43 @@ class TextComponent(BaseVisualComponent):
         # params
         _allow3 = ['constant', 'set every repeat', 'set every frame']  # list
         self.params['text'] = Param(
-            text, valType='extendedStr', allowedTypes=[], categ='Basic',
+            text, valType='str', inputType="multi", allowedTypes=[], categ='Basic',
             updates='constant', allowedUpdates=_allow3[:],  # copy the list
             hint=_translate("The text to be displayed"),
             label=_localized['text'])
         self.params['font'] = Param(
-            font, valType='str', allowedTypes=[], categ='Formatting',
+            font, valType='str', inputType="single", allowedTypes=[], categ='Formatting',
             updates='constant', allowedUpdates=_allow3[:],  # copy the list
             hint=_translate("The font name (e.g. Comic Sans)"),
             label=_localized['font'])
         del self.params['size']  # because you can't specify width for text
         self.params['letterHeight'] = Param(
-            letterHeight, valType='code', allowedTypes=[], categ='Formatting',
+            letterHeight, valType='num', inputType="single", allowedTypes=[], categ='Formatting',
             updates='constant', allowedUpdates=_allow3[:],  # copy the list
             hint=_translate("Specifies the height of the letter (the width"
                             " is then determined by the font)"),
             label=_localized['letterHeight'])
 
         self.params['wrapWidth'] = Param(
-            wrapWidth, valType='code', allowedTypes=[], categ='Layout',
+            wrapWidth, valType='num', inputType="single", allowedTypes=[], categ='Layout',
             updates='constant', allowedUpdates=['constant'],
             hint=_translate("How wide should the text get when it wraps? (in"
                             " the specified units)"),
             label=_localized['wrapWidth'])
         self.params['flip'] = Param(
-            flip, valType='str', allowedTypes=[], categ='Layout',
-            updates='constant', allowedUpdates=_allow3[:],  # copy the list
+            flip, valType='str', inputType="choice", allowedTypes=[], categ='Layout',
+            allowedVals=["horiz", "vert", "None"], updates='constant', allowedUpdates=_allow3[:],  # copy the list
             hint=_translate("horiz = left-right reversed; vert = up-down"
                             " reversed; $var = variable"),
             label=_localized['flip'])
         self.params['languageStyle'] = Param(
-            languageStyle, valType='str', categ='Formatting',
+            languageStyle, valType='str', inputType="choice", categ='Formatting',
             allowedVals=['LTR', 'RTL', 'Arabic'],
             hint=_translate("Handle right-to-left (RTL) languages and Arabic reshaping"),
             label=_localized['languageStyle'])
 
         del self.params['fillColor']
-        del self.params['fillColorSpace']
         del self.params['borderColor']
-        del self.params['borderColorSpace']
 
     def writeInitCode(self, buff):
         # do we need units code?
@@ -127,10 +127,6 @@ class TextComponent(BaseVisualComponent):
             flipStr = 'flipHoriz=True, '
         elif flip == 'vert':
             flipStr = 'flipVert=True, '
-        elif flip:
-            msg = ("flip value should be 'horiz' or 'vert' (no quotes)"
-                   " in component '%s'")
-            raise ValueError(msg % self.params['name'].val)
         else:
             flipStr = ''
         depth = -self.getPosInRoutine()
@@ -169,7 +165,7 @@ class TextComponent(BaseVisualComponent):
             flipStr = 'flipHoriz : true, '
         elif flip == 'vert':
             flipStr = 'flipVert : true, '
-        elif flip:
+        elif flip and not flip == "None":
             msg = ("flip value should be 'horiz' or 'vert' (no quotes)"
                    " in component '%s'")
             raise ValueError(msg % self.params['name'].val)
@@ -179,3 +175,7 @@ class TextComponent(BaseVisualComponent):
         code = ("  %sdepth: %.1f \n"
                 "});\n\n" % (flipStr, depth))
         buff.writeIndentedLines(code)
+
+    def integrityCheck(self):
+        super().integrityCheck()  # run parent class checks first
+        alerttools.testFont(self)  # Test whether font is available locally
