@@ -46,17 +46,21 @@ txt3 = TextBox2(win, text='Good for non-editable text (Esc to quit)',
             letterHeight=0.02,
             editable=False)
 
+txt1.autoDraw=True
+txt2.autoDraw=True
+
 clock = core.Clock()
 t=0
 while t<20:
     t= clock.getTime()
-    
-    txt1.draw()
-    
+
     txt2.pos = (0.2*np.sin(t), 0.2*np.cos(t))
-    txt2.draw()
     
+    # Do not need to call draw() each flip() 
+    # for txt1 or txt2 since autoDraw is enabled for them.
+        
     txt3.draw()
+    
     if 'escape' in event.getKeys():
         core.quit()
 
