@@ -422,3 +422,8 @@ class DictCtrl(ListWidget, _ValidatorMixin):
             order.append(row['Field'])
         # Create ListWidget
         ListWidget.__init__(self, parent, val, order=order)
+
+    def SetForegroundColour(self, color):
+        for child in self.Children:
+            if hasattr(child, "SetForegroundColour"):
+                child.SetForegroundColour(color)
