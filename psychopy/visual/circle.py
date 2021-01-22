@@ -23,21 +23,62 @@ class Circle(Polygon):
     (New in version 1.72.00)
     """
 
-    def __init__(self, win, radius=.5, edges=32, **kwargs):
+    def __init__(self,
+                 win,
+                 radius=.5,
+                 edges=32,
+                 units='',
+                 lineWidth=1.5,
+                 lineColor=None,
+                 lineColorSpace=None,
+                 fillColor=None,
+                 fillColorSpace=None,
+                 pos=(0, 0),
+                 size=1.0,
+                 ori=0.0,
+                 opacity=1.0,
+                 contrast=1.0,
+                 depth=0,
+                 interpolate=True,
+                 lineRGB=None,
+                 fillRGB=None,
+                 name=None,
+                 autoLog=None,
+                 autoDraw=False,
+                 color=None,
+                 colorSpace='rgb'):
         """
         Circle accepts all input parameters that
-        `~psychopy.visual.ShapeStim` accept,
-        except for vertices and closeShape.
+        `~psychopy.visual.ShapeStim` accept, except for `vertices` and
+        `closeShape`.
         """
         # what local vars are defined (these are the init params) for use by
         # __repr__
         self._initParams = dir()
         self._initParams.remove('self')
-        # kwargs isn't a parameter, but a list of params
-        self._initParams.remove('kwargs')
-        self._initParams.extend(kwargs)
 
         # initialise parent class
-        kwargs['edges'] = edges
-        kwargs['radius'] = radius
-        super(Circle, self).__init__(win, **kwargs)
+        super(Circle, self).__init__(
+            win,
+            radius=radius,
+            edges=edges,
+            units=units,
+            lineWidth=lineWidth,
+            lineColor=lineColor,
+            lineColorSpace=lineColorSpace,
+            fillColor=fillColor,
+            fillColorSpace=fillColorSpace,
+            pos=pos,
+            size=size,
+            ori=ori,
+            opacity=opacity,
+            contrast=contrast,
+            depth=depth,
+            interpolate=interpolate,
+            lineRGB=lineRGB,
+            fillRGB=fillRGB,
+            name=name,
+            autoLog=autoLog,
+            autoDraw=autoDraw,
+            color=color,
+            colorSpace=colorSpace)
