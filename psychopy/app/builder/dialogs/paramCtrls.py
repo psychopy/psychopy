@@ -380,7 +380,7 @@ def validate(obj, valType):
             val = re.sub(r"\$?(Advanced)?Color\(", "", val[:-1])
         try:
             # Try to create a Color object from value
-            obj.color = Color(val)
+            obj.color = Color(val, False)
             if not obj.color:
                 # If invalid object is created, input is invalid
                 valid = False
