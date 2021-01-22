@@ -21,8 +21,8 @@ class Circle(Polygon):
     :class:`~psychopy.visual.ShapeStim`
 
     (New in version 1.72.00)
-    """
 
+    """
     def __init__(self,
                  win,
                  radius=.5,
@@ -51,6 +51,40 @@ class Circle(Polygon):
         Circle accepts all input parameters that
         `~psychopy.visual.ShapeStim` accept, except for `vertices` and
         `closeShape`.
+
+        Parameters
+        ----------
+        win : ~`psychopy.visual.Window`
+            Window this circle is being drawn to.
+        radius : float
+            Radius of the circle.
+        units : str
+            Units to use when drawing.
+        lineWidth : float
+            Width of the circle's outline.
+        lineColor, fillColor : `array_like`, ~`psychopy.visual.Color` or `None`
+            Color of the circle's outline and fill. If `None`, a fully
+            transparent color is used which makes the fill or outline invisible.
+        lineColorSpace, fillColorSpace : str
+            Colorspace to use for the outline and fill. This changes how the
+            values passed to `lineColor` and `fillColor` are interpreted.
+        pos : array_like
+            Initial position (X, Y) of the circle on-screen in `units`.
+        size : float
+            Scaling factor for te size of the circle in window units.
+        ori : float
+            Initial rotation of the circle in degrees.
+        opacity : float
+            Opacity of the circle. A value of 1.0 indicates fully opaque and 0.0
+            is fully transparent (therefore invisible). Values between 1.0 and
+            0.0 will result in colors being blended with objects in the
+            background. This value affects the fill and outline of the shape.
+        contrast : float
+            Contrast level on the circle (0.0 - 1.0).
+        depth : int
+            Depth layer to draw the circle.
+        interpolate : bool
+
         """
         # what local vars are defined (these are the init params) for use by
         # __repr__
