@@ -319,8 +319,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         """
         def getLineWidthFromPix(pixVal):
             return pixVal / self._pixelScaling + self.padding * 2
-
-        text = self._layoutText
         
         rgb = self._foreColor.rgba
         font = self.glFont
