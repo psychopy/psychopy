@@ -153,17 +153,21 @@ class ParamCtrls(object):
             self.valueCtrl = paramCtrls.ColorCtrl(parent,
                                                   val=param.val, valType=param.valType,
                                                   fieldName=fieldName, size=wx.Size(self.valueWidth, 24))
+        elif param.inputType == 'dict':
+            self.valueCtrl = paramCtrls.DictCtrl(parent,
+                                                 val=self.exp.settings.getInfo(), valType=param.valType,
+                                                 fieldName=fieldName)
         else:
             self.valueCtrl = paramCtrls.SingleLineCtrl(parent,
                                                    val=str(param.val), valType=param.valType,
                                                    fieldName=fieldName,size=wx.Size(self.valueWidth, 24))
             logging.warn(f"Parameter {fieldName} has unrecognised inputType \"{param.inputType}\"")
 
-        if fieldName == 'Experiment info':
-            # for expInfo convert from a string to the list-of-dicts
-            val = self.expInfoToListWidget(param.val)
-            self.valueCtrl = dialogs.ListWidget(
-                parent, val, order=['Field', 'Default'])
+        # if fieldName == 'Experiment info':
+        #     # for expInfo convert from a string to the list-of-dicts
+        # val = self.expInfoToListWidget(param.val)
+        #     self.valueCtrl = dialogs.ListWidget(
+        #         parent, val, order=['Field', 'Default'])
 
         try:
             self.valueCtrl.SetToolTip(wx.ToolTip(_translate(param.hint)))

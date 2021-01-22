@@ -2,6 +2,7 @@ import os
 import wx
 
 from psychopy.app.colorpicker import PsychoColorPicker
+from psychopy.app.dialogs import ListWidget
 from psychopy.app.themes import ThemeMixin
 from psychopy.colors import Color
 from psychopy.localization import _translate
@@ -403,3 +404,30 @@ def validate(obj, valType):
     obj.valid = valid
     if hasattr(obj, "showValid"):
         obj.showValid(valid)
+
+class DictCtrl(ListWidget, _ValidatorMixin):
+    def __init__(self, parent,
+                 val={}, valType='dict',
+                 fieldName=""):
+        if not isinstance(val, (dict, list)):
+            raise ValueError("DictCtrl must be supplied with either a dict or a list of 1-long dicts, value supplied was {}".format(val))
+        # If supplied with a dict, convert it to a list of dicts
+        if isinstance(val, dict):
+            newVal = []
+            for key, v in val.items():
+                newVal.append({'Field': key, 'Default': v})
+            val = newVal
+        # If any items within the list are not dicts or are dicts longer than 1, throw error
+        if not all(isinstance(v, dict) and len(v) == 2 for v in val):
+            raise ValueError("DictCtrl must be supplied with either a dict or a list of 1-long dicts, value supplied was {}".format(val))
+        # Iterate through list of dicts to get each key in order
+        order = []
+        for row in val:
+            order.append(row['Field'])
+        # Create ListWidget
+        ListWidget.__init__(self, parent, val, order=order)
+
+    def SetForegroundColour(self, color):
+        for child in self.Children:
+            if hasattr(child, "SetForegroundColour"):
+                child.SetForegroundColour(color)
