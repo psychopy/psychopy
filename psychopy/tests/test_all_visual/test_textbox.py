@@ -86,12 +86,12 @@ class Test_textbox(object):
             # White on black in hex
             {"color": "#ffffff", "fillColor": "#000000", "borderColor": "#000000", "space": "hex",
              "screenshot": "textbox_colors_WOB.png"},
-            {"color": "red", "fillColor": "yellow", "borderColor": "blue", "space": "rgb",
-             "screenshot": "textbox_colors_exemplar1.png"},
-            {"color": "yellow", "fillColor": "blue", "borderColor": "red", "space": "rgb",
-             "screenshot": "textbox_colors_exemplar2.png"},
-            {"color": "blue", "fillColor": "red", "borderColor": "yellow", "space": "rgb",
-             "screenshot": "textbox_colors_exemplar3.png"},
+            #{"color": "red", "fillColor": "yellow", "borderColor": "blue", "space": "rgb",
+            # "screenshot": "textbox_colors_exemplar1.png"},
+            #{"color": "yellow", "fillColor": "blue", "borderColor": "red", "space": "rgb",
+            # "screenshot": "textbox_colors_exemplar2.png"},
+            #{"color": "blue", "fillColor": "red", "borderColor": "yellow", "space": "rgb",
+            # "screenshot": "textbox_colors_exemplar3.png"},
         ]
         # Some colors which are likely to cause problems if something isn't working
         tykes = [
