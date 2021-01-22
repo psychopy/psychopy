@@ -50,7 +50,9 @@ class MovieComponent(BaseVisualComponent):
         self.type = 'Movie'
         self.url = "http://www.psychopy.org/builder/components/movie.html"
         # comes immediately after name and timing params
-        self.order = ['movie', 'backend', 'No audio', 'loop', 'forceEndRoutine']
+        self.order += ['movie', 'forceEndRoutine', # Basic tab
+                       'loop', 'No audio', 'backend',
+                       ]
         self.targets = ['PsychoPy', 'PsychoJS']
 
         # params
@@ -98,9 +100,7 @@ class MovieComponent(BaseVisualComponent):
         del self.params['color']
         del self.params['colorSpace']
         del self.params['fillColor']
-        del self.params['fillColorSpace']
         del self.params['borderColor']
-        del self.params['borderColorSpace']
 
     def _writeCreationCode(self, buff, useInits):
         # This will be called by either self.writeInitCode() or

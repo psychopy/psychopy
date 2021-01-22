@@ -36,7 +36,7 @@ class TextComponent(BaseVisualComponent):
     def __init__(self, exp, parentName, name='text',
                  # effectively just a display-value
                  text=_translate('Any text\n\nincluding line breaks'),
-                 font='Arial', units='from exp settings',
+                 font='Open Sans', units='from exp settings',
                  color='white', colorSpace='rgb',
                  pos=(0, 0), letterHeight=0.1, ori=0,
                  startType='time (s)', startVal=0.0,
@@ -97,9 +97,7 @@ class TextComponent(BaseVisualComponent):
             label=_localized['languageStyle'])
 
         del self.params['fillColor']
-        del self.params['fillColorSpace']
         del self.params['borderColor']
-        del self.params['borderColorSpace']
 
     def writeInitCode(self, buff):
         # do we need units code?

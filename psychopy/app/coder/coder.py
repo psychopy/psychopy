@@ -9,6 +9,8 @@ from __future__ import absolute_import, print_function
 
 # from future import standard_library
 # standard_library.install_aliases()
+from pathlib import Path
+
 from past.builtins import unicode
 from builtins import chr
 from builtins import range
@@ -33,8 +35,9 @@ import textwrap
 from .. import stdOutRich, dialogs
 from .. import pavlovia_ui
 from psychopy import logging, prefs
+from psychopy.alerts._alerts import alert
 from psychopy.localization import _translate
-from ..utils import FileDropTarget, PsychopyToolbar, FrameSwitcher
+from ..utils import FileDropTarget, PsychopyToolbar, FrameSwitcher, updateDemosMenu
 from psychopy.projects import pavlovia
 import psychopy.app.pavlovia_ui.menu
 from psychopy.app.errorDlg import exceptionCallback
@@ -1738,43 +1741,9 @@ class CoderFrame(wx.Frame, ThemeMixin):
 
         # ---_demos---#000000#FFFFFF------------------------------------------
         self.demosMenu = wx.Menu()
-        self.demos = {}
         menuBar.Append(self.demosMenu, _translate('&Demos'))
-        # for demos we need a dict of {event ID: filename, ...}
-        # add folders
-        folders = glob.glob(os.path.join(self.paths['demos'], 'coder', '*'))
-        for folder in folders:
-            # if it isn't a folder then skip it
-            if (not os.path.isdir(folder)):
-                continue
-            # otherwise create a submenu
-            folderDisplayName = os.path.split(folder)[-1]
-            if folderDisplayName.startswith('_'):
-                continue  # don't include private folders
-            if folderDisplayName in _localized:
-                folderDisplayName = _localized[folderDisplayName]
-            submenu = wx.Menu()
-            self.demosMenu.AppendSubMenu(submenu, folderDisplayName)
-
-            # find the files in the folder (search two levels deep)
-            demoList = glob.glob(os.path.join(folder, '*.py'))
-            demoList += glob.glob(os.path.join(folder, '*', '*.py'))
-            demoList += glob.glob(os.path.join(folder, '*', '*', '*.py'))
-
-            demoList.sort()
-
-            for thisFile in demoList:
-                shortname = thisFile.split(os.path.sep)[-1]
-                if shortname == "run.py":
-                    # file is just "run" so get shortname from directory name
-                    # instead
-                    shortname = thisFile.split(os.path.sep)[-2]
-                elif shortname.startswith('_'):
-                    continue  # remove any 'private' files
-                item = submenu.Append(wx.ID_ANY, shortname)
-                thisID = item.GetId()
-                self.demos[thisID] = thisFile
-                self.Bind(wx.EVT_MENU, self.loadDemo, id=thisID)
+        # Make demos menu
+        updateDemosMenu(self, self.demosMenu, str(Path(self.paths['demos']) / "coder"), ext=".py")
         # also add simple demos to root
         self.demosMenu.AppendSeparator()
         demos = glob.glob(os.path.join(self.paths['demos'], 'coder', '*.py'))
@@ -1785,7 +1754,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
             item = self.demosMenu.Append(wx.ID_ANY, shortname)
             thisID = item.GetId()
             self.demos[thisID] = thisFile
-            self.Bind(wx.EVT_MENU, self.loadDemo, id=thisID)
+            self.Bind(wx.EVT_MENU, self.demoLoad, id=thisID)
 
         # ---_shell---#000000#FFFFFF--------------------------------------------
         # self.shellMenu = wx.Menu()
@@ -2600,12 +2569,11 @@ class CoderFrame(wx.Frame, ThemeMixin):
     def runFile(self, event=None):
         """Open Runner for running the script."""
 
-        fullPath = self.currentDoc.filename
-        filename = os.path.split(fullPath)[1]
+        fullPath = Path(self.currentDoc.filename)
         # does the file need saving before running?
-        if self.currentDoc.UNSAVED:
+        if self.currentDoc.UNSAVED or not fullPath.is_file():
             sys.stdout.flush()
-            msg = _translate('Save changes to %s before running?') % filename
+            msg = _translate('Save changes to %s before running?') % fullPath.name
             dlg = dialogs.MessageDialog(self, message=msg, type='Warning')
             resp = dlg.ShowModal()
             sys.stdout.flush()
@@ -2616,9 +2584,13 @@ class CoderFrame(wx.Frame, ThemeMixin):
                 self.fileSave(None)  # save then run
             elif resp == wx.ID_NO:
                 pass  # just run
+        fullPath = Path(self.currentDoc.filename) # Get full path again in case it has changed
         if self.app.runner == None:
             self.app.showRunner()
-        self.app.runner.addTask(fileName=fullPath)
+        if fullPath.is_file():
+            self.app.runner.addTask(fileName=fullPath)
+        else:
+            alert(code=6105, strFields={'path': str(fullPath)})
         self.app.runner.Raise()
         if event:
             if event.Id in [self.cdrBtnRun.Id, self.IDs.cdrRun]:
@@ -2761,8 +2733,8 @@ class CoderFrame(wx.Frame, ThemeMixin):
     #     else:
     #        self.prefs['analyseAuto']=False
 
-    def loadDemo(self, event):
-        self.setCurrentDoc(self.demos[event.GetId()])
+    def demoLoad(self, event):
+        self.setCurrentDoc(str(self.demos[event.GetId()]))
 
     def tabKeyPressed(self, event):
         # if several chars are selected then smartIndent

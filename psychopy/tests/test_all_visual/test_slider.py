@@ -32,7 +32,7 @@ class Test_Slider(object):
             s = Slider(self.win, color=color)
 
             assert s.line._foreColor == Color(color, s.colorSpace)
-            assert s.tickLines.colors[0] == Color(color, s.colorSpace)
+            assert s.tickLines._colors[0] == Color(color, s.colorSpace)
 
             for l in s.labelObjs:
                 assert l.color == color

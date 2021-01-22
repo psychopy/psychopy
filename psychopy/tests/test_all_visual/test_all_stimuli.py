@@ -601,7 +601,7 @@ class _baseVisualTest(object):
         wedge.angularPhase = 0.1
         wedge.draw()
         "{}".format(wedge) #check that str(xxx) is working
-        if win.winType != 'pygame':  # pygame definitely gets radialstim wrong!
+        if win.winType != 'pygame' and (sys.version_info.major, sys.version_info.minor) != (3, 6):  # pygame and 3.6 definitely get radialstim wrong!
             utils.compareScreenshot('wedge2_%s.png' %(self.contextName),
                                     win, crit=thresh)
         else:

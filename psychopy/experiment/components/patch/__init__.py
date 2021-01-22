@@ -48,8 +48,6 @@ class PatchComponent(BaseVisualComponent):
         self.type = 'Patch'
         self.url = "http://www.psychopy.org/builder/components/patch.html"
         # params
-        self.params['color'].categ = "Advanced"
-        self.params['colorSpace'].categ = "Advanced"
 
         msg = _translate("The image to be displayed - 'sin','sqr'... or a "
                          "filename (including path)")
