@@ -170,6 +170,7 @@ _localized = {
     'fillColorSpace': _translate('Fill Color Space'),
     'borderColor': _translate('Border Color'),
     'borderColorSpace': _translate('Border Color Space'),
+    'contrast': _translate('Contrast'),
     'opacity': _translate('Opacity'),
     'pos': _translate('Position [x,y]'),
     'ori': _translate('Orientation'),
