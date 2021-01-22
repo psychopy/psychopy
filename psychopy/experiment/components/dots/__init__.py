@@ -170,9 +170,7 @@ class DotsComponent(BaseVisualComponent):
         del self.params['pos']  # should be fieldPos
         del self.params['ori']  # should be dir for dots
         del self.params['fillColor']
-        del self.params['fillColorSpace']
         del self.params['borderColor']
-        del self.params['borderColorSpace']
 
     def writeInitCode(self, buff):
         # do we need units code?

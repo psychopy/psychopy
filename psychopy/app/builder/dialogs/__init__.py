@@ -125,10 +125,15 @@ class ParamCtrls(object):
             if fieldName == 'text':
                 self.valueCtrl.SetFocus()
         elif param.inputType == 'spin':
-            self.valueCtrl = paramCtrls.IntCtrl(parent,
-                                                val=param.val, valType=param.valType,
-                                                fieldName=fieldName,size=wx.Size(self.valueWidth, 24),
-                                                limits=param.allowedVals)
+            # Create single line string control
+            self.valueCtrl = paramCtrls.SingleLineCtrl(parent,
+                                                   val=str(param.val), valType=param.valType,
+                                                   fieldName=fieldName,size=wx.Size(self.valueWidth, 24))
+            # Will have to disable spinCtrl until we have a dropdown for inputType, sadly
+            # self.valueCtrl = paramCtrls.IntCtrl(parent,
+            #                                     val=param.val, valType=param.valType,
+            #                                     fieldName=fieldName,size=wx.Size(self.valueWidth, 24),
+            #                                     limits=param.allowedVals)
         elif param.inputType == 'choice':
             self.valueCtrl = paramCtrls.ChoiceCtrl(parent,
                                                    val=str(param.val), valType=param.valType, choices=param.allowedVals,
@@ -153,17 +158,21 @@ class ParamCtrls(object):
             self.valueCtrl = paramCtrls.ColorCtrl(parent,
                                                   val=param.val, valType=param.valType,
                                                   fieldName=fieldName, size=wx.Size(self.valueWidth, 24))
+        elif param.inputType == 'dict':
+            self.valueCtrl = paramCtrls.DictCtrl(parent,
+                                                 val=self.exp.settings.getInfo(), valType=param.valType,
+                                                 fieldName=fieldName)
         else:
             self.valueCtrl = paramCtrls.SingleLineCtrl(parent,
                                                    val=str(param.val), valType=param.valType,
                                                    fieldName=fieldName,size=wx.Size(self.valueWidth, 24))
             logging.warn(f"Parameter {fieldName} has unrecognised inputType \"{param.inputType}\"")
 
-        if fieldName == 'Experiment info':
-            # for expInfo convert from a string to the list-of-dicts
-            val = self.expInfoToListWidget(param.val)
-            self.valueCtrl = dialogs.ListWidget(
-                parent, val, order=['Field', 'Default'])
+        # if fieldName == 'Experiment info':
+        #     # for expInfo convert from a string to the list-of-dicts
+        # val = self.expInfoToListWidget(param.val)
+        #     self.valueCtrl = dialogs.ListWidget(
+        #         parent, val, order=['Field', 'Default'])
 
         try:
             self.valueCtrl.SetToolTip(wx.ToolTip(_translate(param.hint)))
@@ -1122,6 +1131,7 @@ class DlgLoopProperties(_BaseParamsDlg):
 
         wx.Dialog.__init__(self, None, wx.ID_ANY, localizedTitle,
                            pos, size, style)
+        self.type = 'Loop'
         self.helpUrl = helpUrl
         self.frame = frame
         self.exp = frame.exp
@@ -1255,8 +1265,12 @@ class DlgLoopProperties(_BaseParamsDlg):
                 param=self.currentHandler.params[fieldName])
             panelSizer.Add(ctrls.nameCtrl, [row, 0], border=1,
                            flag=wx.EXPAND | wx.ALL)
-            panelSizer.Add(ctrls.valueCtrl, [row, 1], border=1,
-                           flag=wx.EXPAND | wx.ALL)
+            if hasattr(ctrls.valueCtrl, '_szr'):
+                panelSizer.Add(ctrls.valueCtrl._szr, [row, 1], border=1,
+                               flag=wx.EXPAND | wx.ALL)
+            else:
+                panelSizer.Add(ctrls.valueCtrl, [row, 1], border=1,
+                               flag=wx.EXPAND | wx.ALL)
             row += 1
 
         self.globalCtrls['name'].valueCtrl.Bind(wx.EVT_TEXT, self.doValidate)
@@ -1271,6 +1285,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         # loop through the params
         keys = list(handler.params.keys())
         panel = wx.Panel(parent=self)
+        panel.app=self.app
         panelSizer = wx.GridBagSizer(5, 5)
         panel.SetSizer(panelSizer)
         row = 0
@@ -1297,18 +1312,6 @@ class DlgLoopProperties(_BaseParamsDlg):
             if fieldName in self.globalCtrls:
                 # these have already been made and inserted into sizer
                 ctrls = self.globalCtrls[fieldName]
-            elif fieldName == 'conditionsFile':
-                ctrls = ParamCtrls(dlg=self, parent=panel, label=label,
-                                   fieldName=fieldName,
-                                   param=handler.params[fieldName],
-                                   browse=True)
-                self.Bind(wx.EVT_BUTTON, self.onBrowseTrialsFile,
-                          ctrls.browseCtrl)
-                ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.viewConditions)
-                panelSizer.Add(ctrls.nameCtrl, [row, 0])
-                panelSizer.Add(ctrls.valueCtrl, [row, 1])
-                panelSizer.Add(ctrls.browseCtrl, [row, 2])
-                row += 1
             elif fieldName == 'conditions':
                 if 'conditions' in handler.params:
                     _cond = handler.params['conditions'].val
@@ -1327,16 +1330,26 @@ class DlgLoopProperties(_BaseParamsDlg):
                     ctrls.valueCtrl.SetForegroundColour("Black")
                 else:
                     ctrls.valueCtrl.SetForegroundColour("Red")
-                panelSizer.Add(ctrls.valueCtrl, (row, 0),
-                               span=(1, 3), flag=wx.ALIGN_CENTER)
+                if hasattr(ctrls.valueCtrl, "_szr"):
+                    panelSizer.Add(ctrls.valueCtrl._szr, (row, 0),
+                                   span=(1, 3), flag=wx.ALIGN_CENTER)
+                else:
+                    panelSizer.Add(ctrls.valueCtrl, (row, 0),
+                                   span=(1, 3), flag=wx.ALIGN_CENTER)
                 row += 1
             else:  # normal text entry field
                 ctrls = ParamCtrls(dlg=self, parent=panel, label=label,
                                    fieldName=fieldName,
                                    param=handler.params[fieldName])
                 panelSizer.Add(ctrls.nameCtrl, [row, 0])
-                panelSizer.Add(ctrls.valueCtrl, [row, 1])
+                if hasattr(ctrls.valueCtrl, "_szr"):
+                    panelSizer.Add(ctrls.valueCtrl._szr, [row, 1])
+                else:
+                    panelSizer.Add(ctrls.valueCtrl, [row, 1])
                 row += 1
+            # Link conditions file browse button to its own special method
+            if fieldName == 'conditionsFile':
+                ctrls.valueCtrl.findBtn.Bind(wx.EVT_BUTTON, self.onBrowseTrialsFile)
             # store info about the field
             self.constantsCtrls[fieldName] = ctrls
         return panel
@@ -1344,6 +1357,7 @@ class DlgLoopProperties(_BaseParamsDlg):
     def makeMultiStairCtrls(self):
         # a list of controls for the random/sequential versions
         panel = wx.Panel(parent=self)
+        panel.app = self.app
         panelSizer = wx.GridBagSizer(5, 5)
         panel.SetSizer(panelSizer)
         row = 0
@@ -1374,17 +1388,6 @@ class DlgLoopProperties(_BaseParamsDlg):
             if fieldName in self.globalCtrls:
                 # these have already been made and inserted into sizer
                 ctrls = self.globalCtrls[fieldName]
-            elif fieldName == 'conditionsFile':
-                ctrls = ParamCtrls(dlg=self, parent=panel, label=label,
-                                   fieldName=fieldName,
-                                   param=handler.params[fieldName],
-                                   browse=True)
-                self.Bind(wx.EVT_BUTTON, self.onBrowseTrialsFile,
-                          ctrls.browseCtrl)
-                panelSizer.Add(ctrls.nameCtrl, [row, 0])
-                panelSizer.Add(ctrls.valueCtrl, [row, 1])
-                panelSizer.Add(ctrls.browseCtrl, [row, 2])
-                row += 1
             elif fieldName == 'conditions':
                 if 'conditions' in handler.params:
                     text, OK = self.getTrialsSummary(
@@ -1404,8 +1407,12 @@ class DlgLoopProperties(_BaseParamsDlg):
                     ctrls.valueCtrl.SetForegroundColour("Black")
                 else:
                     ctrls.valueCtrl.SetForegroundColour("Red")
-                panelSizer.Add(ctrls.valueCtrl, (row, 0),
-                               span=(1, 3), flag=wx.ALIGN_CENTER)
+                if hasattr(ctrls.valueCtrl, "_szr"):
+                    panelSizer.Add(ctrls.valueCtrl._szr, (row, 0),
+                                   span=(1, 3), flag=wx.ALIGN_CENTER)
+                else:
+                    panelSizer.Add(ctrls.valueCtrl, (row, 0),
+                                   span=(1, 3), flag=wx.ALIGN_CENTER)
                 row += 1
             else:
                 # normal text entry field
@@ -1413,8 +1420,14 @@ class DlgLoopProperties(_BaseParamsDlg):
                                    fieldName=fieldName,
                                    param=handler.params[fieldName])
                 panelSizer.Add(ctrls.nameCtrl, [row, 0])
-                panelSizer.Add(ctrls.valueCtrl, [row, 1])
+                if hasattr(ctrls.valueCtrl, "_szr"):
+                    panelSizer.Add(ctrls.valueCtrl._szr, [row, 1])
+                else:
+                    panelSizer.Add(ctrls.valueCtrl, [row, 1])
                 row += 1
+            # Bind file button with its own special method
+            if fieldName == 'conditionsFile':
+                ctrls.valueCtrl.findBtn.Bind(wx.EVT_BUTTON, self.onBrowseTrialsFile)
             # store info about the field
             self.multiStairCtrls[fieldName] = ctrls
         return panel
@@ -1448,7 +1461,10 @@ class DlgLoopProperties(_BaseParamsDlg):
                                    fieldName=fieldName,
                                    param=handler.params[fieldName])
                 panelSizer.Add(ctrls.nameCtrl, [row, 0])
-                panelSizer.Add(ctrls.valueCtrl, [row, 1])
+                if hasattr(ctrls.valueCtrl, "_szr"):
+                    panelSizer.Add(ctrls.valueCtrl._szr, [row, 1])
+                else:
+                    panelSizer.Add(ctrls.valueCtrl, [row, 1])
                 row += 1
             # store info about the field
             self.staircaseCtrls[fieldName] = ctrls
@@ -1475,43 +1491,6 @@ class DlgLoopProperties(_BaseParamsDlg):
                 return _translate("No parameters set (conditionsFile not found)"), False
             # No condition file is not an error
             return _translate("No parameters set"), True
-
-    def viewConditions(self, event):
-        """display Condition x Parameter values from within a file
-        make new if no self.conditionsFile is set
-        """
-        self.refreshConditions()
-        conditions = self.conditions  # list of dict
-        if self.conditionsFile:
-            # get name + dir, like BART/trialTypes.xlsx
-            fileName = os.path.abspath(self.conditionsFile)
-            fileName = fileName.rsplit(os.path.sep, 2)[1:]
-            fileName = os.path.join(*fileName)
-            if fileName.endswith('.pkl'):
-                # edit existing .pkl file, loading from file
-                gridGUI = DlgConditions(fileName=self.conditionsFile,
-                                        parent=self, title=fileName)
-            else:
-                # preview existing .csv or .xlsx file that has already
-                # been loaded -> conditions
-                # better to reload file, get fieldOrder as well
-                gridGUI = DlgConditions(conditions, parent=self,
-                                        title=fileName, fixed=True)
-        else:  # edit new empty .pkl file
-            gridGUI = DlgConditions(parent=self)
-            # should not check return value, its meaningless
-            if gridGUI.OK:
-                self.conditions = gridGUI.asConditions()
-                if hasattr(gridGUI, 'fileName'):
-                    self.conditionsFile = gridGUI.fileName
-        self.currentHandler.params['conditionsFile'].val = self.conditionsFile
-        # as set via DlgConditions
-        if 'conditionsFile' in self.currentCtrls:
-            valCtrl = self.currentCtrls['conditionsFile'].valueCtrl
-            valCtrl.Clear()
-            valCtrl.WriteText(self.conditionsFile)
-        # still need to do namespace and internal updates (see end of
-        # onBrowseTrialsFile)
 
     def setCtrls(self, ctrlType):
         # choose the ctrls to show/hide

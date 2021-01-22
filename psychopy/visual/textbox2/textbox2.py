@@ -203,6 +203,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 lineWidth=1, lineColor=None, fillColor=fillColor, opacity=0.1,
                 autoLog=False)
         # then layout the text (setting text triggers _layout())
+        self._layoutText = ""
         self.startText = text
         self.text = text if text is not None else ""
 
@@ -306,6 +307,11 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
     @attributeSetter
     def text(self, text):
         self.__dict__['text'] = text
+        text = text.replace('<i>', codes['ITAL_START'])
+        text = text.replace('</i>', codes['ITAL_END'])
+        text = text.replace('<b>', codes['BOLD_START'])
+        text = text.replace('</b>', codes['BOLD_END'])
+        self._layoutText = text        
         self._layout()
 
     def _layout(self):
@@ -313,26 +319,21 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         """
         def getLineWidthFromPix(pixVal):
             return pixVal / self._pixelScaling + self.padding * 2
-
-        text = self.text
-        text = text.replace('<i>', codes['ITAL_START'])
-        text = text.replace('</i>', codes['ITAL_END'])
-        text = text.replace('<b>', codes['BOLD_START'])
-        text = text.replace('</b>', codes['BOLD_END'])
+        
         rgb = self._foreColor.rgba
         font = self.glFont
 
         # the vertices are initially pix (natural for freetype)
         # then we convert them to the requested units for self._vertices
         # then they are converted back during rendering using standard BaseStim
-        vertices = np.zeros((len(text) * 4, 2), dtype=np.float32)
-        self._charIndices = np.zeros((len(text)), dtype=int)
-        self._colors = np.zeros((len(text) * 4, 4), dtype=np.double)
-        self._texcoords = np.zeros((len(text) * 4, 2), dtype=np.double)
-        self._glIndices = np.zeros((len(text) * 4), dtype=int)
+        vertices = np.zeros((len(self._layoutText) * 4, 2), dtype=np.float32)
+        self._charIndices = np.zeros((len(self._layoutText)), dtype=int)
+        self._colors = np.zeros((len(self._layoutText) * 4, 4), dtype=np.double)
+        self._texcoords = np.zeros((len(self._layoutText) * 4, 2), dtype=np.double)
+        self._glIndices = np.zeros((len(self._layoutText) * 4), dtype=int)
 
         # the following are used internally for layout
-        self._lineNs = np.zeros(len(text), dtype=int)
+        self._lineNs = np.zeros(len(self._layoutText), dtype=int)
         self._lineTops = []  # just length of nLines
         self._lineBottoms = []
         self._lineLenChars = []  #
@@ -359,7 +360,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         wordsThisLine = 0
         lineN = 0
 
-        for i, charcode in enumerate(text):
+        for i, charcode in enumerate(self._layoutText):
 
             printable = True  # unless we decide otherwise
             # handle formatting codes
@@ -818,7 +819,7 @@ class Caret(ColorMixin):
 
     def __init__(self, textbox, color, width, colorSpace='rgb'):
         self.textbox = textbox
-        self.index = len(textbox.text)  # start off at the end
+        self.index = len(textbox._layoutText)  # start off at the end
         self.autoLog = False
         self.width = width
         self.units = textbox.units
@@ -929,8 +930,8 @@ class Caret(ColorMixin):
     def vertices(self):
         textbox = self.textbox
         # check we have a caret index
-        if self.index is None or self.index > len(textbox.text):
-            self.index = len(textbox.text)
+        if self.index is None or self.index > len(textbox._layoutText):
+            self.index = len(textbox._layoutText)
         if self.index < 0:
             self.index = 0
         # get the verts of character next to caret (chr is the next one so use

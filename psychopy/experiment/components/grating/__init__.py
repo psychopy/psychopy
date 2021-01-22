@@ -35,13 +35,13 @@ class GratingComponent(BaseVisualComponent):
     def __init__(self, exp, parentName, name='grating', image='sin',
                  mask='None', sf='None', interpolate='linear',
                  units='from exp settings', color='$[1,1,1]', colorSpace='rgb',
-                 pos=(0, 0), size=(0.5, 0.5), ori=0, phase=0.0, texRes='128',
+                 contrast=1.0, pos=(0, 0), size=(0.5, 0.5), ori=0, phase=0.0, texRes='128',
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0, blendmode='avg',
                  startEstim='', durationEstim=''):
         super(GratingComponent, self).__init__(
             exp, parentName, name=name, units=units,
-            color=color, colorSpace=colorSpace,
+            color=color, colorSpace=colorSpace, contrast=contrast,
             pos=pos, size=size, ori=ori,
             startType=startType, startVal=startVal,
             stopType=stopType, stopVal=stopVal,
@@ -118,9 +118,7 @@ class GratingComponent(BaseVisualComponent):
             label=_localized['blendmode'])
 
         del self.params['fillColor']
-        del self.params['fillColorSpace']
         del self.params['borderColor']
-        del self.params['borderColorSpace']
 
     def writeInitCode(self, buff):
         # do we need units code?
@@ -136,8 +134,8 @@ class GratingComponent(BaseVisualComponent):
                 "    tex=%(tex)s, mask=%(mask)s,\n" % inits +
                 "    ori=%(ori)s, pos=%(pos)s, size=%(size)s, " % inits +
                 "sf=%(sf)s, phase=%(phase)s,\n" % inits +
-                "    color=%(color)s, colorSpace=%(colorSpace)s, " % inits +
-                "opacity=%(opacity)s,blendmode=%(blendmode)s,\n" % inits +
+                "    color=%(color)s, colorSpace=%(colorSpace)s,\n" % inits +
+                "    opacity=%(opacity)s, contrast=%(contrast)s, blendmode=%(blendmode)s,\n" % inits +
                 # no newline - start optional parameters
                 "    texRes=%(texture resolution)s" % inits)
 

@@ -38,9 +38,8 @@ class ScreenState(object):
         w, h = self.experimentRuntime().devices.display.getPixelResolution()
         self._screen_background_fill = visual.Rect(self.window(), w, h,
                                                    lineColor=background_color,
-                                                   lineColorSpace='rgb255',
+                                                   colorSpace='rgb255',
                                                    fillColor=background_color,
-                                                   fillColorSpace='rgb255',
                                                    units='pix',
                                                    name='BACKGROUND',
                                                    opacity=1.0,
