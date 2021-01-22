@@ -105,9 +105,7 @@ class ImageComponent(BaseVisualComponent):
             label=_localized["flipHoriz"])
 
         del self.params['fillColor']
-        del self.params['fillColorSpace']
         del self.params['borderColor']
-        del self.params['borderColorSpace']
 
     def writeInitCode(self, buff):
         # do we need units code?
