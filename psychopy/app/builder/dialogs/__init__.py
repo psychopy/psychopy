@@ -125,10 +125,15 @@ class ParamCtrls(object):
             if fieldName == 'text':
                 self.valueCtrl.SetFocus()
         elif param.inputType == 'spin':
-            self.valueCtrl = paramCtrls.IntCtrl(parent,
-                                                val=param.val, valType=param.valType,
-                                                fieldName=fieldName,size=wx.Size(self.valueWidth, 24),
-                                                limits=param.allowedVals)
+            # Create single line string control
+            self.valueCtrl = paramCtrls.SingleLineCtrl(parent,
+                                                   val=str(param.val), valType=param.valType,
+                                                   fieldName=fieldName,size=wx.Size(self.valueWidth, 24))
+            # Will have to disable spinCtrl until we have a dropdown for inputType, sadly
+            # self.valueCtrl = paramCtrls.IntCtrl(parent,
+            #                                     val=param.val, valType=param.valType,
+            #                                     fieldName=fieldName,size=wx.Size(self.valueWidth, 24),
+            #                                     limits=param.allowedVals)
         elif param.inputType == 'choice':
             self.valueCtrl = paramCtrls.ChoiceCtrl(parent,
                                                    val=str(param.val), valType=param.valType, choices=param.allowedVals,
