@@ -246,11 +246,12 @@ class TableCtrl(wx.TextCtrl, _ValidatorMixin, _FileMixin):
         self.xlBtn.Bind(wx.EVT_BUTTON, self.openExcel)
         self._szr.Add(self.xlBtn)
         # Link to Excel templates for certain contexts
-        cmpRoot = os.path.dirname(experiment.components.__file__)
-        expRoot = os.path.normpath(os.path.join(cmpRoot, ".."))
+        cmpRoot = Path(experiment.components.__file__).parent
+        expRoot = Path(cmpRoot).parent
         self.templates = {
-            'Form': os.path.join(cmpRoot, "form", "formItems.xltx"),
-            'Loop': os.path.join(expRoot, "loopTemplate.xltx")
+            'Form': Path(cmpRoot) / "form" / "formItems.xltx",
+            'Loop': Path(expRoot) / "loopTemplate.xltx",
+            'None': Path(expRoot) / 'blankTemplate.xltx',
         }
         # Configure validation
         self.Bind(wx.EVT_TEXT, self.validate)
@@ -284,7 +285,11 @@ class TableCtrl(wx.TextCtrl, _ValidatorMixin, _FileMixin):
                 f"Once you have created and saved your table, please remember to add it to {self.Name}"),
                              caption="Reminder")
             dlg.ShowModal()
-            os.startfile(self.templates[self.GetTopLevelParent().type])
+            if hasattr(self.GetTopLevelParent(), 'type'):
+                if self.GetTopLevelParent().type in self.templates:
+                    os.startfile(self.templates[self.GetTopLevelParent().type])
+                    return
+            os.startfile(self.templates['None']) # Open blank template
 
     def findFile(self, event):
         _wld = f"All Table Files({'*'+';*'.join(self.validExt)})|{'*'+';*'.join(self.validExt)}|All Files (*.*)|*.*"
