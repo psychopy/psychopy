@@ -75,10 +75,10 @@ class _FileMixin:
 class SingleLineCtrl(wx.TextCtrl, _ValidatorMixin):
     def __init__(self, parent, valType,
                  val="", fieldName="",
-                 size=wx.Size(-1, 24)):
+                 size=wx.Size(-1, 24), style=wx.DEFAULT):
         # Create self
         wx.TextCtrl.__init__(self)
-        self.Create(parent, -1, val, name=fieldName, size=size)
+        self.Create(parent, -1, val, name=fieldName, size=size, style=style)
         self.valType = valType
         # Add sizer
         self._szr = wx.BoxSizer(wx.HORIZONTAL)
@@ -110,8 +110,7 @@ class MultiLineCtrl(SingleLineCtrl, _ValidatorMixin):
                  size=wx.Size(-1, 72)):
         SingleLineCtrl.__init__(self, parent, valType,
                                 val=val, fieldName=fieldName,
-                                size=size)
-        self.SetWindowStyleFlag(wx.TE_MULTILINE)
+                                size=size, style=wx.TE_MULTILINE)
 
 
 class IntCtrl(wx.SpinCtrl, _ValidatorMixin):
