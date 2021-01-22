@@ -148,7 +148,7 @@ class SettingsComponent(object):
                             " / break out of the experiment"),
             label=_localized["Enable Escape"])
         self.params['Experiment info'] = Param(
-            expInfo, valType='code', inputType="single", allowedTypes=[],
+            expInfo, valType='dict', inputType="dict", allowedTypes=[],
             hint=_translate("The info to present in a dialog box. Right-click"
                             " to check syntax and preview the dialog box."),
             label=_localized["Experiment info"], categ='Basic')
