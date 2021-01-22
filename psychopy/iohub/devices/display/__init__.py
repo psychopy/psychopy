@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 # Part of the psychopy.iohub library.
 # Copyright (C) 2012-2016 iSolver Software Solutions
 # Distributed under the terms of the GNU General Public License (GPL).
@@ -473,7 +473,10 @@ class Display(Device):
                 runtime_info['bounds'] = (x, y, x + w, y + h)
                 runtime_info['primary'] = runtime_info['bounds'] == dbounds
                 if mode:
-                    runtime_info['retrace_rate'] = mode.rate
+                    rate = mode.rate
+                    if rate == 0.0:
+                        rate = 60
+                    runtime_info['retrace_rate'] = rate
                     runtime_info['bits_per_pixel'] = mode.depth
                     if mode and mode.width > 0 and mode.height > 0:
                         runtime_info['pixel_resolution'] = mode.width, mode.height

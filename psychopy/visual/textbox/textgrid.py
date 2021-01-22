@@ -272,9 +272,12 @@ class TextGrid(object):
             # etime=getTime()
 
     def __del__(self):
-        if self._text_dlist:
-            glDeleteLists(self._text_dlist, 1)
-            self._text_dlist = 0
-        self._current_font_display_lists = None
-        self._text_document._free()
-        del self._text_document
+        try:
+            self._text_document._free()
+            del self._text_document
+            if self._text_dlist:
+                glDeleteLists(self._text_dlist, 1)
+                self._text_dlist = 0
+            self._current_font_display_lists = None
+        except (ModuleNotFoundError, ImportError):
+            pass
