@@ -190,8 +190,6 @@ class FontManager(object):
 
         return self.addFontFiles(font_paths)
 
-        return fi
-
     # Class methods for FontManager below this comment should not need to be
     # used by user scripts in most situations. Accessing them is okay.
 
@@ -386,40 +384,44 @@ class MonospaceFontAtlas(object):
             uchar = chr(charcode)
             if ud.category(uchar) not in (u'Zl', u'Zp', u'Cc', u'Cf',
                                           u'Cs', u'Co', u'Cn'):
-                self.charcode2unichr[charcode] = uchar
-                face.load_char(uchar, FT_LOAD_RENDER | FT_LOAD_FORCE_AUTOHINT)
-                bitmap = face.glyph.bitmap
-
-                self.total_bitmap_area += bitmap.width * bitmap.rows
-                max_ascender = max(max_ascender, face.glyph.bitmap_top)
-                max_descender = max(
-                    max_descender, bitmap.rows - face.glyph.bitmap_top)
-                max_tile_width = max(max_tile_width, bitmap.width)
-                max_w = max(bitmap.width, max_w)
-                max_h = max(bitmap.rows, max_h)
-
-                x, y, w, h = self.atlas.get_region(
-                    bitmap.width + 2, bitmap.rows + 2)
-
-                if x < 0:
-                    msg = ("MonospaceFontAtlas.get_region failed "
-                           "for: {0}, requested area: {1}. Atlas Full!")
-                    vals = charcode, (bitmap.width + 2, bitmap.rows + 2)
-                    raise Exception(msg.format(vals))
-                x, y = x + 1, y + 1
-                w, h = w - 2, h - 2
-                data = np.array(
-                    bitmap._FT_Bitmap.buffer[:(bitmap.rows * bitmap.width)],
-                    dtype=np.ubyte).reshape(h, w, 1)
-                self.atlas.set_region((x, y, w, h), data)
-
-                self.charcode2glyph[charcode] = dict(
-                    offset=(face.glyph.bitmap_left, face.glyph.bitmap_top),
-                    size=(w, h),
-                    atlas_coords=(x, y, w, h),
-                    texcoords=[x, y, x + w, y + h],
-                    index=gindex,
-                    unichar=uchar)
+                try:
+                    face.load_char(uchar, FT_LOAD_RENDER | FT_LOAD_FORCE_AUTOHINT)
+                    bitmap = face.glyph.bitmap
+    
+                    self.charcode2unichr[charcode] = uchar
+    
+                    self.total_bitmap_area += bitmap.width * bitmap.rows
+                    max_ascender = max(max_ascender, face.glyph.bitmap_top)
+                    max_descender = max(
+                        max_descender, bitmap.rows - face.glyph.bitmap_top)
+                    max_tile_width = max(max_tile_width, bitmap.width)
+                    max_w = max(bitmap.width, max_w)
+                    max_h = max(bitmap.rows, max_h)
+    
+                    x, y, w, h = self.atlas.get_region(
+                        bitmap.width + 2, bitmap.rows + 2)
+    
+                    if x < 0:
+                        msg = ("MonospaceFontAtlas.get_region failed "
+                               "for: {0}, requested area: {1}. Atlas Full!")
+                        vals = charcode, (bitmap.width + 2, bitmap.rows + 2)
+                        raise Exception(msg.format(vals))
+                    x, y = x + 1, y + 1
+                    w, h = w - 2, h - 2
+                    data = np.array(
+                        bitmap._FT_Bitmap.buffer[:(bitmap.rows * bitmap.width)],
+                        dtype=np.ubyte).reshape(h, w, 1)
+                    self.atlas.set_region((x, y, w, h), data)
+    
+                    self.charcode2glyph[charcode] = dict(
+                        offset=(face.glyph.bitmap_left, face.glyph.bitmap_top),
+                        size=(w, h),
+                        atlas_coords=(x, y, w, h),
+                        texcoords=[x, y, x + w, y + h],
+                        index=gindex,
+                        unichar=uchar)
+                except (FT_Exception):
+                    print("Warning: TextBox stim could not load font face for charcode / uchar / category: ",  charcode, " / ", uchar, " / ", ud.category(uchar))
 
             charcode, gindex = face.get_next_char(charcode, gindex)
 
