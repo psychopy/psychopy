@@ -29,7 +29,13 @@ from pyglet.gl import (glGenLists, glNewList, GL_COMPILE, GL_QUADS,
 log = math.log
 ceil = math.ceil
 
-
+def bytesToStr(s):
+    """Force to unicode if bytes"""
+    if type(s) == bytes:
+        return s.decode('utf-8')
+    else:
+        return s
+    
 def nearestPow2(n):
     return pow(2, int(log(n, 2) + 0.5))
 
@@ -254,23 +260,22 @@ class FontManager(object):
         s = style.lower().strip()
         if s == 'regular':
             return False, False
-        if s.find(b'italic') >= 0 or s.find(b'oblique') >= 0:
+        if s.find('italic') >= 0 or s.find('oblique') >= 0:
             italic = True
-        if s.find(b'bold') >= 0:
+        if s.find('bold') >= 0:
             bold = True
         return bold, italic
 
     def _createFontInfo(self, fp, fface):
-        fns = (fface.family_name, fface.style_name)
+        fns = (bytesToStr(fface.family_name), bytesToStr(fface.style_name))
         if fns in self.font_family_styles:
             pass
         else:
-            self.font_family_styles.append(
-                (fface.family_name, fface.style_name))
+            self.font_family_styles.append(fns)
 
         styles_for_font_dict = self._available_font_info.setdefault(
-            fface.family_name, {})
-        fonts_for_style = styles_for_font_dict.setdefault(fface.style_name, [])
+            fns[0], {})
+        fonts_for_style = styles_for_font_dict.setdefault(fns[1], [])
         fi = FontInfo(fp, fface)
         fonts_for_style.append(fi)
         return fi
@@ -289,8 +294,8 @@ class FontInfo(object):
 
     def __init__(self, fp, face):
         self.path = fp
-        self.family_name = face.family_name
-        self.style_name = face.style_name
+        self.family_name = bytesToStr(face.family_name)
+        self.style_name = bytesToStr(face.style_name)
         self.charmaps = [charmap.encoding_name for charmap in face.charmaps]
         self.num_faces = face.num_faces
         self.num_glyphs = face.num_glyphs
@@ -299,7 +304,7 @@ class FontInfo(object):
         self.units_per_em = face.units_per_EM
         self.monospace = face.is_fixed_width
         self.charmap_id = face.charmap.index
-        self.label = "%s_%s" % (face.family_name, face.style_name)
+        self.label = "%s_%s" % (self.family_name, self.style_name)
         self.id = self.label
 
     def getID(self):
@@ -458,7 +463,7 @@ class MonospaceFontAtlas(object):
             glyph['texcoords'] = [gx1, gy1, gx2, gy2]
 
             glNewList(dl_index, GL_COMPILE)
-            if uchar not in [u'\t', u'\n']:
+            if uchar not in ['\t', '\n']:
                 glBegin(GL_QUADS)
                 x1 = glyph['offset'][0]
                 x2 = x1 + glyph['size'][0]

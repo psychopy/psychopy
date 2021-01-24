@@ -87,6 +87,7 @@ window=visual.Window(display_resolution,
 # Find a font that is available on the system.
 fm = textbox.getFontManager()
 available_font_names=fm.getFontFamilyStyles()
+font_name=available_font_names[0][0]
 prefered_fonts=[fn for fn,fs in available_font_names if fn in [
                                                             'Courier New',
                                                             'Consolas',
@@ -97,8 +98,7 @@ prefered_fonts=[fn for fn,fs in available_font_names if fn in [
                                                             'Luxi Mono']]
 if prefered_fonts:
     font_name=prefered_fonts[0]
-else:
-    font_name=available_font_names[0][0]
+print("Using font: ", font_name)
 
 # Create a TextBox stim and perform draw on it. Time how long it takes 
 # to create the initial stim and do the initial draw. 
@@ -143,8 +143,8 @@ for stim1, stim2 in stim_draw_orders:
     event.clearEvents()
     fcount=0
 
-    stim1_type=stim1.__class__.__name__+u' '
-    stim2_type=stim2.__class__.__name__+u' '
+    stim1_type=stim1.__class__.__name__
+    stim2_type=stim2.__class__.__name__
     while True:
         # For the textBox and TextStim resource, change the text every
         # chng_txt_each_flips, and record the time it takes to update the text
