@@ -238,6 +238,9 @@ class Color(object):
         self._requestedSpace = space or None
         if space in self.getSpace(self._requested, debug=True):
             self._requestedSpace = space
+        if space == False:
+            # If space is specifically set to False, Color is just being used for validation
+            self._requestedSpace = self.getSpace(self._requested, debug=True)[0] or 'rgb'
         if not self._requestedSpace:
             logging.error("Please specify a color space.")
             return
