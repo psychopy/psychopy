@@ -402,7 +402,6 @@ class MonospaceFontAtlas(object):
                     max_tile_width = max(max_tile_width, bitmap.width)
                     max_w = max(bitmap.width, max_w)
                     max_h = max(bitmap.rows, max_h)
-    
                     x, y, w, h = self.atlas.get_region(
                         bitmap.width + 2, bitmap.rows + 2)
     
@@ -432,6 +431,10 @@ class MonospaceFontAtlas(object):
 
         self.max_ascender = max_ascender
         self.max_descender = max_descender
+        
+        # Note: Space between chars looks wide when using max tile width.
+        # Investigate better options, like using face.get_advance, or ....
+        # Maybe add param that allows specifying a scale to multiple max by.
         self.max_tile_width = max_tile_width
         self.max_tile_height = max_ascender + max_descender
         self.max_bitmap_size = max_w, max_h
