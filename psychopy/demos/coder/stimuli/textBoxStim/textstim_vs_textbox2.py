@@ -89,7 +89,7 @@ textstim = visual.TextStim(window,pos=(0,300),font=font_name,
                     text=text,autoLog=False,wrapWidth=1200)
 textstim.draw()
 etime=core.getTime()*1000.0
-textbox_init_dur=etime-stime
+textstim_init_dur=etime-stime
 
 # Create a TextStim stim and perform draw on it. Time how long it takes 
 # to create the initial stim and do the initial draw. 
@@ -103,7 +103,7 @@ textbox2 = visual.TextBox2(window, text=text,
 
 textbox2.draw()
 etime=core.getTime()*1000.0
-textstim_init_dur=etime-stime
+textbox2_init_dur=etime-stime
 
 # Start the draw duration tests, for text change and no text change conditions.
 stim_draw_orders=[[textbox2,textstim],[textstim,textbox2]]
@@ -163,13 +163,13 @@ for stim1, stim2 in stim_draw_orders:
     print()
     print('+ Draw Order: %s then %s\t'%(stim1_type,stim2_type))
     print('+ Text Stim Char Length:\t',text_length)
-    if stim1_type == 'TextBox':
-        print('+ %s INIT Dur (secs):\t%.3f'%(stim1_type, textbox_init_dur/1000.0))
+    if stim1_type == 'TextBox2':
+        print('+ %s INIT Dur (secs):\t%.3f'%(stim1_type, textbox2_init_dur/1000.0))
     else:    
         print('+ %s INIT Dur (secs):\t%.3f'%(stim1_type, textstim_init_dur/1000.0))
     if stim1 != stim2:
-        if stim2_type == 'TextBox':
-            print('+ %s INIT Dur (secs):\t%.3f'%(stim2_type, textbox_init_dur/1000.0))
+        if stim2_type == 'TextBox2':
+            print('+ %s INIT Dur (secs):\t%.3f'%(stim2_type, textbox2_init_dur/1000.0))
         else:    
             print('+ %s INIT Dur (secs):\t%.3f'%(stim2_type, textstim_init_dur/1000.0))
     print('+ Text Change Flip Perc:\t%.2f'%((1.0/chng_txt_each_flips)*100.0),r'%')
