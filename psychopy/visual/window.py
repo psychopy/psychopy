@@ -1373,20 +1373,38 @@ class Window(object):
         return self.backend.frameBufferSize
 
     def getContentScaleFactor(self):
-        """Get the scaling factor required for scaling correctly on HiDPI
+        """Get the scaling factor required for scaling correctly on high-DPI
         displays.
 
         If the returned value is 1.0, no scaling needs to be applied to objects
         drawn on the backbuffer. A value >1.0 indicates that the backbuffer is
         larger than the reported client area, requiring points to be scaled to
         maintain constant size across similarly sized displays. In other words,
-        the scaling require to convert framebuffer to client coordinates.
+        the scaling required to convert framebuffer to client coordinates.
 
         Returns
         -------
         float
             Scaling factor to be applied along both horizontal and vertical
             dimensions.
+
+        Examples
+        --------
+        Get the size of the client area::
+
+            clientSize = win.frameBufferSize / win.getContentScaleFactor()
+
+        Get the framebuffer size from the client size::
+
+            frameBufferSize = win.clientSize * win.getContentScaleFactor()
+
+        Convert client (window) to framebuffer pixel coordinates (eg., a mouse
+        coordinate, vertices, etc.)::
+
+            # `mousePosXY` is an array ...
+            frameBufferXY = mousePosXY * win.getContentScaleFactor()
+            # you can also use the attribute ...
+            frameBufferXY = mousePosXY * win.contentScaleFactor
 
         Notes
         -----
@@ -1412,6 +1430,10 @@ class Window(object):
     def contentScaleFactor(self):
         """Scaling factor (`float`) to use when drawing to the backbuffer to
         convert framebuffer to client coordinates.
+
+        See Also
+        --------
+        getContentScaleFactor
 
         """
         return self.getContentScaleFactor()
