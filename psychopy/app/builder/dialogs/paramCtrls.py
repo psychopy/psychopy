@@ -312,7 +312,7 @@ class ColorCtrl(wx.TextCtrl, _ValidatorMixin):
         self.valType = valType
         # Add sizer
         self._szr = wx.BoxSizer(wx.HORIZONTAL)
-        if not valType == "str":
+        if valType == "code":
             # Add $ for anything to be interpreted verbatim
             self.dollarLbl = wx.StaticText(parent, -1, "$", size=wx.Size(-1, -1), style=wx.ALIGN_RIGHT)
             self.dollarLbl.SetToolTip(_translate("This parameter will be treated as code - we have already put in the $, so you don't have to."))
