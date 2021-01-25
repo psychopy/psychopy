@@ -77,29 +77,35 @@ print("Using font: ", font_name)
 
 text_class_params=dict()
 text_class_params[psychopy.visual.textbox.TextBox]=dict(window=window,
-                         text=text, 
-                         font_name=font_name,
-                         font_size=32,
-                         font_color=[0,0,0],
-                         dpi=72,
-                         size=(1.6,.25),
-                         pos=(0.0,.5), 
-                         units='norm',
-                         grid_horz_justification='center',
-                         grid_vert_justification='center',
-                         color_space='rgb255')
-text_class_params[psychopy.visual.textbox2.TextBox2]=dict(win=window, text=text,
-                        font=font_name,
-                        borderColor=None, fillColor=[0,0,0],
-                        pos=(0.,0.0), units='height', anchor='center',
-                        letterHeight=0.03,
-                        editable=False)
-text_class_params[psychopy.visual.TextStim]=dict(win=window,pos=(0.0,-0.5),
-                                        font=font_name,
-                                        units='norm',
-                                        height=0.06,
-                                        text=text,autoLog=False,
-                                        wrapWidth=1.5)
+                                                text=text, 
+                                                font_name=font_name,
+                                                font_size=28,
+                                                font_color=[255,255,255],
+                                                size=(1.5,.5),
+                                                pos=(0.0,.5), 
+                                                units='norm',
+                                                grid_horz_justification='left',
+                                                grid_vert_justification='center',
+                                                color_space='rgb255')
+text_class_params[psychopy.visual.textbox2.TextBox2]=dict(win=window, 
+                                                text=text,
+                                                font=font_name,
+                                                borderColor=None, 
+                                                fillColor=[0,0,0],
+                                                pos=(0.0,-0.1),
+                                                units='height',
+                                                anchor='center',
+                                                letterHeight=0.03,
+                                                editable=False,
+                                                size=[1.5,.33])
+text_class_params[psychopy.visual.TextStim]=dict(win=window,
+                                                pos=(0.0,-0.5),
+                                                font=font_name,
+                                                units='norm',
+                                                height=0.06,
+                                                text=text,
+                                                autoLog=False,
+                                                wrapWidth=1.5)
 
 # Create each stim type and perform draw on it. Time how long it takes 
 # to create the initial stim and do the initial draw. 
