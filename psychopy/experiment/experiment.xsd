@@ -21,6 +21,7 @@
        <xsd:enumeration value="int"/>
        <xsd:enumeration value="list"/>
        <xsd:enumeration value="dict"/>
+       <xsd:enumeration value="file"/>
        <xsd:enumeration value="fileList"/>
        <xsd:enumeration value="table"/>
        <!-- legacy only -->
