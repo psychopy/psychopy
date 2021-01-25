@@ -458,6 +458,9 @@ class Window(object):
             msg = "Window: viewPos & viewOri are currently incompatible"
             raise NotImplementedError(msg)
 
+        # scaling factor for HiDPI displays, `None` until initialized
+        self._contentScaleFactor = None
+
         # Code to allow iohub to know id of any psychopy windows created
         # so kb and mouse event filtering by window id can be supported.
         #
@@ -1368,6 +1371,50 @@ class Window(object):
         """Size of the framebuffer in pixels (w, h)."""
         # Dimensions should match window size unless using a retina display
         return self.backend.frameBufferSize
+
+    def getContentScaleFactor(self):
+        """Get the scaling factor required for scaling correctly on HiDPI
+        displays.
+
+        If the returned value is 1.0, no scaling needs to be applied to objects
+        drawn on the backbuffer. A value >1.0 indicates that the backbuffer is
+        larger than the reported client area, requiring points to be scaled to
+        maintain constant size across similarly sized displays. In other words,
+        the scaling require to convert framebuffer to client coordinates.
+
+        Returns
+        -------
+        float
+            Scaling factor to be applied along both horizontal and vertical
+            dimensions.
+
+        Notes
+        -----
+        * This value is only valid after the window has been fully realized.
+
+        """
+        # this might be accessed at lots of points, probably shouldn't compute
+        # this all the time
+        if self._contentScaleFactor is not None:
+            return self._contentScaleFactor
+
+        sx = self.frameBufferSize[0] / float(self.clientSize[0])
+        sy = self.frameBufferSize[1] / float(self.clientSize[1])
+
+        if sx != sy:  # messed up DPI settings return 1.0 and show warning
+            self._contentScaleFactor = 1.0
+        else:
+            self._contentScaleFactor = sx
+
+        return self._contentScaleFactor
+
+    @property
+    def contentScaleFactor(self):
+        """Scaling factor (`float`) to use when drawing to the backbuffer to
+        convert framebuffer to client coordinates.
+
+        """
+        return self.getContentScaleFactor()
 
     @property
     def aspect(self):
