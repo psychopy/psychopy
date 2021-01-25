@@ -15,15 +15,18 @@
      <xsd:restriction base="xsd:string">
        <xsd:enumeration value="bool"/>
        <xsd:enumeration value="code"/>
-       <xsd:enumeration value="extendedCode"/>
+       <xsd:enumeration value="color"/>
        <xsd:enumeration value="num"/>
        <xsd:enumeration value="str"/>
-       <xsd:enumeration value="extendedStr"/>
        <xsd:enumeration value="int"/>
        <xsd:enumeration value="list"/>
-       <xsd:enumeration value="fixedList"/>
+       <xsd:enumeration value="dict"/>
        <xsd:enumeration value="fileList"/>
        <xsd:enumeration value="table"/>
+       <!-- legacy only -->
+       <xsd:enumeration value="extendedStr"/>
+       <xsd:enumeration value="fixedList"/>
+       <xsd:enumeration value="extendedCode"/>
      </xsd:restriction>
   </xsd:simpleType>
 
