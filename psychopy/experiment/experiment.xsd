@@ -30,6 +30,19 @@
      </xsd:restriction>
   </xsd:simpleType>
 
+  <xsd:simpleType name="InputType">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="spin"/>
+      <xsd:enumeration value="choice"/>
+      <xsd:enumeration value="bool"/>
+      <xsd:enumeration value="file"/>
+      <xsd:enumeration value="fileList"/>
+      <xsd:enumeration value="table"/>
+      <xsd:enumeration value="color"/>
+      <xsd:enumeration value="dict"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+
   <xsd:simpleType name="Updates">
      <xsd:restriction base="xsd:string">
        <xsd:enumeration value="constant"/>
