@@ -250,10 +250,8 @@ class FontManager(object):
                     fid, MonospaceFontAtlas(font_info, size, dpi))
                 font_atlas.createFontAtlas()
             if fm.font_store:
-                #t1 = getTime()
                 fm.font_store.addFontAtlas(font_atlas)
-                #t2 = getTime()
-                #print('font store add atlas:', t2 - t1)
+
         return font_atlas
 
     def getFontInfo(self, refresh=False, monospace=True):
@@ -309,7 +307,7 @@ class FontManager(object):
     def updateFontInfo(self, monospace_only=True):
         self._available_font_info.clear()
         del self.font_family_styles[:]
-        fonts_found = self.findFontFiles()#font_manager.findSystemFonts()
+        fonts_found = self.findFontFiles()
         self.addFontFiles(fonts_found, monospace_only)
 
     def booleansFromStyleName(self, style):
