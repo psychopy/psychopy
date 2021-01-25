@@ -414,9 +414,6 @@ class _BaseParamsDlg(wx.Dialog):
         self.codeIDFromFieldName = {}
         # a list of all panels in the ctrl to be traversed by validator
         self.panels = []
-
-        # for switching font to signal code:
-        self.codeFaceName = 'Courier New'  # other monospace if not available
         # need font size for STCs:
         if wx.Platform == '__WXMSW__':
             self.faceSize = 10
@@ -1001,13 +998,6 @@ class _BaseParamsDlg(wx.Dialog):
             val = strBox.GetText()
             # might be StyledTextCtrl
             stc = True
-
-        # set display font based on presence of $ (without \$)?
-        font = strBox.GetFont()
-        if psychopy.experiment.utils.unescapedDollarSign_re.search(val):
-            strBox.SetFont(self.app._codeFont)
-        else:
-            strBox.SetFont(self.app._mainFont)
 
         if hasattr(event, 'Skip'):
             event.Skip()
