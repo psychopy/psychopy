@@ -12,10 +12,11 @@ from __future__ import absolute_import, division, print_function
 from builtins import chr
 from builtins import object
 import os
+import sys
+from pathlib import Path
 import math
 import numpy as np
 import unicodedata as ud
-from matplotlib import font_manager
 from psychopy.core import getTime
 
 from freetype import Face, FT_LOAD_RENDER, FT_LOAD_FORCE_AUTOHINT, FT_Exception
@@ -25,6 +26,30 @@ from .textureatlas import TextureAtlas
 from pyglet.gl import (glGenLists, glNewList, GL_COMPILE, GL_QUADS,
                        glBegin, glTexCoord2f, glVertex2f, glEnd, glDeleteLists,
                        glEndList, glTranslatef, glDeleteTextures)
+
+#  OS Font paths
+_X11FontDirectories = [
+    # an old standard installation point
+    "/usr/X11R6/lib/X11/fonts/TTF",
+    "/usr/X11/lib/X11/fonts",
+    # here is the new standard location for fonts
+    "/usr/share/fonts",
+    # documented as a good place to install new fonts
+    "/usr/local/share/fonts",
+    # common application, not really useful
+    "/usr/lib/openoffice/share/fonts/truetype",
+]
+
+_OSXFontDirectories = [
+    "/Library/Fonts/",
+    "/Network/Library/Fonts",
+    "/System/Library/Fonts",
+    # fonts installed via MacPorts
+    "/opt/local/share/fonts"
+    ""
+]
+
+supportedExtensions = ['ttf', 'otf', 'ttc', 'dfont']
 
 log = math.log
 ceil = math.ceil
@@ -243,10 +268,46 @@ class FontManager(object):
             self.updateFontInfo(monospace)
         return self._available_font_info
 
+    def findFontFiles(folders=(), recursive=True):
+        """Search for font files in the folder (or system folders)
+    
+        Parameters
+        ----------
+        folders: iterable
+            folders to search. If empty then search typical system folders
+    
+        Returns
+        -------
+        list of pathlib.Path objects
+        """
+        if sys.platform == 'win32':
+            searchPaths = []  # just leave it to matplotlib as below
+        elif sys.platform == 'darwin':
+            # on mac matplotlib doesn't include 'ttc' files (which are fine)
+            searchPaths = _OSXFontDirectories
+        elif sys.platform.startswith('linux'):
+            searchPaths = _X11FontDirectories
+        # search those folders
+        fontPaths = []
+        for thisFolder in searchPaths:
+            thisFolder = Path(thisFolder)
+            for thisExt in supportedExtensions:
+                if recursive:
+                    fontPaths.extend(thisFolder.rglob("*.{}".format(thisExt)))
+                else:
+                    fontPaths.extend(thisFolder.glob("*.{}".format(thisExt)))
+    
+        # if we failed let matplotlib have a go
+        if fontPaths:
+            return fontPaths
+        else:
+            from matplotlib import font_manager
+            return font_manager.findSystemFonts()
+
     def updateFontInfo(self, monospace_only=True):
         self._available_font_info.clear()
         del self.font_family_styles[:]
-        fonts_found = font_manager.findSystemFonts()
+        fonts_found = self.findFontFiles()#font_manager.findSystemFonts()
         self.addFontFiles(fonts_found, monospace_only)
 
     def booleansFromStyleName(self, style):

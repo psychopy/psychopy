@@ -10,6 +10,10 @@ Created on Thu Mar 21 18:37:10 2013
 """
 from psychopy import visual, core, event
 
+from psychopy.visual import textbox
+fm = textbox.getFontManager()
+print("available_font_names:",fm.getFontFamilyNames())
+
 # Create Window
 window=visual.Window((800,600),
                         units='norm',
@@ -18,8 +22,9 @@ window=visual.Window((800,600),
                         )
 
 sometext=u'PRESS ANY KEY TO QUIT DEMO.'                                                        
-textbox=visual.TextBox(window=window, 
+textbox1=visual.TextBox(window=window, 
                          text=sometext,
+                         font_name='Courier New',
                          font_size=21,
                          font_color=[-1,-1,1], 
                          size=(1.9,.3),
@@ -40,7 +45,7 @@ textbox2=visual.TextBox(window=window,
                          pos=(0.0,-0.25),
                          )
 
-textbox.draw()
+textbox1.draw()
 textbox2.draw()
 demo_start=window.flip()     
 
@@ -50,7 +55,7 @@ while True:
     if core.getTime()-last_attrib_change_time> 2.5:
         last_attrib_change_time=core.getTime()
 
-    textbox.draw()
+    textbox1.draw()
     textbox2.draw()
 
     # Update the display to show any stim changes
