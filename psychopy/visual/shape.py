@@ -81,10 +81,9 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
                  win,
                  units='',
                  lineWidth=1.5,
-                 lineColor=None,
-                 lineColorSpace=None,
+                 lineColor='black',
                  fillColor=None,
-                 fillColorSpace=None,
+                 colorSpace='rgb',
                  vertices=((-0.5, 0), (0, +0.5), (+0.5, 0)),
                  closeShape=True,
                  pos=(0, 0),
@@ -94,13 +93,16 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
                  contrast=1.0,
                  depth=0,
                  interpolate=True,
-                 lineRGB=None,
-                 fillRGB=None,
                  name=None,
                  autoLog=None,
                  autoDraw=False,
+                 # legacy
                  color=None,
-                 colorSpace='rgb'):
+                 lineRGB=None,
+                 fillRGB=None,
+                 fillColorSpace=None,
+                 lineColorSpace=None
+                 ):
         """ """  # all doc is in the attributes
         # what local vars are defined (these are the init params) for use by
         # __repr__
@@ -120,12 +122,12 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         # Appearance
         self.colorSpace = colorSpace
+        # First set fill and line colors to be the value of color
+        self.fillColor = color
+        self.lineColor = color
+        # If fill or line color are set, overwrite the color
         self.fillColor = fillColor
         self.lineColor = lineColor
-        if color and not self.fillColor and not self.lineColor:
-            # if the fillColor and lineColor are not set but color is, the user probably wants color applied to both
-            self.fillColor = color
-            self.lineColor = color
         if lineRGB is not None:
             # Override with RGB if set
             logging.warning("Use of rgb arguments to stimuli are deprecated."
