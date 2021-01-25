@@ -142,7 +142,7 @@ class ParamCtrls(object):
             self.valueCtrl = paramCtrls.BoolCtrl(parent,
                                          name=fieldName,size=wx.Size(self.valueWidth, 24))
             self.valueCtrl.SetValue(param.val)
-        elif param.inputType == 'file':
+        elif param.inputType == 'file' or browse:
             self.valueCtrl = paramCtrls.FileCtrl(parent,
                                                  val=str(param.val), valType=param.valType,
                                                  fieldName=fieldName, size=wx.Size(self.valueWidth, 24))
@@ -230,10 +230,6 @@ class ParamCtrls(object):
 
         if param.allowedUpdates != None and len(param.allowedUpdates) == 1:
             self.updateCtrl.Disable()  # visible but can't be changed
-        # create browse control
-        if browse:
-            # we don't need a label for this
-            self.browseCtrl = wx.Button(parent, -1, _translate("Browse..."))
 
     def _getCtrlValue(self, ctrl):
         """Retrieve the current value form the control (whatever type of ctrl
