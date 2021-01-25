@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""Creates a regular polygon (triangles, pentagrams, ...) as a special case of a
+"""Creates a regular polygon (triangles, pentagons, ...) as a special case of a
 :class:`~psychopy.visual.ShapeStim`"""
 
 # Part of the PsychoPy library
@@ -19,8 +19,9 @@ import numpy as np
 
 
 class Polygon(BaseShapeStim):
-    """Creates a regular polygon (triangles, pentagrams, ...).
-     A special case of a :class:`~psychopy.visual.ShapeStim`.
+    """Creates a regular polygon (triangles, pentagons, ...).
+
+     this class is a special case of a :class:`~psychopy.visual.ShapeStim`.
 
     (New in version 1.72.00)
 
@@ -80,12 +81,25 @@ class Polygon(BaseShapeStim):
             Opacity of the shape. A value of 1.0 indicates fully opaque and 0.0
             is fully transparent (therefore invisible). Values between 1.0 and
             0.0 will result in colors being blended with objects in the
-            background. This value affects the fill and outline of the shape.
+            background. This value affects the fill (`fillColor`) and outline
+            (`lineColor`) colors of the shape.
         contrast : float
-            Contrast level on the shape (0.0 - 1.0).
+            Contrast level on the shape (0.0 to 1.0). This value is used to
+            modulate the contrast of colors passed to `lineColor` and
+            `shapeColor`.
         depth : int
             Depth layer to draw the stimulus.
         interpolate : bool
+            Enable smoothing (anti-aliasing) when drawing shape outlines. This
+            produces a smoother (less-pixelated) outline of the shape.
+        name : str
+            Optional name of the stimuli for logging.
+        autoLog : bool
+            Enable auto-logging of events associated with this stimuli. Useful
+            for debugging.
+        autoDraw : bool
+            Enable auto drawing. When `True`, the stimulus will be drawn every
+            frame without the need to explicitly call the `draw()` method.
 
         """
         # what local vars are defined (these are the init params) for use by
