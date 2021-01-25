@@ -77,7 +77,20 @@ window=visual.Window((1920,1080),
                         screen=0
                         )
 
-font_name='Consolas'
+from psychopy.visual import textbox as textboxmodule
+fm = textboxmodule.getFontManager()
+available_font_names=fm.getFontFamilyNames()
+font_name=available_font_names[0]
+prefered_fonts=[fn for fn in available_font_names if fn in [
+                                                            'Courier New',
+                                                            'Consolas',
+                                                            'Lucida Sans Typewriter',
+                                                            'Ubuntu Mono',
+                                                            'DejaVu Sans Mono',
+                                                            'Bitstream Vera Sans Mono',
+                                                            'Luxi Mono']]
+if prefered_fonts:
+    font_name=prefered_fonts[0]
 print("Using font: ", font_name)
 
 # Create a TextBox stim and perform draw on it. Time how long it takes 

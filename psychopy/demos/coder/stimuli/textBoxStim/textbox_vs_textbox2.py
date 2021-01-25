@@ -16,7 +16,6 @@ from builtins import range
 import string
 import random
 from psychopy import visual, core, event
-from psychopy.visual import textbox
 from psychopy.iohub.util import NumPyRingBuffer
 import pyglet.gl as gl
 
@@ -78,11 +77,11 @@ window=visual.Window((1920,1080),
                         )
 
 # Find a font that is available on the system.
-fm = textbox.getFontManager()
-available_font_names=fm.getFontFamilyStyles()
-font_name=available_font_names[0][0]
-#print('available_font_names:', available_font_names)
-prefered_fonts=[fn for fn,fs in available_font_names if fn in [
+from psychopy.visual import textbox as textboxmodule
+fm = textboxmodule.getFontManager()
+available_font_names=fm.getFontFamilyNames()
+font_name=available_font_names[0]
+prefered_fonts=[fn for fn in available_font_names if fn in [
                                                             'Courier New',
                                                             'Consolas',
                                                             'Lucida Sans Typewriter',

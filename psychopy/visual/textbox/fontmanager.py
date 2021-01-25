@@ -17,7 +17,6 @@ from pathlib import Path
 import math
 import numpy as np
 import unicodedata as ud
-from psychopy.core import getTime
 
 from freetype import Face, FT_LOAD_RENDER, FT_LOAD_FORCE_AUTOHINT, FT_Exception
                                                      
@@ -38,6 +37,7 @@ _X11FontDirectories = [
     "/usr/local/share/fonts",
     # common application, not really useful
     "/usr/lib/openoffice/share/fonts/truetype",
+    ""
 ]
 
 _OSXFontDirectories = [
@@ -45,7 +45,7 @@ _OSXFontDirectories = [
     "/Network/Library/Fonts",
     "/System/Library/Fonts",
     # fonts installed via MacPorts
-    "/opt/local/share/fonts"
+    "/opt/local/share/fonts",
     ""
 ]
 
@@ -212,9 +212,11 @@ class FontManager(object):
 
         font_paths = []
         for (dirpath, dirnames, filenames) in walk(font_dir):
-            ttf_files = [os.path.join(dirpath, fname)
-                         for fname in filenames
-                         if fname.lower().endswith('.ttf')]
+            ttf_files = []
+            for fname in filenames:
+                for fext in supportedExtensions:
+                    if fname.lower().endswith(fext):
+                        ttf_files.append(fname)
             font_paths.extend(ttf_files)
             if not recursive:
                 break
@@ -248,10 +250,10 @@ class FontManager(object):
                     fid, MonospaceFontAtlas(font_info, size, dpi))
                 font_atlas.createFontAtlas()
             if fm.font_store:
-                t1 = getTime()
+                #t1 = getTime()
                 fm.font_store.addFontAtlas(font_atlas)
-                t2 = getTime()
-                print('font store add atlas:', t2 - t1)
+                #t2 = getTime()
+                #print('font store add atlas:', t2 - t1)
         return font_atlas
 
     def getFontInfo(self, refresh=False, monospace=True):
@@ -268,7 +270,7 @@ class FontManager(object):
             self.updateFontInfo(monospace)
         return self._available_font_info
 
-    def findFontFiles(folders=(), recursive=True):
+    def findFontFiles(self, folders=(), recursive=True):
         """Search for font files in the folder (or system folders)
     
         Parameters
@@ -293,9 +295,9 @@ class FontManager(object):
             thisFolder = Path(thisFolder)
             for thisExt in supportedExtensions:
                 if recursive:
-                    fontPaths.extend(thisFolder.rglob("*.{}".format(thisExt)))
+                    fontPaths.extend([str(p.absolute()) for p in thisFolder.rglob("*.{}".format(thisExt))])
                 else:
-                    fontPaths.extend(thisFolder.glob("*.{}".format(thisExt)))
+                    fontPaths.extend([str(p.absolute()) for p in thisFolder.glob("*.{}".format(thisExt))])
     
         # if we failed let matplotlib have a go
         if fontPaths:
