@@ -43,6 +43,7 @@ textbox2=visual.TextBox(window=window,
                          textgrid_shape=[20,4], # 20 cols (20 chars wide)
                                                 # by 4 rows (4 lines of text)
                          pos=(0.0,-0.25),
+                         grid_color=(-1,1,-1,1)
                          )
 
 textbox1.draw()
