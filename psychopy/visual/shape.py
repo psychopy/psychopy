@@ -81,8 +81,8 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
                  win,
                  units='',
                  lineWidth=1.5,
-                 lineColor='black',
-                 fillColor=None,
+                 lineColor=False, # uses False in place of None to distinguish between "not set" and "transparent"
+                 fillColor=False, # uses False in place of None to distinguish between "not set" and "transparent"
                  colorSpace='rgb',
                  vertices=((-0.5, 0), (0, +0.5), (+0.5, 0)),
                  closeShape=True,
@@ -97,9 +97,9 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
                  autoLog=None,
                  autoDraw=False,
                  # legacy
-                 color=None,
-                 lineRGB=None,
-                 fillRGB=None,
+                 color=False,
+                 lineRGB=False,
+                 fillRGB=False,
                  fillColorSpace=None,
                  lineColorSpace=None
                  ):
@@ -122,18 +122,28 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         # Appearance
         self.colorSpace = colorSpace
-        # First set fill and line colors to be the value of color
-        self.fillColor = color
-        self.lineColor = color
-        # If fill or line color are set, overwrite the color
-        self.fillColor = fillColor
-        self.lineColor = lineColor
-        if lineRGB is not None:
+        if not fillColor == False:
+            self.fillColor = fillColor
+        elif not color == False:
+            # Override fillColor with color if not set
+            self.fillColor = color
+        else:
+            # Default to None if neither are set
+            self.fillColor = None
+        if not lineColor == False:
+            self.lineColor = lineColor
+        elif not color == False:
+            # Override lineColor with color if not set
+            self.lineColor = color
+        else:
+            # Default to black if neither are set
+            self.lineColor = 'black'
+        if not lineRGB == False:
             # Override with RGB if set
             logging.warning("Use of rgb arguments to stimuli are deprecated."
                             " Please use color and colorSpace args instead")
             self.setLineColor(lineRGB, colorSpace='rgb', log=None)
-        if fillRGB is not None:
+        if not fillRGB == False:
             # Override with RGB if set
             logging.warning("Use of rgb arguments to stimuli are deprecated."
                             " Please use color and colorSpace args instead")
@@ -421,12 +431,10 @@ class ShapeStim(BaseShapeStim):
     def __init__(self,
                  win,
                  units='',
-                 lineWidth=1.5,
-                 lineColor='white',
-                 lineColorSpace=None,
                  colorSpace='rgb',
-                 fillColor=None,
-                 fillColorSpace=None,
+                 fillColor=False,
+                 lineColor=False,
+                 lineWidth=1.5,
                  vertices=((-0.5, 0), (0, +0.5), (+0.5, 0)),
                  windingRule=None,  # default GL.GLU_TESS_WINDING_ODD
                  closeShape=True,  # False for a line
@@ -439,7 +447,14 @@ class ShapeStim(BaseShapeStim):
                  interpolate=True,
                  name=None,
                  autoLog=None,
-                 autoDraw=False):
+                 autoDraw=False,
+                 # legacy
+                 color=False,
+                 lineRGB=False,
+                 fillRGB=False,
+                 fillColorSpace=None,
+                 lineColorSpace=None
+                 ):
         """
         """
         # what local vars are defined (init params, for use by __repr__)
@@ -470,10 +485,6 @@ class ShapeStim(BaseShapeStim):
         self.closeShape = closeShape
         self.windingRule = windingRule
         self.vertices = vertices
-        # Appearance
-        self.colorSpace = colorSpace
-        self.fillColor = fillColor
-        self.borderColor = lineColor
 
         # remove deprecated params (from ShapeStim.__init__):
         self._initParams = self._initParamsOrig
