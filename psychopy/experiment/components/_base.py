@@ -667,7 +667,7 @@ class BaseVisualComponent(BaseComponent):
                          "0.5=decrease contrast, 0.0=uniform/no contrast, "
                          "-0.5=slightly inverted, -1.0=totally inverted)")
         self.params['contrast'] = Param(contrast,
-            valType='code', inputType='single', allowedTypes=[], categ='Appearance',
+            valType='num', inputType='single', allowedTypes=[], categ='Appearance',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
