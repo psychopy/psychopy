@@ -538,7 +538,8 @@ class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
         v = 0
         while v < len(self.verticesPix):
             for col in self._colors:
-                RGBAs[v,:] = col.render('rgba1')
+                if v < len(self.verticesPix):
+                    RGBAs[v,:] = col.render('rgba1')
                 v += 1
         RGBAs = RGBAs.reshape([len(self.verticesPix), 1, 4]).repeat(4, 1)
         GL.glColorPointer(4, GL.GL_DOUBLE, 0,
