@@ -396,6 +396,32 @@ def dklCart2rgb(LUM, LM, S, conversionMatrix=None):
     rgb = numpy.dot(conversionMatrix, dkl_cartesian)
     return numpy.reshape(numpy.transpose(rgb), NxNx3)
 
+def rgb2hsv(rgb1):
+    # Based on https://www.geeksforgeeks.org/program-change-rgb-color-model-hsv-color-model/
+    red, green, blue = rgb1
+    cmax = max(red, green, blue)
+    cmin = min(red, green, blue)
+    delta = cmax - cmin
+    # Calculate hue
+    if cmax == 0 and cmin == 0:
+        return (0, 0, 0)
+    elif delta == 0:
+        return (0, 0, sum(rgb1) / 3)
+
+    if cmax == red:
+        hue = (60 * ((green - blue) / delta) + 360) % 360
+    elif cmax == green:
+        hue = (60 * ((blue - red) / delta) + 120) % 360
+    elif cmax == blue:
+        hue = (60 * ((red - green) / delta) + 240) % 360
+    # Calculate saturation
+    if cmax == 0:
+        saturation = 0
+    else:
+        saturation = (delta / cmax)
+    # Calculate vibrancy
+    vibrancy = cmax
+    return (round(hue), saturation, vibrancy)
 
 def hsv2rgb(hsv_Nx3):
     """Convert from HSV color space to RGB gun values.

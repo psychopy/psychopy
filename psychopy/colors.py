@@ -631,32 +631,9 @@ class Color(object):
         self.hsv = color
     @property
     def hsv(self):
-        # Based on https://www.geeksforgeeks.org/program-change-rgb-color-model-hsv-color-model/
-        if 'hsva' not in self._cache:
-            red, green, blue = self.rgb1
-            cmax = max(red, green, blue)
-            cmin = min(red, green, blue)
-            delta = cmax - cmin
-            # Calculate hue
-            if cmax == 0 and cmin == 0:
-                return (0, 0, 0)
-            elif delta == 0:
-                return (0, 0, sum(self.rgb1) / 3)
 
-            if cmax == red:
-                hue = (60 * ((green - blue) / delta) + 360) % 360
-            elif cmax == green:
-                hue = (60 * ((blue - red) / delta) + 120) % 360
-            elif cmax == blue:
-                hue = (60 * ((red - green) / delta) + 240) % 360
-            # Calculate saturation
-            if cmax == 0:
-                saturation = 0
-            else:
-                saturation = (delta / cmax)
-            # Calculate vibrancy
-            vibrancy = cmax
-            self._cache['hsv'] = (round(hue), saturation, vibrancy)
+        if 'hsva' not in self._cache:
+            self._cache['hsv'] = ct.rgb2hsv(self.rgb)
         return self._cache['hsv']
     @hsv.setter
     def hsv(self, color):
