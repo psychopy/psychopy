@@ -298,7 +298,10 @@ class TextBox(object):
         self._window = proxy(window)
 
         self._font_name = font_name
-        self._font_size = font_size
+        if self.getWindow().useRetina:
+            self._font_size = font_size*2
+        else:
+            self._font_size = font_size
         self._dpi = dpi
         self._bold = bold
         self._italic = italic
@@ -632,6 +635,11 @@ class TextBox(object):
         """
         return self._size
 
+    def getFontSize(self):
+        if self.getWindow().useRetina:
+            return self._font_size//2
+        return self._font_size
+        
     def getFontColor(self):
         """
         Return the color used when drawing text glyphs.
