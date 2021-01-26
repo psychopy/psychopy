@@ -6,6 +6,8 @@ from __future__ import absolute_import, print_function
 from past.builtins import basestring
 from past.builtins import basestring
 from psychopy.tools.coordinatetools import sph2cart
+import psychopy.tools.colorspacetools as ct
+import numpy as np
 from psychopy import logging
 import re
 import numpy
@@ -178,6 +180,9 @@ colorNames = {
         "yellow": (1, 1, -1),
         "yellowgreen": (0.207843137254902, 0.607843137254902, -0.607843137254902)
     }
+# Convert all named colors to numpy arrays
+for key in colorNames:
+    colorNames[key] = np.array(colorNames[key])
 # Shorthand for common regexpressions
 _255 = r'(\d|\d\d|1\d\d|2[0-4]\d|25[0-5])'
 _360 = r'((\d|\d\d|[12]\d\d|3[0-5]\d)(\.\d)*|360|360\.0*)'
@@ -198,6 +203,22 @@ colorSpaces = {
     'hsv': re.compile(_lbr+_360+r'\°?'+r',\s*'+_1+r',\s*'+_1+_rbr), # HSV with hue from 0 to 360 and saturation/vibrancy from 0 to 1
     'hsva': re.compile(_lbr+_360+r'\°?'+r',\s*'+_1+r',\s*'+_1+r',\s*'+_1+_rbr), # HSV with hue from 0 to 360 and saturation/vibrancy from 0 to 1 + alpha from 0 to 1
 }
+_rec = r'(\-4\.5|\-4\.4\d*|\-4\.[0-4]\d*|\-[0-3]\.\d*|\-[0-3]|0|0\.\d*|1|1\.0)' # -4.5 to 1
+advancedSpaces = {
+    'rec709TF': re.compile(_lbr+_rec+r',\s*'+_rec+r',\s*'+_rec+_rbr), # rec709TF adjusted RGB from -4.5 to 1 + alpha from 0 to 1
+    'rec709TFa': re.compile(_lbr+_rec+r',\s*'+_rec+r',\s*'+_rec+r',\s*'+_1+_rbr), # rec709TF adjusted RGB from -4.5 to 1 + alpha from 0 to 1
+    'srgbTF': re.compile(_lbr+r'\-?'+_1+r',\s*'+r'\-?'+_1+r',\s*'+r'\-?'+_1+_rbr), # srgbTF from -1 to 1 + alpha from 0 to 1
+    'srgbTFa': re.compile(_lbr+r'\-?'+_1+r',\s*'+r'\-?'+_1+r',\s*'+r'\-?'+_1+r',\s*'+_1+_rbr), # srgbTF from -1 to 1 + alpha from 0 to 1
+    'lms': re.compile(_lbr + r'\-?' + _1 + r',\s*' + r'\-?' + _1 + r',\s*' + r'\-?' + _1 + _rbr),  # LMS from -1 to 1
+    'lmsa': re.compile(_lbr + r'\-?' + _1 + r',\s*' + r'\-?' + _1 + r',\s*' + r'\-?' + _1 + r',\s*' + r'\-?' + _1 + _rbr),  # LMS + alpha from -1 to 1
+    'dkl': re.compile(_lbr + r'\-?' + r'\d*.?\d*' + r',\s*' + r'\-?' + r'\d*.?\d*' + r',\s*' + r'\-?' + r'\d*.?\d*' + _rbr), # DKL placeholder: Accepts any values
+    'dkla': re.compile(_lbr + r'\-?' + r'\d*.?\d*' + r',\s*' + r'\-?' + r'\d*.?\d*' + r',\s*' + r'\-?' + r'\d*.?\d*' + r',\s*' + r'\-?' + r'\d*.?\d*' + _rbr) # DKLA placeholder: Accepts any values
+}
+integerSpaces = ['rgb255',  'hsv',
+                 'rgba255', 'hsva']
+strSpaces = ['named',
+             'hex',
+             'hexa']
 
 
 class Color(object):
@@ -207,82 +228,130 @@ class Color(object):
         self._cache = {}
         self.contrast = contrast if isinstance(contrast, (int, float)) else 1
         self.alpha = 1
+        self.valid = False
         self.set(color=color, space=space)
+
+    def validate(self, color, space=None):
+        # Treat None as a named color
+        if color is None:
+            color = "none"
+        # Handle everything as an array
+        if not isinstance(color, numpy.ndarray):
+            color = np.array(color)
+        if color.ndim <= 1:
+            color = np.reshape(color, (1, -1))
+        # If data type is string, check against named and hex as these override other spaces
+        if color.dtype.char == 'U':
+            # If colors are all named, override color space
+            namedMatch = np.vectorize(lambda col:
+                                      bool(re.match("|".join(list(colorNames)), str(col).lower()))  # match regex against named
+                                      )
+            if all(namedMatch(color[:, 0])):
+                space = 'named'
+            # If colors are all hex, override color space
+            hexMatch = np.vectorize(lambda col:
+                                    bool(re.fullmatch(r'#[\dabcdefABCDEF]{6}', col))  # match regex against hex
+                                    )
+            if all(hexMatch(color[:, 0])):
+                space = 'hex'
+        # Error if space still not set
+        if not space:
+            self.valid = False
+            raise ValueError("Please specify a color space.")
+        # Check that color space is valid
+        if not space in colorSpaces:
+            self.valid = False
+            raise ValueError("{} is not a valid color space.".format(space))
+        # Get number of columns
+        if color.ndim == 1:
+            ncols = len(color)
+        else:
+            ncols = color.shape[1]
+        # Extract alpha if set
+        if space in strSpaces and ncols > 1:
+            # If color should only be one value, extract second row
+            self.alpha = color[:, 1]
+            color = color[:, 0]
+            ncols -= 1
+        elif space not in strSpaces and ncols > 3:
+            # If color should be triplet, extract fourth row
+            self.alpha = color[:, 3]
+            color = color[:, :3]
+            ncols -= 1
+        elif space not in strSpaces and ncols == 2:
+            # If color should be triplet but is single value, extract second row
+            self.alpha = color[:, 1]
+            color = color[:, 1]
+            ncols -= 1
+        # If single value given in place of triplet, duplicate it
+        if space not in strSpaces and ncols == 1:
+            color = np.tile(color, (1, 3))
+            ncols = 3
+        # If values should be integers, round them
+        if space in integerSpaces:
+            color.round()
+
+        return color, space
 
     def set(self, color=None, space=None):
         """Set the colour of this object - essentially the same as what happens on creation, but without
         having to initialise a new object"""
-        # If supplied a named color, ignore color space
-        if 'named' in self.getSpace(color, True):
-            space = 'named'
-        # If supplied a hex color, ignore color space
-        if 'hex' in self.getSpace(color, True):
-            space = 'hex'
-        # Tuple-ise numpy arrays
-        if isinstance(color, numpy.ndarray):
-            color = tuple(float(c) for c in color)
-        # Duplicate single values
-        if isinstance(color, (int, float)):
-            color = (color, color, color)
-        # Round rgb255 values
-        if space in ['rgb255', 'rgba255']:
-            color = tuple(int(c) for c in color[:3]) + (color[3:] or ())
         # If input is a Color object, duplicate all settings
         if isinstance(color, Color):
             self._requested = color._requested
             self._requestedSpace = color._requestedSpace
-            self.rgba = color.rgba
+            self.valid = color.valid
+            if color.valid:
+                self.rgba = color.rgba
             return
         # Store requested colour and space (or defaults, if none given)
-        self._requested = color or None
-        self._requestedSpace = space or None
-        if space in self.getSpace(self._requested, debug=True):
-            self._requestedSpace = space
-        if space == False:
-            # If space is specifically set to False, Color is just being used for validation
-            self._requestedSpace = self.getSpace(self._requested, debug=True)[0] or 'rgb'
-        if not self._requestedSpace:
-            logging.error("Please specify a color space.")
-            return
-
+        self._requested = color
+        self._requestedSpace = space
+        # Validate and prepare values
+        color, space = self.validate(color, space)
         # Convert to lingua franca
-        if self._requestedSpace:
-            setattr(self, self._requestedSpace, self._requested)
+        if space in colorSpaces:
+            self.valid = True
+            setattr(self, space, color)
         else:
-            self.named = None
+            self.valid = False
+            raise ValueError("{} is not a valid color space.".format(space))
 
     def render(self, space='rgb'):
         if space not in colorSpaces and space not in advancedSpaces:
             raise ValueError(f"{space} is not a valid color space")
         adj = []
-        for val in self.rgb:
-            val = val * self.contrast
-            val = max(val, -1)
-            val = min(val, 1)
-            adj.append(val)
+        adj = np.clip(self.rgb * self.contrast, -1, 1)
         buffer = self.copy()
         buffer.rgb = adj
         return getattr(buffer, space)
 
     def __repr__(self):
         """If colour is printed, it will display its class and value"""
-        if self.rgba:
+        if self.valid:
             if self.named:
-                return "<" + self.__class__.__module__ + "." + self.__class__.__name__ + ": " + self.named + ">"
+                return f"<{self.__class__.__module__}.{self.__class__.__name__}: {self.named}>"
             else:
-                return "<" + self.__class__.__module__ + "." + self.__class__.__name__ + ": " + str(tuple(round(c,2) for c in self.rgba)) + ">"
+                return f"<{self.__class__.__module__}.{self.__class__.__name__}: {tuple(np.round(self.rgba, 2))}>"
         else:
-            return "<" + self.__class__.__module__ + "." + self.__class__.__name__ + ": " + "Invalid" + ">"
+            return f"<{self.__class__.__module__}.{self.__class__.__name__}: Invalid>"
 
     def __bool__(self):
         """Determines truth value of object"""
-        return bool(self._requestedSpace)
+        return self.valid
+
+    def __len__(self):
+        """Determines the length of object"""
+        if len(self.rgb.shape) > 1:
+            return self.rgb.shape[0]
+        else:
+            return int(bool(self.rgb.shape))
 
     # ---rich comparisons---
     def __eq__(self, target):
         """== will compare RGBA values, rounded to 2dp"""
         if isinstance(target, Color):
-            return tuple(round(c,2) for c in self.rgba) == tuple(round(c,2) for c in target.rgba)
+            return all(np.round(target.rgba, 2) == np.round(self.rgba, 2))
         elif target == None:
             return self.named == 'none'
         else:
@@ -290,314 +359,273 @@ class Color(object):
     def __ne__(self, target):
         """!= will return the opposite of =="""
         return not self == target
-    def __lt__(self, target):
-        """< will compare brightness"""
-        if isinstance(target, Color):
-            return self.brightness < target.brightness
-        else:
-            return False
-    def __le__(self, target):
-        """<= will compare brightness"""
-        if isinstance(target, Color):
-            return self.brightness <= target.brightness
-        else:
-            return False
-    def __gt__(self, target):
-        """> will compare brightness"""
-        if isinstance(target, Color):
-            return self.brightness > target.brightness
-        else:
-            return False
-    def __ge__(self, target):
-        """>= will compare brightness"""
-        if isinstance(target, Color):
-            return self.brightness >= target.brightness
-        else:
-            return False
 
     #--operators---
     def __add__(self, other):
-        if not isinstance(other, Color):
-            if Color.getSpace(other):
-                # Convert to a color if valid
-                other = Color(other)
-            elif AdvancedColor.getSpace(other):
-                # Convert to an advanced color if valid
-                other = AdvancedColor(other)
-            elif isinstance(other, int) or isinstance(other, float):
-                out = self.copy()
-                out.rgb = tuple(c + other for c in self.rgb)
-                return out
-            else:
-                raise ValueError ("unsupported operand type(s) for +: '"
-                                  + self.__class__.__name__ +"' and '"
-                                  + other.__class__.__name__ + "'")
+        buffer = self.copy()
+        # If target is a list or tuple, convert it to an array
+        if isinstance(other, (list, tuple)):
+            other = np.array(other)
+        # If target is a single number, add it to each rgba value
+        if isinstance(other, (int, float)):
+            buffer.rgba = self.rgba + other
+        # If target is an array, add the arrays provided they are viable
+        if isinstance(other, np.ndarray):
+            if other.shape in [(len(self), 1), self.rgb.shape, self.rgba.shape]:
+                buffer.rgba = self.rgba + other
+        # If target is a Color object, add together the rgba values
         if isinstance(other, Color):
-            # If both are colours, average the two and sum their alphas
-            alpha = min(self.alpha + other.alpha, 1)
-            rgb = [None, None, None]
-            selfWeight = self.alpha/(self.alpha+other.alpha)
-            otherWeight = other.alpha/(self.alpha+other.alpha)
-            for c in range(3):
-                rgb[c] = self.rgb1[c]*selfWeight + other.rgb1[c]*otherWeight
-            return Color(rgb+[alpha], 'rgba1')
+            if len(self) == len(other):
+                buffer.rgba = self.rgba + other.rgba
+        return buffer
 
     def __sub__(self, other):
-        return self + -other
+        buffer = self.copy()
+        # If target is a list or tuple, convert it to an array
+        if isinstance(other, (list, tuple)):
+            other = np.array(other)
+        # If target is a single number, subtract it from each rgba value
+        if isinstance(other, (int, float)):
+            buffer.rgba = self.rgba - other
+        # If target is an array, subtract the arrays provided they are viable
+        if isinstance(other, np.ndarray):
+            if other.shape in [(len(self), 1), self.rgb.shape, self.rgba.shape]:
+                buffer.rgba = self.rgba - other
+        # If target is a Color object, add together the rgba values
+        if isinstance(other, Color):
+            if len(self) == len(other):
+                buffer.rgba = self.rgba - other.rgba
+        return buffer
 
     def copy(self):
         """Return a duplicate of this colour"""
-        dupe = self.__class__(self._requested, self._requestedSpace)
+        dupe = self.__class__(self._requested, self._requestedSpace, self.contrast)
         dupe.rgba = self.rgba
-        dupe.contrast = self.contrast
+        dupe.valid = self.valid
         return dupe
-
-    @staticmethod
-    def getSpace(color, debug=False):
-        """Find what colour space a colour is from"""
-        if isinstance(color, Color):
-            return color._requestedSpace
-        possible = [space for space in colorSpaces
-                    if colorSpaces[space].fullmatch(str(color).lower())]
-        # Return full list if debug or multiple, else return first value
-        if debug or not len(possible) == 1:
-            return possible
-        else:
-            return possible[0]
-
-    @staticmethod
-    def hue2rgb255(hue):
-        # Work out what segment of the colour wheel we're in
-        seg = floor(hue / 60)
-        seg = seg if seg % 6 else 0
-        # Define values for when a value is decreasing / increasing in a segment
-        _up = (hue % 60) * (255 / 60)
-        _down = 255 - _up
-        _mov = _down if seg%2 else _up # Even segments are down, odd are up
-        # Calculate rgb according to segment
-        if seg == 0:
-            return (255, _mov, 0,)
-        if seg == 1:
-            return (_mov, 255, 0,)
-        if seg == 2:
-            return (0, 255, _mov,)
-        if seg == 3:
-            return (0, _mov, 255,)
-        if seg == 4:
-            return (_mov, 0, 255,)
-        if seg == 5:
-            return (255, 0, _mov,)
-
-    def validate(self, color, against=None, enforce=None):
-        # If not checking against anything, check against everything
-        if not against:
-            against = list(colorSpaces)
-        # If looking for a string, convert from other forms it could be in
-        if enforce == str:
-            color = str(color).lower()
-        # If looking for a tuple, convert from other forms it could be in
-        if enforce == tuple or enforce == (tuple, int):
-            if isinstance(color, str):
-                color = [float(n) for n in color.strip('[]()').split(',')]
-            if isinstance(color, list):
-                color = tuple(color)
-
-        # If enforcing multiple
-        if enforce == (tuple, int):
-            alpha = (color[-1],) if len(color) == 4 else ()
-            color = tuple(int(round(c)) for c in color[:3]) + alpha
-        # Get possible colour spaces
-        possible = Color.getSpace(color)
-        if isinstance(possible, str):
-            possible = [possible]
-        # Return if any matches
-        for space in possible:
-            if space in against:
-                return color
-        # If no matches...
-        self.named = None
-        return None
-
-    # ---adjusters---
-    # @property
-    # def saturation(self):
-    #     '''Saturation in hsv (0 to 1)'''
-    #     return self.hsv[1]
-    # @saturation.setter
-    # def saturation(self, value):
-    #     h,s,v,a = self.hsva
-    #     s += value
-    #     s = min(s, 1)
-    #     s = max(s, 0)
-    #     self.hsva = (h, s, v, a)
-
-    # @property
-    # def brightness(self):
-    #     return sum(self.rgb1)/3
-    # @brightness.setter
-    # def brightness(self, value):
-    #     adj = value-self.brightness
-    #     self.rgba1 = tuple(
-    #         max(min(c+adj, 1),0)
-    #         for c in self.rgb1
-    #     ) + (self.alpha,)
 
     @property
     def alpha(self):
         return self._alpha
     @alpha.setter
     def alpha(self, value):
-        value = min(value,1)
-        value = max(value,0)
+        # Treat 1x1 arrays as a float
+        if isinstance(value, np.ndarray):
+            if value.size == 1:
+                value = float(value)
+        # Clip value(s) to within range
+        if isinstance(value, np.ndarray):
+            value = np.clip(value, 0, 1)
+        elif isinstance(value, (int, float)):
+            value = min(value,1)
+            value = max(value,0)
+        else:
+            raise TypeError("Could not set alpha as value `{}` of type `{}`".format(value, type(value).__name__))
         self._alpha = value
+
+    def _appendAlpha(self, space):
+        # Get alpha, if necessary transform to an array of same length as color
+        alpha = self.alpha
+        if isinstance(self.alpha, (int, float)):
+            if len(self) > 1:
+                alpha = np.tile(self.alpha, (len(self), 1))
+            else:
+                alpha = np.array([self.alpha])
+        # Get color
+        color = getattr(self, space)
+        # Append alpha to color
+        return np.append(color, alpha, axis=1 if color.ndim > 1 else 0)
 
     #---spaces---
     # Lingua franca is rgb
     @property
     def rgba(self):
-        return self.rgb + (self.alpha,)
+        return self._appendAlpha('rgb')
     @rgba.setter
     def rgba(self, color):
         self.rgb = color
     @property
     def rgb(self):
+        if not self.valid:
+            return
         if hasattr(self, '_franca'):
-            return self._franca
+            rgb = self._franca
+            if rgb.shape[0] == 1:
+                rgb = rgb[0]
+            return rgb
         else:
-            return (None)
+            return np.array(None)
     @rgb.setter
     def rgb(self, color):
         # Validate
-        color = self.validate(color, against=['rgb', 'rgba'], enforce=tuple)
-        if not color:
+        color, space = self.validate(color, space='rgb')
+        if space != 'rgb':
+            setattr(self, space)
             return
         # Set color
-        self._franca = tuple(color[:3])
-        # Append alpha, if not present
-        if color[3:]:
-            self.alpha = color[3]
+        self._franca = color
         # Clear outdated values from cache
         self._cache = {}
 
     @property
     def rgba255(self):
-        return self.rgb255 + (self.alpha,)
+        return self._appendAlpha('rgb255')
     @rgba255.setter
     def rgba255(self, color):
         self.rgb255 = color
     @property
     def rgb255(self):
-        if not self.rgb:
-            return None
+        if not self.valid:
+            return
         # Recalculate if not cached
         if 'rgb255' not in self._cache:
-            self._cache['rgb255'] = tuple(int(255 * (val + 1) / 2) for val in self.rgb)
+            self._cache['rgb255'] = np.round(255 * (self.rgb + 1) / 2)
         return self._cache['rgb255']
     @rgb255.setter
     def rgb255(self, color):
         # Validate
-        color = self.validate(color, against=['rgb255', 'rgba255'], enforce=(tuple, int))
-        if not color:
+        color, space = self.validate(color, space='rgb255')
+        if space != 'rgb255':
+            setattr(self, space)
             return
         # Iterate through values and do conversion
-        self.rgb = tuple(2 * (val / 255 - 0.5) for val in color[:3])+(color[3:] or ())
+        self.rgb = 2 * (color / 255 - 0.5)
         # Clear outdated values from cache
         self._cache = {}
 
     @property
     def rgba1(self):
-        return self.rgb1 + (self.alpha,)
+        return self._appendAlpha('rgb1')
     @rgba1.setter
     def rgba1(self, color):
         self.rgb1 = color
     @property
     def rgb1(self):
-        if not self.rgb:
+        if not self.valid:
             return
         # Recalculate if not cached
         if 'rgb1' not in self._cache:
-            self._cache['rgb1'] = tuple((val + 1) / 2 for val in self.rgb)
+            self._cache['rgb1'] = (self.rgb + 1) / 2
         return self._cache['rgb1']
     @rgb1.setter
     def rgb1(self, color):
         # Validate
-        color = self.validate(color, against=['rgb1', 'rgba1'], enforce=tuple)
-        if not color:
+        color, space = self.validate(color, space='rgb1')
+        if space != 'rgb1':
+            setattr(self, space)
             return
         # Iterate through values and do conversion
-        self.rgb = tuple(2 * (val - 0.5) for val in color[:3])+(color[3:] or ())
+        self.rgb = 2 * (color - 0.5)
         # Clear outdated values from cache
         self._cache = {}
 
     @property
     def hex(self):
-        if not self.rgb255:
+        if not self.valid:
             return
         if 'hex' not in self._cache:
             # Map rgb255 values to corresponding letters in hex
             hexmap = {10: 'a', 11: 'b', 12: 'c', 13: 'd', 14: 'e', 15: 'f'}
-            # Iterate and do conversion
-            flatList = ['#']
-            for val in self.rgb255:
-                dig1 = int(floor(val / 16))
-                flatList.append(
-                    str(dig1) if dig1 <= 9 else hexmap[dig1]
-                )
-                dig2 = int(val % 16)
-                flatList.append(
-                    str(dig2) if dig2 <= 9 else hexmap[dig2]
-                )
-            self._cache['hex'] = "".join(flatList)
+            # Handle arrays
+            rgb255 = self.rgb255
+            # Iterate through rows of rgb255
+            self._cache['hex'] = np.array([])
+            for row in rgb255:
+                rowHex = '#'
+                # Convert each value to hex and append
+                for val in row:
+                    dig = hex(int(val)).strip('0x')
+                    rowHex += dig if len(dig) == 2 else '0' + dig
+                # Append full hex value to new array
+                self._cache['hex'] = np.append(self._cache['hex'], [rowHex], 0)
+            # If array is only 1 long, strip extraneous layer
+            if len(self._cache['hex']) == 1:
+                self._cache['hex'] = self._cache['hex'][0]
         return self._cache['hex']
     @hex.setter
     def hex(self, color):
         # Validate
-        color = self.validate(color, against=['hex'], enforce=str)
-        if not color:
+        color, space = self.validate(color, space='hex')
+        if space != 'hex':
+            setattr(self, space)
             return
-        # Convert strings to list
-        colorList = [color[i - 2:i] for i in [3, 5, 7] if color[i - 2:i]]
-        # Convert from base 16 to base 10
-        flatList = [int(c, 16) for c in colorList]
+        if len(color) > 1:
+            # Handle arrays
+            rgb255 = np.array([""])
+            for row in color:
+                row = row.strip('#')
+                # Convert string to list of strings
+                hexList = [row[:2], row[2:4], row[4:6]]
+                # Convert strings to int
+                hexInt = [int(val, 16) for val in hexList]
+                # Convert to array and append
+                rgb255 = np.append(rgb255, np.array(hexInt), 0)
+        else:
+            # Handle single values
+            if isinstance(color, np.ndarray):
+                # Strip away any extraneous numpy layers
+                color = color[(0,)*color.ndim]
+            color = color.strip('#')
+            # Convert string to list of strings
+            hexList = [color[:2], color[2:4], color[4:6]]
+            # Convert strings to int
+            hexInt = [int(val, 16) for val in hexList]
+            # Convert to array
+            rgb255 = np.array(hexInt)
         # Set rgb255 accordingly
-        self.rgb255 = flatList
+        self.rgb255 = rgb255
         # Clear outdated values from cache
         self._cache = {}
 
     @property
     def named(self):
         if 'named' not in self._cache:
-            # Round all values to 2 decimal places to find approximate matches
-            approxNames = {col: [round(val, 2) for val in colorNames[col]]
-                           for col in colorNames}
-            approxColor = [round(val, 2) for val in self.rgba]
-            # Get matches
-            possible = [nm for nm in approxNames if approxNames[nm] == approxColor]
-            # Return the first match
-            if possible:
-                self._cache['named'] = possible[0]
+            self._cache['named'] = None
+            # If alpha is 0, then we know that the color is None
+            if isinstance(self.alpha, np.ndarray):
+                invis = all(self.alpha == 0)
+            elif isinstance(self.alpha, (int, float)):
+                invis = self.alpha == 0
             else:
-                self._cache['named'] = None
-            # If opacity is 0, assume named value is 'none' regarless of RGB values
-            if self.alpha == 0:
+                invis = False
+            if invis:
                 self._cache['named'] = 'none'
+                return self._cache['named']
+            self._cache['named'] = np.array([])
+            for row in self.rgb:
+                for name, val in colorNames.items():
+                    if val[:3] == row:
+                        self._cache['named'] = np.append(self._cache['named'], name, 0)
+                        continue
         return self._cache['named']
     @named.setter
     def named(self, color):
         # Validate
-        color = self.validate(color=str(color).lower(), against=['named'], enforce=str)
-        if not color:
+        color, space = self.validate(color=color, space='named')
+        if space != 'named':
+            setattr(self, space)
             return
         # Retrieve named colour
-        self.rgb = colorNames[str(color).lower()]
-        if color.lower() == 'none':
-            self.alpha = 0
+        if len(color) > 1:
+            # Handle arrays
+            for row in color:
+                row = str(np.reshape(row, ())) # Enforce str
+                if str(row).lower() in colorNames:
+                    self.rgb = colorNames[str(row).lower()]
+                if row.lower() == 'none':
+                    self.alpha = 0
+        else:
+            color = str(np.reshape(color, ())) # Enforce str
+            if color.lower() in colorNames:
+                self.rgb = colorNames[str(color).lower()]
+            if color.lower() == 'none':
+                self.alpha = 0
         # Clear outdated values from cache
         self._cache = {}
 
     @property
     def hsva(self):
-        return self.hsv + (self.alpha,)
+        return self._appendAlpha('hsv')
     @hsva.setter
     def hsva(self, color):
         self.hsv = color
@@ -632,39 +660,10 @@ class Color(object):
         return self._cache['hsv']
     @hsv.setter
     def hsv(self, color):
-        # based on method in
-        # http://en.wikipedia.org/wiki/HSL_and_HSV#Converting_to_RGB
-
-        # Validate
-        color = self.validate(color, against=['hsva', 'hsv'], enforce=tuple)
-        if not color:
-            return
-        # Extract values
-        hue, saturation, vibrancy, *alpha = color
-        # Calculate pure hue
-        pureHue = self.hue2rgb255(hue)
-        # Apply value
-        hueVal = tuple(h * vibrancy for h in pureHue)
-        # Get desired value in 255
-        vibrancy255 = vibrancy * 255
-        # Apply saturation
-        all255 = tuple(round(h + (vibrancy255 - h) * (1 - saturation)) for h in hueVal)
         # Apply via rgba255
-        self.rgb255 = all255 + (alpha[0],) if alpha else all255
+        self.rgb = ct.hsv2rgb(color)
         # Clear outdated values from cache
         self._cache = {}
-
-_rec = r'(\-4\.5|\-4\.4\d*|\-4\.[0-4]\d*|\-[0-3]\.\d*|\-[0-3]|0|0\.\d*|1|1\.0)' # -4.5 to 1
-advancedSpaces = {
-    'rec709TF': re.compile(_lbr+_rec+r',\s*'+_rec+r',\s*'+_rec+_rbr), # rec709TF adjusted RGB from -4.5 to 1 + alpha from 0 to 1
-    'rec709TFa': re.compile(_lbr+_rec+r',\s*'+_rec+r',\s*'+_rec+r',\s*'+_1+_rbr), # rec709TF adjusted RGB from -4.5 to 1 + alpha from 0 to 1
-    'srgbTF': re.compile(_lbr+r'\-?'+_1+r',\s*'+r'\-?'+_1+r',\s*'+r'\-?'+_1+_rbr), # srgbTF from -1 to 1 + alpha from 0 to 1
-    'srgbTFa': re.compile(_lbr+r'\-?'+_1+r',\s*'+r'\-?'+_1+r',\s*'+r'\-?'+_1+r',\s*'+_1+_rbr), # srgbTF from -1 to 1 + alpha from 0 to 1
-    'lms': re.compile(_lbr + r'\-?' + _1 + r',\s*' + r'\-?' + _1 + r',\s*' + r'\-?' + _1 + _rbr),  # LMS from -1 to 1
-    'lmsa': re.compile(_lbr + r'\-?' + _1 + r',\s*' + r'\-?' + _1 + r',\s*' + r'\-?' + _1 + r',\s*' + r'\-?' + _1 + _rbr),  # LMS + alpha from -1 to 1
-    'dkl': re.compile(_lbr + r'\-?' + r'\d*.?\d*' + r',\s*' + r'\-?' + r'\d*.?\d*' + r',\s*' + r'\-?' + r'\d*.?\d*' + _rbr), # DKL placeholder: Accepts any values
-    'dkla': re.compile(_lbr + r'\-?' + r'\d*.?\d*' + r',\s*' + r'\-?' + r'\d*.?\d*' + r',\s*' + r'\-?' + r'\d*.?\d*' + r',\s*' + r'\-?' + r'\d*.?\d*' + _rbr) # DKLA placeholder: Accepts any values
-}
 
 
 class AdvancedColor(Color):
@@ -679,7 +678,7 @@ class AdvancedColor(Color):
 
     @staticmethod
     def getSpace(color, debug=False):
-        """Overrides Color.getSpace, drawing from a much more comprehensive library of colour spaces"""
+        """Overrides getSpace, drawing from a much more comprehensive library of colour spaces"""
         if isinstance(color, Color):
             return color._requestedSpace
         # Check for advanced colours spaces
@@ -708,7 +707,7 @@ class AdvancedColor(Color):
             if isinstance(color, list):
                 color = tuple(color)
         # Get possible colour spaces
-        possible = AdvancedColor.getSpace(color)
+        possible = getSpace(color)
         if isinstance(possible, str):
             possible = [possible]
         # Return if any matches
@@ -920,8 +919,8 @@ class AdvancedColor(Color):
 """----------Legacy-----------------"""
 # Old reference tables
 colors = colorNames
-colorsHex = {key: Color(key, 'named').hex for key in colors}
-colors255 = {key: Color(key, 'named').rgb255 for key in colors}
+#colorsHex = {key: Color(key, 'named').hex for key in colors}
+#colors255 = {key: Color(key, 'named').rgb255 for key in colors}
 
 # Old conversion functions
 def hex2rgb255(hexColor):
@@ -937,7 +936,7 @@ def hex2rgb255(hexColor):
 def isValidColor(color):
     """check color validity (equivalent to existing checks in _setColor)
     """
-    if len(Color.getSpace(color, True)):
+    if len(getSpace(color, True)):
         return True
     else:
         return False
