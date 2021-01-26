@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PsychoPy 2020.1.3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-01-26 12:21+0900\n"
-"PO-Revision-Date: 2021-01-26 12:43+0900\n"
+"POT-Creation-Date: 2021-01-26 17:43+0900\n"
+"PO-Revision-Date: 2021-01-26 17:59+0900\n"
 "Last-Translator: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language-Team: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language: ja\n"
@@ -1008,8 +1008,8 @@ msgid "Get help about this component"
 msgstr "このコンポーネントのオンラインヘルプを開きます"
 
 #: psychopy/app/builder/dialogs/__init__.py:1904
-#: psychopy/app/builder/dialogs/paramCtrls.py:165
-#: psychopy/app/builder/dialogs/paramCtrls.py:239
+#: psychopy/app/builder/dialogs/paramCtrls.py:175
+#: psychopy/app/builder/dialogs/paramCtrls.py:249
 msgid "Specify file ..."
 msgstr "ファイルを選択..."
 
@@ -1096,25 +1096,25 @@ msgstr "全ての編集内容を破棄して終了します"
 msgid "Param name(s) adjusted to be legal. Look ok?"
 msgstr "パラメータ名が適切になるように修正しました よろしいですか？"
 
-#: psychopy/app/builder/dialogs/paramCtrls.py:89
-#: psychopy/app/builder/dialogs/paramCtrls.py:315
+#: psychopy/app/builder/dialogs/paramCtrls.py:91
+#: psychopy/app/builder/dialogs/paramCtrls.py:325
 msgid ""
 "This parameter will be treated as code - we have already put in the $, so "
 "you don't have to."
 msgstr "このパラメータはコードとして扱われます. $をつける必要はありません"
 
-#: psychopy/app/builder/dialogs/paramCtrls.py:245
+#: psychopy/app/builder/dialogs/paramCtrls.py:255
 msgid "Open/create in your default table editor"
 msgstr "標準の表エディタで開きます"
 
-#: psychopy/app/builder/dialogs/paramCtrls.py:285
+#: psychopy/app/builder/dialogs/paramCtrls.py:295
 #, python-brace-format
 msgid ""
 "Once you have created and saved your table, please remember to add it to "
 "{self.Name}"
 msgstr "表を作成、保存したら忘れずに{self.Name}に追加してください"
 
-#: psychopy/app/builder/dialogs/paramCtrls.py:322
+#: psychopy/app/builder/dialogs/paramCtrls.py:332
 msgid "Specify color ..."
 msgstr "色を選択..."
 
@@ -1255,7 +1255,7 @@ msgid "add"
 msgstr "加算"
 
 #: psychopy/app/builder/localizedStrings.py:70
-#: psychopy/app/builder/localizedStrings.py:101
+#: psychopy/app/builder/localizedStrings.py:103
 msgid "average"
 msgstr "平均"
 
@@ -1309,70 +1309,74 @@ msgstr "有効なクリック"
 
 #: psychopy/app/builder/localizedStrings.py:88
 msgid "mouse onset"
-msgstr "Mouseコンポーネント初期化時"
+msgstr "Mouseコンポーネント開始時"
 
 #: psychopy/app/builder/localizedStrings.py:89
 msgid "Routine"
 msgstr "Routine開始時"
 
 #: psychopy/app/builder/localizedStrings.py:91
+msgid "joystick onset"
+msgstr "Joystickコンポーネント開始時"
+
+#: psychopy/app/builder/localizedStrings.py:93
 msgid "line"
 msgstr "直線"
 
-#: psychopy/app/builder/localizedStrings.py:92
+#: psychopy/app/builder/localizedStrings.py:94
 msgid "triangle"
 msgstr "三角形"
 
-#: psychopy/app/builder/localizedStrings.py:93
+#: psychopy/app/builder/localizedStrings.py:95
 msgid "rectangle"
 msgstr "長方形"
 
-#: psychopy/app/builder/localizedStrings.py:94
+#: psychopy/app/builder/localizedStrings.py:96
 msgid "cross"
 msgstr "十字"
 
-#: psychopy/app/builder/localizedStrings.py:95
+#: psychopy/app/builder/localizedStrings.py:97
 msgid "star"
 msgstr "星"
 
-#: psychopy/app/builder/localizedStrings.py:96
+#: psychopy/app/builder/localizedStrings.py:98
 msgid "regular polygon..."
 msgstr "正多角形..."
 
-#: psychopy/app/builder/localizedStrings.py:98
+#: psychopy/app/builder/localizedStrings.py:100
 msgid "first"
 msgstr "最初"
 
-#: psychopy/app/builder/localizedStrings.py:99
+#: psychopy/app/builder/localizedStrings.py:101
 msgid "last"
 msgstr "最後"
 
-#: psychopy/app/builder/localizedStrings.py:100
+#: psychopy/app/builder/localizedStrings.py:102
 msgid "all"
 msgstr "すべて"
 
-#: psychopy/app/builder/localizedStrings.py:104
+#: psychopy/app/builder/localizedStrings.py:106
 msgid "one of your Components, Routines, or condition parameters"
 msgstr "他のコンポーネントやルーチン，パラメータ"
 
-#: psychopy/app/builder/localizedStrings.py:106
+#: psychopy/app/builder/localizedStrings.py:108
 msgid " Avoid `this`, `these`, `continue`, `Clock`, or `component` in name"
 msgstr ""
 " this、these、continue、Clock、componentを名前に含まないようにしてください"
 
-#: psychopy/app/builder/localizedStrings.py:107
+#: psychopy/app/builder/localizedStrings.py:109
 msgid "Builder variable"
 msgstr "Builderの変数"
 
-#: psychopy/app/builder/localizedStrings.py:108
+#: psychopy/app/builder/localizedStrings.py:110
 msgid "Psychopy module"
 msgstr "PsychoPyのモジュール名"
 
-#: psychopy/app/builder/localizedStrings.py:109
+#: psychopy/app/builder/localizedStrings.py:111
 msgid "numpy function"
 msgstr "numpyの関数"
 
-#: psychopy/app/builder/localizedStrings.py:110
+#: psychopy/app/builder/localizedStrings.py:112
 msgid "python keyword"
 msgstr "Pythonのキーワード"
 
