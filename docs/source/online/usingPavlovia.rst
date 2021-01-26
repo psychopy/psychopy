@@ -19,6 +19,7 @@ Creating an account on Pavlovia
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To create and log in to your account on `Pavlovia`_, you will need an active internet connection. If you have not created your account, you can either 
+
 - go to `Pavlovia`_ and create your account, or
 - click the login button highlighted in Figure 1, and create an account through the dialog box. 
 

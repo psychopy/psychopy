@@ -16,8 +16,8 @@ Images: PNG or JPG
 ~~~~~~~~~~~~~~~~~~
 Web-browsers support a large variety of image formats; see an `overview here <https://developer.mozilla.org/en-US/docs/Web/Media/Formats/Image_types>`_. Two widely supported formats are:
 
-* PNG. This format applies "lossless" compression, which means that the compressed image presented contains each of the original pixels. PNG is especially good at compressing pictures with geometric shapes, while more natural scenes may yield relatively large files.
-* JPG. This format applied "lossy" compression, which means that the compressed image presented does not contain each of the original pixels. JPG can compress natural scenes very well. When encoding to JPG, you can adjust quality settings to produce larger (and more detailed) or smaller (and less detailed) files.
+* PNG. This format applies "lossless" compression, which means that the compressed image is an exact reproduction of the original image. PNG is good at compressing pictures with geometric shapes, but natural scenes may yield relatively large files.
+* JPG. This format applies "lossy" compression, which means that the compressed image approximates the original image. JPG can compress natural scenes very well. When encoding to JPG, you can adjust quality settings to produce larger (and more detailed) or smaller (and less detailed) files.
  
 For converting images to PNG and JPG, you could use `GIMP <https://www.gimp.org/>`_. See `this tutorial <https://www.digitaltrends.com/computing/how-to-edit-multiple-photos-at-once/>`_ for instructions on how to convert multiple images at once using GIMP. By picking "Change Format and Compression" in step 4 of the tutorial you can select which format to save the images in.
 
