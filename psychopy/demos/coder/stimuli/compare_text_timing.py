@@ -10,7 +10,6 @@ various timing measures collected.
 """
 import string
 import random
-import psychopy
 from psychopy import visual, core, event
 from psychopy.visual import textbox
 from psychopy.iohub.util import NumPyRingBuffer
@@ -20,7 +19,7 @@ import pyglet.gl as gl
 text_length=160
 chng_txt_each_flips=5
 max_flip_count=60*10
-text_stim_types = [psychopy.visual.textbox.TextBox, psychopy.visual.textbox2.TextBox2, psychopy.visual.TextStim]
+text_stim_types = [visual.TextBox, visual.TextBox2, visual.TextStim]
 text_stim = []
 stim_init_durations={}
 txt_change_draw_times={}
@@ -28,8 +27,9 @@ no_change_draw_times={}
 
 for stype in text_stim_types:
     # Circular buffers to store timing measures
-    txt_change_draw_times[stype]=NumPyRingBuffer(max_flip_count)
-    no_change_draw_times[stype]=NumPyRingBuffer(max_flip_count)
+    cname = stype.__name__
+    txt_change_draw_times[cname]=NumPyRingBuffer(max_flip_count)
+    no_change_draw_times[cname]=NumPyRingBuffer(max_flip_count)
 
 # Some utility functions >>>
 #
@@ -62,59 +62,59 @@ window=visual.Window((1920,1080),
 
 # Find a font that is available on the system.
 fm = textbox.getFontManager()
-available_font_names=fm.getFontFamilyNames()
-font_name=available_font_names[0]
-prefered_fonts=[fn for fn in available_font_names if fn in [
-                                                            'Courier New',
-                                                            'Consolas',
-                                                            'Lucida Sans Typewriter',
-                                                            'Ubuntu Mono',
-                                                            'DejaVu Sans Mono',
-                                                            'Bitstream Vera Sans Mono']]
+font_names=fm.getFontFamilyNames()
+font_name=font_names[0]
+prefered_fonts=[fn for fn in font_names if fn in ['Courier New',
+                                                  'Consolas',
+                                                  'Lucida Sans Typewriter',
+                                                  'Ubuntu Mono',
+                                                  'DejaVu Sans Mono',
+                                                  'Bitstream Vera Sans Mono']]
 if prefered_fonts:
     font_name=prefered_fonts[0]
 print("Using font: ", font_name)
 
 text_class_params=dict()
-text_class_params[psychopy.visual.textbox.TextBox]=dict(window=window,
-                                                text=text, 
-                                                font_name=font_name,
-                                                font_size=28,
-                                                font_color=[255,255,255],
-                                                size=(1.5,.5),
-                                                pos=(0.0,.5), 
-                                                units='norm',
-                                                grid_horz_justification='left',
-                                                grid_vert_justification='center',
-                                                color_space='rgb255')
-text_class_params[psychopy.visual.textbox2.TextBox2]=dict(win=window, 
-                                                text=text,
-                                                font=font_name,
-                                                borderColor=None, 
-                                                fillColor=[0,0,0],
-                                                pos=(0.0,-0.1),
-                                                units='height',
-                                                anchor='center',
-                                                letterHeight=0.03,
-                                                editable=False,
-                                                size=[1.5,.33])
-text_class_params[psychopy.visual.TextStim]=dict(win=window,
-                                                pos=(0.0,-0.5),
-                                                font=font_name,
-                                                units='norm',
-                                                height=0.06,
-                                                text=text,
-                                                autoLog=False,
-                                                wrapWidth=1.5)
+text_class_params['TextBox']=dict(window=window,
+                                text=text, 
+                                font_name=font_name,
+                                font_size=28,
+                                font_color=[255,255,255],
+                                size=(1.5,.5),
+                                pos=(0.0,.5), 
+                                units='norm',
+                                grid_horz_justification='left',
+                                grid_vert_justification='center',
+                                color_space='rgb255')
+text_class_params['TextBox2']=dict(win=window, 
+                                text=text,
+                                font=font_name,
+                                borderColor=None, 
+                                fillColor=[0,0,0],
+                                pos=(0.0,-0.1),
+                                units='height',
+                                anchor='center',
+                                letterHeight=0.03,
+                                editable=False,
+                                size=[1.5,.33])
+text_class_params['TextStim']=dict(win=window,
+                                pos=(0.0,-0.5),
+                                font=font_name,
+                                units='norm',
+                                height=0.06,
+                                text=text,
+                                autoLog=False,
+                                wrapWidth=1.5)
 
 # Create each stim type and perform draw on it. Time how long it takes 
 # to create the initial stim and do the initial draw. 
 for ttype in text_stim_types:
+    cname = ttype.__name__
     stime=core.getTime()                                   
-    text_stim.append(ttype(**text_class_params[ttype]))
+    text_stim.append(ttype(**text_class_params[cname]))
     text_stim[-1].draw()
     etime=core.getTime()
-    stim_init_durations[ttype]=etime-stime
+    stim_init_durations[cname]=etime-stime
 
 
 # Start the draw duration tests, for text change and no text change conditions.
@@ -135,21 +135,23 @@ while True:
     if fcount==0 or fcount%chng_txt_each_flips==0:
         t=getRandomString(text_length)
         
-        for tstim in text_stim:    
+        for tstim in text_stim:
+            cname = tstim.__class__.__name__
             stime=core.getTime()*1000.0
             tstim.setText(tstim.__class__.__name__+t)
             tstim.draw()
             gl.glFinish()
             etime=core.getTime()*1000.0 
-            txt_change_draw_times[tstim.__class__].append(etime-stime)
+            txt_change_draw_times[cname].append(etime-stime)
 
     else:
         for tstim in text_stim:    
+            cname = tstim.__class__.__name__
             stime=core.getTime()*1000.0
             tstim.draw()
             gl.glFinish()
             etime=core.getTime()*1000.0 
-            no_change_draw_times[tstim.__class__].append(etime-stime)
+            no_change_draw_times[cname].append(etime-stime)
         
     # Update the display to show stim changes
     flip_time=window.flip()
@@ -171,7 +173,7 @@ print('+ Draw Order: {}\t'.format([c.__name__ for c in text_stim_types]))
 print('+ Text Stim Char Length:\t',text_length)
 print()
 for stim_type,init_dur in stim_init_durations.items():
-    print('+ {} INIT Dur (sec):\t{}'.format(stim_type.__name__, init_dur))
+    print('+ {} INIT Dur (sec):\t{}'.format(stim_type, init_dur))
 print()
 print('+ Text Change Flip Perc:\t%.2f'%((1.0/chng_txt_each_flips)*100.0))
 print('+ Total Flip Count:\t\t',fcount)
@@ -182,7 +184,10 @@ print('+ Average Draw Call Durations (msec):')
 print()
 print('  Text Object\t\tNo Txt Change\tTxt Change')
 for stim_type in text_stim_types:
-    print('  %s\t\t%.3f\t\t%.3f'%(stim_type.__name__, no_change_draw_times[stim_type].mean(),txt_change_draw_times[stim_type].mean()))
+    cname = stim_type.__name__
+    print('  %s\t\t%.3f\t\t%.3f'%(cname, 
+                                  no_change_draw_times[cname].mean(),
+                                  txt_change_draw_times[cname].mean()))
 print()
     
 core.quit()
