@@ -2,8 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Demo for iohub keyboard
-
+Example of how to access Keyboard events using iohub.
 Displays information from ioHub Keyboard Events vs. psychopy.event.geKeys().
 """
 

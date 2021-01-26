@@ -5,8 +5,8 @@ Tobii
 **Platforms:** 
 
 * Windows 7 / 10
-* Linux (not tested)
-* macOS (not tested)
+* Linux
+* macOS
 
 **Required Python Version:** 
 
@@ -14,8 +14,9 @@ Tobii
     
 **Supported Models:**
 
-Any Tobii model that supports screen based calibration and can used the
-tobii_research API. Tested using a Tobii T120.
+Tobii Pro eye tracker models that can use the tobii_research Python package.
+For a complete list please visit
+`Tobii support <http://developer.tobiipro.com/tobiiprosdk/supportedeyetrackers.html>`_. 
 
 Additional Software Requirements
 #################################
@@ -130,4 +131,4 @@ Default Device Settings
     :language: yaml
 
 
-**Last Updated:** June 2019
+**Last Updated:** January, 2021
