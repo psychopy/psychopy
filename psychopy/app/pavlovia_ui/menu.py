@@ -82,9 +82,9 @@ class PavloviaMenu(wx.Menu):
         self.setUser(user)
 
     def setUser(self, user=None):
-
-        if user is None and PavloviaMenu.appData['pavloviaUser']:
-            user = PavloviaMenu.appData['pavloviaUser']
+        if PavloviaMenu.appData:
+            if user is None and PavloviaMenu.appData['pavloviaUser']:
+                user = PavloviaMenu.appData['pavloviaUser']
 
         if user in [PavloviaMenu.currentUser, None]:
             return  # nothing to do here. Move along please.
