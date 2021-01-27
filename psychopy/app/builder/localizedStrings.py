@@ -87,6 +87,8 @@ _localizedDialogs = {
     'valid click': _translate('valid click'),
     'mouse onset':_translate('mouse onset'),
     'Routine': _translate('Routine'),
+    # Joystick:
+    'joystick onset':_translate('joystick onset'),
     # Polygon:
     'line': _translate('line'),
     'triangle': _translate('triangle'),

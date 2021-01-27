@@ -28,6 +28,10 @@ If you are manually installing PsychPy3, please install
 the appropriate version of pylink. Downloads are available to SR Research
 customers from their support website.
 
+On macOS and Linux, the EyeLink Developers Kit must also be installed for
+pylink to work. Please visit SR Research support site for information about
+how to install the EyeLink developers kit on macOS or Linux. 
+
 EyeTracker Class
 ################
 
@@ -695,4 +699,4 @@ Default Device Settings
     :language: yaml
     
     
-**Last Updated:** April, 2019
+**Last Updated:** January, 2021
