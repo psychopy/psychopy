@@ -92,17 +92,20 @@ class SingleLineCtrl(wx.TextCtrl, _ValidatorMixin):
         self._szr.Add(self, proportion=1, border=5, flag=wx.EXPAND)
         # Bind to validation
         self.Bind(wx.EVT_TEXT, self.codeWanted)
+        self.codeWanted(None)
 
     def codeWanted(self, evt):
-        if self.GetValue().startswith("$") or not self.valType == "str":
+        if self.GetValue().startswith("$") or not self.valType == "str" and not self.GetName() == "name":
             spec = ThemeMixin.codeColors.copy()
             base = spec['base']
             # Override base font with user spec if present
             if prefs.coder['codeFont'].lower() != "From Theme...".lower():
                 base['font'] = prefs.coder['codeFont']
+            self.SetFont(self.GetTopLevelParent().app._codeFont)
             validate(self, "code")
         else:
             validate(self, self.valType)
+            self.SetFont(self.GetTopLevelParent().app._mainFont)
 
 
 class MultiLineCtrl(SingleLineCtrl, _ValidatorMixin):
@@ -309,7 +312,7 @@ class ColorCtrl(wx.TextCtrl, _ValidatorMixin):
         self.valType = valType
         # Add sizer
         self._szr = wx.BoxSizer(wx.HORIZONTAL)
-        if not valType == "str":
+        if valType == "code":
             # Add $ for anything to be interpreted verbatim
             self.dollarLbl = wx.StaticText(parent, -1, "$", size=wx.Size(-1, -1), style=wx.ALIGN_RIGHT)
             self.dollarLbl.SetToolTip(_translate("This parameter will be treated as code - we have already put in the $, so you don't have to."))
