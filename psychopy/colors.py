@@ -347,7 +347,7 @@ class Color(object):
     def __len__(self):
         """Determines the length of object"""
         if len(self.rgb.shape) > 1:
-            return self.rgb.shape[0]
+            return self.rgb.shape[1]
         else:
             return int(bool(self.rgb.shape))
 
@@ -357,7 +357,10 @@ class Color(object):
         if isinstance(target, Color):
             return all(np.round(target.rgba, 2) == np.round(self.rgba, 2))
         elif target == None:
-            return self.named == 'none'
+            if len(self) > 1:
+                return all(self.named == 'none')
+            else:
+                return self.named == 'none'
         else:
             return False
     def __ne__(self, target):
@@ -596,10 +599,19 @@ class Color(object):
                 self._cache['named'] = 'none'
                 return self._cache['named']
             self._cache['named'] = np.array([])
-            for row in self.rgb:
+            # Handle array
+            if len(self) > 1:
+                for row in self.rgb:
+                    for name, val in colorNames.items():
+                        if all(val[:3] == row):
+                            self._cache['named'] = np.append(self._cache['named'], [name], 0)
+                            continue
+                self._cache['named'] = np.reshape(self._cache['named'], (-1,1))
+            else:
+                rgb = self.rgb
                 for name, val in colorNames.items():
-                    if val[:3] == row:
-                        self._cache['named'] = np.append(self._cache['named'], name, 0)
+                    if all(val[:3] == rgb):
+                        self._cache['named'] = name
                         continue
         return self._cache['named']
     @named.setter
