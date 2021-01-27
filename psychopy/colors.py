@@ -213,7 +213,7 @@ colorSpaces = {
 integerSpaces = []
 strSpaces = []
 for key, val in colorSpaces.items():
-    if isinstance(val, re.Pattern):
+    if isinstance(val, re.compile("").__class__):
         # Add any spaces which are str to a list
         strSpaces.append(key)
     elif isinstance(val, (list, tuple)):
