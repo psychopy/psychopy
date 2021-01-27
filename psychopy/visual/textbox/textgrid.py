@@ -196,10 +196,6 @@ class TextGrid(object):
             dl_index = glGenLists(1)
             glNewList(dl_index, GL_COMPILE)
 
-            # stime=getTime()
-
-            # self._text_box._te_start_gl()
-
             ###
             glActiveTexture(GL_TEXTURE0)
             glEnable(GL_TEXTURE_2D)

@@ -8,7 +8,6 @@ from __future__ import absolute_import, division, print_function
 
 from psychopy import core, visual
 from psychopy.iohub.client import launchHubServer
-import time
 
 # Eye tracker to use ('eyelink', 'gazepoint', or 'tobii')
 TRACKER = 'gazepoint'
@@ -52,7 +51,7 @@ if tracker_config:
                         allowGUI=False
                         )
 
-    gaze_ok_region = visual.Circle(win, radius=200, units='pix')
+    gaze_ok_region = visual.Circle(win, lineColor='black', radius=300, units='pix')
 
     gaze_dot = visual.GratingStim(win, tex=None, mask='gauss', pos=(0, 0),
                                   size=(66, 66), color='green', units='pix')
@@ -62,9 +61,9 @@ if tracker_config:
     missing_gpos_str = 'Eye Position: MISSING. In Region: No\n'
     missing_gpos_str += 'Press space key to start next trial.'
     text_stim = visual.TextStim(win, text=text_stim_str,
-                                pos=[0, int((-win.size[1]/2)*0.8)], height=24,
-                                     color='black',
-                                     wrapWidth=win.size[0] * .9)
+                                pos=[0, 0], height=24,
+                                color='black',
+                                wrapWidth=win.size[0] * .9)
 
     # Run Trials.....
     t = 0
@@ -110,7 +109,7 @@ if tracker_config:
                 run_trial = False
             elif core.getTime()-tstart_time > T_MAX:
                 run_trial = False
-
+        win.flip()
         # Current Trial is Done
         # Stop eye data recording
         tracker.setRecordingState(False)

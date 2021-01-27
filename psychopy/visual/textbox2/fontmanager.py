@@ -51,7 +51,7 @@ _OSXFontDirectories = [
     "/Network/Library/Fonts",
     "/System/Library/Fonts",
     # fonts installed via MacPorts
-    "/opt/local/share/fonts"
+    "/opt/local/share/fonts",
     ""
 ]
 
