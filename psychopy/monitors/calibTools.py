@@ -445,7 +445,7 @@ class Monitor(object):
         else:
             if ext == ".json":
                 with open(thisFileName, 'r') as thisFile:
-                    if not constants.PY3:
+                    if constants.PY3:
                         # Passing encoding parameter to json.loads has been
                         # deprecated and removed in Python 3.9
                         self.calibs = json_tricks.load(
