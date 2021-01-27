@@ -10,6 +10,8 @@ from psychopy import data, prefs, experiment
 import re
 from pathlib import Path
 
+from ..localizedStrings import _localizedDialogs as _localized
+
 class _ValidatorMixin():
     def validate(self, evt):
         """Redirect validate calls to global validate method, assigning appropriate valType"""
@@ -143,12 +145,20 @@ class ChoiceCtrl(wx.Choice, _ValidatorMixin):
     def __init__(self, parent, valType,
                  val="", choices=[], fieldName="",
                  size=wx.Size(-1, 24)):
+        # translate add each label to the dropdown
+        choiceLabels = []
+        for item in choices:
+            try:
+                choiceLabels.append(_localized[item])
+            except KeyError:
+                choiceLabels.append(item)
+
         wx.Choice.__init__(self)
-        self.Create(parent, -1, size=size, choices=choices, name=fieldName)
+        self.Create(parent, -1, size=size, choices=choiceLabels, name=fieldName)
         self._choices = choices
         self.valType = valType
         if val in choices:
-            self.SetStringSelection(val)
+            self.SetSelection(choices.index(val))
 
 
 class FileCtrl(wx.TextCtrl, _ValidatorMixin, _FileMixin):
