@@ -472,7 +472,7 @@ class Color(object):
         # Set color
         self._franca = color
         # Clear outdated values from cache
-        self._cache = {}
+        self._cache = {'rgb': color}
 
     @property
     def rgba255(self):
@@ -498,7 +498,7 @@ class Color(object):
         # Iterate through values and do conversion
         self.rgb = 2 * (color / 255 - 0.5)
         # Clear outdated values from cache
-        self._cache = {}
+        self._cache = {'rgb255': color}
 
     @property
     def rgba1(self):
@@ -524,7 +524,7 @@ class Color(object):
         # Iterate through values and do conversion
         self.rgb = 2 * (color - 0.5)
         # Clear outdated values from cache
-        self._cache = {}
+        self._cache = {'rgb1': color}
 
     @property
     def hex(self):
@@ -582,7 +582,7 @@ class Color(object):
         # Set rgb255 accordingly
         self.rgb255 = rgb255
         # Clear outdated values from cache
-        self._cache = {}
+        self._cache = {'hex': color}
 
     @property
     def named(self):
@@ -637,7 +637,7 @@ class Color(object):
             if color.lower() == 'none':
                 self.alpha = 0
         # Clear outdated values from cache
-        self._cache = {}
+        self._cache = {'named': color}
 
     @property
     def hsva(self):
@@ -660,7 +660,7 @@ class Color(object):
         # Apply via rgba255
         self.rgb = ct.hsv2rgb(color)
         # Clear outdated values from cache
-        self._cache = {}
+        self._cache = {'hsv': color}
 
     @property
     def lmsa(self):
@@ -683,7 +683,7 @@ class Color(object):
         # Apply via rgba255
         self.rgb = ct.lms2rgb(color, self.conematrix)
         # Clear outdated values from cache
-        self._cache = {}
+        self._cache = {'lms': color}
 
     @property
     def dkla(self):
@@ -706,7 +706,7 @@ class Color(object):
         # Apply via rgba255
         self.rgb = ct.dkl2rgb(color, self.conematrix)
         # Clear outdated values from cache
-        self._cache = {}
+        self._cache = {'dkl': color}
 
     @property
     def dklaCart(self):
@@ -729,7 +729,7 @@ class Color(object):
         # Apply via rgba255
         self.rgb = ct.dklCart2rgb(color, self.conematrix)
         # Clear outdated values from cache
-        self._cache = {}
+        self._cache = {'dklCart': color}
 
     @property
     def srgbTF(self):
@@ -746,7 +746,7 @@ class Color(object):
         # Apply via rgba255
         self.rgb = ct.srgbTF(color, reverse=True)
         # Clear outdated values from cache
-        self._cache = {}
+        self._cache = {'srgbTF': color}
 
     @property
     def rec709TF(self):
@@ -763,7 +763,7 @@ class Color(object):
         # Apply via rgba255
         self.rgb = ct.rec709TF(color, reverse=True)
         # Clear outdated values from cache
-        self._cache = {}
+        self._cache = {'rec709TF': color}
 
 
 """----------Legacy-----------------"""
