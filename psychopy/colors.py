@@ -8,10 +8,11 @@ from past.builtins import basestring
 from psychopy.tools.coordinatetools import sph2cart
 import psychopy.tools.colorspacetools as ct
 import numpy as np
+from psychopy.tools.mathtools import infrange
 from psychopy import logging
 import re
 import numpy
-from math import floor, fsum
+from math import floor, fsum, inf
 
 from psychopy import logging
 
@@ -183,42 +184,44 @@ colorNames = {
 # Convert all named colors to numpy arrays
 for key in colorNames:
     colorNames[key] = np.array(colorNames[key])
-# Shorthand for common regexpressions
-_255 = r'(\d|\d\d|1\d\d|2[0-4]\d|25[0-5])'
-_360 = r'((\d|\d\d|[12]\d\d|3[0-5]\d)(\.\d)*|360|360\.0*)'
-_100 = r'((\d|\d\d)(\.\d)*|100|100\.0*)'
-_1 = r'(0|1|1.0*|0\.\d*)'
-_lbr = r'[\[\(]\s*'
-_rbr = r'\s*[\]\)]'
-# Dict of regexpressions for different formats
+# Dict of regexpressions/ranges for different formats
 colorSpaces = {
     'named': re.compile("|".join(list(colorNames))), # A named colour space
     'hex': re.compile(r'#[\dabcdefABCDEF]{6}'), # Hex
-    'rgb': re.compile(_lbr+r'\-?'+_1+r',\s*'+r'\-?'+_1+r',\s*'+r'\-?'+_1+_rbr), # RGB from -1 to 1
-    'rgba': re.compile(_lbr+r'\-?'+_1+r',\s*'+r'\-?'+_1+r',\s*'+r'\-?'+_1+r',\s*'+r'\-?'+_1+_rbr),  # RGB + alpha from -1 to 1
-    'rgb1': re.compile(_lbr+_1+r',\s*'+_1+r',\s*'+_1+_rbr),  # RGB from 0 to 1
-    'rgba1': re.compile(_lbr+_1+r',\s*'+_1+r',\s*'+_1+r',\s*'+_1+_rbr),  # RGB + alpha from 0 to 1
-    'rgb255': re.compile(_lbr+_255+r',\s*'+_255+r',\s*'+_255+_rbr), # RGB from 0 to 255
-    'rgba255': re.compile(_lbr+_255+r',\s*'+_255+r',\s*'+_255+r',\s*'+_1+_rbr), # RGB + alpha from 0 to 255
-    'hsv': re.compile(_lbr+_360+r'\°?'+r',\s*'+_1+r',\s*'+_1+_rbr), # HSV with hue from 0 to 360 and saturation/vibrancy from 0 to 1
-    'hsva': re.compile(_lbr+_360+r'\°?'+r',\s*'+_1+r',\s*'+_1+r',\s*'+_1+_rbr), # HSV with hue from 0 to 360 and saturation/vibrancy from 0 to 1 + alpha from 0 to 1
+    'rgb': [infrange(-1, 1), infrange(-1, 1), infrange(-1, 1)], # RGB from -1 to 1
+    'rgba': [infrange(-1, 1), infrange(-1, 1), infrange(-1, 1), infrange(0, 1)],  # RGB + alpha from -1 to 1
+    'rgb1': [infrange(0, 1), infrange(0, 1), infrange(0, 1)],  # RGB from 0 to 1
+    'rgba1': [infrange(0, 1), infrange(0, 1), infrange(0, 1), infrange(0, 1)],  # RGB + alpha from 0 to 1
+    'rgb255': [infrange(0, 255, 1), infrange(0, 255, 1), infrange(0, 255, 1)], # RGB from 0 to 255
+    'rgba255': [infrange(0, 255, 1), infrange(0, 255, 1), infrange(0, 255, 1), infrange(0, 1)], # RGB + alpha from 0 to 255
+    'hsv': [infrange(0, 360, 1), infrange(0, 1), infrange(0, 1)], # HSV with hue from 0 to 360 and saturation/vibrancy from 0 to 1
+    'hsva': [infrange(0, 360, 1), infrange(0, 1), infrange(0, 1), infrange(0, 1)], # HSV with hue from 0 to 360 and saturation/vibrancy from 0 to 1 + alpha from 0 to 1
+    'rec709TF': [infrange(-4.5, 1), infrange(-4.5, 1), infrange(-4.5, 1)], # rec709TF adjusted RGB from -4.5 to 1
+    'rec709TFa': [infrange(-4.5, 1), infrange(-4.5, 1), infrange(-4.5, 1), infrange(0, 1)], # rec709TF adjusted RGB from -4.5 to 1 + alpha from 0 to 1
+    'srgbTF': [infrange(-1, 1), infrange(-1, 1), infrange(-1, 1)], # srgbTF from -1 to 1
+    'srgbTFa': [infrange(-1, 1), infrange(-1, 1), infrange(-1, 1), infrange(0, 1)], # srgbTF from -1 to 1 + alpha from 0 to 1
+    'lms': [infrange(-1, 1), infrange(-1, 1), infrange(-1, 1), infrange(0, 1)],  # LMS from -1 to 1
+    'lmsa': [infrange(-1, 1), infrange(-1, 1), infrange(-1, 1), infrange(0, 1)],  # LMS + alpha from 0 to 1
+    'dkl': [infrange(-inf, inf), infrange(-inf, inf), infrange(-inf, inf), infrange(0, 1)], # DKL placeholder: Accepts any values
+    'dkla': [infrange(-inf, inf), infrange(-inf, inf), infrange(-inf, inf), infrange(0, 1)], # DKLA placeholder: Accepts any values + alpha from 0 to 1
+    'dklCart': [infrange(-inf, inf), infrange(-inf, inf), infrange(-inf, inf), infrange(0, 1)],
+    # Cartesian DKL placeholder: Accepts any values
+    'dklaCart': [infrange(-inf, inf), infrange(-inf, inf), infrange(-inf, inf), infrange(0, 1)],
+    # Cartesian DKLA placeholder: Accepts any values + alpha from 0 to 1
 }
-_rec = r'(\-4\.5|\-4\.4\d*|\-4\.[0-4]\d*|\-[0-3]\.\d*|\-[0-3]|0|0\.\d*|1|1\.0)' # -4.5 to 1
-advancedSpaces = {
-    'rec709TF': re.compile(_lbr+_rec+r',\s*'+_rec+r',\s*'+_rec+_rbr), # rec709TF adjusted RGB from -4.5 to 1 + alpha from 0 to 1
-    'rec709TFa': re.compile(_lbr+_rec+r',\s*'+_rec+r',\s*'+_rec+r',\s*'+_1+_rbr), # rec709TF adjusted RGB from -4.5 to 1 + alpha from 0 to 1
-    'srgbTF': re.compile(_lbr+r'\-?'+_1+r',\s*'+r'\-?'+_1+r',\s*'+r'\-?'+_1+_rbr), # srgbTF from -1 to 1 + alpha from 0 to 1
-    'srgbTFa': re.compile(_lbr+r'\-?'+_1+r',\s*'+r'\-?'+_1+r',\s*'+r'\-?'+_1+r',\s*'+_1+_rbr), # srgbTF from -1 to 1 + alpha from 0 to 1
-    'lms': re.compile(_lbr + r'\-?' + _1 + r',\s*' + r'\-?' + _1 + r',\s*' + r'\-?' + _1 + _rbr),  # LMS from -1 to 1
-    'lmsa': re.compile(_lbr + r'\-?' + _1 + r',\s*' + r'\-?' + _1 + r',\s*' + r'\-?' + _1 + r',\s*' + r'\-?' + _1 + _rbr),  # LMS + alpha from -1 to 1
-    'dkl': re.compile(_lbr + r'\-?' + r'\d*.?\d*' + r',\s*' + r'\-?' + r'\d*.?\d*' + r',\s*' + r'\-?' + r'\d*.?\d*' + _rbr), # DKL placeholder: Accepts any values
-    'dkla': re.compile(_lbr + r'\-?' + r'\d*.?\d*' + r',\s*' + r'\-?' + r'\d*.?\d*' + r',\s*' + r'\-?' + r'\d*.?\d*' + r',\s*' + r'\-?' + r'\d*.?\d*' + _rbr) # DKLA placeholder: Accepts any values
-}
-integerSpaces = ['rgb255',  'hsv',
-                 'rgba255', 'hsva']
-strSpaces = ['named',
-             'hex',
-             'hexa']
+# Create subgroups of spaces for easy reference
+integerSpaces = []
+strSpaces = []
+for key, val in colorSpaces.items():
+    if isinstance(val, re.Pattern):
+        # Add any spaces which are str to a list
+        strSpaces.append(key)
+    elif isinstance(val, (list, tuple)):
+        # Add any spaces which are integer-only to a list
+        for cell in val:
+            if isinstance(cell, infrange):
+                if cell.step == 1 and key not in integerSpaces:
+                    integerSpaces.append(key)
 
 
 class Color(object):
