@@ -578,7 +578,7 @@ class BaseVisualComponent(BaseComponent):
     categories = ['Stimuli']
 
     def __init__(self, exp, parentName, name='',
-                 units='from exp settings', color='white', fillColor="None", borderColor="None",
+                 units='from exp settings', color='white', fillColor="", borderColor="",
                  pos=(0, 0), size=(0, 0), ori=0, colorSpace='rgb', opacity=1, contrast=1,
                  startType='time (s)', startVal='',
                  stopType='duration (s)', stopVal='',
