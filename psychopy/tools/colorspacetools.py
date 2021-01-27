@@ -398,6 +398,7 @@ def dklCart2rgb(LUM, LM, S, conversionMatrix=None):
 
 def rgb2hsv(rgb1):
     # Based on https://www.geeksforgeeks.org/program-change-rgb-color-model-hsv-color-model/
+    raise NotImplementedError("Conversion from rgb to hsv is not yet implemented")
     red, green, blue = rgb1
     cmax = max(red, green, blue)
     cmin = min(red, green, blue)

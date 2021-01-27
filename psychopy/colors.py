@@ -227,11 +227,12 @@ for key, val in colorSpaces.items():
 class Color(object):
     """A class to store colour details, knows what colour space it's in and can supply colours in any space"""
 
-    def __init__(self, color=None, space=None, contrast=None):
+    def __init__(self, color=None, space=None, contrast=None, conematrix=None):
         self._cache = {}
         self.contrast = contrast if isinstance(contrast, (int, float)) else 1
         self.alpha = 1
         self.valid = False
+        self.conematrix = conematrix
         self.set(color=color, space=space)
 
     def validate(self, color, space=None):
@@ -247,13 +248,13 @@ class Color(object):
         if color.dtype.char == 'U':
             # If colors are all named, override color space
             namedMatch = np.vectorize(lambda col:
-                                      bool(re.match("|".join(list(colorNames)), str(col).lower()))  # match regex against named
+                                      bool(colorSpaces['named'].fullmatch(str(col).lower()))  # match regex against named
                                       )
             if all(namedMatch(color[:, 0])):
                 space = 'named'
             # If colors are all hex, override color space
             hexMatch = np.vectorize(lambda col:
-                                    bool(re.fullmatch(r'#[\dabcdefABCDEF]{6}', col))  # match regex against hex
+                                    bool(colorSpaces['hex'].fullmatch(str(col)))  # match regex against hex
                                     )
             if all(hexMatch(color[:, 0])):
                 space = 'hex'
@@ -634,266 +635,123 @@ class Color(object):
         self.hsv = color
     @property
     def hsv(self):
-
         if 'hsva' not in self._cache:
             self._cache['hsv'] = ct.rgb2hsv(self.rgb)
         return self._cache['hsv']
     @hsv.setter
     def hsv(self, color):
+        # Validate
+        color, space = self.validate(color=color, space='hsv')
+        if space != 'hsv':
+            setattr(self, space)
+            return
         # Apply via rgba255
         self.rgb = ct.hsv2rgb(color)
         # Clear outdated values from cache
         self._cache = {}
 
-
-class AdvancedColor(Color):
-    def __init__(self, color, space, conematrix=None):
-        Color.__init__(self, color, space)
-        # Set matrix for cone conversion
-        if conematrix is not None:
-            self.conematrix = conematrix
-        else:
-            # Set _conematrix specifically as undefined, rather than just setting to default
-            self._conematrix = None
-
-    @staticmethod
-    def getSpace(color, debug=False):
-        """Overrides getSpace, drawing from a much more comprehensive library of colour spaces"""
-        if isinstance(color, Color):
-            return color._requestedSpace
-        # Check for advanced colours spaces
-        possible = [space for space in advancedSpaces
-                    if advancedSpaces[space].fullmatch(str(color))]
-        # Append basic colour spaces
-        basic = Color.getSpace(color, debug=True)
-        possible += basic
-        # Return full list if debug or multiple, else return first value
-        if debug or not len(possible) == 1:
-            return possible
-        else:
-            return possible[0]
-
-    def validate(self, color, against=None, enforce=None):
-        # If not checking against anything, check against everything
-        if not against:
-            against = list(advancedSpaces)
-        # If looking for a string, convert from other forms it could be in
-        if enforce == str:
-            color = str(color).lower()
-        # If looking for a tuple, convert from other forms it could be in
-        if enforce == tuple:
-            if isinstance(color, str):
-                color = [float(n) for n in color.strip('[]()').split(',')]
-            if isinstance(color, list):
-                color = tuple(color)
-        # Get possible colour spaces
-        possible = getSpace(color)
-        if isinstance(possible, str):
-            possible = [possible]
-        # Return if any matches
-        for space in possible:
-            if space in against:
-                return color
-        # If no matches...
-        self.named = None
-        return None
-
     @property
-    def rec709TFa(self):
-        """Apply the Rec. 709 transfer function (or gamma) to linear RGB values.
-
-            This transfer function is defined in the ITU-R BT.709 (2015) recommendation
-            document (http://www.itu.int/rec/R-REC-BT.709-6-201506-I/en) and is
-            commonly used with HDTV televisions.
-            """
-        if not self.rgb:
-            return
-        if 'rec709TFa' not in self._cache:
-            self._cache['rec709TFa'] = tuple(1.099 * c ** 0.45 - 0.099
-                         if c >= 0.018
-                         else 4.5 * c
-                         for c in self.rgb) + (self.rgba1[-1],)
-        return self._cache['rec709TFa']
-
-    @rec709TFa.setter
-    def rec709TFa(self, color):
+    def lmsa(self):
+        return self._appendAlpha('lms')
+    @lmsa.setter
+    def lmsa(self, color):
+        self.lms = color
+    @property
+    def lms(self):
+        if 'lms' not in self._cache:
+            self._cache['lms'] = ct.rgb2lms(self.rgb)
+        return self._cache['lms']
+    @lms.setter
+    def lms(self, color):
         # Validate
-        color = self.validate(color, against=['rec709TF', 'rec709TFa'], enforce=tuple)
-        if not color:
+        color, space = self.validate(color=color, space='lms')
+        if space != 'lms':
+            setattr(self, space)
             return
-        # Check for alpha
-        if len(color) == 4:
-            alpha = color[-1]
-            color = color[:-1]
-        elif len(color) == 3:
-            alpha = 1
-        # Do conversion
-        self.rgba = tuple(((c + 0.099)/1.099)**(1/0.45)
-                         if c >= 1.099 * 0.018 ** 0.45 - 0.099
-                         else c / 4.5
-                         for c in color) + (alpha,)
+        # Apply via rgba255
+        self.rgb = ct.lms2rgb(color, self.conematrix)
         # Clear outdated values from cache
         self._cache = {}
 
     @property
-    def rec709TF(self):
-        if self.rec709TFa:
-            return self.rec709TFa[:-1]
-    @rec709TF.setter
-    def rec709TF(self, color):
-        self.rec709TFa = color
+    def dkla(self):
+        return self._appendAlpha('dkl')
+    @dkla.setter
+    def dkla(self, color):
+        self.dkl = color
+    @property
+    def dkl(self):
+        if 'dkl' not in self._cache:
+            raise NotImplementedError("Conversion from rgb to dkl is not yet implemented")
+        return self._cache['dkl']
+    @dkl.setter
+    def dkl(self, color):
+        # Validate
+        color, space = self.validate(color=color, space='dkl')
+        if space != 'dkl':
+            setattr(self, space)
+            return
+        # Apply via rgba255
+        self.rgb = ct.dkl2rgb(color, self.conematrix)
+        # Clear outdated values from cache
+        self._cache = {}
 
     @property
-    def srgbTFa(self):
-        """Apply sRGB transfer function (or gamma) to linear RGB values."""
-        # applies the sRGB transfer function (linear RGB -> sRGB)
-        if not self.rgb:
-            return
-        if 'srgbTFa' not in self._cache:
-            self._cache['srgbTFa'] = tuple(c * 12.92
-                         if c <= 0.0031308
-                         else (1.0 + 0.055) * c ** (1.0 / 2.4) - 0.055
-                         for c in self.rgb) + (self.rgba1[-1],)
-        return self._cache['srgbTFa']
-    @srgbTFa.setter
-    def srgbTFa(self, color):
+    def dklaCart(self):
+        return self.dklCart
+    @dklaCart.setter
+    def dklaCart(self, color):
+        self.dklCart = color
+    @property
+    def dklCart(self):
+        if 'dklCart' not in self._cache:
+            self._cache['dklCart'] = ct.rgb2dklCart(self.rgb)
+        return self._cache['dklCart']
+    @dklCart.setter
+    def dklCart(self, color):
         # Validate
-        color = self.validate(color, against=['srgbTF', 'srgbTFa'], enforce=tuple)
-        if not color:
+        color, space = self.validate(color=color, space='dklCart')
+        if space != 'dkl':
+            setattr(self, space)
             return
-        # Check for alpha
-        if len(color) == 4:
-            alpha = color[-1]
-            color = color[:-1]
-        elif len(color) == 3:
-            alpha = 1
-        # do the inverse (sRGB -> linear RGB)
-        self.rgba = tuple(c / 12.92
-                     if c <= 0.04045
-                     else ((c + 0.055) / 1.055) ** 2.4
-                     for c in color) + (alpha,)
+        # Apply via rgba255
+        self.rgb = ct.dklCart2rgb(color, self.conematrix)
         # Clear outdated values from cache
         self._cache = {}
 
     @property
     def srgbTF(self):
-        if self.srgbTFa:
-            return self.srgbTFa[:-1]
+        if 'srgbTF' not in self._cache:
+            self._cache['srgbTF'] = ct.srgbTF(self.rgb)
+        return self._cache['srgbTF']
     @srgbTF.setter
     def srgbTF(self, color):
-        self.srgbTFa = color
-
-    @property
-    def conematrix(self):
-        if self._conematrix is None:
-            # If _conematrix has been directly set to None, set to default
-            self.conematrix = None
-        return self._conematrix
-
-    @conematrix.setter
-    def conematrix(self, value):
-        # Default matrix
-        def default():
-            # Set default cone matrix and print warning
-            logging.warning('This monitor has not been color-calibrated. '
-                            'Using default LMS conversion matrix.')
-            return numpy.asarray([
-                # L        M        S
-                [4.97068857, -4.14354132, 0.17285275],  # R
-                [-0.90913894, 2.15671326, -0.24757432],  # G
-                [-0.03976551, -0.14253782, 1.18230333]])  # B
-
-        if not isinstance(value, numpy.ndarray):
-            self._conematrix = default()
-        elif not value.size == 9:
-            self._conematrix = default()
-        else:
-            self._conematrix = value
-
-    @property
-    def lmsa(self):
-        """Convert from RGB to cone space (LMS).
-
-        Requires a conversion matrix, which will be generated from generic
-        Sony Trinitron phosphors if not supplied (note that you will not get
-        an accurate representation of the color space unless you supply a
-        conversion matrix)
-        """
-        if 'lmsa' not in self._cache:
-            if self._conematrix is None:
-                self.conematrix = None
-            # its easier to use in the other orientation!
-            rgb_3xN = numpy.transpose(self.rgb)
-            rgb_to_cones = numpy.linalg.inv(self.conematrix)
-            lms = numpy.dot(rgb_to_cones, rgb_3xN)
-            self._cache['lmsa'] = tuple(numpy.transpose(lms))  # return in the shape we received it
-        return self._cache['lmsa']
-
-    @lmsa.setter
-    def lmsa(self, color):
-        """Convert from cone space (Long, Medium, Short) to RGB.
-
-        Requires a conversion matrix, which will be generated from generic
-        Sony Trinitron phosphors if not supplied (note that you will not get
-        an accurate representation of the color space unless you supply a
-        conversion matrix)
-        """
         # Validate
-        color = self.validate(str(color).lower(), against=['lms', 'lmsa'], enforce=tuple)
-        if not color:
+        color, space = self.validate(color=color, space='srgbTF')
+        if space != 'srgbTF':
+            setattr(self, space)
             return
-        # Get alpha
-        if len(color) == 4:
-            alpha = color[-1]
-            color = color[:-1]
-        elif len(color) == 3:
-            alpha = 1
-        # its easier to use in the other orientation!
-        lms_3xN = numpy.transpose(color)
-        rgb = numpy.dot(self.conematrix, lms_3xN)
-        self.rgba = tuple(numpy.transpose(rgb)) + (alpha,)  # return in the shape we received it
+        # Apply via rgba255
+        self.rgb = ct.srgbTF(color, reverse=True)
         # Clear outdated values from cache
         self._cache = {}
 
     @property
-    def lms(self):
-        if self.lmsa:
-            return self.lmsa[:-1]
-
-    @lms.setter
-    def lms(self, color):
-        self.lmsa = color
-
-    @property
-    def dkla(self):
-        if 'dkla' in self._cache:
-            return self._cache['dkla']
-        else:
-            logging.error(f"Conversion *to* dkl is not supported, dkl values can only be retrieved when Color was originally specified in dkl")
-    @dkla.setter
-    def dkla(self, color):
-        # Extract values and convert to numpy
-        d, k, l, *a = color
-        nd = numpy.zeros(3)
-        nd[:] = [d,k,l]
-        # Do conversion
-        self.rgb = tuple( dkl2rgb(nd) )
-        if a:
-            self.alpha = a[0]
-        else:
-            self.alpha = 1
-        # Cache values
-        self._cache = {'dkl': (d, k, l),
-                       'dkla': (d, k, l, a)}
-    @property
-    def dkl(self):
-        if 'dkl' in self._cache:
-            return self._cache['dkl']
-        else:
-            logging.error(f"Conversion *to* dkl is not supported, dkl values can only be retrieved when Color was originally specified in dkl")
-    @dkl.setter
-    def dkl(self, color):
-        self.dkla = color
+    def rec709TF(self):
+        if 'rec709TF' not in self._cache:
+            self._cache['rec709TF'] = ct.rec709TF(self.rgb)
+        return self._cache['rec709TF']
+    @rec709TF.setter
+    def rec709TF(self, color):
+        # Validate
+        color, space = self.validate(color=color, space='rec709TF')
+        if space != 'rec709TF':
+            setattr(self, space)
+            return
+        # Apply via rgba255
+        self.rgb = ct.rec709TF(color, reverse=True)
+        # Clear outdated values from cache
+        self._cache = {}
 
 
 """----------Legacy-----------------"""
@@ -916,138 +774,8 @@ def hex2rgb255(hexColor):
 def isValidColor(color):
     """check color validity (equivalent to existing checks in _setColor)
     """
-    if len(getSpace(color, True)):
-        return True
-    else:
+    try:
+        buffer = Color(color)
+        return bool(buffer)
+    except:
         return False
-
-def unpackColors(colors):  # used internally, not exported by __all__
-    """Reshape an array of color values to Nx3 format.
-
-    Many color conversion routines operate on color data in Nx3 format, where
-    rows are color space coordinates. 1x3 and NxNx3 input are converted to Nx3
-    format. The original shape and dimensions are also returned, allowing the
-    color values to be returned to their original format using 'reshape'.
-
-    Parameters
-    ----------
-    colors : ndarray, list or tuple of floats
-        Nx3 or NxNx3 array of colors, last dim must be size == 3 specifying each
-        color coordinate.
-
-    Returns
-    -------
-    tuple
-        Nx3 ndarray of converted colors, original shape, original dims.
-
-    """
-    # handle the various data types and shapes we might get as input
-    colors = numpy.asarray(colors, dtype=float)
-
-    orig_shape = colors.shape
-    orig_dim = colors.ndim
-    if orig_dim == 1 and orig_shape[0] == 3:
-        colors = numpy.array(colors, ndmin=2)
-    elif orig_dim == 2 and orig_shape[1] == 3:
-        pass  # NOP, already in correct format
-    elif orig_dim == 3 and orig_shape[2] == 3:
-        colors = numpy.reshape(colors, (-1, 3))
-    else:
-        raise ValueError(
-            "Invalid input dimensions or shape for input colors.")
-
-    return colors, orig_shape, orig_dim
-
-def dkl2rgb(dkl, conversionMatrix=None):
-    """Convert from DKL color space (Derrington, Krauskopf & Lennie) to RGB.
-
-    Requires a conversion matrix, which will be generated from generic
-    Sony Trinitron phosphors if not supplied (note that this will not be
-    an accurate representation of the color space unless you supply a
-    conversion matrix).
-
-    usage::
-
-        rgb(Nx3) = dkl2rgb(dkl_Nx3(el,az,radius), conversionMatrix)
-        rgb(NxNx3) = dkl2rgb(dkl_NxNx3(el,az,radius), conversionMatrix)
-
-    """
-    if conversionMatrix is None:
-        conversionMatrix = numpy.asarray([
-            # (note that dkl has to be in cartesian coords first!)
-            # LUMIN    %L-M    %L+M-S
-            [1.0000, 1.0000, -0.1462],  # R
-            [1.0000, -0.3900, 0.2094],  # G
-            [1.0000, 0.0180, -1.0000]])  # B
-        logging.warning('This monitor has not been color-calibrated. '
-                        'Using default DKL conversion matrix.')
-
-    if len(dkl.shape) == 3:
-        dkl_NxNx3 = dkl
-        # convert a 2D (image) of Spherical DKL colours to RGB space
-        origShape = dkl_NxNx3.shape  # remember for later
-        NxN = origShape[0] * origShape[1]  # find nPixels
-        dkl = numpy.reshape(dkl_NxNx3, [NxN, 3])  # make Nx3
-        rgb = dkl2rgb(dkl, conversionMatrix)  # convert
-        return numpy.reshape(rgb, origShape)  # reshape and return
-
-    else:
-        dkl_Nx3 = dkl
-        # its easier to use in the other orientation!
-        dkl_3xN = numpy.transpose(dkl_Nx3)
-        if numpy.size(dkl_3xN) == 3:
-            RG, BY, LUM = sph2cart(dkl_3xN[0],
-                                   dkl_3xN[1],
-                                   dkl_3xN[2])
-        else:
-            RG, BY, LUM = sph2cart(dkl_3xN[0, :],
-                                   dkl_3xN[1, :],
-                                   dkl_3xN[2, :])
-        dkl_cartesian = numpy.asarray([LUM, RG, BY])
-        rgb = numpy.dot(conversionMatrix, dkl_cartesian)
-
-        # return in the shape we received it:
-        return numpy.transpose(rgb)
-
-def lms2rgb(lms_Nx3, conversionMatrix=None):
-    """Convert from cone space (Long, Medium, Short) to RGB.
-
-    Requires a conversion matrix, which will be generated from generic
-    Sony Trinitron phosphors if not supplied (note that you will not get
-    an accurate representation of the color space unless you supply a
-    conversion matrix)
-
-    usage::
-
-        rgb_Nx3 = lms2rgb(dkl_Nx3(el,az,radius), conversionMatrix)
-
-    """
-
-    col = Color(tuple(lms_Nx3), 'lms')
-    if len(lms_Nx3) == 3:
-        return unpackColors(col.rgb)
-    elif len(lms_Nx3) == 4:
-        return unpackColors(col.rgba)
-
-def hsv2rgb(hsv_Nx3):
-    """Convert from HSV color space to RGB gun values.
-
-    usage::
-
-        rgb_Nx3 = hsv2rgb(hsv_Nx3)
-
-    Note that in some uses of HSV space the Hue component is given in
-    radians or cycles (range 0:1]). In this version H is given in
-    degrees (0:360).
-
-    Also note that the RGB output ranges -1:1, in keeping with other
-    PsychoPy functions.
-    """
-    # based on method in
-    # http://en.wikipedia.org/wiki/HSL_and_HSV#Converting_to_RGB
-
-    col = Color(tuple(hsv_Nx3), 'hsv')
-    if len(hsv_Nx3) == 3:
-        return unpackColors(col.rgb)
-    elif len(hsv_Nx3) == 4:
-        return unpackColors(col.rgba)

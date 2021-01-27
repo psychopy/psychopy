@@ -14,7 +14,7 @@ from builtins import object
 from past.builtins import basestring
 from pathlib import Path
 from statistics import mean
-from psychopy.colors import Color, AdvancedColor, colorSpaces, advancedSpaces
+from psychopy.colors import Color, colorSpaces
 
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
 # other calls to pyglet or pyglet submodules, otherwise it may not get picked
@@ -347,9 +347,6 @@ class ColorMixin(object):
         if isinstance(value, Color):
             # If supplied with a Color object, set as that
             self._foreColor = value
-        elif self.colorSpace in AdvancedColor.getSpace(value, True):
-            # If supplied with a valid advanced color, use it to make an advanced color object and print tip.
-            self._foreColor = AdvancedColor(value, self.colorSpace)
         else:
             # Otherwise, make a new Color object
             self._foreColor = Color(value, self.colorSpace)
@@ -373,9 +370,6 @@ class ColorMixin(object):
         if isinstance(value, Color):
             # If supplied with a color object, set as that
             self._fillColor = value
-        elif self.colorSpace in AdvancedColor.getSpace(value, True):
-            # If supplied with a valid advanced color, use it to make an advanced color object and print tip.
-            self._fillColor = AdvancedColor(value, self.colorSpace)
         else:
             # Otherwise, make a new Color object
             self._fillColor = Color(value, self.colorSpace)
@@ -400,9 +394,6 @@ class ColorMixin(object):
         if isinstance(value, Color):
             # If supplied with a color object, set as that
             self._borderColor = value
-        elif self.colorSpace in AdvancedColor.getSpace(value, True):
-            # If supplied with a valid advanced color, use it to make an advanced color object and print tip.
-            self._borderColor = AdvancedColor(value, self.colorSpace)
         else:
             # If supplied with a valid color, use it to make a color object
             self._borderColor = Color(value, self.colorSpace)
