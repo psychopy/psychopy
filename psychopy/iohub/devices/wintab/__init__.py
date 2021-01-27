@@ -6,9 +6,6 @@
 #
 # TODO List
 #
-#   1) Refactor code so that wintab.__init__.py and win32.py are separated
-#      in a more sensible way
-#
 #   2) Check for missing serial numbers in PACKET evt stream.
 #
 _is_epydoc = False
@@ -20,15 +17,17 @@ from ...errors import print2err, printExceptionDetailsToStdErr
 import numpy as N
 import copy
 
+from psychopy import platform_specific
+_sendStayAwake = platform_specific.sendStayAwake
 
-class WintabTablet(Device):
+class Wintab(Device):
     """The Wintab class docstr TBC."""
-    EVENT_CLASS_NAMES = ['WintabTabletSampleEvent',
-                         'WintabTabletEnterRegionEvent',
-                         'WintabTabletLeaveRegionEvent']
+    EVENT_CLASS_NAMES = ['WintabSampleEvent',
+                         'WintabEnterRegionEvent',
+                         'WintabLeaveRegionEvent']
 
-    DEVICE_TYPE_ID = DeviceConstants.WINTABTABLET
-    DEVICE_TYPE_STRING = 'WINTABTABLET'
+    DEVICE_TYPE_ID = DeviceConstants.WINTAB
+    DEVICE_TYPE_STRING = 'WINTAB'
 
     __slots__ = ['_wtablets',
                  '_wtab_shadow_windows',
@@ -112,8 +111,8 @@ class WintabTablet(Device):
                 fullscreen=True,
                 vsync=False,
                 screen=screen_index))
-        self._wtab_shadow_windows[0].set_mouse_visible(False)
         self._wtab_shadow_windows[0].switch_to()
+        self._wtab_shadow_windows[0].set_mouse_visible(False)
 
         from pyglet import app
         app.windows.remove(self._wtab_shadow_windows[0])
@@ -124,7 +123,7 @@ class WintabTablet(Device):
         except Exception as e:
             self._setHardwareInterfaceStatus(False,
                                              u"Error: Unable to create"
-                                             u"WintabTabletCanvas for device."
+                                             u"WintabCanvas for device."
                                              u"Exception: {}".
                                              format(e))
             return False
@@ -143,6 +142,8 @@ class WintabTablet(Device):
         for wtc in self._wtab_canvases:
             wtc.enable(enabled)
 
+        _sendStayAwake()
+        
         if self.isReportingEvents() != enabled:
             self._last_sample = None
             self._first_hw_and_hub_times = None
@@ -152,6 +153,7 @@ class WintabTablet(Device):
     def _poll(self):
         try:
             for swin in self._wtab_shadow_windows:
+                swin.switch_to()
                 swin.dispatch_events()
             logged_time = Computer.getTime()
 
@@ -168,8 +170,9 @@ class WintabTablet(Device):
             for wtc in self._wtab_canvases:
                 wintab_events = copy.deepcopy(wtc._iohub_events)
                 del wtc._iohub_events[:]
+                #print2err('wintab_events: ',len(wintab_events))
                 for wte in wintab_events:
-                    if wte and wte[0] != EventConstants.WINTAB_TABLET_SAMPLE:
+                    if wte and wte[0] != EventConstants.WINTAB_SAMPLE:
                         # event is enter or leave region type, so clear
                         # last sample as a flag that next sample should
                         # be FIRST_ENTER
@@ -181,32 +184,32 @@ class WintabTablet(Device):
                         status = 0
                         cur_press_state = wte[8]
                         if self._last_sample is None:
-                            status += WintabTabletSampleEvent.STATES[
+                            status += WintabSampleEvent.STATES[
                                 'FIRST_ENTER']
                             if cur_press_state > 0:
-                                status += WintabTabletSampleEvent.STATES[
+                                status += WintabSampleEvent.STATES[
                                     'FIRST_PRESS']
-                                status += WintabTabletSampleEvent.STATES[
+                                status += WintabSampleEvent.STATES[
                                     'PRESSED']
                             else:
-                                status += WintabTabletSampleEvent.STATES[
+                                status += WintabSampleEvent.STATES[
                                     'FIRST_HOVER']
-                                status += WintabTabletSampleEvent.STATES[
+                                status += WintabSampleEvent.STATES[
                                     'HOVERING']
                         else:
                             prev_press_state = self._last_sample[8]
                             if cur_press_state > 0:
-                                status += WintabTabletSampleEvent.STATES[
+                                status += WintabSampleEvent.STATES[
                                     'PRESSED']
                             else:
-                                status += WintabTabletSampleEvent.STATES[
+                                status += WintabSampleEvent.STATES[
                                     'HOVERING']
 
                             if cur_press_state > 0 and prev_press_state == 0:
-                                status += WintabTabletSampleEvent.STATES[
+                                status += WintabSampleEvent.STATES[
                                     'FIRST_PRESS']
                             elif cur_press_state == 0 and prev_press_state > 0:
-                                status += WintabTabletSampleEvent.STATES[
+                                status += WintabSampleEvent.STATES[
                                     'FIRST_HOVER']
                         # Fill in status field based on previous sample.......
                         wte[-1] = status
@@ -219,7 +222,7 @@ class WintabTablet(Device):
             self._last_poll_time = logged_time
             return True
         except Exception as e:
-            print2err('ERROR in WintabTabletDevice._poll: ', e)
+            print2err('ERROR in WintabDevice._poll: ', e)
             printExceptionDetailsToStdErr()
 
     def _getIOHubEventObject(self, native_event_data):
@@ -231,14 +234,13 @@ class WintabTablet(Device):
         logged_time, delay, confidence_interval, wt_event = native_event_data
         evt_type = wt_event[0]
         device_time = wt_event[1]
-        evt_status = wt_event[2]
+        #evt_status = wt_event[2]
 
         # TODO: Correct for polling interval / CI when calculating iohub_time
         iohub_time = logged_time
         if self._first_hw_and_hub_times:
             hwtime, iotime = self._first_hw_and_hub_times
             iohub_time = iotime + (wt_event[1] - hwtime)
-            #print2err('STIME: ',[iohub_time, logged_time, logged_time-iohub_time])
 
         ioevt = [0, 0, 0, Device._getNextEventID(),
                  evt_type,
@@ -257,16 +259,16 @@ class WintabTablet(Device):
             wtc.close()
         for swin in self._wtab_shadow_windows:
             swin.close()
-        Device._close()
+        Device._close(self)
 
 ############# Wintab Event Classes ####################
 
 from .. import DeviceEvent
 
 
-class WintabTabletInputEvent(DeviceEvent):
-    """The WintabTabletInputEvent is an abstract class that ......."""
-    PARENT_DEVICE = WintabTablet
+class WintabInputEvent(DeviceEvent):
+    """The WintabInputEvent is an abstract class that ......."""
+    PARENT_DEVICE = Wintab
     _newDataTypes = []
 
     __slots__ = [e[0] for e in _newDataTypes]
@@ -275,10 +277,10 @@ class WintabTabletInputEvent(DeviceEvent):
         DeviceEvent.__init__(self, *args, **kwargs)
 
 
-class WintabTabletSampleEvent(WintabTabletInputEvent):
-    """WintabTabletSampleEvent's occur when....."""
-    EVENT_TYPE_STRING = 'WINTAB_TABLET_SAMPLE'
-    EVENT_TYPE_ID = EventConstants.WINTAB_TABLET_SAMPLE
+class WintabSampleEvent(WintabInputEvent):
+    """WintabSampleEvent's occur when....."""
+    EVENT_TYPE_STRING = 'WINTAB_SAMPLE'
+    EVENT_TYPE_ID = EventConstants.WINTAB_SAMPLE
     IOHUB_DATA_TABLE = EVENT_TYPE_STRING
 
     STATES = dict()
@@ -297,8 +299,12 @@ class WintabTabletSampleEvent(WintabTabletInputEvent):
     #  A sample that has pressure > 0
     # following a sample with pressure > 0
     STATES['PRESSED'] = 16
+	
+    tstates = dict()
     for k, v in STATES.items():
-        STATES[v] = k
+        tstates[v] = k
+    for k, v in tstates.items():
+        STATES[k] = v
 
     _newDataTypes = [
         ('serial_number', N.uint32),
@@ -346,28 +352,28 @@ class WintabTabletSampleEvent(WintabTabletInputEvent):
 
         #: orient_twist
         self.orient_twist = None
-        WintabTabletInputEvent.__init__(self, *args, **kwargs)
+        WintabInputEvent.__init__(self, *args, **kwargs)
 
 
-class WintabTabletEnterRegionEvent(WintabTabletSampleEvent):
+class WintabEnterRegionEvent(WintabSampleEvent):
     """
-    TODO: WintabTabletEnterRegionEvent doc str
+    TODO: WintabEnterRegionEvent doc str
     """
-    EVENT_TYPE_STRING = 'WINTAB_TABLET_ENTER_REGION'
-    EVENT_TYPE_ID = EventConstants.WINTAB_TABLET_ENTER_REGION
-    IOHUB_DATA_TABLE = WintabTabletSampleEvent.EVENT_TYPE_STRING
+    EVENT_TYPE_STRING = 'WINTAB_ENTER_REGION'
+    EVENT_TYPE_ID = EventConstants.WINTAB_ENTER_REGION
+    IOHUB_DATA_TABLE = WintabSampleEvent.EVENT_TYPE_STRING
 
     def __init__(self, *args, **kwargs):
-        WintabTabletSampleEvent.__init__(self, *args, **kwargs)
+        WintabSampleEvent.__init__(self, *args, **kwargs)
 
 
-class WintabTabletLeaveRegionEvent(WintabTabletSampleEvent):
+class WintabLeaveRegionEvent(WintabSampleEvent):
     """
-    TODO: WintabTabletLeaveRegionEvent doc str
+    TODO: WintabLeaveRegionEvent doc str
     """
-    EVENT_TYPE_STRING = 'WINTAB_TABLET_LEAVE_REGION'
-    EVENT_TYPE_ID = EventConstants.WINTAB_TABLET_LEAVE_REGION
-    IOHUB_DATA_TABLE = WintabTabletSampleEvent.EVENT_TYPE_STRING
+    EVENT_TYPE_STRING = 'WINTAB_LEAVE_REGION'
+    EVENT_TYPE_ID = EventConstants.WINTAB_LEAVE_REGION
+    IOHUB_DATA_TABLE = WintabSampleEvent.EVENT_TYPE_STRING
 
     def __init__(self, *args, **kwargs):
-        WintabTabletSampleEvent.__init__(self, *args, **kwargs)
+        WintabSampleEvent.__init__(self, *args, **kwargs)

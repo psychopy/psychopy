@@ -1412,7 +1412,7 @@ class ioEvent(object):
 _lazyImports = """
 from {pkgroot}.client.connect import launchHubServer
 from {pkgroot}.client import keyboard
-#from {pkgroot}.client import wintabtablet
+from {pkgroot}.client import wintab
 """.format(pkgroot=_pkgroot)
 
 try:

@@ -368,7 +368,6 @@ import ctypes
 
 import pyglet
 from pyglet.event import EventDispatcher
-from .. import Computer
 from ...constants import EventConstants
 
 
@@ -416,7 +415,7 @@ def wtinfo_bool(category, index):
     return bool(buffer.value)
 
 
-class Win32WintabTablet(object):
+class Win32Wintab(object):
     '''High-level interface to tablet devices.
 
     Unlike other devices, tablets must be opened for a specific window,
@@ -483,7 +482,7 @@ class Win32WintabTablet(object):
         self._cursor_map = {}
 
         for i in range(n_cursors):
-            cursor = Win32WintabTabletCursor(self, i + first_cursor)
+            cursor = Win32WintabCursor(self, i + first_cursor)
             if not cursor.bogus:
                 self.cursors.append(cursor)
                 self._cursor_map[i + first_cursor] = cursor
@@ -495,15 +494,15 @@ class Win32WintabTablet(object):
             `window` : `Window`
                 The window on which the tablet will be used.
 
-        :rtype: `Win32WintabTabletCanvas`
+        :rtype: `Win32WintabCanvas`
 
         """
-        Win32WintabTabletCanvas.iohub_wt_device = iohub_wt_device
-        pc = Win32WintabTabletCanvas(self, window)
+        Win32WintabCanvas.iohub_wt_device = iohub_wt_device
+        pc = Win32WintabCanvas(self, window)
         return pc
 
 
-class Win32WintabTabletCanvas(EventDispatcher):
+class Win32WintabCanvas(EventDispatcher):
     """Event dispatcher for tablets.
 
     Use `Tablet.open` to obtain this object for a particular tablet device and
@@ -522,8 +521,8 @@ class Win32WintabTabletCanvas(EventDispatcher):
     iohub_wt_device = None
 
     def __init__(self, device, window, msg_base=WT_DEFBASE):
+        super(Win32WintabCanvas, self).__init__()
         self.window = window
-        #super(EventDispatcher, self).__init__()
 
         self.device = device
         self.msg_base = msg_base
@@ -571,11 +570,8 @@ class Win32WintabTabletCanvas(EventDispatcher):
                                     get('auto_report_events', False))
         if not self._context:
             print2err("Couldn't open tablet context.")
-
-        window._event_handlers[msg_base + WT_PACKET] = \
-            self._event_wt_packet
-        window._event_handlers[msg_base + WT_PROXIMITY] = \
-            self._event_wt_proximity
+        window._event_handlers[msg_base + WT_PACKET] = self._event_wt_packet
+        window._event_handlers[msg_base + WT_PROXIMITY] = self._event_wt_proximity
 
         self._current_cursor = None
         #self._pressure_scale = device.tip_pressure_axis.get_scale()
@@ -597,15 +593,15 @@ class Win32WintabTabletCanvas(EventDispatcher):
         self._current_cursor = self.device._cursor_map.get(cursor_type, None)
 
         if self._current_cursor:
-            self.addHubEvent(None, EventConstants.WINTAB_TABLET_ENTER_REGION)
+            self.addHubEvent(None, EventConstants.WINTAB_ENTER_REGION)
 
     def addHubEvent(
             self,
             packet,
-            evt_type=EventConstants.WINTAB_TABLET_SAMPLE):
+            evt_type=EventConstants.WINTAB_SAMPLE):
         # TODO: Display (screen) index
-        display_id = 0
-        window_id = self.window._hwnd
+        #display_id = 0
+        #window_id = self.window._hwnd
 
         ccursor = self._current_cursor
         if ccursor is None:
@@ -614,7 +610,7 @@ class Win32WintabTabletCanvas(EventDispatcher):
             ccursor = ccursor._cursor
 
         cevt = None
-        if packet is None or evt_type != EventConstants.WINTAB_TABLET_SAMPLE:
+        if packet is None or evt_type != EventConstants.WINTAB_SAMPLE:
             cevt = [evt_type,
                     0,
                     0,
@@ -680,11 +676,11 @@ class Win32WintabTabletCanvas(EventDispatcher):
             pass
         else:
             # Proximity Leave Event
-            self.addHubEvent(None, EventConstants.WINTAB_TABLET_LEAVE_REGION)
+            self.addHubEvent(None, EventConstants.WINTAB_LEAVE_REGION)
             self._current_cursor = None
 
 
-class Win32WintabTabletCursor(object):
+class Win32WintabCursor(object):
 
     def __init__(self, device, index):
         self.device = device
@@ -729,5 +725,5 @@ def get_tablets(display=None):
         return []
 
     n_devices = wtinfo_uint(WTI_INTERFACE, IFC_NDEVICES)
-    devices = [Win32WintabTablet(i) for i in range(n_devices)]
+    devices = [Win32Wintab(i) for i in range(n_devices)]
     return devices

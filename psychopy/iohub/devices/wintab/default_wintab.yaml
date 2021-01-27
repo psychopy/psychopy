@@ -1,19 +1,17 @@
-# UPDATE!! JUST COPY FROM EOTOUCH RIGHT NOW
-
-# This file includes all valid Touch Device
+# This file includes all valid Wintab Device
 # settings that can be specified in an iohub_config.yaml
 # or in Python dictionary form and passed to the launchHubServer
 # method. Any device parameters not specified when the device class is
 # created by the ioHub Process will be assigned the default value
 # indicated here.
 #
-wintab.WintabTablet:
+wintab.Wintab:
     # name: The name you want to assign the Touch device for the experiment
     #   This name is what will be used to access the device within the experiment
     #   script via the devices.[device_name] property of the ioHubConnection or
     #   ioHubExperimentRuntime classes.
     #
-    name: tablet
+    name: wintab
 
     # enable: Specifies if the device should be enabled by ioHub and monitored
     #   for events.
@@ -39,7 +37,7 @@ wintab.WintabTablet:
     #   monitor_event_types: Specified which Touch Event types should be monitored
     #   for and therefore saved to the DataStore or sent to the Experiment Process.
     #
-    monitor_event_types:  [WintabTabletSampleEvent,WintabTabletEnterRegionEvent, WintabTabletLeaveRegionEvent]
+    monitor_event_types:  [WintabSampleEvent,WintabEnterRegionEvent, WintabLeaveRegionEvent]
 
     #   save_events: Save Touch events to the data_collection/Touch event 
     #   group in the hdf5 event file.
