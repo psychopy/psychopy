@@ -122,7 +122,7 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self.colorSpace = colorSpace
         self.fillColor = fillColor
         self.lineColor = lineColor
-        if color and not self.fillColor and not self.lineColor:
+        if color is not None and not self._fillColor and not self._borderColor:
             # if the fillColor and lineColor are not set but color is, the user probably wants color applied to both
             self.fillColor = color
             self.lineColor = color
