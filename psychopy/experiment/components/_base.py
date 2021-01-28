@@ -578,7 +578,7 @@ class BaseVisualComponent(BaseComponent):
     categories = ['Stimuli']
 
     def __init__(self, exp, parentName, name='',
-                 units='from exp settings', color='white', fillColor="None", borderColor="None",
+                 units='from exp settings', color='white', fillColor="", borderColor="",
                  pos=(0, 0), size=(0, 0), ori=0, colorSpace='rgb', opacity=1, contrast=1,
                  startType='time (s)', startVal='',
                  stopType='duration (s)', stopVal='',
@@ -666,8 +666,8 @@ class BaseVisualComponent(BaseComponent):
         msg = _translate("Contrast of the stimulus (1.0=unchanged contrast, "
                          "0.5=decrease contrast, 0.0=uniform/no contrast, "
                          "-0.5=slightly inverted, -1.0=totally inverted)")
-        self.params['contrast'] = Param(
-            contrast, valType='code', allowedTypes=[], categ='Appearance',
+        self.params['contrast'] = Param(contrast,
+            valType='num', inputType='single', allowedTypes=[], categ='Appearance',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,

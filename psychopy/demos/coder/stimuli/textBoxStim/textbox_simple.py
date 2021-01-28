@@ -10,6 +10,10 @@ Created on Thu Mar 21 18:37:10 2013
 """
 from psychopy import visual, core, event
 
+from psychopy.visual import textbox
+fm = textbox.getFontManager()
+print("available_font_names:",fm.getFontFamilyNames())
+
 # Create Window
 window=visual.Window((800,600),
                         units='norm',
@@ -17,32 +21,34 @@ window=visual.Window((800,600),
                         screen=0
                         )
 
-sometext=u'PRESS ANY KEY TO QUIT DEMO.'                                                        
-textbox=visual.TextBox(window=window, 
+sometext='PRESS ANY KEY TO QUIT DEMO.'
+textbox1=visual.TextBox(window=window,
                          text=sometext,
+                         font_name=fm.getFontFamilyNames()[0],
                          font_size=21,
-                         font_color=[-1,-1,1], 
+                         font_color=[-1,-1,1],
                          size=(1.9,.3),
-                         pos=(0.0,0.25), 
+                         pos=(0.0,0.25),
                          grid_horz_justification='center',
                          units='norm',
                          )
 
 textbox2=visual.TextBox(window=window,
-                         text='This TextBox illustrates many of the different UX elements.', 
+                         text='This TextBox illustrates many of the different UX elements.',
                          font_size=32,
-                         font_color=[1,-1,-1], 
+                         font_color=[1,-1,-1],
                          background_color=[-1,-1,-1,1],
                          border_color=[-1,-1,1,1],
                          border_stroke_width=4,
                          textgrid_shape=[20,4], # 20 cols (20 chars wide)
                                                 # by 4 rows (4 lines of text)
                          pos=(0.0,-0.25),
+                         grid_color=(-1,1,-1,1)
                          )
 
-textbox.draw()
+textbox1.draw()
 textbox2.draw()
-demo_start=window.flip()     
+demo_start=window.flip()
 
 event.clearEvents()
 last_attrib_change_time=demo_start
@@ -50,7 +56,7 @@ while True:
     if core.getTime()-last_attrib_change_time> 2.5:
         last_attrib_change_time=core.getTime()
 
-    textbox.draw()
+    textbox1.draw()
     textbox2.draw()
 
     # Update the display to show any stim changes

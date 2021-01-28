@@ -142,7 +142,7 @@ class ParamCtrls(object):
             self.valueCtrl = paramCtrls.BoolCtrl(parent,
                                          name=fieldName,size=wx.Size(self.valueWidth, 24))
             self.valueCtrl.SetValue(param.val)
-        elif param.inputType == 'file':
+        elif param.inputType == 'file' or browse:
             self.valueCtrl = paramCtrls.FileCtrl(parent,
                                                  val=str(param.val), valType=param.valType,
                                                  fieldName=fieldName, size=wx.Size(self.valueWidth, 24))
@@ -230,10 +230,6 @@ class ParamCtrls(object):
 
         if param.allowedUpdates != None and len(param.allowedUpdates) == 1:
             self.updateCtrl.Disable()  # visible but can't be changed
-        # create browse control
-        if browse:
-            # we don't need a label for this
-            self.browseCtrl = wx.Button(parent, -1, _translate("Browse..."))
 
     def _getCtrlValue(self, ctrl):
         """Retrieve the current value form the control (whatever type of ctrl
@@ -418,9 +414,6 @@ class _BaseParamsDlg(wx.Dialog):
         self.codeIDFromFieldName = {}
         # a list of all panels in the ctrl to be traversed by validator
         self.panels = []
-
-        # for switching font to signal code:
-        self.codeFaceName = 'Courier New'  # other monospace if not available
         # need font size for STCs:
         if wx.Platform == '__WXMSW__':
             self.faceSize = 10
@@ -455,8 +448,8 @@ class _BaseParamsDlg(wx.Dialog):
                                proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
         # Sort category names
         allCategNames = sorted(categs)
-        firstCategs = ['Basic', 'Appearance', 'Layout', 'Formatting', 'Texture', 'Data']
-        lastCategs = ['Custom', 'Hardware', 'Testing']
+        firstCategs = ['Basic', 'Layout', 'Appearance', 'Formatting', 'Texture']
+        lastCategs = ['Data', 'Custom', 'Hardware', 'Testing']
         bonusCategs = [nm for nm in allCategNames if nm not in firstCategs+lastCategs]
         categNames = [nm for nm in firstCategs if nm in allCategNames] \
                      + bonusCategs \
@@ -1005,13 +998,6 @@ class _BaseParamsDlg(wx.Dialog):
             val = strBox.GetText()
             # might be StyledTextCtrl
             stc = True
-
-        # set display font based on presence of $ (without \$)?
-        font = strBox.GetFont()
-        if psychopy.experiment.utils.unescapedDollarSign_re.search(val):
-            strBox.SetFont(self.app._codeFont)
-        else:
-            strBox.SetFont(self.app._mainFont)
 
         if hasattr(event, 'Skip'):
             event.Skip()
