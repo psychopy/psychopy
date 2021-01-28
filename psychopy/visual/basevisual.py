@@ -389,7 +389,7 @@ class ColorMixin(object):
     def borderColor(self):
         if hasattr(self, '_borderColor'):
             return getattr(self._borderColor, self.colorSpace)
-    @fillColor.setter
+    @borderColor.setter
     def borderColor(self, value):
         if isinstance(value, Color):
             # If supplied with a color object, set as that
