@@ -294,6 +294,9 @@ class Color(object):
         # If values should be integers, round them
         if space in integerSpaces:
             color.round()
+        # Finally, if array is only 1 long, remove extraneous dimension
+        if color.shape[0] == 1:
+            color = color[0]
 
         return color, space
 
@@ -457,11 +460,9 @@ class Color(object):
             return
         if hasattr(self, '_franca'):
             rgb = self._franca
-            if rgb.shape[0] == 1:
-                rgb = rgb[0]
             return rgb
         else:
-            return np.array(None)
+            return np.array([0, 0, 0])
     @rgb.setter
     def rgb(self, color):
         # Validate
