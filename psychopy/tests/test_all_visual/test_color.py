@@ -74,7 +74,8 @@ def test_shape_colors():
             obj.opacity = 1  # Fix opacity at full as this is not what we're testing
             win.flip()
             obj.draw()
-            utils.comparePixelColor(win, colors.Color(colorSet[space], space), coord=(1,1))
+            if colorSet[space]: # skip this comparison if color is None
+                utils.comparePixelColor(win, colors.Color(colorSet[space], space), coord=(1, 1))
             utils.comparePixelColor(win, colors.Color('white'), coord=(50, 50))
             # Check fill color
             obj.colorSpace = space
@@ -83,8 +84,10 @@ def test_shape_colors():
             obj.opacity = 1  # Fix opacity at full as this is not what we're testing
             win.flip()
             obj.draw()
+            if colorSet[space]: # skip this comparison if color is None
+                utils.comparePixelColor(win, colors.Color(colorSet[space], space), coord=(50, 50))
             utils.comparePixelColor(win, colors.Color('white'), coord=(1,1))
-            utils.comparePixelColor(win, colors.Color(colorSet[space], space), coord=(50, 50))
+
             # Testing foreColor is already done in test_textbox
 
 def test_element_array_colors():
