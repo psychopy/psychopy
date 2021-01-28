@@ -10,7 +10,7 @@ jobs:
     strategy:
       matrix:
         os: [macos-latest, windows-latest]
-        python-version: [3.6, 3.8]
+        python-version: [3.6]
       max-parallel: 6
 
     steps:
@@ -28,6 +28,7 @@ jobs:
         pip install wheel
         pip install six  # just needed for configobj
         pip install distro  # used by createInitFile
+        pip install pyWinHook --extra-index-url https://www.lfd.uci.edu/~gohlke/pythonlibs
 
     - name: Install
       run: |
