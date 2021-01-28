@@ -6,12 +6,15 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
+from past.builtins import unicode
 
 from builtins import object
 import sys
 import re
 import glob
+import time
 import zipfile
+import platform
 import os
 from pkg_resources import parse_version
 import wx

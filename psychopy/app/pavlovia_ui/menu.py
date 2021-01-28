@@ -27,7 +27,7 @@ class PavloviaMenu(wx.Menu):
 
     def __init__(self, parent):
         wx.Menu.__init__(self)
-        self.parent = parent  # type: BuilderFrame
+        self.parent = parent  # is a BuilderFrame
         PavloviaMenu.app = parent.app
         keys = self.app.keys
         # from prefs fetch info about prev usernames and projects

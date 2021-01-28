@@ -1,4 +1,6 @@
 from __future__ import print_function
+from past.builtins import unicode
+
 import sys
 import os
 import io
