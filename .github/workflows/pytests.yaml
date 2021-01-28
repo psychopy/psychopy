@@ -22,6 +22,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install flake8 pytest
         pip install wheel
+        pip install six  # just needed for configobj
     - name: Install
       run: |
         python setup.py build
@@ -34,7 +35,7 @@ jobs:
         pip install --no-deps dist/PsychoPy-*.whl
         # Test entry point (ubuntu only?)
         psychopy --version
-        # uninstall the builds
+        # uninstall the build (but not the dependencies)
         pip uninstall --yes psychopy
         rm -rf build/ dist/
     - name: Lint with flake8
