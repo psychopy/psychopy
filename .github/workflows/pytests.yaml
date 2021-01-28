@@ -39,11 +39,10 @@ jobs:
         # Build & install wheel
         python setup.py bdist_wheel
         pip install --no-deps dist/PsychoPy-*.whl
-        # Test entry point (ubuntu only?)
-        psychopy --version
         # uninstall the build (but not the dependencies)
         pip uninstall --yes psychopy
         rm -rf build/ dist/
+
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
