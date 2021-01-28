@@ -28,7 +28,7 @@ jobs:
         pip install wheel
         pip install six  # just needed for configobj
         pip install distro  # used by createInitFile
-        python plat_custom_installs.py
+        python ./building/plat_custom_installs.py
 
     - name: Install
       run: |
@@ -53,13 +53,8 @@ jobs:
     - name: Install
       run: |
         python -m pip install --upgrade pip
-        pip install flake8 wheel
-    - name: Flake check
-      run: |
-         # stop the build if there are Python syntax errors or undefined names
-         # flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        pip install flake
+        pip install wheel
     - name: Check builds
       # checks whether different forms of build work (e.g. missing files in sdist)
       run: |
@@ -74,3 +69,9 @@ jobs:
         pip install --no-deps dist/PsychoPy-*.whl
         # uninstall the build (but not the dependencies)
         pip uninstall --yes psychopy
+    - name: Flake check
+      run: |
+         # stop the build if there are Python syntax errors or undefined names
+         # flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
