@@ -436,11 +436,13 @@ class Color(object):
     def _appendAlpha(self, space):
         # Get alpha, if necessary transform to an array of same length as color
         alpha = self.alpha
-        if isinstance(self.alpha, (int, float)):
+        if isinstance(alpha, (int, float)):
             if len(self) > 1:
-                alpha = np.tile(self.alpha, (len(self), 1))
+                alpha = np.tile([alpha], (len(self), 1))
             else:
-                alpha = np.array([self.alpha])
+                alpha = np.array([alpha])
+        if isinstance(alpha, np.ndarray) and len(self) > 1:
+            alpha = alpha.reshape((len(self), 1))
         # Get color
         color = getattr(self, space)
         # Append alpha to color
