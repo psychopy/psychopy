@@ -3,7 +3,8 @@ name: PsychoPy pytesting
 on: [push]
 
 jobs:
-  build:
+
+  testsuite:
 
     runs-on: ${{ matrix.os }}
     strategy:
@@ -23,32 +24,14 @@ jobs:
     - name: Pre-Install
       run: |
         python -m pip install --upgrade pip
-        pip install flake8 pytest
+        pip install pytest
         pip install wheel
         pip install six  # just needed for configobj
-        pip install future
         pip install distro  # used by createInitFile
-        pip install wxPython
 
     - name: Install
       run: |
-        python setup.py build
-        # Build & install sdist
-        python setup.py sdist
-        pip install --no-deps dist/PsychoPy-*.tar.gz
-        pip uninstall --yes psychopy
-        # Build & install wheel
-        python setup.py bdist_wheel
-        pip install --no-deps dist/PsychoPy-*.whl
-        # uninstall the build (but not the dependencies)
-        pip uninstall --yes psychopy
-
-    - name: Lint with flake8
-      run: |
-        # stop the build if there are Python syntax errors or undefined names
-        # flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        pip install .
 
     - name: Test with pytest
       run: |
@@ -58,3 +41,32 @@ jobs:
       uses: codecov/codecov-action@v1
       with:
         fail_ci_if_error: true
+
+  flake_and_bdist:
+    runs-on: ubuntu-latest
+    python-version: [3.6, 3.8]
+    steps:
+    - name: Install
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 wheel
+    - name: Flake check
+      run: |
+         # stop the build if there are Python syntax errors or undefined names
+         # flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    - name: Check builds
+      # checks whether different forms of build work (e.g. missing files in sdist)
+      run: |
+        python -m pip install --upgrade pip
+        python setup.py build
+        # Build & install sdist
+        python setup.py sdist --formats=gztar
+        pip install --no-deps dist/PsychoPy-*.tar.gz
+        pip uninstall --yes psychopy
+        # Build & install wheel
+        python setup.py bdist_wheel
+        pip install --no-deps dist/PsychoPy-*.whl
+        # uninstall the build (but not the dependencies)
+        pip uninstall --yes psychopy
