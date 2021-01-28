@@ -96,11 +96,17 @@ _localizedDialogs = {
     'cross': _translate('cross'),
     'star': _translate('star'),
     'regular polygon...': _translate('regular polygon...'),
+    # Form
+    'rows': _translate('rows'),
+    'columns': _translate('columns'),
     # Variable component
     'first': _translate('first'),
     'last': _translate('last'),
     'all': _translate('all'),
     'average': _translate('average'),
+    # Text
+    'horiz': _translate('horiz'),
+    'vert': _translate('vert'),
     # NameSpace
     'one of your Components, Routines, or condition parameters': 
     _translate('one of your Components, Routines, or condition parameters'),

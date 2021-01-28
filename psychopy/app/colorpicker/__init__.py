@@ -16,11 +16,13 @@ from psychopy.app.themes import ThemeMixin
 from psychopy.colors import Color, AdvancedColor, colorNames
 import wx.lib.agw.aui as aui
 
+from psychopy.localization import _translate
+
 
 class PsychoColorPicker(wx.Dialog, ThemeMixin):
 
     def __init__(self, parent):
-        wx.Dialog.__init__(self, parent, id=wx.ID_ANY, title=u"Color Picker", pos=wx.DefaultPosition,
+        wx.Dialog.__init__(self, parent, id=wx.ID_ANY, title=_translate("Color Picker"), pos=wx.DefaultPosition,
                            style=wx.DEFAULT_DIALOG_STYLE)
         # Set main params
         self.color = Color((0,0,0,1), 'rgba')
@@ -41,7 +43,7 @@ class PsychoColorPicker(wx.Dialog, ThemeMixin):
         self.sizer.Add(self.presets, pos=(0,2), border=5, flag=wx.ALL)
         # Add buttons
         self.buttons = wx.BoxSizer(wx.HORIZONTAL)
-        self.closeButton = wx.Button(self, label="Close")
+        self.closeButton = wx.Button(self, label=_translate("Close"))
         self.closeButton.Bind(wx.EVT_BUTTON, self.Close)
         self.buttons.Add(self.closeButton, border=5, flag=wx.ALL)
         # Add insert buttons
@@ -52,10 +54,10 @@ class PsychoColorPicker(wx.Dialog, ThemeMixin):
         # self.insertObjectButton.Bind(wx.EVT_BUTTON, self.insertObject)
         # self.buttons.Add(self.insertObjectButton, border=5, flag=wx.ALL)
         # Add copy buttons
-        self.copyValueButton = wx.Button(self, label="Copy As Value")
+        self.copyValueButton = wx.Button(self, label=_translate("Copy As Value"))
         self.copyValueButton.Bind(wx.EVT_BUTTON, self.copyValue)
         self.buttons.Add(self.copyValueButton, border=5, flag=wx.ALL)
-        self.copyObjectButton = wx.Button(self, label="Copy As Object")
+        self.copyObjectButton = wx.Button(self, label=_translate("Copy As Object"))
         self.copyObjectButton.Bind(wx.EVT_BUTTON, self.copyObject)
         self.buttons.Add(self.copyObjectButton, border=5, flag=wx.ALL)
 
