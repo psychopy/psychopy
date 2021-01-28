@@ -1,6 +1,6 @@
 __author__ = 'Sol'
 
-from past.builtins import xrange
+from past.builtins import xrange, unicode
 
 import numpy as np
 import json

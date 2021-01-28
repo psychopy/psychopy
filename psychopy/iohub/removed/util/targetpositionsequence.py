@@ -19,6 +19,7 @@ To use this module, the following high level steps are generally preformed:
   each position.
 """
 from __future__ import division, print_function, absolute_import
+from past.builtins import basestring, long
 
 from weakref import proxy
 import numpy as np
