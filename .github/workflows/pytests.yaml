@@ -28,7 +28,7 @@ jobs:
         pip install wheel
         pip install six  # just needed for configobj
         pip install distro  # used by createInitFile
-        pip install pyWinHook --extra-index-url https://www.lfd.uci.edu/~gohlke/pythonlibs
+        python plat_custom_installs.py
 
     - name: Install
       run: |
