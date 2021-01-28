@@ -32,7 +32,7 @@ colorExamples = {
 }
 # Dict of named colours
 colorNames = {
-        "none": (1, 1, 1),
+        "none": (0, 0, 0),
         "aliceblue": (0.882352941176471, 0.945098039215686, 1),
         "antiquewhite": (0.96078431372549, 0.843137254901961, 0.686274509803922),
         "aqua": (-1, 1, 1),
@@ -611,6 +611,8 @@ class Color(object):
             else:
                 rgb = self.rgb
                 for name, val in colorNames.items():
+                    if name == 'none': # skip None
+                        continue
                     if all(val[:3] == rgb):
                         self._cache['named'] = name
                         continue
