@@ -13,7 +13,7 @@ from wx.lib.buttons import GenButton
 from wx.lib.scrolledpanel import ScrolledPanel
 
 from psychopy.app.themes import ThemeMixin
-from psychopy.colors import Color, AdvancedColor, colorNames
+from psychopy.colors import Color, colorNames
 import wx.lib.agw.aui as aui
 
 

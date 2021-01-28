@@ -18,7 +18,7 @@ from builtins import str
 # Shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
 import pyglet
 
-from ..colors import Color, AdvancedColor
+from ..colors import Color
 
 pyglet.options['debug_gl'] = False
 import ctypes
@@ -125,11 +125,11 @@ class RadialStim(GratingStim):
         elif dkl != None:
             logging.warning("Use of dkl arguments to stimuli are deprecated. "
                             "Please use color and colorSpace args instead")
-            self.color = AdvancedColor(dkl, colorSpace='dkl')
+            self.color = Color(dkl, colorSpace='dkl')
         elif lms != None:
             logging.warning("Use of lms arguments to stimuli are deprecated."
                             " Please use color and colorSpace args instead")
-            self.color = AdvancedColor(lms, colorSpace='lms')
+            self.color = Color(lms, colorSpace='lms')
         else:
             self.color = color
 
