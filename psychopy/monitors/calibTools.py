@@ -37,6 +37,8 @@ import numpy as np
 from scipy import interpolate
 import json_tricks  # allows json to dump/load np.arrays and dates
 
+from psychopy import constants
+
 DEBUG = False
 
 # set and create (if necess) the data folder
@@ -435,15 +437,24 @@ class Monitor(object):
             ext = ".json"
         else:
             ext = ".calib"
+
         # the name of the actual file:
         thisFileName = os.path.join(monitorFolder, self.name + ext)
         if not os.path.exists(thisFileName):
             self.calibNames = []
         else:
-            if ext==".json":
+            if ext == ".json":
                 with open(thisFileName, 'r') as thisFile:
-                    self.calibs = json_tricks.load(thisFile, ignore_comments=False,
-                                                   encoding='utf-8', preserve_order=False)
+                    if constants.PY3:
+                        # Passing encoding parameter to json.loads has been
+                        # deprecated and removed in Python 3.9
+                        self.calibs = json_tricks.load(
+                            thisFile, ignore_comments=False,
+                            preserve_order=False)
+                    else:
+                        self.calibs = json_tricks.load(
+                            thisFile, ignore_comments=False, encoding='utf-8',
+                            preserve_order=False)
             else:
                 with open(thisFileName, 'rb') as thisFile:
                     self.calibs = pickle.load(thisFile)
@@ -563,7 +574,6 @@ class Monitor(object):
         with open(thisFileName, 'w') as outfile:
             json_tricks.dump(self.calibs, outfile, indent=2,
                              allow_nan=True)
-
 
     def copyCalib(self, calibName=None):
         """Stores the settings for the current calibration settings as
