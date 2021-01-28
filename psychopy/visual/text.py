@@ -504,12 +504,15 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
         """Set the text to be rendered using the current font
         """
         if self.win.winType in ["pyglet", "glfw"]:
+            rgba255 = self._foreColor.rgba255
+            rgba255[3] = rgba255[3]*255
+            rgba255 = [int(c) for c in rgba255]
             self._pygletTextObj = pyglet.text.Label(
                 self.text, self.font, int(self._heightPix*0.75),
                 anchor_x=self.anchorHoriz,
                 anchor_y=self.anchorVert,  # the point we rotate around
                 align=self.alignText,
-                color = self._foreColor.rgb255+(round(self._foreColor.alpha*255),),
+                color = rgba255,
                 multiline=True, width=self._wrapWidthPix)  # width of the frame
             self.width = self._pygletTextObj.width
         else:
