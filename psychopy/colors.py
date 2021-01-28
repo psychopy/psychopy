@@ -350,7 +350,7 @@ class Color(object):
     def __len__(self):
         """Determines the length of object"""
         if len(self.rgb.shape) > 1:
-            return self.rgb.shape[1]
+            return self.rgb.shape[0]
         else:
             return int(bool(self.rgb.shape))
 
