@@ -44,7 +44,10 @@ jobs:
 
   flake_and_bdist:
     runs-on: ubuntu-latest
-    python-version: [3.6, 3.8]
+    strategy:
+      matrix:
+        python-version: [3.6, 3.8]
+
     steps:
     - name: Install
       run: |
