@@ -147,7 +147,8 @@ else:
 # del(__builtins__['_'])  # idea: force psychopy code to use _translate
 
 # Feb 2016: require modules to explicitly import _translate from localization:
-_translate = _  # _ is created by gettext, in builtins namespace
+_translate = _  # noqa: F821
+# Note that _ is created by gettext, in builtins namespace
 del(__builtins__['_'])
 
 
