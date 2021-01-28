@@ -27,6 +27,7 @@ jobs:
         pip install wheel
         pip install six  # just needed for configobj
         pip install future
+        pip install distro  # used by createInitFile
 
     - name: Install
       run: |
