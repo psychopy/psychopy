@@ -537,20 +537,26 @@ class Color(object):
             # Map rgb255 values to corresponding letters in hex
             hexmap = {10: 'a', 11: 'b', 12: 'c', 13: 'd', 14: 'e', 15: 'f'}
             # Handle arrays
-            rgb255 = self.rgb255
-            # Iterate through rows of rgb255
-            self._cache['hex'] = np.array([])
-            for row in rgb255:
+            if self.rgb255.ndim > 1:
+                rgb255 = self.rgb255
+                # Iterate through rows of rgb255
+                self._cache['hex'] = np.array([])
+                for row in rgb255:
+                    rowHex = '#'
+                    # Convert each value to hex and append
+                    for val in row:
+                        dig = hex(int(val)).strip('0x')
+                        rowHex += dig if len(dig) == 2 else '0' + dig
+                    # Append full hex value to new array
+                    self._cache['hex'] = np.append(self._cache['hex'], [rowHex], 0)
+            else:
                 rowHex = '#'
                 # Convert each value to hex and append
-                for val in row:
-                    dig = hex(int(val)).strip('0x')
+                for val in self.rgb255:
+                    dig = hex(int(val))[2:]
                     rowHex += dig if len(dig) == 2 else '0' + dig
                 # Append full hex value to new array
-                self._cache['hex'] = np.append(self._cache['hex'], [rowHex], 0)
-            # If array is only 1 long, strip extraneous layer
-            if len(self._cache['hex']) == 1:
-                self._cache['hex'] = self._cache['hex'][0]
+                self._cache['hex'] = rowHex
         return self._cache['hex']
     @hex.setter
     def hex(self, color):
@@ -563,6 +569,8 @@ class Color(object):
             # Handle arrays
             rgb255 = np.array([""])
             for row in color:
+                if isinstance(row, np.ndarray):
+                    row = row[0]
                 row = row.strip('#')
                 # Convert string to list of strings
                 hexList = [row[:2], row[2:4], row[4:6]]
