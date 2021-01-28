@@ -2,12 +2,15 @@ import os
 import wx
 
 from psychopy.app.colorpicker import PsychoColorPicker
+from psychopy.app.dialogs import ListWidget
 from psychopy.app.themes import ThemeMixin
 from psychopy.colors import Color
 from psychopy.localization import _translate
 from psychopy import data, prefs, experiment
 import re
 from pathlib import Path
+
+from ..localizedStrings import _localizedDialogs as _localized
 
 class _ValidatorMixin():
     def validate(self, evt):
@@ -75,10 +78,10 @@ class _FileMixin:
 class SingleLineCtrl(wx.TextCtrl, _ValidatorMixin):
     def __init__(self, parent, valType,
                  val="", fieldName="",
-                 size=wx.Size(-1, 24)):
+                 size=wx.Size(-1, 24), style=wx.DEFAULT):
         # Create self
         wx.TextCtrl.__init__(self)
-        self.Create(parent, -1, val, name=fieldName, size=size)
+        self.Create(parent, -1, val, name=fieldName, size=size, style=style)
         self.valType = valType
         # Add sizer
         self._szr = wx.BoxSizer(wx.HORIZONTAL)
@@ -91,17 +94,20 @@ class SingleLineCtrl(wx.TextCtrl, _ValidatorMixin):
         self._szr.Add(self, proportion=1, border=5, flag=wx.EXPAND)
         # Bind to validation
         self.Bind(wx.EVT_TEXT, self.codeWanted)
+        self.codeWanted(None)
 
     def codeWanted(self, evt):
-        if self.GetValue().startswith("$") or not self.valType == "str":
+        if self.GetValue().startswith("$") or not self.valType == "str" and not self.GetName() == "name":
             spec = ThemeMixin.codeColors.copy()
             base = spec['base']
             # Override base font with user spec if present
             if prefs.coder['codeFont'].lower() != "From Theme...".lower():
                 base['font'] = prefs.coder['codeFont']
+            self.SetFont(self.GetTopLevelParent().app._codeFont)
             validate(self, "code")
         else:
             validate(self, self.valType)
+            self.SetFont(self.GetTopLevelParent().app._mainFont)
 
 
 class MultiLineCtrl(SingleLineCtrl, _ValidatorMixin):
@@ -110,8 +116,7 @@ class MultiLineCtrl(SingleLineCtrl, _ValidatorMixin):
                  size=wx.Size(-1, 72)):
         SingleLineCtrl.__init__(self, parent, valType,
                                 val=val, fieldName=fieldName,
-                                size=size)
-        self.SetWindowStyleFlag(wx.TE_MULTILINE)
+                                size=size, style=wx.TE_MULTILINE)
 
 
 class IntCtrl(wx.SpinCtrl, _ValidatorMixin):
@@ -140,12 +145,20 @@ class ChoiceCtrl(wx.Choice, _ValidatorMixin):
     def __init__(self, parent, valType,
                  val="", choices=[], fieldName="",
                  size=wx.Size(-1, 24)):
+        # translate add each label to the dropdown
+        choiceLabels = []
+        for item in choices:
+            try:
+                choiceLabels.append(_localized[item])
+            except KeyError:
+                choiceLabels.append(item)
+
         wx.Choice.__init__(self)
-        self.Create(parent, -1, size=size, choices=choices, name=fieldName)
+        self.Create(parent, -1, size=size, choices=choiceLabels, name=fieldName)
         self._choices = choices
         self.valType = valType
         if val in choices:
-            self.SetStringSelection(val)
+            self.SetSelection(choices.index(val))
 
 
 class FileCtrl(wx.TextCtrl, _ValidatorMixin, _FileMixin):
@@ -246,11 +259,12 @@ class TableCtrl(wx.TextCtrl, _ValidatorMixin, _FileMixin):
         self.xlBtn.Bind(wx.EVT_BUTTON, self.openExcel)
         self._szr.Add(self.xlBtn)
         # Link to Excel templates for certain contexts
-        cmpRoot = os.path.dirname(experiment.components.__file__)
-        expRoot = os.path.normpath(os.path.join(cmpRoot, ".."))
+        cmpRoot = Path(experiment.components.__file__).parent
+        expRoot = Path(cmpRoot).parent
         self.templates = {
-            'Form': os.path.join(cmpRoot, "form", "formItems.xltx"),
-            'Loop': os.path.join(expRoot, "loopTemplate.xltx")
+            'Form': Path(cmpRoot) / "form" / "formItems.xltx",
+            'Loop': Path(expRoot) / "loopTemplate.xltx",
+            'None': Path(expRoot) / 'blankTemplate.xltx',
         }
         # Configure validation
         self.Bind(wx.EVT_TEXT, self.validate)
@@ -284,7 +298,11 @@ class TableCtrl(wx.TextCtrl, _ValidatorMixin, _FileMixin):
                 f"Once you have created and saved your table, please remember to add it to {self.Name}"),
                              caption="Reminder")
             dlg.ShowModal()
-            os.startfile(self.templates[self.GetTopLevelParent().type])
+            if hasattr(self.GetTopLevelParent(), 'type'):
+                if self.GetTopLevelParent().type in self.templates:
+                    os.startfile(self.templates[self.GetTopLevelParent().type])
+                    return
+            os.startfile(self.templates['None']) # Open blank template
 
     def findFile(self, event):
         _wld = f"All Table Files({'*'+';*'.join(self.validExt)})|{'*'+';*'.join(self.validExt)}|All Files (*.*)|*.*"
@@ -304,7 +322,7 @@ class ColorCtrl(wx.TextCtrl, _ValidatorMixin):
         self.valType = valType
         # Add sizer
         self._szr = wx.BoxSizer(wx.HORIZONTAL)
-        if not valType == "str":
+        if valType == "code":
             # Add $ for anything to be interpreted verbatim
             self.dollarLbl = wx.StaticText(parent, -1, "$", size=wx.Size(-1, -1), style=wx.ALIGN_RIGHT)
             self.dollarLbl.SetToolTip(_translate("This parameter will be treated as code - we have already put in the $, so you don't have to."))
@@ -375,7 +393,7 @@ def validate(obj, valType):
             val = re.sub(r"\$?(Advanced)?Color\(", "", val[:-1])
         try:
             # Try to create a Color object from value
-            obj.color = Color(val)
+            obj.color = Color(val, False)
             if not obj.color:
                 # If invalid object is created, input is invalid
                 valid = False
@@ -399,3 +417,30 @@ def validate(obj, valType):
     obj.valid = valid
     if hasattr(obj, "showValid"):
         obj.showValid(valid)
+
+class DictCtrl(ListWidget, _ValidatorMixin):
+    def __init__(self, parent,
+                 val={}, valType='dict',
+                 fieldName=""):
+        if not isinstance(val, (dict, list)):
+            raise ValueError("DictCtrl must be supplied with either a dict or a list of 1-long dicts, value supplied was {}".format(val))
+        # If supplied with a dict, convert it to a list of dicts
+        if isinstance(val, dict):
+            newVal = []
+            for key, v in val.items():
+                newVal.append({'Field': key, 'Default': v})
+            val = newVal
+        # If any items within the list are not dicts or are dicts longer than 1, throw error
+        if not all(isinstance(v, dict) and len(v) == 2 for v in val):
+            raise ValueError("DictCtrl must be supplied with either a dict or a list of 1-long dicts, value supplied was {}".format(val))
+        # Iterate through list of dicts to get each key in order
+        order = []
+        for row in val:
+            order.append(row['Field'])
+        # Create ListWidget
+        ListWidget.__init__(self, parent, val, order=order)
+
+    def SetForegroundColour(self, color):
+        for child in self.Children:
+            if hasattr(child, "SetForegroundColour"):
+                child.SetForegroundColour(color)

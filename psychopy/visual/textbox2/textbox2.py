@@ -130,8 +130,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.onTextCallback = onTextCallback
 
         if units=='norm':
-            raise NotImplemented("TextBox2 doesn't support 'norm' units at the "
-                                 "moment. Use 'height' units instead")
+            raise NotImplementedError("TextBox2 doesn't support 'norm' units "
+                                 "at the moment. Use 'height' units instead")
         # first set params needed to create font (letter sizes etc)
         if letterHeight is None:
             self.letterHeight = defaultLetterHeight[self.units]
@@ -203,6 +203,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 lineWidth=1, lineColor=None, fillColor=fillColor, opacity=0.1,
                 autoLog=False)
         # then layout the text (setting text triggers _layout())
+        self._layoutText = ""
+        self._visibleText = None
         self.startText = text
         self.text = text if text is not None else ""
 
@@ -253,6 +255,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             return allFonts
     @fontMGR.setter
     def fontMGR(self, mgr):
+        global allFonts
         if isinstance(mgr, FontManager):
             allFonts = mgr
         else:
@@ -306,33 +309,41 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
     @attributeSetter
     def text(self, text):
         self.__dict__['text'] = text
+        text = text.replace('<i>', codes['ITAL_START'])
+        text = text.replace('</i>', codes['ITAL_END'])
+        text = text.replace('<b>', codes['BOLD_START'])
+        text = text.replace('</b>', codes['BOLD_END'])
+        self._layoutText = text        
+        self._visibleText = None
         self._layout()
 
+    @property
+    def visibleText(self):
+        if self._visibleText is None:
+            self._visibleText = ''.join([c for c in self._layoutText if c not in codes.values()])
+        return self._visibleText
+    
     def _layout(self):
         """Layout the text, calculating the vertex locations
         """
         def getLineWidthFromPix(pixVal):
             return pixVal / self._pixelScaling + self.padding * 2
-
-        text = self.text
-        text = text.replace('<i>', codes['ITAL_START'])
-        text = text.replace('</i>', codes['ITAL_END'])
-        text = text.replace('<b>', codes['BOLD_START'])
-        text = text.replace('</b>', codes['BOLD_END'])
+        
         rgb = self._foreColor.rgba
         font = self.glFont
 
         # the vertices are initially pix (natural for freetype)
         # then we convert them to the requested units for self._vertices
         # then they are converted back during rendering using standard BaseStim
-        vertices = np.zeros((len(text) * 4, 2), dtype=np.float32)
-        self._charIndices = np.zeros((len(text)), dtype=int)
-        self._colors = np.zeros((len(text) * 4, 4), dtype=np.double)
-        self._texcoords = np.zeros((len(text) * 4, 2), dtype=np.double)
-        self._glIndices = np.zeros((len(text) * 4), dtype=int)
+        visible_text = self.visibleText
+        vertices = np.zeros((len(visible_text) * 4, 2), dtype=np.float32)
+        self._charIndices = np.zeros((len(visible_text)), dtype=int)
+        self._colors = np.zeros((len(visible_text) * 4, 4), dtype=np.double)
+        self._texcoords = np.zeros((len(visible_text) * 4, 2), dtype=np.double)
+        self._glIndices = np.zeros((len(visible_text) * 4), dtype=int)
 
         # the following are used internally for layout
-        self._lineNs = np.zeros(len(text), dtype=int)
+        self._lineNs = np.zeros(len(visible_text), dtype=int)
         self._lineTops = []  # just length of nLines
         self._lineBottoms = []
         self._lineLenChars = []  #
@@ -359,8 +370,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         wordsThisLine = 0
         lineN = 0
 
-        for i, charcode in enumerate(text):
-
+        i =0
+        for charcode in self._layoutText:
             printable = True  # unless we decide otherwise
             # handle formatting codes
             if charcode in codes.values():
@@ -408,7 +419,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 u1 = glyph.texcoords[2]
                 v1 = glyph.texcoords[3]
 
-            index = i * 4
             theseVertices = [[xTopL, yTop], [xBotL, yBot],
                              [xBotR, yBot], [xTopR, yTop]]
             texcoords = [[u0, v0], [u0, v1],
@@ -464,6 +474,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 self._lineTops.append(current[1] + self._lineHeight
                                       + font.descender/2)
 
+            i+=1
+            
         # finally add length of this (unfinished) line
         self._lineWidths.append(getLineWidthFromPix(current[0]))
         self._lineLenChars.append(charsThisLine)
@@ -507,6 +519,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         #self.fillColor = self.box.fillColor
 
         if self._needVertexUpdate:
+            #print("Updating vertices...")
             self._updateVertices()
         if self.fillColor is not None or self.borderColor is not None:
             self.box.draw()
@@ -818,7 +831,7 @@ class Caret(ColorMixin):
 
     def __init__(self, textbox, color, width, colorSpace='rgb'):
         self.textbox = textbox
-        self.index = len(textbox.text)  # start off at the end
+        self.index = len(textbox.visibleText)  # start off at the end
         self.autoLog = False
         self.width = width
         self.units = textbox.units
@@ -929,8 +942,8 @@ class Caret(ColorMixin):
     def vertices(self):
         textbox = self.textbox
         # check we have a caret index
-        if self.index is None or self.index > len(textbox.text):
-            self.index = len(textbox.text)
+        if self.index is None or self.index > len(textbox.visibleText):
+            self.index = len(textbox.visibleText)
         if self.index < 0:
             self.index = 0
         # get the verts of character next to caret (chr is the next one so use

@@ -212,7 +212,7 @@ class CodeSnippetValidator(BaseValidator):
         if self.fieldName == 'font' and not val.startswith('$'):
             fontInfo = fontMGR.getFontNamesSimilar(val)
             if not fontInfo:
-                msg = _translate(f"Font `{val}` not found locally, will attempt to retrieve from Google Fonts when this experiment next runs")
+                msg = _translate("Font `{val}` not found locally, will attempt to retrieve from Google Fonts when this experiment next runs").format(val=val)
 
         # Validate as code
         if codeWanted or isCodeField:
