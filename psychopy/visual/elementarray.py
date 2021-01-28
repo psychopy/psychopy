@@ -433,8 +433,7 @@ class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
         self._opacity = value
         if hasattr(self, "_colors"):
             # Set the alpha value of each color to be the desired opacity
-            for color in self._colors:
-                color.alpha = value
+            self._colors.alpha = value
 
 
     @attributeSetter
