@@ -40,7 +40,7 @@ def toFile(filename, data):
 
 
 def fromFile(filename, encoding='utf-8-sig'):
-    """Load data from a pickle or JSON file.
+    """Load data from a psydat, pickle or JSON file.
 
     Parameters
     ----------
@@ -62,6 +62,10 @@ def fromFile(filename, encoding='utf-8-sig'):
             if hasattr(contents, 'abort'):
                 contents.abort()
             return contents
+    elif filename.endswith('pickle'):
+        with open(filename, 'rb') as f:
+            contents = pickle.load(f)
+        return contents
     elif filename.endswith('.json'):
         with codecs.open(filename, 'r', encoding=encoding) as f:
             contents = json_tricks.load(f)

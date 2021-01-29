@@ -47,7 +47,7 @@ class TextboxComponent(BaseVisualComponent):
     def __init__(self, exp, parentName, name='textbox',
                  # effectively just a display-value
                  text=_translate('Any text\n\nincluding line breaks'),
-                 font='Open Sans', units='from exp settings', bold=False, italic=False,
+                 font='Arial', units='from exp settings', bold=False, italic=False,
                  color='white', colorSpace='rgb', opacity=1.0,
                  pos=(0, 0), size='', letterHeight=0.05, ori=0,
                  lineSpacing=1.0, padding="",  # gap between box and text

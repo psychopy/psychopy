@@ -27,7 +27,7 @@ Of particular interest might be the following attributes and methods of the Hand
     :saveAsPickle(): a method for saving all of the entries' data in a Python pickle file
     :saveAsWideText(): a method for saving all of the entrie's data in a .csv file.
 
-If you just want to recover data or first wish to try things out in a familiar format you can put all of the data in a .csv file, very similar to the .csv files that are produced by default when running PsychoPy experiments. The following script assumes you're using a command-line interface (e. g. Terminal on Mac, or the Command Prompt on Windows) where you've opened up a Python shell, and that you have installed PsychoPy as a Python package.
+If you just want to recover data or first wish to try things out in a familiar format you can put all of the data in a .csv file, very similar to the .csv files that are produced by default when running PsychoPy experiments. The following script assumes you're using a command-line interface (e. g. Terminal on Mac, or the Command Prompt on Windows) where you've opened up a Python shell, and that you have installed PsychoPy as a Python package::
 
     # import PsychoPy function for loading Pickle/JSON data
     from psychopy.misc import fromFile
