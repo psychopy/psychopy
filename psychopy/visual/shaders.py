@@ -37,7 +37,6 @@ class Shader:
             status = c_int()
             GL.glGetShaderiv(shader, GL.GL_COMPILE_STATUS, byref(status))
             if not status.value:
-                print_log(shader)
                 GL.glDeleteShader(shader)
                 raise ValueError('Shader compilation failed')
             return shader
