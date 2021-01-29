@@ -30,6 +30,7 @@ _localized.update({'callback': _translate("Callback Function"),
                    'fillColor': _translate('Fill Colour'),
                    'borderColor': _translate('Border Colour'),
                    'borderWidth': _translate('Border Width'),
+                   'oncePerClick': _translate('Run once per click')
                    })
 
 class ButtonComponent(BaseVisualComponent):
@@ -47,7 +48,7 @@ class ButtonComponent(BaseVisualComponent):
                  pos=(0, 0), size="", padding="", anchor='center', units='from exp settings', ori=0,
                  color="white", fillColor="darkgrey", borderColor="None", borderWidth=0, colorSpace='rgb', opacity=1,
                  letterHeight=0.05, bold=True, italic=False,
-                 callback="", forceEndRoutine=True):
+                 callback="", forceEndRoutine=True, oncePerClick=True):
         super(ButtonComponent, self).__init__(exp, parentName, name,
                                             units=units,
                                             color=color, fillColor=fillColor, borderColor=borderColor,
@@ -64,7 +65,7 @@ class ButtonComponent(BaseVisualComponent):
         self.type = 'Button'
         self.url = "http://www.psychopy.org/builder/components/button.html"
         self.order += [  # controls order of params within tabs
-            "forceEndRoutine", "text", "callback",  # Basic tab
+            "forceEndRoutine", "text", "callback", "oncePerClick", # Basic tab
             "borderWidth", "opacity",  # Appearance tab
             "font", "letterHeight", "lineSpacing", "bold", "italic",  # Formatting tab
         ]
@@ -78,6 +79,12 @@ class ButtonComponent(BaseVisualComponent):
             hint=_translate("Should a response force the end of the Routine "
                             "(e.g end the trial)?"),
             label=_localized['forceEndRoutine'])
+        self.params['oncePerClick'] = Param(
+            oncePerClick, valType='bool', inputType="bool", allowedTypes=[], categ='Basic',
+            updates='constant', allowedUpdates=['constant'],
+            hint=_translate("Should the callback run once per click (True), or each frame until click is released (False)"),
+            label=_localized['oncePerClick']
+        )
         self.params['callback'] = Param(
             callback, valType='code', inputType="multi", allowedTypes=[], categ='Basic',
             updates='constant', allowedUpdates=['constant'],
@@ -174,9 +181,13 @@ class ButtonComponent(BaseVisualComponent):
             endRt = "continueRoutine = False"
         else:
             endRt = ""
+        if inits['oncePerClick'].val:
+            hammingStr = "   while %(name)s.isClicked:\n      pass\n"
+        else:
+            hammingStr = ""
         code = (
             "# check whether button \"%(name)s\" has been pressed\n"
-            "if %(name)s.isClicked:\n"
+            "if %(name)s.isClicked:\n" + hammingStr +
             "   " + callback + "\n" +
             "   " + endRt + "\n"
         )
