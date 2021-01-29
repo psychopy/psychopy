@@ -367,7 +367,7 @@ def updateDemosMenu(frame, menu, folder, ext):
     """Update Demos menu as needed."""
     def _makeButton(parent, menu, demo):
         # Create menu button
-        item = menu.Append(wx.ID_ANY, prettyname(demo.name))
+        item = menu.Append(wx.ID_ANY, demo.name)
         # Store in window's demos list
         parent.demos.update({item.Id: demo})
         # Link button to demo opening function
