@@ -225,7 +225,15 @@ class RatingScaleComponent(BaseComponent):
                 init_str += ', marker=%s' % repr(self.params['marker'].val)
                 if self.params['marker'].val == 'glow':
                     init_str += ', markerExpansion=5'
-            init_str += ", size=%s" % self.params['size']
+
+            s = str(self.params['size'].val)
+            s = s.lstrip('([ ').strip(')] ')
+            try:
+                size = list(map(float, s.split(','))) * 2
+                init_str += ", size=%s" % size[0]
+            except Exception:
+                pass  # size = None
+
             s = str(self.params['pos'].val)
             s = s.lstrip('([ ').strip(')] ')
             try:
