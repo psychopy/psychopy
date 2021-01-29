@@ -635,7 +635,7 @@ class StairHandler(_BaseTrialHandler):
 
         # add self.extraInfo
         if self.extraInfo is not None and not matrixOnly:
-            ws.cell(column=startingCol, row=1,
+            ws.cell(column=col, row=1,
                     value='extraInfo')
             rowN = 2
             for key, val in list(self.extraInfo.items()):

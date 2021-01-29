@@ -17,6 +17,7 @@ from builtins import range
 import wx
 import wx.stc
 import wx.richtext
+import psychopy.app
 from psychopy.app.themes._themes import ThemeSwitcher
 from wx.html import HtmlEasyPrinting
 
@@ -360,12 +361,7 @@ class UnitTestFrame(wx.Frame):
             havePytest = True
         except Exception:
             havePytest = False
-        if havePytest:
-            self.runpyPath = os.path.join(self.prefs.paths['tests'], 'run.py')
-        else:
-            # run the standalone version
-            self.runpyPath = os.path.join(
-                self.prefs.paths['tests'], 'runPytest.py')
+        self.runpyPath = os.path.join(self.prefs.paths['tests'], 'run.py')
         if sys.platform != 'win32':
             self.runpyPath = self.runpyPath.replace(' ', '\ ')
         # setup the frame
@@ -1145,7 +1141,7 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
 class CoderFrame(wx.Frame, ThemeMixin):
 
     def __init__(self, parent, ID, title, files=(), app=None):
-        self.app = app  # type: PsychoPyApp
+        self.app = app  # type: psychopy.app.PsychoPyApp
         self.frameType = 'coder'
         # things the user doesn't set like winsize etc
         self.appData = self.app.prefs.appData['coder']
@@ -1997,18 +1993,25 @@ class CoderFrame(wx.Frame, ThemeMixin):
                 self.fileStatusLastChecked = time.time()
 
     def pageChanged(self, event):
-        """Event called when the user swtiches between editor tabs."""
+        """Event called when the user switches between editor tabs."""
         old = event.GetOldSelection()
-        # close any auto-complete or calltips when swtiching pages
+        # close any auto-complete or calltips when switching pages
         if old != wx.NOT_FOUND:
-            oldPage = self.notebook.GetPage(old)
-            if hasattr(oldPage, 'CallTipActive'):
-                if oldPage.CallTipActive():
-                    oldPage.CallTipCancel()
-                    oldPage.openBrackets = 0
-            if hasattr(oldPage, 'AutoCompActive'):
-                if oldPage.AutoCompActive():
-                    oldPage.AutoCompCancel()
+            oldPage = None
+
+            try:  # last page was closed, this will raise and error
+                oldPage = self.notebook.GetPage(old)
+            except Exception:
+                pass
+
+            if oldPage is not None:
+                if hasattr(oldPage, 'CallTipActive'):
+                    if oldPage.CallTipActive():
+                        oldPage.CallTipCancel()
+                        oldPage.openBrackets = 0
+                if hasattr(oldPage, 'AutoCompActive'):
+                    if oldPage.AutoCompActive():
+                        oldPage.AutoCompCancel()
 
         new = event.GetSelection()
         self.currentDoc = self.notebook.GetPage(new)

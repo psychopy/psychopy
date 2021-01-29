@@ -469,7 +469,7 @@ class Gamepad(XInputDevice):
         """
 
         if self._last_read_capabilities_dict is None:
-            updateCapabilitiesInformation()
+            self.updateCapabilitiesInformation()
 
         return self._last_read_capabilities_dict
 

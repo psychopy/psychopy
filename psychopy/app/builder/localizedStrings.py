@@ -123,7 +123,7 @@ components = [os.path.basename(m).replace('.py', '') for m in modules
 for comp in components:
     try:
         exec('from psychopy.experiment.components.' + comp + ' import _localized as _loc')
-        _localized.update(_loc)
+        _localized.update(_loc)  # noqa: F821  # exists through exec import
     except ImportError:
         pass
 

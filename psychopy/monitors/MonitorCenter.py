@@ -6,9 +6,10 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
-
+from past.builtins import xrange, unicode
 from builtins import map
 from builtins import range
+
 import time
 import os
 import locale
@@ -21,7 +22,6 @@ from psychopy import constants
 from psychopy.localization import _translate
 from psychopy import monitors, hardware, logging
 from psychopy.app import dialogs
-import numpy
 
 DEBUG = False
 NOTEBOOKSTYLE = False
