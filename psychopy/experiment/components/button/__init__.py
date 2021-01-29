@@ -172,6 +172,18 @@ class ButtonComponent(BaseVisualComponent):
         )
         buff.writeIndentedLines(code % inits)
 
+    def writeRoutineEndCode(self, buff):
+        BaseVisualComponent.writeRoutineEndCode(self, buff)
+        if len(self.exp.flow._loopList):
+            currLoop = self.exp.flow._loopList[-1]  # last (outer-most) loop
+        else:
+            currLoop = self.exp._expHandler
+        name = self.params['name']
+        code = f"{currLoop.params['name']}.addData('{name}.rt', t)\n"
+        buff.writeIndentedLines(code)
+        # get parent to write code too (e.g. store onset/offset times)
+        super().writeRoutineEndCode(buff)
+
     def integrityCheck(self):
         super().integrityCheck()  # run parent class checks first
         alerttools.testFont(self) # Test whether font is available locally
