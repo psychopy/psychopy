@@ -23,7 +23,7 @@ class ButtonStim(TextBox2):
 
     def __init__(self, win, text, font='Arvo',
                  pos=(0, 0), size=None, padding=None, anchor='center', units=None,
-                 color=(1,1,1), fillColor=None, borderColor=None, borderWidth=0, colorSpace='rgb', opacity=1,
+                 color='white', fillColor='darkgrey', borderColor=None, borderWidth=0, colorSpace='rgb', opacity=1,
                  letterHeight=None, bold=True, italic=False,
                  name=""
                  ):

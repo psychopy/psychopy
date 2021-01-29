@@ -45,7 +45,7 @@ class ButtonComponent(BaseVisualComponent):
                  startEstim='', durationEstim='',
                  text=_translate("Click here"), font='Arvo',
                  pos=(0, 0), size="", padding="", anchor='center', units='from exp settings', ori=0,
-                 color="white", fillColor="None", borderColor="None", borderWidth=0, colorSpace='rgb', opacity=1,
+                 color="white", fillColor="darkgrey", borderColor="None", borderWidth=0, colorSpace='rgb', opacity=1,
                  letterHeight=0.05, bold=True, italic=False,
                  callback="", forceEndRoutine=True):
         super(ButtonComponent, self).__init__(exp, parentName, name,
