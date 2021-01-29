@@ -128,6 +128,7 @@ class RatingScaleComponent(BaseComponent):
             label=_localized['labels'])
         self.params['marker'] = Param(
             marker, valType='str', inputType="choice", allowedTypes=[], categ='Interface',
+            allowedVals=['last key', 'first key', 'all keys', 'nothing'],
             updates='constant', allowedUpdates=[],  # categ="Advanced",
             hint=_translate("Style for the marker: triangle, circle, glow, "
                             "slider, hover"),
