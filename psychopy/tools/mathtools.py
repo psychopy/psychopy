@@ -3956,3 +3956,48 @@ def lensCorrectionSpherical(xys, coefK=1.0, aspect=1.0, out=None, dtype=None):
 
 if __name__ == "__main__":
     pass
+
+class infrange():
+    """
+    Similar to base Python `range`, but allowing the step to be a float or even 0, useful for specifying ranges for
+    logical comparisons
+    """
+    def __init__(self, min, max, step=0):
+        self.min = min
+        self.max = max
+        self.step = step
+
+    @property
+    def range(self):
+        return abs(self.max-self.min)
+
+    def __lt__(self, other):
+        return other > self.max
+    def __le__(self, other):
+        return other > self.min
+    def __gt__(self, other):
+        return self.min > other
+    def __ge__(self, other):
+        return self.max > other
+    def __contains__(self, item):
+        if self.step == 0:
+            return self.min < item < self.max
+        else:
+            return item in np.linspace(self.min, self.max, int(self.range/self.step)+1)
+    def __eq__(self, item):
+        if isinstance(item, self.__class__):
+            return all((
+                self.min == item.min,
+                self.max == item.max,
+                self.step == item.step
+            ))
+        return item in self
+
+    def __add__(self, other):
+        return self.__class__(self.min+other, self.max+other, self.step)
+    def __sub__(self, other):
+        return self.__class__(self.min - other, self.max - other, self.step)
+    def __mul__(self, other):
+        return self.__class__(self.min * other, self.max * other, self.step * other)
+    def __truedic__(self, other):
+        return self.__class__(self.min / other, self.max / other, self.step / other)

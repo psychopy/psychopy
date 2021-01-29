@@ -122,28 +122,28 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         # Appearance
         self.colorSpace = colorSpace
-        if not fillColor == False:
+        if fillColor is not False:
             self.fillColor = fillColor
-        elif not color == False:
+        elif color is not False:
             # Override fillColor with color if not set
             self.fillColor = color
         else:
             # Default to None if neither are set
             self.fillColor = None
-        if not lineColor == False:
+        if lineColor is not False:
             self.lineColor = lineColor
-        elif not color == False:
+        elif color is not False:
             # Override lineColor with color if not set
             self.lineColor = color
         else:
             # Default to black if neither are set
             self.lineColor = 'black'
-        if not lineRGB == False:
+        if lineRGB is not False:
             # Override with RGB if set
             logging.warning("Use of rgb arguments to stimuli are deprecated."
                             " Please use color and colorSpace args instead")
             self.setLineColor(lineRGB, colorSpace='rgb', log=None)
-        if not fillRGB == False:
+        if fillRGB is not False:
             # Override with RGB if set
             logging.warning("Use of rgb arguments to stimuli are deprecated."
                             " Please use color and colorSpace args instead")

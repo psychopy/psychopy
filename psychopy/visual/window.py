@@ -30,7 +30,7 @@ from psychopy.clock import monotonicClock
 
 # try to find avbin (we'll overload pyglet's load_library tool and then
 # add some paths)
-from ..colors import Color, AdvancedColor, colorSpaces, advancedSpaces
+from ..colors import Color, colorSpaces
 
 haveAvbin = False
 
@@ -2636,9 +2636,6 @@ class Window(object):
         if isinstance(value, Color):
             # If supplied with a color object, set as that
             self._color = value
-        elif self.colorSpace in AdvancedColor.getSpace(value, True):
-            # If supplied with a valid advanced color, use it to make an advanced color object and print tip.
-            self._color = AdvancedColor(value, self.colorSpace)
         else:
             # Otherwise, use it to make a color object
             self._color = Color(value, self.colorSpace)
