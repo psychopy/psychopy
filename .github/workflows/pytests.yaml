@@ -10,8 +10,7 @@ jobs:
     strategy:
       matrix:
         os: [macos-latest, windows-latest]
-        python-version: [3.6]
-      max-parallel: 6
+        python-version: [3.6, 3.8]
 
     steps:
     - uses: actions/checkout@v2
@@ -23,16 +22,16 @@ jobs:
 
     - name: Pre-Install
       run: |
-        python3 -m pip install --upgrade pip
-        python3 -m pip install pytest
-        python3 -m pip install wheel
-        python3 -m pip install six  # just needed for configobj
-        python3 -m pip install distro  # used by createInitFile
-        python3 ./building/plat_custom_installs.py
+        python -m pip install --upgrade pip
+        pip install pytest
+        pip install wheel
+        pip install six  # just needed for configobj
+        pip install distro  # used by createInitFile
+        python ./building/plat_custom_installs.py
 
     - name: Install
       run: |
-        python3 -m pip install .
+        pip install .
 
     - name: Test with pytest
       run: |
@@ -42,36 +41,3 @@ jobs:
       uses: codecov/codecov-action@v1
       with:
         fail_ci_if_error: true
-
-  flake_and_bdist:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: [3.6, 3.8]
-
-    steps:
-    - name: Install
-      run: |
-        python3 -m pip install --upgrade pip
-        python3 -m pip install flake8
-        python3 -m pip install wheel
-    - name: Check builds
-      # checks whether different forms of build work (e.g. missing files in sdist)
-      run: |
-        python3 -m pip install --upgrade pip
-        python3 setup.py build
-        # Build & install sdist
-        python3 setup.py sdist --formats=gztar
-        python3 install --no-deps dist/PsychoPy-*.tar.gz
-        python3 uninstall --yes psychopy
-        # Build & install wheel
-        python3 setup.py bdist_wheel
-        python3 install --no-deps dist/PsychoPy-*.whl
-        # uninstall the build (but not the dependencies)
-        python3 -m pip uninstall --yes psychopy
-    - name: Flake check
-      run: |
-         # stop the build if there are Python syntax errors or undefined names
-         # flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
