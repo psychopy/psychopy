@@ -164,11 +164,21 @@ class ButtonComponent(BaseVisualComponent):
         BaseVisualComponent.writeFrameCode(self, buff)
         # do writing of init
         inits = getInitVals(self.params, 'PsychoPy')
+        callback = str(inits['callback'])
+        if inits['callback']:
+            # Add indent to any linebreaks to account for the loop
+            callback = str(inits['callback']).replace("\n", "\n   ")
+        else:
+            callback = "pass"
+        if inits['forceEndRoutine'].val:
+            endRt = "continueRoutine = False"
+        else:
+            endRt = ""
         code = (
             "# check whether button \"%(name)s\" has been pressed\n"
             "if %(name)s.isClicked:\n"
-            "   %(callback)s\n" +
-            "   continueRoutine = False" if inits['forceEndRoutine'] else ""
+            "   " + callback + "\n" +
+            "   " + endRt + "\n"
         )
         buff.writeIndentedLines(code % inits)
 
