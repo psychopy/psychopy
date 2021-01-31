@@ -46,7 +46,7 @@ jobs:
         # to install all dependencies
         pip install .
         # remove psychopy itself so that this
-        pip uninstall psychopy
+        pip uninstall --yes psychopy
 
     - name: Test with pytest
       run: |

@@ -10,7 +10,7 @@ jobs:
     strategy:
       fail-fast: false  # debugging builds lets see them all!
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest]
+        os: [windows-latest]  # ubuntu/mac both report no flake8 despite success installing
         python-version: [3.6, 3.8]
 
     steps:
