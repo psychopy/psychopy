@@ -17,7 +17,7 @@ from __future__ import absolute_import, division, print_function
 
 from numpy import zeros
 from scipy.stats import norm
-from psychopy import core, visual
+from psychopy import visual
 from psychopy.iohub import Computer, ioHubExperimentRuntime
 from psychopy.iohub.constants import EventConstants
 from collections import OrderedDict
@@ -194,7 +194,6 @@ class ExperimentRuntime(ioHubExperimentRuntime):
 
     def plotResults(self):
         #### calculate stats on collected data and draw some plots ####
-        import matplotlib.mlab as mlab
         from matplotlib.pyplot import axis, title, xlabel, hist, grid, show, ylabel, plot
         import pylab
 
@@ -203,8 +202,6 @@ class ExperimentRuntime(ioHubExperimentRuntime):
         durations=results[:,0]
         flips=results[1:,2]
 
-        dmin=durations.min()
-        dmax=durations.max()
         dmean=durations.mean()
         dstd=durations.std()
 
@@ -222,7 +219,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
         xlabel('ioHub getEvents Delay')
         ylabel('Percentage')
         title('ioHub Event Delays (msec):\n'+r'$\ \mu={0:.3f},\ \sigma={1:.3f}$'.format(dmean, dstd))
-        axis([0, dmax+1.0, 0, 25.0])
+        axis([0, durations.max()+1.0, 0, 25.0])
         grid(True)
 
 
