@@ -768,7 +768,7 @@ class FontManager(object):
             raise MissingFontError("OST file for Google font `{}` could not be accessed".format(fontName))
         # Save retrieved font as an OST file
         fileName = Path(prefs.paths['fonts']) / f"{fontName}.{fileFormat}"
-        print("Font \"{}\" was successfully installed at: {}".format(fontName, prefs.paths['fonts']))
+        logging.log("Font \"{}\" was successfully installed at: {}".format(fontName, prefs.paths['fonts']))
         with open(fileName, "wb") as fileObj:
             fileObj.write(fileResp.content)
         # Add font and return
