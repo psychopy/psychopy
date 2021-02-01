@@ -69,7 +69,7 @@ _weightMap = {
     950: 950, "extrablack": 950, "ultrablack": 950
 }
 
-supportedExtensions = ['ttf', 'otf', 'ttc', 'dfont']
+supportedExtensions = ['ttf', 'otf', 'ttc', 'dfont', 'truetype']
 
 
 def unicode(s, fmt='utf-8'):
@@ -600,11 +600,18 @@ def findFontFiles(folders=(), recursive=True):
                 fontPaths.extend(thisFolder.glob("*.{}".format(thisExt)))
 
     # if we failed let matplotlib have a go
-    if fontPaths:
-        return fontPaths
-    else:
+    if not fontPaths:
         from matplotlib import font_manager
-        return font_manager.findSystemFonts()
+        fontPaths = font_manager.findSystemFonts()
+
+    # search resources folder
+    thisFolder = Path(prefs.paths['resources'])
+    for thisExt in supportedExtensions:
+        if recursive:
+            fontPaths.extend(thisFolder.rglob("*.{}".format(thisExt)))
+        else:
+            fontPaths.extend(thisFolder.glob("*.{}".format(thisExt)))
+    return fontPaths
 
 
 class FontManager(object):
