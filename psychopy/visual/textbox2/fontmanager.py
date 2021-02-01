@@ -604,13 +604,13 @@ def findFontFiles(folders=(), recursive=True):
         from matplotlib import font_manager
         fontPaths = font_manager.findSystemFonts()
 
-    # search resources folder
-    thisFolder = Path(prefs.paths['resources'])
-    for thisExt in supportedExtensions:
-        if recursive:
-            fontPaths.extend(thisFolder.rglob("*.{}".format(thisExt)))
-        else:
-            fontPaths.extend(thisFolder.glob("*.{}".format(thisExt)))
+    # search resources folder and user's own fonts folder
+    for thisFolder in [Path(prefs.paths['fonts']), Path(prefs.paths['resources'])]:
+        for thisExt in supportedExtensions:
+            if recursive:
+                fontPaths.extend(thisFolder.rglob("*.{}".format(thisExt)))
+            else:
+                fontPaths.extend(thisFolder.glob("*.{}".format(thisExt)))
     return fontPaths
 
 
@@ -758,16 +758,17 @@ class FontManager(object):
         repoResp = requests.get(repoURL)
         if not repoResp.ok:
             # If font name is not found, raise error
-            raise MissingFontError(f"Font `{fontName}` could not be retrieved from the Google Font library.")
+            raise MissingFontError("Font `{}` could not be retrieved from the Google Font library.".format(fontName))
         # Get and send file url from returned CSS data
         fileURL = re.findall("(?<=src: url\().*(?=\) format)", repoResp.content.decode())[0]
         fileFormat = re.findall("(?<=format\(\').*(?=\'\)\;)", repoResp.content.decode())[0]
         fileResp = requests.get(fileURL)
         if not fileResp.ok:
             # If font file is not available, raise error
-            raise MissingFontError(f"OST file for Google font `{fontName}` could not be accessed")
+            raise MissingFontError("OST file for Google font `{}` could not be accessed".format(fontName))
         # Save retrieved font as an OST file
-        fileName = Path(prefs.paths['resources']) / f"{fontName}.{fileFormat}"
+        fileName = Path(prefs.paths['fonts']) / f"{fontName}.{fileFormat}"
+        print("Font \"{}\" was successfully installed at: {}".format(fontName, prefs.paths['fonts']))
         with open(fileName, "wb") as fileObj:
             fileObj.write(fileResp.content)
         # Add font and return
