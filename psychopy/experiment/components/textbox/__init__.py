@@ -235,12 +235,8 @@ class TextboxComponent(BaseVisualComponent):
         depth = -self.getPosInRoutine()
         code = ("  depth: %.1f \n"
                 "});\n\n" % (depth))
-
         buff.writeIndentedLines(code)
         depth = -self.getPosInRoutine()
-
-#        code = ("\n%(name)s._pixi.focus()"%inits)# bring textbox to focus online
-#        buff.writeIndentedLines(code)
 
     def writeRoutineEndCode(self, buff):
         name = self.params['name']
