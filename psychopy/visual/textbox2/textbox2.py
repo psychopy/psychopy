@@ -215,7 +215,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         # caret
         self.editable = editable
         self.caret = Caret(self, color=self.color, width=5)
-        self._hasFocus = False
+
 
         self.autoLog = autoLog
 
@@ -799,7 +799,9 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
     @property
     def hasFocus(self):
-        return self._hasFocus
+        if self.win and self.win.currentEditable == self:
+            return True
+        return False
 
     @hasFocus.setter
     def hasFocus(self, state):
