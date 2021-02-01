@@ -129,3 +129,15 @@ class Test_textbox(object):
     def test_something(self):
         # to-do: test visual display, char position, etc
         pass
+
+    def test_font_manager(self):
+        # Create a font manager
+        mgr = FontManager()
+        # Check that it finds fonts which should be pre-packaged with PsychoPy in the resources folder
+        assert bool(mgr.getFontNamesSimilar("Open Sans"))
+        # Check that it doesn't find fonts which aren't installed as default
+        assert not bool(mgr.getFontNamesSimilar("Dancing Script"))
+        # Check that it can install fonts from Google
+        mgr.addGoogleFont("Hanalei")
+        # Check that these fonts are found once installed
+        assert bool(mgr.getFontNamesSimilar("Hanalei"))
