@@ -81,13 +81,13 @@ class ButtonComponent(BaseVisualComponent):
             label=_localized['forceEndRoutine'])
         self.params['oncePerClick'] = Param(
             oncePerClick, valType='bool', inputType="bool", allowedTypes=[], categ='Basic',
-            updates='constant', allowedUpdates=['constant'],
+            updates='constant',
             hint=_translate("Should the callback run once per click (True), or each frame until click is released (False)"),
             label=_localized['oncePerClick']
         )
         self.params['callback'] = Param(
             callback, valType='code', inputType="multi", allowedTypes=[], categ='Basic',
-            updates='constant', allowedUpdates=['constant'],
+            updates='constant',
             hint=_translate("Code to run when button is clicked"),
             label=_localized['callback'])
         self.params['text'] = Param(
