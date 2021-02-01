@@ -25,7 +25,7 @@ import glob
 from pathlib import Path
 import requests
 
-from psychopy import logging
+from psychopy import logging, alerts
 from psychopy import prefs
 from psychopy.constants import PY3
 from psychopy.exceptions import MissingFontError
@@ -768,7 +768,7 @@ class FontManager(object):
             raise MissingFontError("OST file for Google font `{}` could not be accessed".format(fontName))
         # Save retrieved font as an OST file
         fileName = Path(prefs.paths['fonts']) / f"{fontName}.{fileFormat}"
-        print("Font \"{}\" was successfully installed at: {}".format(fontName, prefs.paths['fonts']))
+        alerts.alert(4321, None, {'name': fontName, 'path': fileName})
         with open(fileName, "wb") as fileObj:
             fileObj.write(fileResp.content)
         # Add font and return
