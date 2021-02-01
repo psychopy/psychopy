@@ -20,6 +20,7 @@ import numpy as np
 
 import psychopy
 from psychopy import logging, event, platform_specific, constants
+from psychopy.visual import window
 from psychopy.tools.attributetools import attributeSetter
 from .gamma import setGamma, setGammaRamp, getGammaRamp, getGammaRampSize
 from .. import globalVars
@@ -502,7 +503,7 @@ class PygletBackend(BaseBackend):
         # when filtering kb and mouse events (if the filter is enabled of
         # course)
         try:
-            if IOHUB_ACTIVE and _hw_handle:
+            if window.IOHUB_ACTIVE and _hw_handle:
                 from psychopy.iohub.client import ioHubConnection
                 conn = ioHubConnection.ACTIVE_CONNECTION
                 conn.unregisterWindowHandles(_hw_handle)

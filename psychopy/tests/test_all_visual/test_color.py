@@ -1,6 +1,7 @@
 from psychopy.tests import utils
 from psychopy import visual, colors
 from pathlib import Path
+import numpy as np
 
 """All tests in this file involve rapidly changing colours, do not run these tests in a setting where you can view the 
 output if you have photosensitive epilepsy"""
@@ -74,7 +75,8 @@ def test_shape_colors():
             obj.opacity = 1  # Fix opacity at full as this is not what we're testing
             win.flip()
             obj.draw()
-            utils.comparePixelColor(win, colors.Color(colorSet[space], space), coord=(1,1))
+            if colorSet[space]: # skip this comparison if color is None
+                utils.comparePixelColor(win, colors.Color(colorSet[space], space), coord=(1, 1))
             utils.comparePixelColor(win, colors.Color('white'), coord=(50, 50))
             # Check fill color
             obj.colorSpace = space
@@ -83,8 +85,10 @@ def test_shape_colors():
             obj.opacity = 1  # Fix opacity at full as this is not what we're testing
             win.flip()
             obj.draw()
+            if colorSet[space]: # skip this comparison if color is None
+                utils.comparePixelColor(win, colors.Color(colorSet[space], space), coord=(50, 50))
             utils.comparePixelColor(win, colors.Color('white'), coord=(1,1))
-            utils.comparePixelColor(win, colors.Color(colorSet[space], space), coord=(50, 50))
+
             # Testing foreColor is already done in test_textbox
 
 def test_element_array_colors():
@@ -95,11 +99,14 @@ def test_element_array_colors():
     # Iterate through color sets
     for colorSet in exemplars + tykes:
         for space in colorSet:
-            # Check that setting color arrays renders correctly
-            obj.colorSpace = space
-            obj.colors = [colorSet[space], 'black'] # Set first color to current color set, second to black
-            obj.opacity = 1  # Fix opacity at full as this is not what we're testing
-            win.flip()
-            obj.draw()
-            utils.comparePixelColor(win, colors.Color(colorSet[space], space), coord=(10, 10))
-            utils.comparePixelColor(win, colors.Color('black'), coord=(10, 100))
+            if space not in colors.strSpaces and not isinstance(colorSet[space], (str, type(None))):
+                # Check that setting color arrays renders correctly
+                obj.colorSpace = space
+                col1 = np.array(colorSet[space]).reshape((1, -1))
+                col2 = getattr(colors.Color('black'), space).reshape((1, -1))
+                obj.colors = np.append(col1, col2, 0) # Set first color to current color set, second to black in same color space
+                obj.opacity = 1  # Fix opacity at full as this is not what we're testing
+                win.flip()
+                obj.draw()
+                utils.comparePixelColor(win, colors.Color(colorSet[space], space), coord=(10, 10))
+                utils.comparePixelColor(win, colors.Color('black'), coord=(10, 100))

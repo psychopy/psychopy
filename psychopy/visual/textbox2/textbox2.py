@@ -128,9 +128,9 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         BaseVisualStim.__init__(self, win, units=units, name=name)
         self.win = win
         self.colorSpace = colorSpace
-        self.color = color
         self.contrast = contrast
         self.opacity = opacity
+        ColorMixin.foreColor.fset(self, color)  # Have to call the superclass directly on init as text has not been set
         self.onTextCallback = onTextCallback
 
         if units=='norm':
@@ -215,7 +215,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         # caret
         self.editable = editable
         self.caret = Caret(self, color=self.color, width=5)
-        self._hasFocus = False
+
 
         self.autoLog = autoLog
 
@@ -241,6 +241,14 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             False: value,
             True: value
         }
+
+    @property
+    def foreColor(self):
+        return ColorMixin.foreColor.fget(self)
+    @foreColor.setter
+    def foreColor(self, value):
+        ColorMixin.foreColor.fset(self, value)
+        self._layout()
 
     @attributeSetter
     def font(self, fontName, italic=False, bold=False):
@@ -393,7 +401,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         def getLineWidthFromPix(pixVal):
             return pixVal / self._pixelScaling + self.padding * 2
         
-        rgb = self._foreColor.rgba
+        rgb = self._foreColor.render('rgba1')
         font = self.glFont
 
         # the vertices are initially pix (natural for freetype)
@@ -799,7 +807,9 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
     @property
     def hasFocus(self):
-        return self._hasFocus
+        if self.win and self.win.currentEditable == self:
+            return True
+        return False
 
     @hasFocus.setter
     def hasFocus(self, state):

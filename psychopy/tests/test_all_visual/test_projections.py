@@ -2,6 +2,7 @@ from __future__ import division
 from builtins import range
 from builtins import object
 from past.utils import old_div
+import sys
 import pyglet
 from pyglet.window import key
 from psychopy.visual import Window, shape, TextStim, GratingStim, Circle
@@ -240,4 +241,4 @@ if __name__ == '__main__':
         cls.setup_class()
         for i in range(2 * 60 * 60):
             cls.g.update_sweep()
-        win.close()
+        cls.win.close()
