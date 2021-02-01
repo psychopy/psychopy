@@ -401,7 +401,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         def getLineWidthFromPix(pixVal):
             return pixVal / self._pixelScaling + self.padding * 2
         
-        rgb = self._foreColor.render('rgba1')
+        rgb = self._foreColor.render('rgba')
         font = self.glFont
 
         # the vertices are initially pix (natural for freetype)
