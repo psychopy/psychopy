@@ -761,16 +761,11 @@ class _BaseParamsDlg(wx.Dialog):
                 except Exception:
                     pass
 
-        if fieldName in ['text']:
+        if param.inputType == 'multi':
             sizer.AddGrowableRow(currRow)
             ctrls.valueCtrl.Bind(wx.EVT_KEY_UP, self.doValidate)
-        elif param.valType == 'fileList':
+        elif param.inputType == 'fileList':
             sizer.AddGrowableRow(currRow)  # doesn't seem to work though
-        elif fieldName in ('color', 'fillColor', 'lineColor'):
-            ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.launchColorPicker)
-        elif valType == 'extendedCode':
-            sizer.AddGrowableRow(currRow)  # doesn't seem to work though
-            ctrls.valueCtrl.Bind(wx.EVT_KEY_DOWN, self.onTextEventCode)
         elif fieldName == 'Monitor':
             ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.openMonitorCenter)
 

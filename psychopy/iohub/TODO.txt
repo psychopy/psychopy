@@ -26,7 +26,7 @@ TODO list for the isolver/psychopy lazyimport branch
     - [Done] As much of iohub.utils.* as possible.
     - [Done] Complete removal of iohub.client.expruntime.py
     - iohub.datastore.util.py
-    - iohub.datastore.pandas.*
+    - [Done] iohub.datastore.pandas.*
   + Move code to 'unsupported' external modules if / when needed.
     Document ref's to alternative api's to use instead
 

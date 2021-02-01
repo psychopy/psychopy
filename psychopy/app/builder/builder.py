@@ -1086,7 +1086,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
                     unpackFolder)
         self.prefs['unpackedDemosDir'] = unpackFolder
         self.app.prefs.saveUserPrefs()
-        updateDemosMenu()
+        updateDemosMenu(self, self.demosMenu, self.prefs['unpackedDemosDir'], ext=".psyexp")
 
     def demoLoad(self, event=None):
         """Defines Demo Loading Event."""
