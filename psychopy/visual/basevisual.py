@@ -190,10 +190,10 @@ class MinimalStim(object):
     def autoLog(self, value):
         """Whether every change in this stimulus should be auto logged.
 
-        Value should be: `True` or `False`. Set to `False` if your
-        stimulus is updating frequently (e.g. updating its position every
-         frame) and you want to avoid swamping the log file with
-        messages that aren't likely to be useful.
+        Value should be: `True` or `False`. Set to `False` if your stimulus is
+        updating frequently (e.g. updating its position every frame) and you
+        want to avoid swamping the log file with messages that aren't likely to
+        be useful.
         """
         self.__dict__['autoLog'] = value
 
@@ -342,6 +342,7 @@ class ColorMixin(object):
         """
         if hasattr(self, '_foreColor'):
             return getattr(self._foreColor, self.colorSpace)
+
     @foreColor.setter
     def foreColor(self, value):
         if isinstance(value, Color):
@@ -353,10 +354,12 @@ class ColorMixin(object):
         if not self._foreColor:
             self._foreColor = Color()
             logging.error(f"'{value}' is not a valid {self.colorSpace} color")
+
     @property
     def color(self):
-        """Alternative way of setting foreColor"""
+        """Alternative way of setting `foreColor`."""
         return self.foreColor
+
     @color.setter
     def color(self, value):
         self.foreColor = value
@@ -365,6 +368,7 @@ class ColorMixin(object):
     def fillColor(self):
         if hasattr(self, '_fillColor'):
             return getattr(self._fillColor, self.colorSpace)
+
     @fillColor.setter
     def fillColor(self, value):
         if isinstance(value, Color):
@@ -377,10 +381,12 @@ class ColorMixin(object):
             # If given an invalid color, set as transparent and log error
             self._fillColor = Color()
             logging.error(f"'{value}' is not a valid {self.colorSpace} color")
+
     @property
     def backColor(self):
         """Alternative way of setting fillColor"""
         return self.fillColor
+
     @backColor.setter
     def backColor(self, value):
         self.fillColor = value
@@ -389,6 +395,7 @@ class ColorMixin(object):
     def borderColor(self):
         if hasattr(self, '_borderColor'):
             return getattr(self._borderColor, self.colorSpace)
+
     @borderColor.setter
     def borderColor(self, value):
         if isinstance(value, Color):
@@ -401,10 +408,12 @@ class ColorMixin(object):
             # If given an invalid color, set as transparent and log error
             self._borderColor = Color()
             logging.error(f"'{value}' is not a valid {self.colorSpace} color")
+
     @property
     def lineColor(self):
-        """Alternative way of setting borderColor"""
+        """Alternative way of setting `borderColor`."""
         return self.borderColor
+
     @lineColor.setter
     def lineColor(self, value):
         self.borderColor = value
@@ -443,14 +452,16 @@ class ColorMixin(object):
             self._colorSpace = value
         else:
             logging.error(f"'{value}' is not a valid color space")
+
     # ---legacy functions---
     @property
     def contrast(self):
         if hasattr(self, '_foreColor'):
             return self._foreColor.contrast
+
     @contrast.setter
     def contrast(self, value):
-        """A value that is simply multiplied by the color
+        """A value that is simply multiplied by the color.
 
         Value should be: a float between -1 (negative) and 1 (unchanged).
             :ref:`Operations <attrib-operations>` supported.
@@ -472,6 +483,7 @@ class ColorMixin(object):
 
             stim.contrast =  1.2  # increases contrast
             stim.contrast = -1.2  # inverts with increased contrast
+
         """
         if hasattr(self, '_foreColor'):
             self._foreColor.contrast = value
@@ -481,8 +493,8 @@ class ColorMixin(object):
             logging.warning(f"Attempt to set contrast on object {self.name}, which has no color.")
 
     def setForeColor(self, color, colorSpace=None, operation='', log=None):
-        """Hard setter for foreColor, allows suppression of the log message, simultaneous colorSpace setting and
-        calls update methods.
+        """Hard setter for foreColor, allows suppression of the log message,
+        simultaneous colorSpace setting and calls update methods.
         """
         if colorSpace is not None:
             self.colorSpace = colorSpace
@@ -496,12 +508,13 @@ class ColorMixin(object):
             logging.error(f"Operation '{operation}' not recognised.")
         # Trigger color update for components like Textbox which have different behaviours for a hard setter
         self.updateColors()
+
     def setColor(self, color, colorSpace=None, operation='', log=None):
         self.setForeColor(color, colorSpace=colorSpace, operation=operation, log=log)
 
     def setFillColor(self, color, colorSpace=None, operation='', log=None):
-        """Hard setter for fillColor, allows suppression of the log message, simultaneous colorSpace setting and
-        calls update methods.
+        """Hard setter for fillColor, allows suppression of the log message,
+        simultaneous colorSpace setting and calls update methods.
         """
         if colorSpace is not None:
             self.colorSpace = colorSpace
@@ -515,12 +528,13 @@ class ColorMixin(object):
             logging.error(f"Operation '{operation}' not recognised.")
         # Trigger color update for components like Textbox which have different behaviours for a hard setter
         self.updateColors()
+
     def setBackColor(self, color, colorSpace=None, operation='', log=None):
         self.setFillColor(color, colorSpace=None, operation='', log=None)
 
     def setBorderColor(self, color, colorSpace=None, operation='', log=None):
-        """Hard setter for fillColor, allows suppression of the log message, simultaneous colorSpace setting and
-        calls update methods.
+        """Hard setter for `fillColor`, allows suppression of the log message,
+        simultaneous colorSpace setting and calls update methods.
         """
         if colorSpace is not None:
             self.colorSpace = colorSpace
@@ -534,6 +548,7 @@ class ColorMixin(object):
             logging.error(f"Operation '{operation}' not recognised.")
         # Trigger color update for components like Textbox which have different behaviours for a hard setter
         self.updateColors()
+
     def setLineColor(self, color, colorSpace=None, operation='', log=None):
         self.setBorderColor(color, colorSpace=None, operation='', log=None)
 
@@ -725,37 +740,38 @@ class TextureMixin(object):
     """Mixin class for visual stim that have textures.
 
     Could move visual.helpers.setTexIfNoShaders() into here
+
     """
-    # def __init__(self):
-    #    super(TextureMixin, self).__init__()
-
-    def _createTexture(self, tex, id, pixFormat,
-                       stim, res=128, maskParams=None,
-                       forcePOW2=True, dataType=None,
-                       wrapping=True):
+    def _createTexture(self, tex, id, pixFormat, stim, res=128, maskParams=None,
+                       forcePOW2=True, dataType=None, wrapping=True):
         """
-        :params:
-            id:
-                is the texture ID
-            pixFormat:
-                GL.GL_ALPHA, GL.GL_RGB
-            useShaders:
-                bool
-            interpolate:
-                bool (determines whether texture will
-                use GL_LINEAR or GL_NEAREST
-            res:
-                the resolution of the texture (unless
-                a bitmap image is used)
-            dataType:
-                None, GL.GL_UNSIGNED_BYTE, GL_FLOAT.
-                Only affects image files (numpy arrays will be float)
+        Parameters
+        ----------
+        tex : Any
+            Texture data. Value can be anything that resembles image data.
+        id : int or :class:`~pyglet.gl.GLint`
+            Texture ID.
+        pixFormat : :class:`~pyglet.gl.GLenum` or int
+            Pixel format to use, values can be `GL_ALPHA` or `GL_RGB`.
+        stim : Any
+            Stimulus object using the texture.
+        res : int
+            The resolution of the texture (unless a bitmap image is used).
+        maskParams : dict or None
+            Additional parameters to configure the mask used with this texture.
+        forcePOW2 : bool
+            Force the texture to be stored in a square memory area. For grating
+            stimuli (anything that needs multiple cycles) `forcePOW2` should be
+            set to be `True`. Otherwise the wrapping of the texture will not
+            work.
+        dataType : class:`~pyglet.gl.GLenum`, int or None
+            None, `GL_UNSIGNED_BYTE`, `GL_FLOAT`. Only affects image files
+            (numpy arrays will be float).
+        wrapping : bool
+            Enable wrapping of the texture. A texture will be set to repeat (or
+            tile).
 
-        For grating stimuli (anything that needs multiple cycles)
-        forcePOW2 should be set to be True. Otherwise the wrapping
-        of the texture will not work.
         """
-
         # Create an intensity texture, ranging -1:1.0
         notSqr = False  # most of the options will be creating a sqr texture
         wasImage = False  # change this if image loading works
@@ -1128,13 +1144,14 @@ class TextureMixin(object):
 
     @attributeSetter
     def mask(self, value):
-        """The alpha mask (forming the shape of the image)
+        """The alpha mask (forming the shape of the image).
 
         This can be one of various options:
-            + 'circle', 'gauss', 'raisedCos', 'cross'
-            + **None** (resets to default)
-            + the name of an image file (most formats supported)
-            + a numpy array (1xN or NxN) ranging -1:1
+            * 'circle', 'gauss', 'raisedCos', 'cross'
+            * **None** (resets to default)
+            * the name of an image file (most formats supported)
+            * a numpy array (1xN or NxN) ranging -1:1
+
         """
         self.__dict__['mask'] = value
         if self.__class__.__name__ == 'ImageStim':
@@ -1169,7 +1186,7 @@ class TextureMixin(object):
 
     @attributeSetter
     def maskParams(self, value):
-        """Various types of input. Default to None.
+        """Various types of input. Default to `None`.
 
         This is used to pass additional parameters to the mask if those are
         needed.
@@ -1186,7 +1203,7 @@ class TextureMixin(object):
 
     @attributeSetter
     def interpolate(self, value):
-        """Whether to interpolate (linearly) the texture in the stimulus
+        """Whether to interpolate (linearly) the texture in the stimulus.
 
         If set to False then nearest neighbour will be used when needed,
         otherwise some form of interpolation will be used.
@@ -1196,8 +1213,10 @@ class TextureMixin(object):
 
 class WindowMixin(object):
     """Window-related attributes and methods.
-    Used by BaseVisualStim, SimpleImageStim and ElementArrayStim."""
 
+    Used by BaseVisualStim, SimpleImageStim and ElementArrayStim.
+
+    """
     @attributeSetter
     def win(self, value):
         """The :class:`~psychopy.visual.Window` object in which the
@@ -1216,30 +1235,37 @@ class WindowMixin(object):
            win2.flip()  # wait for vertical blanking.
 
         Note that this just changes **default** window for stimulus.
+
         You could also specify window-to-draw-to when drawing::
 
            stim.draw(win1)
            stim.draw(win2)
+
         """
         self.__dict__['win'] = value
 
     @attributeSetter
     def units(self, value):
-        """
-        None, 'norm', 'cm', 'deg', 'degFlat', 'degFlatPos', or 'pix'
+        """Units to use when drawing.
+
+        Possible options are: None, 'norm', 'cm', 'deg', 'degFlat',
+        'degFlatPos', or 'pix'.
 
         If None then the current units of the
         :class:`~psychopy.visual.Window` will be used.
         See :ref:`units` for explanation of other options.
 
         Note that when you change units, you don't change the stimulus
-        parameters and it is likely to change appearance. Example::
+        parameters and it is likely to change appearance.
+
+        Example::
 
             # This stimulus is 20% wide and 50% tall with respect to window
             stim = visual.PatchStim(win, units='norm', size=(0.2, 0.5)
 
             # This stimulus is 0.2 degrees wide and 0.5 degrees tall.
             stim.units = 'deg'
+
         """
         if value != None and len(value):
             self.__dict__['units'] = value
@@ -1318,8 +1344,8 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
 
     Methods defined here will override Minimal & Legacy, but best to avoid
     that for simplicity & clarity.
-    """
 
+    """
     def __init__(self, win, units=None, name='', autoLog=None):
         self.autoLog = False  # just to start off during init, set at end
         self.win = win
@@ -1334,7 +1360,7 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
 
     @property
     def opacity(self):
-        """Determines how visible the stimulus is relative to background
+        """Determines how visible the stimulus is relative to background.
 
         The value should be a single float ranging 1.0 (opaque) to 0.0
         (transparent). :ref:`Operations <attrib-operations>` are supported.
@@ -1351,6 +1377,7 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
             return mean(alphas)
         else:
             return 1
+
     @opacity.setter
     def opacity(self, value):
         # Setting opacity as a single value makes all colours the same opacity
@@ -1362,8 +1389,8 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
             self._borderColor.alpha = value
 
     def updateOpacity(self):
-        """Placeholder method to update colours when set externally, for example updating the `pallette` attribute of
-        a textbox"""
+        """Placeholder method to update colours when set externally, for example
+        updating the `pallette` attribute of a textbox."""
         return
 
     @attributeSetter
@@ -1378,7 +1405,7 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
         appropriately.
 
         """
-        self.__dict__['ori'] = value
+        self.__dict__['ori'] = float(value)
         radians = value * 0.017453292519943295
         sin, cos = numpy.sin, numpy.cos
         self._rotationMatrix = numpy.array([[cos(radians), -sin(radians)],
@@ -1469,10 +1496,11 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
                 Is now (0.2, -0.2)
 
         Tip: If you need the position of stim in pixels, you can obtain
-        it like this:
+        it like this::
 
             from psychopy.tools.monitorunittools import posToPix
             posPix = posToPix(stim)
+
         """
         self.__dict__['pos'] = val2array(value, False, False)
         self._needVertexUpdate = True
@@ -1518,7 +1546,6 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
             logging.error(f"Operation '{operation}' not recognised.")
         # Trigger color update for components like Textbox which have different behaviours for a hard setter
         self.updateOpacity()
-
 
     def _set(self, attrib, val, op='', log=None):
         """DEPRECATED since 1.80.04 + 1.
