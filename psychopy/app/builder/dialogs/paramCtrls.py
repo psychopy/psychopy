@@ -23,7 +23,7 @@ class _ValidatorMixin():
             return
         if valid:
             self.SetForegroundColour(wx.Colour(
-                ThemeMixin.codeColors['base']['fg']
+                0, 0, 0
             ))
         else:
             self.SetForegroundColour(wx.Colour(
