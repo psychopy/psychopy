@@ -42,7 +42,7 @@ import numpy
 
 
 knownShapes = {
-    "cross" :  [
+    "cross" : [
         (-0.1, +0.5), # up
         (+0.1, +0.5),
         (+0.1, +0.1),
@@ -56,10 +56,22 @@ knownShapes = {
         (-0.5, +0.1),
         (-0.1, +0.1),
     ],
-    "star7" : [(0.0,0.5),(0.09,0.18),(0.39,0.31),(0.19,0.04),
-             (0.49,-0.11),(0.16,-0.12),(0.22,-0.45),(0.0,-0.2),
-             (-0.22,-0.45),(-0.16,-0.12),(-0.49,-0.11),(-0.19,0.04),
-             (-0.39,0.31),(-0.09,0.18)]
+    "star7" : [
+        (0.0, 0.5),
+        (0.09, 0.18),
+        (0.39, 0.31),
+        (0.19, 0.04),
+        (0.49, -0.11),
+        (0.16, -0.12),
+        (0.22, -0.45),
+        (0.0, -0.2),
+        (-0.22, -0.45),
+        (-0.16, -0.12),
+        (-0.49, -0.11),
+        (-0.19, 0.04),
+        (-0.39, 0.31),
+        (-0.09, 0.18)
+    ]
 }
 
 class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
@@ -75,8 +87,8 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
     is needed.
 
     v1.84.00: ShapeStim became BaseShapeStim.
-    """
 
+    """
     def __init__(self,
                  win,
                  units='',
@@ -122,28 +134,28 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         # Appearance
         self.colorSpace = colorSpace
-        if not fillColor == False:
+        if fillColor is not False:
             self.fillColor = fillColor
-        elif not color == False:
+        elif color is not False:
             # Override fillColor with color if not set
             self.fillColor = color
         else:
             # Default to None if neither are set
             self.fillColor = None
-        if not lineColor == False:
+        if lineColor is not False:
             self.lineColor = lineColor
-        elif not color == False:
+        elif color is not False:
             # Override lineColor with color if not set
             self.lineColor = color
         else:
             # Default to black if neither are set
             self.lineColor = 'black'
-        if not lineRGB == False:
+        if lineRGB is not False:
             # Override with RGB if set
             logging.warning("Use of rgb arguments to stimuli are deprecated."
                             " Please use color and colorSpace args instead")
             self.setLineColor(lineRGB, colorSpace='rgb', log=None)
-        if not fillRGB == False:
+        if fillRGB is not False:
             # Override with RGB if set
             logging.warning("Use of rgb arguments to stimuli are deprecated."
                             " Please use color and colorSpace args instead")
@@ -456,6 +468,87 @@ class ShapeStim(BaseShapeStim):
                  lineColorSpace=None
                  ):
         """
+        Parameters
+        ----------
+        win : :class:`~psychopy.visual.Window`
+            Window this shape is being drawn to. The stimulus instance will
+            allocate its required resources using that Windows context. In many
+            cases, a stimulus instance cannot be drawn on different windows
+            unless those windows share the same OpenGL context, which permits
+            resources to be shared between them.
+        units : str
+            Units to use when drawing. This will affect how parameters and
+            attributes `pos`, `size` and `radius` are interpreted.
+        colorSpace : str
+            Sets the colorspace, changing how values passed to `lineColor` and
+            `fillColor` are interpreted.
+        lineWidth : float
+            Width of the shape outline.
+        lineColor, fillColor : array_like, str, :class:`~psychopy.visual.Color` or None
+            Color of the shape outline and fill. If `None`, a fully
+            transparent color is used which makes the fill or outline invisible.
+        vertices : array_like
+            Nx2 array of points (eg., `[[-0.5, 0], [0, 0.5], [0.5, 0]`).
+        windingRule : :class:`~pyglet.gl.GLenum` or None
+            Winding rule to use for tesselation, default is
+            `GLU_TESS_WINDING_ODD` if `None` is specified.
+        closeShape : bool
+            Close the shape's outline. If `True` the first and last vertex will
+            be joined by an edge. Must be `True` to use tesselation. Default is
+            `True`.
+        pos : array_like
+            Initial position (`x`, `y`) of the shape on-screen relative to
+            the origin located at the center of the window or buffer in `units`.
+            This can be updated after initialization by setting the `pos`
+            property. The default value is `(0.0, 0.0)` which results in no
+            translation.
+        size : array_like, float, int or None
+            Width and height of the shape as `(w, h)` or `[w, h]`. If a single
+            value is provided, the width and height will be set to the same
+            specified value. If `None` is specified, the `size` will be set
+            with values passed to `width` and `height`.
+        ori : float
+            Initial orientation of the shape in degrees about its origin.
+            Positive values will rotate the shape clockwise, while negative
+            values will rotate counterclockwise. The default value for `ori` is
+            0.0 degrees.
+        opacity : float
+            Opacity of the shape. A value of 1.0 indicates fully opaque and 0.0
+            is fully transparent (therefore invisible). Values between 1.0 and
+            0.0 will result in colors being blended with objects in the
+            background. This value affects the fill (`fillColor`) and outline
+            (`lineColor`) colors of the shape.
+        contrast : float
+            Contrast level of the shape (0.0 to 1.0). This value is used to
+            modulate the contrast of colors passed to `lineColor` and
+            `fillColor`.
+        depth : int
+            Depth layer to draw the shape when `autoDraw` is enabled.
+            *DEPRECATED*
+        interpolate : bool
+            Enable smoothing (anti-aliasing) when drawing shape outlines. This
+            produces a smoother (less-pixelated) outline of the shape.
+        name : str
+            Optional name of the stimuli for logging.
+        autoLog : bool
+            Enable auto-logging of events associated with this stimuli. Useful
+            for debugging and to track timing when used in conjunction with
+            `autoDraw`.
+        autoDraw : bool
+            Enable auto drawing. When `True`, the stimulus will be drawn every
+            frame without the need to explicitly call the
+            :py:meth:`~psychopy.visual.ShapeStim.draw` method.
+        color : array_like, str, :class:`~psychopy.visual.Color` or None
+            Sets both the initial `lineColor` and `fillColor` of the shape.
+        lineRGB, fillRGB: array_like, :class:`~psychopy.visual.Color` or None
+            *Deprecated*. Please use `lineColor` and `fillColor`. These
+            arguments may be removed in a future version.
+        lineColorSpace, fillColorSpace : str
+            Colorspace to use for the outline and fill. These change how the
+            values passed to `lineColor` and `fillColor` are interpreted.
+            *Deprecated*. Please use `colorSpace` to set both outline and fill
+            colorspace. These arguments may be removed in a future version.
+
         """
         # what local vars are defined (init params, for use by __repr__)
         self._initParamsOrig = dir()
@@ -496,13 +589,15 @@ class ShapeStim(BaseShapeStim):
             logging.exp("Created %s = %s" % (self.name, str(self)))
 
     def _tesselate(self, newVertices):
-        """Set the .vertices and .border to new values, invoking tessellation.
+        """Set the `.vertices` and `.border` to new values, invoking
+        tessellation.
         """
         # TO-DO: handle borders properly for multiloop stim like holes
         # likely requires changes in ContainerMixin to iterate over each
         # border loop
 
         self.border = copy.deepcopy(newVertices)
+        tessVertices = []  # define to keep the linter happy
         if self.closeShape:
             # convert original vertices to triangles (= tesselation) if
             # possible. (not possible if closeShape is False, don't even try)
@@ -551,8 +646,8 @@ class ShapeStim(BaseShapeStim):
 
     @property
     def verticesPix(self):
-        """This determines the coordinates of the vertices for the
-        current stimulus in pixels, accounting for size, ori, pos and units
+        """The coordinates of the vertices for the current stimulus in pixels,
+        accounting for `size`, `ori`, `pos` and `units`.
         """
         # because this is a property getter we can check /on-access/ if it
         # needs updating :-)
@@ -561,9 +656,10 @@ class ShapeStim(BaseShapeStim):
         return self.__dict__['verticesPix']
 
     def draw(self, win=None, keepMatrix=False):
-        """Draw the stimulus in the relevant window. You must call this method
-        after every win.flip() if you want the stimulus to appear on that
-        frame and then update the screen again.
+        """Draw the stimulus in the relevant window.
+
+        You must call this method after every `win.flip()` if you want the
+        stimulus to appear on that frame and then update the screen again.
         """
         # mostly copied from BaseShapeStim. Uses GL_TRIANGLES and depends on
         # two arrays of vertices: tesselated (for fill) & original (for

@@ -21,9 +21,7 @@ import numpy as np
 class Polygon(BaseShapeStim):
     """Creates a regular polygon (triangles, pentagons, ...).
 
-     this class is a special case of a :class:`~psychopy.visual.ShapeStim`.
-
-    (New in version 1.72.00)
+    This class is a special case of a :class:`~psychopy.visual.ShapeStim`.
 
     """
     def __init__(self,
@@ -43,8 +41,8 @@ class Polygon(BaseShapeStim):
                  contrast=1.0,
                  depth=0,
                  interpolate=True,
-                 lineRGB=None,
-                 fillRGB=None,
+                 lineRGB=False,
+                 fillRGB=False,
                  name=None,
                  autoLog=None,
                  autoDraw=False,
@@ -58,25 +56,49 @@ class Polygon(BaseShapeStim):
         Parameters
         ----------
         win : ~`psychopy.visual.Window`
-            Window this polygon is being drawn to.
+            Window this shape is being drawn to. The stimulus instance will
+            allocate its required resources using that Windows context. In many
+            cases, a stimulus instance cannot be drawn on different windows
+            unless those windows share the same OpenGL context, which permits
+            resources to be shared between them.
+        edges : `int`
+            Number of sides for the polygon (for instance, `edges=3` will result
+            in a triangle).
         radius : float
-            Maximum radius of the polygon.
+            Initial radius of the polygon in `units`. This specifies how far out
+            to place the corners (vertices) of the shape.
         units : str
-            Units to use when drawing.
+            Units to use when drawing. This will affect how parameters and
+            attributes `pos`, `size` and `radius` are interpreted.
         lineWidth : float
             Width of the polygon's outline.
-        lineColor, fillColor : `array_like`, ~`psychopy.visual.Color` or `None`
+        lineColor, fillColor : `array_like`, `str`, ~`psychopy.visual.Color` or `None`
             Color of the shape's outline and fill. If `None`, a fully
             transparent color is used which makes the fill or outline invisible.
-        lineColorSpace, fillColorSpace : str
-            Colorspace to use for the outline and fill. This changes how the
+        lineColorSpace, fillColorSpace : `str`
+            Colorspace to use for the outline and fill. These change how the
             values passed to `lineColor` and `fillColor` are interpreted.
+            *Deprecated*. Please use `colorSpace` to set both outline and fill
+            colorspace. These arguments may be removed in a future version.
         pos : array_like
-            Initial position (X, Y) of the polygon on-screen in `units`.
-        size : float
-            Size of the stimuli in window units.
+            Initial position (`x`, `y`) of the shape on-screen relative to the
+            origin located at the center of the window or buffer in `units`.
+            This can be updated after initialization by setting the `pos`
+            property. The default value is `(0.0, 0.0)` which results in no
+            translation.
+        size : float or array_like
+            Initial scale factor for adjusting the size of the shape. A single
+            value (`float`) will apply uniform scaling, while an array (`sx`,
+            `sy`) will result in anisotropic scaling in the horizontal (`sx`)
+            and vertical (`sy`) direction. Providing negative values to `size`
+            will cause the shape being mirrored. Scaling can be changed by
+            setting the `size` property after initialization. The default value
+            is `1.0` which results in no scaling.
         ori : float
-            Initial rotation of the polygon in degrees.
+            Initial orientation of the shape in degrees about its origin.
+            Positive values will rotate the shape clockwise, while negative
+            values will rotate counterclockwise. The default value for `ori` is
+            0.0 degrees.
         opacity : float
             Opacity of the shape. A value of 1.0 indicates fully opaque and 0.0
             is fully transparent (therefore invisible). Values between 1.0 and
@@ -84,22 +106,31 @@ class Polygon(BaseShapeStim):
             background. This value affects the fill (`fillColor`) and outline
             (`lineColor`) colors of the shape.
         contrast : float
-            Contrast level on the shape (0.0 to 1.0). This value is used to
+            Contrast level of the shape (0.0 to 1.0). This value is used to
             modulate the contrast of colors passed to `lineColor` and
-            `shapeColor`.
+            `fillColor`.
         depth : int
-            Depth layer to draw the stimulus.
+            Depth layer to draw the stimulus when `autoDraw` is enabled.
         interpolate : bool
             Enable smoothing (anti-aliasing) when drawing shape outlines. This
             produces a smoother (less-pixelated) outline of the shape.
+        lineRGB, fillRGB: `array_like`, ~`psychopy.visual.Color` or `None`
+            *Deprecated*. Please use `lineColor` and `fillColor`. These
+            arguments may be removed in a future version.
         name : str
             Optional name of the stimuli for logging.
         autoLog : bool
             Enable auto-logging of events associated with this stimuli. Useful
-            for debugging.
+            for debugging and to track timing when used in conjunction with
+            `autoDraw`.
         autoDraw : bool
             Enable auto drawing. When `True`, the stimulus will be drawn every
             frame without the need to explicitly call the `draw()` method.
+        color : array_like`, `str`, ~`psychopy.visual.Color` or `None`
+            Sets both the initial `lineColor` and `fillColor` of the shape.
+        colorSpace : `str`
+            Sets the colorspace, changing how values passed to `lineColor` and
+            `fillColor` are interpreted.
 
         """
         # what local vars are defined (these are the init params) for use by

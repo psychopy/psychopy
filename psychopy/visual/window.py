@@ -30,7 +30,7 @@ from psychopy.clock import monotonicClock
 
 # try to find avbin (we'll overload pyglet's load_library tool and then
 # add some paths)
-from ..colors import Color, AdvancedColor, colorSpaces, advancedSpaces
+from ..colors import Color, colorSpaces
 
 haveAvbin = False
 
@@ -566,7 +566,7 @@ class Window(object):
         self.refreshThreshold = 1.0  # initial val needed by flip()
 
         self._editableChildren = []
-        self._currentEditableIndex = None
+        self._currentEditableRef = None
 
         # over several frames with no drawing
         self._monitorFrameRate = None
@@ -921,23 +921,7 @@ class Window(object):
     @property
     def currentEditable(self):
         """The editable (Text?) object that currently has key focus"""
-        if not self._editableChildren:
-            return None
-        ii = self._currentEditableIndex
-        # make sure the object still exists or get another
-        object = None
-        while object is None and self._editableChildren:  # not found an object yet
-            if ii is None or ii < 0:  # None if not yet set one, <0 if all gone
-                return None
-            objectRef = self._editableChildren[ii]  # extract the weak reference
-            object = objectRef()  # get the actual object (None if deleted)
-            if not object:
-                self._editableChildren.remove(objectRef)  # remove and try another
-                if ii >= len(self._editableChildren):
-                    ii -= 1
-            else:
-                self._currentEditableIndex = ii
-        return object
+        return self._currentEditableRef()
 
     @currentEditable.setter
     def currentEditable(self, editable):
@@ -948,7 +932,7 @@ class Window(object):
         if lastEditable is not None and lastEditable is not editable:
             lastEditable.hasFocus = False
         # Ensure that item is added to editables list
-        self._currentEditableIndex = self.addEditable(editable)
+        self.addEditable(editable)
         # Give focus to new current editable        
         editable.hasFocus = True
 
@@ -964,37 +948,50 @@ class Window(object):
         # Ignore if object is not editable
         if not hasattr(editable, "editable"):
             return
-        if not editable.editable:
-            return
-        # If editable is already present, return its index
+        #if not editable.editable:
+        #    return
+        # If editable is already present do nothing
+        eRef = False
         for ref in weakref.getweakrefs(editable):
             if ref in self._editableChildren:
-                return self._editableChildren.index(ref)
-        # If editable is not already present, add it to the editables list
-        self._editableChildren.append(weakref.ref(editable))
+                eRef = ref
+                break
+            
+        if eRef is False:
+            eRef = weakref.ref(editable)
+            # If editable is not already present, add it to the editables list
+            self._editableChildren.append(eRef)
+
         # If this is the first editable obj then make it the current
         if len(self._editableChildren) == 1:
-            self.currentEditable = editable
-        # Return the index of the appended item
-        return len(self._editableChildren) - 1
+            self._currentEditableRef = eRef
 
 
     def removeEditable(self, editable):
         # If editable is present, remove it from editables list
         for ref in weakref.getweakrefs(editable):
             if ref in self._editableChildren:
-                self._editableChildren.remove(ref)
                 # If editable was current, move on to next current
-                if self.currentEditable == self:
+                if self.currentEditable == editable:
                     self.nextEditable()
-
+                self._editableChildren.remove(ref)
+                return True
+        return False
+    
     def nextEditable(self, chars=''):
         """Moves focus of the cursor to the next editable window"""
-        ii = self._currentEditableIndex + 1
-        if ii > len(self._editableChildren)-1:
-            ii = 0  # wrap back to the first editable object
-        self.currentEditable = self._editableChildren[ii]()
-        self._currentEditableIndex = ii
+        if self.currentEditable is None:
+            if len(self._editableChildren):
+                self._currentEditableRef = self._editableChildren[0]            
+        else:
+            for ref in weakref.getweakrefs(self.currentEditable):
+                if ref in self._editableChildren:
+                    cei = self._editableChildren.index(ref)
+                    nei = cei+1
+                    if nei >= len(self._editableChildren):
+                        nei=0
+                    self._currentEditableRef = self._editableChildren[nei]            
+        return self.currentEditable
 
     @classmethod
     def dispatchAllWindowEvents(cls):
@@ -2604,7 +2601,7 @@ class Window(object):
             return 'rgb'
     @colorSpace.setter
     def colorSpace(self, value):
-        if value in colorSpaces or value in advancedSpaces:
+        if value in colorSpaces:
             self._colorSpace = value
         else:
             logging.error(f"'{value}' is not a valid color space")
@@ -2636,9 +2633,6 @@ class Window(object):
         if isinstance(value, Color):
             # If supplied with a color object, set as that
             self._color = value
-        elif self.colorSpace in AdvancedColor.getSpace(value, True):
-            # If supplied with a valid advanced color, use it to make an advanced color object and print tip.
-            self._color = AdvancedColor(value, self.colorSpace)
         else:
             # Otherwise, use it to make a color object
             self._color = Color(value, self.colorSpace)

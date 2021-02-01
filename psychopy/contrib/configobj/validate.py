@@ -129,6 +129,8 @@
 
     A badly formatted set of arguments will raise a ``VdtParamError``.
 """
+from past.builtins import unicode, basestring
+
 import re
 import sys
 from pprint import pprint
