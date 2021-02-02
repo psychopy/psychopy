@@ -1732,15 +1732,9 @@ class DlgComponentProperties(_BaseParamsDlg):
         correctAns field accordingly
         """
         if self.paramCtrls['storeCorrect'].valueCtrl.GetValue():
-            self.paramCtrls['correctAns'].valueCtrl.Show()
-            self.paramCtrls['correctAns'].nameCtrl.Show()
-            # self.paramCtrls['correctAns'].typeCtrl.Show()
-            # self.paramCtrls['correctAns'].updateCtrl.Show()
+            self.paramCtrls['correctAns'].valueCtrl.Enable()
         else:
-            self.paramCtrls['correctAns'].valueCtrl.Hide()
-            self.paramCtrls['correctAns'].nameCtrl.Hide()
-            # self.paramCtrls['correctAns'].typeCtrl.Hide()
-            # self.paramCtrls['correctAns'].updateCtrl.Hide()
+            self.paramCtrls['correctAns'].valueCtrl.Disable()
         self.mainSizer.Layout()
         self.Fit()
         self.Refresh()
