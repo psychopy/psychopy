@@ -227,9 +227,11 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
     def editable(self, editable):
         self._editable = editable
         if editable is False and self.hasFocus:
-            self.win.removeEditable(self)
+            if self.win:
+                self.win.removeEditable(self)
         if editable is True:
-            self.win.addEditable(self)
+            if self.win:
+                self.win.addEditable(self)
         
     @property
     def pallette(self):
@@ -828,11 +830,13 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         if focus is False and self.hasFocus:
             # If focus is being set to False, tell window to 
             # give focus to next editable.
-            self.win.nextEditable()
+            if self.win:
+                self.win.nextEditable()
         elif focus is True and self.hasFocus is False:
             # If focus is being set True, set textbox instance to be
             # window.currentEditable.
-            self.win.currentEditable=self
+            if self.win:
+                self.win.currentEditable=self
         return False
 
     def getText(self):
