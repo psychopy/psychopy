@@ -811,13 +811,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             return True
         return False
 
-    @hasFocus.setter
-    def hasFocus(self, state):
-        # Store focus
-        self._hasFocus = state
-        # Redraw text box
-        self.draw()
-
     def getText(self):
         """Returns the current text in the box, including formating tokens."""
         return self.text
