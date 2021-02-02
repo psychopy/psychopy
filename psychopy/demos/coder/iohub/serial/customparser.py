@@ -32,7 +32,7 @@ BAUDRATE = 19200
 #            if __name__ == '__main__':
 #        condition so it is not run when the file is only imported.
 
-event_parser_info = dict(parser_function="parseserial.checkForSerialEvents",
+event_parser_info = dict(parser_function="_parseserial.checkForSerialEvents",
                          parser_kwargs=dict(var1='not used', var2=1234))
 # configure iohub
 exp_code = 'serial_demo'
