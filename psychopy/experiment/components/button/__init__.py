@@ -189,21 +189,11 @@ class ButtonComponent(BaseVisualComponent):
         # do writing of init
         inits = getInitVals(self.params, 'PsychoPy')
         # Get callback from params
-        callback = str(inits['callback']).replace("\n", "\n      ")  # Add indent to any linebreaks to account for the loop
-        if inits['callback'] and inits['callback'] != "None":
-            callback = f"      {callback}\n"
+        callback = inits['callback']
+        if inits['callback']:
+            callback = str(callback)
         else:
             callback = ""
-        # End routine, if asked to
-        if inits['forceEndRoutine'].val:
-            endRt = "      continueRoutine = False  # end routine when %(name)s is clicked\n"
-        else:
-            endRt = ""
-        # Listen to ignore marker if only wanting one execution per click
-        if inits['oncePerClick']:
-            blocking = " and not %(name)s.wasClicked"
-        else:
-            blockingStr = ""
         # String to get time
         if inits['timeRelativeTo'] == 'button onset':
             timing = "%(name)s.buttonClock.getTime()"
@@ -215,23 +205,78 @@ class ButtonComponent(BaseVisualComponent):
             timing = "globalClock.getTime()"
         # Assemble code
         code = (
-            f"if %(name)s.status != STARTED:"
-            f"   # check whether %(name)s has been pressed\n"
-            f"   if %(name)s.isClicked{blocking}:\n" 
-            f"      %(name)s.wasClicked = True  # if %(name)s is still clicked next frame, it is not a new click\n"
-            f"      %(name)s.timesOn.append({timing}) # store time of first click\n"
-            f"      %(name)s.timesOff.append({timing}) # store time clicked until\n"
-            f"{callback}"
-            f"{endRt}"
-            f"   elif %(name)s.isClicked:\n"
-            f"      %(name)s.timesOff[-1] = {timing} # update time clicked until"
-            f"   else:\n"
-            f"      %(name)s.wasClicked = False  # if %(name)s is clicked next frame, it is a new click\n"
-            f"else:\n"
-            f"   %(name)s.buttonClock.reset() # keep clock at 0 if button hasn't started / has finished\n"
-            f"   %(name)s.wasClicked = False  # if %(name)s is clicked next frame, it is a new click\n"
+            f"if %(name)s.status == STARTED:\n"
         )
         buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(1, relative=True)
+        code = (
+                f"# check whether %(name)s has been pressed\n"
+                f"if %(name)s.isClicked:\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(1, relative=True)
+        code = (
+                    f"if not %(name)s.wasClicked:\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(1, relative=True)
+        code = (
+                        f"%(name)s.timesOn.append({timing}) # store time of first click\n"
+                        f"%(name)s.timesOff.append({timing}) # store time clicked until\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(-1, relative=True)
+        code = (
+                    f"else:\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(1, relative=True)
+        code = (
+                        f"%(name)s.timesOff[-1] = {timing} # update time clicked until\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(-1, relative=True)
+        if self.params['forceEndRoutine'].val:
+            code = (
+                    f"continueRoutine = False  # end routine when %(name)s is clicked\n"
+            )
+            buff.writeIndentedLines(code % inits)
+        if self.params['oncePerClick'].val:
+            code = (
+                    f"if not %(name)s.wasClicked:\n"
+            )
+            buff.writeIndentedLines(code % inits)
+            buff.setIndentLevel(1, relative=True)
+            buff.writeIndentedLines(callback % inits)
+            buff.setIndentLevel(-1, relative=True)
+        else:
+            buff.writeIndentedLines(callback % inits)
+        code = (
+                    f"%(name)s.wasClicked = True  # if %(name)s is still clicked next frame, it is not a new click\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(-1, relative=True)
+        code = (
+                f"else:\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(1, relative=True)
+        code = (
+                    f"%(name)s.wasClicked = False  # if %(name)s is clicked next frame, it is a new click\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(-2, relative=True)
+        code = (
+            f"else:\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(1, relative=True)
+        code = (
+            f"%(name)s.buttonClock.reset() # keep clock at 0 if button hasn't started / has finished\n"
+            f"%(name)s.wasClicked = False  # if %(name)s is clicked next frame, it is a new click\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(-1, relative=True)
 
     def writeRoutineEndCode(self, buff):
         BaseVisualComponent.writeRoutineEndCode(self, buff)
