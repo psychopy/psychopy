@@ -1,11 +1,11 @@
 """
 Demo using a custom serial rx parser to generate ioHub Serial Device events.
 
-The parseserial.py file is also required for this demo, as it contains the
+The _parseserial.py file is also required for this demo, as it contains the
 custom parser function that the ioHub Serial device uses during runtime.
 
-** This demo assumes that whatever is written out to the serial port is what the
-serial device receives back as rx data. **
+** This demo assumes that whatever is written to the device serial port 
+   is simply returned back (echoed) on the device serial port.**
 
 """
 from __future__ import print_function
@@ -14,7 +14,7 @@ from psychopy import core, visual
 from psychopy.iohub import launchHubServer
 
 # Settings for serial port communication.
-SERIAL_PORT = 'COM226'
+SERIAL_PORT = 'COM46'
 BAUDRATE = 19200
 
 # event_parser_info dict:
