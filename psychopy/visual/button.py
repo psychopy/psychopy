@@ -34,6 +34,13 @@ class ButtonStim(TextBox2):
                                  letterHeight=letterHeight, bold=bold, italic=italic,
                                  alignment='center', editable=False)
         self.listener = event.Mouse(win=win)
+        self.wasClicked = False # Attribute to save whether button was previously clicked
+        # Arrays to store times of clicks on and off
+        self.timesOn = []
+        self.timesOff = []
+    @property
+    def numClicks(self):
+        return len(self.timesOn)
 
     @property
     def isClicked(self):

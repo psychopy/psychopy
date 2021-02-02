@@ -325,7 +325,7 @@ class Color(object):
             raise ValueError("{} is not a valid color space.".format(space))
 
     def render(self, space='rgb'):
-        if space not in colorSpaces and space not in advancedSpaces:
+        if space not in colorSpaces:
             raise ValueError(f"{space} is not a valid color space")
         adj = []
         adj = np.clip(self.rgb * self.contrast, -1, 1)

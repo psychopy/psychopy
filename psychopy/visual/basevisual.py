@@ -448,7 +448,7 @@ class ColorMixin(object):
             return 'rgba'
     @colorSpace.setter
     def colorSpace(self, value):
-        if value in colorSpaces or value in advancedSpaces:
+        if value in colorSpaces:
             self._colorSpace = value
         else:
             logging.error(f"'{value}' is not a valid color space")
