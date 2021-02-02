@@ -823,6 +823,18 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             return True
         return False
 
+    @hasFocus.setter
+    def hasFocus(self, focus):
+        if focus is False and self.hasFocus:
+            # If focus is being set to False, tell window to 
+            # give focus to next editable.
+            self.win.nextEditable()
+        elif focus is True and self.hasFocus is False:
+            # If focus is being set True, set textbox instance to be
+            # window.currentEditable.
+            self.win.currentEditable=self
+        return False
+
     def getText(self):
         """Returns the current text in the box, including formating tokens."""
         return self.text

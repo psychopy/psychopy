@@ -930,6 +930,15 @@ class Window(object):
         # Ensure that item is added to editables list
         self.addEditable(editable)
 
+        # Set the editable as the current editable stim in the window
+        eRef = None
+        for ref in weakref.getweakrefs(editable):
+            if ref in self._editableChildren:
+                eRef = ref
+                break
+        if eRef:
+            self._currentEditableRef = eRef
+
     def addEditable(self, editable):
         """Adds an editable element to the screen (something to which
         characters can be sent with meaning from the keyboard).
