@@ -213,12 +213,24 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.text = text if text is not None else ""
 
         # caret
-        self.editable = editable
+        self._editable = editable
         self.caret = Caret(self, color=self.color, width=5)
 
 
         self.autoLog = autoLog
 
+    @property
+    def editable(self):
+        return self._editable
+    
+    @editable.setter
+    def editable(self, editable):
+        self._editable = editable
+        if editable is False and self.hasFocus:
+            self.win.removeEditable(self)
+        if editable is True:
+            self.win.addEditable(self)
+        
     @property
     def pallette(self):
         self._pallette = {

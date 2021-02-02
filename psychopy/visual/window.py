@@ -972,7 +972,7 @@ class Window(object):
                 return True
         return False
     
-    def nextEditable(self, chars=''):
+    def nextEditable(self):
         """Moves focus of the cursor to the next editable window"""
         if self.currentEditable is None:
             if len(self._editableChildren):
