@@ -20,6 +20,7 @@ import glob
 import numpy as np
 from psychopy import logging, event, prefs
 from psychopy.tools.attributetools import attributeSetter
+from psychopy.visual import window
 from .gamma import createLinearRamp
 from .. import globalVars
 from ._base import BaseBackend
@@ -628,7 +629,7 @@ class GLFWBackend(BaseBackend):
         # when filtering kb and mouse events (if the filter is enabled of
         # course)
         try:
-            if IOHUB_ACTIVE and _hw_handle:
+            if window.IOHUB_ACTIVE and _hw_handle:
                 from psychopy.iohub.client import ioHubConnection
                 conn = ioHubConnection.ACTIVE_CONNECTION
                 conn.unregisterWindowHandles(_hw_handle)

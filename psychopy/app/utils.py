@@ -367,7 +367,7 @@ def updateDemosMenu(frame, menu, folder, ext):
     """Update Demos menu as needed."""
     def _makeButton(parent, menu, demo):
         # Create menu button
-        item = menu.Append(wx.ID_ANY, prettyname(demo.name))
+        item = menu.Append(wx.ID_ANY, demo.name)
         # Store in window's demos list
         parent.demos.update({item.Id: demo})
         # Link button to demo opening function
@@ -386,11 +386,11 @@ def updateDemosMenu(frame, menu, folder, ext):
             # subfile according to whether it matches the ext
             if subfolder.is_dir():
                 subContents = glob.glob(str(subfolder / '*'))
-                if any(file.endswith(".psyexp") for file in subContents):
+                if any(file.endswith(".psyexp") and not file.startswith("_") for file in subContents):
                     _makeButton(parent, submenu, subfolder)
                 else:
                     _makeFolder(parent, submenu, subfolder, ext)
-            elif subfolder.suffix == ext:
+            elif subfolder.suffix == ext and not subfolder.name.startswith("_"):
                 _makeButton(parent, submenu, subfolder)
 
     # Make blank dict to store demo details in

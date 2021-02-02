@@ -1,9 +1,19 @@
+:class:`psychopy.visual.Polygon`
+--------------------------------
 
+Stimulus class for drawing regular polygons.
 
-:class:`Polygon`
-------------------------------------
-.. autoclass:: psychopy.visual.Polygon
+Overview
+========
+
+.. currentmodule:: psychopy.visual.polygon
+
+.. autosummary::
+    Polygon
+
+Details
+=======
+
+.. autoclass:: Polygon
     :members:
-    :undoc-members:
-    :inherited-members:    
-    
+    :inherited-members:

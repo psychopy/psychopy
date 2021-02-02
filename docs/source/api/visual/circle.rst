@@ -1,9 +1,19 @@
+:class:`psychopy.visual.Circle`
+-------------------------------
 
+Stimulus class for drawing circles.
 
-:class:`Circle`
-------------------------------------
-.. autoclass:: psychopy.visual.Circle
+Overview
+========
+
+.. currentmodule:: psychopy.visual.circle
+
+.. autosummary::
+    Circle
+
+Details
+=======
+
+.. autoclass:: Circle
     :members:
-    :undoc-members:
-    :inherited-members:    
-    
+    :inherited-members:

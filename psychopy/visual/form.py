@@ -136,7 +136,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         self.borderColor = borderColor
 
         self.textHeight = textHeight
-        self._scrollBarSize = (0.016, size[1])
+        self._scrollBarSize = (0.016, self.size[1])
         self._baseYpositions = []
         self.leftEdge = None
         self.rightEdge = None

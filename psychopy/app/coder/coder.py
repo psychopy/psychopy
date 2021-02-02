@@ -17,6 +17,7 @@ from builtins import range
 import wx
 import wx.stc
 import wx.richtext
+import psychopy.app
 from psychopy.app.themes._themes import ThemeSwitcher
 from wx.html import HtmlEasyPrinting
 
@@ -360,12 +361,7 @@ class UnitTestFrame(wx.Frame):
             havePytest = True
         except Exception:
             havePytest = False
-        if havePytest:
-            self.runpyPath = os.path.join(self.prefs.paths['tests'], 'run.py')
-        else:
-            # run the standalone version
-            self.runpyPath = os.path.join(
-                self.prefs.paths['tests'], 'runPytest.py')
+        self.runpyPath = os.path.join(self.prefs.paths['tests'], 'run.py')
         if sys.platform != 'win32':
             self.runpyPath = self.runpyPath.replace(' ', '\ ')
         # setup the frame
@@ -1145,7 +1141,7 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
 class CoderFrame(wx.Frame, ThemeMixin):
 
     def __init__(self, parent, ID, title, files=(), app=None):
-        self.app = app  # type: PsychoPyApp
+        self.app = app  # type: psychopy.app.PsychoPyApp
         self.frameType = 'coder'
         # things the user doesn't set like winsize etc
         self.appData = self.app.prefs.appData['coder']

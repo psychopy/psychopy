@@ -511,7 +511,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
 
     def makeButtons(self):
         # Set buttons
-        icons = self.app.iconCache  # type: IconCache
+        icons = self.app.iconCache
         self.plusBtn = icons.makeBitmapButton(
                 parent=self,
                 filename='addExp.png',
