@@ -30,7 +30,9 @@ _localized.update({'callback': _translate("Callback Function"),
                    'fillColor': _translate('Fill Colour'),
                    'borderColor': _translate('Border Colour'),
                    'borderWidth': _translate('Border Width'),
-                   'oncePerClick': _translate('Run once per click')
+                   'oncePerClick': _translate('Run once per click'),
+                   'save': _translate("Record clicks"),
+                   'timeRelativeTo': _translate("Time relative to")
                    })
 
 class ButtonComponent(BaseVisualComponent):
@@ -48,7 +50,7 @@ class ButtonComponent(BaseVisualComponent):
                  pos=(0, 0), size="", padding="", anchor='center', units='from exp settings', ori=0,
                  color="white", fillColor="darkgrey", borderColor="None", borderWidth=0, colorSpace='rgb', opacity=1,
                  letterHeight=0.05, bold=True, italic=False,
-                 callback="", forceEndRoutine=True, oncePerClick=True):
+                 callback="", save='every click', timeRelativeTo='button onset', forceEndRoutine=True, oncePerClick=True):
         super(ButtonComponent, self).__init__(exp, parentName, name,
                                             units=units,
                                             color=color, fillColor=fillColor, borderColor=borderColor,
@@ -141,6 +143,20 @@ class ButtonComponent(BaseVisualComponent):
             updates='constant', allowedUpdates=_allow3[:],
             hint=_translate("Textbox border width"),
             label=_localized['borderWidth'])
+        self.params['save'] = Param(
+            save, valType='str', inputType="choice", categ='Data',
+            allowedVals=['first click', 'last click', 'every click', 'none'],
+            hint=_translate(
+                "What clicks on this button should be saved to the data output?"),
+            label=_localized['save'])
+        self.params['timeRelativeTo'] = Param(
+            timeRelativeTo, valType='str', inputType="choice", categ='Data',
+            allowedVals=['button onset', 'experiment', 'routine'],
+            updates='constant',
+            hint=_translate(
+                "What should the values of mouse.time should be "
+                "relative to?"),
+            label=_localized['timeRelativeTo'])
 
 
     def writeInitCode(self, buff):
@@ -152,18 +168,19 @@ class ButtonComponent(BaseVisualComponent):
         # do writing of init
         inits = getInitVals(self.params, 'PsychoPy')
         code = (
-                       "%(name)s = visual.ButtonStim(win, \n"
-                       "    text=%(text)s, font=%(font)s,\n"
-                       "     pos=%(pos)s," + unitsStr + "\n"
-                       "     letterHeight=%(letterHeight)s,\n"
-                       "     size=%(size)s, borderWidth=%(borderWidth)s,\n"
-                       "     fillColor=%(fillColor)s, borderColor=%(borderColor)s,\n"
-                       "     color=%(color)s, colorSpace=%(colorSpace)s,\n"
-                       "     opacity=%(opacity)s,\n"
-                       "     bold=%(bold)s, italic=%(italic)s,\n"
-                       "     padding=%(padding)s,\n"
-                       "     anchor=%(anchor)s,\n"
-                       "     name='%(name)s')"
+                "%(name)s = visual.ButtonStim(win, \n"
+                "   text=%(text)s, font=%(font)s,\n"
+                "   pos=%(pos)s," + unitsStr + "\n"
+                "   letterHeight=%(letterHeight)s,\n"
+                "   size=%(size)s, borderWidth=%(borderWidth)s,\n"
+                "   fillColor=%(fillColor)s, borderColor=%(borderColor)s,\n"
+                "   color=%(color)s, colorSpace=%(colorSpace)s,\n"
+                "   opacity=%(opacity)s,\n"
+                "   bold=%(bold)s, italic=%(italic)s,\n"
+                "   padding=%(padding)s,\n"
+                "   anchor=%(anchor)s,\n"
+                "   name='%(name)s')\n"
+                "%(name)s.buttonClock = core.Clock()"
         )
         buff.writeIndentedLines(code % inits)
 
@@ -171,27 +188,95 @@ class ButtonComponent(BaseVisualComponent):
         BaseVisualComponent.writeFrameCode(self, buff)
         # do writing of init
         inits = getInitVals(self.params, 'PsychoPy')
-        callback = str(inits['callback'])
+        # Get callback from params
+        callback = inits['callback']
         if inits['callback']:
-            # Add indent to any linebreaks to account for the loop
-            callback = str(inits['callback']).replace("\n", "\n   ")
+            callback = str(callback)
         else:
-            callback = "pass"
-        if inits['forceEndRoutine'].val:
-            endRt = "continueRoutine = False"
+            callback = ""
+        # String to get time
+        if inits['timeRelativeTo'] == 'button onset':
+            timing = "%(name)s.buttonClock.getTime()"
+        elif inits['timeRelativeTo'] == 'experiment':
+            timing = "globalClock.getTime()"
+        elif inits['timeRelativeTo'] == 'routine':
+            timing = "routineTimer.getTime()"
         else:
-            endRt = ""
-        if inits['oncePerClick'].val:
-            hammingStr = "   while %(name)s.isClicked:\n      pass\n"
-        else:
-            hammingStr = ""
+            timing = "globalClock.getTime()"
+        # Assemble code
         code = (
-            "# check whether button \"%(name)s\" has been pressed\n"
-            "if %(name)s.isClicked:\n" + hammingStr +
-            "   " + callback + "\n" +
-            "   " + endRt + "\n"
+            f"if %(name)s.status == STARTED:\n"
         )
         buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(1, relative=True)
+        code = (
+                f"# check whether %(name)s has been pressed\n"
+                f"if %(name)s.isClicked:\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(1, relative=True)
+        code = (
+                    f"if not %(name)s.wasClicked:\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(1, relative=True)
+        code = (
+                        f"%(name)s.timesOn.append({timing}) # store time of first click\n"
+                        f"%(name)s.timesOff.append({timing}) # store time clicked until\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(-1, relative=True)
+        code = (
+                    f"else:\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(1, relative=True)
+        code = (
+                        f"%(name)s.timesOff[-1] = {timing} # update time clicked until\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(-1, relative=True)
+        if self.params['forceEndRoutine'].val:
+            code = (
+                    f"continueRoutine = False  # end routine when %(name)s is clicked\n"
+            )
+            buff.writeIndentedLines(code % inits)
+        if self.params['oncePerClick'].val:
+            code = (
+                    f"if not %(name)s.wasClicked:\n"
+            )
+            buff.writeIndentedLines(code % inits)
+            buff.setIndentLevel(1, relative=True)
+            buff.writeIndentedLines(callback % inits)
+            buff.setIndentLevel(-1, relative=True)
+        else:
+            buff.writeIndentedLines(callback % inits)
+        code = (
+                    f"%(name)s.wasClicked = True  # if %(name)s is still clicked next frame, it is not a new click\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(-1, relative=True)
+        code = (
+                f"else:\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(1, relative=True)
+        code = (
+                    f"%(name)s.wasClicked = False  # if %(name)s is clicked next frame, it is a new click\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(-2, relative=True)
+        code = (
+            f"else:\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(1, relative=True)
+        code = (
+            f"%(name)s.buttonClock.reset() # keep clock at 0 if button hasn't started / has finished\n"
+            f"%(name)s.wasClicked = False  # if %(name)s is clicked next frame, it is a new click\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(-1, relative=True)
 
     def writeRoutineEndCode(self, buff):
         BaseVisualComponent.writeRoutineEndCode(self, buff)
@@ -200,10 +285,23 @@ class ButtonComponent(BaseVisualComponent):
         else:
             currLoop = self.exp._expHandler
         name = self.params['name']
-        code = f"{currLoop.params['name']}.addData('{name}.rt', t)\n"
-        buff.writeIndentedLines(code)
-        # get parent to write code too (e.g. store onset/offset times)
-        super().writeRoutineEndCode(buff)
+        if self.params['save'] == 'first click':
+            index = "[0]"
+        elif self.params['save'] == 'last click':
+            index = "[-1]"
+        else:
+            index = ""
+        if self.params['save'] != 'none':
+            code = (
+                f"{currLoop.params['name']}.addData('{name}.numClicks', {name}.numClicks)\n"
+                f"if {name}.numClicks:\n"
+                f"   {currLoop.params['name']}.addData('{name}.timesOn', {name}.timesOn{index})\n"
+                f"   {currLoop.params['name']}.addData('{name}.timesOff', {name}.timesOff{index})\n"
+                f"else:\n"
+                f"   {currLoop.params['name']}.addData('{name}.timesOn', \"\")\n"
+                f"   {currLoop.params['name']}.addData('{name}.timesOff', \"\")\n"
+            )
+            buff.writeIndentedLines(code)
 
     def integrityCheck(self):
         super().integrityCheck()  # run parent class checks first
