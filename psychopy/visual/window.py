@@ -949,8 +949,8 @@ class Window(object):
         # Ignore if object is not editable
         if not hasattr(editable, "editable"):
             return
-        #if not editable.editable:
-        #    return
+        if not editable.editable:
+            return
         # If editable is already present do nothing
         eRef = False
         for ref in weakref.getweakrefs(editable):
