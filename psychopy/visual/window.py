@@ -921,7 +921,8 @@ class Window(object):
     @property
     def currentEditable(self):
         """The editable (Text?) object that currently has key focus"""
-        return self._currentEditableRef()
+        if self._currentEditableRef:
+            return self._currentEditableRef()
 
     @currentEditable.setter
     def currentEditable(self, editable):
