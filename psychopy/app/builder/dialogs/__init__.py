@@ -1796,6 +1796,7 @@ class DlgExperimentProperties(_BaseParamsDlg):
             # set vals and disable changes
             field = 'Window size (pixels)'
             self.paramCtrls[field].valueCtrl.SetValue(str(size))
+            self.paramCtrls[field].param.val = size
             self.paramCtrls[field].valueCtrl.Disable()
             self.paramCtrls[field].nameCtrl.Disable()
         else:
