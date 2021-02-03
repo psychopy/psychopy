@@ -178,8 +178,7 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
     @attributeSetter
     def lineWidth(self, value):
-        """int or float
-        specifying the line width in **pixels**
+        """Width of the line in **pixels**.
 
         :ref:`Operations <attrib-operations>` supported.
         """
@@ -193,23 +192,24 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
     @attributeSetter
     def closeShape(self, value):
-        """True or False
-        Should the last vertex be automatically connected to the first?
+        """Should the last vertex be automatically connected to the first?
 
-        If you're using `Polygon`, `Circle` or `Rect`, closeShape=True is
+        If you're using `Polygon`, `Circle` or `Rect`, `closeShape=True` is
         assumed and shouldn't be changed.
         """
         self.__dict__['closeShape'] = value
 
     @attributeSetter
     def interpolate(self, value):
-        """True or False
-        If True the edge of the line will be antialiased.
+        """If `True` the edge of the line will be anti-aliased.
         """
         self.__dict__['interpolate'] = value
 
     @attributeSetter
     def color(self, color):
+        """Set the color of the shape. Sets both `fillColor` and `lineColor`
+        simultaneously if applicable.
+        """
         self.fillColor = color
         self.lineColor = color
 
@@ -217,8 +217,8 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
     @property
     def fillColorSpace(self):
-        """
-        Deprecated, please use colorSpace to set color space for the entire object
+        """Deprecated, please use colorSpace to set color space for the entire
+        object.
         """
         return self.colorSpace
     @fillColorSpace.setter
@@ -228,8 +228,8 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
     @property
     def lineColorSpace(self):
-        """
-        Deprecated, please use colorSpace to set color space for the entire object
+        """Deprecated, please use colorSpace to set color space for the entire
+        object
         """
         return self.colorSpace
     @fillColorSpace.setter
@@ -263,7 +263,7 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
             logging.error(f"Operation '{operation}' not recognised.")
 
     def setColor(self, color, colorSpace=None, operation='', log=None):
-        """Sets both the line and fill to be the same color
+        """Sets both the line and fill to be the same color.
         """
         self.setLineColor(color, colorSpace, operation, log)
         self.setFillColor(color, colorSpace, operation, log)
@@ -306,11 +306,11 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
     @attributeSetter
     def size(self, value):
-        """Int/Float or :ref:`x,y-pair <attrib-xy>`.
-        Sets the size of the shape.
-        Size is independent of the units of shape and will simply scale
-        the shape's vertices by the factor given.
-        Use a tuple or list of two values to scale asymmetrically.
+        """Sets the size of the shape.
+
+        Size is independent of the units of shape and will simply scale the
+        shape's vertices by the factor given. Use a tuple or list of two values
+        to scale asymmetrically.
 
         :ref:`Operations <attrib-operations>` supported.
         """
