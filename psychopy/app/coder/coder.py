@@ -2366,7 +2366,11 @@ class CoderFrame(wx.Frame, ThemeMixin):
                 self.app.newBuilderFrame(fileName=filename)
             else:
                 self.setCurrentDoc(filename)
-                self.setFileModified(False)
+                # don't do the next step if no file was opened (hack!!)
+                if self.notebook.GetPageCount() > 0:
+                    if self.notebook.GetCurrentPage().filename == filename:
+                        self.setFileModified(False)
+
         self.statusBar.SetStatusText('')
 
         # don't do this, this will add unwanted files to the task list - mdc
