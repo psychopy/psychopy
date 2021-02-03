@@ -274,7 +274,7 @@ class Param(object):
         val = self.val
         if self.valType in ['extendedStr','str', 'file', 'table', 'color', 'list']:
             # How to handle dollar signs in a string param
-            self.codeWanted = val.startswith("$")
+            self.codeWanted = str(val).startswith("$")
 
             if not re.search(r"\$", str(val)):
                 # Return if there are no $
