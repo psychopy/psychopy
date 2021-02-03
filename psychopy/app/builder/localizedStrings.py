@@ -23,7 +23,8 @@ _localizedDialogs = {
     # interpolation
     'linear': _translate('linear'),
     'nearest': _translate('nearest'),
-    # color spaces not translated:
+    # color spaces (except "named") should not be translated:
+    'named': _translate('named'),
     'rgb': 'rgb', 'dkl': 'dkl', 'lms': 'lms', 'hsv': 'hsv',
     'last key': _translate('last key'),
     'first key': _translate('first key'),
