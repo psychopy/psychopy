@@ -90,6 +90,11 @@ _localizedDialogs = {
     'Routine': _translate('Routine'),
     # Joystick:
     'joystick onset':_translate('joystick onset'),
+    # Button:
+    'every click': _translate('every click'),
+    'first click': _translate('first click'),
+    'last click': _translate('last click'),
+    'button onset': _translate('button onset'),
     # Polygon:
     'line': _translate('line'),
     'triangle': _translate('triangle'),
@@ -105,9 +110,6 @@ _localizedDialogs = {
     'last': _translate('last'),
     'all': _translate('all'),
     'average': _translate('average'),
-    # Text
-    'horiz': _translate('horiz'),
-    'vert': _translate('vert'),
     # NameSpace
     'one of your Components, Routines, or condition parameters': 
     _translate('one of your Components, Routines, or condition parameters'),
