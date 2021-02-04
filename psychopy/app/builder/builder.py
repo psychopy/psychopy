@@ -464,6 +464,12 @@ class BuilderFrame(wx.Frame, ThemeMixin):
                            _translate("Insert Loop in Flow"),
                            _translate("Create a new loop in your flow window"))
         self.Bind(wx.EVT_MENU, self.flowPanel.insertLoop, item)
+        menu.AppendSeparator()
+
+        item = menu.Append(wx.ID_ANY,
+                           _translate("README..."),
+                           _translate("Add or edit the text shown when your experiment is opened"))
+        self.Bind(wx.EVT_MENU, self.editREADME, item)
 
         # ---_demos---#000000#FFFFFF------------------------------------------
         # for demos we need a dict where the event ID will correspond to a
@@ -748,6 +754,27 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         self.app.showCoder()
         self.app.coder.fileOpen(filename=exportPath)
         self.app.coder.fileOpen(filename=htmlPath)
+
+    def editREADME(self, event):
+        folder = Path(self.filename).parent
+        if folder == folder.parent:
+            raise FileNotFoundError("Please save experiment before editing the README file")
+            return
+        possible = [folder / 'README.txt',
+                  folder / 'README.md']
+        exists = False
+        for readme in possible:
+            if readme.is_file():
+                # If README file exists, open it
+                exists = True
+                self.app.coder.fileOpen(filename=str(readme))
+                break
+        if not exists:
+            # If no README file exists, make one and then open it
+            readme = folder / 'README.md'
+            open(readme, "x")
+            self.app.coder.fileOpen(filename=str(readme))
+        return
 
     def getShortFilename(self):
         """returns the filename without path or extension
