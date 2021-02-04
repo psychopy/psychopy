@@ -37,7 +37,7 @@ class ProjectEditor(wx.Dialog):
             self.filename = parent.filename
         else:
             self.filename = None
-        self.project = project  # type: PavloviaProject
+        self.project = project  # type: pavlovia.PavloviaProject
         self.projInfo = None
         self.parent = parent
 
@@ -178,7 +178,7 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
 
         scrlpanel.ScrolledPanel.__init__(self, parent, -1, style=style)
         self.parent = parent
-        self.project = project  # type: PavloviaProject
+        self.project = project  # type: pavlovia.PavloviaProject
         self.noTitle = noTitle
         self.localFolder = ''
         self.syncPanel = None

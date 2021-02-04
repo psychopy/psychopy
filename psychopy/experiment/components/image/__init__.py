@@ -29,7 +29,7 @@ _localized.update({'image': _translate('Image'),
 class ImageComponent(BaseVisualComponent):
     """An event class for presenting image-based stimuli"""
 
-    def __init__(self, exp, parentName, name='image', image='None', mask='None',
+    def __init__(self, exp, parentName, name='image', image='', mask='',
                  interpolate='linear', units='from exp settings',
                  color='$[1,1,1]', colorSpace='rgb', pos=(0, 0),
                  size=(0.5, 0.5), ori=0, texRes='128', flipVert=False,

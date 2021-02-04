@@ -22,7 +22,8 @@ from wx.lib.expando import ExpandoTextCtrl, EVT_ETC_LAYOUT_NEEDED
 from pkg_resources import parse_version
 
 from psychopy import gui
-from psychopy.experiment.utils import valid_var_re, nonalphanumeric_re
+from psychopy.experiment.utils import valid_var_re
+from psychopy.data.utils import _nonalphanumeric_re
 from psychopy.localization import _translate
 
 from psychopy.constants import PY3

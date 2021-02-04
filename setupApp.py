@@ -108,6 +108,7 @@ packages = ['wx', 'psychopy',
             'jedi','parso',
             'psychtoolbox',
             'freetype', 'h5py',
+            'markdown_it',
             ]
 
 if sys.version_info.major >= 3:

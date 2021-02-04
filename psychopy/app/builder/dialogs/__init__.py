@@ -120,7 +120,7 @@ class ParamCtrls(object):
             # Create multiline string control
             self.valueCtrl = paramCtrls.MultiLineCtrl(parent,
                                                       val=str(param.val), valType=param.valType,
-                                                      fieldName=fieldName, size=wx.Size(self.valueWidth, 48))
+                                                      fieldName=fieldName, size=wx.Size(self.valueWidth, 144))
             # Set focus if field is text of a Textbox or Text component
             if fieldName == 'text':
                 self.valueCtrl.SetFocus()
@@ -448,8 +448,8 @@ class _BaseParamsDlg(wx.Dialog):
                                proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
         # Sort category names
         allCategNames = sorted(categs)
-        firstCategs = ['Basic', 'Appearance', 'Layout', 'Formatting', 'Texture', 'Data']
-        lastCategs = ['Custom', 'Hardware', 'Testing']
+        firstCategs = ['Basic', 'Layout', 'Appearance', 'Formatting', 'Texture']
+        lastCategs = ['Data', 'Custom', 'Hardware', 'Testing']
         bonusCategs = [nm for nm in allCategNames if nm not in firstCategs+lastCategs]
         categNames = [nm for nm in firstCategs if nm in allCategNames] \
                      + bonusCategs \
@@ -761,16 +761,11 @@ class _BaseParamsDlg(wx.Dialog):
                 except Exception:
                     pass
 
-        if fieldName in ['text']:
+        if param.inputType == 'multi':
             sizer.AddGrowableRow(currRow)
             ctrls.valueCtrl.Bind(wx.EVT_KEY_UP, self.doValidate)
-        elif param.valType == 'fileList':
+        elif param.inputType == 'fileList':
             sizer.AddGrowableRow(currRow)  # doesn't seem to work though
-        elif fieldName in ('color', 'fillColor', 'lineColor'):
-            ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.launchColorPicker)
-        elif valType == 'extendedCode':
-            sizer.AddGrowableRow(currRow)  # doesn't seem to work though
-            ctrls.valueCtrl.Bind(wx.EVT_KEY_DOWN, self.onTextEventCode)
         elif fieldName == 'Monitor':
             ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.openMonitorCenter)
 
@@ -1737,15 +1732,9 @@ class DlgComponentProperties(_BaseParamsDlg):
         correctAns field accordingly
         """
         if self.paramCtrls['storeCorrect'].valueCtrl.GetValue():
-            self.paramCtrls['correctAns'].valueCtrl.Show()
-            self.paramCtrls['correctAns'].nameCtrl.Show()
-            # self.paramCtrls['correctAns'].typeCtrl.Show()
-            # self.paramCtrls['correctAns'].updateCtrl.Show()
+            self.paramCtrls['correctAns'].valueCtrl.Enable()
         else:
-            self.paramCtrls['correctAns'].valueCtrl.Hide()
-            self.paramCtrls['correctAns'].nameCtrl.Hide()
-            # self.paramCtrls['correctAns'].typeCtrl.Hide()
-            # self.paramCtrls['correctAns'].updateCtrl.Hide()
+            self.paramCtrls['correctAns'].valueCtrl.Disable()
         self.mainSizer.Layout()
         self.Fit()
         self.Refresh()
@@ -1801,6 +1790,7 @@ class DlgExperimentProperties(_BaseParamsDlg):
             # set vals and disable changes
             field = 'Window size (pixels)'
             self.paramCtrls[field].valueCtrl.SetValue(str(size))
+            self.paramCtrls[field].param.val = size
             self.paramCtrls[field].valueCtrl.Disable()
             self.paramCtrls[field].nameCtrl.Disable()
         else:

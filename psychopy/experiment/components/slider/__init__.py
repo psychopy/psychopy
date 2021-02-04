@@ -74,6 +74,7 @@ class SliderComponent(BaseVisualComponent):
                  storeRating=True, storeRatingTime=True, storeHistory=False, readOnly=False):
         super(SliderComponent, self).__init__(
                 exp, parentName, name,
+                pos=pos, size=size,
                 startType=startType, startVal=startVal,
                 stopType=stopType, stopVal=stopVal,
                 startEstim=startEstim, durationEstim=durationEstim)
@@ -94,21 +95,21 @@ class SliderComponent(BaseVisualComponent):
         # normal params:
         # = the usual as inherited from BaseVisual plus:
         self.params['ticks'] = Param(
-                ticks, valType='list', inputType="single", allowedTypes=[], categ='Data',
+                ticks, valType='list', inputType="single", allowedTypes=[], categ='Basic',
                 updates='constant',
                 allowedUpdates=['constant', 'set every repeat'],
                 hint=_translate("Tick positions (numerical) on the scale, "
                                 "separated by commas"),
                 label=_localized['ticks'])
         self.params['labels'] = Param(
-                labels, valType='list', inputType="single", allowedTypes=[], categ='Data',
+                labels, valType='list', inputType="single", allowedTypes=[], categ='Basic',
                 updates='constant',
                 allowedUpdates=['constant', 'set every repeat'],
                 hint=_translate("Labels for the tick marks on the scale, "
                                 "separated by commas"),
                 label=_localized['labels'])
         self.params['granularity'] = Param(
-                granularity, valType='num', inputType="single", allowedTypes=[], categ='Data',
+                granularity, valType='num', inputType="single", allowedTypes=[], categ='Basic',
                 updates='constant',
                 allowedUpdates=['constant', 'set every repeat'],
                 hint=_translate("Specifies the minimum step size "

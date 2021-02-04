@@ -273,8 +273,7 @@ class PR650(object):
                 thisNm, thisPower = point.split(',')
                 nm.append(thisNm)
                 power.append(thisPower.replace('\r\n', ''))
-            if progDlg:
-                progDlg.Update(n)
+
         return numpy.asarray(nm), numpy.asarray(power)
 
 

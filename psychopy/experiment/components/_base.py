@@ -578,7 +578,7 @@ class BaseVisualComponent(BaseComponent):
     categories = ['Stimuli']
 
     def __init__(self, exp, parentName, name='',
-                 units='from exp settings', color='white', fillColor="None", borderColor="None",
+                 units='from exp settings', color='white', fillColor="", borderColor="",
                  pos=(0, 0), size=(0, 0), ori=0, colorSpace='rgb', opacity=1, contrast=1,
                  startType='time (s)', startVal='',
                  stopType='duration (s)', stopVal='',
@@ -617,8 +617,7 @@ class BaseVisualComponent(BaseComponent):
             hint=msg,
             label=_localized['units'])
 
-        msg = _translate("Foreground color of this stimulus (e.g. $[1,1,0], red );"
-                         " Right-click to bring up a color-picker (rgb only)")
+        msg = _translate("Foreground color of this stimulus (e.g. $[1,1,0], red )")
         self.params['color'] = Param(color,
             valType='color', inputType="color", categ='Appearance',
             allowedTypes=[],
@@ -636,8 +635,7 @@ class BaseVisualComponent(BaseComponent):
             hint=msg,
             label=_localized['colorSpace'])
 
-        msg = _translate("Fill color of this stimulus (e.g. $[1,1,0], red );"
-                         " Right-click to bring up a color-picker (rgb only)")
+        msg = _translate("Fill color of this stimulus (e.g. $[1,1,0], red )")
         self.params['fillColor'] = Param(fillColor,
             valType='color', inputType="color", categ='Appearance',
             updates='constant', allowedTypes=[],
@@ -645,8 +643,7 @@ class BaseVisualComponent(BaseComponent):
             hint=msg,
             label=_localized['fillColor'])
 
-        msg = _translate("Color of this stimulus (e.g. $[1,1,0], red );"
-                         " Right-click to bring up a color-picker (rgb only)")
+        msg = _translate("Color of this stimulus (e.g. $[1,1,0], red )")
         self.params['borderColor'] = Param(borderColor,
             valType='color', inputType="color", categ='Appearance',
             updates='constant',allowedTypes=[],

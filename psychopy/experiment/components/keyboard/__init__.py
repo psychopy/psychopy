@@ -74,7 +74,8 @@ class KeyboardComponent(BaseComponent):
             "A comma-separated list of keys (with quotes), such as "
             "'q','right','space','left'")
         self.params['allowedKeys'] = Param(
-            allowedKeys, valType='list', inputType="single", allowedTypes=[], categ='Data',
+            allowedKeys, valType='list', inputType="single", allowedTypes=[],
+            categ='Basic',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat'],
             hint=(msg),
@@ -161,7 +162,7 @@ class KeyboardComponent(BaseComponent):
         store = self.params['store'].val
         storeCorr = self.params['storeCorrect'].val
         forceEnd = self.params['forceEndRoutine'].val
-        allowedKeys = self.params['allowedKeys'].val.strip()
+        allowedKeys = str(self.params['allowedKeys'])
         visualSync = self.params['syncScreenRefresh'].val
 
         buff.writeIndented("\n")

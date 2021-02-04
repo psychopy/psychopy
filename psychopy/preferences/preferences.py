@@ -134,6 +134,8 @@ class Preferences(object):
         self.paths['themes'] = join(self.paths['userPrefsDir'], 'themes')
         baseThemes = join(self.paths['appDir'], 'themes')
         baseAppThemes = join(self.paths['appDir'], 'themes', 'app')
+        # Find / copy fonts
+        self.paths['fonts'] = join(self.paths['userPrefsDir'], 'fonts')
         # avoid silent fail-to-launch-app if bad permissions:
 
         try:
@@ -149,6 +151,12 @@ class Preferences(object):
                 raise
         try:
             os.makedirs(join(self.paths['themes'], "app"))
+        except OSError as err:
+            if err.errno != errno.EEXIST:
+                raise
+        # Make fonts folder in user space if not one already
+        try:
+            os.makedirs(self.paths['fonts'])
         except OSError as err:
             if err.errno != errno.EEXIST:
                 raise

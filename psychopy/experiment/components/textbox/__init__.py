@@ -236,6 +236,7 @@ class TextboxComponent(BaseVisualComponent):
         code = ("  depth: %.1f \n"
                 "});\n\n" % (depth))
         buff.writeIndentedLines(code)
+        depth = -self.getPosInRoutine()
 
     def writeRoutineEndCode(self, buff):
         name = self.params['name']

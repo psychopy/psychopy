@@ -8,8 +8,8 @@ version=${version:-$defVersion}
 echo "Building $version"
 
 rm -r build
-rm -r dist/PsychoPy*.app #the previous version
-rm -r ../dist/PsychoPy*.app  # the previous version in outer location
+sudo rm -r dist/PsychoPy*.app #the previous version
+sudo rm -r ../dist/PsychoPy*.app  # the previous version in outer location
 
 python setup.py sdist --format=zip
 # then handle the mac app bundle
