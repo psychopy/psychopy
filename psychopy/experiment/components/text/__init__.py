@@ -85,7 +85,7 @@ class TextComponent(BaseVisualComponent):
                             " the specified units)"),
             label=_localized['wrapWidth'])
         self.params['flip'] = Param(
-            flip, valType='str', inputType="choice", allowedTypes=[], categ='Layout',
+            flip, valType='str', inputType="single", allowedTypes=[], categ='Layout',
             allowedVals=["horiz", "vert", "None"], updates='constant', allowedUpdates=_allow3[:],  # copy the list
             hint=_translate("horiz = left-right reversed; vert = up-down"
                             " reversed; $var = variable"),
