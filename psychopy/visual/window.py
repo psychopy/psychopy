@@ -927,15 +927,17 @@ class Window(object):
     @currentEditable.setter
     def currentEditable(self, editable):
         """Keeps the current editable stored as a weak ref"""
-        # Save previous editable
-        lastEditable = self.currentEditable
-        # Remove focus from last editable
-        if lastEditable is not None and lastEditable is not editable:
-            lastEditable.hasFocus = False
         # Ensure that item is added to editables list
         self.addEditable(editable)
-        # Give focus to new current editable        
-        editable.hasFocus = True
+
+        # Set the editable as the current editable stim in the window
+        eRef = None
+        for ref in weakref.getweakrefs(editable):
+            if ref in self._editableChildren:
+                eRef = ref
+                break
+        if eRef:
+            self._currentEditableRef = eRef
 
     def addEditable(self, editable):
         """Adds an editable element to the screen (something to which
@@ -949,8 +951,8 @@ class Window(object):
         # Ignore if object is not editable
         if not hasattr(editable, "editable"):
             return
-        #if not editable.editable:
-        #    return
+        if not editable.editable:
+            return
         # If editable is already present do nothing
         eRef = False
         for ref in weakref.getweakrefs(editable):
@@ -979,7 +981,7 @@ class Window(object):
                 return True
         return False
     
-    def nextEditable(self, chars=''):
+    def nextEditable(self):
         """Moves focus of the cursor to the next editable window"""
         if self.currentEditable is None:
             if len(self._editableChildren):
