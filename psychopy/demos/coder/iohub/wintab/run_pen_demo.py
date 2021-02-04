@@ -5,7 +5,7 @@ from psychopy import core, visual
 from psychopy.gui import fileSaveDlg
 from psychopy.iohub import launchHubServer
 
-import wintabgraphics
+import _wintabgraphics as wintabgraphics
 
 # Default session data file name
 DEFAULT_SESSION_CODE = u's1234'
