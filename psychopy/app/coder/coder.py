@@ -1228,28 +1228,37 @@ class CoderFrame(wx.Frame, ThemeMixin):
         # Link to file drop function
         self.SetDropTarget(FileDropTarget(targetFrame=self))
 
+        # Create editor notebook
+        #todo: Why is editor default background not same as usual frame backgrounds?
+        self.notebook = aui.AuiNotebook(
+            self.pnlMain, -1, size=wx.Size(480, 480),
+            agwStyle=aui.AUI_NB_TAB_MOVE | aui.AUI_NB_CLOSE_ON_ACTIVE_TAB)
+
+        #self.notebook.SetArtProvider(PsychopyTabArt())
+        # Add editor panel
+        self.paneManager.AddPane(self.notebook, aui.AuiPaneInfo().
+                                 Name("Editor").
+                                 Caption(_translate("Editor")).
+                                 BestSize((480, 480)).
+                                 Floatable(False).
+                                 Movable(False).
+                                 Center().
+                                 PaneBorder(True).  # 'center panes' expand
+                                 CloseButton(False).
+                                 MaximizeButton(True))
+
         # Create source assistant notebook
         self.sourceAsst = aui.AuiNotebook(
             self.pnlMain,
             wx.ID_ANY,
-            size = wx.Size(450, 600),
+            size = wx.Size(500, 600),
             agwStyle=aui.AUI_NB_CLOSE_ON_ALL_TABS |
                      aui.AUI_NB_TAB_SPLIT |
                      aui.AUI_NB_TAB_MOVE)
 
         self.structureWindow = SourceTreePanel(self.sourceAsst, self)
         self.fileBrowserWindow = FileBrowserPanel(self.sourceAsst, self)
-        # Add source assistant panel
-        self.paneManager.AddPane(self.sourceAsst,
-                                 aui.AuiPaneInfo().
-                                 BestSize((350, 600)).
-                                 FloatingSize((350, 600)).
-                                 Floatable(False).
-                                 BottomDockable(False).TopDockable(False).
-                                 CloseButton(False).PaneBorder(False).
-                                 Name("SourceAsst").
-                                 Caption(_translate("Source Assistant")).
-                                 Left())
+
         # Add structure page to source assistant
         self.structureWindow.SetName("Structure")
         self.sourceAsst.AddPage(self.structureWindow, "Structure")
@@ -1258,27 +1267,20 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.sourceAsst.AddPage(self.fileBrowserWindow, "File Browser")
 
         # remove close buttons
-        self.sourceAsst.SetCloseButton(0, False)
-        self.sourceAsst.SetCloseButton(1, False)
+        for i in range(self.sourceAsst.GetPageCount()):
+            self.sourceAsst.SetCloseButton(i, False)
 
-        # Create editor notebook
-        #todo: Why is editor default background not same as usual frame backgrounds?
-        self.notebook = aui.AuiNotebook(
-            self.pnlMain, -1, size=wx.Size(480, 600),
-            agwStyle=aui.AUI_NB_TAB_MOVE | aui.AUI_NB_CLOSE_ON_ACTIVE_TAB)
-
-        #self.notebook.SetArtProvider(PsychopyTabArt())
-        # Add editor panel
-        self.paneManager.AddPane(self.notebook, aui.AuiPaneInfo().
-                                 Name("Editor").
-                                 Caption(_translate("Editor")).
-                                 BestSize((600, 600)).
+        # Add source assistant panel
+        self.paneManager.AddPane(self.sourceAsst,
+                                 aui.AuiPaneInfo().
+                                 BestSize((500, 600)).
                                  Floatable(False).
-                                 Movable(False).
-                                 Center().
-                                 PaneBorder(True).  # 'center panes' expand
-                                 CloseButton(False).
-                                 MaximizeButton(True))
+                                 BottomDockable(False).TopDockable(False).
+                                 CloseButton(False).PaneBorder(False).
+                                 Name("SourceAsst").
+                                 Caption(_translate("Source Assistant")).
+                                 Left())
+
         self.notebook.SetFocus()
         # Link functions
         self.notebook.Bind(aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.fileClose)
@@ -1356,8 +1358,9 @@ class CoderFrame(wx.Frame, ThemeMixin):
             self.paneManager.GetPane('SourceAsst').Caption(_translate("Source Assistant"))
             self.paneManager.GetPane('Editor').Caption(_translate("Editor"))
         else:
-            self.SetMinSize(wx.Size(400, 600))  # min size for whole window
-            self.Fit()
+            self.SetMinSize(wx.Size(480, 640))  # min size for whole window
+            self.SetSize(wx.Size(1024, 800))
+            # self.Fit()
         # Update panes PsychopyToolbar
         isExp = filename.endswith(".py") or filename.endswith(".psyexp")
 
@@ -2366,7 +2369,11 @@ class CoderFrame(wx.Frame, ThemeMixin):
                 self.app.newBuilderFrame(fileName=filename)
             else:
                 self.setCurrentDoc(filename)
-                self.setFileModified(False)
+                # don't do the next step if no file was opened (hack!!)
+                if self.notebook.GetPageCount() > 0:
+                    if self.notebook.GetCurrentPage().filename == filename:
+                        self.setFileModified(False)
+
         self.statusBar.SetStatusText('')
 
         # don't do this, this will add unwanted files to the task list - mdc
