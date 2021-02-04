@@ -782,8 +782,8 @@ class Color(object):
 """----------Legacy-----------------"""
 # Old reference tables
 colors = colorNames
-#colorsHex = {key: Color(key, 'named').hex for key in colors}
-#colors255 = {key: Color(key, 'named').rgb255 for key in colors}
+# colorsHex = {key: Color(key, 'named').hex for key in colors}
+# colors255 = {key: Color(key, 'named').rgb255 for key in colors}
 
 # Old conversion functions
 def hex2rgb255(hexColor):
@@ -797,10 +797,9 @@ def hex2rgb255(hexColor):
         return col.rgba255
 
 def isValidColor(color):
-    """check color validity (equivalent to existing checks in _setColor)
+    """Deprecated: since version 2021.1
     """
-    try:
-        buffer = Color(color)
-        return bool(buffer)
-    except:
-        return False
+    logging.warning("DEPRECATED: colors.isValidColor() wa having little effect. "
+                "It is now set to return True always "
+                "and will be removed in future versions.")
+    return True
