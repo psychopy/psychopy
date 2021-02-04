@@ -16,7 +16,7 @@ import weakref
 import atexit
 from itertools import product
 
-from builtins import map
+# from builtins import map
 from builtins import object
 from builtins import range
 from builtins import str
@@ -26,7 +26,7 @@ from collections import deque
 from psychopy.contrib.lazy_import import lazy_import
 from psychopy import colors, event
 import math
-from psychopy.clock import monotonicClock
+# from psychopy.clock import monotonicClock
 
 # try to find avbin (we'll overload pyglet's load_library tool and then
 # add some paths)
@@ -197,81 +197,81 @@ class Window(object):
 
         Parameters
         ----------
-        size : `array-like` of `int`
+        size : array-like of int
             Size of the window in pixels [x, y].
-        pos : `array-like` of `int`
+        pos : array-like of int
             Location of the top-left corner of the window on the screen [x, y].
-        color : `array-like` of `float`
+        color : `rray-like of float
             Color of background as [r, g, b] list or single value. Each gun can
             take values between -1.0 and 1.0.
-        fullscr : `bool` or `None`
+        fullscr : bool or None
             Create a window in 'full-screen' mode. Better timing can be achieved
             in full-screen mode.
-        allowGUI : `bool` or `None`
+        allowGUI : bool or None
             If set to False, window will be drawn with no frame and no buttons
             to close etc., use `None` for value from preferences.
-        winType : `str` or `None`
+        winType : str or None
             Set the window type or back-end to use. If `None` then PsychoPy will
             revert to user/site preferences.
-        monitor : :obj:`~psychopy.monitors.Monitor` or `None`
+        monitor : :class:`~psychopy.monitors.Monitor` or None
             The monitor to be used during the experiment. If `None` a default
             monitor profile will be used.
-        units : `str` or `None`
+        units : str or None
             Defines the default units of stimuli drawn in the window (can be
             overridden by each stimulus). Values can be *None*, 'height' (of the
             window), 'norm' (normalised), 'deg', 'cm', 'pix'. See :ref:`units`
             for explanation of options.
-        screen : `int`
+        screen : int
             Specifies the physical screen that stimuli will appear on ('pyglet'
             and 'glfw' `winType` only). Values can be >0 if more than one screen
             is present.
-        viewScale : `array-like` of `float` or `None`
+        viewScale : array-like of float or None
             Scaling factors [x, y] to apply custom scaling to the current units
             of the :class:`~psychopy.visual.Window` instance.
-        viewPos : `array-like` of `float` or `None`
+        viewPos : array-like of float or None
             If not `None`, redefines the origin within the window, in the units
             of the window. Values outside the borders will be clamped to lie on
             the border.
-        viewOri : `float`
+        viewOri : float
             A single value determining the orientation of the view in degrees.
-        waitBlanking : `bool` or `None`
+        waitBlanking : bool or None
             After a call to :py:attr:`~Window.flip()` should we wait for the
             blank before the script continues.
-        bitsMode :
+        bitsMode : bool
             DEPRECATED in 1.80.02. Use BitsSharp class from pycrsltd
             instead.
-        checkTiming : `bool`
+        checkTiming : bool
             Whether to calculate frame duration on initialization. Estimated
             duration is saved in :py:attr:`~Window.monitorFramePeriod`.
-        allowStencil : `bool`
+        allowStencil : bool
             When set to `True`, this allows operations that use the OpenGL
             stencil buffer (notably, allowing the
             :class:`~psychopy.visual.Aperture` to be used).
-        multiSample : `bool`
+        multiSample : bool
             If `True` and your graphics driver supports multisample buffers,
             multiple color samples will be taken per-pixel, providing an
             anti-aliased image through spatial filtering. This setting cannot
             be changed after opening a window. Only works with 'pyglet' and
             'glfw' `winTypes`, and `useFBO` is `False`.
-        numSamples : `int`
+        numSamples : int
             A single value specifying the number of samples per pixel if
             multisample is enabled. The higher the number, the better the
             image quality, but can delay frame flipping. The largest number of
             samples is determined by ``GL_MAX_SAMPLES``, usually 16 or 32 on
             newer hardware, will crash if number is invalid.
-        stereo : `bool`
+        stereo : bool
             If `True` and your graphics card supports quad buffers then
             this will be enabled. You can switch between left and right-eye
             scenes for drawing operations using
             :py:attr:`~psychopy.visual.Window.setBuffer()`.
-        useRetina : `bool`
+        useRetina : bool
             In PsychoPy >1.85.3 this should always be `True` as pyglet
             (or Apple) no longer allows us to create a non-retina display.
             NB when you use Retina display the initial win size
             request will be in the larger pixels but subsequent use of
             ``units='pix'`` should refer to the tiny Retina pixels. Window.size
             will give the actual size of the screen in Retina pixels.
-        gammaErrorPolicy: `str`
+        gammaErrorPolicy: str
             If `raise`, an error is raised if the gamma table is unable to be
             retrieved or set. If `warn`, a warning is raised instead. If
             `ignore`, neither an error nor a warning are raised.
@@ -284,7 +284,7 @@ class Window(object):
             is assumed the display has 8-bits per color (8, 8, 8). Behaviour may
             be undefined for non-fullscreen windows, or if multiple screens are
             attached with varying color output depths.
-        depthBits : int,
+        depthBits : int
             Back buffer depth bits. Default is 8, but can be set higher (eg. 24)
             if drawing 3D stimuli to minimize artifacts such a 'Z-fighting'.
         stencilBits : int
@@ -921,7 +921,8 @@ class Window(object):
     @property
     def currentEditable(self):
         """The editable (Text?) object that currently has key focus"""
-        return self._currentEditableRef()
+        if self._currentEditableRef:
+            return self._currentEditableRef()
 
     @currentEditable.setter
     def currentEditable(self, editable):
