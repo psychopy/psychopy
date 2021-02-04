@@ -38,7 +38,7 @@ class Circle(Polygon):
         attributes `pos`, `size` and `radius` are interpreted.
     lineWidth : float
         Width of the circle's outline.
-    lineColor, fillColor : array_like, str, :class:`~psychopy.visual.Color` or None
+    lineColor, fillColor : array_like, str, :class:`~psychopy.colors.Color` or None
         Color of the circle's outline and fill. If `None`, a fully
         transparent color is used which makes the fill or outline invisible.
     lineColorSpace, fillColorSpace : str
@@ -80,7 +80,7 @@ class Circle(Polygon):
     interpolate : bool
         Enable smoothing (anti-aliasing) when drawing shape outlines. This
         produces a smoother (less-pixelated) outline of the shape.
-    lineRGB, fillRGB: array_like, :class:`~psychopy.visual.Color` or None
+    lineRGB, fillRGB: array_like, :class:`~psychopy.colors.Color` or None
         *Deprecated*. Please use `lineColor` and `fillColor`. These
         arguments may be removed in a future version.
     name : str
@@ -93,7 +93,7 @@ class Circle(Polygon):
         Enable auto drawing. When `True`, the stimulus will be drawn every
         frame without the need to explicitly call the
         :py:meth:`~psychopy.visual.shape.ShapeStim.draw()` method.
-    color : array_like, str, :class:`~psychopy.visual.Color` or `None`
+    color : array_like, str, :class:`~psychopy.colors.Color` or `None`
         Sets both the initial `lineColor` and `fillColor` of the shape.
     colorSpace : str
         Sets the colorspace, changing how values passed to `lineColor` and

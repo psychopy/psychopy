@@ -453,7 +453,7 @@ class ShapeStim(BaseShapeStim):
         `fillColor` are interpreted.
     lineWidth : float
         Width of the shape outline.
-    lineColor, fillColor : array_like, str, :class:`~psychopy.visual.Color` or None
+    lineColor, fillColor : array_like, str, :class:`~psychopy.colors.Color` or None
         Color of the shape outline and fill. If `None`, a fully
         transparent color is used which makes the fill or outline invisible.
     vertices : array_like
@@ -507,9 +507,9 @@ class ShapeStim(BaseShapeStim):
         Enable auto drawing. When `True`, the stimulus will be drawn every
         frame without the need to explicitly call the
         :py:meth:`~psychopy.visual.ShapeStim.draw` method.
-    color : array_like, str, :class:`~psychopy.visual.Color` or None
+    color : array_like, str, :class:`~psychopy.colors.Color` or None
         Sets both the initial `lineColor` and `fillColor` of the shape.
-    lineRGB, fillRGB: array_like, :class:`~psychopy.visual.Color` or None
+    lineRGB, fillRGB: array_like, :class:`~psychopy.colors.Color` or None
         *Deprecated*. Please use `lineColor` and `fillColor`. These
         arguments may be removed in a future version.
     lineColorSpace, fillColorSpace : str

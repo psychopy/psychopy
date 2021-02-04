@@ -44,7 +44,7 @@ class Line(ShapeStim):
         attributes `pos`, `size` and `radius` are interpreted.
     lineWidth : float
         Width of the line.
-    lineColor : array_like, str, :class:`~psychopy.visual.Color` or None
+    lineColor : array_like, str, :class:`~psychopy.colors.Color` or None
         Color of the line. If `None`, a fully transparent color is used which
         makes the line invisible. *Deprecated* use `color` instead.
     lineColorSpace : str or None
@@ -86,7 +86,7 @@ class Line(ShapeStim):
     interpolate : bool
         Enable smoothing (anti-aliasing) when drawing lines. This produces a
         smoother (less-pixelated) line.
-    lineRGB: array_like, :class:`~psychopy.visual.Color` or None
+    lineRGB: array_like, :class:`~psychopy.colors.Color` or None
         *Deprecated*. Please use `color` instead. This argument may be removed
         in a future version.
     name : str
@@ -99,7 +99,7 @@ class Line(ShapeStim):
         Enable auto drawing. When `True`, the stimulus will be drawn every
         frame without the need to explicitly call the
         :py:meth:`~psychopy.visual.shape.ShapeStim.draw()` method.
-    color : array_like, str, :class:`~psychopy.visual.Color` or None
+    color : array_like, str, :class:`~psychopy.colors.Color` or None
         Sets both the initial `lineColor` and `fillColor` of the shape.
     colorSpace : str
         Sets the colorspace, changing how values passed to `lineColor` and
