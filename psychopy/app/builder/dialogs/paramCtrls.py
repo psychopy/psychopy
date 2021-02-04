@@ -113,7 +113,7 @@ class SingleLineCtrl(wx.TextCtrl, _ValidatorMixin):
 class MultiLineCtrl(SingleLineCtrl, _ValidatorMixin):
     def __init__(self, parent, valType,
                  val="", fieldName="",
-                 size=wx.Size(-1, 72)):
+                 size=wx.Size(-1, 144)):
         SingleLineCtrl.__init__(self, parent, valType,
                                 val=val, fieldName=fieldName,
                                 size=size, style=wx.TE_MULTILINE)

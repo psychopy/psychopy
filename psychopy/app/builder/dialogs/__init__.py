@@ -120,7 +120,7 @@ class ParamCtrls(object):
             # Create multiline string control
             self.valueCtrl = paramCtrls.MultiLineCtrl(parent,
                                                       val=str(param.val), valType=param.valType,
-                                                      fieldName=fieldName, size=wx.Size(self.valueWidth, 48))
+                                                      fieldName=fieldName, size=wx.Size(self.valueWidth, 144))
             # Set focus if field is text of a Textbox or Text component
             if fieldName == 'text':
                 self.valueCtrl.SetFocus()
