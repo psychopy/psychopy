@@ -133,9 +133,9 @@ class MinimalStim(object):
     # appears in docs and that name setting and updating is logged.
     @attributeSetter
     def name(self, value):
-        """String or None. The name of the object to be using during
-        logged messages about this stim. If you have multiple stimuli
-        in your experiment this really helps to make sense of log files!
+        """The name (`str`) of the object to be using during logged messages
+        about this stim. If you have multiple stimuli in your experiment this
+        really helps to make sense of log files!
 
         If name = None your stimulus will be called "unnamed <type>", e.g.
         visual.TextStim(win) will be called "unnamed TextStim" in the logs.
@@ -279,7 +279,7 @@ class LegacyVisualMixin(object):
 
     @attributeSetter
     def depth(self, value):
-        """DEPRECATED. Depth is now controlled simply by drawing order.
+        """DEPRECATED, depth is now controlled simply by drawing order.
         """
         self.__dict__['depth'] = value
 
@@ -366,6 +366,7 @@ class ColorMixin(object):
 
     @property
     def fillColor(self):
+        """Set the fill color for the shape."""
         if hasattr(self, '_fillColor'):
             return getattr(self._fillColor, self.colorSpace)
 
@@ -456,11 +457,6 @@ class ColorMixin(object):
     # ---legacy functions---
     @property
     def contrast(self):
-        if hasattr(self, '_foreColor'):
-            return self._foreColor.contrast
-
-    @contrast.setter
-    def contrast(self, value):
         """A value that is simply multiplied by the color.
 
         Value should be: a float between -1 (negative) and 1 (unchanged).
@@ -485,6 +481,11 @@ class ColorMixin(object):
             stim.contrast = -1.2  # inverts with increased contrast
 
         """
+        if hasattr(self, '_foreColor'):
+            return self._foreColor.contrast
+
+    @contrast.setter
+    def contrast(self, value):
         if hasattr(self, '_foreColor'):
             self._foreColor.contrast = value
         elif hasattr(self, '_fillColor'):
@@ -739,39 +740,38 @@ class ContainerMixin(object):
 class TextureMixin(object):
     """Mixin class for visual stim that have textures.
 
-    Could move visual.helpers.setTexIfNoShaders() into here
+    Could move visual.helpers.setTexIfNoShaders() into here.
+
+    Parameters
+    ----------
+    tex : Any
+        Texture data. Value can be anything that resembles image data.
+    id : int or :class:`~pyglet.gl.GLint`
+        Texture ID.
+    pixFormat : :class:`~pyglet.gl.GLenum` or int
+        Pixel format to use, values can be `GL_ALPHA` or `GL_RGB`.
+    stim : Any
+        Stimulus object using the texture.
+    res : int
+        The resolution of the texture (unless a bitmap image is used).
+    maskParams : dict or None
+        Additional parameters to configure the mask used with this texture.
+    forcePOW2 : bool
+        Force the texture to be stored in a square memory area. For grating
+        stimuli (anything that needs multiple cycles) `forcePOW2` should be
+        set to be `True`. Otherwise the wrapping of the texture will not
+        work.
+    dataType : class:`~pyglet.gl.GLenum`, int or None
+        None, `GL_UNSIGNED_BYTE`, `GL_FLOAT`. Only affects image files
+        (numpy arrays will be float).
+    wrapping : bool
+        Enable wrapping of the texture. A texture will be set to repeat (or
+        tile).
 
     """
     def _createTexture(self, tex, id, pixFormat, stim, res=128, maskParams=None,
                        forcePOW2=True, dataType=None, wrapping=True):
-        """
-        Parameters
-        ----------
-        tex : Any
-            Texture data. Value can be anything that resembles image data.
-        id : int or :class:`~pyglet.gl.GLint`
-            Texture ID.
-        pixFormat : :class:`~pyglet.gl.GLenum` or int
-            Pixel format to use, values can be `GL_ALPHA` or `GL_RGB`.
-        stim : Any
-            Stimulus object using the texture.
-        res : int
-            The resolution of the texture (unless a bitmap image is used).
-        maskParams : dict or None
-            Additional parameters to configure the mask used with this texture.
-        forcePOW2 : bool
-            Force the texture to be stored in a square memory area. For grating
-            stimuli (anything that needs multiple cycles) `forcePOW2` should be
-            set to be `True`. Otherwise the wrapping of the texture will not
-            work.
-        dataType : class:`~pyglet.gl.GLenum`, int or None
-            None, `GL_UNSIGNED_BYTE`, `GL_FLOAT`. Only affects image files
-            (numpy arrays will be float).
-        wrapping : bool
-            Enable wrapping of the texture. A texture will be set to repeat (or
-            tile).
 
-        """
         # Create an intensity texture, ranging -1:1.0
         notSqr = False  # most of the options will be creating a sqr texture
         wasImage = False  # change this if image loading works

@@ -174,8 +174,7 @@ class Rect(BaseShapeStim):
 
     @attributeSetter
     def size(self, value):
-        """array-like.
-        Size of the rectangle (`width` and `height`).
+        """Size of the rectangle (`width` and `height`).
         """
         # Needed to override `size` to ensure `width` and `height` attrs
         # are updated when it changes.
@@ -197,8 +196,7 @@ class Rect(BaseShapeStim):
 
     @attributeSetter
     def width(self, value):
-        """int or float.
-        Width of the Rectangle (in its respective units, if specified).
+        """Width of the Rectangle (in its respective units, if specified).
 
         :ref:`Operations <attrib-operations>` supported.
         """
@@ -213,8 +211,7 @@ class Rect(BaseShapeStim):
 
     @attributeSetter
     def height(self, value):
-        """int or float.
-        Height of the Rectangle (in its respective units, if specified).
+        """Height of the Rectangle (in its respective units, if specified).
 
         :ref:`Operations <attrib-operations>` supported.
         """
