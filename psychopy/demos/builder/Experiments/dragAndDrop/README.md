@@ -7,17 +7,17 @@ The task requires you to drag and drop the black and white pieces into the empty
 To generate more designs, you can run the `shapeMaker.psyexp` task from Builder. When you run the `shapeMaker` task, you will be asked for a number of rows. You can choose either 2 or 3 rows for 4 or 9 piece shapes, respectively. Each shape consists of a grid in the following orders:
 
 ### For 4 piece shapes
-| | |
-|:---:|:---:|
+```
 | 1 | 2 |
 | 3 | 4 |
+```
 
 ### For 9 piece shapes
-| | |
-|:---:|:---:|
+```
 | 1 | 2 | 3 |
 | 4 | 5 | 6 |
 | 7 | 8 | 9 |
+```
 
 The answers for each new shape need to be added the the conditions file, where columns
 a1 to a9 relate to the shape grid locations as described above. e.g. `a1` relates to space 1

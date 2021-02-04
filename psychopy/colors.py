@@ -361,9 +361,9 @@ class Color(object):
             return all(np.round(target.rgba, 2) == np.round(self.rgba, 2))
         elif target == None:
             if len(self) > 1:
-                return all(self.named == 'none')
+                return all(self.alpha == 0)
             else:
-                return self.named == 'none'
+                return self.alpha == 0
         else:
             return False
     def __ne__(self, target):

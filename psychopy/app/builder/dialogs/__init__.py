@@ -120,7 +120,7 @@ class ParamCtrls(object):
             # Create multiline string control
             self.valueCtrl = paramCtrls.MultiLineCtrl(parent,
                                                       val=str(param.val), valType=param.valType,
-                                                      fieldName=fieldName, size=wx.Size(self.valueWidth, 48))
+                                                      fieldName=fieldName, size=wx.Size(self.valueWidth, 144))
             # Set focus if field is text of a Textbox or Text component
             if fieldName == 'text':
                 self.valueCtrl.SetFocus()
@@ -1732,15 +1732,9 @@ class DlgComponentProperties(_BaseParamsDlg):
         correctAns field accordingly
         """
         if self.paramCtrls['storeCorrect'].valueCtrl.GetValue():
-            self.paramCtrls['correctAns'].valueCtrl.Show()
-            self.paramCtrls['correctAns'].nameCtrl.Show()
-            # self.paramCtrls['correctAns'].typeCtrl.Show()
-            # self.paramCtrls['correctAns'].updateCtrl.Show()
+            self.paramCtrls['correctAns'].valueCtrl.Enable()
         else:
-            self.paramCtrls['correctAns'].valueCtrl.Hide()
-            self.paramCtrls['correctAns'].nameCtrl.Hide()
-            # self.paramCtrls['correctAns'].typeCtrl.Hide()
-            # self.paramCtrls['correctAns'].updateCtrl.Hide()
+            self.paramCtrls['correctAns'].valueCtrl.Disable()
         self.mainSizer.Layout()
         self.Fit()
         self.Refresh()
@@ -1796,6 +1790,7 @@ class DlgExperimentProperties(_BaseParamsDlg):
             # set vals and disable changes
             field = 'Window size (pixels)'
             self.paramCtrls[field].valueCtrl.SetValue(str(size))
+            self.paramCtrls[field].param.val = size
             self.paramCtrls[field].valueCtrl.Disable()
             self.paramCtrls[field].nameCtrl.Disable()
         else:

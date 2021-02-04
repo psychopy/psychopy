@@ -38,7 +38,7 @@ class DlgCodeComponentProperties(wx.Dialog):
               | wx.DIALOG_NO_PARENT)
 
     def __init__(self, frame, title, params, order,
-                 helpUrl=None, suppressTitles=True, size=(800,400),
+                 helpUrl=None, suppressTitles=True, size=(1000,600),
                  style=_style, editing=False, depends=[],
                  timeout=None, type="Code"):
 
