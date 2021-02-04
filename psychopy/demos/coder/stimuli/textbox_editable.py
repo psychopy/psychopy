@@ -4,7 +4,7 @@
 from psychopy import visual, core, event, logging
 import numpy as np
 
-#logging.console.setLevel(logging.EXP)
+logging.console.setLevel(logging.EXP)
 c = core.Clock()
 
 from psychopy.visual.textbox2 import TextBox2, allFonts
@@ -47,6 +47,7 @@ txt3 = TextBox2(win, text='Good for non-editable text (Esc to quit)',
 
 txt1.autoDraw=True
 txt2.autoDraw=True
+txt3.autoDraw=True
 
 clock = core.Clock()
 t=0
@@ -54,24 +55,11 @@ while t<30:
     t= clock.getTime()
 
     txt2.pos = (0.2*np.sin(t), 0.2*np.cos(t))
-        
-    if t > 10 and t < 20:
-        if txt3.editable is False:
-            txt3.editable=True
-            txt3.autoDraw=True
-    elif t > 20:
-        if txt3.editable is True:
-            txt3.editable=False
-            txt3.autoDraw=False
-
-    # Do not need to call draw() each flip() 
-    # for txt1 or txt2 since autoDraw is enabled for them.
-    if txt3.editable is False:
-        txt3.draw()
-    
+            
     if 'escape' in event.getKeys():
         core.quit()
-
+    
     win.flip()
+
 logging.flush()
 
