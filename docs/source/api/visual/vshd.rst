@@ -10,7 +10,7 @@ stereoscopy or stimulus sizes.
 Overview
 ========
 
-.. currentmodule:: ppsychopy.visual.nnlvs
+.. currentmodule:: psychopy.visual.nnlvs
 
 .. autosummary::
     VisualSystemHD

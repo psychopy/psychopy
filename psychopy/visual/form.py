@@ -136,7 +136,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         self.borderColor = borderColor
 
         self.textHeight = textHeight
-        self._scrollBarSize = (0.016, size[1])
+        self._scrollBarSize = (0.016, self.size[1])
         self._baseYpositions = []
         self.leftEdge = None
         self.rightEdge = None
@@ -620,8 +620,8 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                                     width=self.size[0],
                                     height=self.size[1],
                                     colorSpace=self.colorSpace,
-                                    fillColor=self.fillColor if self.fillColor else self.colorScheme['bg'],
-                                    lineColor=self.borderColor if self.borderColor else self.colorScheme['bg'],
+                                    fillColor=self.fillColor if self.fillColor is not None else self.colorScheme['bg'],
+                                    lineColor=self.borderColor if self.borderColor is not None else self.colorScheme['bg'],
                                     autoLog=False)
 
     def _setAperture(self):

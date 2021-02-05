@@ -1,0 +1,154 @@
+﻿<?xml version="1.0" ?>
+<PsychoPy2experiment version="2020.2.10" encoding="utf-8">
+  <Settings>
+    <Param name="Audio latency priority" val="use prefs" valType="str" updates="None"/>
+    <Param name="Audio lib" val="use prefs" valType="str" updates="None"/>
+    <Param name="Completed URL" val="" valType="str" updates="None"/>
+    <Param name="Data file delimiter" val="auto" valType="str" updates="None"/>
+    <Param name="Data filename" val="u'data/%s_%s_%s' % (expInfo['participant'], expName, expInfo['date'])" valType="code" updates="None"/>
+    <Param name="Enable Escape" val="True" valType="bool" updates="None"/>
+    <Param name="Experiment info" val="{'participant':'', 'session':'001'}" valType="dict" updates="None"/>
+    <Param name="Force stereo" val="True" valType="bool" updates="None"/>
+    <Param name="Full-screen window" val="True" valType="bool" updates="None"/>
+    <Param name="HTML path" val="" valType="str" updates="None"/>
+    <Param name="Incomplete URL" val="" valType="str" updates="None"/>
+    <Param name="Monitor" val="testMonitor" valType="str" updates="None"/>
+    <Param name="Resources" val="[]" valType="list" updates="None"/>
+    <Param name="Save csv file" val="False" valType="bool" updates="None"/>
+    <Param name="Save excel file" val="False" valType="bool" updates="None"/>
+    <Param name="Save log file" val="True" valType="bool" updates="None"/>
+    <Param name="Save psydat file" val="True" valType="bool" updates="None"/>
+    <Param name="Save wide csv file" val="True" valType="bool" updates="None"/>
+    <Param name="Screen" val="1" valType="num" updates="None"/>
+    <Param name="Show info dlg" val="True" valType="bool" updates="None"/>
+    <Param name="Show mouse" val="False" valType="bool" updates="None"/>
+    <Param name="Units" val="height" valType="str" updates="None"/>
+    <Param name="Use version" val="" valType="str" updates="None"/>
+    <Param name="Window size (pixels)" val="(1024, 768)" valType="list" updates="None"/>
+    <Param name="blendMode" val="avg" valType="str" updates="None"/>
+    <Param name="color" val="$[0,0,0]" valType="color" updates="None"/>
+    <Param name="colorSpace" val="rgb" valType="str" updates="None"/>
+    <Param name="expName" val="clockFace" valType="str" updates="None"/>
+    <Param name="exportHTML" val="on Sync" valType="str" updates="None"/>
+    <Param name="logging level" val="exp" valType="code" updates="None"/>
+  </Settings>
+  <Routines>
+    <Routine name="trial">
+      <PolygonComponent name="hour">
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="contrast" val="1" valType="code" updates="constant"/>
+        <Param name="disabled" val="False" valType="bool" updates="None"/>
+        <Param name="durationEstim" val="" valType="num" updates="None"/>
+        <Param name="fillColor" val="white" valType="color" updates="constant"/>
+        <Param name="interpolate" val="linear" valType="str" updates="constant"/>
+        <Param name="lineColor" val="white" valType="color" updates="constant"/>
+        <Param name="lineWidth" val="1" valType="num" updates="constant"/>
+        <Param name="nVertices" val="4" valType="int" updates="constant"/>
+        <Param name="name" val="hour" valType="code" updates="None"/>
+        <Param name="opacity" val="1" valType="num" updates="constant"/>
+        <Param name="ori" val="0" valType="num" updates="set every frame"/>
+        <Param name="pos" val="(0, 0)" valType="list" updates="constant"/>
+        <Param name="saveStartStop" val="True" valType="bool" updates="None"/>
+        <Param name="shape" val="triangle" valType="str" updates="constant"/>
+        <Param name="size" val="(0.05, 0.3)" valType="list" updates="constant"/>
+        <Param name="startEstim" val="" valType="num" updates="None"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.0" valType="num" updates="None"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="stopVal" val="" valType="num" updates="constant"/>
+        <Param name="syncScreenRefresh" val="True" valType="bool" updates="None"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+      </PolygonComponent>
+      <PolygonComponent name="minute">
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="contrast" val="1" valType="code" updates="constant"/>
+        <Param name="disabled" val="False" valType="bool" updates="None"/>
+        <Param name="durationEstim" val="" valType="num" updates="None"/>
+        <Param name="fillColor" val="white" valType="color" updates="constant"/>
+        <Param name="interpolate" val="linear" valType="str" updates="constant"/>
+        <Param name="lineColor" val="white" valType="color" updates="constant"/>
+        <Param name="lineWidth" val="1" valType="num" updates="constant"/>
+        <Param name="nVertices" val="4" valType="int" updates="constant"/>
+        <Param name="name" val="minute" valType="code" updates="None"/>
+        <Param name="opacity" val="1" valType="num" updates="constant"/>
+        <Param name="ori" val="0" valType="num" updates="set every frame"/>
+        <Param name="pos" val="(0, 0)" valType="list" updates="constant"/>
+        <Param name="saveStartStop" val="True" valType="bool" updates="None"/>
+        <Param name="shape" val="triangle" valType="str" updates="constant"/>
+        <Param name="size" val="(0.025, 0.3)" valType="list" updates="constant"/>
+        <Param name="startEstim" val="" valType="num" updates="None"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.0" valType="num" updates="None"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="stopVal" val="" valType="num" updates="constant"/>
+        <Param name="syncScreenRefresh" val="True" valType="bool" updates="None"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+      </PolygonComponent>
+      <PolygonComponent name="second">
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="contrast" val="1" valType="code" updates="constant"/>
+        <Param name="disabled" val="False" valType="bool" updates="None"/>
+        <Param name="durationEstim" val="" valType="num" updates="None"/>
+        <Param name="fillColor" val="white" valType="color" updates="constant"/>
+        <Param name="interpolate" val="linear" valType="str" updates="constant"/>
+        <Param name="lineColor" val="white" valType="color" updates="constant"/>
+        <Param name="lineWidth" val="1" valType="num" updates="constant"/>
+        <Param name="nVertices" val="4" valType="int" updates="constant"/>
+        <Param name="name" val="second" valType="code" updates="None"/>
+        <Param name="opacity" val="1" valType="num" updates="constant"/>
+        <Param name="ori" val="0" valType="num" updates="set every frame"/>
+        <Param name="pos" val="(0, 0)" valType="list" updates="constant"/>
+        <Param name="saveStartStop" val="True" valType="bool" updates="None"/>
+        <Param name="shape" val="triangle" valType="str" updates="constant"/>
+        <Param name="size" val="(0.01, 0.3)" valType="list" updates="constant"/>
+        <Param name="startEstim" val="" valType="num" updates="None"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.0" valType="num" updates="None"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="stopVal" val="" valType="num" updates="constant"/>
+        <Param name="syncScreenRefresh" val="True" valType="bool" updates="None"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+      </PolygonComponent>
+      <VariableComponent name="times">
+        <Param name="disabled" val="False" valType="bool" updates="None"/>
+        <Param name="durationEstim" val="" valType="num" updates="None"/>
+        <Param name="name" val="times" valType="code" updates="None"/>
+        <Param name="saveEndExp" val="False" valType="bool" updates="constant"/>
+        <Param name="saveEndRoutine" val="True" valType="bool" updates="constant"/>
+        <Param name="saveFrameValue" val="never" valType="str" updates="constant"/>
+        <Param name="saveStartExp" val="False" valType="bool" updates="constant"/>
+        <Param name="saveStartRoutine" val="False" valType="bool" updates="constant"/>
+        <Param name="saveStartStop" val="True" valType="bool" updates="None"/>
+        <Param name="startEstim" val="" valType="num" updates="None"/>
+        <Param name="startExpValue" val="[0,0,0]" valType="code" updates="constant"/>
+        <Param name="startFrameValue" val="[t/60**2, t/60, t]" valType="code" updates="None"/>
+        <Param name="startRoutineValue" val="" valType="code" updates="constant"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="" valType="num" updates="None"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="stopVal" val="" valType="num" updates="constant"/>
+        <Param name="syncScreenRefresh" val="False" valType="bool" updates="None"/>
+      </VariableComponent>
+      <CodeComponent name="code">
+        <Param name="Before Experiment" val="" valType="code" updates="constant"/>
+        <Param name="Before JS Experiment" val="" valType="code" updates="constant"/>
+        <Param name="Begin Experiment" val="" valType="extendedCode" updates="constant"/>
+        <Param name="Begin JS Experiment" val="" valType="code" updates="constant"/>
+        <Param name="Begin JS Routine" val="sizes = {[hour]: [0.04, 0.3], [minute]: [0.02, 0.4], [second]: [0.005, 0.4]};&amp;#10;for (var obj, _pj_c = 0, _pj_a = [hour, minute, second], _pj_b = _pj_a.length; (_pj_c &lt; _pj_b); _pj_c += 1) {&amp;#10;    obj = _pj_a[_pj_c];&amp;#10;    [w, h] = sizes[obj];&amp;#10;    obj.vertices = [[0, (h - (w / 2))], [((- w) / 2), 0], [0, ((- w) / 2)], [(w / 2), 0]];&amp;#10;}&amp;#10;" valType="code" updates="constant"/>
+        <Param name="Begin Routine" val="# Set the desired width and length of each hand&amp;#10;sizes = {&amp;#10;    hour: (0.04, 0.3),&amp;#10;    minute: (0.02, 0.4),&amp;#10;    second: (0.005, 0.4)&amp;#10;}&amp;#10;&amp;#10;for obj in [hour, minute, second]:&amp;#10;    # For each hand, set its vertices (positions of each point relative to the shape's origin) such that it will rotate around the hand's base&amp;#10;    w, h = sizes[obj]&amp;#10;    obj.vertices = [ [0, h-w/2], [-w/2, 0], [0, -w/2], [w/2, 0] ]" valType="extendedCode" updates="constant"/>
+        <Param name="Code Type" val="Auto-&gt;JS" valType="str" updates="None"/>
+        <Param name="Each Frame" val="hour.ori = times[0]/60*360&amp;#10;minute.ori = times[1]/60*360&amp;#10;second.ori = times[2]/60*360" valType="extendedCode" updates="constant"/>
+        <Param name="Each JS Frame" val="hour.ori = ((times[0] / 60) * 360);&amp;#10;minute.ori = ((times[1] / 60) * 360);&amp;#10;second.ori = ((times[2] / 60) * 360);&amp;#10;" valType="code" updates="constant"/>
+        <Param name="End Experiment" val="" valType="extendedCode" updates="constant"/>
+        <Param name="End JS Experiment" val="" valType="code" updates="constant"/>
+        <Param name="End JS Routine" val="" valType="code" updates="constant"/>
+        <Param name="End Routine" val="" valType="extendedCode" updates="constant"/>
+        <Param name="disabled" val="False" valType="bool" updates="None"/>
+        <Param name="name" val="code" valType="code" updates="None"/>
+      </CodeComponent>
+    </Routine>
+  </Routines>
+  <Flow>
+    <Routine name="trial"/>
+  </Flow>
+</PsychoPy2experiment>

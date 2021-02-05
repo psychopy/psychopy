@@ -54,11 +54,10 @@ class JoystickComponent(BaseComponent):
         self.exp.requirePsychopyLibs(['event'])
         self.categories = ['Inputs']
 
-        self.order = [
-            'forceEndRoutineOnPress',
-            'saveJoystickState', 'timeRelativeTo',
-            'clickable', 'saveParamsClickable', 'deviceNumber', 'allowedButtons']
-
+        self.order += ['forceEndRoutine',  # Basic tab
+                       'saveJoystickState', 'timeRelativeTo', 'clickable', 'saveParamsClickable', 'allowedButtons',  # Data tab
+                       'deviceNumber',  # Hardware tab
+                       ]
         # params
         msg = _translate(
             "How often should the joystick state (x,y,buttons) be stored? "

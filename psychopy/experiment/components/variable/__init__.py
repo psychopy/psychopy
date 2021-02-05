@@ -46,8 +46,9 @@ class VariableComponent(BaseComponent):
         categories = ['Custom']
         self.type = 'Variable'
         self.url = "http://www.psychopy.org/builder/components/variable.html"
-        self.order += ['startExpValue', 'saveStartExp', 'startRoutineValue', 'saveStartRoutine', 'startFrameValue',
-                       'saveFrameValue', 'saveEndRoutine', 'saveEndExp']
+        self.order += ['startExpValue', 'saveStartExp', 'startRoutineValue',  # Basic tab
+                       'saveStartRoutine', 'startFrameValue', 'saveFrameValue', 'saveEndRoutine', 'saveEndExp',  # Data tab
+                       ]
 
         # set parameters
         hnt = _translate("The start value. A variable can be set to any value.")

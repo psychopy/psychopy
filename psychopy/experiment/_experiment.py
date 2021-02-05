@@ -901,7 +901,6 @@ class ExpFile(list):
         self.filename = filename
         self._clockName = None  # used in script "t = trialClock.GetTime()"
         self.type = 'ExpFile'
-        list.__init__(self, components)
 
     def __repr__(self):
         _rep = "psychopy.experiment.ExpFile(name='%s',exp=%s,filename='%s')"

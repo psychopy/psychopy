@@ -87,6 +87,8 @@ _localizedDialogs = {
     'valid click': _translate('valid click'),
     'mouse onset':_translate('mouse onset'),
     'Routine': _translate('Routine'),
+    # Joystick:
+    'joystick onset':_translate('joystick onset'),
     # Polygon:
     'line': _translate('line'),
     'triangle': _translate('triangle'),
@@ -121,7 +123,7 @@ components = [os.path.basename(m).replace('.py', '') for m in modules
 for comp in components:
     try:
         exec('from psychopy.experiment.components.' + comp + ' import _localized as _loc')
-        _localized.update(_loc)
+        _localized.update(_loc)  # noqa: F821  # exists through exec import
     except ImportError:
         pass
 

@@ -38,12 +38,27 @@ class PygameBackend(BaseBackend):
     GL = GL
     winTypeName = 'pygame'
 
-    def __init__(self, win, *args, **kwargs):
+    def __init__(self, win, backendConf=None):
         """Set up the backend window according the params of the PsychoPy win
 
         Before PsychoPy 1.90.0 this code was executed in Window._setupPygame()
 
-        :param: win is a PsychoPy Window (usually not fully created yet)
+        Parameters
+        ----------
+        win : `psychopy.visual.Window` instance
+            PsychoPy Window (usually not fully created yet).
+        backendConf : `dict` or `None`
+            Backend configuration options. Options are specified as a dictionary
+            where keys are option names and values are settings. This backend
+            currently takes no additional settings.
+
+        Examples
+        --------
+        Create a window using the Pygame backend::
+
+            import psychopy.visual as visual
+            win = visual.Window(winType='glfw', backendOptions=options)
+
         """
         BaseBackend.__init__(self, win)  # sets up self.win=win as weakref
 

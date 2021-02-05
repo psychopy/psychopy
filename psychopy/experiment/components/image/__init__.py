@@ -29,7 +29,7 @@ _localized.update({'image': _translate('Image'),
 class ImageComponent(BaseVisualComponent):
     """An event class for presenting image-based stimuli"""
 
-    def __init__(self, exp, parentName, name='image', image='None', mask='None',
+    def __init__(self, exp, parentName, name='image', image='', mask='',
                  interpolate='linear', units='from exp settings',
                  color='$[1,1,1]', colorSpace='rgb', pos=(0, 0),
                  size=(0.5, 0.5), ori=0, texRes='128', flipVert=False,
@@ -49,7 +49,9 @@ class ImageComponent(BaseVisualComponent):
         self.url = "http://www.psychopy.org/builder/components/image.html"
         self.exp.requirePsychopyLibs(['visual'])
         # params
-        self.order += ['image', 'pos', 'size', 'ori', 'opacity']
+        self.order += ['image',  # Basic tab
+                       'mask', 'texture resolution',  # Texture tab
+                       ]
 
         msg = _translate(
             "The image to be displayed - a filename, including path")
@@ -103,9 +105,7 @@ class ImageComponent(BaseVisualComponent):
             label=_localized["flipHoriz"])
 
         del self.params['fillColor']
-        del self.params['fillColorSpace']
         del self.params['borderColor']
-        del self.params['borderColorSpace']
 
     def writeInitCode(self, buff):
         # do we need units code?

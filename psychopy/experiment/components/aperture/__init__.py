@@ -43,9 +43,7 @@ class ApertureComponent(BaseVisualComponent):
 
         self.type = 'Aperture'
         self.url = "http://www.psychopy.org/builder/components/aperture.html"
-        # params:
-        # NB make some adjustments on the params defined by _visual component
-        self.order = ['name', 'size', 'pos']  # make sure this is at top
+        self.order += []
 
         msg = _translate(
             "How big is the aperture? (a single number for diameter)")
@@ -59,9 +57,7 @@ class ApertureComponent(BaseVisualComponent):
         del self.params['color']
         del self.params['colorSpace']
         del self.params['fillColor']
-        del self.params['fillColorSpace']
         del self.params['borderColor']
-        del self.params['borderColorSpace']
         del self.params['opacity']
 
     def writeInitCode(self, buff):

@@ -578,8 +578,8 @@ class BaseVisualComponent(BaseComponent):
     categories = ['Stimuli']
 
     def __init__(self, exp, parentName, name='',
-                 units='from exp settings', color='white', fillColor="None", borderColor="None",
-                 pos=(0, 0), size=(0, 0), ori=0, colorSpace='rgb', opacity=1,
+                 units='from exp settings', color='white', fillColor="", borderColor="",
+                 pos=(0, 0), size=(0, 0), ori=0, colorSpace='rgb', opacity=1, contrast=1,
                  startType='time (s)', startVal='',
                  stopType='duration (s)', stopVal='',
                  startEstim='', durationEstim='',
@@ -596,6 +596,19 @@ class BaseVisualComponent(BaseComponent):
         self.exp.requirePsychopyLibs(
             ['visual'])  # needs this psychopy lib to operate
 
+        self.order += [
+            "color",
+            "fillColor",
+            "borderColor",
+            "colorSpace",
+            "opacity",
+            "size",
+            "pos",
+            "units",
+            "anchor",
+            "ori",
+        ]
+
         msg = _translate("Units of dimensions for this stimulus")
         self.params['units'] = Param(units,
             valType='str', inputType="choice", categ='Layout',
@@ -604,8 +617,7 @@ class BaseVisualComponent(BaseComponent):
             hint=msg,
             label=_localized['units'])
 
-        msg = _translate("Foreground color of this stimulus (e.g. $[1,1,0], red );"
-                         " Right-click to bring up a color-picker (rgb only)")
+        msg = _translate("Foreground color of this stimulus (e.g. $[1,1,0], red )")
         self.params['color'] = Param(color,
             valType='color', inputType="color", categ='Appearance',
             allowedTypes=[],
@@ -615,7 +627,7 @@ class BaseVisualComponent(BaseComponent):
             label=_localized['color'])
 
         msg = _translate("In what format (color space) have you specified "
-                         "the foreground color? (rgb, dkl, lms, hsv)")
+                         "the colors? (rgb, dkl, lms, hsv)")
         self.params['colorSpace'] = Param(colorSpace,
             valType='str', inputType="choice", categ='Appearance',
             allowedVals=['named', 'rgb', 'dkl', 'lms', 'hsv'],
@@ -623,41 +635,21 @@ class BaseVisualComponent(BaseComponent):
             hint=msg,
             label=_localized['colorSpace'])
 
-        msg = _translate("Fill color of this stimulus (e.g. $[1,1,0], red );"
-                         " Right-click to bring up a color-picker (rgb only)")
-        self.params['fillColor'] = Param(color,
+        msg = _translate("Fill color of this stimulus (e.g. $[1,1,0], red )")
+        self.params['fillColor'] = Param(fillColor,
             valType='color', inputType="color", categ='Appearance',
             updates='constant', allowedTypes=[],
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
             label=_localized['fillColor'])
 
-        msg = _translate("In what format (color space) have you specified "
-                         "the fill color? (rgb, dkl, lms, hsv)")
-        self.params['fillColorSpace'] = Param(colorSpace,
-            valType='str', inputType="choice", categ='Appearance',
-            allowedVals=['rgb', 'dkl', 'lms', 'hsv'],
-            updates='constant',
-            hint=msg,
-            label=_localized['fillColorSpace'])
-
-        msg = _translate("Color of this stimulus (e.g. $[1,1,0], red );"
-                         " Right-click to bring up a color-picker (rgb only)")
-        self.params['borderColor'] = Param(color,
+        msg = _translate("Color of this stimulus (e.g. $[1,1,0], red )")
+        self.params['borderColor'] = Param(borderColor,
             valType='color', inputType="color", categ='Appearance',
             updates='constant',allowedTypes=[],
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
             label=_localized['borderColor'])
-
-        msg = _translate("In what format (color space) have you specified "
-                         "the border color? (rgb, dkl, lms, hsv)")
-        self.params['borderColorSpace'] = Param(colorSpace,
-            valType='str', inputType="choice", categ='Appearance',
-            allowedVals=['rgb', 'dkl', 'lms', 'hsv'],
-            updates='constant',
-            hint=msg,
-            label=_localized['borderColorSpace'])
 
         msg = _translate("Opacity of the stimulus (1=opaque, 0=fully "
                          "transparent, 0.5=translucent)")
@@ -667,6 +659,16 @@ class BaseVisualComponent(BaseComponent):
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
             label=_localized['opacity'])
+
+        msg = _translate("Contrast of the stimulus (1.0=unchanged contrast, "
+                         "0.5=decrease contrast, 0.0=uniform/no contrast, "
+                         "-0.5=slightly inverted, -1.0=totally inverted)")
+        self.params['contrast'] = Param(contrast,
+            valType='num', inputType='single', allowedTypes=[], categ='Appearance',
+            updates='constant',
+            allowedUpdates=['constant', 'set every repeat', 'set every frame'],
+            hint=msg,
+            label=_localized['contrast'])
 
         msg = _translate("Position of this stimulus (e.g. [1,2] )")
         self.params['pos'] = Param(pos,

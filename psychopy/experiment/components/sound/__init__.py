@@ -45,7 +45,10 @@ class SoundComponent(BaseComponent):
         self.url = "http://www.psychopy.org/builder/components/sound.html"
         self.exp.requirePsychopyLibs(['sound'])
         self.targets = ['PsychoPy', 'PsychoJS']
-        self.order = ["sound", "volume"]
+        self.order += [
+            "sound",  # Basic tab
+            "volume", "hammingWindow",  # Playback tab
+        ]
         # params
         self.params['stopType'].allowedVals = ['duration (s)']
         self.params['stopType'].hint = _translate('The maximum duration of a'
@@ -57,7 +60,7 @@ class SoundComponent(BaseComponent):
         hnt = _translate("A sound can be a note name (e.g. A or Bf), a number"
                          " to specify Hz (e.g. 440) or a filename")
         self.params['sound'] = Param(
-            sound, valType='str', inputType="single", allowedTypes=[], updates='constant', categ='Basic',
+            sound, valType='str', inputType="file", allowedTypes=[], updates='constant', categ='Basic',
             allowedUpdates=['constant', 'set every repeat'],
             hint=hnt,
             label=_localized['sound'])

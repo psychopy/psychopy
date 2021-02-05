@@ -198,21 +198,12 @@ class CodeSnippetValidator(BaseValidator):
         # Validate as list
         allKeyBoardKeys = list(key._key_names.values()) + [str(num) for num in range(10)]
         allKeyBoardKeys = [key.lower() for key in allKeyBoardKeys]
-        if self.fieldName == 'correctAns' and not val.startswith('$'):
-            keyList = listFromString(val)
-            if isinstance(keyList, str):
-                keyList = [keyList]
-            potentialVars = list(set(keyList) - set(allKeyBoardKeys))  # Elements of keyList not in allKeyBoardKeys
-            _highlightParamVal(parent, bool(potentialVars))
-            if len(potentialVars):
-                msg = _translate("It looks like your 'Correct answer' contains a variable - prepend variables with '$' e.g. ${val}")
-                msg = msg.format(val=potentialVars[0].lower())
 
         # Check if it is a Google font
         if self.fieldName == 'font' and not val.startswith('$'):
             fontInfo = fontMGR.getFontNamesSimilar(val)
             if not fontInfo:
-                msg = _translate(f"Font `{val}` not found locally, will attempt to retrieve from Google Fonts when this experiment next runs")
+                msg = _translate("Font `{val}` not found locally, will attempt to retrieve from Google Fonts when this experiment next runs").format(val=val)
 
         # Validate as code
         if codeWanted or isCodeField:

@@ -1,4 +1,5 @@
 from __future__ import print_function
+from past.builtins import unicode
 
 from builtins import object
 import os
@@ -87,6 +88,7 @@ class TestComponents(object):
                    'label',  # comment-out to compare labels when checking
                    'categ',
                    'next',
+                   'dollarSyntax',
                    ]
         for field in dir(param):
             if field.startswith("__"):

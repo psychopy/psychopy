@@ -58,11 +58,10 @@ class JoyButtonsComponent(BaseComponent):
         self.url = "http://www.psychopy.org/builder/components/joyButtons.html"
         self.exp.requirePsychopyLibs(['gui'])
 
-        # params
-
-        # NB name and timing params always come 1st
-        self.order = ['forceEndRoutine', 'allowedKeys', 'store',
-                      'storeCorrect', 'correctAns', 'deviceNumber']
+        self.order += ['forceEndRoutine',  # Basic tab
+                       'allowedKeys', 'store', 'storeCorrect', 'correctAns',  # Data tab
+                       'deviceNumber',  # Hardware tab
+                       ]
 
         msg = _translate(
             "A comma-separated list of button numbers, such as "

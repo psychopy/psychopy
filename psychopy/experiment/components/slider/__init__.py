@@ -66,7 +66,7 @@ class SliderComponent(BaseVisualComponent):
                  style=['rating'],
                  granularity=0,
                  color="LightGray",
-                 font="HelveticaBold",
+                 font="Open Sans",
                  startType='time (s)', startVal='0.0',
                  stopType='condition', stopVal='',
                  startEstim='', durationEstim='',
@@ -74,6 +74,7 @@ class SliderComponent(BaseVisualComponent):
                  storeRating=True, storeRatingTime=True, storeHistory=False, readOnly=False):
         super(SliderComponent, self).__init__(
                 exp, parentName, name,
+                pos=pos, size=size,
                 startType=startType, startVal=startVal,
                 stopType=stopType, stopVal=stopVal,
                 startEstim=startEstim, durationEstim=durationEstim)
@@ -83,30 +84,32 @@ class SliderComponent(BaseVisualComponent):
         self.targets = ['PsychoPy', 'PsychoJS']
 
         # params
-        self.order = ['name',
-                      'size', 'pos',
-                      'ticks', 'labels',  'granularity',
-                      'font','flip','color','styles',
+        self.order += ['forceEndRoutine',  # Basic tab
+                       'font',  # Appearance tab
+                       'flip',  # Layout tab
+                       'ticks', 'labels',  'granularity', 'readOnly',  # Data tab
                       ]
+        self.order.insert(self.order.index("colorSpace"), "style")
+        self.order.insert(self.order.index("units"), "Item Padding")
 
         # normal params:
         # = the usual as inherited from BaseVisual plus:
         self.params['ticks'] = Param(
-                ticks, valType='list', inputType="single", allowedTypes=[], categ='Data',
+                ticks, valType='list', inputType="single", allowedTypes=[], categ='Basic',
                 updates='constant',
                 allowedUpdates=['constant', 'set every repeat'],
                 hint=_translate("Tick positions (numerical) on the scale, "
                                 "separated by commas"),
                 label=_localized['ticks'])
         self.params['labels'] = Param(
-                labels, valType='list', inputType="single", allowedTypes=[], categ='Data',
+                labels, valType='list', inputType="single", allowedTypes=[], categ='Basic',
                 updates='constant',
                 allowedUpdates=['constant', 'set every repeat'],
                 hint=_translate("Labels for the tick marks on the scale, "
                                 "separated by commas"),
                 label=_localized['labels'])
         self.params['granularity'] = Param(
-                granularity, valType='num', inputType="single", allowedTypes=[], categ='Data',
+                granularity, valType='num', inputType="single", allowedTypes=[], categ='Basic',
                 updates='constant',
                 allowedUpdates=['constant', 'set every repeat'],
                 hint=_translate("Specifies the minimum step size "
@@ -172,9 +175,7 @@ class SliderComponent(BaseVisualComponent):
                 label=_localized['storeHistory'])
 
         del self.params['fillColor']
-        del self.params['fillColorSpace']
         del self.params['borderColor']
-        del self.params['borderColorSpace']
 
     def writeInitCode(self, buff):
 
