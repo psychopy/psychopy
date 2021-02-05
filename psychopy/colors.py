@@ -239,6 +239,9 @@ class Color(object):
         # Treat None as a named color
         if color is None:
             color = "none"
+        if isinstance(color, str):
+            if color == "":
+                color = "none"
         # Handle everything as an array
         if not isinstance(color, numpy.ndarray):
             color = np.array(color)
@@ -258,6 +261,9 @@ class Color(object):
                                     )
             if all(hexMatch(color[:, 0])):
                 space = 'hex'
+            # If color is a string but does not match any string space, it's invalid
+            if space not in strSpaces:
+                self.valid = False
         # Error if space still not set
         if not space:
             self.valid = False
