@@ -222,7 +222,10 @@ for key, val in colorSpaces.items():
             if isinstance(cell, infrange):
                 if cell.step == 1 and key not in integerSpaces:
                     integerSpaces.append(key)
-
+alphaSpaces = ['rgba', 'rgba1', 'rgba255', 'hsva', 'rec709TFa', 'srgbTFa', 'lmsa', 'dkla', 'dklaCart']
+nonAlphaSpaces = list(colorSpaces)
+for val in alphaSpaces:
+    nonAlphaSpaces.remove(val)
 
 class Color(object):
     """A class to store colour details, knows what colour space it's in and can supply colours in any space"""
