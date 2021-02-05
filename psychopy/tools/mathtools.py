@@ -135,6 +135,8 @@ def length(v, squared=False, out=None, dtype=None):
 def normalize(v, out=None, dtype=None):
     """Normalize a vector or quaternion.
 
+    Parameters
+    ----------
     v : array_like
         Vector to normalize, can be Nx2, Nx3, or Nx4. If a 2D array is
         specified, rows are treated as separate vectors. All vectors should have
