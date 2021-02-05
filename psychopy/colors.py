@@ -805,10 +805,15 @@ def hex2rgb255(hexColor):
     elif len(hexColor.strip('#')) == 8:
         return col.rgba255
 
-def isValidColor(color):
-    """Deprecated: since version 2021.1
+def isValidColor(color, space='rgb'):
+    """Depreciated as of 2021.0
     """
-    logging.warning("DEPRECATED: colors.isValidColor() wa having little effect. "
-                "It is now set to return True always "
-                "and will be removed in future versions.")
-    return True
+    logging.warning("DEPRECIATED: While psychopy.colors.isValidColor will still roughly work, you should use a Color "
+                    "object, allowing you to check its validity simply by converting it to a `bool` (e.g. "
+                    "`bool(myColor)` or `if myColor:`). If you use this function for colors in any space other than hex, "
+                    "named or rgb, please specify the color space.")
+    try:
+        buffer = Color(color, space)
+        return bool(buffer)
+    except:
+        return False
