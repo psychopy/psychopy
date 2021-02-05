@@ -32,6 +32,7 @@ import bdb
 import pickle
 import time
 import textwrap
+import codecs
 
 from .. import stdOutRich, dialogs
 from .. import pavlovia_ui
@@ -2187,7 +2188,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
     def filePrint(self, event=None):
         pr = Printer()
         docName = self.currentDoc.filename
-        text = open(docName, 'r').read()
+        text = codecs.open(docName, 'r', 'utf-8').read()
         pr.Print(text, docName)
 
     def fileNew(self, event=None, filepath=""):
