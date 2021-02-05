@@ -1,6 +1,6 @@
 # PsychoPy
 
-[![Travis-CI status](https://img.shields.io/travis/psychopy/psychopy.svg)](https://travis-ci.org/psychopy/psychopy)
+[![Travis-CI status](https://img.shields.io/travis/psychopy/psychopy.svg)](https://travis-ci.com/psychopy/psychopy)
 [![Coveralls status](https://img.shields.io/coveralls/psychopy/psychopy.svg)](https://coveralls.io/r/psychopy/psychopy)
 [![PyPI version](https://img.shields.io/pypi/v/psychopy.svg)](https://pypi.python.org/pypi/PsychoPy)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v1.4%20adopted-ff69b4.svg)](code-of-conduct.md)
