@@ -582,13 +582,15 @@ def findFontFiles(folders=(), recursive=True):
     -------
     list of pathlib.Path objects
     """
-    if sys.platform == 'win32':
-        searchPaths = []  # just leave it to matplotlib as below
-    elif sys.platform == 'darwin':
-        # on mac matplotlib doesn't include 'ttc' files (which are fine)
-        searchPaths = _OSXFontDirectories
-    elif sys.platform.startswith('linux'):
-        searchPaths = _X11FontDirectories
+    searchPaths = folders
+    if searchPaths is None or len(searchPaths)==0:
+        if sys.platform == 'win32':
+            searchPaths = []  # just leave it to matplotlib as below
+        elif sys.platform == 'darwin':
+            # on mac matplotlib doesn't include 'ttc' files (which are fine)
+            searchPaths = _OSXFontDirectories
+        elif sys.platform.startswith('linux'):
+            searchPaths = _X11FontDirectories
     # search those folders
     fontPaths = []
     for thisFolder in searchPaths:
