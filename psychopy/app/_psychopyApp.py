@@ -776,22 +776,59 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         info.SetVersion('v' + psychopy.__version__)
         info.SetDescription(msg)
 
-        info.SetCopyright('(C) 2002-2020 Jonathan Peirce')
+        info.SetCopyright('(C) 2002-2021 Jonathan Peirce')
         info.SetWebSite('http://www.psychopy.org')
         info.SetLicence(license)
-        info.AddDeveloper('Jonathan Peirce')
-        info.AddDeveloper('Jeremy Gray')
-        info.AddDeveloper('Sol Simpson')
-        info.AddDeveloper(u'Jonas Lindel\xF8v')
-        info.AddDeveloper('Yaroslav Halchenko')
-        info.AddDeveloper('Erik Kastman')
-        info.AddDeveloper('Michael MacAskill')
-        info.AddDeveloper('Hiroyuki Sogo')
-        info.AddDeveloper('David Bridges')
-        info.AddDocWriter('Jonathan Peirce')
-        info.AddDocWriter('Jeremy Gray')
-        info.AddDocWriter('Rebecca Sharman')
-        info.AddTranslator('Hiroyuki Sogo')
+        # developers
+
+        devNames = [
+            'Jonathan Peirce',
+            'Jeremy Gray',
+            'Michael MacAskill',
+            'Sol Simpson',
+            u'Jonas Lindel\xF8v',
+            'Yaroslav Halchenko',
+            'Erik Kastman',
+            'Hiroyuki Sogo',
+            'David Bridges',
+            'Matthew Cutone',
+            'Philipp Wiesemann',
+            u'Richard Höchenberger',
+            'Andrew Schofield',
+            'Todd Parsons',
+            'Dan Fitch',
+            'Suddha Sourav',
+            'Philipp Wiesemann',
+            'Mark Hymers',
+            'Benjamin T. Vincent',
+            'Yaroslav Halchenko',
+            'Jay Borseth',
+            'chrisgatwin [@github.com]',
+            'toddrjen [@github.com]'
+        ]
+
+        docNames = [
+            'Jonathan Peirce',
+            'Jeremy Gray',
+            'Rebecca Hirst',
+            'Rebecca Sharman',
+            'Matthew Cutone'
+        ]
+        devNames.sort()
+
+        intNames = [
+            'Hiroyuki Sogo'
+        ]
+        intNames.sort()
+
+        for name in devNames:
+            info.AddDeveloper(name)
+
+        for name in docNames:
+            info.AddDocWriter(name)
+
+        for name in intNames:
+            info.AddTranslator(name)
 
         if not self.testMode:
             showAbout(info)
