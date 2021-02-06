@@ -16,7 +16,6 @@ import sys
 import numpy
 
 from psychopy import core, logging, event
-from psychopy.colors import isValidColor
 from psychopy.visual.circle import Circle
 from psychopy.visual.patch import PatchStim
 from psychopy.visual.shape import ShapeStim
@@ -789,7 +788,7 @@ class RatingScale(MinimalStim):
             scaledTickSize = self.baseSize * self.size
             vert = [[-1 * scaledTickSize * 1.8, scaledTickSize * 3],
                     [scaledTickSize * 1.8, scaledTickSize * 3], [0, -0.005]]
-            if markerColor is None or not isValidColor(markerColor):
+            if markerColor is None:
                 markerColor = 'DarkBlue'
             self.marker = ShapeStim(win=self.win, units='norm', vertices=vert,
                                     lineWidth=0.1, lineColor=markerColor,
@@ -802,7 +801,7 @@ class RatingScale(MinimalStim):
                     [scaledTickSize * 1.8, scaledTickSize],
                     [scaledTickSize * 1.8, -1 * scaledTickSize],
                     [-1 * scaledTickSize * 1.8, -1 * scaledTickSize]]
-            if markerColor is None or not isValidColor(markerColor):
+            if markerColor is None:
                 markerColor = 'black'
             self.marker = ShapeStim(win=self.win, units='norm', vertices=vert,
                                     lineWidth=0.1, lineColor=markerColor,
@@ -810,7 +809,7 @@ class RatingScale(MinimalStim):
                                     name=self.name + '.markerSlider',
                                     opacity=0.7, autoLog=False)
         elif self.markerStyle == 'glow':
-            if markerColor is None or not isValidColor(markerColor):
+            if markerColor is None:
                 markerColor = 'White'
             self.marker = PatchStim(win=self.win, units='norm',
                                     tex=None, mask='gauss',
@@ -843,7 +842,7 @@ class RatingScale(MinimalStim):
                 marker.name = 'customMarker'
             self.marker = marker
         else:  # 'circle':
-            if markerColor is None or not isValidColor(markerColor):
+            if markerColor is None:
                 markerColor = 'DarkRed'
             x, y = self.win.size
             windowRatio = y/x

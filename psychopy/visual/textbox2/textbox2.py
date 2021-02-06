@@ -213,12 +213,26 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.text = text if text is not None else ""
 
         # caret
-        self.editable = editable
+        self._editable = editable
         self.caret = Caret(self, color=self.color, width=5)
 
 
         self.autoLog = autoLog
 
+    @property
+    def editable(self):
+        return self._editable
+    
+    @editable.setter
+    def editable(self, editable):
+        self._editable = editable
+        if editable is False and self.hasFocus:
+            if self.win:
+                self.win.removeEditable(self)
+        if editable is True:
+            if self.win:
+                self.win.addEditable(self)
+        
     @property
     def pallette(self):
         self._pallette = {
@@ -812,11 +826,18 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         return False
 
     @hasFocus.setter
-    def hasFocus(self, state):
-        # Store focus
-        self._hasFocus = state
-        # Redraw text box
-        self.draw()
+    def hasFocus(self, focus):
+        if focus is False and self.hasFocus:
+            # If focus is being set to False, tell window to 
+            # give focus to next editable.
+            if self.win:
+                self.win.nextEditable()
+        elif focus is True and self.hasFocus is False:
+            # If focus is being set True, set textbox instance to be
+            # window.currentEditable.
+            if self.win:
+                self.win.currentEditable=self
+        return False
 
     def getText(self):
         """Returns the current text in the box, including formating tokens."""

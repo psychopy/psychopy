@@ -17,15 +17,16 @@ from __future__ import absolute_import, division, print_function
 from psychopy import core, event, visual
 
 
-win = visual.Window()
-rect = visual.Rect(win, fillColor='blue', pos=(0, -0.2))
-text = visual.TextStim(
-    win,
-    pos=(0, 0.5),
-    text=('Press\n\n'
-          'B for blue rectangle,\n'
-          'CTRL + R for red rectangle,\n'
-          'Q or ESC to quit.'))
+win = visual.Window(units="height")
+# Create rectangle
+rect = visual.Rect(win, 
+    fillColor='blue', 
+    pos=(0, -0.25), size=(0.2, 0.2))
+# Create textbox for instructions
+text = visual.TextBox2(win,
+    text="Press B for blue rectangle, \nCTRL + R for red rectangle, \nQ or ESC to quit.",
+    font="Open Sans", letterHeight=0.07,
+    pos=(0, 0.25), size=(1, 0.3))
 
 # Add an event key.
 event.globalKeys.add(key='b', func=setattr,
