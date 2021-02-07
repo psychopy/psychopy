@@ -8,9 +8,8 @@
 import wx
 from wx.lib.buttons import GenButton
 from wx.lib.scrolledpanel import ScrolledPanel
-import numpy as np
-
 from psychopy.colors import Color, colorNames
+import numpy as np
 
 
 class ColorPresets(ScrolledPanel):
@@ -24,6 +23,7 @@ class ColorPresets(ScrolledPanel):
 
     """
     def __init__(self, parent):
+        # originally made by Todd Parsons
         ScrolledPanel.__init__(
             self,
             parent,
@@ -406,11 +406,11 @@ class ColorPickerPageRGB(wx.Panel):
         wx.Panel.__init__(
             self, parent, id=id, pos=pos, size=size, style=style, name=name)
 
-        # reference to the color picker dialog or some other container
-        #self.colorPickerDlg = self.GetTopLevelParent()
-
-        # debug: make sure the top-level has the correct type
-        #assert isinstance(self.colorPickerDlg, PsychoColorPicker)
+        # Make sure the top-level has the correct type. We use
+        # `GetTopLevelParent` to avoid creating a reference to the dialog which
+        # keeps it alive and causes an access violation when PsychoPy shuts
+        # down, or worse, a memory leak.
+        assert isinstance(self.GetTopLevelParent(), PsychoColorPicker)
 
         # Functions to convert slider units to an RGB format to display in the
         # double-spin controls beside them.
@@ -428,117 +428,194 @@ class ColorPickerPageRGB(wx.Panel):
     def _updateColorCtrls(self):
         """Update controls to reflect the value of `color`."""
         rgba255 = [int(i) for i in self.GetTopLevelParent().color.rgba255]
-        # self.sldRed.SetValue(rgba255[0])
-        # self.sldGreen.SetValue(rgba255[1])
-        # self.sldBlue.SetValue(rgba255[2])
-        # self.sldAlpha.SetValue(rgba255[3] * 255.)  # arrrg! should be 255!!!
-        #
-        # convFunc = self._posToValFunc[self.rbxRGBFormat.GetSelection()]
-        #
-        # # update spinner values/ranges for each channel
-        # for spn in (self.spnRed, self.spnGreen, self.spnBlue, self.spnAlpha):
-        #     spn.SetDigits(
-        #         0 if self.rbxRGBFormat.GetSelection() == 2 else 4)
-        #     spn.SetIncrement(
-        #         1 if self.rbxRGBFormat.GetSelection() == 2 else 0.05)
-        #     spn.SetMin(convFunc(0))
-        #     spn.SetMax(convFunc(255))
-        #
-        # # set the value in the new range
-        # self.spnRed.SetValue(convFunc(self.sldRed.Value))
-        # self.spnGreen.SetValue(convFunc(self.sldGreen.Value))
-        # self.spnBlue.SetValue(convFunc(self.sldBlue.Value))
-        # self.spnAlpha.SetValue(convFunc(self.sldAlpha.Value))
+        self.sldRed.SetValue(rgba255[0])
+        self.sldGreen.SetValue(rgba255[1])
+        self.sldBlue.SetValue(rgba255[2])
+        self.sldAlpha.SetValue(rgba255[3] * 255.)  # arrrg! should be 255!!!
+
+        convFunc = self._posToValFunc[self.rbxRGBFormat.GetSelection()]
+
+        # update spinner values/ranges for each channel
+        for spn in (self.spnRed, self.spnGreen, self.spnBlue, self.spnAlpha):
+            spn.SetDigits(
+                0 if self.rbxRGBFormat.GetSelection() == 2 else 4)
+            spn.SetIncrement(
+                1 if self.rbxRGBFormat.GetSelection() == 2 else 0.05)
+            spn.SetMin(convFunc(0))
+            spn.SetMax(convFunc(255))
+
+        # set the value in the new range
+        self.spnRed.SetValue(convFunc(self.sldRed.Value))
+        self.spnGreen.SetValue(convFunc(self.sldGreen.Value))
+        self.spnBlue.SetValue(convFunc(self.sldBlue.Value))
+        self.spnAlpha.SetValue(convFunc(self.sldAlpha.Value))
 
     def _initUI(self):
         """Initialize window controls. Called once when the page is created.
         """
         szrRGBPage = wx.BoxSizer(wx.VERTICAL)
 
-        fraRGBChannels = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, u"Channels"), wx.VERTICAL)
+        fraRGBChannels = wx.StaticBoxSizer(
+            wx.StaticBox(self, wx.ID_ANY, u"Channels"), wx.VERTICAL)
 
         szrRGBArea = wx.FlexGridSizer(4, 3, 5, 5)
         szrRGBArea.AddGrowableCol(1)
         szrRGBArea.SetFlexibleDirection(wx.BOTH)
         szrRGBArea.SetNonFlexibleGrowMode(wx.FLEX_GROWMODE_SPECIFIED)
 
-        self.lblRed = wx.StaticText(fraRGBChannels.GetStaticBox(), wx.ID_ANY, u"Red", wx.DefaultPosition,
-                                    wx.DefaultSize, 0)
+        # labels for color channels
+        self.lblRed = wx.StaticText(
+            fraRGBChannels.GetStaticBox(),
+            wx.ID_ANY,
+            u"Red",
+            wx.DefaultPosition,
+            wx.DefaultSize, 0)
+        self.lblGreen = wx.StaticText(
+            fraRGBChannels.GetStaticBox(),
+            wx.ID_ANY,
+            u"Green",
+            wx.DefaultPosition,
+            wx.DefaultSize, 0)
+        self.lblBlue = wx.StaticText(
+            fraRGBChannels.GetStaticBox(),
+            wx.ID_ANY,
+            u"Blue",
+            wx.DefaultPosition,
+            wx.DefaultSize, 0)
+        self.lblAlpha = wx.StaticText(
+            fraRGBChannels.GetStaticBox(),
+            wx.ID_ANY,
+            u"Alpha",
+            wx.DefaultPosition,
+            wx.DefaultSize, 0)
+
         self.lblRed.Wrap(-1)
-
-        szrRGBArea.Add(self.lblRed, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT, 5)
-
-        self.sldRed = wx.Slider(fraRGBChannels.GetStaticBox(), wx.ID_ANY, 127, 0, 255, wx.DefaultPosition,
-                                wx.DefaultSize, wx.SL_HORIZONTAL)
-        szrRGBArea.Add(self.sldRed, 0, wx.EXPAND, 5)
-
-        self.spnRed = wx.SpinCtrlDouble(fraRGBChannels.GetStaticBox(), wx.ID_ANY, u"0", wx.DefaultPosition,
-                                        wx.DefaultSize, wx.SP_ARROW_KEYS, -1, 1, 0, 0.05)
-        self.spnRed.SetDigits(4)
-        szrRGBArea.Add(self.spnRed, 0, 0, 5)
-
-        self.lblGreen = wx.StaticText(fraRGBChannels.GetStaticBox(), wx.ID_ANY, u"Green", wx.DefaultPosition,
-                                      wx.DefaultSize, 0)
         self.lblGreen.Wrap(-1)
-
-        szrRGBArea.Add(self.lblGreen, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT, 5)
-
-        self.sldGreen = wx.Slider(fraRGBChannels.GetStaticBox(), wx.ID_ANY, 127, 0, 255, wx.DefaultPosition,
-                                  wx.DefaultSize, wx.SL_HORIZONTAL)
-        szrRGBArea.Add(self.sldGreen, 0, wx.EXPAND, 5)
-
-        self.spnGreen = wx.SpinCtrlDouble(fraRGBChannels.GetStaticBox(), wx.ID_ANY, u"0", wx.DefaultPosition,
-                                          wx.DefaultSize, wx.SP_ARROW_KEYS, -1, 1, 0, 0.05)
-        self.spnGreen.SetDigits(4)
-        szrRGBArea.Add(self.spnGreen, 0, 0, 5)
-
-        self.lblBlue = wx.StaticText(fraRGBChannels.GetStaticBox(), wx.ID_ANY, u"Blue", wx.DefaultPosition,
-                                     wx.DefaultSize, 0)
         self.lblBlue.Wrap(-1)
-
-        szrRGBArea.Add(self.lblBlue, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT, 5)
-
-        self.sldBlue = wx.Slider(fraRGBChannels.GetStaticBox(), wx.ID_ANY, 127, 0, 255, wx.DefaultPosition,
-                                 wx.DefaultSize, wx.SL_HORIZONTAL)
-        szrRGBArea.Add(self.sldBlue, 0, wx.EXPAND, 5)
-
-        self.spnBlue = wx.SpinCtrlDouble(fraRGBChannels.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
-                                         wx.DefaultSize, wx.SP_ARROW_KEYS, -1, 1, 0, 0.05)
-        self.spnBlue.SetDigits(4)
-        szrRGBArea.Add(self.spnBlue, 0, 0, 5)
-
-        self.lblAlpha = wx.StaticText(fraRGBChannels.GetStaticBox(), wx.ID_ANY, u"Alpha", wx.DefaultPosition,
-                                      wx.DefaultSize, 0)
         self.lblAlpha.Wrap(-1)
 
-        szrRGBArea.Add(self.lblAlpha, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT, 5)
+        # sliders for setting each channel
+        self.sldRed = wx.Slider(
+            fraRGBChannels.GetStaticBox(),
+            wx.ID_ANY,
+            127, 0, 255,  # value, min, max
+            wx.DefaultPosition,
+            wx.DefaultSize,
+            wx.SL_HORIZONTAL)
+        self.sldGreen = wx.Slider(
+            fraRGBChannels.GetStaticBox(),
+            wx.ID_ANY,
+            127, 0, 255,
+            wx.DefaultPosition,
+            wx.DefaultSize,
+            wx.SL_HORIZONTAL)
+        self.sldBlue = wx.Slider(
+            fraRGBChannels.GetStaticBox(),
+            wx.ID_ANY,
+            127, 0, 255,
+            wx.DefaultPosition,
+            wx.DefaultSize,
+            wx.SL_HORIZONTAL)
+        self.sldAlpha = wx.Slider(
+            fraRGBChannels.GetStaticBox(),
+            wx.ID_ANY,
+            255, 0, 255,
+            wx.DefaultPosition,
+            wx.DefaultSize,
+            wx.SL_HORIZONTAL)
 
-        self.sldAlpha = wx.Slider(fraRGBChannels.GetStaticBox(), wx.ID_ANY, 255, 0, 255, wx.DefaultPosition,
-                                  wx.DefaultSize, wx.SL_HORIZONTAL)
-        szrRGBArea.Add(self.sldAlpha, 0, wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, 5)
+        # spin (double) controls
+        self.spnRed = wx.SpinCtrlDouble(
+            fraRGBChannels.GetStaticBox(),
+            wx.ID_ANY,
+            u"0",
+            wx.DefaultPosition,
+            wx.DefaultSize, wx.SP_ARROW_KEYS,
+            -1, 1, 0, 0.05)  # min, max, value, inc
+        self.spnGreen = wx.SpinCtrlDouble(
+            fraRGBChannels.GetStaticBox(),
+            wx.ID_ANY,
+            u"0",
+            wx.DefaultPosition,
+            wx.DefaultSize, wx.SP_ARROW_KEYS,
+            -1, 1, 0, 0.05)
+        self.spnBlue = wx.SpinCtrlDouble(
+            fraRGBChannels.GetStaticBox(),
+            wx.ID_ANY,
+            u"0",
+            wx.DefaultPosition,
+            wx.DefaultSize, wx.SP_ARROW_KEYS,
+            -1, 1, 0, 0.05)
+        self.spnAlpha = wx.SpinCtrlDouble(
+            fraRGBChannels.GetStaticBox(),
+            wx.ID_ANY,
+            u"0",
+            wx.DefaultPosition,
+            wx.DefaultSize, wx.SP_ARROW_KEYS,
+            -1, 1, 0, 0.05)
 
-        self.spnAlpha = wx.SpinCtrlDouble(fraRGBChannels.GetStaticBox(), wx.ID_ANY, u"1", wx.DefaultPosition,
-                                          wx.DefaultSize, wx.SP_ARROW_KEYS, -1, 1, 1, 0.05)
+        self.spnRed.SetDigits(4)
+        self.spnGreen.SetDigits(4)
+        self.spnBlue.SetDigits(4)
         self.spnAlpha.SetDigits(4)
+
+        # add widgets to the color channel area
+        szrRGBArea.Add(
+            self.lblRed, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT, 5)
+        szrRGBArea.Add(self.sldRed, 0, wx.EXPAND, 5)
+        szrRGBArea.Add(self.spnRed, 0, 0, 5)
+
+        szrRGBArea.Add(
+            self.lblGreen, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT, 5)
+        szrRGBArea.Add(self.sldGreen, 0, wx.EXPAND, 5)
+        szrRGBArea.Add(self.spnGreen, 0, 0, 5)
+
+        szrRGBArea.Add(
+            self.lblBlue, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT, 5)
+        szrRGBArea.Add(self.sldBlue, 0, wx.EXPAND, 5)
+        szrRGBArea.Add(self.spnBlue, 0, 0, 5)
+
+        szrRGBArea.Add(
+            self.lblAlpha, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT, 5)
+        szrRGBArea.Add(
+            self.sldAlpha, 0, wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, 5)
         szrRGBArea.Add(self.spnAlpha, 0, 0, 5)
 
         fraRGBChannels.Add(szrRGBArea, 1, wx.ALL | wx.EXPAND, 5)
-
-        szrRGBPage.Add(fraRGBChannels, 0, wx.TOP | wx.LEFT | wx.RIGHT | wx.EXPAND, 5)
+        szrRGBPage.Add(
+            fraRGBChannels, 0, wx.TOP | wx.LEFT | wx.RIGHT | wx.EXPAND, 5)
 
         szrRGBOptions = wx.BoxSizer(wx.HORIZONTAL)
+        fraHexRGB = wx.StaticBoxSizer(
+            wx.StaticBox(
+                self,
+                wx.ID_ANY,
+                u"Hex/HTML (no Alpha)"),
+            wx.VERTICAL)
 
-        fraHexRGB = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, u"Hex/HTML (no Alpha)"), wx.VERTICAL)
-
-        self.spnHex = wx.TextCtrl(fraHexRGB.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
-                                  wx.DefaultSize)
+        self.spnHex = wx.TextCtrl(
+            fraHexRGB.GetStaticBox(),
+            wx.ID_ANY,
+            wx.EmptyString,
+            wx.DefaultPosition,
+            wx.DefaultSize)
         fraHexRGB.Add(self.spnHex, 0, wx.ALL | wx.EXPAND, 5)
 
         szrRGBOptions.Add(fraHexRGB, 2, 0, 5)
 
-        rbxRGBModeChoices = [u"PsychoPy RGBA [-1:1]", u"Normalized RGBA [0:1]", u"8-Bit RGBA [0:255]"]
-        self.rbxRGBFormat = wx.RadioBox(self, wx.ID_ANY, u"Channel Format", wx.DefaultPosition, wx.DefaultSize, rbxRGBModeChoices,
-                                        1, wx.RA_SPECIFY_COLS)
+        # the index of each item maps to the conversion functions
+        rbxRGBModeChoices = [
+            u"PsychoPy RGBA [-1:1]",
+            u"Normalized RGBA [0:1]",
+            u"8-Bit RGBA [0:255]"]
+        self.rbxRGBFormat = wx.RadioBox(
+            self,
+            wx.ID_ANY,
+            u"Channel Format",
+            wx.DefaultPosition,
+            wx.DefaultSize,
+            rbxRGBModeChoices,
+            1, wx.RA_SPECIFY_COLS)
         self.rbxRGBFormat.SetSelection(0)
         szrRGBOptions.Add(self.rbxRGBFormat, 0, wx.LEFT, 5)
 
