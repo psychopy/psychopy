@@ -19,38 +19,38 @@ The table below shows you the current state of play of PsychoJS. Per feature we 
   :escape: \
 
   **Stimuli**,,
-    :doc:`Dots (RDK) <../builder/components/dots>`, :darkorange:`Prototype`, Random Dot Kinematogram. Try it out via `staircaserdk <https://gitlab.pavlovia.org/Francesco_Cabiddu/staircaserdk>`_
-    :doc:`Images <../builder/components/image>`, :darkgreen:`Built-in`, Try it out via `e2e_img <https://gitlab.pavlovia.org/tpronk/e2e_img>`_
-    :doc:`Movies <../builder/components/movie>`, :darkgreen:`Built-in`, Try it out via `demo_video <https://gitlab.pavlovia.org/tpronk/demo_video>`_    
-    :doc:`Polygons <../builder/components/polygon>`, :darkgreen:`Built-in`, Try it out via `e2e_polygons <https://gitlab.pavlovia.org/tpronk/e2e_polygons>`_
-    :doc:`Sounds <../builder/components/sound>`, :darkgreen:`Built-in`, Try it out via `demo_sound <https://gitlab.pavlovia.org/tpronk/demo_sound>`_
-    :doc:`Text <../builder/components/text>`, :darkgreen:`Built-in`, Try it out via `e2e_text <https://gitlab.pavlovia.org/tpronk/e2e_text>`_
-    :doc:`Textbox <../builder/components/textbox>`, :darkgreen:`Built-in`, Try it out via `e2e_textbox <https://gitlab.pavlovia.org/tpronk/e2e_textbox>`_    
+    :ref:`Dots (RDK) <dots>`, :darkorange:`Prototype`, Random Dot Kinematogram. Try it out via `staircaserdk <https://gitlab.pavlovia.org/Francesco_Cabiddu/staircaserdk>`_
+    :ref:`Images <image>`, :darkgreen:`Built-in`, Try it out via `e2e_img <https://gitlab.pavlovia.org/tpronk/e2e_img>`_
+    :ref:`Movies <movie>`, :darkgreen:`Built-in`, Try it out via `demo_video <https://gitlab.pavlovia.org/tpronk/demo_video>`_    
+    :ref:`Polygons <polygonComponent>`, :darkgreen:`Built-in`, Try it out via `e2e_polygons <https://gitlab.pavlovia.org/tpronk/e2e_polygons>`_
+    :ref:`Sounds <sound>`, :darkgreen:`Built-in`, Try it out via `demo_sound <https://gitlab.pavlovia.org/tpronk/demo_sound>`_
+    :ref:`Text <textComponent>`, :darkgreen:`Built-in`, Try it out via `e2e_text <https://gitlab.pavlovia.org/tpronk/e2e_text>`_
+    :ref:`Textbox <textboxComponent>`, :darkgreen:`Built-in`, Try it out via `e2e_textbox <https://gitlab.pavlovia.org/tpronk/e2e_textbox>`_    
     , :darkred:`Not supported`, Apertures\, Envelope Gratings\, Gratings\, Noise
   **Responses**,,
-    :doc:`Form <../builder/components/form >`, :darkgreen:`Built-in`, 
+    :ref:`Form <form>`, :darkgreen:`Built-in`, 
     Gyroscope, :darkorange:`Prototype`, Measures the orientation of tablets and smartphones. Try it out via `demo_gyroscope <https://gitlab.pavlovia.org/tpronk/demo_gyroscope>`_
     Eye-tracking, :darkorange:`Prototype`, Try it out via `demo_eye_tracking2 <https://gitlab.pavlovia.org/tpronk/demo_eye_tracking2/>`_
-    :doc:`Keyboard <../builder/components/keyboard>`, :darkgreen:`Built-in`, 
-    :doc:`Mouse <../builder/components/mouse>`, :darkgreen:`Built-in`, 
-    :doc:`Slider <../builder/components/slider>`, :darkgreen:`Built-in`, 
-    :doc:`Textbox <../builder/components/textbox>`, :darkgreen:`Built-in`, Try it out via `e2e_textbox <https://gitlab.pavlovia.org/tpronk/e2e_textbox>`_
+    :ref:`Keyboard <keyboard>`, :darkgreen:`Built-in`, 
+    :ref:`Mouse <mouse>`, :darkgreen:`Built-in`, 
+    :ref:`Slider <slider>`, :darkgreen:`Built-in`, 
+    :ref:`Textbox <textboxComponent>`, :darkgreen:`Built-in`, Try it out via `e2e_textbox <https://gitlab.pavlovia.org/tpronk/e2e_textbox>`_
     , :darkred:`Not supported`, Brush\, Joystick\, Microphone\, Button boxes (Cedrus & IO Labs)
   **Data**,,
-    :doc:`CSV files <../general/dataOutputs>`, :darkgreen:`Built-in`, These can easily be imported into analysis software\, such as Matlab\, R\, JAMOVI\, or JASP
-    :doc:`Log files <../general/dataOutputs>`, :darkgreen:`Built-in`, Low-level logs. These offer detailed information\, but are hard to analyze
-    :doc:`MongoDB`, :darkgreen:`Built-in`, Similar to CSV\, but stored in a database instead of files
+    :ref:`CSV files <outputs>`, :darkgreen:`Built-in`, These can easily be imported into analysis software\, such as Matlab\, R\, JAMOVI\, or JASP
+    :ref:`Log files <outputs>`, :darkgreen:`Built-in`, Low-level logs. These offer detailed information\, but are hard to analyze
+    :ref:`MongoDB <onlineFetchingYourData>`, :darkgreen:`Built-in`, Similar to CSV\, but stored in a database instead of files
     , :darkred:`Not supported`, XLSX
   **Flow and Logic**,,
-    :doc:`Code <../builder/components/code>`, :darkgreen:`Built-in`, Insert snippets of programming code\, which can be automatically translated from Python to JavaScript
+    :ref:`Code <code>`, :darkgreen:`Built-in`, Insert snippets of programming code\, which can be automatically translated from Python to JavaScript
     :ref:`Loops <loops>`, :darkgreen:`Built-in`, Loops allow randomization and importing condition files. Try it out via `e2e_conditions <https://gitlab.pavlovia.org/tpronk/e2e_conditions>`_
     :ref:`Staircases <staircaseMethods>`, :darkorange:`Prototype`, Adapt aspects of a trial based on earlier responses of a participant. Try out a "Just Noticable Difference" staircase via  `staircase-demo <https://gitlab.pavlovia.org/lpxrh6/staircase-demo>`_ or a "Method-of-Adjustment" staircase via `method-of-adjustment <https://gitlab.pavlovia.org/lpxrh6/method-of-adjustment>`_
   **External Tools**,,
-    :doc:`Any Tool`, :darkgreen:`Built-in`, General instructions are at :doc:`Recruiting participants and connecting with online services <onlineParticipants>`
-    :doc:`AMT`, :darkgreen:`Built-in`, Amazon Mechanical Turk. See instructions in this `forum post <https://discourse.psychopy.org/t/how-to-use-mturk-for-recruiting/8486/7>`_
-    :doc:`Prolific`, :darkgreen:`Built-in`, See instructions at :doc:`Recruiting with Prolific <prolificIntegration>`
-    :doc:`Qualtrics`, :darkgreen:`Built-in`, There are many guides available for different ways of integrating Qualtrics on our `forum <https://discourse.psychopy.org/search?q=qualtrics>`_
-    :doc:`Sona`, :darkgreen:`Built-in`, See instructiong at the `Sona Systems website <https://www.sona-systems.com/help/psychopy.aspx>`_
+    Any Tool, :darkgreen:`Built-in`, General instructions are at :ref:`Recruiting participants and connecting with online services <recruitingOnline>`
+    AMT, :darkgreen:`Built-in`, Amazon Mechanical Turk. See instructions in this `forum post <https://discourse.psychopy.org/t/how-to-use-mturk-for-recruiting/8486/7>`_
+    Prolific, :darkgreen:`Built-in`, See instructions at :ref:`Recruiting with Prolific <prolificIntegration>`
+    Qualtrics, :darkgreen:`Built-in`, There are many guides available for integrating Qualtrics on our `forum <https://discourse.psychopy.org/search?q=qualtrics>`_
+    Sona, :darkgreen:`Built-in`, See instructions at the `Sona Systems website <https://www.sona-systems.com/help/psychopy.aspx>`_
 
 *Thanks go out to Anastasia Carter, Arnon Weinberg, Francesco Cabiddu, Lindsay Santacroce, and Wakefield Carter; they made tutorials and/or demo experiments available that we referenced in the list above.*
 
