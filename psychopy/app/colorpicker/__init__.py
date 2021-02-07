@@ -72,7 +72,7 @@ class ColorPresets(ScrolledPanel):
         all the color space pages.
 
         """
-        self.GetTopLevelParent().color = event.GetEventObject().colorData
+        self.GetTopLevelParent().color = event.GetEventObject().colorData.copy()
         event.Skip()
 
 
@@ -187,7 +187,7 @@ class PsychoColorPicker(wx.Dialog):
             style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
 
         self.SetSizeHints(wx.DefaultSize, wx.DefaultSize)
-        self.SetMinSize(wx.Size(550, 480))
+        self.SetMinSize(wx.Size(600, 480))
 
         # current output color, should be displayed in the preview
         self._color = Color((0, 0, 0, 1), space='rgba')
@@ -260,15 +260,10 @@ class PsychoColorPicker(wx.Dialog):
 
         """
         self.pnlRGB = ColorPickerPageRGB(self.nbColorSpaces)
-        self.pnlHSV = wx.Panel(
-            self.nbColorSpaces,
-            wx.ID_ANY,
-            wx.DefaultPosition,
-            wx.DefaultSize,
-            wx.TAB_TRAVERSAL)
+        self.pnlHSV = ColorPickerPageHSV(self.nbColorSpaces)
 
-        self.nbColorSpaces.AddPage(self.pnlRGB, u"RGB", True)
-        self.nbColorSpaces.AddPage(self.pnlHSV, u"HSV", False)
+        self.nbColorSpaces.AddPage(self.pnlRGB, u"RGBA", True)
+        self.nbColorSpaces.AddPage(self.pnlHSV, u"HSVA", False)
 
     def _setupUI(self):
         """Setup the UI for the color picker dialog box.
@@ -317,7 +312,7 @@ class PsychoColorPicker(wx.Dialog):
         self.pnlColorArea.SetSizer(szrColorArea)
         self.pnlColorArea.Layout()
         szrColorArea.Fit(self.pnlColorArea)
-        szrMain.Add(self.pnlColorArea, 1, wx.EXPAND, 5)
+        szrMain.Add(self.pnlColorArea, 1, wx.ALL| wx.EXPAND, 5)
 
         # line to divide the color area from the dialog controls, looks neat
         self.stlMain = wx.StaticLine(
@@ -327,7 +322,7 @@ class PsychoColorPicker(wx.Dialog):
             wx.DefaultSize,
             wx.LI_HORIZONTAL)
 
-        szrMain.Add(self.stlMain, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 5)
+        szrMain.Add(self.stlMain, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
 
         # Dialog controls area. Shows buttons for closing the dialog or copying
         # colors. Also shows the output format to use when copying to the
@@ -360,7 +355,6 @@ class PsychoColorPicker(wx.Dialog):
             wx.DefaultPosition,
             wx.DefaultSize,
             choices=self._outputChoices)
-
         self.cboOutputSpace.SetSelection(0)
 
         szrDlgCtrls.Add(self.cboOutputSpace, 1, wx.ALIGN_CENTER_VERTICAL, 5)
@@ -374,13 +368,18 @@ class PsychoColorPicker(wx.Dialog):
         self.cmdClose = wx.Button(
             self, wx.ID_ANY, u"&Cancel", wx.DefaultPosition, wx.DefaultSize, 0)
 
+        self.cmdCopyObject.SetToolTip(
+            u"Copy as a `psychopy.colors.Color` object.")
+        self.cmdCopy.SetToolTip(
+            u"Copy as a value (tuple).")
+
         szrDlgCtrls.Add(self.cmdCopyObject, 0, wx.EXPAND, 5)
         szrDlgCtrls.Add(self.cmdCopy, 0, wx.EXPAND, 5)
         szrDlgCtrls.Add(self.cmdClose, 0, wx.EXPAND, 5)
 
         szrDlgButtonArea.Add(szrDlgCtrls, 1, wx.ALL | wx.EXPAND, 5)
 
-        szrMain.Add(szrDlgButtonArea, 0, wx.EXPAND, 5)
+        szrMain.Add(szrDlgButtonArea, 0, wx.EXPAND | wx.ALL, 5)
 
         self.SetSizer(szrMain)
         self.Layout()
@@ -534,7 +533,7 @@ class ColorPickerPageRGB(wx.Panel):
         szrRGBPage = wx.BoxSizer(wx.VERTICAL)
 
         fraRGBChannels = wx.StaticBoxSizer(
-            wx.StaticBox(self, wx.ID_ANY, u"Channels"), wx.VERTICAL)
+            wx.StaticBox(self, wx.ID_ANY, u"RGBA Channels"), wx.VERTICAL)
 
         szrRGBArea = wx.FlexGridSizer(4, 3, 5, 5)
         szrRGBArea.AddGrowableCol(1)
@@ -545,25 +544,25 @@ class ColorPickerPageRGB(wx.Panel):
         self.lblRed = wx.StaticText(
             fraRGBChannels.GetStaticBox(),
             wx.ID_ANY,
-            u"Red",
+            u"R:",
             wx.DefaultPosition,
             wx.DefaultSize, 0)
         self.lblGreen = wx.StaticText(
             fraRGBChannels.GetStaticBox(),
             wx.ID_ANY,
-            u"Green",
+            u"G:",
             wx.DefaultPosition,
             wx.DefaultSize, 0)
         self.lblBlue = wx.StaticText(
             fraRGBChannels.GetStaticBox(),
             wx.ID_ANY,
-            u"Blue",
+            u"B:",
             wx.DefaultPosition,
             wx.DefaultSize, 0)
         self.lblAlpha = wx.StaticText(
             fraRGBChannels.GetStaticBox(),
             wx.ID_ANY,
-            u"Alpha",
+            u"A:",
             wx.DefaultPosition,
             wx.DefaultSize, 0)
 
@@ -696,6 +695,9 @@ class ColorPickerPageRGB(wx.Panel):
             rbxRGBModeChoices,
             1, wx.RA_SPECIFY_COLS)
         self.rbxRGBFormat.SetSelection(0)
+        # self.rbxRGBFormat.SetToolTip(
+        #     u"Format to use for specifying RGBA channels.")
+
         szrRGBOptions.Add(self.rbxRGBFormat, 0, wx.LEFT, 5)
 
         szrRGBPage.Add(szrRGBOptions, 1, wx.EXPAND | wx.ALL, 5)
@@ -893,8 +895,7 @@ class ColorPickerPageRGB(wx.Panel):
         """
         dlgColor = self.GetTopLevelParent().color
         try:
-            newColor = Color(self.txtHex.GetValue(), space='hex')
-            dlgColor.rgba = newColor.rgba
+            dlgColor.rgba = Color(self.txtHex.GetValue(), space='hex').rgba
         except ValueError:
             pass
 
@@ -907,14 +908,302 @@ class ColorPickerPageRGB(wx.Panel):
         """Update the hex/HTML value using the color specified by the dialog.
 
         """
-        dlgColor = self.GetTopLevelParent().color
-        self.txtHex.SetValue(dlgColor.hex)
+        self.txtHex.SetValue(self.GetTopLevelParent().color.hex)
 
     def onRGBMode(self, event):
         """Called when the RGB mode is changed. This re-ranges all the spin
         controls and updates the interface."""
         self.updateChannels()
         self.updateHex()
+        event.Skip()
+
+
+class ColorPickerPageHSV(wx.Panel):
+    """Class for the HSV page of the color picker.
+
+    """
+    def __init__(self,
+                 parent,
+                 id=wx.ID_ANY,
+                 pos=wx.DefaultPosition,
+                 size=wx.DefaultSize,
+                 style=wx.TAB_TRAVERSAL,
+                 name=wx.EmptyString):
+        wx.Panel.__init__(
+            self, parent, id=id, pos=pos, size=size, style=style, name=name)
+
+        # Make sure the top-level has the correct type. We use
+        # `GetTopLevelParent` to avoid creating a reference to the dialog which
+        # keeps it alive and causes an access violation when PsychoPy shuts
+        # down, or worse, a memory leak.
+        assert isinstance(self.GetTopLevelParent(), PsychoColorPicker)
+
+        self._initUI()  # setup the UI controls
+        self.updateChannels()
+
+    def _initUI(self):
+        """Initialize window controls. Called once when the page is created.
+
+        """
+        szrRGBPage = wx.BoxSizer(wx.VERTICAL)
+
+        fraHSVChannels = wx.StaticBoxSizer(
+            wx.StaticBox(self, wx.ID_ANY, u"HSV/HSB Values"), wx.VERTICAL)
+
+        szrHSVArea = wx.FlexGridSizer(4, 3, 5, 5)
+        szrHSVArea.AddGrowableCol(1)
+        szrHSVArea.SetFlexibleDirection(wx.BOTH)
+        szrHSVArea.SetNonFlexibleGrowMode(wx.FLEX_GROWMODE_SPECIFIED)
+
+        # labels for color channels
+        self.lblHue = wx.StaticText(
+            fraHSVChannels.GetStaticBox(),
+            wx.ID_ANY,
+            u"H:",
+            wx.DefaultPosition,
+            wx.DefaultSize, 0)
+        self.lblSat = wx.StaticText(
+            fraHSVChannels.GetStaticBox(),
+            wx.ID_ANY,
+            u"S:",
+            wx.DefaultPosition,
+            wx.DefaultSize, 0)
+        self.lblVal = wx.StaticText(
+            fraHSVChannels.GetStaticBox(),
+            wx.ID_ANY,
+            u"V:",
+            wx.DefaultPosition,
+            wx.DefaultSize, 0)
+        self.lblAlpha = wx.StaticText(
+            fraHSVChannels.GetStaticBox(),
+            wx.ID_ANY,
+            u"A:",
+            wx.DefaultPosition,
+            wx.DefaultSize, 0)
+
+        self.lblHue.Wrap(-1)
+        self.lblSat.Wrap(-1)
+        self.lblVal.Wrap(-1)
+        self.lblAlpha.Wrap(-1)
+
+        # sliders for setting each channel
+        self.sldHue = wx.Slider(
+            fraHSVChannels.GetStaticBox(),
+            wx.ID_ANY,
+            0, 0, 360,  # value, min, max
+            wx.DefaultPosition,
+            wx.DefaultSize,
+            wx.SL_HORIZONTAL)
+        self.sldSat = wx.Slider(
+            fraHSVChannels.GetStaticBox(),
+            wx.ID_ANY,
+            0, 0, 255,
+            wx.DefaultPosition,
+            wx.DefaultSize,
+            wx.SL_HORIZONTAL)
+        self.sldVal = wx.Slider(
+            fraHSVChannels.GetStaticBox(),
+            wx.ID_ANY,
+            0, 0, 255,
+            wx.DefaultPosition,
+            wx.DefaultSize,
+            wx.SL_HORIZONTAL)
+        self.sldAlpha = wx.Slider(
+            fraHSVChannels.GetStaticBox(),
+            wx.ID_ANY,
+            0, 0, 255,
+            wx.DefaultPosition,
+            wx.DefaultSize,
+            wx.SL_HORIZONTAL)
+
+        # spin (double) controls
+        self.spnHue = wx.SpinCtrlDouble(
+            fraHSVChannels.GetStaticBox(),
+            wx.ID_ANY,
+            u"0",
+            wx.DefaultPosition,
+            wx.DefaultSize, wx.SP_ARROW_KEYS,
+            0, 360, 0, 1.0)  # min, max, value, inc
+        self.spnSat = wx.SpinCtrlDouble(
+            fraHSVChannels.GetStaticBox(),
+            wx.ID_ANY,
+            u"0",
+            wx.DefaultPosition,
+            wx.DefaultSize, wx.SP_ARROW_KEYS,
+            0, 1, 0, 0.05)
+        self.spnVal = wx.SpinCtrlDouble(
+            fraHSVChannels.GetStaticBox(),
+            wx.ID_ANY,
+            u"0",
+            wx.DefaultPosition,
+            wx.DefaultSize, wx.SP_ARROW_KEYS,
+            0, 1, 0, 0.05)
+        self.spnAlpha = wx.SpinCtrlDouble(
+            fraHSVChannels.GetStaticBox(),
+            wx.ID_ANY,
+            u"1",
+            wx.DefaultPosition,
+            wx.DefaultSize, wx.SP_ARROW_KEYS,
+            0, 1, 0, 0.05)
+
+        self.spnHue.SetDigits(4)
+        self.spnSat.SetDigits(4)
+        self.spnVal.SetDigits(4)
+        self.spnAlpha.SetDigits(4)
+
+        # add widgets to the color channel area
+        szrHSVArea.Add(
+            self.lblHue, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT, 5)
+        szrHSVArea.Add(self.sldHue, 0, wx.EXPAND, 5)
+        szrHSVArea.Add(self.spnHue, 0, 0, 5)
+
+        szrHSVArea.Add(
+            self.lblSat, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT, 5)
+        szrHSVArea.Add(self.sldSat, 0, wx.EXPAND, 5)
+        szrHSVArea.Add(self.spnSat, 0, 0, 5)
+
+        szrHSVArea.Add(
+            self.lblVal, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT, 5)
+        szrHSVArea.Add(self.sldVal, 0, wx.EXPAND, 5)
+        szrHSVArea.Add(self.spnVal, 0, 0, 5)
+
+        szrHSVArea.Add(
+            self.lblAlpha, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT, 5)
+        szrHSVArea.Add(
+            self.sldAlpha, 0, wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, 5)
+        szrHSVArea.Add(self.spnAlpha, 0, 0, 5)
+
+        fraHSVChannels.Add(szrHSVArea, 1, wx.ALL | wx.EXPAND, 5)
+        szrRGBPage.Add(
+            fraHSVChannels, 0, wx.TOP | wx.LEFT | wx.RIGHT | wx.EXPAND, 5)
+
+        self.SetSizer(szrRGBPage)
+        self.Layout()
+
+        # Connect Events
+        self.sldHue.Bind(wx.EVT_SCROLL, self.onHueScroll)
+        self.spnHue.Bind(wx.EVT_SPINCTRLDOUBLE, self.onHueUpdate)
+        self.spnHue.Bind(wx.EVT_TEXT_ENTER, self.onHueUpdate)
+        self.sldSat.Bind(wx.EVT_SCROLL, self.onSatScroll)
+        self.spnSat.Bind(wx.EVT_SPINCTRLDOUBLE, self.onSatUpdate)
+        self.spnSat.Bind(wx.EVT_TEXT_ENTER, self.onSatUpdate)
+        self.sldVal.Bind(wx.EVT_SCROLL, self.onValScroll)
+        self.spnVal.Bind(wx.EVT_SPINCTRLDOUBLE, self.onValUpdate)
+        self.spnVal.Bind(wx.EVT_TEXT_ENTER, self.onValUpdate)
+        self.sldAlpha.Bind(wx.EVT_SCROLL, self.onAlphaScroll)
+        self.spnAlpha.Bind(wx.EVT_SPINCTRLDOUBLE, self.onAlphaUpdate)
+        self.spnAlpha.Bind(wx.EVT_TEXT_ENTER, self.onAlphaUpdate)
+
+    def updateDialog(self):
+        """Update the color specified by the dialog.
+
+        """
+        # update the color specified by the dialog
+        dlg = self.GetTopLevelParent()
+        dlgColor = self.GetTopLevelParent().color
+
+        spinVals = [
+            self.spnHue.GetValue(),
+            self.spnSat.GetValue(),
+            self.spnVal.GetValue(),
+            self.spnAlpha.GetValue()]
+
+        dlgColor.hsva = spinVals
+
+        if hasattr(dlg, 'pnlColorPreview'):
+            dlg.pnlColorPreview.Refresh()
+
+    def updateChannels(self):
+        """Update the values of the channels to reflect the color specified by
+        the dialog. This should never be called within any event handler for
+        controls within the channels frame!
+
+        """
+        # get colors and convert to format wxPython controls can accept
+        rgbaColor = self.GetTopLevelParent().color
+        hsva = [i for i in rgbaColor.hsva]
+
+        self.sldHue.SetValue(hsva[0])
+        self.sldSat.SetValue(hsva[1] * 255.)
+        self.sldVal.SetValue(hsva[2] * 255.)
+        self.sldAlpha.SetValue(hsva[3] * 255.)  # arrrg! should be 255!!!
+
+        # set the value in the new range
+        self.spnHue.SetValue(hsva[0])
+        self.spnSat.SetValue(hsva[1])
+        self.spnVal.SetValue(hsva[2])
+        self.spnAlpha.SetValue(hsva[3])
+
+    def onHueScroll(self, event):
+        """Called when the red channel slider is moved. Updates the spin control
+        and the color specified by the dialog.
+
+        """
+        self.spnHue.SetValue(event.Position)
+        self.updateDialog()
+        event.Skip()
+
+    def onHueUpdate(self, event):
+        """Called when the red spin control. Updates the hex value and the color
+        specified by the dialog.
+
+        """
+        self.sldHue.SetValue(event.GetValue() * 255.)
+        self.updateDialog()
+        event.Skip()
+
+    def onSatScroll(self, event):
+        """Called when the green channel slider is moved. Updates the spin
+        control and the color specified by the dialog.
+
+        """
+        self.spnSat.SetValue(event.Position / 255.)
+        self.updateDialog()
+        event.Skip()
+
+    def onSatUpdate(self, event):
+        """Called when the green spin control. Updates the hex value and the
+        color specified by the dialog.
+
+        """
+        self.sldSat.SetValue(event.GetValue() * 255.)
+        self.updateDialog()
+        event.Skip()
+
+    def onValScroll(self, event):
+        """Called when the blue channel slider is moved. Updates the spin
+        control and the color specified by the dialog.
+
+        """
+        self.spnVal.SetValue(event.Position / 255.)
+        self.updateDialog()
+        event.Skip()
+
+    def onValUpdate(self, event):
+        """Called when the blue spin control. Updates the hex value and the
+        color specified by the dialog.
+
+        """
+        self.sldVal.SetValue(event.GetValue() * 255.)
+        self.updateDialog()
+        event.Skip()
+
+    def onAlphaScroll(self, event):
+        """Called when the alpha (transparency) channel slider is moved. Updates
+        the spin control and the color specified by the dialog.
+
+        """
+        self.spnAlpha.SetValue(event.Position / 255.)
+        self.updateDialog()
+        event.Skip()
+
+    def onAlphaUpdate(self, event):
+        """Called when the alpha spin control. Updates the hex value and the
+        color specified by the dialog.
+
+        """
+        self.sldAlpha.SetValue(event.GetValue() * 255.)
+        self.updateDialog()
         event.Skip()
 
 
