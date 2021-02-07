@@ -252,7 +252,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
                                        )  # transparency?
             w, h = splashImage.GetSize()
             splash.SetTextPosition((int(340), h-30))
-            splash.SetText(_translate("Copyright (C) 2020 OpenScienceTools.org"))
+            splash.SetText(_translate("Copyright (C) 2021 OpenScienceTools.org"))
         else:
             splash = None
 
