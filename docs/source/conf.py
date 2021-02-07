@@ -215,3 +215,6 @@ latex_use_parts = False
 
 # path to mathjax. Use default to load from cdnjs content delivery network.
 #mathjax_path = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.0.0/es5/latest?tex-mml-chtml.js'
+
+# Enable numfig (ThP, 2021-02-07)
+numfig = True
