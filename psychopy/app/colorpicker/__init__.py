@@ -220,8 +220,7 @@ class PsychoColorPicker(wx.Dialog):
 
         """
         page = self.nbColorSpaces.GetCurrentPage()
-        if hasattr(page, 'color') and hasattr(page, '_updateColorCtrls'):
-            page.color.rgba = self.color.rgba
+        if hasattr(page, '_updateColorCtrls'):
             page._updateColorCtrls()
 
     def _addColorSpacePages(self):
@@ -424,10 +423,12 @@ class ColorPickerPageRGB(wx.Panel):
                               2: lambda p: int(p)}  # [0:255]
 
         self._initUI()  # setup the UI controls
+        self._updateColorCtrls()
 
     def _updateColorCtrls(self):
         """Update controls to reflect the value of `color`."""
-        rgba255 = [int(i) for i in self.GetTopLevelParent().color.rgba255]
+        rgbaColor = self.GetTopLevelParent().color
+        rgba255 = [int(i) for i in rgbaColor.rgba255]
         self.sldRed.SetValue(rgba255[0])
         self.sldGreen.SetValue(rgba255[1])
         self.sldBlue.SetValue(rgba255[2])
@@ -449,6 +450,8 @@ class ColorPickerPageRGB(wx.Panel):
         self.spnGreen.SetValue(convFunc(self.sldGreen.Value))
         self.spnBlue.SetValue(convFunc(self.sldBlue.Value))
         self.spnAlpha.SetValue(convFunc(self.sldAlpha.Value))
+
+        self.txtHex.SetValue(rgbaColor.hex)
 
     def _initUI(self):
         """Initialize window controls. Called once when the page is created.
@@ -593,13 +596,14 @@ class ColorPickerPageRGB(wx.Panel):
                 u"Hex/HTML (no Alpha)"),
             wx.VERTICAL)
 
-        self.spnHex = wx.TextCtrl(
+        self.txtHex = wx.TextCtrl(
             fraHexRGB.GetStaticBox(),
             wx.ID_ANY,
             wx.EmptyString,
             wx.DefaultPosition,
-            wx.DefaultSize)
-        fraHexRGB.Add(self.spnHex, 0, wx.ALL | wx.EXPAND, 5)
+            wx.DefaultSize,
+            wx.TE_PROCESS_ENTER)
+        fraHexRGB.Add(self.txtHex, 0, wx.ALL | wx.EXPAND, 5)
 
         szrRGBOptions.Add(fraHexRGB, 2, 0, 5)
 
@@ -637,7 +641,7 @@ class ColorPickerPageRGB(wx.Panel):
         self.sldAlpha.Bind(wx.EVT_SCROLL, self.onAlphaScroll)
         self.spnAlpha.Bind(wx.EVT_SPINCTRLDOUBLE, self.onAlphaUpdate)
         self.spnAlpha.Bind(wx.EVT_TEXT_ENTER, self.onAlphaUpdate)
-        self.spnHex.Bind(wx.EVT_SPINCTRL, self.onHexChanged)
+        self.txtHex.Bind(wx.EVT_TEXT_ENTER, self.onHexChanged)
         self.rbxRGBFormat.Bind(wx.EVT_RADIOBOX, self.onRGBMode)
 
     def getRGBA(self):
@@ -658,15 +662,11 @@ class ColorPickerPageRGB(wx.Panel):
     def updateResultField(self):
         """Update the result field of the parent dialog."""
         dlg = self.GetTopLevelParent()
-        if hasattr(dlg, 'txtResult'):
-            dlg.txtResult.Value = str(self.getRGBA())
 
         if hasattr(dlg, 'pnlColorPreview'):
             dlg.pnlColorPreview.color.rgba255 = self.getRGBA()
             dlg.pnlColorPreview.color.alpha = self.getRGBA()[3] / 255.
             dlg.pnlColorPreview.Refresh()
-
-        self.spnHex.SetValue(dlg.color.hex)
 
     def onRedScroll(self, event):
         self.spnRed.SetValue(
@@ -717,6 +717,16 @@ class ColorPickerPageRGB(wx.Panel):
         event.Skip()
 
     def onHexChanged(self, event):
+        dlgColor = self.GetTopLevelParent().color
+        try:
+            newColor = Color(self.txtHex.GetValue(), space='hex')
+            dlgColor.rgba = newColor.rgba
+            self.updateResultField()
+        except ValueError:
+            pass
+
+        self.txtHex.SetValue(dlgColor.hex)
+
         event.Skip()
 
     def onRGBMode(self, event):
