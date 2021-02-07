@@ -644,12 +644,12 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         Note: units are psychopy -1..+1 rgb units to three decimal places,
         preserving 24-bit color.
         """
-        dlg = PsychoColorPicker(self.coder)
-        if dlg.ShowModal():
-            dlg.Destroy()
-        #newRBG = frame.newRBG
-        #frame.Destroy()
-        #return newRBG  # string
+        dlg = PsychoColorPicker(None)  # doesn't need a parent
+        dlg.ShowModal()
+        dlg.Destroy()
+
+        if event is not None:
+            event.Skip()
 
     def openMonitorCenter(self, event):
         from psychopy.monitors import MonitorCenter
@@ -738,7 +738,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
                 self.prefs.saveAppData()
             except Exception:
                 pass  # we don't care if this fails - we're quitting anyway
-        self.Destroy()
+        #self.Destroy()
 
         # Reset streams back to default
         sys.stdout = sys.__stdout__

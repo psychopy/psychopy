@@ -195,13 +195,15 @@ class PsychoColorPicker(wx.Dialog):
         # initialize the window controls
         self._setupUI()
 
-    def __del__(self):
-        pass
-
     @property
     def color(self):
         """Current color the user has specified. Should be reflected in the
         preview area. Value has type :class:`psychopy.colors.Color`.
+
+        This is the primary setter for the dialog's color value. It will
+        automatically update all color space pages to reflect this color value.
+        Pages should absolutely not attempt to set other page's values directly
+        or risk blowing up the call stack.
 
         """
         return self._color
@@ -329,10 +331,14 @@ class PsychoColorPicker(wx.Dialog):
             wx.DefaultPosition,
             wx.DefaultSize,
             choices=[u'PsychoPy RGBA (rgba)',
+                     u'PsychoPy RGB (rgb)',
                      u'Normalized RGBA (rgba1)',
+                     u'Normalized RGB (rgb1)',
                      u'8-bit RGBA (rgba255)',
+                     u'8-bit RGBA (rgb255)',
                      u'Hex/HTML (hex)',
-                     u'Hue-Saturation-Value (hsva)'
+                     u'Hue-Saturation-Value-Alpha (hsva)',
+                     u'Hue-Saturation-Value (hsv)'
                      ])
         self.txtResult.SetSelection(0)
 
@@ -401,10 +407,10 @@ class ColorPickerPageRGB(wx.Panel):
             self, parent, id=id, pos=pos, size=size, style=style, name=name)
 
         # reference to the color picker dialog or some other container
-        self.colorPickerDlg = self.GetTopLevelParent()
+        #self.colorPickerDlg = self.GetTopLevelParent()
 
         # debug: make sure the top-level has the correct type
-        assert isinstance(self.colorPickerDlg, PsychoColorPicker)
+        #assert isinstance(self.colorPickerDlg, PsychoColorPicker)
 
         # Functions to convert slider units to an RGB format to display in the
         # double-spin controls beside them.
@@ -417,52 +423,32 @@ class ColorPickerPageRGB(wx.Panel):
                               1: lambda p: int(p * 255),  # [0:1]
                               2: lambda p: int(p)}  # [0:255]
 
-        self._color = self.colorPickerDlg.color
-
         self._initUI()  # setup the UI controls
-
-    @property
-    def color(self):
-        """Current color the user has specified. Should be reflected in the
-        preview area. Value has type :class:`psychopy.colors.Color`.
-
-        This is the primary setter for the dialog's color value. It will
-        automatically update all color space pages to reflect this color value.
-        Pages should absolutely not attempt to set other page's values directly
-        or risk blowing up the call stack.
-
-        """
-        return self._color
-
-    @color.setter
-    def color(self, value):
-        self._color = value
-        self._updateColorCtrls()
 
     def _updateColorCtrls(self):
         """Update controls to reflect the value of `color`."""
-        rgba255 = [int(i) for i in self._color.rgba255]
-        self.sldRed.SetValue(rgba255[0])
-        self.sldGreen.SetValue(rgba255[1])
-        self.sldBlue.SetValue(rgba255[2])
-        self.sldAlpha.SetValue(rgba255[3] * 255.)  # arrrg! should be 255!!!
-
-        convFunc = self._posToValFunc[self.rbxRGBFormat.GetSelection()]
-
-        # update spinner values/ranges for each channel
-        for spn in (self.spnRed, self.spnGreen, self.spnBlue, self.spnAlpha):
-            spn.SetDigits(
-                0 if self.rbxRGBFormat.GetSelection() == 2 else 4)
-            spn.SetIncrement(
-                1 if self.rbxRGBFormat.GetSelection() == 2 else 0.05)
-            spn.SetMin(convFunc(0))
-            spn.SetMax(convFunc(255))
-
-        # set the value in the new range
-        self.spnRed.SetValue(convFunc(self.sldRed.Value))
-        self.spnGreen.SetValue(convFunc(self.sldGreen.Value))
-        self.spnBlue.SetValue(convFunc(self.sldBlue.Value))
-        self.spnAlpha.SetValue(convFunc(self.sldAlpha.Value))
+        rgba255 = [int(i) for i in self.GetTopLevelParent().color.rgba255]
+        # self.sldRed.SetValue(rgba255[0])
+        # self.sldGreen.SetValue(rgba255[1])
+        # self.sldBlue.SetValue(rgba255[2])
+        # self.sldAlpha.SetValue(rgba255[3] * 255.)  # arrrg! should be 255!!!
+        #
+        # convFunc = self._posToValFunc[self.rbxRGBFormat.GetSelection()]
+        #
+        # # update spinner values/ranges for each channel
+        # for spn in (self.spnRed, self.spnGreen, self.spnBlue, self.spnAlpha):
+        #     spn.SetDigits(
+        #         0 if self.rbxRGBFormat.GetSelection() == 2 else 4)
+        #     spn.SetIncrement(
+        #         1 if self.rbxRGBFormat.GetSelection() == 2 else 0.05)
+        #     spn.SetMin(convFunc(0))
+        #     spn.SetMax(convFunc(255))
+        #
+        # # set the value in the new range
+        # self.spnRed.SetValue(convFunc(self.sldRed.Value))
+        # self.spnGreen.SetValue(convFunc(self.sldGreen.Value))
+        # self.spnBlue.SetValue(convFunc(self.sldBlue.Value))
+        # self.spnAlpha.SetValue(convFunc(self.sldAlpha.Value))
 
     def _initUI(self):
         """Initialize window controls. Called once when the page is created.
@@ -542,12 +528,10 @@ class ColorPickerPageRGB(wx.Panel):
 
         szrRGBOptions = wx.BoxSizer(wx.HORIZONTAL)
 
-        fraHexRGB = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, u"Hex"), wx.VERTICAL)
+        fraHexRGB = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, u"Hex/HTML (no Alpha)"), wx.VERTICAL)
 
-        self.spnHex = wx.SpinCtrl(fraHexRGB.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
-                                  wx.DefaultSize, wx.SP_ARROW_KEYS, 0, 1 << 32, 0)
-        self.spnHex.SetBase(16)
-        self.spnHex.SetValue(0)
+        self.spnHex = wx.TextCtrl(fraHexRGB.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
+                                  wx.DefaultSize)
         fraHexRGB.Add(self.spnHex, 0, wx.ALL | wx.EXPAND, 5)
 
         szrRGBOptions.Add(fraHexRGB, 2, 0, 5)
@@ -579,9 +563,6 @@ class ColorPickerPageRGB(wx.Panel):
         self.spnHex.Bind(wx.EVT_SPINCTRL, self.onHexChanged)
         self.rbxRGBFormat.Bind(wx.EVT_RADIOBOX, self.onRGBMode)
 
-    def __del__(self):
-        pass
-
     def getRGBA(self):
         """Get the current RGBA color being displayed on the page.
 
@@ -599,53 +580,64 @@ class ColorPickerPageRGB(wx.Panel):
 
     def updateResultField(self):
         """Update the result field of the parent dialog."""
-        if hasattr(self.colorPickerDlg, 'txtResult'):
-            self.colorPickerDlg.txtResult.Value = str(self.getRGBA())
+        dlg = self.GetTopLevelParent()
+        if hasattr(dlg, 'txtResult'):
+            dlg.txtResult.Value = str(self.getRGBA())
 
-        if hasattr(self.colorPickerDlg, 'pnlColorPreview'):
-            self.colorPickerDlg.pnlColorPreview.color.rgba255 = self.getRGBA()
-            self.colorPickerDlg.pnlColorPreview.color.alpha = self.getRGBA()[3] / 255.
-            self.colorPickerDlg.pnlColorPreview.Refresh()
+        if hasattr(dlg, 'pnlColorPreview'):
+            dlg.pnlColorPreview.color.rgba255 = self.getRGBA()
+            dlg.pnlColorPreview.color.alpha = self.getRGBA()[3] / 255.
+            dlg.pnlColorPreview.Refresh()
+
+        self.spnHex.SetValue(dlg.color.hex)
 
     def onRedScroll(self, event):
         self.spnRed.SetValue(
             self._posToValFunc[self.rbxRGBFormat.GetSelection()](event.Position))
         self.updateResultField()
+        event.Skip()
 
     def onRedUpdate(self, event):
         self.sldRed.SetValue(
             self._valToPosFunc[self.rbxRGBFormat.GetSelection()](event.Value))
         self.updateResultField()
+        event.Skip()
 
     def onGreenScroll(self, event):
         self.spnGreen.SetValue(
             self._posToValFunc[self.rbxRGBFormat.GetSelection()](event.Position))
         self.updateResultField()
+        event.Skip()
 
     def onGreenUpdate(self, event):
         self.sldGreen.SetValue(
             self._valToPosFunc[self.rbxRGBFormat.GetSelection()](event.Value))
         self.updateResultField()
+        event.Skip()
 
     def onBlueScroll(self, event):
         self.spnBlue.SetValue(
             self._posToValFunc[self.rbxRGBFormat.GetSelection()](event.Position))
         self.updateResultField()
+        event.Skip()
 
     def onBlueUpdate(self, event):
         self.sldBlue.SetValue(
             self._valToPosFunc[self.rbxRGBFormat.GetSelection()](event.Value))
         self.updateResultField()
+        event.Skip()
 
     def onAlphaScroll(self, event):
         self.spnAlpha.SetValue(
             self._posToValFunc[self.rbxRGBFormat.GetSelection()](event.Position))
         self.updateResultField()
+        event.Skip()
 
     def onAlphaUpdate(self, event):
         self.sldAlpha.SetValue(
             self._valToPosFunc[self.rbxRGBFormat.GetSelection()](event.Value))
         self.updateResultField()
+        event.Skip()
 
     def onHexChanged(self, event):
         event.Skip()
@@ -668,6 +660,7 @@ class ColorPickerPageRGB(wx.Panel):
         self.spnAlpha.SetValue(convFunc(self.sldAlpha.Value))
 
         self.updateResultField()
+        event.Skip()
 
 # class HexControl(ColorControl):
 #    def __init__(self, parent=None, row=0, id=None, name="", value=0):
