@@ -35,6 +35,8 @@ Via the PsychoPy Builder
 ~~~~~~~~~~~~~~~~~~~~~~~~
 If you wish to search for your own existing projects on `Pavlovia`_, or other users' public projects, you can also do this via the Builder interface. To search for a project, click button (3) on the Builder Frame in :numref:`builderViewIndexed`. 
 
+.. _fig-builderViewIndexed:
+
 .. figure:: /images/builderViewIndexed.png
     :name: builderViewIndexed
     :align: center
@@ -44,6 +46,8 @@ If you wish to search for your own existing projects on `Pavlovia`_, or other us
 
 
 Following this, a search dialog will appear, see :numref:`searchDlgAnnot`. The search dialog presents several options that allow users to search, fork and synchronize projects.
+
+.. _fig-searchDlgAnnot:
 
 .. figure:: /images/searchDlgAnnot.png
     :name: searchDlgAnnot
