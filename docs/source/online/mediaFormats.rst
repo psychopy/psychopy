@@ -39,7 +39,7 @@ Here you can find an `overview <https://developer.mozilla.org/en-US/docs/Web/Med
 
 Both H.264 and MP3 perform lossy compression, so the video and audio may lose some detail, but you can adjust the quality level. At higher qualities, the loss in detail is negligible. 
 
-For converting movies, you could use `VLC Player <https://www.videolan.org/vlc/>`_. See `this tutorial <https://www.vlchelp.com/convert-video-format/>`_ for instructions on how to convert multiple movies at once using VLC. To set up the output format correctly, we recommend making a new profile at step 4 in the tutorial above (see image below):
+For converting movies, you could use `VLC Player <https://www.videolan.org/vlc/>`_. See `this tutorial <https://www.vlchelp.com/convert-video-format/>`_ for instructions on how to convert multiple movies at once using VLC. To set up the output format correctly, we recommend making a new profile at step 4 in the tutorial above (see :numref:`videoSettings`):
 
 1. Click the "New Profile" icon, then pick a name for your profile.
 2. In the "Encapsulation" tab, select "MP4/MOV"
@@ -58,5 +58,9 @@ For converting movies, you could use `VLC Player <https://www.videolan.org/vlc/>
 5. Finally, save your profile by clicking the "Create" button.
 
 .. figure:: videoSettings.png
-  :alt: Profile settings for encoding video to MP4 + H.264 & MP3
+    :name: videoSettings
+    :align: center
+    :figclass: align-center
+
+    Profile settings for encoding video to MP4 + H.264 & MP3
 

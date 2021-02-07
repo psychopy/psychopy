@@ -15,22 +15,19 @@ Pavlovia.org is a site created by the PsychoPy team to make it easy to:
 
 Most of the main tasks you will perform with `Pavlovia`_ can be carried out either in the PsychoPy application or on the `Pavlovia`_ website. Synchronizing your files can also be done with any Git client if you prefer.
 
-Creating an account on Pavlovia
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 To create and log in to your account on `Pavlovia`_, you will need an active internet connection. If you have not created your account, you can either 
 
 - go to `Pavlovia`_ and create your account, or
-- click the login button highlighted in Figure 1, and create an account through the dialog box. 
+- click the login button highlighted in :numref:`loginPavlovia`, and create an account through the dialog box. 
 
-Once you have an account on `Pavlovia`_ and are logged in, your user name should appear in the corresponding menu (tpronk in Figure 1). 
+Once you have an account on `Pavlovia`_ and are logged in, your user name should appear in the corresponding menu (tpronk in :numref:`loginPavlovia`). 
 
 .. figure:: /images/loginPavlovia.png
+    :name: loginPavlovia
     :align: center
-    :alt: alternate text
     :figclass: align-center
 
-*Figure 1*. Logging in on Pavlovia via the PsychoPy 3 Builder
+    Logging in on Pavlovia via the PsychoPy 3 Builder
 
 
 
