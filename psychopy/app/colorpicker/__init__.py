@@ -10,13 +10,17 @@ from wx.lib.buttons import GenButton
 from wx.lib.scrolledpanel import ScrolledPanel
 import numpy as np
 
-from psychopy.app.themes import ThemeMixin
 from psychopy.colors import Color, colorNames
 
 
 class ColorPresets(ScrolledPanel):
     """Class for creating a scrollable button list that displays all preset
     colors.
+
+    Parameters
+    ----------
+    parent : object
+        Object this panel belongs to (i.e. :class:`wx.Frame` or `wx.Panel`).
 
     """
     def __init__(self, parent):
@@ -38,6 +42,7 @@ class ColorPresets(ScrolledPanel):
 
         When a user clicks on the buttons, it changes the current color the
         colorspace page is displaying.
+
         """
         # create buttons for each preset color
         colorList = list(colorNames)
@@ -62,7 +67,12 @@ class ColorPresets(ScrolledPanel):
             self.sizer.Add(btn, 1, wx.ALL | wx.EXPAND, 0)
 
     def onClick(self, event):
-        #self.parent.setColor(event.GetEventObject().colorData, 'named')
+        """Event called when the user clicks a color button. Value is passed to
+        the dialog and updates the color. This in turn will update the values of
+        all the color space pages.
+
+        """
+        self.GetTopLevelParent().color = event.GetEventObject().colorData
         event.Skip()
 
 
@@ -76,13 +86,12 @@ class ColorPreview(wx.Panel):
     """
     def __init__(self, parent, color):
         wx.Panel.__init__(self, parent, size=(100, -1))
-        # self.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
+        # device contexts for drawing
+        self.pdc = self.dc = None
 
         self.parent = parent
         self.SetDoubleBuffered(True)
         self.color = color
-        self.pdc = wx.PaintDC(self)
-        self.dc = wx.GCDC(self.pdc)
         self.Bind(wx.EVT_PAINT, self.onPaint)
 
     @property
@@ -99,11 +108,12 @@ class ColorPreview(wx.Panel):
         """Called each time the preview is updated or `color` is changed. Bound
         to `EVT_PAINT`. The background is only drawn if the color is
         transparent.
-        """
-        # self.pdc.SetBrush(wx.Brush(ThemeMixin.appColors['panel_bg']))
-        # self.pdc.SetPen(wx.Pen(ThemeMixin.appColors['panel_bg']))
 
-        # only draw background if there is transparency
+        """
+        self.pdc = wx.PaintDC(self)
+        self.dc = wx.GCDC(self.pdc)
+
+        # only draw background if there is transparency, reduces draw calls
         if self._color.alpha < 1.0:
             self._paintCheckerboard()
 
@@ -112,7 +122,11 @@ class ColorPreview(wx.Panel):
     def _paintPreviewColor(self):
         """Paint the current color. Called when `onPaint` is invoked, but after
         the checkerboard is drawn.
+
         """
+        if self.dc is None:
+            return  # nop
+
         # originally written by Todd Parsons
         self.dc.SetBrush(
             wx.Brush(list(self.color.rgb255) + [self.color.alpha * 255],
@@ -136,9 +150,15 @@ class ColorPreview(wx.Panel):
             Width and height of each grid square.
 
         """
+        if self.pdc is None:
+            return  # nop
+
+        self.pdc.SetBrush(wx.LIGHT_GREY_BRUSH)
+        self.pdc.SetPen(wx.LIGHT_GREY_PEN)
+
         # originally written by Todd Parsons
         w = h = gridRes
-        for x in range(0, self.GetSize()[0], w*2):
+        for x in range(0, self.GetSize()[0], w * 2):
             for y in range(0 + (x % 2) * h, self.GetSize()[1], h * 2):
                 self.pdc.DrawRectangle(x, y, w, h)
                 self.pdc.DrawRectangle(x + w, y + h, w, h)
@@ -167,7 +187,7 @@ class PsychoColorPicker(wx.Dialog):
             style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
 
         self.SetSizeHints(wx.DefaultSize, wx.DefaultSize)
-        self.SetMinSize(wx.Size(480, 480))
+        self.SetMinSize(wx.Size(550, 480))
 
         # current output color, should be displayed in the preview
         self._color = Color((0, 0, 0, 1), space='rgba')
@@ -181,23 +201,32 @@ class PsychoColorPicker(wx.Dialog):
     @property
     def color(self):
         """Current color the user has specified. Should be reflected in the
-        preview area. Value has type :class:`psychopy.colors.Color`."""
+        preview area. Value has type :class:`psychopy.colors.Color`.
+
+        """
         return self._color
 
     @color.setter
     def color(self, value):
         self.pnlColorPreview.color = self._color = value
+        self._updateColorSpacePage()
 
-    def _updateColorSpacePages(self):
-        """Update all the color space pages to reflect the current value for
-        `color`."""
-        pass
+    def _updateColorSpacePage(self):
+        """Update the current colorspace page to reflect the current color being
+        specified by the dialog. Called only on the current page or when the
+        page has been changed. Pointless to update all pages at once.
+
+        """
+        page = self.nbColorSpaces.GetCurrentPage()
+        if hasattr(page, 'color') and hasattr(page, '_updateColorCtrls'):
+            page.color.rgba = self.color.rgba
+            page._updateColorCtrls()
 
     def _addColorSpacePages(self):
         """Add pages for each supported color space.
 
         In the future this will be modified to support plugging in additional
-        colorspaces. Right now the pages are hard-coded in.
+        color spaces. Right now the pages are hard-coded in.
 
         """
         self.pnlRGB = ColorPickerPageRGB(self.nbColorSpaces)
@@ -213,6 +242,7 @@ class PsychoColorPicker(wx.Dialog):
 
     def _setupUI(self):
         """Setup the UI for the color picker dialog box.
+
         """
         szrMain = wx.BoxSizer(wx.VERTICAL)
 
@@ -281,7 +311,7 @@ class PsychoColorPicker(wx.Dialog):
         self.lblResult = wx.StaticText(
             self,
             wx.ID_ANY,
-            u"Result (RGBA):",
+            u"Output Space:",
             wx.DefaultPosition,
             wx.DefaultSize,
             0)
@@ -293,16 +323,21 @@ class PsychoColorPicker(wx.Dialog):
             wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL,
             5)
 
-        self.txtResult = wx.TextCtrl(
+        self.txtResult = wx.Choice(
             self,
             wx.ID_ANY,
-            u"",
             wx.DefaultPosition,
             wx.DefaultSize,
-            wx.TE_READONLY)
+            choices=[u'PsychoPy RGBA (rgba)',
+                     u'Normalized RGBA (rgba1)',
+                     u'8-bit RGBA (rgba255)',
+                     u'Hex/HTML (hex)',
+                     u'Hue-Saturation-Value (hsva)'
+                     ])
+        self.txtResult.SetSelection(0)
 
         szrDlgCtrls.Add(
-            self.txtResult, 0, wx.ALIGN_CENTER_VERTICAL | wx.EXPAND, 5)
+            self.txtResult, 1, wx.ALIGN_CENTER_VERTICAL, 5)
 
         self.cmdCopyObject = wx.Button(
             self, wx.ID_ANY, u"Copy as &Object", wx.DefaultPosition,
@@ -368,6 +403,9 @@ class ColorPickerPageRGB(wx.Panel):
         # reference to the color picker dialog or some other container
         self.colorPickerDlg = self.GetTopLevelParent()
 
+        # debug: make sure the top-level has the correct type
+        assert isinstance(self.colorPickerDlg, PsychoColorPicker)
+
         # Functions to convert slider units to an RGB format to display in the
         # double-spin controls beside them.
         self._posToValFunc = {0: lambda v: 2 * (v / 255.) - 1,  # [-1:1]
@@ -379,7 +417,52 @@ class ColorPickerPageRGB(wx.Panel):
                               1: lambda p: int(p * 255),  # [0:1]
                               2: lambda p: int(p)}  # [0:255]
 
+        self._color = self.colorPickerDlg.color
+
         self._initUI()  # setup the UI controls
+
+    @property
+    def color(self):
+        """Current color the user has specified. Should be reflected in the
+        preview area. Value has type :class:`psychopy.colors.Color`.
+
+        This is the primary setter for the dialog's color value. It will
+        automatically update all color space pages to reflect this color value.
+        Pages should absolutely not attempt to set other page's values directly
+        or risk blowing up the call stack.
+
+        """
+        return self._color
+
+    @color.setter
+    def color(self, value):
+        self._color = value
+        self._updateColorCtrls()
+
+    def _updateColorCtrls(self):
+        """Update controls to reflect the value of `color`."""
+        rgba255 = [int(i) for i in self._color.rgba255]
+        self.sldRed.SetValue(rgba255[0])
+        self.sldGreen.SetValue(rgba255[1])
+        self.sldBlue.SetValue(rgba255[2])
+        self.sldAlpha.SetValue(rgba255[3] * 255.)  # arrrg! should be 255!!!
+
+        convFunc = self._posToValFunc[self.rbxRGBFormat.GetSelection()]
+
+        # update spinner values/ranges for each channel
+        for spn in (self.spnRed, self.spnGreen, self.spnBlue, self.spnAlpha):
+            spn.SetDigits(
+                0 if self.rbxRGBFormat.GetSelection() == 2 else 4)
+            spn.SetIncrement(
+                1 if self.rbxRGBFormat.GetSelection() == 2 else 0.05)
+            spn.SetMin(convFunc(0))
+            spn.SetMax(convFunc(255))
+
+        # set the value in the new range
+        self.spnRed.SetValue(convFunc(self.sldRed.Value))
+        self.spnGreen.SetValue(convFunc(self.sldGreen.Value))
+        self.spnBlue.SetValue(convFunc(self.sldBlue.Value))
+        self.spnAlpha.SetValue(convFunc(self.sldAlpha.Value))
 
     def _initUI(self):
         """Initialize window controls. Called once when the page is created.
@@ -462,7 +545,9 @@ class ColorPickerPageRGB(wx.Panel):
         fraHexRGB = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, u"Hex"), wx.VERTICAL)
 
         self.spnHex = wx.SpinCtrl(fraHexRGB.GetStaticBox(), wx.ID_ANY, wx.EmptyString, wx.DefaultPosition,
-                                  wx.DefaultSize, wx.SP_ARROW_KEYS, 0, 10, 0)
+                                  wx.DefaultSize, wx.SP_ARROW_KEYS, 0, 1 << 32, 0)
+        self.spnHex.SetBase(16)
+        self.spnHex.SetValue(0)
         fraHexRGB.Add(self.spnHex, 0, wx.ALL | wx.EXPAND, 5)
 
         szrRGBOptions.Add(fraHexRGB, 2, 0, 5)
