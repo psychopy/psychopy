@@ -88,6 +88,7 @@ add_function_parentheses = True
 # unit titles (such as .. function::).
 add_module_names = True
 
+numfig = True
 # If true, sectionauthor and moduleauthor directives will be shown in the
 # output. They are ignored by default.
 #show_authors = False

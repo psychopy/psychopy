@@ -35,20 +35,28 @@ Via the PsychoPy Builder
 ~~~~~~~~~~~~~~~~~~~~~~~~
 If you wish to search for your own existing projects on `Pavlovia`_, or other users' public projects, you can also do this via the Builder interface. To search for a project, click button (3) on the Builder Frame in Figure 3. 
 
+.. _fig-builderViewIndexed:
+
 .. figure:: /images/builderViewIndexed.png
     :align: center
-    :alt: alternate text
+    :alt: Buttons for running an online study from the PsychoPy Builder.
     :figclass: align-center
-*Figure 3*. Buttons for running an online study from the PsychoPy Builder.
+
+    Buttons for running an online study from the PsychoPy Builder
 
 
 Following this, a search dialog will appear, see Figure 4. The search dialog presents several options that allow users to search, fork and synchronize projects.
 
+.. _fig-searchDlgAnnot:
+
 .. figure:: /images/searchDlgAnnot.png
     :align: center
-    :alt: alternate text
+    :alt:  The search dialog in Builder
     :figclass: align-center
-*Figure 4*. The search dialog in Builder
+
+    The search dialog in Builder
+
+Now we can reference :numref:`fig-builderViewIndexed` and :numref:`fig-searchDlgAnnot` more easily.
 
 **To search for a project** (see Figure 4, Box A), type in search terms in the text box and click the “Search” button to find related projects on Pavlovia. Use the search filters (e.g., “My group”, “Public” etc) above the text box to filter the search output. The output of your search will be listed in the search panel below the search button, where you can select your project of interest.
 
