@@ -241,7 +241,6 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
           testMode: bool
         """
         self.SetAppName('PsychoPy3')
-        fuck
         if showSplash: #showSplash:
             # show splash screen
             splashFile = os.path.join(
