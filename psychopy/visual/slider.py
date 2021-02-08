@@ -312,8 +312,7 @@ class Slider(MinimalStim, ColorMixin):
         # create a rectangle to check for clicks
         self.validArea = Rect(self.win, units=self.units,
                               pos=self.pos,
-                              width=self.size[0] * 1.1,
-                              height=self.size[1] * 1.1,
+                              size=[d * 1.1 for d in self.size],
                               lineColor='DarkGrey',
                               autoLog=False)
 
