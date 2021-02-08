@@ -225,6 +225,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
 
         # self.SetAutoLayout(True)
         self.Bind(wx.EVT_CLOSE, self.closeFrame)
+        self.Bind(wx.EVT_SIZE, self.onResize)
 
         self.app.trackFrame(self)
         self.SetDropTarget(FileDropTarget(targetFrame=self))
@@ -579,6 +580,12 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         """quit the app
         """
         self.app.quit(event)
+
+    def onResize(self, event):
+        """Called when the frame is resized."""
+        self.componentButtons.Refresh()
+        self.flowPanel.Refresh()
+        event.Skip()
 
     def fileNew(self, event=None, closeCurrent=True):
         """Create a default experiment (maybe an empty one instead)

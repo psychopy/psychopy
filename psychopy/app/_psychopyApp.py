@@ -253,7 +253,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
                                        )  # transparency?
             w, h = splashImage.GetSize()
             splash.SetTextPosition((int(340), h-30))
-            splash.SetText(_translate("Copyright (C) 2020 OpenScienceTools.org"))
+            splash.SetText(_translate("Copyright (C) 2021 OpenScienceTools.org"))
         else:
             splash = None
 
@@ -645,10 +645,12 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         Note: units are psychopy -1..+1 rgb units to three decimal places,
         preserving 24-bit color.
         """
-        PsychoColorPicker(self.coder)
-        #newRBG = frame.newRBG
-        #frame.Destroy()
-        #return newRBG  # string
+        dlg = PsychoColorPicker(None)  # doesn't need a parent
+        dlg.ShowModal()
+        dlg.Destroy()
+
+        if event is not None:
+            event.Skip()
 
     def openMonitorCenter(self, event):
         from psychopy.monitors import MonitorCenter
@@ -737,7 +739,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
                 self.prefs.saveAppData()
             except Exception:
                 pass  # we don't care if this fails - we're quitting anyway
-        self.Destroy()
+        #self.Destroy()
 
         # Reset streams back to default
         sys.stdout = sys.__stdout__
