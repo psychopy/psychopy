@@ -641,7 +641,7 @@ class ColorPickerPageHSV(wx.Panel):
         specified by the dialog.
 
         """
-        self.sldHue.SetValue(event.GetValue() * 255.)
+        self.sldHue.SetValue(int(event.GetValue()))
         self.updateDialog()
         event.Skip()
 
