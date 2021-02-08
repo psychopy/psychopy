@@ -10,6 +10,9 @@ from .panels import ColorPresets, ColorPreview
 from .pages import ColorPickerPageHSV, ColorPickerPageRGB
 from psychopy.colors import Color
 
+LAST_COLOR = Color((0, 0, 0, 1), space='rgba')
+LAST_OUTPUT_SPACE = 0
+
 
 class PsychoColorPicker(wx.Dialog):
     """Class for the color picker dialog.
@@ -37,7 +40,8 @@ class PsychoColorPicker(wx.Dialog):
         self.SetMinSize(wx.Size(600, 480))
 
         # current output color, should be displayed in the preview
-        self._color = Color((0, 0, 0, 1), space='rgba')
+        global LAST_COLOR
+        self._color = LAST_COLOR.copy()
 
         # output spaces mapped to the `cboOutputSpace` object
         self._spaces = {
@@ -82,7 +86,12 @@ class PsychoColorPicker(wx.Dialog):
 
     @color.setter
     def color(self, value):
+        if value is None:
+            value = Color('none', space='named')
+
+        global LAST_COLOR
         self.pnlColorPreview.color = self._color = value
+        LAST_COLOR = self._color.copy()
         self._updateColorSpacePage()
 
     def _updateColorSpacePage(self):
@@ -202,7 +211,7 @@ class PsychoColorPicker(wx.Dialog):
             wx.DefaultPosition,
             wx.DefaultSize,
             choices=self._outputChoices)
-        self.cboOutputSpace.SetSelection(0)
+        self.cboOutputSpace.SetSelection(LAST_OUTPUT_SPACE)
 
         szrDlgCtrls.Add(self.cboOutputSpace, 1, wx.ALIGN_CENTER_VERTICAL, 5)
 
@@ -237,6 +246,8 @@ class PsychoColorPicker(wx.Dialog):
         self.nbColorSpaces.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.onPageChanged)
         self.cmdCopyObject.Bind(wx.EVT_BUTTON, self.onCopyObject)
         self.cmdCopy.Bind(wx.EVT_BUTTON, self.onCopyValue)
+        self.cboOutputSpace.Bind(
+            wx.EVT_CHOICE, self.onOutputSpaceChanged)
         self.cmdClose.Bind(wx.EVT_BUTTON, self.onClose)
 
     def _copyToClipboard(self, text):
@@ -303,6 +314,12 @@ class PsychoColorPicker(wx.Dialog):
                 "more choices to `cboOutputSpace`?")
 
         return colorOut
+
+    def onOutputSpaceChanged(self, event):
+        """Set when the output space choicebox is changed."""
+        global LAST_OUTPUT_SPACE
+        LAST_OUTPUT_SPACE = event.GetSelection()
+        event.Skip()
 
     def onPageChanged(self, event):
         """Called when the color space notebook is changed. Updates the current

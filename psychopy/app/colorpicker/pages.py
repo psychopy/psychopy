@@ -10,6 +10,7 @@ from psychopy.colors import Color
 
 
 SLIDER_RES = 255  # resolution of the slider for color channels, leave alone!
+# remember the last color and output space
 
 
 class ColorPickerPageRGB(wx.Panel):
