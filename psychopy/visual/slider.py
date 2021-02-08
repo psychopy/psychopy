@@ -599,19 +599,18 @@ class Slider(MinimalStim, ColorMixin):
                                     vertices=[[0, 0], [0.5, 0.5], [0.5, -0.5]],
                                     size=markerSize,
                                     ori=ori,
-                                    fillColor='DarkRed',
-                                    lineColor='DarkRed',
+                                    fillColor=self._fillColor.copy(),
                                     autoLog=False)
 
         if 'slider' in style:
             # make it more like a slider using a box instead of line
             self.line = Rect(self.win, units=self.units,
                              pos=self.pos,
-                             width=self.size[0],
-                             height=self.size[1],
-                             fillColor='DarkGray',
-                             lineColor='LightGray',
+                             size=self.size,
+                             fillColor=self._borderColor.copy(),
+                             lineColor=None,
                              autoLog=False)
+            self.line._fillColor.alpha *= 0.2
             if self.horiz:
                 markerW = self.size[0] * 0.1
                 markerH = self.size[1] * 0.8
@@ -620,16 +619,17 @@ class Slider(MinimalStim, ColorMixin):
                 markerH = self.size[1] * 0.1
 
             self.marker = Rect(self.win, units=self.units,
-                               width=markerW,
-                               height=markerH,
-                               fillColor='DarkSlateGray',
-                               lineColor='GhostWhite',
+                               size=[markerW, markerH],
+                               fillColor=self._fillColor,
+                               lineColor=None,
                                autoLog=False)
 
         if 'whiteOnBlack' in style:
             self.line.color = 'black'
             self.tickLines.colors = 'black'
             self.marker.color = 'white'
+            for label in self.labelObjs:
+                label.color = 'white'
 
         if 'labels45' in style:
             for label in self.labelObjs:
@@ -647,4 +647,4 @@ class Slider(MinimalStim, ColorMixin):
             self.tickLines.elementMask = 'circle'
             # marker must be smalle than a "tick" circle
             self.marker.size = self._tickL * 0.7
-            self.marker.fillColor = "DarkRed"
+            self.marker.fillColor = self._fillColor.copy()
