@@ -9,6 +9,9 @@ import wx
 from psychopy.colors import Color
 
 
+SLIDER_RES = 255  # resolution of the slider for color channels, leave alone!
+
+
 class ColorPickerPageRGB(wx.Panel):
     """Class for the RGB page of the color picker.
 
@@ -31,13 +34,13 @@ class ColorPickerPageRGB(wx.Panel):
 
         # Functions to convert slider units to an RGB format to display in the
         # double-spin controls beside them.
-        self._posToValFunc = {0: lambda v: 2 * (v / 255.) - 1,  # [-1:1]
-                              1: lambda v: v / 255.,  # [0:1]
+        self._posToValFunc = {0: lambda v: 2 * (v / SLIDER_RES) - 1,  # [-1:1]
+                              1: lambda v: v / SLIDER_RES,  # [0:1]
                               2: lambda v: v}  # [0:255]
 
         # inverse of the above functions, converts values to positions
-        self._valToPosFunc = {0: lambda p: int(255 * (p + 1) / 2.),  # [-1:1]
-                              1: lambda p: int(p * 255),  # [0:1]
+        self._valToPosFunc = {0: lambda p: int(SLIDER_RES * (p + 1) / 2.),  # [-1:1]
+                              1: lambda p: int(p * SLIDER_RES),  # [0:1]
                               2: lambda p: int(p)}  # [0:255]
 
         self._initUI()  # setup the UI controls
@@ -93,28 +96,28 @@ class ColorPickerPageRGB(wx.Panel):
         self.sldRed = wx.Slider(
             fraRGBChannels.GetStaticBox(),
             wx.ID_ANY,
-            127, 0, 255,  # value, min, max
+            int(SLIDER_RES / 2), 0, SLIDER_RES,  # value, min, max
             wx.DefaultPosition,
             wx.DefaultSize,
             wx.SL_HORIZONTAL)
         self.sldGreen = wx.Slider(
             fraRGBChannels.GetStaticBox(),
             wx.ID_ANY,
-            127, 0, 255,
+            int(SLIDER_RES / 2), 0, SLIDER_RES,
             wx.DefaultPosition,
             wx.DefaultSize,
             wx.SL_HORIZONTAL)
         self.sldBlue = wx.Slider(
             fraRGBChannels.GetStaticBox(),
             wx.ID_ANY,
-            127, 0, 255,
+            int(SLIDER_RES / 2), 0, SLIDER_RES,
             wx.DefaultPosition,
             wx.DefaultSize,
             wx.SL_HORIZONTAL)
         self.sldAlpha = wx.Slider(
             fraRGBChannels.GetStaticBox(),
             wx.ID_ANY,
-            255, 0, 255,
+            SLIDER_RES, 0, SLIDER_RES,
             wx.DefaultPosition,
             wx.DefaultSize,
             wx.SL_HORIZONTAL)
@@ -201,13 +204,13 @@ class ColorPickerPageRGB(wx.Panel):
 
         # the index of each item maps to the conversion functions
         rbxRGBModeChoices = [
-            u"PsychoPy RGBA [-1:1]",
-            u"Normalized RGBA [0:1]",
-            u"8-Bit RGBA [0:255]"]
+            u"PsychoPy RGB [-1:1]",
+            u"Normalized RGB [0:1]",
+            u"8-Bit RGB [0:255]"]
         self.rbxRGBFormat = wx.RadioBox(
             self,
             wx.ID_ANY,
-            u"Channel Format",
+            u"RGB Format",
             wx.DefaultPosition,
             wx.DefaultSize,
             rbxRGBModeChoices,
@@ -278,7 +281,7 @@ class ColorPickerPageRGB(wx.Panel):
         self.sldRed.SetValue(rgba255[0])
         self.sldGreen.SetValue(rgba255[1])
         self.sldBlue.SetValue(rgba255[2])
-        self.sldAlpha.SetValue(rgbaColor.alpha * 255.)  # arrrg! should be 255!!!
+        self.sldAlpha.SetValue(rgbaColor.alpha * SLIDER_RES)  # arrrg! should be 255!!!
 
         convFunc = self._posToValFunc[self.rbxRGBFormat.GetSelection()]
 
@@ -289,7 +292,7 @@ class ColorPickerPageRGB(wx.Panel):
             spn.SetIncrement(
                 1 if self.rbxRGBFormat.GetSelection() == 2 else 0.05)
             spn.SetMin(convFunc(0))
-            spn.SetMax(convFunc(255))
+            spn.SetMax(convFunc(SLIDER_RES))
 
         # set the value in the new range
         self.spnRed.SetValue(convFunc(self.sldRed.Value))
@@ -371,7 +374,7 @@ class ColorPickerPageRGB(wx.Panel):
         the spin control and the color specified by the dialog.
 
         """
-        self.spnAlpha.SetValue(event.Position / 255.)
+        self.spnAlpha.SetValue(event.Position / SLIDER_RES)
         self.updateHex()
         self.updateDialog()
         event.Skip()
@@ -381,7 +384,7 @@ class ColorPickerPageRGB(wx.Panel):
         hex value and the color specified by the dialog.
 
         """
-        self.sldAlpha.SetValue(event.Value * 255.)
+        self.sldAlpha.SetValue(event.Value * SLIDER_RES)
         self.updateHex()
         self.updateDialog()
         event.Skip()
@@ -490,21 +493,21 @@ class ColorPickerPageHSV(wx.Panel):
         self.sldSat = wx.Slider(
             fraHSVChannels.GetStaticBox(),
             wx.ID_ANY,
-            0, 0, 255,
+            0, 0, SLIDER_RES,
             wx.DefaultPosition,
             wx.DefaultSize,
             wx.SL_HORIZONTAL)
         self.sldVal = wx.Slider(
             fraHSVChannels.GetStaticBox(),
             wx.ID_ANY,
-            0, 0, 255,
+            0, 0, SLIDER_RES,
             wx.DefaultPosition,
             wx.DefaultSize,
             wx.SL_HORIZONTAL)
         self.sldAlpha = wx.Slider(
             fraHSVChannels.GetStaticBox(),
             wx.ID_ANY,
-            0, 0, 255,
+            0, 0, SLIDER_RES,
             wx.DefaultPosition,
             wx.DefaultSize,
             wx.SL_HORIZONTAL)
@@ -617,9 +620,9 @@ class ColorPickerPageHSV(wx.Panel):
         hsva = [i for i in rgbaColor.hsva]
 
         self.sldHue.SetValue(hsva[0])
-        self.sldSat.SetValue(hsva[1] * 255.)
-        self.sldVal.SetValue(hsva[2] * 255.)
-        self.sldAlpha.SetValue(hsva[3] * 255.)  # arrrg! should be 255!!!
+        self.sldSat.SetValue(hsva[1] * SLIDER_RES)
+        self.sldVal.SetValue(hsva[2] * SLIDER_RES)
+        self.sldAlpha.SetValue(hsva[3] * SLIDER_RES)  # arrrg! should be 255!!!
 
         # set the value in the new range
         self.spnHue.SetValue(hsva[0])
@@ -650,7 +653,7 @@ class ColorPickerPageHSV(wx.Panel):
         control and the color specified by the dialog.
 
         """
-        self.spnSat.SetValue(event.Position / 255.)
+        self.spnSat.SetValue(event.Position / SLIDER_RES)
         self.updateDialog()
         event.Skip()
 
@@ -659,7 +662,7 @@ class ColorPickerPageHSV(wx.Panel):
         color specified by the dialog.
 
         """
-        self.sldSat.SetValue(event.GetValue() * 255.)
+        self.sldSat.SetValue(event.GetValue() * SLIDER_RES)
         self.updateDialog()
         event.Skip()
 
@@ -668,7 +671,7 @@ class ColorPickerPageHSV(wx.Panel):
         control and the color specified by the dialog.
 
         """
-        self.spnVal.SetValue(event.Position / 255.)
+        self.spnVal.SetValue(event.Position / SLIDER_RES)
         self.updateDialog()
         event.Skip()
 
@@ -677,7 +680,7 @@ class ColorPickerPageHSV(wx.Panel):
         color specified by the dialog.
 
         """
-        self.sldVal.SetValue(event.GetValue() * 255.)
+        self.sldVal.SetValue(event.GetValue() * SLIDER_RES)
         self.updateDialog()
         event.Skip()
 
@@ -686,7 +689,7 @@ class ColorPickerPageHSV(wx.Panel):
         the spin control and the color specified by the dialog.
 
         """
-        self.spnAlpha.SetValue(event.Position / 255.)
+        self.spnAlpha.SetValue(event.Position / SLIDER_RES)
         self.updateDialog()
         event.Skip()
 
@@ -695,7 +698,7 @@ class ColorPickerPageHSV(wx.Panel):
         color specified by the dialog.
 
         """
-        self.sldAlpha.SetValue(event.GetValue() * 255.)
+        self.sldAlpha.SetValue(event.GetValue() * SLIDER_RES)
         self.updateDialog()
         event.Skip()
 
