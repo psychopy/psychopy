@@ -58,7 +58,9 @@ class Slider(MinimalStim, ColorMixin):
                  style='rating',
                  granularity=0,
                  readOnly=False,
-                 color='LightGray',
+                 color='White',
+                 fillColor='Red',
+                 borderColor='White',
                  colorSpace='rgb',
                  font='Helvetica Bold',
                  depth=0,
@@ -155,6 +157,8 @@ class Slider(MinimalStim, ColorMixin):
         self.granularity = granularity
         self.colorSpace = colorSpace
         self.color = color
+        self.fillColor = fillColor
+        self.borderColor = borderColor
         self.font = font
         self.autoDraw = autoDraw
         self.depth = depth
@@ -249,14 +253,14 @@ class Slider(MinimalStim, ColorMixin):
         else:
             lineSize = self._lineW, self._lineL
             tickSize = self._tickL, self._lineW
-        self.line = GratingStim(win=self.win, pos=self.pos, color=self._foreColor, colorSpace=self.colorSpace,
+        self.line = GratingStim(win=self.win, pos=self.pos, color=self._borderColor, colorSpace=self.colorSpace,
                                 size=lineSize, sf=0, units=self.units,
                                 autoLog=False)
         self.tickLines = ElementArrayStim(win=self.win, units=self.units,
                                           nElements=len(self.ticks),
                                           xys=self.tickLocs,
                                           elementMask=None,
-                                          colors=self._foreColor, colorSpace = self.colorSpace,
+                                          colors=self._borderColor, colorSpace = self.colorSpace,
                                           sizes=tickSize, sfs=0,
                                           autoLog=False)
 
@@ -302,7 +306,7 @@ class Slider(MinimalStim, ColorMixin):
 
         self.marker = Circle(self.win, units=self.units,
                              size=markerSize,
-                             color='red',
+                             fillColor=self._fillColor,
                              autoLog=False)
 
         # create a rectangle to check for clicks

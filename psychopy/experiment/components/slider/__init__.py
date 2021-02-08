@@ -66,6 +66,8 @@ class SliderComponent(BaseVisualComponent):
                  style=['rating'],
                  granularity=0,
                  color="LightGray",
+                 fillColor='Red',
+                 borderColor='White',
                  font="Open Sans",
                  letterHeight=0.05,
                  startType='time (s)', startVal='0.0',
@@ -136,8 +138,13 @@ class SliderComponent(BaseVisualComponent):
                         "other side."),
                 label=_translate('Flip'))
 
-        self.params['color'].hint = "Color of the lines and labels (might be"
-        "overridden by the style setting)"
+        # Color changes
+        self.params['color'].label = "Label Color"
+        self.params['color'].hint = "Color of all labels on this slider (might be overridden by the style setting)"
+        self.params['fillColor'].label = "Marker Color"
+        self.params['fillColor'].hint = "Color of the marker on this slider (might be overridden by the style setting)"
+        self.params['borderColor'].label = "Line Color"
+        self.params['borderColor'].hint = "Color of all lines on this slider (might be overridden by the style setting)"
 
         self.params['font'] = Param(
                 font, valType='str', inputType="single", categ='Formatting',
@@ -179,9 +186,6 @@ class SliderComponent(BaseVisualComponent):
                 updates='constant', allowedUpdates=[],
                 hint=_translate("store the history of (selection, time)"),
                 label=_localized['storeHistory'])
-
-        del self.params['fillColor']
-        del self.params['borderColor']
 
     def writeInitCode(self, buff):
 
