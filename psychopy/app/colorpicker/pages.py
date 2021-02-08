@@ -147,7 +147,7 @@ class ColorPickerPageRGB(wx.Panel):
             u"1",
             wx.DefaultPosition,
             wx.DefaultSize, wx.SP_ARROW_KEYS,
-            -1, 1, 0, 0.05)
+            0, 1, 0, 0.05)  # non-standard specification for alpha here!!!
 
         self.spnRed.SetDigits(4)
         self.spnGreen.SetDigits(4)
@@ -275,16 +275,15 @@ class ColorPickerPageRGB(wx.Panel):
         # get colors and convert to format wxPython controls can accept
         rgbaColor = self.GetTopLevelParent().color
         rgba255 = [int(i) for i in rgbaColor.rgba255]
-
         self.sldRed.SetValue(rgba255[0])
         self.sldGreen.SetValue(rgba255[1])
         self.sldBlue.SetValue(rgba255[2])
-        self.sldAlpha.SetValue(rgba255[3] * 255.)  # arrrg! should be 255!!!
+        self.sldAlpha.SetValue(rgbaColor.alpha * 255.)  # arrrg! should be 255!!!
 
         convFunc = self._posToValFunc[self.rbxRGBFormat.GetSelection()]
 
         # update spinner values/ranges for each channel
-        for spn in (self.spnRed, self.spnGreen, self.spnBlue, self.spnAlpha):
+        for spn in (self.spnRed, self.spnGreen, self.spnBlue):
             spn.SetDigits(
                 0 if self.rbxRGBFormat.GetSelection() == 2 else 4)
             spn.SetIncrement(
@@ -296,22 +295,7 @@ class ColorPickerPageRGB(wx.Panel):
         self.spnRed.SetValue(convFunc(self.sldRed.Value))
         self.spnGreen.SetValue(convFunc(self.sldGreen.Value))
         self.spnBlue.SetValue(convFunc(self.sldBlue.Value))
-        self.spnAlpha.SetValue(convFunc(self.sldAlpha.Value))
-
-    def getRGBA(self):
-        """Get the current RGBA color being displayed on the page.
-
-        Returns
-        -------
-        tuple
-            RGBA color.
-
-        """
-        convFunc = self._valToPosFunc[self.rbxRGBFormat.GetSelection()]
-        return (convFunc(self.spnGreen.GetValue()),
-                convFunc(self.spnGreen.GetValue()),
-                convFunc(self.spnBlue.GetValue()),
-                convFunc(self.spnAlpha.GetValue()))
+        self.spnAlpha.SetValue(rgbaColor.alpha)
 
     def onRedScroll(self, event):
         """Called when the red channel slider is moved. Updates the spin control
@@ -326,8 +310,8 @@ class ColorPickerPageRGB(wx.Panel):
         event.Skip()
 
     def onRedUpdate(self, event):
-        """Called when the red spin control. Updates the hex value and the color
-        specified by the dialog.
+        """Called when the red channel spin control is changed. Updates the hex
+        value and the color specified by the dialog.
 
         """
         self.sldRed.SetValue(
@@ -349,8 +333,8 @@ class ColorPickerPageRGB(wx.Panel):
         event.Skip()
 
     def onGreenUpdate(self, event):
-        """Called when the green spin control. Updates the hex value and the
-        color specified by the dialog.
+        """Called when the green channel spin control is changed. Updates the
+        hex value and the color specified by the dialog.
 
         """
         self.sldGreen.SetValue(
@@ -372,8 +356,8 @@ class ColorPickerPageRGB(wx.Panel):
         event.Skip()
 
     def onBlueUpdate(self, event):
-        """Called when the blue spin control. Updates the hex value and the
-        color specified by the dialog.
+        """Called when the blue channel spin control is changed. Updates the hex
+        value and the color specified by the dialog.
 
         """
         self.sldBlue.SetValue(
@@ -387,20 +371,17 @@ class ColorPickerPageRGB(wx.Panel):
         the spin control and the color specified by the dialog.
 
         """
-        self.spnAlpha.SetValue(
-            self._posToValFunc[self.rbxRGBFormat.GetSelection()](
-                event.Position))
+        self.spnAlpha.SetValue(event.Position / 255.)
         self.updateHex()
         self.updateDialog()
         event.Skip()
 
     def onAlphaUpdate(self, event):
-        """Called when the alpha spin control. Updates the hex value and the
-        color specified by the dialog.
+        """Called when the alpha channel spin control is changed. Updates the
+        hex value and the color specified by the dialog.
 
         """
-        self.sldAlpha.SetValue(
-            self._valToPosFunc[self.rbxRGBFormat.GetSelection()](event.Value))
+        self.sldAlpha.SetValue(event.Value * 255.)
         self.updateHex()
         self.updateDialog()
         event.Skip()

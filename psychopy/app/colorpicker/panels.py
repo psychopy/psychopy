@@ -163,5 +163,6 @@ class ColorPreview(wx.Panel):
                 self.pdc.DrawRectangle(x, y, w, h)
                 self.pdc.DrawRectangle(x + w, y + h, w, h)
 
+
 if __name__ == "__main__":
     pass

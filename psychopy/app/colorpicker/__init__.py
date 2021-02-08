@@ -109,8 +109,8 @@ class PsychoColorPicker(wx.Dialog):
         self.pnlRGB = ColorPickerPageRGB(self.nbColorSpaces)
         self.pnlHSV = ColorPickerPageHSV(self.nbColorSpaces)
 
-        self.nbColorSpaces.AddPage(self.pnlRGB, u"RGBA", True)
-        self.nbColorSpaces.AddPage(self.pnlHSV, u"HSVA", False)
+        self.nbColorSpaces.AddPage(self.pnlRGB, u"RGB", True)
+        self.nbColorSpaces.AddPage(self.pnlHSV, u"HSV/HSB", False)
 
     def _setupUI(self):
         """Setup the UI for the color picker dialog box.
