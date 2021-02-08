@@ -1,0 +1,233 @@
+﻿<?xml version="1.0" ?>
+<PsychoPy2experiment version="2021.1.0.dev4" encoding="utf-8">
+  <Settings>
+    <Param name="Audio latency priority" val="use prefs" valType="str" updates="None"/>
+    <Param name="Audio lib" val="use prefs" valType="str" updates="None"/>
+    <Param name="Completed URL" val="" valType="str" updates="None"/>
+    <Param name="Data file delimiter" val="auto" valType="str" updates="None"/>
+    <Param name="Data filename" val="u'data/%s_%s_%s' % (expInfo['participant'], expName, expInfo['date'])" valType="code" updates="None"/>
+    <Param name="Enable Escape" val="True" valType="bool" updates="None"/>
+    <Param name="Experiment info" val="{'participant': '', 'session': '001'}" valType="code" updates="None"/>
+    <Param name="Force stereo" val="True" valType="bool" updates="None"/>
+    <Param name="Full-screen window" val="True" valType="bool" updates="None"/>
+    <Param name="HTML path" val="" valType="str" updates="None"/>
+    <Param name="Incomplete URL" val="" valType="str" updates="None"/>
+    <Param name="Monitor" val="testMonitor" valType="str" updates="None"/>
+    <Param name="Resources" val="[]" valType="list" updates="None"/>
+    <Param name="Save csv file" val="False" valType="bool" updates="None"/>
+    <Param name="Save excel file" val="False" valType="bool" updates="None"/>
+    <Param name="Save log file" val="True" valType="bool" updates="None"/>
+    <Param name="Save psydat file" val="True" valType="bool" updates="None"/>
+    <Param name="Save wide csv file" val="True" valType="bool" updates="None"/>
+    <Param name="Screen" val="1" valType="num" updates="None"/>
+    <Param name="Show info dlg" val="True" valType="bool" updates="None"/>
+    <Param name="Show mouse" val="False" valType="bool" updates="None"/>
+    <Param name="Units" val="height" valType="str" updates="None"/>
+    <Param name="Use version" val="" valType="str" updates="None"/>
+    <Param name="Window size (pixels)" val="[1920, 1080]" valType="list" updates="None"/>
+    <Param name="blendMode" val="avg" valType="str" updates="None"/>
+    <Param name="color" val="$[0,0,0]" valType="color" updates="None"/>
+    <Param name="colorSpace" val="rgb" valType="str" updates="None"/>
+    <Param name="expName" val="colors" valType="str" updates="None"/>
+    <Param name="exportHTML" val="on Sync" valType="str" updates="None"/>
+    <Param name="logging level" val="exp" valType="code" updates="None"/>
+  </Settings>
+  <Routines>
+    <Routine name="trial">
+      <SliderComponent name="spaceCtrl">
+        <Param name="color" val="white" valType="color" updates="constant"/>
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="contrast" val="1" valType="num" updates="constant"/>
+        <Param name="disabled" val="False" valType="bool" updates="None"/>
+        <Param name="durationEstim" val="" valType="num" updates="None"/>
+        <Param name="flip" val="False" valType="bool" updates="constant"/>
+        <Param name="font" val="Open Sans" valType="str" updates="constant"/>
+        <Param name="forceEndRoutine" val="False" valType="bool" updates="constant"/>
+        <Param name="granularity" val="1" valType="num" updates="constant"/>
+        <Param name="labels" val="'named', 'hex', 'rgb', 'rgb1', 'rgb255', 'hsv', 'lms', 'dkl'" valType="list" updates="constant"/>
+        <Param name="name" val="spaceCtrl" valType="code" updates="None"/>
+        <Param name="opacity" val="1" valType="num" updates="constant"/>
+        <Param name="ori" val="0" valType="num" updates="constant"/>
+        <Param name="pos" val="(0, 0.4)" valType="list" updates="constant"/>
+        <Param name="readOnly" val="False" valType="bool" updates="constant"/>
+        <Param name="saveStartStop" val="True" valType="bool" updates="None"/>
+        <Param name="size" val="(1.2, 0.05)" valType="list" updates="constant"/>
+        <Param name="startEstim" val="" valType="num" updates="None"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.0" valType="num" updates="None"/>
+        <Param name="stopType" val="condition" valType="str" updates="None"/>
+        <Param name="stopVal" val="" valType="num" updates="constant"/>
+        <Param name="storeHistory" val="False" valType="bool" updates="constant"/>
+        <Param name="storeRating" val="True" valType="bool" updates="constant"/>
+        <Param name="storeRatingTime" val="True" valType="bool" updates="constant"/>
+        <Param name="styles" val="radio" valType="str" updates="constant"/>
+        <Param name="syncScreenRefresh" val="True" valType="bool" updates="None"/>
+        <Param name="ticks" val="0,1,2,3,4,5,6,7" valType="list" updates="constant"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+      </SliderComponent>
+      <TextboxComponent name="valueCtrl">
+        <Param name="anchor" val="center" valType="str" updates="constant"/>
+        <Param name="autoLog" val="True" valType="bool" updates="constant"/>
+        <Param name="bold" val="False" valType="bool" updates="constant"/>
+        <Param name="borderColor" val="None" valType="color" updates="constant"/>
+        <Param name="borderWidth" val="2" valType="num" updates="constant"/>
+        <Param name="color" val="white" valType="color" updates="constant"/>
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="contrast" val="1" valType="num" updates="constant"/>
+        <Param name="disabled" val="False" valType="bool" updates="None"/>
+        <Param name="durationEstim" val="" valType="num" updates="None"/>
+        <Param name="editable" val="True" valType="bool" updates="constant"/>
+        <Param name="fillColor" val="black" valType="color" updates="constant"/>
+        <Param name="flipHoriz" val="False" valType="bool" updates="constant"/>
+        <Param name="flipVert" val="False" valType="bool" updates="constant"/>
+        <Param name="font" val="Courier Prime" valType="str" updates="constant"/>
+        <Param name="italic" val="False" valType="bool" updates="constant"/>
+        <Param name="languageStyle" val="LTR" valType="str" updates="None"/>
+        <Param name="letterHeight" val="0.05" valType="num" updates="constant"/>
+        <Param name="lineSpacing" val="1.0" valType="num" updates="constant"/>
+        <Param name="name" val="valueCtrl" valType="code" updates="None"/>
+        <Param name="opacity" val="1" valType="num" updates="constant"/>
+        <Param name="ori" val="0" valType="num" updates="constant"/>
+        <Param name="padding" val="" valType="num" updates="constant"/>
+        <Param name="pos" val="(-0.3, 0.1)" valType="list" updates="constant"/>
+        <Param name="saveStartStop" val="True" valType="bool" updates="None"/>
+        <Param name="size" val="(0.5, 0.2)" valType="list" updates="constant"/>
+        <Param name="startEstim" val="" valType="num" updates="None"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.0" valType="num" updates="None"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="stopVal" val="" valType="num" updates="constant"/>
+        <Param name="syncScreenRefresh" val="True" valType="bool" updates="None"/>
+        <Param name="text" val="white" valType="str" updates="constant"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+      </TextboxComponent>
+      <TextboxComponent name="colorBox">
+        <Param name="anchor" val="center" valType="str" updates="constant"/>
+        <Param name="autoLog" val="True" valType="bool" updates="constant"/>
+        <Param name="bold" val="False" valType="bool" updates="constant"/>
+        <Param name="borderColor" val="white" valType="color" updates="constant"/>
+        <Param name="borderWidth" val="2" valType="num" updates="constant"/>
+        <Param name="color" val="white" valType="color" updates="constant"/>
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="contrast" val="1" valType="num" updates="constant"/>
+        <Param name="disabled" val="False" valType="bool" updates="None"/>
+        <Param name="durationEstim" val="" valType="num" updates="None"/>
+        <Param name="editable" val="False" valType="bool" updates="constant"/>
+        <Param name="fillColor" val="$col" valType="color" updates="set every frame"/>
+        <Param name="flipHoriz" val="False" valType="bool" updates="constant"/>
+        <Param name="flipVert" val="False" valType="bool" updates="constant"/>
+        <Param name="font" val="Open Sans" valType="str" updates="constant"/>
+        <Param name="italic" val="False" valType="bool" updates="constant"/>
+        <Param name="languageStyle" val="LTR" valType="str" updates="None"/>
+        <Param name="letterHeight" val="0.05" valType="num" updates="constant"/>
+        <Param name="lineSpacing" val="1.0" valType="num" updates="constant"/>
+        <Param name="name" val="colorBox" valType="code" updates="None"/>
+        <Param name="opacity" val="1" valType="num" updates="constant"/>
+        <Param name="ori" val="0" valType="num" updates="constant"/>
+        <Param name="padding" val="0.05" valType="num" updates="constant"/>
+        <Param name="pos" val="(-0.3, -0.2)" valType="list" updates="constant"/>
+        <Param name="saveStartStop" val="True" valType="bool" updates="None"/>
+        <Param name="size" val="(0.5, 0.2)" valType="list" updates="constant"/>
+        <Param name="startEstim" val="" valType="num" updates="None"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.0" valType="num" updates="None"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="stopVal" val="" valType="num" updates="constant"/>
+        <Param name="syncScreenRefresh" val="True" valType="bool" updates="None"/>
+        <Param name="text" val="$&quot;&quot; if col else &quot;invalid color&quot;" valType="str" updates="set every frame"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+      </TextboxComponent>
+      <TextboxComponent name="instrBox">
+        <Param name="anchor" val="center" valType="str" updates="constant"/>
+        <Param name="autoLog" val="True" valType="bool" updates="constant"/>
+        <Param name="bold" val="False" valType="bool" updates="constant"/>
+        <Param name="borderColor" val="None" valType="color" updates="constant"/>
+        <Param name="borderWidth" val="2" valType="num" updates="constant"/>
+        <Param name="color" val="white" valType="color" updates="constant"/>
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="contrast" val="1" valType="num" updates="constant"/>
+        <Param name="disabled" val="False" valType="bool" updates="None"/>
+        <Param name="durationEstim" val="" valType="num" updates="None"/>
+        <Param name="editable" val="False" valType="bool" updates="constant"/>
+        <Param name="fillColor" val="None" valType="color" updates="constant"/>
+        <Param name="flipHoriz" val="False" valType="bool" updates="constant"/>
+        <Param name="flipVert" val="False" valType="bool" updates="constant"/>
+        <Param name="font" val="Open Sans" valType="str" updates="constant"/>
+        <Param name="italic" val="False" valType="bool" updates="constant"/>
+        <Param name="languageStyle" val="LTR" valType="str" updates="None"/>
+        <Param name="letterHeight" val="0.03" valType="num" updates="constant"/>
+        <Param name="lineSpacing" val="1.0" valType="num" updates="constant"/>
+        <Param name="name" val="instrBox" valType="code" updates="None"/>
+        <Param name="opacity" val="1" valType="num" updates="constant"/>
+        <Param name="ori" val="0" valType="num" updates="constant"/>
+        <Param name="padding" val="0.05" valType="num" updates="constant"/>
+        <Param name="pos" val="(0.3, 0)" valType="list" updates="constant"/>
+        <Param name="saveStartStop" val="True" valType="bool" updates="None"/>
+        <Param name="size" val="(0.5, 0.5)" valType="list" updates="constant"/>
+        <Param name="startEstim" val="" valType="num" updates="None"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.0" valType="num" updates="None"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="stopVal" val="" valType="num" updates="constant"/>
+        <Param name="syncScreenRefresh" val="True" valType="bool" updates="None"/>
+        <Param name="text" val="This demo shows how to define colors in PsychoPy - type a value into the textbox to the left, choose a color space and the box below will appear in the color and space you have chosen. For more info on the different spaces, check out the documentation:&amp;#10;psychopy.org/general/colours.html" valType="str" updates="constant"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+      </TextboxComponent>
+      <ButtonComponent name="endBtn">
+        <Param name="anchor" val="center" valType="str" updates="constant"/>
+        <Param name="bold" val="True" valType="bool" updates="constant"/>
+        <Param name="borderColor" val="None" valType="color" updates="constant"/>
+        <Param name="borderWidth" val="0" valType="num" updates="constant"/>
+        <Param name="callback" val="" valType="code" updates="constant"/>
+        <Param name="color" val="white" valType="color" updates="constant"/>
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="contrast" val="1" valType="num" updates="constant"/>
+        <Param name="disabled" val="False" valType="bool" updates="None"/>
+        <Param name="durationEstim" val="" valType="num" updates="None"/>
+        <Param name="fillColor" val="darkgrey" valType="color" updates="constant"/>
+        <Param name="font" val="Arvo" valType="str" updates="constant"/>
+        <Param name="forceEndRoutine" val="True" valType="bool" updates="constant"/>
+        <Param name="italic" val="False" valType="bool" updates="constant"/>
+        <Param name="letterHeight" val="0.05" valType="num" updates="constant"/>
+        <Param name="name" val="endBtn" valType="code" updates="None"/>
+        <Param name="oncePerClick" val="True" valType="bool" updates="constant"/>
+        <Param name="opacity" val="1" valType="num" updates="constant"/>
+        <Param name="ori" val="0" valType="num" updates="constant"/>
+        <Param name="padding" val="" valType="num" updates="constant"/>
+        <Param name="pos" val="(0, -0.4)" valType="list" updates="constant"/>
+        <Param name="save" val="every click" valType="str" updates="None"/>
+        <Param name="saveStartStop" val="True" valType="bool" updates="None"/>
+        <Param name="size" val="(0.2, 0.1)" valType="list" updates="constant"/>
+        <Param name="startEstim" val="" valType="num" updates="None"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.0" valType="num" updates="None"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="stopVal" val="" valType="num" updates="constant"/>
+        <Param name="syncScreenRefresh" val="True" valType="bool" updates="None"/>
+        <Param name="text" val="End" valType="str" updates="constant"/>
+        <Param name="timeRelativeTo" val="button onset" valType="str" updates="constant"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+      </ButtonComponent>
+      <CodeComponent name="code">
+        <Param name="Before Experiment" val="# Default color value is False (i.e. invalid)&amp;#10;col = None&amp;#10;" valType="code" updates="constant"/>
+        <Param name="Before JS Experiment" val="col = null;&amp;#10;" valType="code" updates="constant"/>
+        <Param name="Begin Experiment" val="" valType="code" updates="constant"/>
+        <Param name="Begin JS Experiment" val="" valType="code" updates="constant"/>
+        <Param name="Begin JS Routine" val="spaceCtrl.value = 0;&amp;#10;" valType="code" updates="constant"/>
+        <Param name="Begin Routine" val="spaceCtrl.value = 0" valType="code" updates="constant"/>
+        <Param name="Code Type" val="Auto-&gt;JS" valType="str" updates="None"/>
+        <Param name="Each Frame" val="# Try to make a fillColor, make it False if failed&amp;#10;try:&amp;#10;    val = valueCtrl.text&amp;#10;    # If input looks like a number, convert it&amp;#10;    if val.isnumeric():&amp;#10;        val = float(val)&amp;#10;    # If input looks like an array, un-stringify it&amp;#10;    if &quot;,&quot; in val:&amp;#10;        val = eval(val)&amp;#10;    # Get color space from radio slider&amp;#10;    space = spaceCtrl.labels[int(spaceCtrl.value)]&amp;#10;    col = colors.Color(val, space)&amp;#10;except:&amp;#10;    print(spaceCtrl.labels[int(spaceCtrl.value)])&amp;#10;    col = None" valType="code" updates="constant"/>
+        <Param name="Each JS Frame" val="var _pj;&amp;#10;function _pj_snippets(container) {&amp;#10;    function in_es6(left, right) {&amp;#10;        if (((right instanceof Array) || ((typeof right) === &quot;string&quot;))) {&amp;#10;            return (right.indexOf(left) &gt; (- 1));&amp;#10;        } else {&amp;#10;            if (((right instanceof Map) || (right instanceof Set) || (right instanceof WeakMap) || (right instanceof WeakSet))) {&amp;#10;                return right.has(left);&amp;#10;            } else {&amp;#10;                return (left in right);&amp;#10;            }&amp;#10;        }&amp;#10;    }&amp;#10;    container[&quot;in_es6&quot;] = in_es6;&amp;#10;    return container;&amp;#10;}&amp;#10;_pj = {};&amp;#10;_pj_snippets(_pj);&amp;#10;try {&amp;#10;    val = valueCtrl.text;&amp;#10;    if (val.isnumeric()) {&amp;#10;        val = Number.parseFloat(val);&amp;#10;    }&amp;#10;    if (_pj.in_es6(&quot;,&quot;, val)) {&amp;#10;        val = eval(val);&amp;#10;    }&amp;#10;    space = spaceCtrl.labels[Number.parseInt(spaceCtrl.value)];&amp;#10;    col = new colors.Color(val, space);&amp;#10;} catch(e) {&amp;#10;    console.log(spaceCtrl.labels[Number.parseInt(spaceCtrl.value)]);&amp;#10;    col = null;&amp;#10;}&amp;#10;" valType="code" updates="constant"/>
+        <Param name="End Experiment" val="" valType="code" updates="constant"/>
+        <Param name="End JS Experiment" val="" valType="code" updates="constant"/>
+        <Param name="End JS Routine" val="" valType="code" updates="constant"/>
+        <Param name="End Routine" val="" valType="code" updates="constant"/>
+        <Param name="disabled" val="False" valType="bool" updates="None"/>
+        <Param name="name" val="code" valType="code" updates="None"/>
+      </CodeComponent>
+    </Routine>
+  </Routines>
+  <Flow>
+    <Routine name="trial"/>
+  </Flow>
+</PsychoPy2experiment>
