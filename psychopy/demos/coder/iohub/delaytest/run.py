@@ -87,7 +87,8 @@ class ExperimentRuntime(ioHubExperimentRuntime):
         self.psychoWindow.close()
 
         # plot collected delay and retrace detection results.
-        self.plotResults()
+        #self.plotResults()
+        self.printResults()
 
     def createPsychoGraphicsWindow(self):
         #create a window
@@ -249,6 +250,19 @@ class ExperimentRuntime(ioHubExperimentRuntime):
         pylab.title(distString)
 
         show()
+
+    def printResults(self):
+        results= self.results
+
+        durations=results[:,0]
+ 
+        dmean=durations.mean()
+        dstd=durations.std()
+
+        print("ioHub getEvent Delays:")
+        print("\tMEAN: ", dmean)
+        print("\tSDEV: ", dstd)
+         
 
 from psychopy.iohub import module_directory
 runtime=ExperimentRuntime(module_directory(ExperimentRuntime.run), "experiment_config.yaml")
