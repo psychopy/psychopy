@@ -30,6 +30,17 @@ class _ValidatorMixin():
                 1, 0, 0
             ))
 
+    def updateCodeFont(self, valType):
+        """Style input box according to code wanted"""
+        if not hasattr(self, "SetFont") or self.GetName() == "name":
+            # Skip if font not applicable to object type
+            return
+        if valType == "code":
+            # Set font
+            self.SetFont(self.GetTopLevelParent().app._codeFont)
+        else:
+            self.SetFont(self.GetTopLevelParent().app._mainFont)
+
 class _FileMixin:
     @property
     def rootDir(self):
@@ -93,22 +104,7 @@ class SingleLineCtrl(wx.TextCtrl, _ValidatorMixin):
         # Add self to sizer
         self._szr.Add(self, proportion=1, border=5, flag=wx.EXPAND)
         # Bind to validation
-        self.Bind(wx.EVT_TEXT, self.codeWanted)
-        self.codeWanted(None)
-
-    def codeWanted(self, evt):
-        if self.GetValue().startswith("$") or not self.valType == "str" and not self.GetName() == "name":
-            spec = ThemeMixin.codeColors.copy()
-            base = spec['base']
-            # Override base font with user spec if present
-            if prefs.coder['codeFont'].lower() != "From Theme...".lower():
-                base['font'] = prefs.coder['codeFont']
-            self.SetFont(self.GetTopLevelParent().app._codeFont)
-            validate(self, "code")
-        else:
-            validate(self, self.valType)
-            self.SetFont(self.GetTopLevelParent().app._mainFont)
-
+        self.Bind(wx.EVT_TEXT, self.validate)
 
 class MultiLineCtrl(SingleLineCtrl, _ValidatorMixin):
     def __init__(self, parent, valType,
@@ -417,6 +413,9 @@ def validate(obj, valType):
     obj.valid = valid
     if hasattr(obj, "showValid"):
         obj.showValid(valid)
+
+    # Update code font
+    obj.updateCodeFont(valType)
 
 class DictCtrl(ListWidget, _ValidatorMixin):
     def __init__(self, parent,
