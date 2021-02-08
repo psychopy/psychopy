@@ -13,7 +13,7 @@ from pathlib import Path
 from ..localizedStrings import _localizedDialogs as _localized
 
 class _ValidatorMixin():
-    def validate(self, evt):
+    def validate(self, evt=None):
         """Redirect validate calls to global validate method, assigning appropriate valType"""
         validate(self, self.valType)
 
@@ -105,6 +105,7 @@ class SingleLineCtrl(wx.TextCtrl, _ValidatorMixin):
         self._szr.Add(self, proportion=1, border=5, flag=wx.EXPAND)
         # Bind to validation
         self.Bind(wx.EVT_TEXT, self.validate)
+        self.validate()
 
 class MultiLineCtrl(SingleLineCtrl, _ValidatorMixin):
     def __init__(self, parent, valType,
@@ -176,6 +177,7 @@ class FileCtrl(wx.TextCtrl, _ValidatorMixin, _FileMixin):
         self._szr.Add(self.findBtn)
         # Configure validation
         self.Bind(wx.EVT_TEXT, self.validate)
+        self.validate()
 
     def findFile(self, evt):
         file = self.getFile()
@@ -264,6 +266,7 @@ class TableCtrl(wx.TextCtrl, _ValidatorMixin, _FileMixin):
         }
         # Configure validation
         self.Bind(wx.EVT_TEXT, self.validate)
+        self.validate()
         self.validExt = [".csv",".tsv",".txt",
                          ".xl",".xlsx",".xlsm",".xlsb",".xlam",".xltx",".xltm",".xls",".xlt",
                          ".htm",".html",".mht",".mhtml",
@@ -273,6 +276,7 @@ class TableCtrl(wx.TextCtrl, _ValidatorMixin, _FileMixin):
                          ".iqy",".dqy",".rqy",".oqy",
                          ".cub",".atom",".atomsvc",
                          ".prn",".slk",".dif"]
+
     def validate(self, evt):
         """Redirect validate calls to global validate method, assigning appropriate valType"""
         validate(self, "file")
@@ -333,6 +337,7 @@ class ColorCtrl(wx.TextCtrl, _ValidatorMixin):
         self._szr.Add(self.pickerBtn)
         # Bind to validation
         self.Bind(wx.EVT_TEXT, self.validate)
+        self.validate()
 
     def colorPicker(self, evt):
         PsychoColorPicker(self.GetTopLevelParent().frame)
