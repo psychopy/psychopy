@@ -13,7 +13,7 @@ from pathlib import Path
 from ..localizedStrings import _localizedDialogs as _localized
 
 class _ValidatorMixin():
-    def validate(self, evt):
+    def validate(self, evt=None):
         """Redirect validate calls to global validate method, assigning appropriate valType"""
         validate(self, self.valType)
 
@@ -29,6 +29,17 @@ class _ValidatorMixin():
             self.SetForegroundColour(wx.Colour(
                 1, 0, 0
             ))
+
+    def updateCodeFont(self, valType):
+        """Style input box according to code wanted"""
+        if not hasattr(self, "SetFont") or self.GetName() == "name":
+            # Skip if font not applicable to object type
+            return
+        if valType == "code":
+            # Set font
+            self.SetFont(self.GetTopLevelParent().app._codeFont)
+        else:
+            self.SetFont(self.GetTopLevelParent().app._mainFont)
 
 class _FileMixin:
     @property
@@ -93,22 +104,8 @@ class SingleLineCtrl(wx.TextCtrl, _ValidatorMixin):
         # Add self to sizer
         self._szr.Add(self, proportion=1, border=5, flag=wx.EXPAND)
         # Bind to validation
-        self.Bind(wx.EVT_TEXT, self.codeWanted)
-        self.codeWanted(None)
-
-    def codeWanted(self, evt):
-        if self.GetValue().startswith("$") or not self.valType == "str" and not self.GetName() == "name":
-            spec = ThemeMixin.codeColors.copy()
-            base = spec['base']
-            # Override base font with user spec if present
-            if prefs.coder['codeFont'].lower() != "From Theme...".lower():
-                base['font'] = prefs.coder['codeFont']
-            self.SetFont(self.GetTopLevelParent().app._codeFont)
-            validate(self, "code")
-        else:
-            validate(self, self.valType)
-            self.SetFont(self.GetTopLevelParent().app._mainFont)
-
+        self.Bind(wx.EVT_TEXT, self.validate)
+        self.validate()
 
 class MultiLineCtrl(SingleLineCtrl, _ValidatorMixin):
     def __init__(self, parent, valType,
@@ -180,6 +177,7 @@ class FileCtrl(wx.TextCtrl, _ValidatorMixin, _FileMixin):
         self._szr.Add(self.findBtn)
         # Configure validation
         self.Bind(wx.EVT_TEXT, self.validate)
+        self.validate()
 
     def findFile(self, evt):
         file = self.getFile()
@@ -268,6 +266,7 @@ class TableCtrl(wx.TextCtrl, _ValidatorMixin, _FileMixin):
         }
         # Configure validation
         self.Bind(wx.EVT_TEXT, self.validate)
+        self.validate()
         self.validExt = [".csv",".tsv",".txt",
                          ".xl",".xlsx",".xlsm",".xlsb",".xlam",".xltx",".xltm",".xls",".xlt",
                          ".htm",".html",".mht",".mhtml",
@@ -277,7 +276,8 @@ class TableCtrl(wx.TextCtrl, _ValidatorMixin, _FileMixin):
                          ".iqy",".dqy",".rqy",".oqy",
                          ".cub",".atom",".atomsvc",
                          ".prn",".slk",".dif"]
-    def validate(self, evt):
+
+    def validate(self, evt=None):
         """Redirect validate calls to global validate method, assigning appropriate valType"""
         validate(self, "file")
         # Enable Excel button if valid
@@ -337,6 +337,7 @@ class ColorCtrl(wx.TextCtrl, _ValidatorMixin):
         self._szr.Add(self.pickerBtn)
         # Bind to validation
         self.Bind(wx.EVT_TEXT, self.validate)
+        self.validate()
 
     def colorPicker(self, evt):
         PsychoColorPicker(self.GetTopLevelParent().frame)
@@ -417,6 +418,9 @@ def validate(obj, valType):
     obj.valid = valid
     if hasattr(obj, "showValid"):
         obj.showValid(valid)
+
+    # Update code font
+    obj.updateCodeFont(valType)
 
 class DictCtrl(ListWidget, _ValidatorMixin):
     def __init__(self, parent,
