@@ -160,24 +160,24 @@ class ColorPickerPageRGB(wx.Panel):
         # add widgets to the color channel area
         szrRGBArea.Add(
             self.lblRed, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT, 5)
-        szrRGBArea.Add(self.sldRed, 0, wx.EXPAND, 5)
-        szrRGBArea.Add(self.spnRed, 0, 0, 5)
+        szrRGBArea.Add(self.sldRed, 1, wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, 5)
+        szrRGBArea.Add(self.spnRed, 0, wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, 5)
 
         szrRGBArea.Add(
             self.lblGreen, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT, 5)
-        szrRGBArea.Add(self.sldGreen, 0, wx.EXPAND, 5)
-        szrRGBArea.Add(self.spnGreen, 0, 0, 5)
+        szrRGBArea.Add(self.sldGreen, 1, wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, 5)
+        szrRGBArea.Add(self.spnGreen, 0, wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, 5)
 
         szrRGBArea.Add(
             self.lblBlue, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT, 5)
-        szrRGBArea.Add(self.sldBlue, 0, wx.EXPAND, 5)
-        szrRGBArea.Add(self.spnBlue, 0, 0, 5)
+        szrRGBArea.Add(self.sldBlue, 1, wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, 5)
+        szrRGBArea.Add(self.spnBlue, 0, wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, 5)
 
         szrRGBArea.Add(
             self.lblAlpha, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT, 5)
         szrRGBArea.Add(
-            self.sldAlpha, 0, wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, 5)
-        szrRGBArea.Add(self.spnAlpha, 0, 0, 5)
+            self.sldAlpha, 1, wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, 5)
+        szrRGBArea.Add(self.spnAlpha, 0, wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, 5)
 
         fraRGBChannels.Add(szrRGBArea, 1, wx.ALL | wx.EXPAND, 5)
         szrRGBPage.Add(
@@ -550,24 +550,24 @@ class ColorPickerPageHSV(wx.Panel):
         # add widgets to the color channel area
         szrHSVArea.Add(
             self.lblHue, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT, 5)
-        szrHSVArea.Add(self.sldHue, 0, wx.EXPAND, 5)
-        szrHSVArea.Add(self.spnHue, 0, 0, 5)
+        szrHSVArea.Add(self.sldHue, 1, wx.EXPAND, 5)
+        szrHSVArea.Add(self.spnHue, 0, wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, 5)
 
         szrHSVArea.Add(
             self.lblSat, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT, 5)
-        szrHSVArea.Add(self.sldSat, 0, wx.EXPAND, 5)
-        szrHSVArea.Add(self.spnSat, 0, 0, 5)
+        szrHSVArea.Add(self.sldSat, 1, wx.EXPAND, 5)
+        szrHSVArea.Add(self.spnSat, 0, wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, 5)
 
         szrHSVArea.Add(
             self.lblVal, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT, 5)
-        szrHSVArea.Add(self.sldVal, 0, wx.EXPAND, 5)
-        szrHSVArea.Add(self.spnVal, 0, 0, 5)
+        szrHSVArea.Add(self.sldVal, 10, wx.EXPAND, 5)
+        szrHSVArea.Add(self.spnVal, 0, wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, 5)
 
         szrHSVArea.Add(
             self.lblAlpha, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT, 5)
         szrHSVArea.Add(
-            self.sldAlpha, 0, wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, 5)
-        szrHSVArea.Add(self.spnAlpha, 0, 0, 5)
+            self.sldAlpha, 1, wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, 5)
+        szrHSVArea.Add(self.spnAlpha, 0, wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, 5)
 
         fraHSVChannels.Add(szrHSVArea, 1, wx.ALL | wx.EXPAND, 5)
         szrRGBPage.Add(
