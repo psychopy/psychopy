@@ -277,7 +277,7 @@ class TableCtrl(wx.TextCtrl, _ValidatorMixin, _FileMixin):
                          ".cub",".atom",".atomsvc",
                          ".prn",".slk",".dif"]
 
-    def validate(self, evt):
+    def validate(self, evt=None):
         """Redirect validate calls to global validate method, assigning appropriate valType"""
         validate(self, "file")
         # Enable Excel button if valid
