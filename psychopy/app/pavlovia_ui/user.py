@@ -42,7 +42,7 @@ class UserEditor(wx.Dialog):
         # create the controls
         userField = wxhl.HyperLinkCtrl(panel, id=wx.ID_ANY,
                                        label=self.user.url, URL=self.user.url)
-        logoutBtn = wx.Button(panel, label="Logout")
+        logoutBtn = wx.Button(panel, label=_translate("Logout"))
         logoutBtn.Bind(wx.EVT_BUTTON, self.onLogout)
         nameLabel = wx.StaticText(panel, id=wx.ID_ANY,
                                   label=_translate("Full name:"))

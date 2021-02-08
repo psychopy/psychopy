@@ -9,6 +9,7 @@ import wx
 from .panels import ColorPresets, ColorPreview
 from .pages import ColorPickerPageHSV, ColorPickerPageRGB
 from psychopy.colors import Color
+from psychopy.localization import _translate
 
 LAST_COLOR = Color((0, 0, 0, 1), space='rgba')
 LAST_OUTPUT_SPACE = 0
@@ -31,7 +32,7 @@ class PsychoColorPicker(wx.Dialog):
             self,
             parent,
             id=wx.ID_ANY,
-            title=u"Color Picker",
+            title=_translate("Color Picker"),
             pos=wx.DefaultPosition,
             size=wx.Size(640, 480),
             style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
