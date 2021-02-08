@@ -117,7 +117,7 @@ class Rect(BaseShapeStim):
                  fillColor=None,
                  fillColorSpace=None,
                  pos=(0, 0),
-                 size=1.0,
+                 size=None,
                  ori=0.0,
                  opacity=1.0,
                  contrast=1.0,
