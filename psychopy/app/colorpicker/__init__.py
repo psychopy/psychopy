@@ -297,8 +297,9 @@ class PsychoColorPicker(wx.Dialog):
         elif outputSpace == 3:  # RGB1
             colorOut = '({:.4f}, {:.4f}, {:.4f})'.format(*dlgCol.rgb1)
         elif outputSpace == 4:  # RGBA255
-            colorOut = '({:d}, {:d}, {:d}, {:d})'.format(
-                *[int(i) for i in dlgCol.rgba255])
+            r, g, b = [int(i) for i in dlgCol.rgba255[:3]]
+            alpha = dlgCol.alpha
+            colorOut = '({:d}, {:d}, {:d}, {:.4f})'.format(r, g, b, alpha)
         elif outputSpace == 5:  # RGB255
             colorOut = '({:d}, {:d}, {:d})'.format(
                 *[int(i) for i in dlgCol.rgb255])
@@ -311,7 +312,7 @@ class PsychoColorPicker(wx.Dialog):
         else:
             raise ValueError(
                 "Invalid output color space selection. Have you added any "
-                "more choices to `cboOutputSpace`?")
+                "choices to `cboOutputSpace`?")
 
         return colorOut
 
