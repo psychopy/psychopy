@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" ?>
-<PsychoPy2experiment version="2020.2.10" encoding="utf-8">
+<PsychoPy2experiment version="2021.1.0.dev3" encoding="utf-8">
   <Settings>
     <Param name="Audio latency priority" val="use prefs" valType="str" updates="None"/>
     <Param name="Audio lib" val="use prefs" valType="str" updates="None"/>
@@ -94,23 +94,41 @@
         <Param name="stopVal" val="" valType="num" updates="constant"/>
         <Param name="syncScreenRefresh" val="True" valType="bool" updates="None"/>
       </FormComponent>
-      <CodeComponent name="contButton1">
-        <Param name="Before Experiment" val="" valType="code" updates="constant"/>
-        <Param name="Before JS Experiment" val="" valType="code" updates="constant"/>
-        <Param name="Begin Experiment" val="" valType="extendedCode" updates="constant"/>
-        <Param name="Begin JS Experiment" val="" valType="code" updates="constant"/>
-        <Param name="Begin JS Routine" val="continueButton = new visual.ButtonStim(win, {&quot;labelText&quot;: &quot;Continue&quot;, &quot;pos&quot;: [0.35, (- 0.45)]});&amp;#10;" valType="code" updates="constant"/>
-        <Param name="Begin Routine" val="continueButton = visual.ButtonStim(win, labelText= &quot;Continue&quot;, pos=(.35, -.45))" valType="extendedCode" updates="constant"/>
-        <Param name="Code Type" val="Auto-&gt;JS" valType="str" updates="None"/>
-        <Param name="Each Frame" val="continueButton.draw()&amp;#10;&amp;#10;if demog.complete:&amp;#10;    continueButton.buttonEnabled = True&amp;#10;    &amp;#10;if continueButton.buttonSelected:&amp;#10;    continueRoutine = False" valType="extendedCode" updates="constant"/>
-        <Param name="Each JS Frame" val="continueButton.draw();&amp;#10;if (demog.complete) {&amp;#10;    continueButton.buttonEnabled = true;&amp;#10;}&amp;#10;if (continueButton.buttonSelected) {&amp;#10;    continueRoutine = false;&amp;#10;}&amp;#10;" valType="code" updates="constant"/>
-        <Param name="End Experiment" val="" valType="extendedCode" updates="constant"/>
-        <Param name="End JS Experiment" val="" valType="code" updates="constant"/>
-        <Param name="End JS Routine" val="" valType="code" updates="constant"/>
-        <Param name="End Routine" val="" valType="extendedCode" updates="constant"/>
+      <ButtonComponent name="contBtn1">
+        <Param name="anchor" val="center" valType="str" updates="constant"/>
+        <Param name="bold" val="True" valType="bool" updates="constant"/>
+        <Param name="borderColor" val="None" valType="color" updates="constant"/>
+        <Param name="borderWidth" val="0" valType="num" updates="constant"/>
+        <Param name="callback" val="" valType="code" updates="constant"/>
+        <Param name="color" val="white" valType="color" updates="constant"/>
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="contrast" val="1" valType="num" updates="constant"/>
         <Param name="disabled" val="False" valType="bool" updates="None"/>
-        <Param name="name" val="contButton1" valType="code" updates="None"/>
-      </CodeComponent>
+        <Param name="durationEstim" val="" valType="num" updates="None"/>
+        <Param name="fillColor" val="darkgrey" valType="color" updates="constant"/>
+        <Param name="font" val="Arvo" valType="str" updates="constant"/>
+        <Param name="forceEndRoutine" val="True" valType="bool" updates="constant"/>
+        <Param name="italic" val="False" valType="bool" updates="constant"/>
+        <Param name="letterHeight" val="0.05" valType="num" updates="constant"/>
+        <Param name="name" val="contBtn1" valType="code" updates="None"/>
+        <Param name="oncePerClick" val="True" valType="bool" updates="constant"/>
+        <Param name="opacity" val="1" valType="num" updates="constant"/>
+        <Param name="ori" val="0" valType="num" updates="constant"/>
+        <Param name="padding" val="" valType="num" updates="constant"/>
+        <Param name="pos" val="(.35, -.45)" valType="list" updates="constant"/>
+        <Param name="save" val="every click" valType="str" updates="None"/>
+        <Param name="saveStartStop" val="True" valType="bool" updates="None"/>
+        <Param name="size" val="" valType="list" updates="constant"/>
+        <Param name="startEstim" val="" valType="num" updates="None"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.0" valType="num" updates="None"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="stopVal" val="" valType="num" updates="constant"/>
+        <Param name="syncScreenRefresh" val="True" valType="bool" updates="None"/>
+        <Param name="text" val="Continue" valType="str" updates="constant"/>
+        <Param name="timeRelativeTo" val="button onset" valType="str" updates="constant"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+      </ButtonComponent>
     </Routine>
     <Routine name="TIPI">
       <TextboxComponent name="formInstructs">
@@ -173,23 +191,41 @@
         <Param name="stopVal" val="" valType="num" updates="constant"/>
         <Param name="syncScreenRefresh" val="True" valType="bool" updates="None"/>
       </FormComponent>
-      <CodeComponent name="contButton2">
-        <Param name="Before Experiment" val="" valType="code" updates="constant"/>
-        <Param name="Before JS Experiment" val="" valType="code" updates="constant"/>
-        <Param name="Begin Experiment" val="" valType="code" updates="constant"/>
-        <Param name="Begin JS Experiment" val="" valType="code" updates="constant"/>
-        <Param name="Begin JS Routine" val="continueButton = new visual.ButtonStim(win, {&quot;labelText&quot;: &quot;Continue&quot;, &quot;pos&quot;: [0.35, (- 0.45)]});&amp;#10;" valType="code" updates="constant"/>
-        <Param name="Begin Routine" val="continueButton = visual.ButtonStim(win, labelText= &quot;Continue&quot;, pos=(.35, -.45))" valType="code" updates="constant"/>
-        <Param name="Code Type" val="Auto-&gt;JS" valType="str" updates="None"/>
-        <Param name="Each Frame" val="continueButton.draw()&amp;#10;&amp;#10;if TIPIForm.complete:&amp;#10;    continueButton.buttonEnabled = True&amp;#10;    &amp;#10;if continueButton.buttonSelected:&amp;#10;    continueRoutine = False" valType="code" updates="constant"/>
-        <Param name="Each JS Frame" val="continueButton.draw();&amp;#10;if (TIPIForm.complete) {&amp;#10;    continueButton.buttonEnabled = true;&amp;#10;}&amp;#10;if (continueButton.buttonSelected) {&amp;#10;    continueRoutine = false;&amp;#10;}&amp;#10;" valType="code" updates="constant"/>
-        <Param name="End Experiment" val="" valType="code" updates="constant"/>
-        <Param name="End JS Experiment" val="" valType="code" updates="constant"/>
-        <Param name="End JS Routine" val="" valType="code" updates="constant"/>
-        <Param name="End Routine" val="" valType="code" updates="constant"/>
+      <ButtonComponent name="contBtn2">
+        <Param name="anchor" val="center" valType="str" updates="constant"/>
+        <Param name="bold" val="True" valType="bool" updates="constant"/>
+        <Param name="borderColor" val="None" valType="color" updates="constant"/>
+        <Param name="borderWidth" val="0" valType="num" updates="constant"/>
+        <Param name="callback" val="" valType="code" updates="constant"/>
+        <Param name="color" val="white" valType="color" updates="constant"/>
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="contrast" val="1" valType="num" updates="constant"/>
         <Param name="disabled" val="False" valType="bool" updates="None"/>
-        <Param name="name" val="contButton2" valType="code" updates="None"/>
-      </CodeComponent>
+        <Param name="durationEstim" val="" valType="num" updates="None"/>
+        <Param name="fillColor" val="darkgrey" valType="color" updates="constant"/>
+        <Param name="font" val="Arvo" valType="str" updates="constant"/>
+        <Param name="forceEndRoutine" val="True" valType="bool" updates="constant"/>
+        <Param name="italic" val="False" valType="bool" updates="constant"/>
+        <Param name="letterHeight" val="0.05" valType="num" updates="constant"/>
+        <Param name="name" val="contBtn2" valType="code" updates="None"/>
+        <Param name="oncePerClick" val="True" valType="bool" updates="constant"/>
+        <Param name="opacity" val="1" valType="num" updates="constant"/>
+        <Param name="ori" val="0" valType="num" updates="constant"/>
+        <Param name="padding" val="" valType="num" updates="constant"/>
+        <Param name="pos" val="(.35, -.45)" valType="list" updates="constant"/>
+        <Param name="save" val="every click" valType="str" updates="None"/>
+        <Param name="saveStartStop" val="True" valType="bool" updates="None"/>
+        <Param name="size" val="" valType="list" updates="constant"/>
+        <Param name="startEstim" val="" valType="num" updates="None"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.0" valType="num" updates="None"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="stopVal" val="" valType="num" updates="constant"/>
+        <Param name="syncScreenRefresh" val="True" valType="bool" updates="None"/>
+        <Param name="text" val="Continue" valType="str" updates="constant"/>
+        <Param name="timeRelativeTo" val="button onset" valType="str" updates="constant"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+      </ButtonComponent>
     </Routine>
   </Routines>
   <Flow>
