@@ -295,10 +295,10 @@ class ColorPickerPageRGB(wx.Panel):
             spn.SetMax(convFunc(SLIDER_RES))
 
         # set the value in the new range
-        self.spnRed.SetValue(convFunc(self.sldRed.Value))
-        self.spnGreen.SetValue(convFunc(self.sldGreen.Value))
-        self.spnBlue.SetValue(convFunc(self.sldBlue.Value))
-        self.spnAlpha.SetValue(rgbaColor.alpha)
+        self.spnRed.SetValue(rgbaColor.rgba[0])
+        self.spnGreen.SetValue(rgbaColor.rgba[1])
+        self.spnBlue.SetValue(rgbaColor.rgba[2])
+        self.spnAlpha.SetValue(rgbaColor.rgba[3])
 
     def onRedScroll(self, event):
         """Called when the red channel slider is moved. Updates the spin control
