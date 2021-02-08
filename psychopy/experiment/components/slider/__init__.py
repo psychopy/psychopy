@@ -67,6 +67,7 @@ class SliderComponent(BaseVisualComponent):
                  granularity=0,
                  color="LightGray",
                  font="Open Sans",
+                 letterHeight=0.05,
                  startType='time (s)', startVal='0.0',
                  stopType='condition', stopVal='',
                  startEstim='', durationEstim='',
@@ -85,7 +86,7 @@ class SliderComponent(BaseVisualComponent):
 
         # params
         self.order += ['forceEndRoutine',  # Basic tab
-                       'font',  # Appearance tab
+                       'font',  # Formatting tab
                        'flip',  # Layout tab
                        'ticks', 'labels',  'granularity', 'readOnly',  # Data tab
                       ]
@@ -139,12 +140,20 @@ class SliderComponent(BaseVisualComponent):
         "overridden by the style setting)"
 
         self.params['font'] = Param(
-                font, valType='str', inputType="single", categ='Appearance',
+                font, valType='str', inputType="single", categ='Formatting',
                 updates='constant',
                 allowedUpdates=['constant', 'set every repeat'],
                 hint=_translate(
                         "Font for the labels"),
                 label=_translate('Font'))
+
+        self.params['letterHeight'] = Param(
+                letterHeight, valType='num', inputType="single", categ='Formatting',
+                updates='constant',
+                allowedUpdates=['constant', 'set every repeat'],
+                hint=_translate(
+                        "Letter height for text in labels"),
+                label=_translate('Letter height'))
 
         self.params['styles'] = Param(
                 style, valType='str', inputType="choice", categ='Appearance',
@@ -188,7 +197,7 @@ class SliderComponent(BaseVisualComponent):
                    "    size={size}, pos={pos}, units={units},\n"
                    "    labels={labels}, ticks={ticks},\n"
                    "    granularity={granularity}, style={styles},\n"
-                   "    color={color}, font={font},\n"
+                   "    color={color}, font={font}, labelHeight={letterHeight},\n"
                    "    flip={flip}, depth={depth}, readOnly={readOnly})\n"
                    .format(**inits))
         buff.writeIndented(initStr)
