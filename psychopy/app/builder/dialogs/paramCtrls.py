@@ -433,12 +433,8 @@ class DictCtrl(ListWidget, _ValidatorMixin):
         # If any items within the list are not dicts or are dicts longer than 1, throw error
         if not all(isinstance(v, dict) and len(v) == 2 for v in val):
             raise ValueError("DictCtrl must be supplied with either a dict or a list of 1-long dicts, value supplied was {}".format(val))
-        # Iterate through list of dicts to get each key in order
-        order = []
-        for row in val:
-            order.append(row['Field'])
         # Create ListWidget
-        ListWidget.__init__(self, parent, val, order=order)
+        ListWidget.__init__(self, parent, val, order=['Field', 'Default'])
 
     def SetForegroundColour(self, color):
         for child in self.Children:
