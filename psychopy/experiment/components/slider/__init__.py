@@ -97,21 +97,18 @@ class SliderComponent(BaseVisualComponent):
         self.params['ticks'] = Param(
                 ticks, valType='list', inputType="single", allowedTypes=[], categ='Basic',
                 updates='constant',
-                allowedUpdates=['constant', 'set every repeat'],
                 hint=_translate("Tick positions (numerical) on the scale, "
                                 "separated by commas"),
                 label=_localized['ticks'])
         self.params['labels'] = Param(
                 labels, valType='list', inputType="single", allowedTypes=[], categ='Basic',
                 updates='constant',
-                allowedUpdates=['constant', 'set every repeat'],
                 hint=_translate("Labels for the tick marks on the scale, "
                                 "separated by commas"),
                 label=_localized['labels'])
         self.params['granularity'] = Param(
                 granularity, valType='num', inputType="single", allowedTypes=[], categ='Basic',
                 updates='constant',
-                allowedUpdates=['constant', 'set every repeat'],
                 hint=_translate("Specifies the minimum step size "
                                 "(0 for a continuous scale, 1 for integer "
                                 "rating scale)"),
