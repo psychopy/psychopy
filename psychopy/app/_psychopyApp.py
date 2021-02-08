@@ -220,16 +220,18 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         self.locale = localization.setLocaleWX()
         self.locale.AddCatalog(self.GetAppName())
 
-        # set the exception hook to present unhandled errors in a dialog
-        if not travisCI:
-            from psychopy.app.errorDlg import exceptionCallback
-            sys.excepthook = exceptionCallback
-
+        logging.flush()
         self.onInit(testMode=testMode, **kwargs)
         if profiling:
             profile.disable()
             print("time to load app = {:.2f}".format(time.time()-t0))
             profile.dump_stats('profileLaunchApp.profile')
+        logging.flush()
+
+        # set the exception hook to present unhandled errors in a dialog
+        if not travisCI:
+            from psychopy.app.errorDlg import exceptionCallback
+            sys.excepthook = exceptionCallback
 
 
     def onInit(self, showSplash=True, testMode=False):
@@ -239,7 +241,6 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
           testMode: bool
         """
         self.SetAppName('PsychoPy3')
-
         if showSplash: #showSplash:
             # show splash screen
             splashFile = os.path.join(
