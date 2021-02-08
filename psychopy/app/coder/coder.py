@@ -52,7 +52,7 @@ from psychopy.app.coder.folding import CodeEditorFoldingMixin
 
 try:
     import jedi
-    if jedi.__version__ < "0.17":
+    if jedi.__version__ < "0.16":
         logging.error(
                 "Need a newer version of package `jedi`. Currently using {}"
                 .format(jedi.__version__)
