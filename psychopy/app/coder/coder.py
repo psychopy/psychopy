@@ -52,7 +52,7 @@ from psychopy.app.coder.folding import CodeEditorFoldingMixin
 
 try:
     import jedi
-    if jedi.__version__ < "0.15":
+    if jedi.__version__ < "0.17":
         logging.error(
                 "Need a newer version of package `jedi`. Currently using {}"
                 .format(jedi.__version__)
@@ -869,11 +869,13 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
         if _hasJedi and self.getFileType() == 'Python':
             self.coder.SetStatusText(
                 'Retrieving code completions, please wait ...', 0)
-            # todo - create Script() periodically
-            compList = [i.name for i in jedi.Script(
-                self.getTextUptoCaret(),
+            script = jedi.Script(
+                self.GetText(),
                 path=self.filename if os.path.isabs(self.filename) else
-                None).completions(fuzzy=False)]
+                None)
+            # todo - create Script() periodically
+            compList = [i.name for i in script.complete(
+                self.caretLine + 1, self.caretColumn, fuzzy=False)]
             # todo - check if have a perfect match and veto AC
             self.coder.SetStatusText('', 0)
             if compList:
