@@ -102,7 +102,8 @@ class ExperimentRuntime(ioHubExperimentRuntime):
                                     allowGUI=False, # We want it to be borderless
                                     screen= display.getIndex() # The display index to use, assuming a multi display setup.
                                     )
-
+        window.setMouseVisible(False)
+        
         # Create a dict of image stim for trials and a gaze blob to show the
         # reported gaze position with.
         #
