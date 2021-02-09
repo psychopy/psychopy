@@ -1381,6 +1381,9 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
     @opacity.setter
     def opacity(self, value):
         # Setting opacity as a single value makes all colours the same opacity
+        if value is None:
+            # If opacity is set to be None, this indicates that each color should handle its own opacity
+            return
         if hasattr(self, '_foreColor'):
             self._foreColor.alpha = value
         if hasattr(self, '_fillColor'):
