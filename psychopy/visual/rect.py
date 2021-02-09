@@ -119,7 +119,7 @@ class Rect(BaseShapeStim):
                  pos=(0, 0),
                  size=None,
                  ori=0.0,
-                 opacity=1.0,
+                 opacity=None,
                  contrast=1.0,
                  depth=0,
                  interpolate=True,
