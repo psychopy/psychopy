@@ -492,7 +492,7 @@ class ScreenPositionValidation(object):
         self._lastPenSample = None
 
         #kb = self.io.devices.keyboard
-        pen = self.io.devices.tablet
+        pen = self.io.devices.pen
 
         self._positionGrid.randomize()
 

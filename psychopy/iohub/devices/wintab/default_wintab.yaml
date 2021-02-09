@@ -6,40 +6,44 @@
 # indicated here.
 #
 wintab.Wintab:
-    # name: The name you want to assign the Touch device for the experiment
+    # name: The name you want to assign the Wintab device for the experiment
     #   This name is what will be used to access the device within the experiment
     #   script via the devices.[device_name] property of the ioHubConnection or
     #   ioHubExperimentRuntime classes.
     #
-    name: wintab
+    name: pen
 
     # enable: Specifies if the device should be enabled by ioHub and monitored
     #   for events.
     #   True = Enable the device on the ioHub Server Process
-    #   False = Disable the device on the ioHub Server Process. No touch events will
+    #   False = Disable the device on the ioHub Server Process. No device events will
     #   be reported by the ioHub Server.
     #
     enable: True
 
-    # device_timer: The Elo Touch class uses the polling method to
-    #   check for new events received from the Touch device. device_timer.interval
+    # device_timer: The Wintab class uses the polling method to
+    #   check for new events received from the device. device_timer.interval
     #   specifies the sec.msec time between device polls. 0.005 = 5 msec, so the device will
     #   be polled at a maxximum rate of 200 Hz. This polling rate is a 'target' value,
     #   and may not always be achieved depending on your computer specifications and the
     #   number and type of other devices being used. This can be checked by reviewing the
-    #   confidence_interval column of touch event table saved to the DataStore
+    #   confidence_interval column of wintab event table saved to the DataStore
     #    
     device_timer:
         interval: 0.004
 
+    mouse_simulation:
+        enable: False
+        leave_region_timeout: 2.0
+
     # monitor_event_types: *If* the ioHubDataStore is enabled for the experiment, then
     #   indicate if events for this device should be saved to the
-    #   monitor_event_types: Specified which Touch Event types should be monitored
+    #   monitor_event_types: Specified which Wintab Event types should be monitored
     #   for and therefore saved to the DataStore or sent to the Experiment Process.
     #
     monitor_event_types:  [WintabSampleEvent,WintabEnterRegionEvent, WintabLeaveRegionEvent]
 
-    #   save_events: Save Touch events to the data_collection/Touch event 
+    #   save_events: Save Wintab events to the data_collection/Wintab event 
     #   group in the hdf5 event file.
     #   True = Save events for this device to the ioDataStore.
     #   False = Do not save events for this device in the ioDataStore.

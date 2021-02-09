@@ -64,15 +64,15 @@ PEN_TRACE_LINE_OPACITY=1.0
 
 draw_pen_traces = True
 
-# if no keyboard or tablet data is received for test_timeout_sec,
+# if no keyboard or pen data is received for test_timeout_sec,
 # the test program will exit.
 test_timeout_sec = 300 # 5 minutes
 
 # Runtime global variables
-tablet=None
+pen=None
 last_evt=None
 last_evt_count=0
-tablet_pos_range=None
+pen_pos_range=None
 
 def start_iohub(sess_code=None, save_to=None):
     # Create initial default session code
@@ -100,12 +100,10 @@ def start_iohub(sess_code=None, save_to=None):
     kwargs={'experiment_code':exp_code,
             'session_code':sess_code,
             'datastore_name':save_to,
-            'wintab.Wintab':{'name':'tablet', 
-# TODO: Merge latest changes in python 2.7 of wintab code, which includes
-#       mouse simulation. 
-#                             'mouse_simulation': {'enable':False,
-#                                                  'leave_region_timeout':2.0
-#                                                }
+            'wintab.Wintab':{'name':'pen', 
+                             'mouse_simulation': {'enable':True,
+                                                  'leave_region_timeout':2.0
+                                                }
                                   }
            }
 
@@ -124,7 +122,7 @@ def createPsychopyGraphics(myWin):
     evt_text = visual.TextStim(myWin, units='norm', 
                                height = DEFAULT_TEXT_STIM_HEIGHT,
                                pos=(0, .9), text="")
-    evt_text._txt_proto='Tablet: pos:\t{x},{y},{z}\t' \
+    evt_text._txt_proto='pen: pos:\t{x},{y},{z}\t' \
                         'pressure: {pressure}\t' \
                        # 'orientation: {orient_azimuth},{orient_altitude}'
 
@@ -167,12 +165,12 @@ if __name__ == '__main__':
 
     keyboard = io.devices.keyboard
     mouse = io.devices.mouse
-    tablet = io.devices.tablet
+    pen = io.devices.pen
 
-    # Check that the tablet device was created without any errors
-    if tablet.getInterfaceStatus() != "HW_OK":
-        print("Error creating Wintab device:", tablet.getInterfaceStatus())
-        print("TABLET INIT ERROR:", tablet.getLastInterfaceErrorString())
+    # Check that the pen device was created without any errors
+    if pen.getInterfaceStatus() != "HW_OK":
+        print("Error creating Wintab device:", pen.getInterfaceStatus())
+        print("TABLET INIT ERROR:", pen.getLastInterfaceErrorString())
 
     else:
         # Wintab device is a go, so setup and run test runtime....
@@ -183,12 +181,12 @@ if __name__ == '__main__':
         # break out graphics stim list into individual variables for later use
         evt_text, instruct_text, pen_trace, pen_pos_gauss = vis_stim
 
-        # Get the current reporting / recording state of the tablet
-        is_reporting = tablet.reporting
+        # Get the current reporting / recording state of the pen
+        is_reporting = pen.reporting
 
-        # Get x,y tablet evt pos ranges for future use
-        tablet_pos_range = (tablet.axis['x']['range'],
-                            tablet.axis['y']['range'])
+        # Get x,y pen evt pos ranges for future use
+        pen_pos_range = (pen.axis['x']['range'],
+                            pen.axis['y']['range'])
 
         # remove any events iohub has already captured.
         io.clearEvents()
@@ -198,9 +196,9 @@ if __name__ == '__main__':
         testTimeOutClock = core.Clock()
         pen_pos_list=[]
 
-        #print "Axis: ", tablet.axis
-        #print "context: ", tablet.context
-        #print "model: ", tablet.model
+        #print "Axis: ", pen.axis
+        #print "context: ", pen.context
+        #print "model: ", pen.model
         
         while testTimeOutClock.getTime() < test_timeout_sec:
             # check for keyboard press events, process as necessary
@@ -211,17 +209,17 @@ if __name__ == '__main__':
                 # End the text...
                 break
             if 's' in kb_events:
-                # Toggle the recording state of the tablet....
+                # Toggle the recording state of the pen....
                 is_reporting = not is_reporting
-                tablet.reporting = is_reporting
+                pen.reporting = is_reporting
                 if is_reporting:
                     instruct_text.text = instruct_text._stop_rec_txt
                 else:
                     instruct_text.text = instruct_text._start_rec_txt
 
 
-            # check for any tablet sample events, processing as necessary
-            wtab_evts = tablet.getSamples()
+            # check for any pen sample events, processing as necessary
+            wtab_evts = pen.getSamples()
             last_evt_count=len(wtab_evts)
             if is_reporting:
                 if draw_pen_traces:

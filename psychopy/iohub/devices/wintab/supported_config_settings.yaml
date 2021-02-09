@@ -8,6 +8,12 @@ Wintab:
     save_events: IOHUB_BOOL
     stream_events: IOHUB_BOOL
     auto_report_events: IOHUB_BOOL
+    mouse_simulation:
+        enable: IOHUB_BOOL
+        leave_region_timeout:
+            IOHUB_FLOAT:
+                min: 0.001
+                max: 1000.0
     device_timer:
         interval:
             IOHUB_FLOAT:
