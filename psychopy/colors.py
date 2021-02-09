@@ -48,6 +48,7 @@ colorNames = {
         "burlywood": (0.741176470588235, 0.443137254901961, 0.0588235294117647),
         "cadetblue": (-0.254901960784314, 0.23921568627451, 0.254901960784314),
         "chartreuse": (-0.00392156862745097, 1, -1),
+        "chestnut": (0.607843137254902, -0.27843137254902, -0.27843137254902),
         "chocolate": (0.647058823529412, -0.176470588235294, -0.764705882352941),
         "coral": (1, -0.00392156862745097, -0.372549019607843),
         "cornflowerblue": (-0.215686274509804, 0.168627450980392, 0.858823529411765),
@@ -92,7 +93,6 @@ colorNames = {
         "greenyellow": (0.356862745098039, 1, -0.631372549019608),
         "honeydew": (0.882352941176471, 1, 0.882352941176471),
         "hotpink": (1, -0.176470588235294, 0.411764705882353),
-        "indianred": (0.607843137254902, -0.27843137254902, -0.27843137254902),
         "indigo": (-0.411764705882353, -1, 0.0196078431372548),
         "ivory": (1, 1, 0.882352941176471),
         "khaki": (0.882352941176471, 0.803921568627451, 0.0980392156862746),
@@ -222,7 +222,10 @@ for key, val in colorSpaces.items():
             if isinstance(cell, infrange):
                 if cell.step == 1 and key not in integerSpaces:
                     integerSpaces.append(key)
-
+alphaSpaces = ['rgba', 'rgba1', 'rgba255', 'hsva', 'rec709TFa', 'srgbTFa', 'lmsa', 'dkla', 'dklaCart']
+nonAlphaSpaces = list(colorSpaces)
+for val in alphaSpaces:
+    nonAlphaSpaces.remove(val)
 
 class Color(object):
     """A class to store colour details, knows what colour space it's in and can supply colours in any space"""
@@ -239,6 +242,9 @@ class Color(object):
         # Treat None as a named color
         if color is None:
             color = "none"
+        if isinstance(color, str):
+            if color == "":
+                color = "none"
         # Handle everything as an array
         if not isinstance(color, numpy.ndarray):
             color = np.array(color)
@@ -258,6 +264,9 @@ class Color(object):
                                     )
             if all(hexMatch(color[:, 0])):
                 space = 'hex'
+            # If color is a string but does not match any string space, it's invalid
+            if space not in strSpaces:
+                self.valid = False
         # Error if space still not set
         if not space:
             self.valid = False
@@ -782,8 +791,8 @@ class Color(object):
 """----------Legacy-----------------"""
 # Old reference tables
 colors = colorNames
-#colorsHex = {key: Color(key, 'named').hex for key in colors}
-#colors255 = {key: Color(key, 'named').rgb255 for key in colors}
+# colorsHex = {key: Color(key, 'named').hex for key in colors}
+# colors255 = {key: Color(key, 'named').rgb255 for key in colors}
 
 # Old conversion functions
 def hex2rgb255(hexColor):
@@ -796,11 +805,15 @@ def hex2rgb255(hexColor):
     elif len(hexColor.strip('#')) == 8:
         return col.rgba255
 
-def isValidColor(color):
-    """check color validity (equivalent to existing checks in _setColor)
+def isValidColor(color, space='rgb'):
+    """Depreciated as of 2021.0
     """
+    logging.warning("DEPRECIATED: While psychopy.colors.isValidColor will still roughly work, you should use a Color "
+                    "object, allowing you to check its validity simply by converting it to a `bool` (e.g. "
+                    "`bool(myColor)` or `if myColor:`). If you use this function for colors in any space other than hex, "
+                    "named or rgb, please specify the color space.")
     try:
-        buffer = Color(color)
+        buffer = Color(color, space)
         return bool(buffer)
     except:
         return False

@@ -333,7 +333,7 @@ class RunTimeInfo(dict):
                 pass
         # try:
         #     travis = bool(str(os.environ.get('TRAVIS')).lower() == 'true')
-        #     assert not travis  # skip sound-related stuff on travis-ci.org
+        #     assert not travis  # skip sound-related stuff on travis-ci
         # 
         #     import pyo
         #     self['systemPyoVersion'] = '%i.%i.%i' % pyo.getVersion()

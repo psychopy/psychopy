@@ -25,29 +25,35 @@ Further details on how to find and set these links and parameters are as follows
 Setting the study URL in |prolific|_
 ----------------------------------------
 
-To recruit participants to your PsychoPy study you should see this screen while creating/modifying your study at https://prolific.ac:
+To recruit participants to your PsychoPy study you should see a screen as in :numref:`prolificSettingsOnline` while creating/modifying your study at https://prolific.co:
 
-.. image:: /images/prolificSettingsOnline.png
-    :scale: 40%
+.. figure:: /images/prolificSettingsOnline.png
+    :name: prolificSettingsOnline
     :align: center
-    :alt: Prolific settings for integration for PsychoPy
+    :figclass: align-center
+    
+    Prolific settings for integration for PsychoPy
 
-Note in the above that I have set the `participant`, `session` and `study_id` for our study using a URL `query string`_. These values will be populated by `Prolific Academic`_ when participants are sent to the study URL. Prolific will help you to format these correctly if you tick the `Include URL Parameters?` box which will bring up the following dialog. I've changed the default values that PsychoPy will use to store the variables (e.g. to be `participant` and `session` which are the default names for these in PsychoPy):
+Note in the above that I have set the `participant`, `session` and `study_id` for our study using a URL `query string`_. These values will be populated by |prolific|_ when participants are sent to the study URL. Prolific will help you to format these correctly if you tick the `Include URL Parameters?` box which will bring up the following dialog. I've changed the default values that PsychoPy will use to store the variables (e.g. to be `participant` and `session` which are the default names for these in PsychoPy):
 
-.. image:: /images/prolificSettingsInsertParams.png
-    :scale: 50%
+.. figure:: /images/prolificSettingsInsertParams.png
+    :name: prolificSettingsInsertParams
     :align: center
-    :alt: Prolific settings (inserting parameters dialog box)
+    :figclass: align-center
 
-In each of the boxes in the figure above, you can see the name that Prolific gives to this value (e.g. `PROLIFIC_PID`) and the name that we want PsychoPy to use to store it (e.g. `participant`).
+    Prolific settings (inserting parameters dialog box)
+
+In each of the boxes in :numref:`prolificSettingsInsertParams`, you can see the name that Prolific gives to this value (e.g. `PROLIFIC_PID`) and the name that we want PsychoPy to use to store it (e.g. `participant`).
 
 Setting the completion URL in PsychoPy
 ----------------------------------------
 
-The last thing you need to do is copy the `Completion URL` from the main control panel above and paste that into the online tab for your PsychoPy `Experiment Settings` as below:
+The last thing you need to do is copy the `Completion URL` from the main control panel above and paste that into the online tab for your PsychoPy `Experiment Settings` as in :numref:`prolificCompletionURLexpSettings`:
 
-.. image:: /images/prolificCompletionURLexpSettings.png
-    :scale: 50%
+.. figure:: /images/prolificCompletionURLexpSettings.png
+    :name: prolificCompletionURLexpSettings
     :align: center
-    :alt: The completion URL pasted into Psychoy Experiment Settings
+    :figclass: align-center
+
+    The completion URL pasted into Psychoy Experiment Settings
 

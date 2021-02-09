@@ -1137,9 +1137,9 @@ class TextBox(object):
 
         if color is None:
             raise ValueError("TextBox: None is not a valid color input")
-        if not colors.isValidColor(color):
-            raise ValueError(
-                "TextBox: %s is not a valid color." % (str(color)))
+        #if not colors.isValidColor(color):
+        #    raise ValueError(
+        #        "TextBox: %s is not a valid color." % (str(color)))
 
         valid_opacity = opacity >= 0.0 and opacity <= 1.0
         if isinstance(color, basestring):
