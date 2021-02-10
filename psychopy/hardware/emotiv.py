@@ -62,13 +62,10 @@ class Cortex(object):
     CORTEX_URL = "wss://localhost:6868"
 
     def __init__(self, client_id_file=None, subject=None):
-        home = str(Path.home())
-        if client_id_file is None:
-            client_id_file = ".emotiv_creds"
-        file_path = os.path.join(home, client_id_file)
         self.client_id = None
         self.client_secret = None
-        self.parse_client_id_file(file_path)
+        client_id, client_secret = self.parse_client_id_file(file_path)
+        self.set_client_id_and_secret(client_id, client_secret)
         self.id_sequence = 0
         self.session_id = None
         self.marker_dict = {}
@@ -233,12 +230,17 @@ class Cortex(object):
         else:
             raise CortexTimingException(f"Unable to interpret time: '{t}'")
 
-    def parse_client_id_file(self, client_id_file_path):
+    def set_client_id_and_secret(self, client_id, client_secret):
+        self.client_id = client_id
+        self.client_secrte = client_secret
+
+    @staticmethod
+    def parse_client_id_file(client_id_file_path=None):
         """
         Parse a client_id file for client_id and client secret.
 
         Parameter:
-            client_id_file_path: absolute or relative path to a client_id file
+            client_id_file_path: absolute path to a client_id file
 
         We expect the client_id file to have the format:
         ```
@@ -247,6 +249,10 @@ class Cortex(object):
         client_secret abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMN
         ```
         """
+        home = str(Path.home())
+        if client_id_file_path is None:
+            client_id_file_path = ".emotiv_creds"
+            client_id_file_path = os.path.join(home, client_id_file_path)
         self.client_id = None
         self.client_secret = None
         if not os.path.exists(client_id_file_path):
@@ -263,18 +269,19 @@ class Cortex(object):
                     continue
                 (key, val) = line.split(' ')
                 if key == 'client_id':
-                    self.client_id = val.strip()
+                    client_id = val.strip()
                 elif key == 'client_secret':
-                    self.client_secret = val.strip()
+                    client_secret = val.strip()
                 else:
                     raise ValueError(
                         f'Found invalid key "{key}" while parsing '
                         f'client_id file {client_id_file_path}')
 
-        if not self.client_id or not self.client_secret:
+        if not client_id or not client_secret:
             raise ValueError(
                 f"Did not find expected keys in client_id file "
                 f"{client_id_file_path}")
+        return client_id, client_secret
 
     def gen_request(self, method, auth, **kwargs):
         """

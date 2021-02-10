@@ -8,6 +8,8 @@ from os import path
 import json
 from psychopy.experiment.components import BaseComponent, getInitVals
 from psychopy.localization import _translate, _localized as __localized
+from psychopy.hardware.emotiv import Cortex
+
 _localized = __localized.copy()
 
 CORTEX_OBJ = 'cortex_obj'
@@ -43,10 +45,20 @@ class EmotivRecordingComponent(BaseComponent):  # or (VisualComponent)
 
     def writeInitCodeJS(self, buff):
         inits = getInitVals(self.params, 'PsychoJS')
+        client_id, client_secret = Cortex.parse_client_id_file()
+        buff.writeIndented(
+            f'emotiv.setupExperiment("{client_id}", "{client_secret}");\n')
         obj = {"status": "PsychoJS.Status.NOT_STARTED"}
         code = '{} = {};\n'
         buff.writeIndentedLines(
             code.format(inits['name'], json.dumps(obj)))
+        buff.writeIndentedLines(
+            'let recordName = expName + "_" + (new Date()).getTime().toString()\n' +
+            'let subject_name = expInfo["participant"]\n' +
+            'let recordId = "";\n' +
+            'emotiv.startRecord(recordName, subject_name)\n' +
+            '    .then((result)=>recordId=result);\n'
+        )
         # check for NoneTypes
         for param in inits:
             if inits[param] in [None, 'None', '']:
