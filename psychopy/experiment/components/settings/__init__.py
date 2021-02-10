@@ -531,15 +531,20 @@ class SettingsComponent(object):
         # decide if we need anchored useVersion or leave plain
         useVer = self.params['Use version'].val
         if useVer == '':
-            useVer = '.'.join(version.split('.')[:2])
+            useVer = version
         elif useVer == 'latest':
-            useVer = '.'.join(latestVersion().split('.')[:2])
-        else:
-            # do we shorten minor versions ('3.4.2' to '3.4')?
-            # only from 3.2 onwards
-            if (parse_version(useVer) > (parse_version('3.2'))
-                    and len(useVer.split('.'))>2):
-                useVer = '.'.join(useVer.split('.')[:2])
+            useVer = latestVersion()
+
+        # do we shorten minor versions ('3.4.2' to '3.4')?
+        # only from 3.2 onwards
+        if (parse_version('3.2')) <= parse_version(useVer) < parse_version('2021') \
+                and len(useVer.split('.')) > 2:
+            # e.g. 2020.2 not 2021.2.5
+            useVer = '.'.join(useVer.split('.')[:2])
+        elif len(useVer.split('.')) > 3:
+            # e.g. 2021.1.0 not 2021.1.0.dev3
+            useVer = '.'.join(useVer.split('.')[:3])
+
         # prepend the hyphen
         versionStr = '-{}'.format(useVer)
 

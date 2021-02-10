@@ -208,9 +208,9 @@ class Experiment(object):
             self_copy.flow.writeBody(script)
             self_copy.settings.writeEndCode(script)  # close log file
             script = script.getvalue()
+
         elif target == "PsychoJS":
             script.oneIndent = "  "  # use 2 spaces rather than python 4
-
 
             self_copy.settings.writeInitCodeJS(script,self_copy.psychopyVersion,
                                                localDateTime, modular)
