@@ -151,6 +151,8 @@ _localized = {
     # pref wxChoice lists:
     'all': _translate('Builder, Coder and Runner'),
     'keep': _translate('same as in the file'),  # line endings
+    'abort': _translate('abort'), # gammaErrorPolicy
+    'warn': _translate('warn'), # gammaErrorPolicy
     # not translated:
     'pix': 'pix',
     'deg': 'deg',

@@ -9,6 +9,7 @@ import wx
 from .panels import ColorPresets, ColorPreview
 from .pages import ColorPickerPageHSV, ColorPickerPageRGB
 from psychopy.colors import Color
+from psychopy.localization import _translate
 
 LAST_COLOR = Color((0, 0, 0, 1), space='rgba')
 LAST_OUTPUT_SPACE = 0
@@ -31,7 +32,7 @@ class PsychoColorPicker(wx.Dialog):
             self,
             parent,
             id=wx.ID_ANY,
-            title=u"Color Picker",
+            title=_translate("Color Picker"),
             pos=wx.DefaultPosition,
             size=wx.Size(640, 480),
             style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
@@ -118,8 +119,8 @@ class PsychoColorPicker(wx.Dialog):
         self.pnlRGB = ColorPickerPageRGB(self.nbColorSpaces)
         self.pnlHSV = ColorPickerPageHSV(self.nbColorSpaces)
 
-        self.nbColorSpaces.AddPage(self.pnlRGB, u"RGB", True)
-        self.nbColorSpaces.AddPage(self.pnlHSV, u"HSV/HSB", False)
+        self.nbColorSpaces.AddPage(self.pnlRGB, _translate(u"RGB"), True)
+        self.nbColorSpaces.AddPage(self.pnlHSV, _translate(u"HSV/HSB"), False)
 
     def _setupUI(self):
         """Setup the UI for the color picker dialog box.
@@ -193,7 +194,7 @@ class PsychoColorPicker(wx.Dialog):
         self.lblResult = wx.StaticText(
             self,
             wx.ID_ANY,
-            u"Output Space:",
+            _translate("Output Space:"),
             wx.DefaultPosition,
             wx.DefaultSize,
             0)
@@ -216,18 +217,18 @@ class PsychoColorPicker(wx.Dialog):
         szrDlgCtrls.Add(self.cboOutputSpace, 1, wx.ALIGN_CENTER_VERTICAL, 5)
 
         self.cmdCopyObject = wx.Button(
-            self, wx.ID_ANY, u"Copy as &Object", wx.DefaultPosition,
+            self, wx.ID_ANY, _translate(u"Copy as &Object"), wx.DefaultPosition,
             wx.DefaultSize, 0)
         self.cmdCopy = wx.Button(
-            self, wx.ID_ANY, u"Copy as &Value", wx.DefaultPosition,
+            self, wx.ID_ANY, _translate(u"Copy as &Value"), wx.DefaultPosition,
             wx.DefaultSize, 0)
         self.cmdClose = wx.Button(
-            self, wx.ID_ANY, u"&Cancel", wx.DefaultPosition, wx.DefaultSize, 0)
+            self, wx.ID_ANY, _translate(u"&Cancel"), wx.DefaultPosition, wx.DefaultSize, 0)
 
         self.cmdCopyObject.SetToolTip(
-            u"Copy as a `psychopy.colors.Color` object.")
+            _translate(u"Copy as a `psychopy.colors.Color` object."))
         self.cmdCopy.SetToolTip(
-            u"Copy as a value (tuple).")
+            _translate(u"Copy as a value (tuple)."))
 
         szrDlgCtrls.Add(self.cmdCopyObject, 0, wx.EXPAND, 5)
         szrDlgCtrls.Add(self.cmdCopy, 0, wx.EXPAND, 5)
