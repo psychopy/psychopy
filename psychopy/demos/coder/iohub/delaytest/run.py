@@ -101,7 +101,8 @@ class ExperimentRuntime(ioHubExperimentRuntime):
                         )
 
         currentPosition=self.mouse.setPosition((0,0))
-        
+        self.psychoWindow.setMouseVisible(False)
+
         fixation = visual.PatchStim(self.psychoWindow, size=25, pos=[0,0], sf=0,
                                     color=[-1,-1,-1], colorSpace='rgb')
         title = visual.TextStim(win=self.psychoWindow,

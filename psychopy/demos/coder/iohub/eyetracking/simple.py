@@ -51,6 +51,9 @@ if tracker_config:
                         allowGUI=False
                         )
 
+    
+    win.setMouseVisible(False)
+    
     gaze_ok_region = visual.Circle(win, lineColor='black', radius=300, units='pix')
 
     gaze_dot = visual.GratingStim(win, tex=None, mask='gauss', pos=(0, 0),
