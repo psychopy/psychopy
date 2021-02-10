@@ -677,6 +677,7 @@ class Slider(MinimalStim, ColorMixin):
             Style tweaks can be combined in a list e.g. `['labels45']`
 
         """
+        self.__dict__['styleTweaks'] = styleTweaks
 
         if 'triangleMarker' in styleTweaks:
             if self.horiz and self.flip:
