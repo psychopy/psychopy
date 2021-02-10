@@ -23,7 +23,8 @@ _localizedDialogs = {
     # interpolation
     'linear': _translate('linear'),
     'nearest': _translate('nearest'),
-    # color spaces not translated:
+    # color spaces (except "named") should not be translated:
+    'named': _translate('named'),
     'rgb': 'rgb', 'dkl': 'dkl', 'lms': 'lms', 'hsv': 'hsv',
     'last key': _translate('last key'),
     'first key': _translate('first key'),
@@ -89,6 +90,11 @@ _localizedDialogs = {
     'Routine': _translate('Routine'),
     # Joystick:
     'joystick onset':_translate('joystick onset'),
+    # Button:
+    'every click': _translate('every click'),
+    'first click': _translate('first click'),
+    'last click': _translate('last click'),
+    'button onset': _translate('button onset'),
     # Polygon:
     'line': _translate('line'),
     'triangle': _translate('triangle'),
@@ -96,6 +102,9 @@ _localizedDialogs = {
     'cross': _translate('cross'),
     'star': _translate('star'),
     'regular polygon...': _translate('regular polygon...'),
+    # Form
+    'rows': _translate('rows'),
+    'columns': _translate('columns'),
     # Variable component
     'first': _translate('first'),
     'last': _translate('last'),

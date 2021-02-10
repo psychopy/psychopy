@@ -141,7 +141,7 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
                  rgb=None,
                  color=(1.0, 1.0, 1.0),
                  colorSpace='rgb',
-                 opacity=1.0,
+                 opacity=None,
                  contrast=1.0,
                  depth=0,
                  element=None,
@@ -264,7 +264,7 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         else:
             self.colorSpace = colorSpace
             self.color = color
-        self.opacity = float(opacity)
+        self.opacity = opacity
         self.contrast = float(contrast)
         self.depth = depth
 
