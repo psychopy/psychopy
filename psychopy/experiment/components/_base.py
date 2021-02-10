@@ -579,7 +579,7 @@ class BaseVisualComponent(BaseComponent):
 
     def __init__(self, exp, parentName, name='',
                  units='from exp settings', color='white', fillColor="", borderColor="",
-                 pos=(0, 0), size=(0, 0), ori=0, colorSpace='rgb', opacity=1, contrast=1,
+                 pos=(0, 0), size=(0, 0), ori=0, colorSpace='rgb', opacity="", contrast=1,
                  startType='time (s)', startVal='',
                  stopType='duration (s)', stopVal='',
                  startEstim='', durationEstim='',
@@ -651,8 +651,8 @@ class BaseVisualComponent(BaseComponent):
             hint=msg,
             label=_localized['borderColor'])
 
-        msg = _translate("Opacity of the stimulus (1=opaque, 0=fully "
-                         "transparent, 0.5=translucent)")
+        msg = _translate("Opacity of the stimulus (1=opaque, 0=fully transparent, 0.5=translucent). "
+                         "Leave blank for each color to have its own opacity (recommended if any color is None).")
         self.params['opacity'] = Param(opacity,
             valType='num', inputType="single", categ='Appearance',
             updates='constant', allowedTypes=[],

@@ -101,7 +101,7 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
                  pos=(0, 0),
                  size=1,
                  ori=0.0,
-                 opacity=1.0,
+                 opacity=None,
                  contrast=1.0,
                  depth=0,
                  interpolate=True,
@@ -126,7 +126,6 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         super(BaseShapeStim, self).__init__(win, units=units,
                                             name=name, autoLog=False)
 
-        self.opacity = opacity
         self.pos = numpy.array(pos, float)
         self.closeShape = closeShape
         self.lineWidth = lineWidth
@@ -161,6 +160,8 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
                             " Please use color and colorSpace args instead")
             self.setFillColor(fillRGB, colorSpace='rgb', log=None)
         self.contrast = contrast
+        if opacity:
+            self.opacity = opacity
 
         # Other stuff
         self.depth = depth

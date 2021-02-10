@@ -52,7 +52,6 @@ _OSXFontDirectories = [
     "/System/Library/Fonts",
     # fonts installed via MacPorts
     "/opt/local/share/fonts",
-    ""
 ]
 
 _weightMap = {

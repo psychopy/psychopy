@@ -65,8 +65,11 @@ class SliderComponent(BaseVisualComponent):
                  flip=False,
                  style=['rating'],
                  granularity=0,
-                 color="LightGray",
+                 color="LightGrey",
+                 fillColor='Red',
+                 borderColor='White',
                  font="Open Sans",
+                 letterHeight=0.05,
                  startType='time (s)', startVal='0.0',
                  stopType='condition', stopVal='',
                  startEstim='', durationEstim='',
@@ -75,6 +78,7 @@ class SliderComponent(BaseVisualComponent):
         super(SliderComponent, self).__init__(
                 exp, parentName, name,
                 pos=pos, size=size,
+                color=color, fillColor=fillColor, borderColor=borderColor,
                 startType=startType, startVal=startVal,
                 stopType=stopType, stopVal=stopVal,
                 startEstim=startEstim, durationEstim=durationEstim)
@@ -85,7 +89,7 @@ class SliderComponent(BaseVisualComponent):
 
         # params
         self.order += ['forceEndRoutine',  # Basic tab
-                       'font',  # Appearance tab
+                       'font',  # Formatting tab
                        'flip',  # Layout tab
                        'ticks', 'labels',  'granularity', 'readOnly',  # Data tab
                       ]
@@ -97,21 +101,18 @@ class SliderComponent(BaseVisualComponent):
         self.params['ticks'] = Param(
                 ticks, valType='list', inputType="single", allowedTypes=[], categ='Basic',
                 updates='constant',
-                allowedUpdates=['constant', 'set every repeat'],
                 hint=_translate("Tick positions (numerical) on the scale, "
                                 "separated by commas"),
                 label=_localized['ticks'])
         self.params['labels'] = Param(
                 labels, valType='list', inputType="single", allowedTypes=[], categ='Basic',
                 updates='constant',
-                allowedUpdates=['constant', 'set every repeat'],
                 hint=_translate("Labels for the tick marks on the scale, "
                                 "separated by commas"),
                 label=_localized['labels'])
         self.params['granularity'] = Param(
                 granularity, valType='num', inputType="single", allowedTypes=[], categ='Basic',
                 updates='constant',
-                allowedUpdates=['constant', 'set every repeat'],
                 hint=_translate("Specifies the minimum step size "
                                 "(0 for a continuous scale, 1 for integer "
                                 "rating scale)"),
@@ -138,16 +139,29 @@ class SliderComponent(BaseVisualComponent):
                         "other side."),
                 label=_translate('Flip'))
 
-        self.params['color'].hint = "Color of the lines and labels (might be"
-        "overridden by the style setting)"
+        # Color changes
+        self.params['color'].label = "Label Color"
+        self.params['color'].hint = "Color of all labels on this slider (might be overridden by the style setting)"
+        self.params['fillColor'].label = "Marker Color"
+        self.params['fillColor'].hint = "Color of the marker on this slider (might be overridden by the style setting)"
+        self.params['borderColor'].label = "Line Color"
+        self.params['borderColor'].hint = "Color of all lines on this slider (might be overridden by the style setting)"
 
         self.params['font'] = Param(
-                font, valType='str', inputType="single", categ='Appearance',
+                font, valType='str', inputType="single", categ='Formatting',
                 updates='constant',
                 allowedUpdates=['constant', 'set every repeat'],
                 hint=_translate(
                         "Font for the labels"),
                 label=_translate('Font'))
+
+        self.params['letterHeight'] = Param(
+                letterHeight, valType='num', inputType="single", categ='Formatting',
+                updates='constant',
+                allowedUpdates=['constant', 'set every repeat'],
+                hint=_translate(
+                        "Letter height for text in labels"),
+                label=_translate('Letter height'))
 
         self.params['styles'] = Param(
                 style, valType='str', inputType="choice", categ='Appearance',
@@ -174,9 +188,6 @@ class SliderComponent(BaseVisualComponent):
                 hint=_translate("store the history of (selection, time)"),
                 label=_localized['storeHistory'])
 
-        del self.params['fillColor']
-        del self.params['borderColor']
-
     def writeInitCode(self, buff):
 
         inits = getInitVals(self.params)
@@ -191,7 +202,8 @@ class SliderComponent(BaseVisualComponent):
                    "    size={size}, pos={pos}, units={units},\n"
                    "    labels={labels}, ticks={ticks},\n"
                    "    granularity={granularity}, style={styles},\n"
-                   "    color={color}, font={font},\n"
+                   "    color={color}, fillColor={fillColor}, borderColor={borderColor}, colorSpace={colorSpace},\n"
+                   "    font={font}, labelHeight={letterHeight},\n"
                    "    flip={flip}, depth={depth}, readOnly={readOnly})\n"
                    .format(**inits))
         buff.writeIndented(initStr)

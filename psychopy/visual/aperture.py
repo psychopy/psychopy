@@ -49,8 +49,7 @@ class Aperture(MinimalStim, ContainerMixin):
     screen as usual.
 
     If shape is 'square' or 'triangle' then that is what will be used
-    If shape is 'circle' or `None` then a polygon with nVerts will be used
-        (120 for a rough circle)
+    If shape is 'circle' or `None` then a polygon with nVerts will be used (120 for a rough circle)
     If shape is a list or numpy array (Nx2) then it will be used directly
         as the vertices to a :class:`~psychopy.visual.ShapeStim`
     If shape is a filename then it will be used to load and image as a
@@ -62,8 +61,7 @@ class Aperture(MinimalStim, ContainerMixin):
 
     :Author:
         2011, Yuri Spitsyn
-        2011, Jon Peirce added units options,
-              Jeremy Gray added shape & orientation
+        2011, Jon Peirce added units options, Jeremy Gray added shape & orientation
         2014, Jeremy Gray added .contains() option
         2015, Thomas Emmerling added ImageStim option
     """

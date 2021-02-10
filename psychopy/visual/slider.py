@@ -58,7 +58,9 @@ class Slider(MinimalStim, ColorMixin):
                  style='rating',
                  granularity=0,
                  readOnly=False,
-                 color='LightGray',
+                 color='White',
+                 fillColor='Red',
+                 borderColor='White',
                  colorSpace='rgb',
                  font='Helvetica Bold',
                  depth=0,
@@ -155,6 +157,8 @@ class Slider(MinimalStim, ColorMixin):
         self.granularity = granularity
         self.colorSpace = colorSpace
         self.color = color
+        self.fillColor = fillColor
+        self.borderColor = borderColor
         self.font = font
         self.autoDraw = autoDraw
         self.depth = depth
@@ -249,14 +253,14 @@ class Slider(MinimalStim, ColorMixin):
         else:
             lineSize = self._lineW, self._lineL
             tickSize = self._tickL, self._lineW
-        self.line = GratingStim(win=self.win, pos=self.pos, color=self._foreColor, colorSpace=self.colorSpace,
+        self.line = GratingStim(win=self.win, pos=self.pos, color=self._borderColor.copy(), colorSpace=self.colorSpace,
                                 size=lineSize, sf=0, units=self.units,
                                 autoLog=False)
         self.tickLines = ElementArrayStim(win=self.win, units=self.units,
                                           nElements=len(self.ticks),
                                           xys=self.tickLocs,
                                           elementMask=None,
-                                          colors=self._foreColor, colorSpace = self.colorSpace,
+                                          colors=self._borderColor.copy(), colorSpace = self.colorSpace,
                                           sizes=tickSize, sfs=0,
                                           autoLog=False)
 
@@ -286,7 +290,7 @@ class Slider(MinimalStim, ColorMixin):
 
                 obj = TextStim(self.win, label, font=self.font,
                                anchorHoriz=alignHoriz, anchorVert=alignVert,
-                               units=self.units, color=self._foreColor, colorSpace=self.colorSpace,
+                               units=self.units, color=self._foreColor.copy(), colorSpace=self.colorSpace,
                                pos=self.labelLocs[tickN, :],
                                height=self.labelHeight, 
                                wrapWidth=self.labelWrapWidth,
@@ -302,14 +306,13 @@ class Slider(MinimalStim, ColorMixin):
 
         self.marker = Circle(self.win, units=self.units,
                              size=markerSize,
-                             color='red',
+                             fillColor=self._fillColor,
                              autoLog=False)
 
         # create a rectangle to check for clicks
         self.validArea = Rect(self.win, units=self.units,
                               pos=self.pos,
-                              width=self.size[0] * 1.1,
-                              height=self.size[1] * 1.1,
+                              size=[d * 1.1 for d in self.size],
                               lineColor='DarkGrey',
                               autoLog=False)
 
@@ -551,8 +554,8 @@ class Slider(MinimalStim, ColorMixin):
 
         self._mouseStateXY = xy
 
-    knownStyles = ['slider', 'rating', 'radio', 'labels45', 'whiteOnBlack',
-                   'triangleMarker']
+    knownStyles = ['slider', 'rating', 'radio', 'labels45',
+                   'triangleMarker', 'scrollbar']
 
     @attributeSetter
     def style(self, style):
@@ -596,19 +599,18 @@ class Slider(MinimalStim, ColorMixin):
                                     vertices=[[0, 0], [0.5, 0.5], [0.5, -0.5]],
                                     size=markerSize,
                                     ori=ori,
-                                    fillColor='DarkRed',
-                                    lineColor='DarkRed',
+                                    fillColor=self._fillColor.copy(),
                                     autoLog=False)
 
         if 'slider' in style:
             # make it more like a slider using a box instead of line
             self.line = Rect(self.win, units=self.units,
                              pos=self.pos,
-                             width=self.size[0],
-                             height=self.size[1],
-                             fillColor='DarkGray',
-                             lineColor='LightGray',
+                             size=self.size,
+                             fillColor=self._borderColor.copy(),
+                             lineColor=None,
                              autoLog=False)
+            self.line._fillColor.alpha *= 0.2
             if self.horiz:
                 markerW = self.size[0] * 0.1
                 markerH = self.size[1] * 0.8
@@ -617,16 +619,17 @@ class Slider(MinimalStim, ColorMixin):
                 markerH = self.size[1] * 0.1
 
             self.marker = Rect(self.win, units=self.units,
-                               width=markerW,
-                               height=markerH,
-                               fillColor='DarkSlateGray',
-                               lineColor='GhostWhite',
+                               size=[markerW, markerH],
+                               fillColor=self._fillColor,
+                               lineColor=None,
                                autoLog=False)
 
         if 'whiteOnBlack' in style:
             self.line.color = 'black'
             self.tickLines.colors = 'black'
             self.marker.color = 'white'
+            for label in self.labelObjs:
+                label.color = 'white'
 
         if 'labels45' in style:
             for label in self.labelObjs:
@@ -644,4 +647,23 @@ class Slider(MinimalStim, ColorMixin):
             self.tickLines.elementMask = 'circle'
             # marker must be smalle than a "tick" circle
             self.marker.size = self._tickL * 0.7
-            self.marker.fillColor = "DarkRed"
+            self.marker.fillColor = self._fillColor.copy()
+
+        if 'scrollbar' in style:
+            # Make marker the full height and 20% of the width of the slider
+            markerWidth = self.size[0]*0.2
+            w, h = self.size
+            self.marker = Rect(self.win, units=self.units,
+                               size=[markerWidth, h],
+                               fillColor=self._fillColor,
+                               lineColor=None,
+                               autoLog=False)
+            # Make the line a translucent box
+            self.line = Rect(self.win, units=self.units,
+                             pos=self.pos,
+                             size=[w+markerWidth, h],
+                             fillColor=self._borderColor.copy(),
+                             lineColor=None,
+                             autoLog=False)
+            self.line._fillColor.alpha *= 0.05
+            self.tickLines = Rect(self.win, size=(0,0), lineColor=None, fillColor=None)
