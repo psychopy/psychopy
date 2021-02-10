@@ -284,7 +284,8 @@ class ColorPickerPageRGB(wx.Panel):
         self.sldBlue.SetValue(rgba255[2])
         self.sldAlpha.SetValue(rgbaColor.alpha * SLIDER_RES)  # arrrg! should be 255!!!
 
-        convFunc = self._posToValFunc[self.rbxRGBFormat.GetSelection()]
+        channelMode = self.rbxRGBFormat.GetSelection()
+        convFunc = self._posToValFunc[channelMode]
 
         # update spinner values/ranges for each channel
         for spn in (self.spnRed, self.spnGreen, self.spnBlue):
@@ -296,10 +297,21 @@ class ColorPickerPageRGB(wx.Panel):
             spn.SetMax(convFunc(SLIDER_RES))
 
         # set the value in the new range
-        self.spnRed.SetValue(rgbaColor.rgba[0])
-        self.spnGreen.SetValue(rgbaColor.rgba[1])
-        self.spnBlue.SetValue(rgbaColor.rgba[2])
-        self.spnAlpha.SetValue(rgbaColor.rgba[3])
+
+        if channelMode == 0:
+            spnColVals = rgbaColor.rgba
+        elif channelMode == 1:
+            spnColVals = rgbaColor.rgba1
+        elif channelMode == 2:
+            spnColVals = rgbaColor.rgba255
+        else:
+            raise ValueError("Unknown RGB channel format specified. Did you add"
+                             "items to `rbxRGBFormat`?")
+
+        self.spnRed.SetValue(spnColVals[0])
+        self.spnGreen.SetValue(spnColVals[1])
+        self.spnBlue.SetValue(spnColVals[2])
+        self.spnAlpha.SetValue(rgbaColor.alpha)
 
     def onRedScroll(self, event):
         """Called when the red channel slider is moved. Updates the spin control
