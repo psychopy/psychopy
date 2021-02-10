@@ -154,9 +154,36 @@ class ChoiceCtrl(wx.Choice, _ValidatorMixin):
         self.Create(parent, -1, size=size, choices=choiceLabels, name=fieldName)
         self._choices = choices
         self.valType = valType
-        if val in choices:
-            self.SetSelection(choices.index(val))
+        self.SetStringSelection(val)
 
+    def SetStringSelection(self, string):
+        if string not in self._choices:
+            self._choices.append(string)
+            self.SetItems(self._choices)
+        wx.Choice.SetStringSelection(self, string)
+
+class MultiChoiceCtrl(wx.CheckListBox, _ValidatorMixin):
+    def __init__(self, parent, valType,
+                 vals="", choices=[], fieldName="",
+                 size=wx.Size(-1, 144)):
+        wx.CheckListBox.__init__(self)
+        self.Create(parent, id=wx.ID_ANY, size=size, choices=choices, name=fieldName, style=wx.LB_MULTIPLE)
+        self.valType = valType
+        self._choices = choices
+        # Make initial selection
+        self.SetCheckedStrings(vals)
+
+    def SetCheckedStrings(self, strings):
+        if not isinstance(strings, (list, tuple)):
+            strings = [strings]
+        for s in strings:
+            if s not in self._choices:
+                self._choices.append(s)
+                self.SetItems(self._choices)
+        wx.CheckListBox.SetCheckedStrings(self, strings)
+
+    def GetValue(self, evt=None):
+        return self.GetCheckedStrings()
 
 class FileCtrl(wx.TextCtrl, _ValidatorMixin, _FileMixin):
     def __init__(self, parent, valType,
