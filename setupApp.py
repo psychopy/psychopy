@@ -31,7 +31,6 @@ if platform != 'darwin':
 import bdist_mpkg
 import py2app
 resources = glob.glob('psychopy/app/Resources/*')
-resources.append('/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7/pyconfig.h')
 frameworks = ["/usr/lib/libxml2.2.dylib", #"libyaml.dylib",
               "libevent.dylib", "libffi.dylib",
               "libmp3lame.0.dylib",
