@@ -157,6 +157,19 @@ class ChoiceCtrl(wx.Choice, _ValidatorMixin):
         if val in choices:
             self.SetSelection(choices.index(val))
 
+class MultiChoiceCtrl(wx.CheckListBox, _ValidatorMixin):
+    def __init__(self, parent, valType,
+                 vals="", choices=[], fieldName="",
+                 size=wx.Size(-1, 144)):
+        wx.CheckListBox.__init__(self)
+        self.Create(parent, id=wx.ID_ANY, size=size, choices=choices, name=fieldName, style=wx.LB_MULTIPLE)
+        self.valType = valType
+        self._choices = choices
+        # Make initial selection
+        self.SetCheckedStrings(vals)
+
+    def GetValue(self, evt=None):
+        return self.GetCheckedStrings()
 
 class FileCtrl(wx.TextCtrl, _ValidatorMixin, _FileMixin):
     def __init__(self, parent, valType,

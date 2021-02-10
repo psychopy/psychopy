@@ -137,7 +137,11 @@ class ParamCtrls(object):
         elif param.inputType == 'choice':
             self.valueCtrl = paramCtrls.ChoiceCtrl(parent,
                                                    val=str(param.val), valType=param.valType, choices=param.allowedVals,
-                                                   fieldName=fieldName, size=wx.Size(self.valueWidth, -1))
+                                                   fieldName=fieldName, size=wx.Size(self.valueWidth, 24))
+        elif param.inputType == 'multiChoice':
+            self.valueCtrl = paramCtrls.MultiChoiceCtrl(parent, valType=param.valType,
+                                                        vals=param.val, choices=param.allowedVals, fieldName=fieldName,
+                                                        size=wx.Size(self.valueWidth, 144))
         elif param.inputType == 'bool':
             self.valueCtrl = paramCtrls.BoolCtrl(parent,
                                          name=fieldName,size=wx.Size(self.valueWidth, 24))
@@ -764,7 +768,7 @@ class _BaseParamsDlg(wx.Dialog):
         if param.inputType == 'multi':
             sizer.AddGrowableRow(currRow)
             ctrls.valueCtrl.Bind(wx.EVT_KEY_UP, self.doValidate)
-        elif param.inputType == 'fileList':
+        elif param.inputType in ['fileList', 'multiChoice']:
             sizer.AddGrowableRow(currRow)  # doesn't seem to work though
         elif fieldName == 'Monitor':
             ctrls.valueCtrl.Bind(wx.EVT_RIGHT_DOWN, self.openMonitorCenter)
