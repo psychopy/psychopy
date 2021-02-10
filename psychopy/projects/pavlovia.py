@@ -93,7 +93,7 @@ def login(tokenOrUsername, rememberMe=True):
     """
     currentSession = getCurrentSession()
     if not currentSession:
-        raise exceptions.ConnectionError("Failed to connect to Pavlovia.org. No network?")
+        raise requests.exceptions.ConnectionError("Failed to connect to Pavlovia.org. No network?")
     # would be nice here to test whether this is a token or username
     logging.debug('pavloviaTokensCurrently: {}'.format(knownUsers))
     if tokenOrUsername in knownUsers:
@@ -380,7 +380,11 @@ class PavloviaSession:
         """Finds all readable projects of a given user_id
         (None for current user)
         """
-        own = self.gitlab.projects.list(owned=True, search=searchStr)
+        try:
+            own = self.gitlab.projects.list(owned=True, search=searchStr)
+        except Exception as e:
+            print(e)
+            own = self.gitlab.projects.list(owned=True, search=searchStr)
         group = self.gitlab.projects.list(owned=False, membership=True,
                                           search=searchStr)
         projs = []
