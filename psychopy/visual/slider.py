@@ -55,7 +55,7 @@ class Slider(MinimalStim, ColorMixin):
                  size=None,
                  units=None,
                  flip=False,
-                 style='rating',
+                 style='rating', adjustments=[],
                  granularity=0,
                  readOnly=False,
                  color='White',
@@ -199,6 +199,7 @@ class Slider(MinimalStim, ColorMixin):
 
         # set the style when everything else is set
         self.style = style
+        self.adjustments = adjustments
 
     def __repr__(self, complete=False):
         return self.__str__(complete=complete)  # from MinimalStim
@@ -554,8 +555,7 @@ class Slider(MinimalStim, ColorMixin):
 
         self._mouseStateXY = xy
 
-    knownStyles = ['slider', 'rating', 'radio', 'labels45',
-                   'triangleMarker', 'scrollbar']
+    knownStyles = ['slider', 'rating', 'radio', 'scrollbar']
 
     @attributeSetter
     def style(self, style):
@@ -565,44 +565,24 @@ class Slider(MinimalStim, ColorMixin):
 
         Parameters
         ----------
-        style: list of strings
+        style: string
 
             Known styles currently include:
 
                 'rating': the marker is a circle
-                'triangleMarker': the marker is a triangle
                 'slider': looks more like an application slider control
                 'whiteOnBlack': a sort of color-inverse rating scale
-                'labels45': the text is rotated by 45 degrees
                 'scrollbar': looks like a scrollbar for a window
 
-            Styles can be combined in a list e.g. `['whiteOnBlack','labels45']`
+            Styles cannot be combined in a list - they are discrete
 
         """
         self.__dict__['style'] = style
 
-        if 'rating' in style:
+        if style == 'rating':
             pass  # this is just the default
 
-        if 'triangleMarker' in style:
-            if self.horiz and self.flip:
-                ori = -90
-            elif self.horiz:
-                ori = -90
-            elif not self.horiz and self.flip:
-                ori = 180
-            else:
-                ori = 0
-
-            markerSize = min(self.size) * 2
-            self.marker = ShapeStim(self.win, units=self.units,
-                                    vertices=[[0, 0], [0.5, 0.5], [0.5, -0.5]],
-                                    size=markerSize,
-                                    ori=ori,
-                                    fillColor=self._fillColor.copy(),
-                                    autoLog=False)
-
-        if 'slider' in style:
+        if style == 'slider':
             # make it more like a slider using a box instead of line
             self.line = Rect(self.win, units=self.units,
                              pos=self.pos,
@@ -624,22 +604,7 @@ class Slider(MinimalStim, ColorMixin):
                                lineColor=None,
                                autoLog=False)
 
-        if 'whiteOnBlack' in style:
-            self.line.color = 'black'
-            self.tickLines.colors = 'black'
-            self.marker.color = 'white'
-            for label in self.labelObjs:
-                label.color = 'white'
-
-        if 'labels45' in style:
-            for label in self.labelObjs:
-                if self.flip:
-                    label.alignHoriz = 'left'
-                else:
-                    label.alignHoriz = 'right'
-                label.ori = -45
-
-        if 'radio' in style:
+        if style == 'radio':
             # no line, ticks are circles
             self.line.opacity = 0
             # ticks are circles
@@ -649,7 +614,7 @@ class Slider(MinimalStim, ColorMixin):
             self.marker.size = self._tickL * 0.7
             self.marker.fillColor = self._fillColor.copy()
 
-        if 'scrollbar' in style:
+        if style == 'scrollbar':
             # Make marker the full height and 20% of the width of the slider
             markerWidth = self.size[0]*0.2
             w, h = self.size
@@ -667,3 +632,64 @@ class Slider(MinimalStim, ColorMixin):
                              autoLog=False)
             self.line._fillColor.alpha *= 0.05
             self.tickLines = Rect(self.win, size=(0,0), lineColor=None, fillColor=None)
+
+    knownAdjustments = ['labels45', 'triangleMarker']
+
+    @attributeSetter
+    def adjustments(self, adjustments):
+        """Sets some predefined adjustments or use these to create your own.
+
+        If you fancy creating and including your own adjustments that would be great!
+
+        Parameters
+        ----------
+        adjustments: list of strings
+
+            Known adjustments currently include:
+
+                'triangleMarker': the marker is a triangle
+                'labels45': the text is rotated by 45 degrees
+
+            Legacy adjustments include:
+
+                'whiteOnBlack': a sort of color-inverse rating scale
+
+            Legacy adjustments will work if set in code, but are not exposed in Builder as they are redundant
+
+            Adjustments can be combined in a list e.g. `['labels45']`
+
+        """
+
+        if 'triangleMarker' in adjustments:
+            if self.horiz and self.flip:
+                ori = -90
+            elif self.horiz:
+                ori = -90
+            elif not self.horiz and self.flip:
+                ori = 180
+            else:
+                ori = 0
+
+            markerSize = min(self.size) * 2
+            self.marker = ShapeStim(self.win, units=self.units,
+                                    vertices=[[0, 0], [0.5, 0.5], [0.5, -0.5]],
+                                    size=markerSize,
+                                    ori=ori,
+                                    fillColor=self._fillColor.copy(),
+                                    autoLog=False)
+
+        if 'labels45' in adjustments:
+            for label in self.labelObjs:
+                if self.flip:
+                    label.alignHoriz = 'left'
+                else:
+                    label.alignHoriz = 'right'
+                label.ori = -45
+
+        # Legacy
+        if 'whiteOnBlack' in adjustments:
+            self.line.color = 'black'
+            self.tickLines.colors = 'black'
+            self.marker.color = 'white'
+            for label in self.labelObjs:
+                label.color = 'white'

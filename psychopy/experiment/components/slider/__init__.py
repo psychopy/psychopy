@@ -36,6 +36,7 @@ _localized.update({'categoryChoices': _translate('Category choices'),
                    'readOnly': _translate('readOnly')})
 
 knownStyles = slider.Slider.knownStyles
+knownAdjustments = slider.Slider.knownAdjustments
 
 
 # ticks = (1, 2, 3, 4, 5),
@@ -63,7 +64,7 @@ class SliderComponent(BaseVisualComponent):
                  size='(1.0, 0.1)',
                  pos='(0, -0.4)',
                  flip=False,
-                 style=['rating'],
+                 style='rating', adjustments=[],
                  granularity=0,
                  color="LightGrey",
                  fillColor='Red',
@@ -89,6 +90,7 @@ class SliderComponent(BaseVisualComponent):
 
         # params
         self.order += ['forceEndRoutine',  # Basic tab
+                       'contrast', 'styles', 'adjustments', # Appearance tab
                        'font',  # Formatting tab
                        'flip',  # Layout tab
                        'ticks', 'labels',  'granularity', 'readOnly',  # Data tab
@@ -167,8 +169,15 @@ class SliderComponent(BaseVisualComponent):
                 style, valType='str', inputType="choice", categ='Appearance',
                 updates='constant', allowedVals=knownStyles,
                 hint=_translate(
-                        "Styles determine the appearance of the slider"),
+                        "Discrete styles to control the overall appearance of the slider."),
                 label=_translate('Styles'))
+
+        self.params['adjustments'] = Param(
+                adjustments, valType='list', inputType="multiChoice", categ='Appearance',
+                updates='constant', allowedVals=knownAdjustments,
+                hint=_translate(
+                        "Adjustments to change the appearance of the slider."),
+                label=_translate('Adjustments'))
 
         # data params
         self.params['storeRating'] = Param(
@@ -201,7 +210,7 @@ class SliderComponent(BaseVisualComponent):
         initStr = ("{name} = visual.Slider(win=win, name='{name}',\n"
                    "    size={size}, pos={pos}, units={units},\n"
                    "    labels={labels}, ticks={ticks},\n"
-                   "    granularity={granularity}, style={styles},\n"
+                   "    granularity={granularity}, style={styles}, adjustments={adjustments},\n"
                    "    color={color}, fillColor={fillColor}, borderColor={borderColor}, colorSpace={colorSpace},\n"
                    "    font={font}, labelHeight={letterHeight},\n"
                    "    flip={flip}, depth={depth}, readOnly={readOnly})\n"
