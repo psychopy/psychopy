@@ -554,8 +554,8 @@ class Slider(MinimalStim, ColorMixin):
 
         self._mouseStateXY = xy
 
-    knownStyles = ['slider', 'rating', 'radio', 'labels45', 'whiteOnBlack',
-                   'triangleMarker']
+    knownStyles = ['slider', 'rating', 'radio', 'labels45',
+                   'triangleMarker', 'scrollbar']
 
     @attributeSetter
     def style(self, style):
@@ -648,3 +648,22 @@ class Slider(MinimalStim, ColorMixin):
             # marker must be smalle than a "tick" circle
             self.marker.size = self._tickL * 0.7
             self.marker.fillColor = self._fillColor.copy()
+
+        if 'scrollbar' in style:
+            # Make marker the full height and 20% of the width of the slider
+            markerWidth = self.size[0]*0.2
+            w, h = self.size
+            self.marker = Rect(self.win, units=self.units,
+                               size=[markerWidth, h],
+                               fillColor=self._fillColor,
+                               lineColor=None,
+                               autoLog=False)
+            # Make the line a translucent box
+            self.line = Rect(self.win, units=self.units,
+                             pos=self.pos,
+                             size=[w+markerWidth, h],
+                             fillColor=self._borderColor.copy(),
+                             lineColor=None,
+                             autoLog=False)
+            self.line._fillColor.alpha *= 0.05
+            self.tickLines = Rect(self.win, size=(0,0), lineColor=None, fillColor=None)
