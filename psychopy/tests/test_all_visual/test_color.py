@@ -1,39 +1,44 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""All tests in this file involve rapidly changing colours, do not run these
+tests in a setting where you can view the output if you have photosensitive
+epilepsy.
+
+"""
 from psychopy.tests import utils
 from psychopy import visual, colors
-from pathlib import Path
 import numpy as np
-
-"""All tests in this file involve rapidly changing colours, do not run these tests in a setting where you can view the 
-output if you have photosensitive epilepsy"""
 
 # Define expected values for different spaces
 exemplars = [
-    {'rgb': ( 1.00,  1.00,  1.00), 'rgb255': (255, 255, 255), 'hsv': (  0, 0.00, 1.00), 'hex': '#ffffff', 'named': 'white'}, # Pure white
-    {'rgb': ( 0.00,  0.00,  0.00), 'rgb255': (128, 128, 128), 'hsv': (  0, 0.00, 0.50), 'hex': '#808080', 'named': 'gray'}, # Mid grey
-    {'rgb': (-1.00, -1.00, -1.00), 'rgb255': (  0,   0,   0), 'hsv': (  0, 0.00, 0.00), 'hex': '#000000', 'named': 'black'}, # Pure black
-    {'rgb': ( 1.00, -1.00, -1.00), 'rgb255': (255,   0,   0), 'hsv': (  0, 1.00, 1.00), 'hex': '#ff0000', 'named': 'red'}, # Pure red
-    {'rgb': (-1.00,  1.00, -1.00), 'rgb255': (  0, 255,   0), 'hsv': (120, 1.00, 1.00), 'hex': '#00ff00', 'named': 'lime'}, # Pure green
-    {'rgb': (-1.00, -1.00,  1.00), 'rgb255': (  0,   0, 255), 'hsv': (240, 1.00, 1.00), 'hex': '#0000ff', 'named': 'blue'}, # Pure blue
+    {'rgb': ( 1.00,  1.00,  1.00), 'rgb255': (255, 255, 255), 'hsv': (  0, 0.00, 1.00), 'hex': '#ffffff', 'named': 'white'},  # Pure white
+    {'rgb': ( 0.00,  0.00,  0.00), 'rgb255': (128, 128, 128), 'hsv': (  0, 0.00, 0.50), 'hex': '#808080', 'named': 'gray'},  # Mid grey
+    {'rgb': (-1.00, -1.00, -1.00), 'rgb255': (  0,   0,   0), 'hsv': (  0, 0.00, 0.00), 'hex': '#000000', 'named': 'black'},  # Pure black
+    {'rgb': ( 1.00, -1.00, -1.00), 'rgb255': (255,   0,   0), 'hsv': (  0, 1.00, 1.00), 'hex': '#ff0000', 'named': 'red'},  # Pure red
+    {'rgb': (-1.00,  1.00, -1.00), 'rgb255': (  0, 255,   0), 'hsv': (120, 1.00, 1.00), 'hex': '#00ff00', 'named': 'lime'},  # Pure green
+    {'rgb': (-1.00, -1.00,  1.00), 'rgb255': (  0,   0, 255), 'hsv': (240, 1.00, 1.00), 'hex': '#0000ff', 'named': 'blue'},  # Pure blue
     # Psychopy colours
-    {'rgb': (-0.20, -0.20, -0.14), 'rgb255': (102, 102, 110), 'hsv': (240, 0.07, 0.43), 'hex': '#66666e'}, # grey
-    {'rgb': ( 0.35,  0.35,  0.38), 'rgb255': (172, 172, 176), 'hsv': (240, 0.02, 0.69), 'hex': '#acacb0'}, # light grey
-    {'rgb': ( 0.90,  0.90,  0.90), 'rgb255': (242, 242, 242), 'hsv': (  0, 0.00, 0.95), 'hex': '#f2f2f2'}, # offwhite
-    {'rgb': ( 0.90, -0.34, -0.29), 'rgb255': (242,  84,  91), 'hsv': (357, 0.65, 0.95), 'hex': '#f2545b'}, # red
-    {'rgb': (-0.98,  0.33,  0.84), 'rgb255': (  2, 169, 234), 'hsv': (197, 0.99, 0.92), 'hex': '#02a9ea'}, # blue
-    {'rgb': (-0.15,  0.60, -0.09), 'rgb255': (108, 204, 116), 'hsv': (125, 0.47, 0.80), 'hex': '#6ccc74'}, # green
-    {'rgb': ( 0.85,  0.18, -0.98), 'rgb255': (236, 151,   3), 'hsv': ( 38, 0.99, 0.93), 'hex': '#ec9703'}, # orange
-    {'rgb': ( 0.89,  0.65, -0.98), 'rgb255': (241, 211,   2), 'hsv': ( 52, 0.99, 0.95), 'hex': '#f1d302'}, # yellow
-    {'rgb': ( 0.53,  0.49,  0.94), 'rgb255': (195, 190, 247), 'hsv': (245, 0.23, 0.97), 'hex': '#c3bef7'}, # violet
+    {'rgb': (-0.20, -0.20, -0.14), 'rgb255': (102, 102, 110), 'hsv': (240, 0.07, 0.43), 'hex': '#66666e'},  # grey
+    {'rgb': ( 0.35,  0.35,  0.38), 'rgb255': (172, 172, 176), 'hsv': (240, 0.02, 0.69), 'hex': '#acacb0'},  # light grey
+    {'rgb': ( 0.90,  0.90,  0.90), 'rgb255': (242, 242, 242), 'hsv': (  0, 0.00, 0.95), 'hex': '#f2f2f2'},  # offwhite
+    {'rgb': ( 0.90, -0.34, -0.29), 'rgb255': (242,  84,  91), 'hsv': (357, 0.65, 0.95), 'hex': '#f2545b'},  # red
+    {'rgb': (-0.98,  0.33,  0.84), 'rgb255': (  2, 169, 234), 'hsv': (197, 0.99, 0.92), 'hex': '#02a9ea'},  # blue
+    {'rgb': (-0.15,  0.60, -0.09), 'rgb255': (108, 204, 116), 'hsv': (125, 0.47, 0.80), 'hex': '#6ccc74'},  # green
+    {'rgb': ( 0.85,  0.18, -0.98), 'rgb255': (236, 151,   3), 'hsv': ( 38, 0.99, 0.93), 'hex': '#ec9703'},  # orange
+    {'rgb': ( 0.89,  0.65, -0.98), 'rgb255': (241, 211,   2), 'hsv': ( 52, 0.99, 0.95), 'hex': '#f1d302'},  # yellow
+    {'rgb': ( 0.53,  0.49,  0.94), 'rgb255': (195, 190, 247), 'hsv': (245, 0.23, 0.97), 'hex': '#c3bef7'},  # violet
 ]
 # A few values which are likely to mess things up
 tykes = [
-    {'rgba': ( 1.00,  1.00,  1.00, 0.50), 'rgba255': (255, 255, 255, 0.50), 'hsva': (  0, 0.00, 1.00, 0.50)}, # Make sure opacities work in every space
-    {'rgba': "white", 'rgba255': "white", "hsva": "white", "hex": "white", "rgb255": "#ffffff"}, # Overriding colorSpace with hex or named values
-    {'rgba': None, 'named': None, 'hex': None, 'hsva': None}, # None as a value
+    {'rgba': ( 1.00,  1.00,  1.00, 0.50), 'rgba255': (255, 255, 255, 0.50), 'hsva': (  0, 0.00, 1.00, 0.50)},  # Make sure opacities work in every space
+    {'rgba': "white", 'rgba255': "white", "hsva": "white", "hex": "white", "rgb255": "#ffffff"},  # Overriding colorSpace with hex or named values
+    {'rgba': None, 'named': None, 'hex': None, 'hsva': None},  # None as a value
 ]
 
 # Test window for visual objects
 win = visual.Window([128, 128], pos=[50, 50], allowGUI=False, autoLog=False)
+
 
 # Begin test
 def test_colors():
@@ -52,6 +57,7 @@ def test_colors():
             # Check setters
             assert col1 == col2 or closeEnough
 
+
 def test_window_colors():
     # Iterate through color sets
     for colorSet in exemplars + tykes:
@@ -61,6 +67,7 @@ def test_window_colors():
             win.color = colorSet[space]
             win.flip()
             utils.comparePixelColor(win, colors.Color(colorSet[space], space))
+
 
 def test_shape_colors():
     # Create rectangle with chunky border
@@ -91,6 +98,7 @@ def test_shape_colors():
 
             # Testing foreColor is already done in test_textbox
 
+
 def test_element_array_colors():
     # Create element array with two elements covering the whole window in two block colours
     obj = visual.ElementArrayStim(win, units="pix",
@@ -104,9 +112,19 @@ def test_element_array_colors():
                 obj.colorSpace = space
                 col1 = np.array(colorSet[space]).reshape((1, -1))
                 col2 = getattr(colors.Color('black'), space).reshape((1, -1))
-                obj.colors = np.append(col1, col2, 0) # Set first color to current color set, second to black in same color space
+                obj.colors = np.append(col1, col2, 0)  # Set first color to current color set, second to black in same color space
                 obj.opacity = 1  # Fix opacity at full as this is not what we're testing
                 win.flip()
                 obj.draw()
                 utils.comparePixelColor(win, colors.Color(colorSet[space], space), coord=(10, 10))
                 utils.comparePixelColor(win, colors.Color('black'), coord=(10, 100))
+
+
+def test_color_operators():
+    """Test for operators used to compare colors."""
+    red255 = colors.Color((255, 0, 0), space='rgb255')
+    redRGB = colors.Color((1, -1, -1), space='rgb')
+    redRGB1 = colors.Color((1, 0, 0), space='rgb1')
+
+    assert red255 == redRGB == redRGB1
+
