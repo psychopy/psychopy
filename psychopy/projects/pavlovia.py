@@ -9,6 +9,7 @@
 """
 from future.builtins import object
 import glob
+import pathlib
 import os, time, socket
 import subprocess
 import traceback
@@ -746,7 +747,7 @@ class PavloviaProject(dict):
 
         if gitRoot is None:
             self.newRepo(infoStream=infoStream)
-        elif gitRoot != self.localRoot:
+        elif gitRoot not in [self.localRoot, str(pathlib.Path(self.localRoot).absolute())]:
             # this indicates that the requested root is inside another repo
             raise AttributeError("The requested local path for project\n\t{}\n"
                                  "sits inside another folder, which git will "
@@ -1036,18 +1037,22 @@ def getGitRoot(p):
         raise exceptions.DependencyError(
                 "gitpython and a git installation required for getGitRoot()")
 
-    if not os.path.isdir(p):
-        p = [os.path.split(p)[0]
-             if len(os.path.split(p)[0]) > 0
-             else None].pop()
-    if subprocess.call(["git", "branch"],
-                       stderr=subprocess.STDOUT, stdout=open(os.devnull, 'w'),
-                       cwd=p) != 0:
+    p = pathlib.Path(p).absolute()
+    if not p.is_dir():
+        p = p.parent  # given a file instead of folder?
+
+    if 'not a git repository' in subprocess.check_output(["git", "branch", "--show-current"],
+                                                         cwd=str(p)).decode('utf-8'):
         return None
     else:
-        out = subprocess.check_output(["git", "rev-parse", "--show-toplevel"],
-                                      cwd=p)
-        return out.strip().decode('utf-8')
+        # this should have been possible with git rev-parse --top-level
+        # but that sometimes returns a virtual symlink that is not the normal folder name
+        # e.g. some other mount point?
+        selfAndParents = [p] + list(p.parents)
+        for thisPath in selfAndParents:
+            if list(thisPath.glob('.git')):
+                return str(thisPath)  # convert Path back to str
+
 
 def getProject(filename):
     """Will try to find (locally synced) pavlovia Project for the filename
