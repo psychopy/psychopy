@@ -54,3 +54,11 @@ _translate("Cannot calculate parameter.")
 # Alert 4315
 _translate(
     "Builder cannot interpret value \"{param.val}\" of {param.label} for {component.type} component \"{component.params[name].val}\" as a dollar sign has been used incorrectly.")
+
+# Alert 4320
+_translate(
+    "Font `{param.val}` not found locally, will check Google Fonts on next run.")
+
+# Alert 6105
+_translate(
+    "The file you are attempting to run does not seem to exist, the full path supplied to Runner was {path}")

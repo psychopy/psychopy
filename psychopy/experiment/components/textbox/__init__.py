@@ -48,7 +48,7 @@ class TextboxComponent(BaseVisualComponent):
                  # effectively just a display-value
                  text=_translate('Any text\n\nincluding line breaks'),
                  font='Open Sans', units='from exp settings', bold=False, italic=False,
-                 color='white', colorSpace='rgb', opacity=1.0,
+                 color='white', colorSpace='rgb', opacity="",
                  pos=(0, 0), size='', letterHeight=0.05, ori=0,
                  lineSpacing=1.0, padding="",  # gap between box and text
                  startType='time (s)', startVal=0.0, anchor='center',

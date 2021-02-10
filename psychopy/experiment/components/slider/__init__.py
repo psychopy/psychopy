@@ -65,7 +65,7 @@ class SliderComponent(BaseVisualComponent):
                  flip=False,
                  style=['rating'],
                  granularity=0,
-                 color="LightGray",
+                 color="LightGrey",
                  fillColor='Red',
                  borderColor='White',
                  font="Open Sans",
@@ -78,6 +78,7 @@ class SliderComponent(BaseVisualComponent):
         super(SliderComponent, self).__init__(
                 exp, parentName, name,
                 pos=pos, size=size,
+                color=color, fillColor=fillColor, borderColor=borderColor,
                 startType=startType, startVal=startVal,
                 stopType=stopType, stopVal=stopVal,
                 startEstim=startEstim, durationEstim=durationEstim)

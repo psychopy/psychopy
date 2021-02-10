@@ -78,7 +78,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                  fillColor=None, fillColorSpace=None,
                  borderWidth=2, borderColor=None, borderColorSpace=None,
                  contrast=1,
-                 opacity=1.0,
+                 opacity=None,
                  bold=False,
                  italic=False,
                  lineSpacing=1.0,
