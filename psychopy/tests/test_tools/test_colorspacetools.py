@@ -89,5 +89,37 @@ def test_srgbTF():
     assert np.allclose(rgbOut, rgbColors)
 
 
+@pytest.mark.colorspacetools
+def test_cielab2rgb():
+    """Test the CIE-Lab to RGB function using the sRGB transfer function.
+
+    """
+    # preset CIE-Lab colors using a D65 white-point and expected RGB values
+    cielabD65 = np.array([
+        [0.0, 0.0, 0.0],   # black
+        [100.0,  0.0,  0.0],    # white
+        [53.24, 80.09, 67.20],  # red
+        [87.73, -86.18, 83.18],   # green
+        [32.30, 79.19, -107.86],  # blue
+        [97.14, -21.55, 94.48],  # yellow
+        [91.11, -48.09, -14.13],   # cyan
+        [60.32, 98.23, -60.82]  # magenta
+    ])
+    rgbExpected = np.array([
+        [-1., -1., -1.],
+        [1., 1., 1.],
+        [1., -1., -1.],
+        [-1., 1., -1.],
+        [-1., -1., 1.],
+        [1., 1., -1.],
+        [-1., 1., 1.],
+        [1., -1., 1.]
+    ])
+
+    # test conversion with D65 white point
+    rgbOutD65 = cielab2rgb(cielabD65, transferFunc=srgbTF)
+    assert np.allclose(rgbOutD65, rgbExpected, atol=0.01)
+
+
 if __name__ == "__main__":
     pytest.main()
