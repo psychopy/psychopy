@@ -583,6 +583,18 @@ class Slider(MinimalStim, ColorMixin):
         """
         self.__dict__['style'] = style
 
+        # Legacy: If given a list (as was once the case), take the first style
+        if isinstance(style, (list, tuple)):
+            styles = style
+            style = "rating"
+            for val in styles:
+                # If list contains a style, use it
+                if val in self.knownStyles + self.legacyStyles:
+                    style = val
+                # Apply any tweaks
+                if val in self.knownStyleTweaks + self.legacyStyleTweaks:
+                    self.styleTweaks += val
+
         if style == 'rating':
             pass  # this is just the default
 
@@ -637,7 +649,9 @@ class Slider(MinimalStim, ColorMixin):
             self.line._fillColor.alpha *= 0.05
             self.tickLines = Rect(self.win, size=(0,0), lineColor=None, fillColor=None)
 
-    knownAdjustments = ['labels45', 'triangleMarker']
+        # Legacy: If given a tweak, apply it as a tweak rather than a style
+        if style in self.knownStyleTweaks + self.legacyStyleTweaks:
+            self.styleTweaks += val
 
     @attributeSetter
     def styleTweaks(self, styleTweaks):
