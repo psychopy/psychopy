@@ -36,7 +36,9 @@ _localized.update({'categoryChoices': _translate('Category choices'),
                    'readOnly': _translate('readOnly')})
 
 knownStyles = slider.Slider.knownStyles
-knownAdjustments = slider.Slider.knownAdjustments
+legacyStyles = slider.Slider.legacyStyles
+knownStyleTweaks = slider.Slider.knownStyleTweaks
+legacyStyleTweaks = slider.Slider.legacyStyleTweaks
 
 
 # ticks = (1, 2, 3, 4, 5),
@@ -64,7 +66,7 @@ class SliderComponent(BaseVisualComponent):
                  size='(1.0, 0.1)',
                  pos='(0, -0.4)',
                  flip=False,
-                 style='rating', adjustments=[],
+                 style='rating', styleTweaks=[],
                  granularity=0,
                  color="LightGrey",
                  fillColor='Red',
@@ -90,7 +92,7 @@ class SliderComponent(BaseVisualComponent):
 
         # params
         self.order += ['forceEndRoutine',  # Basic tab
-                       'contrast', 'styles', 'adjustments', # Appearance tab
+                       'contrast', 'styles', 'styleTweaks', # Appearance tab
                        'font',  # Formatting tab
                        'flip',  # Layout tab
                        'ticks', 'labels',  'granularity', 'readOnly',  # Data tab
@@ -172,12 +174,12 @@ class SliderComponent(BaseVisualComponent):
                         "Discrete styles to control the overall appearance of the slider."),
                 label=_translate('Styles'))
 
-        self.params['adjustments'] = Param(
-                adjustments, valType='list', inputType="multiChoice", categ='Appearance',
-                updates='constant', allowedVals=knownAdjustments,
+        self.params['styleTweaks'] = Param(
+                styleTweaks, valType='list', inputType="multiChoice", categ='Appearance',
+                updates='constant', allowedVals=knownStyleTweaks,
                 hint=_translate(
-                        "Adjustments to change the appearance of the slider."),
-                label=_translate('Adjustments'))
+                        "Tweaks to change the appearance of the slider beyond its style."),
+                label=_translate('Style Tweaks'))
 
         # data params
         self.params['storeRating'] = Param(
@@ -210,7 +212,7 @@ class SliderComponent(BaseVisualComponent):
         initStr = ("{name} = visual.Slider(win=win, name='{name}',\n"
                    "    size={size}, pos={pos}, units={units},\n"
                    "    labels={labels}, ticks={ticks},\n"
-                   "    granularity={granularity}, style={styles}, adjustments={adjustments},\n"
+                   "    granularity={granularity}, style={styles}, styleTweaks={styleTweaks},\n"
                    "    color={color}, fillColor={fillColor}, borderColor={borderColor}, colorSpace={colorSpace},\n"
                    "    font={font}, labelHeight={letterHeight},\n"
                    "    flip={flip}, depth={depth}, readOnly={readOnly})\n"
@@ -246,10 +248,10 @@ class SliderComponent(BaseVisualComponent):
             inits['styles'].val = 'rating'
 
         # reformat styles for JS
-        if not isinstance(inits['adjustments'].val, (tuple, list)):
-            inits['adjustments'].val = [inits['adjustments'].val]
-        inits['adjustments'].val = ', '.join(["visual.Slider.Adjustments.{}".format(adj)
-                                              for adj in inits['adjustments'].val])
+        if not isinstance(inits['styleTweaks'].val, (tuple, list)):
+            inits['styleTweaks'].val = [inits['styleTweaks'].val]
+        inits['styleTweaks'].val = ', '.join(["visual.Slider.StyleTweaks.{}".format(adj)
+                                              for adj in inits['styleTweaks'].val])
         # add comma so is treated as tuple in py2js and converted to list, as required
         inits['styles'].val = py2js.expression2js(inits['styles'].val)
 

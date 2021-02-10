@@ -55,7 +55,7 @@ class Slider(MinimalStim, ColorMixin):
                  size=None,
                  units=None,
                  flip=False,
-                 style='rating', adjustments=[],
+                 style='rating', styleTweaks=[],
                  granularity=0,
                  readOnly=False,
                  color='White',
@@ -198,8 +198,9 @@ class Slider(MinimalStim, ColorMixin):
         self.responseClock = core.Clock()
 
         # set the style when everything else is set
+        self.styleTweaks = []
         self.style = style
-        self.adjustments = adjustments
+        self.styleTweaks += styleTweaks
 
     def __repr__(self, complete=False):
         return self.__str__(complete=complete)  # from MinimalStim
@@ -556,6 +557,9 @@ class Slider(MinimalStim, ColorMixin):
         self._mouseStateXY = xy
 
     knownStyles = ['slider', 'rating', 'radio', 'scrollbar']
+    legacyStyles = []
+    knownStyleTweaks = ['labels45', 'triangleMarker']
+    legacyStyleTweaks = ['whiteOnBlack']
 
     @attributeSetter
     def style(self, style):
@@ -636,31 +640,31 @@ class Slider(MinimalStim, ColorMixin):
     knownAdjustments = ['labels45', 'triangleMarker']
 
     @attributeSetter
-    def adjustments(self, adjustments):
-        """Sets some predefined adjustments or use these to create your own.
+    def styleTweaks(self, styleTweaks):
+        """Sets some predefined style tweaks or use these to create your own.
 
-        If you fancy creating and including your own adjustments that would be great!
+        If you fancy creating and including your own style tweaks that would be great!
 
         Parameters
         ----------
-        adjustments: list of strings
+        styleTweaks: list of strings
 
-            Known adjustments currently include:
+            Known style tweaks currently include:
 
                 'triangleMarker': the marker is a triangle
                 'labels45': the text is rotated by 45 degrees
 
-            Legacy adjustments include:
+            Legacy style tweaks include:
 
                 'whiteOnBlack': a sort of color-inverse rating scale
 
-            Legacy adjustments will work if set in code, but are not exposed in Builder as they are redundant
+            Legacy style tweaks will work if set in code, but are not exposed in Builder as they are redundant
 
-            Adjustments can be combined in a list e.g. `['labels45']`
+            Style tweaks can be combined in a list e.g. `['labels45']`
 
         """
 
-        if 'triangleMarker' in adjustments:
+        if 'triangleMarker' in styleTweaks:
             if self.horiz and self.flip:
                 ori = -90
             elif self.horiz:
@@ -678,7 +682,7 @@ class Slider(MinimalStim, ColorMixin):
                                     fillColor=self._fillColor.copy(),
                                     autoLog=False)
 
-        if 'labels45' in adjustments:
+        if 'labels45' in styleTweaks:
             for label in self.labelObjs:
                 if self.flip:
                     label.alignHoriz = 'left'
@@ -687,7 +691,7 @@ class Slider(MinimalStim, ColorMixin):
                 label.ori = -45
 
         # Legacy
-        if 'whiteOnBlack' in adjustments:
+        if 'whiteOnBlack' in styleTweaks:
             self.line.color = 'black'
             self.tickLines.colors = 'black'
             self.marker.color = 'white'
