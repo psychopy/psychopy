@@ -243,13 +243,14 @@ class SliderComponent(BaseVisualComponent):
 
         # If no style given, set default 'rating' as list
         if len(inits['styles'].val) == 0:
-            inits['styles'].val = ['rating']
+            inits['styles'].val = 'rating'
 
         # reformat styles for JS
-        inits['styles'].val = ', '.join(["visual.Slider.Style.{}".
-                                        format(sliderStyles[style]) for style in inits['styles'].val])
+        if not isinstance(inits['adjustments'].val, (tuple, list)):
+            inits['adjustments'].val = [inits['adjustments'].val]
+        inits['adjustments'].val = ', '.join(["visual.Slider.Adjustments.{}".format(adj)
+                                              for adj in inits['adjustments'].val])
         # add comma so is treated as tuple in py2js and converted to list, as required
-        inits['styles'].val += ','
         inits['styles'].val = py2js.expression2js(inits['styles'].val)
 
         inits['depth'] = -self.getPosInRoutine()
