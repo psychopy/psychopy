@@ -68,7 +68,7 @@ class SliderComponent(BaseVisualComponent):
                  flip=False,
                  style='rating', styleTweaks=[],
                  granularity=0,
-                 color="LightGrey",
+                 color="LightGray",
                  fillColor='Red',
                  borderColor='White',
                  font="Open Sans",
