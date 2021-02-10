@@ -24,16 +24,17 @@ class NoUserError(Exception):
     pass
 
 
-class ConnectionError(Exception):
+class NoGitError(DependencyError):
     pass
 
 
-class NoGitError(DependencyError):
+class RepositoryError(Exception):
     pass
 
 
 class ConditionsImportError(Exception):
     pass
+
 
 class MissingFontError(Exception):
     pass
