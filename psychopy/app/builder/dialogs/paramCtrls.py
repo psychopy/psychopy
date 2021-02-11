@@ -172,6 +172,7 @@ class MultiChoiceCtrl(wx.CheckListBox, _ValidatorMixin):
         self._choices = choices
         # Make initial selection
         self.SetCheckedStrings(vals)
+        self.validate()
 
     def SetCheckedStrings(self, strings):
         if not isinstance(strings, (list, tuple)):
