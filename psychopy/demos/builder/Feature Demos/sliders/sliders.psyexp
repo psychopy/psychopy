@@ -672,7 +672,7 @@
         <Param name="storeRating" val="True" valType="bool" updates="constant"/>
         <Param name="storeRatingTime" val="True" valType="bool" updates="constant"/>
         <Param name="styleTweaks" val="()" valType="list" updates="constant"/>
-        <Param name="styles" val="triangleMarker" valType="str" updates="constant"/>
+        <Param name="styles" val="rating" valType="str" updates="constant"/>
         <Param name="syncScreenRefresh" val="True" valType="bool" updates="None"/>
         <Param name="ticks" val="(1, 2, 3, 4, 5)" valType="list" updates="constant"/>
         <Param name="units" val="from exp settings" valType="str" updates="None"/>
