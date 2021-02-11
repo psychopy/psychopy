@@ -77,13 +77,9 @@
         <Param name="Randomize" val="False" valType="bool" updates="constant"/>
         <Param name="Style" val="legalPad" valType="str" updates="constant"/>
         <Param name="Text Height" val="0.025" valType="num" updates="constant"/>
-        <Param name="borderColor" val="black" valType="color" updates="constant"/>
-        <Param name="color" val="black" valType="color" updates="constant"/>
-        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
         <Param name="contrast" val="1" valType="code" updates="constant"/>
         <Param name="disabled" val="False" valType="bool" updates="None"/>
         <Param name="durationEstim" val="" valType="num" updates="None"/>
-        <Param name="fillColor" val="red" valType="color" updates="constant"/>
         <Param name="name" val="demog" valType="code" updates="None"/>
         <Param name="opacity" val="" valType="num" updates="constant"/>
         <Param name="pos" val="(0, 0)" valType="list" updates="constant"/>
@@ -176,13 +172,9 @@
         <Param name="Randomize" val="False" valType="bool" updates="constant"/>
         <Param name="Style" val="legalPad" valType="str" updates="constant"/>
         <Param name="Text Height" val="0.025" valType="num" updates="constant"/>
-        <Param name="borderColor" val="black" valType="color" updates="constant"/>
-        <Param name="color" val="black" valType="color" updates="constant"/>
-        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
         <Param name="contrast" val="1" valType="code" updates="constant"/>
         <Param name="disabled" val="False" valType="bool" updates="None"/>
         <Param name="durationEstim" val="" valType="num" updates="None"/>
-        <Param name="fillColor" val="red" valType="color" updates="constant"/>
         <Param name="name" val="TIPIForm" valType="code" updates="None"/>
         <Param name="opacity" val="1" valType="num" updates="constant"/>
         <Param name="pos" val="(0, 0)" valType="list" updates="constant"/>
