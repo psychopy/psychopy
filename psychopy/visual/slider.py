@@ -695,6 +695,8 @@ class Slider(MinimalStim, ColorMixin):
                                     size=markerSize,
                                     ori=ori,
                                     fillColor=self._fillColor.copy(),
+                                    lineColor=None,
+                                    lineWidth=0,
                                     autoLog=False)
 
         if 'labels45' in styleTweaks:
