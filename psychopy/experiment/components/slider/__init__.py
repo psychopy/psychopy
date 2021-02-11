@@ -144,12 +144,12 @@ class SliderComponent(BaseVisualComponent):
                 label=_translate('Flip'))
 
         # Color changes
-        self.params['color'].label = "Label Color"
-        self.params['color'].hint = "Color of all labels on this slider (might be overridden by the style setting)"
-        self.params['fillColor'].label = "Marker Color"
-        self.params['fillColor'].hint = "Color of the marker on this slider (might be overridden by the style setting)"
-        self.params['borderColor'].label = "Line Color"
-        self.params['borderColor'].hint = "Color of all lines on this slider (might be overridden by the style setting)"
+        self.params['color'].label = _translate("Label Color")
+        self.params['color'].hint = _translate("Color of all labels on this slider (might be overridden by the style setting)")
+        self.params['fillColor'].label = _translate("Marker Color")
+        self.params['fillColor'].hint = _translate("Color of the marker on this slider (might be overridden by the style setting)")
+        self.params['borderColor'].label = _translate("Line Color")
+        self.params['borderColor'].hint = _translate("Color of all lines on this slider (might be overridden by the style setting)")
 
         self.params['font'] = Param(
                 font, valType='str', inputType="single", categ='Formatting',
