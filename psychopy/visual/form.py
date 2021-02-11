@@ -786,7 +786,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         for i in self.items:
             if i['responseCtrl']:
                 i['responseCtrl'].setAutoDraw(value)        
-        BaseVisualStim.setAutoDraw(self, value)
+        BaseVisualStim.setAutoDraw(self, value, log)
         
     def draw(self):
         """Draw all form elements"""
