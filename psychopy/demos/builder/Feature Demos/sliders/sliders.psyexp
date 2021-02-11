@@ -112,7 +112,7 @@
         <Param name="labels" val="(0, 180)" valType="list" updates="constant"/>
         <Param name="letterHeight" val="0.05" valType="num" updates="constant"/>
         <Param name="name" val="ori" valType="code" updates="None"/>
-        <Param name="opacity" val="1" valType="num" updates="constant"/>
+        <Param name="opacity" val="" valType="num" updates="constant"/>
         <Param name="ori" val="0" valType="num" updates="constant"/>
         <Param name="pos" val="(-0.2, -0.05)" valType="list" updates="constant"/>
         <Param name="readOnly" val="False" valType="bool" updates="constant"/>
@@ -126,6 +126,7 @@
         <Param name="storeHistory" val="False" valType="bool" updates="constant"/>
         <Param name="storeRating" val="True" valType="bool" updates="constant"/>
         <Param name="storeRatingTime" val="True" valType="bool" updates="constant"/>
+        <Param name="styleTweaks" val="()" valType="list" updates="constant"/>
         <Param name="styles" val="slider" valType="str" updates="constant"/>
         <Param name="syncScreenRefresh" val="True" valType="bool" updates="None"/>
         <Param name="ticks" val="(0, 45, 90, 135, 180)" valType="list" updates="constant"/>
@@ -182,7 +183,7 @@
         <Param name="labels" val="0.1, 0.5" valType="list" updates="constant"/>
         <Param name="letterHeight" val="0.05" valType="num" updates="constant"/>
         <Param name="name" val="pos" valType="code" updates="None"/>
-        <Param name="opacity" val="1" valType="num" updates="constant"/>
+        <Param name="opacity" val="" valType="num" updates="constant"/>
         <Param name="ori" val="ori.value or 0" valType="num" updates="constant"/>
         <Param name="pos" val="(-0.5, -0.05)" valType="list" updates="constant"/>
         <Param name="readOnly" val="False" valType="bool" updates="constant"/>
@@ -196,6 +197,7 @@
         <Param name="storeHistory" val="False" valType="bool" updates="constant"/>
         <Param name="storeRating" val="True" valType="bool" updates="constant"/>
         <Param name="storeRatingTime" val="True" valType="bool" updates="constant"/>
+        <Param name="styleTweaks" val="()" valType="list" updates="constant"/>
         <Param name="styles" val="slider" valType="str" updates="constant"/>
         <Param name="syncScreenRefresh" val="True" valType="bool" updates="None"/>
         <Param name="ticks" val="0.1, 0.2, 0.3, 0.4, 0.5" valType="list" updates="constant"/>
@@ -325,7 +327,7 @@
         <Param name="labels" val="('sour','','neutral','','sweet')" valType="list" updates="constant"/>
         <Param name="letterHeight" val="0.05" valType="num" updates="constant"/>
         <Param name="name" val="sourness" valType="code" updates="None"/>
-        <Param name="opacity" val="1" valType="num" updates="constant"/>
+        <Param name="opacity" val="" valType="num" updates="constant"/>
         <Param name="ori" val="0" valType="num" updates="constant"/>
         <Param name="pos" val="(0, 0.2)" valType="list" updates="constant"/>
         <Param name="readOnly" val="False" valType="bool" updates="constant"/>
@@ -339,6 +341,7 @@
         <Param name="storeHistory" val="False" valType="bool" updates="constant"/>
         <Param name="storeRating" val="True" valType="bool" updates="constant"/>
         <Param name="storeRatingTime" val="True" valType="bool" updates="constant"/>
+        <Param name="styleTweaks" val="()" valType="list" updates="constant"/>
         <Param name="styles" val="rating" valType="str" updates="constant"/>
         <Param name="syncScreenRefresh" val="True" valType="bool" updates="None"/>
         <Param name="ticks" val="(1, 2, 3, 4, 5)" valType="list" updates="constant"/>
@@ -359,7 +362,7 @@
         <Param name="labels" val="'yucky','yummy'" valType="list" updates="constant"/>
         <Param name="letterHeight" val="0.05" valType="num" updates="constant"/>
         <Param name="name" val="yumminess" valType="code" updates="None"/>
-        <Param name="opacity" val="1" valType="num" updates="constant"/>
+        <Param name="opacity" val="" valType="num" updates="constant"/>
         <Param name="ori" val="0" valType="num" updates="constant"/>
         <Param name="pos" val="(0, -0.1)" valType="list" updates="constant"/>
         <Param name="readOnly" val="False" valType="bool" updates="constant"/>
@@ -373,6 +376,7 @@
         <Param name="storeHistory" val="False" valType="bool" updates="constant"/>
         <Param name="storeRating" val="True" valType="bool" updates="constant"/>
         <Param name="storeRatingTime" val="True" valType="bool" updates="constant"/>
+        <Param name="styleTweaks" val="()" valType="list" updates="constant"/>
         <Param name="styles" val="triangleMarker" valType="str" updates="constant"/>
         <Param name="syncScreenRefresh" val="True" valType="bool" updates="None"/>
         <Param name="ticks" val="(1, 2, 3, 4, 5)" valType="list" updates="constant"/>
@@ -486,7 +490,7 @@
         <Param name="labels" val="*colorNames" valType="list" updates="constant"/>
         <Param name="letterHeight" val="0.05" valType="num" updates="constant"/>
         <Param name="name" val="categ" valType="code" updates="None"/>
-        <Param name="opacity" val="1" valType="num" updates="constant"/>
+        <Param name="opacity" val="" valType="num" updates="constant"/>
         <Param name="ori" val="0" valType="num" updates="constant"/>
         <Param name="pos" val="(0, -0.3)" valType="list" updates="constant"/>
         <Param name="readOnly" val="False" valType="bool" updates="constant"/>
@@ -500,6 +504,7 @@
         <Param name="storeHistory" val="False" valType="bool" updates="constant"/>
         <Param name="storeRating" val="True" valType="bool" updates="constant"/>
         <Param name="storeRatingTime" val="True" valType="bool" updates="constant"/>
+        <Param name="styleTweaks" val="()" valType="list" updates="constant"/>
         <Param name="styles" val="radio" valType="str" updates="constant"/>
         <Param name="syncScreenRefresh" val="True" valType="bool" updates="None"/>
         <Param name="ticks" val="*list(range(len(colorNames)))" valType="list" updates="constant"/>
@@ -545,7 +550,7 @@
         <Param name="labels" val="'left','hand','labels'" valType="list" updates="constant"/>
         <Param name="letterHeight" val="0.05" valType="num" updates="constant"/>
         <Param name="name" val="leftLabels" valType="code" updates="None"/>
-        <Param name="opacity" val="1" valType="num" updates="constant"/>
+        <Param name="opacity" val="" valType="num" updates="constant"/>
         <Param name="ori" val="0" valType="num" updates="constant"/>
         <Param name="pos" val="(-0.5, 0)" valType="list" updates="constant"/>
         <Param name="readOnly" val="False" valType="bool" updates="constant"/>
@@ -559,6 +564,7 @@
         <Param name="storeHistory" val="False" valType="bool" updates="constant"/>
         <Param name="storeRating" val="True" valType="bool" updates="constant"/>
         <Param name="storeRatingTime" val="True" valType="bool" updates="constant"/>
+        <Param name="styleTweaks" val="()" valType="list" updates="constant"/>
         <Param name="styles" val="rating" valType="str" updates="constant"/>
         <Param name="syncScreenRefresh" val="True" valType="bool" updates="None"/>
         <Param name="ticks" val="0.001, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0" valType="list" updates="constant"/>
@@ -579,7 +585,7 @@
         <Param name="labels" val="('flip', 'for', 'right-hand')" valType="list" updates="constant"/>
         <Param name="letterHeight" val="0.05" valType="num" updates="constant"/>
         <Param name="name" val="rightLabels" valType="code" updates="None"/>
-        <Param name="opacity" val="1" valType="num" updates="constant"/>
+        <Param name="opacity" val="" valType="num" updates="constant"/>
         <Param name="ori" val="0" valType="num" updates="constant"/>
         <Param name="pos" val="(0.5, 0)" valType="list" updates="constant"/>
         <Param name="readOnly" val="False" valType="bool" updates="constant"/>
@@ -593,6 +599,7 @@
         <Param name="storeHistory" val="False" valType="bool" updates="constant"/>
         <Param name="storeRating" val="True" valType="bool" updates="constant"/>
         <Param name="storeRatingTime" val="True" valType="bool" updates="constant"/>
+        <Param name="styleTweaks" val="()" valType="list" updates="constant"/>
         <Param name="styles" val="rating" valType="str" updates="constant"/>
         <Param name="syncScreenRefresh" val="True" valType="bool" updates="None"/>
         <Param name="ticks" val="(0.1, 0.7)" valType="list" updates="constant"/>
@@ -645,12 +652,12 @@
         <Param name="fillColor" val="white" valType="color" updates="constant"/>
         <Param name="flip" val="False" valType="bool" updates="constant"/>
         <Param name="font" val="Open Sans" valType="str" updates="constant"/>
-        <Param name="forceEndRoutine" val="True" valType="bool" updates="constant"/>
+        <Param name="forceEndRoutine" val="False" valType="bool" updates="constant"/>
         <Param name="granularity" val="0" valType="num" updates="constant"/>
         <Param name="labels" val="" valType="list" updates="constant"/>
         <Param name="letterHeight" val="0.05" valType="num" updates="constant"/>
         <Param name="name" val="customSlider" valType="code" updates="None"/>
-        <Param name="opacity" val="1" valType="num" updates="constant"/>
+        <Param name="opacity" val="" valType="num" updates="constant"/>
         <Param name="ori" val="0" valType="num" updates="constant"/>
         <Param name="pos" val="(0, 0)" valType="list" updates="constant"/>
         <Param name="readOnly" val="False" valType="bool" updates="constant"/>
@@ -664,6 +671,7 @@
         <Param name="storeHistory" val="False" valType="bool" updates="constant"/>
         <Param name="storeRating" val="True" valType="bool" updates="constant"/>
         <Param name="storeRatingTime" val="True" valType="bool" updates="constant"/>
+        <Param name="styleTweaks" val="()" valType="list" updates="constant"/>
         <Param name="styles" val="triangleMarker" valType="str" updates="constant"/>
         <Param name="syncScreenRefresh" val="True" valType="bool" updates="None"/>
         <Param name="ticks" val="(1, 2, 3, 4, 5)" valType="list" updates="constant"/>
@@ -675,7 +683,7 @@
         <Param name="bold" val="False" valType="bool" updates="constant"/>
         <Param name="borderColor" val="None" valType="color" updates="constant"/>
         <Param name="borderWidth" val="2" valType="num" updates="constant"/>
-        <Param name="color" val="white" valType="color" updates="constant"/>
+        <Param name="color" val="black" valType="color" updates="constant"/>
         <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
         <Param name="contrast" val="1" valType="code" updates="constant"/>
         <Param name="disabled" val="False" valType="bool" updates="None"/>
@@ -690,7 +698,7 @@
         <Param name="letterHeight" val="0.1" valType="num" updates="constant"/>
         <Param name="lineSpacing" val="1.0" valType="num" updates="constant"/>
         <Param name="name" val="finger" valType="code" updates="None"/>
-        <Param name="opacity" val="1" valType="num" updates="constant"/>
+        <Param name="opacity" val="" valType="num" updates="constant"/>
         <Param name="ori" val="0" valType="num" updates="constant"/>
         <Param name="padding" val="0.03" valType="num" updates="constant"/>
         <Param name="pos" val="(0, 0)" valType="list" updates="constant"/>
