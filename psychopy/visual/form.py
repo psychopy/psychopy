@@ -779,15 +779,15 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                                element._baseY - self._getScrollOffset())
                 if self._inRange(element):
                     element.draw()
-                    
+
     def setAutoDraw(self, value, log=None):
         """Sets autoDraw for Form and any responseCtrl contained within
         """
         for i in self.items:
             if i['responseCtrl']:
-                i['responseCtrl'].setAutoDraw(value)        
+                i['responseCtrl'].setAutoDraw(value)
         BaseVisualStim.setAutoDraw(self, value, log)
-        
+
     def draw(self):
         """Draw all form elements"""
         # Check mouse wheel
