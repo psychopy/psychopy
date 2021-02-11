@@ -651,7 +651,7 @@ class Slider(MinimalStim, ColorMixin):
 
         # Legacy: If given a tweak, apply it as a tweak rather than a style
         if style in self.knownStyleTweaks + self.legacyStyleTweaks:
-            self.styleTweaks += style
+            self.styleTweaks.append(style)
 
     @attributeSetter
     def styleTweaks(self, styleTweaks):
