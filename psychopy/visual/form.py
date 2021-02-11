@@ -101,14 +101,15 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                  win,
                  name='default',
                  colorSpace='rgb',
-                 fillColor=None,
-                 borderColor=None,
+                 color='white',
+                 fillColor='red',
+                 borderColor='white',
                  foreColor='white',
                  items=None,
                  textHeight=.02,
                  size=(.5, .5),
                  pos=(0, 0),
-                 style='dark',
+                 style=None,
                  itemPadding=0.05,
                  units='height',
                  randomize=False,
@@ -119,7 +120,6 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         self.win = win
         self.autoLog = autoLog
         self.name = name
-        self.style = style
         self.randomize = randomize
         self.items = self.importItems(items)
         self.size = size
@@ -153,6 +153,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
         # Create layout of form
         self._createItemCtrls()
+        self.style = style
 
         if self.autoLog:
             logging.exp("Created {} = {}".format(self.name, repr(self)))
@@ -261,7 +262,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                             continue
                         # Default to colour scheme if specified
                         if defaultValues[header] in ['fg', 'bg', 'em']:
-                            item[header] = self.colorScheme[defaultValues[header]]
+                            item[header] = self.color
                         else:
                             item[header] = defaultValues[header]
                         missingHeaders.append(header)
@@ -378,8 +379,8 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 size=[w, None],  # expand height with text
                 autoLog=False,
                 colorSpace=self.colorSpace,
-                color=item['itemColor'] if item['itemColor'] else self.colorScheme['fg'],
-                fillColor=self.colorScheme['bg'],
+                color=item['itemColor'] or self.color,
+                fillColor=None,
                 padding=0,  # handle this by padding between items
                 borderWidth=1,
                 borderColor=None,  # add borderColor to help debug
@@ -513,12 +514,10 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 flip=True,
                 style=style,
                 autoLog=False,
-                colorSpace=self.colorSpace,
-                color=item['responseColor'])
-        resp.line.lineColor = self.colorScheme['fg']
-        resp.line.fillColor = self.colorScheme['fg']
-        resp.marker.lineColor = self.colorScheme['em']
-        resp.marker.fillColor = self.colorScheme['em']
+                color=item['responseColor'] or self.color,
+                fillColor=self.fillColor,
+                borderColor=self.borderColor,
+                colorSpace=self.colorSpace)
 
         if item['layout'] == 'horiz':
             h += self.textHeight*2
@@ -569,13 +568,13 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 letterHeight=self.textHeight,
                 units=self.units,
                 anchor='top-right',
-                color=self.colorScheme['fg'],
+                color=item['responseColor'] or self.color,
                 colorSpace=self.colorSpace,
-                font='Arial',
+                font='Open Sans',
                 editable=True,
-                borderColor=self.colorScheme['fg'],
+                borderColor=self.borderColor,
                 borderWidth=2,
-                fillColor=self.colorScheme['bg'],
+                fillColor=None,
                 onTextCallback=self._layoutY,
         )
 
@@ -596,14 +595,11 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         scroll = psychopy.visual.Slider(win=self.win,
                                       size=self._scrollBarSize,
                                       ticks=[0, 1],
-                                      style='slider',
+                                      style='scrollbar',
+                                      borderColor= self.borderColor,
+                                      fillColor= self.fillColor,
                                       pos=(self.rightEdge - .008, self.pos[1]),
                                       autoLog=False)
-        scroll.line.lineColor = self.colorScheme['bg']
-        scroll.line.fillColor = self.colorScheme['bg']
-        scroll.marker.lineColor = self.colorScheme['em']
-        scroll.marker.fillColor = self.colorScheme['em']
-
         return scroll
 
     def _setBorder(self):
@@ -620,8 +616,9 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                                     width=self.size[0],
                                     height=self.size[1],
                                     colorSpace=self.colorSpace,
-                                    fillColor=self.fillColor if self.fillColor is not None else self.colorScheme['bg'],
-                                    lineColor=self.borderColor if self.borderColor is not None else self.colorScheme['bg'],
+                                    fillColor=None,
+                                    lineColor=None,
+                                    opacity=None,
                                     autoLog=False)
 
     def _setAperture(self):
@@ -926,25 +923,18 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
         """
         self._style = style
-        # Default colours
-        self.colorScheme = {
-            'em': Color([0.89, -0.35, -0.28], 'rgb'),  # emphasis
-            'bg': Color([0,0,0], 'rgb'),  # background
-            'fg': Color([1,1,1], 'rgb'),  # foreground
-        }
-        if 'light' in style:
-            self.colorScheme = {
-                'em': Color([0.89, -0.35, -0.28], 'rgb'),  # emphasis
-                'bg': Color([0.89,0.89,0.89], 'rgb'),  # background
-                'fg': Color([-1,-1,-1], 'rgb'),  # foreground
-            }
 
-        if 'dark' in style:
-            self.colorScheme = {
-                'em': Color([0.89, -0.35, -0.28], 'rgb'),  # emphasis
-                'bg': Color([-0.19,-0.19,-0.14], 'rgb'),  # background
-                'fg': Color([0.89,0.89,0.89], 'rgb'),  # foreground
-            }
+        # Legacy
+        if style == 'light':
+            self.color = 'black'
+            self.borderColor = 'black'
+            self.fillColor = Color([0.89, -0.35, -0.28], 'rgb')
+            self.border.fillColor = Color([0.89,0.89,0.89], 'rgb')
+        if style == 'dark':
+            self.color = 'white'
+            self.borderColor = 'white'
+            self.fillColor = Color([0.89, -0.35, -0.28], 'rgb')
+            self.border.fillColor = Color([-0.19,-0.19,-0.14], 'rgb')
 
     @property
     def values(self):
