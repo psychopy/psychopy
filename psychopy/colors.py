@@ -453,6 +453,13 @@ class Color(object):
                     value, type(value).__name__))
         self._alpha = value
 
+    @property
+    def opacity(self):
+        return self.alpha
+    @opacity.setter
+    def opacity(self, value):
+        self.alpha = value
+
     def _appendAlpha(self, space):
         # Get alpha, if necessary transform to an array of same length as color
         alpha = self.alpha
