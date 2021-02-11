@@ -161,7 +161,7 @@ class MouseDevice(Device):
             print2err(' mouse.setPos did not update mouse pos')
         else:
             self._lastPosition = self._position
-            self._position = px, py
+            self._position = pos[0], pos[1]
 
             self._last_display_index = self._display_index
             self._display_index = mouse_display_index
