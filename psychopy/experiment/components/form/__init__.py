@@ -116,11 +116,11 @@ class FormComponent(BaseVisualComponent):
             label=_localized['Style'])
 
         self.params['color'].label = _translate("Text Color")
-        self.params['color'].updates = 'constant'
+        self.params['color'].allowedUpdates = []
         self.params['fillColor'].label = _translate("Marker Colors")
-        self.params['fillColor'].updates = 'constant'
+        self.params['fillColor'].allowedUpdates = []
         self.params['borderColor'].label =_translate("Lines Color")
-        self.params['borderColor'].updates = 'constant'
+        self.params['borderColor'].allowedUpdates = []
 
     def writeInitCode(self, buff):
         inits = getInitVals(self.params)
