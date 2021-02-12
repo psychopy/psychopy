@@ -30,9 +30,9 @@ Unlike many projects, the PsychoPy repository has TWO main branches, `dev` and `
 Our release pattern is to have "feature releases" (the middle version number changes) 2 or 3 times per year and bug-fix releases several times for each feature release. Major changes to the code, that might include new bugs, should not be included in bug-fix releases. Therefore these two trunks allow us to separate those works.
 
 
-The `dev` branch: for work that is going to be held back for the next `feature release`. Only fix bugs here if they are related to other un-released code or if the fixes require substantial code changes that might introduce new bugs. Those larger fixes will probably be held back for the next feature release. Simple bug fixes that get based on the `dev` branch might be hard to reincorporate back into the `release` branch .
+**The dev branch:** for work that is going **to be held back for the next feature release**. Only fix bugs here if they are related to other un-released code or if the fixes require substantial code changes that might introduce new bugs. Those larger fixes will probably be held back for the next feature release. Simple bug fixes that get based on the `dev` branch might be hard to reincorporate back into the `release` branch .
 
-The `release` branch: is for fixes that need **to be included in the next release**. It includes code changes that do not knowingly break/change existing experiments, and are small enough that we can be relatively confident that they do not introduce new bugs. Do not use this trunk for substantial pieces of development where new bugs might be introduced.
+**The release branch:** is for fixes that need **to be included in the next release**. It includes code changes that do not knowingly break/change existing experiments, and are small enough that we can be relatively confident that they do not introduce new bugs. Do not use this trunk for substantial pieces of development where new bugs might be introduced.
 
 .. figure:: /images/psychopyGitFlow.png
     :alt:  Git Flow used by the PsychoPy project, with 2 main trunks for 'dev' and 'release'
