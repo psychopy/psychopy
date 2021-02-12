@@ -132,7 +132,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         # Appearance
         self.colorSpace = colorSpace
         self.fillColor = fillColor
-        self.foreColor = foreColor
+        self.foreColor = color
         self.borderColor = borderColor
 
         self.textHeight = textHeight
