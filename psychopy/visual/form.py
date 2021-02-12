@@ -143,6 +143,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         self.topEdge = None
         self._currentVirtualY = 0  # Y position in the virtual sheet
         self._decorations = []
+        self._externalDecorations = []
         # Check units - only works with height units for now
         if self.win.units != 'height':
             logging.warning(
@@ -160,8 +161,6 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
     def __repr__(self, complete=False):
         return self.__str__(complete=complete)  # from MinimalStim
-
-    knownStyles = ['light', 'dark']
 
     def importItems(self, items):
         """Import items from csv or excel sheet and convert to list of dicts.
@@ -759,6 +758,10 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         """Draw decorations on form."""
         [decoration.draw() for decoration in self._decorations]
 
+    def _drawExternalDecorations(self):
+        """Draw decorations outside the aperture"""
+        [decoration.draw() for decoration in self._externalDecorations]
+
     def _drawCtrls(self):
         """Draw elements on form within border range.
 
@@ -790,6 +793,8 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         # Check mouse wheel
         self.scrollbar.markerPos += self.scrollbar.mouse.getWheelRel()[
                                         1] / self.scrollSpeed
+        # draw the box and scrollbar
+        self._drawExternalDecorations()
         # enable aperture
         self.aperture.enable()
         # draw the box and scrollbar
@@ -902,10 +907,12 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         self.getData()
         return self._complete
 
+    knownStyles = ["basic", "legalPad"]
+    legacyStyles = ["light", "dark"]
+
     @property
     def style(self):
         return self._style
-
     @style.setter
     def style(self, style):
         """Sets some predefined styles or use these to create your own.
@@ -923,6 +930,49 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
         """
         self._style = style
+
+        if style == "basic":
+            # Basic is the default, do nothing
+            return
+
+        if style == 'legalPad':
+            # Set page fill color
+            self.border.fillColor = '#F2F6A7' # Legal pad yellow
+
+            # Add left line
+            margin = psychopy.visual.Line(self.win,
+                                 start=[self.pos[0]-self.size[0]/2+self.itemPadding*0.8, self.pos[1]+self.size[1]/2],
+                                 end=[self.pos[0]-self.size[0]/2+self.itemPadding*0.8, self.pos[1]-self.size[1]/2],
+                                 units=self.units,
+                                 lineColor='red'
+                                 )
+            self._decorations.append(margin)
+
+            # Create a drop shadow
+            unitAdjs = {
+                'height': 0.02,
+                'norm': 0.02,
+                'pix': 10,
+                'cm': 1,
+                'deg': 0.5,
+                'degFlatPos': 0.5,
+                'degFlat': 0.5
+            }
+            if self.units in unitAdjs:
+                shadowAdj = unitAdjs[self.units]
+            else:
+                shadowAdj = 0
+            shadow = psychopy.visual.Rect(self.win,
+                units=self.units,
+                pos=[self.pos[0] + shadowAdj, self.pos[1] - shadowAdj],
+                width=self.size[0],
+                height=self.size[1],
+                colorSpace=self.colorSpace,
+                fillColor=Color((-1, -1, -1, 0.2), 'rgb'),
+                lineColor=None,
+                opacity=None,
+                autoLog=False)
+            self._externalDecorations.insert(0, shadow)
 
         # Legacy
         if style == 'light':
