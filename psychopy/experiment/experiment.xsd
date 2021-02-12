@@ -15,16 +15,33 @@
      <xsd:restriction base="xsd:string">
        <xsd:enumeration value="bool"/>
        <xsd:enumeration value="code"/>
-       <xsd:enumeration value="extendedCode"/>
+       <xsd:enumeration value="color"/>
        <xsd:enumeration value="num"/>
        <xsd:enumeration value="str"/>
-       <xsd:enumeration value="extendedStr"/>
        <xsd:enumeration value="int"/>
        <xsd:enumeration value="list"/>
-       <xsd:enumeration value="fixedList"/>
+       <xsd:enumeration value="dict"/>
+       <xsd:enumeration value="file"/>
        <xsd:enumeration value="fileList"/>
        <xsd:enumeration value="table"/>
+       <!-- legacy only -->
+       <xsd:enumeration value="extendedStr"/>
+       <xsd:enumeration value="fixedList"/>
+       <xsd:enumeration value="extendedCode"/>
      </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:simpleType name="InputType">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="spin"/>
+      <xsd:enumeration value="choice"/>
+      <xsd:enumeration value="bool"/>
+      <xsd:enumeration value="file"/>
+      <xsd:enumeration value="fileList"/>
+      <xsd:enumeration value="table"/>
+      <xsd:enumeration value="color"/>
+      <xsd:enumeration value="dict"/>
+    </xsd:restriction>
   </xsd:simpleType>
 
   <xsd:simpleType name="Updates">
@@ -90,6 +107,7 @@
       <xsd:element name="SliderComponent" type="Component"/>
       <xsd:element name="NoiseStimComponent" type="Component"/>
       <xsd:element name="EnvGratingComponent" type="Component"/>
+      <xsd:element name="VariableComponent" type="Component"/>
     </xsd:choice>
   </xsd:group>
 

@@ -34,11 +34,11 @@ class UnknownComponent(BaseComponent):
         self.depends = []
         _hint = _translate("Name of this component (alpha-numeric or _, "
                            "no spaces)")
-        self.params['name'] = Param(name, valType='code',
+        self.params['name'] = Param(name, valType='code', inputType="multi",
                                     hint=_hint,
                                     label=_localized['name'])
-        self.order = ['name']  # name first, then timing, then others
         super(UnknownComponent, self).__init__(exp, parentName)
+        self.order += []
     # make sure nothing gets written into experiment for an unknown object
     # class!
 

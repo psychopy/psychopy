@@ -11,12 +11,15 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import os, psychopy
+import os
+# import sys
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-#sys.path.append(os.path.abspath('.'))
+# sys.path.append(os.path.abspath('.'))
+
+import psychopy
 
 # -- General configuration -----------------------------------------------------
 
@@ -88,6 +91,7 @@ add_function_parentheses = True
 # unit titles (such as .. function::).
 add_module_names = True
 
+numfig = True
 # If true, sectionauthor and moduleauthor directives will be shown in the
 # output. They are ignored by default.
 #show_authors = False
@@ -177,6 +181,11 @@ htmlhelp_basename = 'PsychoPydoc'
 
 
 # -- Options for LaTeX output --------------------------------------------------
+latex_engine = 'xelatex'
+# latex_elements = {
+#    'babel': '\\usepackage{babel}',
+#    'inputenc': '\\usepackage[utf8]{inputenc}'
+# }
 
 # The paper size ('letter' or 'a4').
 #latex_paper_size = 'letter'
@@ -188,7 +197,7 @@ htmlhelp_basename = 'PsychoPydoc'
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
   ('documentation', 'PsychoPyManual.tex', u'PsychoPy - Psychology software for Python',
-   u'Jonathan Peirce', 'manual'),
+   u'Open Science Tools Ltd', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -210,3 +219,6 @@ latex_use_parts = False
 
 # path to mathjax. Use default to load from cdnjs content delivery network.
 #mathjax_path = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.0.0/es5/latest?tex-mml-chtml.js'
+
+# Enable numfig (ThP, 2021-02-07)
+numfig = True

@@ -1,26 +1,82 @@
 Changelog
 ====================
 
-.. note::
-  Version numbers
+PsychoPy 2020.2.10
+------------------
 
-  PsychoPy versions take the format: Major.Version.Bugfix
+FIXES:
 
-  - Until 2019 Major was the overal PsychoPy version (1, 2, or 3) but from 2020 that indicates the year.
-  - Version (middle number) indicates a release with new features, which we try to limit to 2-3 times per year.
-    We don't recommend you change versions during mid-experiment but you can fix a version for your study with
-    :ref:`useVersion`.
-  - Bugfix number indicates a minor update purely to fix bugs and hopefully not changing the behavior of your
-    study in any way.
+- Fixed rendering of TextBox2 following Big Sur update of 2020.2.7 #0fcb89c54 #39777a3e0 #1aec9abb9
+- Fixed handling of continueRoutine=False in BeginExperiment of online studies #ae20cb12f
+- Erroneous warnings about code being used as parameters #40bbfe1a3
 
-CHANGES, which are identified in this dark red text, typically indicate things that alter the PsychoPy behaviour in a way that could break compatibility. Be especially wary of those!
+PsychoPy 2020.2.9
+-----------------
+
+FIXES:
+
+- TextBox2 broke in 2020.2.8 due to switch from PyOpenGL to pyglet.gl in text rendering #39777a3e0 #1aec9abb9
+- Fixed error Unknown colorSpace: 'Named' #da234cc46
+- Superfluous debug messages from ioHub when no key pressed #9589e4865
+
+PsychoPy 2020.2.10
+------------------
+
+Further fixes on top of the [new features in 2020.2](https://www.psychopy.org/changelog.html#psychopy-2020-2):
+
+- Fixed rendering of TextBox2 following Big Sur update of 2020.2.7 #0fcb89c54 #39777a3e0 #1aec9abb9
+- Fixed handling of `continueRoutine=False` in BeginExperiment of online studies #ae20cb12f41
+- Erroneous warnings about code being used as parameters #40bbfe1a3
+
+PsychoPy 2020.2.9
+-----------------
+
+Further fixes on top of the [new features in 2020.2](https://www.psychopy.org/changelog.html#psychopy-2020-2):
+
+- Fixed error Unknown colorSpace: 'Named' #da234cc46
+- Superfluous debug messages from ioHub when no key pressed #9589e4865
+
+PsychoPy 2020.2.8
+-----------------
+
+FIXES:
+
+- support for macOS 11.1 Big Sur (updated mac pyglet to 1.5.11 and mac Python to 3.6.8)
+- fixed default blank text in textBox for online studies actually showing a pair of quotes #786e1d3f7
+- flag to alphabetically sort Exp Info fields was being set always true #3279
+- Position and Size params for Form Component were being requested twice #d45ca99c9
+- fixed annoying (but harmless) error 'ModuleNotFoundError: import of pyglet halted; None in sys.modules' 
+- further fixes to Runner not showing print() statements #e0ec67e6f
+- Routine panels now support mouse scroll wheel to navigate #6da3707d3
+
+PsychoPy 2020.2.7
+-----------------
+
+(Binaries never released)
+
+PsychoPy 2020.2.6
+-----------------
+
+FIXES:
+
+- missing resource error in some online experiments, caused by incorrect relative relative paths in Settings>Online>Resources #3285
+- JavaScript Code Components for Before Experiment is now moved earlier in the script - it needed to be positioned before first function opens #3289
+- TextBox was missing setBorderColor and setFillColor so these needed code to change dynamically #eb915732d
+- TextBox was carrying the text from one trial into the next #330f5fa1d
+- Coder FoldAll menu item was having no effect #6d4f66b0d
+- TextStim opacity can now be set dynamically #1045
+- Loop OK button was sometimes left disabled if invalid inputs #3a1104f71
+- fixed non-uniform probabilities of conditions file row selection suggested in docs #3256
+- workaround for scipy.optimize import error on windows machines that are using BitLocker #3287
+- if a TextBox is the only editable thing on the screen then give it focus #3269
 
 PsychoPy 2020.2.5
 -----------------
 
 FIXES:
 
-- Failing to send print statements to output, depending on how PsychoPy was launched #4773ec32dcf Only occured if you launch by double-clicking file or if you close Runner
+- Now code-signing the installer on Windows as well as macOS
+- Failing to send print statements to output, depending on how PsychoPy was launched #4773ec32dcf Only occurred if you launch by double-clicking file or if you close Runner
 - Coder crashing on macOS when using editor with autocomplete=True #687e81dfb
 - ioHub fix for unicode strings #5451ea49a
 - Marker color on RatingScale was not resetting (but use Slider anyway!) #3140
@@ -36,11 +92,12 @@ FIXES:
 - errors that should have appeared in the console were sometimes appearing in the (app) error dialog #d44f24d63
 - more tolerant of whitespace in Emotiv Client ID file
 - Runner AddTask dialog had wrong format for file filter #3213
-- Fix to setting volume attribute with PTB backend #3215
+- Sound volume attribute was having no effect on the PTB backend #3215
 - Fixed fill/line colors of TextBox #3222
 - Error in JavaScript code when Movie Component had blank stop time #0b4ddcffc
 - Better handling of stdout encodings when console not set to utf-8 encoding #d77535906
 - Improved Resources box for the online (using relative references #c9558bfd8 and resize with dialog #d607271db)
+- JavaScript code-conversion now uses our own built-in `round()` function mimicking the same function in Python #da426d9e37e
 
 PsychoPy 2020.2.4
 -----------------

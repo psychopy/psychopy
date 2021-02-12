@@ -1,4 +1,4 @@
-Copyright (c) 2002-2018, J. W. Peirce.
+Copyright (c) 2002-2021, J. W. Peirce.
 All rights reserved.
 
 As of version 1.5 PsychoPy is licensed under the GNU General Public License (version 3). For the complete text of that license see

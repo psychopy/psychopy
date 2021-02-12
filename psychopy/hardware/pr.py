@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """PhotoResearch spectrophotometers
@@ -273,8 +273,7 @@ class PR650(object):
                 thisNm, thisPower = point.split(',')
                 nm.append(thisNm)
                 power.append(thisPower.replace('\r\n', ''))
-            if progDlg:
-                progDlg.Update(n)
+
         return numpy.asarray(nm), numpy.asarray(power)
 
 

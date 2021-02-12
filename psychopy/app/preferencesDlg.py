@@ -65,7 +65,7 @@ _localized = {
     'hiddenComponents': _translate('hidden components'),
     'unpackedDemosDir': _translate('unpacked demos dir'),
     'savedDataFolder': _translate('saved data folder'),
-    'topFlow': _translate('Flow at top'),
+    'builderLayout': _translate('Builder layout'),
     'alwaysShowReadme': _translate('always show readme'),
     'maxFavorites': _translate('max favorites'),
     # pref labels in Coder section
@@ -141,6 +141,7 @@ _localized = {
     'audioDevice': _translate("audio device"),
     'parallelPorts': _translate("parallel ports"),
     'qmixConfiguration': _translate("Qmix configuration"),
+    'highDPI': _translate('Try to support display high DPI'),
     # pref labels in Connections section
     'proxy': _translate('proxy'),
     'autoProxy': _translate('auto-proxy'),
@@ -150,6 +151,8 @@ _localized = {
     # pref wxChoice lists:
     'all': _translate('Builder, Coder and Runner'),
     'keep': _translate('same as in the file'),  # line endings
+    'abort': _translate('abort'), # gammaErrorPolicy
+    'warn': _translate('warn'), # gammaErrorPolicy
     # not translated:
     'pix': 'pix',
     'deg': 'deg',
@@ -634,7 +637,7 @@ class PreferencesDlg(wx.Dialog):
                         # set default locale ''
                         default = locales.index('')
                     # '' must be appended after other labels are translated
-                    labels = ['system locale'] + [_localized[i] 
+                    labels = [_translate('system locale')] + [_localized[i] 
                                      for i in self.app.localization.available]
                     self.proPrefs.addEnumItem(
                             sectionName,
@@ -841,26 +844,21 @@ class PreferencesDlg(wx.Dialog):
 
         # after validation, update the UI
         self.app.theme = self.app.theme
-        self.updateCoderUI()
-        self.updateBuilderUI()
+        self.updateFramesUI()
 
-    def updateCoderUI(self):
+    def updateFramesUI(self):
         """Update the Coder UI (eg. fonts, themes, etc.) from prefs."""
-        # start applying prefs to take effect
-        coder = self.app.coder
-        if coder is not None:
-            # apply settings over document pages
-            for ii in range(coder.notebook.GetPageCount()):
-                doc = coder.notebook.GetPage(ii)
-                doc.theme = prefs.app['theme']
-            for ii in range(coder.shelf.GetPageCount()):
-                doc = coder.shelf.GetPage(ii)
-                doc.theme = prefs.app['theme']
-
-    def updateBuilderUI(self):
-        builder = self.app.builder
-        if builder is not None:
-            builder.layoutPanes()
+        for frame in self.app.getAllFrames():
+            if frame.frameType == 'builder':
+                frame.layoutPanes()
+            elif frame.frameType == 'coder':
+                # apply settings over document pages
+                for ii in range(frame.notebook.GetPageCount()):
+                    doc = frame.notebook.GetPage(ii)
+                    doc.theme = prefs.app['theme']
+                for ii in range(frame.shelf.GetPageCount()):
+                    doc = frame.shelf.GetPage(ii)
+                    doc.theme = prefs.app['theme']
 
     def OnApplyClicked(self, event):
         """Apply button clicked, this makes changes to the UI without leaving

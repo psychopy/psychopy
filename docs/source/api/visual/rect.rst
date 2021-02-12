@@ -1,9 +1,41 @@
+:class:`psychopy.visual.Rect`
+----------------------------
 
+Stimulus class for drawing rectangles and squares.
 
-:class:`Rect`
-------------------------------------
-.. autoclass:: psychopy.visual.Rect
+Overview
+========
+
+.. currentmodule:: psychopy.visual.rect
+
+.. autosummary::
+    Rect
+    Rect.width
+    Rect.height
+    Rect.units
+    Rect.lineWidth
+    Rect.lineColor
+    Rect.lineColorSpace
+    Rect.fillColor
+    Rect.fillColorSpace
+    Rect.pos
+    Rect.size
+    Rect.ori
+    Rect.opacity
+    Rect.contrast
+    Rect.depth
+    Rect.interpolate
+    Rect.lineRGB
+    Rect.fillRGB
+    Rect.name
+    Rect.autoLog
+    Rect.autoDraw
+    Rect.color
+    Rect.colorSpace
+
+Details
+=======
+
+.. autoclass:: Rect
     :members:
-    :undoc-members:
-    :inherited-members:    
-    
+    :inherited-members:

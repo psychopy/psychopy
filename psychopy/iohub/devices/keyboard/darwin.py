@@ -359,7 +359,7 @@ class Keyboard(ioHubKeyboardDevice):
                     self._addNativeEventToBuffer(ioe)
                 else:
                     print2err('\nWARNING: KEYBOARD RECEIVED A [ {0} ] KB EVENT, BUT COULD NOT GENERATE AN IOHUB EVENT FROM IT !!'.format(
-                        etype), ' [', key_name, '] ucode: ', ucode, ' key_code: ', key_code)
+                        etype), ' [', key_value, '] ucode: ', char_value.encode('utf-8'), ' key_code: ', key_code)
 
                 self._last_callback_time = logged_time
             return event

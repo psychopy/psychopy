@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Cedrus make a variety of input devices.
@@ -29,37 +29,39 @@ except ImportError:
     serial = False
 
 
+class _KeyEvent(object):
+    """Info about a keypress from Cedrus keypad XID string
+    """
+
+    def __init__(self, XID):
+        """XID should contain a "k"<info><rt> where info is a byte
+        and rt is 4 bytes (=int)
+        """
+        super(_KeyEvent, self).__init__()
+        if len(XID) != 6:
+            # log.error("The XID string %s is %i bytes long and should
+            #   be 6 bytes" %(str([XID]),len(XID)))
+            self.key = None
+        else:
+            # a character and a ubyte of info
+            info = struct.unpack('B', XID[1])[0]
+
+            # was the key going down or up?
+            if (info >> 4) % 2:  # this gives only the 4th bit
+                self.direction = 'down'
+            else:
+                self.direction = 'up'
+
+            # what was the key?
+            self.key = info >> 5  # bits 5-7 give the button number
+
+            # what was RT?
+            self.rt = struct.unpack('i', XID[2:])[0]  # integer in ms
+
+
 class RB730(object):
     """Class to control/read a Cedrus RB-series response box
     """
-    class KeyEvent(object):
-        """Info about a keypress from Cedrus keypad XID string
-        """
-
-        def __init__(self, XID):
-            """XID should contain a "k"<info><rt> where info is a byte
-            and rt is 4 bytes (=int)
-            """
-            super(KeyEvent, self).__init__()
-            if len(XID) != 6:
-                # log.error("The XID string %s is %i bytes long and should
-                #   be 6 bytes" %(str([XID]),len(XID)))
-                self.key = None
-            else:
-                # a character and a ubyte of info
-                info = struct.unpack('B', XID[1])[0]
-
-                # was the key going down or up?
-                if (info >> 4) % 2:  # this gives only the 4th bit
-                    self.direction = 'down'
-                else:
-                    self.direction = 'up'
-
-                # what was the key?
-                self.key = info >> 5  # bits 5-7 give the button number
-
-                # what was RT?
-                self.rt = struct.unpack('i', XID[2:])[0]  # integer in ms
 
     def __init__(self, port, baudrate=115200, mode='XID'):
         super(RB730, self).__init__()
@@ -136,7 +138,7 @@ class RB730(object):
             if len(inputStr) < stop:
                 inputStr += self.port.read(stop - len(inputStr))
             keyString = inputStr[start:stop]
-            keyEvt = self.KeyEvent(XID=keyString)
+            keyEvt = _KeyEvent(XID=keyString)
             if keyEvt.key not in allowedKeys:
                 continue  # ignore this keyEvt and move on
             if (downOnly == True and keyEvt.direction == 'up'):

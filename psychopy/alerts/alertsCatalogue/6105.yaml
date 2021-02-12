@@ -1,0 +1,18 @@
+
+code: 6105
+cat: Run nonexistant file
+msg: The file you are attempting to run does not seem to exist, the full path supplied to Runner was {path}
+
+label: Attempted to run file which does not exist...
+
+synopsis: |
+  It looks as though you tried to run a file which PsychoPy cannot find.
+
+details: |
+  When PsychoPy went looking for the file you just tried to run, it could not find it. It may have been moved or deleted from outside of PsychoPy, or it may be that PsychoPy has the correct file name but incorrect file location.
+
+solutions: |
+  Using your file browser, check that the file path in the alert message does indeed lead to the file you are trying to run. If the containing folder exists but the file does not, then the file has most likely been moved, renamed or deleted from outside of PsychoPy. If the containing folder does not exist at all, then PsychoPy may have the wrong path atogether. In either case, the easiest remedy is usually just to find the file manually and open it again in PsychoPy. If you are trying to run a newly created file, use Save As... to save the file and then try running it again. If it still cannot be found, then you may have hit upon an error in how PsychoPy searches for files, please report this `as an Issue on GitHub <https://github.com/psychopy/psychopy/issues>`_.
+
+versions: |
+  All versions.

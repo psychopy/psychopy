@@ -14,14 +14,16 @@
 # Distributed under the Boost Software License, Version 1.0
 # (see http://www.boost.org/LICENSE_1_0.txt)
 #
-
+import re
 import sys, os
 import math
 import numpy as np
+import ctypes
 import freetype as ft
-import OpenGL.GL as gl
+from pyglet import gl  # import OpenGL.GL not compatible with Big Sur (2020)
 import glob
 from pathlib import Path
+import requests
 
 from psychopy import logging
 from psychopy import prefs
@@ -49,11 +51,24 @@ _OSXFontDirectories = [
     "/Network/Library/Fonts",
     "/System/Library/Fonts",
     # fonts installed via MacPorts
-    "/opt/local/share/fonts"
-    ""
+    "/opt/local/share/fonts",
 ]
 
-supportedExtensions = ['ttf', 'otf', 'ttc', 'dfont']
+_weightMap = {
+    # Map of various potential values for "bold" and the numeric font weight which they correspond to
+    100: 100, "thin": 100, "hairline": 100,
+    200: 200, "extralight": 200, "ultralight": 200,
+    300: 300, "light": 300,
+    400: 400, False: 400, "normal": 400, "regular": 400,
+    500: 500, "medium": 500,
+    600: 600, "semibold": 600, "demibold": 600,
+    700: 700, "bold": 700, True: 700,
+    800: 800, "extrabold": 800, "ultrabold": 800,
+    900: 900, "black": 900, "heavy": 900,
+    950: 950, "extrablack": 950, "ultrablack": 950
+}
+
+supportedExtensions = ['ttf', 'otf', 'ttc', 'dfont', 'truetype']
 
 
 def unicode(s, fmt='utf-8'):
@@ -281,7 +296,8 @@ class _TextureAtlas:
         """Upload the local atlas data into graphics card memory
         """
         if not self.textureID:
-            self.textureID = gl.glGenTextures(1)
+            self.textureID = gl.GLuint(0)
+            gl.glGenTextures(1, ctypes.byref(self.textureID))
         logging.debug("Uploading Texture Font {} to graphics card"
                       .format(self.name))
         gl.glBindTexture(gl.GL_TEXTURE_2D, self.textureID)
@@ -296,11 +312,11 @@ class _TextureAtlas:
         if self.format == 'alpha':
             gl.glTexImage2D(gl.GL_TEXTURE_2D, 0, gl.GL_ALPHA,
                             self.width, self.height, 0,
-                            gl.GL_ALPHA, gl.GL_UNSIGNED_BYTE, self.data)
+                            gl.GL_ALPHA, gl.GL_UNSIGNED_BYTE, self.data.ctypes)
         else:
             gl.glTexImage2D(gl.GL_TEXTURE_2D, 0, gl.GL_RGB,
                             self.width, self.height, 0,
-                            gl.GL_RGB, gl.GL_UNSIGNED_BYTE, self.data)
+                            gl.GL_RGB, gl.GL_UNSIGNED_BYTE, self.data.ctypes)
         logging.debug("Upload of Texture Font {} complete"
                       .format(self.name))
 
@@ -565,13 +581,15 @@ def findFontFiles(folders=(), recursive=True):
     -------
     list of pathlib.Path objects
     """
-    if sys.platform == 'win32':
-        searchPaths = []  # just leave it to matplotlib as below
-    elif sys.platform == 'darwin':
-        # on mac matplotlib doesn't include 'ttc' files (which are fine)
-        searchPaths = _OSXFontDirectories
-    elif sys.platform.startswith('linux'):
-        searchPaths = _X11FontDirectories
+    searchPaths = folders
+    if searchPaths is None or len(searchPaths)==0:
+        if sys.platform == 'win32':
+            searchPaths = []  # just leave it to matplotlib as below
+        elif sys.platform == 'darwin':
+            # on mac matplotlib doesn't include 'ttc' files (which are fine)
+            searchPaths = _OSXFontDirectories
+        elif sys.platform.startswith('linux'):
+            searchPaths = _X11FontDirectories
     # search those folders
     fontPaths = []
     for thisFolder in searchPaths:
@@ -583,11 +601,18 @@ def findFontFiles(folders=(), recursive=True):
                 fontPaths.extend(thisFolder.glob("*.{}".format(thisExt)))
 
     # if we failed let matplotlib have a go
-    if fontPaths:
-        return fontPaths
-    else:
+    if not fontPaths:
         from matplotlib import font_manager
-        return font_manager.findSystemFonts()
+        fontPaths = font_manager.findSystemFonts()
+
+    # search resources folder and user's own fonts folder
+    for thisFolder in [Path(prefs.paths['fonts']), Path(prefs.paths['resources'])]:
+        for thisExt in supportedExtensions:
+            if recursive:
+                fontPaths.extend(thisFolder.rglob("*.{}".format(thisExt)))
+            else:
+                fontPaths.extend(thisFolder.glob("*.{}".format(thisExt)))
+    return fontPaths
 
 
 class FontManager(object):
@@ -685,6 +710,11 @@ class FontManager(object):
         """
         if type(fontName) != bytes:
             fontName = bytes(fontName, sys.getfilesystemencoding())
+        # Convert value of "bold" to a numeric font weight
+        if bold in _weightMap or str(bold).lower().strip() in _weightMap:
+            bold = _weightMap[bold]
+        else:
+            bold = _weightMap[False] # Default to regular
         style_dict = self._fontInfos.get(fontName)
         if not style_dict:
             if not fallback:
@@ -720,6 +750,30 @@ class FontManager(object):
         similar = [this for this in allNames if
                    (fontName.lower() in this.lower())]
         return similar
+
+    def addGoogleFont(self, fontName):
+        """Add a font directly from the Google Font repository, saving it to the user prefs folder"""
+
+        # Construct and send Google Font url from name
+        repoURL = f"https://fonts.googleapis.com/css2?family={ fontName.replace(' ', '+') }&display=swap"
+        repoResp = requests.get(repoURL)
+        if not repoResp.ok:
+            # If font name is not found, raise error
+            raise MissingFontError("Font `{}` could not be retrieved from the Google Font library.".format(fontName))
+        # Get and send file url from returned CSS data
+        fileURL = re.findall("(?<=src: url\().*(?=\) format)", repoResp.content.decode())[0]
+        fileFormat = re.findall("(?<=format\(\').*(?=\'\)\;)", repoResp.content.decode())[0]
+        fileResp = requests.get(fileURL)
+        if not fileResp.ok:
+            # If font file is not available, raise error
+            raise MissingFontError("OST file for Google font `{}` could not be accessed".format(fontName))
+        # Save retrieved font as an OST file
+        fileName = Path(prefs.paths['fonts']) / f"{fontName}.{fileFormat}"
+        logging.info("Font \"{}\" was successfully installed at: {}".format(fontName, prefs.paths['fonts']))
+        with open(fileName, "wb") as fileObj:
+            fileObj.write(fileResp.content)
+        # Add font and return
+        return self.addFontFile(fileName)
 
     def addFontFile(self, fontPath, monospaceOnly=False):
         """Add a Font File to the FontManger font search space. The
@@ -804,9 +858,18 @@ class FontManager(object):
         then the existing FontAtlas is returned. Otherwise, a new FontAtlas is
         created , added to the cache, and returned.
         """
-        fontInfos = self.getFontsMatching(name, bold, italic)
+        fontInfos = self.getFontsMatching(name, bold, italic, fallback=False)
         if not fontInfos:
-            return False
+            # If font not found, try to retrieve it from Google
+            try:
+                self.addGoogleFont(name)
+            except (MissingFontError, ValueError):
+                pass
+            # Then try again with fallback
+            fontInfos = self.getFontsMatching(name, bold, italic, fallback=True)
+            if not fontInfos:
+                return False
+        # If font is found, make glfont
         fontInfo = fontInfos[0]
         identifier = "{}_{}".format(str(fontInfo), size)
         glFont = self._glFonts.get(identifier)
@@ -833,12 +896,15 @@ class FontManager(object):
         s = style.lower().strip()
         if type(s) == bytes:
             s = s.decode('utf-8')
-        if s == 'regular':
-            return False, False
+        # Work out Italic
+        italic = False # Default false
         if s.find('italic') >= 0 or s.find('oblique') >= 0:
             italic = True
-        if s.find('bold') >= 0:
-            bold = True
+        # Work out font weight
+        bold = _weightMap[False] # Default regular weight
+        for key in _weightMap:
+            if s.find(str(key)) >= 0:
+                bold = _weightMap[key]
         return bold, italic
 
     def _createFontInfo(self, fp, fface):

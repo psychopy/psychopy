@@ -298,7 +298,10 @@ class TextBox(object):
         self._window = proxy(window)
 
         self._font_name = font_name
-        self._font_size = font_size
+        if self.getWindow().useRetina:
+            self._font_size = font_size*2
+        else:
+            self._font_size = font_size
         self._dpi = dpi
         self._bold = bold
         self._italic = italic
@@ -474,9 +477,7 @@ class TextBox(object):
 
         tb_tl = self._getTopLeftPixPos()
         tg_tl = self._text_grid._position
-        # print('tb_tl,tg_tl:',tb_tl,tg_tl)
         starting_x, starting_y = tb_tl[0] + tg_tl[0], tb_tl[1] - tg_tl[1]
-        #print('Text Cell Placement:')
 
         for i, x in enumerate(col_lines[:-1]):
             for j, y in enumerate(row_lines[:-1]):
@@ -497,9 +498,7 @@ class TextBox(object):
                 cellinfo[i, j, 1] = y
                 cellinfo[i, j, 2] = w
                 cellinfo[i, j, 3] = h
-                # print(col %d, row %d: '%(i,j),cellinfo[i,j,:])
 
-#        print('cell[0,0]:',cellinfo[0,0,:])
         return cellinfo
 
     def getTextGridCellForCharIndex(self, char_index):
@@ -535,22 +534,17 @@ class TextBox(object):
         ox, oy = glyph_data['offset'][
             0], gl_font.max_ascender - glyph_data['offset'][1]
         gw, gh = glyph_data['size']
-#        print('glyph_data for %s: %d,%d %d,%d'%(glyph_data['unichar'],ox,oy,gw,gh))
 
         # get the col,row for the xhar index provided
         col_row = self._getTextWrappedDoc().getTextGridCellForCharIndex(char_index)
         if col_row is None:
             return None
         cline = self._getTextWrappedDoc().getParsedLine(col_row[1])
-        # print('cline._trans_left,cline._trans_top:',cline._trans_left,cline._trans_top)
         c = col_row[0] + cline._trans_left
         r = col_row[1] + cline._trans_top
         x, y, width, height = self.getTextGridCellPlacement()[c, r, :]
-#        print('text_grid cell (%d,%d) placement: %d,%d %d,%d'%(c,r,x,y,width,height))
-#        print('gygh bounds: ',x+ox,y-oy,gw,gh)
         ox, oy = self._pix2units((ox, oy), False)
         gw, gh = self._pix2units((gw, gh), False)
-        #print('glyph_data %d %d -> %.3f %.3f'%(glyph_data['size'][0],glyph_data['size'][1],gw,gh))
         return x + ox, y - oy, gw, gh
 
     def _getTextWrappedDoc(self):
@@ -641,6 +635,11 @@ class TextBox(object):
         """
         return self._size
 
+    def getFontSize(self):
+        if self.getWindow().useRetina:
+            return self._font_size//2
+        return self._font_size
+        
     def getFontColor(self):
         """
         Return the color used when drawing text glyphs.
@@ -1000,8 +999,6 @@ class TextBox(object):
             glNewList(dl_index, GL_COMPILE)
 
             # draw textbox_background and outline
-            # t,l=self._getTopLeftPixPos()
-            #glTranslatef(t,l, 0 )
             border_thickness = self._border_stroke_width
             size = self._getPixelSize()
             if self._border_stroke_width is None:
@@ -1009,7 +1006,6 @@ class TextBox(object):
             if self._background_color:
                 bcolor = self._toRGBA(self._background_color)
                 glColor4f(*bcolor)
-                # size=self._getPixelSize()
                 glRectf(0, 0, size[0], -size[1])
             if self._border_color:
                 glLineWidth(border_thickness)
@@ -1120,10 +1116,7 @@ class TextBox(object):
         x, y = xy
         if is_position:
             # convert to psychopy pix, origin is center of monitor.
-            # print('x,y:',x,y)
             x, y = int(x - ww / 2), int(y - wh / 2)
-            #print('xy psycho:',x,y)
-            # print('---')
         if units in ('pix', 'pixs'):
             return x, y
         if units in ['deg', 'degs']:
@@ -1144,9 +1137,9 @@ class TextBox(object):
 
         if color is None:
             raise ValueError("TextBox: None is not a valid color input")
-        if not colors.isValidColor(color):
-            raise ValueError(
-                "TextBox: %s is not a valid color." % (str(color)))
+        #if not colors.isValidColor(color):
+        #    raise ValueError(
+        #        "TextBox: %s is not a valid color." % (str(color)))
 
         valid_opacity = opacity >= 0.0 and opacity <= 1.0
         if isinstance(color, basestring):

@@ -1,5 +1,3 @@
-.. _iohub_keyboard:
-
 .. module:: psychopy.iohub.client.keyboard
 
 Keyboard Device

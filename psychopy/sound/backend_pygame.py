@@ -14,8 +14,76 @@ try:
     import pygame
     from pygame import mixer, sndarray
 except ImportError as err:
-    # convert this import error to our own, pyo probably not installed
+    # convert this import error to our own, pygame probably not installed
     raise exceptions.DependencyError(repr(err))
+
+
+def getDevices(kind=None):
+    """Get audio playback and recording devices via the backend's audio API.
+
+    Queries the system for available audio playback and recording devices,
+    returning names and capabilities.
+
+    Parameters
+    ----------
+    kind : str or None
+        Audio device types to query from the system. Values can be 'input' or
+        'output' for recording and playback, respectively. If `None`, only
+        playback devices are returned.
+
+    Returns
+    -------
+    dict
+        A `dict` of `dict` of installed playback/capture devices and their
+        properties. Keys are device names and values are properties stored in a
+        `dict`. Properties are guaranteed to contain the following keys and
+        values:
+
+            * `name` - Human readable name of the device i.e. "High Definition
+              Audio". This is the same as the value's key used to access the
+              property.
+            * `id` - Enumerated device ID.
+
+    """
+    # Just some values to keep the prefs dialog from crashing
+    if kind.startswith('out') or None:
+        return {'Default Playback Device':
+                    {'name': 'Default Playback Device', 'id': 0}}
+    elif kind.startswith('in'):
+        return {'Default Recording Device':
+                    {'name': 'Default Recording Device', 'id': 0}}
+    else:
+        raise ValueError("Invalid value for argument `kind`.")
+
+    # # This code here will be usable when we update to Pygame 2.x, for now we
+    # # just return some values indicating the default audio device is being
+    # # used.
+    #
+    # # 0 = playback, 1 = recording
+    # if kind.startswith('out') or None:
+    #     devType = 0
+    # elif kind.startswith('in'):
+    #     devType = 1
+    # else:
+    #     raise ValueError('Invalid value for `kind`.')
+    #
+    # # query the number of devices of `kind` from SDL
+    # devCount = sdl2.get_num_audio_devices(devType)
+    #
+    # # DEBUG: make sure we have an integer
+    # assert isinstance(devCount, (int,))
+    #
+    # # build the dictionary of audio devices
+    # devs = dict()
+    # for devIdx in range(devCount):
+    #     # create new entry in output dict
+    #     devName = str(sdl2.get_audio_device_name(devIdx, 0), encoding="utf-8")
+    #     devs[devName] = dict()
+    #     devs['name'] = devName  # redundant?
+    #     devs['id'] = devIdx
+    #
+    #     # query additional information from SDL2 about device
+
 
 def init(rate=22050, bits=16, stereo=True, buffer=1024):
     """If you need a specific format for sounds you need to run this init
@@ -83,6 +151,23 @@ class SoundPygame(_SoundBase):
                  bits=16, name='', autoLog=True, loops=0, stereo=True,
                  hamming=False):
         """
+        Parameters
+        ----------
+        value : int, str or array_like
+            * If it's a number between 37 and 32767 then a tone will be
+              generated at that frequency in Hz.
+            * It could be a string for a note ('A', 'Bfl', 'B', 'C', 'Csh',
+              ...). Then you may want to specify which octave as well.
+            * Or a string could represent a filename in the current location, or
+              mediaLocation, or a full path combo.
+            * Or by giving an Nx2 numpy array of floats (-1:1) you can specify
+              the sound yourself as a waveform.
+        secs : float
+            Duration of sound in seconds (only relevant if the value is a note
+            name or a frequency value).
+        octave :
+
+
         """
         self.name = name  # only needed for autoLogging
         self.autoLog = autoLog

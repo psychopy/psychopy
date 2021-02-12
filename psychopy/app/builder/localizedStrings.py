@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """
@@ -23,7 +23,8 @@ _localizedDialogs = {
     # interpolation
     'linear': _translate('linear'),
     'nearest': _translate('nearest'),
-    # color spaces not translated:
+    # color spaces (except "named") should not be translated:
+    'named': _translate('named'),
     'rgb': 'rgb', 'dkl': 'dkl', 'lms': 'lms', 'hsv': 'hsv',
     'last key': _translate('last key'),
     'first key': _translate('first key'),
@@ -87,6 +88,13 @@ _localizedDialogs = {
     'valid click': _translate('valid click'),
     'mouse onset':_translate('mouse onset'),
     'Routine': _translate('Routine'),
+    # Joystick:
+    'joystick onset':_translate('joystick onset'),
+    # Button:
+    'every click': _translate('every click'),
+    'first click': _translate('first click'),
+    'last click': _translate('last click'),
+    'button onset': _translate('button onset'),
     # Polygon:
     'line': _translate('line'),
     'triangle': _translate('triangle'),
@@ -94,6 +102,9 @@ _localizedDialogs = {
     'cross': _translate('cross'),
     'star': _translate('star'),
     'regular polygon...': _translate('regular polygon...'),
+    # Form
+    'rows': _translate('rows'),
+    'columns': _translate('columns'),
     # Variable component
     'first': _translate('first'),
     'last': _translate('last'),
@@ -121,7 +132,7 @@ components = [os.path.basename(m).replace('.py', '') for m in modules
 for comp in components:
     try:
         exec('from psychopy.experiment.components.' + comp + ' import _localized as _loc')
-        _localized.update(_loc)
+        _localized.update(_loc)  # noqa: F821  # exists through exec import
     except ImportError:
         pass
 

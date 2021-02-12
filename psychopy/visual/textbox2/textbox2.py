@@ -17,7 +17,7 @@ some more added:
 
 """
 import numpy as np
-import OpenGL.GL as gl
+from pyglet import gl
 
 from ..basevisual import BaseVisualStim, ColorMixin, ContainerMixin
 from psychopy.tools.attributetools import attributeSetter, setAttribute
@@ -40,6 +40,10 @@ allFonts = FontManager()
 rgbShader = None
 alphaShader = None
 showWhiteSpace = False
+
+NONE=0
+ITALIC=1
+BOLD=2
 
 codes = {'BOLD_START': u'\uE100',
          'BOLD_END': u'\uE101',
@@ -81,7 +85,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                  fillColor=None, fillColorSpace=None,
                  borderWidth=2, borderColor=None, borderColorSpace=None,
                  contrast=1,
-                 opacity=1.0,
+                 opacity=None,
                  bold=False,
                  italic=False,
                  lineSpacing=1.0,
@@ -131,14 +135,12 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         BaseVisualStim.__init__(self, win, units=units, name=name)
         self.win = win
         self.colorSpace = colorSpace
-        self.color = color
-        self.contrast = contrast
-        self.opacity = opacity
+        ColorMixin.foreColor.fset(self, color)  # Have to call the superclass directly on init as text has not been set
         self.onTextCallback = onTextCallback
 
         if units=='norm':
-            raise NotImplemented("TextBox2 doesn't support 'norm' units at the "
-                                 "moment. Use 'height' units instead")
+            raise NotImplementedError("TextBox2 doesn't support 'norm' units "
+                                 "at the moment. Use 'height' units instead")
         # first set params needed to create font (letter sizes etc)
         if letterHeight is None:
             self.letterHeight = defaultLetterHeight[self.units]
@@ -185,6 +187,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         # used at render time
         self._lines = None  # np.array the line numbers for each char
         self._colors = None
+        self._styles = None
         self.flipHoriz = flipHoriz
         self.flipVert = flipVert
         # params about positioning (after layout has occurred)
@@ -196,6 +199,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.borderWidth = borderWidth
         self.borderColor = borderColor
         self.fillColor = fillColor
+        self.contrast = contrast
+        self.opacity = opacity
 
         self.box = Rect(
                 win, pos=self.pos,
@@ -209,26 +214,46 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 units=self.units,
                 lineWidth=1, lineColor=None, fillColor=fillColor, opacity=0.1,
                 autoLog=False)
-        self.pallette = { # If no focus
-                'lineColor': borderColor,
-                'lineWidth': borderWidth,
-                'fillColor': fillColor,
-        }
         # then layout the text (setting text triggers _layout())
         self.startText = text
+        self._text = ''
         self.text = text if text is not None else ""
 
         # caret
-        self.editable = editable
+        self._editable = editable
         self.caret = Caret(self, color=self.color, width=5)
-        self._hasFocus = False
-        if editable:  # may yet gain focus if the first editable obj
-            self.win.addEditable(self)
+
 
         self.autoLog = autoLog
 
     @property
+    def editable(self):
+        return self._editable
+    
+    @editable.setter
+    def editable(self, editable):
+        self._editable = editable
+        if editable is False and self.hasFocus:
+            if self.win:
+                self.win.removeEditable(self)
+        if editable is True:
+            if self.win:
+                self.win.addEditable(self)
+        
+    @property
     def pallette(self):
+        self._pallette = {
+            False: {
+                'lineColor': self._borderColor,
+                'lineWidth': self.borderWidth,
+                'fillColor': self._fillColor
+            },
+            True: {
+                'lineColor': self._borderColor-0.1,
+                'lineWidth': self.borderWidth+1,
+                'fillColor': self._fillColor+0.1
+            }
+        }
         return self._pallette[self.hasFocus]
 
     @pallette.setter
@@ -237,6 +262,14 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             False: value,
             True: value
         }
+
+    @property
+    def foreColor(self):
+        return ColorMixin.foreColor.fget(self)
+    @foreColor.setter
+    def foreColor(self, value):
+        ColorMixin.foreColor.fset(self, value)
+        self._layout()
 
     @attributeSetter
     def font(self, fontName, italic=False, bold=False):
@@ -249,6 +282,17 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                     fontName,
                     size=int(round(self._pixLetterHeight)),
                     bold=self.bold, italic=self.italic)
+
+    @property
+    def fontMGR(self):
+            return allFonts
+    @fontMGR.setter
+    def fontMGR(self, mgr):
+        global allFonts
+        if isinstance(mgr, FontManager):
+            allFonts = mgr
+        else:
+            raise TypeError(f"Could not set font manager for TextBox2 object `{self.name}`, must be supplied with a FontManager object")
 
     @attributeSetter
     def anchor(self, anchor):
@@ -295,36 +339,104 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
         self._needVertexUpdate = True
 
-    @attributeSetter
+    @property
+    def text(self):
+        lastFormatter = NONE
+        formatted_text = ''
+        styles = self._styles
+        for i, c in enumerate(self._text):
+            if styles[i] == ITALIC and lastFormatter != styles[i]:
+                formatted_text+='<i>%s'%(c)
+            elif styles[i] == BOLD and lastFormatter != styles[i]:
+                formatted_text+='<b>%s'%(c)
+            
+            elif styles[i] != ITALIC and lastFormatter == ITALIC:
+                formatted_text+='</i>%s'%(c)
+            elif styles[i] != BOLD and lastFormatter == BOLD:
+                formatted_text+='</b>%s'%(c)
+            else:
+                formatted_text+=c
+            lastFormatter = styles[i]
+        return formatted_text
+    
+    @text.setter
     def text(self, text):
-        self.__dict__['text'] = text
+        text = text.replace('<i>', codes['ITAL_START'])
+        text = text.replace('</i>', codes['ITAL_END'])
+        text = text.replace('<b>', codes['BOLD_START'])
+        text = text.replace('</b>', codes['BOLD_END'])      
+        visible_text = ''.join([c for c in text if c not in codes.values()])
+        self._styles = [0,]*len(visible_text)
+        self._text = visible_text
+        
+        current_style=0
+        ci = 0
+        for c in text:
+            if c == codes['ITAL_START']:
+                current_style += ITALIC
+            elif c == codes['BOLD_START']:
+                current_style += BOLD
+            elif c == codes['BOLD_END']:
+                current_style -= BOLD
+            elif c == codes['ITAL_END']:
+                current_style -= ITALIC
+            else:
+                self._styles[ci]=current_style
+                ci+=1
+                
         self._layout()
 
+    def addCharAtCaret(self, char):
+        txt = self._text
+        txt = txt[:self.caret.index] + char + txt[self.caret.index:]
+        cstyle = NONE
+        if len(self._styles) and self.caret.index <= len(self._styles):
+            cstyle = self._styles[self.caret.index-1]
+        self._styles.insert(self.caret.index, cstyle)
+        self.caret.index += 1
+        self._text = txt
+        self._layout()
+
+    def deleteCaretLeft(self):
+        if self.caret.index > 0:
+            txt = self._text
+            ci = self.caret.index
+            txt = txt[:ci-1] + txt[ci:]
+            self._styles = self._styles[:ci-1]+self._styles[ci:]
+            self.caret.index -= 1
+            self._text = txt
+            self._layout()
+
+    def deleteCaretRight(self):
+        ci = self.caret.index
+        if ci < len(self._text):
+            txt = self._text
+            txt = txt[:ci] + txt[ci+1:]
+            self._styles = self._styles[:ci]+self._styles[ci+1:]
+            self._text = txt
+            self._layout()
+        
     def _layout(self):
         """Layout the text, calculating the vertex locations
         """
         def getLineWidthFromPix(pixVal):
             return pixVal / self._pixelScaling + self.padding * 2
-
-        text = self.text
-        text = text.replace('<i>', codes['ITAL_START'])
-        text = text.replace('</i>', codes['ITAL_END'])
-        text = text.replace('<b>', codes['BOLD_START'])
-        text = text.replace('</b>', codes['BOLD_END'])
-        rgb = self._getDesiredRGB(self.rgb, self.colorSpace, self.contrast)
+        
+        rgb = self._foreColor.render('rgba1')
         font = self.glFont
 
         # the vertices are initially pix (natural for freetype)
         # then we convert them to the requested units for self._vertices
         # then they are converted back during rendering using standard BaseStim
-        vertices = np.zeros((len(text) * 4, 2), dtype=np.float32)
-        self._charIndices = np.zeros((len(text)), dtype=int)
-        self._colors = np.zeros((len(text) * 4, 4), dtype=np.float32)
-        self._texcoords = np.zeros((len(text) * 4, 2), dtype=np.float32)
-        self._glIndices = np.zeros((len(text) * 4), dtype=int)
+        visible_text = self._text
+        vertices = np.zeros((len(visible_text) * 4, 2), dtype=np.float32)
+        self._charIndices = np.zeros((len(visible_text)), dtype=int)
+        self._colors = np.zeros((len(visible_text) * 4, 4), dtype=np.double)
+        self._texcoords = np.zeros((len(visible_text) * 4, 2), dtype=np.double)
+        self._glIndices = np.zeros((len(visible_text) * 4), dtype=int)
 
         # the following are used internally for layout
-        self._lineNs = np.zeros(len(text), dtype=int)
+        self._lineNs = np.zeros(len(visible_text), dtype=int)
         self._lineTops = []  # just length of nLines
         self._lineBottoms = []
         self._lineLenChars = []  #
@@ -356,7 +468,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             texcoords_list = []
             
             # segment text using uniseg.linebreak module
-            seg = list(uniseg.linebreak.line_break_units(text))
+            seg = list(uniseg.linebreak.line_break_units(self._text))
             
             # calc segment width
             for i in range(len(seg)):
@@ -500,21 +612,17 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             wordsThisLine = 0
             lineN = 0
 
-            for i, charcode in enumerate(text):
-
+            for i, charcode in enumerate(self._text):
                 printable = True  # unless we decide otherwise
                 # handle formatting codes
-                if charcode in codes.values():
-                    if charcode == codes['ITAL_START']:
-                        fakeItalic = 0.1 * font.size
-                    elif charcode == codes['ITAL_END']:
-                        fakeItalic = 0.0
-                    elif charcode == codes['BOLD_START']:
-                        fakeBold = 0.3 * font.size
-                    elif charcode == codes['BOLD_END']:
-                        current[0] -= fakeBold / 2  # we expected bigger current
-                        fakeBold = 0.0
-                    continue
+                if self._styles[i] == NONE:
+                    fakeItalic = 0.0
+                    fakeBold = 0.0
+                elif self._styles[i] == ITALIC:
+                    fakeItalic = 0.1 * font.size
+                elif self._styles[i] == ITALIC:
+                    fakeBold = 0.3 * font.size
+
                 # handle newline
                 if charcode == '\n':
                     printable = False
@@ -549,7 +657,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                     u1 = glyph.texcoords[2]
                     v1 = glyph.texcoords[3]
 
-                index = i * 4
                 theseVertices = [[xTopL, yTop], [xBotL, yBot],
                                  [xBotR, yBot], [xTopR, yTop]]
                 texcoords = [[u0, v0], [u0, v1],
@@ -557,8 +664,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
                 vertices[i * 4:i * 4 + 4] = theseVertices
                 self._texcoords[i * 4:i * 4 + 4] = texcoords
-                self._colors[i*4 : i*4+4, :3] = rgb
-                self._colors[i*4 : i*4+4, 3] = self.opacity
+                self._colors[i*4 : i*4+4, :4] = rgb
                 self._lineNs[i] = lineN
                 current[0] = current[0] + glyph.advance[0] + fakeBold / 2
                 current[1] = current[1] + glyph.advance[1]
@@ -604,8 +710,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 if lineN + 1 > len(self._lineTops):
                     self._lineBottoms.append(current[1] + font.descender)
                     self._lineTops.append(current[1] + self._lineHeight
-                                           + font.descender/2)
-
+                                          + font.descender/2)
+                
             # finally add length of this (unfinished) line
             self._lineWidths.append(getLineWidthFromPix(current[0]))
             self._lineLenChars.append(charsThisLine)
@@ -630,9 +736,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
     def _getStartingVertices(self):
         """Returns vertices for a single non-printing char as a proxy
         (needed to get location for caret when there are no actual chars)"""
-        glyph = self.glFont["A"]  # just to get height
-        yTop = 0
-        yBot = yTop - glyph.size[1]
+        yTop = self._anchorOffsetY - (self.glFont.height - self.glFont.ascender) * self.lineSpacing
+        yBot = yTop - self._lineHeight
         x = 0
         theseVertices = np.array([[x, yTop], [x, yBot], [x, yBot], [x, yTop]])
         return theseVertices
@@ -650,6 +755,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         #self.fillColor = self.box.fillColor
 
         if self._needVertexUpdate:
+            #print("Updating vertices...")
             self._updateVertices()
         if self.fillColor is not None or self.borderColor is not None:
             self.box.draw()
@@ -668,16 +774,16 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         gl.glEnableClientState(gl.GL_TEXTURE_COORD_ARRAY)
         gl.glEnableClientState(gl.GL_VERTEX_ARRAY)
 
-        gl.glVertexPointer(2, gl.GL_FLOAT, 0, self.verticesPix)
-        gl.glColorPointer(4, gl.GL_FLOAT, 0, self._colors)
-        gl.glTexCoordPointer(2, gl.GL_FLOAT, 0, self._texcoords)
+        gl.glVertexPointer(2, gl.GL_DOUBLE, 0, self.verticesPix.ctypes)
+        gl.glColorPointer(4, gl.GL_DOUBLE, 0, self._colors.ctypes)
+        gl.glTexCoordPointer(2, gl.GL_DOUBLE, 0, self._texcoords.ctypes)
 
         self.shader.bind()
         self.shader.setInt('texture', 0)
         self.shader.setFloat('pixel', [1.0 / 512, 1.0 / 512])
-        nVerts = len(self.text)*4
-        gl.glDrawElements(gl.GL_QUADS, nVerts,
-                          gl.GL_UNSIGNED_INT, list(range(nVerts)))
+        nVerts = len(self._text)*4
+
+        gl.glDrawArrays(gl.GL_QUADS, 0, nVerts)
         self.shader.unbind()
 
         # removed the colors and font texture
@@ -698,9 +804,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
     def reset(self):
         # Reset contents
         self.text = self.startText
-        # Make sure box is still editable (if needed)
-        if self.editable and self not in self.win._editableChildren:  # may yet gain focus if the first editable obj
-            self.win.addEditable(self)
 
 
     def contains(self, x, y=None, units=None, tight=False):
@@ -835,9 +938,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             return
         if chr == '\r':  # make it newline not Carriage Return
             chr = '\n'
-        txt = self.text
-        self.text = txt[:self.caret.index] + chr + txt[self.caret.index:]
-        self.caret.index += 1
+        self.addCharAtCaret(chr)
         if self.onTextCallback:
             self.onTextCallback()
 
@@ -852,10 +953,9 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         elif key == 'MOTION_LEFT':
             self.caret.char -= 1
         elif key == 'MOTION_BACKSPACE':
-            self.text = self.text[:self.caret.index-1] + self.text[self.caret.index:]
-            self.caret.index -= 1
+            self.deleteCaretLeft()
         elif key == 'MOTION_DELETE':
-            self.text = self.text[:self.caret.index] + self.text[self.caret.index+1:]
+            self.deleteCaretRight()
         elif key == 'MOTION_NEXT_WORD':
             pass
         elif key == 'MOTION_PREVIOUS_WORD':
@@ -877,18 +977,36 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
     @property
     def hasFocus(self):
-        return self._hasFocus
+        if self.win and self.win.currentEditable == self:
+            return True
+        return False
 
     @hasFocus.setter
-    def hasFocus(self, state):
-        # Store focus
-        self._hasFocus = state
-        # Redraw text box
-        self.draw()
+    def hasFocus(self, focus):
+        if focus is False and self.hasFocus:
+            # If focus is being set to False, tell window to 
+            # give focus to next editable.
+            if self.win:
+                self.win.nextEditable()
+        elif focus is True and self.hasFocus is False:
+            # If focus is being set True, set textbox instance to be
+            # window.currentEditable.
+            if self.win:
+                self.win.currentEditable=self
+        return False
 
     def getText(self):
-        """Returns the current text in the box"""
+        """Returns the current text in the box, including formating tokens."""
         return self.text
+
+    @property
+    def visibleText(self):
+        """Returns the current visible text in the box"""
+        return self._text
+
+    def getVisibleText(self):
+        """Returns the current visible text in the box"""
+        return self.visibleText
 
     @attributeSetter
     def pos(self, value):
@@ -964,21 +1082,12 @@ class Caret(ColorMixin):
 
     def __init__(self, textbox, color, width, colorSpace='rgb'):
         self.textbox = textbox
-        self.index = len(textbox.text)  # start off at the end
+        self.index = len(textbox._text)  # start off at the end
         self.autoLog = False
         self.width = width
         self.units = textbox.units
         self.colorSpace = colorSpace
         self.color = color
-
-    @attributeSetter
-    def color(self, color):
-        self.setColor(color)
-        self._desiredRGB = [0.89, -0.35, -0.28]
-        # if self.colorSpace not in ['rgb', 'dkl', 'lms', 'hsv']:
-        #     self._desiredRGB = [c / 127.5 - 1 for c in self.rgb]
-        # else:
-        #     self._desiredRGB = self.rgb
 
     def draw(self):
         if not self.visible:
@@ -986,9 +1095,8 @@ class Caret(ColorMixin):
         if core.getTime() % 1 > 0.6:  # Flash every other second
             return
         gl.glLineWidth(self.width)
-        rgb = self._desiredRGB
         gl.glColor4f(
-            rgb[0], rgb[1], rgb[2], self.textbox.opacity
+            *self._foreColor.rgba1
         )
         gl.glBegin(gl.GL_LINES)
         gl.glVertex2f(self.vertices[0, 0], self.vertices[0, 1])
@@ -1075,8 +1183,8 @@ class Caret(ColorMixin):
     def vertices(self):
         textbox = self.textbox
         # check we have a caret index
-        if self.index is None or self.index > len(textbox.text):
-            self.index = len(textbox.text)
+        if self.index is None or self.index > len(textbox._text):
+            self.index = len(textbox._text)
         if self.index < 0:
             self.index = 0
         # get the verts of character next to caret (chr is the next one so use
@@ -1084,10 +1192,8 @@ class Caret(ColorMixin):
         # lastChar = [bottLeft, topLeft, **bottRight**, **topRight**]
         ii = self.index
         if textbox.vertices.shape[0] == 0:
-            verts = textbox._getStartingVertices()*2 / textbox._pixelScaling
-            verts[:,1] = verts[:,1] \
-                         + self.textbox.glFont["A"].size[1] / textbox._pixelScaling \
-                         - float(textbox._anchorOffsetY)/2
+            verts = textbox._getStartingVertices() / textbox._pixelScaling
+            verts[:,1] = verts[:,1]
             verts[:,0] = verts[:,0] + float(textbox._anchorOffsetX)
         else:
             if self.index >= len(textbox._lineNs):  # caret is after last chr

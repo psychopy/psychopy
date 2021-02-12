@@ -32,9 +32,13 @@ _localized.update({'categoryChoices': _translate('Category choices'),
                    'forceEndRoutine': _translate('Force end of Routine'),
                    'storeHistory': _translate('Store history'),
                    'storeRating': _translate('Store rating'),
-                   'storeRatingTime': _translate('Store rating time')})
+                   'storeRatingTime': _translate('Store rating time'),
+                   'readOnly': _translate('readOnly')})
 
 knownStyles = slider.Slider.knownStyles
+legacyStyles = slider.Slider.legacyStyles
+knownStyleTweaks = slider.Slider.knownStyleTweaks
+legacyStyleTweaks = slider.Slider.legacyStyleTweaks
 
 
 # ticks = (1, 2, 3, 4, 5),
@@ -62,66 +66,76 @@ class SliderComponent(BaseVisualComponent):
                  size='(1.0, 0.1)',
                  pos='(0, -0.4)',
                  flip=False,
-                 style=['rating'],
+                 style='rating', styleTweaks=[],
                  granularity=0,
                  color="LightGray",
-                 font="HelveticaBold",
+                 fillColor='Red',
+                 borderColor='White',
+                 font="Open Sans",
+                 letterHeight=0.05,
                  startType='time (s)', startVal='0.0',
                  stopType='condition', stopVal='',
                  startEstim='', durationEstim='',
                  forceEndRoutine=True,
-                 storeRating=True, storeRatingTime=True, storeHistory=False):
+                 storeRating=True, storeRatingTime=True, storeHistory=False, readOnly=False):
         super(SliderComponent, self).__init__(
                 exp, parentName, name,
+                pos=pos, size=size,
+                color=color, fillColor=fillColor, borderColor=borderColor,
                 startType=startType, startVal=startVal,
                 stopType=stopType, stopVal=stopVal,
                 startEstim=startEstim, durationEstim=durationEstim)
         self.type = 'Slider'
-        self.url = "http://www.psychopy.org/builder/components/slidercomponent.html"
+        self.url = "http://www.psychopy.org/builder/components/slider.html"
         self.exp.requirePsychopyLibs(['visual', 'event'])
         self.targets = ['PsychoPy', 'PsychoJS']
 
         # params
-        self.order = ['name',
-                      'size', 'pos',
-                      'ticks', 'labels',  'granularity',
-                      'font','flip','color','styles',
+        self.order += ['forceEndRoutine',  # Basic tab
+                       'contrast', 'styles', 'styleTweaks', # Appearance tab
+                       'font',  # Formatting tab
+                       'flip',  # Layout tab
+                       'ticks', 'labels',  'granularity', 'readOnly',  # Data tab
                       ]
+        self.order.insert(self.order.index("colorSpace"), "style")
+        self.order.insert(self.order.index("units"), "Item Padding")
 
         # normal params:
         # = the usual as inherited from BaseVisual plus:
         self.params['ticks'] = Param(
-                ticks, valType='list', allowedTypes=[], categ='Data',
+                ticks, valType='list', inputType="single", allowedTypes=[], categ='Basic',
                 updates='constant',
-                allowedUpdates=['constant', 'set every repeat'],
                 hint=_translate("Tick positions (numerical) on the scale, "
                                 "separated by commas"),
                 label=_localized['ticks'])
         self.params['labels'] = Param(
-                labels, valType='list', allowedTypes=[], categ='Data',
+                labels, valType='list', inputType="single", allowedTypes=[], categ='Basic',
                 updates='constant',
-                allowedUpdates=['constant', 'set every repeat'],
                 hint=_translate("Labels for the tick marks on the scale, "
                                 "separated by commas"),
                 label=_localized['labels'])
         self.params['granularity'] = Param(
-                granularity, valType='code', allowedTypes=[], categ='Data',
+                granularity, valType='num', inputType="single", allowedTypes=[], categ='Basic',
                 updates='constant',
-                allowedUpdates=['constant', 'set every repeat'],
                 hint=_translate("Specifies the minimum step size "
                                 "(0 for a continuous scale, 1 for integer "
                                 "rating scale)"),
                 label=_translate('Granularity'))
         self.params['forceEndRoutine'] = Param(
-                forceEndRoutine, valType='bool', allowedTypes=[], categ='Basic',
+                forceEndRoutine, valType='bool', inputType="bool", allowedTypes=[], categ='Basic',
                 updates='constant', allowedUpdates=[],
                 hint=_translate("Should setting a rating (releasing the mouse) "
                                 "cause the end of the routine (e.g. trial)?"),
                 label=_localized['forceEndRoutine'])
+        self.params['readOnly'] = Param(
+            readOnly, valType='bool', allowedTypes=[], categ='Data',
+            updates='constant', allowedUpdates=[],
+            hint=_translate("Should participant be able to change the rating on the Slider?"),
+            label=_localized['readOnly'])
 
         # advanced params:
         self.params['flip'] = Param(
-                flip, valType='bool', categ='Layout',
+                flip, valType='bool', inputType="bool", categ='Layout',
                 updates='constant', allowedUpdates=[],
                 hint=_translate(
                         "By default the labels will be on the bottom or "
@@ -129,46 +143,61 @@ class SliderComponent(BaseVisualComponent):
                         "other side."),
                 label=_translate('Flip'))
 
-        self.params['color'].hint = "Color of the lines and labels (might be"
-        "overridden by the style setting)"
+        # Color changes
+        self.params['color'].label = _translate("Label Color")
+        self.params['color'].hint = _translate("Color of all labels on this slider (might be overridden by the style setting)")
+        self.params['fillColor'].label = _translate("Marker Color")
+        self.params['fillColor'].hint = _translate("Color of the marker on this slider (might be overridden by the style setting)")
+        self.params['borderColor'].label = _translate("Line Color")
+        self.params['borderColor'].hint = _translate("Color of all lines on this slider (might be overridden by the style setting)")
 
         self.params['font'] = Param(
-                font, valType='str', categ='Appearance',
+                font, valType='str', inputType="single", categ='Formatting',
                 updates='constant',
                 allowedUpdates=['constant', 'set every repeat'],
                 hint=_translate(
                         "Font for the labels"),
                 label=_translate('Font'))
 
+        self.params['letterHeight'] = Param(
+                letterHeight, valType='num', inputType="single", categ='Formatting',
+                updates='constant',
+                allowedUpdates=['constant', 'set every repeat'],
+                hint=_translate(
+                        "Letter height for text in labels"),
+                label=_translate('Letter height'))
+
         self.params['styles'] = Param(
-                style, valType='fixedList', categ='Appearance',
+                style, valType='str', inputType="choice", categ='Appearance',
                 updates='constant', allowedVals=knownStyles,
                 hint=_translate(
-                        "Styles determine the appearance of the slider"),
+                        "Discrete styles to control the overall appearance of the slider."),
                 label=_translate('Styles'))
+
+        self.params['styleTweaks'] = Param(
+                styleTweaks, valType='list', inputType="multiChoice", categ='Appearance',
+                updates='constant', allowedVals=knownStyleTweaks,
+                hint=_translate(
+                        "Tweaks to change the appearance of the slider beyond its style."),
+                label=_translate('Style Tweaks'))
 
         # data params
         self.params['storeRating'] = Param(
-                storeRating, valType='bool', allowedTypes=[], categ='Data',
+                storeRating, valType='bool', inputType="bool", allowedTypes=[], categ='Data',
                 updates='constant', allowedUpdates=[],
                 hint=_translate("store the rating"),
                 label=_localized['storeRating'])
         self.params['storeRatingTime'] = Param(
-                storeRatingTime, valType='bool', allowedTypes=[], categ='Data',
+                storeRatingTime, valType='bool', inputType="bool", allowedTypes=[], categ='Data',
                 updates='constant', allowedUpdates=[],
                 hint=_translate("Store the time taken to make the choice (in "
                                 "seconds)"),
                 label=_localized['storeRatingTime'])
         self.params['storeHistory'] = Param(
-                storeHistory, valType='bool', allowedTypes=[], categ='Data',
+                storeHistory, valType='bool', inputType="bool", allowedTypes=[], categ='Data',
                 updates='constant', allowedUpdates=[],
                 hint=_translate("store the history of (selection, time)"),
                 label=_localized['storeHistory'])
-
-        del self.params['fillColor']
-        del self.params['fillColorSpace']
-        del self.params['borderColor']
-        del self.params['borderColorSpace']
 
     def writeInitCode(self, buff):
 
@@ -183,9 +212,10 @@ class SliderComponent(BaseVisualComponent):
         initStr = ("{name} = visual.Slider(win=win, name='{name}',\n"
                    "    size={size}, pos={pos}, units={units},\n"
                    "    labels={labels}, ticks={ticks},\n"
-                   "    granularity={granularity}, style={styles},\n"
-                   "    color={color}, font={font},\n"
-                   "    flip={flip}, depth={depth})\n"
+                   "    granularity={granularity}, style={styles}, styleTweaks={styleTweaks},\n"
+                   "    color={color}, fillColor={fillColor}, borderColor={borderColor}, colorSpace={colorSpace},\n"
+                   "    font={font}, labelHeight={letterHeight},\n"
+                   "    flip={flip}, depth={depth}, readOnly={readOnly})\n"
                    .format(**inits))
         buff.writeIndented(initStr)
 
@@ -215,13 +245,14 @@ class SliderComponent(BaseVisualComponent):
 
         # If no style given, set default 'rating' as list
         if len(inits['styles'].val) == 0:
-            inits['styles'].val = ['rating']
+            inits['styles'].val = 'rating'
 
         # reformat styles for JS
-        inits['styles'].val = ', '.join(["visual.Slider.Style.{}".
-                                        format(sliderStyles[style]) for style in inits['styles'].val])
+        if not isinstance(inits['styleTweaks'].val, (tuple, list)):
+            inits['styleTweaks'].val = [inits['styleTweaks'].val]
+        inits['styleTweaks'].val = ', '.join(["visual.Slider.StyleTweaks.{}".format(adj)
+                                              for adj in inits['styleTweaks'].val])
         # add comma so is treated as tuple in py2js and converted to list, as required
-        inits['styles'].val += ','
         inits['styles'].val = py2js.expression2js(inits['styles'].val)
 
         inits['depth'] = -self.getPosInRoutine()

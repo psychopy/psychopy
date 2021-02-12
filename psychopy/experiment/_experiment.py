@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Experiment classes:
@@ -18,6 +18,8 @@ The code that writes out a *_lastrun.py experiment file is (in order):
 
 from __future__ import absolute_import, print_function
 # from future import standard_library
+import re
+
 from past.builtins import basestring
 from builtins import object
 import os
@@ -206,10 +208,20 @@ class Experiment(object):
             self_copy.flow.writeBody(script)
             self_copy.settings.writeEndCode(script)  # close log file
             script = script.getvalue()
+
         elif target == "PsychoJS":
             script.oneIndent = "  "  # use 2 spaces rather than python 4
+
             self_copy.settings.writeInitCodeJS(script,self_copy.psychopyVersion,
                                                localDateTime, modular)
+
+            script.writeIndentedLines("// Start code blocks for 'Before Experiment'")
+            for entry in self_copy.flow:
+                # NB each entry is a routine or LoopInitiator/Terminator
+                self_copy._currentRoutine = entry
+                if hasattr(entry, 'writePreCodeJS'):
+                    entry.writePreCodeJS(script)
+
             self_copy.flow.writeFlowSchedulerJS(script)
             self_copy.settings.writeExpSetupCodeJS(script,
                                                    self_copy.psychopyVersion)
@@ -221,8 +233,6 @@ class Experiment(object):
             # routine init sections
             for entry in self_copy.flow:
                 # NB each entry is a routine or LoopInitiator/Terminator
-                if hasattr(entry, 'writePreCodeJS'):
-                    entry.writePreCodeJS(script)
                 self_copy._currentRoutine = entry
                 if hasattr(entry, 'writeInitCodeJS'):
                     entry.writeInitCodeJS(script)
@@ -479,6 +489,24 @@ class Experiment(object):
                 # lowAnchorText highAnchorText will trigger obsolete error
                 # when run the script
                 params[name].val = v
+            elif name == 'storeResponseTime':
+                return  # deprecated in v1.70.00 because it was redundant
+            elif name == 'Resources':
+                # if the xml import hasn't automatically converted from string?
+                if type(val) == str:
+                    resources = data.utils.listFromString(val)
+                if self.psychopyVersion == '2020.2.5':
+                    # in 2020.2.5 only, problems were:
+                    #   a) resources list was saved as a string and
+                    #   b) with wrong root folder
+                    resList = []
+                    for resourcePath in resources:
+                        # doing this the blunt way but should we check for existence?
+                        resourcePath = resourcePath.replace("../", "")  # it was created using wrong root
+                        resourcePath = resourcePath.replace("\\", "/")  # created using windows \\
+                        resList.append(resourcePath)
+                    resources = resList  # push our new list back to resources
+                params[name].val = resources
             else:
                 if name in params:
                     params[name].val = val
@@ -774,9 +802,8 @@ class Experiment(object):
             :param filePath: str to a potential file path (rel or abs)
             :return: list of dicts{'rel','abs'} of valid file paths
             """
-
             # Clean up filePath that cannot be eval'd
-            if '$' in filePath:
+            if filePath.startswith('$'):
                 try:
                     filePath = filePath.strip('$')
                     filePath = eval(filePath)
@@ -874,7 +901,6 @@ class ExpFile(list):
         self.filename = filename
         self._clockName = None  # used in script "t = trialClock.GetTime()"
         self.type = 'ExpFile'
-        list.__init__(self, components)
 
     def __repr__(self):
         _rep = "psychopy.experiment.ExpFile(name='%s',exp=%s,filename='%s')"

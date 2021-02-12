@@ -177,7 +177,7 @@ frame_num	frame_flip_time	playback_duration	frame_num_dx	dropped_count
 """
 
 
-from psychopy import visual, core, event
+from psychopy import visual, core, event, constants
 
 getTime = core.getTime
 import time, os, numpy as np
@@ -313,7 +313,7 @@ def getSysInfo(win):
                 vattrs = ['name', 'exe', 'ppid', 'num_threads', 'memory_percent', 'cpu_percent', 'cpu_affinity', 'nice',
                           'num_ctx_switches']
                 procinfo = proc.as_dict(attrs=vattrs, ad_value=u"Access Denied")
-                if procinfo['exe'] is not u"Access Denied" and (SAVE_PER_PROCESS_DATA is True or SAVE_PER_PROCESS_DATA == procinfo['name']):
+                if procinfo['exe'] != "Access Denied" and (SAVE_PER_PROCESS_DATA is True or SAVE_PER_PROCESS_DATA == procinfo['name']):
                     sys_info['Processes'][pkey] = procinfo
         except ImportError:
             sys_info['Processes']['Failed'] = 'psutil 2.x + is required.'
@@ -398,12 +398,11 @@ def createResultsFile():
             f.write("Video File:\n")
             f.write("\tName:\t{0}\n".format(video_name))
             f.write("\tFrame Count:\t{0}\n".format(mov._total_frame_count))
-            mov_duration = mov._total_frame_count/mov._video_stream.get(cv2.cv.CV_CAP_PROP_FPS)
+            mov_duration = mov._total_frame_count/mov._video_stream.get(cv2.CAP_PROP_FPS)
             f.write("\tVideo Duration:\t{0}\n".format(mov_duration))
             f.write("\tWidth:\t{0}\n".format(mov._video_width))
             f.write("\tHeight:\t{0}\n".format(mov._video_height))
-            f.write("\tFPS (Format, Requested):\t{0}\n".format(
-                (mov._video_stream.get(cv2.cv.CV_CAP_PROP_FPS), mov._requested_fps)))
+            f.write("\tFPS:\t{0}\n".format(mov.getFPS()))
             f.write("\tPlay Audio Track:\t{0}\n".format(not mov._no_audio))
 
             f.write("Video Display:\n")
@@ -480,7 +479,7 @@ if __name__ == '__main__':
     display_frame_num = mov.play()
     draw_dur = getTime() - dt1
 
-    while mov.status != visual.FINISHED:
+    while mov.status != constants.FINISHED:
         # Only flip when a new frame should be displayed. Can significantly reduce
         # CPU usage. This only makes sense if the movie is the only /dynamic/ stim
         # displayed.
@@ -504,7 +503,7 @@ if __name__ == '__main__':
         # Check for action keys.....
         for key in event.getKeys():
             if key in ['escape', 'q']:
-                mov.status = visual.FINISHED
+                mov.status = constants.FINISHED
                 break
 
     createResultsFile()
@@ -516,7 +515,7 @@ if __name__ == '__main__':
 # Movie2 logic not currently used / tested by this script
 
 #        elif key in ['s', ]:
-#            if mov.status in [visual.PLAYING, visual.PAUSED]:
+#            if mov.status in [constants.PLAYING, constants.PAUSED]:
 #                # To stop the movie being played.....,
 #                mov.stop()
 #                # Clear screen of last displayed frame.
@@ -531,9 +530,9 @@ if __name__ == '__main__':
 #                display_frame_num = mov.play()
 #        elif key in ['p', ]:
 #            # To pause the movie while it is playing....
-#            if mov.status == visual.PLAYING:
+#            if mov.status == constants.PLAYING:
 #                mov.pause()
-#            elif mov.status == visual.PAUSED:
+#            elif mov.status == constants.PAUSED:
 #                # To /unpause/ the movie if pause has been called....
 #                display_frame_num = mov.play()
 #        elif key == 'period':

@@ -13,6 +13,9 @@ import time
 import psychopy.experiment
 from psychopy import prefs
 from psychopy.app import psychopyApp
+from psychopy.app.builder.dialogs import DlgComponentProperties
+from psychopy.app.builder.validators import CodeSnippetValidator
+from psychopy.experiment import Param
 
 # Jeremy Gray March 2011
 
@@ -103,3 +106,27 @@ class Test_BuilderFrame(object):
         builderView.isModified = False
         builderView.closeFrame()
         del builderView, componsPanel
+
+    def test_param_validator(self):
+        """Test the code validator for component parameters"""
+
+        # Define 'tykes' - combinations of values likely to cause an error if certain features aren't working
+        tykes = [
+            {'fieldName': "brokenCode", 'param': Param(val="for + :", valType="code"), 'msg': "Python syntax error in field `{fieldName}`:  {param.val}"}, # Make sure it's picking up clearly broken code
+            {'fieldName': "correctAns", 'param': Param(val="'space'", valType="code"), 'msg': ""}, # Single-element lists should not cause warning
+        ]
+        for tyke in tykes:
+            # For each tyke, create a dummy environment
+            parent = DlgComponentProperties(
+                frame=self.builder, title='Param Testing',
+                params={tyke['fieldName']: tyke['param']}, order=[],
+                testing=True)
+            # Set validator and validate
+            parent.SetValidator(CodeSnippetValidator(tyke['fieldName']))
+            parent.Validate()
+            # Does the message delivered by the validator match what is expected?
+            warnings = [w for w in list(parent.warningsDict.values()) if w] or ['']
+            msg = warnings[0]
+            assert msg == tyke['msg'].format(**tyke)
+            # Cleanup
+            parent.Destroy()

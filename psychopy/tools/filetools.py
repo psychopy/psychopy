@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Functions and classes related to file and directory handling
@@ -40,7 +40,7 @@ def toFile(filename, data):
 
 
 def fromFile(filename, encoding='utf-8-sig'):
-    """Load data from a pickle or JSON file.
+    """Load data from a psydat, pickle or JSON file.
 
     Parameters
     ----------
@@ -62,6 +62,10 @@ def fromFile(filename, encoding='utf-8-sig'):
             if hasattr(contents, 'abort'):
                 contents.abort()
             return contents
+    elif filename.endswith('pickle'):
+        with open(filename, 'rb') as f:
+            contents = pickle.load(f)
+        return contents
     elif filename.endswith('.json'):
         with codecs.open(filename, 'r', encoding=encoding) as f:
             contents = json_tricks.load(f)

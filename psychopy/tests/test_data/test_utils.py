@@ -16,7 +16,7 @@ class Test_utilsClass:
     def test_importConditions(self):
         standard_files = []
         standard_files.append(join(fixturesPath, 'trialTypes.xlsx'))
-        standard_files.append(join(fixturesPath, 'trialTypes.xls'))
+        #standard_files.append(join(fixturesPath, 'trialTypes.xls')) # xls is depreciated
         standard_files.append(join(fixturesPath, 'trialTypes.csv'))
         standard_files.append(join(fixturesPath, 'trialTypes_eu.csv'))
         standard_files.append(join(fixturesPath, 'trialTypes.tsv'))

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
@@ -12,6 +12,7 @@ import sys
 import os
 import atexit
 import threading
+from itertools import chain
 from numpy import float64
 from psychopy import prefs, exceptions
 from psychopy import core, logging
@@ -74,57 +75,29 @@ def _bestDriver(devNames, devIDs):
         return None, None
 
 
-def _query_devices():
-    f = StringIO()
-    with redirect_stdout(f):
-        pyo.pa_list_devices()
-    s = f.getvalue().strip().split("\n")[1:]
-    devices = []
-    for device in s:
-        info = {}
-        for v in device.split(",")[1:]:
-            info[v.strip().split(": ")[0]] = v.strip().split(": ")[1]
-        info["id"], info["type"] = device.split(",")[0].split(": ")
-        devices.append(info)
-    return devices
-
-
 def get_devices_infos():
-    devices = _query_devices()
-    in_devices = {}
-    out_devices = {}
-    for device in devices:
-        param = {'host api index': device['host api index'],
-                 'latency': device['latency'],
-                 'default sr': device['default sr'],
-                 'name': device['name']}
-        if device['type'] == 'IN':
-            in_devices[int(device["id"])] = param
-        if device['type'] == 'OUT':
-            out_devices[int(device["id"])] = param
+    in_devices, out_devices = pyo.pa_get_devices_infos()
+    for index, device in chain(in_devices.items(), out_devices.items()):
+        device.update({
+            'default sr': '{} Hz'.format(device['default sr']),
+            'host api index': str(device['host api index']),
+            'latency': '{} s'.format(round(device['latency'], 6)),
+        })
     return (in_devices, out_devices)
 
 
 def get_output_devices():
-    devices = _query_devices()
-    names = []
-    ids = []
-    for device in devices:
-        if device['type'] == 'OUT':
-            names.append(device['name'])
-            ids.append(int(device["id"]))
-    return (names, ids)
+    _, out_devices = get_devices_infos()
+    return tuple(zip(*[
+        (device['name'], dev_id) for dev_id, device in out_devices.items()
+    ]))
 
 
 def get_input_devices():
-    devices = _query_devices()
-    names = []
-    ids = []
-    for device in devices:
-        if device['type'] == 'IN':
-            names.append(device['name'])
-            ids.append(int(device["id"]))
-    return (names, ids)
+    in_devices, _ = get_devices_infos()
+    return tuple(zip(*[
+        (device['name'], dev_id) for dev_id, device in in_devices.items()
+    ]))
 
 
 def getDevices(kind=None):

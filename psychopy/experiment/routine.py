@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Describes the Flow of an experiment
@@ -270,7 +270,9 @@ class Routine(list):
         code = ("//------Prepare to start Routine '%(name)s'-------\n"
                 "t = 0;\n"
                 "%(name)sClock.reset(); // clock\n"
-                "frameN = -1;\n" % self.params)
+                "frameN = -1;\n"
+                "continueRoutine = true; // until we're told otherwise\n"
+                % self.params)
         buff.writeIndentedLines(code)
         # can we use non-slip timing?
         maxTime, useNonSlip = self.getMaxTime()
@@ -304,15 +306,11 @@ class Routine(list):
         buff.writeIndentedLines(code)
 
         # are we done yet?
-        code = ("// check if the Routine should terminate\n"
-                "if (!continueRoutine) {"
-                "  // a component has requested a forced-end of Routine\n"
-                "  return Scheduler.Event.NEXT;\n"
-                "}\n")
+        code = ("return Scheduler.Event.NEXT;\n")
         buff.writeIndentedLines(code)
 
         buff.setIndentLevel(-1, relative=True)
-        buff.writeIndentedLines("};\n")
+        buff.writeIndentedLines("}\n")
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndentedLines("}\n")
 
@@ -329,7 +327,6 @@ class Routine(list):
         buff.setIndentLevel(1, relative=True)
 
         code = ("//------Loop for each frame of Routine '%(name)s'-------\n"
-                "let continueRoutine = true; // until we're told otherwise\n"
                 "// get current time\n"
                 "t = %(name)sClock.getTime();\n"
                 "frameN = frameN + 1;"

@@ -7,7 +7,8 @@ import os.path
 import shutil
 import numpy as np
 import io
-from psychopy import logging
+from psychopy import logging, colors
+from psychopy.visual import Window
 
 try:
     from PIL import Image
@@ -215,6 +216,31 @@ def compareXlsxFiles(pathToActual, pathToCorrect):
         shutil.copyfile(pathToActual,pathToLocal)
         logging.warning("xlsxActual!=xlsxCorr: Saving local copy to %s" %pathToLocal)
         raise IOError(error)
+
+def comparePixelColor(screen, color, coord=(0,0)):
+    if isinstance(screen, Window):
+        # If given a window, get frame from window
+        screen.getMovieFrame(buffer='back')
+        frame = screen.movieFrames[-1]
+        screen.movieFrames = []
+
+    elif isinstance(screen, str):
+        # If given a filename, get frame from file
+        frame = Image.open(screen)
+    else:
+        # If given anything else, throw error
+        raise TypeError("Function comparePixelColor expected first input of type psychopy.visual.Window or str, received %s" % (type(screen)))
+    frame = np.array(frame)
+    # If given a Color object, convert to rgb255 (this is what PIL uses)
+    if isinstance(color, colors.Color):
+        color = color.rgb255
+    color = np.array(color)
+    pixCol = frame[coord]
+    # Compare observed color to desired color
+    closeEnough = True
+    for i in range(min(pixCol.size, color.size)):
+        closeEnough = closeEnough and abs(pixCol[i] - color[i]) <= 1 # Allow for 1/255 lenience due to rounding up/down in rgb255
+    assert all(c for c in color == pixCol) or closeEnough
 
 _travisTesting = bool(str(os.environ.get('TRAVIS')).lower() == 'true')  # in Travis-CI testing
 

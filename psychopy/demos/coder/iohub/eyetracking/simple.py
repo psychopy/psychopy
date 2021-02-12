@@ -1,120 +1,126 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""Simple iohub eye tracker device demo. Shows how monitoring for central
-fixation monitoring could be done.
-No iohub config .yaml files are needed for this demo.
-Comment / uncomment appropriate tracker_config to select which implementation to use.
-"""
+"""Simple iohub eye tracker device demo.
+Select which tracker to use by setting the TRACKER variable below."""
+
 from __future__ import absolute_import, division, print_function
 
 from psychopy import core, visual
 from psychopy.iohub.client import launchHubServer
-import time
+
+# Eye tracker to use ('eyelink', 'gazepoint', or 'tobii')
+TRACKER = 'gazepoint'
+
+eyetracker_config = dict(name='tracker')
+tracker_config = None
+if TRACKER == 'eyelink':
+    eyetracker_config['model_name'] = 'EYELINK 1000 DESKTOP'
+    eyetracker_config['simulation_mode'] = False
+    eyetracker_config['runtime_settings'] = dict(sampling_rate=1000, track_eyes='RIGHT')
+    tracker_config = {'eyetracker.hw.sr_research.eyelink.EyeTracker':eyetracker_config}
+elif TRACKER == 'gazepoint':
+    eyetracker_config['device_timer'] = {'interval': 0.005}
+    tracker_config = {'eyetracker.hw.gazepoint.gp3.EyeTracker': eyetracker_config}
+elif TRACKER == 'tobii':
+    tracker_config = {'eyetracker.hw.tobii.EyeTracker': eyetracker_config}
+else:
+    print("{} is not a valid TRACKER name; please use 'eyelink', 'gazepoint', or 'tobii'.".format(TRACKER))
 
 # Number if 'trials' to run in demo
 TRIAL_COUNT = 2
 # Maximum trial time / time timeout
 T_MAX = 5.0
 
-## Uncomment to use EyeLink device and default settings.
-#
-#eyetracker_config = dict(name='tracker')
-#eyetracker_config['model_name'] = 'EYELINK 1000 DESKTOP'
-#eyetracker_config['simulation_mode'] = False
-#eyetracker_config['runtime_settings'] = dict(sampling_rate=1000, track_eyes='RIGHT')
-#tracker_config = {'eyetracker.hw.sr_research.eyelink.EyeTracker':eyetracker_config}
+if tracker_config:
+    # Since no experiment or session code is given, no iohub hdf5 file
+    # will be saved, but device events are still available at runtime.
+    io = launchHubServer(**tracker_config)
 
-## Uncomment to use GP3 device and default settings.
-#
-tracker_config = {'eyetracker.hw.gazepoint.gp3.EyeTracker':
-    {'name': 'tracker', 'device_timer': {'interval': 0.005}}}
+    # Get some iohub devices for future access.
+    keyboard = io.getDevice('keyboard')
+    display = io.getDevice('display')
+    tracker = io.getDevice('tracker')
 
-# Since no experiment or session code is given, no iohub hdf5 file
-# will be saved, but device events are still available at runtime.
-io = launchHubServer(**tracker_config)
+    # run eyetracker calibration
+    tracker.runSetupProcedure()
 
-# Get some iohub devices for future access.
-keyboard = io.getDevice('keyboard')
-display = io.getDevice('display')
-tracker = io.getDevice('tracker')
+    win = visual.Window(display.getPixelResolution(),
+                        units='pix',
+                        fullscr=True,
+                        allowGUI=False
+                        )
 
-# run eyetracker calibration
-tracker.runSetupProcedure()
+    
+    win.setMouseVisible(False)
+    
+    gaze_ok_region = visual.Circle(win, lineColor='black', radius=300, units='pix')
 
-win = visual.Window(display.getPixelResolution(),
-                    units='pix',
-                    fullscr=True,
-                    allowGUI=False
-                    )
+    gaze_dot = visual.GratingStim(win, tex=None, mask='gauss', pos=(0, 0),
+                                  size=(66, 66), color='green', units='pix')
 
-gaze_ok_region = visual.Circle(win, radius=200, units='pix')
+    text_stim_str = 'Eye Position: %.2f, %.2f. In Region: %s\n'
+    text_stim_str += 'Press space key to start next trial.'
+    missing_gpos_str = 'Eye Position: MISSING. In Region: No\n'
+    missing_gpos_str += 'Press space key to start next trial.'
+    text_stim = visual.TextStim(win, text=text_stim_str,
+                                pos=[0, 0], height=24,
+                                color='black',
+                                wrapWidth=win.size[0] * .9)
 
-gaze_dot = visual.GratingStim(win, tex=None, mask='gauss', pos=(0, 0),
-                              size=(66, 66), color='green', units='pix')
+    # Run Trials.....
+    t = 0
+    while t < TRIAL_COUNT:
+        io.clearEvents()
+        tracker.setRecordingState(True)
+        run_trial = True
+        tstart_time = core.getTime()
+        while run_trial is True:
+            # Get the latest gaze position in dispolay coord space..
+            gpos = tracker.getLastGazePosition()
+            #print("gpos:",gpos)
+            # Update stim based on gaze position
+            valid_gaze_pos = isinstance(gpos, (tuple, list))
+            gaze_in_region = valid_gaze_pos and gaze_ok_region.contains(gpos)
+            if valid_gaze_pos:
+                # If we have a gaze position from the tracker, update gc stim
+                # and text stim.
+                if gaze_in_region:
+                    gaze_in_region = 'Yes'
+                else:
+                    gaze_in_region = 'No'
+                text_stim.text = text_stim_str % (gpos[0], gpos[1], gaze_in_region)
 
-text_stim_str = 'Eye Position: %.2f, %.2f. In Region: %s\n'
-text_stim_str += 'Press space key to start next trial.'
-missing_gpos_str = 'Eye Position: MISSING. In Region: No\n'
-missing_gpos_str += 'Press space key to start next trial.'
-text_stim = visual.TextStim(win, text=text_stim_str,
-                            pos=[0, int((-win.size[1]/2)*0.8)], height=24,
-                                 color='black',
-                                 wrapWidth=win.size[0] * .9)
-
-# Run Trials.....
-t = 0
-while t < TRIAL_COUNT:
-    io.clearEvents()
-    tracker.setRecordingState(True)
-    run_trial = True
-    tstart_time = core.getTime()
-    while run_trial is True:
-        # Get the latest gaze position in dispolay coord space..
-        gpos = tracker.getLastGazePosition()
-        #print("gpos:",gpos)
-        # Update stim based on gaze position
-        valid_gaze_pos = isinstance(gpos, (tuple, list))
-        gaze_in_region = valid_gaze_pos and gaze_ok_region.contains(gpos)
-        if valid_gaze_pos:
-            # If we have a gaze position from the tracker, update gc stim
-            # and text stim.
-            if gaze_in_region:
-                gaze_in_region = 'Yes'
+                gaze_dot.setPos(gpos)
             else:
-                gaze_in_region = 'No'
-            text_stim.text = text_stim_str % (gpos[0], gpos[1], gaze_in_region)
+                # Otherwise just update text stim
+                text_stim.text = missing_gpos_str
 
-            gaze_dot.setPos(gpos)
-        else:
-            # Otherwise just update text stim
-            text_stim.text = missing_gpos_str
+            # Redraw stim
+            gaze_ok_region.draw()
+            text_stim.draw()
+            if valid_gaze_pos:
+                gaze_dot.draw()
 
-        # Redraw stim
-        gaze_ok_region.draw()
-        text_stim.draw()
-        if valid_gaze_pos:
-            gaze_dot.draw()
+            # Display updated stim on screen.
+            flip_time = win.flip()
 
-        # Display updated stim on screen.
-        flip_time = win.flip()
+            # Check any new keyboard char events for a space key.
+            # If one is found, set the trial end variable.
+            #
+            if keyboard.getPresses(keys=' '):
+                run_trial = False
+            elif core.getTime()-tstart_time > T_MAX:
+                run_trial = False
+        win.flip()
+        # Current Trial is Done
+        # Stop eye data recording
+        tracker.setRecordingState(False)
+        t += 1
 
-        # Check any new keyboard char events for a space key.
-        # If one is found, set the trial end variable.
-        #
-        if keyboard.getPresses(keys=' '):
-            run_trial = False
-        elif core.getTime()-tstart_time > T_MAX:
-            run_trial = False
+    # All Trials are done
+    # End experiment
+    tracker.setConnectionState(False)
 
-    # Current Trial is Done
-    # Stop eye data recording
-    tracker.setRecordingState(False)
-    t += 1
-
-# All Trials are done
-# End experiment
-tracker.setConnectionState(False)
-
-io.quit()
+    io.quit()
 core.quit()

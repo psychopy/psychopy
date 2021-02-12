@@ -1,96 +1,75 @@
+.. include:: ../global.rst
+
 .. _onlineFromBuilder:
+.. role:: darkred
 
-Creating online studies from Builder
--------------------------------------
-
-PsychoPy can't export all possible experiments to PsychoJS scripts yet. "Standard" studies using images, text and keyboards will work. Studies with other stimuli, or that use code components, probably won't.
-
-These are the steps you need to follow to get up and running online:
-
-  - :ref:`onlineCheckSupported`
-  - :ref:`onlineExpSettings`
-  - :ref:`onlineExportHTML`
-  - :ref:`onlineUploadServer`
-  - :ref:`onlineDebugging`
-  - :ref:`onlineParticipants`
-  - :ref:`fetchingData`
-
-
-.. _onlineCheckSupported:
-
-Check if your study is fully supported
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Keep checking the :ref:`onlineStatus` to see what is supported. You might want to sign up to the `PsychoPy forum <http://discourse.psychopy.org>`_ and turn on "watching" for the `Online Studies <http://discourse.psychopy.org/c/online>`_ category to get updates. That way you'll know if we update/improve something and you'll see if other people are having issues.
-
-.. _onlineExpSettings:
-
-Check your experiment settings
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-In your Experiment Settings there is an "Online" tab to control the settings.
-
-Path: When you upload your study to Pavlovia it will expect to find an 'html' folder in the root of the repository, so you want to set this up with that in mind. By default the output path will be for a folder called html next to the experiment file. So if that is in the root of the folder you sync online then you'll be good to go! Usually you would have a folder structure something like this and :ref:`sync that entire folder with pavlovia.org <pavloviaSync>`:
-
-.. figure:: /images/foldersStimHTML.png
-  :alt: Folder structure with the experiment (`blockedTrials.psyexp`), a `stims` folder in which the stimuli are stored, some conditions files and an `html` folder containing the code for the study to run online.
-
-.. _onlineExportHTML:
+Creating online experiments from Builder
+----------------------------------------
 
 Export the HTML files
-~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Once you've checked your settings you can simply go to `>File>Export HTML` from the Builder view with your experiment open.
+To generate an online experiment from PsychoPy Builder you can either:
 
-That will generate all the necessary files (HTML and JS) that you need for your study
+- go to `>File>Export HTML`, or
+- press 'sync' from the globe icons (see :numref:`builderViewIndexed1`, button 2).
+
+Both of these will generate all the necessary files (HTML and JS) that you need for your study, however sync will also create a project on `Pavlovia`_. NB - By default, the sync button exports an online experiment, but this can be changed via the experiment settings.  
+
+.. figure:: /images/builderViewIndexed.png
+    :name: builderViewIndexed1
+    :align: center
+    :figclass: align-center
+
+    Buttons for running an online study from the PsychoPy Builder.
+
+Synchronizing for the first time
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The first time you sync your experiment, a dialog box will appear. The dialog box informs you that your .psyexp file does not belong to an existing project. Click “Create a project” if you wish to create a project, or click “Cancel” if you wish to return to your experiment in Builder. See :numref:`createProjDlg`.
+
+.. figure:: /images/createProjDlg.png
+    :name: createProjDlg
+    :align: center
+    :figclass: align-center
+
+    The dialog that appears when an online project does not exist.
+
+If you clicked the “Create a project” button, another window will appear. This window is designed to collect important metadata about your project, see :numref:`projDlg`.
+
+.. figure:: /images/projDlg.png
+    :name: projDlg
+    :align: center
+    :figclass: align-center
+
+    Dialog for creating your project on Pavlovia.org
+
+Use this window to add information to store your project on Pavlovia:
+
+- **Name.** This is the name of your project on Pavlovia
+- **Group/Owner.** The user or group that may manage the project
+- **Local folder.** The (local) project path on your computer. Use the Browse button to find your local directory, if required. :darkred:`Every file in this directory (and subdirectory) will be uploaded to pavlovia, so be sure you've only got files in there that are required by your experiment.`
+- **Description.** A brief description of your experiment.
+- **Tags (comma separated).** These tags will be used to filter and search for experiments by keywords.
+- **Public.** Tick this box if you would like to make your project public, which means that anyone can see and clone it.
+
+When you have completed all fields in the Project window, click “Create project on Pavlovia” button to push your experiment to an online repository. Click “Cancel” if you wish to return to your experiment in Builder.
+
+Viewing your experiment files
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Once your experiment is online you will see your experiment in your `Pavlovia Dashboard <https://pavlovia.org/dashboard>`_ in the Experiments tab. After clicking your experiment you can set its status to "Pilotting" or "Running". Read more about the `Experiment page here <https://pavlovia.org/docs/experiments/experiment-page>`_.
 
 
-.. _onlineUploadServer:
+Running your experiment on Pavlovia.org from Builder
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+If you wish to run your experiment online, in a web-browser, you have two options. You can run your experiment directly from pavlovia.org, as described above, or you can run your experiment directly from Builder. There is also the option to send your experiment URL; more on that in :doc:`How to recruit participants and connect with online services <onlineParticipants>`.
 
-Uploading files to your own server
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+To run your experiment on `Pavlovia`_ via Builder, you must first ensure you have a valid internet connection, are logged in, and have created a repository for your project on `Pavlovia`_. Once you have completed these steps, simply click button 1 in :numref:`builderViewIndexed1`.
 
-We really don't recommend this and can only provide limited help if you go this route. If you do want to use your own server:
-
-  - You will need some way to save the data. PsychoJS can output to either:
-
-    - `csv` files in `../data` (i.e. a folder called `data` next to the html folder). You'll need this to have permissions so that the web server can write to it
-    - a relational database
-
-  - You should make sure your server is using https to encrypt the data you collect from your participants, in keeping with GDPR legislation
-  - You will need to install the server-side script
-  - You will need to adapt PsychoPy Builder's output scripts (`index.html` and the `<experimentName>.js`) so that the references to `lib/` and `lib/vendors` are pointing to valid library locations (which you will either need to create, or point to original online sources)
-
-.. _onlineDebugging:
-
-Debug your online experiments
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-This is going to be trickier for now than the PsychoPy/Python scripts. The starting point is that, as in Python, you need to be able to see the error messages (if there are any) being generated. To do this your browser you can hopefully show you the javascript "console" and you can see various logging messages and error messages there. If it doesn't make any sense to you then you could try sending it to the PsychoPy forum in the `Online` category.
-
-.. _activateRecruitment:
-
-Activate on Pavlovia
-~~~~~~~~~~~~~~~~~~~~~~~
-
-This is needed
-
-.. _onlineParticipants:
-
-Recruiting participants
-~~~~~~~~~~~~~~~~~~~~~~~
-
-Once you've uploaded your folder with the correct permissions you can simply provide that as a URL/link to your prospective participants. When they go to this link they'll see the info dialog box (with the same settings as the one you use in your standard PsychoPy study locally, but a little prettier). That dialog box may show a progress bar while the resources (e.g. image files) are downloading to the local computer. When they've finished downloading the 'OK' button will be available and the participant can carry on to your study.
-
-Alternatively you may well want to recruit participants using an online service such as `Prolific Academic`_
-
-
-.. _fetchingData:
+.. _onlineFetchingYourData:
 
 Fetching your data
-~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+By default. the data are saved in a data folder next to the html file. You should see CSV files there that are similar to PsychoPy output files. There won't be any psydat files though. You could just download the data folder, or synchronize your experiment using the PsychoPy Builder and your data will be fetched to your local computer. 
 
-The data are saved in a data folder next to the html file. You should see csv files there that are similar to your PsychoPy standard output files. (There won't be any psydat files though - that isn't possible from JavaScript).
-
-You could just download the data folder or, if you've set it up to sync with an OSF project then you could simply sync your PsychoPy project with OSF (from the projects menu) and your data will be fetched to your local computer! :-)
+Alternatively, in the experiment dashboard, you can specify storing the data into a database. After specifying so, any data collected in the future can be downloaded as a ZIP file.
 

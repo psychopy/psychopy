@@ -123,14 +123,14 @@
     "font": ""
   },
   "documentation": {
-    "fg": "#205C25",
+    "fg": "#75757D",
     "bg": "",
-    "font": ""
+    "font": "italic"
   },
   "documentation2": {
-    "fg": "#205C25",
+    "fg": "#75757D",
     "bg": "",
-    "font": ""
+    "font": "italic"
   },
   "whitespace": {
     "fg": "#D4D4D4",

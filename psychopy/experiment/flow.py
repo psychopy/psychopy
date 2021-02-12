@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Describes the Flow of an experiment
@@ -185,11 +185,10 @@ class Flow(list):
                 entry.writePreCode(script)
 
     def writeStartCode(self, script):
-        """Write the code that comes before the Window is created
+        """Write the code that comes after the Window is created
         """
-        #todo: Comment is incorrect, this happens after window is created
         script.writeIndentedLines("\n# Start Code - component code to be "
-                                  "run before the window creation\n")
+                                  "run after the window creation\n")
         for entry in self:
             # NB each entry is a routine or LoopInitiator/Terminator
             self._currentRoutine = entry

@@ -33,6 +33,8 @@ display_resolution = display.getPixelResolution()
 win = visual.Window(display_resolution,
                     units='pix', fullscr=True, allowGUI=False, screen=0)
 
+win.setMouseVisible(False)
+
 # Create some psychopy visual stim (same as how you would do so normally):
 fixSpot = visual.GratingStim(win, tex="none", mask="gauss",
     pos=(0, 0), size=(30, 30), color='black', autoLog=False)

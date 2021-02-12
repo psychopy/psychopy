@@ -85,17 +85,9 @@ class ExperimentRuntime(ioHubExperimentRuntime):
 
         display=self.hub.devices.display
         kb=self.hub.devices.keyboard
-        mouse=self.hub.devices.mouse
 
-        # Start by running the eye tracker default setup procedure.
-        # The details of the setup procedure (calibration, validation, etc)
-        # are unique to each implementation of the Common Eye Tracker Interface.
-        # All have the common end goal of calibrating the eye tracking system
-        # prior to data collection.
-        # Please see the eye tracker interface implementation details for the
-        # hardware being used at:
-        # http://www.isolver-solutions.com/iohubdocs/iohub/api_and_manual/device_details/eyetracker.html#eye-tracking-hardware-implementations
-        #
+        # Start by running the eye tracker default setup / calibration.
+        # 
         tracker.runSetupProcedure()
 
         # Create a psychopy window for the experiment graphics,
@@ -110,7 +102,8 @@ class ExperimentRuntime(ioHubExperimentRuntime):
                                     allowGUI=False, # We want it to be borderless
                                     screen= display.getIndex() # The display index to use, assuming a multi display setup.
                                     )
-
+        window.setMouseVisible(False)
+        
         # Create a dict of image stim for trials and a gaze blob to show the
         # reported gaze position with.
         #

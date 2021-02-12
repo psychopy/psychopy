@@ -31,7 +31,7 @@ import os, sys, time, glob
 
 from psychopy import core
 
-assert sys.platform == 'darwin' or sys.platform.startswith('linux')
+assert (sys.platform == 'darwin' or sys.platform.startswith('linux')), "This script must be run on a unix-based platform"
 perlVersion = core.shellCall('perl -V').splitlines()[0]
 assert perlVersion.find('perl5') > -1 # not completely sure what will happen with other perl versions...
 

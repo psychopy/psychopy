@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 # Acknowledgements:
@@ -657,7 +657,7 @@ class BitsPlusPlus(object):
         return self._NumberPackets
 
     def setTrigger(self, triggers=0, onTime=0, 
-                    duration=0, mask=0xFFFF):
+                   duration=0, mask=0xFFFF):
         """ Quick way to set up triggers.
             
             Triggers is a binary word that determines which 
@@ -672,10 +672,11 @@ class BitsPlusPlus(object):
             Note that mask only protects the digital output lines
             set by other activities in the Bits. Not other triggers.
             
-            Example: 
+            Example::
                 bits.setTrigger(0b0000000010, 2.0, 4.0, 0b0111111111)
                 bits.startTrigger()
-            
+
+
             Will issue a 4ms long high-going pulse, 2ms after the start 
             of each frame on DOUT1 while protecting the value of DOUT 9.
         """
@@ -691,7 +692,7 @@ class BitsPlusPlus(object):
         self.setTriggerList(triggerList=packet, mask=mask)
 
     def setTriggerList(self, triggerList=None, mask=0xFFFF):
-        """ Sets up Trigger pulses in Bist++ using the fine grained
+        """ Sets up Trigger pulses in Bits++ using the fine grained
             method that can control every trigger line at 100uS
             intervals.
            
@@ -703,19 +704,21 @@ class BitsPlusPlus(object):
             Note that mask only protects the digital output lines
             set by other activities in the Bits. Not other triggers.
             
-            Example:
+            Example::
+
                 packet = [0]*self._NumberPackets
                 packet[0] = 0b0000000010
                 bits.setTriggerList(packet)
             
             Will sens a 100us pulse on DOUT1 at the start of the frame.
             
-             Example 2:
+             Example 2::
+
                 packet = [0]*self._NumberPackets
                 packet[10] = 0b0000000010
                 packet[20] = 0b0000000001
                 bits.setTriggerList(packet)
-                bits.statrtTrigger()
+                bits.startTrigger()
             
             Will sens a 100us pulse on DOUT1 1000us after the start of the 
             frame and a second 100us pusle on DOUT0 2000us after the start of
@@ -807,7 +810,8 @@ class BitsPlusPlus(object):
             May do odd things if Goggles and Analog are also
             in use.
             
-            Example: 
+            Example::
+
                 bits.sendTrigger(0b0000000010, 2.0, 4.0)
                 bits.win.flip()
             
@@ -828,7 +832,8 @@ class BitsPlusPlus(object):
             Triggers start 1 frame after the frame on which 
             the first trigger is sent.
             
-            Example: 
+            Example::
+
                 bits.setTrigger(0b0000000010, 2.0, 4.0, 0b0111111111)
                 bits.startTrigger()
                 while imageOn:
@@ -847,7 +852,8 @@ class BitsPlusPlus(object):
     def stopTrigger(self):
         """ Stop sending triggers at the next win flip
         
-        Example: 
+        Example::
+
                 bits.setTrigger(0b0000000010, 2.0, 4.0, 0b0111111111)
                 bits.startTrigger()
                 while imageOn:
@@ -870,16 +876,16 @@ class BitsPlusPlus(object):
 
 
     def startGoggles(self, left = 0, right = 1):
-        """ Starts CRS stereo goggles. Note if you are 
-            using FE-1 goggles you should start this before 
-            connecting the goggles.
-        
-            Left is the state of the left shutter on the 
-            first frame to be presented 0, False or 
-            'closed'=closed; 1, True or 'open' = open,
-        
-            right is the state of the right shutter on the 
-            first frame to be presented 0, False or 
+        """Starts CRS stereo goggles. Note if you are
+        using FE-1 goggles you should start this before
+        connecting the goggles.
+
+        Left is the state of the left shutter on the
+        first frame to be presented 0, False or
+        'closed'=closed; 1, True or 'open' = open,
+
+        right is the state of the right shutter on the
+        first frame to be presented 0, False or
         'closed'=closed; 1, True or 'open' = open
         
         Note you can set the goggles to be both open 
@@ -888,7 +894,8 @@ class BitsPlusPlus(object):
         The system will always toggle the state of 
         each lens so as to not damage FE-1 goggles.
         
-        Example:
+        Example::
+
             bits.startGoggles(0,1)
             bits.win.flip()
             while not response
@@ -898,21 +905,22 @@ class BitsPlusPlus(object):
             bits.win.flip()
             
         Starts toggling the goggles with the right eye open in sync with the
-        first win.flip(0) within the loop. The open eye will alternate.
+        first win.flip() within the loop. The open eye will alternate.
             
-        Example:
+        Example::
+
             bits.startGoggles(1,1)
             bits.win.flip()
-            while not response
+            while not response:
                 bits.win.flip()
                 #do some processing
             bits.stopGoggles()
             bits.win.flip()
             
         Starts toggling the goggle with both eyes open in sync with the first
-        win.flip(0 within the loop. Eyes will alternate between both open and both closed.
+        win.flip() within the loop. Eyes will alternate between both open and both closed.
         
-        Note it is safet to leave the goggles toggling forever, ie to never call stopGoggles().
+        Note it is safe to leave the goggles toggling forever, ie to never call stopGoggles().
         """
         # Protect any existing trigger settings if required.
         self._protectTrigger() # Also sets triggers to zero.
@@ -933,10 +941,11 @@ class BitsPlusPlus(object):
     def stopGoggles(self):
         """ Stop the stereo goggles from toggling 
         
-        Example:
+        Example::
+
             bits.startGoggles(0,1)
             bits.win.flip()
-            while not response
+            while not response:
                 bits.win.flip()
                 #do some processing
             bits.stopGoggles()
@@ -1004,7 +1013,7 @@ class BitsPlusPlus(object):
     def _drawLUTtoScreen(self):
         """(private) Used to set the LUT in 'bits++' mode.
         Should not be needed by user if attached to a
-        ``psychopy.visual.Window()`` since this will automatically
+        :class:`psychopy.visual.Window` since this will automatically
         draw the LUT as part of the screen refresh.
         """
         # push the projection matrix and set to orthographic
@@ -1040,7 +1049,7 @@ class BitsPlusPlus(object):
     def _ResetClock(self):
         """(private) Used to reset Bits hardware clock.
         Should not be needed by user if attached to a 
-        ``psychopy.visual.Window()``
+        :class:`psychopy.visual.Window`
         since this will automatically draw the 
         reset code as part of the screen refresh.
         """
@@ -1077,7 +1086,7 @@ class BitsPlusPlus(object):
     def _drawTrigtoScreen(self, sendStr=None):
         """(private) Used to send a trigger pulse.
         Should not be needed by user if attached to a 
-        ``psychopy.visual.Window()``
+        :class:`psychopy.visual.Window`
         since this will automatically draw the trigger code as 
         part of the screen refresh.
         """
@@ -1112,7 +1121,7 @@ class BitsPlusPlus(object):
     def _Goggles(self):
         """(private) Used to set control the goggles.
         Should not be needed by user if attached to a 
-        ``psychopy.visual.Window()``
+        :class:`psychopy.visual.Window`
         """
         # Work out current goggles state value.
         gogglesState = self.gogglesRight*2+self.gogglesLeft
@@ -1175,6 +1184,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
     To use it you must have followed the instructions from CRS Ltd. to get
     your box into the CDC communication mode.
     Typical usage (also see demo in Coder view demos>hardware>BitsBox )::
+
         from psychopy import visual
         from psychopy.hardware import crs
         # we need to be rendering to framebuffer
@@ -1364,14 +1374,14 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
     def stopTrigger(self):
         """Stop sending triggers at the next win flip.
         
-        Example: 
-                bits.setTrigger(0b0000000010, 2.0, 4.0, 0b0111111111)
-                bits.startTrigger()
-                while imageOn:
-                    #do some processing
-                    continue
-                bits.stopTrigger()
-                bits.win.flip()
+        Example::
+            bits.setTrigger(0b0000000010, 2.0, 4.0, 0b0111111111)
+            bits.startTrigger()
+            while imageOn:
+                #do some processing
+                continue
+            bits.stopTrigger()
+            bits.win.flip()
         """
         # Simply stops sending TLock triggers as the next win flip.
         self.trigger=False
@@ -1379,7 +1389,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
     def stopGoggles(self):
         """ Stop the stereo goggles from toggling 
         
-        Example:
+        Example::
             bits.startGoggles(0,1)
             bits.win.flip()
             while not response
@@ -1431,7 +1441,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
     def getInfo(self):
         """ Returns a python dictionary of info about the Bits Sharp box
         
-            Example:
+            Example::
                 info=bits.getInfo
                 print(info['ProductType'])
             
@@ -1690,10 +1700,7 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
     
     def setTrigger(self, triggers=0, onTime=0, duration=0,
                      mask=0xFFFF):
-        """ Overaload for Bits# and Display++ that protects
-            the values of any analog outputs.
-            
-            Quick way to set up triggers.
+        """ Quick way to set up triggers.
             
             Triggers is a binary word that determines which 
             triggers will be turned on.
@@ -1707,10 +1714,13 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
             Note that mask only protects the digital output lines
             set by other activities in the Bits. Not other triggers.
             
-            Example: 
-                bits.setTrigger(0b0000000010, 2.0, 4.0, 0b0111111111)
-                bits.startTrigger()
-            
+            Example:
+
+            ```
+            bits.setTrigger(0b0000000010, 2.0, 4.0, 0b0111111111)
+            bits.startTrigger()
+            ```
+
             Will issue a 4ms long high-going pulse, 2ms after the start 
             of each frame on DOUT1 while protecting the value of DOUT 9.
         """
@@ -3384,7 +3394,8 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         typically 'down' corresponds to a button press or when the input
         is being pulled down to zero volts.
         
-        Example:
+        Example::
+
             bits.setStatusEventParams(DINBase=0b1111111111, 
                                       IRBase=0b111111, 
                                       TrigInBase=0, 
@@ -3444,7 +3455,8 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         They can be accessed as statusValues[i]['sample'] or 
         stautsValues[i].sample, statusValues[x].ADC[j].
         
-        Example:
+        Example::
+
             bits.pollStatus()
             print(bits.statusValues[0].IR[0])
             
@@ -3479,7 +3491,8 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
             Will run for t seconds, defrault 60 or until 
             stopStatusLog() is called.
             
-        Example:
+        Example::
+
             bits.startStatusLog()
             while not event
                 #do some processing
@@ -3534,7 +3547,8 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
             Waits for _statusLog to finish properly 
             so can introduce a timing delay.
                         
-        Example:
+        Example::
+
             bits.startStatusLog()
             while not event
                 #do some processing
@@ -3543,10 +3557,10 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
             print(bits.statusValues[0].time)
             print(bits.statusEvents[0].time)
             
-            Will display the time stamps of the first starus value recorded and the first
-            meaningful event.
-            
-            
+        Will display the time stamps of the first starus value recorded and the first
+        meaningful event.
+
+
         Note that the firmware in Bits# units varies over time and some 
         features of this class may not work for all firmware versions. 
         Also Bits# units can be configured in various ways via their 

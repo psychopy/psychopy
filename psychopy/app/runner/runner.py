@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 import glob
 import json
@@ -511,7 +511,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
 
     def makeButtons(self):
         # Set buttons
-        icons = self.app.iconCache  # type: IconCache
+        icons = self.app.iconCache
         self.plusBtn = icons.makeBitmapButton(
                 parent=self,
                 filename='addExp.png',

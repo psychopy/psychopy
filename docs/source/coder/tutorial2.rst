@@ -29,7 +29,7 @@ The ``try:...except:...`` lines allow us to try and load a parameter file from a
 
 The last line adds the current date to to the information, whether we loaded from a previous run or created default values.
 
-.. _python dictionary :  `http://docs.python.org/tut/node7.html#SECTION007500000000000000000`
+.. _python dictionary :  http://docs.python.org/tut/node7.html#SECTION007500000000000000000
 
 So having loaded those parameters, let's allow the user to change them in a dialogue box (which we'll call ``dlg``). This is the simplest form of dialogue, created directly from the dictionary above. the dialogue will be presented immediately to the user and the script will wait until they hit *OK* or *Cancel*.
 

@@ -4,7 +4,7 @@
 """Display an image on `psycopy.visual.Window`"""
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
@@ -47,7 +47,7 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
                  color=(1.0, 1.0, 1.0),
                  colorSpace='rgb',
                  contrast=1.0,
-                 opacity=1.0,
+                 opacity=None,
                  depth=0,
                  interpolate=False,
                  flipHoriz=False,
@@ -91,12 +91,11 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
         self.depth = depth
 
         # color and contrast etc
+        self.rgbPedestal = [0, 0, 0] # does an rgb pedestal make sense for an image?
+        self.colorSpace = colorSpace  # omit decorator
+        self.color = color
         self.contrast = float(contrast)
-        self.opacity = float(opacity)
-        self.__dict__['colorSpace'] = colorSpace  # omit decorator
-        self.setColor(color, colorSpace=colorSpace, log=False)
-        # does an rgb pedestal make sense for an image?
-        self.rgbPedestal = [0, 0, 0]
+        self.opacity = opacity
 
         # Set the image and mask-
         self.setImage(image, log=False)
@@ -234,9 +233,12 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
     def __del__(self):
         """Remove textures from graphics card to prevent crash
         """
-        if hasattr(self, '_listID'):
-            GL.glDeleteLists(self._listID, 1)
-        self.clearTextures()
+        try:
+            if hasattr(self, '_listID'):
+                GL.glDeleteLists(self._listID, 1)
+            self.clearTextures()
+        except (ImportError, ModuleNotFoundError, TypeError):
+            pass  # has probably been garbage-collected already
 
     def draw(self, win=None):
         """Draw.
@@ -251,11 +253,7 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
 
         GL.glPushMatrix()  # push before the list, pop after
         win.setScale('pix')
-
-        desiredRGB = self._getDesiredRGB(self.rgb, self.colorSpace,
-                                         self.contrast)
-        GL.glColor4f(desiredRGB[0], desiredRGB[1], desiredRGB[2],
-                     self.opacity)
+        GL.glColor4f(*self._foreColor.render('rgba1'))
 
         if self._needTextureUpdate:
             self.setImage(value=self._imName, log=False)
@@ -265,6 +263,41 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
 
         # return the view to previous state
         GL.glPopMatrix()
+
+    # overload ColorMixin methods so tht they refresh the image after being called
+    @property
+    def foreColor(self):
+        # Call setter of parent mixin
+        return ColorMixin.foreColor.fget(self)
+    @foreColor.setter
+    def foreColor(self, value):
+        # Call setter of parent mixin
+        ColorMixin.foreColor.fset(self, value)
+        # Reset the image and mask-
+        self.setImage(self._imName, log=False)
+        self.texRes = self.__dict__['texRes']  # rebuilds the mask
+    @property
+    def contrast(self):
+        # Call setter of parent mixin
+        return ColorMixin.contrast.fget(self)
+    @contrast.setter
+    def contrast(self, value):
+        # Call setter of parent mixin
+        ColorMixin.contrast.fset(self, value)
+        # Reset the image and mask-
+        self.setImage(self._imName, log=False)
+        self.texRes = self.__dict__['texRes']  # rebuilds the mask
+    @property
+    def opacity(self):
+        # Call setter of parent mixin
+        return BaseVisualStim.opacity.fget(self)
+    @opacity.setter
+    def opacity(self, value):
+        # Call setter of parent mixin
+        BaseVisualStim.opacity.fset(self, value)
+        # Reset the image and mask-
+        self.setImage(self._imName, log=False)
+        self.texRes = self.__dict__['texRes']  # rebuilds the mask
 
     @attributeSetter
     def image(self, value):
