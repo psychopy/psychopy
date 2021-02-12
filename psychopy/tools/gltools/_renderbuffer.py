@@ -67,7 +67,11 @@ class RenderbufferInfo(object):
         return self._multiSample
 
     def __del__(self):
-        GL.glDeleteRenderbuffers(1, self.name)
+        try:
+            if self.name != 0:  # if valid
+                GL.glDeleteRenderbuffers(1, int(self.name))
+        except ValueError:
+            pass
 
 
 def createRenderbuffer(width, height, internalFormat=GL.GL_RGBA8, samples=1):

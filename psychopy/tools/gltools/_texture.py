@@ -28,6 +28,7 @@ import pyglet.gl as GL  # using Pyglet for now
 
 from ._misc import maxSamples
 
+
 # -----------------
 # Texture Functions
 # -----------------
@@ -153,7 +154,10 @@ class TexImage2DInfo(object):
 
     def __del__(self):
         """Deletes the texture when there are no more references to it."""
-        GL.glDeleteTextures(1, self.name)
+        try:
+            GL.glDeleteTextures(1, self.name)
+        except ValueError:
+            pass
 
 
 def createTexImage2D(width, height, target=GL.GL_TEXTURE_2D, level=0,

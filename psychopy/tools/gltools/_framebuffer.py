@@ -15,9 +15,12 @@ __all__ = [
     'attach',
     'detach',
     'isComplete',
+    'checkFBO',
     'deleteFBO',
     'blitFBO',
-    'useFBO'
+    'useFBO',
+    'bindFBO',
+    'unbindFBO'
 ]
 
 import ctypes
@@ -75,7 +78,11 @@ class FramebufferInfo(object):
         self._sRGB = sRGB
         self.userData = dict() if userData is None else userData
         self._isBound = False
-        self.sizeHint = np.array(sizeHint, dtype=int)
+
+        if sizeHint is not None:
+            sizeHint = np.array(sizeHint, dtype=int)
+
+        self.sizeHint = sizeHint
 
     @property
     def isBound(self):
@@ -161,7 +168,7 @@ class FramebufferInfo(object):
 
     def __del__(self):
         try:
-            GL.glDeleteFramebuffers(1, self.name)
+            GL.glDeleteFramebuffers(1, GL.GLuint(self.name))
         except TypeError:
             pass
 
@@ -251,7 +258,8 @@ def createFBO(attachments=None, sizeHint=None, sRGB=False, bindAfter=False):
     GL.glGenFramebuffers(1, ctypes.byref(fboId))
 
     # create a framebuffer descriptor
-    fboDesc = FramebufferInfo(fboId.value, GL.GL_FRAMEBUFFER, sizeHint, sRGB, dict())
+    fboDesc = FramebufferInfo(
+        fboId.value, GL.GL_FRAMEBUFFER, sizeHint, sRGB, dict())
 
     # initial attachments for this framebuffer
     if attachments is not None:
@@ -314,6 +322,20 @@ def attachBuffer(fbo, attachPoint, imageBuffer):
             attachBuffer(GL.GL_DEPTH_STENCIL_ATTACHMENT, depthRb)
 
     """
+    if fbo.sizeHint is not None:
+        fboW, fboH = fbo.sizeHint
+        bufferW, bufferH = imageBuffer.size
+
+        # check if the attachment has the same dimensions as the hint
+        sizeOk = fboW == bufferW and fboH == bufferH
+
+        # raise an error if not
+        if not sizeOk:
+            raise ValueError(
+                "Buffer does not match the dimensions of `sizeHint`. "
+                "Expected `({}, {})`, got `({}, {})`.".format(
+                    fboW, fboH, bufferW, bufferH))
+
     # We should also support binding GL names specified as integers. Right now
     # you need as descriptor which contains the target and name for the buffer.
     if isinstance(imageBuffer, (TexImage2DInfo, TexImage2DMultisampleInfo)):
@@ -409,8 +431,18 @@ def detach(fbo, attachPoint):
     detachBuffer(fbo, attachPoint)
 
 
-def isComplete(target=GL.GL_FRAMEBUFFER):
+def isComplete(target=GL.GL_FRAMEBUFFER, raiseErr=False):
     """Check if the currently bound framebuffer at `target` is complete.
+
+    Parameters
+    ----------
+    target : GLenum
+        Target of the presently bound FBO.
+    raiseErr : bool
+        Raise an exception if the status is abnormal where the framebuffer
+        cannot be used in it's current state. If `False`, the program will
+        continue running and this function will return the result of
+        `glCheckFramebufferStatus`.
 
     Returns
     -------
@@ -418,7 +450,50 @@ def isComplete(target=GL.GL_FRAMEBUFFER):
         `True` if the presently bound FBO is complete.
 
     """
-    return GL.glCheckFramebufferStatus(target) == GL.GL_FRAMEBUFFER_COMPLETE
+    return checkFBO(target, raiseErr) == GL.GL_FRAMEBUFFER_COMPLETE
+
+
+def checkFBO(target=GL.GL_FRAMEBUFFER, raiseErr=False):
+    """Check the status of the framebuffer currently bound at `target`.
+
+    Parameters
+    ----------
+    target : GLenum
+        Target of the presently bound FBO to check.
+    raiseErr : bool
+        Raise an exception if the status is abnormal where the framebuffer
+        cannot be used in it's current state. If `False`, the program will
+        continue running and this function will return the result of
+        `glCheckFramebufferStatus`.
+
+    Returns
+    -------
+    int
+        OpenGL status code returned by `glCheckFramebufferStatus`. The following
+        values may be returned: `GL_FRAMEBUFFER_UNSUPPORTED`,
+        `GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT`,
+        `GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT`,
+        `GL_FRAMEBUFFER_UNSUPPORTED`, `GL_FRAMEBUFFER_COMPLETE`.
+
+    """
+    status = GL.glCheckFramebufferStatus(target)
+
+    if raiseErr:
+        if status == GL.GL_FRAMEBUFFER_UNSUPPORTED:
+            raise RuntimeError(
+                "Framebuffer status is `GL_FRAMEBUFFER_UNSUPPORTED`.")
+        elif status == GL.GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+            raise RuntimeError(
+                "Framebuffer status is `GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT`.")
+        elif status == GL.GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+            raise RuntimeError(
+                "Framebuffer status is "
+                "`GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT`.")
+        elif status == GL.GL_FRAMEBUFFER_UNSUPPORTED:
+            raise RuntimeError(
+                "Framebuffer status is `GL_FRAMEBUFFER_UNSUPPORTED`.")
+
+    return status
 
 
 def deleteFBO(fbo, deep=False):
@@ -431,16 +506,23 @@ def deleteFBO(fbo, deep=False):
         Delete attachments too.
 
     """
-    GL.glDeleteFramebuffers(1, fbo.name)
+    GL.glDeleteFramebuffers(1, GL.GLuint(fbo.name))
 
     # Delete references to attachments, if there are no references they will
     # also be deleted from the OpenGL state.
     if deep:
         for _, buffer in fbo.attachments.items():
-            del buffer
+            if isinstance(buffer, (TexImage2DInfo, TexImage2DMultisampleInfo,)):
+                GL.glDeleteTextures(1, buffer.name)
+            elif isinstance(buffer, (RenderbufferInfo,)):
+                GL.glDeleteRenderbuffers(1, buffer.name)
 
-    # invalidate
-    fbo.name = GL.GLuint(0)
+            buffer.name = GL.GLuint(0)
+
+    fbo.attachments = {}
+
+    # invalidate in case there are any references floating around
+    fbo.name = 0
 
 
 def blitFBO(srcRect, dstRect=None, filter=GL.GL_LINEAR,
@@ -562,7 +644,8 @@ def bindFBO(fbo, target=None):
         if target is not None:
             fbo.target = target
 
-    GL.glBindFramebuffer(target, fboId)
+    GL.glBindFramebuffer(fbo.target, fboId)
+    fbo._isBound = True  # assume it is, querying the state is not an option
 
     # enable sRGB mode if required
     if fbo.sRGB:
