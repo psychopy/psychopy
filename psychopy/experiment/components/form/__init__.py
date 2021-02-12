@@ -108,6 +108,13 @@ class FormComponent(BaseVisualComponent):
             hint=_translate("Store item data by columns, or rows"),
             label=_localized['Data Format'])
 
+        self.params['Style'] = Param(
+            style, valType='str', inputType="choice", categ="Appearance",
+            updates='constant', allowedVals=knownStyles,
+            hint=_translate(
+                    "Styles determine the appearance of the form"),
+            label=_localized['Style'])
+
         self.params['color'].label = _translate("Text Color")
         self.params['fillColor'].label = _translate("Marker Colors")
         self.params['borderColor'].label =_translate("Lines Color")
