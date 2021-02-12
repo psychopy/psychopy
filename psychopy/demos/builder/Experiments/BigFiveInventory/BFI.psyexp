@@ -9,7 +9,7 @@
     <Param name="Enable Escape" val="True" valType="bool" updates="None"/>
     <Param name="Experiment info" val="{'participant': '', 'session': '001'}" valType="code" updates="None"/>
     <Param name="Force stereo" val="True" valType="bool" updates="None"/>
-    <Param name="Full-screen window" val="True" valType="bool" updates="None"/>
+    <Param name="Full-screen window" val="False" valType="bool" updates="None"/>
     <Param name="HTML path" val="" valType="str" updates="None"/>
     <Param name="Incomplete URL" val="" valType="str" updates="None"/>
     <Param name="Monitor" val="testMonitor" valType="str" updates="None"/>
@@ -75,17 +75,17 @@
         <Param name="Item Padding" val="0.06" valType="num" updates="constant"/>
         <Param name="Items" val="demographics.xlsx" valType="file" updates="constant"/>
         <Param name="Randomize" val="False" valType="bool" updates="constant"/>
-        <Param name="Style" val="dark" valType="str" updates="constant"/>
+        <Param name="Style" val="legalPad" valType="str" updates="constant"/>
         <Param name="Text Height" val="0.025" valType="num" updates="constant"/>
-        <Param name="borderColor" val="white" valType="color" updates="constant"/>
-        <Param name="color" val="white" valType="color" updates="constant"/>
+        <Param name="borderColor" val="black" valType="color" updates="constant"/>
+        <Param name="color" val="black" valType="color" updates="constant"/>
         <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
         <Param name="contrast" val="1" valType="code" updates="constant"/>
         <Param name="disabled" val="False" valType="bool" updates="None"/>
         <Param name="durationEstim" val="" valType="num" updates="None"/>
         <Param name="fillColor" val="red" valType="color" updates="constant"/>
         <Param name="name" val="demog" valType="code" updates="None"/>
-        <Param name="opacity" val="1" valType="num" updates="constant"/>
+        <Param name="opacity" val="" valType="num" updates="constant"/>
         <Param name="pos" val="(0, 0)" valType="list" updates="constant"/>
         <Param name="saveStartStop" val="True" valType="bool" updates="None"/>
         <Param name="size" val="(1, 0.7)" valType="list" updates="constant"/>
@@ -174,10 +174,10 @@
         <Param name="Item Padding" val="0.05" valType="num" updates="constant"/>
         <Param name="Items" val="TIPI.xlsx" valType="file" updates="constant"/>
         <Param name="Randomize" val="False" valType="bool" updates="constant"/>
-        <Param name="Style" val="dark" valType="str" updates="constant"/>
+        <Param name="Style" val="legalPad" valType="str" updates="constant"/>
         <Param name="Text Height" val="0.025" valType="num" updates="constant"/>
-        <Param name="borderColor" val="white" valType="color" updates="constant"/>
-        <Param name="color" val="white" valType="color" updates="constant"/>
+        <Param name="borderColor" val="black" valType="color" updates="constant"/>
+        <Param name="color" val="black" valType="color" updates="constant"/>
         <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
         <Param name="contrast" val="1" valType="code" updates="constant"/>
         <Param name="disabled" val="False" valType="bool" updates="None"/>
