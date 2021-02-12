@@ -43,7 +43,7 @@ class ButtonComponent(BaseVisualComponent):
     targets = ['PsychoPy']
 
     def __init__(self, exp, parentName, name="button",
-                 startType='time (s)', startVal=0.0,
+                 startType='time (s)', startVal=0.1,
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim='',
                  text=_translate("Click here"), font='Arvo',

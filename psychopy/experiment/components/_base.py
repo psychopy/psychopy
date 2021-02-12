@@ -19,7 +19,7 @@ from psychopy.experiment.utils import CodeGenerationException
 from psychopy.experiment.utils import unescapedDollarSign_re
 from psychopy.experiment.params import getCodeFromParamStr
 from psychopy.alerts import alerttools
-from psychopy.colors import colorSpaces
+from psychopy.colors import nonAlphaSpaces
 
 from psychopy.localization import _translate, _localized
 
@@ -630,7 +630,7 @@ class BaseVisualComponent(BaseComponent):
                          "the colors? (rgb, dkl, lms, hsv)")
         self.params['colorSpace'] = Param(colorSpace,
             valType='str', inputType="choice", categ='Appearance',
-            allowedVals=['named', 'rgb', 'dkl', 'lms', 'hsv'],
+            allowedVals=['rgb', 'dkl', 'lms', 'hsv'],
             updates='constant',
             hint=msg,
             label=_localized['colorSpace'])
