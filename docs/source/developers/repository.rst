@@ -25,19 +25,18 @@ If your copy of the repository comes from before we used the 2-trunk GitFlow the
 PsychoPy Git Flow
 ~~~~~~~~~~~~~~~~~~~
 
-Unlike many projects, the PsychoPy repository has TWO main branches, `dev` and `release`. This is similar to the `GitFlow workflow <https://nvie.com/posts/a-successful-git-branching-model/>`_ except that we do not have anything named `master` (that effecively now called `release`).
+Unlike many projects, the PsychoPy repository has TWO main branches, `dev` and `release` (since Feb 2021). The design is similar to the `GitFlow workflow <https://nvie.com/posts/a-successful-git-branching-model/>`_ except that we do not have anything named `master` (that is effectively now called `release`).
 
-Our release pattern is to have "feature releases" (the middle version number changes) 2 or 3 times per year and bug-fix releases several times for each feature release. Major changes to the code, that might include new bugs, should not be included in bug-fix releases. Therefore these two trunks allow us to separate those works.
+The system is designed to support our release pattern, with "feature releases" 2 or 3 times per year and bug-fix releases several times for each feature release. Major changes to the code, that potentially include new bugs, should not be included in bug-fix releases. So then the two main branches are as follows.
 
-
-**The dev branch:** for work that is going **to be held back for the next feature release**. Only fix bugs here if they are related to other un-released code or if the fixes require substantial code changes that might introduce new bugs. Those larger fixes will probably be held back for the next feature release. Simple bug fixes that get based on the `dev` branch might be hard to reincorporate back into the `release` branch .
+**The dev branch:** is for work that is going **to be held back for the next feature release**. Only fix bugs here if they are related to other un-released code or if the fixes require substantial code changes that might introduce new bugs. Those larger fixes will probably be held back for the next feature release. Simple bug fixes that get based on the `dev` branch might be hard to reincorporate back into the `release` branch .
 
 **The release branch:** is for fixes that need **to be included in the next release**. It includes code changes that do not knowingly break/change existing experiments, and are small enough that we can be relatively confident that they do not introduce new bugs. Do not use this trunk for substantial pieces of development where new bugs might be introduced.
 
 .. figure:: /images/psychopyGitFlow.png
     :alt:  Git Flow used by the PsychoPy project, with 2 main trunks for 'dev' and 'release'
 
-    Git Flow used by the PsychoPy project, with 2 main trunks for 'dev' and 'release'. Bug fixes should be based on the `release` branch while new features or substantial code changes are builton the `dev` branch
+    Git Flow used by the PsychoPy project, with 2 main trunks for 'dev' and 'release'. Bug fixes should be based on the `release` branch while new features or substantial code changes are built on the `dev` branch
 
 
 Always create a branch for the work you are doing and take that branch from the tip of either `dev` or `release`.
