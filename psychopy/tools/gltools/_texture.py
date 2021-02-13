@@ -155,7 +155,8 @@ class TexImage2DInfo(object):
     def __del__(self):
         """Deletes the texture when there are no more references to it."""
         try:
-            GL.glDeleteTextures(1, self.name)
+            if self._name.value != 0:
+                GL.glDeleteTextures(1, self.name)
         except ValueError:
             pass
 
@@ -235,8 +236,10 @@ def createTexImage2D(width, height, target=GL.GL_TEXTURE_2D, level=0,
             dataType=GL.GL_UNSIGNED_BYTE,
             data=pixelData,
             unpackAlignment=1,
-            texParameters=[(GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR),
-                           (GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)])
+            texParams={
+                GL.GL_TEXTURE_MAG_FILTER: GL.GL_LINEAR,
+                GL.GL_TEXTURE_MIN_FILTER: GL.GL_LINEAR}
+        )
 
         GL.glBindTexture(GL.GL_TEXTURE_2D, textureDesc.id)
 

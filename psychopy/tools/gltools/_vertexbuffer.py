@@ -160,7 +160,7 @@ class VertexArrayInfo(object):
 
     def __del__(self):
         try:
-            GL.glDeleteVertexArrays(1, self.name)
+            GL.glDeleteVertexArrays(1, GL.GLuint(self.name))
         except TypeError:
             pass
 
@@ -444,7 +444,7 @@ def createVAOSimple(vertices, textureCoords, normals, faces, legacy=False):
                    GL.GL_NORMAL_ARRAY: normalsVBO,
                    GL.GL_TEXTURE_COORD_ARRAY: texCoordVBO}
 
-    return createVAO(attribs, indexBuffer=indexBuffer)
+    return createVAO(attribs, indexBuffer=indexBuffer, legacy=legacy)
 
 
 def drawVAO(vao, mode=GL.GL_TRIANGLES, start=0, count=None, instances=None,

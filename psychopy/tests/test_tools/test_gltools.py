@@ -4,11 +4,15 @@
 
 import psychopy.visual as visual
 from psychopy.tools.gltools import *
+from PIL import Image
+import numpy as np
 import pytest
 import shutil
 from tempfile import mkdtemp
 import pyglet.gl as GL
 import ctypes
+from psychopy.tests import utils
+import os
 
 
 @pytest.mark.gltools
@@ -163,6 +167,73 @@ class Test_Window(object):
 
         if fbo is not None:
             del fbo
+
+    def test_createTextures(self):
+        """Tests for creating various texture types.
+        """
+        # empty texture
+        textureDesc = createTexImage2D(128, 128, internalFormat=GL.GL_RGBA8)
+        bindTexture(textureDesc, 0)
+
+        # check the binding state
+        texBinding = GL.GLint()
+        GL.glGetIntegerv(GL.GL_TEXTURE_BINDING_2D, ctypes.byref(texBinding))
+
+        assert textureDesc.name.value == texBinding.value
+
+        unbindTexture(textureDesc)  # unbind and check if we are unbound
+
+        texBinding = GL.GLint()
+        GL.glGetIntegerv(GL.GL_TEXTURE_BINDING_2D, ctypes.byref(texBinding))
+
+        assert texBinding.value == 0
+
+        # Draw the texture to the window using a quad, takes up the whole frame
+        vertices, texcoords, normals, faces = createPlane((2, 2))
+        quad = createVAOSimple(vertices, texcoords, normals, faces, legacy=True)
+
+        # Do something more useful, load texture data from an image file using
+        # Pillow and NumPy.
+        imageFile = os.path.join(utils.TESTS_DATA_PATH, 'numpyImage_norm.png')
+        im = Image.open(imageFile)  # 8bpp!
+        im = im.transpose(Image.FLIP_TOP_BOTTOM)  # OpenGL origin is at bottom
+        im = im.convert("RGBA")
+        pixelData = np.array(im).ctypes  # convert to ctypes!
+
+        width = pixelData.shape[1]
+        height = pixelData.shape[0]
+        textureDesc = createTexImage2D(
+            width,
+            height,
+            internalFormat=GL.GL_RGBA,
+            pixelFormat=GL.GL_RGBA,
+            dataType=GL.GL_UNSIGNED_BYTE,
+            data=pixelData,
+            unpackAlignment=1,
+            texParams={
+                GL.GL_TEXTURE_MAG_FILTER: GL.GL_NEAREST,
+                GL.GL_TEXTURE_MIN_FILTER: GL.GL_NEAREST}
+        )
+
+        # usual stuff to draw a textured faces
+        GL.glEnable(GL.GL_TEXTURE_2D)
+        GL.glMatrixMode(GL.GL_PROJECTION)
+        GL.glLoadIdentity()
+        GL.glOrtho(-1, 1, -1, 1, -1, 1)
+        GL.glMatrixMode(GL.GL_MODELVIEW)
+        GL.glLoadIdentity()
+
+        # setup the texture and draw
+        GL.glColor3f(1, 1, 1)
+        GL.glActiveTexture(GL.GL_TEXTURE0)  # not needed for shaders
+        GL.glBindTexture(GL.GL_TEXTURE_2D, textureDesc.name)
+
+        drawVAO(quad, mode=GL.GL_TRIANGLES)  # actual draw command
+
+        # unbind the texture and disable texturing
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+        GL.glDisable(GL.GL_TEXTURE_2D)
+        utils.compareScreenshot(imageFile, self.win)
 
 
 if __name__ == "__main__":
