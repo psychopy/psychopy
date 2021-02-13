@@ -144,10 +144,9 @@ class FramebufferInfo(object):
         """
         if GL.GL_DEPTH_STENCIL_ATTACHMENT in self.attachments:
             return self.attachments[GL.GL_DEPTH_STENCIL_ATTACHMENT]
-        elif GL.GL_DEPTH_ATTACHMENT in self.attachments:
+
+        if GL.GL_DEPTH_ATTACHMENT in self.attachments:
             return self.attachments[GL.GL_DEPTH_ATTACHMENT]
-        else:
-            return None
 
     def getStencilBuffer(self):
         """Get the stencil buffer attachment.
@@ -161,10 +160,9 @@ class FramebufferInfo(object):
         """
         if GL.GL_DEPTH_STENCIL_ATTACHMENT in self.attachments:
             return self.attachments[GL.GL_DEPTH_STENCIL_ATTACHMENT]
-        elif GL.GL_STENCIL_ATTACHMENT in self.attachments:
+            
+        if GL.GL_STENCIL_ATTACHMENT in self.attachments:
             return self.attachments[GL.GL_STENCIL_ATTACHMENT]
-        else:
-            return None
 
     def __del__(self):
         try:
@@ -180,19 +178,19 @@ def createFBO(attachments=None, sizeHint=None, sRGB=False, bindAfter=False):
     ----------
     attachments : :obj:`dict` or `None`
         Optional attachments to initialize the Framebuffer with. Attachments are
-        specified as a list of tuples. Each tuple must contain an attachment
-        point (e.g. `GL_COLOR_ATTACHMENT0`, `GL_DEPTH_ATTACHMENT`, etc.) and a
-        buffer descriptor type (RenderbufferInfo or TexImage2DInfo). If using a
-        combined depth/stencil format such as `GL_DEPTH24_STENCIL8`,
+        specified as a `dict`, where keys are attachment point identifiers
+        (e.g., `GL_COLOR_ATTACHMENT0`, `GL_DEPTH_ATTACHMENT`, etc.) and values
+        are buffer descriptor types (e.g., RenderbufferInfo or TexImage2DInfo).
+        If using a combined depth/stencil format such as `GL_DEPTH24_STENCIL8`,
         `GL_DEPTH_ATTACHMENT` and `GL_STENCIL_ATTACHMENT` must be passed the
         same buffer. Alternatively, one can use `GL_DEPTH_STENCIL_ATTACHMENT`
         instead. If using multisample buffers, all attachment images must use
-        the same number of samples! As an example, one may specify attachments
-        as `attachments={GL.GL_COLOR_ATTACHMENT0: frameTexture,
-        GL.GL_DEPTH_STENCIL_ATTACHMENT: depthRenderBuffer}`.
+        the same number of samples!
     sizeHint : array_like or None
         Size hint for the framebuffer (w, h). Not required, but can be used to
-        ensure all the attachments have the same size.
+        ensure all the attachments have the same size. An error is raised if
+        the size hint does not match the dimensions of the buffer getting
+        attached.
     sRGB : bool
         Enable sRGB mode when the FBO is bound.
     bindAfter : bool
@@ -609,7 +607,7 @@ def useFBO(fbo):
             attachBuffer(GL.GL_COLOR_ATTACHMENT0, colorTex)
             attachBuffer(GL.GL_DEPTH_ATTACHMENT, depthRb)
             attachBuffer(GL.GL_STENCIL_ATTACHMENT, depthRb)
-            isComplete = gltools.isComplete()
+            fboComplete = isComplete()
 
         # someOtherFBO is still bound!
 
