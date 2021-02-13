@@ -28,11 +28,7 @@ from .. import shaders
 from ..rect import Rect
 from ... import core
 
-try:
-    import uniseg.linebreak
-    _has_uniseg = True
-except:
-    _has_uniseg = False
+from psychopy.tools.linebreak import get_breakable_points, break_units
 
 allFonts = FontManager()
 
@@ -458,169 +454,33 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         else:
             alphaCorrection = 1
 
-        if _has_uniseg:
-            i_all = 0
-            lineN = 0
-            charwidth_list = []
-            segwidth_list = []
-            y_advance_list = []
-            vertices_list = []
-            texcoords_list = []
-            
-            # segment text using uniseg.linebreak module
-            seg = list(uniseg.linebreak.line_break_units(self._text))
-            
-            # calc segment width
-            for i in range(len(seg)):
-                thisSegWidth = 0
-                for charcode in seg[i]:
-                    printable = True  # unless we decide otherwise *NOT USED CURRENTLY*
-                    facebold_offset = 0
-                    # handle formatting codes
-                    if charcode in codes.values():
-                        if charcode == codes['ITAL_START']:
-                            fakeItalic = 0.1 * font.size
-                        elif charcode == codes['ITAL_END']:
-                            fakeItalic = 0.0
-                        elif charcode == codes['BOLD_START']:
-                            fakeBold = 0.3 * font.size
-                        elif charcode == codes['BOLD_END']:
-                            fakebold_offset = fakeBold / 2  # we expected bigger current
-                            fakeBold = 0.0
-                        continue
-                    # handle newline
-                    if charcode == '\n':
-                        printable = False
 
-                    # handle printable characters
-                    if printable:
-                        if showWhiteSpace and charcode == " ":
-                            glyph = font[u"·"]
-                        else:
-                            glyph = font[charcode]
-                        xBotL = glyph.offset[0] - fakeItalic - fakeBold / 2 - facebold_offset
-                        xTopL = glyph.offset[0] - fakeBold / 2 - facebold_offset
-                        yTop = glyph.offset[1]
-                        xBotR = xBotL + glyph.size[0] * alphaCorrection + fakeBold
-                        xTopR = xTopL + glyph.size[0] * alphaCorrection + fakeBold
-                        yBot = yTop - glyph.size[1]
-                        u0 = glyph.texcoords[0]
-                        v0 = glyph.texcoords[1]
-                        u1 = glyph.texcoords[2]
-                        v1 = glyph.texcoords[3]
-                    else:
-                        glyph = font[u"·"]
-                        x = glyph.offset[0] - facebold_offset
-                        yTop = glyph.offset[1]
-                        yBot = yTop - glyph.size[1]
-                        xBotL = x
-                        xTopL = x
-                        xBotR = x
-                        xTopR = x
-                        u0 = glyph.texcoords[0]
-                        v0 = glyph.texcoords[1]
-                        u1 = glyph.texcoords[2]
-                        v1 = glyph.texcoords[3]
+        # get a list of line-breakable points according to UAX#14
+        breakable_points = list(get_breakable_points(self._text))
+        text_seg = list(break_units(self._text, breakable_points))
+        styles_seg = list(break_units(self._styles, breakable_points))
 
-                    vertices_list.append([[xTopL, yTop], [xBotL, yBot],
-                                          [xBotR, yBot], [xTopR, yTop]])
-                    texcoords_list.append([[u0, v0], [u0, v1],
-                                           [u1, v1], [u1, v0]])
+        lineN = 0
+        charwidth_list = []
+        segwidth_list = []
+        y_advance_list = []
+        vertices_list = []
+        texcoords_list = []
 
-                    w = glyph.advance[0] + fakeBold / 2
-                    thisSegWidth += w
-                    charwidth_list.append(w)
-                    y_advance_list.append(glyph.advance[1])
+        # calculate width of each segments
+        for this_seg in range(len(text_seg)):
 
-                segwidth_list.append(thisSegWidth)
-                
-            # concatenate segments to build line
-            lines = []
-            while seg:
-                line_width = 0
-                for i in range(len(seg)):
-                    # if this segment is \n, break line here.
-                    if seg[i][-1] == '\n':
-                        i+=1 # increment index to include \n to current line
-                        break
-                    # concatenate next segment
-                    line_width += segwidth_list[i]
-                    # break if line_width is greater than lineMax
-                    if lineMax < line_width:
-                        break
-                else:
-                    # if for sentence finished without break, all segments 
-                    # should be concatenated.
-                    i = len(seg)
-                p = max(1, i)
-                # concatenate segments and remove from segment list
-                lines.append("".join(seg[:p]))
-                del seg[:p], segwidth_list[:p] #, avoid[:p]
+            thisSegWidth = 0 # width of this segment
 
-            if lines:
-                for line in lines:
-                    for c in line:
-                        theseVertices = vertices_list[i_all]
-                        #update vertices
-                        for i in range(4):
-                            theseVertices[i][0] += current[0]
-                            theseVertices[i][1] += current[1]
-                        texcoords = texcoords_list[i_all]
-
-                        vertices[i_all * 4:i_all * 4 + 4] = theseVertices
-                        self._texcoords[i_all * 4:i_all * 4 + 4] = texcoords
-                        self._colors[i_all*4 : i_all*4+4, :3] = rgb
-                        self._colors[i_all*4 : i_all*4+4, 3] = self.opacity
-                        self._lineNs[i_all] = lineN
-                        
-                        current[0] = current[0] + charwidth_list[i_all]
-                        current[1] = current[1] + y_advance_list[i_all]
-                        
-                        # have we stored the top/bottom of this line yet
-                        if lineN + 1 > len(self._lineTops):
-                            self._lineBottoms.append(current[1] + font.descender)
-                            self._lineTops.append(current[1] + self._lineHeight
-                                                   + font.descender/2)
-
-                        i_all += 1
-                    
-                    current[0] = 0
-                    current[1] -= self._lineHeight
-                    
-                    lineBreakPt = vertices[(i_all-1) * 4, 0]
-                    self._lineLenChars.append(len(line))
-                    self._lineWidths.append(getLineWidthFromPix(lineBreakPt))
-                    lineN += 1
-
-            else: # No characters in this line (this may be unnecessary)
-                # have we stored the top/bottom of this line yet
-                if lineN + 1 > len(self._lineTops):
-                    self._lineBottoms.append(current[1] + font.descender)
-                    self._lineTops.append(current[1] + self._lineHeight
-                                           + font.descender/2)
-                current[0] = 0
-                current[1] -= self._lineHeight
-
-                lineBreakPt = vertices[(i_all-1) * 4, 0]
-                self._lineLenChars.append(len(line))
-                self._lineWidths.append(getLineWidthFromPix(lineBreakPt))
-                lineN += 1
-
-        else:
-            wordLen = 0
-            charsThisLine = 0
-            wordsThisLine = 0
-            lineN = 0
-
-            for i, charcode in enumerate(self._text):
+            for i, charcode in enumerate(text_seg[this_seg]):
                 printable = True  # unless we decide otherwise
                 # handle formatting codes
-                if self._styles[i] == NONE:
+                if styles_seg[this_seg][i] == NONE:
                     fakeItalic = 0.0
                     fakeBold = 0.0
-                elif self._styles[i] == ITALIC:
+                elif styles_seg[this_seg][i] == ITALIC:
                     fakeItalic = 0.1 * font.size
-                elif self._styles[i] == ITALIC:
+                elif styles_seg[this_seg][i] == ITALIC:
                     fakeBold = 0.3 * font.size
 
                 # handle newline
@@ -633,9 +493,9 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                         glyph = font[u"·"]
                     else:
                         glyph = font[charcode]
-                    xBotL = current[0] + glyph.offset[0] - fakeItalic - fakeBold / 2
-                    xTopL = current[0] + glyph.offset[0] - fakeBold / 2
-                    yTop = current[1] + glyph.offset[1]
+                    xBotL = glyph.offset[0] - fakeItalic - fakeBold / 2
+                    xTopL = glyph.offset[0] - fakeBold / 2
+                    yTop = glyph.offset[1]
                     xBotR = xBotL + glyph.size[0] * alphaCorrection + fakeBold
                     xTopR = xTopL + glyph.size[0] * alphaCorrection + fakeBold
                     yBot = yTop - glyph.size[1]
@@ -645,8 +505,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                     v1 = glyph.texcoords[3]
                 else:
                     glyph = font[u"·"]
-                    x = current[0] + glyph.offset[0]
-                    yTop = current[1] + glyph.offset[1]
+                    x = glyph.offset[0]
+                    yTop = glyph.offset[1]
                     yBot = yTop - glyph.size[1]
                     xBotL = x
                     xTopL = x
@@ -657,64 +517,81 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                     u1 = glyph.texcoords[2]
                     v1 = glyph.texcoords[3]
 
-                theseVertices = [[xTopL, yTop], [xBotL, yBot],
-                                 [xBotR, yBot], [xTopR, yTop]]
-                texcoords = [[u0, v0], [u0, v1],
-                             [u1, v1], [u1, v0]]
+                # calculate width and update segment width
+                w = glyph.advance[0] + fakeBold / 2
+                thisSegWidth += w
 
-                vertices[i * 4:i * 4 + 4] = theseVertices
-                self._texcoords[i * 4:i * 4 + 4] = texcoords
-                self._colors[i*4 : i*4+4, :4] = rgb
-                self._lineNs[i] = lineN
-                current[0] = current[0] + glyph.advance[0] + fakeBold / 2
-                current[1] = current[1] + glyph.advance[1]
+                # keep vertices, texcoords, width and y_advance of this character
+                vertices_list.append([[xTopL, yTop], [xBotL, yBot],
+                                      [xBotR, yBot], [xTopR, yTop]])
+                texcoords_list.append([[u0, v0], [u0, v1],
+                                       [u1, v1], [u1, v0]])
+                charwidth_list.append(w)
+                y_advance_list.append(glyph.advance[1])
 
-                # are we wrapping the line?
-                if charcode == "\n":
-                    lineWPix = current[0]
-                    current[0] = 0
-                    current[1] -= self._lineHeight
-                    lineN += 1
-                    charsThisLine += 1
-                    self._lineLenChars.append(charsThisLine)
-                    self._lineWidths.append(getLineWidthFromPix(lineWPix))
-                    charsThisLine = 0
-                    wordsThisLine = 0
-                elif charcode in wordBreaks:
-                    wordLen = 0
-                    charsThisLine += 1
-                    wordsThisLine += 1
-                elif printable:
-                    wordLen += 1
-                    charsThisLine += 1
+            # append width of this segment to the list
+            segwidth_list.append(thisSegWidth)
 
-                # end line with auto-wrap on space
-                if current[0] >= lineMax and wordLen > 0 and wordsThisLine:
-                    # move the current word to next line
-                    lineBreakPt = vertices[(i - wordLen + 1) * 4, 0]
-                    wordWidth = current[0] - lineBreakPt
-                    # shift all chars of the word left by wordStartX
-                    vertices[(i - wordLen + 1) * 4: (i + 1) * 4, 0] -= lineBreakPt
-                    vertices[(i - wordLen + 1) * 4: (i + 1) * 4, 1] -= self._lineHeight
-                    # update line values
-                    self._lineNs[i - wordLen + 1: i + 1] += 1
-                    self._lineLenChars.append(charsThisLine - wordLen)
-                    self._lineWidths.append(getLineWidthFromPix(lineBreakPt))
-                    lineN += 1
-                    # and set current to correct location
-                    current[0] = wordWidth
-                    current[1] -= self._lineHeight
-                    charsThisLine = wordLen
+        # concatenate segments to build line
+        lines = []
+        while text_seg:
+            line_width = 0
+            for i in range(len(text_seg)):
+                # if this segment is \n, break line here.
+                if text_seg[i][-1] == '\n':
+                    i+=1 # increment index to include \n to current line
+                    break
+                # concatenate next segment
+                line_width += segwidth_list[i]
+                # break if line_width is greater than lineMax
+                if lineMax < line_width:
+                    break
+            else:
+                # if for sentence finished without break, all segments 
+                # should be concatenated.
+                i = len(text_seg)
+            p = max(1, i)
+            # concatenate segments and remove from segment list
+            lines.append("".join(text_seg[:p]))
+            del text_seg[:p], segwidth_list[:p] #, avoid[:p]
 
-                # have we stored the top/bottom of this line yet
-                if lineN + 1 > len(self._lineTops):
-                    self._lineBottoms.append(current[1] + font.descender)
-                    self._lineTops.append(current[1] + self._lineHeight
-                                          + font.descender/2)
+        # build lines
+        i = 0 # index of the current character
+        if lines:
+            for line in lines:
+                for c in line:
+                    theseVertices = vertices_list[i]
+                    #update vertices
+                    for j in range(4):
+                        theseVertices[j][0] += current[0]
+                        theseVertices[j][1] += current[1]
+                    texcoords = texcoords_list[i]
+
+                    vertices[i * 4:i * 4 + 4] = theseVertices
+                    self._texcoords[i * 4:i * 4 + 4] = texcoords
+                    self._colors[i*4 : i*4+4, :4] = rgb
+                    self._lineNs[i] = lineN
+
+                    current[0] = current[0] + charwidth_list[i]
+                    current[1] = current[1] + y_advance_list[i]
+                    
+                    # have we stored the top/bottom of this line yet
+                    if lineN + 1 > len(self._lineTops):
+                        self._lineBottoms.append(current[1] + font.descender)
+                        self._lineTops.append(current[1] + self._lineHeight
+                                               + font.descender/2)
+
+                    # next chacactor
+                    i += 1
                 
-            # finally add length of this (unfinished) line
-            self._lineWidths.append(getLineWidthFromPix(current[0]))
-            self._lineLenChars.append(charsThisLine)
+                # prepare for next line
+                current[0] = 0
+                current[1] -= self._lineHeight
+                
+                lineBreakPt = vertices[(i-1) * 4, 0]
+                self._lineLenChars.append(len(line))
+                self._lineWidths.append(getLineWidthFromPix(lineBreakPt))
+                lineN += 1
 
         # convert the vertices to stimulus units
         self._rawVerts = vertices / self._pixelScaling
