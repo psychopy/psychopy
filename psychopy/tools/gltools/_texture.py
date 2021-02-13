@@ -17,7 +17,8 @@ __all__ = [
     'bindTexture',
     'unbindTexture',
     'createCubeMap',
-    'TexCubeMapInfo'
+    'TexCubeMapInfo',
+    'pixelUpload'
 ]
 
 import ctypes
@@ -26,6 +27,7 @@ import numpy as np
 from PIL import Image
 import pyglet.gl as GL  # using Pyglet for now
 
+from psychopy.tools.arraytools import array2pointer
 from ._misc import maxSamples
 
 
@@ -806,6 +808,50 @@ def deleteTexture(texture):
     else:
         raise RuntimeError("Attempting to delete texture which is presently "
                            "bound.")
+
+
+def pixelUpload(texture, data, rect=None):
+    """Set the texel data of an existing mutable texture storage.
+
+    This function invokes `glTexSubImage2D` on the given texture represented by
+    the `TexImage2DInfo` object specified as `tex`. This allows for the texture
+    data to be updated without creating a new texture storage.
+
+    The texture **must be bound** prior to performing this operation.
+
+    Parameters
+    ---------
+    texture : TexImage2DInfo
+        Mutable texture storage types.
+    data : ArrayLike
+        Input array. Should have the same type as the texture's internal format.
+        If not, bad things may happen!
+    rect : ArrayLike or None
+        Rectangle (x, y, w, h) specifying the region of the texture being
+        updated.
+
+    """
+    if not isinstance(texture, (TexImage2DInfo,)):
+        raise TypeError(
+            "Object specified to `texture` is not a mutable texture type.")
+
+    if rect is None:
+        x = y = 0
+        w, h = texture.size
+    else:
+        if len(rect) != 4:
+            raise ValueError('Expected `rect` to have length 4.')
+        x, y, w, h = [int(i) for i in rect]
+
+    # We should check if we have an input array of the correct type for the
+    # texture.
+    GL.glTexImage2D(
+        texture.target,
+        texture.level,
+        x, y, w, h,  # rect
+        texture.internalFormat,
+        texture.pixelFormat,
+        array2pointer(data))
 
 
 if __name__ == "__main__":

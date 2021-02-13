@@ -117,7 +117,8 @@ __all__ = [
     'getModelViewMatrix',
     'getProjectionMatrix',
     'maxSamples',
-    'quadBuffersSupported'
+    'quadBuffersSupported',
+    'pixelUpload'
 ]
 
 
