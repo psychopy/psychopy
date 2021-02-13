@@ -123,10 +123,6 @@ class Test_Window(object):
         assert fbo.depthBuffer is depthStencilBuffer
         assert fbo.stencilBuffer is depthStencilBuffer
 
-        # detach buffers again
-        #for i in list(fbo.attachments.keys()):
-        #    detachBuffer(fbo, i)
-
         # delete references to attachments
         oldCbName = colorBuffer.name.value
         oldDbName = depthStencilBuffer.name.value
