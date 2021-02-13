@@ -19,7 +19,6 @@ If your copy of the repository comes from before we used the 2-trunk GitFlow the
 - :ref:`addFeature`
 - :ref:`pullRequest`
 
-
 .. _gitWorkflow:
 
 PsychoPy Git Flow
@@ -62,7 +61,7 @@ When making commits that fall into several commit categories (e.g., BF and TEST)
 
 NB: The difference between BF and FF is that BF indicates a fix that is appropriate for back-porting to earlier versions, whereas FF indicates a fix to code that has not been released, and so cannot be back-ported.
 
-So, a good commit message looks like this. Note
+So, a good commit message looks something like this. Note a) the commit title tells us what was fixed, the message tells us how that was achieved and includes a link to the GitHub issue if possible.
 
 .. code-block:: none
 
@@ -77,7 +76,7 @@ So, a good commit message looks like this. Note
 Setting up your repository first time
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-When you first start using
+When you first start using the repo there are a few additional steps that you won't need to do afterwards.
 
 .. _createClone:
 
@@ -133,10 +132,10 @@ Fixing bugs and making minor improvements
 
 To fix a bug in the main code, checkout the `release` trunk, create and checkout a new branch, then commit and push to your repo::
 
-    git checkout release
-    git checkout -b hotfix-whatAreYouFixing
-    <do coding here and commits here>
-    git push origin release
+    $ git checkout release
+    $ git checkout -b hotfix-whatAreYouFixing
+         <do coding here and commits here>
+    $ git push origin release
 
 Remember to use good :ref:`commitMessage` for your changes.
 
@@ -181,26 +180,20 @@ If you have an older copy of the repository with a `master` branch then you will
 
     - visit https://github.com/<yourUsername>/psychopy/branches and select the pen next to `master` to rename it `release`
 
-2. Update your local branches to match the remote `release` trunk:
+2. Update your local branches to match the remote `release` trunk::
 
-    ```bash
     git branch -m master release  # rename your local master to be release
     git fetch origin  # fetch the branches from your own remote
     git branch -u origin/release release  # set your renamed release to track origin/release
     git checkout -b dev --track
-    ```
 
-3. EITHER If you don't have a `dev` branch on your origin fork (i.e. first time you switch):
+3. EITHER If you don't have a `dev` branch on your origin fork (i.e. first time you switch)::
 
-    ```bash
     git fetch upstream  # to get the dev branch from there
     git checkout -b dev --track upstream/dev  # create and checkout local dev from upstream
     git push -u origin dev
-    ```
 
-3. OR If you already have a `dev` branch on your personal fork (e.g. you've converted another machine already):
+3. OR If you already have a `dev` branch on your personal fork (e.g. you've converted another machine already)::
 
-    ```bash
     git fetch origin  # to get the dev branch from origin
     git checkout -b dev --track origin/dev  # create and checkout local dev from upstream
-    ```
