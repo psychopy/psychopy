@@ -176,9 +176,9 @@ Converting to the 2-trunk flow
 
 If you have an older copy of the repository with a `master` branch then you will need to follow these steps to get back in sync with the new :ref:`gitWorkflow`:. If you don't yet have a fork then don't worry - just go to :ref:`setupRepo`.
 
-1. Update your fork on GitHub:
+1. Update your fork on GitHub (if you haven't done that already):
 
-    - visit https://github.com/<yourUsername>/psychopy/branches and select the pen next to `master` to rename it `release`
+Visit https://github.com/<yourUsername>/psychopy/branches and select the pen next to `master` to rename it `release`
 
 2. Update your local branches to match the remote `release` trunk::
 
