@@ -36,6 +36,7 @@ import numpy as np
 
 import psychopy.tools.mathtools as mt
 from ._texture import createTexImage2D
+from ._material import SimpleMaterial
 
 # -------------------------
 # 3D Model Helper Functions
@@ -1432,10 +1433,10 @@ def mergeVertices(vertices, faces, textureCoords=None, vertDist=0.0001,
                 newFaces[np.in1d(faces, toMerge).nonzero()[0]] = lastProcIdx
 
                 # handle vertices that were moved
-                for i, idx in enumerate(toMove):
+                for j, idx in enumerate(toMove):
                     newVerts.append(newPos)
                     newTexCoords.append(textureCoords[idx, :])
-                    newFaces[np.argwhere(faces == idx)] = lastProcIdx + i
+                    newFaces[np.argwhere(faces == idx)] = lastProcIdx + j
 
                 lastProcIdx += len(toMove)
 
