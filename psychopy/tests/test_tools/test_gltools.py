@@ -66,7 +66,7 @@ class Test_Window(object):
         fboBinding = GL.GLint()
         GL.glGetIntegerv(GL.GL_FRAMEBUFFER_BINDING, ctypes.byref(fboBinding))
 
-        oldFBO = fboBinding.value  # hold onto the old FBO value
+        # oldFBO = fboBinding.value  # hold onto the old FBO value
         assert fboBinding.value == fbo.name
 
         unbindFBO(fbo)
@@ -114,7 +114,7 @@ class Test_Window(object):
 
         assert isComplete(fbo.target)  # check is complete
         assert fboBinding.value == fbo.name  # true if `bindAfter` has an effect
-        assert oldFBO == fbo.name  # confirm the driver freed the last name
+        # assert oldFBO == fbo.name  # confirm the driver freed the last name
 
         # check attachments are correct
         assert fbo.getColorBuffer() is colorBuffer
@@ -124,8 +124,8 @@ class Test_Window(object):
         assert fbo.stencilBuffer is depthStencilBuffer
 
         # delete references to attachments
-        oldCbName = colorBuffer.name.value
-        oldDbName = depthStencilBuffer.name.value
+        # oldCbName = colorBuffer.name.value
+        # oldDbName = depthStencilBuffer.name.value
 
         # remove reference inside the scope to make sure garbage collection
         # kicks in
@@ -142,8 +142,8 @@ class Test_Window(object):
             internalFormat=GL.GL_DEPTH24_STENCIL8)
 
         # check if the previous buffer were actually freed
-        #assert depthStencilBuffer.name.value == oldDbName
-        #assert colorBuffer.name.value == oldCbName
+        # assert depthStencilBuffer.name.value == oldDbName
+        # assert colorBuffer.name.value == oldCbName
 
         # test if size hint checking works
         caughtSizeHintMismatch = False
