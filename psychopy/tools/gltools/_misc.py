@@ -196,3 +196,7 @@ def quadBuffersSupported():
 
     """
     return getIntegerv(GL.GL_STEREO) == 1
+
+
+if __name__ == "__main__":
+    pass

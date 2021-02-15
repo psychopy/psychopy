@@ -13,6 +13,8 @@ __all__ = [
     'getOpenGL'
 ]
 
+import ctypes
+
 
 class OpenGLEnv(object):
     """OpenGL environment class.
@@ -35,6 +37,7 @@ class OpenGLEnv(object):
     _gl = None
     _glu = None
     _glx = None
+    _extensions = []
 
     def __new__(cls):
         """Called only on the first instantiation of this class. This will
@@ -107,6 +110,23 @@ class OpenGLEnv(object):
 
         """
         return self._gl, self._glu, self._glx
+
+    def extensions(self):
+        """List of extensions supported by the OpenGL driver.
+
+        Examples
+        --------
+        Check if we have a given extension::
+
+            from psychopy.tools.gltools import OpenGL
+            hasExtension = 'EXT_point_parameters' in OpenGL.extensions
+
+        """
+        def gl_get_string(enum):
+            val = ctypes.cast(self._gl.glGetString(enum), ctypes.c_char_p).value
+            return val.decode('UTF-8')
+
+        return gl_get_string(self._gl.GL_EXTENSIONS).split(' ')
 
 
 def getOpenGL():
