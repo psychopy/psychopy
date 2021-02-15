@@ -159,14 +159,14 @@ Creating an empty framebuffer with no attachments::
 
 Create a render target with multiple color texture attachments::
 
-    colorTex = createTexImage2D(1024,1024)  # empty texture
-    depthRb = createRenderbuffer(800,600,internalFormat=GL.GL_DEPTH24_STENCIL8)
+    colorTex = createTexImage2D(1024, 1024)  # empty texture
+    depthRb = createRenderbuffer(800, 600, internalFormat=GL.GL_DEPTH24_STENCIL8)
 
     GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, fbo.id)
-    attach(GL.GL_COLOR_ATTACHMENT0, colorTex)
-    attach(GL.GL_DEPTH_ATTACHMENT, depthRb)
-    attach(GL.GL_STENCIL_ATTACHMENT, depthRb)
-    # or attach(GL.GL_DEPTH_STENCIL_ATTACHMENT, depthRb)
+    attachBuffer(GL.GL_COLOR_ATTACHMENT0, colorTex)
+    attachBuffer(GL.GL_DEPTH_ATTACHMENT, depthRb)
+    attachBuffer(GL.GL_STENCIL_ATTACHMENT, depthRb)
+    # or attachBuffer(GL.GL_DEPTH_STENCIL_ATTACHMENT, depthRb)
     GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
 
 Attach FBO images using a context. This automatically returns to the previous
@@ -174,9 +174,9 @@ FBO binding state when complete. This is useful if you don't know the current
 binding state::
 
     with useFBO(fbo):
-        attach(GL.GL_COLOR_ATTACHMENT0, colorTex)
-        attach(GL.GL_DEPTH_ATTACHMENT, depthRb)
-        attach(GL.GL_STENCIL_ATTACHMENT, depthRb)
+        attachBuffer(GL.GL_COLOR_ATTACHMENT0, colorTex)
+        attachBuffer(GL.GL_DEPTH_ATTACHMENT, depthRb)
+        attachBuffer(GL.GL_STENCIL_ATTACHMENT, depthRb)
 
 How to set userData some custom function might access::
 
@@ -184,14 +184,14 @@ How to set userData some custom function might access::
 
 Binding an FBO for drawing/reading::
 
-    GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, fb.id)
+    GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, fb.name)
 
-Depth-only framebuffers are valid, sometimes need for generating shadows::
+Depth-only framebuffers are valid, sometimes needed for generating shadows::
 
     depthTex = createTexImage2D(800, 600,
                                 internalFormat=GL.GL_DEPTH_COMPONENT24,
                                 pixelFormat=GL.GL_DEPTH_COMPONENT)
-    fbo = createFBO([(GL.GL_DEPTH_ATTACHMENT, depthTex)])
+    fbo = createFBO({GL.GL_DEPTH_ATTACHMENT: depthTex})
 
 Deleting a framebuffer when done with it. This invalidates the framebuffer's ID
 and makes it available for use::

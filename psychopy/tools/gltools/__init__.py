@@ -122,7 +122,7 @@ __all__ = [
     'getProjectionMatrix',
     'maxSamples',
     'quadBuffersSupported',
-    'getFramebufferBinding'
+    'pixelUpload'
 ]
 
 
