@@ -114,6 +114,9 @@ class FormComponent(BaseVisualComponent):
             hint=_translate("Store item data by columns, or rows"),
             label=_localized['Data Format'])
 
+        self.params['pos'].allowedUpdates = []
+        self.params['size'].allowedUpdates = []
+
     def writeInitCode(self, buff):
         inits = getInitVals(self.params)
         # build up an initialization string for Form():
