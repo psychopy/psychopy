@@ -22,13 +22,15 @@ __all__ = [
 
 from collections import namedtuple
 
-import pyglet.gl as GL  # using Pyglet for now
 import numpy as np
 
 from psychopy.visual.helpers import setColor
 
+from ._glenv import OpenGL
 from ._texture import bindTexture, unbindTexture
 from ._misc import getIntegerv
+
+GL = OpenGL.gl
 
 # -------------------------
 # Material Helper Functions

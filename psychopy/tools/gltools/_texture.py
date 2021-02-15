@@ -21,12 +21,12 @@ __all__ = [
 ]
 
 import ctypes
-
 import numpy as np
 from PIL import Image
-import pyglet.gl as GL  # using Pyglet for now
-
+from ._glenv import OpenGL
 from ._misc import maxSamples
+
+GL = OpenGL.gl
 
 
 # -----------------

@@ -20,8 +20,10 @@ __all__ = [
 ]
 
 from collections import namedtuple
-import pyglet.gl as GL
+from ._glenv import OpenGL
 from ._misc import getIntegerv
+
+GL = OpenGL.gl
 
 # -------------------------
 # Lighting Helper Functions

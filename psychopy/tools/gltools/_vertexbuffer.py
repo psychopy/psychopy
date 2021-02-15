@@ -41,10 +41,12 @@ __all__ = [
 ]
 
 import ctypes
-import pyglet.gl as GL
 import numpy as np
 import warnings
 from ._constants import GL_COMPAT_TYPES
+from ._glenv import OpenGL
+
+GL = OpenGL.gl
 
 # OpenGL vertex attributes for shaders using GLSL 1.1 spec
 gl_Vertex = 0

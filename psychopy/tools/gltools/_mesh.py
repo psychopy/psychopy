@@ -35,7 +35,10 @@ from PIL import Image
 import numpy as np
 
 import psychopy.tools.mathtools as mt
+from ._glenv import OpenGL
 from ._texture import createTexImage2D
+
+GL = OpenGL.gl
 
 # -------------------------
 # 3D Model Helper Functions

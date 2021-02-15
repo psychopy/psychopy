@@ -23,7 +23,9 @@ __all__ = [
 
 
 import ctypes
-import pyglet.gl as GL
+from ._glenv import OpenGL
+
+GL = OpenGL.gl
 
 # create a query counter to get absolute GPU time
 QUERY_COUNTER = None  # prevent genQueries from being called

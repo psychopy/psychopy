@@ -22,8 +22,10 @@ __all__ = [
 #
 
 import ctypes
+from ._glenv import OpenGL
 from ._misc import *
-import pyglet.gl as GL
+
+GL = OpenGL.gl
 
 
 class RenderbufferInfo(object):

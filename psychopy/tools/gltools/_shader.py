@@ -36,7 +36,9 @@ __all__ = [
 
 import ctypes
 import sys
-import pyglet.gl as GL  # using Pyglet for now
+from ._glenv import OpenGL
+
+GL = OpenGL.gl
 
 
 # -------------------------------

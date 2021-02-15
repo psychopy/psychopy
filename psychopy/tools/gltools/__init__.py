@@ -9,6 +9,8 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 __all__ = [
+    'OpenGL',
+    'getOpenGL',
     'gl_Vertex',
     'gl_Normal',
     'gl_Color',
@@ -61,6 +63,8 @@ __all__ = [
     'useFBO',
     'bindFBO',
     'unbindFBO',
+    'drawBuffers',
+    'readBuffer',
     'RenderbufferInfo',
     'createRenderbuffer',
     'deleteRenderbuffer',
@@ -117,11 +121,13 @@ __all__ = [
     'getModelViewMatrix',
     'getProjectionMatrix',
     'maxSamples',
-    'quadBuffersSupported'
+    'quadBuffersSupported',
+    'getFramebufferBinding'
 ]
 
 
 # all these imports define their own __all__ directives
+from ._glenv import *
 from ._misc import *
 from ._texture import *
 from ._renderbuffer import *

@@ -20,9 +20,12 @@ __all__ = [
 ]
 
 import ctypes
-import numpy as np
 from collections import namedtuple
-import pyglet.gl as GL  # using Pyglet for now
+import numpy as np
+from ._glenv import OpenGL
+
+GL = OpenGL.gl
+
 
 # -----------------------------
 # Misc. OpenGL Helper Functions

@@ -1,6 +1,22 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""OpenGL related constants.
 
-import pyglet.gl as GL
+"""
+
+# Part of the PsychoPy library
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Distributed under the terms of the GNU General Public License (GPL).
+
+__all__ = [
+    'GL_COMPAT_TYPES'
+]
+
 import numpy as np
+from ._glenv import OpenGL
+
+GL = OpenGL.gl
+
 
 GL_COMPAT_TYPES = {
     GL.GL_FLOAT: (np.float32, GL.GLfloat),

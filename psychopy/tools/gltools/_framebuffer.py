@@ -20,17 +20,29 @@ __all__ = [
     'blitFBO',
     'useFBO',
     'bindFBO',
-    'unbindFBO'
+    'unbindFBO',
+    'drawBuffers',
+    'readBuffer',
+    'getFramebufferBinding'
 ]
 
 import ctypes
 from contextlib import contextmanager
 
 import numpy as np
-import pyglet.gl as GL
-
+from ._glenv import OpenGL
 from ._renderbuffer import *
 from ._texture import *
+
+GL = OpenGL.gl
+
+# query enums for getting binding states for OpenGL
+frameBufferBindKeys = {
+    GL.GL_FRAMEBUFFER: GL.GL_FRAMEBUFFER_BINDING,
+    GL.GL_DRAW_FRAMEBUFFER: GL.GL_DRAW_FRAMEBUFFER_BINDING,
+    GL.GL_READ_FRAMEBUFFER: GL.GL_READ_FRAMEBUFFER_BINDING
+}
+
 
 # -----------------------------------
 # Framebuffer Objects (FBO) Functions
@@ -50,34 +62,45 @@ class FramebufferInfo(object):
     OpenGL context. Note that a descriptor's fields may not be contemporaneous
     with the actual configuration of the referenced OpenGL object.
 
+    Parameters
+    ----------
+    name : int
+        OpenGL name of assigned to the framebuffer.
+    target : int
+        Target type for the framebuffer.
+    sizeHint : array_like
+        Size hint for the framebuffer. Not required, but can be used to
+        ensure all the attachments have the same size when creating
+        logical buffers later.
+    sRGB : bool
+        Should this framebuffer be drawn to with sRGB enabled?
+    userData : dict of None
+        Optional user data associated with this descriptor.
+
     """
-    __slots__ = ['name', 'target', 'attachments', '_sRGB', '_isBound',
-                 'userData', 'sizeHint']
+    __slots__ = [
+        'name',
+        'target',
+        'attachments',
+        '_sRGB',
+        '_isBound',
+        '_binding',
+        'userData',
+        'sizeHint',
+        '_readBuffer',
+        '_drawBuffers'
+    ]
 
     def __init__(self, name=0, target=GL.GL_FRAMEBUFFER, sizeHint=None,
                  sRGB=False, userData=None):
-        """
-        Parameters
-        ----------
-        name : int
-            OpenGL name of assigned to the framebuffer.
-        target : int
-            Target type for the framebuffer.
-        sizeHint : array_like
-            Size hint for the framebuffer. Not required, but can be used to
-            ensure all the attachments have the same size when creating
-            logical buffers later.
-        sRGB : bool
-            Should this framebuffer be drawn to with sRGB enabled?
-        userData : dict of None
-            Optional user data associated with this descriptor.
-        """
         self.name = name
         self.target = target
         self.attachments = dict()
         self._sRGB = sRGB
         self.userData = dict() if userData is None else userData
         self._isBound = False
+        self._readBuffer = None
+        self._drawBuffers = ()
 
         if sizeHint is not None:
             sizeHint = np.array(sizeHint, dtype=int)
@@ -89,6 +112,38 @@ class FramebufferInfo(object):
         """`True` if the framebuffer was previously bound using the `bindFBO`
         function."""
         return self._isBound
+
+    # @property
+    # def readBuffer(self):
+    #     """Read buffer to use when this FBO is bound (e.g.,
+    #     `GL_COLOR_ATTACHMENT0`). Returns `None` if no read buffer is specified.
+    #     By default, the first color attachment is used as the default read
+    #     buffer.
+    #     """
+    #     return self._readBuffer
+    #
+    # @readBuffer.setter
+    # def readBuffer(self, value):
+    #     if value not in self.attachments.keys():
+    #         raise RuntimeError(
+    #             "Invalid attachment enum specified to `readBuffer`.")
+    #
+    #     self._readBuffer = value
+    #
+    # @property
+    # def drawBuffers(self):
+    #     """Draw buffers to set when the FBO is bound. Returns an empty list if
+    #     not draw buffers have been specified.
+    #     """
+    #     return tuple(self._drawBuffers)  # immutable
+    #
+    # @drawBuffers.setter
+    # def drawBuffers(self, value):
+    #     if not all([(i in self.attachments.keys()) for i in value]):
+    #         raise RuntimeError(
+    #             "Invalid attachment enum specified to `drawBuffers`.")
+    #
+    #     self._drawBuffers = value
 
     @property
     def depthBuffer(self):
@@ -636,13 +691,18 @@ def bindFBO(fbo, target=None):
         will be used and remain unchanged.
 
     """
-    fboId = 0
-    if isinstance(fbo, FramebufferInfo):
-        fboId = fbo.name
-        if target is not None:
-            fbo.target = target
+    if not isinstance(fbo, FramebufferInfo):
+        raise TypeError("Value for `fbo` must be type `FramebufferInfo`.")
 
-    GL.glBindFramebuffer(fbo.target, fboId)
+    # check if the target is valid, reassign target if specified
+    if target is not None:
+        if target not in (GL.GL_FRAMEBUFFER, GL.GL_READ_FRAMEBUFFER,
+                          GL.GL_DRAW_FRAMEBUFFER):
+            raise TypeError(
+                "Value for `target` must be type `GLenum` or `None`.")
+        fbo.target = target
+
+    GL.glBindFramebuffer(fbo.target, fbo.name)
     fbo._isBound = True  # assume it is, querying the state is not an option
 
     # enable sRGB mode if required
@@ -667,12 +727,117 @@ def unbindFBO(fbo):
             "Framebuffer has not been previously bound with `bindFBO`.")
 
     GL.glBindFramebuffer(fbo.target, 0)
+
     if fbo.sRGB:
         GL.glEnable(GL.GL_FRAMEBUFFER_SRGB)
     else:
         GL.glDisable(GL.GL_FRAMEBUFFER_SRGB)
 
     fbo._isBound = False
+
+
+def drawBuffers(buffers=None):
+    """Set the draw buffers.
+
+    This sets the current draw buffer(s) where all successive draw operations
+    will be diverted to.
+
+    Parameters
+    ----------
+    buffers : list, tuple, GLenum or None
+        Buffer(s) to set as draw buffers. Can be a single `GLenum` (e.g.,
+        `GL_BACK`, `GL_COLOR_ATTACHMENT0`, `GL_NONE`, etc.) or a list of
+        them to bind multiple buffers. If `None`, the draw buffer will be set to
+        `GL_NONE` which will disable drawing. If a framebuffer is bound, drawing
+        targets can be set to its attachments.
+
+    Examples
+    --------
+    Setting the draw buffer to the back buffer::
+
+        drawBuffers(GL_BACK)
+
+    Setting the draw buffer to the attachment of a recently bound framebuffer::
+
+        bindFBO(fbo)
+        if GL_COLOR_ATTACHMENT0 in fbo.attachments.keys():
+            drawBuffers(GL_COLOR_ATTACHMENT0)
+
+        # start drawing here
+
+    Setting multiple draw buffers. Drawing will appear in on all the buffers
+    listed::
+
+        buffers = [GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1]
+        drawBuffers(buffers)
+
+    Sometimes you may wish to issue valid draw commands without actually drawing
+    anything (e.g., during testing). Using `None` or `GL_NONE` will allow for
+    this::
+
+        drawBuffers(None)
+        # same as ...
+        drawBuffers(GL_NONE)
+
+    """
+    buffers = GL.GL_NONE if buffers is None else buffers
+
+    if isinstance(buffers, (list, tuple,)):
+        nBuffers = len(buffers)
+        GL.glDrawBuffers(nBuffers, (GL.GLuint * nBuffers)(buffers))
+    elif isinstance(buffers, (GL.GLenum,)):
+        GL.glDrawBuffer(GL.GLenum)
+    else:
+        raise ValueError('Invalid value specified to `buffers`.')
+
+
+def readBuffer(buffer=None):
+    """Set the read buffer for the specified framebuffer.
+
+    This sets the current draw buffer(s) where all successive draw operations
+    will be diverted to.
+
+    Parameters
+    ----------
+    buffer : GLenum or None
+        Buffer to set as the read buffer. Must be a single `GLenum` (e.g.,
+        `GL_BACK`, `GL_COLOR_ATTACHMENT0`, `GL_NONE`, etc.) value. If `None`,
+        the read buffer will be set to `GL_NONE` which will disable drawing.
+        If a framebuffer is bound, drawing targets can be set to its
+        attachments.
+
+    """
+    buffer = GL.GL_NONE if buffer is None else buffer
+
+    if isinstance(buffer, (GL.GLenum,)):
+        GL.glReadBuffer(GL.GLenum)
+    else:
+        raise ValueError('Invalid value specified to `buffers`.')
+
+
+def getFramebufferBinding(target=GL.GL_FRAMEBUFFER):
+    """Get the current framebuffer name bound to `target`.
+
+    Parameters
+    ----------
+    target : GLenum
+        Framebuffer target.
+
+    Returns
+    -------
+    int
+        Currently bound framebuffer at `target`. If `0`, the default framebuffer
+        is bound.
+
+    """
+    toReturn = GL.GLint()
+    try:
+        GL.glGetIntegerv(
+            frameBufferBindKeys[target], ctypes.byref(toReturn))
+    except KeyError:
+        raise ValueError("Invalid value specified to `target`.")
+
+    return toReturn
 
 
 if __name__ == "__main__":
