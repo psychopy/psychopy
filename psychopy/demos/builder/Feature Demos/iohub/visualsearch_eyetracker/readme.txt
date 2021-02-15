@@ -1,16 +1,16 @@
 Visual search task with eye tracking
-===============================================
+====================================
 
-This is a variant of the visual search experiment originally described in
-Chapter 9. In Chapter 19, we show how to use an eye tracker to monitor eye
-movements whilst the participant is performing the task.
+This demo uses an eye tracker to perform a gaze controlled visual search task. 
+One of the eye trackers supported by PsychoPy must be used.
 
 When the experiment starts, enter the name of the eye tracker configuration
-file to use for the experiment in the 'Eye Tracker config:' field. 
+file to use for the experiment in the 'Eye Tracker Config:' field. 
 Example configuration files for GazePoint (gazepoint_config.yaml), 
 SR Research (eyelink_config.yaml), and Tobii (tobii_config.yaml) eye trackers
-are included for reference. You can edit the eye tracker configuration file
-if the default settings are not appropriate for your desired system configuration.
+are included. You can edit the eye tracker configuration file
+if the default settings are not appropriate for your desired 
+system configuration.
   
 You may also need to install the SDK (software development kit) or
 API (application programming interface) provided by your particular eye tracker
