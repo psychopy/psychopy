@@ -556,6 +556,40 @@ class Slider(MinimalStim, ColorMixin):
 
         self._mouseStateXY = xy
 
+    # Overload color setters so they set sub-components
+    @property
+    def foreColor(self):
+        ColorMixin.foreColor.fget(self)
+    @foreColor.setter
+    def foreColor(self, value):
+        ColorMixin.foreColor.fset(self, value)
+        # Set color for all labels
+        if hasattr(self, "labelObjs"):
+            for obj in self.labelObjs:
+                obj.color = self._foreColor.copy()
+
+    @property
+    def fillColor(self):
+        ColorMixin.fillColor.fget(self)
+    @fillColor.setter
+    def fillColor(self, value):
+        ColorMixin.fillColor.fset(self, value)
+        # Set color for marker
+        if hasattr(self, "marker"):
+            self.marker.fillColor = self._fillColor.copy()
+
+    @property
+    def borderColor(self):
+        ColorMixin.borderColor.fget(self)
+    @borderColor.setter
+    def borderColor(self, value):
+        ColorMixin.borderColor.fset(self, value)
+        # Set color for lines
+        if hasattr(self, "line"):
+            self.line.color = self._borderColor.copy()
+        if hasattr(self, "tickLines"):
+            self.tickLines.colors = self._borderColor.copy()
+
     knownStyles = ['slider', 'rating', 'radio', 'scrollbar']
     legacyStyles = []
     knownStyleTweaks = ['labels45', 'triangleMarker']
