@@ -13,7 +13,7 @@ import copy
 import numpy as np
 
 from psychopy import core, logging, event
-from .basevisual import MinimalStim, ColorMixin
+from .basevisual import MinimalStim, ColorMixin, BaseVisualStim
 from .rect import Rect
 from .grating import GratingStim
 from .elementarray import ElementArrayStim
@@ -62,6 +62,7 @@ class Slider(MinimalStim, ColorMixin):
                  fillColor='Red',
                  borderColor='White',
                  colorSpace='rgb',
+                 opacity=None,
                  font='Helvetica Bold',
                  depth=0,
                  name=None,
@@ -159,6 +160,7 @@ class Slider(MinimalStim, ColorMixin):
         self.color = color
         self.fillColor = fillColor
         self.borderColor = borderColor
+        self.opacity = opacity
         self.font = font
         self.autoDraw = autoDraw
         self.depth = depth
@@ -235,6 +237,13 @@ class Slider(MinimalStim, ColorMixin):
         """
         return self._size
 
+    @property
+    def opacity(self):
+        BaseVisualStim.opacity.fget(self)
+    @opacity.setter
+    def opacity(self, value):
+        BaseVisualStim.opacity.fset(self, value)
+
     def reset(self):
         """Resets the slider to its starting state (so that it can be restarted
         on each trial with a new stimulus)
@@ -263,6 +272,7 @@ class Slider(MinimalStim, ColorMixin):
                                           xys=self.tickLocs,
                                           elementMask=None,
                                           colors=self._borderColor.copy(), colorSpace = self.colorSpace,
+                                          opacities=self._borderColor.alpha,
                                           sizes=tickSize, sfs=0,
                                           autoLog=False)
 
