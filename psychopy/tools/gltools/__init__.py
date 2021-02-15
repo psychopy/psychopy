@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""OpenGL related helper functions.
+"""OpenGL related helper functions and classes.
+
+This module grants access to the complete OpenGL API and provides additional
+tools to simplify many common tasks (e.g., creating vertex buffers, loading
+textures from files, etc.)
 
 """
 
@@ -65,6 +69,7 @@ __all__ = [
     'unbindFBO',
     'drawBuffers',
     'readBuffer',
+    'getFramebufferBinding',
     'RenderbufferInfo',
     'createRenderbuffer',
     'deleteRenderbuffer',
