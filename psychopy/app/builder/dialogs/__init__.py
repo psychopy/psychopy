@@ -1710,6 +1710,7 @@ class DlgComponentProperties(_BaseParamsDlg):
                  editing=False, depends=[],
                  timeout=None, testing=False, type=None):
         style = style | wx.RESIZE_BORDER
+        self.type = type
         _BaseParamsDlg.__init__(self, frame, title, params, order,
                                 helpUrl=helpUrl, size=size, style=style,
                                 editing=editing, depends=depends,
@@ -1717,7 +1718,6 @@ class DlgComponentProperties(_BaseParamsDlg):
         self.frame = frame
         self.app = frame.app
         self.dpi = self.app.dpi
-        self.type = type
 
         # for input devices:
         if 'storeCorrect' in self.params:
