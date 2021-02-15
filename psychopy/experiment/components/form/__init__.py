@@ -43,7 +43,7 @@ class FormComponent(BaseVisualComponent):
                  randomize=False,
                  size=(1, .7),
                  pos=(0, 0),
-                 style=['dark'],
+                 style='dark',
                  itemPadding=0.05,
                  startType='time (s)', startVal='0.0',
                  stopType='duration (s)', stopVal='',
