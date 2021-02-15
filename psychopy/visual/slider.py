@@ -19,7 +19,7 @@ from .grating import GratingStim
 from .elementarray import ElementArrayStim
 from .circle import Circle
 from .shape import ShapeStim
-from .text import TextStim
+from .textbox2 import TextBox2
 from ..tools.attributetools import logAttrib, setAttribute, attributeSetter
 from ..constants import FINISHED, STARTED, NOT_STARTED
 
@@ -271,31 +271,31 @@ class Slider(MinimalStim, ColorMixin):
             if not self.labelLocs:
                 self._setLabelLocs()
             if self.horiz:
-                alignHoriz = 'center'
+                # If slider is horizontal, add or subtract tick length to label y according to flip
                 if not self.flip:
-                    alignVert = 'top'
+                    anchor = 'top-center'
                     self.labelLocs -= [0, self._tickL]
                 else:
-                    alignVert = 'bottom'
+                    anchor = 'bottom-center'
                     self.labelLocs += [0, self._tickL]
-            else:  # vertical
-                alignVert = 'center'
+            else:
+                # If slider is vertical, add or subtract tick length to label x according to flip
                 if not self.flip:
-                    alignHoriz = 'right'
+                    anchor = 'center-right'
                     self.labelLocs -= [self._tickL, 0]
                 else:
-                    alignHoriz = 'left'
+                    anchor = 'center-left'
                     self.labelLocs += [self._tickL, 0]
+            defaultWrap = max(len(str(label)) for label in self.labels)*self.labelHeight
             for tickN, label in enumerate(self.labels):
                 if label is None:
                     continue
-
-                obj = TextStim(self.win, label, font=self.font,
-                               anchorHoriz=alignHoriz, anchorVert=alignVert,
+                obj = TextBox2(self.win, str(label), font=self.font,
+                               anchor=anchor,
                                units=self.units, color=self._foreColor.copy(), colorSpace=self.colorSpace,
-                               pos=self.labelLocs[tickN, :],
-                               height=self.labelHeight, 
-                               wrapWidth=self.labelWrapWidth,
+                               fillColor=None, borderColor=None,
+                               pos=self.labelLocs[tickN, :], size=(self.labelWrapWidth or defaultWrap, self.labelHeight),
+                               letterHeight=self.labelHeight,
                                autoLog=False)
                 self.labelObjs.append(obj)
 
