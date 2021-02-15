@@ -548,7 +548,7 @@
         <Param name="forceEndRoutine" val="False" valType="bool" updates="constant"/>
         <Param name="granularity" val="0" valType="num" updates="constant"/>
         <Param name="labels" val="'left','hand','labels'" valType="list" updates="constant"/>
-        <Param name="letterHeight" val="0.05" valType="num" updates="constant"/>
+        <Param name="letterHeight" val="0.03" valType="num" updates="constant"/>
         <Param name="name" val="leftLabels" valType="code" updates="None"/>
         <Param name="opacity" val="" valType="num" updates="constant"/>
         <Param name="ori" val="0" valType="num" updates="constant"/>
@@ -583,7 +583,7 @@
         <Param name="forceEndRoutine" val="False" valType="bool" updates="constant"/>
         <Param name="granularity" val="0" valType="num" updates="constant"/>
         <Param name="labels" val="('flip', 'for', 'right-hand')" valType="list" updates="constant"/>
-        <Param name="letterHeight" val="0.05" valType="num" updates="constant"/>
+        <Param name="letterHeight" val="0.03" valType="num" updates="constant"/>
         <Param name="name" val="rightLabels" valType="code" updates="None"/>
         <Param name="opacity" val="" valType="num" updates="constant"/>
         <Param name="ori" val="0" valType="num" updates="constant"/>
