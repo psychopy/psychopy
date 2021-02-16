@@ -29,11 +29,8 @@ __all__ = [
 
 import os
 from io import StringIO
-
-import pyglet.gl as GL  # using Pyglet for now
 from PIL import Image
 import numpy as np
-
 import psychopy.tools.mathtools as mt
 from ._glenv import OpenGL
 from ._texture import createTexImage2D
