@@ -14,6 +14,7 @@ __all__ = [
 ]
 
 import ctypes
+# import inspect
 
 
 class OpenGLEnv(object):
@@ -46,6 +47,9 @@ class OpenGLEnv(object):
     _gl = None
     _glu = None
     _glx = None
+
+    # _const = {}
+    # _func = {}
 
     def __new__(cls):
         """Called only on the first instantiation of this class. This will
@@ -88,11 +92,68 @@ class OpenGLEnv(object):
                 # some occasions to have access to this.
                 pass
 
+            # Populate dictionary of symbolic constants and functions for fast
+            # look-up. Most of the functions and constants should be captured
+            # here given how regular OpenGL's naming conventions are.
+            # for attr, val in inspect.getmembers(cls._gl):
+            #     if attr.startswith('GL_') and isinstance(val, (gl.GLenum, int)):
+            #         cls._const[attr] = getattr(cls._gl, attr)
+            #     elif attr.startswith('gl') and callable(val):
+            #         cls._func[attr] = getattr(cls._gl, attr)
+
         return cls.__instance
 
     @property
     def version(self):
-        """The OpenGL version """
+        """The OpenGL API version (`str`).
+        """
+        gl = self._gl
+
+        def gl_get_string(enum):
+            val = ctypes.cast(gl.glGetString(enum), ctypes.c_char_p).value
+            return val.decode('UTF-8')
+
+        return gl_get_string(gl.GL_VERSION)
+
+    # @property
+    # def const(self):
+    #     """Mapping of symbolic constants from the OpenGL API. You can use this
+    #     dictionary to get symbolic constants from the OpenGL API. This is handy
+    #     since you cannot use the `from` directive to import individual names.
+    #
+    #     Examples
+    #     --------
+    #     Get the value of a symbolic constant::
+    #
+    #         from psychopy.tools.gltools import OpenGL
+    #         GL_DEPTH_TEST = OpenGL.const['GL_DEPTH_TEST']
+    #
+    #     Bringing multiple names into the current scope::
+    #
+    #         GL_DEPTH_TEST, GL_BLEND, GL_SCISSOR_TEST = [
+    #             OpenGL.const[sym] for sym in (
+    #                 'GL_DEPTH_TEST', 'GL_BLEND', 'GL_SCISSOR_TEST')]
+    #
+    #     """
+    #     return self._const
+    #
+    # @property
+    # def func(self):
+    #     """Mapping of names and references to OpenGL API functions.
+    #
+    #     Examples
+    #     --------
+    #     Create names for OpenGL API symbolic constants and functions within the
+    #     current scope::
+    #
+    #         from psychopy.tools.gltools import OpenGL
+    #         glEnable = OpenGL.func['glEnable']
+    #         GL_DEPTH_TEST = OpenGL.const['GL_DEPTH_TEST']
+    #
+    #         glEnable(GL_DEPTH_TEST)  # the actual call
+    #
+    #     """
+    #     return self._func
 
     @property
     def gl(self):
@@ -168,7 +229,7 @@ class OpenGLEnv(object):
             val = ctypes.cast(gl.glGetString(enum), ctypes.c_char_p).value
             return val.decode('UTF-8')
 
-        return gl_get_string(self._gl.GL_EXTENSIONS).split(' ')
+        return gl_get_string(gl.GL_EXTENSIONS).split(' ')
 
 
 def getOpenGL():
