@@ -339,8 +339,8 @@ class _KeyBuffer(object):
         # create the PTB keyboard object and corresponding queue
         allInds, names, keyboards = hid.get_keyboard_indices()
 
-        self._keys = []
-        self._keysStillDown = []
+        self._keys = deque()
+        self._keysStillDown = deque()
 
         if kb_id == -1:
             self.dev = hid.Keyboard()  # a PTB keyboard object
@@ -379,7 +379,10 @@ class _KeyBuffer(object):
         self._processEvts()
         # if no conditions then no need to loop through
         if not keyList and not waitRelease:
-            keyPresses = deque(self._keys)
+            keyPresses = list(self._keysStillDown)
+            for k in list(self._keys):
+                if k not in keyPresses:
+                    keyPresses.append(k)
             if clear:
                 self._keys = deque()
                 self._keysStillDown = deque()
