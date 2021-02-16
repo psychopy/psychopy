@@ -88,7 +88,8 @@ class FramebufferInfo(object):
         'userData',
         'sizeHint',
         '_readBuffer',
-        '_drawBuffers'
+        '_drawBuffers',
+        '_bindCallback'
     ]
 
     def __init__(self, name=0, target=GL.GL_FRAMEBUFFER, sizeHint=None,

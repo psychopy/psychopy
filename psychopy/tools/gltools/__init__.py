@@ -131,7 +131,10 @@ __all__ = [
     'clearColor',
     'clearDepth',
     'clearStencil',
-    'clearBuffer'
+    'clearBuffer',
+    'enable',
+    'disable',
+    'isEnabled'
 ]
 
 

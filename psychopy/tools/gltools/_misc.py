@@ -20,7 +20,10 @@ __all__ = [
     'clearColor',
     'clearDepth',
     'clearStencil',
-    'clearBuffer'
+    'clearBuffer',
+    'enable',
+    'disable',
+    'isEnabled'
 ]
 
 import ctypes
@@ -37,22 +40,23 @@ GL = OpenGL.gl
 # -----------------------------
 
 
-def clearColor(col):
+def clearColor(color):
     """Set the color to clear the current buffer with. This function calls
     `glClearColor` but accepts :class:`~psychopy.color.Color` objects and
     arrays for values.
 
     Parameters
     ----------
-    col : ArrayLike or :class:`~psychopy.color.Color`
+    color : ArrayLike or :class:`~psychopy.color.Color`
         Intensity values for each color primary and alpha `(red, green, blue,
         alpha)` ranging from 0 to 1.
 
     """
     # accept values from PsychoPy's internal color class
-    col = col.rgba1 if isinstance(col, colors.Color) else col
+    color = color.rgba1 if isinstance(color, colors.Color) else color
+    assert len(color) == 4
 
-    GL.glClearColor(*col)
+    GL.glClearColor(*color)
 
 
 def clearDepth(zclear=1.0):
@@ -69,7 +73,7 @@ def clearDepth(zclear=1.0):
     if 0 > zclear > 1:
         raise ValueError('Value for `zclear` must be between 0 and 1.')
 
-    GL.glClearDepthf(zclear)
+    GL.glClearDepthf(float(zclear))
 
 
 def clearStencil(sclear=0):
@@ -91,6 +95,9 @@ def clearStencil(sclear=0):
 def clearBuffer(mask=GL.GL_COLOR_BUFFER_BIT):
     """Clear the current buffer. This function calls `glClear`.
 
+    The values to clear a given buffer are specified using the
+    :func:`clearColor`, :func:`clearDepth`, and :func:`clearStencil` functions.
+
     Parameters
     ----------
     mask : ArrayLike or GLenum
@@ -102,6 +109,35 @@ def clearBuffer(mask=GL.GL_COLOR_BUFFER_BIT):
         may also OR together multiple mask flags to achieve the same effect. For
         example, `clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)`.
 
+    Examples
+    --------
+    Clear the color buffer only::
+
+        from psychopy.tools.gltools import (
+            OpenGL, clearColor, clearDepth, clearStencil, clearBuffer)
+        GL = OpenGL.gl
+
+        clearColor((0, 0, 0, 1))  # set the clear color
+        clearBuffer(GL.GL_COLOR_BUFFER_BIT)
+
+    Clear the color, depth, and stencil buffers::
+
+        clearColor((0, 0, 0, 1))  # set the clear color
+        clearDepth()  # clear depth buffer value
+        clearStencil()  # clear the stencil buffer index
+
+        # you can pass clear flags as an array ...
+        clearBuffer((
+            GL.GL_COLOR_BUFFER_BIT,
+            GL.GL_DEPTH_BUFFER_BIT,
+            GL.GL_STENCIL_BUFFER_BIT))
+
+        # ... or combine them using the bitwise OR operator
+        clearBuffer(
+            GL.GL_COLOR_BUFFER_BIT |
+            GL.GL_DEPTH_BUFFER_BIT |
+            GL.GL_STENCIL_BUFFER_BIT)
+
     """
     if isinstance(mask, (list, tuple,)):  # got a list, OR them together
         _maskBits = GL.GL_NONE
@@ -111,6 +147,74 @@ def clearBuffer(mask=GL.GL_COLOR_BUFFER_BIT):
         mask = _maskBits
 
     GL.glClear(mask)  # finally call it
+
+
+def enable(cap):
+    """Enable an OpenGL capability.
+
+    Parameters
+    ----------
+    cap : GLenum
+        Symbolic constant for the OpenGL capability to enable.
+
+    See Also
+    --------
+    disable
+        Compliment of this function, disables an OpenGL capability.
+    isEnabled
+        Check if a capability is enabled in the present OpenGL state.
+
+    Examples
+    --------
+
+    """
+    if not isinstance(cap, GL.GLenum):
+        raise TypeError("Value for `cap` must have type `GLenum`.")
+
+    GL.glEnable(cap)
+
+
+def disable(cap):
+    """Disable an OpenGL capability.
+
+    Parameters
+    ----------
+    cap : GLenum
+        Symbolic constant for the OpenGL capability to disable.
+
+    See Also
+    --------
+    disable
+        Compliment of this function, enables an OpenGL capability.
+    isEnabled
+        Check if a capability is enabled in the present OpenGL state.
+
+    """
+    if not isinstance(cap, GL.GLenum):
+        raise TypeError("Value for `cap` must have type `GLenum`.")
+
+    GL.glDisable(cap)
+
+
+def isEnabled(cap):
+    """Check if an OpenGL capability is currently enabled.
+
+    Parameters
+    ----------
+    cap : GLenum
+        Symbolic constant for the OpenGL capability to check if enabled.
+
+    Returns
+    -------
+    bool
+        State of the OpenGL capability specified by `cap`. If `True`, that
+        capability is currently enabled.
+
+    """
+    if not isinstance(cap, GL.GLenum):
+        raise TypeError("Value for `cap` must have type `GLenum`.")
+
+    return GL.glIsEnabled(cap)
 
 
 def getIntegerv(parName):

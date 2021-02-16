@@ -91,6 +91,10 @@ class OpenGLEnv(object):
         return cls.__instance
 
     @property
+    def version(self):
+        """The OpenGL version """
+
+    @property
     def gl(self):
         """Reference to the module containing the base OpenGL (GL) API.
 
