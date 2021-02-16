@@ -127,7 +127,11 @@ __all__ = [
     'getProjectionMatrix',
     'maxSamples',
     'quadBuffersSupported',
-    'pixelUpload'
+    'pixelUpload',
+    'clearColor',
+    'clearDepth',
+    'clearStencil',
+    'clearBuffer'
 ]
 
 

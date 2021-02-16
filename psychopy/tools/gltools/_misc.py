@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""OpenGL related helper functions.
+"""Misc OpenGL related helper functions.
 
 """
 
@@ -16,12 +16,17 @@ __all__ = [
     'getModelViewMatrix',
     'getProjectionMatrix',
     'maxSamples',
-    'quadBuffersSupported'
+    'quadBuffersSupported',
+    'clearColor',
+    'clearDepth',
+    'clearStencil',
+    'clearBuffer'
 ]
 
 import ctypes
 from collections import namedtuple
 import numpy as np
+import psychopy.colors as colors
 from ._glenv import OpenGL
 
 GL = OpenGL.gl
@@ -31,12 +36,89 @@ GL = OpenGL.gl
 # Misc. OpenGL Helper Functions
 # -----------------------------
 
+
+def clearColor(col):
+    """Set the color to clear the current buffer with. This function calls
+    `glClearColor` but accepts :class:`~psychopy.color.Color` objects and
+    arrays for values.
+
+    Parameters
+    ----------
+    col : ArrayLike or :class:`~psychopy.color.Color`
+        Intensity values for each color primary and alpha `(red, green, blue,
+        alpha)` ranging from 0 to 1.
+
+    """
+    # accept values from PsychoPy's internal color class
+    col = col.rgba1 if isinstance(col, colors.Color) else col
+
+    GL.glClearColor(*col)
+
+
+def clearDepth(zclear=1.0):
+    """Set the value to clear the depth buffer with. This function calls
+    `glClearDepthf`.
+
+    Parameters
+    ----------
+    zclear : float
+        Value to clear the depth buffer with, ranges between 0 (near clipping
+        plane) and 1 (far clipping plane).
+
+    """
+    if 0 > zclear > 1:
+        raise ValueError('Value for `zclear` must be between 0 and 1.')
+
+    GL.glClearDepthf(zclear)
+
+
+def clearStencil(sclear=0):
+    """Set the value to clear the depth buffer with. This function calls
+    `glClearStencil`.
+
+    Parameters
+    ----------
+    sclear : int
+        Index used when the stencil buffer is cleared.
+
+    """
+    if sclear < 0:
+        raise ValueError('Value for `sclear` must be >0.')
+
+    GL.glClearStencil(sclear)
+
+
+def clearBuffer(mask=GL.GL_COLOR_BUFFER_BIT):
+    """Clear the current buffer. This function calls `glClear`.
+
+    Parameters
+    ----------
+    mask : ArrayLike or GLenum
+        Buffers to clear. Valid values are `GL_COLOR_BUFFER_BIT`,
+        `GL_DEPTH_BUFFER_BIT` or `GL_STENCIL_BUFFER_BIT`, to clear the color,
+        depth or stencil buffer, respectively. Values can be passed as an array
+        to clear multiple buffers (i.e. `(GL_COLOR_BUFFER_BIT,
+        GL_DEPTH_BUFFER_BIT)` will clear both the color and depth buffer. You
+        may also OR together multiple mask flags to achieve the same effect. For
+        example, `clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)`.
+
+    """
+    if isinstance(mask, (list, tuple,)):  # got a list, OR them together
+        _maskBits = GL.GL_NONE
+        for bits in mask:
+            _maskBits |= bits
+
+        mask = _maskBits
+
+    GL.glClear(mask)  # finally call it
+
+
 def getIntegerv(parName):
     """Get a single integer parameter value, return it as a Python integer.
 
     Parameters
     ----------
-    pName : int
+    parName : int
         OpenGL property enum to query (e.g. GL_MAJOR_VERSION).
 
     Returns
@@ -55,7 +137,7 @@ def getFloatv(parName):
 
     Parameters
     ----------
-    pName : float
+    parName : float
         OpenGL property enum to query.
 
     Returns
@@ -74,7 +156,7 @@ def getString(parName):
 
     Parameters
     ----------
-    pName : int
+    parName : int
         OpenGL property enum to query (e.g. GL_VENDOR).
 
     Returns
@@ -95,7 +177,7 @@ def getModelViewMatrix():
         4x4 model/view matrix.
 
     """
-    modelview = np.zeros((4, 4), dtype=np.float32)
+    modelview = np.zeros((4, 4), dtype=np.float32, order='C')
 
     GL.glGetFloatv(GL.GL_MODELVIEW_MATRIX, modelview.ctypes.data_as(
         ctypes.POINTER(ctypes.c_float)))
