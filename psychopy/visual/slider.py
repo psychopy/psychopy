@@ -278,7 +278,11 @@ class Slider(MinimalStim, ColorMixin):
         ColorMixin.borderColor.fset(self, value)
         # Set color of lines
         if hasattr(self, 'line'):
-            self.line.color = self._borderColor.copy()
+            if self.style not in ["scrollbar"]: # Scrollbar doesn't have an outline
+                self.line.color = self._borderColor.copy()
+            self.line.fillColor = self._borderColor.copy()
+            if self.style in ["slider", "scrollbar"]: # Slider and scrollbar need translucent fills
+                self.line._fillColor.alpha *= 0.2
         if hasattr(self, 'tickLines'):
             self.tickLines.colors = self._borderColor.copy()
             self.tickLines.opacities = self._borderColor.alpha
