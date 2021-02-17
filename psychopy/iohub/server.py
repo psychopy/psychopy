@@ -758,15 +758,16 @@ class ioServer(object):
                 if self._hookDevice is None:
                     self._hookDevice = []
                 if dev_cls_name not in self._hookDevice:
+                    msgpump_interval = self.config.get('msgpump_interval', 0.001)
                     if dev_cls_name == 'Mouse':
                         dmouse = deviceDict['Mouse']
-                        mouseHookMonitor = DeviceMonitor(dmouse, 0.004)
+                        mouseHookMonitor = DeviceMonitor(dmouse, msgpump_interval)
                         self.deviceMonitors.append(mouseHookMonitor)
                         dmouse._CGEventTapEnable(dmouse._tap, True)
                         self._hookDevice.append('Mouse')
                     if dev_cls_name == 'Keyboard':
                         dkeyboard = deviceDict['Keyboard']
-                        kbHookMonitor = DeviceMonitor(dkeyboard, 0.004)
+                        kbHookMonitor = DeviceMonitor(dkeyboard, msgpump_interval)
                         self.deviceMonitors.append(kbHookMonitor)
                         dkeyboard._CGEventTapEnable(dkeyboard._tap, True)
                         self._hookDevice.append('Keyboard')
