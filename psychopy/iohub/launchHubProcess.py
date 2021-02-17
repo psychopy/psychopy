@@ -71,7 +71,7 @@ def run(rootScriptPathDir, configFilePath):
         s.log("Receiving diagram's on: {}".format(udp_port))
         s.udpService.start()
         s.setStatus("INITIALIZING")
-        msgpump_interval = s.config.get('windows_msgpump_interval', 0.005)
+        msgpump_interval = s.config.get('msgpump_interval', 0.001)
         glets = []
 
         tlet = gevent.spawn(s.pumpMsgTasklet, msgpump_interval)
