@@ -39,13 +39,10 @@ How should the stimulus look? Colour, borders, etc.
 fill color : color
     See :ref:`colorspaces`
 
-fill color space : rgb, dkl, lms, hsv
+color space : rgb, dkl, lms, hsv
     See :ref:`colorspaces`
 
 border color : color
-    See :ref:`colorspaces`
-
-border color space : rgb, dkl, lms, hsv
     See :ref:`colorspaces`
 
 line width : int | float

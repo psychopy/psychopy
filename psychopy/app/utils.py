@@ -366,6 +366,9 @@ class PsychopyScrollbar(wx.ScrollBar):
 def updateDemosMenu(frame, menu, folder, ext):
     """Update Demos menu as needed."""
     def _makeButton(parent, menu, demo):
+        # Skip if demo name starts with _
+        if demo.name.startswith("_"):
+            return
         # Create menu button
         item = menu.Append(wx.ID_ANY, demo.name)
         # Store in window's demos list
@@ -374,9 +377,12 @@ def updateDemosMenu(frame, menu, folder, ext):
         parent.Bind(wx.EVT_MENU, parent.demoLoad, item)
 
     def _makeFolder(parent, menu, folder, ext):
+        # Skip if underscore in folder name
+        if folder.name.startswith("_"):
+            return
         # Create and append menu for this folder
         submenu = wx.Menu()
-        menu.AppendSubMenu(submenu, prettyname(folder.name))
+        menu.AppendSubMenu(submenu, folder.name)
         # Get folder contents
         folderContents = glob.glob(str(folder / '*'))
         for subfolder in sorted(folderContents):
