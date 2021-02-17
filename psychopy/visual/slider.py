@@ -666,17 +666,17 @@ class Slider(MinimalStim, ColorMixin):
 
         if style == 'scrollbar':
             # Make marker the full height and 20% of the width of the slider
-            markerWidth = self.size[0]*0.2
+            markerSz = self.size[0]*0.2 if self.horiz else self.size[1]*0.2
             w, h = self.size
             self.marker = Rect(self.win, units=self.units,
-                               size=[markerWidth, h],
+                               size=[markerSz, h] if self.horiz else [w, markerSz],
                                fillColor=self._fillColor,
                                lineColor=None,
                                autoLog=False)
             # Make the line a translucent box
             self.line = Rect(self.win, units=self.units,
                              pos=self.pos,
-                             size=[w+markerWidth, h],
+                             size=[w+markerSz, h] if self.horiz else [w, h+markerSz],
                              fillColor=self._borderColor.copy(),
                              lineColor=None,
                              autoLog=False)
