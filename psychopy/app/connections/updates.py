@@ -453,7 +453,7 @@ class InstallUpdateDialog(wx.Dialog):
             # zfile is filename not an actual file
             if v is None:  # try and deduce it
                 zFilename = os.path.split(zfile)[-1]
-                searchName = re.search('[0-9]*\.[0-9]*\.[0-9]*.', zFilename)
+                searchName = re.search(r'[0-9]*\.[0-9]*\.[0-9]*.', zFilename)
                 if searchName != None:
                     v = searchName.group(0)[:-1]
                 else:
