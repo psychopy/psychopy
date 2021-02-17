@@ -642,11 +642,11 @@ class Slider(MinimalStim, ColorMixin):
                              autoLog=False)
             self.line._fillColor.alpha *= 0.2
             if self.horiz:
-                markerW = self.size[0] * 0.1
+                markerW = self.size[0] * 0.01
                 markerH = self.size[1] * 0.8
             else:
                 markerW = self.size[0] * 0.8
-                markerH = self.size[1] * 0.1
+                markerH = self.size[1] * 0.01
 
             self.marker = Rect(self.win, units=self.units,
                                size=[markerW, markerH],
