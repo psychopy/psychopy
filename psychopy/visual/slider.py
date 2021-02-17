@@ -243,6 +243,46 @@ class Slider(MinimalStim, ColorMixin):
     @opacity.setter
     def opacity(self, value):
         BaseVisualStim.opacity.fset(self, value)
+        self.fillColor = self._fillColor.copy()
+        self.borderColor = self._borderColor.copy()
+        self.foreColor = self._foreColor.copy()
+    def setOpacity(self, value):
+        self.opacity = value
+
+    @property
+    def foreColor(self):
+        ColorMixin.foreColor.fget(self)
+    @foreColor.setter
+    def foreColor(self, value):
+        ColorMixin.foreColor.fset(self, value)
+        # Set color of each label
+        if hasattr(self, 'labelObjs'):
+            for lbl in self.labelObjs:
+                lbl.color = self._foreColor.copy()
+
+    @property
+    def fillColor(self):
+        ColorMixin.fillColor.fget(self)
+    @fillColor.setter
+    def fillColor(self, value):
+        ColorMixin.fillColor.fset(self, value)
+        # Set color of marker
+        if hasattr(self, 'marker'):
+            self.marker.fillColor = self._foreColor.copy()
+
+    @property
+    def borderColor(self):
+        ColorMixin.borderColor.fget(self)
+    @borderColor.setter
+    def borderColor(self, value):
+        ColorMixin.borderColor.fset(self, value)
+        # Set color of lines
+        if hasattr(self, 'line'):
+            self.line.color = self._borderColor.copy()
+        if hasattr(self, 'tickLines'):
+            self.tickLines.colors = self._borderColor.copy()
+            self.tickLines.opacities = self._borderColor.alpha
+
 
     def reset(self):
         """Resets the slider to its starting state (so that it can be restarted
