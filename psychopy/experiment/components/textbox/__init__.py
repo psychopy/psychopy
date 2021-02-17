@@ -73,7 +73,7 @@ class TextboxComponent(BaseVisualComponent):
                                             startEstim=startEstim,
                                             durationEstim=durationEstim)
         self.type = 'Textbox'
-        self.url = "http://www.psychopy.org/builder/components/text.html"
+        self.url = "https://www.psychopy.org/builder/components/textbox.html"
         self.order += [  # controls order of params within tabs
             "editable", "text",  # Basic tab
             "borderWidth", "opacity",  # Appearance tab

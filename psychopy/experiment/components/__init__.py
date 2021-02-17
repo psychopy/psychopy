@@ -232,8 +232,7 @@ def getInitVals(params, target="PsychoPy"):
         elif name in ['color', 'foreColor', 'borderColor', 'lineColor', 'fillColor']:
             inits[name].val = 'white'
             inits[name].valType = 'str'
-        elif name in ['ori', 'sf', 'size', 'height', 'letterHeight',
-                      'lineColor', 'fillColor', 'lineWidth',
+        elif name in ['ori', 'sf', 'size', 'height', 'letterHeight', 'lineWidth',
                       'phase', 'opacity',
                       'volume',  # sounds
                       'coherence', 'nDots', 'fieldSize', 'dotSize', 'dotLife',
