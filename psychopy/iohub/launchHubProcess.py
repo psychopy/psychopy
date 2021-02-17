@@ -11,6 +11,15 @@ import tempfile
 import time
 
 import gevent
+try:
+    if os.name == 'nt':
+        # Try to get gevent to use libev, not the default libuv.
+        # Libuv only has 1 msec loop resolution (at least on Windows
+        # not sure about other OS'es)
+        gevent.config.loop = "libev-cext"
+except:
+    pass
+
 import psutil
 
 try:
