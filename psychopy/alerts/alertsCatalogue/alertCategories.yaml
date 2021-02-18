@@ -30,7 +30,9 @@
 
 4000:
   cat: Builder experiments
-  4050: Experiment configuration
+  4050:
+    cat: Experiment configuration
+    4051: Experiment from future version
   4100:
     cat: Timing
     4105: Component start time exceeds stop times
