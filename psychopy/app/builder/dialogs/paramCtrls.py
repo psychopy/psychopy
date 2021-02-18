@@ -160,7 +160,9 @@ class ChoiceCtrl(wx.Choice, _ValidatorMixin):
         if string not in self._choices:
             self._choices.append(string)
             self.SetItems(self._choices)
-        wx.Choice.SetStringSelection(self, string)
+        # Don't use wx.Choice.SetStringSelection here
+        # because label string is localized.
+        wx.Choice.SetSelection(self, self._choices.index(string))
 
 class MultiChoiceCtrl(wx.CheckListBox, _ValidatorMixin):
     def __init__(self, parent, valType,
