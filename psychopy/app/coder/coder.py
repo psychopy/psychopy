@@ -364,7 +364,7 @@ class UnitTestFrame(wx.Frame):
             havePytest = False
         self.runpyPath = os.path.join(self.prefs.paths['tests'], 'run.py')
         if sys.platform != 'win32':
-            self.runpyPath = self.runpyPath.replace(' ', '\ ')
+            self.runpyPath = self.runpyPath.replace(' ', r'\ ')
         # setup the frame
         self.IDs = self.app.IDs
         # to right, so Cancel button is clickable during a long test
@@ -506,7 +506,7 @@ class UnitTestFrame(wx.Frame):
             # self.scriptProcessID = wx.Execute(command,
             #    # wx.EXEC_ASYNC| wx.EXEC_NOHIDE, self.scriptProcess)
         else:
-            testSubset = ' ' + testSubset.replace(' ', '\ ')  # protect spaces
+            testSubset = ' ' + testSubset.replace(' ', r'\ ')  # protect spaces
             args = (sys.executable, self.runpyPath, coverage,
                     allStdout, testSubset)
             command = '%s -u %s%s%s%s' % args

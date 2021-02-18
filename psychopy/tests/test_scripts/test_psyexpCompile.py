@@ -72,15 +72,15 @@ class TestComponents(object):
         # Define several "tykes" - values which are likely to cause confusion - along with whether or not they are valid syntax
         tykes = {
             "$hello $there": False,
-            "$hello \$there": False,
+            "$hello \\$there": False,
             "hello $there": False,
-            "\$hello there": True,
+            "\\$hello there": True,
             "#$hello there": False,
             "$#hello there": True,
             "$hello #there": True,
             "$hello #$there": True,
-            "$hello \"\$there\"": True,
-            "$hello \'\$there\'": True,
+            "$hello \"\\$there\"": True,
+            "$hello \'\\$there\'": True,
         }
         # Make a component with a str parameter for each tyke
         tykeComponent = BaseComponent(None, None)

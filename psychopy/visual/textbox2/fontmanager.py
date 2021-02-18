@@ -761,8 +761,8 @@ class FontManager(object):
             # If font name is not found, raise error
             raise MissingFontError("Font `{}` could not be retrieved from the Google Font library.".format(fontName))
         # Get and send file url from returned CSS data
-        fileURL = re.findall("(?<=src: url\().*(?=\) format)", repoResp.content.decode())[0]
-        fileFormat = re.findall("(?<=format\(\').*(?=\'\)\;)", repoResp.content.decode())[0]
+        fileURL = re.findall(r"(?<=src: url\().*(?=\) format)", repoResp.content.decode())[0]
+        fileFormat = re.findall(r"(?<=format\(\').*(?=\'\)\;)", repoResp.content.decode())[0]
         fileResp = requests.get(fileURL)
         if not fileResp.ok:
             # If font file is not available, raise error

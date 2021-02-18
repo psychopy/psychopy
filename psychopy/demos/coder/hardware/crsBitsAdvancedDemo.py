@@ -149,7 +149,7 @@ if  expInfo['Device'] != 'Bits++':
     msg='$enableGammaCorrection=['+lutfile+']\r'
     bits.sendMessage(msg)
     bits.read(timeout=0.1)
-    bits.sendMessage('$EnableTouchScreen=[OFF]\e')
+    bits.sendMessage(r'$EnableTouchScreen=[OFF]\e')
     bits.read(timeout=0.1)
     bits.sendMessage('$Stop\r')
     # Clear the buffer

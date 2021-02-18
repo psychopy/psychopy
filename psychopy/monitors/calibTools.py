@@ -544,7 +544,7 @@ class Monitor(object):
 
         This will write a `json` file to the `monitors` subfolder of your
         PsychoPy configuration folder (typically `~/.psychopy3/monitors` on
-        Linux and macOS, and `%APPDATA%\psychopy3\monitors` on Windows).
+        Linux and macOS, and `%APPDATA%\\psychopy3\\monitors` on Windows).
 
         Additionally saves a pickle (`.calib`) file if you are running
         Python 2.7.
