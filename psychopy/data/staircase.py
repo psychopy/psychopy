@@ -687,7 +687,7 @@ class QuestObject_(QuestObject, _ComparisonMixin):
 
 
 class QuestHandler(StairHandler):
-    """Class that implements the Quest algorithm for quick measurement of
+    r"""Class that implements the Quest algorithm for quick measurement of
     psychophysical thresholds.
 
     Uses Andrew Straw's `QUEST <http://www.visionegg.org/Quest>`_, which is a

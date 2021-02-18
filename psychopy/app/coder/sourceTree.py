@@ -193,7 +193,7 @@ class SourceTreePanel(wx.Panel):
             lineText = lineText.split('#')[0]
             lineTokens = [
                 tok.strip(stripChars) for tok in re.split(
-                    ' |\(|\)', lineText) if tok]
+                    r' |\(|\)', lineText) if tok]
 
             # for some reason the line is valid but cannot be parsed, ignore it
             try:

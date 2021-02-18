@@ -39,7 +39,7 @@ class ButtonComponent(BaseVisualComponent):
     """
     A component for presenting a clickable textbox with a programmable callback
     """
-    categories = ['Stimuli', 'Responses']
+    categories = ['Responses']
     targets = ['PsychoPy']
 
     def __init__(self, exp, parentName, name="button",
