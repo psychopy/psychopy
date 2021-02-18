@@ -13,7 +13,7 @@ import copy
 import numpy as np
 
 from psychopy import core, logging, event
-from .basevisual import MinimalStim, ColorMixin
+from .basevisual import MinimalStim, ColorMixin, BaseVisualStim
 from .rect import Rect
 from .grating import GratingStim
 from .elementarray import ElementArrayStim
@@ -62,6 +62,7 @@ class Slider(MinimalStim, ColorMixin):
                  fillColor='Red',
                  borderColor='White',
                  colorSpace='rgb',
+                 opacity=None,
                  font='Helvetica Bold',
                  depth=0,
                  name=None,
@@ -159,6 +160,7 @@ class Slider(MinimalStim, ColorMixin):
         self.color = color
         self.fillColor = fillColor
         self.borderColor = borderColor
+        self.opacity = opacity
         self.font = font
         self.autoDraw = autoDraw
         self.depth = depth
@@ -235,6 +237,57 @@ class Slider(MinimalStim, ColorMixin):
         """
         return self._size
 
+    @property
+    def opacity(self):
+        BaseVisualStim.opacity.fget(self)
+    @opacity.setter
+    def opacity(self, value):
+        BaseVisualStim.opacity.fset(self, value)
+        self.fillColor = self._fillColor.copy()
+        self.borderColor = self._borderColor.copy()
+        self.foreColor = self._foreColor.copy()
+    def setOpacity(self, value):
+        self.opacity = value
+
+    @property
+    def foreColor(self):
+        ColorMixin.foreColor.fget(self)
+    @foreColor.setter
+    def foreColor(self, value):
+        ColorMixin.foreColor.fset(self, value)
+        # Set color of each label
+        if hasattr(self, 'labelObjs'):
+            for lbl in self.labelObjs:
+                lbl.color = self._foreColor.copy()
+
+    @property
+    def fillColor(self):
+        ColorMixin.fillColor.fget(self)
+    @fillColor.setter
+    def fillColor(self, value):
+        ColorMixin.fillColor.fset(self, value)
+        # Set color of marker
+        if hasattr(self, 'marker'):
+            self.marker.fillColor = self._foreColor.copy()
+
+    @property
+    def borderColor(self):
+        ColorMixin.borderColor.fget(self)
+    @borderColor.setter
+    def borderColor(self, value):
+        ColorMixin.borderColor.fset(self, value)
+        # Set color of lines
+        if hasattr(self, 'line'):
+            if self.style not in ["scrollbar"]: # Scrollbar doesn't have an outline
+                self.line.color = self._borderColor.copy()
+            self.line.fillColor = self._borderColor.copy()
+            if self.style in ["slider", "scrollbar"]: # Slider and scrollbar need translucent fills
+                self.line._fillColor.alpha *= 0.2
+        if hasattr(self, 'tickLines'):
+            self.tickLines.colors = self._borderColor.copy()
+            self.tickLines.opacities = self._borderColor.alpha
+
+
     def reset(self):
         """Resets the slider to its starting state (so that it can be restarted
         on each trial with a new stimulus)
@@ -263,6 +316,7 @@ class Slider(MinimalStim, ColorMixin):
                                           xys=self.tickLocs,
                                           elementMask=None,
                                           colors=self._borderColor.copy(), colorSpace = self.colorSpace,
+                                          opacities=self._borderColor.alpha,
                                           sizes=tickSize, sfs=0,
                                           autoLog=False)
 
