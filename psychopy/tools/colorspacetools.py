@@ -5,7 +5,15 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-"""Functions and classes related to color space conversion.
+"""Tools related to working with various color spaces.
+
+The routines provided in the module are used to transform color coordinates
+between spaces. Most of the functions here are *vectorized*, allowing for array
+inputs to convert multiple color values at once.
+
+**As of version 2021.0 of PsychoPy**, users ought to use the
+:class:`~psychopy.colors.Color` class for working with color coordinate values.
+
 """
 from __future__ import absolute_import, division, print_function
 
@@ -17,8 +25,6 @@ from past.utils import old_div
 import numpy
 from psychopy import logging
 from psychopy.tools.coordinatetools import sph2cart
-
-import time
 
 
 def unpackColors(colors):  # used internally, not exported by __all__

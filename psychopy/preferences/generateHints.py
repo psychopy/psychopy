@@ -30,7 +30,7 @@ specfiles = ('baseNoArch.spec', 'Darwin.spec',
 prefsDlgSections = ('[general]', '[app]', '[coder]', '[builder]', 
                     '[hardware]', '[connections]', '[keyBindings]')
 # regular expression to extract comment text (as in-lined in .spec files)
-commentObj = re.compile('\#\s*(\S.*$)')
+commentObj = re.compile(r'\#\s*(\S.*$)')
 
 for specfile in specfiles:
     fp = open(specfile, 'r')

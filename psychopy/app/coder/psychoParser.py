@@ -117,7 +117,7 @@ def parsePyScript(src, indentSpaces=4):
             # slice off comment
             lineText = lineText.split('#')[0]
             lineTokens = [
-                tok.strip() for tok in re.split(' |\(|\)', lineText) if tok]
+                tok.strip() for tok in re.split(r' |\(|\)', lineText) if tok]
             defType, defName = lineTokens[:2]
             foundDefs.append((defType, defName, lineIndent, lineno))
 

@@ -1,13 +1,17 @@
 :mod:`psychopy.tools.gltools`
-----------------------------------------
+-----------------------------
 
 .. automodule:: psychopy.tools.gltools
 .. currentmodule:: psychopy.tools.gltools
 
-Overview
-~~~~~~~~
+Shaders
+~~~~~~~
+
+Tools for creating, compiling, using, and inspecting shader programs.
 
 .. autosummary::
+    :toctree: ../generated/
+
     createProgram
     createProgramObjectARB
     compileShader
@@ -28,22 +32,74 @@ Overview
     getInfoLog
     getUniformLocations
     getAttribLocations
+
+Query
+~~~~~
+
+Tools for using OpenGL query objects.
+
+.. autosummary::
+    :toctree: ../generated/
+
     createQueryObject
+    QueryObjectInfo
     beginQuery
     endQuery
     getQuery
     getAbsTimeGPU
+
+Framebuffer Objects (FBO)
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Tools for creating Framebuffer Objects (FBOs).
+
+.. autosummary::
+    :toctree: ../generated/
+
     createFBO
     attach
     isComplete
     deleteFBO
     blitFBO
     useFBO
+
+Renderbuffers
+~~~~~~~~~~~~~
+
+Tools for creating Renderbuffers.
+
+.. autosummary::
+    :toctree: ../generated/
+
     createRenderbuffer
     deleteRenderbuffer
+
+
+Textures
+~~~~~~~~
+
+Tools for creating textures.
+
+.. autosummary::
+    :toctree: ../generated/
+
     createTexImage2D
+    createTexImage2dFromFile
     createTexImage2DMultisample
     deleteTexture
+    bindTexture
+    unbindTexture
+    createCubeMap
+
+Vertex Buffer/Array Objects
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Tools for creating and working with Vertex Buffer Objects (VBOs) and Vertex
+Array Objects (VAOs).
+
+.. autosummary::
+    :toctree: ../generated/
+
     VertexArrayInfo
     createVAO
     drawVAO
@@ -58,11 +114,31 @@ Overview
     setVertexAttribPointer
     enableVertexAttribArray
     disableVertexAttribArray
+
+Materials and Lighting
+~~~~~~~~~~~~~~~~~~~~~~
+
+Tools for specifying the appearance of faces and shading. Note that these tools
+use the legacy OpenGL pipeline which may not be available on your platform. Use
+fragment/vertex shaders instead for newer applications.
+
+.. autosummary::
+    :toctree: ../generated/
+
     createMaterial
     useMaterial
     createLight
     useLights
     setAmbientLight
+
+Meshes
+~~~~~~
+
+Tools for loading or procedurally generating meshes (3D models).
+
+.. autosummary::
+    :toctree: ../generated/
+
     ObjMeshInfo
     loadObjFile
     loadMtlFile
@@ -73,80 +149,21 @@ Overview
     createBox
     transformMeshPosOri
     calculateVertexNormals
+
+Miscellaneous
+~~~~~~~~~~~~~
+
+Miscellaneous tools for working with OpenGL.
+
+.. autosummary::
+    :toctree: ../generated/
+
     getIntegerv
     getFloatv
     getString
     getOpenGLInfo
-    
-Details
-~~~~~~~
-
-.. autofunction:: createProgram
-.. autofunction:: createProgramObjectARB
-.. autofunction:: compileShader
-.. autofunction:: compileShaderObjectARB
-.. autofunction:: embedShaderSourceDefs
-.. autofunction:: deleteObject
-.. autofunction:: deleteObjectARB
-.. autofunction:: attachShader
-.. autofunction:: attachObjectARB
-.. autofunction:: detachShader
-.. autofunction:: detachObjectARB
-.. autofunction:: linkProgram
-.. autofunction:: linkProgramObjectARB
-.. autofunction:: validateProgram
-.. autofunction:: validateProgramARB
-.. autofunction:: useProgram
-.. autofunction:: useProgramObjectARB
-.. autofunction:: getInfoLog
-.. autofunction:: getUniformLocations
-.. autofunction:: getAttribLocations
-.. autofunction:: createQueryObject
-.. autofunction:: beginQuery
-.. autofunction:: endQuery
-.. autofunction:: getQuery
-.. autofunction:: getAbsTimeGPU
-.. autofunction:: createFBO
-.. autofunction:: attach
-.. autofunction:: isComplete
-.. autofunction:: deleteFBO
-.. autofunction:: blitFBO
-.. autofunction:: useFBO
-.. autofunction:: createRenderbuffer
-.. autofunction:: deleteRenderbuffer
-.. autofunction:: createTexImage2D
-.. autofunction:: createTexImage2DMultisample
-.. autofunction:: deleteTexture
-.. autofunction:: createVAO
-.. autofunction:: drawVAO
-.. autofunction:: deleteVAO
-.. autofunction:: createVBO
-.. autofunction:: bindVBO
-.. autofunction:: unbindVBO
-.. autofunction:: mapBuffer
-.. autofunction:: unmapBuffer
-.. autofunction:: deleteVBO
-.. autofunction:: setVertexAttribPointer
-.. autofunction:: enableVertexAttribArray
-.. autofunction:: disableVertexAttribArray
-.. autofunction:: createMaterial
-.. autofunction:: useMaterial
-.. autofunction:: createLight
-.. autofunction:: useLights
-.. autofunction:: setAmbientLight
-.. autofunction:: loadObjFile
-.. autofunction:: loadMtlFile
-.. autofunction:: createUVSphere
-.. autofunction:: createPlane
-.. autofunction:: createMeshGridFromArrays
-.. autofunction:: createMeshGrid
-.. autofunction:: createBox
-.. autofunction:: transformMeshPosOri
-.. autofunction:: calculateVertexNormals
-.. autofunction:: getIntegerv
-.. autofunction:: getFloatv
-.. autofunction:: getString
-.. autofunction:: getOpenGLInfo
+    getModelViewMatrix
+    getProjectionMatrix
 
 
 Examples

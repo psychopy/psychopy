@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""
+r"""
 A stimulus class for playing movies (mpeg, avi, etc...) in PsychoPy
 using VLC.  movie4 does /not/ require avbin to be installed.
 
