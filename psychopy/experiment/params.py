@@ -54,6 +54,12 @@ inputDefaults = {
     'color': 'color',
 }
 
+# These are parameters which once existed but are no longer needed, so inclusion in this list will silence any "future
+# version" warnings
+legacyParams = [
+    'lineColorSpace', 'borderColorSpace', 'fillColorSpace', 'foreColorSpace',  # 2021.1, we standardised colorSpace to be object-wide rather than param-specific
+]
+
 class Param(object):
     """Defines parameters for Experiment Components
     A string representation of the parameter will depend on the valType:
