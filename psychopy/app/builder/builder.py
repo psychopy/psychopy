@@ -2104,6 +2104,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
                                              id,
                                              size=(panelWidth, 10 * self.dpi),
                                              style=wx.BORDER_NONE)
+        self.filter = prefs.builder['componentFilter']
         self._maxBtnWidth = 0  # will store width of widest button
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.componentButtons = []
@@ -2184,7 +2185,17 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
     def makeFavoriteButtons(self):
         # add a copy of each favorite to that panel first
         for thisName in self.favorites.getFavorites():
-            self.addComponentButton(thisName, self.panels['Favorites'])
+            comp = self.components[thisName]
+            # Filter according to prefs
+            cond = True
+            if self.filter == 'Any':
+                cond = True
+            elif self.filter == 'Both':
+                cond = 'PsychoJS' in comp.targets and 'PsychoPy' in comp.targets
+            elif ['PsychoPy', 'PsychoJS'] in self.filter:
+                cond = self.filter in comp.targets
+            if cond:
+                self.addComponentButton(thisName, self.panels['Favorites'])
 
     def makeComponentButtons(self):
         """Make all the components buttons, including favorites
@@ -2194,6 +2205,18 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         # lists
         componentNames = list(self.components.keys())
         componentNames.sort()
+
+        for key, comp in self.components.items():
+            # Filter according to prefs
+            cond = True
+            if self.filter == 'Any':
+                cond = True
+            elif self.filter == 'Both':
+                cond = 'PsychoJS' in comp.targets and 'PsychoPy' in comp.targets
+            elif ['PsychoPy', 'PsychoJS'] in self.filter:
+                cond = self.filter in comp.targets
+            if not cond:
+                componentNames.remove(key)
         for thisName in componentNames:
             thisComp = self.components[thisName]
             # NB thisComp is a class - we can't use its methods/attribs until
