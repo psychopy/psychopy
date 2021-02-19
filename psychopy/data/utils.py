@@ -165,15 +165,17 @@ def indicesFromString(indsString):
         pass
 
 
-def listFromString(val):
+def listFromString(val, excludeEmpties=False):
     """Take a string that looks like a list (with commas and/or [] and make
     an actual python list"""
+    # was previously called strToList and str2list might have been an option!
+    # I'll leave those here for anyone doing a find-in-path for those
     if type(val) == tuple:
         return list(val)
     elif type(val) == list:
         return list(val)  # nothing to do
     elif type(val) != str:
-        raise ValueError("_strToList requires a string as its input not {}"
+        raise ValueError("listFromString requires a string as its input not {}"
                          .format(repr(val)))
     # try to evaluate with ast (works for "'yes,'no'" or "['yes', 'no']")
     try:
@@ -188,7 +190,10 @@ def listFromString(val):
     if val.startswith(('[', '(')) and val.endswith((']', ')')):
         val = val[1:-1]
     asList = val.split(",")
-    asList = [this.strip() for this in asList]
+    if excludeEmpties:
+        asList = [this.strip() for this in asList if this]
+    else:
+        asList = [this.strip() for this in asList]
     return asList
 
 

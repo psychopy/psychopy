@@ -175,9 +175,7 @@ class MultiChoiceCtrl(wx.CheckListBox, _ValidatorMixin):
         # Make initial selection
         if isinstance(vals, str):
             # Convert to list if needed
-            vals = re.sub(r"[\[\]\(\)\"\']", "", vals).split(",")
-            # Remove empties
-            vals = [v for v in vals if v]
+            vals = data.utils.listFromString(vals, excludeEmpties=True)
         self.SetCheckedStrings(vals)
         self.validate()
 
