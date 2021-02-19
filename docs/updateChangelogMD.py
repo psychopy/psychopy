@@ -12,7 +12,8 @@ input_path = rootFolder / 'psychopy/CHANGELOG.txt'
 output_path = thisFolder / 'source/changelog.md'
 
 def repl_link(match):
-
+    """convert sphinx-formatted links `name <url>`_ into markdown [name](url)
+    """ 
     name = match.group('name').strip()
     url = match.group('url')
     print(url)

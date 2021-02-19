@@ -1,4 +1,4 @@
-.. _form:
+.. _formComponent:
 
 Form Component
 --------------
