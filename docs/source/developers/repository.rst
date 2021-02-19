@@ -19,25 +19,23 @@ If your copy of the repository comes from before we used the 2-trunk GitFlow the
 - :ref:`addFeature`
 - :ref:`pullRequest`
 
-
 .. _gitWorkflow:
 
 PsychoPy Git Flow
 ~~~~~~~~~~~~~~~~~~~
 
-Unlike many projects, the PsychoPy repository has TWO main branches, `dev` and `release`. This is similar to the `GitFlow workflow <https://nvie.com/posts/a-successful-git-branching-model/>`_ except that we do not have anything named `master` (that effecively now called `release`).
+Unlike many projects, the PsychoPy repository has TWO main branches, `dev` and `release` (since Feb 2021). The design is similar to the `GitFlow workflow <https://nvie.com/posts/a-successful-git-branching-model/>`_ except that we do not have anything named `master` (that is effectively now called `release`).
 
-Our release pattern is to have "feature releases" (the middle version number changes) 2 or 3 times per year and bug-fix releases several times for each feature release. Major changes to the code, that might include new bugs, should not be included in bug-fix releases. Therefore these two trunks allow us to separate those works.
+The system is designed to support our release pattern, with "feature releases" 2 or 3 times per year and bug-fix releases several times for each feature release. Major changes to the code, that potentially include new bugs, should not be included in bug-fix releases. So then the two main branches are as follows.
 
-
-**The dev branch:** for work that is going **to be held back for the next feature release**. Only fix bugs here if they are related to other un-released code or if the fixes require substantial code changes that might introduce new bugs. Those larger fixes will probably be held back for the next feature release. Simple bug fixes that get based on the `dev` branch might be hard to reincorporate back into the `release` branch .
+**The dev branch:** is for work that is going **to be held back for the next feature release**. Only fix bugs here if they are related to other un-released code or if the fixes require substantial code changes that might introduce new bugs. Those larger fixes will probably be held back for the next feature release. Simple bug fixes that get based on the `dev` branch might be hard to reincorporate back into the `release` branch .
 
 **The release branch:** is for fixes that need **to be included in the next release**. It includes code changes that do not knowingly break/change existing experiments, and are small enough that we can be relatively confident that they do not introduce new bugs. Do not use this trunk for substantial pieces of development where new bugs might be introduced.
 
 .. figure:: /images/psychopyGitFlow.png
     :alt:  Git Flow used by the PsychoPy project, with 2 main trunks for 'dev' and 'release'
 
-    Git Flow used by the PsychoPy project, with 2 main trunks for 'dev' and 'release'. Bug fixes should be based on the `release` branch while new features or substantial code changes are builton the `dev` branch
+    Git Flow used by the PsychoPy project, with 2 main trunks for 'dev' and 'release'. Bug fixes should be based on the `release` branch while new features or substantial code changes are built on the `dev` branch
 
 
 Always create a branch for the work you are doing and take that branch from the tip of either `dev` or `release`.
@@ -63,7 +61,7 @@ When making commits that fall into several commit categories (e.g., BF and TEST)
 
 NB: The difference between BF and FF is that BF indicates a fix that is appropriate for back-porting to earlier versions, whereas FF indicates a fix to code that has not been released, and so cannot be back-ported.
 
-So, a good commit message looks like this. Note
+So, a good commit message looks something like this. Note a) the commit title tells us what was fixed, the message tells us how that was achieved and includes a link to the GitHub issue if possible.
 
 .. code-block:: none
 
@@ -78,7 +76,7 @@ So, a good commit message looks like this. Note
 Setting up your repository first time
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-When you first start using
+When you first start using the repo there are a few additional steps that you won't need to do afterwards.
 
 .. _createClone:
 
@@ -134,10 +132,10 @@ Fixing bugs and making minor improvements
 
 To fix a bug in the main code, checkout the `release` trunk, create and checkout a new branch, then commit and push to your repo::
 
-    git checkout release
-    git checkout -b hotfix-whatAreYouFixing
-    <do coding here and commits here>
-    git push origin release
+    $ git checkout release
+    $ git checkout -b hotfix-whatAreYouFixing
+         <do coding here and commits here>
+    $ git push origin release
 
 Remember to use good :ref:`commitMessage` for your changes.
 
@@ -167,9 +165,7 @@ Once you've folded your new code back into your master and pushed it back to you
 Making a pull request
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Once you've pushed your branch to your repository you can make a pull request from GitHub. If you go to your GitHub page for the repo it should be presenting you with a message explaining that there is new activity on the branch you just pushed, and that yo umight want to create a Pull Request. It's fairly simple form there. The rules about good commit messages don't even really reply to the Pull request because it can be changed later more easily.
-
-When your Pull Request is submitted.
+Once you've pushed your branch to your repository you can make a pull request from GitHub. If you go to your GitHub page for the repo it should be presenting you with a message explaining that there is new activity on the branch you just pushed, and that yo umight want to create a Pull Request. It's fairly simple form there. The rules about good commit messages don't even really reply to the Pull request itself, because it can be changed later more easily.
 
 .. _convertGitFlow:
 
@@ -178,30 +174,21 @@ Converting to the 2-trunk flow
 
 If you have an older copy of the repository with a `master` branch then you will need to follow these steps to get back in sync with the new :ref:`gitWorkflow`:. If you don't yet have a fork then don't worry - just go to :ref:`setupRepo`.
 
-1. Update your fork on GitHub:
+1. Update your fork on GitHub (if you haven't done that already): Visit `https://github.com/<yourUsername>/psychopy/branches` and select the pen next to `master` to rename it as `release`
 
-    - visit https://github.com/<yourUsername>/psychopy/branches and select the pen next to `master` to rename it `release`
+2. Update your local branches to match the remote `release` trunk::
 
-2. Update your local branches to match the remote `release` trunk:
-
-    ```bash
     git branch -m master release  # rename your local master to be release
     git fetch origin  # fetch the branches from your own remote
     git branch -u origin/release release  # set your renamed release to track origin/release
-    git checkout -b dev --track
-    ```
 
-3. EITHER If you don't have a `dev` branch on your origin fork (i.e. first time you switch):
+3a. EITHER If you don't have a `dev` branch on your origin fork (i.e. first time you switch)::
 
-    ```bash
     git fetch upstream  # to get the dev branch from there
     git checkout -b dev --track upstream/dev  # create and checkout local dev from upstream
     git push -u origin dev
-    ```
 
-3. OR If you already have a `dev` branch on your personal fork (e.g. you've converted another machine already):
+3b. OR If you already have a `dev` branch on your personal fork (e.g. you've converted another machine already)::
 
-    ```bash
     git fetch origin  # to get the dev branch from origin
     git checkout -b dev --track origin/dev  # create and checkout local dev from upstream
-    ```

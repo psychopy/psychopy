@@ -483,7 +483,6 @@ def getKeys(keyList=None, modifiers=False, timeStamped=False):
                         .format(timeStamped, windowSystem, modifiers))
 
 
-
 def waitKeys(maxWait=float('inf'), keyList=None, modifiers=False,
              timeStamped=False, clearEvents=True):
     """Same as `~psychopy.event.getKeys`, but halts everything
