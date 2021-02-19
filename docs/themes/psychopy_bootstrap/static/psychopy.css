@@ -77,7 +77,22 @@ h3::before {
     visibility: hidden; 
     pointer-events: none;
   }
-  
+
+/* table formatting */
+.align-default {
+    text-align: left;
+}
+
+/* special cases */
+blockquote ul {
+    font-size: initial;
+    margin: -11px -22px;
+    margin-left: -44px;
+}
+blockquote {
+    border-left: none;
+}
+
 /* logos (big and small) in top left */
 .large-logo img {
     position: absolute;
