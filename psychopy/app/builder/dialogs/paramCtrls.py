@@ -1,3 +1,10 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Part of the PsychoPy library
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Distributed under the terms of the GNU General Public License (GPL).
+
 import os
 import wx
 
@@ -11,6 +18,7 @@ import re
 from pathlib import Path
 
 from ..localizedStrings import _localizedDialogs as _localized
+
 
 class _ValidatorMixin():
     def validate(self, evt=None):
@@ -164,6 +172,7 @@ class ChoiceCtrl(wx.Choice, _ValidatorMixin):
         # because label string is localized.
         wx.Choice.SetSelection(self, self._choices.index(string))
 
+
 class MultiChoiceCtrl(wx.CheckListBox, _ValidatorMixin):
     def __init__(self, parent, valType,
                  vals="", choices=[], fieldName="",
@@ -175,9 +184,7 @@ class MultiChoiceCtrl(wx.CheckListBox, _ValidatorMixin):
         # Make initial selection
         if isinstance(vals, str):
             # Convert to list if needed
-            vals = re.sub(r"[\[\]\(\)\"\']", "", vals).split(",")
-            # Remove empties
-            vals = [v for v in vals if v]
+            vals = data.utils.listFromString(vals, excludeEmpties=True)
         self.SetCheckedStrings(vals)
         self.validate()
 
@@ -192,6 +199,7 @@ class MultiChoiceCtrl(wx.CheckListBox, _ValidatorMixin):
 
     def GetValue(self, evt=None):
         return self.GetCheckedStrings()
+
 
 class FileCtrl(wx.TextCtrl, _ValidatorMixin, _FileMixin):
     def __init__(self, parent, valType,
