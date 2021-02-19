@@ -46,7 +46,7 @@ class PatchComponent(BaseVisualComponent):
             startEstim=startEstim, durationEstim=durationEstim)
 
         self.type = 'Patch'
-        self.url = "http://www.psychopy.org/builder/components/patch.html"
+        self.url = "https://www.psychopy.org/builder/components/patch.html"
         # params
 
         msg = _translate("The image to be displayed - 'sin','sqr'... or a "

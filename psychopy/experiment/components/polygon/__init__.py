@@ -53,7 +53,7 @@ class PolygonComponent(BaseVisualComponent):
             startEstim=startEstim, durationEstim=durationEstim)
 
         self.type = 'Polygon'
-        self.url = "http://www.psychopy.org/builder/components/polygon.html"
+        self.url = "https://www.psychopy.org/builder/components/polygon.html"
         self.exp.requirePsychopyLibs(['visual'])
         self.targets = ['PsychoPy', 'PsychoJS']
         self.order += ['shape', 'nVertices',  # Basic tab

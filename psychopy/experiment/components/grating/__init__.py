@@ -48,7 +48,7 @@ class GratingComponent(BaseVisualComponent):
             startEstim=startEstim, durationEstim=durationEstim)
 
         self.type = 'Grating'
-        self.url = "http://www.psychopy.org/builder/components/grating.html"
+        self.url = "https://www.psychopy.org/builder/components/grating.html"
         self.order += [
             'tex', 'mask', 'phase', 'sf', 'texture resolution', 'interpolate',  # Texture tab
         ]

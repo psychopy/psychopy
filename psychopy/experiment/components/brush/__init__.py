@@ -44,7 +44,7 @@ class BrushComponent(BaseVisualComponent):
             startEstim=startEstim, durationEstim=durationEstim)
 
         self.type = 'Brush'
-        self.url = "http://www.psychopy.org/builder/components/brush.html"
+        self.url = "https://www.psychopy.org/builder/components/brush.html"
         self.exp.requirePsychopyLibs(['visual'])
         self.targets = ['PsychoPy', 'PsychoJS']
         self.order.remove("opacity")  # Move opacity to the end

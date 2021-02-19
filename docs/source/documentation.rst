@@ -5,7 +5,7 @@ Documentation
 .. only:: html
 
     A pdf copy of the current documentation is available at:
-        http://www.psychopy.org/PsychoPyManual.pdf
+        https://www.psychopy.org/PsychoPyManual.pdf
 
     Contents:
 

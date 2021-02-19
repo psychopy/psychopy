@@ -17,7 +17,7 @@ from psychopy.visual import TextBox2
 __author__ = 'Anthony Haffey & Todd Parsons'
 
 class ButtonStim(TextBox2):
-    """A class for putting a button into your experiment.
+    """A class for putting a button into your experiment. A button is essentially a TextBox with a Mouse component contained within it, making it easy to check whether it has been clicked on.
 
     """
 
@@ -40,8 +40,10 @@ class ButtonStim(TextBox2):
         self.timesOff = []
     @property
     def numClicks(self):
+        """How many times has this button been clicked on?"""
         return len(self.timesOn)
 
     @property
     def isClicked(self):
+        """Is this button currently being clicked on?"""
         return bool(self.listener.isPressedIn(self))

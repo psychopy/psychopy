@@ -56,7 +56,7 @@ class TextComponent(BaseVisualComponent):
                                             startEstim=startEstim,
                                             durationEstim=durationEstim)
         self.type = 'Text'
-        self.url = "http://www.psychopy.org/builder/components/text.html"
+        self.url = "https://www.psychopy.org/builder/components/text.html"
 
         # params
         _allow3 = ['constant', 'set every repeat', 'set every frame']  # list

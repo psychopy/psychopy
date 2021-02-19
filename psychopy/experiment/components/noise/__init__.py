@@ -74,7 +74,7 @@ class NoiseStimComponent(BaseVisualComponent):
         self._forceUpdateSeconds = False
 
         self.type = 'NoiseStim'
-        self.url = "http://www.psychopy.org/builder/components/NoiseStim.html"
+        self.url = "https://www.psychopy.org/builder/components/NoiseStim.html"
         self.order += [
             'blendmode',  # Appearance tab
             'noiseElementSize',  # Layout tab

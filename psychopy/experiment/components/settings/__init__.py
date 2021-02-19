@@ -109,7 +109,7 @@ class SettingsComponent(object):
         self.exp = exp  # so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['visual', 'gui'])
         self.parentName = parentName
-        self.url = "http://www.psychopy.org/builder/settings.html"
+        self.url = "https://www.psychopy.org/builder/settings.html"
         self._monitor = None
 
         # if filename is the default value fetch the builder pref for the

@@ -58,7 +58,7 @@ class ioLabsButtonBoxComponent(KeyboardComponent):
             startEstim=startEstim, durationEstim=durationEstim)
 
         self.type = 'ioLabsButtonBox'
-        self.url = "http://www.psychopy.org/builder/components/ioLabs.html"
+        self.url = "https://www.psychopy.org/builder/components/ioLabs.html"
 
         self.exp.requirePsychopyLibs(['hardware'])
         del self.params['allowedKeys']
