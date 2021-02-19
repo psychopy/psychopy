@@ -54,8 +54,14 @@ inputDefaults = {
     'color': 'color',
 }
 
+# These are parameters which once existed but are no longer needed, so inclusion in this list will silence any "future
+# version" warnings
+legacyParams = [
+    'lineColorSpace', 'borderColorSpace', 'fillColorSpace', 'foreColorSpace',  # 2021.1, we standardised colorSpace to be object-wide rather than param-specific
+]
+
 class Param(object):
-    """Defines parameters for Experiment Components
+    r"""Defines parameters for Experiment Components
     A string representation of the parameter will depend on the valType:
 
     >>> print(Param(val=[3,4], valType='num'))
@@ -206,7 +212,7 @@ class Param(object):
             if isStr and self.val.startswith("$"):
                 # a $ in a code parameter is unnecessary so remove it
                 val = "%s" % self.val[1:]
-            elif isStr and self.val.startswith("\$"):
+            elif isStr and self.val.startswith(r"\$"):
                 # the user actually wanted just the $
                 val = "%s" % self.val[1:]
             elif isStr:
@@ -282,7 +288,7 @@ class Param(object):
             if self.codeWanted:
                 # If value begins with an unescaped $, remove the first char and treat the rest as code
                 val = val[1:]
-                inComment = "".join(re.findall("\#.*", val))
+                inComment = "".join(re.findall(r"\#.*", val))
                 inQuotes = "".join(re.findall("[\'\"][^\"|^\']*[\'\"]", val))
                 if not re.findall(r"\$", val):
                     # Return if there are no further dollar signs

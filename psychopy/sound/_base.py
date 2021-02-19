@@ -21,7 +21,7 @@ from sys import platform
 
 
 if platform == 'win32':
-    mediaLocation = "C:\\Windows\Media"
+    mediaLocation = "C:\\Windows\\Media"
 elif platform == 'darwin':
     mediaLocation = "/System/Library/Sounds/"
 elif platform.startswith("linux"):
