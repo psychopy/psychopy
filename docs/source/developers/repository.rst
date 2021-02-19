@@ -165,9 +165,7 @@ Once you've folded your new code back into your master and pushed it back to you
 Making a pull request
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Once you've pushed your branch to your repository you can make a pull request from GitHub. If you go to your GitHub page for the repo it should be presenting you with a message explaining that there is new activity on the branch you just pushed, and that yo umight want to create a Pull Request. It's fairly simple form there. The rules about good commit messages don't even really reply to the Pull request because it can be changed later more easily.
-
-When your Pull Request is submitted.
+Once you've pushed your branch to your repository you can make a pull request from GitHub. If you go to your GitHub page for the repo it should be presenting you with a message explaining that there is new activity on the branch you just pushed, and that yo umight want to create a Pull Request. It's fairly simple form there. The rules about good commit messages don't even really reply to the Pull request itself, because it can be changed later more easily.
 
 .. _convertGitFlow:
 
@@ -183,15 +181,14 @@ If you have an older copy of the repository with a `master` branch then you will
     git branch -m master release  # rename your local master to be release
     git fetch origin  # fetch the branches from your own remote
     git branch -u origin/release release  # set your renamed release to track origin/release
-    git checkout -b dev --track
 
-3. EITHER If you don't have a `dev` branch on your origin fork (i.e. first time you switch)::
+3a. EITHER If you don't have a `dev` branch on your origin fork (i.e. first time you switch)::
 
     git fetch upstream  # to get the dev branch from there
     git checkout -b dev --track upstream/dev  # create and checkout local dev from upstream
     git push -u origin dev
 
-3. OR If you already have a `dev` branch on your personal fork (e.g. you've converted another machine already)::
+3b. OR If you already have a `dev` branch on your personal fork (e.g. you've converted another machine already)::
 
     git fetch origin  # to get the dev branch from origin
     git checkout -b dev --track origin/dev  # create and checkout local dev from upstream
