@@ -60,7 +60,7 @@ class KeyboardComponent(BaseComponent):
             startEstim=startEstim, durationEstim=durationEstim)
 
         self.type = 'Keyboard'
-        self.url = "http://www.psychopy.org/builder/components/keyboard.html"
+        self.url = "https://www.psychopy.org/builder/components/keyboard.html"
         self.exp.requirePsychopyLibs(['gui'])
 
         # params

@@ -54,7 +54,7 @@ class DotsComponent(BaseVisualComponent):
             startEstim=startEstim, durationEstim=durationEstim)
 
         self.type = 'Dots'
-        self.url = "http://www.psychopy.org/builder/components/dots.html"
+        self.url = "https://www.psychopy.org/builder/components/dots.html"
         # Put dot/field size and position where regular size and position are in param order
         self.order.insert(self.order.index("size"), "dotSize")
         self.order.insert(self.order.index("size"), "fieldSize")

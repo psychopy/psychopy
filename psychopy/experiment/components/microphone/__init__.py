@@ -40,7 +40,7 @@ class MicrophoneComponent(BaseComponent):
             startEstim=startEstim, durationEstim=durationEstim)
 
         self.type = 'Microphone'
-        self.url = "http://www.psychopy.org/builder/components/microphone.html"
+        self.url = "https://www.psychopy.org/builder/components/microphone.html"
         self.exp.requirePsychopyLibs(['microphone'])
 
         self.order += []

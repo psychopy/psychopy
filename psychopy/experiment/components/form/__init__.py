@@ -63,7 +63,7 @@ class FormComponent(BaseVisualComponent):
         del self.params['units']  # we only support height units right now
 
         self.type = 'Form'
-        self.url = "http://www.psychopy.org/builder/components/"
+        self.url = "https://www.psychopy.org/builder/components/form.html"
         self.exp.requirePsychopyLibs(['visual', 'event', 'logging'])
 
         # params

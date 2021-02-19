@@ -60,7 +60,7 @@ class EnvGratingComponent(BaseVisualComponent):
             startEstim=startEstim, durationEstim=durationEstim)
 
         self.type = 'EnvGrating'
-        self.url = "http://www.psychopy.org/builder/components/EnvelopeGrating.html"
+        self.url = "https://www.psychopy.org/builder/components/EnvelopeGrating.html"
         self.order = ['carrier', 'mask']
 
         # params

@@ -5460,7 +5460,7 @@ msgstr ""
 
 #: tools/wizard.py:122
 msgid ""
-"can be set in <a href=\"http://www.psychopy.org/general/prefs."
+"can be set in <a href=\"https://www.psychopy.org/general/prefs."
 "html#application-settings-app\">Preferences -> App</a>"
 msgstr ""
 
@@ -5480,19 +5480,19 @@ msgstr ""
 
 #: tools/wizard.py:163
 msgid ""
-"Warning: <a href=\"http://www.psychopy.org/general/timing/reducingFrameDrops."
+"Warning: <a href=\"https://www.psychopy.org/general/timing/reducingFrameDrops."
 "html?highlight=OpenGL+2.0\">OpenGL 2.0 or higher is ideal</a>."
 msgstr ""
 
 #: tools/wizard.py:178
 msgid ""
-"Warning: <a href=\"http://www.psychopy.org/general/timing/reducingFrameDrops."
+"Warning: <a href=\"https://www.psychopy.org/general/timing/reducingFrameDrops."
 "html?highlight=shader\">Rendering of complex stimuli will be slow</a>."
 msgstr ""
 
 #: tools/wizard.py:187
 msgid ""
-"during the drifting <a href=\"http://www.psychopy.org/api/visual/gratingstim."
+"during the drifting <a href=\"https://www.psychopy.org/api/visual/gratingstim."
 "html\">GratingStim</a>"
 msgstr ""
 
@@ -5513,13 +5513,13 @@ msgstr ""
 
 #: tools/wizard.py:219
 msgid ""
-"during <a href=\"http://www.psychopy.org/api/visual/dotstim.html\">DotStim</"
+"during <a href=\"https://www.psychopy.org/api/visual/dotstim.html\">DotStim</"
 "a> with 100 random dots"
 msgstr ""
 
 #: tools/wizard.py:227
 msgid ""
-"Warning: could not keep up during <a href=\"http://www.psychopy.org/api/"
+"Warning: could not keep up during <a href=\"https://www.psychopy.org/api/"
 "visual/dotstim.html\">DotStim</a> with 100 random dots."
 msgstr ""
 
@@ -5553,14 +5553,14 @@ msgstr ""
 
 #: tools/wizard.py:290
 msgid ""
-"try to auto-detect a proxy if needed; see <a href=\"http://www.psychopy.org/"
+"try to auto-detect a proxy if needed; see <a href=\"https://www.psychopy.org/"
 "general/prefs.html#connection-settings-connections\">Preferences -> "
 "Connections</a>"
 msgstr ""
 
 #: tools/wizard.py:300
 msgid ""
-"current manual proxy setting from <a href=\"http://www.psychopy.org/general/"
+"current manual proxy setting from <a href=\"https://www.psychopy.org/general/"
 "prefs.html#connection-settings-connections\">Preferences -> Connections</a>"
 msgstr ""
 
@@ -5627,9 +5627,9 @@ msgstr ""
 #: tools/wizard.py:456
 msgid ""
 "<p>Resources:\n"
-"                | <a href=\"http://www.psychopy.org/documentation.html\">On-"
+"                | <a href=\"https://www.psychopy.org/documentation.html\">On-"
 "line documentation</a>\n"
-"                | Download <a href=\"http://www.psychopy.org/PsychoPyManual."
+"                | Download <a href=\"https://www.psychopy.org/PsychoPyManual."
 "pdf\">PDF manual</a>\n"
 "                | <a href=\"http://groups.google.com/group/psychopy-users"
 "\">Search the user-group archives</a>\n"
@@ -5702,7 +5702,7 @@ msgid ""
 "                <p>If you updated the drivers and still get this message, "
 "you'll\n"
 "                  need a different video card to use PsychoPy. Click\n"
-"                <a href=\"http://www.psychopy.org/installation."
+"                <a href=\"https://www.psychopy.org/installation."
 "html#recommended-hardware\">here\n"
 "                for more information</a> [psychopy.org].</p>\n"
 "            "
