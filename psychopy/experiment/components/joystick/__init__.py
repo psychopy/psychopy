@@ -50,7 +50,7 @@ class JoystickComponent(BaseComponent):
             startEstim=startEstim, durationEstim=durationEstim)
 
         self.type = 'Joystick'
-        self.url = "http://www.psychopy.org/builder/components/joystick.html"
+        self.url = "https://www.psychopy.org/builder/components/joystick.html"
         self.exp.requirePsychopyLibs(['event'])
         self.categories = ['Inputs']
 

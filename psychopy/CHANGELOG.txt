@@ -848,7 +848,7 @@ PsychoPy 1.85.0
 Released: Feb 2017
 
 ADDED:
-    * `Online experiments now supported <http://www.psychopy.org/online/online.html>`_ using new `PsychoJS library <https://github.com/psychopy/psychopy/tree/master/psychojs>`_. See what is supported so far at `PsychoPy online status <http://www.psychopy.org/online/status.html>`_
+    * `Online experiments now supported <https://www.psychopy.org/online/online.html>`_ using new `PsychoJS library <https://github.com/psychopy/psychopy/tree/master/psychojs>`_. See what is supported so far at `PsychoPy online status <https://www.psychopy.org/online/status.html>`_
     * New sound engine using `sounddevice <https://github.com/spatialaudio/python-sounddevice/>`_
     * Checking of image paths for stimuli (did you forget to add ".jpg"?)
     * Copy/paste of a Component is now possible in Builder (right-click the component to copy, use the Experiment menu to paste). This essentially duplicates the component.

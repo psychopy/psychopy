@@ -42,7 +42,7 @@ class ApertureComponent(BaseVisualComponent):
             startEstim=startEstim, durationEstim=durationEstim)
 
         self.type = 'Aperture'
-        self.url = "http://www.psychopy.org/builder/components/aperture.html"
+        self.url = "https://www.psychopy.org/builder/components/aperture.html"
         self.order += []
 
         msg = _translate(
