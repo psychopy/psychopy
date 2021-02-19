@@ -36,7 +36,7 @@ else:
     import StringIO as io
 urllib = web.urllib
 
-versionURL = "http://www.psychopy.org/version.txt"
+versionURL = "https://www.psychopy.org/version.txt"
 
 """The Updater class checks for updates and suggests that an update is carried
 out if a new version is found. The actual updating is handled by
@@ -632,7 +632,7 @@ def sendUsageStats():
         systemInfo = "win32_v" + platform.version()
     else:
         systemInfo = platform.system() + platform.release()
-    u = "http://www.psychopy.org/usage.php?date=%s&sys=%s&version=%s&misc=%s"
+    u = "https://www.psychopy.org/usage.php?date=%s&sys=%s&version=%s&misc=%s"
     URL = u % (dateNow, systemInfo, v, miscInfo)
     try:
         req = urllib.request.Request(URL)

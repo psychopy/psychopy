@@ -78,7 +78,7 @@ class RatingScaleComponent(BaseComponent):
             stopType=stopType, stopVal=stopVal,
             startEstim=startEstim, durationEstim=durationEstim)
         self.type = 'RatingScale'
-        self.url = "http://www.psychopy.org/builder/components/ratingscale.html"
+        self.url = "https://www.psychopy.org/builder/components/ratingscale.html"
         self.exp.requirePsychopyLibs(['visual', 'event'])
 
         # params

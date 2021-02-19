@@ -35,6 +35,7 @@ _localized.update({'callback': _translate("Callback Function"),
                    'timeRelativeTo': _translate("Time relative to")
                    })
 
+
 class ButtonComponent(BaseVisualComponent):
     """
     A component for presenting a clickable textbox with a programmable callback
@@ -65,7 +66,7 @@ class ButtonComponent(BaseVisualComponent):
                                             startEstim=startEstim,
                                             durationEstim=durationEstim)
         self.type = 'Button'
-        self.url = "http://www.psychopy.org/builder/components/button.html"
+        self.url = "https://www.psychopy.org/builder/components/button.html"
         self.order += [  # controls order of params within tabs
             "forceEndRoutine", "text", "callback", "oncePerClick", # Basic tab
             "borderWidth", "opacity",  # Appearance tab

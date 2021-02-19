@@ -46,7 +46,7 @@ class ImageComponent(BaseVisualComponent):
             startEstim=startEstim, durationEstim=durationEstim)
         self.type = 'Image'
         self.targets = ['PsychoPy', 'PsychoJS']
-        self.url = "http://www.psychopy.org/builder/components/image.html"
+        self.url = "https://www.psychopy.org/builder/components/image.html"
         self.exp.requirePsychopyLibs(['visual'])
         # params
         self.order += ['image',  # Basic tab

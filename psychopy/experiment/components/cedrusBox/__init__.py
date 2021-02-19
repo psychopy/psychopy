@@ -62,7 +62,7 @@ class cedrusButtonBoxComponent(KeyboardComponent):
             startEstim=startEstim, durationEstim=durationEstim)
 
         self.type = 'cedrusButtonBox'
-        self.url = "http://www.psychopy.org/builder/components/cedrusButtonBox.html"
+        self.url = "https://www.psychopy.org/builder/components/cedrusButtonBox.html"
         self.order += ['forceEndRoutine',  # Basic tab
                        'allowedKeys', 'store', 'storeCorrect', 'correctAns'  # Data tab
                        ]
