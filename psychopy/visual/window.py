@@ -2244,16 +2244,16 @@ class Window(object):
 
             # box corners in pix
             left = int((rect[0] / 2. + 0.5) * x)
-            top = int((rect[1] / -2. + 0.5) * y)
+            bottom = int((rect[3] / 2. + 0.5) * y)
             w = int((rect[2] / 2. + 0.5) * x) - left
-            h = int((rect[3] / -2. + 0.5) * y) - top
+            h = int((rect[1] / 2. + 0.5) * y) - bottom
         else:
-            left = top = 0
+            left = bottom = 0
             w, h = self.size
 
         # http://www.opengl.org/sdk/docs/man/xhtml/glGetTexImage.xml
         bufferDat = (GL.GLubyte * (4 * w * h))()
-        GL.glReadPixels(left, top, w, h,
+        GL.glReadPixels(left, bottom, w, h,
                         GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, bufferDat)
         try:
             im = Image.fromstring(mode='RGBA', size=(w, h),
