@@ -30,6 +30,7 @@ from .themes import ThemeMixin
 from psychopy.localization import _translate
 from psychopy.tools.stringtools import prettyname
 
+
 class FileDropTarget(wx.FileDropTarget):
     """On Mac simply setting a handler for the EVT_DROP_FILES isn't enough.
     Need this too.
@@ -135,7 +136,7 @@ class PsychopyToolbar(wx.ToolBar, ThemeMixin):
         self._needMakeTools = True
         # Configure toolbar appearance
         self.SetWindowStyle(wx.TB_HORIZONTAL | wx.NO_BORDER | wx.TB_FLAT | wx.TB_NODIVIDER)
-        #self.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
+        # self.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
         # Set icon size (16 for win/linux small mode, 32 for everything else
         self.iconSize = 32  # mac: 16 either doesn't work, or looks bad
         self.SetToolBitmapSize((self.iconSize, self.iconSize))
@@ -363,6 +364,7 @@ class PsychopyScrollbar(wx.ScrollBar):
             pageSize=vsz
         )
 
+
 def updateDemosMenu(frame, menu, folder, ext):
     """Update Demos menu as needed."""
     def _makeButton(parent, menu, demo):
@@ -401,6 +403,8 @@ def updateDemosMenu(frame, menu, folder, ext):
 
     # Make blank dict to store demo details in
     frame.demos = {}
+    if not folder:  # if there is no unpacked demos folder then just return
+        return
 
     # Get root folders
     rootGlob = glob.glob(str(Path(folder) / '*'))
