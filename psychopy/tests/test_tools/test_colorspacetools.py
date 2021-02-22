@@ -83,16 +83,16 @@ def test_dkl2rgb():
     dklColors = np.zeros((N, 3))
 
     # elevation
-    dklColors[:, 2] = np.random.uniform(0, 90, (N,))
+    dklColors[:, 0] = np.random.uniform(0, 90, (N,))
     # azimuth
-    dklColors[:, 2] = np.random.uniform(0, 360, (N,))
+    dklColors[:, 1] = np.random.uniform(0, 360, (N,))
     # radius
     dklColors[:, 2] = np.random.uniform(0, 1, (N,))
 
     # test conversion using vector input
     _ = dkl2rgb(dklColors)
 
-    # now test with some known colors
+    # now test with some known colors, just white for now until we generate more
     dklWhite = [90, 0, 1]
     assert np.allclose(np.asarray((1, 1, 1)), dkl2rgb(dklWhite))
 
