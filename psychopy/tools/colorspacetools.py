@@ -403,12 +403,17 @@ def dkl2rgb(dkl, conversionMatrix=None):
     an accurate representation of the color space unless you supply a
     conversion matrix).
 
-    usage::
+    Examples
+    --------
+    Converting a single DKL color to RGB::
 
-        rgb(Nx3) = dkl2rgb(dkl_Nx3(el,az,radius), conversionMatrix)
-        rgb(NxNx3) = dkl2rgb(dkl_NxNx3(el,az,radius), conversionMatrix)
+        dkl = [90, 0, 1]
+        rgb = dkl2rgb(dkl, conversionMatrix)
 
     """
+    # make sure the input is an array
+    dkl = numpy.asarray(dkl)
+
     if conversionMatrix is None:
         conversionMatrix = numpy.asarray([
             # (note that dkl has to be in cartesian coords first!)
