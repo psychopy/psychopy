@@ -763,6 +763,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         self.app.coder.fileOpen(filename=htmlPath)
 
     def editREADME(self, event):
+        self.showReadme()
         folder = Path(self.filename).parent
         if folder == folder.parent:
             raise FileNotFoundError("Please save experiment before editing the README file")
