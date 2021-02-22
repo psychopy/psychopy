@@ -173,7 +173,7 @@ def srgbTF(rgb, reverse=False, **kwargs):
 
 
 def rec709TF(rgb, **kwargs):
-    """Apply the Rec. 709 transfer function (or gamma) to linear RGB values.
+    """Apply the Rec 709 transfer function (or gamma) to linear RGB values.
 
     This transfer function is defined in the ITU-R BT.709 (2015) recommendation
     document (http://www.itu.int/rec/R-REC-BT.709-6-201506-I/en) and is
