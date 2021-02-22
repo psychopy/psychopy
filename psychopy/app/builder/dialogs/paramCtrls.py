@@ -6,6 +6,9 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import os
+import subprocess
+import sys
+
 import wx
 
 from psychopy.app.colorpicker import PsychoColorPicker
@@ -334,18 +337,22 @@ class TableCtrl(wx.TextCtrl, _ValidatorMixin, _FileMixin):
     def openExcel(self, event):
         """Either open the specified excel sheet, or make a new one from a template"""
         file = self.rootDir / self.GetValue()
-        if file.is_file() and file.suffix in self.validExt:
-            os.startfile(file)
-        else:
+        if not (file.is_file() and file.suffix in self.validExt): # If not a valid file
             dlg = wx.MessageDialog(self, _translate(
                 f"Once you have created and saved your table, please remember to add it to {self.Name}"),
                              caption="Reminder")
             dlg.ShowModal()
             if hasattr(self.GetTopLevelParent(), 'type'):
                 if self.GetTopLevelParent().type in self.templates:
-                    os.startfile(self.templates[self.GetTopLevelParent().type])
-                    return
-            os.startfile(self.templates['None']) # Open blank template
+                    file = self.templates[self.GetTopLevelParent().type] # Open type specific template
+                else:
+                    file = self.templates['None'] # Open blank template
+        # Open whatever file is used
+        try:
+            os.startfile(file)
+        except AttributeError:
+            opener = "open" if sys.platform == "darwin" else "xdg-open"
+            subprocess.call([opener, file])
 
     def findFile(self, event):
         _wld = f"All Table Files({'*'+';*'.join(self.validExt)})|{'*'+';*'.join(self.validExt)}|All Files (*.*)|*.*"
