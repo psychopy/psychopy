@@ -375,10 +375,7 @@ class Color(object):
         if isinstance(target, Color):
             return np.all(np.round(target.rgba, 2) == np.round(self.rgba, 2))
         elif target == None:
-            if len(self) > 1:
-                return all(self.alpha == 0)
-            else:
-                return self.alpha == 0
+            return self._requested is None
         else:
             return False
 
