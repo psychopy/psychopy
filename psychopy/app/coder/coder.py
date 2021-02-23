@@ -2059,6 +2059,8 @@ class CoderFrame(wx.Frame, ThemeMixin):
         # open the find dialog if not already open
         if self.findDlg is not None:
             return
+        if not self.currentDoc:
+            return
         win = wx.Window.FindFocus()
         self.findData.SetFindString(self.currentDoc.GetSelectedText())
         self.findDlg = wx.FindReplaceDialog(win, self.findData, "Find",
