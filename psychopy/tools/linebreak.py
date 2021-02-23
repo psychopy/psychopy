@@ -13,6 +13,7 @@ import os
 import re
 import sqlite3
 from unicodedata import east_asian_width
+from psychopy.tools.linebreak_class import linebreak_class
 
 __all__ = [
     'get_breakable_points',
@@ -93,12 +94,19 @@ if not os.path.exists(dbpath):
 
 _conn = sqlite3.connect(dbpath)
 
-def _line_break(u):
+def _line_break_orig(u):
     
     cur = _conn.cursor()
     cur.execute('select value from LineBreak where cp = ?', (ord(u),))
     for value, in cur:
         return str(value)
+    return 'Other'
+
+def _line_break(u):
+    
+    code = ord(u)
+    if code in linebreak_class:
+        return linebreak_class[code]
     return 'Other'
 
 def line_break(c, index=0):
