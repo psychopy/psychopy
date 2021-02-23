@@ -790,7 +790,9 @@ class _BaseParamsDlg(wx.Dialog):
 
     def launchColorPicker(self, event):
         # bring up a colorPicker
-        PsychoColorPicker(self.frame)
+        dlg = PsychoColorPicker(self.frame)
+        dlg.ShowModal()
+        dlg.Destroy()
 
     def onNewTextSize(self, event):
         self.Fit()  # for ExpandoTextCtrl this is needed
