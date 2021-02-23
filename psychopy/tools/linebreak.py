@@ -11,7 +11,6 @@ Code is based on uniseg 0.7.1 (https://pypi.org/project/uniseg/)
 import sys
 import os
 import re
-import sqlite3
 from unicodedata import east_asian_width
 from psychopy.tools.linebreak_class import linebreak_class
 
@@ -87,6 +86,8 @@ RI = 'RI'   # Regional Indicator
 SA = 'SA'   # Complex Context Dependent (South East Asian)
 XX = 'XX'   # Unknown
 
+"""
+import sqlite3
 
 dbpath = os.path.join(os.path.dirname(__file__), 'linebreaking_classes.sqlite3')
 if not os.path.exists(dbpath):
@@ -94,7 +95,7 @@ if not os.path.exists(dbpath):
 
 _conn = sqlite3.connect(dbpath)
 
-def _line_break_orig(u):
+def _line_break(u):
     
     cur = _conn.cursor()
     cur.execute('select value from LineBreak where cp = ?', (ord(u),))
@@ -102,15 +103,16 @@ def _line_break_orig(u):
         return str(value)
     return 'Other'
 
-def _line_break(u):
+def line_break(c, index=0):
+    return _line_break(code_point(c, index))
+"""
+
+def line_break(c, index=0):
     
-    code = ord(u)
+    code = ord(code_point(c, index))
     if code in linebreak_class:
         return linebreak_class[code]
     return 'Other'
-
-def line_break(c, index=0):
-    return _line_break(code_point(c, index))
 
 def break_units(s, breakables):
     i = 0
