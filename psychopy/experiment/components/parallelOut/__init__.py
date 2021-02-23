@@ -43,7 +43,7 @@ class ParallelOutComponent(BaseComponent):
             startEstim=startEstim, durationEstim=durationEstim)
 
         self.type = 'ParallelOut'
-        self.url = "http://www.psychopy.org/builder/components/parallelout.html"
+        self.url = "https://www.psychopy.org/builder/components/parallelout.html"
         self.categories = ['I/O']
         self.exp.requirePsychopyLibs(['parallel'])
 

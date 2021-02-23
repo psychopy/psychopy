@@ -6,8 +6,7 @@
 #  Distributed under the terms of the new BSD license.
 #
 # -----------------------------------------------------------------------------
-
-"""
+r"""
 TextBox2 provides a combination of features from TextStim and TextBox and then
 some more added:
 

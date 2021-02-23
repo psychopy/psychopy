@@ -28,6 +28,7 @@ import xml.etree.ElementTree as xml
 from xml.dom import minidom
 from copy import deepcopy
 from pathlib import Path
+from packaging.version import Version
 
 import psychopy
 from psychopy import data, __version__, logging
@@ -35,7 +36,7 @@ from .exports import IndentingBuffer, NameSpace
 from .flow import Flow
 from .loops import TrialHandler, LoopInitiator, \
     LoopTerminator, StairHandler, MultiStairHandler
-from .params import _findParam, Param
+from .params import _findParam, Param, legacyParams
 from .routine import Routine
 from . import utils, py2js
 from .components import getComponents, getAllComponents
@@ -46,6 +47,9 @@ import locale
 # standard_library.install_aliases()
 
 from collections import OrderedDict, namedtuple
+
+from ..alerts import alert
+
 RequiredImport = namedtuple('RequiredImport',
                             field_names=('importName',
                                          'importFrom',
@@ -522,7 +526,7 @@ class Experiment(object):
                     if params[name].allowedTypes is None:
                         params[name].allowedTypes = []
                     params[name].readOnly = True
-                    if name not in ['JS libs', 'OSF Project ID']:
+                    if name not in legacyParams + ['JS libs', 'OSF Project ID']:
                         # don't warn people if we know it's OK (e.g. for params
                         # that have been removed
                         msg = _translate(
@@ -567,6 +571,9 @@ class Experiment(object):
             # the current exp is already vaporized at this point, oops
             return
         self.psychopyVersion = root.get('version')
+        # If running an experiment from a future version, send alert to change "Use Version"
+        if Version(psychopy.__version__) < Version(self.psychopyVersion):
+            alert(code=4051, strFields={'version': self.psychopyVersion})
 
         # Parse document nodes
         # first make sure we're empty

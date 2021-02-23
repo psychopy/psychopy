@@ -112,4 +112,4 @@ In `newcomp.py`, have a line near the top::
 
 3. Documentation: newcomp.rst
 ---------------------------------
-Just make a descriptively-named text file that ends in `.rst` ("restructured text"), and put it in `psychopy/docs/source/builder/components/` . It will get auto-formatted and end up at `http://www.psychopy.org/builder/components/newcomp.html`
+Just make a descriptively-named text file that ends in `.rst` ("restructured text"), and put it in `psychopy/docs/source/builder/components/` . It will get auto-formatted and end up at `https://www.psychopy.org/builder/components/newcomp.html`

@@ -780,7 +780,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         info.SetDescription(msg)
 
         info.SetCopyright('(C) 2002-2021 Jonathan Peirce')
-        info.SetWebSite('http://www.psychopy.org')
+        info.SetWebSite('https://www.psychopy.org')
         info.SetLicence(license)
         # developers
 

@@ -52,7 +52,7 @@ class QmixPumpComponent(BaseComponent):
             startEstim=startEstim, durationEstim=durationEstim)
 
         self.type = 'QmixPump'
-        self.url = 'http://www.psychopy.org/builder/components/pump.html'
+        self.url = 'https://www.psychopy.org/builder/components/pump.html'
         self.categories = ['I/O']
 
         self.exp.requireImport(importName='qmix',

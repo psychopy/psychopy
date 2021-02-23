@@ -5,7 +5,15 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-"""Functions and classes related to color space conversion.
+"""Tools related to working with various color spaces.
+
+The routines provided in the module are used to transform color coordinates
+between spaces. Most of the functions here are *vectorized*, allowing for array
+inputs to convert multiple color values at once.
+
+**As of version 2021.0 of PsychoPy**, users ought to use the
+:class:`~psychopy.colors.Color` class for working with color coordinate values.
+
 """
 from __future__ import absolute_import, division, print_function
 
@@ -17,8 +25,6 @@ from past.utils import old_div
 import numpy
 from psychopy import logging
 from psychopy.tools.coordinatetools import sph2cart
-
-import time
 
 
 def unpackColors(colors):  # used internally, not exported by __all__
@@ -167,7 +173,7 @@ def srgbTF(rgb, reverse=False, **kwargs):
 
 
 def rec709TF(rgb, **kwargs):
-    """Apply the Rec. 709 transfer function (or gamma) to linear RGB values.
+    """Apply the Rec 709 transfer function (or gamma) to linear RGB values.
 
     This transfer function is defined in the ITU-R BT.709 (2015) recommendation
     document (http://www.itu.int/rec/R-REC-BT.709-6-201506-I/en) and is
@@ -397,12 +403,17 @@ def dkl2rgb(dkl, conversionMatrix=None):
     an accurate representation of the color space unless you supply a
     conversion matrix).
 
-    usage::
+    Examples
+    --------
+    Converting a single DKL color to RGB::
 
-        rgb(Nx3) = dkl2rgb(dkl_Nx3(el,az,radius), conversionMatrix)
-        rgb(NxNx3) = dkl2rgb(dkl_NxNx3(el,az,radius), conversionMatrix)
+        dkl = [90, 0, 1]
+        rgb = dkl2rgb(dkl, conversionMatrix)
 
     """
+    # make sure the input is an array
+    dkl = numpy.asarray(dkl)
+
     if conversionMatrix is None:
         conversionMatrix = numpy.asarray([
             # (note that dkl has to be in cartesian coords first!)

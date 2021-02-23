@@ -50,7 +50,7 @@ class CodeComponent(BaseComponent):
         super(CodeComponent, self).__init__(exp, parentName, name)
         self.type = 'Code'
         self.targets = ['PsychoPy', 'PsychoJS']
-        self.url = "http://www.psychopy.org/builder/components/code.html"
+        self.url = "https://www.psychopy.org/builder/components/code.html"
         # params
         # want a copy, else codeParamNames list gets mutated
         self.order = ['name', 'Code Type', 'disabled',

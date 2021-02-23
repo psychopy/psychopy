@@ -1,4 +1,14 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Part of the PsychoPy library
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Distributed under the terms of the GNU General Public License (GPL).
+
 import os
+import subprocess
+import sys
+
 import wx
 
 from psychopy.app.colorpicker import PsychoColorPicker
@@ -11,6 +21,7 @@ import re
 from pathlib import Path
 
 from ..localizedStrings import _localizedDialogs as _localized
+
 
 class _ValidatorMixin():
     def validate(self, evt=None):
@@ -160,7 +171,10 @@ class ChoiceCtrl(wx.Choice, _ValidatorMixin):
         if string not in self._choices:
             self._choices.append(string)
             self.SetItems(self._choices)
-        wx.Choice.SetStringSelection(self, string)
+        # Don't use wx.Choice.SetStringSelection here
+        # because label string is localized.
+        wx.Choice.SetSelection(self, self._choices.index(string))
+
 
 class MultiChoiceCtrl(wx.CheckListBox, _ValidatorMixin):
     def __init__(self, parent, valType,
@@ -173,9 +187,7 @@ class MultiChoiceCtrl(wx.CheckListBox, _ValidatorMixin):
         # Make initial selection
         if isinstance(vals, str):
             # Convert to list if needed
-            vals = re.sub("[\[\]\(\)\"\']", "", vals).split(",")
-            # Remove empties
-            vals = [v for v in vals if v]
+            vals = data.utils.listFromString(vals, excludeEmpties=True)
         self.SetCheckedStrings(vals)
         self.validate()
 
@@ -190,6 +202,7 @@ class MultiChoiceCtrl(wx.CheckListBox, _ValidatorMixin):
 
     def GetValue(self, evt=None):
         return self.GetCheckedStrings()
+
 
 class FileCtrl(wx.TextCtrl, _ValidatorMixin, _FileMixin):
     def __init__(self, parent, valType,
@@ -324,18 +337,22 @@ class TableCtrl(wx.TextCtrl, _ValidatorMixin, _FileMixin):
     def openExcel(self, event):
         """Either open the specified excel sheet, or make a new one from a template"""
         file = self.rootDir / self.GetValue()
-        if file.is_file() and file.suffix in self.validExt:
-            os.startfile(file)
-        else:
+        if not (file.is_file() and file.suffix in self.validExt): # If not a valid file
             dlg = wx.MessageDialog(self, _translate(
                 f"Once you have created and saved your table, please remember to add it to {self.Name}"),
                              caption="Reminder")
             dlg.ShowModal()
             if hasattr(self.GetTopLevelParent(), 'type'):
                 if self.GetTopLevelParent().type in self.templates:
-                    os.startfile(self.templates[self.GetTopLevelParent().type])
-                    return
-            os.startfile(self.templates['None']) # Open blank template
+                    file = self.templates[self.GetTopLevelParent().type] # Open type specific template
+                else:
+                    file = self.templates['None'] # Open blank template
+        # Open whatever file is used
+        try:
+            os.startfile(file)
+        except AttributeError:
+            opener = "open" if sys.platform == "darwin" else "xdg-open"
+            subprocess.call([opener, file])
 
     def findFile(self, event):
         _wld = f"All Table Files({'*'+';*'.join(self.validExt)})|{'*'+';*'.join(self.validExt)}|All Files (*.*)|*.*"
@@ -373,7 +390,9 @@ class ColorCtrl(wx.TextCtrl, _ValidatorMixin):
         self.validate()
 
     def colorPicker(self, evt):
-        PsychoColorPicker(self.GetTopLevelParent().frame)
+        dlg = PsychoColorPicker(self.GetTopLevelParent().frame)
+        dlg.ShowModal()
+        dlg.Destroy()
 
 def validate(obj, valType):
     val = str(obj.GetValue())
