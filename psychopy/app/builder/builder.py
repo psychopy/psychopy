@@ -763,6 +763,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         self.app.coder.fileOpen(filename=htmlPath)
 
     def editREADME(self, event):
+        self.showReadme()
         folder = Path(self.filename).parent
         if folder == folder.parent:
             raise FileNotFoundError("Please save experiment before editing the README file")
@@ -2502,10 +2503,15 @@ class ReadmeFrame(wx.Frame):
         menu = self.fileMenu
         keys = self.parent.app.keys
         menu.Append(wx.ID_EDIT, _translate("Edit"))
+        self.Bind(wx.EVT_MENU, self.fileEdit, id=wx.ID_EDIT)
         menu.Append(wx.ID_CLOSE,
                     _translate("&Close readme\t%s") % keys['close'])
-        self.Bind(wx.EVT_MENU, self.fileEdit, id=wx.ID_EDIT)
-        self.Bind(wx.EVT_MENU, self.toggleVisible, id=wx.ID_CLOSE)
+        item = self.Bind(wx.EVT_MENU, self.toggleVisible, id=wx.ID_CLOSE)
+        item = menu.Append(-1,
+                           _translate("&Toggle readme\t%s") % keys[
+                               'toggleReadme'],
+                           _translate("Toggle Readme"))
+        self.Bind(wx.EVT_MENU, self.toggleVisible, item)
         self.SetMenuBar(menuBar)
 
     def setFile(self, filename):
@@ -2548,6 +2554,10 @@ class ReadmeFrame(wx.Frame):
             renderedText = readmeText.replace("\n", "<br>")
         self.ctrl.SetPage(renderedText)
         self.SetTitle("%s readme (%s)" % (self.expName, filename))
+
+    def refresh(self, evt=None):
+        if hasattr(self, 'filename'):
+            self.setFile(self.filename)
 
     def fileEdit(self, evt=None):
         self.parent.app.showCoder()
