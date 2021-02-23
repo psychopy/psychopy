@@ -121,7 +121,7 @@ class KeyboardComponent(BaseComponent):
             "correctAns column and use $correctAns to compare to the key "
             "press.")
         self.params['correctAns'] = Param(
-            correctAns, valType='list', inputType="single", allowedTypes=[], categ='Data',
+            correctAns, valType='str', inputType="single", allowedTypes=[], categ='Data',
             updates='constant',
             hint=msg,
             label=_localized['correctAns'])
