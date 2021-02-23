@@ -1385,11 +1385,14 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
             # If opacity is set to be None, this indicates that each color should handle its own opacity
             return
         if hasattr(self, '_foreColor'):
-            self._foreColor.alpha = value
+            if self._foreColor != None:
+                self._foreColor.alpha = value
         if hasattr(self, '_fillColor'):
-            self._fillColor.alpha = value
+            if self._fillColor != None:
+                self._fillColor.alpha = value
         if hasattr(self, '_borderColor'):
-            self._borderColor.alpha = value
+            if self._borderColor != None:
+                self._borderColor.alpha = value
 
     def updateOpacity(self):
         """Placeholder method to update colours when set externally, for example
