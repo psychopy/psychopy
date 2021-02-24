@@ -76,6 +76,17 @@ FIXES:
 - Online: Allow for parsing of array-like strings when setting VisualStim position or size. psychopy/psychojs#262
 - Online: Prevent Safari from beeping in full screen. psychopy/psychojs#266
 
+PsychoPy 2021.1.0
+~~~~~~~~~~~~~~~~~~
+
+FIXES:
+
+- Error when trying to sync a new project with Pavlovia #33b3d80ea
+- TextBox in Builder was resetting to "default text" on each repeat rather than blank #8510d9f1a
+- Editable elements of Form were being erroneously drawn when they fell beyond the Form boundary #7d02c8251
+- Fix for
+
+
 PsychoPy 2020.2
 -----------------
 
