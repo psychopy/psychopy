@@ -785,7 +785,8 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         """
         for i in self.items:
             if i['responseCtrl']:
-                i['responseCtrl'].setAutoDraw(value)        
+                i['responseCtrl'].__dict__['autoDraw'] = value
+                self.win.addEditable(i['responseCtrl'])
         BaseVisualStim.setAutoDraw(self, value, log)
         
     def draw(self):
