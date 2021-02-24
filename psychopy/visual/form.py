@@ -909,6 +909,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
     knownStyles = ["basic", "legalPad"]
     legacyStyles = ["light", "dark"]
+    knownStyles = legacyStyles # Overwrite new styles until implemented
 
     @property
     def style(self):
@@ -975,12 +976,20 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
             self._externalDecorations.insert(0, shadow)
 
         # Legacy
-        if style == 'light':
+        if style == 'light' or str(style) == "['light']":
+            # Set fill/border color the old fashioned way
+            self.border.fillColor = self._fillColor.copy()
+            self.border.borderColor = self._borderColor.copy()
+            # ...then replace set colors with colors from style
             self.color = 'black'
             self.borderColor = 'black'
             self.fillColor = Color([0.89, -0.35, -0.28], 'rgb')
             self.border.fillColor = Color([0.89,0.89,0.89], 'rgb')
-        if style == 'dark':
+        if style == 'dark' or str(style) == "['dark']":
+            # Set fill/border color the old fashioned way
+            self.border.fillColor = self._fillColor.copy()
+            self.border.borderColor = self._borderColor.copy()
+            # ...then replace set colors with colors from style
             self.color = 'white'
             self.borderColor = 'white'
             self.fillColor = Color([0.89, -0.35, -0.28], 'rgb')

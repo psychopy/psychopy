@@ -122,6 +122,11 @@ class FormComponent(BaseVisualComponent):
         self.params['borderColor'].label =_translate("Lines Color")
         self.params['borderColor'].allowedUpdates = []
 
+        # TEMPORARY: Hide color params until we have something that works
+        del self.params['color']
+        del self.params['fillColor']
+        del self.params['borderColor']
+
         self.params['pos'].allowedUpdates = []
         self.params['size'].allowedUpdates = []
 
@@ -133,7 +138,7 @@ class FormComponent(BaseVisualComponent):
                    "    items={Items},\n"
                    "    textHeight={Text Height},\n"
                    "    randomize={Randomize},\n"
-                   "    color={color}, fillColor={fillColor}, borderColor={borderColor}, colorSpace={colorSpace}, \n"
+                   # "    color={color}, fillColor={fillColor}, borderColor={borderColor}, colorSpace={colorSpace}, \n"
                    "    size={size},\n"
                    "    pos={pos},\n"
                    "    style={Style},\n"
