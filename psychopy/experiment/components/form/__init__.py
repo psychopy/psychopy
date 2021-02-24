@@ -41,6 +41,9 @@ class FormComponent(BaseVisualComponent):
                  items='.csv',
                  textHeight=.03,
                  randomize=False,
+                 color='white',
+                 fillColor='red',
+                 borderColor='white',
                  size=(1, .7),
                  pos=(0, 0),
                  style='dark',
@@ -52,15 +55,12 @@ class FormComponent(BaseVisualComponent):
         super(FormComponent, self).__init__(
             exp, parentName, name=name,
             pos=pos, size=size,
+            color=color, fillColor=fillColor, borderColor=borderColor,
             startType=startType, startVal=startVal,
             stopType=stopType, stopVal=stopVal,
             startEstim=startEstim, durationEstim=durationEstim)
 
         # these are defined by the BaseVisual but we don't want them
-        del self.params['color']
-        del self.params['fillColor']
-        del self.params['borderColor']
-        del self.params['colorSpace']
         del self.params['ori']
         del self.params['units']  # we only support height units right now
 
@@ -72,7 +72,6 @@ class FormComponent(BaseVisualComponent):
         self.order += ['Items', 'Randomize',  # Basic tab
                        'Data Format',  # Data tab
                       ]
-        self.order.insert(self.order.index("colorSpace"), "Style")
         self.order.insert(self.order.index("units"), "Item Padding")
 
         # normal params:
@@ -96,13 +95,6 @@ class FormComponent(BaseVisualComponent):
             hint=_translate("Do you want to randomize the order of your questions?"),
             label=_localized['Randomize'])
 
-        self.params['Style'] = Param(
-            style, valType='str', inputType="choice", categ="Appearance",
-            updates='constant', allowedVals=knownStyles,
-            hint=_translate(
-                    "Styles determine the appearance of the form"),
-            label=_localized['Style'])
-
         self.params['Item Padding'] = Param(
             itemPadding, valType='num', inputType="single", allowedTypes=[], categ='Layout',
             updates='constant',
@@ -116,6 +108,25 @@ class FormComponent(BaseVisualComponent):
             hint=_translate("Store item data by columns, or rows"),
             label=_localized['Data Format'])
 
+        self.params['Style'] = Param(
+            style, valType='str', inputType="choice", categ="Appearance",
+            updates='constant', allowedVals=knownStyles,
+            hint=_translate(
+                    "Styles determine the appearance of the form"),
+            label=_localized['Style'])
+
+        self.params['color'].label = _translate("Text Color")
+        self.params['color'].allowedUpdates = []
+        self.params['fillColor'].label = _translate("Marker Colors")
+        self.params['fillColor'].allowedUpdates = []
+        self.params['borderColor'].label =_translate("Lines Color")
+        self.params['borderColor'].allowedUpdates = []
+
+        # TEMPORARY: Hide color params until we have something that works
+        del self.params['color']
+        del self.params['fillColor']
+        del self.params['borderColor']
+
         self.params['pos'].allowedUpdates = []
         self.params['size'].allowedUpdates = []
 
@@ -127,6 +138,7 @@ class FormComponent(BaseVisualComponent):
                    "    items={Items},\n"
                    "    textHeight={Text Height},\n"
                    "    randomize={Randomize},\n"
+                   # "    color={color}, fillColor={fillColor}, borderColor={borderColor}, colorSpace={colorSpace}, \n"
                    "    size={size},\n"
                    "    pos={pos},\n"
                    "    style={Style},\n"
