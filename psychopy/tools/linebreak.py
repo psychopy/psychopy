@@ -11,7 +11,6 @@ Code is based on uniseg 0.7.1 (https://pypi.org/project/uniseg/)
 import sys
 import os
 import re
-from unicodedata import east_asian_width
 from psychopy.tools.linebreak_class import linebreak_class
 
 __all__ = [
@@ -20,9 +19,9 @@ __all__ = [
 ]
 
 if sys.version_info >= (3, 0):
-    from builtins import ord as _ord, chr as _chr
+    from builtins import ord as _ord
 else:
-    from __builtin__ import ord as _ord, unichr as _chr
+    from __builtin__ import ord as _ord
 
 if sys.maxunicode < 0x10000:
     # narrow unicode build
@@ -133,7 +132,7 @@ def _preprocess_boundaries(s):
             prev_prop = prop
         i += len(c)
 
-def get_breakable_points(s, legacy=False):
+def get_breakable_points(s):
     """
     Returns a generator object that yields 1 if the next charactor is
     breakable, otherwise yields 0.
@@ -143,11 +142,6 @@ def get_breakable_points(s, legacy=False):
     
         s:
             Sentence to be parsed.
-        
-        legacy: True or False
-            If True, some "full-width" alphabets and symbols that are 
-            breakable in legacy CJK codings are treated as breakable.
-            Default value is False.
     """
     if not s:
         return
@@ -159,15 +153,8 @@ def get_breakable_points(s, legacy=False):
         next_pos, __ = (primitive_boundaries[i+1]
                         if i<len(primitive_boundaries)-1 else (len(s), None))
         
-        if legacy:
-            if lb == AL:
-                cp = unichr(ord(s, pos))
-                lb = ID if east_asian_width(cp) == 'A' else AL
-            elif lb == AI:
-                lb = ID
-        else:
-            if lb == AI:
-                lb = AL
+        if lb == AI:
+            lb = AL
         
         if lb == CJ:
             lb = NS
