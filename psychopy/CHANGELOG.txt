@@ -1,27 +1,31 @@
 Changelog
-====================
+=========
 
 PsychoPy uses **major.minor.patch** version numbers:
 
 - All changes to **major.minor** numbers indicate that changes are expected to change the behavior of PsychoPy experiments
 - Changes to the **patch** version number are relativel minor bug fixes and we hope they do not change behavior
 
-.. warning::
+Updating without breaking existing studies
+------------------------------------------
 
-  We **strongly recommend** that ,once your experiment is being run, "for real" that you apply the :ref:`useVersion` 
-  setting so that your study will always try to run on the sames PsychoPy version even where a different version
-  is installed on the computer.
+We **strongly recommend** that, once your experiment is finished and is being run "for real",
+that you apply the :ref:`useVersion <useVersion>` setting so that your study will always try
+to run on the same PsychoPy version even where a different version is installed on the computer.
+That setting often even allows PsychoPy to run experiments from versions that have not yet
+been installed! If the dependencies haven't changed it will run.
+
 
 PsychoPy 2021.1
-==================
+---------------
 
-The first major release of 2021 brings a lot of fixes (we're focussing heavily on making the user experience more smooth at the moment).
+The first major release of 2021 brings a lot of fixes (the dev team is focussing heavily on making the user experience more smooth at the moment).
 
-On top of those fixes are a number of useful additions though, like the new `Button` component. particularlay 
+On top of those fixes are a number of useful additions though, like the new :ref:`buttonComponent`.
 
 NEW:
 
-- Builder has a `Button` component to make it easier to have clickable image/text objects
+- Builder has a :ref:`buttonComponent` to make it easier to have clickable image/text objects
 - Builder: Improved layout of Component dialogs:
   
     - Consistent tabs for common parameters (like pos, size, color...)
@@ -31,15 +35,14 @@ NEW:
 
 - Builder now features separate compile buttons for JS and Py and will open the JS file in the Coder view when compiled
 - Builder readme files now support markdown formatting (and .md extensions) psychopy/psychopy#3377
-- PsychoPy lib: refactored color handling via the :class:`Color` class
+- PsychoPy lib: refactored color handling via the :class:`~psychopy.colors.Color` class
 
-Compatibility changes:
+CHANGES (compatibility issues):
 
-- Changed: the new more flexible parameters of PsychoPy Experiment Components makes experiments from 2021.1 **will not run** 
-         on older versions of PsychoPy. If you share your study with people using older versions make sure you set the
-         :ref:`useVersion` setting to be 2021.1.0 or upwards so that it will run elsewhere
-- Changed: PsychoJS: orientation for PsychoJS now follows clock convention rather than engineering convention (polar coordinates, positive rotation is anti-clockwise) whereas PsychoPy used the clock convention. From this release onwards both use the clock convention or orientation/rotation.
-- Changed: Slider has additional params for colors and fonts of lines/labels/marker that will not exist on older installations
+- CHANGED: the new more-flexible parameters of PsychoPy Experiment Components makes experiments from 2021.1 **will not run** on older versions of PsychoPy. If you share your study with people using older versions make sure you set the :ref:`useVersion` setting to be 2021.1.0 or upwards so that it will run elsewhere
+- CHANGED: PsychoJS: orientation for PsychoJS now follows clock convention rather than engineering convention (polar coordinates, positive rotation is anti-clockwise) whereas PsychoPy used the clock convention. From this release onwards both use the clock convention or orientation/rotation.
+- CHANGED: Slider has additional params for colors and fonts of lines/labels/marker that will not exist on older installations
+- CHANGED: BufferImageStim was using an incorrect rect specification for selecting the region of the screen - it was using a bottom-left instead of PsychoPy standard center #3597
 
 PsychoPy 2021.1.0
 ~~~~~~~~~~~~~~~~~~
@@ -61,15 +64,17 @@ FIXES:
 - Coder: Make Coder's default size reasonable on fresh install. #3472
 - Coder: Bug where opening an unsupported file type raises an error. #3519
 - Coder: Fixed bug where the source tree raises and error if it comes across things it cannot correctly parse.
-- JS: Prevent Safari from beeping in full screen. psychopy/psychojs#266
-- JS: Slider sizing, tick placement, and event handling improvements. #249 #263 #264
-- JS: Fixed ShapeStim instances ignoring the closeShape property. psychopy/psychojs#245
-- JS: Support `TrialHandler.Method.FULLRANDOM`. psychopy/psychojs#247
-- JS: Improved mouse event accuracy overall. psychopy/psychojs#248
-- JS: Fixed ShapeStim variants ignoring the contrast property. psychopy/psychojs#250
-- JS: Fixed an issue translating ‘\n’ encoded line breaks when importing conditions files. psychopy/psychojs#251
-- JS: Fixed TextBox click handling. psychopy/psychojs#258
-- JS: Improved MovieStim autoplay. psychopy/psychojs#260
+- Online: Prevent Safari from beeping in full screen. psychopy/psychojs#266
+- Online: Slider sizing, tick placement, and event handling improvements. #249 #263 #264
+- Online: Fixed ShapeStim instances ignoring the closeShape property. psychopy/psychojs#245
+- Online: Support `TrialHandler.Method.FULLRANDOM`. psychopy/psychojs#247
+- Online: Improved mouse event accuracy overall. psychopy/psychojs#248
+- Online: Fixed ShapeStim variants ignoring the contrast property. psychopy/psychojs#250
+- Online: Fixed an issue translating ‘\n’ encoded line breaks when importing conditions files. psychopy/psychojs#251
+- Online: Fixed TextBox click handling. psychopy/psychojs#258
+- Online: Improved MovieStim autoplay. psychopy/psychojs#260
+- Online: Allow for parsing of array-like strings when setting VisualStim position or size. psychopy/psychojs#262
+- Online: Prevent Safari from beeping in full screen. psychopy/psychojs#266
 
 PsychoPy 2020.2
 -----------------
