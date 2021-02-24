@@ -109,7 +109,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                  textHeight=.02,
                  size=(.5, .5),
                  pos=(0, 0),
-                 style=None,
+                 style='dark',
                  itemPadding=0.05,
                  units='height',
                  randomize=False,
