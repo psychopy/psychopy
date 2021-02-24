@@ -87,13 +87,26 @@ SA = 'SA'   # Complex Context Dependent (South East Asian)
 XX = 'XX'   # Unknown
 
 def line_break(c, index=0):
-    
     code = ord(code_point(c, index))
     if code in linebreak_class:
         return linebreak_class[code]
     return 'Other'
 
 def break_units(s, breakables):
+    """
+    Split a sequence at given breakpoint. This returns a generator object.
+    So do `list(break_units(s, breakables))` to get the result as a list.
+    
+    :Parameters:
+    
+        s:
+            A string (or sequence) to be split.
+
+        breakables:
+            A sequence of 0/1 of the same length of s. 1 represents that 
+            the input sequence is breakable at that point.
+            See alse get_breakable_points().
+    """
     i = 0
     for j, bk in enumerate(breakables):
         if bk:
@@ -121,6 +134,21 @@ def _preprocess_boundaries(s):
         i += len(c)
 
 def get_breakable_points(s, legacy=False):
+    """
+    Returns a generator object that yields 1 if the next charactor is
+    breakable, otherwise yields 0.
+    Do `list(get_breakable_points(s))` to get a list of breakable points.
+    
+    :Parameters:
+    
+        s:
+            Sentence to be parsed.
+        
+        legacy: True or False
+            If True, some "full-width" alphabets and symbols that are 
+            breakable in legacy CJK codings are treated as breakable.
+            Default value is False.
+    """
     if not s:
         return
     
