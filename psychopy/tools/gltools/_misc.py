@@ -37,7 +37,6 @@ except ImportError:
     import Image
 
 import psychopy.colors as colors
-from psychopy.tools.arraytools import array2pointer
 from ._constants import GL_COMPAT_TYPES
 from ._glenv import OpenGL
 
