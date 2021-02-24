@@ -912,6 +912,42 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
     knownStyles = legacyStyles # Overwrite new styles until implemented
 
     @property
+    def foreColor(self):
+        return ColorMixin.foreColor.fget(self)
+    @foreColor.setter
+    def foreColor(self, value):
+        ColorMixin.foreColor.fset(self, value)
+        for item in self.items:
+            if 'itemCtrl' in item:
+                if hasattr(item['itemCtrl'], 'color'):
+                    item['itemCtrl'].color = self._foreColor.copy()
+            if 'responseCtrl' in item:
+                if hasattr(item['responseCtrl'], 'color'):
+                    item['responseCtrl'].color = self._foreColor.copy()
+
+    @property
+    def fillColor(self):
+        return ColorMixin.fillColor.fget(self)
+    @fillColor.setter
+    def fillColor(self, value):
+        ColorMixin.fillColor.fset(self, value)
+        for item in self.items:
+            if 'responseCtrl' in item:
+                if hasattr(item['responseCtrl'], 'fillColor') and not isinstance(item['responseCtrl'], psychopy.visual.TextBox2):
+                    item['responseCtrl'].fillColor = self._fillColor.copy()
+
+    @property
+    def borderColor(self):
+        return ColorMixin.borderColor.fget(self)
+    @borderColor.setter
+    def borderColor(self, value):
+        ColorMixin.borderColor.fset(self, value)
+        for item in self.items:
+            if 'responseCtrl' in item:
+                if hasattr(item['responseCtrl'], 'borderColor'):
+                    item['responseCtrl'].borderColor = self._borderColor.copy()
+
+    @property
     def style(self):
         return self._style
     @style.setter
@@ -977,18 +1013,12 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
         # Legacy
         if style == 'light' or str(style) == "['light']":
-            # Set fill/border color the old fashioned way
-            self.border.fillColor = self._fillColor.copy()
-            self.border.borderColor = self._borderColor.copy()
             # ...then replace set colors with colors from style
             self.color = 'black'
             self.borderColor = 'black'
             self.fillColor = Color([0.89, -0.35, -0.28], 'rgb')
             self.border.fillColor = Color([0.89,0.89,0.89], 'rgb')
         if style == 'dark' or str(style) == "['dark']":
-            # Set fill/border color the old fashioned way
-            self.border.fillColor = self._fillColor.copy()
-            self.border.borderColor = self._borderColor.copy()
             # ...then replace set colors with colors from style
             self.color = 'white'
             self.borderColor = 'white'
