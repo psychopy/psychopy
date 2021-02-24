@@ -33,6 +33,13 @@ class Test_Window(object):
         shutil.rmtree(self.temp_dir)
         self.win.close()
 
+    def test_readPixels(self):
+        """Test the `readPixels` function for coverage.
+
+        """
+        GL.glReadBuffer(GL.GL_BACK)
+        _ = readPixels(0, 0, 128, 128, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE)
+
     def test_createFBO(self):
         """Test creating a framebuffer in various ways. Also tests if resources
         are freed or kept alive correctly when deleting a framebuffer.
