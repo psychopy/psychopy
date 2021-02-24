@@ -136,7 +136,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         self.borderColor = borderColor
 
         self.textHeight = textHeight
-        self._scrollBarSize = (0.016, self.size[1])
+        self._scrollBarSize = (0.016, self.size[1]/1.2)
         self._baseYpositions = []
         self.leftEdge = None
         self.rightEdge = None
@@ -596,7 +596,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         scroll = psychopy.visual.Slider(win=self.win,
                                       size=self._scrollBarSize,
                                       ticks=[0, 1],
-                                      style='slider',
+                                      style='scrollbar',
                                       pos=(self.rightEdge - .008, self.pos[1]),
                                       autoLog=False)
         scroll.line.lineColor = self.colorScheme['bg']
