@@ -544,7 +544,7 @@ class Monitor(object):
 
         This will write a `json` file to the `monitors` subfolder of your
         PsychoPy configuration folder (typically `~/.psychopy3/monitors` on
-        Linux and macOS, and `%APPDATA%\psychopy3\monitors` on Windows).
+        Linux and macOS, and `%APPDATA%\\psychopy3\\monitors` on Windows).
 
         Additionally saves a pickle (`.calib`) file if you are running
         Python 2.7.
@@ -1285,7 +1285,7 @@ def gammaInvFun(yy, minLum, maxLum, gamma, b=None, eq=1):
         pass
     elif eq == 4:
         # this is not the same as Zhang and Pelli's inverse
-        # see http://www.psychopy.org/general/gamma.html for derivation
+        # see https://www.psychopy.org/general/gamma.html for derivation
         a = minLum - b**gamma
         k = (maxLum - a)**(old_div(1., gamma)) - b
         xx = old_div((((1 - yy) * b**gamma + yy * (b + k)**gamma)**(old_div(1, gamma)) - b), k)

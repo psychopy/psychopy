@@ -1,9 +1,8 @@
-
 :class:`TextBox`
-------------------------------------------------------------------------
+-----------------
 
 Attributes
-=============
+==========
 
 .. currentmodule:: psychopy.visual
 
@@ -11,9 +10,8 @@ Attributes
 
     TextBox
 
-.. note::
-
-    The following `set______()` attributes all have equivalent `get______()` attributes:
+**The following `set______()` attributes all have equivalent `get______()`
+attributes:**
 
 .. autosummary::
 
@@ -34,9 +32,7 @@ Attributes
     TextBox.setAutoLog
     TextBox.draw
 
-.. note::
-
-    TextBox also provides the following read-only functions:
+**TextBox also provides the following read-only functions:**
 
 .. autosummary::
 
@@ -48,35 +44,34 @@ Attributes
     TextBox.getGlyphPositionForTextIndex
     TextBox.getTextGridCellPlacement
 
-Helper functions:
-=================
+Helper Functions
+================
 
-    **getFontManager()**
+**getFontManager()**
 
-    FontManager provides a simple API for finding and loading font files
-    (.ttf) via the FreeType lib
+`FontManager` provides a simple API for finding and loading font files (.ttf)
+via the FreeType library.
 
-    The FontManager finds supported font files on the computer and
-    initially creates a dictionary containing the information about
-    available fonts. This can be used to quickly determine what font family
-    names are available on the computer and what styles (bold, italic) are
-    supported for each family.
+The FontManager finds supported font files on the computer and initially creates
+a dictionary containing the information about available fonts. This can be used
+to quickly determine what font family names are available on the computer and
+what styles (bold, italic) are supported for each family.
 
-    This font information can then be used to create the resources necessary
-    to display text using a given font family, style, size, color, and dpi.
+This font information can then be used to create the resources necessary to
+display text using a given font family, style, size, color, and dpi.
 
-    The FontManager is currently used by the psychopy.visual.TextBox stim
-    type. A user script can access the FontManager via:
+The `FontManager` is currently used by the psychopy.visual.TextBox stim type. A
+user script can access the `FontManager` via::
 
-    *font_mngr=visual.textbox.getFontManager()*
+    font_mngr=visual.textbox.getFontManager()
 
-    Once a font of a given size and dpi has been created; it is cached by the
-    FontManager and can be used by all TextBox instances created within the
-    experiment.
+Once a font of a given size and dpi has been created; it is cached by the
+`FontManager` and can be used by all `TextBox` instances created within the
+experiment.
 
 
 Details
-=============
+=======
 
 .. autoclass:: TextBox
     :members:

@@ -86,7 +86,7 @@ class SliderComponent(BaseVisualComponent):
                 stopType=stopType, stopVal=stopVal,
                 startEstim=startEstim, durationEstim=durationEstim)
         self.type = 'Slider'
-        self.url = "http://www.psychopy.org/builder/components/slider.html"
+        self.url = "https://www.psychopy.org/builder/components/slider.html"
         self.exp.requirePsychopyLibs(['visual', 'event'])
         self.targets = ['PsychoPy', 'PsychoJS']
 
@@ -211,8 +211,8 @@ class SliderComponent(BaseVisualComponent):
         # build up an initialization string for Slider():
         initStr = ("{name} = visual.Slider(win=win, name='{name}',\n"
                    "    size={size}, pos={pos}, units={units},\n"
-                   "    labels={labels}, ticks={ticks},\n"
-                   "    granularity={granularity}, style={styles}, styleTweaks={styleTweaks},\n"
+                   "    labels={labels}, ticks={ticks}, granularity={granularity},\n"
+                   "    style={styles}, styleTweaks={styleTweaks}, opacity={opacity},\n"
                    "    color={color}, fillColor={fillColor}, borderColor={borderColor}, colorSpace={colorSpace},\n"
                    "    font={font}, labelHeight={letterHeight},\n"
                    "    flip={flip}, depth={depth}, readOnly={readOnly})\n"

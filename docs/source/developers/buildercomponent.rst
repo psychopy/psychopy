@@ -7,7 +7,7 @@ Builder Components are auto-detected and displayed to the experimenter as icons 
 
 All you need to do is create a list of parameters that the Component needs to know about (that will automatically appear in the Component's dialog) and a few pieces of code specifying what code should be called at different points in the script (e.g. beginning of the Routine, every frame, end of the study etc...). Many of these will come simply from subclassing the _base or _visual Components.
 
-To get started, :ref:`addfeatureBranch` for the development of this component. (If this doesn't mean anything to you then see :ref:`usingRepos` )
+To get started, :ref:`addFeature` for the development of this component. (If this doesn't mean anything to you then see :ref:`usingRepos` )
 
 You'll mainly be working in the directory `.../psychopy/experiment/components/`. 
 Take a look at several existing Components (such as `image.py`), and key files including `_base.py` and `_visual.py`.
@@ -15,7 +15,7 @@ Take a look at several existing Components (such as `image.py`), and key files i
 There are three main steps, the first being by far the most involved.
 
 1. Create the file defining the component: newcomp.py
--------------------
+---------------------------------------------------------
 
 It's most straightforward to model a new Component on one of the existing ones. Be prepared to specify what your Component needs to do at several different points in time: the first trial, every frame, at the end of each routine, and at the end of the experiment. In addition, you may need to sacrifice some complexity in order to keep things streamlined enough for a Builder (see e.g., `ratingscale.py`).
 
@@ -112,4 +112,4 @@ In `newcomp.py`, have a line near the top::
 
 3. Documentation: newcomp.rst
 ---------------------------------
-Just make a descriptively-named text file that ends in `.rst` ("restructured text"), and put it in `psychopy/docs/source/builder/components/` . It will get auto-formatted and end up at `http://www.psychopy.org/builder/components/newcomp.html`
+Just make a descriptively-named text file that ends in `.rst` ("restructured text"), and put it in `psychopy/docs/source/builder/components/` . It will get auto-formatted and end up at `https://www.psychopy.org/builder/components/newcomp.html`

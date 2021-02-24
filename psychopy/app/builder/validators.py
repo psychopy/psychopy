@@ -253,7 +253,7 @@ class CodeSnippetValidator(BaseValidator):
                         if newName in [*namespace.user, *namespace.builder, *namespace.constants]:
                             # Continue if name is a variable
                             continue
-                        if newName in [*namespace.nonUserBuilder, *namespace.numpy] and not re.search(newName+"(?!\(\))", val):
+                        if newName in [*namespace.nonUserBuilder, *namespace.numpy] and not re.search(newName+r"(?!\(\))", val):
                             # Continue if name is an external function being called correctly
                             continue
                         used = namespace.exists(newName)

@@ -43,7 +43,7 @@ class FormComponent(BaseVisualComponent):
                  randomize=False,
                  size=(1, .7),
                  pos=(0, 0),
-                 style=['dark'],
+                 style='dark',
                  itemPadding=0.05,
                  startType='time (s)', startVal='0.0',
                  stopType='duration (s)', stopVal='',
@@ -63,7 +63,7 @@ class FormComponent(BaseVisualComponent):
         del self.params['units']  # we only support height units right now
 
         self.type = 'Form'
-        self.url = "http://www.psychopy.org/builder/components/"
+        self.url = "https://www.psychopy.org/builder/components/form.html"
         self.exp.requirePsychopyLibs(['visual', 'event', 'logging'])
 
         # params
@@ -113,6 +113,9 @@ class FormComponent(BaseVisualComponent):
             updates='constant',
             hint=_translate("Store item data by columns, or rows"),
             label=_localized['Data Format'])
+
+        self.params['pos'].allowedUpdates = []
+        self.params['size'].allowedUpdates = []
 
     def writeInitCode(self, buff):
         inits = getInitVals(self.params)

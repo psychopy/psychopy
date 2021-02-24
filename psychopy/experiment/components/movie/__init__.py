@@ -48,7 +48,7 @@ class MovieComponent(BaseVisualComponent):
             startEstim=startEstim, durationEstim=durationEstim)
 
         self.type = 'Movie'
-        self.url = "http://www.psychopy.org/builder/components/movie.html"
+        self.url = "https://www.psychopy.org/builder/components/movie.html"
         # comes immediately after name and timing params
         self.order += ['movie', 'forceEndRoutine', # Basic tab
                        'loop', 'No audio', 'backend',

@@ -45,7 +45,7 @@ def generateScript(experimentPath, exp, target="PsychoPy"):
     if sys.platform == 'win32':  # get name of executable
         pythonExec = sys.executable
     else:
-        pythonExec = sys.executable.replace(' ', '\ ')
+        pythonExec = sys.executable.replace(' ', r'\ ')
 
     filename = experimentPath
     if not PY3:  # encode path in Python2

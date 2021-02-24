@@ -105,8 +105,10 @@
     unclutteredNamespace = boolean(default=False)
     # folder names for custom components; expects a comma-separated list
     componentsFolders = list(default=list('/Users/Shared/PsychoPy3/components'))
+    # Only show components which work in...
+    componentFilter = option('PsychoPy', 'PsychoJS', 'Any', 'Both', default='Any')
     # a list of components to hide (eg, because you never use them)
-    hiddenComponents = list(default=list('PatchComponent', 'UnknownComponent'))
+    hiddenComponents = list(default=list('RatingScaleComponent', 'PatchComponent', 'UnknownComponent'))
     # where the Builder demos are located on this computer (after unpacking)
     unpackedDemosDir = string(default='')
     # name of the folder where subject data should be saved (relative to the script)

@@ -48,7 +48,7 @@ class MouseComponent(BaseComponent):
             startEstim=startEstim, durationEstim=durationEstim)
 
         self.type = 'Mouse'
-        self.url = "http://www.psychopy.org/builder/components/mouse.html"
+        self.url = "https://www.psychopy.org/builder/components/mouse.html"
         self.exp.requirePsychopyLibs(['event'])
         self.categories = ['Inputs']
 

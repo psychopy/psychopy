@@ -3,7 +3,7 @@
 RatingScale Component
 -------------------------------
 
-    The Rating Scale Component is in the process of deprecation, if possible we recommend using the newer Slider component instead.
+    The Rating Scale Component is in the process of deprecation, if possible we recommend using the newer Slider component instead. By combining a Slider, Text/TextBox and Button components, a Slider should be able to perform all the same tasks as a RatingScale Component.
 
 A rating scale is used to collect a numeric rating or a choice from a few alternatives, via the mouse, the keyboard, or both. Both the response and time taken to make it are returned.
 

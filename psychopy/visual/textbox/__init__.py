@@ -93,8 +93,8 @@ class TextBox(object):
     very likely bugs in the existing TextBox code and the TextBox API will
     be further enhanced and improved (i.e. changed) over the next couple months.
 
-    TextBox Features:
-    ~~~~~~~~~~~~~~~~~
+    TextBox Features
+    ~~~~~~~~~~~~~~~~
 
     * Text character placement is very well defined, useful when the exact
       positioning of each letter needs to be known.
@@ -126,8 +126,8 @@ class TextBox(object):
 
     * Text Line Spacing can be controlled.
 
-    Textbox Limitations:
-    ~~~~~~~~~~~~~~~~~~~~
+    Textbox Limitations
+    ~~~~~~~~~~~~~~~~~~~
 
     * Only Monospace Fonts are supported.
 
@@ -153,7 +153,7 @@ class TextBox(object):
     * Auto logging or auto drawing is not currently supported.
 
     TextStim and TextBox Comparison
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     ============================ ============= ===========
     Feature                      TextBox       TextStim
@@ -177,53 +177,51 @@ class TextBox(object):
       used Windows 7 64 bit, PsychoPy 1.79, with a i7 3.4 Ghz CPU, 8 GB RAM,
       and NVIDIA 480 GTX 2GB graphics card.
 
-    Example TextBox Usage:
-    ~~~~~~~~~~~~~~~~~~~~~~~
+    Examples
+    --------
+    Demonstration of using `TextBox`::
 
         from psychopy import visual
 
-        win=visual.Window((....)
+        win=visual.Window(...)
 
         # A Textbox stim that will look similar to a TextStim component
-        #
 
         textstimlike=visual.TextBox(
-                                    window=win,
-                                    text="This textbox looks most like a textstim.",
-                                    font_size=18,
-                                    font_color=[-1,-1,1],
-                                    color_space='rgb',
-                                    size=(1.8,.1),
-                                    pos=(0.0,.5),
-                                    units='norm'
-                                   )
+            window=win,
+            text="This textbox looks most like a textstim.",
+            font_size=18,
+            font_color=[-1,-1,1],
+            color_space='rgb',
+            size=(1.8,.1),
+            pos=(0.0,.5),
+            units='norm')
 
         # A Textbox stim that uses more of the supported graphical features
         #
         textboxloaded=visual.TextBox(
-                         window=win
-                         text='TextBox showing all supported graphical elements',
-                         font_size=32,
-                         font_color=[1,1,1],
-                         border_color=[-1,-1,1], # draw a blue border around stim
-                         border_stroke_width=4, # border width of 4 pix.
-                         background_color=[-1,-1,-1], # fill the stim background
-                         grid_color=[1,-1,-1,0.5], # draw a red line around each
-                                                   # possible letter area,
-                                                   # 50% transparent
-                         grid_stroke_width=1,      # with a width of 1 pix
-                         textgrid_shape=[20,2], # specify area of text box
-                                                # by the number of cols x
-                                                # number of rows of text to support
-                                                # instead of by a screen
-                                                # units width x height.
-                         pos=(0.0,-.5),
-                         # If the text string length < num rows * num cols in
-                         # textgrid_shape, how should text be justified?
-                         #
-                         grid_horz_justification='center',
-                         grid_vert_justification='center',
-                         )
+            window=win
+            text='TextBox showing all supported graphical elements',
+            font_size=32,
+            font_color=[1,1,1],
+            border_color=[-1,-1,1], # draw a blue border around stim
+            border_stroke_width=4, # border width of 4 pix.
+            background_color=[-1,-1,-1], # fill the stim background
+            grid_color=[1,-1,-1,0.5], # draw a red line around each
+                                      # possible letter area,
+                                      # 50% transparent
+            grid_stroke_width=1,  # with a width of 1 pix
+            textgrid_shape=[20,2],  # specify area of text box
+                                    # by the number of cols x
+                                    # number of rows of text to support
+                                    # instead of by a screen
+                                    # units width x height.
+            pos=(0.0,-.5),
+            # If the text string length < num rows * num cols in
+            # textgrid_shape, how should text be justified?
+            #
+            grid_horz_justification='center',
+            grid_vert_justification='center')
 
         textstimlike.draw()
         textboxloaded.draw()
@@ -436,38 +434,40 @@ class TextBox(object):
     def getDisplayedText(self):
         """
         Return the text that fits within the TextBox and therefore is actually
-        seen. This is equal to:
+        seen. This is equal to::
 
             text_length=len(self.getText())
             cols,rows=self.getTextGridShape()
 
             displayed_text=self.getText()[0:min(text_length,rows*cols]
+
         """
         return self._getTextWrappedDoc().getDisplayedText()
 
     def getTextGridCellPlacement(self):
-        """
-        Returns a 3d numpy array containing position information for each text grid cell
-        in the TextBox. The array has the shape (num_cols,num_rows,cell_bounds),
-        where num_cols is the number of textgrid columns in the TextBox.
-        num_rows is the number of textgrid rows in the TextBox. cell_bounds is
-        a 4 element array containing the (x pos, y pos, width, height) data
-        for the given cell. Position fields are for the top left hand corner of
-        the cell box. Column and Row indices start at 0.
+        """Returns a 3D numpy array containing position information for each
+        text grid cell in the TextBox. The array has the shape (`num_cols`,
+        `num_rows`, `cell_bounds`), where num_cols is the number of `textgrid`
+        columns in the TextBox. `num_rows` is the number of `textgrid` rows in
+        the `TextBox`. `cell_bounds` is a 4 element array containing the (x pos,
+        y pos, width, height) data for the given cell. Position fields are for
+        the top left hand corner of the cell box. Column and Row indices start
+        at 0.
 
-        To get the shape of the textgrid in terms of columns and rows, use:
+        To get the shape of the textgrid in terms of columns and rows, use::
 
-        cell_pos_array=textbox.getTextGridCellPlacement()
-        col_row_count=cell_pos_array.shape[:2]
+            cell_pos_array=textbox.getTextGridCellPlacement()
+            col_row_count=cell_pos_array.shape[:2]
 
         To access the position, width, and height for textgrid cell at
-        column 0 and row 0 (so the top left cell in the textgrid):
+        column 0 and row 0 (so the top left cell in the textgrid)::
 
-        cell00=cell_pos_array[0,0,:]
+            cell00=cell_pos_array[0,0,:]
 
-        For the cell at col 3, row 1 (so 4th cell on second row):
+        For the cell at col 3, row 1 (so 4th cell on second row)::
 
-        cell41=cell_pos_array[4,1,:]
+            cell41=cell_pos_array[4,1,:]
+
         """
         col_lines = self._text_grid._col_lines
         row_lines = self._text_grid._row_lines
@@ -505,22 +505,27 @@ class TextBox(object):
         return self._getTextWrappedDoc().getTextGridCellForCharIndex(char_index)
 
     def getGlyphPositionForTextIndex(self, char_index):
-        """
-        For the provided char_index, which is the index of one character in
+        """For the provided char_index, which is the index of one character in
         the current text being displayed by the TextBox ( getDisplayedText() ),
         return the bounding box position, width, and height for the associated
         glyph drawn to the screen. This factors in the glyphs position within
         the textgrid cell it is being drawn in, so the returned bounding box is
-        for the actual glyph itself, not the textgrid cell. For textgrid cell placement
-        information, see the getTextGridCellPlacement() method.
+        for the actual glyph itself, not the textgrid cell. For textgrid cell
+        placement information, see the getTextGridCellPlacement() method.
 
         The glyph position for the given text index is returned as a tuple
-        (x,y,width,height), where x,y is the top left hand corner of the bounding box.
+        (x,y,width,height), where x,y is the top left hand corner of the
+        bounding box.
 
         Special Cases:
-            * If the index provided is out of bounds for the currently displayed text, None is returned.
-            * For u' ' (space) characters, the full textgrid cell bounding box is returned.
-            * For u'\n' ( new line ) characters,the textgrid cell bounding box is returned, but with the box width set to 0.
+
+            * If the index provided is out of bounds for the currently displayed
+              text, None is returned.
+            * For u' ' (space) characters, the full textgrid cell bounding box
+              is returned.
+            * For u'\n' ( new line ) characters,the textgrid cell bounding box
+              is returned, but with the box width set to 0.
+
         """
 
         if char_index < 0 or char_index >= len(self.getDisplayedText()):
@@ -551,8 +556,8 @@ class TextBox(object):
         return self._text_grid._text_document
 
     def getPosition(self):
-        """
-        Return the x,y position of the textbox, in getUnitType() coord space.
+        """Return the x,y position of the textbox, in getUnitType() coord space.
+
         """
         return self._position
 
@@ -573,6 +578,7 @@ class TextBox(object):
         define where the bottom right corner of the TextBox will be drawn.
         A horz., vert. alignment of center, center will place the center of
         the TextBox at pos.
+
         """
         if pos[0] != self._position[0] or pos[1] != self._position[1]:
             self._position = pos[0], pos[1]
@@ -584,9 +590,11 @@ class TextBox(object):
         Returns which of the psychopy coordinate systems are used by the
         TextBox. Position and size related attributes mush be specified
         relative to the unit type being used. Valid options are:
-            - pix
-            - norm
-            - cm
+
+            * pix
+            * norm
+            * cm
+
         """
         return self._units
 
@@ -603,6 +611,7 @@ class TextBox(object):
         is to be interpreted. left = x position is the left edge, right =
         x position is the right edge x position, and center = the x position
         is used to center the stim horizontally.
+
         """
         if v != self._align_horz:
             self._align_horz = v
@@ -613,6 +622,7 @@ class TextBox(object):
         """
         Return what textbox y position should be interpreted as. Valid options
         are 'top', 'center', or 'bottom' .
+
         """
         return self._align_vert
 
@@ -622,6 +632,7 @@ class TextBox(object):
         is to be interpreted. top = y position is the top edge, bottom =
         y position is the bottom edge y position, and center = the y position
         is used to center the stim vertically.
+
         """
         if v != self._align_vert:
             self._align_vert = v
@@ -632,6 +643,7 @@ class TextBox(object):
         """
         Return the width,height of the TextBox, using the unit type being
         used by the stimulus.
+
         """
         return self._size
 
@@ -654,6 +666,7 @@ class TextBox(object):
         are valid. Three element colors use the TextBox getOpacity() value to
         determine the alpha channel for the color. Four element colors use the
         value of the fourth element to set the alpha value for the color.
+
         """
         if c != self._text_grid._font_color:
             self._text_grid._font_color = c
@@ -722,23 +735,25 @@ class TextBox(object):
             self._text_grid._deleteGridLinesDL()
 
     def getColorSpace(self):
-        """
-        Returns the psychopy color space used when specifying colors for
+        """Returns the psychopy color space used when specifying colors for
         the TextBox. Supported values are:
-            - 'rgb'
-            - 'rbg255'
-            - 'norm'
-            - hex (implicit)
-            - html name (implicit)
+
+            * 'rgb'
+            * 'rbg255'
+            * 'norm'
+            * hex (implicit)
+            * html name (implicit)
+
         See the Color Space section of the PsychoPy docs for details.
+
         """
         return self._color_space
 
     def getHorzJust(self):
-        """
-        Return how text should laid out horizontally when the
-        number of columns of each text grid row is greater than the number
-        needed to display the text for that text row.
+        """Return how text should laid out horizontally when the number of
+        columns of each text grid row is greater than the number needed to
+        display the text for that text row.
+
         """
         return self._text_grid._horz_justification
 
@@ -927,7 +942,7 @@ class TextBox(object):
     def getAutoLog(self):
         """
         Indicates if changes to textBox attribute values should be logged
-        automatically by PsychoPy. *Currently not supported by TextBox.
+        automatically by PsychoPy. *Currently not supported by TextBox.*
         """
         return self._auto_log
 
