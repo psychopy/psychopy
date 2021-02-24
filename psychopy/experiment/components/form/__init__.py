@@ -58,6 +58,8 @@ class FormComponent(BaseVisualComponent):
 
         # these are defined by the BaseVisual but we don't want them
         del self.params['color']
+        del self.params['fillColor']
+        del self.params['borderColor']
         del self.params['colorSpace']
         del self.params['ori']
         del self.params['units']  # we only support height units right now
