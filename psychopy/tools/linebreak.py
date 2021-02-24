@@ -86,27 +86,6 @@ RI = 'RI'   # Regional Indicator
 SA = 'SA'   # Complex Context Dependent (South East Asian)
 XX = 'XX'   # Unknown
 
-"""
-import sqlite3
-
-dbpath = os.path.join(os.path.dirname(__file__), 'linebreaking_classes.sqlite3')
-if not os.path.exists(dbpath):
-    raise FileNotFoundError('{} is not found.'.format(dbpath))
-
-_conn = sqlite3.connect(dbpath)
-
-def _line_break(u):
-    
-    cur = _conn.cursor()
-    cur.execute('select value from LineBreak where cp = ?', (ord(u),))
-    for value, in cur:
-        return str(value)
-    return 'Other'
-
-def line_break(c, index=0):
-    return _line_break(code_point(c, index))
-"""
-
 def line_break(c, index=0):
     
     code = ord(code_point(c, index))
