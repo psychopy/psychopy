@@ -56,9 +56,9 @@ def test_lms2rgb():
 
 @pytest.mark.colorspacetools
 def test_cartDKL2rgb():
-    """Test the conversion (forward and inverse) for DKL to RGB (signed). This
-    does not test for "correctness", but rather if the functions provided for
-    the conversion are the inverse of each other.
+    """Test the conversion (forward and inverse) for cartesian DKL to RGB
+    (signed). This does not test for "correctness", but rather if the functions
+    provided for the conversion are the inverse of each other.
 
     """
     N = 1024
@@ -71,6 +71,30 @@ def test_cartDKL2rgb():
                          rgb2dklCart(rgbColors)[:, :, 2])
 
     assert np.allclose(rgbOut, rgbColors)
+
+
+@pytest.mark.colorspacetools
+def test_dkl2rgb():
+    """Test the conversion (forward) for DKL to RGB (signed).
+
+    """
+    N = 1024
+    np.random.seed(123456)
+    dklColors = np.zeros((N, 3))
+
+    # elevation
+    dklColors[:, 0] = np.random.uniform(0, 90, (N,))
+    # azimuth
+    dklColors[:, 1] = np.random.uniform(0, 360, (N,))
+    # radius
+    dklColors[:, 2] = np.random.uniform(0, 1, (N,))
+
+    # test conversion using vector input
+    _ = dkl2rgb(dklColors)
+
+    # now test with some known colors, just white for now until we generate more
+    dklWhite = [90, 0, 1]
+    assert np.allclose(np.asarray((1, 1, 1)), dkl2rgb(dklWhite))
 
 
 @pytest.mark.colorspacetools

@@ -123,7 +123,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         self.randomize = randomize
         self.items = self.importItems(items)
         self.size = size
-        self.pos = pos
+        self._pos = pos
         self.itemPadding = itemPadding
         self.scrollSpeed = self.setScrollSpeed(self.items, 4)
         self.units = units
@@ -136,7 +136,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         self.borderColor = borderColor
 
         self.textHeight = textHeight
-        self._scrollBarSize = (0.016, self.size[1])
+        self._scrollBarSize = (0.016, self.size[1]/1.2)
         self._baseYpositions = []
         self.leftEdge = None
         self.rightEdge = None
@@ -596,7 +596,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         scroll = psychopy.visual.Slider(win=self.win,
                                       size=self._scrollBarSize,
                                       ticks=[0, 1],
-                                      style='slider',
+                                      style='scrollbar',
                                       pos=(self.rightEdge - .008, self.pos[1]),
                                       autoLog=False)
         scroll.line.lineColor = self.colorScheme['bg']
@@ -785,7 +785,8 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         """
         for i in self.items:
             if i['responseCtrl']:
-                i['responseCtrl'].setAutoDraw(value)        
+                i['responseCtrl'].__dict__['autoDraw'] = value
+                self.win.addEditable(i['responseCtrl'])
         BaseVisualStim.setAutoDraw(self, value, log)
         
     def draw(self):
@@ -872,6 +873,32 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         """Deprecated in version 2020.2. Please use the Form.complete property
         """
         return self.complete
+
+    @property
+    def pos(self):
+        if hasattr(self, '_pos'):
+            return self._pos
+    @pos.setter
+    def pos(self, value):
+        self._pos = value
+        if hasattr(self, 'aperture'):
+            self.aperture.pos = value
+        if hasattr(self, 'border'):
+            self.border.pos = value
+        self.leftEdge = self.pos[0] - self.size[0] / 2.0
+        self.rightEdge = self.pos[0] + self.size[0] / 2.0
+        # Set horizontal position of elements
+        for item in self.items:
+            for element in [item['itemCtrl'], item['responseCtrl']]:
+                if element is None:  # e.g. because this has no resp obj
+                    continue
+                element.pos = [value[0], element.pos[1]]
+                element._baseY = value[1]
+                if hasattr(element, 'anchor'):
+                    element.anchor = 'top-center'
+        # Calculate new position for everything on the y axis
+        self.scrollbar.pos = (self.rightEdge - .008, self.pos[1])
+        self._layoutY()
 
     @property
     def complete(self):
