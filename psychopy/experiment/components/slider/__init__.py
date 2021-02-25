@@ -14,6 +14,7 @@ from psychopy.experiment.components import BaseVisualComponent, Param, \
 from psychopy.visual import slider
 from psychopy.experiment import py2js
 from psychopy import logging
+from psychopy.data import utils
 from psychopy.localization import _localized as __localized
 _localized = __localized.copy()
 import copy
@@ -236,6 +237,7 @@ class SliderComponent(BaseVisualComponent):
 
         boolConverter = {False: 'false', True: 'true'}
         sliderStyles = {'slider': 'SLIDER',
+                        'scrollbar': 'SLIDER',
                         '()': 'RATING',
                         'rating': 'RATING',
                         'radio': 'RADIO',
@@ -248,12 +250,18 @@ class SliderComponent(BaseVisualComponent):
             inits['styles'].val = 'rating'
 
         # reformat styles for JS
-        if not isinstance(inits['styleTweaks'].val, (tuple, list)):
-            inits['styleTweaks'].val = [inits['styleTweaks'].val]
-        inits['styleTweaks'].val = ', '.join(["visual.Slider.StyleTweaks.{}".format(adj)
-                                              for adj in inits['styleTweaks'].val])
-        # add comma so is treated as tuple in py2js and converted to list, as required
-        inits['styles'].val = py2js.expression2js(inits['styles'].val)
+        # concatenate styles and tweaks
+        tweaksList = utils.listFromString(self.params['styleTweaks'].val)
+        stylesList = [inits['styles'].val] + tweaksList
+        stylesListJS = [sliderStyles[this] for this in stylesList]
+        # if not isinstance(inits['styleTweaks'].val, (tuple, list)):
+        #     inits['styleTweaks'].val = [inits['styleTweaks'].val]
+        # inits['styleTweaks'].val = ', '.join(["visual.Slider.StyleTweaks.{}".format(adj)
+        #                                       for adj in inits['styleTweaks'].val])
+
+        # convert that to string and JS-ify
+        inits['styles'].val = py2js.expression2js(str(stylesListJS))
+        inits['styles'].valType = 'code'
 
         inits['depth'] = -self.getPosInRoutine()
 
