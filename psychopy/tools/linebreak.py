@@ -25,6 +25,27 @@ else:
 
 if sys.maxunicode < 0x10000:
     # narrow unicode build
+    def ord(c, index=None):
+        
+        if isinstance(c, str):
+            return _ord(c[index or 0])
+        if not isinstance(c, unicode):
+            raise TypeError('must be unicode, not %s' % type(c).__name__)
+        i = index or 0
+        len_s = len(c)-i
+        if len_s:
+            value = hi = _ord(c[i])
+            i += 1
+            if 0xd800 <= hi < 0xdc00:
+                if len_s > 1:
+                    lo = _ord(c[i])
+                    i += 1
+                    if 0xdc00 <= lo < 0xe000:
+                        value = (hi-0xd800)*0x400+(lo-0xdc00)+0x10000
+            if index is not None or i == len_s:
+                return value
+        raise TypeError('need a single Unicode code point as parameter')
+
     rx_codepoints = re.compile(r'[\ud800-\udbff][\udc00-\udfff]|.', re.DOTALL)
     
     def code_point(s, index=0):
@@ -38,6 +59,10 @@ if sys.maxunicode < 0x10000:
 
 else:
     # wide unicode build
+    
+    def ord(c, index=None):
+        return _ord(c if index is None else c[index])
+    
     def code_point(s, index=0):
         return s[index or 0]
     
