@@ -33,6 +33,7 @@
   4050:
     cat: Experiment configuration
     4051: Experiment from future version
+    4052: Experiment fixed to past version
   4100:
     cat: Timing
     4105: Component start time exceeds stop times
