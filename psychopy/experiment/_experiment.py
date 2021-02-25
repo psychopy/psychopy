@@ -575,7 +575,7 @@ class Experiment(object):
         if Version(psychopy.__version__) < Version(self.psychopyVersion):
             alert(code=4051, strFields={'version': self.psychopyVersion})
         # If versions are either side of 2021, send alert
-        if Version(psychopy.__version__) > Version("2021.1.0") > Version(self.psychopyVersion):
+        if Version(psychopy.__version__) >= Version("2021.1.0") > Version(self.psychopyVersion):
             alert(code=4052, strFields={'version': self.psychopyVersion})
 
         # Parse document nodes
