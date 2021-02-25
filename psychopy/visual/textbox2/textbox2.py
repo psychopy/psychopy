@@ -262,6 +262,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
     def foreColor(self, value):
         ColorMixin.foreColor.fset(self, value)
         self._layout()
+        if hasattr(self, "foreColor") and hasattr(self, 'caret'):
+            self.caret.color = self._foreColor
 
     @attributeSetter
     def font(self, fontName, italic=False, bold=False):
