@@ -452,11 +452,14 @@ class Experiment(object):
             params['stopType'].val = "{}".format('time (s)')
             params['stopVal'].val = "{}".format(times[1])
             return  # times doesn't need to update its type or 'updates' rule
-        elif name in ('Begin Experiment', 'Begin Routine', 'Each Frame',
-                      'End Routine', 'End Experiment'):
+        elif name in ('Before Experiment', 'Begin Experiment', 'Begin Routine', 'Each Frame',
+                      'End Routine', 'End Experiment',
+                      'Before JS Experiment', 'Begin JS Experiment', 'Begin JS Routine', 'Each JS Frame',
+                      'End JS Routine', 'End JS Experiment'):
+            # up to version 1.78.00 and briefly in 2021.1.0-1.1 these were 'code'
             params[name].val = val
-            params[name].valType = 'extendedCode'  # changed in 1.78.00
-            return  # so that we don't update valTyp again below
+            params[name].valType = 'extendedCode'
+            return  # so that we don't update valType again below
         elif name == 'Saved data folder':
             # deprecated in 1.80 for more complete data filename control
             params[name] = Param(
