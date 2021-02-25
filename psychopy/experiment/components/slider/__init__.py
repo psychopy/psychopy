@@ -237,6 +237,7 @@ class SliderComponent(BaseVisualComponent):
 
         boolConverter = {False: 'false', True: 'true'}
         sliderStyles = {'slider': 'SLIDER',
+                        'scrollbar': 'SLIDER',
                         '()': 'RATING',
                         'rating': 'RATING',
                         'radio': 'RADIO',
