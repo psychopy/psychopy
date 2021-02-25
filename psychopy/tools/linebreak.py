@@ -9,7 +9,6 @@ Code is based on uniseg 0.7.1 (https://pypi.org/project/uniseg/)
 
 
 import sys
-import os
 import re
 from psychopy.tools.linebreak_class import linebreak_class
 
