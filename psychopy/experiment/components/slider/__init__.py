@@ -262,7 +262,7 @@ class SliderComponent(BaseVisualComponent):
                    "  win: psychoJS.window, name: '{name}',\n"
                    "  size: {size}, pos: {pos}, units: {units},\n"
                    "  labels: {labels}, ticks: {ticks},\n"
-                   "  granularity: {granularity}, style: {styles},\n"
+                   "  granularity: {granularity}, style: [{styles}],\n"
                    "  color: new util.Color({color}), \n"
                    "  fontFamily: {font}, bold: true, italic: false, depth: {depth}, \n"
                    ).format(**inits)
