@@ -220,10 +220,10 @@ class Param(object):
             else:  # if val was a tuple it needs converting to a string first
                 val = "%s" % repr(self.val)
             if utils.scriptTarget == "PsychoJS":
-                if self.valType == 'code':
-                    valJS = py2js.expression2js(val)
-                elif self.valType == 'extendedCode':
+                if self.inputType == 'multi' or self.valType == 'extendedCode':
                     valJS = py2js.snippet2js(val)
+                else:
+                    valJS = py2js.expression2js(val)
                 if val != valJS:
                     logging.debug("Rewriting with py2js: {} -> {}".format(val, valJS))
                 return valJS
