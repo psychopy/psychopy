@@ -237,20 +237,21 @@ class ButtonComponent(BaseVisualComponent):
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
-        if self.params['forceEndRoutine'].val:
+        if self.params['oncePerClick'].val or self.params['forceEndRoutine'].val:
             code = (
-                    f"continueRoutine = False  # end routine when %(name)s is clicked\n"
-            )
-            buff.writeIndentedLines(code % inits)
-        if self.params['oncePerClick'].val:
-            code = (
-                    f"if not %(name)s.wasClicked:\n"
+                f"if not %(name)s.wasClicked:\n"
             )
             buff.writeIndentedLines(code % inits)
             buff.setIndentLevel(1, relative=True)
-            buff.writeIndentedLines(callback % inits)
-            buff.setIndentLevel(-1, relative=True)
-        else:
+            if self.params['forceEndRoutine'].val:
+                code = (
+                        f"continueRoutine = False  # end routine when %(name)s is clicked\n"
+                )
+                buff.writeIndentedLines(code % inits)
+            if self.params['oncePerClick'].val:
+                buff.writeIndentedLines(callback % inits)
+                buff.setIndentLevel(-1, relative=True)
+        if not self.params['oncePerClick'].val:
             buff.writeIndentedLines(callback % inits)
         code = (
                     f"%(name)s.wasClicked = True  # if %(name)s is still clicked next frame, it is not a new click\n"
