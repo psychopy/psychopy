@@ -254,8 +254,9 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 # Print a warning if they didn't /ask/ for auto detection
                 logging.warning("Language style {} for TextBox2 object {} was not recognised, defaulting to {} based on current text.".format(_requested, self.name, value))
         # Store style
-        print(value)
         self._languageStyle = value
+        # Do layout again
+        self._layout()
 
     @property
     def pallette(self):
