@@ -465,9 +465,14 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         if np.isnan(self._requestedSize[0]):
             lineMax = float('inf')
         else:
-            lineMax = (self._requestedSize[0] - self.padding) * self._pixelScaling
+            lineMax = (self._requestedSize[0] - self.padding*2) * self._pixelScaling
 
-        current = [0, 0]
+        if self.languageStyle == 'RTL':
+            current = [lineMax, 0]
+            dirAdj = -1
+        else:
+            current = [0, 0]
+            dirAdj = 1
         fakeItalic = 0.0
         fakeBold = 0.0
         # for some reason glyphs too wide when using alpha channel only
@@ -502,29 +507,28 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                     glyph = font[u"·"]
                 else:
                     glyph = font[charcode]
-                xBotL = current[0] + glyph.offset[0] - fakeItalic - fakeBold / 2
-                xTopL = current[0] + glyph.offset[0] - fakeBold / 2
+                xBotL = current[0] + (0 if self.languageStyle == 'RTL' else glyph.offset[0]) - fakeItalic - fakeBold / 2
+                xTopL = current[0] + (0 if self.languageStyle == 'RTL' else glyph.offset[0]) - fakeBold / 2
                 yTop = current[1] + glyph.offset[1]
-                xBotR = xBotL + glyph.size[0] * alphaCorrection + fakeBold
-                xTopR = xTopL + glyph.size[0] * alphaCorrection + fakeBold
+                xBotR = xBotL + glyph.size[0] * dirAdj * alphaCorrection + fakeBold
+                xTopR = xTopL + glyph.size[0] * dirAdj * alphaCorrection + fakeBold
                 yBot = yTop - glyph.size[1]
-                u0 = glyph.texcoords[0]
-                v0 = glyph.texcoords[1]
-                u1 = glyph.texcoords[2]
-                v1 = glyph.texcoords[3]
+                if self.languageStyle == 'RTL':
+                    # Swap left and right sides if layout is RTL
+                    xBotR, xTopR, xBotL, xTopL = (xBotL, xTopL, xBotR, xTopR)
             else:
                 glyph = font[u"·"]
-                x = current[0] + glyph.offset[0]
+                x = current[0] + (0 if self.languageStyle == 'RTL' else glyph.offset[0])
                 yTop = current[1] + glyph.offset[1]
                 yBot = yTop - glyph.size[1]
                 xBotL = x
                 xTopL = x
                 xBotR = x
                 xTopR = x
-                u0 = glyph.texcoords[0]
-                v0 = glyph.texcoords[1]
-                u1 = glyph.texcoords[2]
-                v1 = glyph.texcoords[3]
+            u0 = glyph.texcoords[0]
+            v0 = glyph.texcoords[1]
+            u1 = glyph.texcoords[2]
+            v1 = glyph.texcoords[3]
 
             theseVertices = [[xTopL, yTop], [xBotL, yBot],
                              [xBotR, yBot], [xTopR, yTop]]
@@ -535,7 +539,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             self._texcoords[i * 4:i * 4 + 4] = texcoords
             self._colors[i*4 : i*4+4, :4] = rgb
             self._lineNs[i] = lineN
-            current[0] = current[0] + glyph.advance[0] + fakeBold / 2
+            current[0] = current[0] + glyph.advance[0]*dirAdj - (glyph.offset[0] if self.languageStyle == 'RTL' else 0) + fakeBold / 2*dirAdj
             current[1] = current[1] + glyph.advance[1]
 
             # are we wrapping the line?
@@ -818,9 +822,15 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         elif key == 'MOTION_DOWN':
             self.caret.row += 1
         elif key == 'MOTION_RIGHT':
-            self.caret.char += 1
+            if self.languageStyle == 'RTL':
+                self.caret.char -= 1
+            else:
+                self.caret.char += 1
         elif key == 'MOTION_LEFT':
-            self.caret.char -= 1
+            if self.languageStyle == 'RTL':
+                self.caret.char += 1
+            else:
+                self.caret.char -= 1
         elif key == 'MOTION_BACKSPACE':
             self.deleteCaretLeft()
         elif key == 'MOTION_DELETE':
@@ -1065,12 +1075,20 @@ class Caret(ColorMixin):
             verts[:,1] = verts[:,1]
             verts[:,0] = verts[:,0] + float(textbox._anchorOffsetX)
         else:
-            if self.index >= len(textbox._lineNs):  # caret is after last chr
-                chrVerts = textbox.vertices[range((ii-1) * 4, (ii-1) * 4 + 4)]
-                x = chrVerts[2, 0]  # x-coord of left edge (of final char)
+            if textbox.languageStyle == 'RTL':
+                if self.index >= len(textbox._lineNs):  # caret is after last chr
+                    chrVerts = textbox.vertices[range((ii-1) * 4, (ii-1) * 4 + 4)]
+                    x = chrVerts[1, 0]  # x-coord of left edge (of final char)
+                else:
+                    chrVerts = textbox.vertices[range(ii * 4, ii * 4 + 4)]
+                    x = chrVerts[2, 0]  # x-coord of right edge
             else:
-                chrVerts = textbox.vertices[range(ii * 4, ii * 4 + 4)]
-                x = chrVerts[1, 0]  # x-coord of right edge
+                if self.index >= len(textbox._lineNs):  # caret is after last chr
+                    chrVerts = textbox.vertices[range((ii-1) * 4, (ii-1) * 4 + 4)]
+                    x = chrVerts[2, 0]  # x-coord of left edge (of final char)
+                else:
+                    chrVerts = textbox.vertices[range(ii * 4, ii * 4 + 4)]
+                    x = chrVerts[1, 0]  # x-coord of right edge
             # the y locations are the top and bottom of this line
             y1 = textbox._lineBottoms[self.row] / textbox._pixelScaling
             y2 = textbox._lineTops[self.row] / textbox._pixelScaling
