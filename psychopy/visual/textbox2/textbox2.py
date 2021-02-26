@@ -22,12 +22,15 @@ from ..basevisual import BaseVisualStim, ColorMixin, ContainerMixin
 from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.monitorunittools import convertToPix
+from psychopy.tools.stringtools import RTLvals, arabicVals
 from .fontmanager import FontManager, GLFont
 from .. import shaders
 from ..rect import Rect
-from ... import core
+from ... import core, logging
 
 allFonts = FontManager()
+
+knownLangStyles = ['LTR', 'RTL', 'Arabic']
 
 # compile global shader programs later (when we're certain a GL context exists)
 rgbShader = None
@@ -86,6 +89,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                  alignment='left',
                  flipHoriz=False,
                  flipVert=False,
+                 languageStyle='auto',
                  editable=False,
                  name='',
                  autoLog=None,
@@ -231,7 +235,28 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         if editable is True:
             if self.win:
                 self.win.addEditable(self)
-        
+
+    @property
+    def languageStyle(self):
+        if hasattr(self, "_languageStyle"):
+            return self._languageStyle
+    @languageStyle.setter
+    def languageStyle(self, value):
+        if value not in knownLangStyles:
+            # If given an unknown language style, figure it out from text
+            _requested = value
+            if any(c in RTLvals for c in self.text):
+                # If there are any RTL characters, assume RTL
+                value = 'RTL'
+            if any(c in arabicVals for c in self.text):
+                value = 'Arabic'
+            if _requested not in ('auto', None):
+                # Print a warning if they didn't /ask/ for auto detection
+                logging.warning("Language style {} for TextBox2 object {} was not recognised, defaulting to {} based on current text.".format(_requested, self.name, value))
+        # Store style
+        print(value)
+        self._languageStyle = value
+
     @property
     def pallette(self):
         self._pallette = {

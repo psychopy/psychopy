@@ -114,7 +114,7 @@ class TextboxComponent(BaseVisualComponent):
             label=_localized['flipVertical'])
         self.params['languageStyle'] = Param(
             languageStyle, valType='str', inputType="choice", categ='Formatting',
-            allowedVals=['LTR', 'RTL', 'Arabic'],
+            allowedVals=['LTR', 'RTL', 'Arabic', 'auto'],
             hint=_translate("Handle right-to-left (RTL) languages and Arabic reshaping"),
             label=_localized['languageStyle'])
         self.params['italic'] = Param(
@@ -191,7 +191,7 @@ class TextboxComponent(BaseVisualComponent):
             "     padding=%(padding)s,\n"
             "     anchor=%(anchor)s,\n"
             "     fillColor=%(fillColor)s, borderColor=%(borderColor)s,\n"
-            "     flipHoriz=%(flipHoriz)s, flipVert=%(flipVert)s,\n"
+            "     flipHoriz=%(flipHoriz)s, flipVert=%(flipVert)s, languageStyle=%(languageStyle)s,\n"
             "     editable=%(editable)s,\n"
             "     name='%(name)s',\n"
             "     autoLog=%(autoLog)s,\n"
