@@ -703,7 +703,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
                         # next chacactor
                         i += 1
-                    
+
                     # prepare for next line
                     current[0] = 0
                     current[1] -= self._lineHeight
@@ -711,7 +711,10 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                     lineBreakPt = vertices[(i-1) * 4, 0]
                     self._lineLenChars.append(len(line))
                     self._lineWidths.append(getLineWidthFromPix(lineBreakPt))
-                    lineN += 1
+
+                    # need not increase lineN when the last line doesn't end with '\n'
+                    if lineN < len(lines)-1 or line[-1] == '\n' :
+                        lineN += 1
         else:
             raise ValueError("Unknown lineBreaking option ({}) is"
                 "specified.".format(lineBreaking))
