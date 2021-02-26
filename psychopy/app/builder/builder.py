@@ -970,7 +970,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         """
         if newTitle is None:
             shortName = os.path.split(self.filename)[-1]
-            newTitle = '%s - PsychoPy Builder' % (shortName)
+            newTitle = '%s - PsychoPy Builder (v%s)' % (shortName, self.app.version)
         self.SetTitle(newTitle)
 
     def setIsModified(self, newVal=None):

@@ -2329,8 +2329,8 @@ class CoderFrame(wx.Frame, ThemeMixin):
             self.currentDoc.SetWrapMode(
                 wx.stc.STC_WRAP_WORD if self.lineWrapChk.IsChecked() else wx.stc.STC_WRAP_NONE)
             self.statusBar.SetStatusText(fileType, 2)
-
-        self.SetLabel('%s - PsychoPy Coder' % self.currentDoc.filename)
+        fname = Path(self.currentDoc.filename).name
+        self.SetLabel('%s - PsychoPy Coder (v%s)' % (fname, psychopy.__version__))
         #if len(self.getOpenFilenames()) > 0:
         self.currentDoc.analyseScript()
 
