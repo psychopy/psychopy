@@ -2193,7 +2193,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
                 cond = True
             elif self.filter == 'Both':
                 cond = 'PsychoJS' in comp.targets and 'PsychoPy' in comp.targets
-            elif ['PsychoPy', 'PsychoJS'] in self.filter:
+            elif self.filter in ['PsychoPy', 'PsychoJS']:
                 cond = self.filter in comp.targets
             if cond:
                 self.addComponentButton(thisName, self.panels['Favorites'])
@@ -2214,7 +2214,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
                 cond = True
             elif self.filter == 'Both':
                 cond = 'PsychoJS' in comp.targets and 'PsychoPy' in comp.targets
-            elif ['PsychoPy', 'PsychoJS'] in self.filter:
+            elif self.filter in ['PsychoPy', 'PsychoJS']:
                 cond = self.filter in comp.targets
             if not cond:
                 componentNames.remove(key)
