@@ -218,7 +218,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         # caret
         self._editable = editable
         self.caret = Caret(self, color=self.color, width=5)
-
+        self.languageStyle = languageStyle
 
         self.autoLog = autoLog
 
