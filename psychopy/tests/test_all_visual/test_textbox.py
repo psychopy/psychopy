@@ -2,6 +2,7 @@ from builtins import object
 from pathlib import Path
 
 from psychopy import visual, event
+from psychopy.alerts._errorHandler import _BaseErrorHandler
 from psychopy.visual import Window
 from psychopy.visual import TextBox2
 from psychopy.visual.textbox2.fontmanager import FontManager
@@ -15,6 +16,7 @@ from psychopy.tests import utils
 class Test_textbox(object):
     def setup_class(self):
         self.win = Window([128,128], pos=[50,50], allowGUI=False, autoLog=False)
+        self.error = _BaseErrorHandler()
 
     def teardown_class(self):
         self.win.close()
@@ -141,3 +143,7 @@ class Test_textbox(object):
         mgr.addGoogleFont("Hanalei")
         # Check that these fonts are found once installed
         assert bool(mgr.getFontNamesSimilar("Hanalei"))
+
+    def test_alerts(self):
+        noFontTextbox = TextBox2(self.win, "", font="Raleway Dots", bold=True)
+        assert (self.error.alerts[0].code == 4325)
