@@ -11,28 +11,14 @@
 
 from __future__ import absolute_import, division, print_function
 
-import sys
-import os
-import time
-import re
-import weakref
-
-from psychopy import prefs, logging, exceptions
-from psychopy.constants import (STARTED, PAUSED, FINISHED, STOPPING,
-                                NOT_STARTED)
-from psychopy.exceptions import SoundFormatError, DependencyError
+from psychopy.constants import STARTED, NOT_STARTED
+from psychopy.exceptions import DependencyError
 
 try:
     from psychtoolbox import audio
     import psychtoolbox as ptb
 except Exception:
     raise DependencyError("psychtoolbox audio failed to import")
-try:
-    import soundfile as sf
-except Exception:
-    raise DependencyError("soundfile not working")
-
-import numpy as np
 
 # used to register backends for the (future) plugin system
 audioInputLib = {
