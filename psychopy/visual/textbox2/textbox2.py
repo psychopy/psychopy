@@ -25,7 +25,7 @@ from psychopy.tools.monitorunittools import convertToPix
 from .fontmanager import FontManager, GLFont
 from .. import shaders
 from ..rect import Rect
-from ... import core
+from ... import core, alerts
 
 allFonts = FontManager()
 
@@ -160,6 +160,16 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.padding = padding
         self.glFont = None  # will be set by the self.font attribute setter
         self.font = font
+        # If font not found, default to Open Sans Regular and raise alert
+        if not self.glFont:
+            alerts.alert(4325, self, {
+                'font': font,
+                'weight': 'bold' if self.bold is True else 'regular' if self.bold is False else self.bold,
+                'style': 'italic' if self.italic else '',
+                'name': self.name})
+            self.bold = False
+            self.italic = False
+            self.font = "Open Sans"
 
         # once font is set up we can set the shader (depends on rgb/a of font)
         if self.glFont.atlas.format == 'rgb':
