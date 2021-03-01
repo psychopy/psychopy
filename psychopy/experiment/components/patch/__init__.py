@@ -29,7 +29,7 @@ _localized.update({'image': _translate('Image/tex'),
 
 class PatchComponent(BaseVisualComponent):
     """An event class for presenting image-based stimuli"""
-
+    targets = ['PsychoPy']
     def __init__(self, exp, parentName, name='patch', image='sin', mask='None',
                  sf='None', interpolate='linear',
                  units='from exp settings', color='$[1,1,1]', colorSpace='rgb',

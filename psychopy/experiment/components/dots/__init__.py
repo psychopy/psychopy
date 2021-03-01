@@ -34,6 +34,8 @@ _localized.update({'nDots': _translate('Number of dots'),
 class DotsComponent(BaseVisualComponent):
     """An event class for presenting Random Dot stimuli"""
 
+    targets = ['PsychoPy']
+
     def __init__(self, exp, parentName, name='dots',
                  nDots=100,
                  direction=0.0, speed=0.1, coherence=1.0,

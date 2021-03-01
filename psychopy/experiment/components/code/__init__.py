@@ -37,6 +37,7 @@ _localized = {'Code Type': _translate('Code Type'),
 class CodeComponent(BaseComponent):
     # an attribute of the class, determines the section in the components panel
     categories = ['Custom']
+    targets = ['PsychoPy', 'PsychoJS']
     """An event class for inserting arbitrary code into Builder experiments"""
 
     def __init__(self, exp, parentName, name='code',
@@ -49,7 +50,6 @@ class CodeComponent(BaseComponent):
                  codeType=None, translator="manual"):
         super(CodeComponent, self).__init__(exp, parentName, name)
         self.type = 'Code'
-        self.targets = ['PsychoPy', 'PsychoJS']
         self.url = "https://www.psychopy.org/builder/components/code.html"
         # params
         # want a copy, else codeParamNames list gets mutated

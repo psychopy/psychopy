@@ -17,6 +17,9 @@ tooltip = _translate('Initialize EMOTIV hardware connection')
 
 
 class EmotivRecordingComponent(BaseComponent):  # or (VisualComponent)
+
+    targets = ['PsychoPy']
+
     def __init__(self, exp, parentName, name='cortex_rec'):
         super(EmotivRecordingComponent, self).__init__(
             exp, parentName, name=name,

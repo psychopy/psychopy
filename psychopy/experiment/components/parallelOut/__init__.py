@@ -29,7 +29,7 @@ _localized.update({'address': _translate('Port address'),
 class ParallelOutComponent(BaseComponent):
     """A class for sending signals from the parallel port"""
     categories = ['I/O']
-
+    targets = ['PsychoPy']
     def __init__(self, exp, parentName, name='p_port',
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,

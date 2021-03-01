@@ -35,7 +35,7 @@ _localized.update({'name': _translate('Name'),
 
 class VariableComponent(BaseComponent):
     """An class for creating variables in builder."""
-
+    targets = ['PsychoPy']
     def __init__(self, exp, parentName,
                  name='var1', startExpValue = '',
                  startRoutineValue='',

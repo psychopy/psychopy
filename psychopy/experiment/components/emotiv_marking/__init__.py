@@ -25,6 +25,9 @@ _localized.update({'marker_label': _translate('Marker Label'),
 
 
 class EmotivMarkingComponent(BaseComponent):  # or (VisualComponent)
+
+    targets = ['PsychoPy']
+
     def __init__(self, exp, parentName, name='eeg_marker',
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1,
