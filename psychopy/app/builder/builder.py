@@ -2126,8 +2126,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         def onClick(self, evt, timeout=None):
             routine = self.parent.frame.routinePanel.getCurrentRoutine()
             page = self.parent.frame.routinePanel.getCurrentPage()
-            comp = self.component(parentName=routine.name,
-                                   exp=self.parent.frame.exp)
+            comp = self.component(parentName=routine.name, exp=self.parent.frame.exp)
             name = comp.params['name'].val
             # does this component have a help page?
             if hasattr(self.component, 'url'):
@@ -2199,9 +2198,6 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             # Refresh
             self.Refresh()
 
-
-
-
     def __init__(self, frame, id=-1):
         """A panel that displays available components.
         """
@@ -2240,7 +2236,8 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             if self.faveLevels[comp] > self.faveThreshold:
                 self.favorites.append(comp)
         # Fill in gaps in favorites with defaults
-        faveDefaults = ['ImageComponent', 'KeyboardComponent', 'SoundComponent', 'TextComponent', 'MouseComponent', 'SliderComponent']
+        faveDefaults = ['ImageComponent', 'KeyboardComponent', 'SoundComponent',
+                        'TextComponent', 'MouseComponent', 'SliderComponent']
         while len(self.favorites) < 6:
             thisDef = faveDefaults.pop(0)
             if thisDef not in self.favorites:
@@ -2254,7 +2251,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         # Make a button for each component
         self.compButtons = []
         for name, comp in self.components.items():
-            for cat in comp.categories: # make one button for each category
+            for cat in comp.categories:  # make one button for each category
                 self.compButtons.append(
                     self.ComponentButton(self, name, comp, cat)
                 )
