@@ -26,15 +26,21 @@ audioInputLib = {
 }
 
 
+class AudioStreamError(Exception):
+    """Error raised when there is a problem during audio recording/streaming."""
+    pass
+
+
 class BaseMicrophoneInterface(object):
     """Base class for microphone input backends. Defines the API common to all
     microphone recording backends.
     """
     audioInputLib = None  # identify the backend for plugins
 
-    def __init__(self):
+    def __init__(self, sampleRateHz=48000):
+        assert isinstance(sampleRateHz, (int, float))
+        self._sampleRateHz = int(sampleRateHz)
         self._statusFlag = NOT_STARTED
-        self._audioData = dict()  # store previously recorded audio
 
     @property
     def isRecording(self):
@@ -52,6 +58,10 @@ class BaseMicrophoneInterface(object):
 
     def stop(self):
         """Stop recording audio."""
+        pass
+
+    def getAudioData(self):
+        """Get audio data from the last recording."""
         pass
 
 
@@ -74,17 +84,15 @@ class PTBMicrophone(BaseMicrophoneInterface):
     audioInputLib = 'ptb'
 
     def __init__(self, recBufferSecs=10.0, sampleRateHz=48000):
-        super(BaseMicrophoneInterface, self).__init__(self)
+        super().__init__(sampleRateHz)
 
         # internal recording buffer size in seconds
         assert isinstance(recBufferSecs, (float, int))
         self._recBufferSecs = float(recBufferSecs)
 
         # PTB specific stuff (for now, might move to base class)
-        assert isinstance(sampleRateHz, (int, float))
-        self._sampleRateHz = int(sampleRateHz)
         self._mode = 2
-        self._channels = 2
+        self._channels = 1
 
         # this can only be set after initialization
         self._stopTime = None   # optional, stop time to end recording
@@ -144,12 +152,26 @@ class PTBMicrophone(BaseMicrophoneInterface):
         close the audio stream.
 
         """
-        self._recording.close()
+        self._recording.stop()
         self._statusFlag = NOT_STARTED
+
+    def close(self):
+        """Close the stream."""
+        self._recording.close()
 
     def getAudioData(self, clipName=None):
         """Get samples from a previous recording."""
-        pass
+        if self._statusFlag == NOT_STARTED:
+            raise AudioStreamError(
+                "Cannot get stream data while stream is closed.")
+
+        audioData, _, _, _ = self._recording.get_audio_data()
+
+        return audioData
+
+    def __del__(self):
+        if self._recording is not None:
+            self._recording.close()
 
 
 if __name__ == "__main__":

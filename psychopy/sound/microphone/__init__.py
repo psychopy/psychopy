@@ -8,10 +8,9 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
+__all__ = ['Microphone']
 
-from __future__ import absolute_import, division, print_function
-
-import psychopy.sound.microphone._backends as backends
+from . import _backends
 
 
 class Microphone(object):
@@ -26,14 +25,17 @@ class Microphone(object):
         least greater than 20kHz to minimize distortion perceptible to humans
         due to aliasing.
     audioCaptureLib : str or None
-        Library to use for capturing audio from the microphone. By default,
-        the library specified in preferences is used.
+        Library to use for capturing audio from the microphone. If `None`, the
+        library specified in preferences in used.
 
     """
-    def __init__(self, sampleRateHz=480000, audioCaptureLib=None):
+    def __init__(self, sampleRateHz=48000, audioCaptureLib='ptb'):
 
         self._audioCaptureLib = audioCaptureLib
-        self._backend = (self._getBackend())(sampleRateHz=sampleRateHz)
+
+        # create the backend instance
+        cls = self._getBackend()  # unbound class
+        self._backend = cls(sampleRateHz=sampleRateHz)
 
     def _getBackend(self):
         """Initialize the backend to use for microphone recording.
@@ -45,11 +47,11 @@ class Microphone(object):
 
         """
         # get the backend to use
-        clsName = backends.audioInputLib.get(self._audioCaptureLib, 'ptb')
-        cls = getattr(backends, clsName)
+        clsName = _backends.audioInputLib[self._audioCaptureLib]
+        cls = getattr(_backends, clsName)
 
         #  make sure the backend is a sub-class of `BaseMicrophoneInterface`
-        assert issubclass(cls, backends.BaseMicrophoneInterface)
+        assert issubclass(cls, _backends.BaseMicrophoneInterface)
 
         return cls
 
@@ -58,6 +60,10 @@ class Microphone(object):
 
     def stop(self):
         self._backend.stop()
+
+    def getAudioData(self):
+        """Get audio data."""
+        return self._backend.getAudioData()
 
 
 if __name__ == "__main__":
