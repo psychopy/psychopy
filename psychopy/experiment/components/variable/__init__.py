@@ -11,6 +11,7 @@ from __future__ import absolute_import, print_function
 from builtins import super  # provides Py3-style super() using python-future
 
 from os import path
+from pathlib import Path
 from psychopy.experiment.components import BaseComponent, Param, _translate
 from psychopy.localization import _localized as __localized
 _localized = __localized.copy()
@@ -18,7 +19,6 @@ import numpy as np
 
 # the absolute path to the folder containing this path
 thisFolder = path.abspath(path.dirname(__file__))
-iconFile = path.join(thisFolder, 'variable.png')
 tooltip = _translate('Variable: create a new variable')
 
 # only use _localized values for label values, nothing functional:
@@ -35,6 +35,8 @@ _localized.update({'name': _translate('Name'),
 
 class VariableComponent(BaseComponent):
     """An class for creating variables in builder."""
+
+    iconFile = Path(thisFolder) / 'variable.png'
 
     def __init__(self, exp, parentName,
                  name='var1', startExpValue = '',

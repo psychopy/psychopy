@@ -11,6 +11,7 @@ from __future__ import absolute_import, print_function
 from builtins import super  # provides Py3-style super() using python-future
 
 from os import path
+from pathlib import Path
 from psychopy.experiment.components import BaseComponent, Param, getInitVals, _translate
 from psychopy.sound._base import knownNoteNames
 from psychopy.localization import _localized as __localized
@@ -18,7 +19,6 @@ _localized = __localized.copy()
 
 # the absolute path to the folder containing this path
 thisFolder = path.abspath(path.dirname(__file__))
-iconFile = path.join(thisFolder, 'sound.png')
 tooltip = _translate('Sound: play recorded files or generated sounds',)
 
 # only use _localized values for label values, nothing functional:
@@ -30,6 +30,7 @@ _localized.update({'sound': _translate('Sound'),
 class SoundComponent(BaseComponent):
     """An event class for presenting sound stimuli"""
     categories = ['Stimuli']
+    iconFile = Path(thisFolder) / 'sound.png'
 
     def __init__(self, exp, parentName, name='sound_1', sound='A', volume=1,
                  startType='time (s)', startVal='0.0',

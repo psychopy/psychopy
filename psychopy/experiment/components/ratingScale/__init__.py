@@ -11,6 +11,7 @@ from builtins import super  # provides Py3-style super() using python-future
 from builtins import str
 from builtins import map
 from os import path
+from pathlib import Path
 import re
 from psychopy.experiment.components import BaseComponent, Param, _translate
 from psychopy.localization import _localized as __localized
@@ -20,7 +21,6 @@ __author__ = 'Jeremy Gray'
 
 # the absolute path to the folder containing this path
 thisFolder = path.abspath(path.dirname(__file__))
-iconFile = path.join(thisFolder, 'ratingscale.png')
 tooltip = _translate('Rating scale: obtain numerical or categorical '
                      'responses')
 
@@ -50,6 +50,7 @@ class RatingScaleComponent(BaseComponent):
     """A class for presenting a rating scale as a builder component
     """
     categories = ['Responses']
+    iconFile = Path(thisFolder) / 'ratingscale.png'
 
     def __init__(self, exp, parentName,
                  name='rating',

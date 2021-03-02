@@ -8,6 +8,7 @@
 from __future__ import absolute_import, print_function
 
 from os import path
+from pathlib import Path
 from psychopy import logging
 from psychopy.alerts import alerttools
 from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals, _translate
@@ -16,7 +17,6 @@ _localized = __localized.copy()
 
 # the absolute path to the folder containing this path
 thisFolder = path.abspath(path.dirname(__file__))
-iconFile = path.join(thisFolder, 'text.png')
 tooltip = _translate('Text: present text stimuli')
 
 # only use _localized values for label values, nothing functional:
@@ -31,6 +31,8 @@ _localized.update({'text': _translate('Text'),
 class TextComponent(BaseVisualComponent):
     """An event class for presenting text-based stimuli
     """
+
+    iconFile = Path(thisFolder) / 'text.png'
     categories = ['Stimuli']
     targets = ['PsychoPy', 'PsychoJS']
     def __init__(self, exp, parentName, name='text',

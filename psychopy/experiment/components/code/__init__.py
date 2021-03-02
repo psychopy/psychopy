@@ -9,6 +9,7 @@ from __future__ import absolute_import, print_function
 
 from builtins import str
 from os import path
+from pathlib import Path
 
 from psychopy import prefs
 from psychopy.experiment.components import BaseComponent, Param, _translate
@@ -16,7 +17,6 @@ from psychopy.alerts import alerttools
 
 # the absolute path to the folder containing this path
 thisFolder = path.abspath(path.dirname(__file__))
-iconFile = path.join(thisFolder, 'code.png')
 tooltip = _translate('Code: insert python commands into an experiment')
 _localized = {'Code Type': _translate('Code Type'),
               'Before Experiment': _translate('Before Experiment'),
@@ -35,9 +35,10 @@ _localized = {'Code Type': _translate('Code Type'),
 
 
 class CodeComponent(BaseComponent):
+    """An event class for inserting arbitrary code into Builder experiments"""
     # an attribute of the class, determines the section in the components panel
     categories = ['Custom']
-    """An event class for inserting arbitrary code into Builder experiments"""
+    iconFile = Path(thisFolder) / 'code.png'
 
     def __init__(self, exp, parentName, name='code',
                  beforeExp="",

@@ -6,6 +6,7 @@ from __future__ import absolute_import, print_function
 from builtins import str
 from builtins import object
 import os
+from pathlib import Path
 import re
 import wx.__version__
 import psychopy
@@ -92,6 +93,8 @@ thisFolder = os.path.split(__file__)[0]
 class SettingsComponent(object):
     """This component stores general info about how to run the experiment
     """
+    iconFile = Path(thisFolder) / 'settings.png'
+    targets = ['PsychoPy', 'PsychoJS']
 
     def __init__(self, parentName, exp, expName='', fullScr=True,
                  winSize=(1024, 768), screen=1, monitor='testMonitor',

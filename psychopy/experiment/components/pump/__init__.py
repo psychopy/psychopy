@@ -9,6 +9,7 @@ from __future__ import absolute_import, print_function
 from builtins import super  # provides Py3-style super() using python-future
 
 from os import path
+from pathlib import Path
 from psychopy.experiment.components import BaseComponent, Param, _translate
 from psychopy.hardware import qmix
 from psychopy.localization import _localized as __localized
@@ -17,7 +18,6 @@ _localized = __localized.copy()
 
 # The absolute path to the folder containing this path.
 thisFolder = path.abspath(path.dirname(__file__))
-iconFile = path.join(thisFolder, 'pump.png')
 tooltip = _translate('Pump: deliver liquid stimuli via a Cetoni neMESYS syringe pump')
 
 _localized.update({'pumpIndex': _translate('Pump index'),
@@ -32,6 +32,7 @@ _localized.update({'pumpIndex': _translate('Pump index'),
 class QmixPumpComponent(BaseComponent):
     """Operate a Cetoni neMESYS syringe pump"""
     categories = ['I/O']
+    iconFile = Path(thisFolder) / 'pump.png'
 
     def __init__(self, exp, parentName, name='pump',
                  startType='time (s)', startVal=0.0,

@@ -9,6 +9,7 @@ from __future__ import absolute_import, print_function
 from builtins import super  # provides Py3-style super() using python-future
 
 from os import path
+from pathlib import Path
 from psychopy.experiment.components import BaseComponent, Param, _translate
 from psychopy.experiment import valid_var_re
 from psychopy.experiment import CodeGenerationException, valid_var_re
@@ -18,7 +19,6 @@ import re
 
 # the absolute path to the folder containing this path
 thisFolder = path.abspath(path.dirname(__file__))
-iconFile = path.join(thisFolder, 'joystick.png')
 tooltip = _translate('Joystick: query joystick position and buttons')
 
 # only use _localized values for label values, nothing functional:
@@ -36,6 +36,7 @@ class JoystickComponent(BaseComponent):
     """
     categories = ['Responses']
     targets = ['PsychoPy']
+    iconFile = Path(thisFolder) / 'joystick.png'
 
     def __init__(self, exp, parentName, name='joystick',
                  startType='time (s)', startVal=0.0,

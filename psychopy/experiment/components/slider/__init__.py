@@ -9,6 +9,7 @@ from __future__ import absolute_import, print_function
 from builtins import super  # provides Py3-style super() using python-future
 
 from os import path
+from pathlib import Path
 from psychopy.experiment.components import BaseVisualComponent, Param, \
     getInitVals, _translate
 from psychopy.visual import slider
@@ -22,7 +23,7 @@ __author__ = 'Jon Peirce'
 
 # the absolute path to the folder containing this path
 thisFolder = path.abspath(path.dirname(__file__))
-iconFile = path.join(thisFolder, 'slider.png')
+
 tooltip = _translate('Slider: A simple, flexible object for getting ratings')
 
 # only use _localized values for label values, nothing functional:
@@ -57,6 +58,7 @@ legacyStyleTweaks = slider.Slider.legacyStyleTweaks
 class SliderComponent(BaseVisualComponent):
     """A class for presenting a rating scale as a builder component
     """
+    iconFile = Path(thisFolder) / 'slider.png'
     categories = ['Responses']
 
     def __init__(self, exp, parentName,

@@ -9,6 +9,7 @@ from __future__ import absolute_import, print_function
 from builtins import super  # provides Py3-style super() using python-future
 
 from os import path
+from pathlib import Path
 from psychopy.experiment.components import BaseVisualComponent, getInitVals, _translate
 from psychopy.localization import _localized as __localized
 _localized = __localized.copy()
@@ -19,7 +20,6 @@ __author__ = 'Jeremy Gray, Jon Peirce'
 
 # the absolute path to the folder containing this path
 thisFolder = path.abspath(path.dirname(__file__))
-iconFile = path.join(thisFolder, 'aperture.png')
 tooltip = _translate('Aperture: restrict the drawing of stimuli to a given '
                      'region')
 
@@ -27,6 +27,7 @@ tooltip = _translate('Aperture: restrict the drawing of stimuli to a given '
 class ApertureComponent(BaseVisualComponent):
     """An event class for using GL stencil to restrict the viewing area to a
     circle or square of a given size and position"""
+    iconFile = Path(thisFolder) / 'aperture.png'
 
     def __init__(self, exp, parentName, name='aperture', units='norm',
                  size=1, pos=(0, 0),

@@ -11,6 +11,7 @@ from __future__ import absolute_import, print_function
 
 from builtins import str
 from os import path
+from pathlib import Path
 from psychopy.experiment.components import BaseComponent, Param, _translate
 from psychopy.localization import _localized as __localized
 _localized = __localized.copy()
@@ -19,7 +20,6 @@ __author__ = 'Jon Peirce'
 
 # the absolute path to the folder containing this path
 thisFolder = path.abspath(path.dirname(__file__))
-iconFile = path.join(thisFolder, 'static.png')
 tooltip = _translate('Static: Static screen period (e.g. an ISI). '
                      'Useful for pre-loading stimuli.')
 _localized.update({'Custom code': _translate('Custom code')})
@@ -33,6 +33,7 @@ class StaticComponent(BaseComponent):
     # override the categories property below
     # an attribute of the class, determines the section in the components panel
     categories = ['Custom']
+    iconFile = Path(thisFolder) / 'static.png'
 
     def __init__(self, exp, parentName, name='ISI',
                  startType='time (s)', startVal=0.0,

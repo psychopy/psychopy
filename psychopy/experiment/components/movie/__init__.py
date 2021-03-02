@@ -8,6 +8,7 @@
 from __future__ import absolute_import, print_function
 
 from os import path
+from pathlib import Path
 import copy
 from psychopy import logging
 from psychopy.experiment.components import BaseVisualComponent, getInitVals, Param, _translate
@@ -16,7 +17,6 @@ _localized = __localized.copy()
 
 # the absolute path to the folder containing this path
 thisFolder = path.abspath(path.dirname(__file__))
-iconFile = path.join(thisFolder, 'movie.png')
 tooltip = _translate('Movie: play movie files')
 
 # only use _localized values for label values, nothing functional:
@@ -30,6 +30,8 @@ if _localized['backend'] == 'backend': # this is the only non-capitals label
 
 class MovieComponent(BaseVisualComponent):
     """An event class for presenting movie-based stimuli"""
+
+    iconFile = Path(thisFolder) / 'movie.png'
 
     def __init__(self, exp, parentName, name='movie', movie='',
                  units='from exp settings',

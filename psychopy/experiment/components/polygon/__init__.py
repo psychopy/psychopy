@@ -8,6 +8,7 @@
 from __future__ import absolute_import, print_function
 
 from builtins import str
+from pathlib import Path
 from os import path
 import copy
 from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals, _translate
@@ -17,7 +18,6 @@ _localized = __localized.copy()
 
 # the absolute path to the folder containing this path
 thisFolder = path.abspath(path.dirname(__file__))
-iconFile = path.join(thisFolder, 'polygon.png')
 tooltip = _translate('Polygon: any regular polygon (line, triangle, square'
                      '...circle)')
 
@@ -34,6 +34,8 @@ _localized.update({'nVertices': _translate('Num. vertices'),
 
 class PolygonComponent(BaseVisualComponent):
     """A class for presenting grating stimuli"""
+
+    iconFile = Path(thisFolder) / 'polygon.png'
 
     def __init__(self, exp, parentName, name='polygon', interpolate='linear',
                  units='from exp settings',

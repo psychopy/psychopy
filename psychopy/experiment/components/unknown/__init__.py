@@ -4,12 +4,12 @@
 from __future__ import absolute_import, print_function
 
 from os import path
+from pathlib import Path
 from psychopy.experiment.components import BaseComponent, Param, _translate
 from psychopy import prefs
 
 # the absolute path to the folder containing this path
 thisFolder = path.abspath(path.dirname(__file__))
-iconFile = path.join(thisFolder, 'unknown.png')
 tooltip = _translate('Unknown: A component that is not known by the current '
                      'installed version of PsychoPy\n(most likely from the '
                      'future)')
@@ -25,6 +25,7 @@ class UnknownComponent(BaseComponent):
     script-outputs. It should have nothing but a name - other params will be
     added by the loader
     """
+    iconFile = Path(thisFolder) / 'unknown.png'
 
     def __init__(self, exp, parentName, name=''):
         self.type = 'Unknown'

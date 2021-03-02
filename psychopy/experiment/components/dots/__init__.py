@@ -8,13 +8,13 @@
 from __future__ import absolute_import, print_function
 
 from os import path
+from pathlib import Path
 from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals, _translate
 from psychopy.localization import _localized as __localized
 _localized = __localized.copy()
 
 # the absolute path to the folder containing this path
 thisFolder = path.abspath(path.dirname(__file__))
-iconFile = path.join(thisFolder, 'dots.png')
 tooltip = _translate('Dots: Random Dot Kinematogram')
 # only use _localized values for label values, nothing functional:
 _localized.update({'nDots': _translate('Number of dots'),
@@ -33,6 +33,8 @@ _localized.update({'nDots': _translate('Number of dots'),
 
 class DotsComponent(BaseVisualComponent):
     """An event class for presenting Random Dot stimuli"""
+
+    iconFile = Path(thisFolder) / 'dots.png'
 
     def __init__(self, exp, parentName, name='dots',
                  nDots=100,

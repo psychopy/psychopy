@@ -13,6 +13,7 @@ from builtins import super  # provides Py3-style super() using python-future
 from past.builtins import basestring
 
 from os import path
+from pathlib import Path
 
 from psychopy.constants import PY3
 from psychopy.experiment.components import BaseComponent, Param, _translate
@@ -26,7 +27,6 @@ havePTB = find_loader('psychtoolbox') is not None
 
 # the absolute path to the folder containing this path
 thisFolder = path.abspath(path.dirname(__file__))
-iconFile = path.join(thisFolder, 'keyboard.png')
 tooltip = _translate('Keyboard: check and record keypresses')
 
 # only use _localized values for label values, nothing functional:
@@ -44,6 +44,7 @@ class KeyboardComponent(BaseComponent):
     # an attribute of the class, determines the section in components panel
     categories = ['Responses']
     targets = ['PsychoPy', 'PsychoJS']
+    iconFile = Path(thisFolder) / 'keyboard.png'
 
     def __init__(self, exp, parentName, name='key_resp',
                  allowedKeys="'y','n','left','right','space'",
