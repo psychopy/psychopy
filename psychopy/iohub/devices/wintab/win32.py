@@ -4,11 +4,14 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 # Initial file based on pyglet.libs.win32
-
+# Tablet related class definitions
+import pyglet
+from pyglet.event import EventDispatcher
 import ctypes
 from ...errors import print2err
-lib = ctypes.windll.wintab32
+from ...constants import EventConstants
 
+lib = ctypes.windll.wintab32
 
 LONG = ctypes.c_long
 BOOL = ctypes.c_int
@@ -362,15 +365,6 @@ WTX_XBTNMASK = 4  # Extended button mask; 1.1
 WTX_EXPKEYS = 5  # ExpressKeys; 1.3
 
 
-# Tablet related class definitions
-
-import ctypes
-
-import pyglet
-from pyglet.event import EventDispatcher
-from ...constants import EventConstants
-
-
 def wtinfo(category, index, buffer):
     size = lib.WTInfoW(category, index, None)
     assert size <= ctypes.sizeof(buffer)
@@ -603,13 +597,12 @@ class Win32WintabCanvas(EventDispatcher):
         #display_id = 0
         #window_id = self.window._hwnd
 
-        ccursor = self._current_cursor
-        if ccursor is None:
-            ccursor = 0
-        else:
-            ccursor = ccursor._cursor
+        #ccursor = self._current_cursor
+        #if ccursor is None:
+        #    ccursor = 0
+        #else:
+        #    ccursor = ccursor._cursor
 
-        cevt = None
         if packet is None or evt_type != EventConstants.WINTAB_SAMPLE:
             cevt = [evt_type,
                     0,
@@ -719,7 +712,7 @@ def get_implementation_version():
     return impl_version
 
 
-def get_tablets(display=None):
+def get_tablets():
     # Require spec version 1.1 or greater
     if get_spec_version() < 0x101:
         return []

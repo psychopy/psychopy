@@ -21,7 +21,7 @@ from psychopy import platform_specific
 _sendStayAwake = platform_specific.sendStayAwake
 
 class SimulatedWinTabPacket(object):
-    _next_pkt_id=1
+    _next_pkt_id = 1
     def __init__(self, time, x, y, press, buttons=0):
         self.pkTime=time*1000.0
         self.pkStatus=0
@@ -95,17 +95,17 @@ class Wintab(Device):
         if Computer.platform == 'win32' and Computer.is_iohub_process:
             try:
                 from .win32 import get_tablets
-            except:
+            except Exception:
                 self._setHardwareInterfaceStatus(
                     False, u"Error: ioHub Wintab Device "
                     u"requires wintab32.dll to be "
                     u"installed.")
 
-                def get_tablets(display=None):
+                def get_tablets():
                     return []
 
         else:
-            def get_tablets(display=None):
+            def get_tablets():
                 print2err('Error: iohub.devices.wintab only supports '
                           'Windows OS at this time.')
                 return []
@@ -185,14 +185,20 @@ class Wintab(Device):
         swidth, sheight = self._display_device.getRuntimeInfo().get('pixel_resolution',[None, None])
 
         # running in mouse sim mode, so create hw config
-        axis_info = {'orient_altitude': {'min': 0, 'max': 0,  'adjust': 0.0, 'factor': 0.0, 'units': 0, 'resolution': 0},
+        axis_info = {'orient_altitude': {'min': 0, 'max': 0,  'adjust': 0.0, 'factor': 0.0, 'units': 0,
+                                         'resolution': 0},
                      'orient_azimuth': {'min': 0, 'max': 0, 'factor': 0.0, 'units': 0, 'resolution': 0}, 
                      'pressure': {'min': 0, 'max': 1, 'units': 0, 'resolution': 0}, 
                      'orient_twist': {'min': 0, 'max': 0, 'units': 0, 'resolution': 0}, 
                      'y': {'min': 0, 'max': sheight, 'units': 0, 'resolution': 0}, 
                      'x': {'min': 0, 'max': swidth, 'units': 0, 'resolution': 0}, 
                      'z': {'min': 0, 'max': 0, 'units': 0, 'resolution': 0}}
-        context =  {'lcPktMode': 0, 'lcMoveMask': 0, 'lcLocks': 0, 'lcOptions': 0, 'lcInExtX': 0, 'lcSysOrgY': 0, 'lcSysOrgX': -0, 'lcPktRate': 0, 'lcBtnDnMask': 0, 'lcSysSensY': 0, 'lcSysSensX': 0, 'lcBtnUpMask': 0, 'lcSensY': 0, 'lcSensX': 0, 'lcSensZ': 0, 'lcInOrgX': 0, 'lcInOrgY': 0, 'lcInOrgZ': 0, 'lcOutExtX': 0, 'lcOutOrgX': 0, 'lcSysMode': 0, 'lcPktData': 0, 'lcOutOrgZ': 0, 'lcOutExtZ': 0, 'lcOutExtY': 0, 'lcOutOrgY': 0, 'lcInExtY': 0, 'lcStatus': 0, 'lcInExtZ': 0, 'lcName': '', 'lcDevice': 0, 'lcSysExtX': 0, 'lcMsgBase': 0, 'lcSysExtY': 0}
+        context =  {'lcPktMode': 0, 'lcMoveMask': 0, 'lcLocks': 0, 'lcOptions': 0, 'lcInExtX': 0, 'lcSysOrgY': 0,
+                    'lcSysOrgX': -0, 'lcPktRate': 0, 'lcBtnDnMask': 0, 'lcSysSensY': 0, 'lcSysSensX': 0,
+                    'lcBtnUpMask': 0, 'lcSensY': 0, 'lcSensX': 0, 'lcSensZ': 0, 'lcInOrgX': 0, 'lcInOrgY': 0,
+                    'lcInOrgZ': 0, 'lcOutExtX': 0, 'lcOutOrgX': 0, 'lcSysMode': 0, 'lcPktData': 0, 'lcOutOrgZ': 0,
+                    'lcOutExtZ': 0, 'lcOutExtY': 0, 'lcOutOrgY': 0, 'lcInExtY': 0, 'lcStatus': 0, 'lcInExtZ': 0,
+                    'lcName': '', 'lcDevice': 0, 'lcSysExtX': 0, 'lcMsgBase': 0, 'lcSysExtY': 0}
         model_info =  {'type': 0, 'handle': 0, 'name': 'Mouse Simulation Mode', 'id': ''}
                     
         return {"Context":context,
@@ -240,18 +246,18 @@ class Wintab(Device):
         if len(events):
             if self._last_simulated_evt is None:
                 events.insert(0, [EventConstants.WINTAB_ENTER_REGION,
-                                    0,
-                                    0,
-                                    0,
-                                    0,
-                                    0,                 #('x',N.int32),
-                                    0,                 #('y',N.int32),
-                                    0,                 #('z',N.int32),
-                                    0,          #('pressure',N.uint32),
-                                    0,         #('orient_azimuth',N.int32),
-                                    0,        #('orient_altitude;',N.int32),
-                                    0,           #('orient_twist',N.int32),
-                                    0])
+                              0,
+                              0,
+                              0,
+                              0,
+                              0,                 #('x',N.int32),
+                              0,                 #('y',N.int32),
+                              0,                 #('z',N.int32),
+                              0,          #('pressure',N.uint32),
+                              0,         #('orient_azimuth',N.int32),
+                              0,        #('orient_altitude;',N.int32),
+                              0,           #('orient_twist',N.int32),
+                              0])
             self._last_simulated_evt = events[-1]
             
         elif self._last_simulated_evt:

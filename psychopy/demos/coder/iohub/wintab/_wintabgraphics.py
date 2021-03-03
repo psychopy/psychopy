@@ -479,7 +479,7 @@ class ScreenPositionValidation(object):
             if 'escape' in kb.getPresses():
                 exit_screen = True
                 pen.reporting = False
-                return False
+                break
 
         pen.reporting = False
         return True
