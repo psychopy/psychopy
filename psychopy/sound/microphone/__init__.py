@@ -24,7 +24,9 @@ class AudioClip(object):
     Parameters
     ----------
     samples : ArrayLike
-        Nx1 or Nx2 array for audio samples, for mono and stereo, respectivley.
+        Nx1 or Nx2 array of audio samples for mono and stereo, respectively.
+        Values in the array representing the amplitude of the sound should vary
+        between -1 and 1.
     sampleRateHz : int
         Sampling rate used to obtain `samples`. Should match the frequency the
         clip was recorded at. If not, the audio may sound distorted when played
@@ -57,7 +59,7 @@ class AudioClip(object):
         the second the right.
 
         """
-        return self._samples.shape[1] > 1
+        return not self.isMono
 
     @property
     def isMono(self):
@@ -98,7 +100,7 @@ class AudioClip(object):
         # recompute duration after updating sample rate
         self._duration = len(self._samples) / float(self._sampleRateHz)
 
-    def save(self, filename, fmt=None, overwrite=False):
+    def save(self, filename, fmt=None):
         """Save an audio clip to file.
 
         Parameters
