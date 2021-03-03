@@ -24,7 +24,7 @@ class AudioClip(object):
     Parameters
     ----------
     samples : ArrayLike
-        Nx1 array for audio samples.
+        Nx1 or Nx2 array for audio samples, for mono and stereo, respectivley.
     sampleRateHz : int
         Sampling rate used to obtain `samples`. Should match the frequency the
         clip was recorded at. If not, the audio may sound distorted when played
@@ -48,6 +48,23 @@ class AudioClip(object):
 
         """
         return self._duration
+
+    @property
+    def isStereo(self):
+        """`True` if there are two channels of audio samples.
+
+        Usually one for each ear. The first channel is usually the left ear, and
+        the second the right.
+
+        """
+        return self._samples.shape[1] > 1
+
+    @property
+    def isMono(self):
+        """`True` if there is only one channel of audio data.
+
+        """
+        return self._samples.shape[1] == 1
 
     @property
     def samples(self):
