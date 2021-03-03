@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 """Tools for working with audio data.
 
+This module provides routines for saving/loading and manipulating audio samples.
+
 """
 
 __all__ = [
@@ -60,12 +62,12 @@ def wav2array(filename, normalize=True):
     samples : ArrayLike
         Nx1 or Nx2 array of samples.
     freq : int
-        Sampling frequency used by the audio file.
+        Sampling frequency for playback specified by the audio file.
 
     """
     fullpath = os.path.abspath(filename)  # get the full path
 
-    if not os.path.isfile(fullpath):
+    if not os.path.isfile(fullpath):  # check if the file exists
         raise FileNotFoundError(
             "Cannot find WAV file `{}` to open.".format(filename))
 
