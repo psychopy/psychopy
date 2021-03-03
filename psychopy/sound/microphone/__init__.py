@@ -13,6 +13,14 @@ __all__ = ['Microphone']
 from . import _backends
 import numpy as np
 from scipy.io import wavfile
+import psychopy.tools.audiotools as audiotools
+
+# pydub is needed for saving and loading MP3 files
+_has_pydub = True
+try:
+    import pydub
+except (ImportError, ModuleNotFoundError):
+    _has_pydub = False
 
 
 class AudioClip(object):
@@ -50,6 +58,15 @@ class AudioClip(object):
 
         """
         return self._duration
+
+    @property
+    def channels(self):
+        """Number of audio channels in the clip (`int`).
+
+        If `channels` > 1, the audio clip is in stereo.
+
+        """
+        return self._samples.shape[1]
 
     @property
     def isStereo(self):
@@ -108,7 +125,7 @@ class AudioClip(object):
         filename : str
             File name to write audio clip to.
         fmt : str or None
-            Format to save audio clip data as. If `None`, te format will be
+            Format to save audio clip data as. If `None`, the format will be
             implied from the extension at the end of `filename`. Possible
             formats are: `'wav'` for Waveform Audio File Format (.wav) for raw
             and uncompressed audio, or `'csv'` for a plain text file containing
@@ -121,17 +138,18 @@ class AudioClip(object):
                 fmt = 'wav'
             elif fname.endswith('.csv'):
                 fmt = 'csv'
+            elif fname.endswith('.mp3'):
+                fmt = 'mp3'
             else:
                 fmt = 'wav'  # cant be determined
 
         # code for saving the audio clip in various formats
         if fmt == 'wav':  # save as a wave file
-            # convert to signed 16-bit integers
-            clipData = np.asarray(
-                self.samples / np.max(np.abs(self.samples)) * 32767,
-                dtype=np.int16)
-            # write out file
-            wavfile.write(filename, self._sampleRateHz, clipData)
+            audiotools.array2wav(filename, self.samples, self._sampleRateHz)
+        elif fmt == 'mp3':  # mp3 format
+            if not _has_pydub:
+                raise ModuleNotFoundError(
+                    "Saving to `mp3` format requires package `pydub`.")
         elif fmt == 'csv':  # CSV format (for plotting)
             tsamp = 1.0 / float(self._sampleRateHz)
             with open(filename, 'w') as csv:
