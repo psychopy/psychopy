@@ -12,13 +12,28 @@ __all__ = ['Microphone']
 
 from . import _backends
 import numpy as np
+from scipy.io import wavfile
 
 
 class AudioClip(object):
     """Class for storing audio clip data.
+
+    This class is used to store raw audio data obtained from recordings or
+    loaded from files.
+
+    Parameters
+    ----------
+    samples : ArrayLike
+        Nx1 array for audio samples.
+    sampleRateHz : int
+        Sampling rate used to obtain `samples`. Should match the frequency the
+        clip was recorded at. If not, the audio may sound distorted when played
+        back. Usually, a sample rate of 48kHz is acceptable for most
+        applications (DVD audio quality).
+
     """
     def __init__(self, samples, sampleRateHz=48000):
-        self._samples = np.asarray(samples)
+        self._samples = np.atleast_2d(np.asarray(samples))
         self._sampleRateHz = sampleRateHz
 
         # the duration of the audio clip
@@ -26,17 +41,28 @@ class AudioClip(object):
 
     @property
     def duration(self):
-        """The duration of the audio in seconds (`float`)."""
+        """The duration of the audio in seconds (`float`).
+
+        This value is computed using the specified sampling frequency and number
+        of samples.
+
+        """
         return self._duration
 
     @property
     def samples(self):
-        """Nx1 array of audio samples (`~numpy.ndarray`)."""
-        return self.samples
+        """Nx1 array of audio samples (`~numpy.ndarray`).
+
+        Values must range from -1 to 1. Values outside that range will be
+        clipped, possibly resulting in distortion.
+
+        """
+        return self._samples
 
     @samples.setter
     def samples(self, value):
-        self._samples = np.asarray(value)
+        self._samples = np.asarray(value, dtype=float)  # convert to array
+        self._samples.clip(-1., 1.)  # do clipping to keep samples in range
 
         # recompute duration after updating samples
         self._duration = len(self._samples) / float(self._sampleRateHz)
@@ -55,10 +81,48 @@ class AudioClip(object):
         # recompute duration after updating sample rate
         self._duration = len(self._samples) / float(self._sampleRateHz)
 
-    def save(self, filePath, fmt='wav'):
+    def save(self, filename, fmt=None, overwrite=False):
         """Save an audio clip to file.
+
+        Parameters
+        ----------
+        filename : str
+            File name to write audio clip to.
+        fmt : str or None
+            Format to save audio clip data as. If `None`, te format will be
+            implied from the extension at the end of `filename`. Possible
+            formats are: `'wav'` for Waveform Audio File Format (.wav) for raw
+            and uncompressed audio, or `'csv'` for a plain text file containing
+            timestamped raw audio data samples (for plotting).
+
         """
-        pass
+        if fmt is None:  # imply format from file path
+            fname = filename.lower()
+            if fname.endswith('.wav'):
+                fmt = 'wav'
+            elif fname.endswith('.csv'):
+                fmt = 'csv'
+            else:
+                fmt = 'wav'  # cant be determined
+
+        # code for saving the audio clip in various formats
+        if fmt == 'wav':  # save as a wave file
+            # convert to signed 16-bit integers
+            clipData = np.asarray(
+                self.samples / np.max(np.abs(self.samples)) * 32767,
+                dtype=np.int16)
+            # write out file
+            wavfile.write(filename, self._sampleRateHz, clipData)
+        elif fmt == 'csv':  # CSV format (for plotting)
+            tsamp = 1.0 / float(self._sampleRateHz)
+            with open(filename, 'w') as csv:
+                csv.write('tsec,amplitude\n')  # header
+                csv.writelines(
+                    [(','.join(
+                        (str(tsamp * i), str(v))) + '\n')
+                     for i, v in enumerate(self.samples[:, 0])])
+        else:
+            pass
 
 
 class Microphone(object):
@@ -76,10 +140,27 @@ class Microphone(object):
         Library to use for capturing audio from the microphone. If `None`, the
         library specified in preferences in used.
 
+    Examples
+    --------
+    Capture 10 seconds of audio from the primary microphone::
+
+        import psychopy.core as core
+        import psychopy.sound.microphone as microphone
+
+        mic = microphone.Microphone()  # open the microphone
+        mic.start()  # start recording
+        core.wait(10.0)  # wait 10 seconds
+        audioClip = mic.getAudioClip()  # get the audio data
+        mic.stop()  # stop recording
+
+        print(audioClip.duration)  # should be ~10 seconds
+        audioClip.save('test.wav')  # save the recorded audio as a 'wav' file
+
     """
     def __init__(self, sampleRateHz=48000, audioCaptureLib='ptb'):
 
         self._audioCaptureLib = audioCaptureLib
+        self._sampleRateHz = sampleRateHz
 
         # create the backend instance
         cls = self._getBackend()  # unbound class
@@ -104,14 +185,18 @@ class Microphone(object):
         return cls
 
     def start(self):
+        """Start recording audio samples from the capture device."""
         self._backend.start()
 
     def stop(self):
+        """Stop recording audio samples."""
         self._backend.stop()
 
-    def getAudioData(self):
+    def getAudioClip(self):
         """Get audio data."""
-        return self._backend.getAudioData()
+        return AudioClip(
+            samples=self._backend.getAudioData(),
+            sampleRateHz=self._sampleRateHz)
 
 
 if __name__ == "__main__":
