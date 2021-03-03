@@ -11,6 +11,54 @@
 __all__ = ['Microphone']
 
 from . import _backends
+import numpy as np
+
+
+class AudioClip(object):
+    """Class for storing audio clip data.
+    """
+    def __init__(self, samples, sampleRateHz=48000):
+        self._samples = np.asarray(samples)
+        self._sampleRateHz = sampleRateHz
+
+        # the duration of the audio clip
+        self._duration = len(self.samples) / float(self.sampleRateHz)
+
+    @property
+    def duration(self):
+        """The duration of the audio in seconds (`float`)."""
+        return self._duration
+
+    @property
+    def samples(self):
+        """Nx1 array of audio samples (`~numpy.ndarray`)."""
+        return self.samples
+
+    @samples.setter
+    def samples(self, value):
+        self._samples = np.asarray(value)
+
+        # recompute duration after updating samples
+        self._duration = len(self._samples) / float(self._sampleRateHz)
+
+    @property
+    def sampleRateHz(self):
+        """Sample rate of the audio clip in Hz (`int`). Should be the same
+        value as the rate `samples` was captured at.
+
+        """
+        return self._sampleRateHz
+
+    @sampleRateHz.setter
+    def sampleRateHz(self, value):
+        self._sampleRateHz = int(value)
+        # recompute duration after updating sample rate
+        self._duration = len(self._samples) / float(self._sampleRateHz)
+
+    def save(self, filePath, fmt='wav'):
+        """Save an audio clip to file.
+        """
+        pass
 
 
 class Microphone(object):

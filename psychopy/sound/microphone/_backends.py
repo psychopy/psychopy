@@ -11,6 +11,12 @@
 
 from __future__ import absolute_import, division, print_function
 
+__all__ = ['SAMPLE_RATE_CD',
+           'SAMPLE_RATE_DVD',
+           'audioInputLib',
+           'BaseMicrophoneInterface',
+           'PTBMicrophone']
+
 from psychopy.constants import STARTED, NOT_STARTED
 from psychopy.exceptions import DependencyError
 
@@ -26,6 +32,10 @@ audioInputLib = {
 }
 
 
+SAMPLE_RATE_DVD = 48000
+SAMPLE_RATE_CD = 21000
+
+
 class AudioStreamError(Exception):
     """Error raised when there is a problem during audio recording/streaming."""
     pass
@@ -37,7 +47,7 @@ class BaseMicrophoneInterface(object):
     """
     audioInputLib = None  # identify the backend for plugins
 
-    def __init__(self, sampleRateHz=48000):
+    def __init__(self, sampleRateHz=SAMPLE_RATE_DVD):
         assert isinstance(sampleRateHz, (int, float))
         self._sampleRateHz = int(sampleRateHz)
         self._statusFlag = NOT_STARTED
@@ -83,7 +93,7 @@ class PTBMicrophone(BaseMicrophoneInterface):
     """
     audioInputLib = 'ptb'
 
-    def __init__(self, recBufferSecs=10.0, sampleRateHz=48000):
+    def __init__(self, recBufferSecs=10.0, sampleRateHz=SAMPLE_RATE_DVD):
         super().__init__(sampleRateHz)
 
         # internal recording buffer size in seconds
@@ -98,16 +108,22 @@ class PTBMicrophone(BaseMicrophoneInterface):
         self._stopTime = None   # optional, stop time to end recording
 
         # handle for the recording stream
-        self._recording = audio.Stream(
-            mode=self._mode,
-            freq=self._sampleRateHz,
-            channels=self._channels)
+        self._recording = self._createStream()
 
         # pre-allocate recording buffer
         self._recording.get_audio_data(self._recBufferSecs)
 
         # status flag
         self._statusFlag = NOT_STARTED
+
+    def _createStream(self):
+        """Create a new stream handle.
+
+        """
+        return audio.Stream(
+            mode=self._mode,
+            freq=self._sampleRateHz,
+            channels=self._channels)
 
     @property
     def recordingBufferSecs(self):
