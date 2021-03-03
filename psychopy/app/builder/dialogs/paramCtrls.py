@@ -390,7 +390,7 @@ class ColorCtrl(wx.TextCtrl, _ValidatorMixin):
         self.validate()
 
     def colorPicker(self, evt):
-        dlg = PsychoColorPicker(self.GetTopLevelParent().frame)
+        dlg = PsychoColorPicker(self.GetTopLevelParent().frame, context='builder')
         dlg.ShowModal()
         dlg.Destroy()
 

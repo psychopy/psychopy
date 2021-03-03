@@ -27,7 +27,7 @@ class PsychoColorPicker(wx.Dialog):
         Reference to a :class:`~wx.Frame` which owns this dialog.
 
     """
-    def __init__(self, parent):
+    def __init__(self, parent, context=None):
         wx.Dialog.__init__(
             self,
             parent,
@@ -39,6 +39,9 @@ class PsychoColorPicker(wx.Dialog):
 
         self.SetSizeHints(wx.DefaultSize, wx.DefaultSize)
         self.SetMinSize(wx.Size(600, 480))
+
+        # Store context
+        self.context = context
 
         # current output color, should be displayed in the preview
         global LAST_COLOR
@@ -339,6 +342,8 @@ class PsychoColorPicker(wx.Dialog):
         outputSpace = self.cboOutputSpace.GetSelection()
         toReturn = "colors.Color({}, space='{}')".format(
             self.getOutputValue(), self._spaces[outputSpace])
+        if self.context == 'builder':
+            toReturn = "$" + toReturn
         self._copyToClipboard(toReturn)
         self.Close()
         event.Skip()
@@ -347,7 +352,10 @@ class PsychoColorPicker(wx.Dialog):
         """Event to copy the color to the clipboard as a value.
 
         """
-        self._copyToClipboard(self.getOutputValue())  # copy out to clipboard
+        toReturn = self.getOutputValue()
+        if self.context == 'builder':
+            toReturn = "$" + toReturn
+        self._copyToClipboard(toReturn)  # copy out to clipboard
         self.Close()
         event.Skip()
 
