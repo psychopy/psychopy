@@ -31,7 +31,7 @@ class MicrophoneComponent(BaseComponent):
     def __init__(self, exp, parentName, name='mic_1',
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=2.0, startEstim='',
-                 durationEstim='', stereo=False, channel=0):
+                 durationEstim='', stereo=False, channel=0, device="default"):
         super(MicrophoneComponent, self).__init__(
             exp, parentName, name=name,
             startType=startType, startVal=startVal,
@@ -57,6 +57,14 @@ class MicrophoneComponent(BaseComponent):
         msg = _translate(
             'The duration of the recording in seconds; blank = 0 sec')
         self.params['stopType'].hint = msg
+
+        msg = _translate("What microphone device would you like the use to record?")
+        self.params['device'] = Param(
+            device, valType=str, inputType="choice", categ="Hardware",
+            allowedVals=['default', 'webcam', 'dedicated'],
+            hint=msg,
+            label=_translate("Device")
+        )
 
         msg = _translate("Enter a channel number. Default value is 0. If unsure, run 'sound.backend.get_input_devices()'"
                          " to locate the system's selected device/channel.")
