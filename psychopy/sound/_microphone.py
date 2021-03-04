@@ -8,101 +8,64 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-
-from __future__ import absolute_import, division, print_function
-
-__all__ = ['SAMPLE_RATE_CD',
-           'SAMPLE_RATE_DVD',
-           'audioInputLib',
-           'BaseMicrophoneInterface',
-           'PTBMicrophone']
-
-from psychopy.constants import STARTED, NOT_STARTED
-from psychopy.exceptions import DependencyError
+__all__ = ['Microphone']
 
 try:
     from psychtoolbox import audio
     import psychtoolbox as ptb
 except Exception:
-    raise DependencyError("psychtoolbox audio failed to import")
+    raise ImportError("psychtoolbox audio failed to import")
 
-# used to register backends for the (future) plugin system
-audioInputLib = {
-    'ptb': 'PTBMicrophone'
-}
-
-
-SAMPLE_RATE_DVD = 48000
-SAMPLE_RATE_CD = 21000
+from psychopy.constants import NOT_STARTED, STARTED
+from ._audioclip import *
+from ._exceptions import AudioStreamError
 
 
-class AudioStreamError(Exception):
-    """Error raised when there is a problem during audio recording/streaming."""
-    pass
-
-
-class BaseMicrophoneInterface(object):
-    """Base class for microphone input backends. Defines the API common to all
-    microphone recording backends.
-    """
-    audioInputLib = None  # identify the backend for plugins
-
-    def __init__(self, sampleRateHz=SAMPLE_RATE_DVD):
-        assert isinstance(sampleRateHz, (int, float))
-        self._sampleRateHz = int(sampleRateHz)
-        self._statusFlag = NOT_STARTED
-
-    @property
-    def isRecording(self):
-        """`True` if we currently recording audio (`bool`)."""
-        return self._statusFlag == STARTED
-
-    @property
-    def status(self):
-        """Symbolic constant for recording status (`int`)."""
-        return self._statusFlag
-
-    def start(self):
-        """Start an audio recording."""
-        pass
-
-    def stop(self):
-        """Stop recording audio."""
-        pass
-
-    def getAudioData(self):
-        """Get audio data from the last recording."""
-        pass
-
-
-class PTBMicrophone(BaseMicrophoneInterface):
-    """Class for the Psychtoolbox microphone input.
+class Microphone(object):
+    """Class for recording audio from a microphone.
 
     Parameters
     ----------
-    recBufferSecs : float
-        Allocate an internal buffer large enough to store an audio recording of
-        a given number of seconds.
     sampleRateHz : int
         Sampling rate for audio recording in Hertz (Hz). By default, 48kHz
         (``sampleRateHz=480000``) is used which is adequate for most consumer
         grade microphones (headsets and built-in). Sampling rates should be at
         least greater than 20kHz to minimize distortion perceptible to humans
         due to aliasing.
+    channels : int
+        Number of channels to use.
+
+    Examples
+    --------
+    Capture 10 seconds of audio from the primary microphone::
+
+        import psychopy.core as core
+        import psychopy.sound.Microphone as Microphone
+
+        mic = Microphone()  # open the microphone
+        mic.start()  # start recording
+        core.wait(10.0)  # wait 10 seconds
+        audioClip = mic.getAudioClip()  # get the audio data
+        mic.stop()  # stop recording
+
+        print(audioClip.duration)  # should be ~10 seconds
+        audioClip.save('test.wav')  # save the recorded audio as a 'wav' file
 
     """
-    audioInputLib = 'ptb'
+    def __init__(self,
+                 sampleRateHz=SAMPLE_RATE_48KHZ,
+                 channels=1,
+                 mode=2,
+                 recBufferSecs=10.0):
 
-    def __init__(self, recBufferSecs=10.0, sampleRateHz=SAMPLE_RATE_DVD):
-        super().__init__(sampleRateHz)
-
+        self._sampleRateHz = sampleRateHz
         # internal recording buffer size in seconds
         assert isinstance(recBufferSecs, (float, int))
         self._recBufferSecs = float(recBufferSecs)
 
         # PTB specific stuff (for now, might move to base class)
-        self._mode = 2
-        self._channels = 1
+        self._mode = int(mode)
+        self._channels = int(channels)
 
         # this can only be set after initialization
         self._stopTime = None   # optional, stop time to end recording
@@ -118,7 +81,6 @@ class PTBMicrophone(BaseMicrophoneInterface):
 
     def _createStream(self):
         """Create a new stream handle.
-
         """
         return audio.Stream(
             mode=self._mode,
@@ -175,15 +137,18 @@ class PTBMicrophone(BaseMicrophoneInterface):
         """Close the stream."""
         self._recording.close()
 
-    def getAudioData(self, clipName=None):
+    def getAudioClip(self, clipName=None):
         """Get samples from a previous recording."""
         if self._statusFlag == NOT_STARTED:
             raise AudioStreamError(
                 "Cannot get stream data while stream is closed.")
 
+        # REM - write these other values to the clip header
         audioData, _, _, _ = self._recording.get_audio_data()
 
-        return audioData
+        return AudioClip(
+            samples=audioData,
+            sampleRateHz=self._sampleRateHz)
 
     def __del__(self):
         if self._recording is not None:

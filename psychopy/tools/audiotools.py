@@ -8,18 +8,44 @@ This module provides routines for saving/loading and manipulating audio samples.
 
 __all__ = [
     'array2wav',
-    'wav2array'
+    'wav2array',
+    'SAMPLE_RATE_8kHz', 'SAMPLE_RATE_TELCOM_QUALITY',
+    'SAMPLE_RATE_16kHz', 'SAMPLE_RATE_VOIP_QUALITY',
+    'SAMPLE_RATE_44p1kHz', 'SAMPLE_RATE_CD_QUALITY',
+    'SAMPLE_RATE_48kHz', 'SAMPLE_RATE_DVD_QUALITY',
+    'SAMPLE_RATE_96kHz',
+    'SAMPLE_RATE_192kHz'
 ]
 
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-import numpy as np
 import os
+import numpy as np
 from scipy.io import wavfile
 
-MAX_16BITS_SIGNED = 2 ** 15
+# pydub is needed for saving and loading MP3 files among others
+_has_pydub = True
+try:
+    import pydub
+except (ImportError, ModuleNotFoundError):
+    _has_pydub = False
+
+# Constants for common sample rates. Some are aliased to give the programmer an
+# idea to the quality they would expect from each. It is recommended to only use
+# these values since most hardware supports them for recording and playback.
+#
+SAMPLE_RATE_8kHz = SAMPLE_RATE_TELCOM_QUALITY = 8000
+SAMPLE_RATE_16kHz = SAMPLE_RATE_VOIP_QUALITY = 16000
+SAMPLE_RATE_44p1kHz = SAMPLE_RATE_CD_QUALITY = 44100
+SAMPLE_RATE_48kHz = SAMPLE_RATE_DVD_QUALITY = 48000
+SAMPLE_RATE_96kHz = 96000
+SAMPLE_RATE_192kHz = 192000  # high-def
+
+
+# needed for converting float to int16, not exported by __all__
+MAX_16BITS_SIGNED = 1 << 15
 
 
 def array2wav(filename, samples, freq=48000):
