@@ -92,6 +92,7 @@ thisFolder = os.path.split(__file__)[0]
 class SettingsComponent(object):
     """This component stores general info about how to run the experiment
     """
+    targets = ['PsychoPy']
 
     def __init__(self, parentName, exp, expName='', fullScr=True,
                  winSize=(1024, 768), screen=1, monitor='testMonitor',

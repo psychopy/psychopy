@@ -33,6 +33,7 @@ class StaticComponent(BaseComponent):
     # override the categories property below
     # an attribute of the class, determines the section in the components panel
     categories = ['Custom']
+    targets = ['PsychoPy']
 
     def __init__(self, exp, parentName, name='ISI',
                  startType='time (s)', startVal=0.0,

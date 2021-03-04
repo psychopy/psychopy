@@ -50,7 +50,7 @@ class RatingScaleComponent(BaseComponent):
     """A class for presenting a rating scale as a builder component
     """
     categories = ['Responses']
-
+    targets = ['PsychoPy']
     def __init__(self, exp, parentName,
                  name='rating',
                  scaleDescription='',

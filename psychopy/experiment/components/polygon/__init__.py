@@ -34,7 +34,7 @@ _localized.update({'nVertices': _translate('Num. vertices'),
 
 class PolygonComponent(BaseVisualComponent):
     """A class for presenting grating stimuli"""
-
+    targets = ['PsychoPy']
     def __init__(self, exp, parentName, name='polygon', interpolate='linear',
                  units='from exp settings',
                  lineColor='white', lineColorSpace='rgb', lineWidth=1,

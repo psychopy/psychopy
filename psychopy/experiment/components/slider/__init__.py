@@ -59,7 +59,7 @@ class SliderComponent(BaseVisualComponent):
     """A class for presenting a rating scale as a builder component
     """
     categories = ['Responses']
-
+    targets = ['PsychoPy', 'PsychoJS']
     def __init__(self, exp, parentName,
                  name='slider',
                  labels='',
@@ -89,7 +89,6 @@ class SliderComponent(BaseVisualComponent):
         self.type = 'Slider'
         self.url = "https://www.psychopy.org/builder/components/slider.html"
         self.exp.requirePsychopyLibs(['visual', 'event'])
-        self.targets = ['PsychoPy', 'PsychoJS']
 
         # params
         self.order += ['forceEndRoutine',  # Basic tab

@@ -41,6 +41,8 @@ _localized.update({'carrier': _translate('Carrier texture'),
 class EnvGratingComponent(BaseVisualComponent):
     """A class for presenting grating stimuli"""
 
+    targets = ['PsychoPy']
+
     def __init__(self, exp, parentName, name='env_grating', carrier='sin',
                  mask='None', sf=1.0, interpolate='linear',
                  units='from exp settings', color='$[1,1,1]', colorSpace='rgb',

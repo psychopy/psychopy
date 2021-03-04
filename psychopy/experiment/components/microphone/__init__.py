@@ -28,6 +28,7 @@ _localized.update({'stereo': _translate('Stereo'),
 class MicrophoneComponent(BaseComponent):
     """An event class for capturing short sound stimuli"""
     categories = ['Responses']
+    targets = ['PsychoPy']
 
     def __init__(self, exp, parentName, name='mic_1',
                  startType='time (s)', startVal=0.0,

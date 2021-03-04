@@ -29,6 +29,8 @@ _localized.update({'image': _translate('Image'),
 class ImageComponent(BaseVisualComponent):
     """An event class for presenting image-based stimuli"""
 
+    targets = ['PsychoPy', 'PsychoJS']
+
     def __init__(self, exp, parentName, name='image', image='', mask='',
                  interpolate='linear', units='from exp settings',
                  color='$[1,1,1]', colorSpace='rgb', pos=(0, 0),
@@ -45,7 +47,6 @@ class ImageComponent(BaseVisualComponent):
             stopType=stopType, stopVal=stopVal,
             startEstim=startEstim, durationEstim=durationEstim)
         self.type = 'Image'
-        self.targets = ['PsychoPy', 'PsychoJS']
         self.url = "https://www.psychopy.org/builder/components/image.html"
         self.exp.requirePsychopyLibs(['visual'])
         # params
