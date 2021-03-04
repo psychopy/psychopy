@@ -18,7 +18,7 @@ from ..errors import ioHubError, printExceptionDetailsToStdErr, print2err
 
 
 import tables
-from tables import parameters, IsDescription, Filters, StringCol, UInt32Col, UInt16Col, NodeError, NoSuchNodeError, ClosedFileError
+from tables import parameters, StringCol, UInt32Col, UInt16Col, NoSuchNodeError
 if parse_version(tables.__version__) < parse_version('3'):
     from tables import openFile as open_file
     create_table = "createTable"
@@ -61,9 +61,9 @@ perhaps one less than this.  < S. Simpson Note: These are 'not' GIL bound
 threads and therefore actually improve performance > """
 
 DATA_FILE_TITLE = "ioHub DataStore - Experiment Data File."
-FILE_VERSION = '0.8.1.1'
+FILE_VERSION = '0.9.0.0'
 SCHEMA_AUTHORS = 'Sol Simpson'
-SCHEMA_MODIFIED_DATE = 'November 24th, 2016'
+SCHEMA_MODIFIED_DATE = 'September 13th, 2020'
 
 
 class DataStoreFile(object):
@@ -152,7 +152,7 @@ class DataStoreFile(object):
         getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'experiment', title='Experiment Device Events.')
         getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'keyboard', title='Keyboard Device Events.')
         getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'mouse', title='Mouse Device Events.')
-        #getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'touch', title='Touch Device Events.')
+        getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'wintab', title='Wintab Device Events.')
         #getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'gamepad', title='GamePad Device Events.')
         #getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'analog_input', title='AnalogInput Device Events.')
         getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'eyetracker', title='EyeTracker Device Events.')
@@ -322,7 +322,7 @@ class DataStoreFile(object):
             expCondTableName = "EXP_CV_%d"%(experiment_id)
             experimentConditionVariableTable = getattr(self.emrtFile.root.data_collection.condition_variables, _f_get_child)(expCondTableName)
             self.TABLES['EXP_CV'] = experimentConditionVariableTable
-        except NoSuchNodeError as nsne:
+        except NoSuchNodeError:
             try:
                 experimentConditionVariableTable = getattr(self.emrtFile, create_table)(self.emrtFile.root.data_collection.condition_variables, expCondTableName, self._EXP_COND_DTYPE, title='Condition Variable Values for Experiment ID %d' % (experiment_id))
                 self.TABLES['EXP_CV'] = experimentConditionVariableTable
