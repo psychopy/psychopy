@@ -559,7 +559,10 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 # are we wrapping the line?
                 if charcode == "\n":
                     lineWPix = current[0]
-                    current[0] = 0
+                    if self.languageStyle == 'RTL':
+                        current[0] = lineMax
+                    else:
+                        current[0] = 0
                     current[1] -= self._lineHeight
                     lineN += 1
                     charsThisLine += 1
@@ -576,9 +579,16 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                     charsThisLine += 1
 
                 # end line with auto-wrap on space
-                if current[0] >= lineMax and wordLen > 0 and wordsThisLine:
+                if self.languageStyle == 'RTL':
+                    overFlowing = current[0] <= 0
+                else:
+                    overFlowing = current[0] >= lineMax
+                if overFlowing and wordLen > 0 and wordsThisLine:
                     # move the current word to next line
-                    lineBreakPt = vertices[(i - wordLen + 1) * 4, 0]
+                    if self.languageStyle == 'RTL':
+                        lineBreakPt = (lineMax - vertices[(i - wordLen) * 4, 0])*dirAdj
+                    else:
+                        lineBreakPt = vertices[(i - wordLen + 1) * 4, 0]
                     wordWidth = current[0] - lineBreakPt
                     # shift all chars of the word left by wordStartX
                     vertices[(i - wordLen + 1) * 4: (i + 1) * 4, 0] -= lineBreakPt
