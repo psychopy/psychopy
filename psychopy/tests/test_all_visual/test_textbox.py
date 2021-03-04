@@ -71,8 +71,8 @@ class Test_textbox(object):
             if case['screenshot']:
                 # Uncomment to save current configuration as desired
                 filename = "textbox_{}_{}".format(self.textbox._lineBreaking, case['screenshot'])
-                self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / filename)
-                #utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / filename, self.win, crit=20)
+                #self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / filename)
+                utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / filename, self.win, crit=20)
 
     def test_colors(self):
         self.textbox.text = "A PsychoPy zealot knows a smidge of wx, but JavaScript is the question."
@@ -122,8 +122,8 @@ class Test_textbox(object):
                 if case['screenshot']:
                     # Uncomment to save current configuration as desired
                     filename = "textbox_{}_{}".format(self.textbox._lineBreaking, case['screenshot'])
-                    self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / filename)
-                    #utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / filename, self.win, crit=20)
+                    # self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / filename)
+                    utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / filename, self.win, crit=20)
 
     def test_basic(self):
         pass
