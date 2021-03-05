@@ -8,9 +8,35 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-__all__ = ['AudioDevice']
+__all__ = [
+    'AudioDevice',
+    'sampleRateQualityLevels',
+    'SAMPLE_RATE_8kHz', 'SAMPLE_RATE_TELCOM_QUALITY',
+    'SAMPLE_RATE_16kHz', 'SAMPLE_RATE_VOIP_QUALITY',
+    'SAMPLE_RATE_44p1kHz', 'SAMPLE_RATE_CD_QUALITY',
+    'SAMPLE_RATE_48kHz', 'SAMPLE_RATE_DVD_QUALITY',
+    'SAMPLE_RATE_96kHz',
+    'SAMPLE_RATE_192kHz'
+]
 
-from psychopy.tools.audiotools import SAMPLE_RATE_48kHz
+from psychopy.tools.audiotools import *
+
+# Quality levels as strings and values. Used internally by the PsychoPy UI for
+# dropdowns and preferences. Persons using PsychoPy as a library would typically
+# use constants `SAMPLE_RATE_*` instead of looking up values in here.
+#
+# For voice recording applications, the recommended sample rate is `Voice`
+# (16kHz) and should appear as the default option in preferences and UI
+# dropdowns.
+#
+sampleRateQualityLevels = {
+    0: (SAMPLE_RATE_8kHz, 'Telephone/Two-way radio (8kHz)'),
+    1: (SAMPLE_RATE_16kHz, 'Voice (16kHz)'),  # <<< recommended
+    2: (SAMPLE_RATE_44p1kHz, 'CD Audio (44.1kHz)'),
+    3: (SAMPLE_RATE_48kHz, 'DVD Audio (48kHz)'),
+    4: (SAMPLE_RATE_96kHz, 'High-Def (96kHz)'),
+    5: (SAMPLE_RATE_192kHz, 'Ultra High-Def (192kHz)')
+}
 
 
 class AudioDevice(object):

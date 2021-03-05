@@ -9,9 +9,11 @@ This module provides routines for saving/loading and manipulating audio samples.
 __all__ = [
     'array2wav',
     'wav2array',
-    'audioClipSize',
+    'audioBufferSize',
     'SAMPLE_RATE_8kHz', 'SAMPLE_RATE_TELCOM_QUALITY',
     'SAMPLE_RATE_16kHz', 'SAMPLE_RATE_VOIP_QUALITY',
+    'SAMPLE_RATE_22p05kHz', 'SAMPLE_RATE_AM_RADIO_QUALITY',
+    'SAMPLE_RATE_32kHz', 'SAMPLE_RATE_FM_RADIO_QUALITY',
     'SAMPLE_RATE_44p1kHz', 'SAMPLE_RATE_CD_QUALITY',
     'SAMPLE_RATE_48kHz', 'SAMPLE_RATE_DVD_QUALITY',
     'SAMPLE_RATE_96kHz',
@@ -39,6 +41,8 @@ except (ImportError, ModuleNotFoundError):
 #
 SAMPLE_RATE_8kHz = SAMPLE_RATE_TELCOM_QUALITY = 8000
 SAMPLE_RATE_16kHz = SAMPLE_RATE_VOIP_QUALITY = 16000
+SAMPLE_RATE_22p05kHz = SAMPLE_RATE_AM_RADIO_QUALITY = 22050
+SAMPLE_RATE_32kHz = SAMPLE_RATE_FM_RADIO_QUALITY = 32000  # wireless headphones
 SAMPLE_RATE_44p1kHz = SAMPLE_RATE_CD_QUALITY = 44100
 SAMPLE_RATE_48kHz = SAMPLE_RATE_DVD_QUALITY = 48000
 SAMPLE_RATE_96kHz = 96000
@@ -112,9 +116,13 @@ def wav2array(filename, normalize=True):
     return samples, int(freq)
 
 
-def audioClipSize(duration=1.0, freq=SAMPLE_RATE_48kHz):
+def audioBufferSize(duration=1.0, freq=SAMPLE_RATE_48kHz):
     """Estimate the memory footprint of an audio clip of given duration. Assumes
     that data is stored in 32-bit floating point format.
+
+    This can be used to determine how large of a buffer is needed to store
+    enough samples for `durations` seconds of audio using the specified
+    frequency (`freq`).
 
     Parameters
     ----------

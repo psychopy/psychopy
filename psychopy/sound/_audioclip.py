@@ -9,13 +9,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 __all__ = [
-    'AudioClip',
-    'SAMPLE_RATE_8kHz', 'SAMPLE_RATE_TELCOM_QUALITY',
-    'SAMPLE_RATE_16kHz', 'SAMPLE_RATE_VOIP_QUALITY',
-    'SAMPLE_RATE_44p1kHz', 'SAMPLE_RATE_CD_QUALITY',
-    'SAMPLE_RATE_48kHz', 'SAMPLE_RATE_DVD_QUALITY',
-    'SAMPLE_RATE_96kHz',
-    'SAMPLE_RATE_192kHz'
+    'AudioClip'
 ]
 
 import numpy as np
@@ -69,7 +63,7 @@ class AudioClip(object):
 
         # Audio device descriptor, used to associate samples with the device
         # that actually captured it
-        #self._audioDevice = None
+        self._audioDevice = None
 
     def __add__(self, other):
         """Concatenate two audio clips."""
@@ -122,17 +116,17 @@ class AudioClip(object):
         arrview *= float(factor)
         arrview.clip(-1, 1)
 
-    # @property
-    # def audioDevice(self):
-    #     """Descriptor (`AudioDevice`) for the audio device that captured the
-    #     sound, has value of `None` if that information is not available.
-    #     """
-    #     return self._audioDevice
+    @property
+    def audioDevice(self):
+        """Descriptor (`AudioDevice`) for the audio device that captured the
+        sound, has value of `None` if that information is not available.
+        """
+        return self._audioDevice
 
-    # @audioDevice.setter
-    # def audioDevice(self, value):
-    #     assert isinstance(value, AudioDevice) or value is None
-    #     self._audioDevice = value
+    @audioDevice.setter
+    def audioDevice(self, value):
+        assert isinstance(value, AudioDevice) or value is None
+        self._audioDevice = value
 
     @property
     def duration(self):
