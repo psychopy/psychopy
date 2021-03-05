@@ -12,7 +12,7 @@ from psychopy.colors import Color
 from psychopy.localization import _translate
 
 LAST_COLOR = Color((0, 0, 0, 1), space='rgba')
-LAST_OUTPUT_SPACE = 0
+LAST_OUTPUT_SPACE = 1
 
 
 class PsychoColorPicker(wx.Dialog):
