@@ -12,11 +12,17 @@ __all__ = ['Microphone']
 
 import sys
 
+import psychopy.logging as logging
+
+_hasPTB = True
 try:
     import psychtoolbox as ptb
     import psychtoolbox.audio as audio
 except (ImportError, ModuleNotFoundError):
-    raise ImportError("psychtoolbox audio failed to import")
+    logging.warning(
+        "The 'psychtoolbox' library cannot be loaded but is required for audio "
+        "capture. Microphone recording will be unavailable.")
+    _hasPTB = False
 
 from psychopy.constants import NOT_STARTED, STARTED
 from ._audioclip import *
@@ -29,6 +35,9 @@ class Microphone(object):
 
     Parameters
     ----------
+    device : int or `~psychopy.sound.AudioDevice`
+        Audio capture device to use. You may specify the device either by index
+        (`int`) or descriptor (`AudioDevice`).
     sampleRateHz : int
         Sampling rate for audio recording in Hertz (Hz). By default, 48kHz
         (``sampleRateHz=480000``) is used which is adequate for most consumer
@@ -62,6 +71,11 @@ class Microphone(object):
                  mode=2,
                  recBufferSecs=10.0):
 
+        if not _hasPTB:  # fail if PTB is not installed
+            raise ModuleNotFoundError(
+                "Microphone audio capture requires package `psychtoolbox` to "
+                "be installed.")
+
         # get information about the selected device
         self._device = device
 
@@ -85,6 +99,10 @@ class Microphone(object):
 
         # status flag
         self._statusFlag = NOT_STARTED
+
+    def _initCaptureDevice(self):
+        """Initialize the audio capture device."""
+        pass
 
     @staticmethod
     def getDevices():

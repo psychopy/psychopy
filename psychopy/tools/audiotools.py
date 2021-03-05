@@ -9,6 +9,7 @@ This module provides routines for saving/loading and manipulating audio samples.
 __all__ = [
     'array2wav',
     'wav2array',
+    'audioClipSize',
     'SAMPLE_RATE_8kHz', 'SAMPLE_RATE_TELCOM_QUALITY',
     'SAMPLE_RATE_16kHz', 'SAMPLE_RATE_VOIP_QUALITY',
     'SAMPLE_RATE_44p1kHz', 'SAMPLE_RATE_CD_QUALITY',
@@ -109,6 +110,31 @@ def wav2array(filename, normalize=True):
             samples / MAX_16BITS_SIGNED, dtype=np.float32)
 
     return samples, int(freq)
+
+
+def audioClipSize(duration=1.0, freq=SAMPLE_RATE_48kHz):
+    """Estimate the memory footprint of an audio clip of given duration. Assumes
+    that data is stored in 32-bit floating point format.
+
+    Parameters
+    ----------
+    duration : float
+        Length of the clip in seconds.
+    freq : int
+        Sampling frequency in Hz.
+
+    Returns
+    -------
+    int
+        Estimated number of bytes.
+
+    """
+    # Right now we are just computing for single precision floats, we can expand
+    # this to other types in the future.
+
+    sizef32 = 32  # duh
+
+    return int(duration * freq * sizef32)
 
 
 if __name__ == "__main__":
