@@ -11,6 +11,7 @@
 __all__ = [
     'AudioDevice',
     'sampleRateQualityLevels',
+    'NULL_AUDIO_DEVICE',
     'SAMPLE_RATE_8kHz', 'SAMPLE_RATE_TELCOM_QUALITY',
     'SAMPLE_RATE_16kHz', 'SAMPLE_RATE_VOIP_QUALITY',
     'SAMPLE_RATE_44p1kHz', 'SAMPLE_RATE_CD_QUALITY',
@@ -43,11 +44,15 @@ class AudioDevice(object):
     """Descriptor for an audio device (playback or recording) on this system.
 
     Properties associated with this class provide information about a specific
-    audio playback or recording device. This class is usually instanced only
-    by calling :meth:`~psychopy.sound._microphone.Microphone.getDevices()`.
-    Users should avoid creating instances of this class themselves unless they
-    have good reason to.
-    
+    audio playback or recording device. An object can be then passed to
+    :class:`~psychopy.sound._microphone.Microphone` to open a stream using the
+    device described by the object.
+
+    This class is usually instanced only by calling
+    :meth:`~psychopy.sound._microphone.Microphone.getDevices()`. Users should
+    avoid creating instances of this class themselves unless they have good
+    reason to.
+
     Parameters
     ----------
     deviceIndex : int
@@ -87,13 +92,13 @@ class AudioDevice(object):
 
     def __init__(self,
                  deviceIndex=-1,
-                 deviceName=u'',
-                 hostAPIName=u'',
+                 deviceName=u'Null Device',
+                 hostAPIName=u'Null Audio Driver',
                  outputChannels=0,
                  outputLatency=(0., 0.),
                  inputChannels=0,
                  inputLatency=(0., 0.),
-                 defaultSampleRate=0,
+                 defaultSampleRate=SAMPLE_RATE_48kHz,
                  audioLib=u''):
 
         # values based off Psychtoolbox audio device descriptors
@@ -249,6 +254,8 @@ class AudioDevice(object):
         """`True` if this is a capture device (`bool`)."""
         return not self.isPlayback
 
+
+NULL_AUDIO_DEVICE = AudioDevice()  # used as a sentinel or for testing
 
 if __name__ == "__main__":
     pass

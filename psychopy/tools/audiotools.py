@@ -9,6 +9,9 @@ This module provides routines for saving/loading and manipulating audio samples.
 __all__ = [
     'array2wav',
     'wav2array',
+    'sinewave',
+    'squarewave',
+    'sawwave',
     'audioBufferSize',
     'SAMPLE_RATE_8kHz', 'SAMPLE_RATE_TELCOM_QUALITY',
     'SAMPLE_RATE_16kHz', 'SAMPLE_RATE_VOIP_QUALITY',
@@ -27,6 +30,7 @@ __all__ = [
 import os
 import numpy as np
 from scipy.io import wavfile
+from scipy import signal
 
 # pydub is needed for saving and loading MP3 files among others
 _has_pydub = True
@@ -114,6 +118,116 @@ def wav2array(filename, normalize=True):
             samples / MAX_16BITS_SIGNED, dtype=np.float32)
 
     return samples, int(freq)
+
+
+def sinewave(duration, freqHz, gain=0.8, sampleRateHz=SAMPLE_RATE_48kHz):
+    """Generate audio samples for a tone with a sine waveform.
+
+    Parameters
+    ----------
+    duration : float or int
+        Length of the sound in seconds.
+    freqHz : float or int
+        Frequency of the tone in Hertz (Hz). Note that this differs from the
+        `sampleRateHz`.
+    gain : float
+        Gain factor ranging between 0.0 and 1.0.
+    sampleRateHz : int
+        Samples rate of the audio for playback.
+
+    Returns
+    -------
+    ndarray
+        Nx1 array containing samples for the tone (single channel).
+
+    """
+    assert 0.0 <= gain <= 1.0   # check if gain range is valid
+
+    nsamp = sampleRateHz * duration
+    samples = np.arange(nsamp, dtype=np.float32)
+    samples[:] = 2 * np.pi * samples[:] * freqHz / sampleRateHz
+    samples[:] = np.sin(samples)
+
+    if gain != 1.0:
+        samples *= gain
+
+    return samples.reshape(-1, 1)
+
+
+def squarewave(duration, freqHz, dutyCycle=0.5, gain=0.8,
+               sampleRateHz=SAMPLE_RATE_48kHz):
+    """Generate audio samples for a tone with a square waveform.
+
+    Parameters
+    ----------
+    duration : float or int
+        Length of the sound in seconds.
+    freqHz : float or int
+        Frequency of the tone in Hertz (Hz). Note that this differs from the
+        `sampleRateHz`.
+    dutyCycle : float
+        Duty cycle between 0.0 and 1.0.
+    gain : float
+        Gain factor ranging between 0.0 and 1.0.
+    sampleRateHz : int
+        Samples rate of the audio for playback.
+
+    Returns
+    -------
+    ndarray
+        Nx1 array containing samples for the tone (single channel).
+
+    """
+    assert 0.0 <= gain <= 1.0  # check if gain range is valid
+
+    nsamp = sampleRateHz * duration
+    samples = np.arange(nsamp, dtype=np.float32)
+    samples[:] = 2 * np.pi * samples[:] * freqHz / sampleRateHz
+    samples[:] = signal.square(samples, duty=dutyCycle)
+
+    if gain != 1.0:
+        samples *= gain
+
+    return samples.reshape(-1, 1)
+
+
+def sawwave(duration, freqHz, peak=0.5, gain=0.8,
+               sampleRateHz=SAMPLE_RATE_48kHz):
+    """Generate audio samples for a tone with a sawtooth waveform.
+
+    Parameters
+    ----------
+    duration : float or int
+        Length of the sound in seconds.
+    freqHz : float or int
+        Frequency of the tone in Hertz (Hz). Note that this differs from the
+        `sampleRateHz`.
+    peak : float
+        Location of the peak between 0.0 and 1.0. If the peak is at 0.5, the
+        resulting wave will be triangular. A value of 1.0 will cause the peak to
+        be located at the very end of a cycle.
+    gain : float
+        Gain factor ranging between 0.0 and 1.0.
+    sampleRateHz : int
+        Samples rate of the audio for playback.
+
+    Returns
+    -------
+    ndarray
+        Nx1 array containing samples for the tone (single channel).
+
+    """
+    assert 0.0 <= gain <= 1.0  # check if gain range is valid
+
+    nsamp = sampleRateHz * duration
+    samples = np.arange(nsamp, dtype=np.float32)
+    samples[:] = 2 * np.pi * samples[:] * freqHz / sampleRateHz
+    samples[:] = signal.square(samples, width=peak)
+
+    if gain != 1.0:
+        samples *= gain
+
+    return samples.reshape(-1, 1)
 
 
 def audioBufferSize(duration=1.0, freq=SAMPLE_RATE_48kHz):

@@ -65,6 +65,165 @@ class AudioClip(object):
         # that actually captured it
         self._audioDevice = None
 
+    @staticmethod
+    def silence(duration=1.0, sampleRateHz=SAMPLE_RATE_48kHz, channels=2):
+        """Generate audio samples for a silent period.
+
+        This is used to create silent periods of a very specific duration
+        between other audio clips.
+
+        Parameters
+        ----------
+        duration : float or int
+            Length of the sound in seconds.
+        sampleRateHz : int
+            Samples rate of the audio for playback.
+        channels : int
+            Number of channels for the output.
+
+        Returns
+        -------
+        ndarray
+            Nx1 array containing samples for the tone (single channel).
+
+        Examples
+        --------
+        Generate 5 seconds of silence to enjoy::
+
+            import psychopy.sound as sound
+            silence = sound.AudioClip.silence(10.)
+
+        Use the silence as a break between two audio clips when concatenating
+        them::
+
+            fullClip = clip1 + sound.AudioClip.silence(10.) + clip2
+
+        """
+        samples = np.zeros((duration * sampleRateHz, channels), dtype=np.float32)
+
+        return AudioClip(samples, sampleRateHz=sampleRateHz)
+
+    @staticmethod
+    def sineWave(duration=1.0, freqHz=440, gain=0.8,
+                 sampleRateHz=SAMPLE_RATE_48kHz, channels=2):
+        """Generate audio samples for a tone with a sine waveform.
+
+        Parameters
+        ----------
+        duration : float or int
+            Length of the sound in seconds.
+        freqHz : float or int
+            Frequency of the tone in Hertz (Hz). Note that this differs from the
+            `sampleRateHz`.
+        gain : float
+            Gain factor ranging between 0.0 and 1.0.
+        sampleRateHz : int
+            Samples rate of the audio for playback.
+        channels : int
+            Number of channels for the output.
+
+        Returns
+        -------
+        ndarray
+            Nx1 array containing samples for the tone (single channel).
+
+        Examples
+        --------
+        Generate an audio clip of a tone 10 seconds long with a frequency of
+        400Hz::
+
+            import psychopy.sound as sound
+            tone400Hz = sound.AudioClip.sineWave(10., 400.)
+
+        Create a marker/cue tone and append it to pre-recorded instructions::
+
+            import psychopy.sound as sound
+            voiceInstr = sound.AudioClip.load('/path/to/instructions.wav')
+            markerTone = sound.AudioClip.sineWave(
+                1.0, 440.,  # duration and freq
+                sampleRateHz=voiceInstr.sampleRateHz)  # must be the same!
+
+            fullInstr = voiceInstr + markerTone  # create instructions with cue
+            fullInstr.save('/path/to/instructions_with_tone.wav')  # save it
+
+        """
+        samples = sinewave(duration, freqHz, gain, sampleRateHz)
+
+        if channels > 1:
+            samples = np.tile(samples, (1, channels)).astype(np.float32)
+
+        return AudioClip(samples, sampleRateHz=sampleRateHz)
+
+    @staticmethod
+    def squareWave(duration=1.0, freqHz=440, dutyCycle=0.5, gain=0.8,
+                   sampleRateHz=SAMPLE_RATE_48kHz, channels=2):
+        """Generate audio samples for a tone with a square waveform.
+
+        Parameters
+        ----------
+        duration : float or int
+            Length of the sound in seconds.
+        freqHz : float or int
+            Frequency of the tone in Hertz (Hz). Note that this differs from the
+            `sampleRateHz`.
+        dutyCycle : float
+            Duty cycle between 0.0 and 1.0.
+        gain : float
+            Gain factor ranging between 0.0 and 1.0.
+        sampleRateHz : int
+            Samples rate of the audio for playback.
+        channels : int
+            Number of channels for the output.
+
+        Returns
+        -------
+        ndarray
+            Nx1 array containing samples for the tone (single channel).
+
+        """
+        samples = squarewave(duration, freqHz, dutyCycle, gain, sampleRateHz)
+
+        if channels > 1:
+            samples = np.tile(samples, (1, channels)).astype(np.float32)
+
+        return AudioClip(samples, sampleRateHz=sampleRateHz)
+
+    @staticmethod
+    def sawtoothWave(duration=1.0, freqHz=440, peak=1.0, gain=0.8,
+                     sampleRateHz=SAMPLE_RATE_48kHz, channels=2):
+        """Generate audio samples for a tone with a sawtooth waveform.
+
+        Parameters
+        ----------
+        duration : float or int
+            Length of the sound in seconds.
+        freqHz : float or int
+            Frequency of the tone in Hertz (Hz). Note that this differs from the
+            `sampleRateHz`.
+        peak : float
+            Location of the peak between 0.0 and 1.0. If the peak is at 0.5, the
+            resulting wave will be triangular. A value of 1.0 will cause the
+            peak to be located at the very end of a cycle.
+        gain : float
+            Gain factor ranging between 0.0 and 1.0.
+        sampleRateHz : int
+            Samples rate of the audio for playback.
+        channels : int
+            Number of channels for the output.
+
+        Returns
+        -------
+        ndarray
+            Nx1 array containing samples for the tone (single channel).
+
+        """
+        samples = squarewave(duration, freqHz, peak, gain, sampleRateHz)
+
+        if channels > 1:
+            samples = np.tile(samples, (1, channels)).astype(np.float32)
+
+        return AudioClip(samples, sampleRateHz=sampleRateHz)
+
     def __add__(self, other):
         """Concatenate two audio clips."""
         assert other.sampleRateHz == self._sampleRateHz
