@@ -376,7 +376,10 @@ class Experiment(object):
 
         # custom settings (to be used when
         if valType == 'fixedList':  # convert the string to a list
-            params[name].val = eval('list({})'.format(val))
+            try:
+                params[name].val = eval('list({})'.format(val))
+            except NameError:  # if val is a single string it will look like variable
+                params[name].val = [val]
         elif name == 'storeResponseTime':
             return  # deprecated in v1.70.00 because it was redundant
         elif name == 'nVertices':  # up to 1.85 there was no shape param

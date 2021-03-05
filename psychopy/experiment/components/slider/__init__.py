@@ -251,7 +251,10 @@ class SliderComponent(BaseVisualComponent):
         # reformat styles for JS
         # concatenate styles and tweaks
         tweaksList = utils.listFromString(self.params['styleTweaks'].val)
-        stylesList = [inits['styles'].val] + tweaksList
+        if type(inits['styles'].val) == list:  # from an experiment <2021.1
+            stylesList = inits['styles'].val + tweaksList
+        else:
+            stylesList = [inits['styles'].val] + tweaksList
         stylesListJS = [sliderStyles[this] for this in stylesList]
         # if not isinstance(inits['styleTweaks'].val, (tuple, list)):
         #     inits['styleTweaks'].val = [inits['styleTweaks'].val]
