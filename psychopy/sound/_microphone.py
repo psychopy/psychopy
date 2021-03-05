@@ -10,6 +10,8 @@
 
 __all__ = ['Microphone']
 
+import sys
+
 try:
     from psychtoolbox import audio
     import psychtoolbox as ptb
@@ -53,10 +55,14 @@ class Microphone(object):
 
     """
     def __init__(self,
-                 sampleRateHz=SAMPLE_RATE_48KHZ,
-                 channels=1,
+                 device=None,
+                 sampleRateHz=SAMPLE_RATE_48kHz,
+                 channels=2,
                  mode=2,
                  recBufferSecs=10.0):
+
+        # get information about the selected device
+        self._device = device
 
         self._sampleRateHz = sampleRateHz
         # internal recording buffer size in seconds
@@ -78,6 +84,27 @@ class Microphone(object):
 
         # status flag
         self._statusFlag = NOT_STARTED
+
+    @staticmethod
+    def getDevices():
+        """Get a `dict` of audio capture device (i.e. microphones) descriptors.
+        On Windows, only WASAPI devices are used.
+
+        """
+        # query PTB for devices
+        allDevs = audio.get_devices(
+            device_type=(
+                13 if sys.platform == 'win32' else None))  # WASAPI only
+
+        if isinstance(allDevs, dict):
+            allDevs = [allDevs]
+
+        inputDevs = []
+        for dev in allDevs:
+            if dev['NrInputChannels'] > 0:
+                inputDevs.append(dev)
+
+        return inputDevs
 
     def _createStream(self):
         """Create a new stream handle.
@@ -149,10 +176,6 @@ class Microphone(object):
         return AudioClip(
             samples=audioData,
             sampleRateHz=self._sampleRateHz)
-
-    def __del__(self):
-        if self._recording is not None:
-            self._recording.close()
 
 
 if __name__ == "__main__":
