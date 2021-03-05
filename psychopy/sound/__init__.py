@@ -42,6 +42,7 @@ from past.types import basestring
 import sys
 import os
 from psychopy import logging, prefs, exceptions, constants
+from ._audiodevice import *
 from ._audioclip import *  # import objects related to AudioClip
 from ._microphone import *  # import objects related to the microphone class
 

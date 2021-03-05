@@ -20,40 +20,7 @@ __all__ = [
 
 import numpy as np
 from psychopy.tools.audiotools import *
-
-
-class AudioClipInfo(object):
-    """Class for audio clip meta-data.
-
-    Instances of this class are used to store metadata for the associated
-    `AudioClip` object. Usually, values for properties are set by the routine
-    that yielded the `AudioClip` object.
-
-    Parameters
-    ----------
-    parent : AudioClip
-
-    """
-    def __init__(self, parent=None):
-        self.parent = parent
-
-    @property
-    def duration(self):
-        """Duration of the audio clip in seconds."""
-        if self.parent is not None:
-            return self.parent.duration
-
-    @property
-    def sampleRateHz(self):
-        """Sample rate of the audio clip."""
-        if self.parent is not None:
-            return self.parent.sampleRateHz
-
-    @property
-    def channels(self):
-        """Sample rate of the audio clip."""
-        if self.parent is not None:
-            return self.parent.channels
+from ._audiodevice import AudioDevice
 
 
 class AudioClip(object):
@@ -100,8 +67,9 @@ class AudioClip(object):
         # the duration of the audio clip
         self._duration = len(self.samples) / float(self.sampleRateHz)
 
-        # meta-data header
-        self._info = AudioClipInfo(self)
+        # Audio device descriptor, used to associate samples with the device
+        # that actually captured it
+        #self._audioDevice = None
 
     def __add__(self, other):
         """Concatenate two audio clips."""
@@ -154,18 +122,17 @@ class AudioClip(object):
         arrview *= float(factor)
         arrview.clip(-1, 1)
 
-    @property
-    def info(self):
-        """Meta-data related to the audio clip (`AudioClipInfo`).
-        """
-        return self._info
+    # @property
+    # def audioDevice(self):
+    #     """Descriptor (`AudioDevice`) for the audio device that captured the
+    #     sound, has value of `None` if that information is not available.
+    #     """
+    #     return self._audioDevice
 
-    @info.setter
-    def info(self, value):
-        assert isinstance(value, AudioClipInfo)
-        self._info.parent = None  # remove the reference to self
-        self._info = value
-        self._info.parent = self
+    # @audioDevice.setter
+    # def audioDevice(self, value):
+    #     assert isinstance(value, AudioDevice) or value is None
+    #     self._audioDevice = value
 
     @property
     def duration(self):
@@ -263,7 +230,7 @@ class AudioClip(object):
 
         # code for saving the audio clip in various formats
         if fmt == 'wav':  # save as a wave file
-            audiotools.array2wav(filename, self.samples, self._sampleRateHz)
+            array2wav(filename, self.samples, self._sampleRateHz)
         elif fmt == 'mp3':  # mp3 format
             pass
         elif fmt == 'csv':  # CSV format (for plotting)

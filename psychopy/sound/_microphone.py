@@ -13,13 +13,14 @@ __all__ = ['Microphone']
 import sys
 
 try:
-    from psychtoolbox import audio
     import psychtoolbox as ptb
-except Exception:
+    import psychtoolbox.audio as audio
+except (ImportError, ModuleNotFoundError):
     raise ImportError("psychtoolbox audio failed to import")
 
 from psychopy.constants import NOT_STARTED, STARTED
 from ._audioclip import *
+from ._audiodevice import *
 from ._exceptions import AudioStreamError
 
 
@@ -90,21 +91,26 @@ class Microphone(object):
         """Get a `dict` of audio capture device (i.e. microphones) descriptors.
         On Windows, only WASAPI devices are used.
 
+        Returns
+        -------
+        list
+            List of `AudioDevice` descriptors for suitable capture devices.
+
         """
         # query PTB for devices
         allDevs = audio.get_devices(
             device_type=(
                 13 if sys.platform == 'win32' else None))  # WASAPI only
 
-        if isinstance(allDevs, dict):
-            allDevs = [allDevs]
+        # make sure we have an array
+        allDevs = [allDevs] if isinstance(allDevs, dict) else allDevs
 
-        inputDevs = []
-        for dev in allDevs:
-            if dev['NrInputChannels'] > 0:
-                inputDevs.append(dev)
+        # create list of descriptors only for capture devices
+        inputDevices = [desc for desc in [
+            AudioDevice.createFromPTBDeviceDesc(dev) for dev in allDevs]
+                     if desc.isCapture]
 
-        return inputDevs
+        return inputDevices
 
     def _createStream(self):
         """Create a new stream handle.
