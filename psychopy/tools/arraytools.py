@@ -149,7 +149,7 @@ def shuffleArray(inArray, shuffleAxis=-1, seed=None):
     """
     # arrAsList = shuffle(list(inArray))
     # return numpy.array(arrAsList)
-    rng = numpy.random.RandomState(seed=seed)
+    rng = numpy.random.default_rng(seed=seed)
 
     inArray = numpy.array(inArray, 'O')  # convert to array if necess
     # create a random array of the same shape

@@ -262,7 +262,7 @@ class TrialHandler(_BaseTrialHandler):
 
         if self.method == 'random':
             sequenceIndices = []
-            randGenerator = np.random.RandomState(seed=self.seed)
+            randGenerator = np.random.default_rng(seed=self.seed)
             for thisRep in range(self.nReps):
                 thisRepSeq = randGenerator.shuffle(indices.flat).tolist()
                 sequenceIndices.append(thisRepSeq)
@@ -272,7 +272,7 @@ class TrialHandler(_BaseTrialHandler):
         elif self.method == 'fullRandom':
             # indices*nReps, flatten, shuffle, unflatten; only use seed once
             sequential = np.repeat(indices, self.nReps, 1)  # = sequential
-            randGenerator = np.random.RandomState(seed=self.seed)
+            randGenerator = np.random.default_rng(seed=self.seed)
             randomFlat = randGenerator.shuffle(sequential.flat, seed=self.seed)
             sequenceIndices = np.reshape(
                 randomFlat, (len(indices), self.nReps))
@@ -871,7 +871,7 @@ class TrialHandler2(_BaseTrialHandler):
         self.finished = False
         self.extraInfo = extraInfo
         self.seed = seed
-        self._rng = np.random.RandomState(seed=seed)
+        self._rng = np.random.default_rng(seed=seed)
 
         # store a list of dicts, convert to pandas DataFrame on access
         self._data = []
@@ -1413,15 +1413,14 @@ class TrialHandlerExt(TrialHandler):
         reshape = np.reshape
         if self.method == 'random':
             seqIndices = []
-            randomGenerator = np.random.RandomState(seed=self.seed)
+            randomGenerator = np.random.default_rng(seed=self.seed)
             for thisRep in range(self.nReps):
                 if self.trialWeights is None:
-                    idx = indices.flat
+                    thisRepSeq = indices.flat  # take a fresh copy
                 else:
-                    idx = repeat(indices, self.trialWeights)
-                thisRepSeq = randomGenerator.shuffle(idx).tolist()
-                seed = None  # so that we only seed the first pass through!
-                seqIndices.append(thisRepSeq)
+                    thisRepSeq = repeat(indices, self.trialWeights)
+                randomGenerator.shuffle(thisRepSeq)  # numpy shuffle is in-place
+                seqIndices.append(thisRepSeq.tolist())
             seqIndices = np.transpose(seqIndices)
         elif self.method == 'sequential':
             if self.trialWeights is None:
@@ -1433,14 +1432,15 @@ class TrialHandlerExt(TrialHandler):
             if self.trialWeights is None:
                 # indices * nReps, flatten, shuffle, unflatten;
                 # only use seed once
-                sequential = repeat(indices, self.nReps, 1)
-                randomFlat = np.random.shuffle(sequential.flat, seed=self.seed)
+                randomFlat = repeat(indices, self.nReps, 1)
+                np.random.shuffle(randomFlat, seed=self.seed)
                 seqIndices = reshape(randomFlat,
                                      (len(indices), self.nReps))
             else:
                 _base = repeat(indices, self.trialWeights, 0)
                 sequential = repeat(_base, self.nReps, 1)
-                randomFlat = np.random.shuffle(sequential.flat, seed=self.seed)
+                randomFlat = sequential.flat
+                np.random.shuffle(randomFlat, seed=self.seed)
                 seqIndices = reshape(randomFlat,
                                      (sum(self.trialWeights), self.nReps))
 
