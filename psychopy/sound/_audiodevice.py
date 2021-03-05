@@ -70,16 +70,14 @@ class AudioDevice(object):
                  defaultSampleRate=SAMPLE_RATE_48kHz):
 
         # values based off Psychtoolbox audio device descriptors
-        self._deviceIndex = int(deviceIndex)
-        self._deviceName = str(deviceName)
-        self._hostAPIName = str(hostAPIName)
-        self._outputChannels = int(outputChannels)
-        self._inputChannels = int(inputChannels)
-        self._lowInputLatency = float(inputLatency[0])
-        self._highInputLatency = float(inputLatency[1])
-        self._lowOutputLatency = float(outputLatency[0])
-        self._highOutputLatency = float(outputLatency[1])
-        self._defaultSampleRate = int(defaultSampleRate)
+        self.deviceIndex = deviceIndex
+        self.deviceName = deviceName
+        self.hostAPIName = hostAPIName
+        self.outputChannels = outputChannels
+        self.inputChannels = inputChannels
+        self.inputLatency = inputLatency
+        self.outputLatency = outputLatency
+        self.defaultSampleRate = defaultSampleRate
 
     @staticmethod
     def createFromPTBDeviceDesc(desc):
