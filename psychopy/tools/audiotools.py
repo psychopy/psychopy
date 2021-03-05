@@ -73,7 +73,7 @@ def array2wav(filename, samples, freq=48000):
 
     """
     # rescale
-    clipData = np.asarray(samples * MAX_16BITS_SIGNED, dtype=np.int16)
+    clipData = np.asarray(samples * (MAX_16BITS_SIGNED - 1), dtype=np.int16)
 
     # write out file
     wavfile.write(filename, freq, clipData)
@@ -115,7 +115,7 @@ def wav2array(filename, normalize=True):
     # check if we need to normalize things
     if normalize:
         samples = np.asarray(
-            samples / MAX_16BITS_SIGNED, dtype=np.float32)
+            samples / (MAX_16BITS_SIGNED - 1), dtype=np.float32)
 
     return samples, int(freq)
 

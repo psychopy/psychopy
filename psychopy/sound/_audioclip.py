@@ -25,11 +25,19 @@ class AudioClip(object):
     audio samples in contiguous arrays of 32-bit floating-point values ranging
     between -1 and 1.
 
-    You can use operators on `AudioClip` instances to combine audio clips
-    together. For instance, the ``+`` operator will return a new `AudioClip`
-    instance whose samples are the concatenation of the two operands::
+    The `AudioClip` class provides basic audio editing capabilities too. You can
+    use operators on `AudioClip` instances to combine audio clips together. For
+    instance, the ``+`` operator will return a new `AudioClip` instance whose
+    samples are the concatenation of the two operands::
 
         sndCombined = sndClip1 + sndClip2
+
+    Note that audio clips must have the same sample rates in order to be joined
+    using the addition operator.
+
+    There are also numerous static methods available to generate various tones
+    (e.g., sine-, saw-, and square-waves). Audio samples can also be loaded and
+    saved to files in various formats (e.g., WAV, MP3, FLAC, OGG, etc.)
 
     Parameters
     ----------
@@ -116,7 +124,7 @@ class AudioClip(object):
             Frequency of the tone in Hertz (Hz). Note that this differs from the
             `sampleRateHz`.
         gain : float
-            Gain factor ranging between 0.0 and 1.0.
+            Gain factor ranging between 0.0 and 1.0. Default is 0.8.
         sampleRateHz : int
             Samples rate of the audio for playback.
         channels : int
@@ -169,7 +177,7 @@ class AudioClip(object):
         dutyCycle : float
             Duty cycle between 0.0 and 1.0.
         gain : float
-            Gain factor ranging between 0.0 and 1.0.
+            Gain factor ranging between 0.0 and 1.0. Default is 0.8.
         sampleRateHz : int
             Samples rate of the audio for playback.
         channels : int
@@ -205,7 +213,7 @@ class AudioClip(object):
             resulting wave will be triangular. A value of 1.0 will cause the
             peak to be located at the very end of a cycle.
         gain : float
-            Gain factor ranging between 0.0 and 1.0.
+            Gain factor ranging between 0.0 and 1.0. Default is 0.8.
         sampleRateHz : int
             Samples rate of the audio for playback.
         channels : int
