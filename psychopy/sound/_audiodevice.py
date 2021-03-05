@@ -148,7 +148,7 @@ class AudioDevice(object):
 
     @property
     def outputLatency(self):
-        """Low and high output latency in milliseconds."""
+        """Low and high output latency in milliseconds `(low, high)`."""
         return self._lowOutputLatency, self._highOutputLatency
 
     @outputLatency.setter
@@ -159,7 +159,7 @@ class AudioDevice(object):
 
     @property
     def inputLatency(self):
-        """Low and high input latency in milliseconds."""
+        """Low and high input latency in milliseconds `(low, high)`."""
         return self._lowInputLatency, self._highInputLatency
 
     @inputLatency.setter

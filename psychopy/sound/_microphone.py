@@ -11,23 +11,20 @@
 __all__ = ['Microphone']
 
 import sys
-
 import psychopy.logging as logging
-
-_hasPTB = True
-try:
-    import psychtoolbox as ptb
-    import psychtoolbox.audio as audio
-except (ImportError, ModuleNotFoundError):
-    logging.warning(
-        "The 'psychtoolbox' library cannot be loaded but is required for audio "
-        "capture. Microphone recording will be unavailable.")
-    _hasPTB = False
-
 from psychopy.constants import NOT_STARTED, STARTED
 from ._audioclip import *
 from ._audiodevice import *
 from ._exceptions import AudioStreamError
+
+_hasPTB = True
+try:
+    import psychtoolbox.audio as audio
+except (ImportError, ModuleNotFoundError):
+    logging.warning(
+        "The 'psychtoolbox' library cannot be loaded but is required for audio "
+        "capture. Microphone recording is unavailable.")
+    _hasPTB = False
 
 
 class Microphone(object):
@@ -112,7 +109,8 @@ class Microphone(object):
         Returns
         -------
         list
-            List of `AudioDevice` descriptors for suitable capture devices.
+            List of `AudioDevice` descriptors for suitable capture devices. If
+            empty, no capture devices have been found.
 
         """
         # query PTB for devices
