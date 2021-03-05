@@ -43,7 +43,32 @@ class AudioDevice(object):
     """Descriptor for an audio device (playback or recording) on this system.
 
     Properties associated with this class provide information about a specific
-    audio playback or recording device.
+    audio playback or recording device. This class is usually instanced only
+    by calling :meth:`~psychopy.sound._microphone.Microphone.getDevices()`.
+    Users should avoid creating instances of this class themselves unless they
+    have good reason to.
+    
+    Parameters
+    ----------
+    deviceIndex : int
+        Enumerated index of the audio device.
+    deviceName : str
+        Human-readable name of the device.
+    hostAPIName : str
+        Human-readable name of the host API used for audio.
+    outputChannels : int
+        Number of output channels.
+    outputLatency : tuple
+        Low (`float`) and high (`float`) output latency in milliseconds.
+    inputChannels : int
+        Number of input channels.
+    inputLatency : tuple
+        Low (`float`) and high (`float`) input latency in milliseconds.
+    defaultSampleRate : int
+        Default sample rate for the device in Hertz (Hz).
+    audioLib : str
+        Audio library that queried device information used to populate the
+        properties of this descriptor (e.g., ``'ptb'`` for Psychtoolbox).
 
     """
     __slots__ = [
@@ -56,7 +81,8 @@ class AudioDevice(object):
         '_highInputLatency',
         '_lowOutputLatency',
         '_highOutputLatency',
-        '_defaultSampleRate'
+        '_defaultSampleRate',
+        '_audioLib'
     ]
 
     def __init__(self,
@@ -67,7 +93,8 @@ class AudioDevice(object):
                  outputLatency=(0., 0.),
                  inputChannels=0,
                  inputLatency=(0., 0.),
-                 defaultSampleRate=SAMPLE_RATE_48kHz):
+                 defaultSampleRate=0,
+                 audioLib=u''):
 
         # values based off Psychtoolbox audio device descriptors
         self.deviceIndex = deviceIndex
@@ -78,11 +105,12 @@ class AudioDevice(object):
         self.inputLatency = inputLatency
         self.outputLatency = outputLatency
         self.defaultSampleRate = defaultSampleRate
+        self.audioLib = audioLib
 
     @staticmethod
     def createFromPTBDeviceDesc(desc):
         """Create an `AudioDevice` instance with values populated using a
-        descriptor (`dict`) returned from the PTB `get_devices` API call.
+        descriptor (`dict`) returned from the PTB `audio.get_devices` API call.
 
         Parameters
         ----------
@@ -115,9 +143,19 @@ class AudioDevice(object):
             outputLatency=(desc['LowOutputLatency'], desc['HighOutputLatency']),
             inputChannels=desc['NrInputChannels'],
             inputLatency=(desc['LowInputLatency'], desc['HighInputLatency']),
-            defaultSampleRate=desc['DefaultSampleRate'])
+            defaultSampleRate=desc['DefaultSampleRate'],
+            audioLib='ptb')  # queried with psychtoolbox
 
         return audioDevDesc
+
+    @property
+    def audioLib(self):
+        """Audio library used to query device information (`str`)."""
+        return self._audioLib
+
+    @audioLib.setter
+    def audioLib(self, value):
+        self._audioLib = str(value)
 
     @property
     def inputChannels(self):
