@@ -75,6 +75,33 @@ class AudioDevice(object):
         Audio library that queried device information used to populate the
         properties of this descriptor (e.g., ``'ptb'`` for Psychtoolbox).
 
+    Examples
+    --------
+    Get a list of available devices::
+
+        import psychopy.sound as sound
+        recordingDevicesList = sound.Microphone.getDevices()
+
+    Get the low and high input latency of the first recording device::
+
+        recordingDevice = recordingDevicesList[0]  # assume not empty
+        inputLatencyLow, inputLatencyHigh = recordingDevice.inputLatency
+
+    Get the device name as it may appear in the system control panel or sound
+    settings::
+
+        deviceName = recordingDevice.deviceName
+
+    Specifying the device to use for capturing audio from a microphone::
+
+        # get the first suitable capture device found by the sound engine
+        recordingDevicesList = sound.Microphone.getDevices()
+        recordingDevice = recordingDevicesList[0]
+
+        # pass the descriptor to microphone to configure it
+        mic = sound.Microphone(device=recordingDevice)
+        mic.start()  # start recording sound
+
     """
     __slots__ = [
         '_deviceIndex',
