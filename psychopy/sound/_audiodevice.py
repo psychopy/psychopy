@@ -12,10 +12,15 @@ __all__ = [
     'AudioDevice',
     'sampleRateQualityLevels',
     'NULL_AUDIO_DEVICE',
-    'SAMPLE_RATE_8kHz', 'SAMPLE_RATE_TELCOM_QUALITY',
-    'SAMPLE_RATE_16kHz', 'SAMPLE_RATE_VOIP_QUALITY',
-    'SAMPLE_RATE_44p1kHz', 'SAMPLE_RATE_CD_QUALITY',
-    'SAMPLE_RATE_48kHz', 'SAMPLE_RATE_DVD_QUALITY',
+    'SAMPLE_RATE_8kHz',
+    'SAMPLE_RATE_TELCOM_QUALITY',
+    'SAMPLE_RATE_16kHz',
+    'SAMPLE_RATE_VOIP_QUALITY',
+    'SAMPLE_RATE_VOICE_QUALITY',
+    'SAMPLE_RATE_44p1kHz',
+    'SAMPLE_RATE_CD_QUALITY',
+    'SAMPLE_RATE_48kHz',
+    'SAMPLE_RATE_DVD_QUALITY',
     'SAMPLE_RATE_96kHz',
     'SAMPLE_RATE_192kHz'
 ]
@@ -274,12 +279,17 @@ class AudioDevice(object):
     @property
     def isPlayback(self):
         """`True` if this is a capture device (`bool`)."""
-        return self._outputChannels > 0 and self._inputChannels == 0
+        return self._outputChannels > 0
 
     @property
     def isCapture(self):
         """`True` if this is a capture device (`bool`)."""
-        return not self.isPlayback
+        return self._inputChannels > 0
+
+    @property
+    def isDuplex(self):
+        """`True` if this is a capture and playback device (`bool`)."""
+        return self.isPlayback and self.isCapture
 
 
 NULL_AUDIO_DEVICE = AudioDevice()  # used as a sentinel or for testing

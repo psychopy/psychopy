@@ -19,7 +19,7 @@ import numpy as np
 import soundfile as sf
 from psychopy.tools.audiotools import *
 from ._audiodevice import AudioDevice
-from ._exceptions import AudioUnsupportedCodec
+from ._exceptions import AudioUnsupportedCodecError
 
 # supported formats for loading and saving audio samples to file
 SUPPORTED_AUDIO_CODECS = [s.lower() for s in sf.available_formats().keys()]
@@ -91,6 +91,13 @@ class AudioClip(object):
         # user data
         self._userData = userData if userData is not None else {}
 
+    # --------------------------------------------------------------------------
+    # Loading and saving
+    #
+    # These static methods are related to loading and saving audio clips from
+    # files. The file types supported are those that `libsoundfile` supports.
+    #
+
     @staticmethod
     def _checkCodecSupported(codec, raiseError=False):
         """Check if the audio format string corresponds to a supported codec.
@@ -117,7 +124,7 @@ class AudioClip(object):
 
         if raiseError and not hasCodec:
             fmtList = ["'{}'".format(s) for s in SUPPORTED_AUDIO_CODECS]
-            raise AudioUnsupportedCodec(
+            raise AudioUnsupportedCodecError(
                 "Unsupported audio codec specified, must be either: " +
                 ", ".join(fmtList))
 
@@ -132,7 +139,7 @@ class AudioClip(object):
         filename : str
             File name to load.
         codec : str or None
-            Format to use. If `None`, the format will be implied from the file
+            Codec to use. If `None`, the format will be implied from the file
             name.
 
         Returns
@@ -154,6 +161,59 @@ class AudioClip(object):
             samples=samples,
             sampleRateHz=sampleRateHz)
 
+    def save(self, filename, codec=None):
+        """Save an audio clip to file.
+
+        Parameters
+        ----------
+        filename : str
+            File name to write audio clip to.
+        codec : str or None
+            Format to save audio clip data as. If `None`, the format will be
+            implied from the extension at the end of `filename`.
+        """
+        if codec is not None:
+            AudioClip._checkCodecSupported(codec, raiseError=True)
+
+        sf.write(
+            filename,
+            data=self._samples,
+            samplerate=self._sampleRateHz,
+            format=codec)
+
+    # --------------------------------------------------------------------------
+    # Tone and noise generation methods
+    #
+    # These static methods are used to generate audio samples, such as random
+    # colored noise (e.g., white) and tones (e.g., sine, square, etc.)
+    #
+
+    @staticmethod
+    def whiteNoise(duration=1.0, sampleRateHz=SAMPLE_RATE_48kHz, channels=2):
+        """Generate gaussian white noise.
+
+        Parameters
+        ----------
+        duration : float or int
+            Length of the sound in seconds.
+        sampleRateHz : int
+            Samples rate of the audio for playback.
+        channels : int
+            Number of channels for the output.
+
+        Returns
+        -------
+        ndarray
+            Nx1 or Nx2 array containing samples for the sound.
+
+        """
+        samples = whiteNoise(duration, sampleRateHz)
+
+        if channels > 1:
+            samples = np.tile(samples, (1, channels)).astype(np.float32)
+
+        return AudioClip(samples, sampleRateHz=sampleRateHz)
+
     @staticmethod
     def silence(duration=1.0, sampleRateHz=SAMPLE_RATE_48kHz, channels=2):
         """Generate audio samples for a silent period.
@@ -173,7 +233,8 @@ class AudioClip(object):
         Returns
         -------
         ndarray
-            Nx1 array containing samples for the tone (single channel).
+            Nx1 or Nx2 array containing samples for the sound (or lack of in
+            this case).
 
         Examples
         --------
@@ -215,7 +276,7 @@ class AudioClip(object):
         Returns
         -------
         ndarray
-            Nx1 array containing samples for the tone (single channel).
+            Nx1 or Nx2 array containing samples for the sound.
 
         Examples
         --------
@@ -237,7 +298,7 @@ class AudioClip(object):
             fullInstr.save('/path/to/instructions_with_tone.wav')  # save it
 
         """
-        samples = sinewave(duration, freqHz, gain, sampleRateHz)
+        samples = sinetone(duration, freqHz, gain, sampleRateHz)
 
         if channels > 1:
             samples = np.tile(samples, (1, channels)).astype(np.float32)
@@ -268,10 +329,10 @@ class AudioClip(object):
         Returns
         -------
         ndarray
-            Nx1 array containing samples for the tone (single channel).
+            Nx1 or Nx2 array containing samples for the sound.
 
         """
-        samples = squarewave(duration, freqHz, dutyCycle, gain, sampleRateHz)
+        samples = squaretone(duration, freqHz, dutyCycle, gain, sampleRateHz)
 
         if channels > 1:
             samples = np.tile(samples, (1, channels)).astype(np.float32)
@@ -304,15 +365,22 @@ class AudioClip(object):
         Returns
         -------
         ndarray
-            Nx1 array containing samples for the tone (single channel).
+            Nx1 or Nx2 array containing samples for the sound.
 
         """
-        samples = sawwave(duration, freqHz, peak, gain, sampleRateHz)
+        samples = sawtone(duration, freqHz, peak, gain, sampleRateHz)
 
         if channels > 1:
             samples = np.tile(samples, (1, channels)).astype(np.float32)
 
         return AudioClip(samples, sampleRateHz=sampleRateHz)
+
+    # --------------------------------------------------------------------------
+    # Audio editing
+    #
+    # Methods related to basic editing of audio samples (operations such as
+    # splicing clips and signal gain).
+    #
 
     def append(self, clip):
         """Append samples from another sound clip to the end of this one.
@@ -376,7 +444,7 @@ class AudioClip(object):
         return self
 
     def copy(self):
-        """Create a copy of this `AudioClip`.
+        """Create an independent copy of this `AudioClip`.
 
         Returns
         -------
@@ -386,20 +454,6 @@ class AudioClip(object):
         return AudioClip(
             samples=self._samples.copy(),
             sampleRateHz=self._sampleRateHz)
-
-    def rms(self):
-        """Compute the root mean square (RMS) of the samples to determine the
-        signal level.
-
-        Returns
-        -------
-        ndarray
-            RMS for each channel.
-
-        """
-        rms = np.sqrt(np.mean(np.square(self.samples), axis=1))
-
-        return rms
 
     def gain(self, factor, channel=None):
         """Apply gain the audio samples.
@@ -425,6 +479,40 @@ class AudioClip(object):
         # multiply and clip range
         arrview *= float(factor)
         arrview.clip(-1, 1)
+
+    # --------------------------------------------------------------------------
+    # Audio analysis
+    #
+    # Methods related to basic analysis of audio samples, nothing too advanced
+    # but still useful.
+    #
+
+    def rms(self, channel=None):
+        """Compute the root mean square (RMS) of the samples to determine the
+        average signal level.
+
+        Parameters
+        ----------
+        channel : int or None
+            Channel to compute RMS (zero-indexed). If `None`, the RMS of all
+            channels will be computed.
+
+        Returns
+        -------
+        ndarray or float
+            An array of RMS values for each channel if ``channel=None`` (even if
+            there is one channel an array is returned). If `channel` *was*
+            specified, a `float` will be returned indicating the RMS of that
+            single channel.
+
+        """
+        if channel is not None:
+            assert 0 < channel < self.channels
+
+        arr = self._samples if channel is None else self._samples[:, channel]
+        rms = np.sqrt(np.mean(np.square(arr), axis=0))
+
+        return rms if channel is None else rms[0]
 
     @property
     def audioDevice(self):
@@ -506,29 +594,21 @@ class AudioClip(object):
         # recompute duration after updating sample rate
         self._duration = len(self._samples) / float(self._sampleRateHz)
 
-    def save(self, filename, codec=None):
-        """Save an audio clip to file.
-
-        Parameters
-        ----------
-        filename : str
-            File name to write audio clip to.
-        codec : str or None
-            Format to save audio clip data as. If `None`, the format will be
-            implied from the extension at the end of `filename`.
-        """
-        if codec is not None:
-            AudioClip._checkCodecSupported(codec, raiseError=True)
-
-        sf.write(
-            filename,
-            data=self._samples,
-            samplerate=self._sampleRateHz,
-            format=codec)
-
 
 def load(filename, codec=None):
     """Load an audio clip from file.
+
+    Parameters
+    ----------
+    filename : str
+        File name to load.
+    codec : str or None
+        Codec to use. If `None`, the format will be implied from the file name.
+
+    Returns
+    -------
+    AudioClip
+        Audio clip containing samples loaded from the file.
 
     """
     return AudioClip.load(filename, codec)

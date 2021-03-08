@@ -13,11 +13,13 @@ __all__ = [
     'AudioFrequencyRangeError',
     'AudioUnsupportedSampleRateError',
     'AudioInvalidDeviceError',
-    'AudioUnsupportedCodec'
+    'AudioUnsupportedCodecError',
+    'AudioInvalidCaptureDeviceError',
+    'AudioInvalidPlaybackDeviceError'
 ]
 
 
-class AudioUnsupportedCodec(Exception):
+class AudioUnsupportedCodecError(Exception):
     """Error raise when trying to save or load and unsupported audio
     codec/format.
 
@@ -48,6 +50,21 @@ class AudioUnsupportedSampleRateError(Exception):
 class AudioInvalidDeviceError(Exception):
     """Error raised when the audio device configuration does not match any
     supported configuration.
+
+    """
+    pass
+
+
+class AudioInvalidCaptureDeviceError(AudioInvalidDeviceError):
+    """Error raised when the audio device cannot be used for capture (i.e. not
+    a microphone).
+
+    """
+    pass
+
+
+class AudioInvalidPlaybackDeviceError(AudioInvalidDeviceError):
+    """Error raised when the audio device is not suitable for playback.
 
     """
     pass

@@ -15,7 +15,7 @@ import psychopy.logging as logging
 from psychopy.constants import NOT_STARTED, STARTED
 from ._audioclip import *
 from ._audiodevice import *
-from ._exceptions import AudioStreamError
+from ._exceptions import *
 
 _hasPTB = True
 try:
@@ -23,7 +23,8 @@ try:
 except (ImportError, ModuleNotFoundError):
     logging.warning(
         "The 'psychtoolbox' library cannot be loaded but is required for audio "
-        "capture. Microphone recording is unavailable.")
+        "capture. Microphone recording is unavailable this session. Note that "
+        "opening a microphone stream will raise an error.")
     _hasPTB = False
 
 
@@ -61,11 +62,15 @@ class Microphone(object):
         audioClip.save('test.wav')  # save the recorded audio as a 'wav' file
 
     """
+    # Force the use of WASAPI for audio capture on Windows. If `True`, only
+    # WASAPI devices will be returned when calling static method
+    # `Microphone.getDevices()`
+    enforceWASAPI = True
+
     def __init__(self,
                  device=None,
                  sampleRateHz=None,
                  channels=2,
-                 mode=2,
                  recBufferSecs=10.0):
 
         if not _hasPTB:  # fail if PTB is not installed
@@ -77,22 +82,47 @@ class Microphone(object):
         if isinstance(device, AudioDevice):
             self._device = device
         else:
+            # get default device, first enumerated usually
             devices = Microphone.getDevices()
+
+            if not devices:
+                raise AudioInvalidCaptureDeviceError(
+                    'No suitable audio recording devices found on this system. '
+                    'Check connections and try again.')
+
             self._device = devices[0] if devices else None
 
-        self._sampleRateHz = sampleRateHz
+        # error if specified device was not a microphone
+        if not self._device.isCapture:
+            raise AudioInvalidCaptureDeviceError(
+                'Specified audio device not suitable for audio recording. '
+                'Has no input channels.')
+
+        # get the sample rate
+        self._sampleRateHz = \
+            self._device.defaultSampleRate if sampleRateHz is None else int(
+                sampleRateHz)
+
+        # set the number of recording channels
+        self._channels = \
+            self._device.inputChannels if channels is None else int(channels)
+
+        if self._channels > self._device.inputChannels:
+            raise AudioInvalidDeviceError(
+                'Invalid number of channels for audio input specified.')
+
         # internal recording buffer size in seconds
         assert isinstance(recBufferSecs, (float, int))
         self._recBufferSecs = float(recBufferSecs)
 
-        # PTB specific stuff (for now, might move to base class)
-        self._mode = int(mode)
-        self._channels = int(channels)
+        # PTB specific stuff
+        self._mode = 2  # open a stream in capture mode
 
         # this can only be set after initialization
         self._stopTime = None   # optional, stop time to end recording
 
-        # handle for the recording stream
+        # Handle for the recording stream, should only be opened once per
+        # session
         self._stream = audio.Stream(
             device_id=self._device.deviceIndex,
             mode=self._mode,
@@ -105,13 +135,23 @@ class Microphone(object):
         # status flag
         self._statusFlag = NOT_STARTED
 
-    def _initCaptureDevice(self):
-        """Initialize the audio capture device."""
-        pass
+    # def setDevice(self, device=None):
+    #     """Set the device and open a stream. Calling this will close the
+    #     previous stream and create a new one. Do not call this while recording
+    #     or if anything is trying to access the stream.
+    #
+    #     Parameters
+    #     ----------
+    #     device : AudioDevice or None
+    #         Audio device to use. Must be an input device. If `None`, the first
+    #         suitable input device to be enumerated is used.
+    #
+    #     """
+    #     pass
 
     @staticmethod
     def getDevices():
-        """Get a `dict` of audio capture device (i.e. microphones) descriptors.
+        """Get a `list` of audio capture device (i.e. microphones) descriptors.
         On Windows, only WASAPI devices are used.
 
         Returns
@@ -122,11 +162,12 @@ class Microphone(object):
 
         """
         # query PTB for devices
-        allDevs = audio.get_devices(
-            device_type=(
-                13 if sys.platform == 'win32' else None))  # WASAPI only
+        if Microphone.enforceWASAPI and sys.platform == 'win32':
+            allDevs = audio.get_devices(device_type=13)
+        else:
+            allDevs = audio.get_devices()
 
-        # make sure we have an array
+        # make sure we have an array of descriptors
         allDevs = [allDevs] if isinstance(allDevs, dict) else allDevs
 
         # create list of descriptors only for capture devices
@@ -144,24 +185,17 @@ class Microphone(object):
         """
         return self._recBufferSecs
 
-    @property
-    def stopTime(self):
-        """Duration of the audio recording (`float`). Cannot be set while a
-        recording is in progress.
-
-        """
-        return self._stopTime
-
-    @stopTime.setter
-    def stopTime(self, value):
-        assert isinstance(value, (float, int))
-        self._stopTime = float(value)
-
-    def start(self):
+    def start(self, stopTime=None):
         """Start an audio recording.
 
         Calling this method will open a stream and begin capturing samples from
         the microphone.
+
+        Parameters
+        ----------
+        stopTime : float, int or None
+            Number of seconds to record. If `None` or `-1`, recording will
+            continue forever until `stop` is called.
 
         """
         # check if the stream has been
@@ -169,7 +203,7 @@ class Microphone(object):
             pass
 
         assert self._stream is not None  # must have a handle
-        self._stream.start(repetitions=0, stop_time=self._stopTime)
+        self._stream.start(repetitions=0, stop_time=stopTime)
         self._statusFlag = STARTED  # recording has begun
 
     def stop(self):

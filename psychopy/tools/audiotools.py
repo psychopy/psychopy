@@ -9,9 +9,10 @@ This module provides routines for saving/loading and manipulating audio samples.
 __all__ = [
     'array2wav',
     'wav2array',
-    'sinewave',
-    'squarewave',
-    'sawwave',
+    'sinetone',
+    'squaretone',
+    'sawtone',
+    'whiteNoise',
     'audioBufferSize',
     'SAMPLE_RATE_8kHz', 'SAMPLE_RATE_TELCOM_QUALITY',
     'SAMPLE_RATE_16kHz', 'SAMPLE_RATE_VOIP_QUALITY', 'SAMPLE_RATE_VOICE_QUALITY',
@@ -51,7 +52,6 @@ SAMPLE_RATE_44p1kHz = SAMPLE_RATE_CD_QUALITY = 44100
 SAMPLE_RATE_48kHz = SAMPLE_RATE_DVD_QUALITY = 48000
 SAMPLE_RATE_96kHz = 96000
 SAMPLE_RATE_192kHz = 192000  # high-def
-
 
 # needed for converting float to int16, not exported by __all__
 MAX_16BITS_SIGNED = 1 << 15
@@ -120,7 +120,7 @@ def wav2array(filename, normalize=True):
     return samples, int(freq)
 
 
-def sinewave(duration, freqHz, gain=0.8, sampleRateHz=SAMPLE_RATE_48kHz):
+def sinetone(duration, freqHz, gain=0.8, sampleRateHz=SAMPLE_RATE_48kHz):
     """Generate audio samples for a tone with a sine waveform.
 
     Parameters
@@ -154,7 +154,7 @@ def sinewave(duration, freqHz, gain=0.8, sampleRateHz=SAMPLE_RATE_48kHz):
     return samples.reshape(-1, 1)
 
 
-def squarewave(duration, freqHz, dutyCycle=0.5, gain=0.8,
+def squaretone(duration, freqHz, dutyCycle=0.5, gain=0.8,
                sampleRateHz=SAMPLE_RATE_48kHz):
     """Generate audio samples for a tone with a square waveform.
 
@@ -191,8 +191,8 @@ def squarewave(duration, freqHz, dutyCycle=0.5, gain=0.8,
     return samples.reshape(-1, 1)
 
 
-def sawwave(duration, freqHz, peak=0.5, gain=0.8,
-               sampleRateHz=SAMPLE_RATE_48kHz):
+def sawtone(duration, freqHz, peak=0.5, gain=0.8,
+            sampleRateHz=SAMPLE_RATE_48kHz):
     """Generate audio samples for a tone with a sawtooth waveform.
 
     Parameters
@@ -228,6 +228,30 @@ def sawwave(duration, freqHz, peak=0.5, gain=0.8,
         samples *= gain
 
     return samples.reshape(-1, 1)
+
+
+def whiteNoise(duration=1.0, sampleRateHz=SAMPLE_RATE_48kHz):
+    """Generate gaussian white noise.
+
+    Parameters
+    ----------
+    duration : float or int
+        Length of the sound in seconds.
+    sampleRateHz : int
+        Samples rate of the audio for playback.
+
+    Returns
+    -------
+    ndarray
+        Nx1 or Nx2 array containing samples for the sound.
+
+    """
+    samples = np.random.randn(int(duration * sampleRateHz)).reshape(-1, 1)
+
+    # rescale, check if this is allowed ... or just clip?
+    samples /= np.max(np.abs(samples))
+
+    return samples
 
 
 def audioBufferSize(duration=1.0, freq=SAMPLE_RATE_48kHz):
