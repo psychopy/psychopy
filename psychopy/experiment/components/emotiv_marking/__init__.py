@@ -154,7 +154,7 @@ class EmotivMarkingComponent(BaseComponent):  # or (VisualComponent)
             self.params["stop_marker"]))
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndented('});\n')
-        buff.writeIndented('{}.status = PsychoJS.Status.STARTED\n'
+        buff.writeIndented('{}.status = PsychoJS.Status.STARTED;\n'
                            .format(self.params['name']))
         # buff.writeIndented("%(name)s.setAutoDraw(true);\n" % self.params)
         # to get out of the if statement
@@ -171,7 +171,7 @@ class EmotivMarkingComponent(BaseComponent):  # or (VisualComponent)
             buff.writeIndented('emotiv.sendStopMarker()\n')
             buff.setIndentLevel(-1, relative=True)
             buff.writeIndented('});\n')
-            buff.writeIndented('{}.status = PsychoJS.Status.FINISHED\n'
+            buff.writeIndented('{}.status = PsychoJS.Status.FINISHED;\n'
                                .format(self.params['name']))
 
         # buff.writeIndented("%(name)s.setAutoDraw(false);\n" % self.params)

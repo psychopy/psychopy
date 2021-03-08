@@ -52,13 +52,13 @@ class EmotivRecordingComponent(BaseComponent):  # or (VisualComponent)
         code = '{} = {};\n'
         buff.writeIndentedLines(
             code.format(inits['name'], json.dumps(obj)))
-        buff.writeIndentedLines(
-            'let recordName = expName + "_" + (new Date()).getTime().toString()\n' +
-            'let subject_name = expInfo["participant"]\n' +
-            'let recordId = "";\n' +
-            'emotiv.startRecord(recordName, subject_name)\n' +
-            '    .then((result)=>recordId=result);\n'
-        )
+        # buff.writeIndentedLines(
+        #     'let recordName = expName + "_" + (new Date()).getTime().toString()\n' +
+        #     'let subject_name = expInfo["participant"]\n' +
+        #     'let recordId = "";\n' +
+        #     'emotiv.startRecord(recordName, subject_name)\n' +
+        #     '    .then((result)=>recordId=result);\n'
+        # )
         # check for NoneTypes
         for param in inits:
             if inits[param] in [None, 'None', '']:
@@ -78,3 +78,7 @@ class EmotivRecordingComponent(BaseComponent):  # or (VisualComponent)
                 "{}.close_session()\n".format(CORTEX_OBJ)
         )
         buff.writeIndentedLines(code)
+
+    # def writeExperimentEndCodeJS(self, buff):
+    #     code = "settimeout(emotiv.stopRecord, 1000)\n"
+    #     buff.writeIndentedLines(code)

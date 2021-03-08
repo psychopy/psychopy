@@ -59,13 +59,17 @@ class CortexNoHeadsetException(Exception):
 
 
 class Cortex(object):
-    CORTEX_URL = "wss://localhost:6868"
+    if os.getenv('CORTEX_DEBUG', False):
+        CORTEX_URL = "wss://localhost:7070"
+    else:
+        CORTEX_URL = "wss://localhost:6868"
 
     def __init__(self, client_id_file=None, subject=None):
         self.client_id = None
         self.client_secret = None
-        client_id, client_secret = self.parse_client_id_file(file_path)
+        client_id, client_secret = self.parse_client_id_file()
         self.set_client_id_and_secret(client_id, client_secret)
+        print(self.client_id)
         self.id_sequence = 0
         self.session_id = None
         self.marker_dict = {}
@@ -232,7 +236,7 @@ class Cortex(object):
 
     def set_client_id_and_secret(self, client_id, client_secret):
         self.client_id = client_id
-        self.client_secrte = client_secret
+        self.client_secret = client_secret
 
     @staticmethod
     def parse_client_id_file(client_id_file_path=None):
@@ -253,8 +257,8 @@ class Cortex(object):
         if client_id_file_path is None:
             client_id_file_path = ".emotiv_creds"
             client_id_file_path = os.path.join(home, client_id_file_path)
-        self.client_id = None
-        self.client_secret = None
+        client_id = None
+        client_secret = None
         if not os.path.exists(client_id_file_path):
             error_str = ("File {} does not exist. Please add Cortex app client"
                          "id and secret into '.emotiv_creds' file in home " 
@@ -373,7 +377,12 @@ class Cortex(object):
     @staticmethod
     def get_user_login_cb(resp):
         """ Example of using the callback functionality of send_command """
-        resp = resp['result'][0]
+        resp = resp['result']
+        if len(resp) == 0:
+            logger.debug(resp)
+            raise CortexApiException(
+                f"No user logged in! Please log in with the Emotiv App")
+        resp = resp[0]
         if 'loggedInOSUId' not in resp:
             logger.debug(resp)
             raise CortexApiException(
@@ -411,6 +420,7 @@ class Cortex(object):
         status = 'active' if activate else 'open'
         if not headset_id:
             headset_id = self.headsets[0]
+        logger.debug(f"Connecting to headset: {headset_id}")
         params = {'cortexToken': self.auth_token,
                   'headset': headset_id,
                   'status': status}
