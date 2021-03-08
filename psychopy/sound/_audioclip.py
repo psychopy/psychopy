@@ -314,6 +314,41 @@ class AudioClip(object):
 
         return AudioClip(samples, sampleRateHz=sampleRateHz)
 
+    def append(self, clip):
+        """Append samples from another sound clip to the end of this one.
+
+        The `AudioClip` object must have the same sample rate and channels as
+        this object.
+
+        Parameters
+        ----------
+        clip : AudioClip
+            Audio clip to append.
+
+        Returns
+        -------
+        AudioClip
+            This object with samples from `clip` appended.
+
+        Examples
+        --------
+        Join two sound clips together::
+
+            snd1.append(snd2)
+
+        """
+        assert self.channels == clip.channels
+        assert self._sampleRateHz == clip.sampleRateHz
+
+        self._samples = np.ascontiguousarray(
+            np.vstack((self._samples, clip.samples)),
+            dtype=np.float32)
+
+        # recompute the duration of the new clip
+        self._duration = len(self.samples) / float(self.sampleRateHz)
+
+        return self
+
     def __add__(self, other):
         """Concatenate two audio clips."""
         assert other.sampleRateHz == self._sampleRateHz
@@ -441,7 +476,7 @@ class AudioClip(object):
 
     @property
     def samples(self):
-        """Nx1 array of audio samples (`~numpy.ndarray`).
+        """Nx1 or Nx2 array of audio samples (`~numpy.ndarray`).
 
         Values must range from -1 to 1. Values outside that range will be
         clipped, possibly resulting in distortion.
