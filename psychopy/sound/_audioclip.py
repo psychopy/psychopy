@@ -20,7 +20,6 @@ __all__ = [
 import numpy as np
 import soundfile as sf
 from psychopy.tools.audiotools import *
-from ._audiodevice import AudioDevice
 from ._exceptions import AudioUnsupportedCodecError
 
 # supported formats for loading and saving audio samples to file
@@ -524,6 +523,38 @@ class AudioClip(object):
     #
 
     @property
+    def samples(self):
+        """Nx1 or Nx2 array of audio samples (`~numpy.ndarray`).
+
+        Values must range from -1 to 1. Values outside that range will be
+        clipped, possibly resulting in distortion.
+
+        """
+        return self._samples
+
+    @samples.setter
+    def samples(self, value):
+        self._samples = np.asarray(value, dtype=float)  # convert to array
+        self._samples.clip(-1., 1.)  # do clipping to keep samples in range
+
+        # recompute duration after updating samples
+        self._duration = len(self._samples) / float(self._sampleRateHz)
+
+    @property
+    def sampleRateHz(self):
+        """Sample rate of the audio clip in Hz (`int`). Should be the same
+        value as the rate `samples` was captured at.
+
+        """
+        return self._sampleRateHz
+
+    @sampleRateHz.setter
+    def sampleRateHz(self, value):
+        self._sampleRateHz = int(value)
+        # recompute duration after updating sample rate
+        self._duration = len(self._samples) / float(self._sampleRateHz)
+
+    @property
     def duration(self):
         """The duration of the audio in seconds (`float`).
 
@@ -558,38 +589,6 @@ class AudioClip(object):
 
         """
         return self._samples.shape[1] == 1
-
-    @property
-    def samples(self):
-        """Nx1 or Nx2 array of audio samples (`~numpy.ndarray`).
-
-        Values must range from -1 to 1. Values outside that range will be
-        clipped, possibly resulting in distortion.
-
-        """
-        return self._samples
-
-    @samples.setter
-    def samples(self, value):
-        self._samples = np.asarray(value, dtype=float)  # convert to array
-        self._samples.clip(-1., 1.)  # do clipping to keep samples in range
-
-        # recompute duration after updating samples
-        self._duration = len(self._samples) / float(self._sampleRateHz)
-
-    @property
-    def sampleRateHz(self):
-        """Sample rate of the audio clip in Hz (`int`). Should be the same
-        value as the rate `samples` was captured at.
-
-        """
-        return self._sampleRateHz
-
-    @sampleRateHz.setter
-    def sampleRateHz(self, value):
-        self._sampleRateHz = int(value)
-        # recompute duration after updating sample rate
-        self._duration = len(self._samples) / float(self._sampleRateHz)
 
     @property
     def userData(self):
