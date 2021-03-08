@@ -188,7 +188,8 @@ class AudioClip(object):
             fullClip = clip1 + sound.AudioClip.silence(10.) + clip2
 
         """
-        samples = np.zeros((duration * sampleRateHz, channels), dtype=np.float32)
+        samples = np.zeros(
+            (int(duration * sampleRateHz), channels), dtype=np.float32)
 
         return AudioClip(samples, sampleRateHz=sampleRateHz)
 
@@ -306,7 +307,7 @@ class AudioClip(object):
             Nx1 array containing samples for the tone (single channel).
 
         """
-        samples = squarewave(duration, freqHz, peak, gain, sampleRateHz)
+        samples = sawwave(duration, freqHz, peak, gain, sampleRateHz)
 
         if channels > 1:
             samples = np.tile(samples, (1, channels)).astype(np.float32)
