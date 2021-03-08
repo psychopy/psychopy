@@ -133,7 +133,7 @@ class Test_textbox(object):
         pass
 
 
-def test_font_manager(self):
+def test_font_manager():
     # Create a font manager
     mgr = FontManager()
     # Check that it finds fonts which should be pre-packaged with PsychoPy in the resources folder
