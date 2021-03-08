@@ -33,7 +33,7 @@ import pandas as pd
 # Set up logging for websockets library
 
 logger = logging.getLogger('test_logger')
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 fh = logging.FileHandler('cortex.log')
 logger.addHandler(fh)
 
@@ -69,7 +69,6 @@ class Cortex(object):
         self.client_secret = None
         client_id, client_secret = self.parse_client_id_file()
         self.set_client_id_and_secret(client_id, client_secret)
-        print(self.client_id)
         self.id_sequence = 0
         self.session_id = None
         self.marker_dict = {}
@@ -140,7 +139,6 @@ class Cortex(object):
         msg = self.gen_request(method, auth, **kwargs)
         if method == 'injectMarker':
             self.marker_dict[self.id_sequence] = "sent"
-            # print("sending_marker", time.perf_counter())
         self.websocket.send(msg)
         if wait:
             logger.debug("data sent; awaiting response")
@@ -524,10 +522,6 @@ class Cortex(object):
 
 if __name__ == "__main__":
     cortex = Cortex()
-    print("sending marker")
     cortex.inject_marker(label="test_marker", value=4, port="psychpy")
     time.sleep(10)
-    print("sending stop")
     cortex.update_marker()
-    print("finished")
-    print(cortex.session_id)
