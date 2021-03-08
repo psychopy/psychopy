@@ -12,8 +12,17 @@ __all__ = [
     'AudioStreamError',
     'AudioFrequencyRangeError',
     'AudioUnsupportedSampleRateError',
-    'AudioInvalidDeviceError'
+    'AudioInvalidDeviceError',
+    'AudioUnsupportedCodec'
 ]
+
+
+class AudioUnsupportedCodec(Exception):
+    """Error raise when trying to save or load and unsupported audio
+    codec/format.
+
+    """
+    pass
 
 
 class AudioStreamError(Exception):
@@ -24,12 +33,14 @@ class AudioStreamError(Exception):
 class AudioFrequencyRangeError(Exception):  # might transform to a warning
     """Error raised when generating a tone with a frequency outside the audible
     range for humans (20Hz to 20kHz).
+
     """
     pass
 
 
 class AudioUnsupportedSampleRateError(Exception):
     """Error raised when the sampling rate is not supported by the hardware.
+
     """
     pass
 
@@ -37,6 +48,7 @@ class AudioUnsupportedSampleRateError(Exception):
 class AudioInvalidDeviceError(Exception):
     """Error raised when the audio device configuration does not match any
     supported configuration.
+
     """
     pass
 

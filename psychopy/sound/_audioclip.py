@@ -9,12 +9,19 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 __all__ = [
-    'AudioClip'
+    'AudioClip',
+    'load',
+    'save'
 ]
 
 import numpy as np
+import soundfile as sf
 from psychopy.tools.audiotools import *
 from ._audiodevice import AudioDevice
+from ._exceptions import AudioUnsupportedCodec
+
+# supported formats for loading and saving audio samples to file
+SUPPORTED_AUDIO_CODECS = [s.lower() for s in sf.available_formats().keys()]
 
 
 class AudioClip(object):
@@ -55,9 +62,15 @@ class AudioClip(object):
         applications (DVD audio quality). For convenience, module level
         constants with form ``SAMPLE_RATE_*`` are provided to specify many
         common samples rates.
+    audioDevice : :class:`~psychopy.sound._audioclip.AudioClip` or None
+        Optional descriptor for the audio device which captured samples. Mainly
+        used internally.
+    userData : dict or None
+        Optional user data to associated with the audio clip.
 
     """
-    def __init__(self, samples, sampleRateHz=SAMPLE_RATE_48kHz):
+    def __init__(self, samples, sampleRateHz=SAMPLE_RATE_48kHz,
+                 audioDevice=None, userData=None):
         # samples should be a 2D array where columns represent channels
         self._samples = np.atleast_2d(
             np.asarray(samples, dtype=np.float32, order='C'))
@@ -71,7 +84,74 @@ class AudioClip(object):
 
         # Audio device descriptor, used to associate samples with the device
         # that actually captured it
-        self._audioDevice = None
+        assert isinstance(audioDevice, AudioDevice) or audioDevice is None
+        self._audioDevice = audioDevice
+
+        # user data
+        self._userData = userData if userData is not None else {}
+
+    @staticmethod
+    def _checkCodecSupported(codec, raiseError=False):
+        """Check if the audio format string corresponds to a supported codec.
+        Used internally to check if the user specified a valid codec identifier.
+
+        Parameters
+        ----------
+        codec: str
+            Codec identifier (e.g., 'wav', 'mp3', etc.)
+        raiseError : bool
+            Raise an error (``) instead of returning a value. Default is
+            `False`.
+
+        Returns
+        -------
+        bool
+            `True` if the format is supported.
+
+        """
+        if not isinstance(codec, str):
+            raise ValueError('Codec identifier must be a string.')
+
+        hasCodec = codec.lower() in SUPPORTED_AUDIO_CODECS
+
+        if raiseError and not hasCodec:
+            fmtList = ["'{}'".format(s) for s in SUPPORTED_AUDIO_CODECS]
+            raise AudioUnsupportedCodec(
+                "Unsupported audio codec specified, must be either: " +
+                ", ".join(fmtList))
+
+        return hasCodec
+
+    @staticmethod
+    def load(filename, codec=None):
+        """Load audio samples from a file.
+
+        Parameters
+        ----------
+        filename : str
+            File name to load.
+        codec : str or None
+            Format to use. If `None`, the format will be implied from the file
+            name.
+
+        Returns
+        -------
+        AudioClip
+            Audio clip containing samples loaded from the file.
+
+        """
+        if codec is not None:
+            AudioClip._checkCodecSupported(codec, raiseError=True)
+
+        samples, sampleRateHz = sf.read(
+            filename,
+            dtype='float32',
+            always_2d=True,
+            format=codec)
+
+        return AudioClip(
+            samples=samples,
+            sampleRateHz=sampleRateHz)
 
     @staticmethod
     def silence(duration=1.0, sampleRateHz=SAMPLE_RATE_48kHz, channels=2):
@@ -112,8 +192,8 @@ class AudioClip(object):
         return AudioClip(samples, sampleRateHz=sampleRateHz)
 
     @staticmethod
-    def sineWave(duration=1.0, freqHz=440, gain=0.8,
-                 sampleRateHz=SAMPLE_RATE_48kHz, channels=2):
+    def sine(duration=1.0, freqHz=440, gain=0.8, sampleRateHz=SAMPLE_RATE_48kHz,
+             channels=2):
         """Generate audio samples for a tone with a sine waveform.
 
         Parameters
@@ -141,13 +221,13 @@ class AudioClip(object):
         400Hz::
 
             import psychopy.sound as sound
-            tone400Hz = sound.AudioClip.sineWave(10., 400.)
+            tone400Hz = sound.AudioClip.sine(10., 400.)
 
         Create a marker/cue tone and append it to pre-recorded instructions::
 
             import psychopy.sound as sound
             voiceInstr = sound.AudioClip.load('/path/to/instructions.wav')
-            markerTone = sound.AudioClip.sineWave(
+            markerTone = sound.AudioClip.sine(
                 1.0, 440.,  # duration and freq
                 sampleRateHz=voiceInstr.sampleRateHz)  # must be the same!
 
@@ -163,8 +243,8 @@ class AudioClip(object):
         return AudioClip(samples, sampleRateHz=sampleRateHz)
 
     @staticmethod
-    def squareWave(duration=1.0, freqHz=440, dutyCycle=0.5, gain=0.8,
-                   sampleRateHz=SAMPLE_RATE_48kHz, channels=2):
+    def square(duration=1.0, freqHz=440, dutyCycle=0.5, gain=0.8,
+               sampleRateHz=SAMPLE_RATE_48kHz, channels=2):
         """Generate audio samples for a tone with a square waveform.
 
         Parameters
@@ -197,8 +277,8 @@ class AudioClip(object):
         return AudioClip(samples, sampleRateHz=sampleRateHz)
 
     @staticmethod
-    def sawtoothWave(duration=1.0, freqHz=440, peak=1.0, gain=0.8,
-                     sampleRateHz=SAMPLE_RATE_48kHz, channels=2):
+    def sawtooth(duration=1.0, freqHz=440, peak=1.0, gain=0.8,
+                 sampleRateHz=SAMPLE_RATE_48kHz, channels=2):
         """Generate audio samples for a tone with a sawtooth waveform.
 
         Parameters
@@ -257,6 +337,32 @@ class AudioClip(object):
             dtype=np.float32)
 
         return self
+
+    def copy(self):
+        """Create a copy of this `AudioClip`.
+
+        Returns
+        -------
+        AudioClip
+
+        """
+        return AudioClip(
+            samples=self._samples.copy(),
+            sampleRateHz=self._sampleRateHz)
+
+    def rms(self):
+        """Compute the root mean square (RMS) of the samples to determine the
+        signal level.
+
+        Returns
+        -------
+        ndarray
+            RMS for each channel.
+
+        """
+        rms = np.sqrt(np.mean(np.square(self.samples), axis=1))
+
+        return rms
 
     def gain(self, factor, channel=None):
         """Apply gain the audio samples.
@@ -363,47 +469,39 @@ class AudioClip(object):
         # recompute duration after updating sample rate
         self._duration = len(self._samples) / float(self._sampleRateHz)
 
-    def save(self, filename, fmt=None):
+    def save(self, filename, codec=None):
         """Save an audio clip to file.
 
         Parameters
         ----------
         filename : str
             File name to write audio clip to.
-        fmt : str or None
+        codec : str or None
             Format to save audio clip data as. If `None`, the format will be
-            implied from the extension at the end of `filename`. Possible
-            formats are: `'wav'` for Waveform Audio File Format (.wav) for raw
-            and uncompressed audio, or `'csv'` for a plain text file containing
-            timestamped raw audio data samples (for plotting).
-
+            implied from the extension at the end of `filename`.
         """
-        if fmt is None:  # imply format from file path
-            fname = filename.lower()
-            if fname.endswith('.wav'):
-                fmt = 'wav'
-            elif fname.endswith('.csv'):
-                fmt = 'csv'
-            elif fname.endswith('.mp3'):
-                fmt = 'mp3'
-            else:
-                fmt = 'wav'  # cant be determined
+        if codec is not None:
+            AudioClip._checkCodecSupported(codec, raiseError=True)
 
-        # code for saving the audio clip in various formats
-        if fmt == 'wav':  # save as a wave file
-            array2wav(filename, self.samples, self._sampleRateHz)
-        elif fmt == 'mp3':  # mp3 format
-            pass
-        elif fmt == 'csv':  # CSV format (for plotting)
-            tsamp = 1.0 / float(self._sampleRateHz)
-            with open(filename, 'w') as csv:
-                csv.write('tsec,amplitude\n')  # header
-                csv.writelines(
-                    [(','.join(
-                        (str(tsamp * i), str(v))) + '\n')
-                     for i, v in enumerate(self.samples[:, 0])])
-        else:
-            pass
+        sf.write(
+            filename,
+            data=self._samples,
+            samplerate=self._sampleRateHz,
+            format=codec)
+
+
+def load(filename, codec=None):
+    """Load an audio clip from file.
+
+    """
+    return AudioClip.load(filename, codec)
+
+
+def save(filename, clip, codec=None):
+    """Save an audio clip to a file.
+
+    """
+    clip.save(filename, codec)
 
 
 if __name__ == "__main__":

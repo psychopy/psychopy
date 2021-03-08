@@ -42,7 +42,7 @@ class Microphone(object):
         least greater than 20kHz to minimize distortion perceptible to humans
         due to aliasing.
     channels : int
-        Number of channels to use.
+        Number of channels to record samples to `1=Mono` and `2=Stereo`.
 
     Examples
     --------
@@ -63,7 +63,7 @@ class Microphone(object):
     """
     def __init__(self,
                  device=None,
-                 sampleRateHz=SAMPLE_RATE_48kHz,
+                 sampleRateHz=None,
                  channels=2,
                  mode=2,
                  recBufferSecs=10.0):
@@ -74,7 +74,11 @@ class Microphone(object):
                 "be installed.")
 
         # get information about the selected device
-        self._device = device
+        if isinstance(device, AudioDevice):
+            self._device = device
+        else:
+            devices = Microphone.getDevices()
+            self._device = devices[0] if devices else None
 
         self._sampleRateHz = sampleRateHz
         # internal recording buffer size in seconds
@@ -89,10 +93,14 @@ class Microphone(object):
         self._stopTime = None   # optional, stop time to end recording
 
         # handle for the recording stream
-        self._recording = self._createStream()
+        self._stream = audio.Stream(
+            device_id=self._device.deviceIndex,
+            mode=self._mode,
+            freq=self._sampleRateHz,
+            channels=self._channels)
 
         # pre-allocate recording buffer
-        self._recording.get_audio_data(self._recBufferSecs)
+        self._stream.get_audio_data(self._recBufferSecs)
 
         # status flag
         self._statusFlag = NOT_STARTED
@@ -128,14 +136,6 @@ class Microphone(object):
 
         return inputDevices
 
-    def _createStream(self):
-        """Create a new stream handle.
-        """
-        return audio.Stream(
-            mode=self._mode,
-            freq=self._sampleRateHz,
-            channels=self._channels)
-
     @property
     def recordingBufferSecs(self):
         """Size of the internal audio storage buffer in seconds (`float`).
@@ -168,8 +168,8 @@ class Microphone(object):
         if self._statusFlag == STARTED:  # raise warning, error, or ignore?
             pass
 
-        assert self._recording is not None  # must have a handle
-        self._recording.start(repetitions=0, stop_time=self._stopTime)
+        assert self._stream is not None  # must have a handle
+        self._stream.start(repetitions=0, stop_time=self._stopTime)
         self._statusFlag = STARTED  # recording has begun
 
     def stop(self):
@@ -179,12 +179,12 @@ class Microphone(object):
         close the audio stream.
 
         """
-        self._recording.stop()
+        self._stream.stop()
         self._statusFlag = NOT_STARTED
 
     def close(self):
         """Close the stream."""
-        self._recording.close()
+        self._stream.close()
 
     def getAudioClip(self, clipName=None):
         """Get samples from a previous recording."""
@@ -193,7 +193,7 @@ class Microphone(object):
                 "Cannot get stream data while stream is closed.")
 
         # REM - write these other values to the clip header
-        audioData, _, _, _ = self._recording.get_audio_data()
+        audioData, _, _, _ = self._stream.get_audio_data()
 
         return AudioClip(
             samples=audioData,
