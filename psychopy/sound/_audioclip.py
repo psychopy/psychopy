@@ -11,7 +11,8 @@
 __all__ = [
     'AudioClip',
     'load',
-    'save'
+    'save',
+    'SUPPORTED_AUDIO_CODECS'
 ]
 
 import numpy as np
