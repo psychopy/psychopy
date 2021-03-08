@@ -45,9 +45,9 @@ class EmotivRecordingComponent(BaseComponent):  # or (VisualComponent)
 
     def writeInitCodeJS(self, buff):
         inits = getInitVals(self.params, 'PsychoJS')
-        client_id, client_secret = Cortex.parse_client_id_file()
-        buff.writeIndented(
-            f'emotiv.setupExperiment("{client_id}", "{client_secret}");\n')
+        # client_id, client_secret = Cortex.parse_client_id_file()
+        # buff.writeIndented(
+        #     f'emotiv.setupExperiment("{client_id}", "{client_secret}");\n')
         obj = {"status": "PsychoJS.Status.NOT_STARTED"}
         code = '{} = {};\n'
         buff.writeIndentedLines(
