@@ -12,7 +12,9 @@ __all__ = [
     'AudioClip',
     'load',
     'save',
-    'SUPPORTED_AUDIO_CODECS'
+    'AUDIO_SUPPORTED_CODECS',
+    'AUDIO_CHANNELS_MONO',
+    'AUDIO_CHANNELS_STEREO'
 ]
 
 import numpy as np
@@ -22,7 +24,11 @@ from ._audiodevice import AudioDevice
 from ._exceptions import AudioUnsupportedCodecError
 
 # supported formats for loading and saving audio samples to file
-SUPPORTED_AUDIO_CODECS = [s.lower() for s in sf.available_formats().keys()]
+AUDIO_SUPPORTED_CODECS = [s.lower() for s in sf.available_formats().keys()]
+
+# constants for specifying the number of channels
+AUDIO_CHANNELS_MONO = 1
+AUDIO_CHANNELS_STEREO = 2
 
 
 class AudioClip(object):
@@ -63,15 +69,11 @@ class AudioClip(object):
         applications (DVD audio quality). For convenience, module level
         constants with form ``SAMPLE_RATE_*`` are provided to specify many
         common samples rates.
-    audioDevice : :class:`~psychopy.sound._audioclip.AudioClip` or None
-        Optional descriptor for the audio device which captured samples. Mainly
-        used internally.
     userData : dict or None
         Optional user data to associated with the audio clip.
 
     """
-    def __init__(self, samples, sampleRateHz=SAMPLE_RATE_48kHz,
-                 audioDevice=None, userData=None):
+    def __init__(self, samples, sampleRateHz=SAMPLE_RATE_48kHz, userData=None):
         # samples should be a 2D array where columns represent channels
         self._samples = np.atleast_2d(
             np.asarray(samples, dtype=np.float32, order='C'))
@@ -83,19 +85,18 @@ class AudioClip(object):
         # the duration of the audio clip
         self._duration = len(self.samples) / float(self.sampleRateHz)
 
-        # Audio device descriptor, used to associate samples with the device
-        # that actually captured it
-        assert isinstance(audioDevice, AudioDevice) or audioDevice is None
-        self._audioDevice = audioDevice
-
         # user data
         self._userData = userData if userData is not None else {}
+        assert isinstance(self._userData, dict)
 
     # --------------------------------------------------------------------------
     # Loading and saving
     #
     # These static methods are related to loading and saving audio clips from
     # files. The file types supported are those that `libsoundfile` supports.
+    #
+    # Additional codecs such as `mp3` require the pydub package which is
+    # optional.
     #
 
     @staticmethod
@@ -120,10 +121,10 @@ class AudioClip(object):
         if not isinstance(codec, str):
             raise ValueError('Codec identifier must be a string.')
 
-        hasCodec = codec.lower() in SUPPORTED_AUDIO_CODECS
+        hasCodec = codec.lower() in AUDIO_SUPPORTED_CODECS
 
         if raiseError and not hasCodec:
-            fmtList = ["'{}'".format(s) for s in SUPPORTED_AUDIO_CODECS]
+            fmtList = ["'{}'".format(s) for s in AUDIO_SUPPORTED_CODECS]
             raise AudioUnsupportedCodecError(
                 "Unsupported audio codec specified, must be either: " +
                 ", ".join(fmtList))
@@ -132,7 +133,7 @@ class AudioClip(object):
 
     @staticmethod
     def load(filename, codec=None):
-        """Load audio samples from a file.
+        """Load audio samples from a file. Note that this is a static method!
 
         Parameters
         ----------
@@ -171,6 +172,7 @@ class AudioClip(object):
         codec : str or None
             Format to save audio clip data as. If `None`, the format will be
             implied from the extension at the end of `filename`.
+
         """
         if codec is not None:
             AudioClip._checkCodecSupported(codec, raiseError=True)
@@ -186,6 +188,9 @@ class AudioClip(object):
     #
     # These static methods are used to generate audio samples, such as random
     # colored noise (e.g., white) and tones (e.g., sine, square, etc.)
+    #
+    # All of these methods return `AudioClip` objects containing the generated
+    # samples.
     #
 
     @staticmethod
@@ -376,11 +381,37 @@ class AudioClip(object):
         return AudioClip(samples, sampleRateHz=sampleRateHz)
 
     # --------------------------------------------------------------------------
-    # Audio editing
+    # Audio editing methods
     #
     # Methods related to basic editing of audio samples (operations such as
     # splicing clips and signal gain).
     #
+
+    def __add__(self, other):
+        """Concatenate two audio clips."""
+        assert other.sampleRateHz == self._sampleRateHz
+        assert other.channels == self.channels
+
+        newSamples = np.ascontiguousarray(
+            np.vstack((self._samples, other.samples)),
+            dtype=np.float32)
+
+        toReturn = AudioClip(
+            samples=newSamples,
+            sampleRateHz=self._sampleRateHz)
+
+        return toReturn
+
+    def __iadd__(self, other):
+        """Concatenate two audio clips inplace."""
+        assert other.sampleRateHz == self._sampleRateHz
+        assert other.channels == self.channels
+
+        self._samples = np.ascontiguousarray(
+            np.vstack((self._samples, other.samples)),
+            dtype=np.float32)
+
+        return self
 
     def append(self, clip):
         """Append samples from another sound clip to the end of this one.
@@ -414,32 +445,6 @@ class AudioClip(object):
 
         # recompute the duration of the new clip
         self._duration = len(self.samples) / float(self.sampleRateHz)
-
-        return self
-
-    def __add__(self, other):
-        """Concatenate two audio clips."""
-        assert other.sampleRateHz == self._sampleRateHz
-        assert other.channels == self.channels
-
-        newSamples = np.ascontiguousarray(
-            np.vstack((self._samples, other.samples)),
-            dtype=np.float32)
-
-        toReturn = AudioClip(
-            samples=newSamples,
-            sampleRateHz=self._sampleRateHz)
-
-        return toReturn
-
-    def __iadd__(self, other):
-        """Concatenate two audio clips inplace."""
-        assert other.sampleRateHz == self._sampleRateHz
-        assert other.channels == self.channels
-
-        self._samples = np.ascontiguousarray(
-            np.vstack((self._samples, other.samples)),
-            dtype=np.float32)
 
         return self
 
@@ -481,7 +486,7 @@ class AudioClip(object):
         arrview.clip(-1, 1)
 
     # --------------------------------------------------------------------------
-    # Audio analysis
+    # Audio analysis methods
     #
     # Methods related to basic analysis of audio samples, nothing too advanced
     # but still useful.
@@ -514,17 +519,9 @@ class AudioClip(object):
 
         return rms if channel is None else rms[0]
 
-    @property
-    def audioDevice(self):
-        """Descriptor (`AudioDevice`) for the audio device that captured the
-        sound, has value of `None` if that information is not available.
-        """
-        return self._audioDevice
-
-    @audioDevice.setter
-    def audioDevice(self, value):
-        assert isinstance(value, AudioDevice) or value is None
-        self._audioDevice = value
+    # --------------------------------------------------------------------------
+    # Properties
+    #
 
     @property
     def duration(self):
@@ -553,7 +550,7 @@ class AudioClip(object):
         the second the right.
 
         """
-        return not self.isMono
+        return not self.isMono  # are we moving in stereo? ;)
 
     @property
     def isMono(self):
@@ -594,6 +591,31 @@ class AudioClip(object):
         # recompute duration after updating sample rate
         self._duration = len(self._samples) / float(self._sampleRateHz)
 
+    @property
+    def userData(self):
+        """User data associated with this clip (`dict`). Can be used for storing
+        additional data related to the clip. Note that `userData` is not saved
+        with audio files!
+
+        Example
+        -------
+        Adding fields to `userData`. For instance, we want to associated the
+        start time the clip was recorded at with it::
+
+            myClip.userData['date_recorded'] = t_start
+
+        We can access that field later by::
+
+            thisRecordingStartTime = myClip.userData['date_recorded']
+
+        """
+        return self._userData
+
+    @userData.setter
+    def userData(self, value):
+        assert isinstance(value, dict)
+        self._userData = value
+
 
 def load(filename, codec=None):
     """Load an audio clip from file.
@@ -615,7 +637,17 @@ def load(filename, codec=None):
 
 
 def save(filename, clip, codec=None):
-    """Save an audio clip to a file.
+    """Save an audio clip to file.
+
+    Parameters
+    ----------
+    filename : str
+        File name to write audio clip to.
+    clip : AudioClip
+        The clip with audio samples to write.
+    codec : str or None
+        Format to save audio clip data as. If `None`, the format will be
+        implied from the extension at the end of `filename`.
 
     """
     clip.save(filename, codec)
