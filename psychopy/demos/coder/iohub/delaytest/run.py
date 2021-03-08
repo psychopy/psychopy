@@ -16,8 +16,8 @@ Changes:
 from __future__ import absolute_import, division, print_function
 
 from numpy import zeros
-
-from psychopy import core, visual
+from scipy.stats import norm
+from psychopy import visual
 from psychopy.iohub import Computer, ioHubExperimentRuntime
 from psychopy.iohub.constants import EventConstants
 from collections import OrderedDict
@@ -194,7 +194,6 @@ class ExperimentRuntime(ioHubExperimentRuntime):
 
     def plotResults(self):
         #### calculate stats on collected data and draw some plots ####
-        import matplotlib.mlab as mlab
         from matplotlib.pyplot import axis, title, xlabel, hist, grid, show, ylabel, plot
         import pylab
 
@@ -203,27 +202,24 @@ class ExperimentRuntime(ioHubExperimentRuntime):
         durations=results[:,0]
         flips=results[1:,2]
 
-        dmin=durations.min()
-        dmax=durations.max()
         dmean=durations.mean()
         dstd=durations.std()
 
         fmean=flips.mean()
         fstd=flips.std()
 
-        pylab.figure(figsize=[30,10])
+        pylab.figure(figsize=(7,5))
         pylab.subplot(1,3,1)
 
         # the histogram of the delay data
         n, bins, patches = hist(durations, 50, facecolor='blue', alpha=0.75)
         # add a 'best fit' line
-        y = mlab.normpdf( bins, dmean, dstd)
+        y = norm.pdf( bins, dmean, dstd)
         plot(bins, y, 'r--', linewidth=1)
         xlabel('ioHub getEvents Delay')
         ylabel('Percentage')
-        title('ioHub Event Delay Histogram (msec.usec):\n'+r'$\ \min={0:.3f},\ \max={1:.3f},\ \mu={2:.3f},\ \sigma={3:.3f}$'.format(
-                dmin, dmax, dmean, dstd))
-        axis([0, dmax+1.0, 0, 25.0])
+        title('ioHub Event Delays (msec):\n'+r'$\ \mu={0:.3f},\ \sigma={1:.3f}$'.format(dmean, dstd))
+        axis([0, durations.max()+1.0, 0, 25.0])
         grid(True)
 
 
@@ -235,7 +231,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
                                 m, sd, m - 3 * sd, m + 3 * sd)
         nTotal=len(intervalsMS)
         nDropped=sum(intervalsMS>(1.5*m))
-        droppedString = "Dropped/Frames = {0:d}/{1:d} = {2}%".format(
+        droppedString = "Dropped/Frames = {0:d}/{1:d} = {2:0.2f}%".format(
                                 nDropped, nTotal, int(nDropped) / float(nTotal))
 
         pylab.subplot(1,3,2)

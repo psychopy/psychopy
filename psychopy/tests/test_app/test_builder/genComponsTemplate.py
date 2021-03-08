@@ -1,4 +1,6 @@
 from __future__ import print_function
+from past.builtins import unicode
+
 import sys
 import os
 import io
@@ -110,7 +112,8 @@ for compName in sorted(allComp):
                     outfile.write(line+'\n')
                 else:
                     if (not ":<built-in method __" in line and
-                            not ":<method-wrapper '__" in line):
+                            not ":<method-wrapper '__" in line and
+                                not ":<bound method " in line):
                         outfile.write(line+'\n')
             elif not line+'\n' in target:
                 # mismatch, so report on the tag from orig file

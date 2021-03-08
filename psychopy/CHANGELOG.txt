@@ -1,19 +1,40 @@
 Changelog
 ====================
 
-.. note::
-  Version numbers
+PsychoPy 2020.2.10
+------------------
 
-  PsychoPy versions take the format: Major.Version.Bugfix
+FIXES:
 
-  - Until 2019 Major was the overall PsychoPy version (1, 2, or 3) but from 2020 that indicates the year.
-  - Version (middle number) indicates a release with new features, which we try to limit to 2-3 times per year.
-    We don't recommend you change versions during mid-experiment but you can fix a version for your study with
-    :ref:`useVersion`.
-  - Bugfix number indicates a minor update purely to fix bugs and hopefully not changing the behavior of your
-    study in any way.
+- Fixed rendering of TextBox2 following Big Sur update of 2020.2.7 #0fcb89c54 #39777a3e0 #1aec9abb9
+- Fixed handling of continueRoutine=False in BeginExperiment of online studies #ae20cb12f
+- Erroneous warnings about code being used as parameters #40bbfe1a3
 
-CHANGES, which are identified in this dark red text, typically indicate things that alter the PsychoPy behaviour in a way that could break compatibility. Be especially wary of those!
+PsychoPy 2020.2.9
+-----------------
+
+FIXES:
+
+- TextBox2 broke in 2020.2.8 due to switch from PyOpenGL to pyglet.gl in text rendering #39777a3e0 #1aec9abb9
+- Fixed error Unknown colorSpace: 'Named' #da234cc46
+- Superfluous debug messages from ioHub when no key pressed #9589e4865
+
+PsychoPy 2020.2.10
+------------------
+
+Further fixes on top of the [new features in 2020.2](https://www.psychopy.org/changelog.html#psychopy-2020-2):
+
+- Fixed rendering of TextBox2 following Big Sur update of 2020.2.7 #0fcb89c54 #39777a3e0 #1aec9abb9
+- Fixed handling of `continueRoutine=False` in BeginExperiment of online studies #ae20cb12f41
+- Erroneous warnings about code being used as parameters #40bbfe1a3
+
+PsychoPy 2020.2.9
+-----------------
+
+Further fixes on top of the [new features in 2020.2](https://www.psychopy.org/changelog.html#psychopy-2020-2):
+
+- Fixed error Unknown colorSpace: 'Named' #da234cc46
+- Superfluous debug messages from ioHub when no key pressed #9589e4865
 
 PsychoPy 2020.2.8
 -----------------

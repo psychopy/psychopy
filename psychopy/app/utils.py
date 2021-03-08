@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """utility classes for the Builder
@@ -10,8 +10,10 @@
 
 from __future__ import absolute_import, division, print_function
 
+import glob
 import os
 from builtins import object
+from pathlib import Path
 
 from wx.lib.agw.aui.aui_constants import *
 from wx.lib.agw.aui.aui_utilities import IndentPressedBitmap, ChopText, TakeScreenShot
@@ -26,6 +28,7 @@ from . import pavlovia_ui
 from . import icons
 from .themes import ThemeMixin
 from psychopy.localization import _translate
+from psychopy.tools.stringtools import prettyname
 
 class FileDropTarget(wx.FileDropTarget):
     """On Mac simply setting a handler for the EVT_DROP_FILES isn't enough.
@@ -360,6 +363,50 @@ class PsychopyScrollbar(wx.ScrollBar):
             pageSize=vsz
         )
 
+def updateDemosMenu(frame, menu, folder, ext):
+    """Update Demos menu as needed."""
+    def _makeButton(parent, menu, demo):
+        # Create menu button
+        item = menu.Append(wx.ID_ANY, demo.name)
+        # Store in window's demos list
+        parent.demos.update({item.Id: demo})
+        # Link button to demo opening function
+        parent.Bind(wx.EVT_MENU, parent.demoLoad, item)
+
+    def _makeFolder(parent, menu, folder, ext):
+        # Create and append menu for this folder
+        submenu = wx.Menu()
+        menu.AppendSubMenu(submenu, prettyname(folder.name))
+        # Get folder contents
+        folderContents = glob.glob(str(folder / '*'))
+        for subfolder in sorted(folderContents):
+            subfolder = Path(subfolder)
+            # Make menu/button for each:
+            # subfolder according to whether it contains a psyexp, or...
+            # subfile according to whether it matches the ext
+            if subfolder.is_dir():
+                subContents = glob.glob(str(subfolder / '*'))
+                if any(file.endswith(".psyexp") and not file.startswith("_") for file in subContents):
+                    _makeButton(parent, submenu, subfolder)
+                else:
+                    _makeFolder(parent, submenu, subfolder, ext)
+            elif subfolder.suffix == ext and not subfolder.name.startswith("_"):
+                _makeButton(parent, submenu, subfolder)
+
+    # Make blank dict to store demo details in
+    frame.demos = {}
+
+    # Get root folders
+    rootGlob = glob.glob(str(Path(folder) / '*'))
+    for fdr in rootGlob:
+        fdr = Path(fdr)
+        # Make menus/buttons recursively for each folder according to whether it contains a psyexp
+        if fdr.is_dir():
+            folderContents = glob.glob(str(fdr / '*'))
+            if any(file.endswith(".psyexp") for file in folderContents):
+                _makeButton(frame, menu, fdr)
+            else:
+                _makeFolder(frame, menu, fdr, ext)
 
 class FrameSwitcher(wx.Menu):
     """Menu for switching between different frames"""

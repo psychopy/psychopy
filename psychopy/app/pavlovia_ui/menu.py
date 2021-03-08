@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import wx
@@ -27,7 +27,7 @@ class PavloviaMenu(wx.Menu):
 
     def __init__(self, parent):
         wx.Menu.__init__(self)
-        self.parent = parent  # type: BuilderFrame
+        self.parent = parent  # is a BuilderFrame
         PavloviaMenu.app = parent.app
         keys = self.app.keys
         # from prefs fetch info about prev usernames and projects
@@ -82,9 +82,9 @@ class PavloviaMenu(wx.Menu):
         self.setUser(user)
 
     def setUser(self, user=None):
-
-        if user is None and PavloviaMenu.appData['pavloviaUser']:
-            user = PavloviaMenu.appData['pavloviaUser']
+        if PavloviaMenu.appData:
+            if user is None and PavloviaMenu.appData['pavloviaUser']:
+                user = PavloviaMenu.appData['pavloviaUser']
 
         if user in [PavloviaMenu.currentUser, None]:
             return  # nothing to do here. Move along please.

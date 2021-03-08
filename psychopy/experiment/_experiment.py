@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Experiment classes:
@@ -901,7 +901,6 @@ class ExpFile(list):
         self.filename = filename
         self._clockName = None  # used in script "t = trialClock.GetTime()"
         self.type = 'ExpFile'
-        list.__init__(self, components)
 
     def __repr__(self):
         _rep = "psychopy.experiment.ExpFile(name='%s',exp=%s,filename='%s')"

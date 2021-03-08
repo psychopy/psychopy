@@ -6,7 +6,7 @@ independently controlled. Suitable for creating 'global form' stimuli or more
 detailed random dot stimuli."""
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
@@ -19,6 +19,9 @@ from past.utils import old_div
 # up by the pyglet GL engine and have no effect.
 # Shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
 import pyglet
+
+from ..colors import Color
+
 pyglet.options['debug_gl'] = False
 import ctypes
 GL = pyglet.gl
@@ -33,13 +36,13 @@ from psychopy.tools.arraytools import val2array
 from psychopy.tools.attributetools import attributeSetter, logAttrib, setAttribute
 from psychopy.tools.monitorunittools import convertToPix
 from psychopy.visual.helpers import setColor
-from psychopy.visual.basevisual import MinimalStim, TextureMixin
+from psychopy.visual.basevisual import MinimalStim, TextureMixin, ColorMixin
 from . import globalVars
 
 import numpy
 
 
-class ElementArrayStim(MinimalStim, TextureMixin):
+class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
     """This stimulus class defines a field of elements whose behaviour can
     be independently controlled. Suitable for creating 'global form' stimuli
     or more detailed random dot stimuli.
@@ -241,7 +244,7 @@ class ElementArrayStim(MinimalStim, TextureMixin):
                 yyy = (self.xys[:, 1] + old_div(fsz[1], 2)) % fsz[1]
                 self.__dict__['xys'][:, 0] = xxx - old_div(fsz[0], 2)
                 self.__dict__['xys'][:, 1] = yyy - old_div(fsz[1], 2)
-            elif self.fieldShape is 'circle':
+            elif self.fieldShape == 'circle':
                 # take twice as many elements as we need (and cull the ones
                 # outside the circle)
                 # initialise a random array of X,Y
@@ -391,8 +394,8 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         """
         self.setColors(value, operation)
 
-    @attributeSetter
-    def colors(self, color):
+    @property
+    def colors(self):
         """Specifying the color(s) of the elements.
         Should be Nx1 (different intensities), Nx3 (different colors) or
         1x3 (for a single color).
@@ -405,41 +408,33 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         Use ``setColors()`` if you want to set colors and colorSpace
         simultaneously or use operations on colors.
         """
-        self.setColors(color)
+        if hasattr(self, '_colors'):
+            # Return array of rendered colors
+            return self._colors.render(self.colorSpace)
+    @colors.setter
+    def colors(self, value):
+        # Create blank array of colors
+        self._colors = Color(value, self.colorSpace, self.contrast)
+        self._needColorUpdate = True
 
-    @attributeSetter
-    def colorSpace(self, colorSpace):
-        """The type of color specified is the same as those in other stimuli
-        ('rgb','dkl','lms'...) but note that for this stimulus you cannot
-        currently use text-based colors (e.g. names or hex values).
-
-        Keeping this exception in mind, see :ref:`colorspaces` for more info.
-        """
-        self.__dict__['colorSpace'] = colorSpace
-
-    def setColors(self, color, colorSpace=None, operation='', log=None):
+    def setColors(self, colors, colorSpace=None, operation='', log=None):
         """See ``color`` for more info on the color parameter  and
         ``colorSpace`` for more info in the colorSpace parameter.
         """
-        setColor(self, color, colorSpace=colorSpace, operation=operation,
-                 rgbAttrib='rgbs',  # or 'fillRGB' etc
-                 colorAttrib='colors',
-                 colorSpaceAttrib='colorSpace')
-        logAttrib(self, log, 'colors', value='%s (%s)' % (self.colors,
-                                                          self.colorSpace))
+        self.colorSpace = colorSpace
+        self.colors = colors
 
-        # check shape
-        if self.rgbs.shape in ((), (1,), (3,)):
-            self.rgbs = numpy.resize(self.rgbs, [self.nElements, 3])
-        elif self.rgbs.shape in ((self.nElements,), (self.nElements, 1)):
-            self.rgbs.shape = (self.nElements, 1)  # set to be 2D
-            self.rgbs = self.rgbs.repeat(3, 1)  # repeat once on dim 1
-        elif self.rgbs.shape == (self.nElements, 3):
-            pass  # all is good
-        else:
-            raise ValueError("New value for setRgbs should be either "
-                             "Nx1, Nx3 or a single value")
-        self._needColorUpdate = True
+    @property
+    def opacity(self):
+        if hasattr(self, "_opacity"):
+            return self._opacity
+    @opacity.setter
+    def opacity(self, value):
+        self._opacity = value
+        if hasattr(self, "_colors"):
+            # Set the alpha value of each color to be the desired opacity
+            self._colors.alpha = value
+
 
     @attributeSetter
     def contrs(self, value):
@@ -525,8 +520,12 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         self.win.setScale('pix')
 
         cpcd = ctypes.POINTER(ctypes.c_double)
+        RGBAs = numpy.zeros([len(self.verticesPix), 4], 'd')
+        v = 0
+        RGBAs[:,:] = self._colors.render('rgba1')
+        RGBAs = RGBAs.reshape([len(self.verticesPix), 1, 4]).repeat(4, 1)
         GL.glColorPointer(4, GL.GL_DOUBLE, 0,
-                          self._RGBAs.ctypes.data_as(cpcd))
+                          RGBAs.ctypes.data_as(cpcd))
         GL.glVertexPointer(3, GL.GL_DOUBLE, 0,
                            self.verticesPix.ctypes.data_as(cpcd))
 
@@ -631,20 +630,6 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         element so this function also converts them to be one for
         each vertex of each element.
         """
-        N = self.nElements
-        self._RGBAs = numpy.zeros([N, 4], 'd')
-        if self.colorSpace in ('rgb', 'dkl', 'lms', 'hsv'):
-            # these spaces are 0-centred
-            self._RGBAs[:, 0:3] = (self.rgbs[:, :] *
-                self.contrs[:].reshape([N, 1]).repeat(3, 1) / 2 + 0.5)
-        else:
-            self._RGBAs[:, 0:3] = (self.rgbs *
-                self.contrs[:].reshape([N, 1]).repeat(3, 1) / 255.0)
-
-        self._RGBAs[:, -1] = self.opacities.reshape([N, ])
-        # repeat for the 4 vertices in the grid
-        self._RGBAs = self._RGBAs.reshape([N, 1, 4]).repeat(4, 1)
-
         self._needColorUpdate = False
 
     def updateTextureCoords(self):
@@ -733,5 +718,5 @@ class ElementArrayStim(MinimalStim, TextureMixin):
         # remove textures from graphics card to prevent OpenGl memory leak
         try:
             self.clearTextures()
-        except ModuleNotFoundError:
+        except (ImportError, ModuleNotFoundError, TypeError):
             pass  # has probably been garbage-collected already

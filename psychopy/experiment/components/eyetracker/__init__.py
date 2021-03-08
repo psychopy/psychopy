@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
@@ -48,7 +48,7 @@ class EyetrackerComponent(BaseComponent):
             "pupilsize...) be stored? On every video frame, every click "
             "or just at the end of the Routine?")
         self.params['saveState'] = Param(
-            save, valType='str', categ='Data',
+            save, valType='str', inputType="choice", categ='Data',
             allowedVals=['final', 'every frame', 'never'],
             hint=msg,
             label="Save eyetracker state")

@@ -19,6 +19,7 @@ Windows and and display devices:
 * :class:`.Warper` for non-flat projection screens
 * :class:`.ProjectorFramePacker` for handling displays with 'structured light mode' to achieve high framerates
 * :class:`.Rift` for Oculus Rift support (Windows 64bit only)
+* :class:`.VisualSystemHD` for NordicNeuralLab's VisualSystemHD in-scanner display.
 
 Commonly used:
 
@@ -33,6 +34,7 @@ Shapes (all special classes of :class:`ShapeStim`):
 * :class:`.Circle` to show circles
 * :class:`.Polygon` to show polygons
 * :class:`.Line` to show a line
+* :class:`.Pie` to show wedges and semi-circles
 
 Images and patterns:
 
@@ -81,3 +83,4 @@ Helper functions:
 * :mod:`~psychopy.tools.colorspacetools` to convert between supported color spaces
 * :mod:`~psychopy.tools.viewtools` to work with view projections
 * :mod:`~psychopy.tools.mathtools` to work with vectors, quaternions, and matrices
+* :mod:`~psychopy.tools.gltools` to work with OpenGL directly (under development)

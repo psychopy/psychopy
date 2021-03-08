@@ -3,7 +3,7 @@
 
 """
 Part of the PsychoPy library
-Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 Distributed under the terms of the GNU General Public License (GPL).
 """
 
@@ -19,6 +19,7 @@ from psychopy.experiment.utils import CodeGenerationException
 from psychopy.experiment.utils import unescapedDollarSign_re
 from psychopy.experiment.params import getCodeFromParamStr
 from psychopy.alerts import alerttools
+from psychopy.colors import colorSpaces
 
 from psychopy.localization import _translate, _localized
 
@@ -52,69 +53,69 @@ class BaseComponent(object):
 
         msg = _translate(
             "Name of this component (alpha-numeric or _, no spaces)")
-        self.params['name'] = Param(
-            name, valType='code', categ='Basic',
+        self.params['name'] = Param(name,
+            valType='code', inputType="single", categ='Basic',
             hint=msg,
             label=_localized['name'])
 
         msg = _translate("How do you want to define your start point?")
-        self.params['startType'] = Param(
-            startType, valType='str', categ='Basic',
+        self.params['startType'] = Param(startType,
+            valType='str', inputType="choice", categ='Basic',
             allowedVals=['time (s)', 'frame N', 'condition'],
             hint=msg,
             label=_localized['startType'])
 
         msg = _translate("How do you want to define your end point?")
-        self.params['stopType'] = Param(
-            stopType, valType='str', categ='Basic',
+        self.params['stopType'] = Param(stopType,
+            valType='str', inputType="choice", categ='Basic',
             allowedVals=['duration (s)', 'duration (frames)', 'time (s)',
                          'frame N', 'condition'],
             hint=msg,
             label=_localized['stopType'])
 
-        self.params['startVal'] = Param(
-            startVal, valType='code', allowedTypes=[], categ='Basic',
-            hint=_translate("When does the component start?"),
+        self.params['startVal'] = Param(startVal,
+            valType='num', inputType="single", categ='Basic',
+            hint=_translate("When does the component start?"), allowedTypes=[],
             label=_localized['startVal'])
 
-        self.params['stopVal'] = Param(
-            stopVal, valType='code', allowedTypes=[], categ='Basic',
-            updates='constant', allowedUpdates=[],
+        self.params['stopVal'] = Param(stopVal,
+            valType='num', inputType="single", categ='Basic',
+            updates='constant', allowedUpdates=[], allowedTypes=[],
             hint=_translate("When does the component end? (blank is endless)"),
             label=_localized['stopVal'])
 
         msg = _translate("(Optional) expected start (s), purely for "
                          "representing in the timeline")
-        self.params['startEstim'] = Param(
-            startEstim, valType='code', allowedTypes=[], categ='Basic',
-            hint=msg,
+        self.params['startEstim'] = Param(startEstim,
+            valType='num', inputType="single", categ='Basic',
+            hint=msg,allowedTypes=[],
             label=_localized['startEstim'])
 
         msg = _translate("(Optional) expected duration (s), purely for "
                          "representing in the timeline")
-        self.params['durationEstim'] = Param(
-            durationEstim, valType='code', allowedTypes=[], categ='Basic',
-            hint=msg,
+        self.params['durationEstim'] = Param(durationEstim,
+            valType='num', inputType="single", categ='Basic',
+            hint=msg, allowedTypes=[],
             label=_localized['durationEstim'])
 
         msg = _translate("Store the onset/offset times in the data file "
                          "(as well as in the log file).")
-        self.params['saveStartStop'] = Param(
-            saveStartStop, valType='bool', allowedTypes=[], categ='Data',
-            hint=msg,
+        self.params['saveStartStop'] = Param(saveStartStop,
+            valType='bool', inputType="bool", categ='Data',
+            hint=msg, allowedTypes=[],
             label=_translate('Save onset/offset times'))
 
         msg = _translate("Synchronize times with screen refresh (good for "
                          "visual stimuli and responses based on them)")
-        self.params['syncScreenRefresh'] = Param(
-            syncScreenRefresh, valType='bool', allowedTypes=[],
-            hint=msg, categ="Data",
+        self.params['syncScreenRefresh'] = Param(syncScreenRefresh,
+            valType='bool', inputType="bool", categ="Data",
+            hint=msg, allowedTypes=[],
             label=_translate('Sync timing with screen refresh'))
 
         msg = _translate("Disable this component")
-        self.params['disabled'] = Param(
-            disabled, valType='bool', allowedTypes=[],
-            hint=msg, categ="Testing",
+        self.params['disabled'] = Param(disabled,
+            valType='bool', inputType="bool", categ="Testing",
+            hint=msg, allowedTypes=[],
             label=_translate('Disable component'))
 
         self.order = ['name']  # name first, then timing, then others
@@ -125,7 +126,6 @@ class BaseComponent(object):
         """
         alerttools.testDisabled(self)
         alerttools.testStartEndTiming(self)
-        alerttools.testDollarSyntax(self)
 
     def _dubiousConstantUpdates(self):
         """Return a list of fields in component that are set to be constant
@@ -578,8 +578,8 @@ class BaseVisualComponent(BaseComponent):
     categories = ['Stimuli']
 
     def __init__(self, exp, parentName, name='',
-                 units='from exp settings', color='$[1,1,1]', borderColor="", fillColor="",
-                 pos=(0, 0), size=(0, 0), ori=0, colorSpace='rgb', opacity=1,
+                 units='from exp settings', color='white', fillColor="", borderColor="",
+                 pos=(0, 0), size=(0, 0), ori=0, colorSpace='rgb', opacity=1, contrast=1,
                  startType='time (s)', startVal='',
                  stopType='duration (s)', stopVal='',
                  startEstim='', durationEstim='',
@@ -596,9 +596,22 @@ class BaseVisualComponent(BaseComponent):
         self.exp.requirePsychopyLibs(
             ['visual'])  # needs this psychopy lib to operate
 
+        self.order += [
+            "color",
+            "fillColor",
+            "borderColor",
+            "colorSpace",
+            "opacity",
+            "size",
+            "pos",
+            "units",
+            "anchor",
+            "ori",
+        ]
+
         msg = _translate("Units of dimensions for this stimulus")
-        self.params['units'] = Param(
-            units, valType='str', categ='Layout',
+        self.params['units'] = Param(units,
+            valType='str', inputType="choice", categ='Layout',
             allowedVals=['from exp settings', 'deg', 'cm', 'pix', 'norm',
                          'height', 'degFlatPos', 'degFlat'],
             hint=msg,
@@ -606,87 +619,80 @@ class BaseVisualComponent(BaseComponent):
 
         msg = _translate("Foreground color of this stimulus (e.g. $[1,1,0], red );"
                          " Right-click to bring up a color-picker (rgb only)")
-        self.params['color'] = Param(
-            color, valType='str', allowedTypes=[], categ='Appearance',
+        self.params['color'] = Param(color,
+            valType='color', inputType="color", categ='Appearance',
+            allowedTypes=[],
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
             label=_localized['color'])
 
         msg = _translate("In what format (color space) have you specified "
-                         "the foreground color? (rgb, dkl, lms, hsv)")
-        self.params['colorSpace'] = Param(
-            colorSpace, valType='str', categ='Appearance',
-            allowedVals=['rgb', 'dkl', 'lms', 'hsv'],
+                         "the colors? (rgb, dkl, lms, hsv)")
+        self.params['colorSpace'] = Param(colorSpace,
+            valType='str', inputType="choice", categ='Appearance',
+            allowedVals=['named', 'rgb', 'dkl', 'lms', 'hsv'],
             updates='constant',
             hint=msg,
             label=_localized['colorSpace'])
 
         msg = _translate("Fill color of this stimulus (e.g. $[1,1,0], red );"
                          " Right-click to bring up a color-picker (rgb only)")
-        self.params['fillColor'] = Param(
-            fillColor, valType='str', allowedTypes=[], categ='Appearance',
-            updates='constant',
+        self.params['fillColor'] = Param(fillColor,
+            valType='color', inputType="color", categ='Appearance',
+            updates='constant', allowedTypes=[],
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
             label=_localized['fillColor'])
 
-        msg = _translate("In what format (color space) have you specified "
-                         "the fill color? (rgb, dkl, lms, hsv)")
-        self.params['fillColorSpace'] = Param(
-            colorSpace, valType='str', categ='Appearance',
-            allowedVals=['rgb', 'dkl', 'lms', 'hsv'],
-            updates='constant',
-            hint=msg,
-            label=_localized['fillColorSpace'])
-
         msg = _translate("Color of this stimulus (e.g. $[1,1,0], red );"
                          " Right-click to bring up a color-picker (rgb only)")
-        self.params['borderColor'] = Param(
-            borderColor, valType='str', allowedTypes=[], categ='Appearance',
-            updates='constant',
+        self.params['borderColor'] = Param(borderColor,
+            valType='color', inputType="color", categ='Appearance',
+            updates='constant',allowedTypes=[],
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
             label=_localized['borderColor'])
 
-        msg = _translate("In what format (color space) have you specified "
-                         "the border color? (rgb, dkl, lms, hsv)")
-        self.params['borderColorSpace'] = Param(
-            colorSpace, valType='str', categ='Appearance',
-            allowedVals=['rgb', 'dkl', 'lms', 'hsv'],
-            updates='constant',
-            hint=msg,
-            label=_localized['borderColorSpace'])
-
         msg = _translate("Opacity of the stimulus (1=opaque, 0=fully "
                          "transparent, 0.5=translucent)")
-        self.params['opacity'] = Param(
-            opacity, valType='code', allowedTypes=[], categ='Appearance',
-            updates='constant',
+        self.params['opacity'] = Param(opacity,
+            valType='num', inputType="single", categ='Appearance',
+            updates='constant', allowedTypes=[],
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
             label=_localized['opacity'])
 
-        msg = _translate("Position of this stimulus (e.g. [1,2] )")
-        self.params['pos'] = Param(
-            pos, valType='code', allowedTypes=[], categ='Layout',
+        msg = _translate("Contrast of the stimulus (1.0=unchanged contrast, "
+                         "0.5=decrease contrast, 0.0=uniform/no contrast, "
+                         "-0.5=slightly inverted, -1.0=totally inverted)")
+        self.params['contrast'] = Param(contrast,
+            valType='num', inputType='single', allowedTypes=[], categ='Appearance',
             updates='constant',
+            allowedUpdates=['constant', 'set every repeat', 'set every frame'],
+            hint=msg,
+            label=_localized['contrast'])
+
+        msg = _translate("Position of this stimulus (e.g. [1,2] )")
+        self.params['pos'] = Param(pos,
+            valType='list', inputType="single", categ='Layout',
+            updates='constant', allowedTypes=[],
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
             label=_localized['pos'])
 
         msg = _translate("Size of this stimulus (either a single value or "
                          "x,y pair, e.g. 2.5, [1,2] ")
-        self.params['size'] = Param(
-            size, valType='code', allowedTypes=[], categ='Layout',
-            updates='constant',
+        self.params['size'] = Param(size,
+            valType='list', inputType="single", categ='Layout',
+            updates='constant', allowedTypes=[],
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
             label=_localized['size'])
 
-        self.params['ori'] = Param(
-            ori, valType='code', allowedTypes=[], categ='Layout',
-            updates='constant',
+        self.params['ori'] = Param(ori,
+            valType='num', inputType="spin", categ='Layout',
+            updates='constant', allowedTypes=[], allowedVals=[-360,360],
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=_translate("Orientation of this stimulus (in deg)"),
             label=_localized['ori'])

@@ -175,5 +175,5 @@ Default Device Settings
     :language: yaml
 
 
-**Last Updated:** April, 2019
+**Last Updated:** January, 2021
 

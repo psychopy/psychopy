@@ -56,7 +56,7 @@ Not implemented:
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 #
 # VlcMovieStim contributed by Dan Fitch, April 2019.
@@ -617,7 +617,7 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
     def __del__(self):
         try:
             self._unload()
-        except ModuleNotFoundError:
+        except (ImportError, ModuleNotFoundError, TypeError):
             pass  # has probably been garbage-collected already
 
     def setAutoDraw(self, val, log=None):

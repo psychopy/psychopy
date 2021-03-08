@@ -78,7 +78,7 @@ while not keyboard.getPresses():
     for serevt in serial_device.getEvents():
         print(serevt)
 
-# Stop recording events from the PST box and switch off all lamps.
+# Stop recording serial events.
 serial_device.enableEventReporting(False)
 
 # Close the window and quit the program.

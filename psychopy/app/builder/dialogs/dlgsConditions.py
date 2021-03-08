@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Conditions-file preview and mini-editor for the Builder
@@ -22,7 +22,8 @@ from wx.lib.expando import ExpandoTextCtrl, EVT_ETC_LAYOUT_NEEDED
 from pkg_resources import parse_version
 
 from psychopy import gui
-from psychopy.experiment.utils import valid_var_re, nonalphanumeric_re
+from psychopy.experiment.utils import valid_var_re
+from psychopy.data.utils import _nonalphanumeric_re
 from psychopy.localization import _translate
 
 from psychopy.constants import PY3

@@ -4,13 +4,17 @@
 """
 Defines the behavior of Psychopy's Builder view window
 Part of the PsychoPy library
-Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 Distributed under the terms of the GNU General Public License (GPL).
 """
 
 from __future__ import absolute_import, division, print_function
 
 import os, sys
+import re
+import subprocess
+import webbrowser
+from pathlib import Path
 import glob
 import copy
 import traceback
@@ -21,7 +25,11 @@ from pkg_resources import parse_version
 import wx.stc
 from wx.lib import scrolledpanel
 from wx.lib import platebtn
-
+from wx.html import HtmlWindow
+try:
+    import markdown_it as md
+except ImportError:
+    md = None
 import wx.lib.agw.aui as aui  # some versions of phoenix
 try:
     from wx.adv import PseudoDC
@@ -46,7 +54,7 @@ from psychopy.tools.filetools import mergeFolder
 from .dialogs import (DlgComponentProperties, DlgExperimentProperties,
                       DlgCodeComponentProperties, DlgLoopProperties)
 from ..utils import (PsychopyToolbar, PsychopyPlateBtn, WindowFrozen,
-                     FileDropTarget, FrameSwitcher)
+                     FileDropTarget, FrameSwitcher, updateDemosMenu)
 
 from psychopy.experiment import components
 from builtins import str
@@ -137,8 +145,8 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         #self.panel = wx.Panel(self)
 
         # detect retina displays (then don't use double-buffering)
-        self.isRetina = self.GetContentScaleFactor() != 1
-        self.SetDoubleBuffered(not self.isRetina)
+        self.isRetina = \
+            self.GetContentScaleFactor() != 1 and wx.Platform == '__WXMAC__'
 
         # create icon
         if sys.platform != 'darwin':
@@ -183,6 +191,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
                           aui.AuiPaneInfo().
                           Name("Routines").Caption("Routines").CaptionVisible(True).
                           Floatable(False).
+                          Movable(False).
                           CloseButton(False).MaximizeButton(True).PaneBorder(False).
                           Center())  # 'center panes' expand
         rtPane = self._mgr.GetPane('Routines')
@@ -331,16 +340,16 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         menuBar.Append(self.viewMenu, _translate('&View'))
         menu = self.viewMenu
 
-        item = menu.Append(wx.ID_ANY,
-                           _translate("Open Coder view"),
-                           _translate("Open a new Coder view"))
-        self.Bind(wx.EVT_MENU, self.app.showCoder, item)
-
-        item = menu.Append(wx.ID_ANY,
-                           _translate("Open Runner view"),
-                           _translate("Open the Runner view"))
-        self.Bind(wx.EVT_MENU, self.app.showRunner, item)
-        menu.AppendSeparator()
+        # item = menu.Append(wx.ID_ANY,
+        #                    _translate("Open Coder view"),
+        #                    _translate("Open a new Coder view"))
+        # self.Bind(wx.EVT_MENU, self.app.showCoder, item)
+        #
+        # item = menu.Append(wx.ID_ANY,
+        #                    _translate("Open Runner view"),
+        #                    _translate("Open the Runner view"))
+        # self.Bind(wx.EVT_MENU, self.app.showRunner, item)
+        # menu.AppendSeparator()
 
         item = menu.Append(wx.ID_ANY,
                            _translate("&Toggle readme\t%s") % self.app.keys[
@@ -469,9 +478,20 @@ class BuilderFrame(wx.Frame, ThemeMixin):
                                "Unpack demos to a writable location (so that"
                                " they can be run)"))
         self.Bind(wx.EVT_MENU, self.demosUnpack, item)
+        item = menu.Append(wx.ID_ANY,
+                           _translate("Browse on Pavlovia"),
+                           _translate("Get more demos from the online demos "
+                                      "repository on Pavlovia")
+                           )
+        self.Bind(wx.EVT_MENU, self.openPavloviaDemos, item)
+        item = menu.Append(wx.ID_ANY,
+                           _translate("Open demos folder"),
+                           _translate("Open the local folder where demos are stored")
+                           )
+        self.Bind(wx.EVT_MENU, self.openLocalDemos, item)
         menu.AppendSeparator()
         # add any demos that are found in the prefs['demosUnpacked'] folder
-        self.updateDemosMenu()
+        updateDemosMenu(self, self.demosMenu, self.prefs['unpackedDemosDir'], ext=".psyexp")
         menuBar.Append(self.demosMenu, _translate('&Demos'))
 
         # ---_onlineStudies---#000000#FFFFFF-------------------------------------------
@@ -760,7 +780,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         else:
             self.readmeFilename = None
         self.readmeFrame.setFile(self.readmeFilename)
-        content = self.readmeFrame.ctrl.GetValue()
+        content = self.readmeFrame.ctrl.ToText()
         if content and self.prefs['alwaysShowReadme']:
             self.showReadme()
 
@@ -1066,7 +1086,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
                     unpackFolder)
         self.prefs['unpackedDemosDir'] = unpackFolder
         self.app.prefs.saveUserPrefs()
-        self.updateDemosMenu()
+        updateDemosMenu(self, self.demosMenu, self.prefs['unpackedDemosDir'], ext=".psyexp")
 
     def demoLoad(self, event=None):
         """Defines Demo Loading Event."""
@@ -1077,22 +1097,19 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         else:
             self.fileOpen(event=None, filename=files[0], closeCurrent=True)
 
-    def updateDemosMenu(self):
-        """Update Demos menu as needed."""
-        unpacked = self.prefs['unpackedDemosDir']
-        if not unpacked:
-            return
-        # list available demos
-        demoList = sorted(glob.glob(os.path.join(unpacked, '*')))
-        self.demos = {wx.NewIdRef(): demoList[n]
-                      for n in range(len(demoList))}
-        for thisID in self.demos:
-            junk, shortname = os.path.split(self.demos[thisID])
-            if (shortname.startswith('_') or
-                    shortname.lower().startswith('readme.')):
-                continue  # ignore 'private' or README files
-            self.demosMenu.Append(thisID, shortname)
-            self.Bind(wx.EVT_MENU, self.demoLoad, id=thisID)
+    def openLocalDemos(self, event=None):
+        # Choose a command according to OS
+        if sys.platform in ['win32']:
+            comm = "explorer"
+        elif sys.platform in ['darwin']:
+            comm = "open"
+        elif sys.platform in ['linux', 'linux2']:
+            comm = "dolphin"
+        # Use command to open themes folder
+        subprocess.call(f"{comm} {prefs.builder['unpackedDemosDir']}", shell=True)
+
+    def openPavloviaDemos(self, event=None):
+        webbrowser.open("https://pavlovia.org/explore")
 
     def runFile(self, event=None):
         """Open Runner for running the psyexp file."""
@@ -1385,7 +1402,8 @@ class RoutinesNotebook(aui.AuiNotebook, ThemeMixin):
         self.Bind(aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.onClosePane)
 
         # double buffered better rendering except if retina
-        self.SetDoubleBuffered(self.frame.IsDoubleBuffered())
+
+        self.SetDoubleBuffered(not self.frame.isRetina)
 
         self._applyAppTheme()
         if not hasattr(self.frame, 'exp'):
@@ -1397,7 +1415,7 @@ class RoutinesNotebook(aui.AuiNotebook, ThemeMixin):
         for index in range(self.GetPageCount()):
             page = self.GetPage(index)
             # double buffered better rendering except if retina
-            self.SetDoubleBuffered(self.frame.IsDoubleBuffered())
+            self.SetDoubleBuffered(not self.frame.isRetina)
             page._applyAppTheme()
         self.Refresh()
 
@@ -2104,7 +2122,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         self.SetAutoLayout(True)
         self.SetupScrolling()
         # double buffered better rendering except if retina
-        self.SetDoubleBuffered(self.frame.IsDoubleBuffered())
+        self.SetDoubleBuffered(not self.frame.isRetina)
         self._applyAppTheme()  # bitmaps only just loaded
 
     def _applyAppTheme(self, target=None):
@@ -2429,7 +2447,8 @@ class ReadmeFrame(wx.Frame):
         self.Bind(wx.EVT_CLOSE, self.onClose)
         self.Hide()
         self.makeMenus()
-        self.ctrl = wx.TextCtrl(self, style=wx.TE_MULTILINE)
+        self.rawText = ""
+        self.ctrl = HtmlWindow(self, wx.ID_ANY)
 
     def onClose(self, evt=None):
         """
@@ -2448,15 +2467,10 @@ class ReadmeFrame(wx.Frame):
         menuBar.Append(self.fileMenu, _translate('&File'))
         menu = self.fileMenu
         keys = self.parent.app.keys
-        menu.Append(wx.ID_SAVE, _translate("&Save\t%s") % keys['save'])
+        menu.Append(wx.ID_EDIT, _translate("Edit"))
         menu.Append(wx.ID_CLOSE,
                     _translate("&Close readme\t%s") % keys['close'])
-        item = menu.Append(-1,
-                           _translate("&Toggle readme\t%s") % keys[
-                               'toggleReadme'],
-                           _translate("Toggle Readme"))
-        self.Bind(wx.EVT_MENU, self.toggleVisible, item)
-        self.Bind(wx.EVT_MENU, self.fileSave, id=wx.ID_SAVE)
+        self.Bind(wx.EVT_MENU, self.fileEdit, id=wx.ID_EDIT)
         self.Bind(wx.EVT_MENU, self.toggleVisible, id=wx.ID_CLOSE)
         self.SetMenuBar(menuBar)
 
@@ -2493,8 +2507,20 @@ class ReadmeFrame(wx.Frame):
             return False
         f.close()
         self._fileLastModTime = os.path.getmtime(filename)
-        self.ctrl.SetValue(readmeText)
+        self.rawText = readmeText
+        if md:
+            renderedText = md.MarkdownIt().render(readmeText)
+        else:
+            renderedText = readmeText.replace("\n", "<br>")
+        self.ctrl.SetPage(renderedText)
         self.SetTitle("%s readme (%s)" % (self.expName, filename))
+
+    def fileEdit(self, evt=None):
+        self.parent.app.showCoder()
+        coder = self.parent.app.coder
+        coder.fileOpen(filename=self.filename)
+        # Close README window
+        self.Close()
 
     def fileSave(self, evt=None):
         """Defines save behavior for readme frame"""
@@ -2502,7 +2528,7 @@ class ReadmeFrame(wx.Frame):
         if self._fileLastModTime and mtime > self._fileLastModTime:
             logging.warning(
                 'readme file has been changed by another programme?')
-        txt = self.ctrl.GetValue()
+        txt = self.rawText
         with codecs.open(self.filename, 'w', 'utf-8-sig') as f:
             f.write(txt)
 
@@ -2664,7 +2690,7 @@ class FlowPanel(wx.ScrolledWindow):
         self.SetAcceleratorTable(aTable)
 
         # double buffered better rendering except if retina
-        self.SetDoubleBuffered(self.frame.IsDoubleBuffered())
+        self.SetDoubleBuffered(not self.frame.isRetina)
 
         self._applyAppTheme()
 

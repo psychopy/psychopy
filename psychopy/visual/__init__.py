@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Container for all visual-related functions and classes
@@ -36,9 +36,9 @@ from .helpers import pointInPolygon, polygonsOverlap
 from .image import ImageStim
 from .text import TextStim
 from .form import Form
-from .button import ButtonStim
 from .brush import Brush
 from .textbox2.textbox2 import TextBox2
+from .button import ButtonStim
 # window, should always be loaded first
 from .window import Window, getMsPerFrame, openWindows
 
@@ -96,6 +96,9 @@ from psychopy.visual.textbox import TextBox
 
 # rift support 
 from psychopy.visual.rift import Rift
+
+# VisualSystemHD support
+from psychopy.visual.nnlvs import VisualSystemHD
 
 # 3D stimuli support
 from psychopy.visual.stim3d import LightSource

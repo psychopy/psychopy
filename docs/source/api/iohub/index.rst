@@ -17,11 +17,6 @@ event stream, or from a specific device of interest.
 A comprehensive set of examples that each use at least one of the iohub devices
 is available in the psychopy/demos/coder/iohub folder.
 
-.. note::
-
-    This documentation is in very early stages of being written. Comments and
-    contributions are welcome.
-
 .. toctree::
    :maxdepth: 2
    :glob:

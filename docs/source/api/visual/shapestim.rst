@@ -1,39 +1,43 @@
+:class:`psychopy.visual.ShapeStim`
+----------------------------------
 
-:class:`ShapeStim`
-------------------------------------------------------------------------
+ShapeStim is the base class for drawing lines and polygons.
 
-Attributes
-=============
+Overview
+========
 
-.. currentmodule:: psychopy.visual
+.. currentmodule:: psychopy.visual.shape
 
-.. autosummary:: 
-
+.. autosummary::
     ShapeStim
-    ShapeStim.win
     ShapeStim.units
+    ShapeStim.lineWidth
+    ShapeStim.lineColor
+    ShapeStim.fillColor
+    ShapeStim.colorSpace
     ShapeStim.vertices
+    ShapeStim.windingRule
     ShapeStim.closeShape
     ShapeStim.pos
-    ShapeStim.ori
     ShapeStim.size
-    ShapeStim.contrast
-    ShapeStim.lineColor
-    ShapeStim.lineColorSpace
-    ShapeStim.fillColor
-    ShapeStim.fillColorSpace
+    ShapeStim.ori
     ShapeStim.opacity
+    ShapeStim.contrast
+    ShapeStim.depth
     ShapeStim.interpolate
+    ShapeStim.lineRGB
+    ShapeStim.fillRGB
     ShapeStim.name
     ShapeStim.autoLog
-    ShapeStim.draw
-    ShapeStim.autoDraw 
-    
-        
+    ShapeStim.autoDraw
+    ShapeStim.color
+    ShapeStim.lineColorSpace
+    ShapeStim.fillColorSpace
+
 Details
-=============
+=======
 
 .. autoclass:: ShapeStim
     :members:
-    :undoc-members:
     :inherited-members:
+

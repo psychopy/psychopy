@@ -5,7 +5,7 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
@@ -17,6 +17,9 @@ from builtins import str
 # up by the pyglet GL engine and have no effect.
 # Shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
 import pyglet
+
+from ..colors import Color
+
 pyglet.options['debug_gl'] = False
 import ctypes
 GL = pyglet.gl
@@ -118,17 +121,17 @@ class RadialStim(GratingStim):
         if rgb != None:
             logging.warning("Use of rgb arguments to stimuli are deprecated."
                             " Please use color and colorSpace args instead")
-            self.setColor(rgb, colorSpace='rgb', log=False)
+            self.color = Color(rgb, colorSpace='rgb')
         elif dkl != None:
             logging.warning("Use of dkl arguments to stimuli are deprecated. "
                             "Please use color and colorSpace args instead")
-            self.setColor(dkl, colorSpace='dkl', log=False)
+            self.color = Color(dkl, colorSpace='dkl')
         elif lms != None:
             logging.warning("Use of lms arguments to stimuli are deprecated."
                             " Please use color and colorSpace args instead")
-            self.setColor(lms, colorSpace='lms', log=False)
+            self.color = Color(lms, colorSpace='lms')
         else:
-            self.setColor(color, log=False)
+            self.color = color
 
         self.ori = float(ori)
         self.__dict__['angularRes'] = angularRes
@@ -387,10 +390,7 @@ class RadialStim(GratingStim):
         self.win.setScale('pix')
         if self.useShaders:
             # setup color
-            desiredRGB = self._getDesiredRGB(self.rgb, self.colorSpace,
-                                             self.contrast)
-            GL.glColor4f(desiredRGB[0], desiredRGB[1], desiredRGB[2],
-                         self.opacity)
+            GL.glColor4f(*self._foreColor.render('rgba1'))
 
             # assign vertex array
             GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self.verticesPix.ctypes)
@@ -624,5 +624,5 @@ class RadialStim(GratingStim):
             if not self.useShaders:
                 GL.glDeleteLists(self._listID, 1)
             self.clearTextures()
-        except ModuleNotFoundError:
+        except (ImportError, ModuleNotFoundError, TypeError):
             pass  # has probably been garbage-collected already

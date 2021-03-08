@@ -3,7 +3,7 @@
 
 """
 Part of the PsychoPy library
-Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 Distributed under the terms of the GNU General Public License (GPL).
 """
 
@@ -44,7 +44,7 @@ class StaticComponent(BaseComponent):
         self.url = "http://www.psychopy.org/builder/components/static.html"
         hnt = _translate(
             "Custom code to be run during the static period (after updates)")
-        self.params['code'] = Param("", valType='extendedCode', categ='Custom',
+        self.params['code'] = Param("", valType='code', inputType="multi", categ='Custom',
                                     hint=hnt,
                                     label=_localized['Custom code'])
 
