@@ -222,7 +222,7 @@ def sawwave(duration, freqHz, peak=0.5, gain=0.8,
     nsamp = sampleRateHz * duration
     samples = np.arange(nsamp, dtype=np.float32)
     samples[:] = 2 * np.pi * samples[:] * freqHz / sampleRateHz
-    samples[:] = signal.square(samples, width=peak)
+    samples[:] = signal.sawtooth(samples, width=peak)
 
     if gain != 1.0:
         samples *= gain
