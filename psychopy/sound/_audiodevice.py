@@ -323,7 +323,7 @@ class AudioDeviceStatus(object):
     requestedStopTime : float
         Stop time requested when starting the stream.
     estimatedStopTime : float
-        Estimates stop time given `requestedStopTime`.
+        Estimated stop time given `requestedStopTime`.
     currentStreamTime : float
         Estimate of the time it will take for the most recently submitted sample
         to reach the speaker. Value is in absolute system time and reported for
@@ -494,7 +494,9 @@ class AudioDeviceStatus(object):
 
     @property
     def active(self):
-        """`True` if this device is active."""
+        """`True` if playback or recording has started (`bool`).
+
+        """
         return self._active
 
     @active.setter
@@ -503,7 +505,10 @@ class AudioDeviceStatus(object):
 
     @property
     def state(self):
-        """Current state of the device (`int`)."""
+        """State of the device, either `1` for playback, `2` for recording or
+        `3` for duplex (recording and playback).
+
+        """
         return self._state
 
     @state.setter
@@ -512,7 +517,10 @@ class AudioDeviceStatus(object):
 
     @property
     def requestedStartTime(self):
-        """Start time requested by the user (`float`)."""
+        """Requested start time of the audio stream after the start of playback
+        or recording (`float`).
+
+        """
         return self._requestedStartTime
 
     @requestedStartTime.setter
@@ -521,7 +529,10 @@ class AudioDeviceStatus(object):
 
     @property
     def startTime(self):
-        """(`float`)."""
+        """The actual (real) start time of audio playback or recording
+        (`float`).
+
+        """
         return self._startTime
 
     @startTime.setter
@@ -530,7 +541,11 @@ class AudioDeviceStatus(object):
 
     @property
     def captureStartTime(self):
-        """(`float`)."""
+        """Estimate of the start time of audio capture (`float`). Only valid if
+        audio capture is active. Usually, this time corresponds to the time when
+        the first sound was captured.
+
+        """
         return self._startTime
 
     @captureStartTime.setter
@@ -539,7 +554,7 @@ class AudioDeviceStatus(object):
 
     @property
     def requestedStopTime(self):
-        """(`float`)."""
+        """Stop time requested when starting the stream (`float`)."""
         return self._requestedStopTime
 
     @requestedStopTime.setter
@@ -548,7 +563,7 @@ class AudioDeviceStatus(object):
 
     @property
     def estimatedStopTime(self):
-        """(`float`)."""
+        """Estimated stop time given `requestedStopTime` (`float`)."""
         return self._requestedStopTime
 
     @estimatedStopTime.setter
@@ -557,7 +572,11 @@ class AudioDeviceStatus(object):
 
     @property
     def currentStreamTime(self):
-        """(`float`)."""
+        """Estimate of the time it will take for the most recently submitted
+        sample to reach the speaker (`float`). Value is in absolute system time
+        and reported for playback mode only.
+
+        """
         return self._currentStreamTime
 
     @currentStreamTime.setter
@@ -566,7 +585,10 @@ class AudioDeviceStatus(object):
 
     @property
     def elapsedOutSamples(self):
-        """(`int`)."""
+        """Total number of samples submitted since the start of playback
+        (`int`).
+
+        """
         return self._elapsedOutSamples
 
     @elapsedOutSamples.setter
@@ -575,16 +597,10 @@ class AudioDeviceStatus(object):
 
     @property
     def positionSecs(self):
-        """(`float`)."""
-        return self._positionSecs
+        """Current stream playback position in seconds this loop (`float`). Does
+        not account for hardware of driver latency.
 
-    @positionSecs.setter
-    def positionSecs(self, value):
-        self._positionSecs = float(value)
-
-    @property
-    def positionSecs(self):
-        """(`float`)."""
+        """
         return self._positionSecs
 
     @positionSecs.setter
@@ -593,7 +609,10 @@ class AudioDeviceStatus(object):
 
     @property
     def recordedSecs(self):
-        """(`float`)."""
+        """Total amount of recorded sound data (in seconds) since start of
+        capture (`float`).
+
+        """
         return self._recordedSecs
 
     @recordedSecs.setter
@@ -602,7 +621,10 @@ class AudioDeviceStatus(object):
 
     @property
     def readSecs(self):
-        """(`float`)."""
+        """Total amount of sound data in seconds that has been fetched from the
+        internal buffer (`float`).
+
+        """
         return self._readSecs
 
     @readSecs.setter
@@ -611,16 +633,7 @@ class AudioDeviceStatus(object):
 
     @property
     def schedulePosition(self):
-        """(`float`)."""
-        return self._schedulePosition
-
-    @schedulePosition.setter
-    def schedulePosition(self, value):
-        self._schedulePosition = float(value)
-
-    @property
-    def schedulePosition(self):
-        """(`float`)."""
+        """Current position in a running schedule in seconds (`float`)."""
         return self._schedulePosition
 
     @schedulePosition.setter
@@ -629,7 +642,11 @@ class AudioDeviceStatus(object):
 
     @property
     def xRuns(self):
-        """(`int`)."""
+        """Number of dropouts due to buffer over- and under-runs (`int`). Such
+        conditions can result is glitches during playback/recording. Even if the
+        number remains zero, that does not mean that glitches did not occur.
+
+        """
         return self._xRuns
 
     @xRuns.setter
@@ -638,7 +655,7 @@ class AudioDeviceStatus(object):
 
     @property
     def totalCalls(self):
-        """(`int`)."""
+        """**Debug** - Used for debugging the audio engine (`int`)."""
         return self._xRuns
 
     @totalCalls.setter
@@ -647,7 +664,7 @@ class AudioDeviceStatus(object):
 
     @property
     def timeFailed(self):
-        """(`float`)."""
+        """**Debug** - Used for debugging the audio engine (`float`)."""
         return self._timeFailed
 
     @timeFailed.setter
@@ -656,7 +673,10 @@ class AudioDeviceStatus(object):
 
     @property
     def bufferSize(self):
-        """(`int`)."""
+        """**Debug** - Size of the buffer allocated to contain stream samples.
+        Used for debugging the audio engine.
+
+        """
         return self._bufferSize
 
     @bufferSize.setter
@@ -665,7 +685,11 @@ class AudioDeviceStatus(object):
 
     @property
     def cpuLoad(self):
-        """(`float`)."""
+        """Amount of load on the CPU imparted by the sound engine (`float`).
+        Ranges between 0.0 and 1.0 where 1.0 indicates maximum load on the core
+        running the sound engine process.
+
+        """
         return self._cpuLoad
 
     @cpuLoad.setter
@@ -674,7 +698,11 @@ class AudioDeviceStatus(object):
 
     @property
     def predictedLatency(self):
-        """(`float`)."""
+        """Latency for the given hardware and driver (`float`). This indicates
+        how far ahead you need to start the device to ensure is starts at a
+        scheduled time.
+
+        """
         return self._predictedLatency
 
     @predictedLatency.setter
@@ -683,7 +711,7 @@ class AudioDeviceStatus(object):
 
     @property
     def latencyBias(self):
-        """(`float`)."""
+        """Additional latency bias added by the user (`float`)."""
         return self._latencyBias
 
     @latencyBias.setter
@@ -692,7 +720,7 @@ class AudioDeviceStatus(object):
 
     @property
     def sampleRate(self):
-        """(`int`)."""
+        """Sample rate in Hertz (Hz) the playback recording is using (`int`)."""
         return self._sampleRate
 
     @sampleRate.setter
@@ -701,7 +729,7 @@ class AudioDeviceStatus(object):
 
     @property
     def outDeviceIndex(self):
-        """(`int`)."""
+        """Enumerated index of the output device (`int`)."""
         return self._outDeviceIndex
 
     @outDeviceIndex.setter
@@ -710,7 +738,7 @@ class AudioDeviceStatus(object):
 
     @property
     def inDeviceIndex(self):
-        """(`int`)."""
+        """Enumerated index of the input device (`int`)."""
         return self._inDeviceIndex
 
     @inDeviceIndex.setter
@@ -719,7 +747,8 @@ class AudioDeviceStatus(object):
 
     @property
     def audioLib(self):
-        """(`str`)."""
+        """Identifier for the audio library which created this status (`str`).
+        """
         return self._audioLib
 
     @audioLib.setter
