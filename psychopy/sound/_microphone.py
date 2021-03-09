@@ -79,7 +79,7 @@ class Microphone(object):
                 "be installed.")
 
         # get information about the selected device
-        if isinstance(device, AudioDevice):
+        if isinstance(device, AudioDeviceInfo):
             self._device = device
         else:
             # get default device, first enumerated usually
@@ -172,7 +172,7 @@ class Microphone(object):
 
         # create list of descriptors only for capture devices
         inputDevices = [desc for desc in [
-            AudioDevice.createFromPTBDesc(dev) for dev in allDevs]
+            AudioDeviceInfo.createFromPTBDesc(dev) for dev in allDevs]
                      if desc.isCapture]
 
         return inputDevices

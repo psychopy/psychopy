@@ -9,7 +9,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 __all__ = [
-    'AudioDevice',
+    'AudioDeviceInfo',
     'AudioDeviceStatus',
     'sampleRateQualityLevels',
     'NULL_AUDIO_DEVICE',
@@ -47,7 +47,7 @@ sampleRateQualityLevels = {
 }
 
 
-class AudioDevice(object):
+class AudioDeviceInfo(object):
     """Descriptor for an audio device (playback or recording) on this system.
 
     Properties associated with this class provide information about a specific
@@ -146,6 +146,17 @@ class AudioDevice(object):
         self.defaultSampleRate = defaultSampleRate
         self.audioLib = audioLib
 
+    def __repr__(self):
+        return (f"AudioDeviceInfo(deviceIndex={self.deviceIndex}, "
+                f"deviceName={self.deviceName}, "
+                f"hostAPIName={self.hostAPIName}, "
+                f"outputChannels={self.outputChannels}, "
+                f"outputLatency={repr(self.outputLatency)}, "
+                f"inputChannels={self.inputChannels}, "
+                f"inputLatency={repr(self.inputLatency)}, "
+                f"defaultSampleRate={self.defaultSampleRate}, "
+                f"audioLib={repr(self.audioLib)})")
+
     @staticmethod
     def createFromPTBDesc(desc):
         """Create an `AudioDevice` instance with values populated using a
@@ -159,7 +170,7 @@ class AudioDevice(object):
 
         Returns
         -------
-        AudioDevice
+        AudioDeviceInfo
             Audio device descriptor with properties set using `desc`.
 
         """
@@ -174,7 +185,7 @@ class AudioDevice(object):
 
         assert all([field in desc.keys() for field in reqFields])
 
-        audioDevDesc = AudioDevice(
+        audioDevDesc = AudioDeviceInfo(
             deviceIndex=desc['DeviceIndex'],
             deviceName=desc['DeviceName'],
             hostAPIName=desc['HostAudioAPIName'],
@@ -801,9 +812,10 @@ class AudioDeviceStatus(object):
 
 
 # Theses are used as sentinels or for testing. Instancing these here behaves as
-# a self-test, providing coverage to most of the setter methods.
+# a self-test, providing coverage to most of the setter methods when this module
+# is imported.
 #
-NULL_AUDIO_DEVICE = AudioDevice()
+NULL_AUDIO_DEVICE = AudioDeviceInfo()
 NULL_AUDIO_DEVICE_STATUS = AudioDeviceStatus()
 
 
