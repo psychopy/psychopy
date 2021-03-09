@@ -448,6 +448,32 @@ class AudioDeviceStatus(object):
         self.inDeviceIndex = inDeviceIndex
         self.audioLib = audioLib
 
+    def __repr__(self):
+        return (f"AudioDeviceStatus(active={self.active}, "
+                f"state={self.state}, "
+                f"requestedStartTime={self.requestedStartTime}, "
+                f"startTime={self.startTime}, "
+                f"captureStartTime={self.captureStartTime}, "
+                f"requestedStopTime={self.requestedStopTime}, "
+                f"estimatedStopTime={self.estimatedStopTime}, "
+                f"currentStreamTime={self.currentStreamTime}, "
+                f"elapsedOutSamples={self.elapsedOutSamples}, "
+                f"positionSecs={self.positionSecs}, "
+                f"recordedSecs={self.recordedSecs}, "
+                f"readSecs={self.readSecs}, "
+                f"schedulePosition={self.schedulePosition}, "
+                f"xRuns={self.xRuns}, "
+                f"totalCalls={self.totalCalls}, "
+                f"timeFailed={self.timeFailed}, "
+                f"bufferSize={self.bufferSize}, "
+                f"cpuLoad={self.cpuLoad}, "
+                f"predictedLatency={self.predictedLatency}, "
+                f"latencyBias={self.latencyBias}, "
+                f"sampleRate={self.sampleRate}, "
+                f"outDeviceIndex={self.outDeviceIndex}, "
+                f"inDeviceIndex={self.inDeviceIndex}, "
+                f"audioLib={repr(self.audioLib)})")
+
     @staticmethod
     def createFromPTBDesc(desc):
         """Create an `AudioDeviceStatus` instance using a status descriptor
@@ -493,6 +519,16 @@ class AudioDeviceStatus(object):
         return audioStatusDesc
 
     @property
+    def audioLib(self):
+        """Identifier for the audio library which created this status (`str`).
+        """
+        return self._audioLib
+
+    @audioLib.setter
+    def audioLib(self, value):
+        self._audioLib = str(value)
+
+    @property
     def active(self):
         """`True` if playback or recording has started (`bool`).
 
@@ -505,15 +541,33 @@ class AudioDeviceStatus(object):
 
     @property
     def state(self):
-        """State of the device, either `1` for playback, `2` for recording or
-        `3` for duplex (recording and playback).
+        """State of the device (`int`). Either `1` for playback, `2` for
+        recording or `3` for duplex (recording and playback).
 
         """
         return self._state
 
     @state.setter
     def state(self, value):
-        self._state = bool(value)
+        self._state = int(value)
+
+    @property
+    def isPlayback(self):
+        """`True` if this device is operating in playback mode (`bool`)."""
+        return self._state == 1 or self._state == 3
+
+    @property
+    def isCapture(self):
+        """`True` if this device is operating in capture mode (`bool`)."""
+        return self._state == 2 or self._state == 3
+
+    @property
+    def isDuplex(self):
+        """`True` if this device is operating capture and recording mode
+        (`bool`).
+
+        """
+        return self._state == 3
 
     @property
     def requestedStartTime(self):
@@ -744,16 +798,6 @@ class AudioDeviceStatus(object):
     @inDeviceIndex.setter
     def inDeviceIndex(self, value):
         self._inDeviceIndex = int(value)
-
-    @property
-    def audioLib(self):
-        """Identifier for the audio library which created this status (`str`).
-        """
-        return self._audioLib
-
-    @audioLib.setter
-    def audioLib(self, value):
-        self._audioLib = str(value)
 
 
 # Theses are used as sentinels or for testing. Instancing these here behaves as

@@ -187,10 +187,12 @@ class Microphone(object):
 
     @property
     def status(self):
-        """Status of the audio stream (`AudioDeviceStatus`).
+        """Status of the audio stream (`AudioDeviceStatus` or `None`).
+
         """
-        print(self._stream.status)
-        return AudioDeviceStatus.createFromPTBDesc(self._stream.status)
+        currentStatus = self._stream.status
+        if currentStatus != -1:
+            return AudioDeviceStatus.createFromPTBDesc(currentStatus)
 
     def start(self, when=None, waitForStart=0, stopTime=None):
         """Start an audio recording.
