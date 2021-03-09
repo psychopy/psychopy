@@ -172,7 +172,7 @@ class Microphone(object):
 
         # create list of descriptors only for capture devices
         inputDevices = [desc for desc in [
-            AudioDevice.createFromPTBDeviceDesc(dev) for dev in allDevs]
+            AudioDevice.createFromPTBDesc(dev) for dev in allDevs]
                      if desc.isCapture]
 
         return inputDevices
@@ -185,7 +185,11 @@ class Microphone(object):
         """
         return self._recBufferSecs
 
-    def start(self, stopTime=None):
+    def getStatus(self):
+        """Get status."""
+        return self._stream.status
+
+    def start(self, when=None, waitForStart=0, stopTime=None):
         """Start an audio recording.
 
         Calling this method will open a stream and begin capturing samples from
@@ -193,9 +197,21 @@ class Microphone(object):
 
         Parameters
         ----------
+        when : float, int or None
+            When to start the stream. If the time specified is a floating point
+            (absolute) system time, the device will attempt to begin recording
+            at that time. If `None` or zero, the system will try to start
+            recording as soon as possible.
+        waitForStart : bool
+            Wait for sound onset if `True`.
         stopTime : float, int or None
             Number of seconds to record. If `None` or `-1`, recording will
             continue forever until `stop` is called.
+
+        Returns
+        -------
+        float
+            Absolute time the stream was started.
 
         """
         # check if the stream has been
@@ -203,8 +219,16 @@ class Microphone(object):
             pass
 
         assert self._stream is not None  # must have a handle
-        self._stream.start(repetitions=0, stop_time=stopTime)
+
+        startTime = self._stream.start(
+            repetitions=0,
+            when=when,
+            wait_for_start=int(waitForStart),
+            stop_time=stopTime)
+
         self._statusFlag = STARTED  # recording has begun
+
+        return startTime
 
     def stop(self):
         """Stop recording audio.
