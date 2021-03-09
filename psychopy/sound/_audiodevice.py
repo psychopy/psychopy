@@ -306,30 +306,68 @@ class AudioDeviceStatus(object):
 
     Parameters
     ----------
-    active
-    state
-    requestedStartTime
-    startTime
-    captureStartTime
-    requestedStopTime
-    estimatedStopTime
-    currentStopTime
-    elapsedOutSamples
-    positionSecs
-    recordedSecs
-    readSecs
-    schedulePosition
-    xRuns
-    totalCalls
-    timeFailed
-    bufferSize
-    cpuLoad
-    predictedLatency
-    latencyBias
-    sampleRate
-    outDeviceIndex
-    inDeviceIndex
-    audioLib
+    active : bool
+        `True` if playback or recording has started, else `False`.
+    state : int
+        State of the device, either `1` for playback, `2` for recording or `3`
+        for duplex (recording and playback).
+    requestedStartTime : float
+        Requested start time of the audio stream after the start of playback or
+        recording.
+    startTime : float
+        The actual (real) start time of audio playback or recording.
+    captureStartTime : float
+        Estimate of the start time of audio capture. Only valid if audio capture
+        is active. Usually, this time corresponds to the time when the first
+        sound was captured.
+    requestedStopTime : float
+        Stop time requested when starting the stream.
+    estimatedStopTime : float
+        Estimates stop time given `requestedStopTime`.
+    currentStreamTime : float
+        Estimate of the time it will take for the most recently submitted sample
+        to reach the speaker. Value is in absolute system time and reported for
+        playback only.
+    elapsedOutSamples : int
+        Total number of samples submitted since the start of playback.
+    positionSecs : float
+        Current stream playback position in seconds this loop. Does not account
+        for hardware of driver latency.
+    recordedSecs : float
+        Total amount of recorded sound data (in seconds) since start of capture.
+    readSecs : float
+        Total amount of sound data in seconds that has been fetched from the
+        internal buffer.
+    schedulePosition : float
+        Current position in a running schedule in seconds.
+    xRuns : int
+        Number of dropouts due to buffer over- and under-runs. Such conditions
+        can result is glitches during playback/recording. Even if the number
+        remains zero, that does not mean that glitches did not occur.
+    totalCalls : int
+        **Debug** - Used for debugging the audio engine.
+    timeFailed : float
+        **Debug** - Used for debugging the audio engine.
+    bufferSize : int
+        **Debug** - Size of the buffer allocated to contain stream samples. Used
+        for debugging the audio engine.
+    cpuLoad : float
+        Amount of load on the CPU imparted by the sound engine. Ranges between
+        0.0 and 1.0 where 1.0 indicates maximum load on the core running the
+        sound engine process.
+    predictedLatency : float
+        Latency for the given hardware and driver. This indicates how far ahead
+        you need to start the device to ensure is starts at a scheduled time.
+    latencyBias : float
+        Additional latency bias added by the user.
+    sampleRate : int
+        Sample rate in Hertz (Hz) the playback recording is using.
+    outDeviceIndex : int
+        Enumerated index of the output device.
+    inDeviceIndex : int
+        Enumerated index of the input device.
+    audioLib : str
+        Identifier for the audio library which created this status.
 
     """
     __slots__ = [
@@ -340,7 +378,7 @@ class AudioDeviceStatus(object):
         '_captureStartTime',
         '_requestedStopTime',
         '_estimatedStopTime',
-        '_currentStopTime',
+        '_currentStreamTime',
         '_elapsedOutSamples',
         '_positionSecs',
         '_recordedSecs',
@@ -367,7 +405,7 @@ class AudioDeviceStatus(object):
                  captureStartTime=0.0,
                  requestedStopTime=0.0,
                  estimatedStopTime=0.0,
-                 currentStopTime=0.0,
+                 currentStreamTime=0.0,
                  elapsedOutSamples=0,
                  positionSecs=0.0,
                  recordedSecs=0.0,
@@ -383,7 +421,7 @@ class AudioDeviceStatus(object):
                  sampleRate=SAMPLE_RATE_48kHz,
                  outDeviceIndex=0,
                  inDeviceIndex=0,
-                 audioLib=u''):
+                 audioLib=u'Null audio library'):
 
         self.active = active
         self.state = state
@@ -392,7 +430,7 @@ class AudioDeviceStatus(object):
         self.captureStartTime = captureStartTime
         self.requestedStopTime = requestedStopTime
         self.estimatedStopTime = estimatedStopTime
-        self.currentStopTime = currentStopTime
+        self.currentStreamTime = currentStreamTime
         self.elapsedOutSamples = elapsedOutSamples
         self.positionSecs = positionSecs
         self.recordedSecs = recordedSecs
@@ -434,7 +472,7 @@ class AudioDeviceStatus(object):
             captureStartTime=desc['CaptureStartTime'],
             requestedStopTime=desc['RequestedStopTime'],
             estimatedStopTime=desc['EstimatedStopTime'],
-            currentStopTime=desc['CurrentStreamTime'],
+            currentStreamTime=desc['CurrentStreamTime'],
             elapsedOutSamples=desc['ElapsedOutSamples'],
             positionSecs=desc['PositionSecs'],
             recordedSecs=desc['RecordedSecs'],
@@ -518,13 +556,13 @@ class AudioDeviceStatus(object):
         self._estimatedStopTime = float(value)
 
     @property
-    def currentStopTime(self):
+    def currentStreamTime(self):
         """(`float`)."""
-        return self._currentStopTime
+        return self._currentStreamTime
 
-    @currentStopTime.setter
-    def currentStopTime(self, value):
-        self._currentStopTime = float(value)
+    @currentStreamTime.setter
+    def currentStreamTime(self, value):
+        self._currentStreamTime = float(value)
 
     @property
     def elapsedOutSamples(self):

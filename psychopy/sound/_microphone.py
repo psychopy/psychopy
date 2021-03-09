@@ -189,6 +189,7 @@ class Microphone(object):
     def status(self):
         """Status of the audio stream (`AudioDeviceStatus`).
         """
+        print(self._stream.status)
         return AudioDeviceStatus.createFromPTBDesc(self._stream.status)
 
     def start(self, when=None, waitForStart=0, stopTime=None):
