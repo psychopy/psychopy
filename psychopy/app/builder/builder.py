@@ -2129,12 +2129,12 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             comp = self.component(parentName=routine.name, exp=self.parent.frame.exp)
             name = comp.params['name'].val
             # does this component have a help page?
-            if hasattr(self.component, 'url'):
-                helpUrl = self.component.url
+            if hasattr(comp, 'url'):
+                helpUrl = comp.url
             else:
                 helpUrl = None
             # create component template
-            if evt == 'CodeComponent':
+            if comp.type == 'Code':
                 _Dlg = DlgCodeComponentProperties
             else:
                 _Dlg = DlgComponentProperties
