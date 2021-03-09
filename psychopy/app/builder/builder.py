@@ -2123,7 +2123,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             self.Bind(wx.EVT_BUTTON, self.onClick)
             self.Bind(wx.EVT_RIGHT_DOWN, self.onRightClick)
 
-        def onClick(self, evt, timeout=None):
+        def onClick(self, evt=None, timeout=None):
             routine = self.parent.frame.routinePanel.getCurrentRoutine()
             page = self.parent.frame.routinePanel.getCurrentPage()
             comp = self.component(parentName=routine.name, exp=self.parent.frame.exp)
@@ -2219,6 +2219,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         # Get components
         self.components = experiment.getAllComponents(
             self.app.prefs.builder['componentsFolders'])
+        del self.components['SettingsComponent']
         # Get categories
         self.categories = ['Favorites']
         for name, comp in self.components.items():
