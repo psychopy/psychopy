@@ -13,6 +13,7 @@ __all__ = [
     'AudioDeviceStatus',
     'sampleRateQualityLevels',
     'NULL_AUDIO_DEVICE',
+    'NULL_AUDIO_DEVICE_STATUS',
     'SAMPLE_RATE_8kHz',
     'SAMPLE_RATE_TELCOM_QUALITY',
     'SAMPLE_RATE_16kHz',
@@ -293,11 +294,42 @@ class AudioDevice(object):
         return self.isPlayback and self.isCapture
 
 
-NULL_AUDIO_DEVICE = AudioDevice()  # used as a sentinel or for testing
-
-
 class AudioDeviceStatus(object):
-    """Descriptor for storing status information related to the audio device.
+    """Descriptor for audio device status information.
+
+    Properties of this class are standardized on the structure of the returned
+    `dict` when calling PsychPortAudio with `GetStatus`. Other audio backends
+    should try to populate these fields as best they can.
+
+    Users should never instance this class themselves unless they have good
+    reason to.
+
+    Parameters
+    ----------
+    active
+    state
+    requestedStartTime
+    startTime
+    captureStartTime
+    requestedStopTime
+    estimatedStopTime
+    currentStopTime
+    elapsedOutSamples
+    positionSecs
+    recordedSecs
+    readSecs
+    schedulePosition
+    xRuns
+    totalCalls
+    timeFailed
+    bufferSize
+    cpuLoad
+    predictedLatency
+    latencyBias
+    sampleRate
+    outDeviceIndex
+    inDeviceIndex
+    audioLib
 
     """
     __slots__ = [
@@ -657,6 +689,10 @@ class AudioDeviceStatus(object):
         self._audioLib = str(value)
 
 
+# Theses are used as sentinels or for testing. Instancing these here behaves as
+# a self-test, providing coverage to most of the setter methods.
+#
+NULL_AUDIO_DEVICE = AudioDevice()
 NULL_AUDIO_DEVICE_STATUS = AudioDeviceStatus()
 
 

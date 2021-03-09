@@ -185,9 +185,11 @@ class Microphone(object):
         """
         return self._recBufferSecs
 
-    def getStatus(self):
-        """Get status."""
-        return self._stream.status
+    @property
+    def status(self):
+        """Status of the audio stream (`AudioDeviceStatus`).
+        """
+        return AudioDeviceStatus.createFromPTBDesc(self._stream.status)
 
     def start(self, when=None, waitForStart=0, stopTime=None):
         """Start an audio recording.
