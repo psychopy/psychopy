@@ -50,7 +50,7 @@ class Microphone(object):
         Number of channels to record samples to `1=Mono` and `2=Stereo`.
     bufferSecs : float
         Buffer size to pre-allocate for the specified number of seconds. The
-        default is 2.0 seconds.
+        default is 2.0 seconds which is usually sufficient.
 
     Examples
     --------
@@ -125,7 +125,6 @@ class Microphone(object):
         # PTB specific stuff
         self._mode = 2  # open a stream in capture mode
 
-
         # this can only be set after initialization
         self._stopTime = None   # optional, stop time to end recording
 
@@ -190,7 +189,7 @@ class Microphone(object):
 
     @property
     def latencyBias(self):
-        """Latency bias to add to the next recording (`float`)."""
+        """Latency bias to add when starting the microphone (`float`)."""
         return self._stream.latency_bias
 
     @latencyBias.setter
