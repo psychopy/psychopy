@@ -34,11 +34,11 @@ from scipy.io import wavfile
 from scipy import signal
 
 # pydub is needed for saving and loading MP3 files among others
-_has_pydub = True
-try:
-    import pydub
-except (ImportError, ModuleNotFoundError):
-    _has_pydub = False
+# _has_pydub = True
+# try:
+#     import pydub
+# except (ImportError, ModuleNotFoundError):
+#     _has_pydub = False
 
 # Constants for common sample rates. Some are aliased to give the programmer an
 # idea to the quality they would expect from each. It is recommended to only use

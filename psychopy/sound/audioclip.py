@@ -20,7 +20,7 @@ __all__ = [
 import numpy as np
 import soundfile as sf
 from psychopy.tools.audiotools import *
-from ._exceptions import AudioUnsupportedCodecError
+from .exceptions import AudioUnsupportedCodecError
 
 # supported formats for loading and saving audio samples to file
 AUDIO_SUPPORTED_CODECS = [s.lower() for s in sf.available_formats().keys()]
@@ -207,8 +207,7 @@ class AudioClip(object):
 
         Returns
         -------
-        ndarray
-            Nx1 or Nx2 array containing samples for the sound.
+        AudioClip
 
         """
         samples = whiteNoise(duration, sampleRateHz)
@@ -236,9 +235,7 @@ class AudioClip(object):
 
         Returns
         -------
-        ndarray
-            Nx1 or Nx2 array containing samples for the sound (or lack of in
-            this case).
+        AudioClip
 
         Examples
         --------
@@ -279,8 +276,7 @@ class AudioClip(object):
 
         Returns
         -------
-        ndarray
-            Nx1 or Nx2 array containing samples for the sound.
+        AudioClip
 
         Examples
         --------
@@ -332,8 +328,7 @@ class AudioClip(object):
 
         Returns
         -------
-        ndarray
-            Nx1 or Nx2 array containing samples for the sound.
+        AudioClip
 
         """
         samples = squaretone(duration, freqHz, dutyCycle, gain, sampleRateHz)
@@ -368,8 +363,7 @@ class AudioClip(object):
 
         Returns
         -------
-        ndarray
-            Nx1 or Nx2 array containing samples for the sound.
+        AudioClip
 
         """
         samples = sawtone(duration, freqHz, peak, gain, sampleRateHz)

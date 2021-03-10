@@ -13,9 +13,9 @@ __all__ = ['Microphone']
 import sys
 import psychopy.logging as logging
 from psychopy.constants import NOT_STARTED, STARTED
-from ._audioclip import *
-from ._audiodevice import *
-from ._exceptions import *
+from .audioclip import *
+from .audiodevice import *
+from .exceptions import *
 
 _hasPTB = True
 try:
@@ -29,7 +29,13 @@ except (ImportError, ModuleNotFoundError):
 
 
 class Microphone(object):
-    """Class for recording audio from a microphone.
+    """Class for recording audio from a microphone or input stream.
+
+    Creating an instance of this class will open a stream using the specified
+    device. Streams should remain open for the duration of your session. When a
+    stream is opened, a buffer is allocated to store samples coming off it.
+    Samples from the input stream will written to the buffer once
+    :meth:`~Microphone.start()` is called.
 
     Parameters
     ----------
@@ -39,11 +45,12 @@ class Microphone(object):
     sampleRateHz : int
         Sampling rate for audio recording in Hertz (Hz). By default, 48kHz
         (``sampleRateHz=480000``) is used which is adequate for most consumer
-        grade microphones (headsets and built-in). Sampling rates should be at
-        least greater than 20kHz to minimize distortion perceptible to humans
-        due to aliasing.
+        grade microphones (headsets and built-in).
     channels : int
         Number of channels to record samples to `1=Mono` and `2=Stereo`.
+    bufferSecs : float
+        Buffer size to pre-allocate for the specified number of seconds. The
+        default is 2.0 seconds.
 
     Examples
     --------
@@ -52,7 +59,7 @@ class Microphone(object):
         import psychopy.core as core
         import psychopy.sound.Microphone as Microphone
 
-        mic = Microphone()  # open the microphone
+        mic = Microphone(bufferSecs=10.0)  # open the microphone
         mic.start()  # start recording
         core.wait(10.0)  # wait 10 seconds
         audioClip = mic.getAudioClip()  # get the audio data
@@ -71,7 +78,7 @@ class Microphone(object):
                  device=None,
                  sampleRateHz=None,
                  channels=2,
-                 recBufferSecs=10.0):
+                 bufferSecs=2.0):
 
         if not _hasPTB:  # fail if PTB is not installed
             raise ModuleNotFoundError(
@@ -90,9 +97,9 @@ class Microphone(object):
                     'No suitable audio recording devices found on this system. '
                     'Check connections and try again.')
 
-            self._device = devices[0] if devices else None
+            self._device = devices[0]  # use first
 
-        # error if specified device was not a microphone
+        # error if specified device is not suitable for capture
         if not self._device.isCapture:
             raise AudioInvalidCaptureDeviceError(
                 'Specified audio device not suitable for audio recording. '
@@ -112,8 +119,8 @@ class Microphone(object):
                 'Invalid number of channels for audio input specified.')
 
         # internal recording buffer size in seconds
-        assert isinstance(recBufferSecs, (float, int))
-        self._recBufferSecs = float(recBufferSecs)
+        assert isinstance(bufferSecs, (float, int))
+        self._bufferSecs = float(bufferSecs)
 
         # PTB specific stuff
         self._mode = 2  # open a stream in capture mode
@@ -129,8 +136,8 @@ class Microphone(object):
             freq=self._sampleRateHz,
             channels=self._channels)
 
-        # pre-allocate recording buffer
-        self._stream.get_audio_data(self._recBufferSecs)
+        # pre-allocate recording buffer, called once
+        self._stream.get_audio_data(self._bufferSecs)
 
         # status flag
         self._statusFlag = NOT_STARTED
@@ -178,16 +185,37 @@ class Microphone(object):
         return inputDevices
 
     @property
-    def recordingBufferSecs(self):
+    def bufferSecs(self):
         """Size of the internal audio storage buffer in seconds (`float`).
-        Cannot be set while recording.
+
+        To ensure all data is captured, there must be less time elapsed between
+        subsequent `getAudioClip` calls than `bufferSecs`.
 
         """
-        return self._recBufferSecs
+        return self._bufferSecs
 
     @property
     def status(self):
         """Status of the audio stream (`AudioDeviceStatus` or `None`).
+
+        See :class:`~psychopy.sound.AudioDeviceStatus` for a complete overview
+        of available status fields. This property has a value of `None` if
+        the stream is presently closed.
+
+        Examples
+        --------
+        Get the capture start time of the stream::
+
+            # assumes mic.start() was called
+            captureStartTime = mic.status.captureStartTime
+
+        Check if microphone recording is active::
+
+            isActive = mic.status.active
+
+        Get the number of seconds recorded up to this point::
+
+            recordedSecs = mic.status.recordedSecs
 
         """
         currentStatus = self._stream.status
@@ -197,8 +225,8 @@ class Microphone(object):
     def start(self, when=None, waitForStart=0, stopTime=None):
         """Start an audio recording.
 
-        Calling this method will open a stream and begin capturing samples from
-        the microphone.
+        Calling this method will begin capturing samples from the microphone and
+        writing them to the buffer.
 
         Parameters
         ----------
@@ -239,28 +267,56 @@ class Microphone(object):
         """Stop recording audio.
 
         Call this method to end an audio recording if in progress. This will
-        close the audio stream.
+        simply halt recording and not close the stream.
 
         """
         self._stream.stop()
         self._statusFlag = NOT_STARTED
 
     def close(self):
-        """Close the stream."""
+        """Close the stream.
+
+        Should not be called until you are certain you're done with it. Ideally,
+        you should never close and reopen the same stream within a single
+        session.
+
+        """
         self._stream.close()
 
-    def getAudioClip(self, clipName=None):
-        """Get samples from a previous recording."""
+    def getAudioClip(self):
+        """Get samples from a stream as an `AudioClip` object.
+
+        To ensure all data is captured, there must be less time elapsed between
+        subsequent `getAudioClip` calls than `bufferSecs`. If not, a buffer
+        overflow condition will occur and audio data will be lost.
+
+        Ideally, you should retrieve audio samples every frame. Beware though,
+        uncompressed/raw audio data tends require lots of memory to store. This
+        is particularly a problem for 32-bit installations of PsychoPy where
+        the amount of memory that can be used by the application is quite
+        limited.
+
+        Returns
+        -------
+        tuple
+            A tuple containing `AudioClip` instance with samples retrieved from
+            the stream buffer, absolute time in the recording the samples were
+            taken (`float`), flag indicating an overflow occurred (`bool`), and
+            the start time of the recording (`float`).
+
+        """
         if self._statusFlag == NOT_STARTED:
             raise AudioStreamError(
                 "Cannot get stream data while stream is closed.")
 
-        # REM - write these other values to the clip header
-        audioData, _, _, _ = self._stream.get_audio_data()
+        audioData, absRecPosition, overflow, cStartTime = \
+            self._stream.get_audio_data()
 
-        return AudioClip(
+        newClip = AudioClip(
             samples=audioData,
             sampleRateHz=self._sampleRateHz)
+
+        return newClip, absRecPosition, overflow, cStartTime
 
 
 if __name__ == "__main__":

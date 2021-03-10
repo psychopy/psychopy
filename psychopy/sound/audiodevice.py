@@ -11,9 +11,9 @@
 __all__ = [
     'AudioDeviceInfo',
     'AudioDeviceStatus',
-    'sampleRateQualityLevels',
     'NULL_AUDIO_DEVICE',
     'NULL_AUDIO_DEVICE_STATUS',
+    'sampleRateQualityLevels',
     'SAMPLE_RATE_8kHz',
     'SAMPLE_RATE_TELCOM_QUALITY',
     'SAMPLE_RATE_16kHz',
@@ -24,7 +24,8 @@ __all__ = [
     'SAMPLE_RATE_48kHz',
     'SAMPLE_RATE_DVD_QUALITY',
     'SAMPLE_RATE_96kHz',
-    'SAMPLE_RATE_192kHz'
+    'SAMPLE_RATE_192kHz',
+    'AUDIO_LIBRARY_PTB'
 ]
 
 from psychopy.tools.audiotools import *
@@ -46,6 +47,9 @@ sampleRateQualityLevels = {
     5: (SAMPLE_RATE_192kHz, 'Ultra High-Def (192kHz)')
 }
 
+# audio library identifiers
+AUDIO_LIBRARY_PTB = 'ptb'  # PsychPortAudio from Psychtoolbox
+
 
 class AudioDeviceInfo(object):
     """Descriptor for an audio device (playback or recording) on this system.
@@ -63,7 +67,8 @@ class AudioDeviceInfo(object):
     Parameters
     ----------
     deviceIndex : int
-        Enumerated index of the audio device.
+        Enumerated index of the audio device. This number is specific to the
+        engine used for audio.
     deviceName : str
         Human-readable name of the device.
     hostAPIName : str
@@ -194,7 +199,7 @@ class AudioDeviceInfo(object):
             inputChannels=desc['NrInputChannels'],
             inputLatency=(desc['LowInputLatency'], desc['HighInputLatency']),
             defaultSampleRate=desc['DefaultSampleRate'],
-            audioLib='ptb')  # queried with psychtoolbox
+            audioLib=AUDIO_LIBRARY_PTB)  # queried with psychtoolbox
 
         return audioDevDesc
 
@@ -282,7 +287,7 @@ class AudioDeviceInfo(object):
 
     @property
     def defaultSampleRate(self):
-        """Default sample rate (`int`) for this device."""
+        """Default sample rate in Hertz (Hz) for this device (`int`)."""
         return self._defaultSampleRate
 
     @defaultSampleRate.setter
@@ -291,26 +296,28 @@ class AudioDeviceInfo(object):
 
     @property
     def isPlayback(self):
-        """`True` if this is a capture device (`bool`)."""
+        """`True` if this device is suitable for playback (`bool`)."""
         return self._outputChannels > 0
 
     @property
     def isCapture(self):
-        """`True` if this is a capture device (`bool`)."""
+        """`True` if this device is suitable for capture (`bool`)."""
         return self._inputChannels > 0
 
     @property
     def isDuplex(self):
-        """`True` if this is a capture and playback device (`bool`)."""
+        """`True` if this device is suitable for capture and playback (`bool`).
+
+        """
         return self.isPlayback and self.isCapture
 
 
 class AudioDeviceStatus(object):
     """Descriptor for audio device status information.
 
-    Properties of this class are standardized on the structure of the returned
-    `dict` when calling PsychPortAudio with `GetStatus`. Other audio backends
-    should try to populate these fields as best they can.
+    Properties of this class are standardized on the status information returned
+    by Psychtoolbox. Other audio backends should try to populate these fields as
+    best they can with their equivalent status values.
 
     Users should never instance this class themselves unless they have good
     reason to.
@@ -432,7 +439,7 @@ class AudioDeviceStatus(object):
                  sampleRate=SAMPLE_RATE_48kHz,
                  outDeviceIndex=0,
                  inDeviceIndex=0,
-                 audioLib=u'Null audio library'):
+                 audioLib=u'Null Audio Library'):
 
         self.active = active
         self.state = state
@@ -817,7 +824,6 @@ class AudioDeviceStatus(object):
 #
 NULL_AUDIO_DEVICE = AudioDeviceInfo()
 NULL_AUDIO_DEVICE_STATUS = AudioDeviceStatus()
-
 
 if __name__ == "__main__":
     pass
