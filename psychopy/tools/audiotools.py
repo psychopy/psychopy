@@ -243,13 +243,13 @@ def whiteNoise(duration=1.0, sampleRateHz=SAMPLE_RATE_48kHz):
     Returns
     -------
     ndarray
-        Nx1 or Nx2 array containing samples for the sound.
+        Nx1 array containing samples for the sound.
 
     """
     samples = np.random.randn(int(duration * sampleRateHz)).reshape(-1, 1)
 
-    # rescale, check if this is allowed ... or just clip?
-    samples /= np.max(np.abs(samples))
+    # clip range
+    samples = samples.clip(-1, 1)
 
     return samples
 
