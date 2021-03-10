@@ -13,6 +13,7 @@ Eye Tracker hardware used.
 
 Initial Version: May 6th, 2013, Sol Simpson
 """
+# TODO: Switch to use launchHubServer
 
 from __future__ import absolute_import, division, print_function
 
