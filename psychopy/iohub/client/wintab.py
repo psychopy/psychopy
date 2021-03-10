@@ -11,7 +11,7 @@ import numpy as np
 
 from . import ioHubDeviceView, ioEvent, DeviceRPC
 from ..devices import Computer
-from ..devices.wintab import WintabTabletSampleEvent
+from ..devices.wintab import WintabSampleEvent
 from ..constants import EventConstants
 
 if Computer.platform == 'win32':
@@ -25,6 +25,19 @@ else:
 def FIX_DOUBLE(x):
     return INT(x) + FRAC(x) / 65536.0
 
+#
+### Patch psychopy.platform_specific.sendStayAwake
+### so that it does not cause psychopy window to consume
+### events needed by iohub.devices.wintab.
+#
+def _noOpFunc():
+    pass
+
+from psychopy import platform_specific
+_sendStayAwake = platform_specific.sendStayAwake
+platform_specific.sendStayAwake=_noOpFunc
+_sendStayAwake()
+print(">> iohub.wintab device patching platform_specific.sendStayAwake.")
 
 # TabletPen Device and Events Types
 
@@ -38,7 +51,7 @@ class PenSampleEvent(ioEvent):
     STATES[8] = 'FIRST_PRESS'
     STATES[16] = 'PRESSED'
 
-    wtsample_attrib_names = WintabTabletSampleEvent.CLASS_ATTRIBUTE_NAMES
+    wtsample_attrib_names = WintabSampleEvent.CLASS_ATTRIBUTE_NAMES
     _attrib_index = dict()
     _attrib_index['x'] = wtsample_attrib_names.index('x')
     _attrib_index['y'] = wtsample_attrib_names.index('y')
@@ -175,16 +188,16 @@ class PenLeaveRegionEvent(ioEvent):
         super(PenLeaveRegionEvent, self).__init__(ioe_array, device)
 
 
-class WintabTablet(ioHubDeviceView):
-    """The WintabTablet device provides access to PenSampleEvent events."""
-    SAMPLE = EventConstants.WINTAB_TABLET_SAMPLE
-    ENTER = EventConstants.WINTAB_TABLET_ENTER_REGION
-    LEAVE = EventConstants.WINTAB_TABLET_LEAVE_REGION
+class Wintab(ioHubDeviceView):
+    """The Wintab device provides access to PenSampleEvent events."""
+    SAMPLE = EventConstants.WINTAB_SAMPLE
+    ENTER = EventConstants.WINTAB_ENTER_REGION
+    LEAVE = EventConstants.WINTAB_LEAVE_REGION
     _type2class = {SAMPLE: PenSampleEvent,
                    ENTER: PenEnterRegionEvent,
                    LEAVE: PenLeaveRegionEvent}
     def __init__(self, ioclient, dev_cls_name, dev_config):
-        super(WintabTablet, self).__init__(ioclient, dev_cls_name, dev_config)
+        super(Wintab, self).__init__(ioclient, dev_cls_name, dev_config)
 
         self._prev_sample = None
         self._events = dict()
@@ -253,7 +266,7 @@ class WintabTablet(ioHubDeviceView):
                         curr_samp.accelleration = cax, cay, cayx
                     else:
                         curr_samp.accelleration = (0, 0, 0)
-            except ZeroDivisionError as e:
+            except ZeroDivisionError:
                 print("ERROR: wintab._calculateVelAccel ZeroDivisionError "
                       "occurred. prevId: %d, currentId: %d" % (curr_samp.id,
                                                                prev_samp.id))
@@ -282,6 +295,7 @@ class WintabTablet(ioHubDeviceView):
         self._reporting = kb_state.get('reporting_events')
 
         for etype, event_arrays in list(kb_state.get('events').items()):
+            etype = int(etype)
             ddeque = deque(maxlen=self._event_buffer_length)
             et_queue = self._events.setdefault(etype, ddeque)
 
