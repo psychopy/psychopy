@@ -125,6 +125,7 @@ class Microphone(object):
         # PTB specific stuff
         self._mode = 2  # open a stream in capture mode
 
+
         # this can only be set after initialization
         self._stopTime = None   # optional, stop time to end recording
 
@@ -135,6 +136,9 @@ class Microphone(object):
             mode=self._mode,
             freq=self._sampleRateHz,
             channels=self._channels)
+
+        # set latency bias
+        self._stream.latency_bias = 0.0
 
         # pre-allocate recording buffer, called once
         self._stream.get_audio_data(self._bufferSecs)
@@ -183,6 +187,15 @@ class Microphone(object):
                      if desc.isCapture]
 
         return inputDevices
+
+    @property
+    def latencyBias(self):
+        """Latency bias to add to the next recording (`float`)."""
+        return self._stream.latency_bias
+
+    @latencyBias.setter
+    def latencyBias(self, value):
+        self._stream.latency_bias = float(value)
 
     @property
     def bufferSecs(self):
