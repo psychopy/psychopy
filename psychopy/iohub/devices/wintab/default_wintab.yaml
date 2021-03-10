@@ -8,8 +8,7 @@
 wintab.Wintab:
     # name: The name you want to assign the Wintab device for the experiment
     #   This name is what will be used to access the device within the experiment
-    #   script via the devices.[device_name] property of the ioHubConnection or
-    #   ioHubExperimentRuntime classes.
+    #   script via the devices.[device_name] property of the ioHubConnection
     #
     name: pen
 
