@@ -273,15 +273,33 @@ class Microphone(object):
 
         return startTime
 
-    def stop(self):
+    def stop(self, blockUntilStopped=True, stopTime=None):
         """Stop recording audio.
 
         Call this method to end an audio recording if in progress. This will
         simply halt recording and not close the stream.
 
+        Parameters
+        ----------
+        blockUntilStopped : bool
+            Halt script execution until the stream has fully stopped.
+        stopTime : float or None
+            Scheduled stop time for the stream in system time. If `None`, the
+            stream will stop as soon as possible.
+
+        Returns
+        -------
+        tuple
+            Tuple containing `startTime`, `endPositionSecs`, `xruns` and
+            `estStopTime`.
+
         """
-        self._stream.stop()
+        startTime, endPositionSecs, xruns, estStopTime = self._stream.stop(
+            block_until_stopped=blockUntilStopped,
+            stopTime=stopTime)
         self._statusFlag = NOT_STARTED
+
+        return startTime, endPositionSecs, xruns, estStopTime
 
     def close(self):
         """Close the stream.
