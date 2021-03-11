@@ -125,9 +125,6 @@ class Microphone(object):
         # PTB specific stuff
         self._mode = 2  # open a stream in capture mode
 
-        # this can only be set after initialization
-        self._stopTime = None   # optional, stop time to end recording
-
         # Handle for the recording stream, should only be opened once per
         # session
         self._stream = audio.Stream(
@@ -189,7 +186,8 @@ class Microphone(object):
 
     @property
     def latencyBias(self):
-        """Latency bias to add when starting the microphone (`float`)."""
+        """Latency bias to add when starting the microphone (`float`).
+        """
         return self._stream.latency_bias
 
     @latencyBias.setter
