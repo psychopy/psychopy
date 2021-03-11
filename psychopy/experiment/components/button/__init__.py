@@ -13,10 +13,6 @@ from psychopy.experiment.components import BaseVisualComponent, Param, getInitVa
 from psychopy.localization import _localized as __localized
 _localized = __localized.copy()
 
-# the absolute path to the folder containing this path
-thisFolder = path.abspath(path.dirname(__file__))
-tooltip = _translate('Button: A clickable textbox')
-
 # only use _localized values for label values, nothing functional:
 _localized.update({'callback': _translate("Callback Function"),
                    'forceEndRoutine': _translate('Force end of Routine'),
@@ -42,7 +38,8 @@ class ButtonComponent(BaseVisualComponent):
     """
     categories = ['Responses']
     targets = ['PsychoPy']
-    iconFile = Path(thisFolder) / 'button.png'
+    iconFile = Path(__file__).parent / 'button.png'
+    tooltip = _translate('Button: A clickable textbox')
 
     def __init__(self, exp, parentName, name="button",
                  startType='time (s)', startVal=0.1,

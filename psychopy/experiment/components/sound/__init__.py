@@ -17,10 +17,6 @@ from psychopy.sound._base import knownNoteNames
 from psychopy.localization import _localized as __localized
 _localized = __localized.copy()
 
-# the absolute path to the folder containing this path
-thisFolder = path.abspath(path.dirname(__file__))
-tooltip = _translate('Sound: play recorded files or generated sounds',)
-
 # only use _localized values for label values, nothing functional:
 _localized.update({'sound': _translate('Sound'),
                    'volume': _translate('Volume'),
@@ -30,7 +26,9 @@ _localized.update({'sound': _translate('Sound'),
 class SoundComponent(BaseComponent):
     """An event class for presenting sound stimuli"""
     categories = ['Stimuli']
-    iconFile = Path(thisFolder) / 'sound.png'
+    targets = ['PsychoPy', 'PsychoJS']
+    iconFile = Path(__file__).parent / 'sound.png'
+    tooltip = _translate('Sound: play recorded files or generated sounds', )
 
     def __init__(self, exp, parentName, name='sound_1', sound='A', volume=1,
                  startType='time (s)', startVal='0.0',

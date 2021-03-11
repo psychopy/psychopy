@@ -19,9 +19,6 @@ _localized = __localized.copy()
 __author__ = 'Jon Peirce'
 
 # the absolute path to the folder containing this path
-thisFolder = path.abspath(path.dirname(__file__))
-tooltip = _translate('Static: Static screen period (e.g. an ISI). '
-                     'Useful for pre-loading stimuli.')
 _localized.update({'Custom code': _translate('Custom code')})
 
 
@@ -33,7 +30,10 @@ class StaticComponent(BaseComponent):
     # override the categories property below
     # an attribute of the class, determines the section in the components panel
     categories = ['Custom']
-    iconFile = Path(thisFolder) / 'static.png'
+    targets = ['PsychoPy']
+    iconFile = Path(__file__).parent / 'static.png'
+    tooltip = _translate('Static: Static screen period (e.g. an ISI). '
+                         'Useful for pre-loading stimuli.')
 
     def __init__(self, exp, parentName, name='ISI',
                  startType='time (s)', startVal=0.0,

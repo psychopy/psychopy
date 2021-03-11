@@ -18,11 +18,6 @@ from psychopy.experiment.utils import valid_var_re
 
 __author__ = 'Jeremy Gray'
 
-# abs path to the folder containing this path
-thisFolder = path.abspath(path.dirname(__file__))
-tooltip = _translate('ioLabs ButtonBox: check and record response buttons on '
-                     'ioLab Systems ButtonBox')
-
 # only use _localized values for label values, nothing functional:
 _localized.update({'active': _translate('Active buttons'),
                    'lights': _translate('Lights'),
@@ -41,7 +36,9 @@ class ioLabsButtonBoxComponent(KeyboardComponent):
     """
     categories = ['Responses']  # which section(s) in the components panel
     targets = ['PsychoPy']
-    iconFile = Path(thisFolder) / 'ioLabs.png'
+    iconFile = Path(__file__).parent / 'ioLabs.png'
+    tooltip = _translate('ioLabs ButtonBox: check and record response buttons on '
+                         'ioLab Systems ButtonBox')
 
     def __init__(self, exp, parentName, name='bbox',
                  active="(0,1,2,3,4,5,6,7)", store='first button',

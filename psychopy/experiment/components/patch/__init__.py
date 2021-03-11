@@ -13,11 +13,6 @@ from psychopy.experiment.components import BaseVisualComponent, Param, getInitVa
 from psychopy.localization import _localized as __localized
 _localized = __localized.copy()
 
-# the absolute path to the folder containing this path
-thisFolder = path.abspath(path.dirname(__file__))
-tooltip = _translate('Patch: present images (bmp, jpg, tif...) or textures '
-                     'like gratings')
-
 # only use _localized values for label values, nothing functional:
 _localized.update({'image': _translate('Image/tex'),
                    'mask': _translate('Mask'),
@@ -30,7 +25,11 @@ _localized.update({'image': _translate('Image/tex'),
 class PatchComponent(BaseVisualComponent):
     """An event class for presenting image-based stimuli"""
 
-    iconFile = Path(thisFolder) / 'patch.png'
+    categories = ['Stimuli']
+    targets = ['PsychoPy', 'PsychoJS']
+    iconFile = Path(__file__).parent / 'patch.png'
+    tooltip = _translate('Patch: present images (bmp, jpg, tif...) or textures '
+                         'like gratings')
 
     def __init__(self, exp, parentName, name='patch', image='sin', mask='None',
                  sf='None', interpolate='linear',

@@ -16,10 +16,6 @@ _localized = __localized.copy()
 
 __author__ = 'Jon Peirce, David Bridges, Anthony Haffey'
 
-# the absolute path to the folder containing this path
-thisFolder = path.abspath(path.dirname(__file__))
-tooltip = _translate('Form: a Psychopy survey tool')
-
 # only use _localized values for label values, nothing functional:
 _localized.update({'Items': _translate('Items'),
                    'Text Height': _translate('Text Height'),
@@ -30,12 +26,14 @@ _localized.update({'Items': _translate('Items'),
                    })
 knownStyles = form.Form.knownStyles
 
+
 class FormComponent(BaseVisualComponent):
     """A class for presenting a survey as a Builder component"""
 
-    iconFile = Path(thisFolder) / 'form.png'
     categories = ['Responses']
     targets = ['PsychoPy', 'PsychoJS']
+    iconFile = Path(__file__).parent / 'form.png'
+    tooltip = _translate('Form: a Psychopy survey tool')
 
     def __init__(self, exp, parentName,
                  name='form',

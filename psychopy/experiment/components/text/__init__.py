@@ -15,10 +15,6 @@ from psychopy.experiment.components import BaseVisualComponent, Param, getInitVa
 from psychopy.localization import _localized as __localized
 _localized = __localized.copy()
 
-# the absolute path to the folder containing this path
-thisFolder = path.abspath(path.dirname(__file__))
-tooltip = _translate('Text: present text stimuli')
-
 # only use _localized values for label values, nothing functional:
 _localized.update({'text': _translate('Text'),
                    'font': _translate('Font'),
@@ -32,9 +28,11 @@ class TextComponent(BaseVisualComponent):
     """An event class for presenting text-based stimuli
     """
 
-    iconFile = Path(thisFolder) / 'text.png'
     categories = ['Stimuli']
     targets = ['PsychoPy', 'PsychoJS']
+    iconFile = Path(__file__).parent / 'text.png'
+    tooltip = _translate('Text: present text stimuli')
+
     def __init__(self, exp, parentName, name='text',
                  # effectively just a display-value
                  text=_translate('Any text\n\nincluding line breaks'),

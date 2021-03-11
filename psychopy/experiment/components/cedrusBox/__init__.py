@@ -20,11 +20,6 @@ from psychopy.localization import _localized as __localized
 _localized = __localized.copy()
 __author__ = 'Jon Peirce'
 
-# abs path to the folder containing this path
-thisFolder = path.abspath(path.dirname(__file__))
-tooltip = _translate('Cedrus Button Box: Cedrus response boxes, using the '
-                     'pyxid library provided by Cedrus')
-
 # only use _localized values for label values, nothing functional:
 _localized.update({'deviceNumber': _translate('Device number'),
                    'useBoxTimer': _translate("Use box timer")})
@@ -43,7 +38,9 @@ class cedrusButtonBoxComponent(KeyboardComponent):
     """
     categories = ['Responses']  # which section(s) in the components panel
     targets = ['PsychoPy']
-    iconFile = Path(thisFolder) / 'cedrusBox.png'
+    iconFile = Path(__file__).parent / 'cedrusBox.png'
+    tooltip = _translate('Cedrus Button Box: Cedrus response boxes, using the '
+                         'pyxid library provided by Cedrus')
 
     def __init__(self, exp, parentName, name='buttonBox',
                  store='first key',

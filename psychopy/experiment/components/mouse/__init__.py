@@ -15,10 +15,6 @@ from psychopy.localization import _localized as __localized
 _localized = __localized.copy()
 import re
 
-# the absolute path to the folder containing this path
-thisFolder = path.abspath(path.dirname(__file__))
-tooltip = _translate('Mouse: query mouse position and buttons')
-
 # only use _localized values for label values, nothing functional:
 _localized.update({'saveMouseState': _translate('Save mouse state'),
                    'forceEndRoutineOnPress': _translate('End Routine on press'),
@@ -34,7 +30,8 @@ class MouseComponent(BaseComponent):
     """
     categories = ['Responses']
     targets = ['PsychoPy', 'PsychoJS']
-    iconFile = Path(thisFolder) / 'mouse.png'
+    iconFile = Path(__file__).parent / 'mouse.png'
+    tooltip = _translate('Mouse: query mouse position and buttons')
 
     def __init__(self, exp, parentName, name='mouse',
                  startType='time (s)', startVal=0.0,
@@ -51,7 +48,6 @@ class MouseComponent(BaseComponent):
         self.type = 'Mouse'
         self.url = "https://www.psychopy.org/builder/components/mouse.html"
         self.exp.requirePsychopyLibs(['event'])
-        self.categories = ['Inputs']
 
         self.order += [
             'forceEndRoutineOnPress',  # Basic tab

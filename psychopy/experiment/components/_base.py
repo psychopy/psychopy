@@ -28,8 +28,11 @@ class BaseComponent(object):
     """A template for components, defining the methods to be overridden"""
     # override the categories property below
     # an attribute of the class, determines the section in the components panel
+
     categories = ['Custom']
-    targets = ['PsychoPy']
+    targets = []
+    iconFile = ""
+    tooltip = ""
 
     def __init__(self, exp, parentName, name='',
                  startType='time (s)', startVal='',
@@ -574,8 +577,11 @@ class BaseComponent(object):
 class BaseVisualComponent(BaseComponent):
     """Base class for most visual stimuli
     """
-    # an attribute of the class, determines section in the components panel
+
     categories = ['Stimuli']
+    targets = []
+    iconFile = ""
+    tooltip = ""
 
     def __init__(self, exp, parentName, name='',
                  units='from exp settings', color='white', fillColor="", borderColor="",

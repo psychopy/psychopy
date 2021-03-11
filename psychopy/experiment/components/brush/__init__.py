@@ -15,10 +15,6 @@ from psychopy import logging
 from psychopy.localization import _localized as __localized
 _localized = __localized.copy()
 
-# the absolute path to the folder containing this path
-thisFolder = path.abspath(path.dirname(__file__))
-tooltip = _translate('Brush: a drawing tool')
-
 # only use _localized values for label values, nothing functional:
 _localized.update({'lineWidth': _translate('Brush Size'),
                    'lineColor': _translate('Brush Color'),
@@ -29,7 +25,9 @@ class BrushComponent(BaseVisualComponent):
     """A class for drawing freehand responses"""
 
     categories = ['Responses']
-    iconFile = Path(thisFolder) / 'brush.png'
+    targets = ['PsychoPy', 'PsychoJS']
+    iconFile = Path(__file__).parent / 'brush.png'
+    tooltip = _translate('Brush: a drawing tool')
 
     def __init__(self, exp, parentName, name='brush',
                  lineColor='$[1,1,1]', lineColorSpace='rgb',
@@ -47,7 +45,6 @@ class BrushComponent(BaseVisualComponent):
         self.type = 'Brush'
         self.url = "https://www.psychopy.org/builder/components/brush.html"
         self.exp.requirePsychopyLibs(['visual'])
-        self.targets = ['PsychoPy', 'PsychoJS']
         self.order.remove("opacity")  # Move opacity to the end
         self.order += [
             "lineWidth", "lineColor", "lineColorSpace", "opacity"  # Appearance tab

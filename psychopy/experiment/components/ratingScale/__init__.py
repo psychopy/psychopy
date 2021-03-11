@@ -19,11 +19,6 @@ _localized = __localized.copy()
 
 __author__ = 'Jeremy Gray'
 
-# the absolute path to the folder containing this path
-thisFolder = path.abspath(path.dirname(__file__))
-tooltip = _translate('Rating scale: obtain numerical or categorical '
-                     'responses')
-
 # only use _localized values for label values, nothing functional:
 _localized.update({'visualAnalogScale': _translate('Visual analog scale'),
                    'categoryChoices': _translate('Category choices'),
@@ -50,7 +45,10 @@ class RatingScaleComponent(BaseComponent):
     """A class for presenting a rating scale as a builder component
     """
     categories = ['Responses']
-    iconFile = Path(thisFolder) / 'ratingscale.png'
+    targets = ['PsychoPy']
+    iconFile = Path(__file__).parent / 'ratingscale.png'
+    tooltip = _translate('Rating scale: obtain numerical or categorical '
+                         'responses')
 
     def __init__(self, exp, parentName,
                  name='rating',

@@ -16,11 +16,6 @@ from psychopy import logging
 from psychopy.localization import _localized as __localized
 _localized = __localized.copy()
 
-# the absolute path to the folder containing this path
-thisFolder = path.abspath(path.dirname(__file__))
-tooltip = _translate('Polygon: any regular polygon (line, triangle, square'
-                     '...circle)')
-
 # only use _localized values for label values, nothing functional:
 _localized = _localized.copy()
 _localized.update({'nVertices': _translate('Num. vertices'),
@@ -35,7 +30,11 @@ _localized.update({'nVertices': _translate('Num. vertices'),
 class PolygonComponent(BaseVisualComponent):
     """A class for presenting grating stimuli"""
 
-    iconFile = Path(thisFolder) / 'polygon.png'
+    categories = ['Stimuli']
+    targets = ['PsychoPy', 'PsychoJS']
+    iconFile = Path(__file__).parent / 'polygon.png'
+    tooltip = _translate('Polygon: any regular polygon (line, triangle, square'
+                         '...circle)')
 
     def __init__(self, exp, parentName, name='polygon', interpolate='linear',
                  units='from exp settings',
@@ -57,7 +56,6 @@ class PolygonComponent(BaseVisualComponent):
         self.type = 'Polygon'
         self.url = "https://www.psychopy.org/builder/components/polygon.html"
         self.exp.requirePsychopyLibs(['visual'])
-        self.targets = ['PsychoPy', 'PsychoJS']
         self.order += ['shape', 'nVertices',  # Basic tab
                       ]
         self.order.insert(self.order.index("borderColor"), "lineColor")

@@ -2114,7 +2114,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             wx.Button.__init__(self, parent, wx.ID_ANY,
                                label=label, name=name,
                                size=(68, 68), style=wx.NO_BORDER)
-            self.SetToolTip(wx.ToolTip(comp.__doc__ or name))
+            self.SetToolTip(wx.ToolTip(comp.tooltip or name))
             # Style
             self._applyAppTheme()
             # Bind to functions

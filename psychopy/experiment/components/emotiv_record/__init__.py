@@ -12,13 +12,13 @@ _localized = __localized.copy()
 
 CORTEX_OBJ = 'cortex_obj'
 
-thisFolder = path.abspath(path.dirname(__file__))
-tooltip = _translate('Initialize EMOTIV hardware connection')
-
 
 class EmotivRecordingComponent(BaseComponent):  # or (VisualComponent)
 
-    iconFile = Path(thisFolder) / 'emotiv_record.png'
+    categories = ['Custom']
+    targets = ['PsychoPy']
+    iconFile = Path(__file__).parent / 'emotiv_record.png'
+    tooltip = _translate('Initialize EMOTIV hardware connection')
 
     def __init__(self, exp, parentName, name='cortex_rec'):
         super(EmotivRecordingComponent, self).__init__(

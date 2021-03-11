@@ -17,10 +17,6 @@ from psychopy.localization import _localized as __localized
 _localized = __localized.copy()
 import numpy as np
 
-# the absolute path to the folder containing this path
-thisFolder = path.abspath(path.dirname(__file__))
-tooltip = _translate('Variable: create a new variable')
-
 # only use _localized values for label values, nothing functional:
 _localized.update({'name': _translate('Name'),
                    'startExpValue': _translate('Experiment start value'),
@@ -36,7 +32,10 @@ _localized.update({'name': _translate('Name'),
 class VariableComponent(BaseComponent):
     """An class for creating variables in builder."""
 
-    iconFile = Path(thisFolder) / 'variable.png'
+    categories = ['Custom']
+    targets = ['PsychoPy']
+    iconFile = Path(__file__).parent / 'variable.png'
+    tooltip = _translate('Variable: create a new variable')
 
     def __init__(self, exp, parentName,
                  name='var1', startExpValue = '',

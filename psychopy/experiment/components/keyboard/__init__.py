@@ -25,10 +25,6 @@ from pkgutil import find_loader
 # Check for psychtoolbox
 havePTB = find_loader('psychtoolbox') is not None
 
-# the absolute path to the folder containing this path
-thisFolder = path.abspath(path.dirname(__file__))
-tooltip = _translate('Keyboard: check and record keypresses')
-
 # only use _localized values for label values, nothing functional:
 _localized.update({'allowedKeys': _translate('Allowed keys'),
                    'discard previous': _translate('Discard previous'),
@@ -44,7 +40,8 @@ class KeyboardComponent(BaseComponent):
     # an attribute of the class, determines the section in components panel
     categories = ['Responses']
     targets = ['PsychoPy', 'PsychoJS']
-    iconFile = Path(thisFolder) / 'keyboard.png'
+    iconFile = Path(__file__).parent / 'keyboard.png'
+    tooltip = _translate('Keyboard: check and record keypresses')
 
     def __init__(self, exp, parentName, name='key_resp',
                  allowedKeys="'y','n','left','right','space'",

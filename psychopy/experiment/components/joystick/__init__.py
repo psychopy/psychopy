@@ -17,10 +17,6 @@ from psychopy.localization import _localized as __localized
 _localized = __localized.copy()
 import re
 
-# the absolute path to the folder containing this path
-thisFolder = path.abspath(path.dirname(__file__))
-tooltip = _translate('Joystick: query joystick position and buttons')
-
 # only use _localized values for label values, nothing functional:
 _localized.update({'saveJoystickState': _translate('Save joystick state'),
                    'forceEndRoutineOnPress': _translate('End Routine on press'),
@@ -30,13 +26,15 @@ _localized.update({'saveJoystickState': _translate('Save joystick state'),
                    'deviceNumber': _translate('Device number'),
                    'allowedButtons': _translate('Allowed Buttons')})
 
+
 class JoystickComponent(BaseComponent):
     """An event class for checking the joystick location and buttons
     at given timepoints
     """
     categories = ['Responses']
     targets = ['PsychoPy']
-    iconFile = Path(thisFolder) / 'joystick.png'
+    iconFile = Path(__file__).parent / 'joystick.png'
+    tooltip = _translate('Joystick: query joystick position and buttons')
 
     def __init__(self, exp, parentName, name='joystick',
                  startType='time (s)', startVal=0.0,

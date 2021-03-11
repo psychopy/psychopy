@@ -15,10 +15,6 @@ from psychopy.experiment.components import BaseVisualComponent, getInitVals, Par
 from psychopy.localization import _localized as __localized
 _localized = __localized.copy()
 
-# the absolute path to the folder containing this path
-thisFolder = path.abspath(path.dirname(__file__))
-tooltip = _translate('Movie: play movie files')
-
 # only use _localized values for label values, nothing functional:
 _localized.update({'movie': _translate('Movie file'),
                    'forceEndRoutine': _translate('Force end of Routine'),
@@ -31,7 +27,10 @@ if _localized['backend'] == 'backend': # this is the only non-capitals label
 class MovieComponent(BaseVisualComponent):
     """An event class for presenting movie-based stimuli"""
 
-    iconFile = Path(thisFolder) / 'movie.png'
+    categories = ['Stimuli']
+    targets = ['PsychoPy', 'PsychoJS']
+    iconFile = Path(__file__).parent / 'movie.png'
+    tooltip = _translate('Movie: play movie files')
 
     def __init__(self, exp, parentName, name='movie', movie='',
                  units='from exp settings',
@@ -55,7 +54,6 @@ class MovieComponent(BaseVisualComponent):
         self.order += ['movie', 'forceEndRoutine', # Basic tab
                        'loop', 'No audio', 'backend',
                        ]
-        self.targets = ['PsychoPy', 'PsychoJS']
 
         # params
         self.params['stopVal'].hint = _translate(

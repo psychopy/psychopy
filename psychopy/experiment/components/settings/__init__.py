@@ -70,7 +70,6 @@ _localized = {'expName': _translate("Experiment name"),
               'Force stereo': _translate("Force stereo"),
               'Export HTML': _translate("Export HTML")}
 
-thisFolder = os.path.split(__file__)[0]
 #
 #
 # # customize the Proj ID Param class to
@@ -93,8 +92,11 @@ thisFolder = os.path.split(__file__)[0]
 class SettingsComponent(object):
     """This component stores general info about how to run the experiment
     """
-    iconFile = Path(thisFolder) / 'settings.png'
+
+    categories = ['Custom']
     targets = ['PsychoPy', 'PsychoJS']
+    iconFile = Path(__file__).parent / 'settings.png'
+    tooltip = _translate("Edit settings for this experiment")
 
     def __init__(self, parentName, exp, expName='', fullScr=True,
                  winSize=(1024, 768), screen=1, monitor='testMonitor',
