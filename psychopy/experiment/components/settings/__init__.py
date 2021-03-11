@@ -24,7 +24,7 @@ import ast  # for doing literal eval to convert '["a","b"]' to a list
 
 
 def readTextFile(relPath):
-    fullPath = os.path.join(thisFolder, relPath)
+    fullPath = os.path.join(Path(__file__).parent, relPath)
     with open(fullPath, "r") as f:
         txt = f.read()
     return txt
