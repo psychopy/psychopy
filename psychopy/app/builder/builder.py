@@ -2110,8 +2110,6 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             for redundant in ['component', 'Component', "ButtonBox"]:
                 label = label.replace(redundant, "")
             label = prettyname(label)
-            # Get bitmap
-            icon = iconCache.getBitmap(comp.iconFile, size=48)
             # Make button
             wx.Button.__init__(self, parent, wx.ID_ANY,
                                label=label, name=name,
@@ -2194,6 +2192,8 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             icon = iconCache.getBitmap(self.component.iconFile, size=48)
             self.SetBitmap(icon)
             self.SetBitmapCurrent(icon)
+            self.SetBitmapPressed(icon)
+            self.SetBitmapFocus(icon)
             self.SetBitmapPosition(wx.TOP)
             # Refresh
             self.Refresh()
