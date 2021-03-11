@@ -295,7 +295,7 @@ class Microphone(object):
 
         """
         startTime, endPositionSecs, xruns, estStopTime = self._stream.stop(
-            block_until_stopped=blockUntilStopped,
+            block_until_stopped=int(blockUntilStopped),
             stopTime=stopTime)
         self._statusFlag = NOT_STARTED
 
