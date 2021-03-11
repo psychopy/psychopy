@@ -2109,11 +2109,11 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             label = name
             for redundant in ['component', 'Component', "ButtonBox"]:
                 label = label.replace(redundant, "")
-            label = prettyname(label)
+            label = prettyname(label, wrap=10)
             # Make button
             wx.Button.__init__(self, parent, wx.ID_ANY,
                                label=label, name=name,
-                               size=(68, 68), style=wx.NO_BORDER)
+                               size=(68, 68+12*label.count("\n")), style=wx.NO_BORDER)
             self.SetToolTip(wx.ToolTip(comp.tooltip or name))
             # Style
             self._applyAppTheme()
