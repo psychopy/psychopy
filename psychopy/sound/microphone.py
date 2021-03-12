@@ -51,6 +51,9 @@ class Microphone(object):
     bufferSecs : float
         Buffer size to pre-allocate for the specified number of seconds. The
         default is 2.0 seconds which is usually sufficient.
+    warmUp : bool
+        Warm-up the stream after opening it. This helps prevent additional
+        latency the first time `start` is called on some systems.
 
     Examples
     --------
@@ -78,7 +81,8 @@ class Microphone(object):
                  device=None,
                  sampleRateHz=None,
                  channels=2,
-                 bufferSecs=2.0):
+                 bufferSecs=2.0,
+                 warmUp=True):
 
         if not _hasPTB:  # fail if PTB is not installed
             raise ModuleNotFoundError(
@@ -142,6 +146,10 @@ class Microphone(object):
         # status flag
         self._statusFlag = NOT_STARTED
 
+        # do the warm-up
+        if warmUp:
+            self.warmUp()
+
     # def setDevice(self, device=None):
     #     """Set the device and open a stream. Calling this will close the
     #     previous stream and create a new one. Do not call this while recording
@@ -183,6 +191,22 @@ class Microphone(object):
                      if desc.isCapture]
 
         return inputDevices
+
+    def warmUp(self):
+        """Warm-/wake-up the audio stream.
+
+        On some systems the first time `start` is called incurs additional
+        latency, whereas successive calls do not. To deal with this, it is
+        recommended that you run this warm-up routine prior to capturing audio
+        samples. By default, this routine is called when instancing a new
+        microphone object.
+
+        """
+        # We should put an actual test here to see if timing stabilizes after
+        # multiple invocations of this function.
+        self._stream.start()
+        self._stream.stop()
+        self._stream.fill_buffer(0.0)   # clear the buffer after the warmup
 
     @property
     def latencyBias(self):
