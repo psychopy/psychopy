@@ -13,11 +13,15 @@ from builtins import super  # provides Py3-style super() using python-future
 from os import path
 from pathlib import Path
 from psychopy.experiment.components import BaseComponent, Param, getInitVals, _translate
+from psychopy.sound.microphone import Microphone
 from psychopy.localization import _localized as __localized
-_localized = __localized.copy()
 
+_localized = __localized.copy()
 _localized.update({'stereo': _translate('Stereo'),
                    'channel': _translate('Channel')})
+
+devices = {d.deviceName: d for d in Microphone.getDevices()}
+devices['default'] = None
 
 
 class MicrophoneComponent(BaseComponent):
@@ -28,10 +32,14 @@ class MicrophoneComponent(BaseComponent):
     tooltip = _translate('Microphone: basic sound capture (fixed onset & '
                          'duration), okay for spoken words')
 
-    def __init__(self, exp, parentName, name='mic_1',
+    def __init__(self, exp, parentName, name='mic',
                  startType='time (s)', startVal=0.0,
-                 stopType='duration (s)', stopVal=2.0, startEstim='',
-                 durationEstim='', stereo=False, channel=0, device="default"):
+                 stopType='duration (s)', stopVal=2.0,
+                 startEstim='', durationEstim='',
+                 channels='stereo', device="default",
+                 sampleRate="", bufferLength=2,
+                 #legacy
+                 stereo=None, channel=None):
         super(MicrophoneComponent, self).__init__(
             exp, parentName, name=name,
             startType=startType, startVal=startVal,
@@ -40,96 +48,164 @@ class MicrophoneComponent(BaseComponent):
 
         self.type = 'Microphone'
         self.url = "https://www.psychopy.org/builder/components/microphone.html"
-        self.exp.requirePsychopyLibs(['microphone'])
+        self.exp.requirePsychopyLibs(['sound'])
 
         self.order += []
 
-        # params
-        msg = _translate(
-            "Record two channels (stereo) or one (mono, smaller file)")
-        self.params['stereo'] = Param(
-            stereo, valType='bool', inputType="bool", categ='Basic',
-            hint=msg,
-            label=_localized['stereo'])
-
         self.params['stopType'].allowedVals = ['duration (s)']
-
         msg = _translate(
             'The duration of the recording in seconds; blank = 0 sec')
         self.params['stopType'].hint = msg
 
+        # params
         msg = _translate("What microphone device would you like the use to record?")
         self.params['device'] = Param(
-            device, valType=str, inputType="choice", categ="Hardware",
-            allowedVals=['default', 'webcam', 'dedicated'],
+            device, valType='str', inputType="choice", categ="Basic",
+            allowedVals=list(devices),
             hint=msg,
             label=_translate("Device")
         )
 
-        msg = _translate("Enter a channel number. Default value is 0. If unsure, run 'sound.backend.get_input_devices()'"
-                         " to locate the system's selected device/channel.")
-        self.params['channel'] = Param(
-            channel, valType='code', inputType="single", categ="Hardware",
+        msg = _translate(
+            "Record two channels (stereo) or one (mono, smaller file). Select 'auto' to use as many channels as the selected device allows.")
+        if stereo is not None:
+            # If using a legacy mic component, work out channels from old bool value of stereo
+            channels = ['mono', 'stereo'][stereo]
+        self.params['channels'] = Param(
+            channels, valType='str', inputType="choice", categ='Hardware',
+            allowedVals=['auto', 'mono', 'stereo'],
             hint=msg,
-            label=_localized['channel'])
+            label=_translate('Channels'))
+
+        msg = _translate(
+            "How many samples per second (Hz) to record at")
+        self.params['sampleRate'] = Param(
+            sampleRate, valType='num', inputType="single", categ='Hardware',
+            hint=msg,
+            label=_translate('Sample Rate (Hz)'))
+
+        msg = _translate(
+            "How many seconds of recording to store in the device's buffer at any given time")
+        self.params['bufferLength'] = Param(
+            bufferLength, valType='num', inputType="single", categ='Hardware',
+            hint=msg,
+            label=_translate('Buffer Length (s)'))
 
     def writeStartCode(self, buff):
-        # filename should have date_time, so filename_wav should be unique
-        buff.writeIndented("wavDirName = filename + '_wav'\n")
-        buff.writeIndented("if not os.path.isdir(wavDirName):\n"
-                           "    os.makedirs(wavDirName)  # to hold .wav "
-                           "files\n")
+        inits = getInitVals(self.params)
+        # Use filename with a suffix to store recordings
+        code = (
+            "# Make folder to store recordings from %(name)s\n"
+            "%(name)sRecFolder = filename + '_%(name)s_recorded'\n"
+            "if not os.path.isdir(%(name)sRecFolder):\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(1, relative=True)
+        code = (
+                "os.mkdir(%(name)sRecFolder)\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(-1, relative=True)
+
+    def writeInitCode(self, buff):
+        inits = getInitVals(self.params)
+        # Substitute channel value for numeric equivalent
+        inits['channels'] = {'mono': 1, 'stereo': 2, 'auto': None}[self.params['channels'].val]
+        # Substitute device name for device index
+        device = devices[self.params['device'].val]
+        if hasattr(device, "deviceIndex"):
+            inits['device'] = device.deviceIndex
+        else:
+            inits['device'] = None
+        # Create Microphone object and clips dict
+        code = (
+            "%(name)s = sound.microphone.Microphone(\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(1, relative=True)
+        code = (
+                "device=%(device)s, channels=%(channels)s, \n"
+                "sampleRateHz=%(sampleRate)s, bufferSecs=%(bufferLength)s\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(-1, relative=True)
+        code = (
+            ")\n"
+            "%(name)sClips = {}\n"
+        )
+        buff.writeIndentedLines(code % inits)
 
     def writeRoutineStartCode(self, buff):
+        """Write the code that will be called at the start of the routine"""
         inits = getInitVals(self.params)
-        code = ("%(name)s = microphone.AdvAudioCapture(name='%(name)s', "
-                "saveDir=wavDirName, stereo=%(stereo)s, chnl=%(channel)s)\n")
-        buff.writeIndented(code % inits)
+        inits['routine'] = self.parentName
+        # Add key to clips dict for this routine
+        code = (
+            "%(name)sClips['%(routine)s'] = []"
+        )
+        buff.writeIndentedLines(code % inits)
 
     def writeFrameCode(self, buff):
         """Write the code that will be called every frame"""
-        duration = "%s" % self.params['stopVal']  # type is code
-        if not len(duration):
-            duration = "0"
-        # starting condition:
-        buff.writeIndented("\n")
-        buff.writeIndented("# *%s* updates\n" % self.params['name'])
-        self.writeStartTestCode(buff)  # writes an if statement
-        buff.writeIndented("%(name)s.status = STARTED\n" % self.params)
-        code = "%s.record(sec=%s, block=False)  # start the recording thread\n"
-        buff.writeIndented(code % (self.params['name'], duration))
-        buff.setIndentLevel(-1, relative=True)  # ends the if statement
-        buff.writeIndented("\n")
-        # these lines handle both normal end of rec thread, and user .stop():
-        code = ("if %(name)s.status == STARTED and not "
-                "%(name)s.recorder.running:\n")
-        buff.writeIndented(code % self.params)
-        buff.writeIndented("    %s.status = FINISHED\n" % self.params['name'])
+        inits = getInitVals(self.params)
+        inits['routine'] = self.parentName
+        # Start the recording
+        code = (
+            "\n"
+            "# %(name)s updates"
+        )
+        buff.writeIndentedLines(code % inits)
+        self.writeStartTestCode(buff)
+        code = (
+                "# start recording with %(name)s\n"
+                "%(name)s.start()\n"
+                "%(name)sClips['%(routine)s'].append(%(name)s.getAudioClip()[0])\n"
+                "%(name)s.status = STARTED\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(-1, relative=True)
+        # Get clip each frame
+        code = (
+            "if %(name)s.status == STARTED:\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(1, relative=True)
+        code = (
+                "# update recorded clip for %(name)s\n"
+                "%(name)sClips['%(routine)s'][-1].append(%(name)s.getAudioClip()[0])\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(-1, relative=True)
+        # Stop recording
+        self.writeStopTestCode(buff)
+        code = (
+            "# stop recording with %(name)s\n"
+            "%(name)s.stop()\n"
+            "%(name)sClips['%(routine)s'][-1].append(%(name)s.getAudioClip()[0])\n"
+            "%(name)s.status = FINISHED\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(-2, relative=True)
 
-    def writeRoutineEndCode(self, buff):
-        # some shortcuts
-        name = self.params['name']
-        if len(self.exp.flow._loopList):
-            currLoop = self.exp.flow._loopList[-1]  # last (outer-most) loop
-        else:
-            currLoop = self.exp._expHandler
-
-        # write the actual code
-        buff.writeIndented("# %(name)s stop & responses\n" % self.params)
-        buff.writeIndented("%s.stop()  # sometimes helpful\n" %
-                           self.params['name'])
-        buff.writeIndented("if not %(name)s.savedFile:\n" % self.params)
-        buff.writeIndented("    %(name)s.savedFile = None\n" % self.params)
-        buff.writeIndented("# store data for %s (%s)\n" %
-                           (currLoop.params['name'], currLoop.type))
-
-        # always add saved file name
-        buff.writeIndented("%s.addData('%s.filename', %s.savedFile)\n" %
-                           (currLoop.params['name'], name, name))
-
-        # get parent to write code too (e.g. store onset/offset times)
-        super().writeRoutineEndCode(buff)
-
-        if currLoop.params['name'].val == self.exp._expHandler.name:
-            buff.writeIndented("%s.nextEntry()\n" % self.exp._expHandler.name)
-        # best not to do loudness / rms or other processing here
+    def writeExperimentEndCode(self, buff):
+        """Write the code that will be called at the end of
+        an experiment (e.g. save log files or reset hardware)
+        """
+        inits = getInitVals(self.params)
+        # Save recording
+        code = (
+            "for rt in %(name)sClips:\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(1, relative=True)
+        code = (
+                "for i, clip in enumerate(%(name)sClips[rt]):\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(1, relative=True)
+        code = (
+                    "clipName = os.path.join(%(name)sRecFolder, f'recording_{rt}_{i}.wav')\n"
+                    "clip.save(clipName)\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(-2, relative=True)
