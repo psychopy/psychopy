@@ -55,14 +55,6 @@ def quit(scon):
     scon.close()
     core.quit()
 
-def plotYX(yaxis, xaxis, description=''):
-    pyplot.plot(xaxis, yaxis)
-    pyplot.grid(True)
-    pyplot.title(description)
-    pyplot.ylabel('[std %.1f]' % np.std(yaxis))
-    pyplot.draw()
-    pyplot.show()
-
 if __name__ == "__main__":
     lhdevs = getLabHackerDevices()
     if len(lhdevs) == 0:
@@ -102,10 +94,10 @@ if __name__ == "__main__":
     for i in range(5):
         time.sleep(0.5)
 
-        # Instruct USB2TTL8 to start toggling digital out every 200 msec
-        # (generating a sound on the attached piezo buzzer every 200 msec)
+        # Instruct USB2TTL8 to start toggling digital out every 300 msec
+        # (generating a sound on the attached piezo buzzer every 300 msec)
         # from the start of the mic recording in the experiment.
-        sconn.write(b"WRITE 255 200000 0 1\n")
+        sconn.write(b"WRITE 255 300000 0 1\n")
         stime = core.getTime()
         ## start a recording
         mic.start()
@@ -130,14 +122,6 @@ if __name__ == "__main__":
         ## save the result
         myRecording.save('mic_rec%d.flac'%i, codec='flac')
         time.sleep(0.5)
-        #print("audioClip.duration: ", audioClip.duration, i)  # should be ~10 seconds
-        #print("audioClip.samples.shape: ",audioClip.samples.shape, i)
-        #audioClip.save('test%d.wav'%i)  # save the recorded audio as a 'wav' file
-        #    print("sample count:", len(data))
-        #clip_length = len(data)/rate
-        #tvals = np.linspace(0.0,clip_length, len(data))
-        #print('clip_length:', clip_length)
-        #plotYX(data, tvals, "time domain @ %iHz" % sampleRate)
 
     win.close()
     quit(sconn)
