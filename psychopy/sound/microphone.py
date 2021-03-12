@@ -28,6 +28,12 @@ except (ImportError, ModuleNotFoundError):
     _hasPTB = False
 
 
+# Force the use of WASAPI for audio capture on Windows. If `True`, only
+# WASAPI devices will be returned when calling static method
+# `Microphone.getDevices()`
+enforceWASAPI = True
+
+
 class Microphone(object):
     """Class for recording audio from a microphone or input stream.
 
@@ -69,11 +75,6 @@ class Microphone(object):
         audioClip.save('test.wav')  # save the recorded audio as a 'wav' file
 
     """
-    # Force the use of WASAPI for audio capture on Windows. If `True`, only
-    # WASAPI devices will be returned when calling static method
-    # `Microphone.getDevices()`
-    enforceWASAPI = True
-
     def __init__(self,
                  device=None,
                  sampleRateHz=None,
@@ -90,7 +91,7 @@ class Microphone(object):
             self._device = device
         else:
             # get default device, first enumerated usually
-            devices = Microphone.getDevices()
+            devices = getDevices()
 
             if not devices:
                 raise AudioInvalidCaptureDeviceError(
@@ -155,34 +156,6 @@ class Microphone(object):
     #
     #     """
     #     pass
-
-    @staticmethod
-    def getDevices():
-        """Get a `list` of audio capture device (i.e. microphones) descriptors.
-        On Windows, only WASAPI devices are used.
-
-        Returns
-        -------
-        list
-            List of `AudioDevice` descriptors for suitable capture devices. If
-            empty, no capture devices have been found.
-
-        """
-        # query PTB for devices
-        if Microphone.enforceWASAPI and sys.platform == 'win32':
-            allDevs = audio.get_devices(device_type=13)
-        else:
-            allDevs = audio.get_devices()
-
-        # make sure we have an array of descriptors
-        allDevs = [allDevs] if isinstance(allDevs, dict) else allDevs
-
-        # create list of descriptors only for capture devices
-        inputDevices = [desc for desc in [
-            AudioDeviceInfo.createFromPTBDesc(dev) for dev in allDevs]
-                     if desc.isCapture]
-
-        return inputDevices
 
     @property
     def latencyBias(self):
@@ -345,6 +318,34 @@ class Microphone(object):
             sampleRateHz=self._sampleRateHz)
 
         return newClip, absRecPosition, overflow, cStartTime
+
+
+def getDevices():
+    """Get a `list` of audio capture device (i.e. microphones) descriptors.
+    On Windows, only WASAPI devices are used.
+
+    Returns
+    -------
+    list
+        List of `AudioDevice` descriptors for suitable capture devices. If
+        empty, no capture devices have been found.
+
+    """
+    # query PTB for devices
+    if enforceWASAPI and sys.platform == 'win32':
+        allDevs = audio.get_devices(device_type=13)
+    else:
+        allDevs = audio.get_devices()
+
+    # make sure we have an array of descriptors
+    allDevs = [allDevs] if isinstance(allDevs, dict) else allDevs
+
+    # create list of descriptors only for capture devices
+    inputDevices = [desc for desc in [
+        AudioDeviceInfo.createFromPTBDesc(dev) for dev in allDevs]
+                 if desc.isCapture]
+
+    return inputDevices
 
 
 if __name__ == "__main__":
