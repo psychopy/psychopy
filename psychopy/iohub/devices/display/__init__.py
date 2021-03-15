@@ -5,7 +5,6 @@
 
 import sys
 from .. import Device, Computer
-from ... import _ispkg
 from ...constants import DeviceConstants
 from ...errors import print2err, printExceptionDetailsToStdErr
 import pyglet
@@ -501,8 +500,7 @@ class Display(Device):
             runtime_info = self._getRuntimeInfoByIndex(self.device_number)
             display_config['runtime_info'] = runtime_info
 
-            if _ispkg is False:
-                self._createPsychopyCalibrationFile()
+            self._createPsychopyCalibrationFile()
 
             pixel_width = runtime_info['pixel_width']
             pixel_height = runtime_info['pixel_height']

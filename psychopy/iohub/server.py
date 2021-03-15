@@ -23,8 +23,6 @@ except ImportError:
     pass
 
 from past.builtins import basestring, unicode
-from psychopy.constants import PY3
-from . import _pkgroot
 from . import IOHUB_DIRECTORY, EXP_SCRIPT_DIRECTORY, _DATA_STORE_AVAILABLE
 from .errors import print2err, printExceptionDetailsToStdErr, ioHubError
 from .net import MAX_PACKET_SIZE
@@ -784,7 +782,7 @@ class ioServer(object):
 
         DeviceClass = None
         cls_name_start = dev_cls_name.rfind('.')
-        iohub_submod = '%s.' % _pkgroot
+        iohub_submod = 'psychopy.iohub.'
         iohub_submod_len = len(iohub_submod)
         dev_mod_pth = iohub_submod + 'devices.'
         if cls_name_start > 0:

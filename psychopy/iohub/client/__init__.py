@@ -22,7 +22,7 @@ except ImportError:
     psycho_logging = None
 from past.builtins import basestring
 from ..lazy_import import lazy_import
-from .. import _pkgroot, IOHUB_DIRECTORY
+from .. import IOHUB_DIRECTORY
 from ..util import yload, yLoader
 from ..errors import print2err, ioHubError, printExceptionDetailsToStdErr
 from ..util import isIterable, updateDict, win32MessagePump
@@ -1054,7 +1054,7 @@ class ioHubConnection(object):
             dev_cls_name = "{}".format(dev_cls_name)
             dev_name = dev_cls_name.lower()
             cls_name_start = dev_name.rfind('.')
-            dev_mod_pth = '%s.devices.' % _pkgroot
+            dev_mod_pth = 'psychopy.iohub.devices.'
             if cls_name_start > 0:
                 dev_mod_pth2 = dev_name[:cls_name_start]
                 dev_mod_pth = '{0}{1}'.format(dev_mod_pth, dev_mod_pth2)
@@ -1084,8 +1084,7 @@ class ioHubConnection(object):
                 # need to touch local_module since it was lazy loaded
 
                 # pylint: disable=exec-used
-                exec('import {}.client.{}'.format(_pkgroot,
-                                                  dev_cls_name.lower()))
+                exec('import psychopy.iohub.client.{}'.format(dev_cls_name.lower()))
                 local_class = getattr(local_module, dev_cls_name, False)
 
             if local_class:
@@ -1410,10 +1409,10 @@ class ioEvent(object):
                                                  self.id)
 
 _lazyImports = """
-from {pkgroot}.client.connect import launchHubServer
-from {pkgroot}.client import keyboard
-from {pkgroot}.client import wintab
-""".format(pkgroot=_pkgroot)
+from psychopy.iohub.client.connect import launchHubServer
+from psychopy.iohub.client import keyboard
+from psychopy.iohub.client import wintab
+"""
 
 try:
     lazy_import(globals(), _lazyImports)

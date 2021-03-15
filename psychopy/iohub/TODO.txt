@@ -12,10 +12,6 @@ TODO list / iohub 2021 rework project notes
 
 - switch iohub source code copywrite to standard psychopy text.
 
-- remove code that lets iohub run as seperate package. i.e. stuff like
-    _ispkg = True
-    _pkgroot = 'iohub'
-
 - remove need for / use of experiment_config.yaml. Determine what functionality this will affect.
 
 - ?? switch from .yaml files to python dict structure.
