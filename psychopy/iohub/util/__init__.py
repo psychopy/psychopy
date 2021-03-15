@@ -55,6 +55,37 @@ def readConfig(scr_path):
     '''
     return yload(open(scr_path, 'r'), Loader=yLoader)
 
+def mergeConfigurationFiles(base_config_file_path, update_from_config_file_path, merged_save_to_path):
+    """Merges two iohub configuration files into one and saves it to a file
+    using the path/file name in merged_save_to_path."""
+    base_config = yload(open(base_config_file_path, 'r'), Loader=yLoader)
+    update_from_config = yload(
+        open(
+            update_from_config_file_path,
+            'r'),
+        Loader=yLoader)
+
+    def merge(update, base):
+        if isinstance(update, dict) and isinstance(base, dict):
+            for k, v in base.items():
+                if k not in update:
+                    update[k] = v
+                else:
+                    if isinstance(update[k], list):
+                        if isinstance(v, list):
+                            v.extend(update[k])
+                            update[k] = v
+                        else:
+                            update[k].insert(0, v)
+                    else:
+                        update[k] = merge(update[k], v)
+        return update
+
+    import copy
+    merged = merge(copy.deepcopy(update_from_config), base_config)
+    ydump(merged, open(merged_save_to_path, 'w'), Dumper=yDumper)
+
+    return merged
 ########################
 
 

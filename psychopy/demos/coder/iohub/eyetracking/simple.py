@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-"""Simple iohub eye tracker device demo.
-Select which tracker to use by setting the TRACKER variable below."""
+"""
+Simple iohub eye tracker device demo.
+Select which tracker to use by setting the TRACKER variable below.
+"""
 
 from __future__ import absolute_import, division, print_function
-
 from psychopy import core, visual
 from psychopy.iohub.client import launchHubServer
 
@@ -18,7 +18,7 @@ if TRACKER == 'eyelink':
     eyetracker_config['model_name'] = 'EYELINK 1000 DESKTOP'
     eyetracker_config['simulation_mode'] = False
     eyetracker_config['runtime_settings'] = dict(sampling_rate=1000, track_eyes='RIGHT')
-    tracker_config = {'eyetracker.hw.sr_research.eyelink.EyeTracker':eyetracker_config}
+    tracker_config = {'eyetracker.hw.sr_research.eyelink.EyeTracker': eyetracker_config}
 elif TRACKER == 'gazepoint':
     eyetracker_config['device_timer'] = {'interval': 0.005}
     tracker_config = {'eyetracker.hw.gazepoint.gp3.EyeTracker': eyetracker_config}
@@ -51,7 +51,6 @@ if tracker_config:
                         allowGUI=False
                         )
 
-    
     win.setMouseVisible(False)
     
     gaze_ok_region = visual.Circle(win, lineColor='black', radius=300, units='pix')
@@ -78,7 +77,6 @@ if tracker_config:
         while run_trial is True:
             # Get the latest gaze position in dispolay coord space..
             gpos = tracker.getLastGazePosition()
-            #print("gpos:",gpos)
             # Update stim based on gaze position
             valid_gaze_pos = isinstance(gpos, (tuple, list))
             gaze_in_region = valid_gaze_pos and gaze_ok_region.contains(gpos)
