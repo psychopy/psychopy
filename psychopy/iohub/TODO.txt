@@ -12,12 +12,21 @@ TODO list / iohub 2021 rework project notes
         - hardware_version: N/A
         - firmware_version: N/A
 
+- remove unused / placeholder Constants (iohub.constants.py)
+
+- stop using lazy_import. Not sure it is really needed for iohub
+
+- ?? Assume / enforce only 1 experiment, 1 session per iohub hdf5 file
+
 - switch iohub source code copywrite to standard psychopy text.
 
 - macos keyboard and mouse events:
     - switch from polling method of CFRunLoopRunInMode to threaded approach used by eventmp.
     - if that is not enough, reimplement using usb sniffer or just correct timestamp
       for _minimum_ possible event delay.
+
+- ?? remove event filtering framework (iohub.devices.eventfilters.py)
+    - not actually used from what I can tell.
 
 - ?? remove need for / use of experiment_config.yaml. Determine what functionality this will affect.
 
@@ -42,5 +51,6 @@ TODO list / iohub 2021 rework project notes
     - Consistent iohub Error / exception reporting framework:
         - communication of issues to client process.
         - reporting of issues by client process
+        - cleanup (remove? iohub.errors.py)
     - Consistent device status reporting after client starts iohub process.
     - Create files in user writable folder (use OS specific standard folders)
