@@ -1,28 +1,34 @@
-TODO list
+TODO list / iohub 2021 rework project notes
+
+- Python 3 only support is OK
+
+- Test / start developing with Python 3.9
+
+- remove any areas of logic dealing with Python 2 vs Python 3 incompatibilities.
+
+- iohub __init__.py: is fix_encoding.fix_encoding() still needed?
+  It is based on old Python issues that may not longer be needed.
+  If we remove it, remove fix_encoding.py file as well.
 
 - switch iohub source code copywrite to standard psychopy text.
+
+- remove code that lets iohub run as seperate package. i.e. stuff like
+    _ispkg = True
+    _pkgroot = 'iohub'
+
+- remove need for / use of experiment_config.yaml. Determine what functionality this will affect.
+
+- ?? switch from .yaml files to python dict structure.
+
+- ?? macos keyboard and mouse events: Add event delay to correct for _minimum_ possible event delay.
 
 - Remove following sections of iohub:
     - As much of iohub.utils.* as possible.
     - [Done] Complete removal of iohub.client.expruntime.py
 
-- Documentation:
+- Documentation ideas:
     - ioHub Developer 'Notes'
-    - How to use iohub standalone (system setup process)
     - Psychopy ioHub User Docs
-        - Why use iohub?
-        - Extra Package Dependencies
-        - Starting iohub
-            - Specifying what devices to start
-            - Changing default device settings
-        - iohub Devices
-            - computer
-            - monitor
-            - keyboard
-            - mouse
-            - experiment
-            - eye tracker
-            - .... others .....
         - Saving data using ioHub DataStore:
             - device events
             - experiment and session meta data

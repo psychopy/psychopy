@@ -18,8 +18,11 @@ if sys.platform == 'darwin':
 
 EXP_SCRIPT_DIRECTORY = ''
 
+
 def _localFunc():
     return None
+
+
 IOHUB_DIRECTORY = module_directory(_localFunc)
 
 _ispkg = True
@@ -30,12 +33,12 @@ if IOHUB_DIRECTORY.find('psychopy') >= 0:
 
 _DATA_STORE_AVAILABLE = False
 try:
-    import tables # pylint: disable=wrong-import-position, wrong-import-order
+    import tables
     _DATA_STORE_AVAILABLE = True
 except ImportError:
     print2err('WARNING: pytables package not found. ',
               'ioHub functionality will be disabled.')
-except Exception: # pylint: disable=broad-except
+except Exception:
     printExceptionDetailsToStdErr()
 
 
