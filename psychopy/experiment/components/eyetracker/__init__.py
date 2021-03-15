@@ -19,7 +19,7 @@ class EyetrackerComponent(BaseComponent):
     """A class for using one of several eyetrackers to follow gaze"""
     categories = ['Responses']
     targets = ['PsychoPy']
-    iconFile = Path(__file__).parent / 'eyetracker.png'
+    iconFile = Path(__file__).parent / 'eyetracker_record.png'
     tooltip = _translate('Eyetracker: use one of several eyetrackers to follow '
                          'gaze')
 
@@ -27,30 +27,32 @@ class EyetrackerComponent(BaseComponent):
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim='',
+                 config='', rois="",
+                 #legacy
                  save='final', configFile='myTracker.yaml'):
+        BaseComponent.__init__(self, exp, parentName, name=name,
+                               startType=startType, startVal=startVal,
+                               stopType=stopType, stopVal=stopVal,
+                               startEstim=startEstim, durationEstim=durationEstim)
         self.type = 'Eyetracker'
         self.url = "https://www.psychopy.org/builder/components/eyetracker.html"
-        self.parentName = parentName
-        self.exp = exp  # so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['iohub'])
         # params
-        self.params = {}
-        self.order = ['Config file']  # first param after the name
+        self.order = ['config']  # first param after the name
 
         # useful params for the eyetracker - keep to a minimum if possible! ;-)
-        self.params['Config file'] = Param(
-            configFile, valType='str', categ='Hardware',
-            hint=_translate("Config file for eyetracker parameters"))
+        self.params['config'] = Param(
+            configFile, valType='code', categ='Hardware',
+            hint=_translate("Config routine for eyetracker"))
 
-        msg = _translate(
-            "How often should the eyetracker state (x,y,"
-            "pupilsize...) be stored? On every video frame, every click "
-            "or just at the end of the Routine?")
-        self.params['saveState'] = Param(
-            save, valType='str', inputType="choice", categ='Data',
-            allowedVals=['final', 'every frame', 'never'],
-            hint=msg,
-            label="Save eyetracker state")
+        self.params['rois'] = Param(
+            rois, valType='list', categ='Basic',
+            hint=_translate("Regions of interest (ROIs) for the eyetracker, should be a list of component names. "
+                            "To define an ROI without showing it, create a Polygon component with opacity set to 0."),
+            label=_translate("ROIs")
+        )
+
+
 
     def writePreWindowCode(self, buff):
         buff.writeIndented("#%(name)s: do calibration\n" % self.params)
