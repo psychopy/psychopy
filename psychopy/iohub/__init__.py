@@ -7,11 +7,8 @@
 from __future__ import division, absolute_import, print_function
 
 import sys
-
 from .errors import print2err, printExceptionDetailsToStdErr
-from .util import module_directory, fix_encoding
-
-fix_encoding.fix_encoding()
+from .util import module_directory
 
 if sys.platform == 'darwin':
     import objc  # pylint: disable=import-error

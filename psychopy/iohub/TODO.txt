@@ -6,21 +6,27 @@ TODO list / iohub 2021 rework project notes
 
 - remove any areas of logic dealing with Python 2 vs Python 3 incompatibilities.
 
-- iohub __init__.py: is fix_encoding.fix_encoding() still needed?
-  It is based on old Python issues that may not longer be needed.
-  If we remove it, remove fix_encoding.py file as well.
+- remove unneeded params from all supported_config_settings.yaml/default_device.yaml files, like:
+        - manufacture_date: DD-MM-YYYY
+        - software_version: N/A
+        - hardware_version: N/A
+        - firmware_version: N/A
 
 - switch iohub source code copywrite to standard psychopy text.
 
-- remove need for / use of experiment_config.yaml. Determine what functionality this will affect.
+- macos keyboard and mouse events:
+    - switch from polling method of CFRunLoopRunInMode to threaded approach used by eventmp.
+    - if that is not enough, reimplement using usb sniffer or just correct timestamp
+      for _minimum_ possible event delay.
+
+- ?? remove need for / use of experiment_config.yaml. Determine what functionality this will affect.
 
 - ?? switch from .yaml files to python dict structure.
 
-- ?? macos keyboard and mouse events: Add event delay to correct for _minimum_ possible event delay.
-
-- Remove following sections of iohub:
-    - As much of iohub.utils.* as possible.
-    - [Done] Complete removal of iohub.client.expruntime.py
+- ?? revert to server side only devices / events accessed via RPC.
+    - remove iohub.client.keyboard.py and iohub.client.wintab.py
+    - move any needed methods / functionality to the server side device class, or deprecate.
+    - experiment would now get 'native' iohub keyboard and wintab events, which is not backwards compatible.
 
 - Documentation ideas:
     - ioHub Developer 'Notes'

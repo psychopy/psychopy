@@ -3,21 +3,19 @@
 # Copyright (C) 2012-2016 iSolver Software Solutions
 # Distributed under the terms of the GNU General Public License (GPL).
 from __future__ import division, absolute_import
-
 import json
 import os
 import sys
 import tempfile
-import time
 import gevent
 import psutil
+import psychopy.clock as clock
 import psychopy.iohub
 from psychopy.iohub import IOHUB_DIRECTORY
 from psychopy.iohub.devices import Computer
 Computer.is_iohub_process = True
 from psychopy.iohub.errors import printExceptionDetailsToStdErr
 from psychopy.iohub.server import ioServer
-from psychopy.iohub import util
 from psychopy.iohub.util import updateDict, yload, yLoader
 
 
@@ -104,6 +102,6 @@ if __name__ == '__main__':
 
     if psychopy_pid:
         Computer.psychopy_process = psutil.Process(psychopy_pid)
-    Computer.global_clock = util.clock.MonotonicClock(initial_offset)
+    Computer.global_clock = clock.MonotonicClock(initial_offset)
 
     run(rootScriptPathDir=scriptPathDir, configFilePath=configFileName)
