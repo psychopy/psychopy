@@ -517,10 +517,7 @@ class DeviceMonitor(Greenlet):
             stime = ctime()
             self.device._poll()
             i = self.sleep_interval - (ctime() - stime)
-            if i > 0.001:
-                gevent.sleep(i)
-            else:
-                gevent.sleep(0.001)
+            gevent.sleep(max(0,i))
 
     def __del__(self):
         self.device = None
@@ -656,7 +653,7 @@ class ioServer(object):
                 self._running = False
                 break
             dur = sleep_interval - (Computer.getTime() - stime)
-            gevent.sleep(max(0.001, dur))
+            gevent.sleep(max(0.0, dur))
 
     def createNewMonitoredDevice(self, dev_cls_name, dev_conf):
         self._all_dev_conf_errors = dict()
@@ -761,15 +758,16 @@ class ioServer(object):
                 if self._hookDevice is None:
                     self._hookDevice = []
                 if dev_cls_name not in self._hookDevice:
+                    msgpump_interval = self.config.get('msgpump_interval', 0.001)
                     if dev_cls_name == 'Mouse':
                         dmouse = deviceDict['Mouse']
-                        mouseHookMonitor = DeviceMonitor(dmouse, 0.004)
+                        mouseHookMonitor = DeviceMonitor(dmouse, msgpump_interval)
                         self.deviceMonitors.append(mouseHookMonitor)
                         dmouse._CGEventTapEnable(dmouse._tap, True)
                         self._hookDevice.append('Mouse')
                     if dev_cls_name == 'Keyboard':
                         dkeyboard = deviceDict['Keyboard']
-                        kbHookMonitor = DeviceMonitor(dkeyboard, 0.004)
+                        kbHookMonitor = DeviceMonitor(dkeyboard, msgpump_interval)
                         self.deviceMonitors.append(kbHookMonitor)
                         dkeyboard._CGEventTapEnable(dkeyboard._tap, True)
                         self._hookDevice.append('Keyboard')
@@ -900,7 +898,7 @@ class ioServer(object):
             stime = Computer.getTime()
             self.processDeviceEvents()
             dur = sleep_interval - (Computer.getTime() - stime)
-            gevent.sleep(max(0.001, dur))
+            gevent.sleep(max(0, dur))
 
     def processDeviceEvents(self):
         for device in self.devices:
