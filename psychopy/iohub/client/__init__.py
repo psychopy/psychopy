@@ -927,7 +927,7 @@ class ioHubConnection(object):
         # <<<< Done handling orphaned iohub process fail safe.
 
         # >>>> Start iohub subprocess
-        run_script = os.path.join(IOHUB_DIRECTORY, 'launchHubProcess.py')
+        run_script = os.path.join(IOHUB_DIRECTORY, 'start_iohub_process.py')
         subprocessArgList = [sys.executable,
                              run_script,
                              '%.6f' % Computer.global_clock.getLastResetTime(),
