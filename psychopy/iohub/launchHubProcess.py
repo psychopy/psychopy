@@ -9,38 +9,22 @@ import os
 import sys
 import tempfile
 import time
-
 import gevent
 import psutil
-
-try:
-    import iohub
-    from iohub import IOHUB_DIRECTORY, _ispkg
-    from iohub.devices import Computer
-    Computer.is_iohub_process = True
-    from iohub.errors import printExceptionDetailsToStdErr
-    from iohub.server import ioServer
-    from iohub import util
-    from iohub.util import updateDict, yload, yLoader
-except ImportError:
-    import psychopy.iohub
-    from psychopy.iohub import IOHUB_DIRECTORY, _ispkg
-    from psychopy.iohub.devices import Computer
-
-    Computer.is_iohub_process = True
-    from psychopy.iohub.errors import printExceptionDetailsToStdErr
-    from psychopy.iohub.server import ioServer
-    from psychopy.iohub import util
-    from psychopy.iohub.util import updateDict, yload, yLoader
+import psychopy.iohub
+from psychopy.iohub import IOHUB_DIRECTORY
+from psychopy.iohub.devices import Computer
+Computer.is_iohub_process = True
+from psychopy.iohub.errors import printExceptionDetailsToStdErr
+from psychopy.iohub.server import ioServer
+from psychopy.iohub import util
+from psychopy.iohub.util import updateDict, yload, yLoader
 
 
 def run(rootScriptPathDir, configFilePath):
     s = None
     try:
-        if _ispkg:
-            iohub.EXP_SCRIPT_DIRECTORY = rootScriptPathDir
-        else:
-            psychopy.iohub.EXP_SCRIPT_DIRECTORY = rootScriptPathDir
+        psychopy.iohub.EXP_SCRIPT_DIRECTORY = rootScriptPathDir
 
         tdir = tempfile.gettempdir()
         cdir, _ = os.path.split(configFilePath)

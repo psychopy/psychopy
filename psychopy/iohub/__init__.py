@@ -25,12 +25,6 @@ def _localFunc():
 
 IOHUB_DIRECTORY = module_directory(_localFunc)
 
-_ispkg = True
-_pkgroot = 'iohub'
-if IOHUB_DIRECTORY.find('psychopy') >= 0:
-    _ispkg = False
-    _pkgroot = 'psychopy.iohub'
-
 _DATA_STORE_AVAILABLE = False
 try:
     import tables
@@ -43,9 +37,9 @@ except Exception:
 
 
 lazyImports = """
-from {pkgroot}.client.connect import launchHubServer
-from {pkgroot}.devices.computer import Computer
-""".format(pkgroot=_pkgroot)
+from psychopy.iohub.client.connect import launchHubServer
+from psychopy.iohub.devices.computer import Computer
+"""
 
 try:
     from psychopy.contrib.lazy_import import lazy_import

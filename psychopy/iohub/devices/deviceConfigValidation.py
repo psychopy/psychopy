@@ -13,7 +13,6 @@ import socket
 import os
 import numbers  # numbers.Integral is like (int, long) but supports Py3
 
-from .. import _pkgroot
 from ..util import yload, yLoader, module_directory
 
 class ValidationError(Exception):
@@ -515,51 +514,22 @@ def validateDeviceConfiguration(
         relative_module_path,
         device_class_name,
         current_device_config):
-    validation_file_path = os.path.join(
-        _current_dir, relative_module_path[
-            len(
-                '%s.devices.' %
-                (_pkgroot)):].replace(
-            '.', os.path.sep), 'supported_config_settings_{0}.yaml'.format(
-                    device_class_name.lower()))
+    validation_file_path = os.path.join(_current_dir,
+                                        relative_module_path[len('psychopy.iohub.devices.'):].replace('.', os.path.sep),
+                                        'supported_config_settings_{0}.yaml'.format(device_class_name.lower()))
     if not os.path.exists(validation_file_path):
-        validation_file_path = os.path.join(
-            _current_dir,
-            relative_module_path[
-                len(
-                    '%s.devices.' %
-                    (_pkgroot)):].replace(
-                '.',
-                os.path.sep),
-            'supported_config_settings.yaml')
-    device_settings_validation_dict = loadYamlFile(
-        validation_file_path, print_file=True)
-    device_settings_validation_dict = device_settings_validation_dict[
-        list(device_settings_validation_dict.keys())[0]]
+        validation_file_path = os.path.join(_current_dir,
+                                            relative_module_path[len('psychopy.iohub.devices.'):].replace('.',
+                                                                                                          os.path.sep),
+                                            'supported_config_settings.yaml')
+    device_settings_validation_dict = loadYamlFile(validation_file_path, print_file=True)
+    device_settings_validation_dict = device_settings_validation_dict[list(device_settings_validation_dict.keys())[0]]
 
     param_validation_func_mapping = dict()
     parent_config_param_path = None
-    buildConfigParamValidatorMapping(
-        device_settings_validation_dict,
-        param_validation_func_mapping,
-        parent_config_param_path)
+    buildConfigParamValidatorMapping(device_settings_validation_dict, param_validation_func_mapping,
+                                     parent_config_param_path)
 
-# print2err("#### buildConfigParamValidatorMapping
-# results:\n\ncurrent_device_config: {0}\n\n validation_rules config:
-# {1}\n\n Config Constants Mapping:
-# {2}\n".format(current_device_config,device_settings_validation_dict,param_validation_func_mapping))
-
-    validation_results = validateConfigDictToFuncMapping(
-        param_validation_func_mapping, current_device_config, None)
-
-#    print2err('=================================================')
-#    print2err('{0} VALIDATION RESULTS: '.format(device_class_name))
-#    print2err('\tPARAMS NOT FOUND: {0} '.format(len(validation_results['not_found'])))
-#    for p,v in validation_results['not_found']:
-#        print2err('\tparam: {0}\t\tvalue: {1}'.format(p,v))
-#    print2err('\tPARAMS WITH ERROR: {0} '.format(len(validation_results['errors'])))
-#    for p,v in validation_results['errors']:
-#        print2err('\tparam: {0}\t\tvalue: {1}'.format(p,v))
-#    print2err('=================================================')
+    validation_results = validateConfigDictToFuncMapping(param_validation_func_mapping, current_device_config, None)
 
     return validation_results

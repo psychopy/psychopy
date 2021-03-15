@@ -16,7 +16,6 @@ from operator import itemgetter
 
 import numpy as np
 
-from .. import _pkgroot
 from .computer import Computer
 from ..errors import print2err, printExceptionDetailsToStdErr
 from ..util import convertCamelToSnake
@@ -1006,8 +1005,7 @@ def import_device(module_path, device_class_name):
 
 try:
     if getattr(sys.modules[__name__], 'Display', None) is None:
-        display_class, device_class_name, event_classes = import_device(
-            '%s.devices.display' % (_pkgroot), 'Display')
+        display_class, device_class_name, event_classes = import_device('psychopy.iohub.devices.display', 'Display')
         setattr(sys.modules[__name__], 'Display', display_class)
 except Exception:
     print2err('Warning: display device module could not be imported.')
