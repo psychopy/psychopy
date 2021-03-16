@@ -95,7 +95,7 @@ brew install
 
 On a MacOS machine, `brew` can be used to install PsychoPy::
 
-  brew cask install psychopy
+  brew install --cask psychopy
 
 .. _linux_install:
 
