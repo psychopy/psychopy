@@ -730,7 +730,6 @@ class ioServer(object):
             elif Computer.platform.startswith('linux'):
                 from .devices import pyXHook
                 if hookManager is None:
-                    # iohub.log("Creating pyXHook Monitors....")
                     log_evt = self.config.get('log_raw_kb_mouse_events', False)
                     self._hookManager = pyXHook.HookManager(log_evt)
                     hookManager = self._hookManager
@@ -761,14 +760,12 @@ class ioServer(object):
                     msgpump_interval = self.config.get('msgpump_interval', 0.001)
                     if dev_cls_name == 'Mouse':
                         dmouse = deviceDict['Mouse']
-                        mouseHookMonitor = DeviceMonitor(dmouse, msgpump_interval)
-                        self.deviceMonitors.append(mouseHookMonitor)
+                        self.deviceMonitors.append(DeviceMonitor(dmouse, msgpump_interval))
                         dmouse._CGEventTapEnable(dmouse._tap, True)
                         self._hookDevice.append('Mouse')
                     if dev_cls_name == 'Keyboard':
                         dkeyboard = deviceDict['Keyboard']
-                        kbHookMonitor = DeviceMonitor(dkeyboard, msgpump_interval)
-                        self.deviceMonitors.append(kbHookMonitor)
+                        self.deviceMonitors.append(DeviceMonitor(dkeyboard, msgpump_interval))
                         dkeyboard._CGEventTapEnable(dkeyboard._tap, True)
                         self._hookDevice.append('Keyboard')
 
