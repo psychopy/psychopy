@@ -7,6 +7,36 @@ from ...constants import DeviceConstants, EyeTrackerConstants
 from . import hw
 from ...errors import print2err
 
+import yaml
+from pathlib import Path
+
+
+def _getEventTypes():
+    with open(Path(__file__).parent / "supported_config_settings.yaml") as f:
+        spec = yaml.load(f, Loader=yaml.FullLoader)
+        types = spec['eyetracker.EyeTrackerDevice']['monitor_event_types']
+    return types
+
+
+eventTypes = _getEventTypes()
+
+
+def _getModels():
+    names = []
+    with open(Path(__file__).parent / "hw" / "gazepoint" / "gp3" / "supported_config_settings.yaml") as f:
+        spec = yaml.load(f, Loader=yaml.FullLoader)
+        names += [spec['eyetracker.hw.gazepoint.gp3.EyeTracker']['model_name']]
+    with open(Path(__file__).parent / "hw" / "sr_research" / "eyelink" / "supported_config_settings.yaml") as f:
+        spec = yaml.load(f, Loader=yaml.FullLoader)
+        names += spec['eyetracker.hw.sr_research.eyelink.EyeTracker']['model_name']['IOHUB_LIST']['valid_values']
+    with open(Path(__file__).parent / "hw" / "tobii" / "supported_config_settings.yaml") as f:
+        spec = yaml.load(f, Loader=yaml.FullLoader)
+        names += spec['eyetracker.hw.tobii.EyeTracker']['model_name']['IOHUB_LIST']['valid_values']
+    return names
+
+
+models = _getModels()
+
 
 class EyeTrackerDevice(Device):
     """The EyeTrackerDevice class is the main class for the ioHub Common Eye

@@ -1,7 +1,5 @@
 from psychopy.iohub.devices import eyetracker as iohub
-#from psychopy.iohub.devices.eyetracker import models, eventTypes
-models = [None]
-eventTypes = [None]
+from psychopy.iohub.devices.eyetracker import models, eventTypes
 from ast import literal_eval as listify
 import numpy as np
 import pandas as pd
