@@ -340,13 +340,14 @@ def toList(val):
     if isinstance(val, (list, tuple, ndarray)):
         return val  # already a list. Nothing to do
     if isinstance(val, (int, float)):
-        return [val] # single value, just needs putting in a cell
+        return [val]  # single value, just needs putting in a cell
     # we really just need to check if they need parentheses
     stripped = val.strip()
     if utils.scriptTarget == "PsychoJS":
         return py2js.expression2js(stripped)
-    elif not ((stripped.startswith('(') and stripped.endswith(')')) \
-              or ((stripped.startswith('[') and stripped.endswith(']')))):
-        return "[{}]".format(stripped)
-    else:
+    elif (stripped.startswith('(') and stripped.endswith(')')) or (stripped.startswith('[') and stripped.endswith(']')):
         return stripped
+    elif utils.valid_var_re.fullmatch(stripped):
+        return "{}".format(stripped)
+    else:
+        return "[{}]".format(stripped)
