@@ -86,12 +86,18 @@ class Microphone(object):
                 "be installed.")
 
         # get information about the selected device
+        devices = Microphone.getDevices()
         if isinstance(device, AudioDeviceInfo):
             self._device = device
+        elif isinstance(device, (int, float)):
+            devicesByIndex = {d.deviceIndex: d for d in devices}
+            if device in devicesByIndex:
+                self._device = devicesByIndex[device]
+            else:
+                raise AudioInvalidCaptureDeviceError(
+                    'No suitable audio recording devices found matching index {}.'.format(device))
         else:
             # get default device, first enumerated usually
-            devices = Microphone.getDevices()
-
             if not devices:
                 raise AudioInvalidCaptureDeviceError(
                     'No suitable audio recording devices found on this system. '
@@ -206,6 +212,14 @@ class Microphone(object):
 
     @property
     def status(self):
+        if hasattr(self, "_statusFlag"):
+            return self._statusFlag
+    @status.setter
+    def status(self, value):
+        self._statusFlag = value
+
+    @property
+    def streamStatus(self):
         """Status of the audio stream (`AudioDeviceStatus` or `None`).
 
         See :class:`~psychopy.sound.AudioDeviceStatus` for a complete overview
