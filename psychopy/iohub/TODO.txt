@@ -20,6 +20,11 @@ TODO list / iohub 2021 rework project notes
 
 - switch iohub source code copywrite to standard psychopy text.
 
+- remove all references to these no longer supported devices:
+        - EventPublisher (unless we keep it)
+        - EventSub (unless we keep it)
+        - DAQ (was used for labjack and Measurement Computing analog input)
+
 - macos keyboard and mouse events:
     - switch from polling method of CFRunLoopRunInMode to threaded approach used by eventmp.
     - if that is not enough, reimplement using usb sniffer or just correct timestamp

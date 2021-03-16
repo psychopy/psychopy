@@ -11,8 +11,8 @@ import warnings
 import numpy
 import numbers  # numbers.Integral is like (int, long) but supports Py3
 import datetime
-
 from ..errors import print2err
+
 
 ########################
 #
@@ -143,6 +143,68 @@ def module_directory(local_function):
 
 def isIterable(o):
     return isinstance(o, Iterable)
+
+
+# Get available device module paths
+def getDevicePaths(device_name=""):
+    """
+
+    :param device_name:
+    :return:
+    """
+    from psychopy.iohub.devices import import_device
+    iohub_device_path = module_directory(import_device)
+    if device_name:
+        if device_name == 'eyetracker':
+            iohub_device_path = os.path.join(iohub_device_path, 'hw')
+        else:
+            iohub_device_path = os.path.join(iohub_device_path, device_name.replace('.', os.path.sep))
+
+    scs_yaml_paths = []
+    for root, dirs, files in os.walk(iohub_device_path):
+        device_folder = None
+        for file in files:
+            if file == 'supported_config_settings.yaml':
+                device_folder = root
+                break
+        if device_folder:
+            for dfile in files:
+                if dfile.startswith("default_") and dfile.endswith('.yaml'):
+                    scs_yaml_paths.append((device_folder, dfile))
+    return scs_yaml_paths
+
+def getDeviceDefaultConfig(device_name=""):
+    """
+
+    :param device_name:
+    :return:
+    """
+    device_paths = getDevicePaths(device_name)
+    device_configs = []
+    for dpath, dconf in device_paths:
+        device_configs.append(readConfig(os.path.join(dpath, dconf)))
+    return device_configs
+
+def getDeviceNames(device_name=""):
+    """
+
+    :param device_name:
+    :return:
+    """
+    return [tuple(k.keys())[0] for k in getDeviceDefaultConfig(device_name)]
+
+def getDeviceSupportedConfig(device_name=""):
+    """
+
+    :param device_name:
+    :return:
+    """
+    device_paths = getDevicePaths(device_name)
+    device_sconfigs = []
+    for dpath, _ in device_paths:
+        device_sconfigs.append(readConfig(os.path.join(dpath, 'supported_config_settings.yaml')))
+    return device_sconfigs
+
 
 if sys.platform == 'win32':
     import pythoncom
