@@ -2098,6 +2098,91 @@ class RoutineCanvas(wx.ScrolledWindow):
 class ComponentsPanel(scrolledpanel.ScrolledPanel):
     """Panel containing buttons for each component, sorted by category"""
 
+    class CategoryButton(wx.ToggleButton):
+        """Button to show/hide a category of components"""
+        def __init__(self, parent, name, cat):
+            # Initialise button
+            wx.ToggleButton.__init__(self, parent,
+                                     label="   "+name, size=(-1, 24),
+                                     style=wx.BORDER_NONE | wx.BU_LEFT)
+            self.parent = parent
+            # Link to category of buttons
+            self.menu = self.parent.catSizers[cat]
+            # # Set own sizer
+            # self.sizer = wx.GridSizer(wx.HORIZONTAL)
+            # self.SetSizer(self.sizer)
+            # # Add icon
+            # self.icon = wx.StaticText(parent=self, label="DOWN")
+            # self.sizer.Add(self.icon, border=5, flag=wx.ALL | wx.ALIGN_RIGHT)
+            # Default states to false
+            self.state = False
+            self.hover = False
+            # Bind toggle function
+            self.Bind(wx.EVT_TOGGLEBUTTON, self.ToggleMenu)
+            # Bind hover functions
+            self.Bind(wx.EVT_ENTER_WINDOW, self.hoverOn)
+            self.Bind(wx.EVT_LEAVE_WINDOW, self.hoverOff)
+
+        def ToggleMenu(self, event):
+            # If triggered manually with a bool, treat that as a substitute for event selection
+            if isinstance(event, bool):
+                state = event
+            else:
+                state = event.GetSelection()
+            self.SetValue(state)
+            if state:
+                # If state is show, then show all non-hidden components
+                for btn in self.menu.GetChildren():
+                    btn = btn.GetWindow()
+                    comp = btn.component
+                    # Work out if it should be shown based on filter
+                    cond = True
+                    if self.parent.filter == 'Any':
+                        cond = True
+                    elif self.parent.filter == 'Both':
+                        cond = 'PsychoJS' in comp.targets and 'PsychoPy' in comp.targets
+                    elif self.parent.filter in ['PsychoPy', 'PsychoJS']:
+                        cond = self.parent.filter in comp.targets
+                    # Always hide if hidden by prefs
+                    if comp.__name__ in prefs.builder['hiddenComponents'] + ['SettingsComponent', 'UnknownComponent']:
+                        cond = False
+                    btn.Show(cond)
+                # # Update icon
+                # self.icon.SetLabelText(chr(int("1401", 16)))
+            else:
+                # If state is hide, hide all components
+                self.menu.ShowItems(False)
+                # # Update icon
+                # self.icon.SetLabelText(chr(int("140A", 16)))
+            # Do layout
+            self.parent.Layout()
+            self.parent.SetupScrolling()
+            # Restyle
+            self._applyAppTheme()
+
+        def hoverOn(self, event):
+            """Apply hover effect"""
+            self.hover = True
+            self._applyAppTheme()
+
+        def hoverOff(self, event):
+            """Unapply hover effect"""
+            self.hover = False
+            self._applyAppTheme()
+
+        def _applyAppTheme(self):
+            """Apply app theme to this button"""
+            if self.hover:
+                # If hovered over currently, use hover colours
+                self.SetForegroundColour(ThemeMixin.appColors['txtbutton_fg_hover'])
+                # self.icon.SetForegroundColour(ThemeMixin.appColors['txtbutton_fg_hover'])
+                self.SetBackgroundColour(ThemeMixin.appColors['txtbutton_bg_hover'])
+            else:
+                # Otherwise, use regular colours
+                self.SetForegroundColour(ThemeMixin.appColors['text'])
+                # self.icon.SetForegroundColour(ThemeMixin.appColors['text'])
+                self.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
+
     class ComponentButton(wx.Button):
         """Button to open component parameters dialog"""
         def __init__(self, parent, name, comp, cat):
@@ -2245,9 +2330,9 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
                 self.favorites.append(thisDef)
         # Make a sizer and label for each category
         self.catSizers = {cat: wx.WrapSizer(orient=wx.HORIZONTAL) for cat in self.categories}
-        self.catLabels = {cat: wx.StaticText(self, label=str(cat), style=wx.ALIGN_LEFT) for cat in self.categories}
+        self.catLabels = {cat: self.CategoryButton(self, name=str(cat), cat=str(cat)) for cat in self.categories}
         for cat in self.categories:
-            self.sizer.Add(self.catLabels[cat], border=6, flag=wx.ALL | wx.ALIGN_LEFT)
+            self.sizer.Add(self.catLabels[cat], border=3, flag=wx.BOTTOM | wx.EXPAND)
             self.sizer.Add(self.catSizers[cat], border=6, flag=wx.ALL | wx.ALIGN_CENTER)
         # Make a button for each component
         self.compButtons = []
@@ -2263,21 +2348,12 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         # Add component buttons to category sizers
         for btn in self.compButtons:
             self.catSizers[btn.category].Add(btn, border=3, flag=wx.ALL)
-        # Hide hidden components
-        for btn in self.compButtons:
-            comp = btn.component
-            # Work out if it should be shown based on filter
-            cond = True
-            if self.filter == 'Any':
-                cond = True
-            elif self.filter == 'Both':
-                cond = 'PsychoJS' in comp.targets and 'PsychoPy' in comp.targets
-            elif self.filter in ['PsychoPy', 'PsychoJS'] :
-                cond = self.filter in comp.targets
-            # Always hide if hidden by prefs
-            if comp.__name__ in prefs.builder['hiddenComponents'] + ['SettingsComponent', 'UnknownComponent']:
-                cond = False
-            btn.Show(cond)
+        # Set starting visibility
+        for cat, btn in self.catLabels.items():
+            if cat in ['Favorites']:
+                btn.ToggleMenu(True)
+            else:
+                btn.ToggleMenu(False)
         # Do sizing
         self.Layout()
         self.Fit()
