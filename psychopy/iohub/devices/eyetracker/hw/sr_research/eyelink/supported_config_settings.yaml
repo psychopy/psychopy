@@ -20,10 +20,14 @@ eyetracker.hw.sr_research.eyelink.EyeTracker:
     monitor_event_types:           
         IOHUB_LIST:
             valid_values: [ MonocularEyeSampleEvent, BinocularEyeSampleEvent, FixationStartEvent, FixationEndEvent, SaccadeStartEvent, SaccadeEndEvent, BlinkStartEvent, BlinkEndEvent]  
-            min_length: 0
+            min_length: 1
             max_length: 8            
     calibration:
-        type: [ THREE_POINTS, FIVE_POINTS, NINE_POINTS, THIRTEEN_POINTS]
+        type:
+            IOHUB_LIST:
+                valid_values: [THREE_POINTS, FIVE_POINTS, NINE_POINTS, THIRTEEN_POINTS]
+                min_length: 1
+                max_length: 1
         auto_pace: IOHUB_BOOL
         pacing_speed:
             IOHUB_FLOAT:
@@ -50,8 +54,16 @@ eyetracker.hw.sr_research.eyelink.EyeTracker:
             min_length: 0
             max_length: 7
     runtime_settings:
-        sampling_rate: [250,500,1000,2000]
-        track_eyes: [LEFT_EYE,RIGHT_EYE,BOTH]
+        sampling_rate:
+            IOHUB_LIST:
+                valid_values: [250,500,1000,2000]
+                min_length: 1
+                max_length: 1
+        track_eyes:
+            IOHUB_LIST:
+                valid_values: [LEFT_EYE, RIGHT_EYE, BOTH]
+                min_length: 1
+                max_length: 1
         sample_filtering:
             FILTER_ALL: 
                 IOHUB_LIST:
@@ -93,9 +105,7 @@ eyetracker.hw.sr_research.eyelink.EyeTracker:
     # manufacturer_name:    Used by Builder as the displayed name in the eye tracker selection dropdown.
     #
     manufacturer_name:
-        IOHUB_STRING:
-            min_length: 1
-            max_length: 64
+        IOHUB_STRING: SR Research Ltd
     builder_hides: ['builder_hides', 'enable', 'name', 'device_number', 'device_timer', 'auto_report_events']
 
 

@@ -167,7 +167,7 @@ def getDevicePaths(device_name=""):
                     scs_yaml_paths.append((device_folder, dfile))
     return scs_yaml_paths
 
-def getDeviceDefaultConfig(device_name="", builder_hides=True):
+def getDeviceDefaultConfig(device_name, builder_hides=True):
     """
     Return the default iohub config dictionary for the given device(s). The dictionary contains the
     (possibly nested) settings that should be displayed for the device (the dict item key) and the default value
@@ -236,7 +236,7 @@ def getDeviceNames(device_name="eyetracker.hw"):
         names.append(d_name)
     return names
 
-def getDeviceSupportedConfig(device_name=""):
+def getDeviceSupportedConfig(device_name):
     """
     """
     device_paths = getDevicePaths(device_name)
@@ -245,6 +245,58 @@ def getDeviceSupportedConfig(device_name=""):
         device_sconfigs.append(readConfig(os.path.join(dpath, 'supported_config_settings.yaml')))
     return device_sconfigs
 
+def getDeviceParams(device_name):
+    """
+    TODO: FINISH, IN PROGRESS.....
+
+    Return a param dict for each setting of the device that Builder needs. Dist structure should match
+    wht is returned by getDeviceDefaultConfig(), but each setting value should be a param dict as outlined below.
+    If field is not editable, inputType should equal 'static'
+
+    # Param struct to return for each device setting:
+    # valType: Type of value to be supplied
+    # inputType: Type of control to be created
+    # allowedVals: Options for when using a Choice control (not always needed)
+    # hint: Tooltip when control is hovered over
+    # label: Label for control (usually just the param name in Title Case)
+
+    # valType can be one of:
+    #   str
+    #   file
+    #   table
+    #   color
+    #   code
+    #   extendedCode
+    #   list
+    #   fileList
+
+    # inputType can be one of:
+    #   static (readonly, disabled setting) # Added by Sol for iohub integration
+    #   single (single line text control)
+    #   multi (multi line text control)
+    #   spin (not used yet - eventually will create an int spinner but for now just makes a single line text control)
+    #   choice (single choice)
+    #   multiChoice (multiple choice)
+    #   bool (checkbox)
+    #   file (single line text with file browse button)
+    #   fileList (multiple file controls which return a list of files)
+    #   table (file control with an Open In Excel button)
+    #   color (single line text with color picker button)
+    #   dict (basically just used for expInfo I think)
+    """
+    builder_param_proto = dict(valType=None, inputType=None, allowedVals=None, hint=None, label=None)
+
+    import pprint
+    supported_config = getDeviceSupportedConfig(device_name)
+    default_config = getDeviceDefaultConfig(device_name)
+    print("SUPPORTED:")
+    pprint.pprint(supported_config)
+    print("DEFAULT:")
+    pprint.pprint(default_config)
+
+
+
+    return {}
 
 if sys.platform == 'win32':
     import pythoncom
