@@ -148,9 +148,6 @@ def isIterable(o):
 # Get available device module paths
 def getDevicePaths(device_name=""):
     """
-
-    :param device_name:
-    :return:
     """
     from psychopy.iohub.devices import import_device
     iohub_device_path = module_directory(import_device)
@@ -172,9 +169,27 @@ def getDevicePaths(device_name=""):
 
 def getDeviceDefaultConfig(device_name="", builder_hides=True):
     """
+    Return the default iohub config dictionary for the given device(s). The dictionary contains the
+    (possibly nested) settings that should be displayed for the device (the dict item key) and the default value
+    (the dict item value).
 
-    :param device_name:
-    :return:
+    Example:
+        import pprint
+        gp3_et_conf_defaults = getDeviceDefaultConfig('eyetracker.hw.gazepoint.gp3')
+        pprint.pprint(gp3_et_conf_defaults)
+
+    Output:
+        {'calibration': {'target_delay': 0.5, 'target_duration': 1.25},
+         'event_buffer_length': 1024,
+         'manufacturer_name': 'GazePoint',
+         'model_name': 'GP3',
+         'monitor_event_types': ['BinocularEyeSampleEvent',
+                                 'FixationStartEvent',
+                                 'FixationEndEvent'],
+         'network_settings': {'ip_address': '127.0.0.1', 'port': 4242},
+         'runtime_settings': {'sampling_rate': 60},
+         'save_events': True,
+         'stream_events': True}
     """
     device_paths = getDevicePaths(device_name)
     device_configs = []
@@ -202,19 +217,27 @@ def getDeviceDefaultConfig(device_name="", builder_hides=True):
         return list(device_configs[0].values())[0]
     return device_configs
 
-def getDeviceNames(device_name=""):
+def getDeviceNames(device_name="eyetracker.hw"):
     """
+    Return a list of iohub eye tracker device names, as would be used as keys to launchHubServer.
 
-    :param device_name:
-    :return:
+    Example:
+        eyetrackers = getDeviceNames()
+        print(eyetrackers)
+
+    Output:
+        ['eyetracker.hw.gazepoint.gp3', 'eyetracker.hw.sr_research.eyelink', 'eyetracker.hw.tobii']
     """
-    return [tuple(k.keys())[0] for k in getDeviceDefaultConfig(device_name)]
+    names = []
+    dconfigs = getDeviceDefaultConfig(device_name)
+    for dcfg in dconfigs:
+        d_name = tuple(dcfg.keys())[0]
+        d_name = d_name[:d_name.rfind('.')]
+        names.append(d_name)
+    return names
 
 def getDeviceSupportedConfig(device_name=""):
     """
-
-    :param device_name:
-    :return:
     """
     device_paths = getDevicePaths(device_name)
     device_sconfigs = []
