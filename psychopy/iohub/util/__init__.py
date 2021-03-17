@@ -217,6 +217,13 @@ def getDeviceDefaultConfig(device_name, builder_hides=True):
         return list(device_configs[0].values())[0]
     return device_configs
 
+
+_iohub2builderValType = dict(IOHUB_STRING='str', IOHUB_BOOL='bool', IOHUB_FLOAT='float', IOHUB_INT='int',
+                             IOHUB_LIST='list', IOHUB_RGBA255_COLOR='color', IOHUB_IP_ADDRESS_V4='str')
+
+_iohub2builderInputType = dict(IOHUB_STRING='single', IOHUB_BOOL='bool', IOHUB_FLOAT='single', IOHUB_INT='single',
+                               IOHUB_LIST=('choice','multi'), IOHUB_RGBA255_COLOR='color', IOHUB_IP_ADDRESS_V4='single')
+
 def getDeviceNames(device_name="eyetracker.hw"):
     """
     Return a list of iohub eye tracker device names, as would be used as keys to launchHubServer.
@@ -250,54 +257,13 @@ def getDeviceSupportedConfig(device_name):
 
 def getDeviceParams(device_name):
     """
-    TODO: FINISH, IN PROGRESS.....
-
     Return a param dict for each setting of the device that Builder needs. Dist structure should match
     wht is returned by getDeviceDefaultConfig(), but each setting value should be a param dict as outlined below.
-    If field is not editable, inputType should equal 'static'
-
-    # Param struct to return for each device setting:
-    # defaultVal: default value for setting (added by Sol)
-    # valType: Type of value to be supplied
-    # inputType: Type of control to be created
-    # allowedVals: Options for when using a Choice control (not always needed)
-    # hint: Tooltip when control is hovered over
-    # label: Label for control (usually just the param name in Title Case)
-
-    # valType can be one of:
-    #   str
-    #   file
-    #   table
-    #   color
-    #   code
-    #   extendedCode
-    #   list
-    #   fileList
-
-    # inputType can be one of:
-    #   static (readonly, disabled setting) # Added by Sol for iohub integration
-    #   single (single line text control)
-    #   multi (multi line text control)
-    #   spin (not used yet - eventually will create an int spinner but for now just makes a single line text control)
-    #   choice (single choice)
-    #   multiChoice (multiple choice)
-    #   bool (checkbox)
-    #   file (single line text with file browse button)
-    #   fileList (multiple file controls which return a list of files)
-    #   table (file control with an Open In Excel button)
-    #   color (single line text with color picker button)
-    #   dict (basically just used for expInfo I think)
+    If field is not editable, inputType should equal 'static'.
     """
-    builder_param_proto = dict(valType=None, inputType=None, defaultVal=None, allowedVals=None, hint=None, label=None)
-
-    iodtype2valType = dict(IOHUB_STRING=str, IOHUB_BOOL=bool, IOHUB_FLOAT=float, IOHUB_INT=int, IOHUB_LIST=list,
-                            IOHUB_RGBA255_COLOR='color', IOHUB_IP_ADDRESS_V4=str)
-
-
     supported_config = getDeviceSupportedConfig(device_name)
     default_config = getDeviceDefaultConfig(device_name)
     device_params = dict()
-
     updateDict(device_params, default_config)
 
     def getSubDict(parent, path):
@@ -306,8 +272,8 @@ def getDeviceParams(device_name):
             r = r.get(p)
         return r
 
-    def setValue(parent, path, value):
-        r = parent
+    def setValue(settings, path, value):
+        r = settings
         for p in path[:-1]:
             r = r.get(p)
         r[path[-1]] = value
@@ -320,17 +286,44 @@ def getDeviceParams(device_name):
                 nlparent.append(k)
                 settings2Params(nlparent, v)
             else:
+                try:
+                    sconfig_data = getSubDict(supported_config, parent_list).get(k)
+                    cspath = list(parent_list)
+                    cspath.append(k)
+                    if isinstance(sconfig_data, dict):
+                        iohub_type, type_constraints =list(sconfig_data.items())[0]
+                        builderValType = _iohub2builderValType[iohub_type]
+                        builderInputType = _iohub2builderInputType[iohub_type]
+                        valid_values = None
+                        if iohub_type == 'IOHUB_LIST':
+                            valid_values = type_constraints.get('valid_values')
+                            if type_constraints.get('max_length') == 1:
+                                builderInputType = builderInputType[0]
+                            else:
+                                builderInputType = builderInputType[1]
+                        nv = dict(valType=builderValType, inputType=builderInputType, defaultVal=v,
+                                  allowedVals=valid_values, hint="TODO: %s hint" % k,
+                                  label=k)
+                    elif isinstance(sconfig_data, list):
+                        nv = dict(valType='list', inputType='static', defaultVal=v,
+                                  allowedVals=None, hint="TODO: %s hint" % k,
+                                  label=k)
+                    elif sconfig_data in _iohub2builderValType.keys():
+                        nv = dict(valType=_iohub2builderValType[sconfig_data],
+                                  inputType=_iohub2builderInputType[sconfig_data], defaultVal=v,
+                                  allowedVals=None, hint="TODO: %s hint" % k,
+                                  label=k)
+                    else:
+                        nv = dict(valType='str', inputType='static', defaultVal=v,
+                                  allowedVals=None, hint="TODO: %s hint" % k,
+                                  label=k)
+                    if nv:
+                        setValue(device_params, cspath, nv)
+                except Exception:
+                    raise RuntimeWarning("settings2Params failed for {}, {}".format(k, v))
 
-                sconfig_data = getSubDict(supported_config, parent_list)
-                if sconfig_data is None:
-                    print("Could not find sconfig data for", parent_list, k)
-                else:
-                    sconfig_data = sconfig_data.get(k)
-                print("TODO: set :", parent_list, k, v, sconfig_data)
-
-    settings2Params([], default_config)
-
-    return default_config
+    settings2Params([], device_params)
+    return device_params
 
 if sys.platform == 'win32':
     import pythoncom

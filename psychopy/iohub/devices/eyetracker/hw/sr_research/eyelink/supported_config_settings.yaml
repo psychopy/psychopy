@@ -99,7 +99,7 @@ eyetracker.hw.sr_research.eyelink.EyeTracker:
     model_name: 
         IOHUB_LIST:
             valid_values: [EYELINK 1000 DESKTOP, EYELINK 1000 TOWER, EYELINK 1000 REMOTE, EYELINK 1000 LONG RANGE]
-            min_length: 0
+            min_length: 1
             max_length: 1            
     device_number: 0
     # manufacturer_name:    Used by Builder as the displayed name in the eye tracker selection dropdown.
