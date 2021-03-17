@@ -90,6 +90,8 @@ eyetracker.hw.sr_research.eyelink.EyeTracker:
             min_length: 0
             max_length: 1            
     device_number: 0
+    # manufacturer_name:    Used by Builder as the displayed name in the eye tracker selection dropdown.
+    #
     manufacturer_name:
         IOHUB_STRING:
             min_length: 1

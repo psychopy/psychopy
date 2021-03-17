@@ -19,8 +19,8 @@ eyetracker.EyeTrackerDevice:
     # Some implementations of the eye tracker interface will use this value to determine 
     # the appropriate logic to be run for a given eye tracker model supported by the vendor implementation. 
     model_name: Default
-    # manufacturer_name can be used to store the name of the maker of the eye tracking
-    # device being used. This is for informational purposes only.
+    # manufacturer_name: Used by Builder as the displayed name in the eye tracker selection dropdown.
+    #
     manufacturer_name: Unknown
     # serial_number can be used to store the unique serial number of the eye tracking
     # device being used. This is for informational purposes only. The serial number should be in

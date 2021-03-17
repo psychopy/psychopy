@@ -34,6 +34,8 @@ eyetracker.EyeTrackerDevice:
             min_length: 1
             max_length: 32
     device_number: 0
+    # manufacturer_name: Used by Builder as the displayed name in the eye tracker selection dropdown.
+    #
     manufacturer_name:
         IOHUB_STRING:
             min_length: 1

@@ -156,8 +156,8 @@ eyetracker.hw.tobii.EyeTracker:
         # Tobii supports BINOCULAR tracking mode only.
         track_eyes: BINOCULAR
             
-    # manufacturer_name is used to store the name of the maker of the eye tracking
-    # device. This is for informational purposes only.
+    # manufacturer_name: Used by Builder as the displayed name in the eye tracker selection dropdown.
+    #
     manufacturer_name: Tobii Technology
     
     # Do not change this value.
