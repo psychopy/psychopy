@@ -15,6 +15,7 @@ from psychopy.experiment.components import Param, _translate
 from psychopy.tools.versionchooser import versionOptions, availableVersions, _versionFilter, latestVersion
 from psychopy.constants import PY3
 from psychopy.monitors import Monitor
+from psychopy.iohub.devices.eyetracker import models
 
 # for creating html output folders:
 import shutil
@@ -109,6 +110,7 @@ class SettingsComponent(object):
                  saveWideCSVFile=True, savePsydatFile=True,
                  savedDataFolder='', savedDataDelim='auto',
                  useVersion='',
+                 eyeModel="None", eyeAutoReport=True, eyeInterval=0.001, eyeSamplingRate=2000,
                  filename=None, exportHTML='on Sync'):
         self.type = 'Settings'
         self.exp = exp  # so we can access the experiment if necess
@@ -315,6 +317,29 @@ class SettingsComponent(object):
             hint=_translate("When to export experiment to the HTML folder."),
             label=_localized["Export HTML"], categ='Online')
 
+        # Eyetracking params
+        self.params['eyeModel'] = Param(
+            eyeModel, valType='str', inputType="choice",
+            allowedVals=models,
+            hint=_translate("What kind of eye tracker should PsychoPy configure"),
+            label=_translate("Eyetracker Device"), categ="Eyetracking"
+        )
+        self.params['eyeAutoReport'] = Param(
+            eyeAutoReport, valType='bool', inputType="bool",
+            hint=_translate("Should eye events be reported?"),
+            label=_translate("Auto Report"), categ="Eyetracking"
+        )
+        self.params['eyeInterval'] = Param(
+            eyeInterval, valType='num', inputType="single",
+            hint=_translate("Interval between samples"),
+            label=_translate("Interval"), categ="Eyetracking"
+        )
+        self.params['eyeSamplingRate'] = Param(
+            eyeSamplingRate, valType='num', inputType="single",
+            hint=_translate("Rate samples are gathered at"),
+            label=_translate("Sample Rate"), categ="Eyetracking"
+        )
+
     def getInfo(self):
         """Rather than converting the value of params['Experiment Info']
         into a dict from a string (which can lead to errors) use this function
@@ -443,6 +468,12 @@ class SettingsComponent(object):
             "import os  # handy system and path functions\n" +
             "import sys  # to get file system encoding\n"
             "\n")
+
+        if not self.params['eyeModel'] == "None":
+            code = (
+                "from psychopy.iohub.devices import eyetracker as eyetracking\n"
+            )
+            buff.writeIndentedLines(code)
 
         # Write custom import statements, line by line.
         for import_ in customImports:
@@ -725,6 +756,30 @@ class SettingsComponent(object):
                                     " or other condition => quit the exp\n")
 
         buff.writeIndented("frameTolerance = 0.001  # how close to onset before 'same' frame\n")
+
+        # Write iohub initialisation
+        if not self.params['eyeModel'] == "None":
+            code = (
+                "eyetracker = eyetracking.EyeTrackerDevice(dconfig={\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+            buff.setIndentLevel(1, relative=True)
+            code = (
+                    "'model_name':%(eyeModel)s,\n"
+                    "'save_events':True,\n"
+                    "'stream_events':False,\n"
+                    "'monitor_event_types':eyetracking.eventTypes,\n"
+                    "'auto_report_events':%(eyeAutoReport)s,\n"
+                    "'interval':%(eyeInterval)s,\n"
+                    "'event_buffer_length':1,\n"
+                    "'sampling_rate':%(eyeSamplingRate)s\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+            buff.setIndentLevel(-1, relative=True)
+            code = (
+                "})"
+            )
+            buff.writeIndentedLines(code % self.params)
 
     def writeWindowCode(self, buff):
         """Setup the window code.

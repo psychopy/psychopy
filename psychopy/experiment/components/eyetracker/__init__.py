@@ -12,6 +12,7 @@ from os import path
 from pathlib import Path
 from psychopy.experiment.components import BaseComponent, Param, _translate
 from psychopy.localization import _localized as __localized
+from psychopy.iohub.devices.eyetracker import eventTypes
 _localized = __localized.copy()
 
 
@@ -27,7 +28,7 @@ class EyetrackerComponent(BaseComponent):
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim='',
-                 config='', rois="",
+                 events="", rois="",
                  #legacy
                  save='final', configFile='myTracker.yaml'):
         BaseComponent.__init__(self, exp, parentName, name=name,
@@ -41,12 +42,15 @@ class EyetrackerComponent(BaseComponent):
         self.order = ['config']  # first param after the name
 
         # useful params for the eyetracker - keep to a minimum if possible! ;-)
-        self.params['config'] = Param(
-            config, valType='code', categ='Hardware',
-            hint=_translate("Config routine for eyetracker"))
+        self.params['events'] = Param(
+            events, valType='list', inputType='multiChoice', categ='Basic',
+            allowedVals=eventTypes,
+            hint=_translate("What events should the eye tracker listen for?"),
+            label=_translate("Event Types")
+        )
 
         self.params['rois'] = Param(
-            rois, valType='list', categ='Basic',
+            rois, valType='list', inputType='single', categ='Basic',
             hint=_translate("Regions of interest (ROIs) for the eyetracker, should be a list of component names. "
                             "To define an ROI without showing it, create a Polygon component with opacity set to 0."),
             label=_translate("ROIs")
@@ -58,13 +62,12 @@ class EyetrackerComponent(BaseComponent):
     def writeInitCode(self, buff):
         inits = self.params
         code = (
-            "from psychopy.hardware import eyetracker\n"
-            "%(name)s = eyetracker.EyeTrackerRecorder(win, \n"
+            "%(name)s = eyetracker.EyeTrackerRecorder(win, eyetracker,\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(1, relative=True)
         code = (
-                "config=%(config)s,\n"
+                "events=%(events)s,\n"
                 "rois=%(rois)s)\n"
         )
         buff.writeIndentedLines(code % inits)
