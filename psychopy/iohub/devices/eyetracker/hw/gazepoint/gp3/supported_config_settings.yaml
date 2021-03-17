@@ -10,7 +10,6 @@ eyetracker.hw.gazepoint.gp3.EyeTracker:
         IOHUB_STRING:
             min_length: 0
             max_length: 32
-    manufacturer_name: GazePoint
     save_events: IOHUB_BOOL
     stream_events: IOHUB_BOOL
     auto_report_events: False
@@ -36,20 +35,7 @@ eyetracker.hw.gazepoint.gp3.EyeTracker:
                 min: 0.25
                 max: 2.5
     device_number: 0
-    manufacture_date: IOHUB_DATE
-    model_number:
+    manufacturer_name:
         IOHUB_STRING:
             min_length: 1
-            max_length: 16
-    software_version:
-        IOHUB_STRING:
-            min_length: 1
-            max_length: 8    
-    hardware_version: 
-        IOHUB_STRING:
-            min_length: 1
-            max_length: 8
-    firmware_version: 
-        IOHUB_STRING:
-            min_length: 1
-            max_length: 8
+            max_length: 64
