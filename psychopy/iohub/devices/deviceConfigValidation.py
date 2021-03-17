@@ -315,19 +315,6 @@ def isValidInt(config_param_name, value, constraints):
 
     raise IntValueError(config_param_name, value, constraints)
 
-
-def isValidNumber(config_param_name, value, constraints):
-    try:
-        int_value = isValidInt(config_param_name, value, constraints)
-        return int_value
-    except Exception:
-        try:
-            float_value = isValidFloat(config_param_name, value, constraints)
-            return float_value
-        except Exception:
-            raise NumberValueError(config_param_name, value, constraints)
-
-
 def isBool(config_param_name, value, valid_value):
     try:
         value = bool(value)

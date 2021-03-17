@@ -289,16 +289,9 @@ def getDeviceParams(device_name):
     #   dict (basically just used for expInfo I think)
     """
     builder_param_proto = dict(valType=None, inputType=None, defaultVal=None, allowedVals=None, hint=None, label=None)
-    iodtype2valType = dict(
-        IOHUB_STRING=str,
-        IOHUB_BOOL=bool,
-        IOHUB_FLOAT=float,
-        IOHUB_INT=isValidInt,
-        IOHUB_NUMBER=isValidNumber,
-        IOHUB_LIST=isValidList,
-        IOHUB_RGBA255_COLOR=isValidRgb255Color,
-        IOHUB_IP_ADDRESS_V4=isValidIpAddress,
-    )
+
+    iodtype2valType = dict(IOHUB_STRING=str, IOHUB_BOOL=bool, IOHUB_FLOAT=float, IOHUB_INT=int, IOHUB_LIST=list,
+                            IOHUB_RGBA255_COLOR='color', IOHUB_IP_ADDRESS_V4=str)
 
 
     supported_config = getDeviceSupportedConfig(device_name)
@@ -336,14 +329,6 @@ def getDeviceParams(device_name):
                 print("TODO: set :", parent_list, k, v, sconfig_data)
 
     settings2Params([], default_config)
-
-    #import pprint
-    #print("SUPPORTED:")
-    #pprint.pprint(supported_config)
-    #print("DEFAULT:")
-    # pprint.pprint(default_config)
-
-
 
     return default_config
 
