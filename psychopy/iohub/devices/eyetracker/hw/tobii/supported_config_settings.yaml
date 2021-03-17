@@ -20,20 +20,24 @@ eyetracker.hw.tobii.EyeTracker:
         IOHUB_INT:
             min: 1
             max: 2048
-    monitor_event_types:           
-        IOHUB_LIST:
-            valid_values: [ MonocularEyeSampleEvent, BinocularEyeSampleEvent, FixationStartEvent, FixationEndEvent, SaccadeStartEvent, SaccadeEndEvent, BlinkStartEvent, BlinkEndEvent]
-            min_length: 0
-            max_length: 8
+    monitor_event_types: [BinocularEyeSampleEvent,]
     runtime_settings:
-        sampling_rate: [25,30,60,120,400]
+        sampling_rate:
+            IOHUB_LIST:
+                valid_values: [25,30,60,120,400]
+                min_length: 1
+                max_length: 1
         track_eyes: [BINOCULAR,]
     calibration:
         minimize_psychopy_win: IOHUB_BOOL
         # The Tobii ioHub Common Eye Tracker Interface currently support 
         # a 3, 5 and 9 point calibration mode.
         # THREE_POINTS,FIVE_POINTS,NINE_POINTS
-        type: [THREE_POINTS,FIVE_POINTS,NINE_POINTS]
+        type:
+            IOHUB_LIST:
+                valid_values: [THREE_POINTS,FIVE_POINTS,NINE_POINTS]
+                min_length: 1
+                max_length: 1
         randomize: False
         target_positions: []
         auto_pace: IOHUB_BOOL
@@ -80,8 +84,5 @@ eyetracker.hw.tobii.EyeTracker:
                         max: 100.0
                 contract_only: IOHUB_BOOL
     device_number: 0
-    manufacturer_name:
-        IOHUB_STRING:
-            min_length: 1
-            max_length: 64
+    manufacturer_name: Tobii Technology
     builder_hides: ['builder_hides', 'enable', 'name', 'device_number', 'runtime_settings.track_eyes', 'auto_report_events']

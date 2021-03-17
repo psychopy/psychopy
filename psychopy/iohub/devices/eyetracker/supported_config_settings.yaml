@@ -1,3 +1,5 @@
+# If a config setting is a float, int, or str, or list, it is considered fixed / not editable,
+# while IOHUB_* means it is settable and defines any validation on it if needed.
 eyetracker.EyeTrackerDevice:
     enable: IOHUB_BOOL
     name:
@@ -23,7 +25,11 @@ eyetracker.EyeTrackerDevice:
     # If a device implementation of the interface does not support some of the event types,
     # remove them from the default_[deviceclass].yaml and the supported_config_settings.yaml file
     # copies in the device implementation folder with the ioHub Device class definition.
-    monitor_event_types: [ EyeSampleEvent, MonocularEyeSampleEvent, BinocularEyeSampleEvent, FixationStartEvent, FixationEndEvent, SaccadeStartEvent, SaccadeEndEvent, BlinkStartEvent, BlinkEndEvent]
+    monitor_event_types:
+        IOHUB_LIST:
+            valid_values: [EyeSampleEvent, MonocularEyeSampleEvent, BinocularEyeSampleEvent, FixationStartEvent, FixationEndEvent, SaccadeStartEvent, SaccadeEndEvent, BlinkStartEvent, BlinkEndEvent]
+            min_length: 1
+            max_length: 9
     runtime_settings:
         sampling_rate:
             IOHUB_INT:
@@ -36,10 +42,7 @@ eyetracker.EyeTrackerDevice:
     device_number: 0
     # manufacturer_name: Used by Builder as the displayed name in the eye tracker selection dropdown.
     #
-    manufacturer_name:
-        IOHUB_STRING:
-            min_length: 1
-            max_length: 64    
+    manufacturer_name: Unknown
     serial_number:
         IOHUB_STRING:
             min_length: 1
