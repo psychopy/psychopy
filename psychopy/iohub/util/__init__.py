@@ -155,10 +155,7 @@ def getDevicePaths(device_name=""):
     from psychopy.iohub.devices import import_device
     iohub_device_path = module_directory(import_device)
     if device_name:
-        if device_name == 'eyetracker':
-            iohub_device_path = os.path.join(iohub_device_path, 'hw')
-        else:
-            iohub_device_path = os.path.join(iohub_device_path, device_name.replace('.', os.path.sep))
+        iohub_device_path = os.path.join(iohub_device_path, device_name.replace('.', os.path.sep))
 
     scs_yaml_paths = []
     for root, dirs, files in os.walk(iohub_device_path):
