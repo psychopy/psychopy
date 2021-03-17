@@ -211,10 +211,9 @@ eyetracker.hw.sr_research.eyelink.EyeTracker:
     #       'EYELINK 1000 LONG RANGE'
     model_name: EYELINK 1000 DESKTOP
 
-    # manufacturer_name:    manufacturer_name is used to store the name of the
-    #   maker of the eye tracking device. This is for informational purposes only.
+    # manufacturer_name: Used by Builder as the displayed name in the eye tracker selection dropdown.
     #
-    manufacturer_name: SR Research Ltd.
+    manufacturer_name: SR Research Ltd
 
     # device_number: The device number to assign to the Analog Input device. 
     #   device_number is not used by this device type.
