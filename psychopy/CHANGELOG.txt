@@ -96,6 +96,21 @@ FIXES:
 - Slider styles weren't generating correct JS code
 - New Button component (Python only) was not cleaning previous clicks so they tended to act as if clicking all trials! #3641
 
+PsychoPy 2021.1.3
+~~~~~~~~~~~~~~~~~~
+
+FIXES:
+
+- Builder: Fix `'list' object has no attribute 'contains'` with clickable mouse objects #3651
+- Builder: context (right-click) menu was not aligned with mouse in Flow for large Flows #3657
+- Builder: Slider styles were not being used correctly from previous versions (<2021.0) #3665
+- Builder: crash if the filter preference was used to filter out pure Python or pure JS Components from Builder #3649
+- Builder: Color Picker defaults to RGB to reduce chance of users pasting in RGBA to visual Components  #3667
+- Runner: local debug of online studies working again (was trying to fetch the wrong PsychoJS version) #af6622c712
+- PsychoPy lib: better handling of unknown fonts (fall back to Open Sans and Alert) #fba09ef8d0a
+- PsychoPy lib: better timing on iohub for macOS key/mouse polling #fba09ef8d0a
+
+
 PsychoPy 2020.2
 -----------------
 
