@@ -119,7 +119,7 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
         self.flipHoriz = flipHoriz
         self.pos = numpy.asarray(pos, float)
         self.depth = depth
-        self.opacity = float(opacity)
+        self.opacity = opacity
         self.interpolate = interpolate
         self.noAudio = noAudio
         self._audioStream = None
