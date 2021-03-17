@@ -243,6 +243,9 @@ def getDeviceSupportedConfig(device_name):
     device_sconfigs = []
     for dpath, _ in device_paths:
         device_sconfigs.append(readConfig(os.path.join(dpath, 'supported_config_settings.yaml')))
+    if len(device_sconfigs) == 1:
+        # simplify return value when only one device was requested
+        return list(device_sconfigs[0].values())[0]
     return device_sconfigs
 
 def getDeviceParams(device_name):
@@ -254,6 +257,7 @@ def getDeviceParams(device_name):
     If field is not editable, inputType should equal 'static'
 
     # Param struct to return for each device setting:
+    # defaultVal: default value for setting (added by Sol)
     # valType: Type of value to be supplied
     # inputType: Type of control to be created
     # allowedVals: Options for when using a Choice control (not always needed)
@@ -284,19 +288,64 @@ def getDeviceParams(device_name):
     #   color (single line text with color picker button)
     #   dict (basically just used for expInfo I think)
     """
-    builder_param_proto = dict(valType=None, inputType=None, allowedVals=None, hint=None, label=None)
+    builder_param_proto = dict(valType=None, inputType=None, defaultVal=None, allowedVals=None, hint=None, label=None)
+    iodtype2valType = dict(
+        IOHUB_STRING=str,
+        IOHUB_BOOL=bool,
+        IOHUB_FLOAT=float,
+        IOHUB_INT=isValidInt,
+        IOHUB_NUMBER=isValidNumber,
+        IOHUB_LIST=isValidList,
+        IOHUB_RGBA255_COLOR=isValidRgb255Color,
+        IOHUB_IP_ADDRESS_V4=isValidIpAddress,
+    )
 
-    import pprint
+
     supported_config = getDeviceSupportedConfig(device_name)
     default_config = getDeviceDefaultConfig(device_name)
-    print("SUPPORTED:")
-    pprint.pprint(supported_config)
-    print("DEFAULT:")
-    pprint.pprint(default_config)
+    device_params = dict()
+
+    updateDict(device_params, default_config)
+
+    def getSubDict(parent, path):
+        r = parent
+        for p in path:
+            r = r.get(p)
+        return r
+
+    def setValue(parent, path, value):
+        r = parent
+        for p in path[:-1]:
+            r = r.get(p)
+        r[path[-1]] = value
+
+    # convert default config values into builder param dicts
+    def settings2Params(parent_list, settings):
+        for k, v in settings.items():
+            if isinstance(v, dict):
+                nlparent = copy.copy(parent_list)
+                nlparent.append(k)
+                settings2Params(nlparent, v)
+            else:
+
+                sconfig_data = getSubDict(supported_config, parent_list)
+                if sconfig_data is None:
+                    print("Could not find sconfig data for", parent_list, k)
+                else:
+                    sconfig_data = sconfig_data.get(k)
+                print("TODO: set :", parent_list, k, v, sconfig_data)
+
+    settings2Params([], default_config)
+
+    #import pprint
+    #print("SUPPORTED:")
+    #pprint.pprint(supported_config)
+    #print("DEFAULT:")
+    # pprint.pprint(default_config)
 
 
 
-    return {}
+    return default_config
 
 if sys.platform == 'win32':
     import pythoncom

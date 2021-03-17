@@ -13,21 +13,21 @@ Display:
     origin: [ center , top_left , bottom_left]
     physical_dimensions:
         width:
-            IOHUB_NUMBER:
-                min: 1
-                max: 2048
+            IOHUB_FLOAT:
+                min: 1.0
+                max: 2048.0
                 required: True
         height:
-            IOHUB_NUMBER:
-                min: 1
-                max: 2048
+            IOHUB_FLOAT:
+                min: 1.0
+                max: 2048.0
                 required: True
         unit_type: [ mm, cm, inch ]
     default_eye_distance:
         surface_center:
-            IOHUB_NUMBER:
-                min: 1
-                max: 2048
+            IOHUB_FLOAT:
+                min: 1.0
+                max: 2048.0
                 required: True
         unit_type: [ mm, cm, inch ]
     psychopy_monitor_name:
@@ -41,39 +41,8 @@ Display:
     auto_report_events: False    
     event_buffer_length: 0    
     monitor_event_types:
-    model_name:
-        IOHUB_STRING:
-            min_length: 1
-            max_length: 32
-            default: N/A
-    model_number:
-        IOHUB_STRING:
-            min_length: 1
-            max_length: 16
-            default: N/A
     manufacturer_name:
         IOHUB_STRING:
             min_length: 1
             max_length: 64    
-            default: N/A
-    serial_number:
-        IOHUB_STRING:
-            min_length: 1
-            max_length: 32
-            default: N/A
-    manufacture_date: IOHUB_DATE
-    software_version:
-        IOHUB_STRING:
-            min_length: 1
-            max_length: 8    
-            default: N/A
-    hardware_version: 
-        IOHUB_STRING:
-            min_length: 1
-            max_length: 8
-            default: N/A
-    firmware_version: 
-        IOHUB_STRING:
-            min_length: 1
-            max_length: 8
             default: N/A

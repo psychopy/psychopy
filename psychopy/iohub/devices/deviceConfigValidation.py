@@ -344,22 +344,6 @@ def isValidIpAddress(config_param_name, value, valid_value):
         raise IpValueError(config_param_name, value)
 
 
-def isValidDateString(config_param_name, value, valid_value):
-    try:
-        if value == 'DD-MM-YYYY':
-            return value
-        day, month, year = value.split('-')
-        if int(day) < 1 or int(day) > 31:
-            raise DateStringValueError(config_param_name, value)
-        if int(month) < 1 or int(month) > 12:
-            raise DateStringValueError(config_param_name, value)
-        if int(year) < 1900 or int(year) > 2013:
-            raise DateStringValueError(config_param_name, value)
-        return value
-    except Exception:
-        raise DateStringValueError(config_param_name, value)
-
-
 def isValidList(config_param_name, value, constraints):
     try:
         min_length = constraints.get('min_length', 1)
@@ -406,23 +390,15 @@ CONFIG_VALIDATION_KEY_WORD_MAPPINGS = dict(
     IOHUB_BOOL=isBool,
     IOHUB_FLOAT=isValidFloat,
     IOHUB_INT=isValidInt,
-    IOHUB_NUMBER=isValidNumber,
     IOHUB_LIST=isValidList,
     IOHUB_RGBA255_COLOR=isValidRgb255Color,
-    IOHUB_IP_ADDRESS_V4=isValidIpAddress,
-    IOHUB_DATE=isValidDateString)
+    IOHUB_IP_ADDRESS_V4=isValidIpAddress)
 ###############################################
 
 # load a support_settings_values.yaml
 
-
-def loadYamlFile(yaml_file_path, print_file=False):
+def loadYamlFile(yaml_file_path):
     yaml_file_contents = yload(open(yaml_file_path, 'r'), Loader=yLoader)
-#    if print_file:
-#        print 'yaml_file_contents:'
-#        print 'file: ',yaml_file_path
-#        print 'contents:'
-#        pprint(yaml_file_contents)
     return yaml_file_contents
 
 _current_dir = module_directory(isValidString)

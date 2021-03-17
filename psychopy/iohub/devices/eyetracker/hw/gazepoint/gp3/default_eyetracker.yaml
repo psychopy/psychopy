@@ -37,7 +37,6 @@ eyetracker.hw.gazepoint.gp3.EyeTracker:
 
     # Specify the IP address and port that iohub should use to connect to the GP3 tracker.
     # Default values are for localhost connection (single PC setup).
-    # If using 2 computer setup, consider changing device_timer: interval: to 0.001
     network_settings:
         ip_address: 127.0.0.1            
         port: 4242
