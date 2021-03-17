@@ -6,9 +6,10 @@ eyetracker.hw.tobii.EyeTracker:
             first_char_alpha: True
     enable: IOHUB_BOOL
     model_name:
-        IOHUB_STRING:
+        IOHUB_LIST:
+            valid_values: [Any Pro Model, Nano, Fusuion, Spectrum, T120, X120, TX300, X2, X3]
             min_length: 1
-            max_length: 32
+            max_length: 1
     serial_number:
         IOHUB_STRING:
             min_length: 0
@@ -24,7 +25,7 @@ eyetracker.hw.tobii.EyeTracker:
     runtime_settings:
         sampling_rate:
             IOHUB_LIST:
-                valid_values: [25,30,60,120,400]
+                valid_values: [30, 60, 120, 250, 300, 1200]
                 min_length: 1
                 max_length: 1
         track_eyes: [BINOCULAR,]
@@ -38,7 +39,7 @@ eyetracker.hw.tobii.EyeTracker:
                 valid_values: [THREE_POINTS,FIVE_POINTS,NINE_POINTS]
                 min_length: 1
                 max_length: 1
-        randomize: False
+        randomize: IOHUB_BOOL
         target_positions: []
         auto_pace: IOHUB_BOOL
         pacing_speed:
@@ -85,4 +86,4 @@ eyetracker.hw.tobii.EyeTracker:
                 contract_only: IOHUB_BOOL
     device_number: 0
     manufacturer_name: Tobii Technology
-    builder_hides: ['builder_hides', 'enable', 'name', 'device_number', 'runtime_settings.track_eyes', 'auto_report_events']
+    builder_hides: ['builder_hides', 'enable', 'name', 'device_number', 'runtime_settings.track_eyes', 'calibration.target_positions', 'auto_report_events']

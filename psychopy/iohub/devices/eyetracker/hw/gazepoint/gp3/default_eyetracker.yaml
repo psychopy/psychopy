@@ -25,7 +25,7 @@ eyetracker.hw.gazepoint.gp3.EyeTracker:
     monitor_event_types: [ BinocularEyeSampleEvent, FixationStartEvent, FixationEndEvent]
 
     runtime_settings:
-        sampling_rate: 60
+        sampling_rate: Auto
         track_eyes: [BINOCULAR,]
 
     # device_timer: The GP3 EyeTracker class uses the polling method to
