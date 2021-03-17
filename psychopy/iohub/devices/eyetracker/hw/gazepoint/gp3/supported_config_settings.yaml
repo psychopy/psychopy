@@ -17,6 +17,11 @@ eyetracker.hw.gazepoint.gp3.EyeTracker:
         IOHUB_INT:
             min: 1
             max: 2048
+    device_timer:
+        interval:
+            IOHUB_FLOAT:
+                min: 0.001
+                max: 0.020
     monitor_event_types:           
         IOHUB_LIST:
             valid_values: [BinocularEyeSampleEvent, FixationStartEvent, FixationEndEvent]
@@ -26,6 +31,7 @@ eyetracker.hw.gazepoint.gp3.EyeTracker:
         sampling_rate: 60
         track_eyes: [BINOCULAR,]
     calibration:
+        use_builtin: IOHUB_BOOL
         target_duration:
             IOHUB_FLOAT:
                 min: 0.25
@@ -39,3 +45,4 @@ eyetracker.hw.gazepoint.gp3.EyeTracker:
         IOHUB_STRING:
             min_length: 1
             max_length: 64
+    builder_hides: ['builder_hides', 'enable', 'name', 'device_number', 'device_timer', 'auto_report_events', 'runtime_settings.track_eyes', 'calibration.use_builtin']

@@ -84,3 +84,4 @@ eyetracker.hw.tobii.EyeTracker:
         IOHUB_STRING:
             min_length: 1
             max_length: 64
+    builder_hides: ['builder_hides', 'enable', 'name', 'device_number', 'runtime_settings.track_eyes', 'auto_report_events']

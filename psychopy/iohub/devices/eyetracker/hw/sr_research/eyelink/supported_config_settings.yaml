@@ -94,5 +94,6 @@ eyetracker.hw.sr_research.eyelink.EyeTracker:
         IOHUB_STRING:
             min_length: 1
             max_length: 64
+    builder_hides: ['builder_hides', 'enable', 'name', 'device_number', 'device_timer', 'auto_report_events']
 
 
