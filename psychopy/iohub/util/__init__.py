@@ -170,7 +170,7 @@ def getDevicePaths(device_name=""):
                     scs_yaml_paths.append((device_folder, dfile))
     return scs_yaml_paths
 
-def getDeviceDefaultConfig(device_name=""):
+def getDeviceDefaultConfig(device_name="", builder_hides=True):
     """
 
     :param device_name:
@@ -179,7 +179,20 @@ def getDeviceDefaultConfig(device_name=""):
     device_paths = getDevicePaths(device_name)
     device_configs = []
     for dpath, dconf in device_paths:
-        device_configs.append(readConfig(os.path.join(dpath, dconf)))
+        dname, dconf_dict = list(readConfig(os.path.join(dpath, dconf)).items())[0]
+        if builder_hides:
+            to_hide = dconf_dict.get('builder_hides', [])
+            for param in to_hide:
+                if param.find('.') >= 0:
+                    # it is a nested param
+                    param_tokens = param.strip().split('.')
+                    cdict = dconf_dict
+                    for pt in param_tokens[:-1]:
+                        cdict = cdict.get(pt)
+                    del cdict[param_tokens[-1]]
+                else:
+                    del dconf_dict[param]
+        device_configs.append({dname: dconf_dict})
     return device_configs
 
 def getDeviceNames(device_name=""):
