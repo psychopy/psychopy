@@ -5,7 +5,7 @@ eyetracker.hw.gazepoint.gp3.EyeTracker:
             max_length: 32
             first_char_alpha: True
     enable: IOHUB_BOOL
-    model_name: GP3
+    model_name: ['GP3', 'GP3 HD']
     serial_number:
         IOHUB_STRING:
             min_length: 0
@@ -28,7 +28,7 @@ eyetracker.hw.gazepoint.gp3.EyeTracker:
             min_length: 0
             max_length: 3
     runtime_settings:
-        sampling_rate: 60
+        sampling_rate: [60, 150]
         track_eyes: [BINOCULAR,]
     calibration:
         use_builtin: IOHUB_BOOL

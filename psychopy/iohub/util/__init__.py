@@ -185,14 +185,21 @@ def getDeviceDefaultConfig(device_name="", builder_hides=True):
             for param in to_hide:
                 if param.find('.') >= 0:
                     # it is a nested param
-                    param_tokens = param.strip().split('.')
+                    param_tokens = param.split('.')
                     cdict = dconf_dict
                     for pt in param_tokens[:-1]:
                         cdict = cdict.get(pt)
-                    del cdict[param_tokens[-1]]
+                    try:
+                        del cdict[param_tokens[-1]]
+                    except TypeError:
+                        # key does not exist
+                        pass
                 else:
                     del dconf_dict[param]
         device_configs.append({dname: dconf_dict})
+    if len(device_configs) == 1:
+        # simplify return value when only one device was requested
+        return list(device_configs[0].values())[0]
     return device_configs
 
 def getDeviceNames(device_name=""):

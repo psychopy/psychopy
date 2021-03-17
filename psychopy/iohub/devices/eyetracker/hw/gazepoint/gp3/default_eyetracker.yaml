@@ -24,6 +24,10 @@ eyetracker.hw.gazepoint.gp3.EyeTracker:
     # BinocularEyeSampleEvent event type.
     monitor_event_types: [ BinocularEyeSampleEvent, FixationStartEvent, FixationEndEvent]
 
+    runtime_settings:
+        sampling_rate: 60
+        track_eyes: [BINOCULAR,]
+
     # device_timer: The GP3 EyeTracker class uses the polling method to
     #   check for new events received from the EyeTracker device. 
     #   device_timer.interval specifies the sec.msec time between device polls.
@@ -49,7 +53,7 @@ eyetracker.hw.gazepoint.gp3.EyeTracker:
         target_delay: 0.5
         
     # The model name of the device.
-    model_name:
+    model_name: GP3
 
     # manufacturer_name is used to store the name of the maker of the eye tracking
     # device. This is for informational purposes only.
