@@ -264,7 +264,7 @@ class TrialHandler(_BaseTrialHandler):
             sequenceIndices = []
             randGenerator = np.random.default_rng(seed=self.seed)
             for thisRep in range(self.nReps):
-                thisRepSeq = randGenerator.shuffle(indices.flat).tolist()
+                thisRepSeq = randGenerator.permutation(indices.flat).tolist()
                 sequenceIndices.append(thisRepSeq)
             sequenceIndices = np.transpose(sequenceIndices)
         elif self.method == 'sequential':
@@ -273,7 +273,7 @@ class TrialHandler(_BaseTrialHandler):
             # indices*nReps, flatten, shuffle, unflatten; only use seed once
             sequential = np.repeat(indices, self.nReps, 1)  # = sequential
             randGenerator = np.random.default_rng(seed=self.seed)
-            randomFlat = randGenerator.shuffle(sequential.flat, seed=self.seed)
+            randomFlat = randGenerator.permutation(sequential.flat, seed=self.seed)
             sequenceIndices = np.reshape(
                 randomFlat, (len(indices), self.nReps))
         if self.autoLog:
@@ -983,15 +983,15 @@ class TrialHandler2(_BaseTrialHandler):
                         self.thisN < (self.nReps * len(self.trialList))):
                 # we've only just started on a fullRandom sequence
                 sequence *= self.nReps
-                self._rng.shuffle(sequence)
-                self.remainingIndices = sequence
+                # NB permutation *returns* a shuffled array
+                self.remainingIndices = self._rng.permutation(sequence)
             elif (self.method in ('sequential', 'random') and
                           self.thisRepN < self.nReps):
                 # start a new repetition
                 self.thisTrialN = 0
                 self.thisRepN += 1
                 if self.method == 'random':
-                    self._rng.shuffle(sequence)  # shuffle in-place
+                    self._rng.shuffle(sequence)  # shuffle (is in-place)
                 self.remainingIndices = sequence
             else:
                 # we've finished
