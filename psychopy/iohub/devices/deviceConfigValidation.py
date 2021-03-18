@@ -14,6 +14,7 @@ import os
 import numbers  # numbers.Integral is like (int, long) but supports Py3
 
 from ..util import yload, yLoader, module_directory
+from ..errors import print2err
 
 class ValidationError(Exception):
     """Base class for exceptions in this module."""
@@ -267,6 +268,9 @@ def isValidRgb255Color(config_param_name, color, constraints):
 
 def isValidString(config_param_name, value, constraints):
     if isinstance(value, basestring):
+        if value == constraints:
+            # static string
+            return value
         constraints.setdefault('min_length', MIN_VALID_STR_LENGTH)
         constraints.setdefault('max_length', MAX_VALID_STR_LENGTH)
         constraints.setdefault('first_char_alpha', False)
@@ -368,7 +372,13 @@ def isValidList(config_param_name, value, constraints):
 
 
 def isValueValid(config_param_name, value, valid_values):
-    if value not in valid_values:
+    if isinstance(value, (list, tuple)):
+        for v in value:
+            if v not in valid_values:
+                print2err('FAIL: ', config_param_name, " ", value, " ", valid_values)
+                raise NonSupportedValueError(config_param_name, " ", value, " ", valid_values)
+    elif value not in valid_values:
+        print2err('FAIL: ', config_param_name, value, valid_values)
         raise NonSupportedValueError(config_param_name, value, valid_values)
     return value
 
@@ -381,12 +391,6 @@ CONFIG_VALIDATION_KEY_WORD_MAPPINGS = dict(
     IOHUB_RGBA255_COLOR=isValidRgb255Color,
     IOHUB_IP_ADDRESS_V4=isValidIpAddress)
 ###############################################
-
-# load a support_settings_values.yaml
-
-def loadYamlFile(yaml_file_path):
-    yaml_file_contents = yload(open(yaml_file_path, 'r'), Loader=yLoader)
-    return yaml_file_contents
 
 _current_dir = module_directory(isValidString)
 
@@ -410,18 +414,18 @@ def buildConfigParamValidatorMapping(
         if keyword_validator_function:
             param_validation_func_mapping[
                 parent_name] = keyword_validator_function, param_config
-#            print2err('ADDED MAPPING')
+            #print2err('ADDED MAPPING1: ', current_param_path, " ", isValueValid, " ", param_config)
         elif isinstance(param_config, basestring):
             keyword_validator_function = CONFIG_VALIDATION_KEY_WORD_MAPPINGS.get(
                 param_config, None)
             if keyword_validator_function:
                 param_validation_func_mapping[
                     current_param_path] = keyword_validator_function, {}
-#                print2err('ADDED MAPPING')
+                #print2err('ADDED MAPPING2: ', current_param_path, " ", isValueValid, " ", param_config)
             else:
                 param_validation_func_mapping[
                     current_param_path] = isValueValid, [param_config, ]
-#                print2err('ADDED MAPPING')
+                #print2err('ADDED MAPPING3: ', current_param_path, " ", isValueValid, " ", param_config)
         elif isinstance(param_config, dict):
             buildConfigParamValidatorMapping(
                 param_config,
@@ -430,11 +434,11 @@ def buildConfigParamValidatorMapping(
         elif isinstance(param_config, (list, tuple)):
             param_validation_func_mapping[
                 current_param_path] = isValueValid, param_config
-#            print2err('ADDED MAPPING')
+            #print2err('ADDED MAPPING4: ', current_param_path, " ", isValueValid, " ", param_config)
         else:
             param_validation_func_mapping[
                 current_param_path] = isValueValid, [param_config, ]
-#            print2err('ADDED MAPPING')
+            #print2err('ADDED MAPPING5: ', current_param_path, " ", isValueValid, " ", param_config)
 
 
 def validateConfigDictToFuncMapping(
@@ -485,7 +489,7 @@ def validateDeviceConfiguration(
                                             relative_module_path[len('psychopy.iohub.devices.'):].replace('.',
                                                                                                           os.path.sep),
                                             'supported_config_settings.yaml')
-    device_settings_validation_dict = loadYamlFile(validation_file_path, print_file=True)
+    device_settings_validation_dict = yload(open(validation_file_path, 'r'), Loader=yLoader)
     device_settings_validation_dict = device_settings_validation_dict[list(device_settings_validation_dict.keys())[0]]
 
     param_validation_func_mapping = dict()

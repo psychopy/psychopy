@@ -30,16 +30,10 @@ eyetracker.EyeTrackerDevice:
             valid_values: [EyeSampleEvent, MonocularEyeSampleEvent, BinocularEyeSampleEvent, FixationStartEvent, FixationEndEvent, SaccadeStartEvent, SaccadeEndEvent, BlinkStartEvent, BlinkEndEvent]
             min_length: 1
             max_length: 9
-    runtime_settings:
-        sampling_rate:
-            IOHUB_INT:
-                min: 0
-                max: 2000       
     model_name:
         IOHUB_STRING:
             min_length: 1
             max_length: 32
-    device_number: 0
     # manufacturer_name: Used by Builder as the displayed name in the eye tracker selection dropdown.
     #
     manufacturer_name: Unknown
@@ -47,3 +41,4 @@ eyetracker.EyeTrackerDevice:
         IOHUB_STRING:
             min_length: 1
             max_length: 32
+    device_number: 0

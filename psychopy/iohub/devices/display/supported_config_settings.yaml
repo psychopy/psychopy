@@ -41,6 +41,10 @@ Display:
     auto_report_events: False    
     event_buffer_length: 0    
     monitor_event_types:
+    model_name:
+        IOHUB_STRING:
+            min_length: 1
+            max_length: 32
     manufacturer_name:
         IOHUB_STRING:
             min_length: 1

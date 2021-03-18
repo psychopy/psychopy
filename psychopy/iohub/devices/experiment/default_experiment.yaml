@@ -58,5 +58,9 @@ Experiment:
     #
     event_buffer_length: 128
 
+    device_number: 0
+    manufacturer_name: Open Science Tools
+    model_name: PsychoPy3
+
 
 
