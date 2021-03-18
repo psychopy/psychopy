@@ -6,13 +6,14 @@ from __future__ import division
 from builtins import object
 import sys
 import os
+import copy
 import inspect
 import warnings
 import numpy
 import numbers  # numbers.Integral is like (int, long) but supports Py3
 import datetime
 from ..errors import print2err
-
+import re
 
 ########################
 #
@@ -29,15 +30,6 @@ try:
     from collections.abc import Iterable
 except ImportError:
     from collections import Iterable
-
-# Only turn on converting all strings to unicode by the YAML loader
-# if running Python 2.7 or higher. 2.6 does not seem to like unicode dict keys.
-# ???
-#
-if sys.version_info[0] != 2 or sys.version_info[1] >= 7:
-    def construct_yaml_unistr(self, node):
-        return self.construct_scalar(node)
-    yLoader.add_constructor(u'tag:yaml.org,2002:str', construct_yaml_unistr)
 
 
 def saveConfig(config, dst_path):
@@ -81,7 +73,6 @@ def mergeConfigurationFiles(base_config_file_path, update_from_config_file_path,
                         update[k] = merge(update[k], v)
         return update
 
-    import copy
     merged = merge(copy.deepcopy(update_from_config), base_config)
     ydump(merged, open(merged_save_to_path, 'w'), Dumper=yDumper)
 
@@ -346,12 +337,9 @@ else:
     def win32MessagePump():
         pass
 
-########################
-#
 # Recursive updating of values from one dict into another if the key does not key exist.
 # Supported nested dicts and uses deep copy when setting values in the
 # target dict.
-import copy
 
 
 def updateDict(add_to, add_from):
@@ -362,11 +350,7 @@ def updateDict(add_to, add_from):
             updateDict(add_to[key], value)
 
 
-########################
-#
 # Convert Camel to Snake variable name format
-
-import re
 first_cap_re = re.compile('(.)([A-Z][a-z]+)')
 all_cap_re = re.compile('([a-z0-9])([A-Z])')
 
@@ -377,15 +361,12 @@ def convertCamelToSnake(name, lower_snake=True):
         return all_cap_re.sub(r'\1_\2', s1).lower()
     return all_cap_re.sub(r'\1_\2', s1).upper()
 
-###############################################################################
-#
-## A couple date / time related utility functions
-#
+
+# A couple date / time related utility functions
 
 getCurrentDateTime = datetime.datetime.now
-getCurrentDateTimeString = lambda : getCurrentDateTime().strftime("%Y-%m-%d %H:%M")
+getCurrentDateTimeString = lambda: getCurrentDateTime().strftime("%Y-%m-%d %H:%M")
 
-########################
 
 class NumPyRingBuffer(object):
     """NumPyRingBuffer is a circular buffer implemented using a one dimensional
@@ -607,8 +588,7 @@ def generatedPointGrid(pixel_width, pixel_height, width_scalar=1.0,
 
     return points
 
-###############################################################################
-#
+
 # Rotate a set of points in 2D
 #
 # Rotate a set of n 2D points in the form [[x1,x1],[x2,x2],...[xn,xn]]
@@ -629,24 +609,3 @@ def rotate2D(pts, origin, ang=None):
                                   [-numpy.sin(ang),
                                    numpy.cos(ang)]])) + origin
 
-###############################################################################
-#
-# Verify the validity of a given Python package release number
-#
-
-try:
-    from verlib import suggest_normalized_version, NormalizedVersion
-
-    def validate_version(version):
-        rversion = suggest_normalized_version(version)
-        if rversion is None:
-            raise ValueError('Cannot work with "%s"' % version)
-        if rversion != version:
-            warnings.warn('"%s" is not a normalized version.\n'
-                          'It has been transformed into "%s" '
-                          'for interoperability.' % (version, rversion))
-        return NormalizedVersion(rversion)
-
-except Exception:
-    # just use the version provided if verlib is not installed.
-    validate_version = lambda version: version

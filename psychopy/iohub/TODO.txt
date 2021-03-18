@@ -6,15 +6,16 @@ TODO list / iohub 2021 rework project notes
 
 - remove any areas of logic dealing with Python 2 vs Python 3 incompatibilities.
 
-- remove unneeded params from all supported_config_settings.yaml/default_device.yaml files, like:
-        - manufacture_date: DD-MM-YYYY
-        - software_version: N/A
-        - hardware_version: N/A
-        - firmware_version: N/A
+- remove unneeded params from all supported_config_settings.yaml/default_device.yaml files
+    - did some obvious ones already, but a device by device review would be good.
 
 - remove unused / placeholder Constants (iohub.constants.py)
 
 - stop using lazy_import. Not sure it is really needed for iohub
+
+- ?? implement a new 'Mouse' base eye tracker implementation so people can use the mouse to simulate eye movements
+  in their experiment and get sample data like it was from a real eye tracker.
+  - might also act as a good 'template' for creating a new eye tracker interface with.
 
 - ?? Assume / enforce only 1 experiment, 1 session per iohub hdf5 file
 
@@ -34,8 +35,6 @@ TODO list / iohub 2021 rework project notes
     - not actually used from what I can tell.
 
 - ?? remove need for / use of experiment_config.yaml. Determine what functionality this will affect.
-
-- ?? switch from .yaml files to python dict structure.
 
 - ?? revert to server side only devices / events accessed via RPC.
     - remove iohub.client.keyboard.py and iohub.client.wintab.py
