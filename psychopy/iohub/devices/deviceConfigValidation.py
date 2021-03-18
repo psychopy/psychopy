@@ -362,8 +362,7 @@ def isValidList(config_param_name, value, constraints):
 
         for v in value:
             if v not in valid_values:
-                raise NonSupportedValueError(
-                    config_param_name, v, valid_values)
+                raise NonSupportedValueError(config_param_name, v, valid_values)
 
         return value
 
@@ -375,10 +374,8 @@ def isValueValid(config_param_name, value, valid_values):
     if isinstance(value, (list, tuple)):
         for v in value:
             if v not in valid_values:
-                print2err('FAIL: ', config_param_name, " ", value, " ", valid_values)
-                raise NonSupportedValueError(config_param_name, " ", value, " ", valid_values)
+                raise NonSupportedValueError(config_param_name, value, valid_values)
     elif value not in valid_values:
-        print2err('FAIL: ', config_param_name, value, valid_values)
         raise NonSupportedValueError(config_param_name, value, valid_values)
     return value
 

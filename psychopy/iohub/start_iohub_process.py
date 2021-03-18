@@ -14,12 +14,15 @@ try:
         # Libuv only has 1 msec loop resolution (at least on Windows
         # not sure about other OS'es)
         gevent.config.loop = "libev-cext"
-except:
+except ValueError:
+    # libev-cext is not available on the gevent build being used
+    pass
+except Exception:
     pass
 
 import psutil
+import psychopy
 import psychopy.clock as clock
-import psychopy.iohub
 from psychopy.iohub import IOHUB_DIRECTORY
 from psychopy.iohub.devices import Computer
 Computer.is_iohub_process = True
