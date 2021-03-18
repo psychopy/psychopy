@@ -1414,13 +1414,12 @@ class TrialHandlerExt(TrialHandler):
         if self.method == 'random':
             seqIndices = []
             randomGenerator = np.random.default_rng(seed=self.seed)
+            if self.trialWeights is None:
+                thisRepSeq = indices.flat  # take a fresh copy
+            else:
+                thisRepSeq = repeat(indices, self.trialWeights)
             for thisRep in range(self.nReps):
-                if self.trialWeights is None:
-                    thisRepSeq = indices.flat  # take a fresh copy
-                else:
-                    thisRepSeq = repeat(indices, self.trialWeights)
-                randomGenerator.shuffle(thisRepSeq)  # numpy shuffle is in-place
-                seqIndices.append(thisRepSeq.tolist())
+                seqIndices.append(randomGenerator.permutation(thisRepSeq))
             seqIndices = np.transpose(seqIndices)
         elif self.method == 'sequential':
             if self.trialWeights is None:
