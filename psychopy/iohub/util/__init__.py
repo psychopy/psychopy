@@ -234,17 +234,27 @@ def getDeviceNames(device_name="eyetracker.hw"):
         names.append(d_name)
     return names
 
-def getDeviceSupportedConfig(device_name):
+def getDeviceFile(device_name, file_name):
     """
     """
     device_paths = getDevicePaths(device_name)
     device_sconfigs = []
     for dpath, _ in device_paths:
-        device_sconfigs.append(readConfig(os.path.join(dpath, 'supported_config_settings.yaml')))
+        device_sconfigs.append(readConfig(os.path.join(dpath, file_name)))
     if len(device_sconfigs) == 1:
         # simplify return value when only one device was requested
         return list(device_sconfigs[0].values())[0]
     return device_sconfigs
+
+def getDeviceSupportedConfig(device_name):
+    return getDeviceFile(device_name, 'supported_config_settings.yaml')
+
+def getDeviceConfigHints(device_name):
+    try:
+        return getDeviceFile(device_name, 'builder_hints.yaml')
+    except FileNotFoundError:
+        pass
+    return None
 
 def getDeviceParams(device_name):
     """
@@ -254,6 +264,7 @@ def getDeviceParams(device_name):
     """
     supported_config = getDeviceSupportedConfig(device_name)
     default_config = getDeviceDefaultConfig(device_name)
+    hints_data = getDeviceConfigHints(device_name)
     device_params = dict()
     updateDict(device_params, default_config)
 
@@ -279,9 +290,19 @@ def getDeviceParams(device_name):
             else:
                 try:
                     sconfig_data = getSubDict(supported_config, parent_list).get(k)
+
+                    shint = "TODO: %s hint" % k
+                    if hints_data:
+                        shint = getSubDict(hints_data, parent_list).get(k)
+
                     cspath = list(parent_list)
                     cspath.append(k)
-                    slabel = k.replace("_", " ").title()
+
+                    slabel = ""
+                    if len(parent_list):
+                        slabel = "->".join(parent_list).replace("_", " ").title()+"->"
+                    slabel = slabel+k.replace("_", " ").title()
+
                     if isinstance(sconfig_data, dict):
                         iohub_type, type_constraints =list(sconfig_data.items())[0]
                         builderValType = _iohub2builderValType[iohub_type]
@@ -294,25 +315,18 @@ def getDeviceParams(device_name):
                             else:
                                 builderInputType = builderInputType[1]
                         nv = dict(valType=builderValType, inputType=builderInputType, defaultVal=v,
-                                  allowedVals=valid_values, hint="TODO: %s hint" % k,
-                                  label=slabel)
+                                  allowedVals=valid_values, hint=shint, label=slabel)
                     elif isinstance(sconfig_data, list):
-                        nv = dict(valType='list', inputType='static', defaultVal=v,
-                                  allowedVals=None, hint="TODO: %s hint" % k,
-                                  label=slabel)
+                        nv = dict(valType='list', inputType='static', defaultVal=v, hint=shint, label=slabel)
                     elif sconfig_data in _iohub2builderValType.keys():
                         nv = dict(valType=_iohub2builderValType[sconfig_data],
                                   inputType=_iohub2builderInputType[sconfig_data], defaultVal=v,
-                                  allowedVals=None, hint="TODO: %s hint" % k,
-                                  label=slabel)
+                                  hint=shint, label=slabel)
                     else:
-                        nv = dict(valType='str', inputType='static', defaultVal=v,
-                                  allowedVals=None, hint="TODO: %s hint" % k,
-                                  label=slabel)
+                        nv = dict(valType='str', inputType='static', defaultVal=v, hint=shint, label=slabel)
                     if nv:
                         setValue(device_params, cspath, nv)
                 except Exception as e:
-                    print(e)
                     raise RuntimeWarning("settings2Params failed for {}, {}".format(k, v))
 
     settings2Params([], device_params)
