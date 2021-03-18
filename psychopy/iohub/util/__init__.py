@@ -281,6 +281,7 @@ def getDeviceParams(device_name):
                     sconfig_data = getSubDict(supported_config, parent_list).get(k)
                     cspath = list(parent_list)
                     cspath.append(k)
+                    slabel = k.replace("_", " ").title()
                     if isinstance(sconfig_data, dict):
                         iohub_type, type_constraints =list(sconfig_data.items())[0]
                         builderValType = _iohub2builderValType[iohub_type]
@@ -294,23 +295,24 @@ def getDeviceParams(device_name):
                                 builderInputType = builderInputType[1]
                         nv = dict(valType=builderValType, inputType=builderInputType, defaultVal=v,
                                   allowedVals=valid_values, hint="TODO: %s hint" % k,
-                                  label=k)
+                                  label=slabel)
                     elif isinstance(sconfig_data, list):
                         nv = dict(valType='list', inputType='static', defaultVal=v,
                                   allowedVals=None, hint="TODO: %s hint" % k,
-                                  label=k)
+                                  label=slabel)
                     elif sconfig_data in _iohub2builderValType.keys():
                         nv = dict(valType=_iohub2builderValType[sconfig_data],
                                   inputType=_iohub2builderInputType[sconfig_data], defaultVal=v,
                                   allowedVals=None, hint="TODO: %s hint" % k,
-                                  label=k)
+                                  label=slabel)
                     else:
                         nv = dict(valType='str', inputType='static', defaultVal=v,
                                   allowedVals=None, hint="TODO: %s hint" % k,
-                                  label=k)
+                                  label=slabel)
                     if nv:
                         setValue(device_params, cspath, nv)
-                except Exception:
+                except Exception as e:
+                    print(e)
                     raise RuntimeWarning("settings2Params failed for {}, {}".format(k, v))
 
     settings2Params([], device_params)
