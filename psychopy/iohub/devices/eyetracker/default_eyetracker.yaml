@@ -9,20 +9,11 @@ eyetracker.EyeTrackerDevice:
         interval: 0.001
     event_buffer_length: 1024
     monitor_event_types: [ EyeSampleEvent, MonocularEyeSampleEvent, BinocularEyeSampleEvent, FixationStartEvent, FixationEndEvent, SaccadeStartEvent, SaccadeEndEvent, BlinkStartEvent, BlinkEndEvent]
-    runtime_settings:
-        # Sampling rate must be an int representing the sampling rate in Hz to
-        # set the eye tracker to. If the eye tracker being used does not support
-        # the sampling rate given, an error will be printed and the closest valid
-        # sampling rate will be used.
-        sampling_rate: 250
     # The model_name setting allows the specification of the eye tracker model being used
     # Some implementations of the eye tracker interface will use this value to determine 
     # the appropriate logic to be run for a given eye tracker model supported by the vendor implementation. 
-    model_name: Default
+    model_name: Unknown
     # manufacturer_name: Used by Builder as the displayed name in the eye tracker selection dropdown.
     #
     manufacturer_name: Unknown
-    # serial_number can be used to store the unique serial number of the eye tracking
-    # device being used. This is for informational purposes only. The serial number should be in
-    # a string representation.
-    serial_number: N/A
+

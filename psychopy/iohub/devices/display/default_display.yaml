@@ -102,3 +102,8 @@ Display:
     # It is not used by the ioHub, so is FYI only.
     #
     manufacturer_name: N/A
+
+    # model_name: The device model name can be specified here.
+    #   It is not used by the ioHub, so is FYI only.
+    #
+    model_name: N/A

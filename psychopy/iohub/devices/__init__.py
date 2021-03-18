@@ -153,16 +153,12 @@ class Device(ioObject):
 
     """
     DEVICE_USER_LABEL_INDEX = 0
-    DEVICE_NUMBER_INDEX = 1
-    DEVICE_MANUFACTURER_NAME_INDEX = 2
-    DEVICE_MODEL_NAME_INDEX = 3
-    DEVICE_MODEL_NUMBER_INDEX = 4
-    DEVICE_SOFTWARE_VERSION_INDEX = 5
-    DEVICE_HARDWARE_VERSION_INDEX = 6
-    DEVICE_FIRMWARE_VERSION_INDEX = 7
-    DEVICE_SERIAL_NUMBER_INDEX = 8
-    DEVICE_BUFFER_LENGTH_INDEX = 9
-    DEVICE_MAX_ATTRIBUTE_INDEX = 9
+    DEVICE_BUFFER_LENGTH_INDEX = 1
+    DEVICE_NUMBER_INDEX = 2
+    DEVICE_MANUFACTURER_NAME_INDEX = 3
+    DEVICE_MODEL_NAME_INDEX = 4
+
+    DEVICE_MAX_ATTRIBUTE_INDEX = 4
 
     # Multiplier to use to convert this devices event time stamps to sec format.
     # This is set by the author of the device class or interface
@@ -173,6 +169,7 @@ class Device(ioObject):
     _newDataTypes = [
         # The name given to this device instance. User Defined. Should be
         ('name', '|S24'),
+        ('event_buffer_length', np.uint16),
         # unique within all devices of the same type_id for a given experiment.
         # For devices that support multiple connected to the computer at once,
         # with some devices the device_number can be used to select which
@@ -183,26 +180,6 @@ class Device(ioObject):
         # The string name of the device model being used. Some devices support
         # different models.
         ('model_name', '|S32'),
-        # The device model number being used. Some devices support different
-        # models.
-        ('model_number', '|S32'),
-        # Used to optionally store the devices software / API version being
-        # used by the ioHub Device
-        ('software_version', '|S8'),
-        # Used to optionally store the devices hardware version
-        ('hardware_version', '|S8'),
-        # Used to optionally store the devices firmware
-        ('firmware_version', '|S8'),
-        # The serial number for the device being used. Serial numbers 'should'
-        # be unique across all devices of the same brand and model.
-        ('serial_number', '|S32'),
-        # The serial number for the device being used. Serial numbers 'should'
-        # be unique across all devices of the same brand and model.
-        ('manufacture_date', '|S10'),
-        # The maximum size of the device level event buffer for this
-        ('event_buffer_length', np.uint16)
-        # device instance. If the buffer becomes full, when a new event
-        # is added, the oldest event in the buffer is removed.
     ]
 
     EVENT_CLASS_NAMES = []
@@ -259,30 +236,6 @@ class Device(ioObject):
         #: explicitedly support different models of the device and use different
         #: logic in the ioHub Device implementation based on the model_name given.
         self.model_name = None
-
-        #: Model number can be optionally used to hold the specific model number
-        #: specified on the device.
-        self.model_number = None
-
-        #: The software version attribute can optionally be used to store the
-        #: devices software / API version being used by the ioHub Device
-        self.software_version = None
-
-        #: The hardware version attribute can optionally be used to store the
-        #: physical devices hardware version / revision.
-        self.hardware_version = None
-
-        #: The firmware version attribute can optionally be used to store the
-        #: physical devices hardware version / revision.
-        self.firmware_version = None
-
-        #: The unique serial number of the specific device instance being used,
-        #: if applicable.
-        self.serial_number = None
-
-        #: The manufactured date of the specific device instance being used,
-        #: if applicable.(Use DD-MM-YYYY string format.)
-        self.manufacture_date = None
 
         ioObject.__init__(self, *args, **kwargs)
 

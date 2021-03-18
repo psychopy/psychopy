@@ -5,14 +5,11 @@ DeviceClass:
     save_events: True
     stream_events: True
     auto_report_events: False    
-    # IMPORTANT: device_time **must** only be present in the config file if the device 
+    # IMPORTANT: device_timer **must** only be present in the config file if the device
     # implementation uses polling to check for new native device events.
     device_timer:
         interval: 0.001
     event_buffer_length: 256
     monitor_event_types: [ DeviceEvent, ]
-    # The model_name setting allows the specification of the device model name being used.
-    # Some device implementations will use this value to determine 
-    # the appropriate logic to be run for a given device model supported by the ioHub Device class. 
-    model_name: N/A
+    model_name: unknown
     manufacturer_name: unknown

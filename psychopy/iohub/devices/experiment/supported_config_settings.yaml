@@ -17,3 +17,6 @@ Experiment:
             valid_values: [ MessageEvent, LogEvent ]
             min_length: 1
             max_length: 2
+    device_number: 0
+    model_name: PsychoPy3
+    manufacturer_name: Open Science Tools
