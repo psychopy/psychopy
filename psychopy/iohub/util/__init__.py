@@ -314,8 +314,12 @@ def getDeviceParams(device_name):
                                 builderInputType = builderInputType[0]
                             else:
                                 builderInputType = builderInputType[1]
-                        nv = dict(valType=builderValType, inputType=builderInputType, defaultVal=v,
-                                  allowedVals=valid_values, hint=shint, label=slabel)
+                        if valid_values:
+                            nv = dict(valType=builderValType, inputType=builderInputType, defaultVal=v,
+                                      allowedVals=valid_values, hint=shint, label=slabel)
+                        else:
+                            nv = dict(valType=builderValType, inputType=builderInputType, defaultVal=v,
+                                      hint=shint, label=slabel)
                     elif isinstance(sconfig_data, list):
                         nv = dict(valType='list', inputType='static', defaultVal=v, hint=shint, label=slabel)
                     elif sconfig_data in _iohub2builderValType.keys():
