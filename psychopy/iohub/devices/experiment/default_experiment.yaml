@@ -58,48 +58,9 @@ Experiment:
     #
     event_buffer_length: 128
 
-    # The device manufacturer's name.
-    #   It is not used by the ioHub, so is FYI only.
-    #
-    manufacturer_name: N/A
-    
-    # The device number to assign to the device. 
-    #   Device_number is not used by this device type.
-    #
     device_number: 0
+    manufacturer_name: Open Science Tools
+    model_name: PsychoPy3
 
-    # The serial number for the specific isnstance of device used
-    #   can be specified here. It is not used by the ioHub, so is FYI only.
-    #
-    serial_number: N/A
 
-    # manufacture_date: The date of manufactiurer of the device 
-    # can be specified here. It is not used by the ioHub,
-    # so is FYI only.
-    #   
-    manufacture_date: DD-MM-YYYY
-
-    # The device model name can be specified here.
-    #   It is not used by the ioHub, so is FYI only.
-    #
-    model_name: N/A
-
-    # The device model number can be specified here.
-    #   It is not used by the ioHub, so is FYI only.
-    #
-    model_number: N/A
-    
-    # The device driver and / or SDK software version number.
-    #   This field is not used by ioHub, so is FYI only. 
-    software_version: N/A
-
-    # The device's hardware version can be specified here.
-    #   It is not used by the ioHub, so is FYI only.
-    #
-    hardware_version: N/A
-    
-    # If the device has firmware, its revision number
-    #   can be indicated here. It is not used by the ioHub, so is FYI only.
-    #
-    firmware_version: N/A
 
