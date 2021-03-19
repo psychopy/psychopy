@@ -1161,7 +1161,7 @@ class TrialHandler2(_BaseTrialHandler):
 
         """
         self_copy = copy.deepcopy(self)
-        self_copy._rng_state = self_copy._rng.get_state()
+        self_copy._rng_state = self_copy._rng.bit_generator.state
         del self_copy._rng
 
         r = (super(TrialHandler2, self_copy)
