@@ -33,11 +33,11 @@ def launchHubServer(**kwargs):
     +---------------------+-----------------+---------------+-----------------+
     | kwarg Name          | Value Type      | Description                     |
     +=====================+=================+===============+=================+
-    | experiment_code     | str, <= 24 char | If experiment_code is provided, |
+    | experiment_code     | str, <= 256 char | If experiment_code is provided, |
     |                     |                 | an ioHub HDF5 file will be      |
     |                     |                 | created for the session.        |
     +---------------------+-----------------+---------------+-----------------+
-    | session_code        | str, <= 24 char | When specified, used as the name|
+    | session_code        | str, <= 256 char | When specified, used as the name|
     |                     |                 | of the ioHub HDF5 file created  |
     |                     |                 | for the session.                |
     +---------------------+-----------------+---------------+-----------------+
@@ -45,18 +45,18 @@ def launchHubServer(**kwargs):
     |                     |                 | following experiment metadata   |
     |                     |                 | fields:                         |
     +---------------------+-----------------+---------------+-----------------+
-    |                                       | - code:         str, <= 24 char |
-    |                                       | - title:        str, <= 48 char |
-    |                                       | - description:  str, < 256 char |
-    |                                       | - version:      str, <= 6 char  |
+    |                                       | - code:         str, <= 256 char |
+    |                                       | - title:        str, <= 256 char |
+    |                                       | - description:  str, <= 4096 char |
+    |                                       | - version:      str, <= 32 char  |
     +---------------------+-----------------+---------------+-----------------+
     | session_info        | dict            | Can be used to save the         |
     |                     |                 | following session metadata      |
     |                     |                 | fields:                         |
     +---------------------+-----------------+---------------+-----------------+
-    |                                       | - code:         str, <= 24 char |
-    |                                       | - name:         str, <= 48 char |
-    |                                       | - comments:     str, < 256 char |
+    |                                       | - code:         str, <= 256 char |
+    |                                       | - name:         str, <= 256 char |
+    |                                       | - comments:     str, < 4096 char |
     |                                       | - user_variables:          dict |
     +---------------------+-----------------+---------------+-----------------+
     | datastore_name      | str             | Used to provide an ioHub HDF5   |
