@@ -902,29 +902,8 @@ class ioHubConnection(object):
 
         self._iohub_server_config = ioHubConfig
 
-        # >>>> Check for orphaned ioHub Process and kill if found...
-        iopFileName = os.path.join(rootScriptPath, '.iohpid')
-        if os.path.exists(iopFileName):
-            try:
-                iopFile = open(iopFileName, 'r')
-                line = iopFile.readline()
-                iopFile.close()
-                os.remove(iopFileName)
-                _, iohub_pid = line.split(':')
-                iohub_pid = int(iohub_pid.strip())
-                try:
-                    old_iohub_process = psutil.Process(iohub_pid)
-                    if old_iohub_process.name == 'python.exe':
-                        old_iohub_process.kill()
-                except psutil.NoSuchProcess:
-                    pass
-            except Exception: # pylint: disable=broad-except
-                import traceback
-                traceback.print_exc()
-
         if sys.platform == 'darwin':
             self._osxKillAndFreePort()
-        # <<<< Done handling orphaned iohub process fail safe.
 
         # >>>> Start iohub subprocess
         run_script = os.path.join(IOHUB_DIRECTORY, 'start_iohub_process.py')
@@ -997,13 +976,6 @@ class ioHubConnection(object):
                 self.registerWindowHandles(*whs)
         except ImportError:
             pass
-
-        # Save ioHub ProcessID to file so next time it is started,
-        # it can be checked and killed if necessary
-        iopFile = open(iopFileName, 'w')
-        iopFile.write("ioHub PID: {}".format(Computer.iohub_process_id))
-        iopFile.flush()
-        iopFile.close()
 
         # Sending experiment_info if available.....
         if experiment_info:
@@ -1185,8 +1157,7 @@ class ioHubConnection(object):
         and returns a new or existing experiment ID based on that criteria.
         """
         fieldOrder = (('experiment_id', 0), ('code', ''), ('title', ''),
-                      ('description', ''), ('version', ''),
-                      ('total_sessions_to_run', 0))
+                      ('description', ''), ('version', ''))
         values = []
         for key, defaultValue in fieldOrder:
             if key in experimentInfoDict:
