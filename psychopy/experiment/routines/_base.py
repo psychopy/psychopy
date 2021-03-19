@@ -12,6 +12,24 @@ from __future__ import absolute_import, print_function
 
 from psychopy.constants import FOREVER
 from xml.etree.ElementTree import Element
+from pathlib import Path
+
+
+class BaseStandaloneRoutine:
+    categories = ['Custom']
+    targets = []
+    iconFile = Path(__file__).parent / "unknown" / "unknown.png"
+    tooltip = ""
+
+    def __init__(self, name, exp):
+        self.params = {'name': name}
+        self.name = name
+        self.exp = exp
+        self.type = 'StandaloneRoutine'
+
+    def __repr__(self):
+        _rep = "psychopy.experiment.%s(name='%s', exp=%s)"
+        return _rep % (self.__class__, self.name, self.exp)
 
 
 class Routine(list):
