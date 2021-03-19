@@ -9,8 +9,8 @@ from __future__ import absolute_import, division, print_function
 from psychopy import core, visual
 from psychopy.iohub.client import launchHubServer
 
-# Eye tracker to use ('eyelink', 'gazepoint', or 'tobii')
-TRACKER = 'gazepoint'
+# Eye tracker to use ('mouse', 'eyelink', 'gazepoint', or 'tobii')
+TRACKER = 'mouse'
 
 eyetracker_config = dict(name='tracker')
 tracker_config = None
@@ -24,8 +24,10 @@ elif TRACKER == 'gazepoint':
     tracker_config = {'eyetracker.hw.gazepoint.gp3.EyeTracker': eyetracker_config}
 elif TRACKER == 'tobii':
     tracker_config = {'eyetracker.hw.tobii.EyeTracker': eyetracker_config}
+elif TRACKER == 'mouse':
+    tracker_config = {'eyetracker.hw.local.mouse.EyeTracker': eyetracker_config}
 else:
-    print("{} is not a valid TRACKER name; please use 'eyelink', 'gazepoint', or 'tobii'.".format(TRACKER))
+    print("{} is not a valid TRACKER name; please use 'mouse', 'eyelink', 'gazepoint', or 'tobii'.".format(TRACKER))
 
 # Number if 'trials' to run in demo
 TRIAL_COUNT = 2
