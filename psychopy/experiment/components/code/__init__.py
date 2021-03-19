@@ -9,15 +9,12 @@ from __future__ import absolute_import, print_function
 
 from builtins import str
 from os import path
+from pathlib import Path
 
 from psychopy import prefs
 from psychopy.experiment.components import BaseComponent, Param, _translate
 from psychopy.alerts import alerttools
 
-# the absolute path to the folder containing this path
-thisFolder = path.abspath(path.dirname(__file__))
-iconFile = path.join(thisFolder, 'code.png')
-tooltip = _translate('Code: insert python commands into an experiment')
 _localized = {'Code Type': _translate('Code Type'),
               'Before Experiment': _translate('Before Experiment'),
               'Begin Experiment': _translate('Begin Experiment'),
@@ -35,9 +32,12 @@ _localized = {'Code Type': _translate('Code Type'),
 
 
 class CodeComponent(BaseComponent):
-    # an attribute of the class, determines the section in the components panel
-    categories = ['Custom']
     """An event class for inserting arbitrary code into Builder experiments"""
+
+    categories = ['Custom']
+    targets = ['PsychoPy', 'PsychoJS']
+    iconFile = Path(__file__).parent / 'code.png'
+    tooltip = _translate('Code: insert python commands into an experiment')
 
     def __init__(self, exp, parentName, name='code',
                  beforeExp="",
@@ -49,7 +49,6 @@ class CodeComponent(BaseComponent):
                  codeType=None, translator="manual"):
         super(CodeComponent, self).__init__(exp, parentName, name)
         self.type = 'Code'
-        self.targets = ['PsychoPy', 'PsychoJS']
         self.url = "https://www.psychopy.org/builder/components/code.html"
         # params
         # want a copy, else codeParamNames list gets mutated

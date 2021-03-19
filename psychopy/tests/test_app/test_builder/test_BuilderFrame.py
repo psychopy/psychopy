@@ -100,9 +100,9 @@ class Test_BuilderFrame(object):
         """
         builderView = self.app.newBuilderFrame()
         componsPanel = builderView.componentButtons
-        for thisComponName in list(componsPanel.components):
+        for compBtn in list(componsPanel.compButtons):
             # simulate clicking the button for each component
-            assert componsPanel.onClick(thisComponName, timeout=500)
+            assert compBtn.onClick(timeout=500)
         builderView.isModified = False
         builderView.closeFrame()
         del builderView, componsPanel

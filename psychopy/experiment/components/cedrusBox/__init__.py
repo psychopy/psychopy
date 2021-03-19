@@ -10,6 +10,7 @@ from __future__ import absolute_import, print_function
 from builtins import str
 from past.builtins import basestring
 from os import path
+from pathlib import Path
 
 from psychopy.constants import PY3
 from psychopy.experiment.components import Param, _translate
@@ -18,12 +19,6 @@ from psychopy.experiment import CodeGenerationException, valid_var_re
 from psychopy.localization import _localized as __localized
 _localized = __localized.copy()
 __author__ = 'Jon Peirce'
-
-# abs path to the folder containing this path
-thisFolder = path.abspath(path.dirname(__file__))
-iconFile = path.join(thisFolder, 'cedrusBox.png')
-tooltip = _translate('Cedrus Button Box: Cedrus response boxes, using the '
-                     'pyxid library provided by Cedrus')
 
 # only use _localized values for label values, nothing functional:
 _localized.update({'deviceNumber': _translate('Device number'),
@@ -43,6 +38,9 @@ class cedrusButtonBoxComponent(KeyboardComponent):
     """
     categories = ['Responses']  # which section(s) in the components panel
     targets = ['PsychoPy']
+    iconFile = Path(__file__).parent / 'cedrusBox.png'
+    tooltip = _translate('Cedrus Button Box: Cedrus response boxes, using the '
+                         'pyxid library provided by Cedrus')
 
     def __init__(self, exp, parentName, name='buttonBox',
                  store='first key',
