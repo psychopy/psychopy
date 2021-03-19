@@ -18,7 +18,6 @@ The code that writes out a *_lastrun.py experiment file is (in order):
 
 from __future__ import absolute_import, print_function
 # from future import standard_library
-import re
 
 from past.builtins import basestring
 from builtins import object
@@ -35,9 +34,9 @@ from psychopy import data, __version__, logging
 from .exports import IndentingBuffer, NameSpace
 from .flow import Flow
 from .loops import TrialHandler, LoopInitiator, \
-    LoopTerminator, StairHandler, MultiStairHandler
+    LoopTerminator
 from .params import _findParam, Param, legacyParams
-from .routine import Routine
+from psychopy.experiment.routines._base import Routine
 from . import utils, py2js
 from .components import getComponents, getAllComponents
 
@@ -46,7 +45,7 @@ import locale
 
 # standard_library.install_aliases()
 
-from collections import OrderedDict, namedtuple
+from collections import namedtuple
 
 from ..alerts import alert
 

@@ -11,7 +11,7 @@
 from __future__ import absolute_import, print_function
 from past.builtins import basestring
 
-from psychopy.experiment.routine import Routine
+from psychopy.experiment.routines._base import Routine
 from psychopy.experiment.loops import LoopTerminator, LoopInitiator
 
 
