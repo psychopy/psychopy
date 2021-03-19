@@ -937,7 +937,11 @@ class ioHubConnection(object):
 
         self._server_process = subprocess.Popen(subprocessArgList,
                                                 env=envars,
-                                                cwd=IOHUB_DIRECTORY)
+                                                cwd=IOHUB_DIRECTORY,
+                                                # set sub process stderr ro be stdout so PsychoPy Runner
+                                                # shows errors from iohub
+                                                stderr=subprocess.STDOUT,
+                                                )
 
         # Get iohub server pid and psutil process object
         # for affinity and process priority setting.
