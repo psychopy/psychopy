@@ -217,9 +217,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 lineWidth=1, lineColor=None, fillColor=fillColor, opacity=0.1,
                 autoLog=False)
         # then layout the text (setting text triggers _layout())
-        self.startText = text
         self._text = ''
-        self.text = text if text is not None else ""
+        self.text = self.startText = text if text is not None else ""
 
         # caret
         self._editable = editable
