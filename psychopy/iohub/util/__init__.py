@@ -238,6 +238,11 @@ def getDeviceNames(device_name="eyetracker.hw"):
 
 def getDeviceFile(device_name, file_name):
     """
+    Returns the contents of file_name for the specified device. If file_name does not exist, None is returned.
+
+    :param device_name: iohub device name
+    :param: file_name: name of device yaml file to load
+    :return: dict
     """
     device_paths = getDevicePaths(device_name)
     device_sconfigs = []
@@ -249,9 +254,21 @@ def getDeviceFile(device_name, file_name):
     return device_sconfigs
 
 def getDeviceSupportedConfig(device_name):
+    """
+    Returns the contents of the supported_config_settings.yaml for the specified device.
+
+    :param device_name: iohub device name
+    :return: dict
+    """
     return getDeviceFile(device_name, 'supported_config_settings.yaml')
 
 def getDeviceConfigHints(device_name):
+    """
+    Returns the contents of the builder_hints.yaml for the specified device.
+
+    :param device_name: iohub device name
+    :return: dict
+    """
     try:
         return getDeviceFile(device_name, 'builder_hints.yaml')
     except FileNotFoundError:
@@ -261,8 +278,35 @@ def getDeviceConfigHints(device_name):
 def getDeviceParams(device_name):
     """
     Return a param dict for each setting of the device that Builder needs. Dist structure should match
-    wht is returned by getDeviceDefaultConfig(), but each setting value should be a param dict as outlined below.
+    wht is returned by getDeviceDefaultConfig(), but each setting value should be a 'param' dict.
     If field is not editable, inputType should equal 'static'.
+
+    For example,
+
+        print(getDeviceParams('eyetracker.hw.gazepoint.gp3'))
+
+    Output (partial):
+
+        {'event_buffer_length': {'defaultVal': 1024,
+                                 'hint': 'Maximum number of samples / events that will '
+                                         'be buffered by iohub.',
+                                 'inputType': 'single',
+                                 'label': 'Event Buffer Length',
+                                 'valType': 'int'},
+         'manufacturer_name': {'defaultVal': 'GazePoint',
+                               'hint': 'Eye tracker manufacturer.',
+                               'inputType': 'static',
+                               'label': 'Manufacturer Name',
+                               'valType': 'str'},
+         'model_name': {'allowedVals': ['GP3', 'GP3 HD'],
+                        'defaultVal': 'GP3',
+                        'hint': 'Eye tracker model name.',
+                        'inputType': 'choice',
+                        'label': 'Model Name',
+                        'valType': 'list'},
+        .....
+        }
+
     """
     supported_config = getDeviceSupportedConfig(device_name)
     default_config = getDeviceDefaultConfig(device_name)
