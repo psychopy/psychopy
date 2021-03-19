@@ -11,6 +11,7 @@ from __future__ import absolute_import, print_function
 
 from builtins import str, object, super
 from past.builtins import basestring
+from pathlib import Path
 
 from psychopy import prefs
 from psychopy.constants import FOREVER
@@ -31,7 +32,7 @@ class BaseComponent(object):
 
     categories = ['Custom']
     targets = []
-    iconFile = ""
+    iconFile = Path(__file__).parent / "unknown" / "unknown.png"
     tooltip = ""
 
     def __init__(self, exp, parentName, name='',
@@ -580,7 +581,7 @@ class BaseVisualComponent(BaseComponent):
 
     categories = ['Stimuli']
     targets = []
-    iconFile = ""
+    iconFile = Path(__file__).parent / "unknown" / "unknown.png"
     tooltip = ""
 
     def __init__(self, exp, parentName, name='',
