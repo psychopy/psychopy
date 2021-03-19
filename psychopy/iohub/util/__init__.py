@@ -197,8 +197,10 @@ def getDeviceDefaultConfig(device_name, builder_hides=True):
                         cdict = cdict.get(pt)
                     try:
                         del cdict[param_tokens[-1]]
-                    except TypeError:
+                    except KeyError:
                         # key does not exist
+                        pass
+                    except TypeError:
                         pass
                 else:
                     del dconf_dict[param]
