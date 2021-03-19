@@ -2134,7 +2134,12 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
                 # If state is show, then show all non-hidden components
                 for btn in self.menu.GetChildren():
                     btn = btn.GetWindow()
-                    comp = btn.component
+                    if isinstance(btn, ComponentsPanel.ComponentButton):
+                        comp = btn.component
+                    elif isinstance(btn, ComponentsPanel.RoutineButton):
+                        comp = btn.routine
+                    else:
+                        return
                     # Work out if it should be shown based on filter
                     cond = True
                     if self.parent.filter == 'Any':
@@ -2283,6 +2288,90 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             # Refresh
             self.Refresh()
 
+    class RoutineButton(wx.Button):
+        """Button to open component parameters dialog"""
+        def __init__(self, parent, name, rt, cat):
+            self.parent = parent
+            self.routine = rt
+            self.category = cat
+            iconCache = parent.app.iconCache
+            # Get a shorter, title case version of routine name
+            label = name
+            for redundant in ['routine', 'routine', "ButtonBox"]:
+                label = label.replace(redundant, "")
+            label = prettyname(label, wrap=10)
+            # Make button
+            wx.Button.__init__(self, parent, wx.ID_ANY,
+                               label=label, name=name,
+                               size=(68, 68+12*label.count("\n")), style=wx.NO_BORDER)
+            self.SetToolTip(wx.ToolTip(rt.tooltip or name))
+            # Style
+            self._applyAppTheme()
+            # Bind to functions
+            self.Bind(wx.EVT_BUTTON, self.onClick)
+            self.Bind(wx.EVT_RIGHT_DOWN, self.onRightClick)
+
+        def onClick(self, evt=None, timeout=None):
+            exp = self.parent.frame.exp
+            page = self.parent.frame.routinePanel.getCurrentPage()
+            comp = self.routine(parentName=exp.name, exp=self.parent.frame.exp)
+            name = comp.params['name'].val
+            # does this routine have a help page?
+            if hasattr(comp, 'url'):
+                helpUrl = comp.url
+            else:
+                helpUrl = None
+            # create routine template
+            if comp.type == 'Code':
+                _Dlg = DlgCodeComponentProperties
+            else:
+                _Dlg = DlgComponentProperties
+            dlg = _Dlg(frame=self.parent.frame,
+                       title='{} Properties'.format(name),
+                       params=comp.params, order=comp.order,
+                       helpUrl=helpUrl,
+                       depends=comp.depends,
+                       timeout=timeout, type=comp.type)
+
+            if dlg.OK:
+                # Add to the actual routine
+                exp.addroutine(comp)
+                namespace = exp.namespace
+                name = comp.params['name'].val = namespace.makeValid(name)
+                namespace.add(name)
+                # update the routine's view with the new routine too
+                self.parent.frame.addToUndoStack(
+                    "ADD `%s` to `%s`" % (name, exp.name))
+            return True
+
+        def onRightClick(self, evt):
+            """
+            Defines rightclick behavior within builder view's
+            routines panel
+            """
+            return
+
+        def addToFavorites(self, evt):
+            self.parent.addToFavorites(self.routine)
+
+        def removeFromFavorites(self, evt):
+            self.parent.removeFromFavorites(self)
+
+        def _applyAppTheme(self):
+            # Set colors
+            self.SetForegroundColour(ThemeMixin.appColors['text'])
+            self.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
+            # Set bitmap
+            iconCache = self.parent.app.iconCache
+            icon = iconCache.getBitmap(self.routine.iconFile, size=48)
+            self.SetBitmap(icon)
+            self.SetBitmapCurrent(icon)
+            self.SetBitmapPressed(icon)
+            self.SetBitmapFocus(icon)
+            self.SetBitmapPosition(wx.TOP)
+            # Refresh
+            self.Refresh()
+
     def __init__(self, frame, id=-1):
         """A panel that displays available components.
         """
@@ -2305,10 +2394,13 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         self.components = experiment.getAllComponents(
             self.app.prefs.builder['componentsFolders'])
         del self.components['SettingsComponent']
+        self.routines = experiment.getAllStandaloneRoutines()
         # Get categories
         self.categories = ['Favorites']
         for name, comp in self.components.items():
             self.categories.extend(comp.categories)
+        for name, rt in self.routines.items():
+            self.categories.extend(rt.categories)
         self.categories = list({key: None for key in self.categories})  # convert to dict and back to remove duplicates
         # Get favorites
         self.faveThreshold = 20
@@ -2347,6 +2439,20 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
                 )
         # Add component buttons to category sizers
         for btn in self.compButtons:
+            self.catSizers[btn.category].Add(btn, border=3, flag=wx.ALL)
+        # Make a button for each routine
+        self.rtButtons = []
+        for name, rt in self.routines.items():
+            for cat in comp.categories:  # make one button for each category
+                self.rtButtons.append(
+                    self.RoutineButton(self, name, rt, cat)
+                )
+            if name in self.favorites:
+                self.rtButtons.append(
+                    self.RoutineButton(self, name, rt, "Favorites")
+                )
+        # Add component buttons to category sizers
+        for btn in self.rtButtons:
             self.catSizers[btn.category].Add(btn, border=3, flag=wx.ALL)
         # Set starting visibility
         for cat, btn in self.catLabels.items():

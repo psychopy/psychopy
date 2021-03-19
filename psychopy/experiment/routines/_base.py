@@ -26,6 +26,7 @@ class BaseStandaloneRoutine:
         self.name = name
         self.exp = exp
         self.type = 'StandaloneRoutine'
+        self.depends = []  # allows params to turn each other off/on
 
     def __repr__(self):
         _rep = "psychopy.experiment.%s(name='%s', exp=%s)"
