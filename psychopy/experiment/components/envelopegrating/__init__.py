@@ -9,15 +9,10 @@ from __future__ import absolute_import, print_function
 from builtins import super  # provides Py3-style super() using python-future
 
 from os import path
+from pathlib import Path
 from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals, _translate
 from psychopy.localization import _localized as __localized
 _localized = __localized.copy()
-
-# the absolute path to the folder containing this path
-thisFolder = path.abspath(path.dirname(__file__))
-iconFile = path.join(thisFolder, 'envelopegrating.png')
-tooltip = _translate('Envelope Grating: present cyclic textures including 2nd order envelope stimuli, prebuilt or from a '
-                     'file')
 
 # only use _localized values for label values, nothing functional:
 _localized.update({'carrier': _translate('Carrier texture'),
@@ -40,6 +35,12 @@ _localized.update({'carrier': _translate('Carrier texture'),
 
 class EnvGratingComponent(BaseVisualComponent):
     """A class for presenting grating stimuli"""
+
+    categories = ['Stimuli']
+    targets = ['PsychoPy']
+    iconFile = Path(__file__).parent / 'envelopegrating.png'
+    tooltip = _translate('Envelope Grating: present cyclic textures including 2nd order envelope stimuli, '
+                         'prebuilt or from a file')
 
     def __init__(self, exp, parentName, name='env_grating', carrier='sin',
                  mask='None', sf=1.0, interpolate='linear',

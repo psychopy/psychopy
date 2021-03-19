@@ -9,6 +9,7 @@ from __future__ import absolute_import, print_function
 from builtins import super  # provides Py3-style super() using python-future
 
 from os import path
+from pathlib import Path
 from psychopy.experiment.components import BaseVisualComponent, Param, \
     getInitVals, _translate
 from psychopy.visual import slider
@@ -19,11 +20,6 @@ _localized = __localized.copy()
 import copy
 
 __author__ = 'Jon Peirce'
-
-# the absolute path to the folder containing this path
-thisFolder = path.abspath(path.dirname(__file__))
-iconFile = path.join(thisFolder, 'slider.png')
-tooltip = _translate('Slider: A simple, flexible object for getting ratings')
 
 # only use _localized values for label values, nothing functional:
 _localized.update({'categoryChoices': _translate('Category choices'),
@@ -57,7 +53,11 @@ legacyStyleTweaks = slider.Slider.legacyStyleTweaks
 class SliderComponent(BaseVisualComponent):
     """A class for presenting a rating scale as a builder component
     """
+
     categories = ['Responses']
+    targets = ['PsychoPy', 'PsychoJS']
+    iconFile = Path(__file__).parent / 'slider.png'
+    tooltip = _translate('Slider: A simple, flexible object for getting ratings')
 
     def __init__(self, exp, parentName,
                  name='slider',
@@ -88,7 +88,6 @@ class SliderComponent(BaseVisualComponent):
         self.type = 'Slider'
         self.url = "https://www.psychopy.org/builder/components/slider.html"
         self.exp.requirePsychopyLibs(['visual', 'event'])
-        self.targets = ['PsychoPy', 'PsychoJS']
 
         # params
         self.order += ['forceEndRoutine',  # Basic tab

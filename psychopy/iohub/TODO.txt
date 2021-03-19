@@ -1,52 +1,49 @@
-TODO list for the isolver/psychopy lazyimport branch
+TODO list / iohub 2021 rework project notes
 
-- Complete iohub pep8 formatting w/ manual fixing of long line wraps *
+- Python 3 only support is OK
 
-- Update docstrs (add, review for errors, simplify)*
+- Test / start developing with Python 3.9
 
-- Unit Tests to cover >= 75% of iohub source. *
+- remove any areas of logic dealing with Python 2 vs Python 3 incompatibilities.
 
-- Full merciless API review: *
-    - Focus on main point: Asynchronous device control and event reporting.
-    - Get consistent, drop bloat.
-    - Deprecate complex in favor of simpler and/or more generic replacements.
+- remove unneeded params from all supported_config_settings.yaml/default_device.yaml files
+    - did some obvious ones already, but a device by device review would be good.
 
-* These tasks should have a priority focus on the public / user level API
-  in the following sections:
-    - iohub/__init__.py
-    - iohub/constants.py
-    - iohub/server.py
-    - iohub/devices/__init__.py
-    - iohub/devices/keyboard/*
-    - iohub/devices/mouse/*
-    - iohub/client/*
-    - iohub/datastore/__init__.py
+- remove unused / placeholder Constants (iohub.constants.py)
 
-- Remove following sections of iohub:
-    - [Done] As much of iohub.utils.* as possible.
-    - [Done] Complete removal of iohub.client.expruntime.py
-    - iohub.datastore.util.py
-    - [Done] iohub.datastore.pandas.*
-  + Move code to 'unsupported' external modules if / when needed.
-    Document ref's to alternative api's to use instead
+- stop using lazy_import. Not sure it is really needed for iohub
 
-- Documentation:
+- ?? implement a new 'Mouse' base eye tracker implementation so people can use the mouse to simulate eye movements
+  in their experiment and get sample data like it was from a real eye tracker.
+  - might also act as a good 'template' for creating a new eye tracker interface with.
+
+- ?? Assume / enforce only 1 experiment, 1 session per iohub hdf5 file
+
+- switch iohub source code copywrite to standard psychopy text.
+
+- remove all references to these no longer supported devices:
+        - EventPublisher (unless we keep it)
+        - EventSub (unless we keep it)
+        - DAQ (was used for labjack and Measurement Computing analog input)
+
+- macos keyboard and mouse events:
+    - switch from polling method of CFRunLoopRunInMode to threaded approach used by eventmp.
+    - if that is not enough, reimplement using usb sniffer or just correct timestamp
+      for _minimum_ possible event delay.
+
+- ?? remove event filtering framework (iohub.devices.eventfilters.py)
+    - not actually used from what I can tell.
+
+- ?? remove need for / use of experiment_config.yaml. Determine what functionality this will affect.
+
+- ?? revert to server side only devices / events accessed via RPC.
+    - remove iohub.client.keyboard.py and iohub.client.wintab.py
+    - move any needed methods / functionality to the server side device class, or deprecate.
+    - experiment would now get 'native' iohub keyboard and wintab events, which is not backwards compatible.
+
+- Documentation ideas:
     - ioHub Developer 'Notes'
-    - How to use iohub standalone (system setup process)
     - Psychopy ioHub User Docs
-        - Why use iohub?
-        - Extra Package Dependencies
-        - Starting iohub
-            - Specifying what devices to start
-            - Changing default device settings
-        - iohub Devices
-            - computer
-            - monitor
-            - keyboard
-            - mouse
-            - experiment
-            - eye tracker
-            - .... others .....
         - Saving data using ioHub DataStore:
             - device events
             - experiment and session meta data
@@ -54,20 +51,10 @@ TODO list for the isolver/psychopy lazyimport branch
             - hdf5 file structure
             - reading data / doing analysis from hdf5 files
 
-- Review, update, simplify iohub examples in Coder and Builder.
-  a) [Done] Always use launchHubServer
-  b) Make each as simple as possible
-  c) Remove any unnecessary demos
-
-- Python 3.4+ support
-
 - Some bigger issues that would be good to address:
     - Consistent iohub Error / exception reporting framework:
         - communication of issues to client process.
         - reporting of issues by client process
+        - cleanup (remove? iohub.errors.py)
     - Consistent device status reporting after client starts iohub process.
     - Create files in user writable folder (use OS specific standard folders)
-    - [Done] How iohub subprocess starts and how client knows server is ready:
-        -  remove use of pipe for this.
-
-- Keep ioHub Release Notes release_notes.rst updated.

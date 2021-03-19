@@ -11,15 +11,10 @@ from __future__ import absolute_import, print_function
 from builtins import super  # provides Py3-style super() using python-future
 
 from os import path
+from pathlib import Path
 from psychopy.experiment.components import BaseComponent, Param, getInitVals, _translate
 from psychopy.localization import _localized as __localized
 _localized = __localized.copy()
-
-# the absolute path to the folder containing this path
-thisFolder = path.abspath(path.dirname(__file__))
-iconFile = path.join(thisFolder, 'microphone.png')
-tooltip = _translate('Microphone: basic sound capture (fixed onset & '
-                     'duration), okay for spoken words')
 
 _localized.update({'stereo': _translate('Stereo'),
                    'channel': _translate('Channel')})
@@ -28,6 +23,10 @@ _localized.update({'stereo': _translate('Stereo'),
 class MicrophoneComponent(BaseComponent):
     """An event class for capturing short sound stimuli"""
     categories = ['Responses']
+    targets = ['PsychoPy']
+    iconFile = Path(__file__).parent / 'microphone.png'
+    tooltip = _translate('Microphone: basic sound capture (fixed onset & '
+                         'duration), okay for spoken words')
 
     def __init__(self, exp, parentName, name='mic_1',
                  startType='time (s)', startVal=0.0,
