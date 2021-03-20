@@ -7,7 +7,7 @@ eyetracker.hw.local.mouse.EyeTracker:
     device_timer:
         interval: 0.01
     runtime_settings:
-        sampling_rate: 100
+        sampling_rate: 50
         track_eyes: RIGHT_EYE
     monitor_event_types: [MonocularEyeSampleEvent, FixationStartEvent, FixationEndEvent, BlinkStartEvent, BlinkEndEvent]
     model_name: Mouse

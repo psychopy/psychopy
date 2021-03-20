@@ -75,60 +75,85 @@ class EyeTracker(EyeTrackerDevice):
     _ISI = 0.01
     def __init__(self, *args, **kwargs):
         EyeTrackerDevice.__init__(self, *args, **kwargs)
-
+        config = self.getConfiguration()
         # Used to hold the last sample processed by iohub.
         self._latest_sample = None
-
+        EyeTracker._ISI = 1.0/config.get('runtime_settings').get('sampling_rate')
+        print2err('EyeTracker._ISI: ', EyeTracker._ISI)
         # Used to hold the last valid gaze position processed by ioHub.
         # If the last mouse tracker in a blink state, then this is set to None
         #
         self._latest_gaze_position = 0.0, 0.0
 
-    def _registerMouseEventListeners(self):
-        mouseDevice=None
-
+    def _connectMouse(self):
         if self._iohub_server:
             for dev in self._iohub_server.devices:
                 if dev.__class__.__name__ == 'Mouse':
-                    mouseDevice = dev
-
-        if mouseDevice:
-            eventIDs = []
-            for event_class_name in mouseDevice.__class__.EVENT_CLASS_NAMES:
-                eventIDs.append(getattr(EventConstants, convertCamelToSnake(event_class_name[:-5], False)))
-            EyeTracker._last_mouse_event_time = 0
-            EyeTracker._ioMouse = mouseDevice
-            EyeTracker._ioMouse._addEventListener(self, eventIDs)
-        else:
-            print2err('Warning: Mouse Simulated Eye Tracker could not connect to Mouse device for events.')
-
-    def _deregisterMouseEventListeners(self):
-        if EyeTracker._ioMouse:
-            EyeTracker._ioMouse._removeEventListener(self)
-            EyeTracker._ioMouse = None
-
-    def _handleEvent(self, event):
-        # TODO: Use event time, not current time
-        print2err("MouseTracker:", event)
-        event = MouseInputEvent.createEventAsNamedTuple(event)
-        EyeTracker._last_mouse_event_time = getTime()
-
-        if event.type == EventConstants.MOUSE_DRAG:
-            self._latest_gaze_position = event.x_position, event.y_position
-        #
-        #elif event[event_type_index] == EventConstants.MOUSE_BUTTON_RELEASE:
-        #    self.mouse_button_state = 0
-        #
-        #if event[event_type_index] == EventConstants.MOUSE_BUTTON_PRESS:
-        #    self.mouse_button_state = 1#
-        #elif event[event_type_index] == EventConstants.MOUSE_MOVE:
-        #    self.mouse_pos = self._ioMouse.getPosition()
+                    EyeTracker._ioMouse = dev
 
     def _poll(self):
         if self.isConnected() and self.isRecordingEnabled():
-            if getTime() - EyeTracker._last_mouse_event_time > self._ISI:
-                print2err(getTime(), ' TODO: SAMPLE @ ', self._latest_gaze_position)
-                EyeTracker._last_mouse_event_time = getTime()
+            if EyeTracker._last_mouse_event_time == 0:
+                EyeTracker._last_mouse_event_time = getTime() - self._ISI
+
+            while getTime() - EyeTracker._last_mouse_event_time >= self._ISI:
+                # Generate an eye sample every ISI seconds
+                lb, mb, rb = self._ioMouse.getCurrentButtonStates()
+                if rb and lb:
+                    # In blink state, handle....
+                    self._latest_gaze_position = None
+                elif rb:
+                    self._latest_gaze_position = self._ioMouse.getPosition()
+
+                EyeTracker._last_mouse_event_time += self._ISI
+                next_sample_time = EyeTracker._last_mouse_event_time
+                self._addSample(next_sample_time)
+            #TODO: Generate fixation, saccade blink events
+
+    def _addSample(self, sample_time):
+        if self._latest_gaze_position:
+            gx, gy = self._latest_gaze_position
+            status = 0
+        else:
+            gx, gy = EyeTrackerConstants.UNDEFINED, EyeTrackerConstants.UNDEFINED
+            status = 2
+
+        pupilSize = 5
+        monoSample = [0,
+                      0,
+                      0,  # device id (not currently used)
+                      Device._getNextEventID(),
+                      EventConstants.MONOCULAR_EYE_SAMPLE,
+                      sample_time,
+                      sample_time,
+                      sample_time,
+                      0,
+                      0,
+                      0,
+                      EyeTrackerConstants.RIGHT_EYE,
+                      gx,
+                      gy,
+                      EyeTrackerConstants.UNDEFINED,
+                      EyeTrackerConstants.UNDEFINED,
+                      EyeTrackerConstants.UNDEFINED,
+                      EyeTrackerConstants.UNDEFINED,
+                      EyeTrackerConstants.UNDEFINED,
+                      EyeTrackerConstants.UNDEFINED,
+                      EyeTrackerConstants.UNDEFINED,
+                      EyeTrackerConstants.UNDEFINED,
+                      pupilSize,
+                      EyeTrackerConstants.PUPIL_DIAMETER_MM,
+                      EyeTrackerConstants.UNDEFINED,
+                      EyeTrackerConstants.UNDEFINED,
+                      EyeTrackerConstants.UNDEFINED,
+                      EyeTrackerConstants.UNDEFINED,
+                      EyeTrackerConstants.UNDEFINED,
+                      EyeTrackerConstants.UNDEFINED,
+                      EyeTrackerConstants.UNDEFINED,
+                      status
+                      ]
+        self._latest_sample = monoSample
+        self._addNativeEventToBuffer(monoSample)
 
     def trackerTime(self):
         """
@@ -153,9 +178,9 @@ class EyeTracker(EyeTrackerDevice):
         When 'connected', the Mouse Simulated Eye Tracker taps into the ioHub Mouse event stream.
         """
         if enable and self._ioMouse is None:
-            self._registerMouseEventListeners()
+            self._connectMouse()
         elif enable is False and self._ioMouse:
-            self._deregisterMouseEventListeners()
+            EyeTracker._ioMouse = None
         return self.isConnected()
 
     def isConnected(self):
@@ -184,10 +209,11 @@ class EyeTracker(EyeTrackerDevice):
         if recording is True and current_state is False:
             EyeTracker._recording = True
             if self._ioMouse is None:
-                self._registerMouseEventListeners()
+                self._connectMouse()
         elif recording is False and current_state is True:
             EyeTracker._recording = False
             self._latest_sample = None
+            EyeTracker._last_mouse_event_time = 0
         return EyeTrackerDevice.enableEventReporting(self, recording)
 
     def isRecordingEnabled(self):
