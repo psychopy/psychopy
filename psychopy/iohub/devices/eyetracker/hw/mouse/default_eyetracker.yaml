@@ -9,7 +9,7 @@ eyetracker.hw.mouse.EyeTracker:
     runtime_settings:
         sampling_rate: 50
         track_eyes: RIGHT_EYE
-    monitor_event_types: [MonocularEyeSampleEvent, FixationStartEvent, FixationEndEvent, BlinkStartEvent, BlinkEndEvent]
+    monitor_event_types: [MonocularEyeSampleEvent, FixationStartEvent, FixationEndEvent, SaccadeStartEvent, SaccadeEndEvent, BlinkStartEvent, BlinkEndEvent]
     model_name: MouseGaze
     manufacturer_name: MouseGaze
     auto_report_events: False

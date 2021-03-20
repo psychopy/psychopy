@@ -6,7 +6,7 @@ from psychopy.iohub.errors import print2err, printExceptionDetailsToStdErr
 from psychopy.iohub.constants import EyeTrackerConstants, EventConstants
 from psychopy.iohub.devices import Computer, Device
 from psychopy.iohub.devices.eyetracker import EyeTrackerDevice
-
+import math
 ET_UNDEFINED = EyeTrackerConstants.UNDEFINED
 getTime = Computer.getTime
 
@@ -60,17 +60,19 @@ class EyeTracker(EyeTrackerDevice):
         'MonocularEyeSampleEvent',
         'FixationStartEvent',
         'FixationEndEvent',
+        'SaccadeStartEvent',
+        'SaccadeEndEvent',
         'BlinkStartEvent',
         'BlinkEndEvent']
     __slots__ = []
     _ioMouse = None
     _recording = False
+    _eye_state = "NONE"
     _last_mouse_event_time = 0
     _ISI = 0.01  # Later set by runtime_settings.sampling_rate
-    _last_blink_start = 0.0
-    _last_fixation_start = 0.0
-    _last_start_fix_position = None
-
+    _last_event_start = 0.0
+    _last_start_event_pos = None
+    _sacc_end_time = 0.0
     def __init__(self, *args, **kwargs):
         EyeTrackerDevice.__init__(self, *args, **kwargs)
         config = self.getConfiguration()
@@ -98,6 +100,14 @@ class EyeTracker(EyeTrackerDevice):
                 # Generate an eye sample every ISI seconds
                 lb, mb, rb = self._ioMouse.getCurrentButtonStates()
                 last_gpos = self._latest_gaze_position
+
+                if EyeTracker._eye_state == 'SACC' and getTime() >= EyeTracker._sacc_end_time:
+                    # Create end saccade event.
+                    end_pos = self._latest_gaze_position
+                    start_pos = self._last_start_event_pos
+                    self._addSaccadeEvent(False, start_pos, end_pos)
+                    self._addFixationEvent(True)
+
                 create_blink_start = False
                 if (lb and rb) and not mb:
                     # In blink state....
@@ -105,29 +115,89 @@ class EyeTracker(EyeTrackerDevice):
                     if self._latest_gaze_position:
                         # Blink just started, create event....
                         create_blink_start = True
-                    self._latest_gaze_position = None
                 else:
-                    if self._latest_gaze_position is None:
+                    if self._eye_state == "BLINK":
                         # Not in blink state anymore, create BlinkEndEvent
                         last_gpos = self._latest_gaze_position = self._ioMouse.getPosition()
                         self._addBlinkEvent(False)
-                    if rb:
-                        self._latest_gaze_position = self._ioMouse.getPosition()
 
-                if self._latest_gaze_position and self._last_start_fix_position is None:
+                    if rb:
+                        if self._eye_state == "FIX":
+                            sacc_end_pos = self._ioMouse.getPosition()
+                            sacc_start_pos = self._latest_gaze_position
+                            sacc_length = math.hypot(sacc_end_pos[0]-sacc_start_pos[0], sacc_end_pos[1]-sacc_start_pos[1])
+                            # TODO: Make threshold settable and convert from monitor units to pix for comparision.
+                            if sacc_length > 20:
+                                self._addFixationEvent(False, sacc_start_pos)
+                                self._addSaccadeEvent(True, sacc_start_pos, sacc_end_pos)
+                            else:
+                                last_gpos = self._latest_gaze_position = self._ioMouse.getPosition()
+                        else:
+                            last_gpos = self._latest_gaze_position = self._ioMouse.getPosition()
+
+                if self._eye_state not in ["FIX","SACC"] and self._latest_gaze_position:
                     # Fixation start
                     self._addFixationEvent(True)
-                elif self._latest_gaze_position is None and self._last_start_fix_position:
+                elif self._eye_state == "FIX" and create_blink_start:
                     # Fixation End
                     self._addFixationEvent(False, last_gpos)
 
                 if create_blink_start:
+                    self._latest_gaze_position = None
                     self._addBlinkEvent(True)
 
                 EyeTracker._last_mouse_event_time += self._ISI
                 next_sample_time = EyeTracker._last_mouse_event_time
                 self._addSample(next_sample_time)
             # TODO?: Generate saccade events
+
+    def _addSaccadeEvent(self, startEvent, sacc_start_pos, sacc_end_pos):
+        stime = EyeTracker._last_mouse_event_time
+        if startEvent:
+            eye_evt = [0, 0, 0, Device._getNextEventID(), EventConstants.SACCADE_START,
+                       stime, stime, stime, 0, 0, 0, EyeTrackerConstants.RIGHT_EYE,
+                       sacc_start_pos[0], sacc_start_pos[1], ET_UNDEFINED,  ET_UNDEFINED, ET_UNDEFINED,
+                       ET_UNDEFINED, ET_UNDEFINED, 5, EyeTrackerConstants.PUPIL_DIAMETER_MM,
+                       ET_UNDEFINED, ET_UNDEFINED, ET_UNDEFINED, ET_UNDEFINED,
+                       ET_UNDEFINED, ET_UNDEFINED, ET_UNDEFINED, 0]
+            EyeTracker._eye_state = 'SACC'
+            EyeTracker._last_event_start = stime
+            EyeTracker._sacc_end_time = EyeTracker._last_mouse_event_time + 0.05
+            EyeTracker._last_start_event_pos = sacc_start_pos
+            self._latest_gaze_position = sacc_end_pos
+        else:
+
+            start_event_time = EyeTracker._last_event_start
+            end_event_time = stime
+            event_duration = end_event_time - start_event_time
+
+            s_gaze = sacc_start_pos
+            s_pupilsize = 4
+
+            e_gaze = sacc_end_pos
+            e_pupilsize = 5
+
+            eye_evt = [0, 0, 0, Device._getNextEventID(), EventConstants.SACCADE_END,
+                       stime, stime, stime, 0, 0, 0, EyeTrackerConstants.RIGHT_EYE,
+                       0.05, # TODO: Adjust duration based on saccade amplitude.
+                       0, # e_amp[0],
+                       0, # e_amp[1],
+                       0, # e_angle,
+                       s_gaze[0], s_gaze[1],
+                       ET_UNDEFINED, ET_UNDEFINED, ET_UNDEFINED, ET_UNDEFINED, ET_UNDEFINED,
+                       s_pupilsize, EyeTrackerConstants.PUPIL_DIAMETER_MM,
+                       ET_UNDEFINED, ET_UNDEFINED, ET_UNDEFINED, ET_UNDEFINED,
+                       ET_UNDEFINED, ET_UNDEFINED, ET_UNDEFINED,
+                       e_gaze[0], e_gaze[1],
+                       ET_UNDEFINED, ET_UNDEFINED, ET_UNDEFINED, ET_UNDEFINED, ET_UNDEFINED,
+                       e_pupilsize, EyeTrackerConstants.PUPIL_DIAMETER_MM,
+                       ET_UNDEFINED, ET_UNDEFINED, ET_UNDEFINED, ET_UNDEFINED, ET_UNDEFINED,
+                       ET_UNDEFINED, ET_UNDEFINED, ET_UNDEFINED, ET_UNDEFINED, ET_UNDEFINED,
+                       ET_UNDEFINED, ET_UNDEFINED, ET_UNDEFINED, 0]
+            EyeTracker._eye_state = 'FIX'
+            EyeTracker._sacc_end_time = 0
+
+        self._addNativeEventToBuffer(eye_evt)
 
     def _addFixationEvent(self, startEvent, end_pos=None):
         ftime = EyeTracker._last_mouse_event_time
@@ -139,18 +209,19 @@ class EyeTracker(EyeTrackerDevice):
                        ET_UNDEFINED, ET_UNDEFINED, 5, EyeTrackerConstants.PUPIL_DIAMETER_MM,
                        ET_UNDEFINED, ET_UNDEFINED, ET_UNDEFINED, ET_UNDEFINED,
                        ET_UNDEFINED, ET_UNDEFINED, ET_UNDEFINED, 0]
-            EyeTracker._last_fixation_start = ftime
-            EyeTracker._last_start_fix_position = gaze
+            EyeTracker._last_event_start = ftime
+            EyeTracker._last_start_event_pos = gaze
+            EyeTracker._eye_state = "FIX"
         else:
-            start_event_time = EyeTracker._last_fixation_start
+            start_event_time = EyeTracker._last_event_start
             end_event_time = ftime
             event_duration = end_event_time - start_event_time
-            s_gaze = self._last_start_fix_position
+            s_gaze = self._last_start_event_pos
             e_gaze = end_pos
             a_gaze = (s_gaze[0]+e_gaze[0])/2, (s_gaze[1]+e_gaze[1])/2
 
-            EyeTracker._last_fixation_start = 0.0
-            EyeTracker._last_start_fix_position = None
+            EyeTracker._last_event_start = 0.0
+            EyeTracker._last_start_event_pos = None
 
             eye_evt = [0, 0, 0, Device._getNextEventID(), EventConstants.FIXATION_END,
                        ftime, ftime, ftime, 0, 0, 0, EyeTrackerConstants.RIGHT_EYE,
@@ -177,7 +248,8 @@ class EyeTracker(EyeTrackerDevice):
         btime = EyeTracker._last_mouse_event_time
         if startEvent:
             # Create a blink start
-            EyeTracker._last_blink_start = btime
+            EyeTracker._last_event_start = btime
+            EyeTracker._eye_state = "BLINK"
             eye_evt = [0, 0, 0,  # device id (not currently used)
                        Device._getNextEventID(), EventConstants.BLINK_START,
                        btime, btime, btime,
@@ -197,10 +269,10 @@ class EyeTracker(EyeTrackerDevice):
                         0,
                         0,
                         EyeTrackerConstants.RIGHT_EYE,
-                        btime - EyeTracker._last_blink_start,
+                        btime - EyeTracker._last_event_start,
                         0
                     ]
-            EyeTracker._last_blink_start = 0.0
+            EyeTracker._last_event_start = 0.0
         self._addNativeEventToBuffer(eye_evt)
 
     def _addSample(self, sample_time):

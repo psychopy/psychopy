@@ -32,7 +32,7 @@ else:
 # Number if 'trials' to run in demo
 TRIAL_COUNT = 2
 # Maximum trial time / time timeout
-T_MAX = 5.0
+T_MAX = 60.0
 
 if devices_config:
     # Since no experiment or session code is given, no iohub hdf5 file
@@ -82,7 +82,7 @@ if devices_config:
             gpos = tracker.getLastGazePosition()
             for evt in tracker.getEvents():
                 if evt.type != EventConstants.MONOCULAR_EYE_SAMPLE:
-                    print("MouseEyes Event: ", evt)
+                    print(evt)
             # Update stim based on gaze position
             valid_gaze_pos = isinstance(gpos, (tuple, list))
             gaze_in_region = valid_gaze_pos and gaze_ok_region.contains(gpos)
