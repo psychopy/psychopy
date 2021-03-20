@@ -7,7 +7,7 @@ Select which tracker to use by setting the TRACKER variable below.
 
 from __future__ import absolute_import, division, print_function
 from psychopy import core, visual
-from psychopy.iohub.client import launchHubServer
+from psychopy.iohub import launchHubServer, EventConstants
 
 # Eye tracker to use ('mouse', 'eyelink', 'gazepoint', or 'tobii')
 TRACKER = 'mouse'
@@ -25,7 +25,7 @@ elif TRACKER == 'gazepoint':
 elif TRACKER == 'tobii':
     devices_config['eyetracker.hw.tobii.EyeTracker'] = eyetracker_config
 elif TRACKER == 'mouse':
-    devices_config['eyetracker.hw.local.mouse.EyeTracker'] = eyetracker_config
+    devices_config['eyetracker.hw.mouse.EyeTracker'] = eyetracker_config
 else:
     print("{} is not a valid TRACKER name; please use 'mouse', 'eyelink', 'gazepoint', or 'tobii'.".format(TRACKER))
 
@@ -56,7 +56,7 @@ if devices_config:
 
     win.setMouseVisible(True)
     
-    gaze_ok_region = visual.Circle(win, lineColor='black', radius=0.5, units='norm')
+    gaze_ok_region = visual.Circle(win, lineColor='black', radius=300, units='pix')
 
     gaze_dot = visual.GratingStim(win, tex=None, mask='gauss', pos=(0, 0),
                                   size=(.1, .2), color='green', units='norm')
@@ -81,7 +81,8 @@ if devices_config:
             # Get the latest gaze position in dispolay coord space..
             gpos = tracker.getLastGazePosition()
             for evt in tracker.getEvents():
-                print(evt)
+                if evt.type != EventConstants.MONOCULAR_EYE_SAMPLE:
+                    print("MouseEyes Event: ", evt)
             # Update stim based on gaze position
             valid_gaze_pos = isinstance(gpos, (tuple, list))
             gaze_in_region = valid_gaze_pos and gaze_ok_region.contains(gpos)

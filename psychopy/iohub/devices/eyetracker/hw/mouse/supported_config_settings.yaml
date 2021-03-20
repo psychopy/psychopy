@@ -1,4 +1,4 @@
-eyetracker.hw.local.mouse.EyeTracker:
+eyetracker.hw.mouse.EyeTracker:
     name: 
         IOHUB_STRING:
             min_length: 1

@@ -1,4 +1,4 @@
-eyetracker.hw.local.mouse.EyeTracker:
+eyetracker.hw.mouse.EyeTracker:
     enable: True
     name: tracker
     save_events: True

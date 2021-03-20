@@ -2,17 +2,14 @@
 # Part of the psychopy.iohub library.
 # Copyright (C) 2012-2016 iSolver Software Solutions
 # Distributed under the terms of the GNU General Public License (GPL).
-from ......errors import print2err, printExceptionDetailsToStdErr
-from ......constants import EventConstants, EyeTrackerConstants
-from ..... import Computer, Device
-from .... import EyeTrackerDevice
-from ....eye_events import *
-import sys, errno
-from ......util import convertCamelToSnake
-from .....mouse import MouseInputEvent
+from psychopy.iohub.errors import print2err, printExceptionDetailsToStdErr
+from psychopy.iohub.constants import EyeTrackerConstants
+from psychopy.iohub.devices import Computer, Device
+from psychopy.iohub.devices.eyetracker.eye_events import *
 
 ET_UNDEFINED = EyeTrackerConstants.UNDEFINED
 getTime = Computer.getTime
+
 
 class EyeTracker(EyeTrackerDevice):
     """
@@ -63,23 +60,23 @@ class EyeTracker(EyeTrackerDevice):
         'MonocularEyeSampleEvent',
         'FixationStartEvent',
         'FixationEndEvent',
-        'SaccadeStartEvent',
-        'SaccadeEndEvent',
         'BlinkStartEvent',
         'BlinkEndEvent']
     __slots__ = []
     _ioMouse = None
     _recording = False
     _last_mouse_event_time = 0
-    _ISI = 0.01 # later set by ('runtime_settings').get('sampling_rate')
+    _ISI = 0.01  # Later set by runtime_settings.sampling_rate
     _last_blink_start = 0.0
     _last_fixation_start = 0.0
     _last_start_fix_position = None
+
     def __init__(self, *args, **kwargs):
         EyeTrackerDevice.__init__(self, *args, **kwargs)
         config = self.getConfiguration()
         # Used to hold the last sample processed by iohub.
         self._latest_sample = None
+        # Calculate the desired ISI for the mouse sample stream.
         EyeTracker._ISI = 1.0/config.get('runtime_settings').get('sampling_rate')
         # Used to hold the last valid gaze position processed by ioHub.
         # If the last mouse tracker in a blink state, then this is set to None
@@ -102,7 +99,7 @@ class EyeTracker(EyeTrackerDevice):
                 lb, mb, rb = self._ioMouse.getCurrentButtonStates()
                 last_gpos = self._latest_gaze_position
                 create_blink_start = False
-                if mb and not (lb or rb):
+                if (lb and rb) and not mb:
                     # In blink state....
                     # None means eyes are missing.
                     if self._latest_gaze_position:
@@ -130,7 +127,7 @@ class EyeTracker(EyeTrackerDevice):
                 EyeTracker._last_mouse_event_time += self._ISI
                 next_sample_time = EyeTracker._last_mouse_event_time
                 self._addSample(next_sample_time)
-            #TODO: Generate fixation, saccade blink events
+            # TODO?: Generate saccade events
 
     def _addFixationEvent(self, startEvent, end_pos=None):
         ftime = EyeTracker._last_mouse_event_time
@@ -139,7 +136,7 @@ class EyeTracker(EyeTrackerDevice):
             eye_evt = [0, 0, 0, Device._getNextEventID(), EventConstants.FIXATION_START,
                        ftime, ftime, ftime, 0, 0, 0, EyeTrackerConstants.RIGHT_EYE,
                        gaze[0], gaze[1], ET_UNDEFINED,  ET_UNDEFINED, ET_UNDEFINED,
-                       ET_UNDEFINED,ET_UNDEFINED, 5, EyeTrackerConstants.PUPIL_DIAMETER_MM,
+                       ET_UNDEFINED, ET_UNDEFINED, 5, EyeTrackerConstants.PUPIL_DIAMETER_MM,
                        ET_UNDEFINED, ET_UNDEFINED, ET_UNDEFINED, ET_UNDEFINED,
                        ET_UNDEFINED, ET_UNDEFINED, ET_UNDEFINED, 0]
             EyeTracker._last_fixation_start = ftime
@@ -150,8 +147,6 @@ class EyeTracker(EyeTrackerDevice):
             event_duration = end_event_time - start_event_time
             s_gaze = self._last_start_fix_position
             e_gaze = end_pos
-            print2err('s_gaze: ', s_gaze)
-            print2err('e_gaze: ', e_gaze)
             a_gaze = (s_gaze[0]+e_gaze[0])/2, (s_gaze[1]+e_gaze[1])/2
 
             EyeTracker._last_fixation_start = 0.0
@@ -235,11 +230,8 @@ class EyeTracker(EyeTrackerDevice):
         """
         Current eye tracker time.
 
-        Args:
-            None
-
         Returns:
-            float: current eye tracker time in sec.msec format.
+            float: current eye tracker time in seconds.
         """
         return getTime()
 
@@ -294,15 +286,10 @@ class EyeTracker(EyeTrackerDevice):
 
     def isRecordingEnabled(self):
         """
-        isRecordingEnabled returns the recording state from the eye tracking
-        device.
-
-        Args:
-           None
+        isRecordingEnabled returns the recording state from the eye tracking device.
 
         Return:
             bool: True == the device is recording data; False == Recording is not occurring
-
         """
         return self._recording
 
@@ -320,7 +307,7 @@ class EyeTracker(EyeTrackerDevice):
         self._latest_sample = native_event_data
         return self._latest_sample
 
-    def _eyeTrackerToDisplayCoords(self, eyetracker_point):
+    def _eyeTrackerToDisplayCoords(self, eyetracker_point=()):
         """Converts GP3 gaze positions to the Display device coordinate space.
         """
 

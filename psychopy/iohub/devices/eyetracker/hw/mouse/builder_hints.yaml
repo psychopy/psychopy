@@ -1,4 +1,4 @@
-eyetracker.hw.local.mouse.EyeTracker:
+eyetracker.hw.mouse.EyeTracker:
     save_events: Save eye tracker data to a .hdf5 file.
     stream_events: Access eye tracker data during the experiment.
     event_buffer_length: Maximum number of samples / events that will be buffered by iohub.
