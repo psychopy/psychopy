@@ -7,56 +7,59 @@ Select which tracker to use by setting the TRACKER variable below.
 
 from __future__ import absolute_import, division, print_function
 from psychopy import core, visual
-from psychopy.iohub.client import launchHubServer
+from psychopy.iohub import launchHubServer, EventConstants
 
-# Eye tracker to use ('eyelink', 'gazepoint', or 'tobii')
-TRACKER = 'gazepoint'
+# Eye tracker to use ('mouse', 'eyelink', 'gazepoint', or 'tobii')
+TRACKER = 'mouse'
 
 eyetracker_config = dict(name='tracker')
-tracker_config = None
+devices_config = {'Display': {'reporting_unit_type': 'pix', 'device_number': 0}}
 if TRACKER == 'eyelink':
     eyetracker_config['model_name'] = 'EYELINK 1000 DESKTOP'
     eyetracker_config['simulation_mode'] = False
     eyetracker_config['runtime_settings'] = dict(sampling_rate=1000, track_eyes='RIGHT')
-    tracker_config = {'eyetracker.hw.sr_research.eyelink.EyeTracker': eyetracker_config}
+    devices_config['eyetracker.hw.sr_research.eyelink.EyeTracker'] = eyetracker_config
 elif TRACKER == 'gazepoint':
     eyetracker_config['device_timer'] = {'interval': 0.005}
-    tracker_config = {'eyetracker.hw.gazepoint.gp3.EyeTracker': eyetracker_config}
+    devices_config['eyetracker.hw.gazepoint.gp3.EyeTracker'] = eyetracker_config
 elif TRACKER == 'tobii':
-    tracker_config = {'eyetracker.hw.tobii.EyeTracker': eyetracker_config}
+    devices_config['eyetracker.hw.tobii.EyeTracker'] = eyetracker_config
+elif TRACKER == 'mouse':
+    devices_config['eyetracker.hw.mouse.EyeTracker'] = eyetracker_config
 else:
-    print("{} is not a valid TRACKER name; please use 'eyelink', 'gazepoint', or 'tobii'.".format(TRACKER))
+    print("{} is not a valid TRACKER name; please use 'mouse', 'eyelink', 'gazepoint', or 'tobii'.".format(TRACKER))
 
 # Number if 'trials' to run in demo
 TRIAL_COUNT = 2
 # Maximum trial time / time timeout
-T_MAX = 5.0
+T_MAX = 60.0
 
-if tracker_config:
+if devices_config:
     # Since no experiment or session code is given, no iohub hdf5 file
     # will be saved, but device events are still available at runtime.
-    io = launchHubServer(**tracker_config)
+    io = launchHubServer(**devices_config)
 
     # Get some iohub devices for future access.
     keyboard = io.getDevice('keyboard')
     display = io.getDevice('display')
     tracker = io.getDevice('tracker')
 
+    print("display: ", display.getCoordinateType())
     # run eyetracker calibration
     tracker.runSetupProcedure()
 
     win = visual.Window(display.getPixelResolution(),
-                        units='pix',
+                        units=display.getCoordinateType(),
                         fullscr=True,
                         allowGUI=False
                         )
 
-    win.setMouseVisible(False)
+    win.setMouseVisible(True)
     
     gaze_ok_region = visual.Circle(win, lineColor='black', radius=300, units='pix')
 
     gaze_dot = visual.GratingStim(win, tex=None, mask='gauss', pos=(0, 0),
-                                  size=(66, 66), color='green', units='pix')
+                                  size=(40, 40), color='green', units='pix')
 
     text_stim_str = 'Eye Position: %.2f, %.2f. In Region: %s\n'
     text_stim_str += 'Press space key to start next trial.'
@@ -64,7 +67,7 @@ if tracker_config:
     missing_gpos_str += 'Press space key to start next trial.'
     text_stim = visual.TextStim(win, text=text_stim_str,
                                 pos=[0, 0], height=24,
-                                color='black',
+                                color='black', units='pix',
                                 wrapWidth=win.size[0] * .9)
 
     # Run Trials.....
@@ -77,6 +80,9 @@ if tracker_config:
         while run_trial is True:
             # Get the latest gaze position in dispolay coord space..
             gpos = tracker.getLastGazePosition()
+            for evt in tracker.getEvents():
+                if evt.type != EventConstants.MONOCULAR_EYE_SAMPLE:
+                    print(evt)
             # Update stim based on gaze position
             valid_gaze_pos = isinstance(gpos, (tuple, list))
             gaze_in_region = valid_gaze_pos and gaze_ok_region.contains(gpos)

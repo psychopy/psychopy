@@ -1,0 +1,12 @@
+eyetracker.hw.mouse.EyeTracker:
+    save_events: Save eye tracker data to a .hdf5 file.
+    stream_events: Access eye tracker data during the experiment.
+    event_buffer_length: Maximum number of samples / events that will be buffered by iohub.
+    monitor_event_types: Supported Sample and Event types.
+    model_name: Eye tracker model name.
+    manufacturer_name: Eye tracker manufacturer.
+    runtime_settings:
+        sampling_rate: Simulated eyetracker sampling rate.
+        track_eyes: RIGHT_EYE is fixed.
+
+

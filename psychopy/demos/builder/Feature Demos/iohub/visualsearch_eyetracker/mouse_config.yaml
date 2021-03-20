@@ -1,0 +1,4 @@
+eyetracker.hw.mouse.EyeTracker:
+    enable: True
+    name: tracker
+    monitor_event_types: [ MonocularEyeSampleEvent, FixationStartEvent, FixationEndEvent, BlinkStartEvent, BlinkEndEvent]
