@@ -1,16 +1,12 @@
 eyetracker.hw.mouse.EyeTracker:
-    name: 
-        IOHUB_STRING:
-            min_length: 1
-            max_length: 32
-            first_char_alpha: True
+    name: tracker
     enable: IOHUB_BOOL
     device_timer:
         interval:
             IOHUB_FLOAT:
                 min: 0.001
                 max: 0.020
-    model_name: Mouse
+    model_name: MouseGaze
     save_events: IOHUB_BOOL
     stream_events: IOHUB_BOOL
     auto_report_events: False
@@ -31,5 +27,5 @@ eyetracker.hw.mouse.EyeTracker:
                 max_length: 1
         track_eyes: RIGHT_EYE
     device_number: 0
-    manufacturer_name: Mouse Simulated
+    manufacturer_name: MouseGaze
     builder_hides: ['builder_hides', 'enable', 'name', 'device_number', 'device_timer', 'auto_report_events']

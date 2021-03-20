@@ -10,8 +10,8 @@ eyetracker.hw.mouse.EyeTracker:
         sampling_rate: 50
         track_eyes: RIGHT_EYE
     monitor_event_types: [MonocularEyeSampleEvent, FixationStartEvent, FixationEndEvent, BlinkStartEvent, BlinkEndEvent]
-    model_name: Mouse
-    manufacturer_name: Mouse Simulated
+    model_name: MouseGaze
+    manufacturer_name: MouseGaze
     auto_report_events: False
     device_number: 0
     builder_hides: ['builder_hides', 'enable', 'name', 'device_number', 'device_timer', 'auto_report_events']

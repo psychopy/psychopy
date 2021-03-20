@@ -13,7 +13,7 @@ from psychopy.iohub import launchHubServer, EventConstants
 TRACKER = 'mouse'
 
 eyetracker_config = dict(name='tracker')
-devices_config = {'Display': {'reporting_unit_type': 'norm', 'device_number': 0}}
+devices_config = {'Display': {'reporting_unit_type': 'pix', 'device_number': 0}}
 if TRACKER == 'eyelink':
     eyetracker_config['model_name'] = 'EYELINK 1000 DESKTOP'
     eyetracker_config['simulation_mode'] = False
@@ -59,7 +59,7 @@ if devices_config:
     gaze_ok_region = visual.Circle(win, lineColor='black', radius=300, units='pix')
 
     gaze_dot = visual.GratingStim(win, tex=None, mask='gauss', pos=(0, 0),
-                                  size=(.1, .2), color='green', units='norm')
+                                  size=(40, 40), color='green', units='pix')
 
     text_stim_str = 'Eye Position: %.2f, %.2f. In Region: %s\n'
     text_stim_str += 'Press space key to start next trial.'
