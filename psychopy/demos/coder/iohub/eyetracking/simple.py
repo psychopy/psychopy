@@ -80,9 +80,8 @@ if devices_config:
         while run_trial is True:
             # Get the latest gaze position in dispolay coord space..
             gpos = tracker.getLastGazePosition()
-            evts = tracker.getEvents()
-            if evts:
-                print(evts)
+            for evt in tracker.getEvents():
+                print(evt)
             # Update stim based on gaze position
             valid_gaze_pos = isinstance(gpos, (tuple, list))
             gaze_in_region = valid_gaze_pos and gaze_ok_region.contains(gpos)
