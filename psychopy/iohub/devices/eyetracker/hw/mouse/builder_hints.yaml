@@ -5,4 +5,8 @@ eyetracker.hw.mouse.EyeTracker:
     monitor_event_types: Supported Sample and Event types.
     model_name: Eye tracker model name.
     manufacturer_name: Eye tracker manufacturer.
+    runtime_settings:
+        sampling_rate: Simulated eyetracker sampling rate.
+        track_eyes: RIGHT_EYE is fixed.
+
 

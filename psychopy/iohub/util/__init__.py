@@ -339,8 +339,12 @@ def getDeviceParams(device_name):
 
                     shint = "TODO: %s hint" % k
                     if hints_data:
-                        shint = getSubDict(hints_data, parent_list).get(k)
-
+                        try:
+                            shint = getSubDict(hints_data, parent_list).get(k)
+                        except:
+                            # Hint is missing, default will be displayed.
+                            # TODO: print a warning?
+                            pass
                     cspath = list(parent_list)
                     cspath.append(k)
 
