@@ -341,7 +341,7 @@ def getDeviceParams(device_name):
                     if hints_data:
                         try:
                             shint = getSubDict(hints_data, parent_list).get(k)
-                        except:
+                        except AttributeError:
                             # Hint is missing, default will be displayed.
                             # TODO: print a warning?
                             pass

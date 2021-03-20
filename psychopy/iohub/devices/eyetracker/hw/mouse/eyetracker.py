@@ -3,9 +3,9 @@
 # Copyright (C) 2012-2016 iSolver Software Solutions
 # Distributed under the terms of the GNU General Public License (GPL).
 from psychopy.iohub.errors import print2err, printExceptionDetailsToStdErr
-from psychopy.iohub.constants import EyeTrackerConstants
+from psychopy.iohub.constants import EyeTrackerConstants, EventConstants
 from psychopy.iohub.devices import Computer, Device
-from psychopy.iohub.devices.eyetracker.eye_events import *
+from psychopy.iohub.devices.eyetracker import EyeTrackerDevice
 
 ET_UNDEFINED = EyeTrackerConstants.UNDEFINED
 getTime = Computer.getTime
@@ -16,7 +16,7 @@ class EyeTracker(EyeTrackerDevice):
     To start iohub with a Mouse Simulated eye tracker, add the full iohub device name
     as a kwarg passed to launchHubServer::
 
-        eyetracker.hw.local.mouse.EyeTracker
+        eyetracker.hw.mouse.EyeTracker
               
     Examples:
         A. Start ioHub with the Mouse Simulated eye tracker::
@@ -24,7 +24,7 @@ class EyeTracker(EyeTrackerDevice):
             from psychopy.iohub import launchHubServer
             from psychopy.core import getTime, wait
 
-            iohub_config = {'eyetracker.hw.local.mouse.EyeTracker': {}}
+            iohub_config = {'eyetracker.hw.mouse.EyeTracker': {}}
                 
             io = launchHubServer(**iohub_config)
             
