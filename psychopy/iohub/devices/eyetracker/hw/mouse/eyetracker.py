@@ -162,6 +162,8 @@ class EyeTracker(EyeTrackerDevice):
                        ET_UNDEFINED, ET_UNDEFINED, ET_UNDEFINED, 0]
             EyeTracker._eye_state = 'SACC'
             EyeTracker._last_event_start = stime
+            # TODO: Adjust duration based on saccade amplitude,
+            #  currently fixed at 50 msec.
             EyeTracker._sacc_end_time = EyeTracker._last_mouse_event_time + 0.05
             EyeTracker._last_start_event_pos = sacc_start_pos
             self._latest_gaze_position = sacc_end_pos
@@ -179,7 +181,7 @@ class EyeTracker(EyeTrackerDevice):
 
             eye_evt = [0, 0, 0, Device._getNextEventID(), EventConstants.SACCADE_END,
                        stime, stime, stime, 0, 0, 0, EyeTrackerConstants.RIGHT_EYE,
-                       0.05, # TODO: Adjust duration based on saccade amplitude.
+                       event_duration,
                        0, # e_amp[0],
                        0, # e_amp[1],
                        0, # e_angle,
