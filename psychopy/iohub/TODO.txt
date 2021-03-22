@@ -1,5 +1,19 @@
 TODO list / iohub 2021 rework project notes
 
+eyetracker related
+------------------
+
+- remove inner_stroke_width setting from tobii
+- remove outer_stroke_width setting from tobii
+- change inner_fill_color and inner_stroke_color -> inner_color in tobii settings
+- change outer_fill_color and outer_stroke_color -> outer_color in tobii settings
+
+- make eyelink and tobii target setting consistent.
+
+
+Other
+-----
+
 - Python 3 only support is OK
 
 - Test / start developing with Python 3.9

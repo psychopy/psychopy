@@ -86,4 +86,4 @@ eyetracker.hw.tobii.EyeTracker:
                 contract_only: IOHUB_BOOL
     device_number: 0
     manufacturer_name: Tobii Technology
-    builder_hides: ['builder_hides', 'enable', 'name', 'device_number', 'runtime_settings.track_eyes', 'calibration.target_positions', 'auto_report_events']
+    builder_hides: ['builder_hides', 'enable', 'name', 'device_number', 'calibration.target_positions', 'auto_report_events']
