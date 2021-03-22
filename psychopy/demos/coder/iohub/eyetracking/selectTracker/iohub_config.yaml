@@ -2,7 +2,7 @@ data_store:
   enable: true
 monitor_devices:
 - Display:
-    color_space: rgb
+    color_space: named
     default_eye_distance:
       surface_center: 500
       unit_type: mm
@@ -24,20 +24,11 @@ monitor_devices:
     calibration:
       auto_pace: true
       pacing_speed: 1.5
-      screen_background_color:
-      - 0.0
-      - 1.0
-      - 0.0
+      screen_background_color: grey
       target_attributes:
-        inner_color:
-        - -1.0
-        - 1.0
-        - -1.0
+        inner_color: black
         inner_diameter: 6
-        outer_color:
-        - 1.0
-        - -1.0
-        - 1.0
+        outer_color: dfgsdfgsdfgsd
         outer_diameter: 33
       target_type: CIRCLE_TARGET
       type: NINE_POINTS

@@ -16,7 +16,7 @@ Display:
             max_length: 1
     color_space:
         IOHUB_LIST:
-            valid_values: [rgb, rgb255, name, hex, hsv, dkl, lms]
+            valid_values: [rgb, rgb255, named , hex, hsv, dkl, lms]
             min_length: 1
             max_length: 1
     origin: center

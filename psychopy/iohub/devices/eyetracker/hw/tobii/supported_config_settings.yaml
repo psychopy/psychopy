@@ -7,7 +7,7 @@ eyetracker.hw.tobii.EyeTracker:
     enable: IOHUB_BOOL
     model_name:
         IOHUB_LIST:
-            valid_values: [Any Pro Model, Nano, Fusuion, Spectrum, T120, X120, TX300, X2, X3]
+            valid_values: [Any Pro Model, Nano, Fusion, Spectrum, T120, X120, TX300, X2, X3]
             min_length: 1
             max_length: 1
     serial_number:
