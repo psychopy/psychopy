@@ -1,5 +1,5 @@
-List of iohub functionality that has been removed or changed as part of the 2021 refactor work
------------------------------------------------------------------------------------------------
+Changes made to iohub for 2021.2 Release
+----------------------------------------
 
 - Removed iohub ExpRuntime class (use iohub.launchHubServer() function)
 - Some eye tracker setting haves may have changed. If running an experiment created with a previous version of iohub,
@@ -14,4 +14,7 @@ List of iohub functionality that has been removed or changed as part of the 2021
     - increased experiment and session data string max length
 - Added wintab device for Wacom based digital pens. (Windows only)
 - Added iohub MouseGaze eye tracker simulator.
+- Added 'color_space' setting to Display (bridging to remove Display class from iohub)
 - Eyelink and tobii calibration gfx can now use same color space as window instead of always rgb255.
+    - TODO: Retest all eyetracking examples with all eye trackers on all OS's
+- Removed iohub/devices/display/unit_conversions.py. Moving to psychopy monitorutil functions.
