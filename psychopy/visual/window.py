@@ -2269,6 +2269,10 @@ class Window(object):
             GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, self.frameBuffer)
         return im
 
+    @property
+    def screenshot(self):
+        return self._getFrame()
+
     def saveMovieFrames(self, fileName, codec='libx264',
                         fps=30, clearFrames=True):
         """Writes any captured frames to disk.
