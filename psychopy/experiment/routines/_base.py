@@ -43,6 +43,62 @@ class BaseStandaloneRoutine:
         _rep = "psychopy.experiment.%s(name='%s', exp=%s)"
         return _rep % (self.__class__, self.name, self.exp)
 
+    def __iter__(self):
+        """Overloaded iteration behaviour - if iterated through, a standaloneRoutine returns
+        itself once, so it can be treated like a regular routine"""
+        self.__iterstop = False
+        return self
+
+    def __next__(self):
+        """Overloaded iteration behaviour - if iterated through, a standaloneRoutine returns
+        itself once, so it can be treated like a regular routine"""
+        if self.__iterstop:
+            # Stop after one iteration
+            self.__iterstop = False
+            raise StopIteration
+        else:
+            self.__iterstop = True
+            return self
+
+    def writePreCode(self, buff):
+        return
+
+    def writePreCodeJS(self, buff):
+        return
+
+    def writeStartCode(self, buff):
+        return
+
+    def writeStartCodeJS(self, buff):
+        return
+
+    def writeRunOnceInitCode(self, buff):
+        return
+
+    def writeInitCode(self, buff):
+        return
+
+    def writeInitCodeJS(self, buff):
+        return
+
+    def writeMainCode(self, buff):
+        return
+
+    def writeRoutineBeginCodeJS(self, buff, modular):
+        return
+
+    def writeEachFrameCodeJS(self, buff, modular):
+        return
+
+    def writeRoutineEndCodeJS(self, buff, modular):
+        return
+
+    def writeExperimentEndCode(self, buff):
+        return
+
+    def writeExperimentEndCodeJS(self, buff):
+        return
+
     def getType(self):
         return self.type
 
