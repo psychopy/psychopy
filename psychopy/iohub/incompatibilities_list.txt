@@ -9,3 +9,9 @@ List of iohub functionality that has been removed or changed as part of the 2021
   in your site-packages folder. Change `import iohub` to `import psychopy.iohub` for example.
 - Removed most device settings related to device hardware specifics (model_id, manfacture_date, etc)
   since they were never really used.
+- removed use of .iohpid
+- ** Changed datastore schema:
+    - increased experiment and session data string max length
+- Added wintab device for Wacom based digital pens. (Windows only)
+- Added iohub MouseGaze eye tracker simulator.
+- Eyelink and tobii calibration gfx can now use same color space as window instead of always rgb255.

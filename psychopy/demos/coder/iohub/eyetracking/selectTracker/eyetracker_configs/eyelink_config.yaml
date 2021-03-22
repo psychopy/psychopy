@@ -150,7 +150,7 @@ monitor_devices:
             # should be a value between 0 and 255. 0 == black, 255 == white. In general
             # the last value of the color list (alpha) can be left at 255, indicating
             # the color not mixed with the background color at all.
-            screen_background_color: [128,128,128]
+            screen_background_color: [0.0, 1.0, 0.0]
 
             # target type defines what form of calibration graphic should be used
             # during calibration, validation, etc. modes.
@@ -166,8 +166,8 @@ monitor_devices:
                 # outer_diameter and inner_diameter are specified in pixels
                 outer_diameter: 33
                 inner_diameter: 6
-                outer_color: [255,255,255]
-                inner_color: [0,0,0]
+                outer_color: [1.0, -1.0, 1.0]
+                inner_color: [-1.0, 1.0, -1.0]
 
         # The model_name setting allows the definition of the eye tracker model being used.
         # For the eyelink implementation, valid values are:

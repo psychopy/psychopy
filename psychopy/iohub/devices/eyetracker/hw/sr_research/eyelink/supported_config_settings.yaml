@@ -33,19 +33,19 @@ eyetracker.hw.sr_research.eyelink.EyeTracker:
             IOHUB_FLOAT:
                 min: 0.5
                 max: 2.5
-        screen_background_color: IOHUB_RGBA255_COLOR
+        screen_background_color: IOHUB_COLOR
         target_type: [CIRCLE_TARGET,]
         target_attributes:
             outer_diameter:
-                IOHUB_INT:
-                    min: 8
-                    max: 256
+                IOHUB_FLOAT:
+                    min: 0.01
+                    max: 250.0
             inner_diameter: 
-                IOHUB_INT:
-                    min: 0
-                    max: 255
-            outer_color: IOHUB_RGBA255_COLOR
-            inner_color: IOHUB_RGBA255_COLOR                 
+                IOHUB_FLOAT:
+                    min: 0.01
+                    max: 250.0
+            outer_color: IOHUB_COLOR
+            inner_color: IOHUB_COLOR
     simulation_mode: IOHUB_BOOL
     enable_interface_without_connection: IOHUB_BOOL
     network_settings: IOHUB_IP_ADDRESS_V4

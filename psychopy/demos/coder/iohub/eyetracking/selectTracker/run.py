@@ -73,7 +73,7 @@ def run(selected_eyetracker_name):
     instructions_text_stim = visual.TextStim(
         window, text='', pos=[0, 0], height=24,
         color=[-1, -1, -1], colorSpace='rgb',
-        wrapWidth=window.size[0] * .9
+        wrapWidth=window.size[0] * .9, units='pix'
     )
 
     # Update Instruction Text and display on screen.

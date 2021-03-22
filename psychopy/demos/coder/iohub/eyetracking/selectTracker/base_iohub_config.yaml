@@ -1,7 +1,8 @@
 monitor_devices:
     - Display:
         name: display
-        reporting_unit_type: pix
+        reporting_unit_type:
+        color_space: rgb
         device_number: 0
         physical_dimensions:
             width: 590

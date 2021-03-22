@@ -20,27 +20,28 @@ import pylink
 
 class FixationTarget(object):
     def __init__(self, psychopy_eyelink_graphics):
+        win = psychopy_eyelink_graphics.window
         self.calibrationPointOuter = visual.Circle(
-            psychopy_eyelink_graphics.window,
+            win,
             pos=(0, 0),
             lineWidth=1.0,
             lineColor=psychopy_eyelink_graphics.CALIBRATION_POINT_OUTER_COLOR,
-            colorSpace='rgb255',
+            colorSpace=win.colorSpace,
             fillColor=psychopy_eyelink_graphics.CALIBRATION_POINT_OUTER_COLOR,
             radius=psychopy_eyelink_graphics.CALIBRATION_POINT_OUTER_RADIUS,
             name='CP_OUTER',
-            units='pix',
+            units=win.units,
             opacity=1.0,
             interpolate=False)
         self.calibrationPointInner = visual.Circle(
-            psychopy_eyelink_graphics.window,
+            win,
             pos=(0, 0), lineWidth=1.0,
             lineColor=psychopy_eyelink_graphics.CALIBRATION_POINT_INNER_COLOR,
-            colorSpace='rgb255',
+            colorSpace=win.colorSpace,
             fillColor=psychopy_eyelink_graphics.CALIBRATION_POINT_INNER_COLOR,
             radius=psychopy_eyelink_graphics.CALIBRATION_POINT_INNER_RADIUS,
             name='CP_INNER',
-            units='pix',
+            units=win.units,
             opacity=1.0,
             interpolate=False)
 
@@ -58,11 +59,11 @@ class BlankScreen(object):
     def __init__(self, psychopy_win, color):
         self.display_size = psychopy_win.size
         w, h = self.display_size
-        self.win = psychopy_win
+        win = psychopy_win
         self.color = color
-        self.background = visual.Rect(self.win, w, h,
+        self.background = visual.Rect(win, w, h,
                                       lineColor=self.color,
-                                      colorSpace='rgb255',
+                                      colorSpace=win.colorSpace,
                                       fillColor=self.color,
                                       units='pix',
                                       name='BACKGROUND',
@@ -78,10 +79,10 @@ class TextLine(object):
 
     def __init__(self, psychopy_win):
         self.display_size = psychopy_win.size
-        self.win = psychopy_win
+        win = psychopy_win
 
         self.textLine = visual.TextStim(
-            self.win,
+            win,
             text='***********************',
             pos=(
                 0,
@@ -111,18 +112,18 @@ class TextLine(object):
 class IntroScreen(object):
     def __init__(self, psychopy_win):
         self.display_size = psychopy_win.size
-        self.window = psychopy_win
+        window = psychopy_win
         font_height = 24
         space_per_lines = font_height * 2.5
-        if self.window.useRetina:
-            topline_y = self.window.size[1]/4-font_height*2
+        if window.useRetina:
+            topline_y = window.size[1]/4-font_height*2
         else:
-            topline_y = self.window.size[1]/2-font_height*2
-        wrap_width = self.window.size[1] * .8
+            topline_y = window.size[1]/2-font_height*2
+        wrap_width = window.size[1] * .8
            
         self.introlines = []
 
-        self.introlines.append(visual.TextStim(self.window,
+        self.introlines.append(visual.TextStim(window,
                     text='>>>> Eyelink System Setup:  Keyboard Actions <<<<',
                     pos=(
                         0,
@@ -142,13 +143,13 @@ class IntroScreen(object):
                     italic=False,
                     wrapWidth=wrap_width))
 
-        if self.window.useRetina:
-            left_margin = -self.window.size[0]/4
+        if window.useRetina:
+            left_margin = -window.size[0]/4
         else:
-            left_margin = -self.window.size[0]/2
+            left_margin = -window.size[0]/2
         left_margin = left_margin *.4
         topline_y = topline_y - space_per_lines/3
-        self.introlines.append(visual.TextStim(self.window,
+        self.introlines.append(visual.TextStim(window,
                                                text='* ENTER: Begin Camera Setup Mode',
                                                pos=(left_margin,
                                                     topline_y - space_per_lines * (len(self.introlines))),
@@ -168,7 +169,7 @@ class IntroScreen(object):
                                                anchorHoriz='left',
                                                wrapWidth=wrap_width))
 
-        self.introlines.append(visual.TextStim(self.window,
+        self.introlines.append(visual.TextStim(window,
                                                text='* C: Start Calibration Procedure',
                                                pos=(left_margin,
                                                     topline_y - space_per_lines * (len(self.introlines))),
@@ -188,7 +189,7 @@ class IntroScreen(object):
                                                anchorHoriz='left',
                                                wrapWidth=wrap_width))
 
-        self.introlines.append(visual.TextStim(self.window,
+        self.introlines.append(visual.TextStim(window,
                                                text='* V: Start Validation Procedure',
                                                pos=(left_margin,
                                                     topline_y - space_per_lines * (len(self.introlines))),
@@ -205,10 +206,10 @@ class IntroScreen(object):
                                                bold=False,
                                                italic=False,
                                                alignText='left',
-                                               anchorHoriz='left',                                               #anchorHoriz='left',
+                                               anchorHoriz='left',
                                                wrapWidth=wrap_width))
 
-        self.introlines.append(visual.TextStim(self.window,
+        self.introlines.append(visual.TextStim(window,
                                                text='* ESCAPE: Exit EyeLink System Setup',
                                                pos=(left_margin,
                                                     topline_y - space_per_lines * (len(self.introlines))),
@@ -225,11 +226,11 @@ class IntroScreen(object):
                                                bold=True,
                                                italic=False,
                                                alignText='left',
-                                               anchorHoriz='left',                                               #anchorHoriz='left',
+                                               anchorHoriz='left',
                                                wrapWidth=wrap_width))
 
         topline_y = topline_y - space_per_lines/3
-        self.introlines.append(visual.TextStim(self.window,
+        self.introlines.append(visual.TextStim(window,
                                                text='------ Camera Setup Mode Specific Actions ------',
                                                pos=(0,
                                                     topline_y - space_per_lines * (len(self.introlines))),
@@ -248,7 +249,7 @@ class IntroScreen(object):
                                                wrapWidth=wrap_width))
         
         topline_y = topline_y - space_per_lines/3
-        self.introlines.append(visual.TextStim(self.window,
+        self.introlines.append(visual.TextStim(window,
                                                text='* Left / Right Arrow: Switch Between Camera Views',
                                                pos=(left_margin,
                                                     topline_y - space_per_lines * (len(self.introlines))),
@@ -265,10 +266,10 @@ class IntroScreen(object):
                                                bold=False,
                                                italic=False,
                                                alignText='left',
-                                               anchorHoriz='left',                                               #anchorHoriz='left',
+                                               anchorHoriz='left',
                                                wrapWidth=wrap_width))
 
-        self.introlines.append(visual.TextStim(self.window,
+        self.introlines.append(visual.TextStim(window,
                                                text='* A: Auto-Threshold Image',
                                                pos=(left_margin,
                                                     topline_y - space_per_lines * (len(self.introlines))),
@@ -285,10 +286,10 @@ class IntroScreen(object):
                                                bold=False,
                                                italic=False,
                                                alignText='left',
-                                               anchorHoriz='left',                                               #anchorHoriz='left',
+                                               anchorHoriz='left',
                                                wrapWidth=wrap_width))
 
-        self.introlines.append(visual.TextStim(self.window,
+        self.introlines.append(visual.TextStim(window,
                                                text='* Up / Down Arrow: Manually Adjust Pupil Threshold',
                                                pos=(left_margin,
                                                     topline_y - space_per_lines * (len(self.introlines))),
@@ -305,10 +306,10 @@ class IntroScreen(object):
                                                bold=False,
                                                italic=False,
                                                alignText='left',
-                                               anchorHoriz='left',                                               #anchorHoriz='left',
+                                               anchorHoriz='left',
                                                wrapWidth=wrap_width))
 
-        self.introlines.append(visual.TextStim(self.window,
+        self.introlines.append(visual.TextStim(window,
                                                text='* + or -: Manually Adjust CR Threshold.',
                                                pos=(left_margin,
                                                     topline_y - space_per_lines * (len(self.introlines))),
@@ -325,7 +326,7 @@ class IntroScreen(object):
                                                bold=False,
                                                italic=False,
                                                alignText='left',
-                                               anchorHoriz='left',                                               #anchorHoriz='left',
+                                               anchorHoriz='left',
                                                wrapWidth=wrap_width))
 
     def draw(self):
@@ -338,13 +339,13 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
     # micro threads, since one is blocking
     # on camera setup.
 
-    WINDOW_BACKGROUND_COLOR = (128, 128, 128)
-    CALIBRATION_POINT_OUTER_RADIUS = 15.0, 15.0
+    WINDOW_BACKGROUND_COLOR = None
+    CALIBRATION_POINT_OUTER_RADIUS = None
     CALIBRATION_POINT_OUTER_EDGE_COUNT = 64
-    CALIBRATION_POINT_OUTER_COLOR = (255, 255, 255)
-    CALIBRATION_POINT_INNER_RADIUS = 3.0, 3.0
-    CALIBRATION_POINT_INNER_EDGE_COUNT = 32
-    CALIBRATION_POINT_INNER_COLOR = (25, 25, 25)
+    CALIBRATION_POINT_OUTER_COLOR = None
+    CALIBRATION_POINT_INNER_RADIUS =None
+    CALIBRATION_POINT_INNER_EDGE_COUNT = 64
+    CALIBRATION_POINT_INNER_COLOR = None
 
     def __init__(self, eyetrackerInterface, targetForegroundColor=None,
                  targetBackgroundColor=None, screenColor=None,
@@ -355,11 +356,12 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
         self.tracker = eyetrackerInterface._eyelink
         self._ioKeyboard = None
         self._ioMouse = None
+        display = eyetrackerInterface._display_device
 
         self.imgstim_size = None
         self.rgb_index_array = None
 
-        self.screenSize = self._eyetrackerinterface._display_device.getPixelResolution()
+        self.screenSize = display.getPixelResolution()
         self.width = self.screenSize[0]
         self.height = self.screenSize[1]
 
@@ -391,12 +393,11 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
             self.tracker.sendCommand('autothreshold_repeat=YES')
             self.tracker.sendCommand('enable_camera_position_detect=YES')
 
-        display = self._eyetrackerinterface._display_device
         self.window = visual.Window(display.getPixelResolution(),
                                     monitor=display.getPsychopyMonitorName(),
                                     units=display.getCoordinateType(),
                                     color=self.WINDOW_BACKGROUND_COLOR,
-                                    colorSpace='rgb255',
+                                    colorSpace=display.getColorSpace(),
                                     fullscr=True,
                                     allowGUI=False,
                                     screen=display.getIndex()

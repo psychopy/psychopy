@@ -249,7 +249,13 @@ MIN_VALID_INT_VALUE = 0
 MAX_VALID_INT_VALUE = 1000000
 
 
+def isValidColor(config_param_name, color, constraints):
+    print2err("TODO: deviceValidation isValidColor")
+    return color
+    #raise ColorValueError(config_param_name, color)
+
 def isValidRgb255Color(config_param_name, color, constraints):
+    # TODO Remove once isValidColor is implemented
     if isinstance(color, (list, tuple)):
         if len(color) in [3, 4]:
             for c in color:
@@ -385,7 +391,7 @@ CONFIG_VALIDATION_KEY_WORD_MAPPINGS = dict(
     IOHUB_FLOAT=isValidFloat,
     IOHUB_INT=isValidInt,
     IOHUB_LIST=isValidList,
-    IOHUB_RGBA255_COLOR=isValidRgb255Color,
+    IOHUB_COLOR=isValidColor,
     IOHUB_IP_ADDRESS_V4=isValidIpAddress)
 ###############################################
 

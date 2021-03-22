@@ -409,15 +409,10 @@ class EyeTracker(EyeTrackerDevice):
 
             calibration_properties = self.getConfiguration().get('calibration')
             circle_attributes = calibration_properties.get('target_attributes')
-            targetForegroundColor = circle_attributes.get(
-                'outer_color')  # [r,g,b] of outer circle of targets
-            targetBackgroundColor = circle_attributes.get(
-                'inner_color')  # [r,g,b] of inner circle of targets
-            screenColor = calibration_properties.get(
-                'screen_background_color')                     # [r,g,b] of screen
-            # diameter of outer target circle (in px)
+            targetForegroundColor = circle_attributes.get('outer_color')
+            targetBackgroundColor = circle_attributes.get('inner_color')
+            screenColor = calibration_properties.get('screen_background_color')
             targetOuterDiameter = circle_attributes.get('outer_diameter')
-            # diameter of inner target circle (in px)
             targetInnerDiameter = circle_attributes.get('inner_diameter')
 
             genv = EyeLinkCoreGraphicsIOHubPsychopy(
@@ -433,7 +428,8 @@ class EyeTracker(EyeTrackerDevice):
             genv._unregisterEventMonitors()
             genv.clearAllEventBuffers()
             genv.window.close()
-
+            del genv.window
+            del genv
             return EyeTrackerConstants.EYETRACKER_OK
 
         except Exception as e:

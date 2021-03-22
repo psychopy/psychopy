@@ -18,7 +18,9 @@ Display:
     # be represented in. Valid values are pix, deg, norm, or cm.
     #
     reporting_unit_type: pix
-    
+
+    color_space: rgb255
+
     # The Display index to assign to the device. On a single Display
     # computer this must always be 0. On a computer with multiple displays, 
     # the value can be between 0 and display_count - 1.     

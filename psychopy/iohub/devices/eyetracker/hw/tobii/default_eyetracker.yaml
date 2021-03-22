@@ -91,10 +91,10 @@ eyetracker.hw.tobii.EyeTracker:
              #
              # outer_diameter: The size of the outer circle of the calibration target
              #
-             outer_diameter: 35
+             outer_diameter: 35.0
              # outer_stroke_width: The thickness of the outer circle edge. 
              #
-             outer_stroke_width: 2
+             outer_stroke_width: 2.0
              # outer_fill_color: RGB255 color to use to fill the outer circle. 
              #
              outer_fill_color: [128,128,128]
@@ -103,10 +103,10 @@ eyetracker.hw.tobii.EyeTracker:
              outer_line_color: [255,255,255]
              # inner_diameter: The size of the inner circle calibration target
              #
-             inner_diameter: 7
+             inner_diameter: 7.0
              # inner_stroke_width: The thickness of the inner circle edge. 
              #
-             inner_stroke_width: 1
+             inner_stroke_width: 1.0
              # inner_fill_color: RGB255 color to use to fill the inner circle. 
              #
              inner_fill_color: [0,0,0]
