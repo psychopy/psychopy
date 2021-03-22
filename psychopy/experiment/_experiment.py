@@ -152,6 +152,15 @@ class Experiment(object):
             self.routines[routineName] = routine
         return self.routines[routineName]
 
+    def addStandaloneRoutine(self, routineName, routine):
+        """Add a standalone Routine to the current list of them.
+
+        Can take a Routine object directly or will create
+        an empty one if none is given.
+        """
+        self.routines[routineName] = routine
+        return self.routines[routineName]
+
     def integrityCheck(self):
         """Check the integrity of the Experiment"""
         # add some checks for things outside the Flow?

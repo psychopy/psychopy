@@ -2314,7 +2314,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         def onClick(self, evt=None, timeout=None):
             exp = self.parent.frame.exp
             page = self.parent.frame.routinePanel.getCurrentPage()
-            comp = self.routine(parentName=exp.name, exp=self.parent.frame.exp)
+            comp = self.routine(exp=self.parent.frame.exp)
             name = comp.params['name'].val
             # does this routine have a help page?
             if hasattr(comp, 'url'):
@@ -2335,10 +2335,10 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
 
             if dlg.OK:
                 # Add to the actual routine
-                exp.addroutine(comp)
                 namespace = exp.namespace
                 name = comp.params['name'].val = namespace.makeValid(name)
                 namespace.add(name)
+                exp.addStandaloneRoutine(name, comp)
                 # update the routine's view with the new routine too
                 self.parent.frame.addToUndoStack(
                     "ADD `%s` to `%s`" % (name, exp.name))

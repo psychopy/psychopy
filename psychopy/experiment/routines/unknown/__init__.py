@@ -8,6 +8,6 @@ class UnknownRoutine(BaseStandaloneRoutine):
     iconFile = Path(__file__).parent / "unknown.png"
     tooltip = "Unknown routine"
 
-    def __init__(self, name, exp):
-        BaseStandaloneRoutine.__init__(self, name, exp)
+    def __init__(self, exp, name=''):
+        BaseStandaloneRoutine.__init__(self, exp, name=name)
         self.type = 'UnknownStandaloneRoutine'

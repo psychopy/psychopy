@@ -14,6 +14,9 @@ from psychopy.constants import FOREVER
 from xml.etree.ElementTree import Element
 from pathlib import Path
 
+from psychopy.localization import _translate
+from psychopy.experiment import Param
+
 
 class BaseStandaloneRoutine:
     categories = ['Custom']
@@ -21,16 +24,27 @@ class BaseStandaloneRoutine:
     iconFile = Path(__file__).parent / "unknown" / "unknown.png"
     tooltip = ""
 
-    def __init__(self, name, exp):
-        self.params = {'name': name}
+    def __init__(self, exp, name=''):
+        self.params = {}
         self.name = name
         self.exp = exp
         self.type = 'StandaloneRoutine'
         self.depends = []  # allows params to turn each other off/on
+        self.order = ['name']
+
+        msg = _translate(
+            "Name of this routine (alpha-numeric or _, no spaces)")
+        self.params['name'] = Param(name,
+                                    valType='code', inputType="single", categ='Basic',
+                                    hint=msg,
+                                    label=_translate('name'))
 
     def __repr__(self):
         _rep = "psychopy.experiment.%s(name='%s', exp=%s)"
         return _rep % (self.__class__, self.name, self.exp)
+
+    def getType(self):
+        return self.type
 
 
 class Routine(list):
