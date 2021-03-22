@@ -26,6 +26,10 @@ eyetracker.hw.mouse.EyeTracker:
                 min_length: 1
                 max_length: 1
         track_eyes: RIGHT_EYE
+        saccade_threshold:
+            IOHUB_INT:
+                min: 0.1
+                max: 2.0
     device_number: 0
     manufacturer_name: MouseGaze
     builder_hides: ['builder_hides', 'enable', 'name', 'device_number', 'device_timer', 'auto_report_events']

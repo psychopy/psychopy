@@ -8,6 +8,7 @@ eyetracker.hw.mouse.EyeTracker:
         interval: 0.01
     runtime_settings:
         sampling_rate: 50
+        saccade_threshold: 1.0
         track_eyes: RIGHT_EYE
     monitor_event_types: [MonocularEyeSampleEvent, FixationStartEvent, FixationEndEvent, SaccadeStartEvent, SaccadeEndEvent, BlinkStartEvent, BlinkEndEvent]
     model_name: MouseGaze

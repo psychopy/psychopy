@@ -73,6 +73,7 @@ class EyeTracker(EyeTrackerDevice):
     _last_event_start = 0.0
     _last_start_event_pos = None
     _sacc_end_time = 0.0
+    _sacc_amplitude = 0.0
     def __init__(self, *args, **kwargs):
         EyeTrackerDevice.__init__(self, *args, **kwargs)
         config = self.getConfiguration()
@@ -123,11 +124,16 @@ class EyeTracker(EyeTrackerDevice):
 
                     if rb:
                         if self._eye_state == "FIX":
+                            display = self._display_device
                             sacc_end_pos = self._ioMouse.getPosition()
                             sacc_start_pos = self._latest_gaze_position
-                            sacc_length = math.hypot(sacc_end_pos[0]-sacc_start_pos[0], sacc_end_pos[1]-sacc_start_pos[1])
-                            # TODO: Make threshold settable and convert from monitor units to pix for comparision.
-                            if sacc_length > 20:
+                            spix = display._displayCoord2Pixel(sacc_start_pos[0], sacc_start_pos[1])
+                            epix = display._displayCoord2Pixel(sacc_end_pos[0], sacc_end_pos[1])
+                            sx = (epix[0]-spix[0])/display.getPixelsPerDegree()[0]
+                            sy = (epix[1]-spix[1])/display.getPixelsPerDegree()[1]
+                            sacc_amp_xy = math.fabs(math.hypot(sx, sy))
+                            if sacc_amp_xy > self.getConfiguration().get('runtime_settings').get('saccade_threshold'):
+                                EyeTracker._sacc_amplitude = sx, sy
                                 self._addFixationEvent(False, sacc_start_pos)
                                 self._addSaccadeEvent(True, sacc_start_pos, sacc_end_pos)
                             else:
@@ -149,7 +155,6 @@ class EyeTracker(EyeTrackerDevice):
                 EyeTracker._last_mouse_event_time += self._ISI
                 next_sample_time = EyeTracker._last_mouse_event_time
                 self._addSample(next_sample_time)
-            # TODO?: Generate saccade events
 
     def _addSaccadeEvent(self, startEvent, sacc_start_pos, sacc_end_pos):
         stime = EyeTracker._last_mouse_event_time
@@ -162,17 +167,17 @@ class EyeTracker(EyeTrackerDevice):
                        ET_UNDEFINED, ET_UNDEFINED, ET_UNDEFINED, 0]
             EyeTracker._eye_state = 'SACC'
             EyeTracker._last_event_start = stime
-            # TODO: Adjust duration based on saccade amplitude,
-            #  currently fixed at 50 msec.
-            EyeTracker._sacc_end_time = EyeTracker._last_mouse_event_time + 0.05
+            sacc_amp_xy = math.fabs(math.hypot(*EyeTracker._sacc_amplitude))
+            saccade_duration = 2.2 * sacc_amp_xy + 21.0
+            saccade_duration = saccade_duration/1000.0 # convert to seconds
+            EyeTracker._sacc_end_time = stime + saccade_duration
             EyeTracker._last_start_event_pos = sacc_start_pos
             self._latest_gaze_position = sacc_end_pos
         else:
 
             start_event_time = EyeTracker._last_event_start
-            end_event_time = stime
+            end_event_time = EyeTracker._sacc_end_time
             event_duration = end_event_time - start_event_time
-
             s_gaze = sacc_start_pos
             s_pupilsize = 4
 
@@ -180,10 +185,10 @@ class EyeTracker(EyeTrackerDevice):
             e_pupilsize = 5
 
             eye_evt = [0, 0, 0, Device._getNextEventID(), EventConstants.SACCADE_END,
-                       stime, stime, stime, 0, 0, 0, EyeTrackerConstants.RIGHT_EYE,
+                       end_event_time, end_event_time, end_event_time, 0, 0, 0, EyeTrackerConstants.RIGHT_EYE,
                        event_duration,
-                       0, # e_amp[0],
-                       0, # e_amp[1],
+                       EyeTracker._sacc_amplitude[0], # e_amp[0],
+                       EyeTracker._sacc_amplitude[1], # e_amp[1],
                        0, # e_angle,
                        s_gaze[0], s_gaze[1],
                        ET_UNDEFINED, ET_UNDEFINED, ET_UNDEFINED, ET_UNDEFINED, ET_UNDEFINED,
