@@ -134,7 +134,8 @@ __all__ = [
     'clearBuffer',
     'enable',
     'disable',
-    'isEnabled'
+    'isEnabled',
+    'readPixels'
 ]
 
 

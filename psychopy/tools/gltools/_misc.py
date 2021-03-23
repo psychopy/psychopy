@@ -23,13 +23,21 @@ __all__ = [
     'clearBuffer',
     'enable',
     'disable',
-    'isEnabled'
+    'isEnabled',
+    'readPixels'
 ]
 
 import ctypes
 from collections import namedtuple
 import numpy as np
+
+try:
+    from PIL import Image
+except ImportError:
+    import Image
+
 import psychopy.colors as colors
+from ._constants import GL_COMPAT_TYPES
 from ._glenv import OpenGL
 
 GL = OpenGL.gl
@@ -215,6 +223,84 @@ def isEnabled(cap):
         raise TypeError("Value for `cap` must have type `GLenum`.")
 
     return GL.glIsEnabled(cap)
+
+
+def readPixels(x, y, width, height, format_, type_, outType='ctypes'):
+    """Read pixel data from a currently bound `read` buffer.
+
+    Parameters
+    ----------
+    x, y : int
+        Lower-left origin of rectangle bounding the region of pixels to read.
+    width, height : int
+        Relative position of the top-right corner from the origin (`x`, `y`).
+    format_ : GLenum or int
+        The format of the pixel data (e.g., `GL_RGBA`, `GL_DEPTH_COMPONENT`,
+        `GL_DEPTH_STENCIL`, etc.)
+    type_ : GLenum or int
+        Pixel storage type (e.g., `GL_UNSIGNED_BYTE`. `GL_FLOAT`, etc.)
+    outType : str
+        Output type. Possible values are 'ctypes', 'ndarray', or 'image'.
+        Default is 'ctypes'. If using 'image', the `format_` can only be
+        `GL_RGBA` or `GL_RGB`.
+
+    Returns
+    -------
+    object
+        Array of pixel data either as a `ctypes`, `ndarray` or `Image` type
+        depending on what was specified to `outType`.
+
+    Examples
+    --------
+    Get an array containing pixel data from the back buffer::
+
+        glReadBuffer(GL_BACK)
+        imgArray = readPixels(
+            0, 0, win.size[0], win.size[1], GL.GL_RGBA, GL.GL_UNSIGNED_BYTE)
+
+        # get the pixel color at [0, 0]
+        pixRGBA = imgArray[0, 0, :]
+
+    Note that the OpenGL convention places the origin of the rectangle at the
+    bottom-left of the buffer.
+
+    """
+    dtype, glType = GL_COMPAT_TYPES[type_]
+    nChannels = {
+        GL.GL_STENCIL_INDEX: 1,
+        GL.GL_DEPTH_COMPONENT: 1,
+        GL.GL_DEPTH_STENCIL: 1,
+        GL.GL_RED: 1,
+        GL.GL_GREEN: 1,
+        GL.GL_BLUE: 1,
+        GL.GL_RGB: 3,
+        GL.GL_BGR: 3,
+        GL.GL_RGBA: 4,
+        GL.GL_BGRA: 4
+    }[format_]
+
+    buffer = (glType * (nChannels * width * height))()
+    GL.glReadPixels(x, y, width, height, format_, type_, buffer)
+
+    if outType == 'ctypes':
+        return buffer
+    elif outType == 'ndarray':
+        return np.frombuffer(buffer, dtype=dtype).reshape(
+            (width, height, nChannels))
+    elif outType == 'image':
+        if nChannels == 3:
+            mode = 'RGB'
+        elif nChannels == 4:
+            mode = 'RGBA'
+        else:
+            raise ValueError("Invalid `format_` when `outType='image'`.")
+
+        img = Image.frombytes(
+            mode=mode, size=(width, height), data=buffer)
+        return img.transpose(Image.FLIP_TOP_BOTTOM)
+
+    else:
+        raise ValueError("Invalid value for `outType`.")
 
 
 def getIntegerv(parName):
