@@ -429,6 +429,12 @@ class AudioClip(object):
             snd1.append(snd2)
 
         """
+        # if either clip is empty, just replace it
+        if len(self.samples) == 0:
+            return clip
+        if len(clip.samples) == 0:
+            return self
+
         assert self.channels == clip.channels
         assert self._sampleRateHz == clip.sampleRateHz
 

@@ -31,19 +31,6 @@ else:
     _f_get_child = "_f_get_child"
 
 
-"""
-ioHub
-.. file: ioHub/datastore/__init__.py
-
-Copyright (C) 2012-2013 iSolver Software Solutions
-Distributed under the terms of the GNU General Public License (GPL version 3 or any later version).
-
-.. moduleauthor:: Sol Simpson <sol@isolver-software.com> + contributors, please see credits section of documentation.
-.. fileauthor:: Sol Simpson <sol@isolver-software.com>
-
-"""
-
-
 parameters.MAX_NUMEXPR_THREADS = None
 """The maximum number of threads that PyTables should use internally in
 Numexpr.  If `None`, it is automatically set to the number of cores in
@@ -61,9 +48,9 @@ perhaps one less than this.  < S. Simpson Note: These are 'not' GIL bound
 threads and therefore actually improve performance > """
 
 DATA_FILE_TITLE = "ioHub DataStore - Experiment Data File."
-FILE_VERSION = '0.9.0.0'
+FILE_VERSION = '0.9.1.1'
 SCHEMA_AUTHORS = 'Sol Simpson'
-SCHEMA_MODIFIED_DATE = 'September 13th, 2020'
+SCHEMA_MODIFIED_DATE = 'March 19th, 2021'
 
 
 class DataStoreFile(object):
@@ -72,7 +59,7 @@ class DataStoreFile(object):
         self.folderPath = folderPath
         self.filePath = os.path.join(folderPath, fileName)
 
-        if iohub_settings.get('multiple_sessions', True) is False:
+        if iohub_settings.get('multiple_sessions', False) is False:
             fmode = 'w'
 
         self.settings = iohub_settings
@@ -153,10 +140,7 @@ class DataStoreFile(object):
         getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'keyboard', title='Keyboard Device Events.')
         getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'mouse', title='Mouse Device Events.')
         getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'wintab', title='Wintab Device Events.')
-        #getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'gamepad', title='GamePad Device Events.')
-        #getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'analog_input', title='AnalogInput Device Events.')
         getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'eyetracker', title='EyeTracker Device Events.')
-        #getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'mcu', title='MCU Device Events.')
         getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'serial', title='Serial Interface Events.')
         getattr(self.emrtFile, create_group)(self.emrtFile.root.data_collection.events, 'pstbox', title='Serial Pstbox Device Events.')
         self.flush()
@@ -498,18 +482,17 @@ class ClassTableMappings(tables.IsDescription):
 
 class ExperimentMetaData(tables.IsDescription):
     experiment_id = UInt32Col(pos=1)
-    code = StringCol(24, pos=2)
-    title = StringCol(48, pos=3)
-    description  = StringCol(256, pos=4)
-    version = StringCol(6, pos=5)
-    total_sessions_to_run = UInt16Col(pos=9)
+    code = StringCol(256, pos=2)
+    title = StringCol(256, pos=3)
+    description = StringCol(4096, pos=4)
+    version = StringCol(32, pos=5)
 
 
 class SessionMetaData(tables.IsDescription):
     session_id = UInt32Col(pos=1)
     experiment_id = UInt32Col(pos=2)
-    code = StringCol(24, pos=3)
-    name = StringCol(48, pos=4)
-    comments  = StringCol(256, pos=5)
-    user_variables = StringCol(2048, pos=6) # will hold json encoded version of user variable dict for session
+    code = StringCol(256, pos=3)
+    name = StringCol(256, pos=4)
+    comments = StringCol(4096, pos=5)
+    user_variables = StringCol(16384, pos=6) # Holds json encoded version of user variable dict for session
 

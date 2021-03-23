@@ -98,44 +98,12 @@ Display:
     #
     auto_report_events: False
 
-    # The Display device model name can be specified here.
-    # It is not used by the ioHub, so is FYI only.
-    #
-    model_name: N/A
-    
-    # The Display device model number can be specified here.
-    # It is not used by the ioHub, so is FYI only.
-    #
-    model_number: N/A
-    
     # The Display device manufacturer's name can be specified here.
     # It is not used by the ioHub, so is FYI only.
     #
     manufacturer_name: N/A
-    
-    # The Display device serial number can be specified here.
-    # It is not used by the ioHub, so is FYI only.
-    #
-    serial_number: N/A
-    
-    # The date of manufactiurer for the Display device 
-    # can be specified here. It is not used by the ioHub,
-    # so is FYI only.
-    #   
-    manufacture_date: DD-MM-YYYY
 
-    # The Display device's hardware version can be specified here.
-    # It is not used by the ioHub, so is FYI only.
+    # model_name: The device model name can be specified here.
+    #   It is not used by the ioHub, so is FYI only.
     #
-    hardware_version: N/A
-    
-    # If the Display devicehas firmware, its revision number
-    # can be indicated here.
-    # It is not used by the ioHub, so is FYI only.
-    #
-    firmware_version: N/A
-
-    # software_version: The device driver and / or SDK software version number.
-    #   This field is not used by ioHub, so is FYI only. 
-    #
-    software_version: N/A
+    model_name: N/A

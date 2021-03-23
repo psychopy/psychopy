@@ -3,44 +3,38 @@
 # Copyright (C) 2012-2016 iSolver Software Solutions
 # Distributed under the terms of the GNU General Public License (GPL).
 from __future__ import division, absolute_import
-
 import json
 import os
 import sys
 import tempfile
-import time
-
 import gevent
-import psutil
-
 try:
-    import iohub
-    from iohub import IOHUB_DIRECTORY, _ispkg
-    from iohub.devices import Computer
-    Computer.is_iohub_process = True
-    from iohub.errors import printExceptionDetailsToStdErr
-    from iohub.server import ioServer
-    from iohub import util
-    from iohub.util import updateDict, yload, yLoader
-except ImportError:
-    import psychopy.iohub
-    from psychopy.iohub import IOHUB_DIRECTORY, _ispkg
-    from psychopy.iohub.devices import Computer
+    if os.name == 'nt':
+        # Try to get gevent to use libev, not the default libuv.
+        # Libuv only has 1 msec loop resolution (at least on Windows
+        # not sure about other OS'es)
+        gevent.config.loop = "libev-cext"
+except ValueError:
+    # libev-cext is not available on the gevent build being used
+    pass
+except Exception:
+    pass
 
-    Computer.is_iohub_process = True
-    from psychopy.iohub.errors import printExceptionDetailsToStdErr
-    from psychopy.iohub.server import ioServer
-    from psychopy.iohub import util
-    from psychopy.iohub.util import updateDict, yload, yLoader
+import psutil
+import psychopy
+import psychopy.clock as clock
+from psychopy.iohub import IOHUB_DIRECTORY
+from psychopy.iohub.devices import Computer
+Computer.is_iohub_process = True
+from psychopy.iohub.errors import printExceptionDetailsToStdErr
+from psychopy.iohub.server import ioServer
+from psychopy.iohub.util import updateDict, yload, yLoader
 
 
 def run(rootScriptPathDir, configFilePath):
     s = None
     try:
-        if _ispkg:
-            iohub.EXP_SCRIPT_DIRECTORY = rootScriptPathDir
-        else:
-            psychopy.iohub.EXP_SCRIPT_DIRECTORY = rootScriptPathDir
+        psychopy.iohub.EXP_SCRIPT_DIRECTORY = rootScriptPathDir
 
         tdir = tempfile.gettempdir()
         cdir, _ = os.path.split(configFilePath)
@@ -62,7 +56,7 @@ def run(rootScriptPathDir, configFilePath):
         s.log("Receiving diagram's on: {}".format(udp_port))
         s.udpService.start()
         s.setStatus("INITIALIZING")
-        msgpump_interval = s.config.get('windows_msgpump_interval', 0.005)
+        msgpump_interval = s.config.get('msgpump_interval', 0.001)
         glets = []
 
         tlet = gevent.spawn(s.pumpMsgTasklet, msgpump_interval)
@@ -120,6 +114,6 @@ if __name__ == '__main__':
 
     if psychopy_pid:
         Computer.psychopy_process = psutil.Process(psychopy_pid)
-    Computer.global_clock = util.clock.MonotonicClock(initial_offset)
+    Computer.global_clock = clock.MonotonicClock(initial_offset)
 
     run(rootScriptPathDir=scriptPathDir, configFilePath=configFileName)
