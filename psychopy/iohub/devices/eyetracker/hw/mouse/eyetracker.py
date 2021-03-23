@@ -141,7 +141,7 @@ class EyeTracker(EyeTrackerDevice):
                 else:
                     if self._eye_state == "BLINK":
                         # Not in blink state anymore, create BlinkEndEvent
-                        last_gpos = self._latest_gaze_position = self._ioMouse.getPosition()
+                        self._latest_gaze_position = self._ioMouse.getPosition()
                         self._addBlinkEvent(False)
 
                     if button_states== self._move_eye_buttons:
@@ -159,9 +159,9 @@ class EyeTracker(EyeTrackerDevice):
                                 self._addFixationEvent(False, sacc_start_pos)
                                 self._addSaccadeEvent(True, sacc_start_pos, sacc_end_pos)
                             else:
-                                last_gpos = self._latest_gaze_position = self._ioMouse.getPosition()
+                                self._latest_gaze_position = self._ioMouse.getPosition()
                         else:
-                            last_gpos = self._latest_gaze_position = self._ioMouse.getPosition()
+                            self._latest_gaze_position = self._ioMouse.getPosition()
 
                 if self._eye_state not in ["FIX","SACC"] and self._latest_gaze_position:
                     # Fixation start
