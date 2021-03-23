@@ -44,7 +44,8 @@ if devices_config:
     display = io.getDevice('display')
     tracker = io.getDevice('tracker')
 
-    print("display: ", display.getCoordinateType())
+    # print("display: ", display.getCoordinateType())
+    
     # run eyetracker calibration
     tracker.runSetupProcedure()
 

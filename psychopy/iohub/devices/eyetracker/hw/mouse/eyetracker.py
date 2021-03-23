@@ -70,10 +70,15 @@ class EyeTracker(EyeTrackerDevice):
     _eye_state = "NONE"
     _last_mouse_event_time = 0
     _ISI = 0.01  # Later set by runtime_settings.sampling_rate
+    _saccade_threshold = 0.5 # Later set by runtime_settings.sampling_rate
+    _move_eye_buttons = [False, False, False]
+    _blink_eye_buttons = [False, False, False]
     _last_event_start = 0.0
     _last_start_event_pos = None
     _sacc_end_time = 0.0
     _sacc_amplitude = 0.0
+    _button_ix = dict(LEFT_BUTTON=0, MIDDLE_BUTTON=1, RIGHT_BUTTON=2)
+
     def __init__(self, *args, **kwargs):
         EyeTrackerDevice.__init__(self, *args, **kwargs)
         config = self.getConfiguration()
@@ -81,6 +86,22 @@ class EyeTracker(EyeTrackerDevice):
         self._latest_sample = None
         # Calculate the desired ISI for the mouse sample stream.
         EyeTracker._ISI = 1.0/config.get('runtime_settings').get('sampling_rate')
+        EyeTracker._saccade_threshold = config.get('controls').get('saccade_threshold')
+
+        mb_list = config.get('controls').get('move')
+        if isinstance(mb_list, str):
+            mb_list = (mb_list,)
+        bb_list = config.get('controls').get('blink')
+        if isinstance(bb_list, str):
+            bb_list = (bb_list,)
+
+        for mb in mb_list:
+            self._move_eye_buttons[self._button_ix.get(mb)] = True
+        for mb in bb_list:
+            self._blink_eye_buttons[self._button_ix.get(mb)] = True
+        EyeTracker._move_eye_buttons = tuple(self._move_eye_buttons)
+        EyeTracker._blink_eye_buttons = tuple(self._blink_eye_buttons)
+
         # Used to hold the last valid gaze position processed by ioHub.
         # If the last mouse tracker in a blink state, then this is set to None
         #
@@ -99,7 +120,8 @@ class EyeTracker(EyeTrackerDevice):
 
             while getTime() - EyeTracker._last_mouse_event_time >= self._ISI:
                 # Generate an eye sample every ISI seconds
-                lb, mb, rb = self._ioMouse.getCurrentButtonStates()
+                button_states = self._ioMouse.getCurrentButtonStates()
+
                 last_gpos = self._latest_gaze_position
 
                 if EyeTracker._eye_state == 'SACC' and getTime() >= EyeTracker._sacc_end_time:
@@ -110,7 +132,7 @@ class EyeTracker(EyeTrackerDevice):
                     self._addFixationEvent(True)
 
                 create_blink_start = False
-                if (lb and rb) and not mb:
+                if button_states == self._blink_eye_buttons:
                     # In blink state....
                     # None means eyes are missing.
                     if self._latest_gaze_position:
@@ -122,7 +144,7 @@ class EyeTracker(EyeTrackerDevice):
                         last_gpos = self._latest_gaze_position = self._ioMouse.getPosition()
                         self._addBlinkEvent(False)
 
-                    if rb:
+                    if button_states== self._move_eye_buttons:
                         if self._eye_state == "FIX":
                             display = self._display_device
                             sacc_end_pos = self._ioMouse.getPosition()
@@ -132,7 +154,7 @@ class EyeTracker(EyeTrackerDevice):
                             sx = (epix[0]-spix[0])/display.getPixelsPerDegree()[0]
                             sy = (epix[1]-spix[1])/display.getPixelsPerDegree()[1]
                             sacc_amp_xy = math.fabs(math.hypot(sx, sy))
-                            if sacc_amp_xy > self.getConfiguration().get('runtime_settings').get('saccade_threshold'):
+                            if sacc_amp_xy > EyeTracker._saccade_threshold:
                                 EyeTracker._sacc_amplitude = sx, sy
                                 self._addFixationEvent(False, sacc_start_pos)
                                 self._addSaccadeEvent(True, sacc_start_pos, sacc_end_pos)

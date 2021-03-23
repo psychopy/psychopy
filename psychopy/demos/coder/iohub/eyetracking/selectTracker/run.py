@@ -214,12 +214,13 @@ def run(selected_eyetracker_name):
 
 def select_eye_tracker():
     eye_tracker_config_files = {
+        'MouseGaze': 'eyetracker_configs/mousegaze_config.yaml',
         'GazePoint': 'eyetracker_configs/gazepoint_config.yaml',
         'SR Research': 'eyetracker_configs/eyelink_config.yaml',
         'Tobii': 'eyetracker_configs/tobii_config.yaml',
     }
 
-    info = {'Eye Tracker Type': ['Select', 'GazePoint', 'SR Research', 'Tobii']}
+    info = {'Eye Tracker Type': ['Select', 'MouseGaze', 'GazePoint', 'SR Research', 'Tobii']}
 
     dlg_info = dict(info)
     infoDlg = gui.DlgFromDict(dictionary=dlg_info, title='Select Eye Tracker')

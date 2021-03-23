@@ -8,5 +8,9 @@ eyetracker.hw.mouse.EyeTracker:
     runtime_settings:
         sampling_rate: Simulated eyetracker sampling rate.
         track_eyes: RIGHT_EYE is fixed.
+    controls:
+        move: Mouse button to press for eye movement.
+        blink: Mouse buttons to hold for blink event.
+        saccade_threshold: Visual degree threshold for Saccade event creation.
 
 
