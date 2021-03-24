@@ -15,7 +15,8 @@ __all__ = [
     'AudioInvalidDeviceError',
     'AudioUnsupportedCodecError',
     'AudioInvalidCaptureDeviceError',
-    'AudioInvalidPlaybackDeviceError'
+    'AudioInvalidPlaybackDeviceError',
+    'AudioRecordingBufferFullError'
 ]
 
 
@@ -67,6 +68,11 @@ class AudioInvalidPlaybackDeviceError(AudioInvalidDeviceError):
     """Error raised when the audio device is not suitable for playback.
 
     """
+    pass
+
+
+class AudioRecordingBufferFullError(Exception):
+    """Error raised when the recording buffer is full."""
     pass
 
 

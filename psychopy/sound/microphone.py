@@ -29,6 +29,267 @@ except (ImportError, ModuleNotFoundError):
     _hasPTB = False
 
 
+class RecordingBuffer(object):
+    """Class for a storing a recording from a stream.
+
+    Think of instances of this class behaving like an audio tape whereas the
+    `Microphone` class is the tape recorder. Samples taken from the stream are
+    written to the tape which stores the data.
+
+    Parameters
+    ----------
+    sampleRateHz : int
+        Sampling rate for audio recording in Hertz (Hz). By default, 48kHz
+        (``sampleRateHz=480000``) is used which is adequate for most consumer
+        grade microphones (headsets and built-in).
+    channels : int
+        Number of channels to record samples to `1=Mono` and `2=Stereo`.
+    maxRecordingSize : int
+        Maximum size of the recording in kilobytes. This specifies how much
+        memory is available to store samples.
+    loopback : bool
+        Allow for continuous recording. Usually if the recording buffer is full
+        no more samples can be saved to the buffer. If `loopback=True`, samples
+        wil be written to the beginning of the track once there is no more
+        space. Default is `False`.
+
+    """
+    def __init__(self, sampleRateHz=SAMPLE_RATE_48kHz, channels=2,
+                 maxRecordingSize=24000, loopback=True,
+                 policyWhenFull='ignore'):
+        self._channels = channels
+        self._sampleRateHz = sampleRateHz
+        self._maxRecordingSize = maxRecordingSize
+        self._samples = None  # `ndarray` created in _allocRecBuffer`
+        self._offset = 0  # recording offset
+        self._lastSample = 0  # offset of the last sample from stream
+        self._spaceRemaining = None  # set in `_allocRecBuffer`
+        self._totalSamples = None  # set in `_allocRecBuffer`
+
+        self._loopback = loopback
+        self._policyWhenFull = policyWhenFull
+        self._warnedRecBufferFull = False
+        self._loops = 0
+
+        self._allocRecBuffer()
+
+    def _allocRecBuffer(self):
+        """Allocate the recording buffer. Called internally if properties are
+        changed."""
+        # allocate another array
+        nBytes = self._maxRecordingSize * 1000
+        recArraySize = int((nBytes / self._channels) / (np.float32()).itemsize)
+
+        self._samples = np.zeros(
+            (recArraySize, self._channels), dtype=np.float32, order='C')
+
+        # sanity check
+        assert self._samples.nbytes == nBytes
+        self._totalSamples = len(self._samples)
+        self._spaceRemaining = self._totalSamples
+
+    @property
+    def samples(self):
+        """Reference to the actual sample buffer (`ndarray`)."""
+        return self._samples
+
+    @property
+    def bufferSecs(self):
+        """Capacity of the recording buffer in seconds (`float`)."""
+        return self._totalSamples / self._sampleRateHz
+
+    @property
+    def nbytes(self):
+        """Number of bytes the recording buffer occupies in memory (`int`)."""
+        return self._samples.nbytes
+
+    @property
+    def sampleBytes(self):
+        """Number of bytes per sample (`int`)."""
+        return np.float32().itemsize
+
+    @property
+    def spaceRemaining(self):
+        """The space remaining in the recording buffer (`int`). Indicates the
+        number of samples that the buffer can still add before overflowing.
+        """
+        return self._spaceRemaining
+
+    @property
+    def isFull(self):
+        """Is the recording buffer full (`bool`)."""
+        return self._spaceRemaining <= 0
+
+    @property
+    def totalSamples(self):
+        """Total number samples the recording buffer can hold (`int`)."""
+        return self._totalSamples
+
+    @property
+    def writeOffset(self):
+        """Index in the sample buffer where new samples will be written when
+        `write()` is called (`int`).
+        """
+        return self._offset
+
+    @property
+    def lastSample(self):
+        """Index of the last sample recorded (`int`). This can be used to slice
+        the recording buffer, only getting data from the beginning to place
+        where the last sample was written to.
+        """
+        return self._lastSample
+
+    @property
+    def loopCount(self):
+        """Number of times the recording buffer restarted (`int`). Only valid if
+        `loopback` is ``True``."""
+        return self._loops
+
+    @property
+    def maxRecordingSize(self):
+        """Maximum recording size in kilobytes (`int`).
+
+        Since audio recordings tend to consume a large amount of system memory,
+        one might want to limit the size of the recording buffer to ensure that
+        the application does not run out. By default, the recording buffer is
+        set to 64000 KB (or 64 MB). At a sample rate of 48kHz, this will result
+        in about. Using stereo audio (``nChannels == 2``) requires twice the
+        buffer over mono (``nChannels == 2``) for the same length clip.
+
+        Setting this value will allocate another recording buffer of appropriate
+        size. Avoid doing this in any time sensitive parts of your application.
+
+        """
+        return self._maxRecordingSize
+
+    @maxRecordingSize.setter
+    def maxRecordingSize(self, value):
+        value = int(value)
+
+        # don't do this unless the value changed
+        if value == self._maxRecordingSize:
+            return
+
+        # if different than last value, update the recording buffer
+        self._maxRecordingSize = value
+        self._allocRecBuffer()
+
+    def seek(self, offset, absolute=False):
+        """Set the write offset.
+
+        Use this to specify where to begin writing samples the next time `write`
+        is called. You should call `seek(0)` when starting a new recording.
+
+        Parameters
+        ----------
+        offset : int
+            Position in the sample buffer to set.
+        absolute : bool
+            Use absolute positioning. Use relative positioning if `False` where
+            the value of `offset` will be added to the current offset. Default
+            is `False`.
+
+        """
+        if not absolute:
+            self._offset += offset
+        else:
+            self._offset = absolute
+
+        assert 0 <= self._offset < self._totalSamples
+        self._spaceRemaining = self._totalSamples - self._offset
+
+    def write(self, samples):
+        """Write samples to the recording buffer.
+
+        Parameters
+        ----------
+        samples : ArrayLike
+            Samples to write to the recording buffer, usually of a stream. Must
+            have the same number of dimensions as the internal array.
+
+        Returns
+        -------
+        int
+            Number of samples overflowed. If this is zero then all samples have
+            been recorded, if not, the number of samples rejected is given.
+
+        """
+        nSamples = len(samples)
+        if self.isFull:
+            if self._policyWhenFull == 'ignore':
+                return nSamples  # samples lost
+            elif self._policyWhenFull == 'warn':
+                if not self._warnedRecBufferFull:
+                    logging.warning(
+                        f"Audio recording buffer filled! This means that no "
+                        f"samples are saved beyond {round(self.bufferSecs, 6)} "
+                        f"seconds. Specify a larger recording buffer next time "
+                        f"to avoid data loss.")
+                    logging.flush()
+                    self._warnedRecBufferFull = True
+                return nSamples
+            elif self._policyWhenFull == 'error':
+                raise AudioRecordingBufferFullError(
+                    "Cannot write samples, recording buffer is full.")
+            else:
+                return nSamples  # whatever
+
+        if not nSamples:  # no samples came out of the stream, just return
+            return
+
+        if self._spaceRemaining >= nSamples:
+            self._lastSample = self._offset + nSamples
+            audioData = samples[:, :]
+        else:
+            self._lastSample = self._offset + self._spaceRemaining
+            audioData = samples[:self._spaceRemaining, :]
+
+        self._samples[self._offset:self._lastSample, :] = audioData
+        self._offset += nSamples
+
+        # figure out how to get this from already computed stuff above
+        overflow = nSamples - self._spaceRemaining
+        if overflow < 0:
+            overflow = 0
+
+        self._spaceRemaining -= nSamples
+
+        # Check if the recording buffer is now full. Next call to `poll` will
+        # not record anything.
+        if self._spaceRemaining <= 0:
+            self._spaceRemaining = 0
+
+        d = nSamples - self._spaceRemaining
+        return 0 if d < 0 else d
+
+    def getSegment(self, start=0, end=None):
+        """Get a segment of recording data as an `AudioClip`.
+
+        Parameters
+        ----------
+        start : float or int
+            Absolute time in seconds for the start of the clip.
+        end : float or int
+            Absolute time in seconds for the end of the clip. If `None` the time
+            at the last sample is used.
+
+        Returns
+        -------
+        AudioClip
+            Audio clip object with samples between `start` and `end`.
+
+        """
+        idxStart = int(start * self._sampleRateHz)
+        idxEnd = self._lastSample if end is None else int(
+            end * self._sampleRateHz)
+
+        return AudioClip(
+            np.array(self._samples[idxStart:idxEnd, :],
+                     dtype=np.float32, order='C'),
+            sampleRateHz=self._sampleRateHz)
+
+
 class Microphone(object):
     """Class for recording audio from a microphone or input stream.
 
@@ -176,22 +437,11 @@ class Microphone(object):
         # status flag
         self._statusFlag = NOT_STARTED
 
-        # Setup recording buffer. The recording buffer is used to store samples
-        # taken from a stream. The size of the recording buffer is set by the
-        # user depending on their requirements.
-        self._maxRecordingSize = maxRecordingSize
-        self._recording = None  # `ndarray` created in _allocRecBuffer`
-        self._recOffset = 0  # recording offset
-        self._recLastSample = 0  # offset of the last sample from stream
-        self._recSpaceRemaining = None  # set in `_allocRecBuffer`
-        self._recTotalSamples = None  # set in `_allocRecBuffer`
-
-        # warning flags, make sure we give one warning per occurrence each new
-        # recording
-        self._warnedRecBufferFull = False
-
-        # create the actual recording buffer
-        self._allocRecBuffer()
+        # setup recording buffer
+        self._recording = RecordingBuffer(
+            sampleRateHz=self._sampleRateHz,
+            channels=self._channels,
+            maxRecordingSize=maxRecordingSize)
 
         # do the warm-up
         if warmUp:
@@ -241,9 +491,14 @@ class Microphone(object):
         self._stream.stop()
 
     @property
+    def recording(self):
+        """Reference to the current recording buffer (`RecordingBuffer`)."""
+        return self._recording
+
+    @property
     def recBufferSecs(self):
         """Capacity of the recording buffer in seconds (`float`)."""
-        return self._recTotalSamples / self._sampleRateHz
+        return self.recording.bufferSecs
 
     @property
     def maxRecordingSize(self):
@@ -260,34 +515,11 @@ class Microphone(object):
         size. Avoid doing this in any time sensitive parts of your application.
 
         """
-        return self._maxRecordingSize
+        return self._recording.maxRecordingSize
 
     @maxRecordingSize.setter
     def maxRecordingSize(self, value):
-        value = int(value)
-
-        # don't do this unless the value changed
-        if value == self._maxRecordingSize:
-            return
-
-        # if different than last value, update the recording buffer
-        self._maxRecordingSize = value
-        self._allocRecBuffer()
-
-    def _allocRecBuffer(self):
-        """Allocate the recording buffer."""
-        # allocate another array
-        nBytes = self._maxRecordingSize * 1000
-        recArraySize = int((nBytes / self._channels) / (np.float32()).itemsize)
-
-        self._recording = np.zeros(
-            (recArraySize, self._channels), dtype=np.float32, order='C')
-        self._recTotalSamples = len(self._recording)
-
-        # sanity check
-        assert self._recording.nbytes == nBytes
-        self._recTotalSamples = len(self._recording)
-        self._recSpaceRemaining = self._recTotalSamples
+        self._recording.maxRecordingSize = value
 
     @property
     def latencyBias(self):
@@ -362,7 +594,7 @@ class Microphone(object):
         lost.
 
         """
-        return self._recSpaceRemaining == 0
+        return self._recording.isFull
 
     @property
     def isStarted(self):
@@ -402,12 +634,11 @@ class Microphone(object):
         if self._stream is None:
             raise AudioStreamError("Stream not ready.")
 
-        # reset writing data
-        self._recOffset = self._recLastSample = 0
-        self._recSpaceRemaining = self._recTotalSamples
+        # reset the writing 'head'
+        self._recording.seek(0, absolute=True)
 
         # reset warnings
-        self._warnedRecBufferFull = False
+        # self._warnedRecBufferFull = False
 
         startTime = self._stream.start(
             repetitions=0,
@@ -479,11 +710,17 @@ class Microphone(object):
         Can only be called between called of `start` and `stop` (i.e.
         ``Microphone.status == STARTED``.
 
+        Returns
+        -------
+        int
+            Number of overruns in sampling.
+
         """
         if not self.isStarted:
             raise AudioStreamError(
                 "Cannot poll samples from audio device, not started.")
 
+        # figure out what to do with this other information
         audioData, absRecPosition, overflow, cStartTime = \
             self._stream.get_audio_data()
 
@@ -494,38 +731,9 @@ class Microphone(object):
                 "called often enough, or increase the size of the audio buffer "
                 "with `bufferSecs`.")
 
-        # Determined that the recording buffer is full last `poll` call, don't
-        # write any more samples.
-        if self.isRecBufferFull:
-            if not self._warnedRecBufferFull:
-                logging.warning(
-                    f"Audio recording buffer filled! This means that no "
-                    f"samples are saved beyond {round(self.recBufferSecs, 6)} "
-                    f"seconds. Specify a larger recording buffer next time to "
-                    f"avoid data loss.")
-                logging.flush()
-            self._warnedRecBufferFull = True
-            return
+        overruns = self._recording.write(audioData)
 
-        nSamples = len(audioData)
-        if not nSamples:  # no samples came out of the stream, just return
-            return
-
-        if self._recSpaceRemaining >= nSamples:
-            self._recLastSample = self._recOffset + nSamples
-            audioData = audioData[:, :]
-        else:
-            self._recLastSample = self._recOffset + self._recSpaceRemaining
-            audioData = audioData[:self._recSpaceRemaining, :]
-
-        self._recording[self._recOffset:self._recLastSample, :] = audioData
-        self._recOffset += nSamples
-        self._recSpaceRemaining -= nSamples
-
-        # Check if the recording buffer is now full. Next call to `poll` will
-        # not record anything.
-        if self._recSpaceRemaining <= 0:
-            self._recSpaceRemaining = 0
+        return overruns
 
     def getRecording(self):
         """Get audio data from the last microphone recording.
@@ -543,10 +751,7 @@ class Microphone(object):
                 "Cannot get audio clip, recording was in progress. Be sure to "
                 "call `Microphone.stop` first.")
 
-        return AudioClip(
-            np.array(self._recording[:self._recLastSample, :],
-                     dtype=np.float32, order='C'),
-            sampleRateHz=self._sampleRateHz)
+        return self._recording.getSegment()  # full recording
 
 
 if __name__ == "__main__":

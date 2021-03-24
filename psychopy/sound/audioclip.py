@@ -633,8 +633,10 @@ class AudioClip(object):
         This feature passes the audio clip samples to a text-to-speech engine
         which will attempt to transcribe any speech within. The efficacy of the
         transcription depends on the engine selected. By default, `PocketSphinx`
-        is used which provides decent transcription capabilities entirely
-        offline.
+        is used which provides decent transcription capabilities offline.
+
+        If the audio clip has multiple channels, they will be combined prior to
+        being passed to the engine.
 
         Parameters
         ----------
@@ -670,14 +672,21 @@ class AudioClip(object):
         if not _hasSpeechRecognition:  # don't have speech recognition
             return []
 
+        # combine channels if needed
+        if self.channels > 1:
+            samplesMixed = \
+                np.sum(self._samples, axis=1, dtype=np.float32) / np.float32(2.)
+        else:
+            samplesMixed = self._samples
+
         # convert samples to WAV PCM format
         clipDataInt16 = np.asarray(
-            self._samples * ((1 << 15) - 1), dtype=np.int16).tobytes()
+            samplesMixed * ((1 << 15) - 1), dtype=np.int16).tobytes()
 
-        sample_width = self.channels * 2
+        sampleWidth = 2  # two bytes per sample
         audio = sr.AudioData(clipDataInt16,
                              sample_rate=self._sampleRateHz,
-                             sample_width=sample_width)
+                             sample_width=sampleWidth)
 
         config = {} if config is None else config
         assert isinstance(config, dict)
