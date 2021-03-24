@@ -248,11 +248,6 @@ class RecordingBuffer(object):
         self._samples[self._offset:self._lastSample, :] = audioData
         self._offset += nSamples
 
-        # figure out how to get this from already computed stuff above
-        overflow = nSamples - self._spaceRemaining
-        if overflow < 0:
-            overflow = 0
-
         self._spaceRemaining -= nSamples
 
         # Check if the recording buffer is now full. Next call to `poll` will
