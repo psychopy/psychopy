@@ -16,6 +16,7 @@ from psychopy.constants import NOT_STARTED, STARTED
 from .audioclip import *
 from .audiodevice import *
 from .exceptions import *
+import numpy as np
 
 _hasPTB = True
 try:
@@ -48,9 +49,16 @@ class Microphone(object):
         grade microphones (headsets and built-in).
     channels : int
         Number of channels to record samples to `1=Mono` and `2=Stereo`.
-    bufferSecs : float
-        Buffer size to pre-allocate for the specified number of seconds. The
-        default is 2.0 seconds which is usually sufficient.
+    streamBufferSecs : float
+        Stream buffer size to pre-allocate for the specified number of seconds.
+        The default is 2.0 seconds which is usually sufficient.
+    maxRecordingSize : int
+        Maximum recording size in kilobytes (Kb). Since audio recordings tend to
+        consume a large amount of system memory, one might want to limit the
+        size of the recording buffer to ensure that the application does not run
+        out of memory. By default, the recording buffer is set to 24000 KB (or
+        24 MB). At a sample rate of 48kHz, this will result in 62.5 seconds of
+        continuous audio being recorded before the buffer is full.
     warmUp : bool
         Warm-up the stream after opening it. This helps prevent additional
         latency the first time `start` is called on some systems.
@@ -65,11 +73,25 @@ class Microphone(object):
         mic = Microphone(bufferSecs=10.0)  # open the microphone
         mic.start()  # start recording
         core.wait(10.0)  # wait 10 seconds
-        audioClip = mic.getAudioClip()  # get the audio data
         mic.stop()  # stop recording
+
+        audioClip = mic.getRecording()
 
         print(audioClip.duration)  # should be ~10 seconds
         audioClip.save('test.wav')  # save the recorded audio as a 'wav' file
+
+    The prescribed method for making long recordings is to poll the stream once
+    per frame (or every n-th frame)::
+
+        mic = Microphone(bufferSecs=2.0)
+        mic.start()  # start recording
+
+        # main trial drawing loop
+        mic.poll()
+        win.flip()  # calling the window flip function
+
+        mic.stop()  # stop recording
+        audioClip = mic.getRecording()
 
     """
     # Force the use of WASAPI for audio capture on Windows. If `True`, only
@@ -81,7 +103,8 @@ class Microphone(object):
                  device=None,
                  sampleRateHz=None,
                  channels=2,
-                 bufferSecs=2.0,
+                 streamBufferSecs=2.0,
+                 maxRecordingSize=24000,
                  warmUp=True):
 
         if not _hasPTB:  # fail if PTB is not installed
@@ -99,7 +122,8 @@ class Microphone(object):
                 self._device = devicesByIndex[device]
             else:
                 raise AudioInvalidCaptureDeviceError(
-                    'No suitable audio recording devices found matching index {}.'.format(device))
+                    'No suitable audio recording devices found matching index '
+                    '{}.'.format(device))
         else:
             # get default device, first enumerated usually
             if not devices:
@@ -129,8 +153,8 @@ class Microphone(object):
                 'Invalid number of channels for audio input specified.')
 
         # internal recording buffer size in seconds
-        assert isinstance(bufferSecs, (float, int))
-        self._bufferSecs = float(bufferSecs)
+        assert isinstance(streamBufferSecs, (float, int))
+        self._streamBufferSecs = float(streamBufferSecs)
 
         # PTB specific stuff
         self._mode = 2  # open a stream in capture mode
@@ -147,28 +171,31 @@ class Microphone(object):
         self._stream.latency_bias = 0.0
 
         # pre-allocate recording buffer, called once
-        self._stream.get_audio_data(self._bufferSecs)
+        self._stream.get_audio_data(self._streamBufferSecs)
 
         # status flag
         self._statusFlag = NOT_STARTED
 
+        # Setup recording buffer. The recording buffer is used to store samples
+        # taken from a stream. The size of the recording buffer is set by the
+        # user depending on their requirements.
+        self._maxRecordingSize = maxRecordingSize
+        self._recording = None  # `ndarray` created in _allocRecBuffer`
+        self._recOffset = 0  # recording offset
+        self._recLastSample = 0  # offset of the last sample from stream
+        self._recSpaceRemaining = None  # set in `_allocRecBuffer`
+        self._recTotalSamples = None  # set in `_allocRecBuffer`
+
+        # warning flags, make sure we give one warning per occurrence each new
+        # recording
+        self._warnedRecBufferFull = False
+
+        # create the actual recording buffer
+        self._allocRecBuffer()
+
         # do the warm-up
         if warmUp:
             self.warmUp()
-
-    # def setDevice(self, device=None):
-    #     """Set the device and open a stream. Calling this will close the
-    #     previous stream and create a new one. Do not call this while recording
-    #     or if anything is trying to access the stream.
-    #
-    #     Parameters
-    #     ----------
-    #     device : AudioDevice or None
-    #         Audio device to use. Must be an input device. If `None`, the first
-    #         suitable input device to be enumerated is used.
-    #
-    #     """
-    #     pass
 
     @staticmethod
     def getDevices():
@@ -212,7 +239,55 @@ class Microphone(object):
         # multiple invocations of this function.
         self._stream.start()
         self._stream.stop()
-        self._stream.fill_buffer(0.0)   # clear the buffer after the warmup
+
+    @property
+    def recBufferSecs(self):
+        """Capacity of the recording buffer in seconds (`float`)."""
+        return self._recTotalSamples / self._sampleRateHz
+
+    @property
+    def maxRecordingSize(self):
+        """Maximum recording size in kilobytes (`int`).
+
+        Since audio recordings tend to consume a large amount of system memory,
+        one might want to limit the size of the recording buffer to ensure that
+        the application does not run out. By default, the recording buffer is
+        set to 64000 KB (or 64 MB). At a sample rate of 48kHz, this will result
+        in about. Using stereo audio (``nChannels == 2``) requires twice the
+        buffer over mono (``nChannels == 2``) for the same length clip.
+
+        Setting this value will allocate another recording buffer of appropriate
+        size. Avoid doing this in any time sensitive parts of your application.
+
+        """
+        return self._maxRecordingSize
+
+    @maxRecordingSize.setter
+    def maxRecordingSize(self, value):
+        value = int(value)
+
+        # don't do this unless the value changed
+        if value == self._maxRecordingSize:
+            return
+
+        # if different than last value, update the recording buffer
+        self._maxRecordingSize = value
+        self._allocRecBuffer()
+
+    def _allocRecBuffer(self):
+        """Allocate the recording buffer."""
+        # allocate another array
+        nBytes = self._maxRecordingSize * 1000
+        recArraySize = int((nBytes / self._channels) / (np.float32()).itemsize)
+
+        self._recording = np.zeros(
+            (recArraySize, self._channels), dtype=np.float32, order='C')
+        self._recTotalSamples = len(self._recording)
+
+        # sanity check
+        assert self._recording.nbytes == nBytes
+        self._recTotalSamples = len(self._recording)
+        self._recSpaceRemaining = self._recTotalSamples
 
     @property
     def latencyBias(self):
@@ -225,19 +300,27 @@ class Microphone(object):
         self._stream.latency_bias = float(value)
 
     @property
-    def bufferSecs(self):
+    def streamBufferSecs(self):
         """Size of the internal audio storage buffer in seconds (`float`).
 
         To ensure all data is captured, there must be less time elapsed between
         subsequent `getAudioClip` calls than `bufferSecs`.
 
         """
-        return self._bufferSecs
+        return self._streamBufferSecs
 
     @property
     def status(self):
+        """Status flag for the microphone. Value can be one of
+        ``psychopy.constants.STARTED`` or ``psychopy.constants.NOT_STARTED``.
+
+        For detailed stream status information, use the
+        :attr:`~psychopy.sound.microphone.Microphone.streamStatus` property.
+
+        """
         if hasattr(self, "_statusFlag"):
             return self._statusFlag
+
     @status.setter
     def status(self, value):
         self._statusFlag = value
@@ -270,6 +353,22 @@ class Microphone(object):
         if currentStatus != -1:
             return AudioDeviceStatus.createFromPTBDesc(currentStatus)
 
+    @property
+    def isRecBufferFull(self):
+        """`True` if there is an overflow condition with the recording buffer.
+
+        If this is `True`, then `poll()` is still collecting stream samples but
+        is no longer writing them to anything, causing stream samples to be
+        lost.
+
+        """
+        return self._recSpaceRemaining == 0
+
+    @property
+    def isStarted(self):
+        """``True`` if stream recording has been started (`bool`)."""
+        return self.status == STARTED
+
     def start(self, when=None, waitForStart=0, stopTime=None):
         """Start an audio recording.
 
@@ -296,10 +395,19 @@ class Microphone(object):
 
         """
         # check if the stream has been
-        if self._statusFlag == STARTED:  # raise warning, error, or ignore?
-            pass
+        if self.isStarted:
+            raise AudioStreamError(
+                "Cannot start a stream, already started.")
 
-        assert self._stream is not None  # must have a handle
+        if self._stream is None:
+            raise AudioStreamError("Stream not ready.")
+
+        # reset writing data
+        self._recOffset = self._recLastSample = 0
+        self._recSpaceRemaining = self._recTotalSamples
+
+        # reset warnings
+        self._warnedRecBufferFull = False
 
         startTime = self._stream.start(
             repetitions=0,
@@ -307,7 +415,8 @@ class Microphone(object):
             wait_for_start=int(waitForStart),
             stop_time=stopTime)
 
-        self._statusFlag = STARTED  # recording has begun
+        # recording has begun or is scheduled to do so
+        self._statusFlag = STARTED
 
         return startTime
 
@@ -315,7 +424,8 @@ class Microphone(object):
         """Stop recording audio.
 
         Call this method to end an audio recording if in progress. This will
-        simply halt recording and not close the stream.
+        simply halt recording and not close the stream. Any remaining samples
+        will be polled automatically and added to the recording buffer.
 
         Parameters
         ----------
@@ -332,6 +442,14 @@ class Microphone(object):
             `estStopTime`.
 
         """
+        if not self.isStarted:
+            raise AudioStreamError(
+                "Cannot stop a stream that has not been started.")
+
+        # poll remaining samples, if any
+        if not self.isRecBufferFull:
+            self.poll()
+
         startTime, endPositionSecs, xruns, estStopTime = self._stream.stop(
             block_until_stopped=int(blockUntilStopped),
             stopTime=stopTime)
@@ -349,40 +467,86 @@ class Microphone(object):
         """
         self._stream.close()
 
-    def getAudioClip(self):
-        """Get samples from a stream as an `AudioClip` object.
+    def poll(self):
+        """Poll audio samples.
 
-        To ensure all data is captured, there must be less time elapsed between
-        subsequent `getAudioClip` calls than `bufferSecs`. If not, a buffer
-        overflow condition will occur and audio data will be lost.
+        Calling this method adds audio samples collected from the stream buffer
+        to the recording buffer that have been captured since the last `poll`
+        call. Time between calls of this function should be less than
+        `bufferSecs`. You do not need to call this if you call `stop` before
+        the time specified by `bufferSecs` elapses since the `start` call.
 
-        Ideally, you should retrieve audio samples every frame. Beware though,
-        uncompressed/raw audio data tends require lots of memory to store. This
-        is particularly a problem for 32-bit installations of PsychoPy where
-        the amount of memory that can be used by the application is quite
-        limited.
-
-        Returns
-        -------
-        tuple
-            A tuple containing `AudioClip` instance with samples retrieved from
-            the stream buffer, absolute time in the recording the samples were
-            taken (`float`), flag indicating an overflow occurred (`bool`), and
-            the start time of the recording (`float`).
+        Can only be called between called of `start` and `stop` (i.e.
+        ``Microphone.status == STARTED``.
 
         """
-        if self._statusFlag == NOT_STARTED:
+        if not self.isStarted:
             raise AudioStreamError(
-                "Cannot get stream data while stream is closed.")
+                "Cannot poll samples from audio device, not started.")
 
         audioData, absRecPosition, overflow, cStartTime = \
             self._stream.get_audio_data()
 
-        newClip = AudioClip(
-            samples=audioData,
-            sampleRateHz=self._sampleRateHz)
+        if overflow:
+            logging.warning(
+                "Audio stream buffer overflow, some audio samples have been "
+                "lost! To prevent this, ensure `Microphone.poll()` is being "
+                "called often enough, or increase the size of the audio buffer "
+                "with `bufferSecs`.")
 
-        return newClip, absRecPosition, overflow, cStartTime
+        # Determined that the recording buffer is full last `poll` call, don't
+        # write any more samples.
+        if self.isRecBufferFull:
+            if not self._warnedRecBufferFull:
+                logging.warning(
+                    f"Audio recording buffer filled! This means that no "
+                    f"samples are saved beyond {round(self.recBufferSecs, 6)} "
+                    f"seconds. Specify a larger recording buffer next time to "
+                    f"avoid data loss.")
+                logging.flush()
+            self._warnedRecBufferFull = True
+            return
+
+        nSamples = len(audioData)
+        if not nSamples:  # no samples came out of the stream, just return
+            return
+
+        if self._recSpaceRemaining >= nSamples:
+            self._recLastSample = self._recOffset + nSamples
+            audioData = audioData[:, :]
+        else:
+            self._recLastSample = self._recOffset + self._recSpaceRemaining
+            audioData = audioData[:self._recSpaceRemaining, :]
+
+        self._recording[self._recOffset:self._recLastSample, :] = audioData
+        self._recOffset += nSamples
+        self._recSpaceRemaining -= nSamples
+
+        # Check if the recording buffer is now full. Next call to `poll` will
+        # not record anything.
+        if self._recSpaceRemaining <= 0:
+            self._recSpaceRemaining = 0
+
+    def getRecording(self):
+        """Get audio data from the last microphone recording.
+
+        Call this after `stop` to get the recording as an `AudioClip` object.
+
+        Returns
+        -------
+        AudioClip
+            Recorded data between the last calls to
+
+        """
+        if self.isStarted:
+            raise AudioStreamError(
+                "Cannot get audio clip, recording was in progress. Be sure to "
+                "call `Microphone.stop` first.")
+
+        return AudioClip(
+            np.array(self._recording[:self._recLastSample, :],
+                     dtype=np.float32, order='C'),
+            sampleRateHz=self._sampleRateHz)
 
 
 if __name__ == "__main__":
