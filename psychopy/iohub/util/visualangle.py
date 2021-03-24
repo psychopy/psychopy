@@ -111,7 +111,7 @@ if __name__ == '__main__':
 
     fig = pyplot.figure()
     fig.suptitle(
-        'Pixel to Visual Angle (Eye Dist: %.1f cm, %0.3fx%0.3f cm/pixel' %
+        'Pixel to Visual Angle (Eye Dist: %.1f cm, %0.3fx%0.3f mm/pixel' %
         (edist / 10, vacalc.mmpp_x, vacalc.mmpp_y))
     ax1 = fig.add_subplot(211)
     ax1.plot(x_pos, y_pos, '+g')

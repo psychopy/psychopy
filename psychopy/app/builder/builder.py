@@ -14,6 +14,7 @@ import os, sys
 import re
 import subprocess
 import webbrowser
+from math import floor
 from pathlib import Path
 import glob
 import copy
@@ -26,6 +27,9 @@ import wx.stc
 from wx.lib import scrolledpanel
 from wx.lib import platebtn
 from wx.html import HtmlWindow
+
+from ...tools.stringtools import prettyname
+
 try:
     import markdown_it as md
 except ImportError:
@@ -2092,6 +2096,192 @@ class RoutineCanvas(wx.ScrolledWindow):
 
 
 class ComponentsPanel(scrolledpanel.ScrolledPanel):
+    """Panel containing buttons for each component, sorted by category"""
+
+    class CategoryButton(wx.ToggleButton):
+        """Button to show/hide a category of components"""
+        def __init__(self, parent, name, cat):
+            # Initialise button
+            wx.ToggleButton.__init__(self, parent,
+                                     label="   "+name, size=(-1, 24),
+                                     style=wx.BORDER_NONE | wx.BU_LEFT)
+            self.parent = parent
+            # Link to category of buttons
+            self.menu = self.parent.catSizers[cat]
+            # # Set own sizer
+            # self.sizer = wx.GridSizer(wx.HORIZONTAL)
+            # self.SetSizer(self.sizer)
+            # # Add icon
+            # self.icon = wx.StaticText(parent=self, label="DOWN")
+            # self.sizer.Add(self.icon, border=5, flag=wx.ALL | wx.ALIGN_RIGHT)
+            # Default states to false
+            self.state = False
+            self.hover = False
+            # Bind toggle function
+            self.Bind(wx.EVT_TOGGLEBUTTON, self.ToggleMenu)
+            # Bind hover functions
+            self.Bind(wx.EVT_ENTER_WINDOW, self.hoverOn)
+            self.Bind(wx.EVT_LEAVE_WINDOW, self.hoverOff)
+
+        def ToggleMenu(self, event):
+            # If triggered manually with a bool, treat that as a substitute for event selection
+            if isinstance(event, bool):
+                state = event
+            else:
+                state = event.GetSelection()
+            self.SetValue(state)
+            if state:
+                # If state is show, then show all non-hidden components
+                for btn in self.menu.GetChildren():
+                    btn = btn.GetWindow()
+                    comp = btn.component
+                    # Work out if it should be shown based on filter
+                    cond = True
+                    if self.parent.filter == 'Any':
+                        cond = True
+                    elif self.parent.filter == 'Both':
+                        cond = 'PsychoJS' in comp.targets and 'PsychoPy' in comp.targets
+                    elif self.parent.filter in ['PsychoPy', 'PsychoJS']:
+                        cond = self.parent.filter in comp.targets
+                    # Always hide if hidden by prefs
+                    if comp.__name__ in prefs.builder['hiddenComponents'] + ['SettingsComponent', 'UnknownComponent']:
+                        cond = False
+                    btn.Show(cond)
+                # # Update icon
+                # self.icon.SetLabelText(chr(int("1401", 16)))
+            else:
+                # If state is hide, hide all components
+                self.menu.ShowItems(False)
+                # # Update icon
+                # self.icon.SetLabelText(chr(int("140A", 16)))
+            # Do layout
+            self.parent.Layout()
+            self.parent.SetupScrolling()
+            # Restyle
+            self._applyAppTheme()
+
+        def hoverOn(self, event):
+            """Apply hover effect"""
+            self.hover = True
+            self._applyAppTheme()
+
+        def hoverOff(self, event):
+            """Unapply hover effect"""
+            self.hover = False
+            self._applyAppTheme()
+
+        def _applyAppTheme(self):
+            """Apply app theme to this button"""
+            if self.hover:
+                # If hovered over currently, use hover colours
+                self.SetForegroundColour(ThemeMixin.appColors['txtbutton_fg_hover'])
+                # self.icon.SetForegroundColour(ThemeMixin.appColors['txtbutton_fg_hover'])
+                self.SetBackgroundColour(ThemeMixin.appColors['txtbutton_bg_hover'])
+            else:
+                # Otherwise, use regular colours
+                self.SetForegroundColour(ThemeMixin.appColors['text'])
+                # self.icon.SetForegroundColour(ThemeMixin.appColors['text'])
+                self.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
+
+    class ComponentButton(wx.Button):
+        """Button to open component parameters dialog"""
+        def __init__(self, parent, name, comp, cat):
+            self.parent = parent
+            self.component = comp
+            self.category = cat
+            iconCache = parent.app.iconCache
+            # Get a shorter, title case version of component name
+            label = name
+            for redundant in ['component', 'Component', "ButtonBox"]:
+                label = label.replace(redundant, "")
+            label = prettyname(label, wrap=10)
+            # Make button
+            wx.Button.__init__(self, parent, wx.ID_ANY,
+                               label=label, name=name,
+                               size=(68, 68+12*label.count("\n")), style=wx.NO_BORDER)
+            self.SetToolTip(wx.ToolTip(comp.tooltip or name))
+            # Style
+            self._applyAppTheme()
+            # Bind to functions
+            self.Bind(wx.EVT_BUTTON, self.onClick)
+            self.Bind(wx.EVT_RIGHT_DOWN, self.onRightClick)
+
+        def onClick(self, evt=None, timeout=None):
+            routine = self.parent.frame.routinePanel.getCurrentRoutine()
+            page = self.parent.frame.routinePanel.getCurrentPage()
+            comp = self.component(parentName=routine.name, exp=self.parent.frame.exp)
+            name = comp.params['name'].val
+            # does this component have a help page?
+            if hasattr(comp, 'url'):
+                helpUrl = comp.url
+            else:
+                helpUrl = None
+            # create component template
+            if comp.type == 'Code':
+                _Dlg = DlgCodeComponentProperties
+            else:
+                _Dlg = DlgComponentProperties
+            dlg = _Dlg(frame=self.parent.frame,
+                       title='{} Properties'.format(name),
+                       params=comp.params, order=comp.order,
+                       helpUrl=helpUrl,
+                       depends=comp.depends,
+                       timeout=timeout, type=comp.type)
+
+            if dlg.OK:
+                # Add to the actual routine
+                routine.addComponent(comp)
+                namespace = self.parent.frame.exp.namespace
+                name = comp.params['name'].val = namespace.makeValid(name)
+                namespace.add(name)
+                # update the routine's view with the new component too
+                page.redrawRoutine()
+                self.parent.frame.addToUndoStack(
+                    "ADD `%s` to `%s`" % (name, routine.name))
+            return True
+
+        def onRightClick(self, evt):
+            """
+            Defines rightclick behavior within builder view's
+            components panel
+            """
+            # Make menu
+            menu = wx.Menu()
+            if self.component.__name__ in self.parent.favorites:
+                # If is in favs
+                msg = "Remove from favorites"
+                fun = self.removeFromFavorites
+            else:
+                # If is not in favs
+                msg = "Add to favorites"
+                fun = self.addToFavorites
+            btn = menu.Append(wx.ID_ANY, _localized[msg])
+            menu.Bind(wx.EVT_MENU, fun, btn)
+            # Show as popup
+            self.PopupMenu(menu, evt.GetPosition())
+            # Destroy to avoid mem leak
+            menu.Destroy()
+
+        def addToFavorites(self, evt):
+            self.parent.addToFavorites(self.component)
+
+        def removeFromFavorites(self, evt):
+            self.parent.removeFromFavorites(self)
+
+        def _applyAppTheme(self):
+            # Set colors
+            self.SetForegroundColour(ThemeMixin.appColors['text'])
+            self.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
+            # Set bitmap
+            iconCache = self.parent.app.iconCache
+            icon = iconCache.getBitmap(self.component.iconFile, size=48)
+            self.SetBitmap(icon)
+            self.SetBitmapCurrent(icon)
+            self.SetBitmapPressed(icon)
+            self.SetBitmapFocus(icon)
+            self.SetBitmapPosition(wx.TOP)
+            # Refresh
+            self.Refresh()
 
     def __init__(self, frame, id=-1):
         """A panel that displays available components.
@@ -2099,66 +2289,78 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         self.frame = frame
         self.app = frame.app
         self.dpi = self.app.dpi
-        panelWidth = 3 * 48 + 50
+        self.prefs = self.app.prefs
+        panelWidth = 3 * (68 + 12) + 12 + 12
         scrolledpanel.ScrolledPanel.__init__(self,
                                              frame,
                                              id,
                                              size=(panelWidth, 10 * self.dpi),
                                              style=wx.BORDER_NONE)
+        # Get filter from prefs
         self.filter = prefs.builder['componentFilter']
-        self._maxBtnWidth = 0  # will store width of widest button
+        # Setup sizer
         self.sizer = wx.BoxSizer(wx.VERTICAL)
-        self.componentButtons = []
+        self.SetSizer(self.sizer)
+        # Get components
         self.components = experiment.getAllComponents(
             self.app.prefs.builder['componentsFolders'])
-        categories = ['Favorites']
-        categories.extend(components.getAllCategories(
-            self.app.prefs.builder['componentsFolders']))
-        # get rid of hidden components
-        for hiddenComp in self.frame.prefs['hiddenComponents']:
-            if hiddenComp in self.components:
-                del self.components[hiddenComp]
-        # also remove settings - that's in toolbar not components panel
         del self.components['SettingsComponent']
-        # get favorites
-        self.favorites = FavoriteComponents(componentsPanel=self)
-        # create labels and sizers for each category
-        self.componentFromID = {}
-        self.panels = {}
-        # to keep track of the objects (sections and section labels)
-        # within the main sizer
-        self.sizerList = []
-
-        for categ in categories:
-            if categ in _localized:
-                label = _localized[categ]
+        # Get categories
+        self.categories = ['Favorites']
+        for name, comp in self.components.items():
+            self.categories.extend(comp.categories)
+        self.categories = list({key: None for key in self.categories})  # convert to dict and back to remove duplicates
+        # Get favorites
+        self.faveThreshold = 20
+        self.faveLevels = self.prefs.appDataCfg['builder']['favComponents']
+        self.favorites = []
+        for comp in self.components:
+            # Add component to fave levels with a score of 0 if it's not already present
+            if comp not in self.faveLevels:
+                self.faveLevels[comp] = 0
+            # Mark as a favorite if it exceeds a threshold
+            if self.faveLevels[comp] > self.faveThreshold:
+                self.favorites.append(comp)
+        # Fill in gaps in favorites with defaults
+        faveDefaults = ['ImageComponent', 'KeyboardComponent', 'SoundComponent',
+                        'TextComponent', 'MouseComponent', 'SliderComponent']
+        while len(self.favorites) < 6:
+            thisDef = faveDefaults.pop(0)
+            if thisDef not in self.favorites:
+                self.favorites.append(thisDef)
+        # Make a sizer and label for each category
+        self.catSizers = {cat: wx.WrapSizer(orient=wx.HORIZONTAL) for cat in self.categories}
+        self.catLabels = {cat: self.CategoryButton(self, name=str(cat), cat=str(cat)) for cat in self.categories}
+        for cat in self.categories:
+            self.sizer.Add(self.catLabels[cat], border=3, flag=wx.BOTTOM | wx.EXPAND)
+            self.sizer.Add(self.catSizers[cat], border=6, flag=wx.ALL | wx.ALIGN_CENTER)
+        # Make a button for each component
+        self.compButtons = []
+        for name, comp in self.components.items():
+            for cat in comp.categories:  # make one button for each category
+                self.compButtons.append(
+                    self.ComponentButton(self, name, comp, cat)
+                )
+            if name in self.favorites:
+                self.compButtons.append(
+                    self.ComponentButton(self, name, comp, "Favorites")
+                )
+        # Add component buttons to category sizers
+        for btn in self.compButtons:
+            self.catSizers[btn.category].Add(btn, border=3, flag=wx.ALL)
+        # Set starting visibility
+        for cat, btn in self.catLabels.items():
+            if cat in ['Favorites']:
+                btn.ToggleMenu(True)
             else:
-                label = categ
-            _style = platebtn.PB_STYLE_DROPARROW | platebtn.PB_STYLE_SQUARE
-            sectionBtn = PsychopyPlateBtn(self, -1, label, style=_style, name=categ)
-            # Link to onclick functions
-            sectionBtn.Bind(wx.EVT_LEFT_DOWN, self.onSectionBtn)
-            sectionBtn.Bind(wx.EVT_RIGHT_DOWN, self.onSectionBtn)
-            # Set button background and link to onhover functions
-            #sectionBtn.Bind(wx.EVT_ENTER_WINDOW, self.onHover)
-            #sectionBtn.Bind(wx.EVT_LEAVE_WINDOW, self.offHover)
-            self.panels[categ] = wx.FlexGridSizer(cols=1)
-            self.sizer.Add(sectionBtn, flag=wx.EXPAND)
-            self.sizerList.append(sectionBtn)
-            self.sizer.Add(self.panels[categ], flag=wx.ALIGN_CENTER)
-            self.sizerList.append(self.panels[categ])
-        maxWidth = self.makeComponentButtons()
-        self._rightClicked = None
-        # start all except for Favorites collapsed
-        for section in categories[1:]:
-            self.toggleSection(self.panels[section])
-
-        self.Bind(wx.EVT_SIZE, self.on_resize)
-        self.SetSizer(self.sizer)
-        self.SetAutoLayout(True)
+                btn.ToggleMenu(False)
+        # Do sizing
+        self.Layout()
+        self.Fit()
         self.SetupScrolling()
         # double buffered better rendering except if retina
         self.SetDoubleBuffered(not self.frame.isRetina)
+        # Apply theme
         self._applyAppTheme()  # bitmaps only just loaded
 
     def _applyAppTheme(self, target=None):
@@ -2167,10 +2369,12 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         self.SetForegroundColour(cs['text'])
         self.SetBackgroundColour(cs['panel_bg'])
         # Style component buttons
-        for btn in self.componentButtons:
-            btn.SetForegroundColour(cs['text'])
-            btn.SetBackgroundColour(cs['panel_bg'])
-            # then apply to all children as well
+        for btn in self.compButtons:
+            btn._applyAppTheme()
+        # Style category labels
+        for lbl in self.catLabels:
+            self.catLabels[lbl].SetForegroundColour(cs['text'])
+        # then apply to all children as well
         for c in self.GetChildren():
             if hasattr(c, '_applyAppTheme'):
                 # if the object understands themes then request that
@@ -2178,314 +2382,31 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         self.Refresh()
         self.Update()
 
-    def on_resize(self, event):
-        cols = self.GetClientSize()[0] // self._maxBtnWidth
-        for category in list(self.panels.values()):
-            category.SetCols(max(1, cols))
+    def addToFavorites(self, comp):
+        name = comp.__name__
+        # Mark component as a favorite
+        self.faveLevels[name] = self.faveThreshold + 1
+        self.favorites.append(name)
+        # Add button to favorites menu
+        btn = self.ComponentButton(self, name, comp, "Favorites")
+        self.compButtons.append(btn)
+        self.catSizers['Favorites'].Add(btn, border=3, flag=wx.ALL)
+        # Do sizing
+        self.Layout()
 
-    def makeFavoriteButtons(self):
-        # add a copy of each favorite to that panel first
-        for thisName in self.favorites.getFavorites():
-            comp = self.components[thisName]
-            # Filter according to prefs
-            cond = True
-            if self.filter == 'Any':
-                cond = True
-            elif self.filter == 'Both':
-                cond = 'PsychoJS' in comp.targets and 'PsychoPy' in comp.targets
-            elif ['PsychoPy', 'PsychoJS'] in self.filter:
-                cond = self.filter in comp.targets
-            if cond:
-                self.addComponentButton(thisName, self.panels['Favorites'])
-
-    def makeComponentButtons(self):
-        """Make all the components buttons, including favorites
-        """
-        self.makeFavoriteButtons()
-        # then add another copy for each category that the component itself
-        # lists
-        componentNames = list(self.components.keys())
-        componentNames.sort()
-
-        for key, comp in self.components.items():
-            # Filter according to prefs
-            cond = True
-            if self.filter == 'Any':
-                cond = True
-            elif self.filter == 'Both':
-                cond = 'PsychoJS' in comp.targets and 'PsychoPy' in comp.targets
-            elif ['PsychoPy', 'PsychoJS'] in self.filter:
-                cond = self.filter in comp.targets
-            if not cond:
-                componentNames.remove(key)
-        for thisName in componentNames:
-            thisComp = self.components[thisName]
-            # NB thisComp is a class - we can't use its methods/attribs until
-            # it is an instance
-            for category in thisComp.categories:
-                panel = self.panels[category]
-                self.addComponentButton(thisName, panel)
-
-    def addComponentButton(self, name, panel):
-        """Create a component button and add it to a specific panel's sizer
-        """
-        iconCache = self.app.iconCache
-        # get a shorter name too (without "Component")
-        shortName = name
-        for redundant in ['component', 'Component', "ButtonBox"]:
-            shortName = shortName.replace(redundant, "")
-        # Convert from CamelCase to Title Case for button label
-        label = ""
-        for i, c in enumerate(shortName):
-            if c.isupper() and i > 0:
-                label += "\n"
-            label += c
-        # set size
-        size = 48
-        # get tooltip
-        if name in components.tooltips:
-            thisTip = components.tooltips[name]
-        else:
-            thisTip = shortName
-        btn = iconCache.getComponentButton(
-                parent=self,
-                name=name,
-                label=label,
-                size=size,
-                tip=thisTip,
-        )
-        # btn will be none if a favorite is not found (e.g. user has multiple
-        # versions of psychopy installed
-        if btn is None:
+    def removeFromFavorites(self, button):
+        comp = button.component
+        name = comp.__name__
+        # Skip if component isn't in favorites
+        if name not in self.favorites:
             return
-        # then set up positioning etc
-        btn.SetBitmapPosition(wx.TOP)
-        self.componentFromID[btn.GetId()] = name
-        # use btn.bind instead of self.Bind in oder to trap event here
-        btn.Bind(wx.EVT_RIGHT_DOWN, self.onRightClick)
-        self.Bind(wx.EVT_BUTTON, self.onClick, btn)
-        # ,wx.EXPAND|wx.ALIGN_CENTER )
-        panel.Add(btn, proportion=0, flag=wx.ALIGN_RIGHT)
-        self._maxBtnWidth = max(btn.GetSize()[0], self._maxBtnWidth)
-        self.componentButtons.append(btn)
-
-    def onSectionBtn(self, evt):
-        if hasattr(evt, 'GetString'):
-            buttons = self.panels[evt.GetString()]
-        else:
-            btn = evt.GetEventObject()
-            buttons = self.panels[btn.GetName()]
-        self.toggleSection(buttons)
-
-    def toggleSection(self, section):
-        ii = self.sizerList.index(section)
-        self.sizer.Show(ii, not self.sizer.IsShown(ii))  # ie toggle this item
-        self.sizer.Layout()
-        self.SetupScrolling()
-
-    def getIndexInSizer(self, obj, sizer):
-        """Find index of an item within a sizer (to see if it's there
-        or to toggle visibility)
-        WX sizers don't (as of v2.8.11) have a way to find the index of
-        their contents. This method helps get around that.
-        """
-        # if the obj is itself a sizer (e.g. within the main sizer then
-        # we can't even use sizer.Children (as far as I can work out)
-        # so we keep a list to track the contents.
-        # for the main sizer we kept track of everything with a list:
-        if sizer == self.sizer:
-            return self.sizerList.index(obj)
-        index = None
-        for ii, child in enumerate(sizer.Children):
-            if child.GetWindow() == obj:
-                index = ii
-                break
-        return index
-
-    def onRightClick(self, evt):
-        """
-        Defines rightclick behavior within builder view's
-        components panel
-        """
-        btn = evt.GetEventObject()
-        self._rightClicked = btn
-        index = self.getIndexInSizer(btn, self.panels['Favorites'])
-        if index is None:
-            # not currently in favs
-            msg = "Add to favorites"
-            clickFunc = self.onAddToFavorites
-        else:
-            # is currently in favs
-            msg = "Remove from favorites"
-            clickFunc = self.onRemFromFavorites
-        menu = wx.Menu()
-        id = wx.NewIdRef()
-        menu.Append(id, _localized[msg])
-        menu.Bind(wx.EVT_MENU, clickFunc, id=id)
-        # where to put the context menu
-        x, y = evt.GetPosition()  # this is position relative to object
-        xBtn, yBtn = evt.GetEventObject().GetPosition()
-        self.PopupMenu(menu, (x + xBtn, y + yBtn))
-        menu.Destroy()  # destroy to avoid mem leak
-
-    def onClick(self, evt, timeout=None):
-        """
-        Defines left-click behavior for builder views components panel
-        :param: evt can be a wx.Event OR a component class name (MouseComponent)
-        """
-        # get name of current routine
-        currRoutinePage = self.frame.routinePanel.getCurrentPage()
-        if not currRoutinePage:
-            msg = _translate("Create a routine (Experiment menu) "
-                             "before adding components")
-            dialogs.MessageDialog(self, msg, type='Info',
-                                  title=_translate('Error')).ShowModal()
-            return False
-        currRoutine = self.frame.routinePanel.getCurrentRoutine()
-        # get component name
-        if hasattr(evt, "GetId"):
-            newClassStr = self.componentFromID[evt.GetId()]
-        else:
-            newClassStr = evt
-        newCompClass = self.components[newClassStr]
-        newComp = newCompClass(parentName=currRoutine.name,
-                               exp=self.frame.exp)
-        # does this component have a help page?
-        if hasattr(newComp, 'url'):
-            helpUrl = newComp.url
-        else:
-            helpUrl = None
-        # create component template
-        if newClassStr == 'CodeComponent':
-            _Dlg = DlgCodeComponentProperties
-        else:
-            _Dlg = DlgComponentProperties
-        dlg = _Dlg(frame=self.frame,
-                   title='{} Properties'.format(newComp.params['name']),
-                   params=newComp.params, order=newComp.order,
-                   helpUrl=helpUrl,
-                   depends=newComp.depends,
-                   timeout=timeout, type=newComp.type)
-
-        compName = newComp.params['name']
-        if dlg.OK:
-            currRoutine.addComponent(newComp)  # add to the actual routing
-            namespace = self.frame.exp.namespace
-            newComp.params['name'].val = namespace.makeValid(
-                newComp.params['name'].val)
-            namespace.add(newComp.params['name'].val)
-            # update the routine's view with the new component too
-            currRoutinePage.redrawRoutine()
-            self.frame.addToUndoStack(
-                "ADD `%s` to `%s`" % (compName, currRoutine.name))
-            wasNotInFavs = (newClassStr not in self.favorites.getFavorites())
-            self.favorites.promoteComponent(newClassStr, 1)
-            # was that promotion enough to be a favorite?
-            if wasNotInFavs and newClassStr in self.favorites.getFavorites():
-                self.addComponentButton(newClassStr, self.panels['Favorites'])
-                self.sizer.Layout()
-        return True
-
-    def onAddToFavorites(self, evt=None, btn=None):
-        """Defines Add To Favorites Menu Behavior"""
-        if btn is None:
-            btn = self._rightClicked
-        if btn.Name not in self.favorites.getFavorites():
-            # check we aren't duplicating
-            self.favorites.makeFavorite(btn.Name)
-            self.addComponentButton(btn.Name, self.panels['Favorites'])
-        self.sizer.Layout()
-        self._rightClicked = None
-
-    def onRemFromFavorites(self, evt=None, btn=None):
-        """Defines Remove from Favorites Menu Behavior"""
-        if btn is None:
-            btn = self._rightClicked
-        index = self.getIndexInSizer(btn, self.panels['Favorites'])
-        if index is None:
-            pass
-        else:
-            self.favorites.setLevel(btn.Name, -100)
-            btn.Destroy()
-        self.sizer.Layout()
-        self._rightClicked = None
-
-    def onHover(self, evt):
-        cs = ThemeMixin.appColors
-        btn = evt.GetEventObject()
-        btn.SetBackgroundColour(cs['bmpbutton_bg_hover'])
-        btn.SetForegroundColour(cs['bmpbutton_fg_hover'])
-
-    def offHover(self, evt):
-        cs = ThemeMixin.appColors
-        btn = evt.GetEventObject()
-        btn.SetBackgroundColour(cs['panel_bg'])
-        btn.SetForegroundColour(cs['text'])
-
-
-class FavoriteComponents(object):
-    """Defines the Favorite Components Object class, meant for dealing with
-    the user's frequently accessed components"""
-
-    def __init__(self, componentsPanel, threshold=20, neutral=0):
-        super(FavoriteComponents, self).__init__()
-        self.threshold = 20
-        self.neutral = 0
-        self.panel = componentsPanel
-        self.frame = componentsPanel.frame
-        self.app = self.frame.app
-        self.prefs = self.app.prefs
-        self.currentLevels = self.prefs.appDataCfg['builder']['favComponents']
-        self.setDefaults()
-
-    def setDefaults(self):
-        """Defines Default Favorite Components"""
-        # set those that are favorites by default
-        for comp in ('ImageComponent', 'KeyboardComponent',
-                     'SoundComponent', 'TextComponent',
-                     'MouseComponent', 'SliderComponent',
-                     ):
-            if comp not in self.currentLevels or self.currentLevels[comp] != 0:
-                self.currentLevels[comp] = self.threshold
-        for comp in self.panel.components:
-            if comp not in self.currentLevels:
-                self.currentLevels[comp] = self.neutral
-
-    def makeFavorite(self, compName):
-        """Set the value of this component to an arbitrary high value (10000)
-        """
-        self.currentLevels[compName] = 10000
-
-    def promoteComponent(self, compName, value=1):
-        """Promote this component by a certain value (negative to demote)
-        """
-        self.currentLevels[compName] += value
-
-    def setLevel(self, compName, value=0):
-        """Set the level to neutral (0) favourite (20?) or banned (-1000?)
-        """
-        self.currentLevels[compName] = value
-
-    def getFavorites(self):
-        """Returns a list of favorite components. Each must have level greater
-        than the threshold and there will be not more than
-        max length prefs['builder']['maxFavorites']
-        """
-        sortedVals = sorted(list(self.currentLevels.items()),
-                            key=lambda x: x[1], reverse=True)
-        favorites = []
-        maxFav = self.prefs.builder['maxFavorites']
-        for name, level in sortedVals:
-            # this has been explicitly requested (or REALLY liked!)
-            if level >= 10000:
-                favorites.append(name)
-            elif level >= self.threshold and len(favorites) < maxFav:
-                favorites.append(name)
-            else:
-                # either we've run out of levels>10000 or exceeded maxFavs or
-                # run out of level >= thresh
-                break
-        return favorites
+        # Unmark component as favorite
+        self.faveLevels[name] = 0
+        self.favorites.remove(name)
+        # Remove button from favorites menu
+        button.Hide()
+        # Do sizing
+        self.Layout()
 
 
 class ReadmeFrame(wx.Frame):
