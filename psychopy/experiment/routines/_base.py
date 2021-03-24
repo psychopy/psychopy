@@ -24,13 +24,14 @@ class BaseStandaloneRoutine:
     iconFile = Path(__file__).parent / "unknown" / "unknown.png"
     tooltip = ""
 
-    def __init__(self, exp, name=''):
+    def __init__(self, exp, name='',
+                 stopType='duration (s)', stopVal=''):
         self.params = {}
         self.name = name
         self.exp = exp
         self.type = 'StandaloneRoutine'
         self.depends = []  # allows params to turn each other off/on
-        self.order = ['name']
+        self.order = ['stopVal', 'stopType', 'name']
 
         msg = _translate(
             "Name of this routine (alpha-numeric or _, no spaces)")
@@ -38,6 +39,19 @@ class BaseStandaloneRoutine:
                                     valType='code', inputType="single", categ='Basic',
                                     hint=msg,
                                     label=_translate('name'))
+
+        self.params['stopVal'] = Param(stopVal,
+            valType='num', inputType="single", categ='Basic',
+            updates='constant', allowedUpdates=[], allowedTypes=[],
+            hint=_translate("When does the routine end? (blank is endless)"),
+            label=_translate('Stop'))
+
+        msg = _translate("How do you want to define your end point?")
+        self.params['stopType'] = Param(stopType,
+            valType='str', inputType="choice", categ='Basic',
+            allowedVals=['duration (s)', 'duration (frames)', 'condition'],
+            hint=msg,
+            label=_translate('Stop Type...'))
 
     def __repr__(self):
         _rep = "psychopy.experiment.%s(name='%s', exp=%s)"
@@ -100,8 +114,34 @@ class BaseStandaloneRoutine:
         return
 
     def getType(self):
-        return self.type
+        return "StandaloneRoutine"
 
+    def getComponentFromName(self, name):
+        return None
+
+    def getComponentFromType(self, type):
+        return None
+
+    def hasOnlyStaticComp(self):
+        return False
+
+    def getMaxTime(self):
+        """If routine has a set duration, will return this along with True (as this routine is nonSlipSafe, i.e. has a fixed duration). Otherwise, will treat max time as 0 and will mark routine as nonSlipSafe (i.e. has a variable duration)..
+        """
+
+        # Assume max time of 0 and not nonSlipSafe
+        maxTime = 0
+        nonSlipSafe = False
+        # If has a set duration, store set duration and mark as nonSlipSafe
+        if 'stopVal' in self.params and 'stopType' in self.params:
+            if self.params['stopType'] in ['duration (s)', 'duration (frames)']:
+                maxTime = self.params['stopVal'].val
+                nonSlipSafe = True
+
+        return maxTime, nonSlipSafe
+
+    def getStatics(self):
+        return []
 
 class Routine(list):
     """

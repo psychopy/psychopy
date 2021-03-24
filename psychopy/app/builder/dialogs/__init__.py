@@ -1017,19 +1017,19 @@ class _BaseParamsDlg(wx.Dialog):
             param = self.params[fieldName]
             if fieldName == 'advancedParams':
                 pass
-            elif fieldName == 'startType':
+            elif fieldName == 'startType' and hasattr(self, 'startTypeCtrl'):
                 idx = self.startTypeCtrl.GetCurrentSelection()
                 param.val = self.params['startType'].allowedVals[idx]
-            elif fieldName == 'stopType':
+            elif fieldName == 'stopType' and hasattr(self, 'stopTypeCtrl'):
                 idx = self.stopTypeCtrl.GetCurrentSelection()
                 param.val = self.params['stopType'].allowedVals[idx]
-            elif fieldName == 'startVal':
+            elif fieldName == 'startVal' and hasattr(self, 'startValCtrl'):
                 param.val = self.startValCtrl.GetValue()
-            elif fieldName == 'stopVal':
+            elif fieldName == 'stopVal' and hasattr(self, 'stopValCtrl'):
                 param.val = self.stopValCtrl.GetValue()
-            elif fieldName == 'startEstim':
+            elif fieldName == 'startEstim' and hasattr(self, 'startEstimCtrl'):
                 param.val = self.startEstimCtrl.GetValue()
-            elif fieldName == 'durationEstim':
+            elif fieldName == 'durationEstim' and hasattr(self, 'durationEstimCtrl'):
                 param.val = self.durationEstimCtrl.GetValue()
             else:
                 # the various dlg ctrls for this param
