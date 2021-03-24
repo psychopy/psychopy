@@ -135,13 +135,27 @@ class BaseStandaloneRoutine:
         # If has a set duration, store set duration and mark as nonSlipSafe
         if 'stopVal' in self.params and 'stopType' in self.params:
             if self.params['stopType'] in ['duration (s)', 'duration (frames)']:
-                maxTime = self.params['stopVal'].val
+                maxTime = float(self.params['stopVal'].val or 0)
                 nonSlipSafe = True
 
         return maxTime, nonSlipSafe
 
     def getStatics(self):
         return []
+
+    @property
+    def name(self):
+        if hasattr(self, 'params'):
+            if 'name' in self.params:
+                return self.params['name'].val
+        return self.type
+
+    @name.setter
+    def name(self, value):
+        if hasattr(self, 'params'):
+            if 'name' in self.params:
+                self.params['name'].val = value
+
 
 class Routine(list):
     """

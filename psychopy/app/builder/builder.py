@@ -3273,7 +3273,7 @@ class FlowPanel(wx.ScrolledWindow):
                 # NB the loop is itself the dict key!
                 self.loops[entry.loop]['term'] = currX
                 nestLevel -= 1  # end of loop so decrement level of nesting
-            elif entry.getType() == 'Routine':
+            elif entry.getType() in ['Routine', 'StandaloneRoutine']:
                 # just get currX based on text size, don't draw anything yet:
                 currX = self.drawFlowRoutine(pdc, entry, id=ii,
                                              pos=[currX, self.linePos[1] - 10],
@@ -3309,7 +3309,7 @@ class FlowPanel(wx.ScrolledWindow):
         # draw routines second (over loop lines):
         currX = self.linePos[0]
         for ii, entry in enumerate(expFlow):
-            if entry.getType() == 'Routine':
+            if entry.getType() in ['Routine', 'StandaloneRoutine']:
                 currX = self.drawFlowRoutine(pdc, entry, id=ii,
                                              pos=[currX, self.linePos[1] - 10])
             pdc.SetPen(wx.Pen(wx.Pen(colour=cs['fl_flowline_bg'])))
