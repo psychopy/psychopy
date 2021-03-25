@@ -14,6 +14,8 @@ from os import path
 from pathlib import Path
 from psychopy.experiment.components import BaseComponent, Param, getInitVals, _translate
 from psychopy.sound.microphone import Microphone
+from psychopy.sound.audiodevice import sampleRateQualityLevels
+from psychopy.sound.audioclip import AUDIO_SUPPORTED_CODECS
 from psychopy.localization import _localized as __localized
 
 _localized = __localized.copy()
@@ -21,6 +23,7 @@ _localized.update({'stereo': _translate('Stereo'),
                    'channel': _translate('Channel')})
 
 devices = {d.deviceName: d for d in Microphone.getDevices()}
+sampleRates = {r[1]: r[0] for r in sampleRateQualityLevels.values()}
 devices['default'] = None
 
 
@@ -37,7 +40,8 @@ class MicrophoneComponent(BaseComponent):
                  stopType='duration (s)', stopVal=2.0,
                  startEstim='', durationEstim='',
                  channels='stereo', device="default",
-                 sampleRate="", bufferLength=2,
+                 sampleRate='DVD Audio (48kHz)', maxSize=24000,
+                 outputType='wav',
                  #legacy
                  stereo=None, channel=None):
         super(MicrophoneComponent, self).__init__(
@@ -58,7 +62,8 @@ class MicrophoneComponent(BaseComponent):
         self.params['stopType'].hint = msg
 
         # params
-        msg = _translate("What microphone device would you like the use to record?")
+        msg = _translate("What microphone device would you like the use to record? This will only affect local "
+                         "experiments - online experiments ask the participant which mic to use.")
         self.params['device'] = Param(
             device, valType='str', inputType="choice", categ="Basic",
             allowedVals=list(devices),
@@ -67,7 +72,8 @@ class MicrophoneComponent(BaseComponent):
         )
 
         msg = _translate(
-            "Record two channels (stereo) or one (mono, smaller file). Select 'auto' to use as many channels as the selected device allows.")
+            "Record two channels (stereo) or one (mono, smaller file). Select 'auto' to use as many channels "
+            "as the selected device allows.")
         if stereo is not None:
             # If using a legacy mic component, work out channels from old bool value of stereo
             channels = ['mono', 'stereo'][stereo]
@@ -80,16 +86,26 @@ class MicrophoneComponent(BaseComponent):
         msg = _translate(
             "How many samples per second (Hz) to record at")
         self.params['sampleRate'] = Param(
-            sampleRate, valType='num', inputType="single", categ='Hardware',
+            sampleRate, valType='num', inputType="choice", categ='Hardware',
+            allowedVals=list(sampleRates),
             hint=msg,
             label=_translate('Sample Rate (Hz)'))
 
         msg = _translate(
-            "How many seconds of recording to store in the device's buffer at any given time")
-        self.params['bufferLength'] = Param(
-            bufferLength, valType='num', inputType="single", categ='Hardware',
+            "To avoid excessively large output files, what is the biggest file size you are likely to expect?")
+        self.params['maxSize'] = Param(
+            maxSize, valType='num', inputType="single", categ='Hardware',
             hint=msg,
-            label=_translate('Buffer Length (s)'))
+            label=_translate('Max Recording Size (kb)'))
+
+        msg = _translate(
+            "What file type should output audio files be saved as?")
+        self.params['outputType'] = Param(
+            outputType, valType='code', inputType='choice', categ='Data',
+            allowedVals=AUDIO_SUPPORTED_CODECS,
+            hint=msg,
+            label=_translate("Output File Type")
+        )
 
     def writeStartCode(self, buff):
         inits = getInitVals(self.params)
@@ -109,6 +125,8 @@ class MicrophoneComponent(BaseComponent):
 
     def writeInitCode(self, buff):
         inits = getInitVals(self.params)
+        # Substitute sample rate value for numeric equivalent
+        inits['sampleRate'] = sampleRates[inits['sampleRate'].val]
         # Substitute channel value for numeric equivalent
         inits['channels'] = {'mono': 1, 'stereo': 2, 'auto': None}[self.params['channels'].val]
         # Substitute device name for device index
@@ -125,7 +143,7 @@ class MicrophoneComponent(BaseComponent):
         buff.setIndentLevel(1, relative=True)
         code = (
                 "device=%(device)s, channels=%(channels)s, \n"
-                "sampleRateHz=%(sampleRate)s, bufferSecs=%(bufferLength)s\n"
+                "sampleRateHz=%(sampleRate)s, maxSize=%(maxSize)s\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
@@ -204,7 +222,7 @@ class MicrophoneComponent(BaseComponent):
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(1, relative=True)
         code = (
-                    "clipName = os.path.join(%(name)sRecFolder, f'recording_{rt}_{i}.wav')\n"
+                    "clipName = os.path.join(%(name)sRecFolder, f'recording_{rt}_{i}.%(outputType)s')\n"
                     "clip.save(clipName)\n"
         )
         buff.writeIndentedLines(code % inits)
