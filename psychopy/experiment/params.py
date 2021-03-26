@@ -167,6 +167,8 @@ class Param(object):
 
     def __str__(self):
         if self.valType == 'num':
+            if self.val in [None, ""]:
+                return "None"
             try:
                 # will work if it can be represented as a float
                 return "{}".format(float(self.val))
