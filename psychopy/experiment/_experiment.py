@@ -276,54 +276,30 @@ class Experiment(object):
 
         return script
 
+    @property
+    def xml(self):
+        # Create experiment root element
+        experimentNode = xml.Element("PsychoPy2experiment")
+        experimentNode.set('version', __version__)
+        experimentNode.set('encoding', 'utf-8')
+        # Add settings node
+        settingsNode = self.settings.xml
+        experimentNode.append(settingsNode)
+        # Add routines node
+        routineNode = xml.Element("Routines")
+        for key, routine in self.routines.items():
+            routineNode.append(routine.xml)
+        experimentNode.append(routineNode)
+        # Add flow node
+        flowNode = self.flow.xml
+        experimentNode.append(flowNode)
+
+        return experimentNode
+
     def saveToXML(self, filename):
         self.psychopyVersion = psychopy.__version__  # make sure is current
         # create the dom object
-        self.xmlRoot = xml.Element("PsychoPy2experiment")
-        self.xmlRoot.set('version', __version__)
-        self.xmlRoot.set('encoding', 'utf-8')
-        # store settings
-        settingsNode = xml.SubElement(self.xmlRoot, 'Settings')
-        for settingName in sorted(self.settings.params):
-            setting = self.settings.params[settingName]
-            self._setXMLparam(
-                parent=settingsNode, param=setting, name=settingName)
-        # store routines
-        routinesNode = xml.SubElement(self.xmlRoot, 'Routines')
-        # routines is a dict of routines
-        for routineName, routine in self.routines.items():
-            routineNode = self._setXMLparam(
-                parent=routinesNode, param=routine, name=routineName)
-            # a routine is based on a list of components
-            for component in routine:
-                componentNode = self._setXMLparam(
-                    parent=routineNode, param=component,
-                    name=component.params['name'].val)
-                for paramName in sorted(component.params):
-                    param = component.params[paramName]
-                    self._setXMLparam(
-                        parent=componentNode, param=param, name=paramName)
-        # implement flow
-        flowNode = xml.SubElement(self.xmlRoot, 'Flow')
-        # a list of elements(routines and loopInit/Terms)
-        for element in self.flow:
-            elementNode = xml.SubElement(flowNode, element.getType())
-            if element.getType() == 'LoopInitiator':
-                loop = element.loop
-                name = loop.params['name'].val
-                elementNode.set('loopType', loop.getType())
-                elementNode.set('name', name)
-                for paramName in sorted(loop.params):
-                    param = loop.params[paramName]
-                    paramNode = self._setXMLparam(
-                        parent=elementNode, param=param, name=paramName)
-                    # override val with repr(val)
-                    if paramName == 'conditions':
-                        paramNode.set('val', repr(param.val))
-            elif element.getType() == 'LoopTerminator':
-                elementNode.set('name', element.loop.params['name'].val)
-            elif element.getType() == 'Routine':
-                elementNode.set('name', '%s' % element.params['name'])
+        self.xmlRoot = self.xml
         # convert to a pretty string
         # update our document to use the new root
         self._doc._setroot(self.xmlRoot)

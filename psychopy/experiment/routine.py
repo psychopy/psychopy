@@ -11,6 +11,7 @@
 from __future__ import absolute_import, print_function
 
 from psychopy.constants import FOREVER
+from xml.etree.ElementTree import Element
 
 
 class Routine(list):
@@ -36,6 +37,17 @@ class Routine(list):
     def __repr__(self):
         _rep = "psychopy.experiment.Routine(name='%s', exp=%s, components=%s)"
         return _rep % (self.name, self.exp, str(list(self)))
+
+    @property
+    def xml(self):
+        # Make root element
+        element = Element("Routine")
+        element.set("name", self.name)
+        # Add each component's element
+        for comp in self:
+            element.append(comp.xml)
+
+        return element
 
     @property
     def name(self):
