@@ -114,7 +114,7 @@ class BaseStandaloneRoutine:
         return
 
     def getType(self):
-        return "StandaloneRoutine"
+        return self.__class__.__name__
 
     def getComponentFromName(self, name):
         return None

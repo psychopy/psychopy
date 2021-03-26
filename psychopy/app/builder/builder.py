@@ -60,7 +60,7 @@ from .dialogs import (DlgComponentProperties, DlgExperimentProperties,
 from ..utils import (PsychopyToolbar, PsychopyPlateBtn, WindowFrozen,
                      FileDropTarget, FrameSwitcher, updateDemosMenu)
 
-from psychopy.experiment import components
+from psychopy.experiment import components, getAllStandaloneRoutines
 from builtins import str
 from psychopy.app import pavlovia_ui
 from psychopy.projects import pavlovia
@@ -2297,7 +2297,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             iconCache = parent.app.iconCache
             # Get a shorter, title case version of routine name
             label = name
-            for redundant in ['routine', 'routine', "ButtonBox"]:
+            for redundant in ['routine', 'Routine', "ButtonBox"]:
                 label = label.replace(redundant, "")
             label = prettyname(label, wrap=10)
             # Make button
@@ -3273,7 +3273,7 @@ class FlowPanel(wx.ScrolledWindow):
                 # NB the loop is itself the dict key!
                 self.loops[entry.loop]['term'] = currX
                 nestLevel -= 1  # end of loop so decrement level of nesting
-            elif entry.getType() in ['Routine', 'StandaloneRoutine']:
+            elif entry.getType() == 'Routine' or entry.getType() in getAllStandaloneRoutines():
                 # just get currX based on text size, don't draw anything yet:
                 currX = self.drawFlowRoutine(pdc, entry, id=ii,
                                              pos=[currX, self.linePos[1] - 10],
@@ -3309,7 +3309,7 @@ class FlowPanel(wx.ScrolledWindow):
         # draw routines second (over loop lines):
         currX = self.linePos[0]
         for ii, entry in enumerate(expFlow):
-            if entry.getType() in ['Routine', 'StandaloneRoutine']:
+            if entry.getType() == 'Routine' or entry.getType() in getAllStandaloneRoutines():
                 currX = self.drawFlowRoutine(pdc, entry, id=ii,
                                              pos=[currX, self.linePos[1] - 10])
             pdc.SetPen(wx.Pen(wx.Pen(colour=cs['fl_flowline_bg'])))
