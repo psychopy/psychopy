@@ -320,13 +320,20 @@ class SettingsComponent(object):
     def xml(self):
         # Make root element
         element = Element("Settings")
-        # Add an eleent for each parameter
-        for key, param in self.params.items():
+        # Add an element for each parameter
+        for key, param in sorted(self.params.items()):
+            if key == 'name':
+                continue
+            # Create node
             paramNode = Element("Param")
             paramNode.set("name", key)
-            paramNode.set("updates", str(param.updates))
-            paramNode.set("val", str(param.val).replace("\n", "&#10;"))
-            paramNode.set("valType", str(param.valType))
+            # Assign values
+            if hasattr(param, 'updates'):
+                paramNode.set('updates', "{}".format(param.updates))
+            if hasattr(param, 'val'):
+                paramNode.set('val', u"{}".format(param.val).replace("\n", "&#10;"))
+            if hasattr(param, 'valType'):
+                paramNode.set('valType', param.valType)
             element.append(paramNode)
         return element
 
