@@ -8,7 +8,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 __all__ = [
-    'FramebufferInfo',
+    'Framebuffer',
     'createFBO',
     'attachBuffer',
     'detachBuffer',
@@ -18,12 +18,14 @@ __all__ = [
     'checkFBO',
     'deleteFBO',
     'blitFBO',
-    'useFBO',
     'bindFBO',
     'unbindFBO',
     'drawBuffers',
     'readBuffer',
-    'getFramebufferBinding'
+    'getFramebufferBinding',
+    'defaultFramebuffer',
+    'defaultReadFramebuffer',
+    'defaultDrawFramebuffer'
 ]
 
 import ctypes
@@ -54,9 +56,9 @@ frameBufferBindKeys = {
 #
 
 
-class FramebufferInfo(object):
-    """Descriptor for an OpenGL framebuffer object (FBO). This object is usually
-    created using the `createFBO` function.
+class Framebuffer(object):
+    """Class representing an OpenGL framebuffer object (FBO). This object is
+    usually created using the `createFBO` function.
 
     Descriptors of objects which contain information about some object in an
     OpenGL context. Note that a descriptor's fields may not be contemporaneous
@@ -108,11 +110,222 @@ class FramebufferInfo(object):
 
         self.sizeHint = sizeHint
 
+    @staticmethod
+    def create(attachments=None, sizeHint=None, sRGB=False, bindAfter=False):
+        """Create a new framebuffer."""
+        fboId = GL.GLuint()
+        GL.glGenFramebuffers(1, ctypes.byref(fboId))
+
+        # create a framebuffer descriptor
+        fboDesc = Framebuffer(
+            fboId.value, GL.GL_FRAMEBUFFER, sizeHint, sRGB, dict())
+
+        # initial attachments for this framebuffer
+        if attachments is not None:
+            # keep the OpenGL framebuffer state
+            readFBO = drawFBO = None
+            if not bindAfter:
+                readFBO = GL.GLint()
+                drawFBO = GL.GLint()
+                GL.glGetIntegerv(
+                    GL.GL_READ_FRAMEBUFFER_BINDING, ctypes.byref(readFBO))
+                GL.glGetIntegerv(
+                    GL.GL_DRAW_FRAMEBUFFER_BINDING, ctypes.byref(drawFBO))
+
+            # bind the new FBO
+            GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, fboId)
+            for attachPoint, imageBuffer in attachments.items():
+                attachBuffer(fboDesc, attachPoint, imageBuffer)
+
+            # restore the previous state
+            if not bindAfter:
+                if readFBO.value == drawFBO.value:
+                    GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, readFBO.value)
+                else:
+                    GL.glBindFramebuffer(GL.GL_READ_FRAMEBUFFER, readFBO.value)
+                    GL.glBindFramebuffer(GL.GL_DRAW_FRAMEBUFFER, drawFBO.value)
+            else:
+                fboDesc._isBound = True
+
+        return fboDesc
+
+    def bind(self, target=None):
+        """Bind the framebuffer object.
+
+        Parameters
+        ----------
+        target : GLenum or None
+            Target to bind the FBO to, will update the target field of the `fbo`
+            instance. Values may be `GL_FRAMEBUFFER`, `GL_DRAW_FRAMEBUFFER` or
+            `GL_READ_FRAMEBUFFER`. If `None`, the `fbo` object's `target`
+            property will be used and remain unchanged.
+
+        """
+        # check if the target is valid, reassign target if specified
+        if target is not None:
+            if target not in (
+                    GL.GL_FRAMEBUFFER,
+                    GL.GL_READ_FRAMEBUFFER,
+                    GL.GL_DRAW_FRAMEBUFFER):
+                raise TypeError(
+                    "Value for `target` must be type `GLenum` or `None`.")
+            self.target = target
+
+        GL.glBindFramebuffer(self.target, self.name)
+        self._isBound = True  # assume it is, querying the state is not an option
+
+        # enable sRGB mode if required
+        if self.sRGB:
+            GL.glEnable(GL.GL_FRAMEBUFFER_SRGB)
+        else:
+            GL.glDisable(GL.GL_FRAMEBUFFER_SRGB)
+
+    def attachBuffer(self, attachPoint, imageBuffer):
+        """Attach an image to a specified attachment point of `fbo`.
+
+        Parameters
+        ----------
+        attachPoint : :obj:`int`
+            Attachment point for 'imageBuffer' (e.g. GL.GL_COLOR_ATTACHMENT0).
+        imageBuffer : :obj:`TexImage2DInfo` or :obj:`RenderbufferInfo`
+            Framebuffer-attachable buffer descriptor.
+
+        Examples
+        --------
+        Attach an image to attachment points on the framebuffer::
+
+            GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, fbo)
+            attachBuffer(GL.GL_COLOR_ATTACHMENT0, colorTex)
+            attachBuffer(GL.GL_DEPTH_STENCIL_ATTACHMENT, depthRb)
+            GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, lastBoundFbo)
+
+            # same as above, but using a context manager
+            with useFBO(fbo):
+                attachBuffer(GL.GL_COLOR_ATTACHMENT0, colorTex)
+                attachBuffer(GL.GL_DEPTH_STENCIL_ATTACHMENT, depthRb)
+
+        """
+        if self.sizeHint is not None:
+            fboW, fboH = self.sizeHint
+            bufferW, bufferH = imageBuffer.size
+
+            # check if the attachment has the same dimensions as the hint
+            sizeOk = fboW == bufferW and fboH == bufferH
+
+            # raise an error if not
+            if not sizeOk:
+                raise ValueError(
+                    "Buffer does not match the dimensions of `sizeHint`. "
+                    "Expected `({}, {})`, got `({}, {})`.".format(
+                        fboW, fboH, bufferW, bufferH))
+
+        # We should also support binding GL names specified as integers. Right
+        # now you need as descriptor which contains the target and name for the
+        # buffer.
+        if isinstance(imageBuffer, (TexImage2DInfo, TexImage2DMultisampleInfo)):
+            GL.glFramebufferTexture2D(
+                GL.GL_FRAMEBUFFER,
+                attachPoint,
+                imageBuffer.target,
+                imageBuffer.name, 0)
+        elif isinstance(imageBuffer, RenderbufferInfo):
+            GL.glFramebufferRenderbuffer(
+                GL.GL_FRAMEBUFFER,
+                attachPoint,
+                imageBuffer.target,
+                imageBuffer.name)
+
+        # keep a reference to the attachment in the FBo object
+        self.attachments[attachPoint] = imageBuffer
+
+    def detachBuffer(self, attachPoint):
+        """Detach an image buffer from a given FBO attachment point. Framebuffer
+        must be previously bound.
+
+        Parameters
+        ----------
+        attachPoint : :obj:`int`
+            Attachment point to free (e.g. GL_COLOR_ATTACHMENT0).
+
+        """
+        # get the object representing the attachment at the attachment point
+        try:
+            imageBuffer = self.attachments[attachPoint]
+        except KeyError:  # the framebuffer does not have the attachment
+            return
+
+        # depending on the type of attachment, set it to zero to clear it
+        if isinstance(imageBuffer, (TexImage2DInfo, TexImage2DMultisampleInfo)):
+            GL.glFramebufferTexture2D(
+                GL.GL_FRAMEBUFFER,
+                attachPoint,
+                imageBuffer.target,
+                0, 0)
+        elif isinstance(imageBuffer, RenderbufferInfo):
+            GL.glFramebufferRenderbuffer(
+                GL.GL_FRAMEBUFFER,
+                attachPoint,
+                imageBuffer.target, 0)
+
+        # remove the reference to the attachment
+        del self.attachments[attachPoint]
+
     @property
     def isBound(self):
         """`True` if the framebuffer was previously bound using the `bindFBO`
         function."""
         return self._isBound
+
+    def blitFBO(self, srcRect=None, dstRect=None, filter=GL.GL_LINEAR,
+            flags=GL.GL_COLOR_BUFFER_BIT):
+        """Copy a block of pixels between framebuffers via blitting. Read and
+        draw framebuffers must be bound prior to calling this function. Beware,
+        the scissor box and viewport are changed when this is called to dstRect.
+
+        Parameters
+        ----------
+        srcRect : :obj:`list` of :obj:`int`
+            List specifying the top-left and bottom-right coordinates of the
+            region to copy from (<X0>, <Y0>, <X1>, <Y1>).
+        dstRect : :obj:`list` of :obj:`int` or :obj:`None`
+            List specifying the top-left and bottom-right coordinates of the
+            region to copy to (<X0>, <Y0>, <X1>, <Y1>). If None, srcRect is used
+            for dstRect.
+        filter : :obj:`int`
+            Interpolation method to use if the image is stretched, default is
+            GL_LINEAR, but can also be GL_NEAREST.
+        flags : :obj:`int`
+            Values can be either GL_COLOR_BUFFER_BIT, GL_DEPTH_BUFFER_BIT or
+            GL_STENCIL_BUFFER_BIT. Flags can be ORed together for blitting
+            multiple planes simultaneously.
+
+        Returns
+        -------
+        None
+
+        Examples
+        --------
+        Blit pixels from on FBO to another::
+
+            # bind framebuffer to read pixels from
+            GL.glBindFramebuffer(GL.GL_READ_FRAMEBUFFER, srcFbo)
+
+            # bind framebuffer to draw pixels to
+            GL.glBindFramebuffer(GL.GL_DRAW_FRAMEBUFFER, dstFbo)
+
+            gltools.blitFBO((0,0,800,600), (0,0,800,600))
+
+            # unbind both read and draw buffers
+            GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
+
+        """
+        # in most cases srcRect and dstRect will be the same.
+        if dstRect is None:
+            dstRect = srcRect
+
+        GL.glBlitFramebuffer(srcRect[0], srcRect[1], srcRect[2], srcRect[3],
+                             dstRect[0], dstRect[1], dstRect[2], dstRect[3],
+                             flags, filter)
 
     # @property
     # def readBuffer(self):
@@ -227,6 +440,12 @@ class FramebufferInfo(object):
             pass
 
 
+# bind these to unbind user created framebuffers
+defaultFramebuffer = Framebuffer(0, GL.GL_FRAMEBUFFER)
+defaultReadFramebuffer = Framebuffer(0, GL.GL_READ_FRAMEBUFFER)
+defaultDrawFramebuffer = Framebuffer(0, GL.GL_DRAW_FRAMEBUFFER)
+
+
 def createFBO(attachments=None, sizeHint=None, sRGB=False, bindAfter=False):
     """Create a Framebuffer Object.
 
@@ -308,41 +527,11 @@ def createFBO(attachments=None, sizeHint=None, sRGB=False, bindAfter=False):
         frameBuffer = createFBO().name
 
     """
-    fboId = GL.GLuint()
-    GL.glGenFramebuffers(1, ctypes.byref(fboId))
-
-    # create a framebuffer descriptor
-    fboDesc = FramebufferInfo(
-        fboId.value, GL.GL_FRAMEBUFFER, sizeHint, sRGB, dict())
-
-    # initial attachments for this framebuffer
-    if attachments is not None:
-        # keep the OpenGL framebuffer state
-        readFBO = drawFBO = None
-        if not bindAfter:
-            readFBO = GL.GLint()
-            drawFBO = GL.GLint()
-            GL.glGetIntegerv(
-                GL.GL_READ_FRAMEBUFFER_BINDING, ctypes.byref(readFBO))
-            GL.glGetIntegerv(
-                GL.GL_DRAW_FRAMEBUFFER_BINDING, ctypes.byref(drawFBO))
-
-        # bind the new FBO
-        GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, fboId)
-        for attachPoint, imageBuffer in attachments.items():
-            attachBuffer(fboDesc, attachPoint, imageBuffer)
-
-        # restore the previous state
-        if not bindAfter:
-            if readFBO.value == drawFBO.value:
-                GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, readFBO.value)
-            else:
-                GL.glBindFramebuffer(GL.GL_READ_FRAMEBUFFER, readFBO.value)
-                GL.glBindFramebuffer(GL.GL_DRAW_FRAMEBUFFER, drawFBO.value)
-        else:
-            fboDesc._isBound = True
-
-    return fboDesc
+    return Framebuffer.create(
+        attachments=attachments,
+        sizeHint=sizeHint,
+        sRGB=sRGB,
+        bindAfter=bindAfter)
 
 
 # def createFromExistingFBO(fboId):
@@ -354,7 +543,7 @@ def attachBuffer(fbo, attachPoint, imageBuffer):
 
     Parameters
     ----------
-    fbo : FramebufferInfo
+    fbo : Framebuffer
         Framebuffer to attach the image buffer to.
     attachPoint :obj:`int`
         Attachment point for 'imageBuffer' (e.g. GL.GL_COLOR_ATTACHMENT0).
@@ -376,37 +565,10 @@ def attachBuffer(fbo, attachPoint, imageBuffer):
             attachBuffer(GL.GL_DEPTH_STENCIL_ATTACHMENT, depthRb)
 
     """
-    if fbo.sizeHint is not None:
-        fboW, fboH = fbo.sizeHint
-        bufferW, bufferH = imageBuffer.size
-
-        # check if the attachment has the same dimensions as the hint
-        sizeOk = fboW == bufferW and fboH == bufferH
-
-        # raise an error if not
-        if not sizeOk:
-            raise ValueError(
-                "Buffer does not match the dimensions of `sizeHint`. "
-                "Expected `({}, {})`, got `({}, {})`.".format(
-                    fboW, fboH, bufferW, bufferH))
-
-    # We should also support binding GL names specified as integers. Right now
-    # you need as descriptor which contains the target and name for the buffer.
-    if isinstance(imageBuffer, (TexImage2DInfo, TexImage2DMultisampleInfo)):
-        GL.glFramebufferTexture2D(
-            GL.GL_FRAMEBUFFER,
-            attachPoint,
-            imageBuffer.target,
-            imageBuffer.name, 0)
-    elif isinstance(imageBuffer, RenderbufferInfo):
-        GL.glFramebufferRenderbuffer(
-            GL.GL_FRAMEBUFFER,
-            attachPoint,
-            imageBuffer.target,
-            imageBuffer.name)
-
-    # keep a reference to the attachment in the FBo object
-    fbo.attachments[attachPoint] = imageBuffer
+    if isinstance(fbo, Framebuffer):
+        fbo.attachBuffer(attachPoint=attachPoint, imageBuffer=imageBuffer)
+    else:
+        raise TypeError("Value for parameter `fbo` must be type `Framebuffer`.")
 
 
 def detachBuffer(fbo, attachPoint):
@@ -415,33 +577,16 @@ def detachBuffer(fbo, attachPoint):
 
     Parameters
     ----------
-    fbo : FramebufferInfo
+    fbo : Framebuffer
         Framebuffer to detach an attachment from.
-    attachPoint :obj:`int`
+    attachPoint : :obj:`int`
         Attachment point to free (e.g. GL_COLOR_ATTACHMENT0).
 
     """
-    # get the object representing the attachment at the attachment point
-    try:
-        imageBuffer = fbo.attachments[attachPoint]
-    except KeyError:  # the framebuffer does not have the attachment
-        return
-
-    # depending on the type of attachment, set it to zero to clear it
-    if isinstance(imageBuffer, (TexImage2DInfo, TexImage2DMultisampleInfo)):
-        GL.glFramebufferTexture2D(
-            GL.GL_FRAMEBUFFER,
-            attachPoint,
-            imageBuffer.target,
-            0, 0)
-    elif isinstance(imageBuffer, RenderbufferInfo):
-        GL.glFramebufferRenderbuffer(
-            GL.GL_FRAMEBUFFER,
-            attachPoint,
-            imageBuffer.target, 0)
-
-    # remove the reference to the attachment
-    del fbo.attachments[attachPoint]
+    if isinstance(fbo, Framebuffer):
+        fbo.detachBuffer(attachPoint=attachPoint)
+    else:
+        raise TypeError("Value for parameter `fbo` must be type `Framebuffer`.")
 
 
 def attach(fbo, attachPoint, imageBuffer):
@@ -631,53 +776,6 @@ def blitFBO(srcRect, dstRect=None, filter=GL.GL_LINEAR,
                          flags, filter)
 
 
-@contextmanager
-def useFBO(fbo):
-    """Context manager for Framebuffer Object bindings. This function yields
-    the framebuffer name as an integer.
-
-    Parameters
-    ----------
-    fbo :obj:`int` or :obj:`Framebuffer`
-        OpenGL Framebuffer Object name/ID or descriptor.
-
-    Yields
-    -------
-    int
-        OpenGL name of the framebuffer bound in the context.
-
-    Examples
-    --------
-    Using a framebuffer context manager::
-
-        # FBO bound somewhere deep in our code
-        GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, someOtherFBO)
-
-        ...
-
-        # create a new FBO, but we have no idea what the currently bound FBO is
-        fbo = createFBO()
-
-        # use a context to bind attachments
-        with bindFBO(fbo):
-            attachBuffer(GL.GL_COLOR_ATTACHMENT0, colorTex)
-            attachBuffer(GL.GL_DEPTH_ATTACHMENT, depthRb)
-            attachBuffer(GL.GL_STENCIL_ATTACHMENT, depthRb)
-            fboComplete = isComplete()
-
-        # someOtherFBO is still bound!
-
-    """
-    prevFBO = GL.GLint()
-    GL.glGetIntegerv(GL.GL_FRAMEBUFFER_BINDING, ctypes.byref(prevFBO))
-    toBind = fbo.name if isinstance(fbo, FramebufferInfo) else int(fbo)
-    GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, toBind)
-    try:
-        yield toBind
-    finally:
-        GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, prevFBO.value)
-
-
 def bindFBO(fbo, target=None):
     """Bind the framebuffer object.
 
@@ -692,25 +790,10 @@ def bindFBO(fbo, target=None):
         will be used and remain unchanged.
 
     """
-    if not isinstance(fbo, FramebufferInfo):
-        raise TypeError("Value for `fbo` must be type `FramebufferInfo`.")
-
-    # check if the target is valid, reassign target if specified
-    if target is not None:
-        if target not in (GL.GL_FRAMEBUFFER, GL.GL_READ_FRAMEBUFFER,
-                          GL.GL_DRAW_FRAMEBUFFER):
-            raise TypeError(
-                "Value for `target` must be type `GLenum` or `None`.")
-        fbo.target = target
-
-    GL.glBindFramebuffer(fbo.target, fbo.name)
-    fbo._isBound = True  # assume it is, querying the state is not an option
-
-    # enable sRGB mode if required
-    if fbo.sRGB:
-        GL.glEnable(GL.GL_FRAMEBUFFER_SRGB)
+    if isinstance(fbo, Framebuffer):
+        fbo.bind(target=target)
     else:
-        GL.glDisable(GL.GL_FRAMEBUFFER_SRGB)
+        raise TypeError("Value for parameter `fbo` must be type `Framebuffer`.")
 
 
 def unbindFBO(fbo):
@@ -719,22 +802,22 @@ def unbindFBO(fbo):
 
     Parameters
     ----------
-    fbo : FramebufferInfo or None
+    fbo : Framebuffer or None
         Framebuffer object to bind.
 
     """
-    if not fbo._isBound:
-        raise RuntimeError(
-            "Framebuffer has not been previously bound with `bindFBO`.")
-
-    GL.glBindFramebuffer(fbo.target, 0)
-
-    if fbo.sRGB:
-        GL.glEnable(GL.GL_FRAMEBUFFER_SRGB)
+    if isinstance(fbo, Framebuffer):
+        target = fbo.target
+        if target == GL.GL_FRAMEBUFFER:
+            defaultFramebuffer.bind()
+        elif target == GL.GL_DRAW_FRAMEBUFFER:
+            defaultDrawFramebuffer.bind()
+        elif target == GL.GL_READ_FRAMEBUFFER:
+            defaultReadFramebuffer.bind()
+        else:
+            raise ValueError("Framebuffer `target` is not valid.")
     else:
-        GL.glDisable(GL.GL_FRAMEBUFFER_SRGB)
-
-    fbo._isBound = False
+        raise TypeError("Value for parameter `fbo` must be type `Framebuffer`.")
 
 
 def drawBuffers(buffers=None):

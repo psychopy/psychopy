@@ -54,7 +54,7 @@ __all__ = [
     'endQuery',
     'getQuery',
     'getAbsTimeGPU',
-    'FramebufferInfo',
+    'Framebuffer',
     'createFBO',
     'attachBuffer',
     'detachBuffer',
