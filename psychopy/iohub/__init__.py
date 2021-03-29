@@ -32,6 +32,7 @@ except ImportError:
 except Exception:
     printExceptionDetailsToStdErr()
 
+from psychopy.iohub.constants import EventConstants, KeyboardConstants, MouseConstants
 
 lazyImports = """
 from psychopy.iohub.client.connect import launchHubServer
