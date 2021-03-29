@@ -6,10 +6,9 @@ eyetracker.hw.tobii.EyeTracker:
             first_char_alpha: True
     enable: IOHUB_BOOL
     model_name:
-        IOHUB_LIST:
-            valid_values: [Any Pro Model, Nano, Fusion, Spectrum, T120, X120, TX300, X2, X3]
-            min_length: 1
-            max_length: 1
+        IOHUB_STRING:
+            min_length: 0
+            max_length: 64
     serial_number:
         IOHUB_STRING:
             min_length: 0
@@ -24,13 +23,11 @@ eyetracker.hw.tobii.EyeTracker:
     monitor_event_types: [BinocularEyeSampleEvent,]
     runtime_settings:
         sampling_rate:
-            IOHUB_LIST:
-                valid_values: [30, 60, 120, 250, 300, 1200]
-                min_length: 1
-                max_length: 1
+            IOHUB_INT:
+                min: 30
+                max: 1200
         track_eyes: [BINOCULAR,]
     calibration:
-        minimize_psychopy_win: IOHUB_BOOL
         # The Tobii ioHub Common Eye Tracker Interface currently support 
         # a 3, 5 and 9 point calibration mode.
         # THREE_POINTS,FIVE_POINTS,NINE_POINTS

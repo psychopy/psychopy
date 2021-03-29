@@ -27,7 +27,7 @@ eyetracker.hw.tobii.EyeTracker:
     # The model name of the Tobii device that you wish to connect to can be specified here,
     # and only Tobii systems matching that model name will be considered as possible candidates for connection.
     # If you only have one Tobii system connected to the computer, this field can just be left empty.
-    model_name: Any Pro Model
+    model_name:
 
     # The serial number of the Tobii device that you wish to connect to can be specified here,
     # and only the Tobii system matching that serial number will be connected to, if found.
@@ -36,11 +36,6 @@ eyetracker.hw.tobii.EyeTracker:
     serial_number:
 
     calibration:
-        # Should the PsychoPy Window created by the PsychoPy Process be minimized
-        # before displaying the Calibration Window created by the ioHub Process.
-        #
-        minimize_psychopy_win: False
-
         # The Tobii ioHub Common Eye Tracker Interface currently support 
         # a 3, 5 and 9 point calibration mode.
         # THREE_POINTS,FIVE_POINTS,NINE_POINTS
@@ -150,7 +145,8 @@ eyetracker.hw.tobii.EyeTracker:
     
     runtime_settings:
         # The supported sampling rates for Tobii are model dependent. 
-        # Using a default of 60 Hz, with the assumption it is the most common.
+        # If the sampling rate specified here is not supported by the model being used,
+        # the Tobii device will continue to use it's current sampling rate.
         sampling_rate: 60
 
         # Tobii supports BINOCULAR tracking mode only.
