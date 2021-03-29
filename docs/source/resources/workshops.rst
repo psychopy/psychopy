@@ -38,7 +38,7 @@ simulation, how to analyse data or how to alter a large number of image files in
 `PsychoPy`_ is a modern, powerful, easy-to-use software package for conducting 
 studies in psychophysics, neuroimaging and experimental psychology. It's become 
 the package of choice in very many labs worldwide (see 
-`PsychoPy usage stats <http://www.psychopy.org/usage.php>`_). It comes with a 
+`PsychoPy usage stats <https://www.psychopy.org/usage.php>`_). It comes with a
 graphical interface (Builder) as well as a `Python` scripting interface (Coder). 
 The workshops we run cater to various audiences, according to whether you want 
 to learn more about programming (most flexible) or about the graphical interface 
@@ -94,7 +94,7 @@ All sessions subject to change. Sessions in **green** are optional self-paced se
    :align: center
 
 .. _Python: http://www.python.org/
-.. _PsychoPy: http://www.psychopy.org/
+.. _PsychoPy: https://www.psychopy.org/
 
 
 .. _pampr:

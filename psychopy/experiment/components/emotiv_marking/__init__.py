@@ -25,6 +25,9 @@ _localized.update({'marker_label': _translate('Marker Label'),
 
 
 class EmotivMarkingComponent(BaseComponent):  # or (VisualComponent)
+
+    targets = ['PsychoPy']
+
     def __init__(self, exp, parentName, name='eeg_marker',
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1,
@@ -42,7 +45,7 @@ class EmotivMarkingComponent(BaseComponent):  # or (VisualComponent)
         msg = _translate(
             "Label of the marker to be inserted (interpreted as a string)")
         self.params['marker_label'] = Param(
-            label, valType='str', categ='Basic',
+            label, valType='str', inputType="single", categ='Basic',
             updates='constant', allowedUpdates=_allow2[:],
             hint=msg,
             label=_localized['marker_label'])
@@ -50,14 +53,14 @@ class EmotivMarkingComponent(BaseComponent):  # or (VisualComponent)
         msg = _translate(
             "Value of the marker to be inserted (interpreted as a string)")
         self.params['marker_value'] = Param(
-            value, valType='str', categ='Basic',
+            value, valType='str', inputType="single", categ='Basic',
             updates='constant', allowedUpdates=_allow2[:],
             hint=msg,
             label=_localized['marker_value'])
 
         msg = _translate("Check this box to include a stop marker")
         self.params['stop_marker'] = Param(
-            stop_marker, valType='bool', categ='Basic',
+            stop_marker, valType='bool', inputType="bool", categ='Basic',
             allowedVals=[True, False],
             updates='constant', allowedUpdates=[],
             hint=msg,

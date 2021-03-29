@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 """PsychoPy Version Chooser to specify version within experiment scripts.
 """
@@ -17,6 +17,7 @@ import psychopy  # for currently loaded version
 from psychopy import prefs
 from psychopy import logging, tools, web, constants
 from pkg_resources import parse_version
+from packaging.version import parse as parse_version
 if constants.PY3:
     from importlib import reload
 
@@ -184,8 +185,9 @@ def versionOptions(local=True):
     majorMinor = sorted(
         list({'.'.join(v.split('.')[:2])
               for v in availableVersions(local=local)}),
+        key=parse_version, 
         reverse=True)
-    major = sorted(list({v.split('.')[0] for v in majorMinor}), reverse=True)
+    major = sorted(list({v.split('.')[0] for v in majorMinor}), key=parse_version, reverse=True)
     special = ['latest']
     return special + major + majorMinor
 
@@ -200,7 +202,7 @@ def _localVersions(forceCheck=False):
             tagInfo = subprocess.check_output(cmd.split(), cwd=VERSIONSDIR,
                                               env=constants.ENVIRON).decode('UTF-8')
             allTags = tagInfo.splitlines()
-            _localVersionsCache = sorted(allTags, reverse=True)
+            _localVersionsCache = sorted(allTags, key=parse_version, reverse=True)
     return _localVersionsCache
 
 
@@ -224,7 +226,7 @@ def _remoteVersions(forceCheck=False):
                            for line in tagInfo.splitlines()
                            if '^{}' not in line]
             # ensure most recent (i.e., highest) first
-            _remoteVersionsCache = sorted(allTags, reverse=True)
+            _remoteVersionsCache = sorted(allTags, key=parse_version, reverse=True)
     return _remoteVersionsCache
 
 
@@ -279,6 +281,7 @@ def availableVersions(local=True, forceCheck=False):
             return sorted(
                 list(set([psychopy.__version__] + _localVersions(forceCheck) + _remoteVersions(
                     forceCheck))),
+                key=parse_version,
                 reverse=True)
     except subprocess.CalledProcessError:
         return []

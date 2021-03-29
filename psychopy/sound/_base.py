@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
@@ -21,7 +21,7 @@ from sys import platform
 
 
 if platform == 'win32':
-    mediaLocation = "C:\\Windows\Media"
+    mediaLocation = "C:\\Windows\\Media"
 elif platform == 'darwin':
     mediaLocation = "/System/Library/Sounds/"
 elif platform.startswith("linux"):

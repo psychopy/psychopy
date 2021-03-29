@@ -12,24 +12,55 @@ from __future__ import absolute_import, division, print_function
 from builtins import chr
 from builtins import object
 import os
+import sys
+from pathlib import Path
 import math
 import numpy as np
 import unicodedata as ud
-from matplotlib import font_manager
-from psychopy.core import getTime
 
 from freetype import Face, FT_LOAD_RENDER, FT_LOAD_FORCE_AUTOHINT, FT_Exception
                                                      
 from .textureatlas import TextureAtlas
 
 from pyglet.gl import (glGenLists, glNewList, GL_COMPILE, GL_QUADS,
-                       glBegin, glTexCoord2f, glVertex2f, glEnd, glDeleteLists,
-                       glEndList, glTranslatef, glDeleteTextures)
+                       glBegin, glTexCoord2f, glVertex2f, glEnd,
+                       glEndList, glTranslatef)
+
+#  OS Font paths
+_X11FontDirectories = [
+    # an old standard installation point
+    "/usr/X11R6/lib/X11/fonts/TTF",
+    "/usr/X11/lib/X11/fonts",
+    # here is the new standard location for fonts
+    "/usr/share/fonts",
+    # documented as a good place to install new fonts
+    "/usr/local/share/fonts",
+    # common application, not really useful
+    "/usr/lib/openoffice/share/fonts/truetype",
+    ""
+]
+
+_OSXFontDirectories = [
+    "/Library/Fonts/",
+    "/Network/Library/Fonts",
+    "/System/Library/Fonts",
+    # fonts installed via MacPorts
+    "/opt/local/share/fonts",
+    ""
+]
+
+supportedExtensions = ['ttf', 'otf', 'ttc', 'dfont']
 
 log = math.log
 ceil = math.ceil
 
-
+def bytesToStr(s):
+    """Force to unicode if bytes"""
+    if type(s) == bytes:
+        return s.decode('utf-8')
+    else:
+        return s
+    
 def nearestPow2(n):
     return pow(2, int(log(n, 2) + 0.5))
 
@@ -181,16 +212,16 @@ class FontManager(object):
 
         font_paths = []
         for (dirpath, dirnames, filenames) in walk(font_dir):
-            ttf_files = [os.path.join(dirpath, fname)
-                         for fname in filenames
-                         if fname.lower().endswith('.ttf')]
+            ttf_files = []
+            for fname in filenames:
+                for fext in supportedExtensions:
+                    if fname.lower().endswith(fext):
+                        ttf_files.append(os.path.join(dirpath,fname))
             font_paths.extend(ttf_files)
             if not recursive:
                 break
 
         return self.addFontFiles(font_paths)
-
-        return fi
 
     # Class methods for FontManager below this comment should not need to be
     # used by user scripts in most situations. Accessing them is okay.
@@ -219,10 +250,8 @@ class FontManager(object):
                     fid, MonospaceFontAtlas(font_info, size, dpi))
                 font_atlas.createFontAtlas()
             if fm.font_store:
-                t1 = getTime()
                 fm.font_store.addFontAtlas(font_atlas)
-                t2 = getTime()
-                print('font store add atlas:', t2 - t1)
+
         return font_atlas
 
     def getFontInfo(self, refresh=False, monospace=True):
@@ -239,10 +268,48 @@ class FontManager(object):
             self.updateFontInfo(monospace)
         return self._available_font_info
 
+    def findFontFiles(self, folders=(), recursive=True):
+        """Search for font files in the folder (or system folders)
+    
+        Parameters
+        ----------
+        folders: iterable
+            folders to search. If empty then search typical system folders
+    
+        Returns
+        -------
+        list of pathlib.Path objects
+        """
+        searchPaths=folders
+        if searchPaths is None or len(searchPaths) == 0:
+            if sys.platform == 'win32':
+                searchPaths = []  # just leave it to matplotlib as below
+            elif sys.platform == 'darwin':
+                # on mac matplotlib doesn't include 'ttc' files (which are fine)
+                searchPaths = _OSXFontDirectories
+            elif sys.platform.startswith('linux'):
+                searchPaths = _X11FontDirectories
+        # search those folders
+        fontPaths = []
+        for thisFolder in searchPaths:
+            thisFolder = Path(thisFolder)
+            for thisExt in supportedExtensions:
+                if recursive:
+                    fontPaths.extend([str(p.absolute()) for p in thisFolder.rglob("*.{}".format(thisExt))])
+                else:
+                    fontPaths.extend([str(p.absolute()) for p in thisFolder.glob("*.{}".format(thisExt))])
+    
+        # if we failed let matplotlib have a go
+        if fontPaths:
+            return fontPaths
+        else:
+            from matplotlib import font_manager
+            return font_manager.findSystemFonts()
+
     def updateFontInfo(self, monospace_only=True):
         self._available_font_info.clear()
         del self.font_family_styles[:]
-        fonts_found = font_manager.findSystemFonts()
+        fonts_found = self.findFontFiles()
         self.addFontFiles(fonts_found, monospace_only)
 
     def booleansFromStyleName(self, style):
@@ -256,23 +323,22 @@ class FontManager(object):
         s = style.lower().strip()
         if s == 'regular':
             return False, False
-        if s.find(b'italic') >= 0 or s.find(b'oblique') >= 0:
+        if s.find('italic') >= 0 or s.find('oblique') >= 0:
             italic = True
-        if s.find(b'bold') >= 0:
+        if s.find('bold') >= 0:
             bold = True
         return bold, italic
 
     def _createFontInfo(self, fp, fface):
-        fns = (fface.family_name, fface.style_name)
+        fns = (bytesToStr(fface.family_name), bytesToStr(fface.style_name))
         if fns in self.font_family_styles:
             pass
         else:
-            self.font_family_styles.append(
-                (fface.family_name, fface.style_name))
+            self.font_family_styles.append(fns)
 
         styles_for_font_dict = self._available_font_info.setdefault(
-            fface.family_name, {})
-        fonts_for_style = styles_for_font_dict.setdefault(fface.style_name, [])
+            fns[0], {})
+        fonts_for_style = styles_for_font_dict.setdefault(fns[1], [])
         fi = FontInfo(fp, fface)
         fonts_for_style.append(fi)
         return fi
@@ -291,8 +357,8 @@ class FontInfo(object):
 
     def __init__(self, fp, face):
         self.path = fp
-        self.family_name = face.family_name
-        self.style_name = face.style_name
+        self.family_name = bytesToStr(face.family_name)
+        self.style_name = bytesToStr(face.style_name)
         self.charmaps = [charmap.encoding_name for charmap in face.charmaps]
         self.num_faces = face.num_faces
         self.num_glyphs = face.num_glyphs
@@ -301,7 +367,7 @@ class FontInfo(object):
         self.units_per_em = face.units_per_EM
         self.monospace = face.is_fixed_width
         self.charmap_id = face.charmap.index
-        self.label = "%s_%s" % (face.family_name, face.style_name)
+        self.label = "%s_%s" % (self.family_name, self.style_name)
         self.id = self.label
 
     def getID(self):
@@ -380,52 +446,58 @@ class MonospaceFontAtlas(object):
         atlas_width = 2048
         atlas_height = pow2_area / atlas_width
         self.atlas = TextureAtlas(atlas_width, atlas_height * 2)
-        charcode, gindex = face.get_first_char()
-
-        while gindex:
+        for  gindex, charcode in face.get_chars():
             uchar = chr(charcode)
             if ud.category(uchar) not in (u'Zl', u'Zp', u'Cc', u'Cf',
                                           u'Cs', u'Co', u'Cn'):
-                self.charcode2unichr[charcode] = uchar
-                face.load_char(uchar, FT_LOAD_RENDER | FT_LOAD_FORCE_AUTOHINT)
-                bitmap = face.glyph.bitmap
+                try:
+                    #face.set_char_size( int(self.size * 64), 0, 16*72, 72 )
+                    #face.set_pixel_sizes(int(self.size), int(self.size))
 
-                self.total_bitmap_area += bitmap.width * bitmap.rows
-                max_ascender = max(max_ascender, face.glyph.bitmap_top)
-                max_descender = max(
-                    max_descender, bitmap.rows - face.glyph.bitmap_top)
-                max_tile_width = max(max_tile_width, bitmap.width)
-                max_w = max(bitmap.width, max_w)
-                max_h = max(bitmap.rows, max_h)
+                    face.load_char(uchar, FT_LOAD_RENDER | FT_LOAD_FORCE_AUTOHINT)
+                    bitmap = face.glyph.bitmap
+    
+                    self.charcode2unichr[charcode] = uchar
+    
+                    self.total_bitmap_area += bitmap.width * bitmap.rows
+                    max_ascender = max(max_ascender, face.glyph.bitmap_top)
+                    max_descender = max(
+                        max_descender, bitmap.rows - face.glyph.bitmap_top)
+                    max_tile_width = max(max_tile_width, bitmap.width)
+                    max_w = max(bitmap.width, max_w)
+                    max_h = max(bitmap.rows, max_h)
+                    x, y, w, h = self.atlas.get_region(
+                        bitmap.width + 2, bitmap.rows + 2)
+    
+                    if x < 0:
+                        msg = ("MonospaceFontAtlas.get_region failed "
+                               "for: {}, requested area: {},{}. Atlas Full!")
+                        vals = charcode, bitmap.width + 2, bitmap.rows + 2
+                        raise Exception(msg.format(vals))
+                    x, y = x + 1, y + 1
+                    w, h = w - 2, h - 2
+                    data = np.array(bitmap.buffer[:(bitmap.rows * bitmap.width)],
+                                    dtype=np.ubyte).reshape(h, w, 1)
+                    self.atlas.set_region((x, y, w, h), data)
+    
+                    self.charcode2glyph[charcode] = dict(
+                        offset=(face.glyph.bitmap_left, face.glyph.bitmap_top),
+                        size=(w, h),
+                        atlas_coords=(x, y, w, h),
+                        texcoords=[x, y, x + w, y + h],
+                        index=gindex,
+                        unichar=uchar)
+                except (FT_Exception):
+                    print("Warning: TextBox stim could not load font face for charcode / uchar / category: ",  charcode, " / ", uchar, " / ", ud.category(uchar))
 
-                x, y, w, h = self.atlas.get_region(
-                    bitmap.width + 2, bitmap.rows + 2)
-
-                if x < 0:
-                    msg = ("MonospaceFontAtlas.get_region failed "
-                           "for: {0}, requested area: {1}. Atlas Full!")
-                    vals = charcode, (bitmap.width + 2, bitmap.rows + 2)
-                    raise Exception(msg.format(vals))
-                x, y = x + 1, y + 1
-                w, h = w - 2, h - 2
-                data = np.array(
-                    bitmap._FT_Bitmap.buffer[:(bitmap.rows * bitmap.width)],
-                    dtype=np.ubyte).reshape(h, w, 1)
-                self.atlas.set_region((x, y, w, h), data)
-
-                self.charcode2glyph[charcode] = dict(
-                    offset=(face.glyph.bitmap_left, face.glyph.bitmap_top),
-                    size=(w, h),
-                    atlas_coords=(x, y, w, h),
-                    texcoords=[x, y, x + w, y + h],
-                    index=gindex,
-                    unichar=uchar)
-
-            charcode, gindex = face.get_next_char(charcode, gindex)
+            #charcode, gindex = face.get_next_char(charcode, gindex)
 
         self.max_ascender = max_ascender
         self.max_descender = max_descender
-        self.max_tile_width = max_tile_width
+        
+        #print('linearHoriAdvance:', face.glyph.linearHoriAdvance/65536)
+        #print('max_advance:', face.max_advance_width/64)
+        self.max_tile_width = int(face.glyph.metrics.horiAdvance/64)
         self.max_tile_height = max_ascender + max_descender
         self.max_bitmap_size = max_w, max_h
 
@@ -439,7 +511,7 @@ class MonospaceFontAtlas(object):
     def createDisplayLists(self):
         glyph_count = len(self.charcode2unichr)
         max_tile_width = self.max_tile_width
-        max_tile_height = self.max_tile_height
+        #max_tile_height = self.max_tile_height
         display_lists_for_chars = {}
 
         base = glGenLists(glyph_count)
@@ -456,7 +528,7 @@ class MonospaceFontAtlas(object):
             glyph['texcoords'] = [gx1, gy1, gx2, gy2]
 
             glNewList(dl_index, GL_COMPILE)
-            if uchar not in [u'\t', u'\n']:
+            if uchar not in ['\t', '\n']:
                 glBegin(GL_QUADS)
                 x1 = glyph['offset'][0]
                 x2 = x1 + glyph['size'][0]
@@ -480,14 +552,13 @@ class MonospaceFontAtlas(object):
             import os
             file_name = os.path.join(os.getcwd(),
                                      self.getID().lower().replace(u' ', u'_') + '.png')
-        from scipy import misc
+        from PIL import Image   
         if self.atlas is None:
             self.loadAtlas()
         if self.atlas.depth == 1:
-            misc.imsave(file_name, self.atlas.data.reshape(
-                self.atlas.data.shape[:2]))
+            Image.fromarray(self.atlas.data.reshape(self.atlas.data.shape[:2])).save(file_name)
         else:
-            misc.imsave(file_name, self.atlas.data)
+            Image.fromarray(self.atlas.data).save(file_name)
 
     def __del__(self):
         self._face = None

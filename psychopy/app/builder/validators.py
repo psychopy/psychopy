@@ -2,13 +2,15 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """
 Module containing validators for various parameters.
 """
 from __future__ import absolute_import, print_function
+
+import re
 
 from past.builtins import basestring
 import wx
@@ -19,6 +21,9 @@ from . import experiment
 from .localizedStrings import _localized
 from pkg_resources import parse_version
 
+from ...visual.textbox2.fontmanager import FontManager
+from ...data.utils import listFromString
+
 if parse_version(wx.__version__) < parse_version('4.0.0a1'):
     _ValidatorBase = wx.PyValidator
 else:
@@ -26,6 +31,8 @@ else:
 
 from pyglet.window import key
 
+
+fontMGR = FontManager()
 
 class BaseValidator(_ValidatorBase):
     """
@@ -105,6 +112,10 @@ class NameValidator(BaseValidator):
             sameAsOldName = bool(newName == parent.params['name'].val)
             if used and not sameAsOldName:
                 msg = _translate("That name is in use (by %s). Try another name.") % _translate(used)
+                # NOTE: formatted string literal doesn't work with _translate().
+                # So, we have to call format() after _translate() is applied.
+                msg = _translate("That name is in use (by {used}). Try another name."
+                    ).format(used = _translate(used))
                 OK = False
             elif not namespace.isValid(newName):  # valid as a var name
                 msg = _translate("Name must be alpha-numeric or _, no spaces")
@@ -168,36 +179,33 @@ class CodeSnippetValidator(BaseValidator):
             except KeyError:
                 pass
 
+        # Get attributes of value control
         control = self.GetWindow()
         if not hasattr(control, 'GetValue'):
             return '', True
         val = control.GetValue()  # same as parent.params[self.fieldName].val
         if not isinstance(val, basestring):
             return '', True
-
         field = self.fieldName
+        allowedUpdates = ['set every repeat', 'set every frame']
+        # Set initials
         msg, OK = '', True  # until we find otherwise
         _highlightParamVal(parent)
+        # What valType should code be treated as?
         codeWanted = psychopy.experiment.utils.unescapedDollarSign_re.search(val)
         isCodeField = bool(parent.params[self.fieldName].valType == 'code')
-        allowedUpdates = ['set every repeat', 'set every frame']
 
-        # Check if variable incorrectly defined in correct answer
+        # Validate as list
         allKeyBoardKeys = list(key._key_names.values()) + [str(num) for num in range(10)]
-        if self.fieldName == 'correctAns' and not val.startswith('$'):
-            if ',' in val:  # comma separated
-                keyList = val.upper().split(',')
-                keyList = [thisKey.replace(' ', '') for thisKey in keyList if len(thisKey) > 0]
-            else:  # whitespace separated
-                keyList = val.upper().split(' ')
-                keyList = [thisKey.replace(' ', '') for thisKey in keyList if len(thisKey) > 0]
+        allKeyBoardKeys = [key.lower() for key in allKeyBoardKeys]
 
-            potentialVars = list(set(keyList) - set(allKeyBoardKeys))  # Elements of keyList not in allKeyBoardKeys
-            _highlightParamVal(parent, bool(potentialVars))
-            if len(potentialVars):
-                msg = _translate("It looks like your 'Correct answer' contains a variable - prepend variables with '$' e.g. ${val}")
-                msg = msg.format(val=potentialVars[0].lower())
+        # Check if it is a Google font
+        if self.fieldName == 'font' and not val.startswith('$'):
+            fontInfo = fontMGR.getFontNamesSimilar(val)
+            if not fontInfo:
+                msg = _translate("Font `{val}` not found locally, will attempt to retrieve from Google Fonts when this experiment next runs").format(val=val)
 
+        # Validate as code
         if codeWanted or isCodeField:
             # get var names from val, check against namespace:
             code = experiment.getCodeFromParamStr(val)
@@ -218,8 +226,10 @@ class CodeSnippetValidator(BaseValidator):
                             eval(code)
                         except NameError as e:
                             _highlightParamVal(parent, True)
-                            msg = _translate("Looks like your variable '{code}' in '{displayName}' should be set to update.")
-                            msg = msg.format(code=code, displayName=self.displayName)
+                            # NOTE: formatted string literal doesn't work with _translate().
+                            # So, we have to call format() after _translate() is applied.
+                            msg = _translate("Looks like your variable '{code}' in '{displayName}' should be set to update."
+                                ).format(code=code, displayName=self.displayName)
                         except SyntaxError as e:
                             msg = ''
 
@@ -240,12 +250,19 @@ class CodeSnippetValidator(BaseValidator):
 
                     for newName in names:
                         namespace = parent.frame.exp.namespace
-                        if newName in namespace.user or newName in namespace.builder:
+                        if newName in [*namespace.user, *namespace.builder, *namespace.constants]:
+                            # Continue if name is a variable
+                            continue
+                        if newName in [*namespace.nonUserBuilder, *namespace.numpy] and not re.search(newName+r"(?!\(\))", val):
+                            # Continue if name is an external function being called correctly
                             continue
                         used = namespace.exists(newName)
                         sameAsOldName = bool(newName == parent.params['name'].val)
                         if used and not sameAsOldName:
-                            msg = _translate("Variable name $%s is in use (by %s). Try another name.") % (newName, _translate(used))
+                            # NOTE: formatted string literal doesn't work with _translate().
+                            # So, we have to call format() after _translate() is applied.
+                            msg = _translate("Variable name ${newName} is in use (by {used}). Try another name."
+                                ).format(newName=newName, used=_translate(used))
                             # let the user continue if this is what they intended
                             OK = True
 

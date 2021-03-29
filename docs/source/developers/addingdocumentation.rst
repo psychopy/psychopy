@@ -10,7 +10,7 @@ To test that your doc source code (.rst file) does what you expect in terms of f
   $ cd /Users/jgray/code/psychopy/docs/
   $ make html
 
-Do this within your docs directory (requires sphinx to be installed, try "easy_install sphinx" if it's not working). That will add a build/html sub-directory.
+Do this within your docs directory (requires sphinx to be installed, try "pip install sphinx" if it's not working). That will add a build/html sub-directory.
 
 Then you can view your new doc in a browser, e.g., for me:
 

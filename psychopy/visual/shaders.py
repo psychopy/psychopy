@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """shaders programs for either pyglet or pygame
@@ -37,7 +37,6 @@ class Shader:
             status = c_int()
             GL.glGetShaderiv(shader, GL.GL_COMPILE_STATUS, byref(status))
             if not status.value:
-                print_log(shader)
                 GL.glDeleteShader(shader)
                 raise ValueError('Shader compilation failed')
             return shader

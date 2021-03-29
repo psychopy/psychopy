@@ -6,7 +6,7 @@ pygame to be installed).
 See demo_mouse.py and i{demo_joystick.py} for examples
 """
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 # 01/2011 modified by Dave Britton to get mouse event timing
@@ -20,7 +20,7 @@ import sys
 import string
 import copy
 import numpy
-from collections import namedtuple, OrderedDict, MutableMapping
+from collections import namedtuple, OrderedDict
 from psychopy.preferences import prefs
 
 # try to import pyglet & pygame and hope the user has at least one of them!
@@ -41,6 +41,11 @@ try:
     haveGLFW = True
 except ImportError:
     haveGLFW = False
+
+try:
+    from collections.abc import MutableMapping
+except ImportError:
+    from collections import MutableMapping
 
 if havePygame:
     usePygame = True  # will become false later if win not initialised
@@ -476,7 +481,6 @@ def getKeys(keyList=None, modifiers=False, timeStamped=False):
                          "getKeys(): timestamped={}, windowSystem={}, "
                          "modifiers={}"
                         .format(timeStamped, windowSystem, modifiers))
-
 
 
 def waitKeys(maxWait=float('inf'), keyList=None, modifiers=False,

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import ast
@@ -48,7 +48,7 @@ class pythonTransformer(ast.NodeTransformer):
     subtitutableOperations = []
 
     # operations from the math python module or builtin operations that exist in JavaScript Math:
-    directMathOperations = ['abs', 'min', 'max', 'round', 'ceil', 'fabs', 'floor', 'trunc', 'exp', 'log', 'log2', 'pow',
+    directMathOperations = ['abs', 'min', 'max', 'ceil', 'fabs', 'floor', 'trunc', 'exp', 'log', 'log2', 'pow',
                             'sqrt', 'acos', 'asin', 'atan2', 'cos', 'sin', 'tan', 'acosh', 'asinh', 'atanh', 'cosh',
                             'sinh', 'tanh']
 
@@ -244,7 +244,7 @@ def transformPsychoJsCode(psychoJsCode, addons):
         """
 
     if 'pad' in addons:
-        transformedPsychoJSCode += """
+        transformedPsychoJSCode += r"""
         // add-on: pad(n: number, width: number): string
         function pad(n, width) {
             width = width || 2;

@@ -55,7 +55,7 @@ Example usage
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 # 01/2011 modified by Dave Britton to get mouse event timing
@@ -167,6 +167,8 @@ class Keyboard:
                     self._buffers[devId] = buffer
                     self._devs[devId] = buffer.dev
 
+            
+            # Is this right, waiting if waitForStart=False??
             if not waitForStart:
                 self.start()
 
@@ -225,10 +227,57 @@ class Keyboard:
                 keys.append(thisKey)
         return keys
 
-    def waitKeys(maxWait=None, keyList=None, waitRelease=True, clear=True):
-        keys = []
-        raise NotImplementedError
+    def waitKeys(self, maxWait=float('inf'), keyList=None, waitRelease=True,
+                 clear=True):
+        """Same as `~psychopy.hardware.keyboard.Keyboard.getKeys`, 
+        but halts everything (including drawing) while awaiting keyboard input.
+    
+        :Parameters:
+            maxWait : any numeric value.
+                Maximum number of seconds period and which keys to wait for.
+                Default is float('inf') which simply waits forever.
+            keyList : **None** or []
+                Allows the user to specify a set of keys to check for.
+                Only keypresses from this set of keys will be removed from
+                the keyboard buffer. If the keyList is `None`, all keys will be
+                checked and the key buffer will be cleared completely.
+                NB, pygame doesn't return timestamps (they are always 0)
+            waitRelease: **True** or False
+                If True then we won't report any "incomplete" keypress but all
+                presses will then be given a `duration`. If False then all
+                keys will be presses will be returned, but only those with a
+                corresponding release will contain a `duration` value (others will
+                have `duration=None`
+            clear : **True** or False
+                Whether to clear the keyboard event buffer (and discard preceding
+                keypresses) before starting to monitor for new keypresses.
+    
+        Returns None if times out.
+    
+        """
+        timer = psychopy.core.Clock()
 
+        if clear:
+            self.clearEvents()
+
+        windows_list = psychopy.core.openWindows    
+        while timer.getTime() < maxWait:
+            keys = self.getKeys(keyList=keyList, waitRelease=waitRelease,
+                                clear=clear)
+            if keys:
+                return keys
+            
+            #pump pyglet events of window will become unresponsive
+            #on windows
+            for winWeakRef in windows_list:
+                win = winWeakRef()
+                if (win.winType == "pyglet" and hasattr(win.winHandle,
+                                                        "dispatch_events")):
+                    win.winHandle.dispatch_events()  # pump events
+    
+        logging.data('No keypress (maxWait exceeded)')
+        return None
+    
     def clearEvents(self, eventType=None):
         """"""
         if havePTB:
@@ -339,8 +388,8 @@ class _KeyBuffer(object):
         # create the PTB keyboard object and corresponding queue
         allInds, names, keyboards = hid.get_keyboard_indices()
 
-        self._keys = []
-        self._keysStillDown = []
+        self._keys = deque()
+        self._keysStillDown = deque()
 
         if kb_id == -1:
             self.dev = hid.Keyboard()  # a PTB keyboard object
@@ -379,7 +428,10 @@ class _KeyBuffer(object):
         self._processEvts()
         # if no conditions then no need to loop through
         if not keyList and not waitRelease:
-            keyPresses = deque(self._keys)
+            keyPresses = list(self._keysStillDown)
+            for k in list(self._keys):
+                if k not in keyPresses:
+                    keyPresses.append(k)
             if clear:
                 self._keys = deque()
                 self._keysStillDown = deque()

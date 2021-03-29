@@ -41,15 +41,16 @@ MAX_PACKET_SIZE = 64 * 1024
 # pylint: disable=protected-access
 # pylint: disable=broad-except
 
-def convertByteKeysToStr(rdict):
+def convertByteStrings(rdict):
     if rdict is None or len(rdict)==0:
         return rdict
     result = dict()
-    for k, i in rdict.items():
+    for k, i in rdict.items(): 
         if isinstance(k, bytes):
-            result[k.decode('utf-8')] = i
-        else:
-            result[k] = i
+            k = k.decode('utf-8')
+        if isinstance(i, bytes):
+            i = i.decode('utf-8')
+        result[k] = i
     return result
 
 class udpServer(DatagramServer):
@@ -105,7 +106,9 @@ class udpServer(DatagramServer):
 
             result = None
             try:
-                result = getattr(self, unicode(callable_name, 'utf-8'))
+                if isinstance(callable_name, bytes):
+                    callable_name = callable_name.decode('utf-8')
+                result = getattr(self, callable_name)
             except Exception:
                 print2err('RPC_ATTRIBUTE_ERROR')
                 printExceptionDetailsToStdErr()
@@ -114,15 +117,24 @@ class udpServer(DatagramServer):
 
             if result and callable(result):
                 funcPtr = result
+                nargs = []
+                if args:
+                    for a in args:
+                        if isinstance(a, bytes):
+                            nargs.append(a.decode('utf-8'))
+                        else:
+                            nargs.append(a)
+                    args = nargs
+                    
                 try:
                     if args is None and kwargs is None:
                         result = funcPtr()
                     elif args and kwargs:
-                        result = funcPtr(*args, **convertByteKeysToStr(kwargs))
+                        result = funcPtr(*args, **convertByteStrings(kwargs))
                     elif args and not kwargs:
                         result = funcPtr(*args)
                     elif not args and kwargs:
-                        result = funcPtr(**convertByteKeysToStr(kwargs))
+                        result = funcPtr(**convertByteStrings(kwargs))
                     edata = ('RPC_RESULT', callable_name, result)
                     self.sendResponse(edata, replyTo)
                     return True
@@ -169,7 +181,7 @@ class udpServer(DatagramServer):
                 class_kwargs = {}
                 if len(request):
                     class_kwargs = request.pop(0)
-                custom_tasks[tasklet_label] = task_cls(**convertByteKeysToStr(class_kwargs))
+                custom_tasks[tasklet_label] = task_cls(**convertByteStrings(class_kwargs))
                 custom_tasks[tasklet_label].start()
             except Exception:
                 print2err(
@@ -266,13 +278,14 @@ class udpServer(DatagramServer):
             result = []
             try:
                 if args and kwargs:
-                    result = method(*args, **convertByteKeysToStr(kwargs))
+                    result = method(*args, **convertByteStrings(kwargs))
                 elif args:
                     result = method(*args)
                 elif kwargs:
-                    result = method(**convertByteKeysToStr(kwargs))
+                    result = method(**convertByteStrings(kwargs))
                 else:
                     result = method()
+                #print2err("DEV_RPC_RESULT: ", result)
                 self.sendResponse(('DEV_RPC_RESULT', result), replyTo)
                 return True
             except Exception:
@@ -401,9 +414,7 @@ class udpServer(DatagramServer):
                     self.iohub._pyglet_window_hnds.remove(wh)
 
     def createExperimentSessionEntry(self, sessionInfoDict):
-        if PY3:
-            sessionInfoDict = {str(k, 'utf-8'): str(v, 'utf-8')
-                               for k, v in sessionInfoDict.items()}
+        sessionInfoDict = convertByteStrings(sessionInfoDict)
         self.iohub.sessionInfoDict = sessionInfoDict
         dsfile = self.iohub.dsfile
         if dsfile:
@@ -754,13 +765,13 @@ class ioServer(object):
                 if dev_cls_name not in self._hookDevice:
                     if dev_cls_name == 'Mouse':
                         dmouse = deviceDict['Mouse']
-                        mouseHookMonitor = DeviceMonitor(dmouse, 0.004)
+                        mouseHookMonitor = DeviceMonitor(dmouse, 0.001)
                         self.deviceMonitors.append(mouseHookMonitor)
                         dmouse._CGEventTapEnable(dmouse._tap, True)
                         self._hookDevice.append('Mouse')
                     if dev_cls_name == 'Keyboard':
                         dkeyboard = deviceDict['Keyboard']
-                        kbHookMonitor = DeviceMonitor(dkeyboard, 0.004)
+                        kbHookMonitor = DeviceMonitor(dkeyboard, 0.001)
                         self.deviceMonitors.append(kbHookMonitor)
                         dkeyboard._CGEventTapEnable(dkeyboard._tap, True)
                         self._hookDevice.append('Keyboard')

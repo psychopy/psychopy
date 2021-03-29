@@ -22,9 +22,11 @@ from psychopy.constants import PY3
 from pathlib import Path
 
 # MAIN is the root of the psychopy repo
-MAIN = Path(__file__).parent.parent
+MAIN = Path(__file__).parent.parent.parent.absolute()
 # versions repo is next to MAIN
 VERSIONS = MAIN.parent / 'versions'
+print("Building release version from: ", MAIN)
+print("To: ", VERSIONS)
 
 if sys.platform == "darwin":
     gitgui = ["git", "gui"]
@@ -94,18 +96,16 @@ def buildRelease(versionStr, noCommit=False, interactive=True):
 
     print("'versions' tags are now:", subprocess.check_output(
         ["git","tag"], cwd=VERSIONS).split())
-    ok = subprocess.call(["git", "push", "origin", "%s" % versionStr],
+    print('pushing: git push origin %s' %versionStr)
+    output = subprocess.check_output(["git", "push", "origin", "%s" % versionStr],
                          cwd=VERSIONS)
-    if ok:
-        print("Successfully pushed tag %s to origin" %versionStr)
-    else:
-        print("Failed to push tag %s origin" %versionStr)
+    print(output)
 
     # revert the __init__ file to non-ditribution state
-    print('reverting the main master branch: git reset --hard HEAD')
+    print('reverting the main master branch: git checkout HEAD psychopy/__init__.py ')
     print(subprocess.check_output(
-        ["git","reset", "--hard", "HEAD"],
-        cwd=MAIN))
+         ["git", "checkout", "HEAD", "psychopy/__init__.py"],
+         cwd=MAIN))
     return True  # success
 
 

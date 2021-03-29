@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
@@ -62,7 +62,10 @@ class cedrusButtonBoxComponent(KeyboardComponent):
             startEstim=startEstim, durationEstim=durationEstim)
 
         self.type = 'cedrusButtonBox'
-        self.url = "http://www.psychopy.org/builder/components/cedrusButtonBox.html"
+        self.url = "https://www.psychopy.org/builder/components/cedrusButtonBox.html"
+        self.order += ['forceEndRoutine',  # Basic tab
+                       'allowedKeys', 'store', 'storeCorrect', 'correctAns'  # Data tab
+                       ]
 
         self.exp.requirePsychopyLibs(['hardware'])
 
@@ -81,7 +84,7 @@ class cedrusButtonBoxComponent(KeyboardComponent):
         msg = _translate('Device number, if you have multiple devices which'
                          ' one do you want (0, 1, 2...)')
         self.params['deviceNumber'] = Param(
-            deviceNumber, valType='code', allowedTypes=[], categ='Hardware',
+            deviceNumber, valType='num', inputType="spin", allowedTypes=[], categ='Hardware',
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized['deviceNumber'])
@@ -96,7 +99,7 @@ class cedrusButtonBoxComponent(KeyboardComponent):
         msg = _translate('According to Cedrus the response box timer has '
                          'a drift - use with caution!')
         self.params['useBoxTimer'] = Param(
-            getReleaseTime, valType='bool', allowedVals=[True, False], categ='Hardware',
+            getReleaseTime, valType='bool', inputType="bool", allowedVals=[True, False], categ='Hardware',
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized['useBoxTimer'])

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 
@@ -55,20 +55,19 @@ class JoyButtonsComponent(BaseComponent):
             startEstim=startEstim, durationEstim=durationEstim)
 
         self.type = 'JoyButtons'
-        self.url = "http://www.psychopy.org/builder/components/joyButtons.html"
+        self.url = "https://www.psychopy.org/builder/components/joyButtons.html"
         self.exp.requirePsychopyLibs(['gui'])
 
-        # params
-
-        # NB name and timing params always come 1st
-        self.order = ['forceEndRoutine', 'allowedKeys', 'store',
-                      'storeCorrect', 'correctAns', 'deviceNumber']
+        self.order += ['forceEndRoutine',  # Basic tab
+                       'allowedKeys', 'store', 'storeCorrect', 'correctAns',  # Data tab
+                       'deviceNumber',  # Hardware tab
+                       ]
 
         msg = _translate(
             "A comma-separated list of button numbers, such as "
             "0,1,2,3,4")
         self.params['allowedKeys'] = Param(
-            allowedKeys, valType='code', allowedTypes=[], categ='Data',
+            allowedKeys, valType='list', inputType="single", allowedTypes=[], categ='Data',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat'],
             hint=(msg),
@@ -77,7 +76,7 @@ class JoyButtonsComponent(BaseComponent):
         msg = _translate("Choose which (if any) responses to store at the "
                          "end of a trial")
         self.params['store'] = Param(
-            store, valType='str', allowedTypes=[], categ='Data',
+            store, valType='str', inputType="choice", allowedTypes=[], categ='Data',
             allowedVals=['last key', 'first key', 'all keys', 'nothing'],
             updates='constant',
             hint=msg,
@@ -86,7 +85,7 @@ class JoyButtonsComponent(BaseComponent):
         msg = _translate("Should a response force the end of the Routine "
                          "(e.g end the trial)?")
         self.params['forceEndRoutine'] = Param(
-            forceEndRoutine, valType='bool', allowedTypes=[], categ='Basic',
+            forceEndRoutine, valType='bool', inputType="bool", allowedTypes=[], categ='Basic',
             updates='constant',
             hint=msg,
             label=_localized['forceEndRoutine'])
@@ -94,7 +93,7 @@ class JoyButtonsComponent(BaseComponent):
         msg = _translate("Do you want to save the response as "
                          "correct/incorrect?")
         self.params['storeCorrect'] = Param(
-            storeCorrect, valType='bool', allowedTypes=[], categ='Data',
+            storeCorrect, valType='bool', inputType="bool", allowedTypes=[], categ='Data',
             updates='constant',
             hint=msg,
             label=_localized['storeCorrect'])
@@ -104,7 +103,7 @@ class JoyButtonsComponent(BaseComponent):
             "correctAns column and use $correctAns to compare to the key "
             "press.")
         self.params['correctAns'] = Param(
-            correctAns, valType='str', allowedTypes=[], categ='Data',
+            correctAns, valType='list', inputType="single", allowedTypes=[], categ='Data',
             updates='constant',
             hint=msg,
             label=_localized['correctAns'])
@@ -113,7 +112,7 @@ class JoyButtonsComponent(BaseComponent):
             "A reaction time to a visual stimulus should be based on when "
             "the screen flipped")
         self.params['syncScreenRefresh'] = Param(
-            syncScreenRefresh, valType='bool', categ='Data',
+            syncScreenRefresh, valType='bool', inputType="bool", categ='Data',
             updates='constant',
             hint=msg,
             label=_localized['syncScreenRefresh'])
@@ -122,7 +121,7 @@ class JoyButtonsComponent(BaseComponent):
             "Device number, if you have multiple devices which"
             " one do you want (0, 1, 2...)")
         self.params['deviceNumber'] = Param(
-            deviceNumber, valType='code', allowedTypes=[], categ='Hardware',
+            deviceNumber, valType='int', inputType="int", allowedTypes=[], categ='Hardware',
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized['deviceNumber'])

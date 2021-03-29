@@ -18,15 +18,14 @@ import psychopy.scripts.psyexpCompile as psyexpCompile
 from psychopy.app import psychopyApp
 
 import codecs
-from os.path import split, join, expanduser
-
-home = expanduser("~")
+from pathlib import Path
 
 keepFiles = False
 
-thisDir = split(__file__)[0]
-psychoRoot = split(psychopy.__file__)[0]
-demosDir = join(psychoRoot, 'demos')
+thisDir = Path(__file__).parent
+psychoRoot = Path(psychopy.__file__).parent
+demosDir = psychoRoot / 'demos'
+testsDataDir = psychoRoot/'tests/data'
 
 
 class Test_PsychoJS_from_Builder(object):
@@ -35,9 +34,9 @@ class Test_PsychoJS_from_Builder(object):
 
     def setup_class(self):
         if keepFiles:
-            self.temp_dir = join(home, "Desktop", "tmp")
+            self.temp_dir = Path.home() / "Desktop" / "tmp"
         else:
-            self.temp_dir = mkdtemp(prefix='psychopy-test_psychojs')
+            self.temp_dir = Path(mkdtemp(prefix='psychopy-test_psychojs'))
 
         self.app = psychopyApp._app
         self.builderView = self.app.newBuilderFrame()
@@ -48,7 +47,7 @@ class Test_PsychoJS_from_Builder(object):
 
     def writeScript(self, exp, outFolder):
         script = exp.writeScript(expPath=outFolder, target="PsychoJS")
-        with codecs.open(join(outFolder,'index.html'), 'w',
+        with codecs.open(outFolder/'index.html', 'w',
                          encoding='utf-8-sig') as f:
             f.write(script)
 
@@ -66,21 +65,20 @@ class Test_PsychoJS_from_Builder(object):
     def test_stroop(self):
         #load experiment
         exp = experiment.Experiment()
-        exp.loadFromXML(join(demosDir, 'builder','stroop','stroop.psyexp'))
+        exp.loadFromXML(demosDir/'builder'/'Experiments'/'stroop'/'stroop.psyexp')
         # try once packaging up the js libs
         exp.settings.params['JS libs'].val = 'remote'
-        outFolder = join(self.temp_dir, 'stroopJS_remote/html')
+        outFolder = self.temp_dir/'stroopJS_remote/html'
         os.makedirs(outFolder)
         self.writeScript(exp, outFolder)
 
     def test_blocked(self):
         # load experiment
         exp = experiment.Experiment()
-        exp.loadFromXML(join(demosDir, 'builder', 'images_blocks',
-                             'blockedTrials.psyexp'))
+        exp.loadFromXML(demosDir/'builder'/'Design Templates'/'randomisedBlocks'/'randomisedBlocks.psyexp')
         # try once packaging up the js libs
         exp.settings.params['JS libs'].val = 'packaged'
-        outFolder = join(self.temp_dir, 'blocked_packaged/html')
+        outFolder = self.temp_dir/'blocked_packaged/html'
         os.makedirs(outFolder)
         self.writeScript(exp, outFolder)
         print("files in {}".format(outFolder))
@@ -88,12 +86,13 @@ class Test_PsychoJS_from_Builder(object):
     def test_JS_script_output(self):
         # Load experiment
         exp = experiment.Experiment()
-        exp.loadFromXML(join(demosDir, 'builder', 'stroop', 'stroop.psyexp'))
-        outFolder = join(self.temp_dir, 'stroopJS_output/html')
-        outFile = os.path.join(outFolder, 'stroop.js')
+        exp.loadFromXML(demosDir/'builder'/'Experiments'/'stroop'/'stroop.psyexp')
+        outFolder = self.temp_dir/'stroopJS_output/html'
+        outFile = outFolder/'stroop.js'
         os.makedirs(outFolder)
         # Compile scripts
-        assert(self.compileScript(infile=exp, version=None, outfile=outFile))
+        assert(self.compileScript(infile=exp, version=None,
+                                  outfile=str(outFile)))
         # Test whether files are written
         assert(os.path.isfile(os.path.join(outFolder, 'stroop.js')))
         assert(os.path.isfile(os.path.join(outFolder, 'stroop-legacy-browsers.js')))
@@ -115,6 +114,18 @@ class Test_PsychoJS_from_Builder(object):
         with pytest.raises(ValueError):
             self.builderView._getExportPref('DoesNotExist')
 
+    def test_onlineExtraResources(self):
+        """Open an experiment with resources in the format of 2020.5
+        (i.e. broken with \\ and with .. at start)"""
+        expFile = (testsDataDir /
+                  'broken2020_2_5_resources/broken_resources.psyexp')
+        exp = experiment.Experiment()
+        exp.loadFromXML(expFile)
+        resList = exp.settings.params['Resources'].val
+        print(resList)
+        assert type(resList) == list
+        assert (not resList[0].startswith('..'))
+
 
 if __name__ == '__main__':
     cls = Test_PsychoJS_from_Builder()
@@ -122,4 +133,5 @@ if __name__ == '__main__':
     cls.test_stroop()
     cls.test_blocked()
     cls.test_JS_script_output()
+    cls.test_onlineExtraResources()
     cls.teardown_class()

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
@@ -93,7 +93,7 @@ class MenuFrame(wx.Frame, themes.ThemeMixin):
     """A simple empty frame with a menubar, should be last frame closed on mac
     """
 
-    def __init__(self, parent=None, ID=-1, app=None, title="PsychoPy3"):
+    def __init__(self, parent=None, ID=-1, app=None, title="PsychoPy"):
 
         wx.Frame.__init__(self, parent, ID, title, size=(1, 1))
         self.app = app
@@ -220,16 +220,18 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         self.locale = localization.setLocaleWX()
         self.locale.AddCatalog(self.GetAppName())
 
-        # set the exception hook to present unhandled errors in a dialog
-        if not travisCI:
-            from psychopy.app.errorDlg import exceptionCallback
-            sys.excepthook = exceptionCallback
-
+        logging.flush()
         self.onInit(testMode=testMode, **kwargs)
         if profiling:
             profile.disable()
             print("time to load app = {:.2f}".format(time.time()-t0))
             profile.dump_stats('profileLaunchApp.profile')
+        logging.flush()
+
+        # set the exception hook to present unhandled errors in a dialog
+        if not travisCI:
+            from psychopy.app.errorDlg import exceptionCallback
+            sys.excepthook = exceptionCallback
 
 
     def onInit(self, showSplash=True, testMode=False):
@@ -239,7 +241,6 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
           testMode: bool
         """
         self.SetAppName('PsychoPy3')
-
         if showSplash: #showSplash:
             # show splash screen
             splashFile = os.path.join(
@@ -252,7 +253,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
                                        )  # transparency?
             w, h = splashImage.GetSize()
             splash.SetTextPosition((int(340), h-30))
-            splash.SetText(_translate("Copyright (C) 2020 OpenScienceTools.org"))
+            splash.SetText(_translate("Copyright (C) 2021 OpenScienceTools.org"))
         else:
             splash = None
 
@@ -535,7 +536,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         # have to reimport because it is only local to __init__ so far
         from . import coder
         if self.coder is None:
-            title = "PsychoPy3 Coder (IDE) (v%s)"
+            title = "PsychoPy Coder (IDE) (v%s)"
             wx.BeginBusyCursor()
             self.coder = coder.CoderFrame(None, -1,
                                           title=title % self.version,
@@ -553,7 +554,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         # have to reimport because it is ony local to __init__ so far
         wx.BeginBusyCursor()
         from .builder.builder import BuilderFrame
-        title = "PsychoPy3 Experiment Builder (v%s)"
+        title = "PsychoPy Builder (v%s)"
         self.builder = BuilderFrame(None, -1,
                                  title=title % self.version,
                                  fileName=fileName, app=self)
@@ -594,7 +595,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
     def newRunnerFrame(self, event=None):
         # have to reimport because it is only local to __init__ so far
         from .runner.runner import RunnerFrame
-        title = "PsychoPy3 Experiment Runner (v{})".format(self.version)
+        title = "PsychoPy Runner (v{})".format(self.version)
         wx.BeginBusyCursor()
         self.runner = RunnerFrame(parent=None,
                              id=-1,
@@ -644,15 +645,17 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         Note: units are psychopy -1..+1 rgb units to three decimal places,
         preserving 24-bit color.
         """
-        PsychoColorPicker(self.coder)
-        #newRBG = frame.newRBG
-        #frame.Destroy()
-        #return newRBG  # string
+        dlg = PsychoColorPicker(None)  # doesn't need a parent
+        dlg.ShowModal()
+        dlg.Destroy()
+
+        if event is not None:
+            event.Skip()
 
     def openMonitorCenter(self, event):
         from psychopy.monitors import MonitorCenter
         self.monCenter = MonitorCenter.MainFrame(
-            None, 'PsychoPy3 Monitor Center')
+            None, 'PsychoPy Monitor Center')
         self.monCenter.Show(True)
 
     def terminateHubProcess(self):
@@ -736,7 +739,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
                 self.prefs.saveAppData()
             except Exception:
                 pass  # we don't care if this fails - we're quitting anyway
-        self.Destroy()
+        #self.Destroy()
 
         # Reset streams back to default
         sys.stdout = sys.__stdout__
@@ -755,12 +758,12 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
     def showAbout(self, event):
         logging.debug('PsychoPyApp: Showing about dlg')
 
-        with io.open(os.path.join(self.prefs.paths['psychopy'],'LICENSE.txt'),
+        with io.open(os.path.join(self.prefs.paths['psychopy'], 'LICENSE.txt'),
                      'r', encoding='utf-8-sig') as f:
             license = f.read()
 
         msg = _translate(
-            "For stimulus generation and experimental control in python.\n"
+            "For stimulus generation and experimental control in Python.\n"
             "PsychoPy depends on your feedback. If something doesn't work\n"
             "then let us know at psychopy-users@googlegroups.com")
         if parse_version(wx.__version__) >= parse_version('4.0a1'):
@@ -776,22 +779,59 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         info.SetVersion('v' + psychopy.__version__)
         info.SetDescription(msg)
 
-        info.SetCopyright('(C) 2002-2018 Jonathan Peirce')
-        info.SetWebSite('http://www.psychopy.org')
+        info.SetCopyright('(C) 2002-2021 Jonathan Peirce')
+        info.SetWebSite('https://www.psychopy.org')
         info.SetLicence(license)
-        info.AddDeveloper('Jonathan Peirce')
-        info.AddDeveloper('Jeremy Gray')
-        info.AddDeveloper('Sol Simpson')
-        info.AddDeveloper(u'Jonas Lindel\xF8v')
-        info.AddDeveloper('Yaroslav Halchenko')
-        info.AddDeveloper('Erik Kastman')
-        info.AddDeveloper('Michael MacAskill')
-        info.AddDeveloper('Hiroyuki Sogo')
-        info.AddDeveloper('David Bridges')
-        info.AddDocWriter('Jonathan Peirce')
-        info.AddDocWriter('Jeremy Gray')
-        info.AddDocWriter('Rebecca Sharman')
-        info.AddTranslator('Hiroyuki Sogo')
+        # developers
+
+        devNames = [
+            'Jonathan Peirce',
+            'Jeremy Gray',
+            'Michael MacAskill',
+            'Sol Simpson',
+            u'Jonas Lindel\xF8v',
+            'Yaroslav Halchenko',
+            'Erik Kastman',
+            'Hiroyuki Sogo',
+            'David Bridges',
+            'Matthew Cutone',
+            'Philipp Wiesemann',
+            u'Richard Höchenberger',
+            'Andrew Schofield',
+            'Todd Parsons',
+            'Dan Fitch',
+            'Suddha Sourav',
+            'Philipp Wiesemann',
+            'Mark Hymers',
+            'Benjamin T. Vincent',
+            'Yaroslav Halchenko',
+            'Jay Borseth',
+            'chrisgatwin [@github.com]',
+            'toddrjen [@github.com]'
+        ]
+
+        docNames = [
+            'Jonathan Peirce',
+            'Jeremy Gray',
+            'Rebecca Hirst',
+            'Rebecca Sharman',
+            'Matthew Cutone'
+        ]
+        devNames.sort()
+
+        intNames = [
+            'Hiroyuki Sogo'
+        ]
+        intNames.sort()
+
+        for name in devNames:
+            info.AddDeveloper(name)
+
+        for name in docNames:
+            info.AddDocWriter(name)
+
+        for name in intNames:
+            info.AddTranslator(name)
 
         if not self.testMode:
             showAbout(info)

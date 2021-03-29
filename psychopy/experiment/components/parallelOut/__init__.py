@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
@@ -29,7 +29,7 @@ _localized.update({'address': _translate('Port address'),
 class ParallelOutComponent(BaseComponent):
     """A class for sending signals from the parallel port"""
     categories = ['I/O']
-
+    targets = ['PsychoPy']
     def __init__(self, exp, parentName, name='p_port',
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
@@ -43,12 +43,15 @@ class ParallelOutComponent(BaseComponent):
             startEstim=startEstim, durationEstim=durationEstim)
 
         self.type = 'ParallelOut'
-        self.url = "http://www.psychopy.org/builder/components/parallelout.html"
+        self.url = "https://www.psychopy.org/builder/components/parallelout.html"
         self.categories = ['I/O']
         self.exp.requirePsychopyLibs(['parallel'])
 
         # params
-        self.order = ['address', 'startData', 'stopData']
+        self.order += [
+            'startData', 'stopData',  # Data tab
+            'address',  # Hardware tab
+        ]
 
         # main parameters
         addressOptions = prefs.hardware['parallelPorts'] + [u'LabJack U3'] + [u'USB2TTL8'] 
@@ -58,24 +61,24 @@ class ParallelOutComponent(BaseComponent):
         msg = _translate("Parallel port to be used (you can change these "
                          "options in preferences>general)")
         self.params['address'] = Param(
-            address, valType='str', allowedVals=addressOptions, categ='Hardware',
+            address, valType='str', inputType="choice", allowedVals=addressOptions, categ='Hardware',
             hint=msg,
             label=_localized['address'])
 
         self.params['startData'] = Param(
-            startData, valType='code', allowedTypes=[], categ='Data',
+            startData, valType='code', inputType="single", allowedTypes=[], categ='Data',
             hint=_translate("Data to be sent at 'start'"),
             label=_localized['startData'])
 
         self.params['stopData'] = Param(
-            stopData, valType='code', allowedTypes=[], categ='Data',
+            stopData, valType='code', inputType="single", allowedTypes=[], categ='Data',
             hint=_translate("Data to be sent at 'end'"),
             label=_localized['stopData'])
 
         msg = _translate("If the parallel port data relates to visual "
                          "stimuli then sync its pulse to the screen refresh")
         self.params['syncScreen'] = Param(
-            syncScreen, valType='bool', categ='Data',
+            syncScreen, valType='bool', inputType="bool", categ='Data',
             allowedVals=[True, False],
             updates='constant', allowedUpdates=[],
             hint=msg,

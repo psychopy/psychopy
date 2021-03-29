@@ -4,7 +4,7 @@
 """Classes and functions for the coder source tree."""
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
@@ -78,6 +78,8 @@ class SourceTreePanel(wx.Panel):
                 iconCache.getBitmap(name='codervar.png', size=16)),
             'pyModule': self._treeImgList.Add(
                 iconCache.getBitmap(name='coderpython.png', size=16)),
+            'jsModule': self._treeImgList.Add(
+                iconCache.getBitmap(name='coderjs.png', size=16)),
             'noDoc': self._treeImgList.Add(
                 iconCache.getBitmap(name='docclose.png', size=16))
             # 'import': self._treeImgList.Add(
@@ -191,8 +193,13 @@ class SourceTreePanel(wx.Panel):
             lineText = lineText.split('#')[0]
             lineTokens = [
                 tok.strip(stripChars) for tok in re.split(
-                    ' |\(|\)', lineText) if tok]
-            defType, defName = lineTokens[:2]
+                    r' |\(|\)', lineText) if tok]
+
+            # for some reason the line is valid but cannot be parsed, ignore it
+            try:
+                defType, defName = lineTokens[:2]
+            except ValueError:
+                continue
 
             lastItem = (defType, defName, df[1], df[0])
             defineList.append(lastItem)
@@ -209,8 +216,15 @@ class SourceTreePanel(wx.Panel):
         self.srcTree.DeleteAllItems()
         self.root = self.srcTree.AddRoot(
             os.path.split(self.coder.currentDoc.filename)[-1])
-        self.srcTree.SetItemImage(
-            self.root, self._treeGfx['pyModule'], wx.TreeItemIcon_Normal)
+        if self.coder.currentDoc.filename.endswith('.py'):
+            self.srcTree.SetItemImage(
+                self.root, self._treeGfx['pyModule'], wx.TreeItemIcon_Normal)
+        elif self.coder.currentDoc.filename.endswith('.js'):
+            self.srcTree.SetItemImage(
+                self.root, self._treeGfx['jsModule'], wx.TreeItemIcon_Normal)
+        else:
+            self.srcTree.SetItemImage(
+                self.root, self._treeGfx['noDoc'], wx.TreeItemIcon_Normal)
 
         # start building the source tree
         nodes = deque([self.root])

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Backends provide the window creation and flipping commands.
@@ -44,7 +44,8 @@ def getBackend(win, *args, **kwargs):
         Backend class (subclass of BaseBackend).
 
     """
-    # look-up the backend module name for `winType`
+    # Look-up the backend module name for `winType`, this is going to be used
+    # when the plugin system goes live. For now we're leaving it here.
     try:
         useBackend = winTypes[win.winType]
     except KeyError:
@@ -52,7 +53,8 @@ def getBackend(win, *args, **kwargs):
             "User requested Window with winType='{}' but there is no backend "
             "definition to match that `winType`.".format(win.winType))
 
-    # resolve and get the object the fqn points to
+    # This loads the backend dynamically, will be enabled when the plugin system
+    # goes live.
     # Backend = plugins.resolveObjectFromName(useBackend, __name__)
 
     if win.winType == 'pyglet':

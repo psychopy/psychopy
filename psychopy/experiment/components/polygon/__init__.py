@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
@@ -24,9 +24,7 @@ tooltip = _translate('Polygon: any regular polygon (line, triangle, square'
 # only use _localized values for label values, nothing functional:
 _localized = _localized.copy()
 _localized.update({'nVertices': _translate('Num. vertices'),
-                   'fillColorSpace': _translate('Fill color-space'),
                    'fillColor': _translate('Fill color'),
-                   'lineColorSpace': _translate('Line color-space'),
                    'lineColor': _translate('Line color'),
                    'lineWidth': _translate('Line width'),
                    'interpolate': _translate('Interpolate'),
@@ -36,11 +34,11 @@ _localized.update({'nVertices': _translate('Num. vertices'),
 
 class PolygonComponent(BaseVisualComponent):
     """A class for presenting grating stimuli"""
-
+    targets = ['PsychoPy']
     def __init__(self, exp, parentName, name='polygon', interpolate='linear',
                  units='from exp settings',
-                 lineColor='$[1,1,1]', lineColorSpace='rgb', lineWidth=1,
-                 fillColor='$[1,1,1]', fillColorSpace='rgb',
+                 lineColor='white', lineColorSpace='rgb', lineWidth=1,
+                 fillColor='white', fillColorSpace='rgb',
                  shape='triangle', nVertices=4,
                  pos=(0, 0), size=(0.5, 0.5), ori=0,
                  startType='time (s)', startVal=0.0,
@@ -48,16 +46,19 @@ class PolygonComponent(BaseVisualComponent):
                  startEstim='', durationEstim=''):
         super(PolygonComponent, self).__init__(
             exp, parentName, name=name, units=units,
+            fillColor=fillColor, borderColor=lineColor,
             pos=pos, size=size, ori=ori,
             startType=startType, startVal=startVal,
             stopType=stopType, stopVal=stopVal,
             startEstim=startEstim, durationEstim=durationEstim)
 
         self.type = 'Polygon'
-        self.url = "http://www.psychopy.org/builder/components/polygon.html"
+        self.url = "https://www.psychopy.org/builder/components/polygon.html"
         self.exp.requirePsychopyLibs(['visual'])
         self.targets = ['PsychoPy', 'PsychoJS']
-        self.order = ['shape', 'nVertices']
+        self.order += ['shape', 'nVertices',  # Basic tab
+                      ]
+        self.order.insert(self.order.index("borderColor"), "lineColor")
         self.depends = [  # allows params to turn each other off/on
             {"dependsOn": "shape",  # must be param name
              "condition": "=='regular polygon...'",  # val to check for
@@ -70,7 +71,7 @@ class PolygonComponent(BaseVisualComponent):
         # params
         msg = _translate("How many vertices in your regular polygon?")
         self.params['nVertices'] = Param(
-            nVertices, valType='int', categ='Basic',
+            nVertices, valType='int', inputType="single", categ='Basic',
             updates='constant',
             allowedUpdates=['constant'],
             hint=msg,
@@ -79,7 +80,7 @@ class PolygonComponent(BaseVisualComponent):
         msg = _translate("What shape is this? With 'regular polygon...' you "
                          "can set number of vertices")
         self.params['shape'] = Param(
-            shape, valType='str', categ='Basic',
+            shape, valType='str', inputType="choice", categ='Basic',
             allowedVals=["line", "triangle", "rectangle", "cross", "star",
                          "regular polygon..."],
             updates='constant',
@@ -87,15 +88,13 @@ class PolygonComponent(BaseVisualComponent):
             hint=msg,
             label=_localized['shape'])
 
-        self.params['lineColorSpace'] = self.params['borderColorSpace']
-        del self.params['borderColorSpace']
         self.params['lineColor'] = self.params['borderColor']
         del self.params['borderColor']
 
         msg = _translate("Width of the shape's line (always in pixels - this"
                          " does NOT use 'units')")
         self.params['lineWidth'] = Param(
-            lineWidth, valType='code', allowedTypes=[], categ='Appearance',
+            lineWidth, valType='num', inputType="single", allowedTypes=[], categ='Appearance',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
@@ -104,7 +103,7 @@ class PolygonComponent(BaseVisualComponent):
         msg = _translate(
             "How should the image be interpolated if/when rescaled")
         self.params['interpolate'] = Param(
-            interpolate, valType='str', allowedVals=['linear', 'nearest'], categ='Texture',
+            interpolate, valType='str', inputType="choice", allowedVals=['linear', 'nearest'], categ='Texture',
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized['interpolate'])
@@ -117,7 +116,6 @@ class PolygonComponent(BaseVisualComponent):
             "[w,h] of the ellipse that the polygon sits on!! ")
 
         del self.params['color']
-        del self.params['colorSpace']
 
     def writeInitCode(self, buff):
         # do we need units code?
@@ -163,8 +161,8 @@ class PolygonComponent(BaseVisualComponent):
                     " size=%(size)s,\n" % inits)
 
         code += ("    ori=%(ori)s, pos=%(pos)s,\n"
-                 "    lineWidth=%(lineWidth)s, lineColor=%(lineColor)s, lineColorSpace=%(lineColorSpace)s,\n"
-                 "    fillColor=%(fillColor)s, fillColorSpace=%(fillColorSpace)s,\n"
+                 "    lineWidth=%(lineWidth)s, "
+                 "    colorSpace=%(colorSpace)s,  lineColor=%(lineColor)s, fillColor=%(fillColor)s,\n"
                  "    opacity=%(opacity)s, " % inits)
 
         depth = -self.getPosInRoutine()

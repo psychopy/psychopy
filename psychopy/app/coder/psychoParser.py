@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 # python text parser
@@ -117,7 +117,7 @@ def parsePyScript(src, indentSpaces=4):
             # slice off comment
             lineText = lineText.split('#')[0]
             lineTokens = [
-                tok.strip() for tok in re.split(' |\(|\)', lineText) if tok]
+                tok.strip() for tok in re.split(r' |\(|\)', lineText) if tok]
             defType, defName = lineTokens[:2]
             foundDefs.append((defType, defName, lineIndent, lineno))
 

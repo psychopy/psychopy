@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Experiment classes:
@@ -147,7 +147,8 @@ class NameSpace(object):
         # noinspection PyUnresolvedReferences
         self.keywords = keyword.kwlist + dir(__builtins__)
         # these are based on a partial test, known to be incomplete:
-        self.psychopy = psychopy.__all__ + ['psychopy', 'os'] + dir(constants)
+        self.psychopy = psychopy.__all__ + ['psychopy', 'os']
+        self.constants = dir(constants)
         self.builder = ['KeyResponse', 'keyboard', 'buttons',
                         'continueRoutine', 'expInfo', 'expName', 'thisExp',
                         'filename', 'logFile', 'paramName',
@@ -331,7 +332,7 @@ class NameSpace(object):
 
     def makeLoopIndex(self, name):
         """return a valid, readable loop-index name:
-            'this' + (plural->singular).capitalize() [+ (_\d+)]
+            'this' + (plural->singular).capitalize() [+ (_\\d+)]
         """
         try:
             newName = str(name)

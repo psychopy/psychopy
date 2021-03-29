@@ -90,14 +90,14 @@ pylab.title(msg % (nDropped, nTotal, 100 * nDropped/float(nTotal),
                    process_priority, str(disable_gc)), fontsize=12)
 
 pylab.subplot2grid((2, 2), (1, 0))
-pylab.hist(intervalsMS, 50, normed=0, histtype='stepfilled')
+pylab.hist(intervalsMS, 50, histtype='stepfilled')
 pylab.xlabel('t (ms)')
 pylab.ylabel('n frames')
 msg = "win.frameIntervals\nMean=%.2fms, s.d.=%.2f, 99%%CI(frame)=%.2f-%.2f"
 pylab.title(msg % (m, sd, m-2.58 * sd, m + 2.58 * sd), fontsize=12)
 
 pylab.subplot2grid((2, 2), (1, 1))
-pylab.hist(ifis, 50, normed=0, histtype='stepfilled')
+pylab.hist(ifis, 50, histtype='stepfilled')
 pylab.xlabel('t (ms)')
 pylab.ylabel('n frames')
 msg = "Inter Flip Intervals\nMean=%.2fms, s.d.=%.2f, range=%.2f-%.2f ms"

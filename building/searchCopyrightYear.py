@@ -14,7 +14,7 @@ usage steps:
 - run tests again -- make sure we didn't break anything
 - commit
 
-relies on: perl -pi -e 's/\Qold\E/new/' <file>
+relies on: perl -pi -e 's/\\Qold\\E/new/' <file>
 I couldn't figure out a pythonic way to do in-place changes to files
 import fileinput # looked promising but a) don't really want to copy every line
 of every file, and b) doesn't actually work easily...
@@ -31,7 +31,7 @@ import os, sys, time, glob
 
 from psychopy import core
 
-assert sys.platform == 'darwin' or sys.platform.startswith('linux')
+assert (sys.platform == 'darwin' or sys.platform.startswith('linux')), "This script must be run on a unix-based platform"
 perlVersion = core.shellCall('perl -V').splitlines()[0]
 assert perlVersion.find('perl5') > -1 # not completely sure what will happen with other perl versions...
 
@@ -105,7 +105,7 @@ for file in files:
                 continue
         newLine = line.replace(oldYear, newYear) # should not contain characters that will mess with perl 's/oldLine/newLine/'
         cmd = "echo "+file+"\n  " # helps with debugging, if the perl s/// flails due to a bad character -> you know what file to look at
-        cmd += "perl -pi -e 's"+sep+"\Q"+line+"\E"+sep+newLine+sep+"' '"+file+"'\n" # only match one line, avoid s///g
+        cmd += "perl -pi -e 's"+sep+r"\Q"+line+r"\E"+sep+newLine+sep+"' '"+file+"'\n" # only match one line, avoid s///g
         tmp.write(cmd)
         targetFiles += 1
 tmp.write('echo Updated %d files.\n' % targetFiles)

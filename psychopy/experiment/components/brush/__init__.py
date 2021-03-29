@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
@@ -22,12 +22,14 @@ tooltip = _translate('Brush: a drawing tool')
 # only use _localized values for label values, nothing functional:
 _localized.update({'lineWidth': _translate('Brush Size'),
                    'lineColor': _translate('Brush Color'),
+                   'lineColorSpace': _translate('Brush Color Space'),
                    'buttonRequired':_translate('Press Button')})
 
 class BrushComponent(BaseVisualComponent):
     """A class for drawing freehand responses"""
 
     categories = ['Responses']
+    targets = ['PsychoPy', 'PsychoJS']
 
     def __init__(self, exp, parentName, name='brush',
                  lineColor='$[1,1,1]', lineColorSpace='rgb',
@@ -43,16 +45,17 @@ class BrushComponent(BaseVisualComponent):
             startEstim=startEstim, durationEstim=durationEstim)
 
         self.type = 'Brush'
-        self.url = "http://www.psychopy.org/builder/components/brush.html"
+        self.url = "https://www.psychopy.org/builder/components/brush.html"
         self.exp.requirePsychopyLibs(['visual'])
-        self.targets = ['PsychoPy', 'PsychoJS']
-        self.order = ['lineWidth', 'opacity', 'buttonRequired']
+        self.order.remove("opacity")  # Move opacity to the end
+        self.order += [
+            "lineWidth", "lineColor", "lineColorSpace", "opacity"  # Appearance tab
+        ]
 
         # params
-        msg = _translate("Fill color of this brush; Right-click to bring"
-                         " up a color-picker (rgb only)")
+        msg = _translate("Fill color of this brush")
         self.params['lineColor'] = Param(
-            lineColor, valType='str', allowedTypes=[], categ='Appearance',
+            lineColor, valType='color', inputType="color", allowedTypes=[], categ='Appearance',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat'],
             hint=msg,
@@ -60,27 +63,21 @@ class BrushComponent(BaseVisualComponent):
 
         msg = _translate("Width of the brush's line (always in pixels and limited to 10px max width)")
         self.params['lineWidth'] = Param(
-            lineWidth, valType='code', allowedTypes=[], categ='Appearance',
+            lineWidth, valType='num', inputType="spin", allowedTypes=[], categ='Appearance',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat'],
             hint=msg,
             label=_localized['lineWidth'])
 
-        msg = _translate("Choice of color space for the fill color "
-                         "(rgb, dkl, lms, hsv)")
-        self.params['lineColorSpace'] = Param(
-            lineColorSpace, valType='str', categ='Appearance',
-            allowedVals=['rgb', 'dkl', 'lms', 'hsv'],
-            updates='constant',
-            hint=msg,
-            label=_localized['fillColorSpace'])
+        self.params['lineColorSpace'] = self.params['colorSpace']
+        del self.params['colorSpace']
 
         msg = _translate("The line opacity")
         self.params['opacity'].hint=msg
 
         msg = _translate("Whether a button needs to be pressed to draw (True/False)")
         self.params['buttonRequired'] = Param(
-            buttonRequired, valType='code', allowedTypes=[], categ='Basic',
+            buttonRequired, valType='bool', inputType="bool", allowedTypes=[], categ='Basic',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat'],
             hint=msg,
@@ -88,11 +85,8 @@ class BrushComponent(BaseVisualComponent):
 
         # Remove BaseVisual params which are not needed
         del self.params['color']  # because color is defined by lineColor
-        del self.params['colorSpace']
         del self.params['fillColor']
-        del self.params['fillColorSpace']
         del self.params['borderColor']
-        del self.params['borderColorSpace']
         del self.params['size']  # because size determined by lineWidth
         del self.params['ori']
         del self.params['pos']

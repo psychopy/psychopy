@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
@@ -41,6 +41,8 @@ _localized.update({'carrier': _translate('Carrier texture'),
 class EnvGratingComponent(BaseVisualComponent):
     """A class for presenting grating stimuli"""
 
+    targets = ['PsychoPy']
+
     def __init__(self, exp, parentName, name='env_grating', carrier='sin',
                  mask='None', sf=1.0, interpolate='linear',
                  units='from exp settings', color='$[1,1,1]', colorSpace='rgb',
@@ -60,7 +62,7 @@ class EnvGratingComponent(BaseVisualComponent):
             startEstim=startEstim, durationEstim=durationEstim)
 
         self.type = 'EnvGrating'
-        self.url = "http://www.psychopy.org/builder/components/EnvelopeGrating.html"
+        self.url = "https://www.psychopy.org/builder/components/EnvelopeGrating.html"
         self.order = ['carrier', 'mask']
 
         # params
@@ -70,7 +72,7 @@ class EnvGratingComponent(BaseVisualComponent):
         msg = _translate("The (2D) texture of the background - can be sin, sqr,"
                          " sinXsin... or a filename (including path)")
         self.params['carrier'] = Param(
-            carrier, valType='str', allowedTypes=[], categ="Carrier",
+            carrier, valType='file', inputType="file", allowedTypes=[], allowedVals=["sin", "sqr", "sinXsin"], categ="Carrier",
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
@@ -79,7 +81,7 @@ class EnvGratingComponent(BaseVisualComponent):
         msg = _translate("An image to define the alpha mask (ie shape)- "
                          "gauss, circle... or a filename (including path)")
         self.params['mask'] = Param(
-            mask, valType='str', allowedTypes=[], categ="Carrier",
+            mask, valType='file', inputType="file", allowedVals=["gauss", "circle"], allowedTypes=[], categ="Carrier",
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
@@ -87,7 +89,7 @@ class EnvGratingComponent(BaseVisualComponent):
 
         msg = _translate("Contrast of background carrier")
         self.params['contrast'] = Param(
-            contrast, valType='code', allowedTypes=[], categ="Carrier",
+            contrast, valType='num', inputType="single", allowedTypes=[], categ="Carrier",
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
@@ -96,7 +98,7 @@ class EnvGratingComponent(BaseVisualComponent):
         msg = _translate("Spatial frequency of background carrier repeats across the "
                          "grating in 1 or 2 dimensions, e.g. 4 or [2,3]")
         self.params['sf'] = Param(
-            sf, valType='code', allowedTypes=[], categ="Carrier",
+            sf, valType='num', inputType="single", allowedTypes=[], categ="Carrier",
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
@@ -105,7 +107,7 @@ class EnvGratingComponent(BaseVisualComponent):
         msg = _translate("Spatial positioning of the background carrier "
                          "(wraps in range 0-1.0)")
         self.params['phase'] = Param(
-            phase, valType='code', allowedTypes=[], categ="Carrier",
+            phase, valType='num', inputType="single", allowedTypes=[], categ="Carrier",
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
@@ -116,7 +118,7 @@ class EnvGratingComponent(BaseVisualComponent):
             "etc. For most cases a value of 256 pixels will suffice")
         self.params['texture resolution'] = Param(
             texRes,
-            valType='code', allowedVals=['32', '64', '128', '256', '512'], categ="Carrier",
+            valType='num', inputType="choice", allowedVals=['32', '64', '128', '256', '512'], categ="Carrier",
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized['texture resolution'])
@@ -124,7 +126,7 @@ class EnvGratingComponent(BaseVisualComponent):
         msg = _translate("How should the image be interpolated if/when "
                          "rescaled")
         self.params['interpolate'] = Param(
-            interpolate, valType='str', allowedVals=['linear', 'nearest'], categ="Carrier",
+            interpolate, valType='str', inputType="choice", allowedVals=['linear', 'nearest'], categ="Carrier",
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized['interpolate'])
@@ -132,7 +134,7 @@ class EnvGratingComponent(BaseVisualComponent):
         msg = _translate("The (2D) texture of the envelope - can be sin, sqr,"
                          " sinXsin... or a filename (including path)")
         self.params['envelope'] = Param(
-            envelope, valType='str', allowedTypes=[], categ="Envelope",
+            envelope, valType='file', inputType="file", allowedVals=["sin", "sqr", "sinXsin"], allowedTypes=[], categ="Envelope",
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
@@ -141,7 +143,7 @@ class EnvGratingComponent(BaseVisualComponent):
         msg = _translate("Spatial frequency of the modulation envelope repeats across the "
                          "grating in 1 or 2 dimensions, e.g. 4 or [2,3]")
         self.params['envsf'] = Param(
-            envsf, valType='code', allowedTypes=[], categ="Envelope",
+            envsf, valType='num', inputType="single", allowedTypes=[], categ="Envelope",
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
@@ -150,7 +152,7 @@ class EnvGratingComponent(BaseVisualComponent):
         msg = _translate("Spatial positioning of the modulation envelope"
                          "(wraps in range 0-1.0)")
         self.params['envphase'] = Param(
-            envphase, valType='code', allowedTypes=[], categ="Envelope",
+            envphase, valType='num', inputType="single", allowedTypes=[], categ="Envelope",
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
@@ -159,7 +161,7 @@ class EnvGratingComponent(BaseVisualComponent):
         msg = _translate("Orientation of the modulation envelope"
                          "(wraps in range 0-360)")
         self.params['envori'] = Param(
-            envori, valType='code', allowedTypes=[], categ="Envelope",
+            envori, valType='num', inputType="single", allowedTypes=[], categ="Envelope",
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
@@ -167,7 +169,7 @@ class EnvGratingComponent(BaseVisualComponent):
 
         msg = _translate("Modulation depth of modulation envelope")
         self.params['moddepth'] = Param(
-            moddepth, valType='code', allowedTypes=[], categ="Envelope",
+            moddepth, valType='num', inputType="single", allowedTypes=[], categ="Envelope",
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
@@ -189,7 +191,7 @@ class EnvGratingComponent(BaseVisualComponent):
                           "Landy and Oruc, Vis Res 2002. "
                           "Note overall contrast (apparent carrier contrast) will be altered.")
         self.params['power'] = Param(
-            moddepth, valType='code', allowedTypes=[], categ="Envelope",
+            moddepth, valType='num', inputType="single", allowedTypes=[], categ="Envelope",
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
@@ -198,7 +200,7 @@ class EnvGratingComponent(BaseVisualComponent):
         msg = _translate("Do you want a 'beat'? [beat = carrier*envelope, "
                          "no beat = carrier*(1+envelope), True/False, Y/N]")
         self.params['beat'] = Param(
-            beat, valType='str', allowedTypes=[], categ="Envelope",
+            beat, valType='str', inputType="single", allowedTypes=[], categ="Envelope",
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
@@ -208,16 +210,14 @@ class EnvGratingComponent(BaseVisualComponent):
                          " in PsychoPy, add is useful if combining a beat with"
                          " the carrier image or numpy array at point of display")
         self.params['blendmode'] = Param(
-            blendmode, valType='str', allowedVals=['avg', 'add'],
+            blendmode, valType='str', inputType="choice", allowedVals=['avg', 'add'],
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
             label=_localized['blendmode'], categ="Appearance")
 
         del self.params['fillColor']
-        del self.params['fillColorSpace']
         del self.params['borderColor']
-        del self.params['borderColorSpace']
 
     def writeInitCode(self, buff):
         # do we need units code?

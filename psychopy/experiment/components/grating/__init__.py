@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
@@ -32,30 +32,34 @@ _localized.update({'tex': _translate('Texture'),
 class GratingComponent(BaseVisualComponent):
     """A class for presenting grating stimuli"""
 
+    targets = ['PsychoPy']
+
     def __init__(self, exp, parentName, name='grating', image='sin',
-                 mask='None', sf='None', interpolate='linear',
+                 mask='', sf='', interpolate='linear',
                  units='from exp settings', color='$[1,1,1]', colorSpace='rgb',
-                 pos=(0, 0), size=(0.5, 0.5), ori=0, phase=0.0, texRes='128',
+                 contrast=1.0, pos=(0, 0), size=(0.5, 0.5), ori=0, phase=0.0, texRes='128',
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0, blendmode='avg',
                  startEstim='', durationEstim=''):
         super(GratingComponent, self).__init__(
             exp, parentName, name=name, units=units,
-            color=color, colorSpace=colorSpace,
+            color=color, colorSpace=colorSpace, contrast=contrast,
             pos=pos, size=size, ori=ori,
             startType=startType, startVal=startVal,
             stopType=stopType, stopVal=stopVal,
             startEstim=startEstim, durationEstim=durationEstim)
 
         self.type = 'Grating'
-        self.url = "http://www.psychopy.org/builder/components/grating.html"
-        self.order = ['tex', 'mask']
+        self.url = "https://www.psychopy.org/builder/components/grating.html"
+        self.order += [
+            'tex', 'mask', 'phase', 'sf', 'texture resolution', 'interpolate',  # Texture tab
+        ]
 
         # params
         msg = _translate("The (2D) texture of the grating - can be sin, sqr,"
                          " sinXsin... or a filename (including path)")
         self.params['tex'] = Param(
-            image, valType='str', allowedTypes=[], categ='Texture',
+            image, valType='file', inputType="file", allowedVals=["sin", "sqr", "sinXsin"], allowedTypes=[], categ='Texture',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
@@ -64,7 +68,7 @@ class GratingComponent(BaseVisualComponent):
         msg = _translate("An image to define the alpha mask (ie shape)- "
                          "gauss, circle... or a filename (including path)")
         self.params['mask'] = Param(
-            mask, valType='str', allowedTypes=[], categ='Texture',
+            mask, valType='file', inputType="file", allowedVals=["gauss", "circle"], allowedTypes=[], categ='Texture',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
@@ -73,7 +77,7 @@ class GratingComponent(BaseVisualComponent):
         msg = _translate("Spatial frequency of image repeats across the "
                          "grating in 1 or 2 dimensions, e.g. 4 or [2,3]")
         self.params['sf'] = Param(
-            sf, valType='code', allowedTypes=[], categ='Texture',
+            sf, valType='num', inputType="single",  allowedTypes=[], categ='Texture',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
@@ -82,7 +86,7 @@ class GratingComponent(BaseVisualComponent):
         msg = _translate("Spatial positioning of the image on the grating "
                          "(wraps in range 0-1.0)")
         self.params['phase'] = Param(
-            phase, valType='code', allowedTypes=[], categ='Texture',
+            phase, valType='num', inputType="single", allowedTypes=[], categ='Texture',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
@@ -93,7 +97,7 @@ class GratingComponent(BaseVisualComponent):
             "etc. For most cases a value of 256 pixels will suffice")
         self.params['texture resolution'] = Param(
             texRes,
-            valType='code', allowedVals=['32', '64', '128', '256', '512'], categ='Texture',
+            valType='num', inputType="choice", allowedVals=['32', '64', '128', '256', '512'], categ='Texture',
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized['texture resolution'])
@@ -101,7 +105,7 @@ class GratingComponent(BaseVisualComponent):
         msg = _translate("How should the image be interpolated if/when "
                          "rescaled")
         self.params['interpolate'] = Param(
-            interpolate, valType='str', allowedVals=['linear', 'nearest'], categ='Texture',
+            interpolate, valType='str', inputType="choice", allowedVals=['linear', 'nearest'], categ='Texture',
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized['interpolate'])
@@ -109,16 +113,14 @@ class GratingComponent(BaseVisualComponent):
         msg = _translate("OpenGL Blendmode: avg gives traditional transparency,"
                          " add is important to combine gratings)]")
         self.params['blendmode'] = Param(
-            blendmode, valType='str', allowedVals=['avg', 'add'], categ='Appearance',
+            blendmode, valType='str', inputType="choice", allowedVals=['avg', 'add'], categ='Appearance',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
             label=_localized['blendmode'])
 
         del self.params['fillColor']
-        del self.params['fillColorSpace']
         del self.params['borderColor']
-        del self.params['borderColorSpace']
 
     def writeInitCode(self, buff):
         # do we need units code?
@@ -134,8 +136,8 @@ class GratingComponent(BaseVisualComponent):
                 "    tex=%(tex)s, mask=%(mask)s,\n" % inits +
                 "    ori=%(ori)s, pos=%(pos)s, size=%(size)s, " % inits +
                 "sf=%(sf)s, phase=%(phase)s,\n" % inits +
-                "    color=%(color)s, colorSpace=%(colorSpace)s, " % inits +
-                "opacity=%(opacity)s,blendmode=%(blendmode)s,\n" % inits +
+                "    color=%(color)s, colorSpace=%(colorSpace)s,\n" % inits +
+                "    opacity=%(opacity)s, contrast=%(contrast)s, blendmode=%(blendmode)s,\n" % inits +
                 # no newline - start optional parameters
                 "    texRes=%(texture resolution)s" % inits)
 

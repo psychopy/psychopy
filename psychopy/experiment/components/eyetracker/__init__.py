@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
@@ -23,6 +23,7 @@ tooltip = _translate('Eyetracker: use one of several eyetrackers to follow '
 class EyetrackerComponent(BaseComponent):
     """A class for using one of several eyetrackers to follow gaze"""
     categories = ['Responses']
+    targets = ['PsychoPy']
 
     def __init__(self, exp, parentName, name='eyes',
                  startType='time (s)', startVal=0.0,
@@ -30,7 +31,7 @@ class EyetrackerComponent(BaseComponent):
                  startEstim='', durationEstim='',
                  save='final', configFile='myTracker.yaml'):
         self.type = 'Eyetracker'
-        self.url = "http://www.psychopy.org/builder/components/eyetracker.html"
+        self.url = "https://www.psychopy.org/builder/components/eyetracker.html"
         self.parentName = parentName
         self.exp = exp  # so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['iohub'])
@@ -48,7 +49,7 @@ class EyetrackerComponent(BaseComponent):
             "pupilsize...) be stored? On every video frame, every click "
             "or just at the end of the Routine?")
         self.params['saveState'] = Param(
-            save, valType='str', categ='Data',
+            save, valType='str', inputType="choice", categ='Data',
             allowedVals=['final', 'every frame', 'never'],
             hint=msg,
             label="Save eyetracker state")

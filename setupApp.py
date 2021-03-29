@@ -31,7 +31,6 @@ if platform != 'darwin':
 import bdist_mpkg
 import py2app
 resources = glob.glob('psychopy/app/Resources/*')
-resources.append('/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7/pyconfig.h')
 frameworks = ["/usr/lib/libxml2.2.dylib", #"libyaml.dylib",
               "libevent.dylib", "libffi.dylib",
               "libmp3lame.0.dylib",
@@ -99,7 +98,8 @@ packages = ['wx', 'psychopy',
             'json_tricks',  # allows saving arrays/dates in json
             'git', 'gitlab',
             'astunparse', 'esprima',  # for translating/adapting py/JS
-            'pylsl', 'pygaze', 'smite',
+            'pylsl', 'pygaze',
+            'smite',  # https://github.com/marcus-nystrom/SMITE (not pypi!)
             'cv2',
             'badapted', 'darc_toolbox',  # adaptive methods from Ben Vincent
             'questplus',
@@ -107,6 +107,7 @@ packages = ['wx', 'psychopy',
             'jedi','parso',
             'psychtoolbox',
             'freetype', 'h5py',
+            'markdown_it',
             ]
 
 if sys.version_info.major >= 3:

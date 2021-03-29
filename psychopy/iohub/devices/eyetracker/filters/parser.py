@@ -131,6 +131,7 @@ Data is filtered once, similar to what a 'normal' filter level would be in the
   eyelink<tm> system. Level = 2 would be similar to the 'extra' filter level
   setting of eyelink<tm>.
 """
+import numpy as np
 from ....constants import EventConstants
 from ....errors import print2err
 from ... import DeviceEvent, eventfilters
@@ -532,12 +533,12 @@ class EyeTrackerEventParser(eventfilters.DeviceEventFilter):
     def _addVelocity(self, prev_event, current_event):
         io_ix = self.io_event_ix
 
-        dx = np_abs(
+        dx = np.abs(
             current_event[
                 io_ix('angle_x')] -
             prev_event[
                 io_ix('angle_x')])
-        dy = np_abs(
+        dy = np.abs(
             current_event[
                 io_ix('angle_y')] -
             prev_event[
@@ -825,7 +826,7 @@ class EyeTrackerEventParser(eventfilters.DeviceEventFilter):
                     'time')] - existing_start_event[self.io_event_ix('time')],
                 xDiff,
                 yDiff,
-                rad2deg(arctan(yDiff, xDiff)),
+                np.rad2deg(np.arctan(yDiff, xDiff)),
                 existing_start_event[gx],
                 existing_start_event[gy],
                 0.0,

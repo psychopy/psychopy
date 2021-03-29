@@ -4,7 +4,7 @@
 # To build simple dialogues etc. (requires pyqt4)
 #
 #  Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
@@ -516,7 +516,7 @@ def fileSaveDlg(initFilePath="", initFileName="",
             can be set to custom prompts
         allowed: string
             a string to specify file filters.
-            e.g. "Text files (\*.txt) ;; Image files (\*.bmp \*.gif)"
+            e.g. "Text files (\\*.txt) ;; Image files (\\*.bmp \\*.gif)"
             See http://pyqt.sourceforge.net/Docs/PyQt4/qfiledialog.html
             #getSaveFileName
             for further details
@@ -563,7 +563,7 @@ def fileOpenDlg(tryFilePath="",
 
         allowed: string (available since v1.62.01)
             a string to specify file filters.
-            e.g. "Text files (\*.txt) ;; Image files (\*.bmp \*.gif)"
+            e.g. "Text files (\\*.txt) ;; Image files (\\*.bmp \\*.gif)"
             See http://pyqt.sourceforge.net/Docs/PyQt4/qfiledialog.html
             #getOpenFileNames
             for further details

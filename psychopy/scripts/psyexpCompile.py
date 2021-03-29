@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import io
@@ -45,7 +45,7 @@ def generateScript(experimentPath, exp, target="PsychoPy"):
     if sys.platform == 'win32':  # get name of executable
         pythonExec = sys.executable
     else:
-        pythonExec = sys.executable.replace(' ', '\ ')
+        pythonExec = sys.executable.replace(' ', r'\ ')
 
     filename = experimentPath
     if not PY3:  # encode path in Python2

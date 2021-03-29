@@ -1,4 +1,5 @@
 from __future__ import print_function
+from past.builtins import unicode
 
 from builtins import object
 import os
@@ -87,6 +88,7 @@ class TestComponents(object):
                    'label',  # comment-out to compare labels when checking
                    'categ',
                    'next',
+                   'dollarSyntax',
                    ]
         for field in dir(param):
             if field.startswith("__"):
@@ -102,7 +104,7 @@ class TestComponents(object):
                 tag = order.split(':',1)[0]
                 try:
                     mismatch = order + ' <== ' + targetTag[tag]
-                except IndexError: # missing
+                except (IndexError, KeyError): # missing
                     mismatch = order + ' <==> NEW (no matching param in the reference profile)'
                 print(mismatch.encode('utf8'))
 

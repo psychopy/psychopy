@@ -2,13 +2,14 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Helper functions in PsychoPy for interacting with Pavlovia.org
 """
 from future.builtins import object
 import glob
+import pathlib
 import os, time, socket
 import subprocess
 import traceback
@@ -92,7 +93,7 @@ def login(tokenOrUsername, rememberMe=True):
     """
     currentSession = getCurrentSession()
     if not currentSession:
-        raise exceptions.ConnectionError("Failed to connect to Pavlovia.org. No network?")
+        raise requests.exceptions.ConnectionError("Failed to connect to Pavlovia.org. No network?")
     # would be nice here to test whether this is a token or username
     logging.debug('pavloviaTokensCurrently: {}'.format(knownUsers))
     if tokenOrUsername in knownUsers:
@@ -379,7 +380,11 @@ class PavloviaSession:
         """Finds all readable projects of a given user_id
         (None for current user)
         """
-        own = self.gitlab.projects.list(owned=True, search=searchStr)
+        try:
+            own = self.gitlab.projects.list(owned=True, search=searchStr)
+        except Exception as e:
+            print(e)
+            own = self.gitlab.projects.list(owned=True, search=searchStr)
         group = self.gitlab.projects.list(owned=False, membership=True,
                                           search=searchStr)
         projs = []
@@ -746,7 +751,7 @@ class PavloviaProject(dict):
 
         if gitRoot is None:
             self.newRepo(infoStream=infoStream)
-        elif gitRoot != self.localRoot:
+        elif gitRoot not in [self.localRoot, str(pathlib.Path(self.localRoot).absolute())]:
             # this indicates that the requested root is inside another repo
             raise AttributeError("The requested local path for project\n\t{}\n"
                                  "sits inside another folder, which git will "
@@ -1036,18 +1041,27 @@ def getGitRoot(p):
         raise exceptions.DependencyError(
                 "gitpython and a git installation required for getGitRoot()")
 
-    if not os.path.isdir(p):
-        p = [os.path.split(p)[0]
-             if len(os.path.split(p)[0]) > 0
-             else None].pop()
-    if subprocess.call(["git", "branch"],
-                       stderr=subprocess.STDOUT, stdout=open(os.devnull, 'w'),
-                       cwd=p) != 0:
+    p = pathlib.Path(p).absolute()
+    if not p.is_dir():
+        p = p.parent  # given a file instead of folder?
+
+    proc = subprocess.Popen('git branch --show-current',
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE,
+                            cwd=str(p), shell=True,
+                            universal_newlines=True)  # newlines forces stdout to unicode
+    stdout, stderr = proc.communicate()
+    if 'not a git repository' in (stdout + stderr):
         return None
     else:
-        out = subprocess.check_output(["git", "rev-parse", "--show-toplevel"],
-                                      cwd=p)
-        return out.strip().decode('utf-8')
+        # this should have been possible with git rev-parse --top-level
+        # but that sometimes returns a virtual symlink that is not the normal folder name
+        # e.g. some other mount point?
+        selfAndParents = [p] + list(p.parents)
+        for thisPath in selfAndParents:
+            if list(thisPath.glob('.git')):
+                return str(thisPath)  # convert Path back to str
+
 
 def getProject(filename):
     """Will try to find (locally synced) pavlovia Project for the filename

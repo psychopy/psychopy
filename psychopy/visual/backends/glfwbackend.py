@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """A Backend class defines the core low-level functions required by a Window
@@ -20,6 +20,7 @@ import glob
 import numpy as np
 from psychopy import logging, event, prefs
 from psychopy.tools.attributetools import attributeSetter
+from psychopy.visual import window
 from .gamma import createLinearRamp
 from .. import globalVars
 from ._base import BaseBackend
@@ -124,41 +125,53 @@ class GLFWBackend(BaseBackend):
 
     """
     GL = pyglet.gl  # use Pyglet's OpenGL interface for now, should use PyOpenGL
-    winTypeName = 'glfw'
+    winTypeName = 'glfw'  # needed to identify class for plugins
 
-    def __init__(self, win, *args, **kwargs):
+    def __init__(self, win, backendConf=None):
         """Set up the backend window according the params of the PsychoPy win
 
         Before PsychoPy 1.90.0 this code was executed in Window._setupPygame()
 
         Parameters
         ----------
-        win : psychopy.visual.Window instance
+        win : `psychopy.visual.Window` instance
             PsychoPy Window (usually not fully created yet).
-        share : psychopy.visual.Window instance
-            PsychoPy Window to share a context with
-        bpc : array_like
-            Bits per color (R, G, B).
-        refreshHz : int
-            Refresh rate in Hertz.
-        depthBits : int,
-            Framebuffer (back buffer) depth bits.
-        swapInterval : int
-            Swap interval for the current OpenGL context.
-        stencilBits : int
-            Framebuffer (back buffer) stencil bits.
-        winTitle : str
-            Optional window title string.
-        *args
-            Additional position arguments.
-        **kwargs
-            Additional keyword arguments.
+        backendConf : `dict` or `None`
+            Backend configuration options. Options are specified as a dictionary
+            where keys are option names and values are settings. For this
+            backend the following options are available:
+
+            * `share` (`psychopy.visual.Window instance`) PsychoPy Window to
+              share a context with.
+            * `refreshHz` (`int`) Refresh rate in Hertz.
+            * `bpc` (`array_like`) Bits per color (R, G, B).
+            * `swapInterval` (`int`) Swap interval for the current OpenGL
+              context.
+            * `depthBits` (`int`) Framebuffer (back buffer) depth bits.
+            * `stencilBits` (`int`) Framebuffer (back buffer) stencil bits.
+            * `winTitle` (`str`) Optional window title string.
+
+        Examples
+        --------
+        Create a window using the GLFW backend and specify custom options::
+
+            import psychopy.visual as visual
+
+            options = {'bpc': (8, 8, 8), 'depthBits': 24, 'stencilBits': 8}
+            win = visual.Window(winType='glfw', backendOptions=options)
 
         """
         BaseBackend.__init__(self, win)
 
+        # if `None`, change to `dict` to extract options
+        backendConf = backendConf if backendConf is not None else {}
+
+        if not isinstance(backendConf, dict):  # type check on options
+            raise TypeError(
+                'Object passed to `backendConf` must be type `dict`.')
+
         # window to share a context with
-        shareWin = kwargs.get('share', None)
+        shareWin = backendConf.get('share', None)
         if shareWin is not None:
             if shareWin.winType == 'glfw':
                 shareContext = shareWin.winHandle
@@ -177,16 +190,16 @@ class GLFWBackend(BaseBackend):
                              "so setting to False has no effect.")
 
         # window framebuffer configuration
-        bpc = kwargs.get('bpc', (8, 8, 8))
+        bpc = backendConf.get('bpc', (8, 8, 8))
         if isinstance(bpc, int):
             win.bpc = (bpc, bpc, bpc)
         else:
             win.bpc = bpc
 
-        win.refreshHz = int(kwargs.get('refreshHz', 60))
-        win.depthBits = int(kwargs.get('depthBits', 8))
-        win.stencilBits = int(kwargs.get('stencilBits', 8))
-        # win.swapInterval = int(kwargs.get('swapInterval', 1))  # vsync ON if 1
+        win.refreshHz = int(backendConf.get('refreshHz', 60))
+        win.depthBits = int(backendConf.get('depthBits', 8))
+        win.stencilBits = int(backendConf.get('stencilBits', 8))
+        # win.swapInterval = int(backendConf.get('swapInterval', 1))  # vsync ON if 1
 
         # get monitors, with GLFW the primary display is ALWAYS at index 0
         allScrs = glfw.get_monitors()
@@ -309,7 +322,7 @@ class GLFWBackend(BaseBackend):
         self.winHandle = glfw.create_window(
             width=win.clientSize[0],
             height=win.clientSize[1],
-            title=str(kwargs.get('winTitle', "PsychoPy (GLFW)")),
+            title=str(backendConf.get('winTitle', "PsychoPy (GLFW)")),
             monitor=useDisplay,
             share=shareContext)
 
@@ -363,7 +376,7 @@ class GLFWBackend(BaseBackend):
         glfw.set_char_mods_callback(self.winHandle, event._onGLFWText)
 
         # set swap interval to manual setting, independent of waitBlanking
-        self.setSwapInterval(int(kwargs.get('swapInterval', 1)))
+        self.setSwapInterval(int(backendConf.get('swapInterval', 1)))
 
         # give the window class GLFW specific methods
         win.setMouseType = self.setMouseType
@@ -616,7 +629,7 @@ class GLFWBackend(BaseBackend):
         # when filtering kb and mouse events (if the filter is enabled of
         # course)
         try:
-            if IOHUB_ACTIVE and _hw_handle:
+            if window.IOHUB_ACTIVE and _hw_handle:
                 from psychopy.iohub.client import ioHubConnection
                 conn = ioHubConnection.ACTIVE_CONNECTION
                 conn.unregisterWindowHandles(_hw_handle)

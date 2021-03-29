@@ -32,7 +32,7 @@ def readTextFile(relPath):
 # used when writing scripts and in namespace:
 _numpyImports = ['sin', 'cos', 'tan', 'log', 'log10', 'pi', 'average',
                  'sqrt', 'std', 'deg2rad', 'rad2deg', 'linspace', 'asarray']
-_numpyRandomImports = ['random', 'randint', 'normal', 'shuffle']
+_numpyRandomImports = ['random', 'randint', 'normal', 'shuffle', 'choice as randchoice']
 
 # this is not a standard component - it will appear on toolbar not in
 # components panel
@@ -64,6 +64,7 @@ _localized = {'expName': _translate("Experiment name"),
               'Completed URL': _translate("Completed URL"),
               'Incomplete URL': _translate("Incomplete URL"),
               'Output path': _translate("Output path"),
+              'Additional Resources': _translate("Additional Resources"),
               'JS libs': _translate("JS libs"),
               'Force stereo': _translate("Force stereo"),
               'Export HTML': _translate("Export HTML")}
@@ -91,6 +92,7 @@ thisFolder = os.path.split(__file__)[0]
 class SettingsComponent(object):
     """This component stores general info about how to run the experiment
     """
+    targets = ['PsychoPy']
 
     def __init__(self, parentName, exp, expName='', fullScr=True,
                  winSize=(1024, 768), screen=1, monitor='testMonitor',
@@ -108,7 +110,7 @@ class SettingsComponent(object):
         self.exp = exp  # so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['visual', 'gui'])
         self.parentName = parentName
-        self.url = "http://www.psychopy.org/builder/settings.html"
+        self.url = "https://www.psychopy.org/builder/settings.html"
         self._monitor = None
 
         # if filename is the default value fetch the builder pref for the
@@ -122,37 +124,37 @@ class SettingsComponent(object):
 
         # params
         self.params = {}
-        self.order = ['expName', 'Show info dlg', 'Experiment info',
-                      'Data filename',
-                      'Save excel file', 'Save csv file',
-                      'Save wide csv file', 'Save psydat file',
-                      'Save log file', 'logging level',
-                      'Monitor', 'Screen', 'Full-screen window',
-                      'Window size (pixels)',
-                      'color', 'colorSpace', 'Units', 'HTML path']
+        self.order = ['expName', 'Use version', 'Show info dlg', 'Enable Escape',  'Experiment info',  # Basic tab
+                      'Data filename', 'Data file delimiter', 'Save excel file', 'Save csv file', 'Save wide csv file',
+                      'Save psydat file', 'Save log file', 'logging level',  # Data tab
+                      'Audio lib', 'Audio latency priority', "Force stereo",  # Audio tab
+                      'HTML path', 'exportHTML', 'Completed URL', 'Incomplete URL', 'Resources',  # Online tab
+                      'Monitor', 'Screen', 'Full-screen window', 'Window size (pixels)', 'Units', 'color',
+                      'colorSpace'  # Screen tab
+                      ]
         # basic params
         self.params['expName'] = Param(
-            expName, valType='str', allowedTypes=[],
+            expName, valType='str',  inputType="single", allowedTypes=[],
             hint=_translate("Name of the entire experiment (taken by default"
                             " from the filename on save)"),
             label=_localized["expName"])
         self.params['Show info dlg'] = Param(
-            showExpInfo, valType='bool', allowedTypes=[],
+            showExpInfo, valType='bool', inputType="bool", allowedTypes=[],
             hint=_translate("Start the experiment with a dialog to set info"
                             " (e.g.participant or condition)"),
             label=_localized["Show info dlg"], categ='Basic')
         self.params['Enable Escape'] = Param(
-            enableEscape, valType='bool', allowedTypes=[],
+            enableEscape, valType='bool', inputType="bool", allowedTypes=[],
             hint=_translate("Enable the <esc> key, to allow subjects to quit"
                             " / break out of the experiment"),
             label=_localized["Enable Escape"])
         self.params['Experiment info'] = Param(
-            expInfo, valType='code', allowedTypes=[],
+            expInfo, valType='code', inputType="dict", allowedTypes=[],
             hint=_translate("The info to present in a dialog box. Right-click"
                             " to check syntax and preview the dialog box."),
             label=_localized["Experiment info"], categ='Basic')
         self.params['Use version'] = Param(
-            useVersion, valType='str',
+            useVersion, valType='str', inputType="choice",
             # search for options locally only by default, otherwise sluggish
             allowedVals=_versionFilter(versionOptions(), wx.__version__)
                         + ['']
@@ -160,63 +162,63 @@ class SettingsComponent(object):
             hint=_translate("The version of PsychoPy to use when running "
                             "the experiment."),
             label=_localized["Use version"], categ='Basic')
-        self.params['Force stereo'] = Param(
-            enableEscape, valType='bool', allowedTypes=[],
-            hint=_translate("Force audio to stereo (2-channel) output"),
-            label=_localized["Force stereo"])
 
         # screen params
         self.params['Full-screen window'] = Param(
-            fullScr, valType='bool', allowedTypes=[],
+            fullScr, valType='bool', inputType="bool", allowedTypes=[],
             hint=_translate("Run the experiment full-screen (recommended)"),
             label=_localized["Full-screen window"], categ='Screen')
         self.params['Window size (pixels)'] = Param(
-            winSize, valType='code', allowedTypes=[],
+            winSize, valType='list', inputType="single", allowedTypes=[],
             hint=_translate("Size of window (if not fullscreen)"),
             label=_localized["Window size (pixels)"], categ='Screen')
         self.params['Screen'] = Param(
-            screen, valType='num', allowedTypes=[],
+            screen, valType='num', inputType="spin", allowedTypes=[],
             hint=_translate("Which physical screen to run on (1 or 2)"),
             label=_localized["Screen"], categ='Screen')
         self.params['Monitor'] = Param(
-            monitor, valType='str', allowedTypes=[],
+            monitor, valType='str', inputType="single", allowedTypes=[],
             hint=_translate("Name of the monitor (from Monitor Center). Right"
                             "-click to go there, then copy & paste a monitor "
                             "name here."),
             label=_localized["Monitor"], categ="Screen")
         self.params['color'] = Param(
-            color, valType='str', allowedTypes=[],
+            color, valType='color', inputType="color", allowedTypes=[],
             hint=_translate("Color of the screen (e.g. black, $[1.0,1.0,1.0],"
                             " $variable. Right-click to bring up a "
                             "color-picker.)"),
             label=_localized["color"], categ='Screen')
         self.params['colorSpace'] = Param(
-            colorSpace, valType='str',
+            colorSpace, valType='str', inputType="choice",
             hint=_translate("Needed if color is defined numerically (see "
                             "PsychoPy documentation on color spaces)"),
             allowedVals=['rgb', 'dkl', 'lms', 'hsv', 'hex'],
             label=_localized["colorSpace"], categ="Screen")
         self.params['Units'] = Param(
-            units, valType='str', allowedTypes=[],
+            units, valType='str', inputType="choice", allowedTypes=[],
             allowedVals=['use prefs', 'deg', 'pix', 'cm', 'norm', 'height',
                          'degFlatPos', 'degFlat'],
             hint=_translate("Units to use for window/stimulus coordinates "
                             "(e.g. cm, pix, deg)"),
             label=_localized["Units"], categ='Screen')
         self.params['blendMode'] = Param(
-            blendMode, valType='str',
+            blendMode, valType='str', inputType="choice",
             allowedTypes=[], allowedVals=['add', 'avg'],
             hint=_translate("Should new stimuli be added or averaged with "
                             "the stimuli that have been drawn already"),
             label=_localized["blendMode"], categ='Screen')
         self.params['Show mouse'] = Param(
-            showMouse, valType='bool', allowedTypes=[],
+            showMouse, valType='bool', inputType="bool", allowedTypes=[],
             hint=_translate("Should the mouse be visible on screen?"),
             label=_localized["Show mouse"], categ='Screen')
 
         # sound params
+        self.params['Force stereo'] = Param(
+            enableEscape, valType='bool', inputType="bool", allowedTypes=[], categ="Audio",
+            hint=_translate("Force audio to stereo (2-channel) output"),
+            label=_localized["Force stereo"])
         self.params['Audio lib'] = Param(
-            'use prefs', valType='str',
+            'use prefs', valType='str', inputType="choice",
             allowedVals=['use prefs', 'ptb', 'pyo', 'sounddevice', 'pygame'],
             hint=_translate("Which Python sound engine do you want to play your sounds?"),
             label=_translate("Audio library"), categ='Audio')
@@ -230,7 +232,7 @@ class SettingsComponent(object):
             '4: ' + _translate('Latency critical'),
         ]
         self.params['Audio latency priority'] = Param(
-            'use prefs', valType='str',
+            'use prefs', valType='str', inputType="choice",
             allowedVals=['use prefs', '0', '1', '2', '3', '4'],
             allowedLabels=audioLatencyLabels,
             hint=_translate("How important is audio latency for you? If essential then you may need to get all your sounds in correct formats."),
@@ -238,43 +240,43 @@ class SettingsComponent(object):
 
         # data params
         self.params['Data filename'] = Param(
-            filename, valType='code', allowedTypes=[],
+            filename, valType='code', inputType="single", allowedTypes=[],
             hint=_translate("Code to create your custom file name base. Don"
                             "'t give a file extension - this will be added."),
             label=_localized["Data filename"], categ='Data')
         self.params['Data file delimiter'] = Param(
-            savedDataDelim, valType='str',
+            savedDataDelim, valType='str', inputType="choice",
             allowedVals=['auto', 'comma', 'semicolon', 'tab'],
             hint=_translate("What symbol should the data file use to separate columns? ""Auto"" will select a delimiter automatically from the filename."),
             label=_translate("Data file delimiter"), categ='Data'
         )
         self.params['Save log file'] = Param(
-            saveLogFile, valType='bool', allowedTypes=[],
+            saveLogFile, valType='bool', inputType="bool", allowedTypes=[],
             hint=_translate("Save a detailed log (more detailed than the "
                             "excel/csv files) of the entire experiment"),
             label=_localized["Save log file"], categ='Data')
         self.params['Save wide csv file'] = Param(
-            saveWideCSVFile, valType='bool', allowedTypes=[],
+            saveWideCSVFile, valType='bool', inputType="bool", allowedTypes=[],
             hint=_translate("Save data from loops in comma-separated-value "
                             "(.csv) format for maximum portability"),
             label=_localized["Save wide csv file"], categ='Data')
         self.params['Save csv file'] = Param(
-            saveCSVFile, valType='bool', allowedTypes=[],
+            saveCSVFile, valType='bool', inputType="bool", allowedTypes=[],
             hint=_translate("Save data from loops in comma-separated-value "
                             "(.csv) format for maximum portability"),
             label=_localized["Save csv file"], categ='Data')
         self.params['Save excel file'] = Param(
-            saveXLSXFile, valType='bool', allowedTypes=[],
+            saveXLSXFile, valType='bool', inputType="bool", allowedTypes=[],
             hint=_translate("Save data from loops in Excel (.xlsx) format"),
             label=_localized["Save excel file"], categ='Data')
         self.params['Save psydat file'] = Param(
-            savePsydatFile, valType='bool', allowedVals=[True],
+            savePsydatFile, valType='bool', inputType="bool", allowedVals=[True],
             hint=_translate("Save data from loops in psydat format. This is "
                             "useful for python programmers to generate "
                             "analysis scripts."),
             label=_localized["Save psydat file"], categ='Data')
         self.params['logging level'] = Param(
-            logging, valType='code',
+            logging, valType='code', inputType="choice",
             allowedVals=['error', 'warning', 'data', 'exp', 'info', 'debug'],
             hint=_translate("How much output do you want in the log files? "
                             "('error' is fewest messages, 'debug' is most)"),
@@ -286,25 +288,25 @@ class SettingsComponent(object):
         #     hint=_translate("The ID of this project (e.g. 5bqpc)"),
         #     label="OSF Project ID", categ='Online')
         self.params['HTML path'] = Param(
-            '', valType='str', allowedTypes=[],
+            '', valType='str', inputType="single", allowedTypes=[],
             hint=_translate("Place the HTML files will be saved locally "),
             label="Output path", categ='Online')
         self.params['Resources'] = Param(
-            [], valType='fileList', allowedTypes=[],
+            [], valType='list', inputType="fileList", allowedTypes=[],
             hint=_translate("Any additional resources needed"),
             label="Additional Resources", categ='Online')
         self.params['Completed URL'] = Param(
-            '', valType='str',
+            '', valType='str', inputType="single",
             hint=_translate("Where should participants be redirected after the experiment on completion\n"
                             " INSERT COMPLETION URL E.G.?"),
             label="Completed URL", categ='Online')
         self.params['Incomplete URL'] = Param(
-            '', valType='str',
+            '', valType='str', inputType="single",
             hint=_translate("Where participants are redirected if they do not complete the task\n"
                             " INSERT INCOMPLETION URL E.G.?"),
             label="Incomplete URL", categ='Online')
         self.params['exportHTML'] = Param(
-            exportHTML, valType='str',
+            exportHTML, valType='str', inputType="choice",
             allowedVals=['on Save', 'on Sync', 'manually'],
             hint=_translate("When to export experiment to the HTML folder."),
             label=_localized["Export HTML"], categ='Online')
@@ -530,15 +532,20 @@ class SettingsComponent(object):
         # decide if we need anchored useVersion or leave plain
         useVer = self.params['Use version'].val
         if useVer == '':
-            useVer = '.'.join(version.split('.')[:2])
+            useVer = version
         elif useVer == 'latest':
-            useVer = '.'.join(latestVersion().split('.')[:2])
-        else:
-            # do we shorten minor versions ('3.4.2' to '3.4')?
-            # only from 3.2 onwards
-            if (parse_version(useVer) > (parse_version('3.2'))
-                    and len(useVer.split('.'))>2):
-                useVer = '.'.join(useVer.split('.')[:2])
+            useVer = latestVersion()
+
+        # do we shorten minor versions ('3.4.2' to '3.4')?
+        # only from 3.2 onwards
+        if (parse_version('3.2')) <= parse_version(useVer) < parse_version('2021') \
+                and len(useVer.split('.')) > 2:
+            # e.g. 2020.2 not 2021.2.5
+            useVer = '.'.join(useVer.split('.')[:2])
+        elif len(useVer.split('.')) > 3:
+            # e.g. 2021.1.0 not 2021.1.0.dev3
+            useVer = '.'.join(useVer.split('.')[:3])
+
         # prepend the hyphen
         versionStr = '-{}'.format(useVer)
 
@@ -574,6 +581,7 @@ class SettingsComponent(object):
                     "import * as util from './lib/util{version}.js';\n"
                     "//some handy aliases as in the psychopy scripts;\n"
                     "const {{ abs, sin, cos, PI: pi, sqrt }} = Math;\n"
+                    "const {{ round }} = util;\n"
                     "\n").format(version=versionStr)
             buff.writeIndentedLines(code)
 
@@ -642,11 +650,10 @@ class SettingsComponent(object):
         buff.writeIndented("expInfo = %s\n" % repr(expInfoDict))
         if self.params['Show info dlg'].val:
             buff.writeIndentedLines(
-                "dlg = gui.DlgFromDict(dictionary=expInfo, "
-                "sort_keys={}, title=expName)\n"
-                "if dlg.OK == False:\n"
-                "    core.quit()  # user pressed cancel\n"
-                .format(sorting)
+                f"dlg = gui.DlgFromDict(dictionary=expInfo, "
+                f"sortKeys={sorting}, title=expName)\n"
+                f"if dlg.OK == False:\n"
+                f"    core.quit()  # user pressed cancel\n"
             )
         buff.writeIndentedLines(
             "expInfo['date'] = data.getDateStr()  # add a simple timestamp\n"

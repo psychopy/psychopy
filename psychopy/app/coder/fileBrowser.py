@@ -4,7 +4,7 @@
 """Classes and functions for the coder file browser pane."""
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
@@ -104,7 +104,8 @@ class FileBrowserPanel(wx.Panel):
             ".tif": 'fileimage16.png',
             ".ppm": 'fileimage16.png',
             ".gif": 'fileimage16.png',
-            ".py": 'coderpython16.png'
+            ".py": 'coderpython16.png',
+            ".js": 'coderjs16.png'
         }
 
     def __init__(self, parent, frame):

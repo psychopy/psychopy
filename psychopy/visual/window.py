@@ -4,7 +4,7 @@
 """A class representing a window for displaying one or more stimuli"""
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
@@ -16,7 +16,7 @@ import weakref
 import atexit
 from itertools import product
 
-from builtins import map
+# from builtins import map
 from builtins import object
 from builtins import range
 from builtins import str
@@ -26,10 +26,12 @@ from collections import deque
 from psychopy.contrib.lazy_import import lazy_import
 from psychopy import colors, event
 import math
-from psychopy.clock import monotonicClock
+# from psychopy.clock import monotonicClock
 
 # try to find avbin (we'll overload pyglet's load_library tool and then
 # add some paths)
+from ..colors import Color, colorSpaces
+
 haveAvbin = False
 
 # on windows try to load avbin now (other libs can interfere)
@@ -187,8 +189,7 @@ class Window(object):
                  bpc=(8, 8, 8),
                  depthBits=8,
                  stencilBits=8,
-                 *args,
-                 **kwargs):
+                 backendConf=None):
         """
         These attributes can only be set at initialization. See further down
         for a list of attributes which can be changed after initialization
@@ -196,81 +197,81 @@ class Window(object):
 
         Parameters
         ----------
-        size : `array-like` of `int`
+        size : array-like of int
             Size of the window in pixels [x, y].
-        pos : `array-like` of `int`
+        pos : array-like of int
             Location of the top-left corner of the window on the screen [x, y].
-        color : `array-like` of `float`
+        color : `rray-like of float
             Color of background as [r, g, b] list or single value. Each gun can
             take values between -1.0 and 1.0.
-        fullscr : `bool` or `None`
+        fullscr : bool or None
             Create a window in 'full-screen' mode. Better timing can be achieved
             in full-screen mode.
-        allowGUI : `bool` or `None`
+        allowGUI : bool or None
             If set to False, window will be drawn with no frame and no buttons
             to close etc., use `None` for value from preferences.
-        winType : `str` or `None`
+        winType : str or None
             Set the window type or back-end to use. If `None` then PsychoPy will
             revert to user/site preferences.
-        monitor : :obj:`~psychopy.monitors.Monitor` or `None`
+        monitor : :class:`~psychopy.monitors.Monitor` or None
             The monitor to be used during the experiment. If `None` a default
             monitor profile will be used.
-        units : `str` or `None`
+        units : str or None
             Defines the default units of stimuli drawn in the window (can be
             overridden by each stimulus). Values can be *None*, 'height' (of the
             window), 'norm' (normalised), 'deg', 'cm', 'pix'. See :ref:`units`
             for explanation of options.
-        screen : `int`
+        screen : int
             Specifies the physical screen that stimuli will appear on ('pyglet'
             and 'glfw' `winType` only). Values can be >0 if more than one screen
             is present.
-        viewScale : `array-like` of `float` or `None`
+        viewScale : array-like of float or None
             Scaling factors [x, y] to apply custom scaling to the current units
             of the :class:`~psychopy.visual.Window` instance.
-        viewPos : `array-like` of `float` or `None`
+        viewPos : array-like of float or None
             If not `None`, redefines the origin within the window, in the units
             of the window. Values outside the borders will be clamped to lie on
             the border.
-        viewOri : `float`
+        viewOri : float
             A single value determining the orientation of the view in degrees.
-        waitBlanking : `bool` or `None`
+        waitBlanking : bool or None
             After a call to :py:attr:`~Window.flip()` should we wait for the
             blank before the script continues.
-        bitsMode :
+        bitsMode : bool
             DEPRECATED in 1.80.02. Use BitsSharp class from pycrsltd
             instead.
-        checkTiming : `bool`
+        checkTiming : bool
             Whether to calculate frame duration on initialization. Estimated
             duration is saved in :py:attr:`~Window.monitorFramePeriod`.
-        allowStencil : `bool`
+        allowStencil : bool
             When set to `True`, this allows operations that use the OpenGL
             stencil buffer (notably, allowing the
             :class:`~psychopy.visual.Aperture` to be used).
-        multiSample : `bool`
+        multiSample : bool
             If `True` and your graphics driver supports multisample buffers,
             multiple color samples will be taken per-pixel, providing an
             anti-aliased image through spatial filtering. This setting cannot
             be changed after opening a window. Only works with 'pyglet' and
             'glfw' `winTypes`, and `useFBO` is `False`.
-        numSamples : `int`
+        numSamples : int
             A single value specifying the number of samples per pixel if
             multisample is enabled. The higher the number, the better the
             image quality, but can delay frame flipping. The largest number of
             samples is determined by ``GL_MAX_SAMPLES``, usually 16 or 32 on
             newer hardware, will crash if number is invalid.
-        stereo : `bool`
+        stereo : bool
             If `True` and your graphics card supports quad buffers then
             this will be enabled. You can switch between left and right-eye
             scenes for drawing operations using
             :py:attr:`~psychopy.visual.Window.setBuffer()`.
-        useRetina : `bool`
+        useRetina : bool
             In PsychoPy >1.85.3 this should always be `True` as pyglet
             (or Apple) no longer allows us to create a non-retina display.
             NB when you use Retina display the initial win size
             request will be in the larger pixels but subsequent use of
             ``units='pix'`` should refer to the tiny Retina pixels. Window.size
             will give the actual size of the screen in Retina pixels.
-        gammaErrorPolicy: `str`
+        gammaErrorPolicy: str
             If `raise`, an error is raised if the gamma table is unable to be
             retrieved or set. If `warn`, a warning is raised instead. If
             `ignore`, neither an error nor a warning are raised.
@@ -283,11 +284,17 @@ class Window(object):
             is assumed the display has 8-bits per color (8, 8, 8). Behaviour may
             be undefined for non-fullscreen windows, or if multiple screens are
             attached with varying color output depths.
-        depthBits : int,
+        depthBits : int
             Back buffer depth bits. Default is 8, but can be set higher (eg. 24)
             if drawing 3D stimuli to minimize artifacts such a 'Z-fighting'.
         stencilBits : int
             Back buffer stencil bits. Default is 8.
+        backendConf : dict or None
+            Additional options to pass to the backend specified by `winType`.
+            Each backend may provide unique functionality which may not be
+            available across all of them. This allows you to pass special
+            configuration options to a specific backend to configure the
+            feature.
 
         Notes
         -----
@@ -427,11 +434,21 @@ class Window(object):
         self.winType = winType
 
         # setup the context
-        self.backend = backends.getBackend(win=self,
-                                           bpc=bpc,
-                                           depthBits=depthBits,
-                                           stencilBits=stencilBits,
-                                           *args, **kwargs)
+
+        # backend specific options are passed as a dictionary
+        backendConf = backendConf if backendConf is not None else {}
+
+        if not isinstance(backendConf, dict):  # type check on options
+            raise TypeError(
+                'Object passed to `backendConf` must be type `dict`.')
+
+        # augment settings with dedicated attributes
+        backendConf['bpc'] = bpc
+        backendConf['depthBits'] = depthBits
+        backendConf['stencilBits'] = stencilBits
+
+        # get the backend, pass the options to it
+        self.backend = backends.getBackend(win=self, backendConf=backendConf)
 
         self.winHandle = self.backend.winHandle
         global GL
@@ -455,6 +472,9 @@ class Window(object):
         if self.viewOri != 0. and self.viewPos is not None:
             msg = "Window: viewPos & viewOri are currently incompatible"
             raise NotImplementedError(msg)
+
+        # scaling factor for HiDPI displays, `None` until initialized
+        self._contentScaleFactor = None
 
         # Code to allow iohub to know id of any psychopy windows created
         # so kb and mouse event filtering by window id can be supported.
@@ -546,7 +566,7 @@ class Window(object):
         self.refreshThreshold = 1.0  # initial val needed by flip()
 
         self._editableChildren = []
-        self._currentEditableIndex = None
+        self._currentEditableRef = None
 
         # over several frames with no drawing
         self._monitorFrameRate = None
@@ -901,42 +921,23 @@ class Window(object):
     @property
     def currentEditable(self):
         """The editable (Text?) object that currently has key focus"""
-        if not self._editableChildren:
-            return None
-        ii = self._currentEditableIndex
-        # make sure the object still exists or get another
-        object = None
-        while object is None and self._editableChildren:  # not found an object yet
-            if ii is None or ii < 0:  # None if not yet set one, <0 if all gone
-                return None
-            objectRef = self._editableChildren[ii]  # extract the weak reference
-            object = objectRef()  # get the actual object (None if deleted)
-            if not object:
-                self._editableChildren.remove(objectRef)  # remove and try another
-                if ii >= len(self._editableChildren):
-                    ii -= 1
-            else:
-                self._currentEditableIndex = ii
-        return object
+        if self._currentEditableRef:
+            return self._currentEditableRef()
 
     @currentEditable.setter
     def currentEditable(self, editable):
         """Keeps the current editable stored as a weak ref"""
-        lastEditable = self.currentEditable
-        if lastEditable is not None and lastEditable is not editable:
-            lastEditable.hasFocus = False
-        # we want both the weakref and the actual object
-        if not isinstance(editable, weakref.ref):
-            thisRef = weakref.ref(editable)
-        else:
-            thisRef = editable
-            editable = thisRef()
-        # then get/set index in list
-        if thisRef not in self._editableChildren:
-            self._currentEditableIndex = self.addEditable(thisRef)
-        else:
-            self._currentEditableIndex = self._editableChildren.index(thisRef)
-        editable.hasFocus = True
+        # Ensure that item is added to editables list
+        self.addEditable(editable)
+
+        # Set the editable as the current editable stim in the window
+        eRef = None
+        for ref in weakref.getweakrefs(editable):
+            if ref in self._editableChildren:
+                eRef = ref
+                break
+        if eRef:
+            self._currentEditableRef = eRef
 
     def addEditable(self, editable):
         """Adds an editable element to the screen (something to which
@@ -947,20 +948,53 @@ class Window(object):
         :param editable:
         :return:
         """
-        self._editableChildren.append(weakref.ref(editable))
-        ii = len(self._editableChildren)-1  # the index of appended item
-        # if this is the first editable obj then make it the
-        if len(self._editableChildren) == 1:
-            self.currentEditable = editable
-        return ii
+        # Ignore if object is not editable
+        if not hasattr(editable, "editable"):
+            return
+        if not editable.editable:
+            return
+        # If editable is already present do nothing
+        eRef = False
+        for ref in weakref.getweakrefs(editable):
+            if ref in self._editableChildren:
+                eRef = ref
+                break
+            
+        if eRef is False:
+            eRef = weakref.ref(editable)
+            # If editable is not already present, add it to the editables list
+            self._editableChildren.append(eRef)
 
-    def nextEditable(self, chars=''):
+        # If this is the first editable obj then make it the current
+        if len(self._editableChildren) == 1:
+            self._currentEditableRef = eRef
+
+
+    def removeEditable(self, editable):
+        # If editable is present, remove it from editables list
+        for ref in weakref.getweakrefs(editable):
+            if ref in self._editableChildren:
+                # If editable was current, move on to next current
+                if self.currentEditable == editable:
+                    self.nextEditable()
+                self._editableChildren.remove(ref)
+                return True
+        return False
+    
+    def nextEditable(self):
         """Moves focus of the cursor to the next editable window"""
-        ii = self._currentEditableIndex + 1
-        if ii > len(self._editableChildren)-1:
-            ii = 0  # wrap back to the first editable object
-        self.currentEditable = self._editableChildren[ii]
-        self._currentEditableIndex = ii
+        if self.currentEditable is None:
+            if len(self._editableChildren):
+                self._currentEditableRef = self._editableChildren[0]            
+        else:
+            for ref in weakref.getweakrefs(self.currentEditable):
+                if ref in self._editableChildren:
+                    cei = self._editableChildren.index(ref)
+                    nei = cei+1
+                    if nei >= len(self._editableChildren):
+                        nei=0
+                    self._currentEditableRef = self._editableChildren[nei]            
+        return self.currentEditable
 
     @classmethod
     def dispatchAllWindowEvents(cls):
@@ -1028,12 +1062,25 @@ class Window(object):
         self.useLights = False
 
         # Check for mouse clicks on editables
-        if hasattr(self, '_editableChildren'):  # Make sure _editableChildren has actually been created
+        if hasattr(self, '_editableChildren'):
+            # Make sure _editableChildren has actually been created
+            editablesOnScreen = []
             for thisObj in self._editableChildren:
+                # Iterate through editables and decide which one should have focus
                 if isinstance(thisObj, weakref.ref):
-                    thisObj = thisObj()  # Solidify weakref
+                    # Solidify weakref if necessary
+                    thisObj = thisObj()
+                if isinstance(thisObj.autoDraw, (bool, int, float)):
+                    # Store whether this editable is on screen
+                    editablesOnScreen.append(thisObj.autoDraw)
+                else:
+                    editablesOnScreen.append(False)
                 if self._mouse.isPressedIn(thisObj):
+                    # If editable was clicked on, give it focus
                     self.currentEditable = thisObj
+            # If there is only one editable on screen, make sure it starts off with focus
+            if sum(editablesOnScreen) == 1:
+                self.currentEditable = self._editableChildren[editablesOnScreen.index(True)]()
 
         flipThisFrame = self._startOfFlip()
         if self.useFBO and flipThisFrame:
@@ -1339,6 +1386,72 @@ class Window(object):
         """Size of the framebuffer in pixels (w, h)."""
         # Dimensions should match window size unless using a retina display
         return self.backend.frameBufferSize
+
+    def getContentScaleFactor(self):
+        """Get the scaling factor required for scaling correctly on high-DPI
+        displays.
+
+        If the returned value is 1.0, no scaling needs to be applied to objects
+        drawn on the backbuffer. A value >1.0 indicates that the backbuffer is
+        larger than the reported client area, requiring points to be scaled to
+        maintain constant size across similarly sized displays. In other words,
+        the scaling required to convert framebuffer to client coordinates.
+
+        Returns
+        -------
+        float
+            Scaling factor to be applied along both horizontal and vertical
+            dimensions.
+
+        Examples
+        --------
+        Get the size of the client area::
+
+            clientSize = win.frameBufferSize / win.getContentScaleFactor()
+
+        Get the framebuffer size from the client size::
+
+            frameBufferSize = win.clientSize * win.getContentScaleFactor()
+
+        Convert client (window) to framebuffer pixel coordinates (eg., a mouse
+        coordinate, vertices, etc.)::
+
+            # `mousePosXY` is an array ...
+            frameBufferXY = mousePosXY * win.getContentScaleFactor()
+            # you can also use the attribute ...
+            frameBufferXY = mousePosXY * win.contentScaleFactor
+
+        Notes
+        -----
+        * This value is only valid after the window has been fully realized.
+
+        """
+        # this might be accessed at lots of points, probably shouldn't compute
+        # this all the time
+        if self._contentScaleFactor is not None:
+            return self._contentScaleFactor
+
+        sx = self.frameBufferSize[0] / float(self.clientSize[0])
+        sy = self.frameBufferSize[1] / float(self.clientSize[1])
+
+        if sx != sy:  # messed up DPI settings return 1.0 and show warning
+            self._contentScaleFactor = 1.0
+        else:
+            self._contentScaleFactor = sx
+
+        return self._contentScaleFactor
+
+    @property
+    def contentScaleFactor(self):
+        """Scaling factor (`float`) to use when drawing to the backbuffer to
+        convert framebuffer to client coordinates.
+
+        See Also
+        --------
+        getContentScaleFactor
+
+        """
+        return self.getContentScaleFactor()
 
     @property
     def aspect(self):
@@ -2131,16 +2244,16 @@ class Window(object):
 
             # box corners in pix
             left = int((rect[0] / 2. + 0.5) * x)
-            top = int((rect[1] / -2. + 0.5) * y)
+            bottom = int((rect[3] / 2. + 0.5) * y)
             w = int((rect[2] / 2. + 0.5) * x) - left
-            h = int((rect[3] / -2. + 0.5) * y) - top
+            h = int((rect[1] / 2. + 0.5) * y) - bottom
         else:
-            left = top = 0
+            left = bottom = 0
             w, h = self.size
 
         # http://www.opengl.org/sdk/docs/man/xhtml/glGetTexImage.xml
         bufferDat = (GL.GLubyte * (4 * w * h))()
-        GL.glReadPixels(left, top, w, h,
+        GL.glReadPixels(left, bottom, w, h,
                         GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, bufferDat)
         try:
             im = Image.fromstring(mode='RGBA', size=(w, h),
@@ -2461,8 +2574,43 @@ class Window(object):
         """
         setAttribute(self, 'blendMode', blendMode, log)
 
-    @attributeSetter
-    def color(self, color):
+    @property
+    def colorSpace(self):
+        """The name of the color space currently being used
+
+        Value should be: a string or None
+
+        For strings and hex values this is not needed.
+        If None the default colorSpace for the stimulus is
+        used (defined during initialisation).
+
+        Please note that changing colorSpace does not change stimulus
+        parameters. Thus you usually want to specify colorSpace before
+        setting the color. Example::
+
+            # A light green text
+            stim = visual.TextStim(win, 'Color me!',
+                                   color=(0, 1, 0), colorSpace='rgb')
+
+            # An almost-black text
+            stim.colorSpace = 'rgb255'
+
+            # Make it light green again
+            stim.color = (128, 255, 128)
+        """
+        if hasattr(self, '_colorSpace'):
+            return self._colorSpace
+        else:
+            return 'rgb'
+    @colorSpace.setter
+    def colorSpace(self, value):
+        if value in colorSpaces:
+            self._colorSpace = value
+        else:
+            logging.error(f"'{value}' is not a valid color space")
+
+    @property
+    def color(self):
         """Set the color of the window.
 
         This command sets the color that the blank screen will have on the
@@ -2481,24 +2629,24 @@ class Window(object):
         See :ref:`colorspaces` for further information about the ways to
         specify colors and their various implications.
         """
-        self.setColor(color)
+        if hasattr(self, '_color'):
+            return getattr(self._color, self.colorSpace)
+    @color.setter
+    def color(self, value):
+        if isinstance(value, Color):
+            # If supplied with a color object, set as that
+            self._color = value
+        else:
+            # Otherwise, use it to make a color object
+            self._color = Color(value, self.colorSpace)
+        if not self._color:
+            self._color = Color()
+            logging.error(f"'{value}' is not a valid {self.colorSpace} color")
 
-    @attributeSetter
-    def colorSpace(self, colorSpace):
-        """Documentation for colorSpace is in the stimuli.
-
-        e.g. :py:attr:`GratingStim.colorSpace`
-
-        Usually used in conjunction with ``color`` like this::
-
-            win.colorSpace = 'rgb255'  # changes colorSpace but not
-                                       # the value of win.color
-            win.color = [0, 0, 255]    # clear blue in rgb255
-
-        See :ref:`colorspaces` for further information about the ways to
-        specify colors and their various implications.
-        """
-        self.__dict__['colorSpace'] = colorSpace
+        # if it is None then this will be done during window setup
+        if self.backend is not None:
+            self.backend.setCurrent()  # make sure this window is active
+            GL.glClearColor(*self._color.render('rgba1'))
 
     def setColor(self, color, colorSpace=None, operation='', log=None):
         """Usually you can use ``stim.attribute = value`` syntax instead,
@@ -2507,41 +2655,21 @@ class Window(object):
 
         See :py:attr:`~Window.color` for documentation on colors.
         """
-        # Set color
-        setColor(self, color, colorSpace=colorSpace, operation=operation,
-                 rgbAttrib='rgb',  # or 'fillRGB' etc
-                 colorAttrib='color')
-
-        # These spaces are 0-centred
-        if self.colorSpace in ['rgb', 'dkl', 'lms', 'hsv']:
-            # RGB in range 0:1 and scaled for contrast
-            desiredRGB = (self.rgb + 1) / 2.0
-        # rgb255 and named are not...
-        elif self.colorSpace in ['rgb255', 'named']:
-            desiredRGB = self.rgb / 255.0
-        elif self.colorSpace in ['hex']:
-            desiredRGB = [rgbs/255.0 for rgbs in colors.hex2rgb255(color)]
-        else:  # some array / numeric stuff
-            msg = 'invalid value %r for Window.colorSpace'
-            raise ValueError(msg % colorSpace)
-
-        # if it is None then this will be done during window setup
-        if self.backend is not None:
-            self.backend.setCurrent()  # make sure this window is active
-            GL.glClearColor(desiredRGB[0], desiredRGB[1], desiredRGB[2], 1.0)
+        self.colorSpace = colorSpace
+        self.color = color
 
     def setRGB(self, newRGB):
         """Deprecated: As of v1.61.00 please use `setColor()` instead
         """
-        global GL
-        self.rgb = val2array(newRGB, False, length=3)
-        if self.winType == 'pyglet' and globalVars.currWindow != self:
-            self.winHandle.switch_to()
-            globalVars.currWindow = self
-        GL.glClearColor(((self.rgb[0] + 1.0) / 2.0),
-                        ((self.rgb[1] + 1.0) / 2.0),
-                        ((self.rgb[2] + 1.0) / 2.0),
-                        1.0)
+        self.setColor(newRGB, colorSpace="rgb")
+
+    @property
+    def rgb(self):
+        if hasattr(self, "_color"):
+            return self._color.render("rgb")
+    @rgb.setter
+    def rgb(self, value):
+        self.color = Color(value, 'rgb')
 
     def _setupGamma(self, gammaVal):
         """A private method to work out how to handle gamma for this Window

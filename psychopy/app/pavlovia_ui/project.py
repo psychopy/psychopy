@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 import time
 import os
@@ -37,7 +37,7 @@ class ProjectEditor(wx.Dialog):
             self.filename = parent.filename
         else:
             self.filename = None
-        self.project = project  # type: PavloviaProject
+        self.project = project  # type: pavlovia.PavloviaProject
         self.projInfo = None
         self.parent = parent
 
@@ -178,7 +178,7 @@ class DetailsPanel(scrlpanel.ScrolledPanel):
 
         scrlpanel.ScrolledPanel.__init__(self, parent, -1, style=style)
         self.parent = parent
-        self.project = project  # type: PavloviaProject
+        self.project = project  # type: pavlovia.PavloviaProject
         self.noTitle = noTitle
         self.localFolder = ''
         self.syncPanel = None

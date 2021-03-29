@@ -6,7 +6,7 @@ second order envelope carrier and envelope can vary independently for
 orientation, frequencyand phase. Also does beat stimuli. """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd..
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd..
 # Additional code provided by Andrew Schofield
 # Distributed under the terms of the GNU General Public License (GPL).
 

@@ -8,7 +8,7 @@ It also acts as a test routine to make sure your device is working and that the
 bits.py module is intact. 
 
 The bits.py module mostly provides wrapper functions for getting control of the
-CRS hardware famility, Bits++, Bits#, Display++ and their variants. ViSaGe devices
+CRS hardware family, Bits++, Bits#, Display++ and their variants. ViSaGe devices
 are not supported unless you have one with a Bits# emulation mode. 
 
 Most but not all of the bits.py commands are tested. Similarly
@@ -20,8 +20,8 @@ output. Bits# has a stereo goggles port which works differently and is not teste
 support for it currently provided in bits.py.
 
 Stereo via frame interleaving is not recommended on a Display++ due to LCD pixel transition speeds.
-CRS have a 3D version of Display++ which uses polarised galsses and line interlaving. This is not
-specifically implemente din bits.py yet but you can still build an stereo image yourself.
+CRS have a 3D version of Display++ which uses polarised galsses and line interleaving. This is not
+specifically implemented in bits.py yet but you can still build an stereo image yourself.
 
 Bits++ support is relatively minimal with, in particular, digital inputs not being supported.
 
@@ -31,10 +31,12 @@ To work effectively on a Bits++ box you will need an Oscilloscope and:
 You will then observe changes in those outputs.
 
 To work effectively on all other devices you will need to:
+
     Connect DOUT1 (pin 2) to DIN7 (pin 21)
     Connect DOUT5 (pin 6) to DIN8 (pin 24)
     Connect DOUT6 (pin 7) to DIN9 (pin 25)
-and Connect Analog OUT 1 TO Analog IN 1 if you have a Bits# or a Display++
+
+and connect Analog OUT 1 to Analog IN 1 if you have a Bits# or a Display++
 with the optional Analog factures. This will cunningly allow the CRS device to monitor
 its own outputs. Testing both output and input features at once.
 
@@ -43,15 +45,15 @@ Note Screen is the screen number of your CRS connected monitor = 0 or 1.
 (your working in coder after all).
 
 Enter None to see what happens if there is 
-no device and hnce no serial comms.
+no device and hence no serial comms.
 
-Note that the monitor and LUT sessings don't really matter much.
+Note that the monitor and LUT settings don't really matter much.
 
 You will get warnings about stuff being found on the input buffer. This is because the command to
 stop the CRS device from sending data expects a return message to say that data collection has stopped
 but will always find the last chunk of data recorded instead.
 
-See xxxxx for a description of the bits.py appraoch to CRS hardware and programer guide.
+See xxxxx for a description of the bits.py approach to CRS hardware and programmer guide.
 
 """
 from __future__ import absolute_import, division, print_function
@@ -147,7 +149,7 @@ if  expInfo['Device'] != 'Bits++':
     msg='$enableGammaCorrection=['+lutfile+']\r'
     bits.sendMessage(msg)
     bits.read(timeout=0.1)
-    bits.sendMessage('$EnableTouchScreen=[OFF]\e')
+    bits.sendMessage(r'$EnableTouchScreen=[OFF]\e')
     bits.read(timeout=0.1)
     bits.sendMessage('$Stop\r')
     # Clear the buffer

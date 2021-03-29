@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Extensible set of components for the PsychoPy Builder view
@@ -229,11 +229,10 @@ def getInitVals(params, target="PsychoPy"):
         elif name in ['pos', 'fieldPos']:
             inits[name].val = '[0,0]'
             inits[name].valType = 'code'
-        elif name == 'color':
+        elif name in ['color', 'foreColor', 'borderColor', 'lineColor', 'fillColor']:
             inits[name].val = 'white'
             inits[name].valType = 'str'
-        elif name in ['ori', 'sf', 'size', 'height', 'letterHeight',
-                      'lineColor', 'fillColor', 'lineWidth',
+        elif name in ['ori', 'sf', 'size', 'height', 'letterHeight', 'lineWidth',
                       'phase', 'opacity',
                       'volume',  # sounds
                       'coherence', 'nDots', 'fieldSize', 'dotSize', 'dotLife',
@@ -260,7 +259,7 @@ def getInitVals(params, target="PsychoPy"):
             inits[name].val = "norm"
             inits[name].valType = 'str'
         elif name == 'text':
-            inits[name].val = "default text"
+            inits[name].val = ""
             inits[name].valType = 'str'
         elif name == 'flip':
             inits[name].val = ""

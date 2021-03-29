@@ -1,13 +1,130 @@
-
 :mod:`psychopy.tools.mathtools`
-----------------------------------------
+-------------------------------
 
-Assorted math functions for working with vectors, matrices, and
-quaternions. These functions are intended to provide basic support for common
-mathematical operations associated with displaying stimuli (e.g. animation,
-posing, rendering, etc.)
+Assorted math functions for working with vectors, matrices, and quaternions.
+These functions are intended to provide basic support for common mathematical
+operations associated with displaying stimuli (e.g. animation, posing,
+rendering, etc.)
 
 For tools related to view transformations, see :mod:`~psychopy.tools.viewtools`.
+
+.. automodule:: psychopy.tools.mathtools
+.. currentmodule:: psychopy.tools.mathtools
+
+Vectors
+=======
+
+Tools for working with 2D and 3D vectors.
+
+.. autosummary::
+    :toctree: ../generated/
+
+    length
+    normalize
+    orthogonalize
+    reflect
+    dot
+    cross
+    project
+    perp
+    lerp
+    distance
+    angleTo
+    bisector
+    surfaceNormal
+    surfaceBitangent
+    surfaceTangent
+    vertexNormal
+    fixTangentHandedness
+    ortho3Dto2D
+    transform
+    scale
+
+Quaternions
+===========
+
+Tools for working with *quaternions*. Quaternions are used primarily here to
+represent rotations in 3D space.
+
+.. autosummary::
+    :toctree: ../generated/
+
+    articulate
+    slerp
+    quatToAxisAngle
+    quatFromAxisAngle
+    quatYawPitchRoll
+    alignTo
+    quatMagnitude
+    multQuat
+    accumQuat
+    invertQuat
+    applyQuat
+    quatToMatrix
+
+Matrices
+========
+
+Tools to creating and using affine transformation matrices.
+
+.. autosummary::
+    :toctree: ../generated/
+
+    matrixToQuat
+    matrixFromEulerAngles
+    scaleMatrix
+    rotationMatrix
+    translationMatrix
+    invertMatrix
+    isOrthogonal
+    isAffine
+    multMatrix
+    concatenate
+    normalMatrix
+    forwardProject
+    reverseProject
+    applyMatrix
+    posOriToMatrix
+
+Collisions
+==========
+
+Tools for determining whether a vector intersects a solid or bounding volume.
+
+.. autosummary::
+    :toctree: ../generated/
+
+    fitBBox
+    computeBBoxCorners
+    intersectRayPlane
+    intersectRaySphere
+    intersectRayAABB
+    intersectRayOBB
+    intersectRayTriangle
+
+Distortion
+==========
+
+Functions for generating barrel/pincushion distortion meshes to correct image
+distortion. Such distortion is usually introduced by lenses in the optical path
+between the viewer and the display.
+
+.. autosummary::
+    :toctree: ../generated/
+
+    lensCorrection
+    lensCorrectionSpherical
+
+Miscellaneous
+=============
+
+Miscellaneous and helper functions.
+
+.. autosummary::
+    :toctree: ../generated/
+
+    zeroFix
+
 
 Performance and Optimization
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -60,132 +177,3 @@ Most functions have an `out` argument, where one can specify an array to write
 values to. The value of `dtype` is ignored if `out` is provided, and all input
 arrays will be converted to match the `dtype` of `out` (if not already). This
 ensures that the type of the destination array is used for all arithmetic.
-
-
-.. automodule:: psychopy.tools.mathtools
-.. currentmodule:: psychopy.tools.mathtools
-
-Overview
-~~~~~~~~
-
-.. autosummary::
-
-    length
-    normalize
-    orthogonalize
-    reflect
-    dot
-    cross
-    project
-    perp
-    lerp
-    distance
-    angleTo
-    bisector
-    surfaceNormal
-    surfaceBitangent
-    surfaceTangent
-    vertexNormal
-    fixTangentHandedness
-    fitBBox
-    computeBBoxCorners
-    intersectRayPlane
-    intersectRaySphere
-    intersectRayAABB
-    intersectRayOBB
-    intersectRayTriangle
-    ortho3Dto2D
-    articulate
-    slerp
-    quatToAxisAngle
-    quatFromAxisAngle
-    quatYawPitchRoll
-    alignTo
-    quatMagnitude
-    multQuat
-    accumQuat
-    invertQuat
-    applyQuat
-    quatToMatrix
-    matrixToQuat
-    matrixFromEulerAngles
-    scaleMatrix
-    rotationMatrix
-    matrixAngle
-    translationMatrix
-    invertMatrix
-    isOrthogonal
-    isAffine
-    multMatrix
-    concatenate
-    normalMatrix
-    forwardProject
-    reverseProject
-    applyMatrix
-    posOriToMatrix
-    transform
-    scale
-    lensCorrection
-    zeroFix
-
-
-Details
-~~~~~~~
-
-.. autofunction:: length
-.. autofunction:: normalize
-.. autofunction:: orthogonalize
-.. autofunction:: reflect
-.. autofunction:: dot
-.. autofunction:: cross
-.. autofunction:: project
-.. autofunction:: perp
-.. autofunction:: lerp
-.. autofunction:: distance
-.. autofunction:: angleTo
-.. autofunction:: bisector
-.. autofunction:: surfaceNormal
-.. autofunction:: surfaceBitangent
-.. autofunction:: surfaceTangent
-.. autofunction:: vertexNormal
-.. autofunction:: fixTangentHandedness
-.. autofunction:: fitBBox
-.. autofunction:: computeBBoxCorners
-.. autofunction:: intersectRayPlane
-.. autofunction:: intersectRaySphere
-.. autofunction:: intersectRayAABB
-.. autofunction:: intersectRayOBB
-.. autofunction:: intersectRayTriangle
-.. autofunction:: ortho3Dto2D
-.. autofunction:: articulate
-.. autofunction:: slerp
-.. autofunction:: quatToAxisAngle
-.. autofunction:: quatFromAxisAngle
-.. autofunction:: quatYawPitchRoll
-.. autofunction:: alignTo
-.. autofunction:: quatMagnitude
-.. autofunction:: multQuat
-.. autofunction:: accumQuat
-.. autofunction:: invertQuat
-.. autofunction:: applyQuat
-.. autofunction:: quatToMatrix
-.. autofunction:: matrixToQuat
-.. autofunction:: matrixFromEulerAngles
-.. autofunction:: scaleMatrix
-.. autofunction:: rotationMatrix
-.. autofunction:: matrixAngle
-.. autofunction:: translationMatrix
-.. autofunction:: invertMatrix
-.. autofunction:: isOrthogonal
-.. autofunction:: isAffine
-.. autofunction:: multMatrix
-.. autofunction:: concatenate
-.. autofunction:: normalMatrix
-.. autofunction:: forwardProject
-.. autofunction:: reverseProject
-.. autofunction:: applyMatrix
-.. autofunction:: posOriToMatrix
-.. autofunction:: transform
-.. autofunction:: scale
-.. autofunction:: lensCorrection
-.. autofunction:: zeroFix

@@ -6,7 +6,7 @@ Inspired by rockNroll87q - https://github.com/rockNroll87q/pyDrawing
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
@@ -80,7 +80,7 @@ class Brush(MinimalStim):
                                      closeShape=self.closeShape,
                                      lineWidth=self.lineWidth,
                                      lineColor=self.lineColor,
-                                     lineColorSpace=self.lineColorSpace,
+                                     colorSpace=self.lineColorSpace,
                                      opacity=self.opacity,
                                      autoLog=False,
                                      autoDraw=True))

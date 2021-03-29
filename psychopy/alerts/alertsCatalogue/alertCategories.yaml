@@ -30,7 +30,10 @@
 
 4000:
   cat: Builder experiments
-  4050: Experiment configuration
+  4050:
+    cat: Experiment configuration
+    4051: Experiment from future version
+    4052: Experiment fixed to past version
   4100:
     cat: Timing
     4105: Component start time exceeds stop times
@@ -43,9 +46,16 @@
     cat: Components
     4305: Component disabled
     4310: Cannot calculate parameter
+    4315: Invalid dollar sign syntax
+    4320: Non-local font
+    4325: Font not available
 
 5000: Online studies
-6000: None
+6000:
+  cat: Interface
+    6100:
+      cat: File not found
+      6105: Run nonexistant file
 7000: Python dependencies
 8000: None
 9000: None

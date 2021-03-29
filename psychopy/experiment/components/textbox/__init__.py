@@ -2,12 +2,14 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
 
 from os import path
+
+from psychopy.alerts import alerttools
 from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals, _translate
 from psychopy.localization import _localized as __localized
 _localized = __localized.copy()
@@ -45,21 +47,21 @@ class TextboxComponent(BaseVisualComponent):
     def __init__(self, exp, parentName, name='textbox',
                  # effectively just a display-value
                  text=_translate('Any text\n\nincluding line breaks'),
-                 font='Arial', units='from exp settings', bold=False, italic=False,
-                 color='white', colorSpace='rgb', opacity=1.0,
+                 font='Open Sans', units='from exp settings', bold=False, italic=False,
+                 color='white', colorSpace='rgb', opacity="",
                  pos=(0, 0), size='', letterHeight=0.05, ori=0,
-                 lineSpacing=1.0, padding=None,  # gap between box and text
+                 lineSpacing=1.0, padding="",  # gap between box and text
                  startType='time (s)', startVal=0.0, anchor='center',
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim='',
-                 languageStyle='LTR', fillColor=None,
-                 borderColor=None, borderWidth=2,
+                 languageStyle='LTR', fillColor="None",
+                 borderColor="None", borderWidth=2,
                  flipHoriz=False,
                  flipVert=False,
                  editable=False, autoLog=True):
-        super(TextboxComponent, self).__init__(exp, parentName, name=name,
+        super(TextboxComponent, self).__init__(exp, parentName, name,
                                             units=units,
-                                            color=color,
+                                            color=color, fillColor=fillColor, borderColor=borderColor,
                                             colorSpace=colorSpace,
                                             pos=pos,
                                             ori=ori,
@@ -71,71 +73,72 @@ class TextboxComponent(BaseVisualComponent):
                                             startEstim=startEstim,
                                             durationEstim=durationEstim)
         self.type = 'Textbox'
-        self.url = "http://www.psychopy.org/builder/components/text.html"
-        self.order = [  # controls both tab order and params within tabs
-            "font", # Format tab
-            "color", "fillColor",  # Color tab next
-            "anchor",  # Layout tab
-                      ]
+        self.url = "https://www.psychopy.org/builder/components/textbox.html"
+        self.order += [  # controls order of params within tabs
+            "editable", "text",  # Basic tab
+            "borderWidth", "opacity",  # Appearance tab
+            "font", "letterHeight", "lineSpacing", "bold", "italic",  # Formatting tab
+            ]
+        self.order.insert(self.order.index("units"), "padding") # Add "padding" just before spatial units
         # params
         _allow3 = ['constant', 'set every repeat', 'set every frame']  # list
         self.params['color'].label = _translate("Text Color")
 
         self.params['text'] = Param(
-            text, valType='extendedStr', allowedTypes=[], categ='Basic',
+            text, valType='str', inputType="multi", allowedTypes=[], categ='Basic',
             updates='constant', allowedUpdates=_allow3[:],  # copy the list
             hint=_translate("The text to be displayed"),
             label=_localized['text'])
         self.params['font'] = Param(
-            font, valType='str', allowedTypes=[], categ='Formatting',
+            font, valType='str', inputType="single", allowedTypes=[], categ='Formatting',
             updates='constant', allowedUpdates=_allow3[:],  # copy the list
             hint=_translate("The font name (e.g. Comic Sans)"),
             label=_localized['font'])
         self.params['letterHeight'] = Param(
-            letterHeight, valType='code', allowedTypes=[], categ='Formatting',
+            letterHeight, valType='num', inputType="single", allowedTypes=[], categ='Formatting',
             updates='constant', allowedUpdates=_allow3[:],  # copy the list
             hint=_translate("Specifies the height of the letter (the width"
                             " is then determined by the font)"),
             label=_localized['letterHeight'])
         self.params['flipHoriz'] = Param(
-            flipHoriz, valType='bool', allowedTypes=[], categ='Layout',
+            flipHoriz, valType='bool', inputType="bool", allowedTypes=[], categ='Layout',
             updates='constant',
             hint=_translate("horiz = left-right reversed; vert = up-down"
                             " reversed; $var = variable"),
             label=_localized['flipHorizontal'])
         self.params['flipVert'] = Param(
-            flipVert, valType='bool', allowedTypes=[], categ='Layout',
+            flipVert, valType='bool', inputType="bool", allowedTypes=[], categ='Layout',
             updates='constant',
             hint=_translate("horiz = left-right reversed; vert = up-down"
                             " reversed; $var = variable"),
             label=_localized['flipVertical'])
         self.params['languageStyle'] = Param(
-            languageStyle, valType='str', categ='Formatting',
+            languageStyle, valType='str', inputType="choice", categ='Formatting',
             allowedVals=['LTR', 'RTL', 'Arabic'],
             hint=_translate("Handle right-to-left (RTL) languages and Arabic reshaping"),
             label=_localized['languageStyle'])
         self.params['italic'] = Param(
-            italic, valType='bool', allowedTypes=[], categ='Formatting',
+            italic, valType='bool', inputType="bool", allowedTypes=[], categ='Formatting',
             updates='constant',
             hint=_translate("Should text be italic?"),
             label=_localized['italic'])
         self.params['bold'] = Param(
-            bold, valType='bool', allowedTypes=[], categ='Formatting',
+            bold, valType='bool', inputType="bool", allowedTypes=[], categ='Formatting',
             updates='constant',
             hint=_translate("Should text be bold?"),
             label=_localized['bold'])
         self.params['lineSpacing'] = Param(
-            lineSpacing, valType='num', allowedTypes=[], categ='Formatting',
+            lineSpacing, valType='num', inputType="single", allowedTypes=[], categ='Formatting',
             updates='constant',
             hint=_translate("Defines the space between lines"),
             label=_localized['lineSpacing'])
         self.params['padding'] = Param(
-            padding, valType='code', allowedTypes=[], categ='Layout',
+            padding, valType='num', inputType="single", allowedTypes=[], categ='Layout',
             updates='constant', allowedUpdates=_allow3[:],
             hint=_translate("Defines the space between text and the textbox border"),
             label=_localized['padding'])
         self.params['anchor'] = Param(
-            anchor, valType='str', categ='Layout',
+            anchor, valType='str', inputType="choice", categ='Layout',
             allowedVals=['center',
                          'top-center',
                          'bottom-center',
@@ -150,17 +153,17 @@ class TextboxComponent(BaseVisualComponent):
             hint=_translate("Should text anchor to the top, center or bottom of the box?"),
             label=_localized['anchor'])
         self.params['borderWidth'] = Param(
-            borderWidth, valType='num', allowedTypes=[], categ='Appearance',
+            borderWidth, valType='num', inputType="single", allowedTypes=[], categ='Appearance',
             updates='constant', allowedUpdates=_allow3[:],
             hint=_translate("Textbox border width"),
             label=_localized['borderWidth'])
         self.params['editable'] = Param(
-            editable, valType='bool', allowedTypes=[], categ='Basic',
+            editable, valType='bool', inputType="bool", allowedTypes=[], categ='Basic',
             updates='constant',
             hint=_translate("Should textbox be editable?"),
             label=_localized['editable'])
         self.params['autoLog'] = Param(
-            autoLog, valType='bool', allowedTypes=[], categ='Data',
+            autoLog, valType='bool', inputType="bool", allowedTypes=[], categ='Data',
             updates='constant',
             hint=_translate(
                     'Automatically record all changes to this in the log file'),
@@ -211,7 +214,7 @@ class TextboxComponent(BaseVisualComponent):
             if inits[param] in [None, 'None', '']:
                 inits[param].val = 'undefined'
                 if param == 'text':
-                    inits[param].val = "''"
+                    inits[param].val = ""
 
         code = ("%(name)s = new visual.TextBox({\n"
                 "  win: psychoJS.window,\n"
@@ -226,6 +229,7 @@ class TextboxComponent(BaseVisualComponent):
                 "  opacity: %(opacity)s,\n"
                 "  padding: %(padding)s,\n"
                 "  editable: %(editable)s,\n"
+                "  multiline: true,\n"
                 "  anchor: %(anchor)s,\n")
         buff.writeIndentedLines(code % inits)
 
@@ -233,6 +237,7 @@ class TextboxComponent(BaseVisualComponent):
         code = ("  depth: %.1f \n"
                 "});\n\n" % (depth))
         buff.writeIndentedLines(code)
+        depth = -self.getPosInRoutine()
 
     def writeRoutineEndCode(self, buff):
         name = self.params['name']
@@ -241,8 +246,8 @@ class TextboxComponent(BaseVisualComponent):
         else:
             currLoop = self.exp._expHandler
         if self.params['editable']:
-            buff.writeIndented("%s.addData('%s.text',%s.text)\n" %
-                               (currLoop.params['name'], name, name))
+            buff.writeIndentedLines(f"{currLoop.params['name']}.addData('{name}.text',{name}.text)\n"
+                               f"{name}.reset()\n")
         # get parent to write code too (e.g. store onset/offset times)
         super().writeRoutineEndCode(buff)
 
@@ -256,3 +261,7 @@ class TextboxComponent(BaseVisualComponent):
                                self.params)
         # get parent to write code too (e.g. store onset/offset times)
         super().writeRoutineEndCodeJS(buff)
+
+    def integrityCheck(self):
+        super().integrityCheck()  # run parent class checks first
+        alerttools.testFont(self) # Test whether font is available locally

@@ -5,7 +5,7 @@
 #
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 __all__ = ['normalize',
@@ -63,7 +63,8 @@ __all__ = ['normalize',
            'fixTangentHandedness',
            'articulate',
            'forwardProject',
-           'reverseProject']
+           'reverseProject',
+           'lensCorrectionSpherical']
 
 
 import numpy as np
@@ -3813,6 +3814,8 @@ def lensCorrection(xys, coefK=(1.0,), distCenter=(0., 0.), out=None,
     for optical distortion introduced by lenses placed in the optical path of
     the viewer and the display (such as in an HMD).
 
+    See references[1]_ for implementation details.
+
     Parameters
     ----------
     xys : array_like
@@ -3883,6 +3886,128 @@ def lensCorrection(xys, coefK=(1.0,), distCenter=(0., 0.), out=None,
     toReturn[:, :] = xys + (d_minus_c / denom[:, np.newaxis])
 
     return toReturn
+
+
+def lensCorrectionSpherical(xys, coefK=1.0, aspect=1.0, out=None, dtype=None):
+    """Simple lens correction.
+
+    Lens correction for a spherical lenses with distortion centered at the
+    middle of the display. See references[1]_ for implementation details.
+
+    Parameters
+    ----------
+    xys : array_like
+        Nx2 list of vertex positions or texture coordinates to distort. Assumes
+        the output will be rendered to normalized device coordinates where
+        points range from -1.0 to 1.0.
+    coefK : float
+        Distortion coefficent. Use positive numbers for pincushion distortion
+        and negative for barrel distortion.
+    aspect : float
+        Aspect ratio of the target window or buffer (width / height).
+    out : ndarray, optional
+        Optional output array. Must be same `shape` and `dtype` as the expected
+        output if `out` was not specified.
+    dtype : dtype or str, optional
+        Data type for computations can either be 'float32' or 'float64'. If
+        `out` is specified, the data type of `out` is used and this argument is
+        ignored. If `out` is not provided, 'float64' is used by default.
+
+    Returns
+    -------
+    ndarray
+        Array of distorted vertices.
+
+    References
+    ----------
+    .. [1] Lens Distortion White Paper, Andersson Technologies LLC,
+           www.ssontech.com/content/lensalg.html (obtained 07/28/2020)
+
+    Examples
+    --------
+    Creating a lens correction mesh with barrel distortion (eg. for HMDs)::
+
+        vertices, textureCoords, normals, faces = gltools.createMeshGrid(
+            subdiv=11, tessMode='center')
+
+        # recompute vertex positions
+        vertices[:, :2] = mt.lensCorrection2(vertices[:, :2], coefK=2.0)
+
+    """
+    if out is None:
+        dtype = np.float64 if dtype is None else np.dtype(dtype).type
+    else:
+        dtype = np.dtype(dtype).type
+
+    toReturn = np.empty_like(xys, dtype=dtype) if out is None else out
+
+    xys = np.asarray(xys, dtype=dtype)
+    toReturn[:, 0] = u = xys[:, 0]
+    toReturn[:, 1] = v = xys[:, 1]
+    coefKCubed = np.power(coefK, 3, dtype=dtype)
+
+    r2 = aspect * aspect * u * u + v * v
+    r2sqr = np.sqrt(r2, dtype=dtype)
+    f = 1. + r2 * (coefK + coefKCubed * r2sqr)
+
+    toReturn[:, 0] *= f
+    toReturn[:, 1] *= f
+
+    return toReturn
+
+
+class infrange():
+    """
+    Similar to base Python `range`, but allowing the step to be a float or even
+    0, useful for specifying ranges for logical comparisons.
+    """
+    def __init__(self, min, max, step=0):
+        self.min = min
+        self.max = max
+        self.step = step
+
+    @property
+    def range(self):
+        return abs(self.max-self.min)
+
+    def __lt__(self, other):
+        return other > self.max
+
+    def __le__(self, other):
+        return other > self.min
+
+    def __gt__(self, other):
+        return self.min > other
+
+    def __ge__(self, other):
+        return self.max > other
+
+    def __contains__(self, item):
+        if self.step == 0:
+            return self.min < item < self.max
+        else:
+            return item in np.linspace(self.min, self.max, int(self.range/self.step)+1)
+
+    def __eq__(self, item):
+        if isinstance(item, self.__class__):
+            return all((
+                self.min == item.min,
+                self.max == item.max,
+                self.step == item.step
+            ))
+        return item in self
+
+    def __add__(self, other):
+        return self.__class__(self.min+other, self.max+other, self.step)
+
+    def __sub__(self, other):
+        return self.__class__(self.min - other, self.max - other, self.step)
+
+    def __mul__(self, other):
+        return self.__class__(self.min * other, self.max * other, self.step * other)
+
+    def __truedic__(self, other):
+        return self.__class__(self.min / other, self.max / other, self.step / other)
 
 
 if __name__ == "__main__":

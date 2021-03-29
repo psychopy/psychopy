@@ -20,8 +20,29 @@
           <ul class="nav navbar-nav ml-auto">
             <li><a href="https://discourse.psychopy.org">Forum</a></li>
             <li><a href="{{ pathto('download') }}" style="font-weight:bold">Download</a></li>
-            <li><a href="{{ pathto('documentation') }}">Documentation</a></li>
-
+            <li class="dropdown globaltoc-container">
+                    <a role="button"
+                       id="dLabelGlobalToc"
+                       data-toggle="dropdown"
+                       data-target="#"
+                       href="#">Documentation <b class="caret"></b></a>
+                    <ul class="dropdown-menu globaltoc"
+                        role="menu"
+                        aria-labelledby="dLabelGlobalToc">
+                        <ul>
+                            <li class="toctree-l1"><a class="reference internal" href="{{ pathto('about/index') }}">About</a>
+                            </li>
+                            <li class="toctree-l1"><a class="reference internal" href="{{ pathto('documentation') }}">Documentation</a></li>
+                            <li class="toctree-l1"><a class="reference internal" href="{{ pathto('api/index') }}">Reference Manual
+                                (API)</a></li>
+                            <li class="toctree-l1"><a class="reference internal" href="{{ pathto('changelog') }}">Changelog</a>
+                            </li>
+                            <li class="toctree-l1"><a class="reference internal" href="{{ pathto('resources/index') }}">Resources
+                                (e.g. for teaching)</a></li>
+                        </ul>
+                    </ul>
+                </li>
+            <li><a href="{{ pathto('consultancy') }}" style="font-weight:bold">Consultancy</a></li>
             {% if theme_navbar_links %}
               {%- for link in theme_navbar_links %}
                 <li><a href="{{ pathto(*link[1:]) }}">{{ link[0] }}</a></li>

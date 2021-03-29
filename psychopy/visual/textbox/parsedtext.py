@@ -259,9 +259,7 @@ class ParsedTextLine(object):
 
         self.updateOrds(self._text)
 
-        # self.text_region_flags=numpy.ones((2,parent._num_columns),
-        #   numpy.uint32)#*parent._text_grid.default_region_type_key
-        self._gl_display_list = numpy.zeros(parent._num_columns, numpy.uint)
+        self._gl_display_list = numpy.zeros(parent._num_columns, numpy.uint32)
 
     def updateOrds(self, text):
         if ParsedTextLine.charcodes_with_glyphs is None:

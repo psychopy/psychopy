@@ -5,7 +5,7 @@
 RBGA object.`"""
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
@@ -164,8 +164,6 @@ class BufferImageStim(ImageStim):
         self.size = region.size
 
         # to improve drawing speed, move these out of draw:
-        self.desiredRGB = self._getDesiredRGB(
-            self.rgb, self.colorSpace, self.contrast)
         self.thisScale = numpy.array([4, 4])
         self.flipHoriz = flipHoriz
         self.flipVert = flipVert
@@ -225,8 +223,7 @@ class BufferImageStim(ImageStim):
                     self.thisScale[1] * (1, -1)[self.flipVert], 1.0)
 
         # enable dynamic position, orientation, opacity; depth not working?
-        GL.glColor4f(self.desiredRGB[0], self.desiredRGB[1],
-                     self.desiredRGB[2], self.opacity)
+        GL.glColor4f(*self._foreColor.render('rgba1'))
 
         GL.glCallList(self._listID)  # make it happen
         GL.glPopMatrix()  # return the view to previous state

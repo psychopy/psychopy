@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Functions and classes related to attribute handling
@@ -99,7 +99,7 @@ def setAttribute(self, attrib, value, log,
 
             # Calculate new value using operation
             if operation in ('', None):
-                if (value.shape is () and
+                if (value.shape == () and
                         not isinstance(oldValue, attributeSetter)):  # scalar
                     # Preserves dimensions in case oldValue is array-like.
                     value = oldValue * 0 + value

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """utility classes for the Builder
@@ -10,8 +10,10 @@
 
 from __future__ import absolute_import, division, print_function
 
+import glob
 import os
 from builtins import object
+from pathlib import Path
 
 from wx.lib.agw.aui.aui_constants import *
 from wx.lib.agw.aui.aui_utilities import IndentPressedBitmap, ChopText, TakeScreenShot
@@ -26,6 +28,8 @@ from . import pavlovia_ui
 from . import icons
 from .themes import ThemeMixin
 from psychopy.localization import _translate
+from psychopy.tools.stringtools import prettyname
+
 
 class FileDropTarget(wx.FileDropTarget):
     """On Mac simply setting a handler for the EVT_DROP_FILES isn't enough.
@@ -35,16 +39,29 @@ class FileDropTarget(wx.FileDropTarget):
     def __init__(self, targetFrame):
         wx.FileDropTarget.__init__(self)
         self.target = targetFrame
+        self.app = targetFrame.app
 
     def OnDropFiles(self, x, y, filenames):
         logging.debug(
             'PsychoPyBuilder: received dropped files: %s' % filenames)
         for fname in filenames:
-            if fname.endswith('.psyexp') or fname.lower().endswith('.py'):
-                self.target.fileOpen(filename=fname)
+            if isinstance(self.target, psychopy.app.coder.CoderFrame) and wx.GetKeyState(wx.WXK_ALT):
+                # If holding ALT and on coder, insert filename into current coder doc
+                if self.app.coder:
+                    if self.app.coder.currentDoc:
+                        self.app.coder.currentDoc.AddText(fname)
+            if isinstance(self.target, psychopy.app.runner.RunnerFrame):
+                # If on Runner, load file to run
+                self.app.showRunner()
+                self.app.runner.addTask(fileName=fname)
+            elif fname.lower().endswith('.psyexp'):
+                # If they dragged on a .psyexp file, open it in in Builder
+                self.app.showBuilder()
+                self.app.builder.fileOpen(filename=fname)
             else:
-                logging.warning(
-                    'dropped file ignored: did not end in .psyexp or .py')
+                # If they dragged on any other file, try to open it in Coder (if it's not text, this will give error)
+                self.app.showCoder()
+                self.app.coder.fileOpen(filename=fname)
         return True
 
 
@@ -119,7 +136,7 @@ class PsychopyToolbar(wx.ToolBar, ThemeMixin):
         self._needMakeTools = True
         # Configure toolbar appearance
         self.SetWindowStyle(wx.TB_HORIZONTAL | wx.NO_BORDER | wx.TB_FLAT | wx.TB_NODIVIDER)
-        #self.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
+        # self.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
         # Set icon size (16 for win/linux small mode, 32 for everything else
         self.iconSize = 32  # mac: 16 either doesn't work, or looks bad
         self.SetToolBitmapSize((self.iconSize, self.iconSize))
@@ -192,11 +209,17 @@ class PsychopyToolbar(wx.ToolBar, ThemeMixin):
                     func=self.frame.setExperimentSettings)  # Settings
             self.AddSeparator()
             self.addPsychopyTool(
-                    name='compile',
-                    label=_translate('Compile Script'),
+                    name='compile_py',
+                    label=_translate('Compile Python Script'),
                     shortcut='compileScript',
-                    tooltip=_translate("Compile to script"),
+                    tooltip=_translate("Compile to Python script"),
                     func=self.frame.compileScript)  # Compile
+            self.addPsychopyTool(
+                    name='compile_js',
+                    label=_translate('Compile JS Script'),
+                    shortcut='compileScript',
+                    tooltip=_translate("Compile to JS script"),
+                    func=self.frame.fileExport)  # Compile
             self.frame.bldrBtnRunner = self.addPsychopyTool(
                     name='runner',
                     label=_translate('Runner'),
@@ -341,6 +364,59 @@ class PsychopyScrollbar(wx.ScrollBar):
             pageSize=vsz
         )
 
+
+def updateDemosMenu(frame, menu, folder, ext):
+    """Update Demos menu as needed."""
+    def _makeButton(parent, menu, demo):
+        # Skip if demo name starts with _
+        if demo.name.startswith("_"):
+            return
+        # Create menu button
+        item = menu.Append(wx.ID_ANY, demo.name)
+        # Store in window's demos list
+        parent.demos.update({item.Id: demo})
+        # Link button to demo opening function
+        parent.Bind(wx.EVT_MENU, parent.demoLoad, item)
+
+    def _makeFolder(parent, menu, folder, ext):
+        # Skip if underscore in folder name
+        if folder.name.startswith("_"):
+            return
+        # Create and append menu for this folder
+        submenu = wx.Menu()
+        menu.AppendSubMenu(submenu, folder.name)
+        # Get folder contents
+        folderContents = glob.glob(str(folder / '*'))
+        for subfolder in sorted(folderContents):
+            subfolder = Path(subfolder)
+            # Make menu/button for each:
+            # subfolder according to whether it contains a psyexp, or...
+            # subfile according to whether it matches the ext
+            if subfolder.is_dir():
+                subContents = glob.glob(str(subfolder / '*'))
+                if any(file.endswith(".psyexp") and not file.startswith("_") for file in subContents):
+                    _makeButton(parent, submenu, subfolder)
+                else:
+                    _makeFolder(parent, submenu, subfolder, ext)
+            elif subfolder.suffix == ext and not subfolder.name.startswith("_"):
+                _makeButton(parent, submenu, subfolder)
+
+    # Make blank dict to store demo details in
+    frame.demos = {}
+    if not folder:  # if there is no unpacked demos folder then just return
+        return
+
+    # Get root folders
+    rootGlob = glob.glob(str(Path(folder) / '*'))
+    for fdr in rootGlob:
+        fdr = Path(fdr)
+        # Make menus/buttons recursively for each folder according to whether it contains a psyexp
+        if fdr.is_dir():
+            folderContents = glob.glob(str(fdr / '*'))
+            if any(file.endswith(".psyexp") for file in folderContents):
+                _makeButton(frame, menu, fdr)
+            else:
+                _makeFolder(frame, menu, fdr, ext)
 
 class FrameSwitcher(wx.Menu):
     """Menu for switching between different frames"""

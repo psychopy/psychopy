@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from .functions import logInPavlovia, logOutPavlovia
@@ -42,7 +42,7 @@ class UserEditor(wx.Dialog):
         # create the controls
         userField = wxhl.HyperLinkCtrl(panel, id=wx.ID_ANY,
                                        label=self.user.url, URL=self.user.url)
-        logoutBtn = wx.Button(panel, label="Logout")
+        logoutBtn = wx.Button(panel, label=_translate("Logout"))
         logoutBtn.Bind(wx.EVT_BUTTON, self.onLogout)
         nameLabel = wx.StaticText(panel, id=wx.ID_ANY,
                                   label=_translate("Full name:"))

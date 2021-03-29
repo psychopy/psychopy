@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """A Backend class defines the core low-level functions required by a Window
@@ -26,9 +26,10 @@ class BaseBackend(object):
     a Window class, such as the ability to create an OpenGL context and flip
     the window.
 
-    Users simply call visual.Window(..., winType='pyglet') and the winType is
-    then used by backends.getBackend(winType) which will locate the appropriate
-    class and initialize an instance using the attributes of the Window.
+    Users simply call visual.Window(..., winType='pyglet') and the `winType` is
+    then used by `backends.getBackend(winType)` which will locate the
+    appropriate class and initialize an instance using the attributes of the
+    Window.
     """
     # define GL here as a class attribute that includes all the opengl funcs
     # e.g. GL = pyglet.gl

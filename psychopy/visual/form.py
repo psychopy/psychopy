@@ -3,7 +3,7 @@
 
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 from __future__ import division
 import copy
@@ -20,6 +20,8 @@ from pathlib import Path
 from psychopy.constants import PY3
 
 __author__ = 'Jon Peirce, David Bridges, Anthony Haffey'
+
+from ..colors import Color
 
 _REQUIRED = -12349872349873  # an unlikely int
 
@@ -98,6 +100,11 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
     def __init__(self,
                  win,
                  name='default',
+                 colorSpace='rgb',
+                 color='white',
+                 fillColor='red',
+                 borderColor='white',
+                 foreColor='white',
                  items=None,
                  textHeight=.02,
                  size=(.5, .5),
@@ -113,25 +120,30 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         self.win = win
         self.autoLog = autoLog
         self.name = name
-        self.style = style
         self.randomize = randomize
         self.items = self.importItems(items)
         self.size = size
-        self.pos = pos
+        self._pos = pos
         self.itemPadding = itemPadding
         self.scrollSpeed = self.setScrollSpeed(self.items, 4)
         self.units = units
         self.depth = 0
 
+        # Appearance
+        self.colorSpace = colorSpace
+        self.fillColor = fillColor
+        self.foreColor = color
+        self.borderColor = borderColor
 
         self.textHeight = textHeight
-        self._scrollBarSize = (0.016, size[1])
+        self._scrollBarSize = (0.016, self.size[1]/1.2)
         self._baseYpositions = []
         self.leftEdge = None
         self.rightEdge = None
         self.topEdge = None
         self._currentVirtualY = 0  # Y position in the virtual sheet
         self._decorations = []
+        self._externalDecorations = []
         # Check units - only works with height units for now
         if self.win.units != 'height':
             logging.warning(
@@ -142,14 +154,13 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
         # Create layout of form
         self._createItemCtrls()
+        self.style = style
 
         if self.autoLog:
             logging.exp("Created {} = {}".format(self.name, repr(self)))
 
     def __repr__(self, complete=False):
         return self.__str__(complete=complete)  # from MinimalStim
-
-    knownStyles = ['light', 'dark']
 
     def importItems(self, items):
         """Import items from csv or excel sheet and convert to list of dicts.
@@ -250,7 +261,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                             continue
                         # Default to colour scheme if specified
                         if defaultValues[header] in ['fg', 'bg', 'em']:
-                            item[header] = self.colorScheme[defaultValues[header]]
+                            item[header] = self.color
                         else:
                             item[header] = defaultValues[header]
                         missingHeaders.append(header)
@@ -366,7 +377,9 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 pos=(self.leftEdge+self.itemPadding, 0),  # y pos irrelevant
                 size=[w, None],  # expand height with text
                 autoLog=False,
-                color=item['itemColor'],
+                colorSpace=self.colorSpace,
+                color=item['itemColor'] or self.color,
+                fillColor=None,
                 padding=0,  # handle this by padding between items
                 borderWidth=1,
                 borderColor=None,  # add borderColor to help debug
@@ -474,10 +487,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
             style = kind
 
         # Create x position of response object
-        xPos = (self.rightEdge
-                - ((item['responseWidth'] * self.size[0]) / 2)
-                - self._scrollBarSize[0]
-                - self.itemPadding)
+        x = self.pos[0]
         # Set radio button layout
         if item['layout'] == 'horiz':
             w = (item['responseWidth'] * self.size[0]
@@ -490,7 +500,6 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
             item['options'].reverse()
 
         # Create Slider
-        x = xPos - self._scrollBarSize[0] - self.itemPadding
         resp = psychopy.visual.Slider(
                 self.win,
                 pos=(x, 0),  # NB y pos is irrelevant here - handled later
@@ -504,15 +513,10 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 flip=True,
                 style=style,
                 autoLog=False,
-                color=item['responseColor'])
-        resp.line.lineColorSpace = self.colorScheme['space']
-        resp.line.lineColor = self.colorScheme['fg']
-        resp.line.fillColorSpace = self.colorScheme['space']
-        resp.line.fillColor = self.colorScheme['fg']
-        resp.marker.lineColorSpace = self.colorScheme['space']
-        resp.marker.lineColor = self.colorScheme['em']
-        resp.marker.fillColorSpace = self.colorScheme['space']
-        resp.marker.fillColor = self.colorScheme['em']
+                color=item['responseColor'] or self.color,
+                fillColor=self.fillColor,
+                borderColor=self.borderColor,
+                colorSpace=self.colorSpace)
 
         if item['layout'] == 'horiz':
             h += self.textHeight*2
@@ -563,13 +567,13 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 letterHeight=self.textHeight,
                 units=self.units,
                 anchor='top-right',
-                color=self.colorScheme['fg'],
-                colorSpace=self.colorScheme['space'],
-                font='Arial',
+                color=item['responseColor'] or self.color,
+                colorSpace=self.colorSpace,
+                font='Open Sans',
                 editable=True,
-                borderColor=self.colorScheme['fg'],
+                borderColor=self.borderColor,
                 borderWidth=2,
-                fillColor=self.colorScheme['bg'],
+                fillColor=None,
                 onTextCallback=self._layoutY,
         )
 
@@ -590,18 +594,11 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         scroll = psychopy.visual.Slider(win=self.win,
                                       size=self._scrollBarSize,
                                       ticks=[0, 1],
-                                      style='slider',
+                                      style='scrollbar',
+                                      borderColor= self.borderColor,
+                                      fillColor= self.fillColor,
                                       pos=(self.rightEdge - .008, self.pos[1]),
                                       autoLog=False)
-        scroll.line.lineColorSpace = self.colorScheme['space']
-        scroll.line.lineColor = self.colorScheme['bg']
-        scroll.line.fillColorSpace = self.colorScheme['space']
-        scroll.line.fillColor = self.colorScheme['bg']
-        scroll.marker.lineColorSpace = self.colorScheme['space']
-        scroll.marker.lineColor = self.colorScheme['em']
-        scroll.marker.fillColorSpace = self.colorScheme['space']
-        scroll.marker.fillColor = self.colorScheme['em']
-
         return scroll
 
     def _setBorder(self):
@@ -617,10 +614,10 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                                     pos=self.pos,
                                     width=self.size[0],
                                     height=self.size[1],
-                                    fillColorSpace=self.colorScheme['space'],
-                                    fillColor=self.colorScheme['bg'],
-                                    lineColorSpace=self.colorScheme['space'],
-                                    lineColor=self.colorScheme['bg'],
+                                    colorSpace=self.colorSpace,
+                                    fillColor=None,
+                                    lineColor=None,
+                                    opacity=None,
                                     autoLog=False)
 
     def _setAperture(self):
@@ -636,7 +633,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                                             units=self.units,
                                             shape='square',
                                             size=self.size,
-                                            pos=(0, 0),
+                                            pos=self.pos,
                                             autoLog=False)
         aperture.disable()  # Disable on creation. Only enable on draw.
         return aperture
@@ -761,6 +758,10 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         """Draw decorations on form."""
         [decoration.draw() for decoration in self._decorations]
 
+    def _drawExternalDecorations(self):
+        """Draw decorations outside the aperture"""
+        [decoration.draw() for decoration in self._externalDecorations]
+
     def _drawCtrls(self):
         """Draw elements on form within border range.
 
@@ -779,11 +780,22 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 if self._inRange(element):
                     element.draw()
 
+    def setAutoDraw(self, value, log=None):
+        """Sets autoDraw for Form and any responseCtrl contained within
+        """
+        for i in self.items:
+            if i['responseCtrl']:
+                i['responseCtrl'].__dict__['autoDraw'] = value
+                self.win.addEditable(i['responseCtrl'])
+        BaseVisualStim.setAutoDraw(self, value, log)
+
     def draw(self):
         """Draw all form elements"""
         # Check mouse wheel
         self.scrollbar.markerPos += self.scrollbar.mouse.getWheelRel()[
                                         1] / self.scrollSpeed
+        # draw the box and scrollbar
+        self._drawExternalDecorations()
         # enable aperture
         self.aperture.enable()
         # draw the box and scrollbar
@@ -865,15 +877,80 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         return self.complete
 
     @property
+    def pos(self):
+        if hasattr(self, '_pos'):
+            return self._pos
+    @pos.setter
+    def pos(self, value):
+        self._pos = value
+        if hasattr(self, 'aperture'):
+            self.aperture.pos = value
+        if hasattr(self, 'border'):
+            self.border.pos = value
+        self.leftEdge = self.pos[0] - self.size[0] / 2.0
+        self.rightEdge = self.pos[0] + self.size[0] / 2.0
+        # Set horizontal position of elements
+        for item in self.items:
+            for element in [item['itemCtrl'], item['responseCtrl']]:
+                if element is None:  # e.g. because this has no resp obj
+                    continue
+                element.pos = [value[0], element.pos[1]]
+                element._baseY = value[1]
+                if hasattr(element, 'anchor'):
+                    element.anchor = 'top-center'
+        # Calculate new position for everything on the y axis
+        self.scrollbar.pos = (self.rightEdge - .008, self.pos[1])
+        self._layoutY()
+
+    @property
     def complete(self):
         """A read-only property to determine if the current form is complete"""
         self.getData()
         return self._complete
 
+    knownStyles = ["basic", "legalPad"]
+    legacyStyles = ["light", "dark"]
+    knownStyles = legacyStyles # Overwrite new styles until implemented
+
+    @property
+    def foreColor(self):
+        return ColorMixin.foreColor.fget(self)
+    @foreColor.setter
+    def foreColor(self, value):
+        ColorMixin.foreColor.fset(self, value)
+        for item in self.items:
+            if 'itemCtrl' in item:
+                if hasattr(item['itemCtrl'], 'color'):
+                    item['itemCtrl'].color = self._foreColor.copy()
+            if 'responseCtrl' in item:
+                if hasattr(item['responseCtrl'], 'color'):
+                    item['responseCtrl'].color = self._foreColor.copy()
+
+    @property
+    def fillColor(self):
+        return ColorMixin.fillColor.fget(self)
+    @fillColor.setter
+    def fillColor(self, value):
+        ColorMixin.fillColor.fset(self, value)
+        for item in self.items:
+            if 'responseCtrl' in item:
+                if hasattr(item['responseCtrl'], 'fillColor') and not isinstance(item['responseCtrl'], psychopy.visual.TextBox2):
+                    item['responseCtrl'].fillColor = self._fillColor.copy()
+
+    @property
+    def borderColor(self):
+        return ColorMixin.borderColor.fget(self)
+    @borderColor.setter
+    def borderColor(self, value):
+        ColorMixin.borderColor.fset(self, value)
+        for item in self.items:
+            if 'responseCtrl' in item:
+                if hasattr(item['responseCtrl'], 'borderColor'):
+                    item['responseCtrl'].borderColor = self._borderColor.copy()
+
     @property
     def style(self):
         return self._style
-
     @style.setter
     def style(self, style):
         """Sets some predefined styles or use these to create your own.
@@ -891,25 +968,83 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
         """
         self._style = style
-        # Default colours
-        self.colorScheme = {
-            'space': 'rgb',  # Colour space
-            'em': [0.89, -0.35, -0.28],  # emphasis
-            'bg': [0,0,0],  # background
-            'fg': [1,1,1],  # foreground
-        }
-        if 'light' in style:
-            self.colorScheme = {
-                'space': 'rgb', # Colour space
-                'em': [0.89, -0.35, -0.28],  # emphasis
-                'bg': [0.89,0.89,0.89],  # background
-                'fg': [-1,-1,-1],  # foreground
-            }
 
-        if 'dark' in style:
-            self.colorScheme = {
-                'space': 'rgb',  # Colour space
-                'em': [0.89, -0.35, -0.28],  # emphasis
-                'bg': [-0.19,-0.19,-0.14],  # background
-                'fg': [0.89,0.89,0.89],  # foreground
+        if style == "basic":
+            # Basic is the default, do nothing
+            return
+
+        if style == 'legalPad':
+            # Set page fill color
+            self.border.fillColor = '#F2F6A7' # Legal pad yellow
+
+            # Add left line
+            margin = psychopy.visual.Line(self.win,
+                                 start=[self.pos[0]-self.size[0]/2+self.itemPadding*0.8, self.pos[1]+self.size[1]/2],
+                                 end=[self.pos[0]-self.size[0]/2+self.itemPadding*0.8, self.pos[1]-self.size[1]/2],
+                                 units=self.units,
+                                 lineColor='red'
+                                 )
+            self._decorations.append(margin)
+
+            # Create a drop shadow
+            unitAdjs = {
+                'height': 0.02,
+                'norm': 0.02,
+                'pix': 10,
+                'cm': 1,
+                'deg': 0.5,
+                'degFlatPos': 0.5,
+                'degFlat': 0.5
             }
+            if self.units in unitAdjs:
+                shadowAdj = unitAdjs[self.units]
+            else:
+                shadowAdj = 0
+            shadow = psychopy.visual.Rect(self.win,
+                units=self.units,
+                pos=[self.pos[0] + shadowAdj, self.pos[1] - shadowAdj],
+                width=self.size[0],
+                height=self.size[1],
+                colorSpace=self.colorSpace,
+                fillColor=Color((-1, -1, -1, 0.2), 'rgb'),
+                lineColor=None,
+                opacity=None,
+                autoLog=False)
+            self._externalDecorations.insert(0, shadow)
+
+        # Legacy
+        if style == 'light' or str(style) == "['light']":
+            # ...then replace set colors with colors from style
+            self.color = 'black'
+            self.borderColor = 'black'
+            self.fillColor = Color([0.89, -0.35, -0.28], 'rgb')
+            self.border.fillColor = Color([0.89,0.89,0.89], 'rgb')
+        if style == 'dark' or str(style) == "['dark']":
+            # ...then replace set colors with colors from style
+            self.color = 'white'
+            self.borderColor = 'white'
+            self.fillColor = Color([0.89, -0.35, -0.28], 'rgb')
+            self.border.fillColor = Color([-0.19,-0.19,-0.14], 'rgb')
+
+    @property
+    def values(self):
+        # Iterate through each control and append its value to a dict
+        out = {}
+        for item in self.getData():
+            out.update(
+                {item['index']: item['response']}
+            )
+        return out
+
+    @values.setter
+    def values(self, values):
+        for item in self.items:
+            if item['index'] in values:
+                ctrl = item['responseCtrl']
+                # set response if available
+                if hasattr(ctrl, "rating"):
+                    ctrl.rating = values[item['index']]
+                elif hasattr(ctrl, "value"):
+                    ctrl.value = values[item['index']]
+                else:
+                    ctrl.text = values[item['index']]

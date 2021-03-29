@@ -1,3 +1,10 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Part of the PsychoPy library
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Distributed under the terms of the GNU General Public License (GPL).
+
 from pathlib import Path
 import subprocess
 import re
@@ -19,7 +26,6 @@ BUNDLE_ID = "org.opensciencetools.psychopy"
 USERNAME = "admin@opensciencetools.org"
 
 SIGN_ALL = True
-NOTARIZE = True
 
 # handy resources for info:
 #
@@ -37,7 +43,7 @@ class AppSigner:
         self.version = version
         self.destination = destination
         self._zipFile = None #'/Users/lpzjwp/code/psychopy/git/dist/PsychoPy3_2020.2.3.zip'
-        self._appNotarizeUUID = None #'4f48ef26-8cf2-499b-a3ad-4b788c19e11e'
+        self._appNotarizeUUID = None
         self._dmgBuildFile = None
 
     def signAll(self):
@@ -143,14 +149,19 @@ class AppSigner:
         cmdStr += f"-p {PWORD}"
         t0 = time.time()
         exitcode, output = subprocess.getstatusoutput(cmdStr)
-        if (exitcode == 0) and not ('No errors uploading' in output):
+        m = re.match('.*RequestUUID = (.*)\n', output, re.S)
+        if 'Please sign in with an app-specific password' in output:
+            print("[Error] Upload failed: You probably need a new app-specific "
+                  "password from https://appleid.apple.com/account/manage")
+            exit(1)
+        elif m is None or not ('No errors uploading' in output):
             print(f'[Error] Upload failed: {output}')
             exit(1)
-        m = re.match('.*RequestUUID = (.*)\n', output, re.S)
         uuid = m.group(1).strip()
         self._appNotarizeUUID = uuid
         print(f'Uploaded file {filename} in {time.time()-t0:.03f}s: {uuid}')
         print(f'Upload to Apple completed at {time.ctime()}')
+        sys.stdout.flush()
         return uuid
 
     @property
@@ -210,6 +221,8 @@ class AppSigner:
         if exitcode != 0:
             print('*********Staple failed*************')
             exit(1)
+        else:
+            print(f"Staple successful. You can verify with\n    xcrun stapler validate {filepath}")
 
     def checkAppleLogFile(self):
         cmdStr = f"xcrun altool --notarization-info {self._appNotarizeUUID} -u {USERNAME} -p {PWORD}"
@@ -247,6 +260,8 @@ class AppSigner:
                     'window_rect': ((600, 600), (500, 400)),
                 },
         )
+        print(f"building dmg file complete")
+        sys.stdout.flush()
         return dmgFilename
 
     def dmgStapleInside(self):
@@ -256,12 +271,14 @@ class AppSigner:
         # staple the file inside the dmg
         cmdStr = f"hdiutil attach '{dmgFilename}'"
         exitcode, output = subprocess.getstatusoutput(cmdStr)
+        # subprocess.getstatusoutput("say 'waiting' --voice=Kate")
+        time.sleep(10)
         volName = output.split('\t')[-1]
         self.staple(f"'{volName}/{appName}'")
         cmdStr = f"hdiutil detach '{volName}' -quiet"
         print(f'cmdStr was: {cmdStr}')
         for n in range(5):  # if we do this too fast then it fails. Try 5 times
-            time.sleep(5)
+            time.sleep(10)
             exitcode, output = subprocess.getstatusoutput(cmdStr)
             print(output)
             if exitcode == 0:
@@ -300,40 +317,68 @@ def main():
                         action='store', required=False, default=defaultVersion)
     parser.add_argument("--file", help="path for a single file to be signed",
                         action='store', required=False, default=None)
+    parser.add_argument("--skipnotarize", help="path for a single file to be signed",
+                        action='store', required=False, default=None)
+    parser.add_argument("--runPreDmgBuild", help="Runs up until dmg is built (and notarised) then exits",
+                        action='store', required=False, default='true')
+    parser.add_argument("--runDmgBuild", help="Runs the dmg build itself",
+                        action='store', required=False, default='true')
+    parser.add_argument("--runPostDmgBuild", help="Runs up until dmg is built (and notarised) then exits",
+                        action='store', required=False, default='true')
     args = parser.parse_args()
+    args.runPreDmgBuild = args.runPreDmgBuild.lower() in ['true', 'True', '1', 'y', 'yes']
+    args.runDmgBuild = args.runDmgBuild.lower() in ['true', 'True', '1', 'y', 'yes']
+    args.runPostDmgBuild = args.runPostDmgBuild.lower() in ['true', 'True', '1', 'y', 'yes']
+
+    if args.skipnotarize:
+        NOTARIZE = False
+    else:
+        NOTARIZE = True
+
     if args.file:  # not the whole app - just sign one file
         distFolder = (thisFolder / '../dist').resolve()
         signer = AppSigner(appFile='',
                            version=None)
         signer.signSingleFile(args.file, removeFailed=False, verbose=True)
         signer.signCheck(args.file, verbose=True)
+
+        if NOTARIZE:
+            signer.upload(args.file)
+            # notarize and staple
+            signer.awaitNotarized()
+            signer.staple(args.file)
+
     else:  # full app signing and notarization
         distFolder = (thisFolder / '../dist').resolve()
         signer = AppSigner(appFile=distFolder/args.app,
-                           version=args.version)
-        if SIGN_ALL:
-            signer.signAll()
-        signer.signCheck(verbose=False)
+                        version=args.version)
 
-        if NOTARIZE:
-            signer.upload(signer.zipFile)
-            # build the read/writable dmg file while waiting for notarize
-            signer.dmgBuild()
-            # notarize and staple
-            signer.awaitNotarized()
-            signer.dmgStapleInside()
-        else:
-            # just build the dmg
-            signer.dmgBuild()
+        if args.runPreDmgBuild:
+            if SIGN_ALL:
+                signer.signAll()
+            signer.signCheck(verbose=False)
 
-        dmgFile = signer.dmgCompress()
-        signer.signSingleFile(dmgFile, removeFailed=False, verbose=True)
+            if NOTARIZE and args.runDmgBuild:
+                signer.upload(signer.zipFile)
+                # build the read/writable dmg file while waiting for notarize
+                signer.dmgBuild()
+                # notarize and staple
+                signer.awaitNotarized()
+            elif args.runDmgBuild:
+                # just build the dmg
+                signer.dmgBuild()
 
-        if NOTARIZE:
-            signer.upload(dmgFile)
-            # notarize and staple
-            signer.awaitNotarized()
-            signer.staple(dmgFile)
+        if args.runPostDmgBuild:
+            signer.dmgStapleInside()  # doesn't require UUID
+
+            dmgFile = signer.dmgCompress()
+            signer.signSingleFile(dmgFile, removeFailed=False, verbose=True)
+
+            if NOTARIZE:
+                signer.upload(dmgFile)
+                # notarize and staple
+                signer.awaitNotarized()
+                signer.staple(dmgFile)
 
 
 if __name__ == "__main__":

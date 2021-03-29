@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2020 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
@@ -32,7 +32,7 @@ _localized.update({'pumpIndex': _translate('Pump index'),
 class QmixPumpComponent(BaseComponent):
     """Operate a Cetoni neMESYS syringe pump"""
     categories = ['I/O']
-
+    targets = ['PsychoPy']
     def __init__(self, exp, parentName, name='pump',
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
@@ -52,7 +52,7 @@ class QmixPumpComponent(BaseComponent):
             startEstim=startEstim, durationEstim=durationEstim)
 
         self.type = 'QmixPump'
-        self.url = 'http://www.psychopy.org/builder/components/pump.html'
+        self.url = 'https://www.psychopy.org/builder/components/pump.html'
         self.categories = ['I/O']
 
         self.exp.requireImport(importName='qmix',
@@ -60,26 +60,26 @@ class QmixPumpComponent(BaseComponent):
 
         # Order in which the user-settable parameters will be displayed
         # in the component's properties window.
-        self.order = ['pumpIndex', 'syringeType', 'pumpAction',
-                      'flowRate', 'flowRateUnit', 'switchValveWhenDone',
-                      'syncToScreen']
+        self.order += ['syncToScreen',  # Basic tab
+                      'pumpIndex', 'syringeType', 'pumpAction', 'flowRate', 'flowRateUnit', 'switchValveWhenDone',  # Hardware tab
+                      ]
 
         self.params['pumpIndex'] = Param(
             pumpIndex, categ='Hardware',
-            valType='code',
+            valType='code', inputType="single",
             hint=_translate('The index of the pump(s) (first pump is 0).'),
             label=_localized['pumpIndex'])
 
         self.params['syringeType'] = Param(
             syringeType, categ='Hardware',
-            valType='str',
+            valType='str', inputType="choice",
             allowedVals=qmix.syringeTypes,
             hint=_translate('Syringe type and dimensions'),
             label=_localized['syringeType'])
 
         self.params['pumpAction'] = Param(
             pumpAction, categ='Hardware',
-            valType='str',
+            valType='str', inputType="choice",
             allowedVals=['aspirate', 'dispense'],
             hint=_translate('Whether the syringe should be filled (aspirate) '
                             'or emptied (dispense'),
@@ -87,25 +87,25 @@ class QmixPumpComponent(BaseComponent):
 
         self.params['flowRate'] = Param(
             flowRate, categ='Hardware',
-            valType='code',
+            valType='num', inputType="single",
             hint='The flow rate',
             label=_localized['flowRate'])
 
         self.params['flowRateUnit'] = Param(
             flowRateUnit, categ='Hardware',
-            valType='str',
+            valType='str', inputType="choice",
             allowedVals=qmix.flowRateUnits,
             hint='The unit of the flow rate',
             label=_localized['flowRateUnit'])
 
         self.params['switchValveWhenDone'] = Param(
-            switchValveWhenDone, valType='bool', categ='Hardware',
+            switchValveWhenDone, valType='bool', inputType="bool", categ='Hardware',
             allowedVals=[True, False],
             hint=_translate('Switch the valve after pump operation'),
             label=_localized['switchValveWhenDone'])
 
         self.params['syncToScreen'] = Param(
-            syncToScreen, valType='bool', categ='Basic',
+            syncToScreen, valType='bool', inputType="bool", categ='Basic',
             allowedVals=[True, False],
             hint=_translate('Sync pump onset to the screen refresh'),
             label=_localized['syncToScreen'])

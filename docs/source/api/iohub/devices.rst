@@ -3,8 +3,7 @@
 Supported Devices
 =================
 
-psychopy.iohub supports several different types of devices, including Keyboards,
-Mice, and Eye Trackers.
+psychopy.iohub supports several different device types.
 
 Details for each device can be found in the following sections.
 
