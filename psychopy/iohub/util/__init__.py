@@ -212,10 +212,10 @@ def getDeviceDefaultConfig(device_name, builder_hides=True):
 
 
 _iohub2builderValType = dict(IOHUB_STRING='str', IOHUB_BOOL='bool', IOHUB_FLOAT='float', IOHUB_INT='int',
-                             IOHUB_LIST='list', IOHUB_RGBA255_COLOR='color', IOHUB_IP_ADDRESS_V4='str')
+                             IOHUB_LIST='list', IOHUB_COLOR='color', IOHUB_IP_ADDRESS_V4='str')
 
 _iohub2builderInputType = dict(IOHUB_STRING='single', IOHUB_BOOL='bool', IOHUB_FLOAT='single', IOHUB_INT='single',
-                               IOHUB_LIST=('choice','multi'), IOHUB_RGBA255_COLOR='color', IOHUB_IP_ADDRESS_V4='single')
+                               IOHUB_LIST=('choice','multi'), IOHUB_COLOR='color', IOHUB_IP_ADDRESS_V4='single')
 
 def getDeviceNames(device_name="eyetracker.hw"):
     """
@@ -339,8 +339,12 @@ def getDeviceParams(device_name):
 
                     shint = "TODO: %s hint" % k
                     if hints_data:
-                        shint = getSubDict(hints_data, parent_list).get(k)
-
+                        try:
+                            shint = getSubDict(hints_data, parent_list).get(k)
+                        except AttributeError:
+                            # Hint is missing, default will be displayed.
+                            # TODO: print a warning?
+                            pass
                     cspath = list(parent_list)
                     cspath.append(k)
 

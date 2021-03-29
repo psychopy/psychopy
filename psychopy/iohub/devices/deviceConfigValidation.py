@@ -2,19 +2,18 @@
 # Part of the psychopy.iohub library.
 # Copyright (C) 2012-2016 iSolver Software Solutions
 # Distributed under the terms of the GNU General Public License (GPL).
-from __future__ import division, absolute_import
-
-# Takes a device configuration yaml dict and processes it based on the devices
-# support_settings_values.yaml (which must be in the same directory as the
-# Device class) to ensure all entries for the device setting are valid values.
-
 from past.builtins import basestring
 import socket
 import os
 import numbers  # numbers.Integral is like (int, long) but supports Py3
-
+from psychopy import colors
+from psychopy.tools import arraytools
 from ..util import yload, yLoader, module_directory
 from ..errors import print2err
+
+# Takes a device configuration yaml dict and processes it based on the devices
+# support_settings_values.yaml (which must be in the same directory as the
+# Device class) to ensure all entries for the device setting are valid values.
 
 class ValidationError(Exception):
     """Base class for exceptions in this module."""
@@ -51,7 +50,6 @@ class StringValueError(ValidationError):
         value_given  -- the value read from the experiment configuration file.
         device_config_param_constraints  -- the set of constraints that apply to the parameter.
         msg -- explanation of the error
-
     """
 
     def __init__(
@@ -248,23 +246,33 @@ MAX_VALID_FLOAT_VALUE = 1000000.0
 MIN_VALID_INT_VALUE = 0
 MAX_VALID_INT_VALUE = 1000000
 
+def is_sequence(arg):
+    return hasattr(arg, "__getitem__") or hasattr(arg, "__iter__")
 
-def isValidRgb255Color(config_param_name, color, constraints):
-    if isinstance(color, (list, tuple)):
-        if len(color) in [3, 4]:
-            for c in color:
-                if isinstance(c, int):
-                    if c < 0 or c > 255:
-                        raise ColorValueError(config_param_name, color)
-                else:
-                    raise ColorValueError(config_param_name, color)
+def isValidColor(config_param_name, color, constraints):
+    """
+    Return color if it is a valid psychopy color (regardless of color space)
+    , otherwise raise error. Color value can be in hex, name, rgb, rgb255 format.
+    """
+    if isinstance(color, str):
+        if color[0] == '#' or color[0:2].lower() == '0x':
+            rgb255color = colors.hex2rgb255(color)
+            if rgb255color is not None:
+                return color
+            else:
+                raise ColorValueError(config_param_name, color)
+
+        if color.lower() in colors.colorNames.keys():
+            return color
         else:
             raise ColorValueError(config_param_name, color)
-
-        return color
-
+    if isinstance(color, (float, int)) or (is_sequence(color) and len(color) == 3):
+        colorarray = arraytools.val2array(color, length=3)
+        if colorarray is not None:
+            return color
+        else:
+            raise ColorValueError(config_param_name, color)
     raise ColorValueError(config_param_name, color)
-
 
 def isValidString(config_param_name, value, constraints):
     if isinstance(value, basestring):
@@ -385,7 +393,7 @@ CONFIG_VALIDATION_KEY_WORD_MAPPINGS = dict(
     IOHUB_FLOAT=isValidFloat,
     IOHUB_INT=isValidInt,
     IOHUB_LIST=isValidList,
-    IOHUB_RGBA255_COLOR=isValidRgb255Color,
+    IOHUB_COLOR=isValidColor,
     IOHUB_IP_ADDRESS_V4=isValidIpAddress)
 ###############################################
 

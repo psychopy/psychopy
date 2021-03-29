@@ -7,7 +7,7 @@ eyetracker.hw.tobii.EyeTracker:
     enable: IOHUB_BOOL
     model_name:
         IOHUB_LIST:
-            valid_values: [Any Pro Model, Nano, Fusuion, Spectrum, T120, X120, TX300, X2, X3]
+            valid_values: [Any Pro Model, Nano, Fusion, Spectrum, T120, X120, TX300, X2, X3]
             min_length: 1
             max_length: 1
     serial_number:
@@ -46,29 +46,29 @@ eyetracker.hw.tobii.EyeTracker:
             IOHUB_FLOAT:
                 min: 0.5
                 max: 2.5
-        screen_background_color: IOHUB_RGBA255_COLOR
+        screen_background_color: IOHUB_COLOR
         target_type: [CIRCLE_TARGET,]
         target_attributes:
             outer_diameter:
-                IOHUB_INT:
-                    min: 1
-                    max: 1000
+                IOHUB_FLOAT:
+                    min: 0.01
+                    max: 1000.0
             outer_stroke_width:
-                IOHUB_INT:
-                    min: 1
-                    max: 1000
-            outer_fill_color: IOHUB_RGBA255_COLOR
-            outer_line_color: IOHUB_RGBA255_COLOR
+                IOHUB_FLOAT:
+                    min: 0.01
+                    max: 1000.0
+            outer_fill_color: IOHUB_COLOR
+            outer_line_color: IOHUB_COLOR
             inner_diameter:
-                IOHUB_INT:
-                    min: 1
-                    max: 1000
+                IOHUB_FLOAT:
+                    min: 0.01
+                    max: 1000.0
             inner_stroke_width:
-                IOHUB_INT:
-                    min: 1
-                    max: 1000
-            inner_fill_color: IOHUB_RGBA255_COLOR
-            inner_line_color: IOHUB_RGBA255_COLOR
+                IOHUB_FLOAT:
+                    min: 0.01
+                    max: 1000.0
+            inner_fill_color: IOHUB_COLOR
+            inner_line_color: IOHUB_COLOR
             animate:
                 enable: IOHUB_BOOL
                 movement_velocity: # 300 pix / sec
