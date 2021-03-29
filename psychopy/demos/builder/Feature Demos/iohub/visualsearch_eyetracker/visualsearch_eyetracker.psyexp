@@ -7,7 +7,7 @@
     <Param name="Data file delimiter" updates="None" val="auto" valType="str"/>
     <Param name="Data filename" updates="None" val="u'data/%s_%s_%s' % (expInfo['participant'], expName, expInfo['date'])" valType="code"/>
     <Param name="Enable Escape" updates="None" val="False" valType="bool"/>
-    <Param name="Experiment info" updates="None" val="{'session': '1', 'participant': '001', 'Eye Tracker Config': 'eyelink_config.yaml'}" valType="code"/>
+    <Param name="Experiment info" updates="None" val="{'session': '1', 'participant': '001', 'Eye Tracker Config': 'mouse_config.yaml'}" valType="code"/>
     <Param name="Force stereo" updates="None" val="True" valType="bool"/>
     <Param name="Full-screen window" updates="None" val="True" valType="bool"/>
     <Param name="HTML path" updates="None" val="html" valType="str"/>
