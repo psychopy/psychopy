@@ -280,8 +280,8 @@ class Experiment(object):
     def xml(self):
         # Create experiment root element
         experimentNode = xml.Element("PsychoPy2experiment")
-        experimentNode.set('version', __version__)
         experimentNode.set('encoding', 'utf-8')
+        experimentNode.set('version', __version__)
         # Add settings node
         settingsNode = self.settings.xml
         experimentNode.append(settingsNode)
