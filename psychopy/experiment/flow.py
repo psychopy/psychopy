@@ -64,7 +64,8 @@ class Flow(list):
             sub = item.xml
             if isinstance(item, Routine):
                 # Remove all sub elements (we only need its name)
-                for comp in sub:
+                comps = [comp for comp in sub]
+                for comp in comps:
                     sub.remove(comp)
             element.append(sub)
 
