@@ -218,17 +218,14 @@ class Framebuffer(object):
                     "Buffer does not match the dimensions of `sizeHint`. "
                     "Expected `({}, {})`, got `({}, {})`.".format(
                         fboW, fboH, bufferW, bufferH))
-
-        # We should also support binding GL names specified as integers. Right
-        # now you need as descriptor which contains the target and name for the
-        # buffer.
+        
         if isinstance(imageBuffer, (TexImage2DInfo, TexImage2DMultisampleInfo)):
             GL.glFramebufferTexture2D(
                 GL.GL_FRAMEBUFFER,
                 attachPoint,
                 imageBuffer.target,
                 imageBuffer.name, 0)
-        elif isinstance(imageBuffer, RenderbufferInfo):
+        elif isinstance(imageBuffer, Renderbuffer):
             GL.glFramebufferRenderbuffer(
                 GL.GL_FRAMEBUFFER,
                 attachPoint,
@@ -261,7 +258,7 @@ class Framebuffer(object):
                 attachPoint,
                 imageBuffer.target,
                 0, 0)
-        elif isinstance(imageBuffer, RenderbufferInfo):
+        elif isinstance(imageBuffer, Renderbuffer):
             GL.glFramebufferRenderbuffer(
                 GL.GL_FRAMEBUFFER,
                 attachPoint,
@@ -713,7 +710,7 @@ def deleteFBO(fbo, deep=False):
         for _, buffer in fbo.attachments.items():
             if isinstance(buffer, (TexImage2DInfo, TexImage2DMultisampleInfo,)):
                 GL.glDeleteTextures(1, buffer.name)
-            elif isinstance(buffer, (RenderbufferInfo,)):
+            elif isinstance(buffer, (Renderbuffer,)):
                 GL.glDeleteRenderbuffers(1, buffer.name)
 
             buffer.name = GL.GLuint(0)
