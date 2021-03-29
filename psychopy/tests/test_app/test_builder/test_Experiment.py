@@ -1,6 +1,8 @@
 from __future__ import print_function
 from past.builtins import execfile
 from builtins import object
+from pathlib import Path
+import xml.etree.ElementTree as xml
 
 import psychopy.experiment
 from psychopy.experiment.components.text import TextComponent
@@ -72,6 +74,25 @@ class TestExpt(object):
     @classmethod
     def teardown_class(cls):
         shutil.rmtree(cls.tmp_dir, ignore_errors=True)
+
+    def test_xml(self):
+        # Get all psyexp files in demos folder
+        demosFolder = Path(self.exp.prefsPaths['demos']) / 'builder'
+        for file in demosFolder.glob("**/*.psyexp"):
+            # Create experiment and load from psyexp
+            exp = psychopy.experiment.Experiment()
+            exp.loadFromXML(file)
+            # Compile to get what script should look like
+            target = exp.writeScript()
+            # Save as XML
+            temp = str(Path(self.tmp_dir) / "testXML.psyexp")
+            exp.saveToXML(temp)
+            # Load again
+            exp.loadFromXML(temp)
+            # Compile again
+            test = exp.writeScript()
+            # Compare two scripts to make sure saving and loading hasn't changed anything
+            assert target == test
 
     def test_xsd(self):
         # get files
