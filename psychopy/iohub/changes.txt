@@ -7,14 +7,18 @@ Changes made to iohub for 2021.2 Release
     - Do we need to list every specific setting change?
 - iohub can no longer be copied out of the psychopy package and used as a stand alone package
   in your site-packages folder. Change `import iohub` to `import psychopy.iohub` for example.
-- Removed most device settings related to device hardware specifics (model_id, manfacture_date, etc)
+- Removed most device settings related to device hardware specifics (model_id, manufacturer_date, etc)
   since they were never really used.
 - removed use of .iohpid
 - ** Changed datastore schema:
     - increased experiment and session data string max length
 - Added wintab device for Wacom based digital pens. (Windows only)
 - Added iohub MouseGaze eye tracker simulator.
-- Added 'color_space' setting to Display (bridging to remove Display class from iohub)
+- Added 'color_space' setting to Display settings.
 - Eyelink and tobii calibration gfx can now use same color space as window instead of always rgb255.
     - TODO: Retest all eyetracking examples with all eye trackers on all OS's
 - Removed iohub/devices/display/unit_conversions.py. Moving to psychopy monitorutil functions.
+- launchHubServer now accepts a psychopy window using the window kwarg.
+  iohub display info is updated using window information like .monitor, .colorSpace, .units, .screen
+- If psychopy window (with monitor config) is passed to launchHubServer,
+  user can forget about need for iohub Display config.
