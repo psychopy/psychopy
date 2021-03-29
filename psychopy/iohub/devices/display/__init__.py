@@ -148,6 +148,21 @@ class Display(Device):
         """
         return self.getConfiguration()['reporting_unit_type']
 
+    def getColorSpace(self):
+        """
+        Returns the color space to use for PsychoPy Windows.
+
+        Please refer to the psychoPy documentation for a detailed description of
+        supported color spaces.
+
+        Args:
+            None
+
+        Returns:
+            str: Display color space
+        """
+        return self.getConfiguration()['color_space']
+
     def getPixelsPerDegree(self):
         """Returns the Display's horizontal and vertical pixels per degree This
         is currently calculated using the PsychoPy built in function. Therefore
