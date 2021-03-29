@@ -41,7 +41,7 @@ class MicrophoneComponent(BaseComponent):
                  startEstim='', durationEstim='',
                  channels='stereo', device="default",
                  sampleRate='DVD Audio (48kHz)', maxSize=24000,
-                 outputType='wav',
+                 outputType='wav', speakTimes=True, trimSilent=False,
                  #legacy
                  stereo=None, channel=None):
         super(MicrophoneComponent, self).__init__(
@@ -107,6 +107,22 @@ class MicrophoneComponent(BaseComponent):
             label=_translate("Output File Type")
         )
 
+        msg = _translate(
+            "Tick this to save times when the participant starts and stops speaking")
+        self.params['speakTimes'] = Param(
+            speakTimes, valType='bool', inputType='bool', categ='Data',
+            hint=msg,
+            label=_translate("Speaking Start / Stop Times")
+        )
+
+        msg = _translate(
+            "Trim periods of silence from the output file")
+        self.params['trimSilent'] = Param(
+            trimSilent, valType='bool', inputType='bool', categ='Data',
+            hint=msg,
+            label=_translate("Trim Silent")
+        )
+
     def writeStartCode(self, buff):
         inits = getInitVals(self.params)
         # Use filename with a suffix to store recordings
@@ -143,23 +159,13 @@ class MicrophoneComponent(BaseComponent):
         buff.setIndentLevel(1, relative=True)
         code = (
                 "device=%(device)s, channels=%(channels)s, \n"
-                "sampleRateHz=%(sampleRate)s, maxSize=%(maxSize)s\n"
+                "sampleRateHz=%(sampleRate)s, maxRecordingSize=%(maxSize)s\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
         code = (
             ")\n"
             "%(name)sClips = {}\n"
-        )
-        buff.writeIndentedLines(code % inits)
-
-    def writeRoutineStartCode(self, buff):
-        """Write the code that will be called at the start of the routine"""
-        inits = getInitVals(self.params)
-        inits['routine'] = self.parentName
-        # Add key to clips dict for this routine
-        code = (
-            "%(name)sClips['%(routine)s'] = []"
         )
         buff.writeIndentedLines(code % inits)
 
@@ -177,7 +183,6 @@ class MicrophoneComponent(BaseComponent):
         code = (
                 "# start recording with %(name)s\n"
                 "%(name)s.start()\n"
-                "%(name)sClips['%(routine)s'].append(%(name)s.getAudioClip()[0])\n"
                 "%(name)s.status = STARTED\n"
         )
         buff.writeIndentedLines(code % inits)
@@ -190,7 +195,7 @@ class MicrophoneComponent(BaseComponent):
         buff.setIndentLevel(1, relative=True)
         code = (
                 "# update recorded clip for %(name)s\n"
-                "%(name)sClips['%(routine)s'][-1].append(%(name)s.getAudioClip()[0])\n"
+                "%(name)s.poll()\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
@@ -199,11 +204,21 @@ class MicrophoneComponent(BaseComponent):
         code = (
             "# stop recording with %(name)s\n"
             "%(name)s.stop()\n"
-            "%(name)sClips['%(routine)s'][-1].append(%(name)s.getAudioClip()[0])\n"
             "%(name)s.status = FINISHED\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-2, relative=True)
+
+    def writeRoutineEndCode(self, buff):
+        inits = getInitVals(self.params)
+        inits['routine'] = self.parentName
+        # Store recordings from this routine
+        code = (
+            "%(name)s.bank('%(routine)s')\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        # Write base end routine code
+        BaseComponent.writeRoutineEndCode(self, buff)
 
     def writeExperimentEndCode(self, buff):
         """Write the code that will be called at the end of
@@ -212,6 +227,8 @@ class MicrophoneComponent(BaseComponent):
         inits = getInitVals(self.params)
         # Save recording
         code = (
+            "# Save %(name)s recordings\n"
+            "%(name)sClips = %(name)s.flush()\n"
             "for rt in %(name)sClips:\n"
         )
         buff.writeIndentedLines(code % inits)
