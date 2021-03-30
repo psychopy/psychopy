@@ -877,7 +877,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
         else:
             nAlerts = 0
         # update labels and text accordingly
-        self.alertsToggleBtn.SetLabelText(_translate("Alerts ({})").format(nAlerts))
+        self.alertsToggleBtn.SetLabelText("   " + _translate("Alerts ({})").format(nAlerts))
         sys.stdout.flush()
         sys.stdout = sys.stderr = prev
         if nAlerts == 0:
