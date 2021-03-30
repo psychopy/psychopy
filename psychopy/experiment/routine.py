@@ -240,6 +240,19 @@ class Routine(list):
         # that's done decrement indent to end loop
         buff.setIndentLevel(-1, True)
 
+        # For non-slip components, expressly store the stop time when the while loop ends
+        if useNonSlip:
+            code = ('\n'
+                    'else:\n'
+                    '    for thisComponent in %sComponents:\n'
+                    '        if hasattr(thisComponent, "status") and thisComponent.status == STARTED:\n'
+                    '            # Stop this component and record the stopping time\n'
+                    '            thisComponent.tStop = t\n'
+                    '            thisComponent.frameNStop = frameN\n'
+                    '            win.timeOnFlip(thisComponent, "tStopRefresh")\n'
+                    '    win.flip()\n')
+            buff.writeIndentedLines(code % self.name)
+
         # write the code for each component for the end of the routine
         code = ('\n# -------Ending Routine "%s"-------\n'
                 'for thisComponent in %sComponents:\n'
