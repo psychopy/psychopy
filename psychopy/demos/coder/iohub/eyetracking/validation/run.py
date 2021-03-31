@@ -8,7 +8,6 @@ import time
 from psychopy import visual
 from psychopy.iohub import launchHubServer
 
-from trigger import TimeTrigger, KeyboardTrigger
 from validationroutine import ValidationProcedure
 
 class TargetStim(object):
@@ -73,51 +72,6 @@ class TargetStim(object):
         return self.stim[0].contains(p)
 
 
-def runValidation(win):
-    """
-    Runs the eye tracker validation procedure using PsychoPy Window win.
-    This function performs a ValidationProcedure using a validation target
-    stimulus, a validation position list, and the triggers used to determine
-    target position progression during the validation procedure.
-
-    :param win: PsychoPy window being used for validation.
-    :return:
-    """
-    # Create a TargetStim instance
-    target = TargetStim(win, radius=0.025, fillcolor=[.5, .5, .5], edgecolor=[-1, -1, -1], edgewidth=2,
-                        dotcolor=[1, -1, -1], dotradius=0.005, units='norm', colorspace='rgb')
-
-    positions = [(0.0, 0.0), (0.85, 0.85), (-0.85, 0.0), (0.85, 0.0), (0.85, -0.85), (-0.85, 0.85),
-                 (-0.85, -0.85), (0.0, 0.85), (0.0, -0.85)]
-
-    # Specifiy the Triggers to use to move from target point to point during
-    # the validation sequence....
-    target_triggers = KeyboardTrigger(' ', on_press=True) #TimeTrigger(start_time=None, delay=2.5),
-
-    # Create a validation procedure
-    validation_proc = ValidationProcedure(win, target, positions,
-                                          target_animation_params=dict(velocity=1.0,
-                                                                       expandedscale=3.0,
-                                                                       expansionduration=0.2,
-                                                                       contractionduration=0.4),
-                                          background=None,
-                                          triggers=target_triggers,
-                                          storeeventsfor=None,
-                                          accuracy_period_start=0.550,
-                                          accuracy_period_stop=.150,
-                                          show_intro_screen=True,
-                                          intro_text='Validation procedure is now going to be performed.',
-                                          show_results_screen=True,
-                                          results_in_degrees=False,
-                                          randomize_positions=False,
-                                          toggle_gaze_cursor_key='g'
-                                          )
-
-    # Run the validation procedure. The run() method does not return until
-    # the validation is complete.
-    return validation_proc.run()
-
-
 if __name__ == "__main__":
     # Create a default PsychoPy Window
     win = visual.Window((1920, 1080), fullscr=True, allowGUI=False, monitor='55w_60dist')
@@ -145,7 +99,36 @@ if __name__ == "__main__":
     # Run eyetracker calibration
     r = tracker.runSetupProcedure()
 
-    # Run eye tracker validation
-    validation_results = runValidation(win)
+    # ValidationProcedure setup
+
+    # Create a TargetStim instance
+    target_stim = TargetStim(win, radius=0.025, fillcolor=[.5, .5, .5], edgecolor=[-1, -1, -1], edgewidth=2,
+                        dotcolor=[1, -1, -1], dotradius=0.005, units='norm', colorspace='rgb')
+
+    # target_positions: Provide your own list of validation positions,
+    # or use the PositionGrid class to generate a set.
+    target_positions = [(0.0, 0.0), (0.85, 0.85), (-0.85, 0.0), (0.85, 0.0), (0.85, -0.85), (-0.85, 0.85),
+                 (-0.85, -0.85), (0.0, 0.85), (0.0, -0.85)]
+
+    # Create a validation procedure
+    validation_proc = ValidationProcedure(win,
+                                          target=target_stim,
+                                          positions=target_positions,
+                                          target_animation_params=dict(velocity=1.0,
+                                                                       expandedscale=3.0,
+                                                                       expansionduration=0.2,
+                                                                       contractionduration=0.4),
+                                          accuracy_period_start=0.550,
+                                          accuracy_period_stop=.150,
+                                          show_intro_screen=True,
+                                          intro_text='Validation procedure is now going to be performed.',
+                                          show_results_screen=True,
+                                          results_in_degrees=False,
+                                          randomize_positions=False,
+                                          toggle_gaze_cursor_key='g',
+                                          terminate_key='escape')
+
+    # Run the validation procedure. run() does not return until the validation is complete.
+    validation_results =  validation_proc.run()
 
     io.quit()

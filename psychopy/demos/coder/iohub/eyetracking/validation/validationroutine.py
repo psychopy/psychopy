@@ -32,7 +32,7 @@ from psychopy.tools.monitorunittools import convertToPix
 from psychopy.tools.monitorunittools import pix2deg, deg2pix
 
 from posgrid import PositionGrid
-from trigger import Trigger
+from trigger import Trigger, KeyboardTrigger
 
 getTime = core.getTime
 
@@ -626,7 +626,7 @@ class TargetPosSequenceStim(object):
 
 class ValidationProcedure(object):
     def __init__(self, win=None, target=None, positions=None, target_animation_params={}, randomize_positions=True,
-                 background=None, triggers=2.0, storeeventsfor=None, accuracy_period_start=0.350,
+                 background=None, triggers=None, storeeventsfor=None, accuracy_period_start=0.350,
                  accuracy_period_stop=.050, show_intro_screen=True, intro_text='Ready to Start Validation Procedure.',
                  show_results_screen=True, results_in_degrees=False, save_figure_path=None,
                  terminate_key="escape", toggle_gaze_cursor_key="g"):
@@ -748,9 +748,14 @@ class ValidationProcedure(object):
                               self.io.devices.tracker,
                               self.io.devices.experiment
                               ]
+
+        if triggers is None:
+            # Use space key press as default target trigger
+            triggers = KeyboardTrigger(' ', on_press=True)
+        triggers = Trigger.getTriggersFrom(triggers)
+
         # Create the TargetPosSequenceStim instance; used to control the sequential
         # presentation of the target at each of the grid positions.
-        triggers = Trigger.getTriggersFrom(triggers)
         self.targetsequence = TargetPosSequenceStim(win, target=target, positions=self.positions, background=background,
                                                     triggers=triggers, storeeventsfor=storeeventsfor,
                                                     terminate_key=terminate_key, gaze_cursor_key=toggle_gaze_cursor_key)
