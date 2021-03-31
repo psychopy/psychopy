@@ -102,6 +102,7 @@ class TimeTrigger(Trigger):
     (that takes no parameters).
     """
     def __init__(self, start_time, delay, repeat_count=0, trigger_function=lambda a, b, c: True, user_kwargs={}):
+        Trigger.io = ioHubConnection.getActiveConnection()
         Trigger.__init__(self, trigger_function, user_kwargs, repeat_count)
 
         self._start_time = start_time
@@ -158,6 +159,7 @@ class DeviceEventTrigger(Trigger):
     _lastEventsByDevice = dict()
     def __init__(self, device, event_type, event_attribute_conditions={}, repeat_count=-1,
                  trigger_function=lambda a, b, c: True, user_kwargs={}):
+        Trigger.io = ioHubConnection.getActiveConnection()
         Trigger.__init__(self, trigger_function, user_kwargs, repeat_count)
         self.device = device
         self.event_type = event_type
@@ -222,6 +224,7 @@ class DeviceEventTrigger(Trigger):
 
 class KeyboardTrigger(DeviceEventTrigger):
     def __init__(self, key, on_press=False):
+        Trigger.io = ioHubConnection.getActiveConnection()
         if on_press:
             etype = EventConstants.KEYBOARD_PRESS
         else:

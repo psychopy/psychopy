@@ -87,8 +87,7 @@ class PositionGrid(object):
         self.bounds = bounds
         if self.bounds is None:
             self.bounds = ioHubConnection.getActiveConnection().devices.display.getCoordBounds()
-        print("iohub display units:", ioHubConnection.getActiveConnection().devices.display.getCoordinateType())
-        print("Bounds: ", self.bounds)
+
         winSize = self.bounds[2]-self.bounds[0], self.bounds[3]-self.bounds[1]
         self.firstposindex = firstposindex
 

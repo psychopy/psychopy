@@ -29,7 +29,7 @@ from psychopy.iohub.util import win32MessagePump, normjoin
 from psychopy.iohub.constants import EventConstants
 from psychopy.iohub.client import ioHubConnection
 from psychopy.tools.monitorunittools import convertToPix
-from psychopy.tools.monitorunittools import pix2deg
+from psychopy.tools.monitorunittools import pix2deg, deg2pix
 
 from posgrid import PositionGrid
 from trigger import Trigger
@@ -41,7 +41,11 @@ def toPix(win, x, y):
     """Returns the stim's position in pixels,
     based on its pos, units, and win.
     """
-    xy = np.zeros((len(x), 2))
+    try:
+        xy = np.zeros((len(x), 2))
+    except TypeError:
+        xy = np.zeros((1, 2))
+
     xy[:, 0] = x
     xy[:, 1] = y
     r = convertToPix(np.asarray((0, 0)), xy, win.units, win)
@@ -49,7 +53,10 @@ def toPix(win, x, y):
 
 
 def toDeg(win, x, y):
-    xy = np.zeros((len(x), 2))
+    try:
+        xy = np.zeros((len(x), 2))
+    except TypeError:
+        xy = np.zeros((1, 2))
     xy[:, 0] = x
     xy[:, 1] = y
     r = pix2deg(xy, win.monitor, correctFlat=False)
@@ -102,7 +109,7 @@ class TargetPosSequenceStim(object):
                                         ('pupil_size', np.float64)]
 
     def __init__(self, win, target, positions, background=None, storeeventsfor=[], triggers=None, msgcategory='',
-                 config=None, io=None, terminate_key='escape'):
+                 config=None, io=None, terminate_key='escape', gaze_cursor_key='g'):
         """
         TargetPosSequenceStim combines an instance of a Target stim and an
         instance of a PositionGrid to create everything needed to present the
@@ -136,6 +143,11 @@ class TargetPosSequenceStim(object):
         :param io:
         """
         self.terminate_key = terminate_key
+        self.gaze_cursor_key = gaze_cursor_key
+        self.display_gaze = False
+        gc_size = deg2pix(3.0, win.monitor, correctFlat=False)
+        self.gaze_cursor = visual.GratingStim(win, tex=None, mask='gauss', pos=(0, 0), size=(gc_size, gc_size),
+                                              color='green', units='pix', opacity=0.8)
         self._terminate_requested = False
         self.win = proxy(win)
         self.target = target
@@ -172,6 +184,14 @@ class TargetPosSequenceStim(object):
         if self.background:
             self.background.draw()
         self.target.draw()
+        if self.display_gaze:
+            gpos = self.io.devices.tracker.getLastGazePosition()
+            valid_gaze_pos = isinstance(gpos, (tuple, list))
+            if valid_gaze_pos:
+                pix_pos = toPix(self.win, *gpos)
+                pix_pos = pix_pos[0][0], pix_pos[1][0]
+                self.gaze_cursor.setPos(pix_pos)
+                self.gaze_cursor.draw()
 
     def _animateTarget(self, topos, frompos, **kwargs):
         """
@@ -273,9 +293,16 @@ class TargetPosSequenceStim(object):
             if getTime() - last_pump_time >= 0.250:
                 win32MessagePump()
                 last_pump_time = getTime()
-            sleep(0.001)
+
+            if self.display_gaze:
+                self._draw()
+                self.win.flip()
+            else:
+                sleep(0.001)
+
             if self._checkForTerminate():
                 return
+            self._checkForToggleGaze()
             trig_fired = self._hasTriggerFired(start_time=fliptime)
 
     def _hasTriggerFired(self, **kwargs):
@@ -319,6 +346,7 @@ class TargetPosSequenceStim(object):
     def _addDeviceEvents(self, device_event_dict={}):
         if self._checkForTerminate():
             return
+        self._checkForToggleGaze()
         dev_event_buffer = self.targetdata[-1]['events']
         for dev, dev_events in dev_event_buffer.items():
             if dev in device_event_dict:
@@ -327,8 +355,24 @@ class TargetPosSequenceStim(object):
                 dev_events.extend(dev.getEvents())
 
     def _checkForTerminate(self):
-        self._terminate_requested = len(self.io.devices.keyboard.getPresses(keys=self.terminate_key, clear=False)) > 0
+        keys = self.io.devices.keyboard.getEvents(EventConstants.KEYBOARD_PRESS, clearEvents=False)
+        for k in keys:
+            if k.key == self.terminate_key:
+                self._terminate_requested = True
+                break
         return self._terminate_requested
+
+    def _checkForToggleGaze(self):
+        keys = self.io.devices.keyboard.getEvents(EventConstants.KEYBOARD_PRESS, clearEvents=False)
+        for k in keys:
+            if k.key == self.gaze_cursor_key:
+                # get (clear) the event so it does not trigger multiple times.
+                self.io.devices.keyboard.getEvents(EventConstants.KEYBOARD_PRESS, clearEvents=True)
+                self.display_gaze = not self.display_gaze
+                self._draw()
+                self.win.flip()
+                return self.display_gaze
+        return self.display_gaze
 
     def display(self, **kwargs):
         """
@@ -426,8 +470,7 @@ class TargetPosSequenceStim(object):
             io.sendMessageEvent('VALIDATION TERMINATED BY USER', self.msgcategory)
             return False
 
-        io.sendMessageEvent('DONE_SEQUENCE {0}'.format(
-            len(self.positions.positions)), self.msgcategory)
+        io.sendMessageEvent('DONE_SEQUENCE {0}'.format( len(self.positions.positions)), self.msgcategory)
         sleep(0.025)
         self._addDeviceEvents()
         io.clearEvents('all')
@@ -585,7 +628,7 @@ class ValidationProcedure(object):
                  background=None, triggers=2.0, storeeventsfor=None, accuracy_period_start=0.350,
                  accuracy_period_stop=.050, show_intro_screen=True, intro_text='Ready to Start Validation Procedure.',
                  show_results_screen=True, results_in_degrees=False, save_figure_path=None,
-                 terminate_key="escape"):
+                 terminate_key="escape", toggle_gaze_cursor_key="g"):
         """
         ValidationProcedure can be used to check the accuracy of a calibrated
         eye tracking system.
@@ -672,13 +715,15 @@ class ValidationProcedure(object):
         :param results_in_degrees:
         :param save_figure_path:
         :param terminate_key:
+        :param toggle_gaze_cursor_key:
         """
         self.terminate_key = terminate_key
+        self.toggle_gaze_cursor_key = toggle_gaze_cursor_key
+
         self.io = ioHubConnection.getActiveConnection()
 
         if isinstance(positions, (list, tuple)):
             positions = PositionGrid(posList=positions, firstposindex=0, repeatFirstPos=False)
-
         self.positions = positions
 
         self.randomize_positions = randomize_positions
@@ -707,7 +752,7 @@ class ValidationProcedure(object):
         triggers = Trigger.getTriggersFrom(triggers)
         self.targetsequence = TargetPosSequenceStim(win, target=target, positions=self.positions, background=background,
                                                     triggers=triggers, storeeventsfor=storeeventsfor,
-                                                    terminate_key=terminate_key)
+                                                    terminate_key=terminate_key, gaze_cursor_key=toggle_gaze_cursor_key)
         # Stim for results screen
         self.imagestim = None
         self.textstim = None

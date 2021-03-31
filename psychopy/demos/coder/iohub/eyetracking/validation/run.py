@@ -5,45 +5,31 @@ Example of performing eye tracker validation using ioHub Common Eye Tracker inte
 and the ValidationProcedure utility class.
 """
 import time
-from weakref import proxy
-
 from psychopy import visual
 from psychopy.iohub import launchHubServer
-from psychopy.iohub.constants import EventConstants
 
-from trigger import TimeTrigger, DeviceEventTrigger
-from posgrid import PositionGrid
+from trigger import TimeTrigger, KeyboardTrigger
 from validationroutine import ValidationProcedure
 
 class TargetStim(object):
-    def __init__(self,
-                 win,
-                 radius=None,       # The outer radius of the target.
-                 fillcolor=None,    # The color used to fill the target body.
-                 edgecolor=None,    # The color for the edge around the target.
-                 edgewidth=None,    # The thickness of the target outer edge.
-                 dotcolor=None,     # The color of the central target dot.
-                 dotradius=None,    # The radius to use for the target dot.
-                 units=None,        # The psychopy unit type of any size values.
-                 colorspace=None,   # The psychopy color space of any colors.
-                 opacity=1.0,       # The transparency of the target (0.0 - 1.0)
-                 contrast=1.0       # The contrast of the target stim.
-                 ):
+    def __init__(self, win, radius=None, fillcolor=None, edgecolor=None, edgewidth=None,
+                 dotcolor=None, dotradius=None, units=None, colorspace=None, opacity=1.0, contrast=1.0):
         """
         TargetStim is a 'doughnut' style target graphic used during the validation procedure.
 
-        :param win:
-        :param radius:
-        :param fillcolor:
-        :param edgecolor:
-        :param edgewidth:
-        :param dotcolor:
-        :param dotradius:
-        :param units:
-        :param colorspace:
-        :param opacity:
-        :param contrast:
+        :param win: Window being sued for validation.
+        :param radius: The outer radius of the target.
+        :param fillcolor: The color used to fill the target body.
+        :param edgecolor: The color for the edge around the target.
+        :param edgewidth: The thickness of the target outer edge (always in pixels).
+        :param dotcolor: The color of the central target dot.
+        :param dotradius: The radius to use for the target dot.
+        :param units: The psychopy unit type of any size values.
+        :param colorspace: The psychopy color space of any colors.
+        :param opacity: The transparency of the target (0.0 - 1.0).
+        :param contrast: The contrast of the target stim.
         """
+        from weakref import proxy
         self.win = proxy(win)
         self.stim = []
         self.radius = radius
@@ -87,24 +73,68 @@ class TargetStim(object):
         return self.stim[0].contains(p)
 
 
+def runValidation(win):
+    """
+    Runs the eye tracker validation procedure using PsychoPy Window win.
+    This function performs a ValidationProcedure using a validation target
+    stimulus, a validation position list, and the triggers used to determine
+    target position progression during the validation procedure.
+
+    :param win: PsychoPy window being used for validation.
+    :return:
+    """
+    # Create a TargetStim instance
+    target = TargetStim(win, radius=0.025, fillcolor=[.5, .5, .5], edgecolor=[-1, -1, -1], edgewidth=2,
+                        dotcolor=[1, -1, -1], dotradius=0.005, units='norm', colorspace='rgb')
+
+    positions = [(0.0, 0.0), (0.85, 0.85), (-0.85, 0.0), (0.85, 0.0), (0.85, -0.85), (-0.85, 0.85),
+                 (-0.85, -0.85), (0.0, 0.85), (0.0, -0.85)]
+
+    # Specifiy the Triggers to use to move from target point to point during
+    # the validation sequence....
+    target_triggers = KeyboardTrigger(' ') #TimeTrigger(start_time=None, delay=2.5),
+
+    # Create a validation procedure
+    validation_proc = ValidationProcedure(win, target, positions,
+                                          target_animation_params=dict(velocity=1.0,
+                                                                       expandedscale=3.0,
+                                                                       expansionduration=0.2,
+                                                                       contractionduration=0.4),
+                                          background=None,
+                                          triggers=target_triggers,
+                                          storeeventsfor=None,
+                                          accuracy_period_start=0.550,
+                                          accuracy_period_stop=.150,
+                                          show_intro_screen=True,
+                                          intro_text='Validation procedure is now going to be performed.',
+                                          show_results_screen=True,
+                                          results_in_degrees=False,
+                                          randomize_positions=False,
+                                          toggle_gaze_cursor_key='g'
+                                          )
+
+    # Run the validation procedure. The run() method does not return until
+    # the validation is complete.
+    return validation_proc.run()
+
+
 if __name__ == "__main__":
     # Create a default PsychoPy Window
     win = visual.Window((1920, 1080), fullscr=True, allowGUI=False, monitor='55w_60dist')
 
 
-    exp_code = 'targetdisplay'
+    exp_code = 'validation_demo'
     sess_code = 'S_{0}'.format(int(time.mktime(time.localtime())))
 
     # Create ioHub Server config settings....
     iohub_config = dict()
     iohub_config['experiment_code'] = exp_code
     iohub_config['session_code'] = sess_code
-
     # Add an eye tracker device
     et_interface_name = 'eyetracker.hw.mouse.EyeTracker'
     iohub_config[et_interface_name] = dict(name='tracker')
 
-    # Start ioHub event monitoring process....
+    # Start the ioHub process.
     io = launchHubServer(window=win, **iohub_config)
 
     # Get the keyboard and mouse devices for future access.
@@ -112,97 +142,10 @@ if __name__ == "__main__":
     tracker = io.devices.tracker
     experiment = io.devices.experiment
 
-    # run eyetracker calibration
+    # Run eyetracker calibration
     r = tracker.runSetupProcedure()
 
-
-    # Create a TargetStim instance
-    target = TargetStim(win,
-                        radius=0.025,
-                        fillcolor=[.5, .5, .5],
-                        edgecolor=[-1, -1, -1],
-                        edgewidth=2,
-                        dotcolor=[1, -1, -1],
-                        dotradius=0.005,
-                        units='norm',
-                        colorspace='rgb'
-                        )
-
-    # Create a PositionGrid instance that will hold the locations to display the
-    # target at. The example lists all possible keyword arguments that are
-    # supported. If bounds is None, the ioHub Display device is used
-    # to get the bounding box to be used.
-    #positions = PositionGrid(bounds=None,  # bounding rect of the window, in window unit coords.
-    #                         shape=3,  # Create a grid with 3 cols * 3 rows.
-    #                         posCount=None,
-    #                         leftMargin=None,
-    #                         rightMargin=None,
-    #                         topMargin=None,
-    #                         bottomMargin=None,
-    #                         scale=0.85,  # Equally space the 3x3 grid across 85%
-                             # of the window width and height.
-    #                         posList=None,
-    #                         noiseStd=None,
-    #                         firstposindex=4,  # Use the center position grid
-                             # location as the first point in
-                             # the position order.
-    #                         repeatFirstPos=True  # Redisplay first target position
-                             # as the last target position.
-    #                         )
-    # randomize the grid position presentation order (not including
-    # the first position).
-    #positions.randomize()
-    #print("positions: ", [(p[0], p[1]) for p in positions.getPositions()])
-
-    positions = [(0.0, 0.0), (0.85, 0.85), (-0.85, 0.0), (0.85, 0.0), (0.85, -0.85), (-0.85, 0.85),
-                 (-0.85, -0.85), (0.0, 0.85), (0.0, -0.85)]
-
-
-    # Specifiy the Triggers to use to move from target point to point during
-    # the validation sequence....
-
-    # Use DeviceEventTrigger to create a keyboard event trigger
-    # which will fire when the space key is pressed.
-    kb_trigger = DeviceEventTrigger(io.getDevice('keyboard'),
-                                    event_type=EventConstants.KEYBOARD_RELEASE,
-                                    event_attribute_conditions={'key': ' '},
-                                    repeat_count=0)
-
-    # Creating a list of Trigger instances. The first one that
-    #     fires will cause the start of the next target position
-    #     presentation.
-    multi_trigger = (TimeTrigger(start_time=None, delay=2.5), kb_trigger)
-
-
-    # define a dict containing any animation params to be used,
-    # None's to disable animation
-    targ_anim_param = dict(velocity=1.0,  # 800.0,
-                           expandedscale=3.0,  # 2.0,
-                           expansionduration=0.2,  # 0.1,
-                           contractionduration=0.4)  # 0.1
-    print(win.units)
-    print(target.stim[0].units)
-    # Create a validation procedure
-    vin_txt = 'Validation procedure is now going to be performed.'
-    validation_proc = ValidationProcedure(win, target, positions,
-                                          target_animation_params=targ_anim_param,
-                                          background=None,
-                                          triggers=multi_trigger, #kb_trigger,#multi_trigger,
-                                          storeeventsfor=None,
-                                          accuracy_period_start=0.550,
-                                          accuracy_period_stop=.150,
-                                          show_intro_screen=True,
-                                          intro_text=vin_txt,
-                                          show_results_screen=True,
-                                          results_in_degrees=False,
-                                          randomize_positions=False)
-
-    # Run the validation procedure. The run() method does not return until
-    # the validation is complete. The calculated validation results, and data
-    # collected for the analysis, are returned.
-    results = validation_proc.run()
-
-    # The last run validation results can also be retrieved using:
-    # results = validation_proc.getValidationResults()
+    # Run eye tracker validation
+    validation_results = runValidation(win)
 
     io.quit()
