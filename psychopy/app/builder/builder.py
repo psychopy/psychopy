@@ -28,6 +28,7 @@ from wx.lib import scrolledpanel
 from wx.lib import platebtn
 from wx.html import HtmlWindow
 
+from ...experiment.routines import Routine
 from ...tools.stringtools import prettyname
 
 try:
@@ -1547,8 +1548,9 @@ class RoutinesNotebook(aui.AuiNotebook, ThemeMixin):
         self.removePages()
         displayOrder = sorted(self.frame.exp.routines.keys())  # alphabetical
         for routineName in displayOrder:
-            self.addRoutinePage(
-                routineName, self.frame.exp.routines[routineName])
+            if isinstance(self.frame.exp.routines[routineName], Routine):
+                self.addRoutinePage(
+                    routineName, self.frame.exp.routines[routineName])
         if currPage > -1:
             self.SetSelection(currPage)
 
