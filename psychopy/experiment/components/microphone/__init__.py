@@ -13,7 +13,7 @@ from builtins import super  # provides Py3-style super() using python-future
 from os import path
 from pathlib import Path
 from psychopy.experiment.components import BaseComponent, Param, getInitVals, _translate
-from psychopy.sound.microphone import Microphone
+from psychopy.sound.microphone import Microphone, _hasPTB
 from psychopy.sound.audiodevice import sampleRateQualityLevels
 from psychopy.sound.audioclip import AUDIO_SUPPORTED_CODECS
 from psychopy.localization import _localized as __localized
@@ -22,7 +22,10 @@ _localized = __localized.copy()
 _localized.update({'stereo': _translate('Stereo'),
                    'channel': _translate('Channel')})
 
-devices = {d.deviceName: d for d in Microphone.getDevices()}
+if _hasPTB:
+    devices = {d.deviceName: d for d in Microphone.getDevices()}
+else:
+    devices = {}
 sampleRates = {r[1]: r[0] for r in sampleRateQualityLevels.values()}
 devices['default'] = None
 
