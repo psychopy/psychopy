@@ -92,7 +92,8 @@ class TestExpt(object):
             # Compile again
             test = exp.writeScript()
             # Compare two scripts to make sure saving and loading hasn't changed anything
-            assert target == test
+            diff = difflib.unified_diff(target.splitlines(), test.splitlines())
+            assert list(diff) == []
 
     def test_xsd(self):
         # get files
