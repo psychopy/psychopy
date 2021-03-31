@@ -1,14 +1,13 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 """
-Example of performing eye tracker validation using ioHub Common Eye Tracker interface
-and the ValidationProcedure utility class.
+Example of performing eye tracker validation using the ioHub Common Eye Tracker interface
+and the psychopy.iohub.client.eyetracker.validation.ValidationProcedure class.
 """
 import time
 from psychopy import visual
 from psychopy.iohub import launchHubServer
-
-from validationroutine import TargetStim, ValidationProcedure
+from psychopy.iohub.client.eyetracker.validation import TargetStim, ValidationProcedure
 
 if __name__ == "__main__":
     # Create a default PsychoPy Window
@@ -52,21 +51,23 @@ if __name__ == "__main__":
     validation_proc = ValidationProcedure(win,
                                           target=target_stim,
                                           positions=target_positions,
-                                          target_animation_params=dict(velocity=1.0,
-                                                                       expandedscale=3.0,
-                                                                       expansionduration=0.2,
-                                                                       contractionduration=0.4),
-                                          accuracy_period_start=0.550,
-                                          accuracy_period_stop=.150,
+                                          randomize_positions=False,
+                                          target_animation=dict(velocity=1.0,
+                                                                expandedscale=3.0,
+                                                                expansionduration=0.2,
+                                                                contractionduration=0.4),
+                                          accuracy_period_start=0.550, accuracy_period_stop=.150,
                                           show_intro_screen=True,
                                           intro_text='Validation procedure is now going to be performed.',
-                                          show_results_screen=True,
-                                          results_in_degrees=False,
-                                          randomize_positions=False,
-                                          toggle_gaze_cursor_key='g',
-                                          terminate_key='escape')
+                                          show_results_screen=True, results_in_degrees=False,
+                                          toggle_gaze_cursor_key='g', terminate_key='escape')
 
     # Run the validation procedure. run() does not return until the validation is complete.
-    validation_results =  validation_proc.run()
+    validation_results = validation_proc.run()
 
+    print("++++ Validation Results ++++")
+    print("Units:", validation_results['reporting_unit_type'])
+    print("min_error:", validation_results['min_error'])
+    print("max_error:", validation_results['max_error'])
+    print("mean_error:", validation_results['mean_error'])
     io.quit()

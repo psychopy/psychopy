@@ -31,8 +31,7 @@ from psychopy.iohub.client import ioHubConnection
 from psychopy.tools.monitorunittools import convertToPix
 from psychopy.tools.monitorunittools import pix2deg, deg2pix
 
-from posgrid import PositionGrid
-from trigger import Trigger, KeyboardTrigger
+from psychopy.iohub.client.eyetracker.validation import PositionGrid, Trigger, KeyboardTrigger
 
 getTime = core.getTime
 
@@ -688,7 +687,7 @@ class ValidationTargetRenderer(object):
 
 
 class ValidationProcedure(object):
-    def __init__(self, win=None, target=None, positions=None, target_animation_params={}, randomize_positions=True,
+    def __init__(self, win=None, target=None, positions=None, target_animation={}, randomize_positions=True,
                  background=None, triggers=None, storeeventsfor=None, accuracy_period_start=0.350,
                  accuracy_period_stop=.050, show_intro_screen=True, intro_text='Ready to Start Validation Procedure.',
                  show_results_screen=True, results_in_degrees=False, save_figure_path=None,
@@ -766,7 +765,7 @@ class ValidationProcedure(object):
         :param win:
         :param target:
         :param positions:
-        :param target_animation_params:
+        :param target_animation:
         :param randomize_positions:
         :param background:
         :param triggers:
@@ -794,9 +793,9 @@ class ValidationProcedure(object):
         if self.randomize_positions:
             self.positions.randomize()
         self.win = proxy(win)
-        if target_animation_params is None:
-            target_animation_params = {}
-        self.animation_params = target_animation_params
+        if target_animation is None:
+            target_animation = {}
+        self.animation_params = target_animation
         self.accuracy_period_start = accuracy_period_start
         self.accuracy_period_stop = accuracy_period_stop
         self.show_intro_screen = show_intro_screen
