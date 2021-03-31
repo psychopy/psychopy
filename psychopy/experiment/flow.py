@@ -12,7 +12,7 @@ from __future__ import absolute_import, print_function
 from past.builtins import basestring
 from xml.etree.ElementTree import Element
 
-from psychopy.experiment.routines._base import Routine
+from psychopy.experiment.routines._base import Routine, BaseStandaloneRoutine
 from psychopy.experiment.loops import LoopTerminator, LoopInitiator
 
 
@@ -62,7 +62,7 @@ class Flow(list):
         # Add an element for every Routine, Loop Initiator, Loop Terminator
         for item in self:
             sub = item.xml
-            if isinstance(item, Routine):
+            if isinstance(item, Routine) or isinstance(item, BaseStandaloneRoutine):
                 # Remove all sub elements (we only need its name)
                 comps = [comp for comp in sub]
                 for comp in comps:
