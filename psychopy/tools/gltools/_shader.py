@@ -36,9 +36,264 @@ __all__ = [
 
 import ctypes
 import sys
+import os
 from ._glenv import OpenGL
+import psychopy.logging as logging
 
 GL = OpenGL.gl
+
+
+# ----------------------
+# Shader Program Classes
+# ----------------------
+#
+
+class Shader(object):
+    """Class representing single stage of a GLSL shader program.
+
+    Parameters
+    ----------
+    name : int or GLenum
+        OpenGL handle (or name) for the shader program.
+    shaderType : int or GLenum
+        Symbolic constant representing the shader type.
+    legacy : bool
+        Use the older style shader format, mostly for compatibility with legacy
+        hardware that does not support OpenGL 3.3 of higher.
+    isCompiled : bool
+        Has this shader been compiled yet?
+
+    """
+    __slots__ = ['_name', '_shaderType', '_legacy', '_isCompiled']
+
+    def __init__(self, name, shaderType, legacy=False, isCompiled=False):
+        self._name = name
+        self._shaderType = shaderType
+        self._legacy = legacy
+        self._isCompiled = isCompiled
+
+    @property
+    def name(self):
+        """OpenGL handle or name for this shader object (`int`).
+        """
+        return self._name
+
+    @property
+    def legacy(self):
+        """Is this a legacy shader program (`int`)? If so, this object cannot be
+        linked to non-legacy `Program` objects.
+        """
+        return self._legacy
+
+    @property
+    def isCompiled(self):
+        """Has the shader program been compiled successfully (`bool`)? If so,
+        then the shader program can be linked to a `Program` object.
+
+        """
+        return self._isCompiled
+
+    @staticmethod
+    def createFromSource(shaderSrc, shaderType, legacy=False):
+        """Load shader GLSL source code from a text buffer and create a new
+        shader program object.
+
+        Parameters
+        ----------
+        shaderSrc : str
+            GLSL source code text.
+        shaderType : GLenum, int or str
+            Symbolic constant representing the shader type.
+        legacy : bool
+
+        Returns
+        -------
+        Shader
+            Shader object.
+
+        """
+        # create a new shader program object handle in OpenGL
+        if not legacy:
+            shaderId = createShader(shaderType)
+        else:
+            shaderId = createShaderObjectARB(shaderType)
+
+        # create the object for the user
+        toReturn = Shader(shaderId, shaderType=shaderType, legacy=legacy)
+        toReturn.shaderSource(shaderSrc)
+
+        return toReturn
+
+    @staticmethod
+    def createFromFile(filename, shaderType, legacy=False):
+        """Load shader GLSL source code from file and create a new shader
+        program object.
+
+        Parameters
+        ----------
+        filename : str
+            Path to GLSL source code.
+        shaderType : GLenum, int or str
+            Symbolic constant representing the shader type.
+        legacy : bool
+
+        Returns
+        -------
+        Shader
+            Shader object.
+
+        """
+        # check if the file exists
+        if not os.path.isfile(filename):
+            raise FileNotFoundError(
+                "Cannot find shader source file `{}`.".format(filename))
+
+        # open the file and get the text
+        shaderSrcLines = []
+        with open(filename, 'r') as f:
+            if f.readable():
+                shaderSrcLines = f.readlines()
+
+        # check the version
+        if not shaderSrcLines[0].startswith('#version '):
+            logging.warning(
+                'Shader source file missing `#version` directive. This may '
+                'cause compilation to fail on some platforms.'
+            )
+
+        return Shader.createFromSource(
+            "".join(shaderSrcLines),
+            shaderType=shaderType,
+            legacy=legacy
+        )
+
+    def shaderSource(self, code):
+        """Replace or set the shader source code.
+
+        Parameters
+        ----------
+        code : str
+            Shader GLSL source code appropriate for the shader type.
+
+        """
+        if not self._legacy:
+            shaderSource(self._name, code)
+        else:
+            shaderSourceARB(self._name, code)
+
+    def compile(self, raiseErr=False):
+        """Compile shader GLSL code. Shader objects can then be attached to
+        programs an made executable on their respective processors.
+
+        Parameters
+        ----------
+        raiseErr : bool
+            Raise an error if the shader program fails to compile. If `False`
+            this method will return a value indicating success.
+
+        Returns
+        -------
+        bool
+            Compilation of the shader program was successful or not. Only
+            returned if `raiseErr=False`.
+
+        """
+        if not self._legacy:
+            result = compileShader(self._name)
+        else:
+            result = compileShaderObjectARB(self._name)
+
+        if not result:
+            errorLog = getInfoLog(self._name) + '\n'
+            if raiseErr:  # failed to compile for whatever reason
+                sys.stderr.write(errorLog)
+                deleteObject(self._name)
+                raise RuntimeError(
+                    "Shader compilation failed, check log output.")
+            else:
+                logging.error("Failed to compile shader program.")
+
+        # flag that the shader has been compiled
+        self._isCompiled = result
+
+        return self._isCompiled
+
+    # @property
+    # def defines(self):
+    #     """Mapping of pre-processor variable names and values to define
+    #     (`dict`).
+    #
+    #     Examples
+    #     --------
+    #     Set a pre-processor variable named `MAX_LIGHTS` to some value::
+    #
+    #         shaderCode.defines["MAX_LIGHTS"] = 4
+    #
+    #     Will result in the following line being inserted into the GLSL source
+    #     code::
+    #
+    #         #define MAX_LIGHTS 4
+    #
+    #     """
+    #     return self._defines
+
+    # @property
+    # def code(self):
+    #     """GLSL source code listing after embedding `defines` (`str`)."""
+    #     return self._embedShaderSourceDefs()
+
+    def __del__(self):
+        pass
+
+
+class Program(object):
+    """Class representing a shader program.
+
+    Parameters
+    ----------
+    name : int
+        Handle for the shader program.
+
+    """
+    __slots__ = [
+        '_name',
+        '_legacy',
+        '_compiled'
+    ]
+
+    def __init__(self, name, legacy=False):
+        self._name = name
+        self._legacy = legacy
+
+    @staticmethod
+    def create(legacy=False):
+        """Create a new shader program object.
+
+        Returns
+        -------
+        Program
+            Shader program object.
+
+        """
+        progHandle = \
+            GL.glCreateProgramObjectARB() if legacy else GL.glCreateProgram()
+
+        return Program(progHandle, legacy=legacy)
+
+    @property
+    def compiled(self):
+        """`True` if all attached shader programs have been successfully
+        compiled (`bool`).
+        """
+        return self._compiled
+
+    def use(self):
+        """Install this shader program object into the current context.
+        """
+        GL.glUseProgram(self._name)
+
+
+nullProgram = Program(0)
 
 
 # -------------------------------
@@ -148,18 +403,113 @@ def createProgramObjectARB():
     return GL.glCreateProgramObjectARB()
 
 
-def compileShader(shaderSrc, shaderType):
+def createShader(shaderType):
+    """Create a new shader object.
+
+    Parameters
+    ----------
+    shaderType : GLenum, int or str
+        Shader program type (eg. `GL_VERTEX_SHADER`, `GL_FRAGMENT_SHADER`,
+        `GL_GEOMETRY_SHADER`, etc.)
+
+    Returns
+    -------
+    int
+        OpenGL shader object handle retrieved from a `glCreateShader` call.
+
+    """
+    return GL.glCreateShader(shaderType)
+
+
+def createShaderObjectARB(shaderType):
+    """Create a new shader object (legacy).
+
+    Parameters
+    ----------
+    shaderType : GLenum, int or str
+        Shader program type. Must be *_ARB enums such as `GL_VERTEX_SHADER_ARB`,
+        `GL_FRAGMENT_SHADER_ARB`, `GL_GEOMETRY_SHADER_ARB`, etc.
+
+    Returns
+    -------
+    int
+        OpenGL shader object handle retrieved from a `glCreateShaderObjectARB`
+        call.
+
+    """
+    return GL.glCreateShaderObjectARB(shaderType)
+
+
+def shaderSource(shaderId, code):
+    """Replaces the source code inside a shader object.
+
+    Parameters
+    ----------
+    shaderId : int
+        Handle of shader object to attach. Must have originated from a
+        :func:`createShader` or `glCreateShader` call.
+    code : str
+        Text buffer containing the GLSL source code appropriate for the shader
+        type.
+
+    """
+    if isinstance(code, (list, tuple,)):
+        nSources = len(code)
+        srcPtr = (ctypes.c_char_p * nSources)()
+        srcPtr[:] = [i.encode() for i in code]
+    else:
+        nSources = 1
+        srcPtr = ctypes.c_char_p(code.encode())
+
+    GL.glShaderSource(
+        shaderId,
+        nSources,
+        ctypes.cast(
+            ctypes.byref(srcPtr),
+            ctypes.POINTER(ctypes.POINTER(ctypes.c_char))),
+        None)
+
+
+def shaderSourceARB(shaderId, code):
+    """Replaces the source code inside a shader object (legacy).
+
+    Parameters
+    ----------
+    shader : int
+        Handle of shader object to attach. Must have originated from a
+        :func:`createShaderARB` or `glCreateShaderObjectARB` call.
+    code : str
+        Text buffer containing the GLSL source code appropriate for the shader
+        type.
+
+    """
+    if isinstance(code, (list, tuple,)):
+        nSources = len(code)
+        srcPtr = (ctypes.c_char_p * nSources)()
+        srcPtr[:] = [i.encode() for i in code]
+    else:
+        nSources = 1
+        srcPtr = ctypes.c_char_p(code.encode())
+
+    GL.glShaderSourceARB(
+        shaderId,
+        nSources,
+        ctypes.cast(
+            ctypes.byref(srcPtr),
+            ctypes.POINTER(ctypes.POINTER(ctypes.c_char))),
+        None)
+
+
+def compileShader(shaderId):
     """Compile shader GLSL code and return a shader object. Shader objects can
     then be attached to programs an made executable on their respective
     processors.
 
     Parameters
     ----------
-    shaderSrc : str, list of str
-        GLSL shader source code.
-    shaderType : GLenum
-        Shader program type (eg. `GL_VERTEX_SHADER`, `GL_FRAGMENT_SHADER`,
-        `GL_GEOMETRY_SHADER`, etc.)
+    shaderId : int
+        Handle of shader object to attach. Must have originated from a
+        :func:`createShader` or `glCreateShader` call.
 
     Returns
     -------
@@ -181,28 +531,15 @@ def compileShader(shaderSrc, shaderType):
                 gl_Position = vec4(vertexPos, 1.0);
             }
             '''
-        # compile it, specifying `GL_VERTEX_SHADER`
-        vertexShader = compileShader(vertexSource, GL.GL_VERTEX_SHADER)
+        # create a new shader object of type `GL_VERTEX_SHADER`
+        vertexShader = createShader(GL_VERTEX_SHADER)
+        # set shader sources
+        shaderSource(vertexShader, vertexSource)
+        # compile it
+        vertexShader = compileShader(vertexShader, GL.GL_VERTEX_SHADER)
         attachShader(myProgram, vertexShader)  # attach it to `myProgram`
 
     """
-    shaderId = GL.glCreateShader(shaderType)
-
-    if isinstance(shaderSrc, (list, tuple,)):
-        nSources = len(shaderSrc)
-        srcPtr = (ctypes.c_char_p * nSources)()
-        srcPtr[:] = [i.encode() for i in shaderSrc]
-    else:
-        nSources = 1
-        srcPtr = ctypes.c_char_p(shaderSrc.encode())
-
-    GL.glShaderSource(
-        shaderId,
-        nSources,
-        ctypes.cast(
-            ctypes.byref(srcPtr),
-            ctypes.POINTER(ctypes.POINTER(ctypes.c_char))),
-        None)
     GL.glCompileShader(shaderId)
 
     result = GL.GLint()
@@ -217,18 +554,16 @@ def compileShader(shaderSrc, shaderType):
     return shaderId
 
 
-def compileShaderObjectARB(shaderSrc, shaderType):
+def compileShaderObjectARB(shaderId):
     """Compile shader GLSL code and return a shader object. Shader objects can
     then be attached to programs an made executable on their respective
     processors.
 
     Parameters
     ----------
-    shaderSrc : str, list of str
-        GLSL shader source code text.
-    shaderType : GLenum
-        Shader program type. Must be *_ARB enums such as `GL_VERTEX_SHADER_ARB`,
-        `GL_FRAGMENT_SHADER_ARB`, `GL_GEOMETRY_SHADER_ARB`, etc.
+    shaderId : int
+        Handle of shader object to attach. Must have originated from a
+        :func:`createShaderARB` or `glCreateShaderObjectARB` call.
 
     Returns
     -------
@@ -237,35 +572,20 @@ def compileShaderObjectARB(shaderSrc, shaderType):
         call.
 
     """
-    shaderId = GL.glCreateShaderObjectARB(shaderType)
-
-    if isinstance(shaderSrc, (list, tuple,)):
-        nSources = len(shaderSrc)
-        srcPtr = (ctypes.c_char_p * nSources)()
-        srcPtr[:] = [i.encode() for i in shaderSrc]
-    else:
-        nSources = 1
-        srcPtr = ctypes.c_char_p(shaderSrc.encode())
-
-    GL.glShaderSourceARB(
-        shaderId,
-        nSources,
-        ctypes.cast(
-            ctypes.byref(srcPtr),
-            ctypes.POINTER(ctypes.POINTER(ctypes.c_char))),
-        None)
     GL.glCompileShaderARB(shaderId)
 
     result = GL.GLint()
     GL.glGetObjectParameterivARB(
         shaderId, GL.GL_OBJECT_COMPILE_STATUS_ARB, ctypes.byref(result))
 
-    if result.value == GL.GL_FALSE:  # failed to compile for whatever reason
+    compileFailed = result.value == GL.GL_FALSE
+
+    if compileFailed:  # failed to compile for whatever reason
         sys.stderr.write(getInfoLog(shaderId) + '\n')
         deleteObjectARB(shaderId)
         raise RuntimeError("Shader compilation failed, check log output.")
 
-    return shaderId
+    return compileFailed
 
 
 def embedShaderSourceDefs(shaderSrc, defs):

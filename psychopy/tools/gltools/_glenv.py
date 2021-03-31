@@ -18,8 +18,8 @@ import ctypes
 
 
 class OpenGLEnv(object):
-    """OpenGL interface class. Provides a single access point to the OpenGL API
-    module.
+    """OpenGL loader interface class. Provides a single access point to the
+    OpenGL API module.
 
     This is a singleton class, where invoking multiple instances will result in
     the same reference being returned. However, users should never instance this
@@ -233,7 +233,7 @@ class OpenGLEnv(object):
 
 
 def getOpenGL():
-    """Get the global OpenGL interface.
+    """Get the global OpenGL loader interface.
 
     If an OpenGL interface hasn't been loaded yet, this function will import the
     library. Any commands will only be valid after a context has been created.
