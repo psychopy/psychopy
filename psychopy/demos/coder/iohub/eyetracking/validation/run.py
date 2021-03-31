@@ -8,74 +8,12 @@ import time
 from psychopy import visual
 from psychopy.iohub import launchHubServer
 
-from validationroutine import ValidationProcedure
-
-class TargetStim(object):
-    def __init__(self, win, radius=None, fillcolor=None, edgecolor=None, edgewidth=None,
-                 dotcolor=None, dotradius=None, units=None, colorspace=None, opacity=1.0, contrast=1.0):
-        """
-        TargetStim is a 'doughnut' style target graphic used during the validation procedure.
-
-        :param win: Window being sued for validation.
-        :param radius: The outer radius of the target.
-        :param fillcolor: The color used to fill the target body.
-        :param edgecolor: The color for the edge around the target.
-        :param edgewidth: The thickness of the target outer edge (always in pixels).
-        :param dotcolor: The color of the central target dot.
-        :param dotradius: The radius to use for the target dot.
-        :param units: The psychopy unit type of any size values.
-        :param colorspace: The psychopy color space of any colors.
-        :param opacity: The transparency of the target (0.0 - 1.0).
-        :param contrast: The contrast of the target stim.
-        """
-        from weakref import proxy
-        self.win = proxy(win)
-        self.stim = []
-        self.radius = radius
-        outer = visual.Circle(self.win, radius=radius, fillColor=fillcolor, lineColor=edgecolor, lineWidth=edgewidth,
-                              edges=32, units=units, colorSpace=colorspace, opacity=opacity,
-                              contrast=contrast, interpolate=True, autoLog=False)
-        self.stim.append(outer)
-
-        if dotcolor and dotcolor != fillcolor:
-            centerdot = visual.Circle(self.win, radius=dotradius, fillColor=dotcolor, lineColor=dotcolor,
-                                      lineWidth=0.0, edges=32, interpolate=True, units=units,
-                                      colorSpace=colorspace, opacity=opacity, contrast=contrast, autoLog=False)
-            self.stim.append(centerdot)
-
-    def setRadius(self, r):
-        """
-        Update the radius of the target stim.
-        """
-        self.stim[0].radius = r
-
-    def setPos(self, pos):
-        """
-        Set the center position of the target stim.
-        """
-        for s in self.stim:
-            s.setPos(pos)
-
-    def draw(self):
-        """
-        Draw the Target stim.
-        """
-        for s in self.stim:
-            s.draw()
-
-    def contains(self, p):
-        """
-        Is point p contained within the Target Stim?
-        :param p: x, y position in stim units
-        :return: bool
-        """
-        return self.stim[0].contains(p)
-
+from validationroutine import TargetStim, ValidationProcedure
 
 if __name__ == "__main__":
     # Create a default PsychoPy Window
+    # monitor *must* be the name of a valid PsychoPy Monitor config file.
     win = visual.Window((1920, 1080), fullscr=True, allowGUI=False, monitor='55w_60dist')
-
 
     exp_code = 'validation_demo'
     sess_code = 'S_{0}'.format(int(time.mktime(time.localtime())))

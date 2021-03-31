@@ -5,12 +5,12 @@ Eye Tracker Validation procedure using the ioHub common eye tracker interface.
 To use the validation process from within a Coder script:
 * Create an instance of TargetStim, specifying the fixation target appearance.
 * Create an instance of PositionGrid, which defines target position information.
-* Create a TargetPosSequenceStim instance, providing the TargetStim and
+* Create a ValidationTargetRenderer instance, providing the TargetStim and
   PositionGrid objects created, as well as the Trigger's which should be used
   to transition from one target position to another during the sequence of
   target graphics presentation and the defined positions.
-* Use TargetPosSequenceStim.display() to run the full presentation procedure.
-* Use TargetPosSequenceStim.targetdata to access information about each target
+* Use ValidationTargetRenderer.display() to run the full presentation procedure.
+* Use ValidationTargetRenderer.targetdata to access information about each target
   position displayed and the events collected during the display duration for
   each position.
 
@@ -62,7 +62,70 @@ def toDeg(win, x, y):
     r = pix2deg(xy, win.monitor, correctFlat=False)
     return r[:, 0], r[:, 1]
 
-class TargetPosSequenceStim(object):
+
+class TargetStim(object):
+    def __init__(self, win, radius=None, fillcolor=None, edgecolor=None, edgewidth=None,
+                 dotcolor=None, dotradius=None, units=None, colorspace=None, opacity=1.0, contrast=1.0):
+        """
+        TargetStim is a 'doughnut' style target graphic used during the validation procedure.
+
+        :param win: Window being sued for validation.
+        :param radius: The outer radius of the target.
+        :param fillcolor: The color used to fill the target body.
+        :param edgecolor: The color for the edge around the target.
+        :param edgewidth: The thickness of the target outer edge (always in pixels).
+        :param dotcolor: The color of the central target dot.
+        :param dotradius: The radius to use for the target dot.
+        :param units: The psychopy unit type of any size values.
+        :param colorspace: The psychopy color space of any colors.
+        :param opacity: The transparency of the target (0.0 - 1.0).
+        :param contrast: The contrast of the target stim.
+        """
+        from weakref import proxy
+        self.win = proxy(win)
+        self.stim = []
+        self.radius = radius
+        outer = visual.Circle(self.win, radius=radius, fillColor=fillcolor, lineColor=edgecolor, lineWidth=edgewidth,
+                              edges=32, units=units, colorSpace=colorspace, opacity=opacity,
+                              contrast=contrast, interpolate=True, autoLog=False)
+        self.stim.append(outer)
+
+        if dotcolor and dotcolor != fillcolor:
+            centerdot = visual.Circle(self.win, radius=dotradius, fillColor=dotcolor, lineColor=dotcolor,
+                                      lineWidth=0.0, edges=32, interpolate=True, units=units,
+                                      colorSpace=colorspace, opacity=opacity, contrast=contrast, autoLog=False)
+            self.stim.append(centerdot)
+
+    def setRadius(self, r):
+        """
+        Update the radius of the target stim.
+        """
+        self.stim[0].radius = r
+
+    def setPos(self, pos):
+        """
+        Set the center position of the target stim.
+        """
+        for s in self.stim:
+            s.setPos(pos)
+
+    def draw(self):
+        """
+        Draw the Target stim.
+        """
+        for s in self.stim:
+            s.draw()
+
+    def contains(self, p):
+        """
+        Is point p contained within the Target Stim?
+        :param p: x, y position in stim units
+        :return: bool
+        """
+        return self.stim[0].contains(p)
+
+
+class ValidationTargetRenderer(object):
     TARGET_STATIONARY = 1
     TARGET_MOVING = 2
     TARGET_EXPANDING = 4
@@ -111,13 +174,13 @@ class TargetPosSequenceStim(object):
     def __init__(self, win, target, positions, background=None, storeeventsfor=[], triggers=None, msgcategory='',
                  config=None, io=None, terminate_key='escape', gaze_cursor_key='g'):
         """
-        TargetPosSequenceStim combines an instance of a Target stim and an
+        ValidationTargetRenderer combines an instance of a Target stim and an
         instance of a PositionGrid to create everything needed to present the
         target at each position returned by the PositionGrid instance within the
         psychopy window used to create the Target stim. The target is presented at
         each position sequentially.
 
-        By providing keyword arguments to the TargetPosSequenceStim.display(...)
+        By providing keyword arguments to the ValidationTargetRenderer.display(...)
         method, position animation between target positions, and target stim
         expansion and / or contraction transitions are possible.
 
@@ -754,11 +817,11 @@ class ValidationProcedure(object):
             triggers = KeyboardTrigger(' ', on_press=True)
         triggers = Trigger.getTriggersFrom(triggers)
 
-        # Create the TargetPosSequenceStim instance; used to control the sequential
+        # Create the ValidationTargetRenderer instance; used to control the sequential
         # presentation of the target at each of the grid positions.
-        self.targetsequence = TargetPosSequenceStim(win, target=target, positions=self.positions, background=background,
-                                                    triggers=triggers, storeeventsfor=storeeventsfor,
-                                                    terminate_key=terminate_key, gaze_cursor_key=toggle_gaze_cursor_key)
+        self.targetsequence = ValidationTargetRenderer(win, target=target, positions=self.positions, background=background,
+                                                       triggers=triggers, storeeventsfor=storeeventsfor,
+                                                       terminate_key=terminate_key, gaze_cursor_key=toggle_gaze_cursor_key)
         # Stim for results screen
         self.imagestim = None
         self.textstim = None
