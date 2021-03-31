@@ -345,6 +345,8 @@ def toList(val):
     stripped = val.strip()
     if utils.scriptTarget == "PsychoJS":
         return py2js.expression2js(stripped)
+    elif utils.valid_var_re.fullmatch(stripped):
+        return "{}".format(stripped)
     elif not ((stripped.startswith('(') and stripped.endswith(')')) \
               or ((stripped.startswith('[') and stripped.endswith(']')))):
         return "[{}]".format(stripped)
