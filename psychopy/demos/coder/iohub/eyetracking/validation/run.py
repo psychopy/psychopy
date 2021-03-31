@@ -92,7 +92,7 @@ def runValidation(win):
 
     # Specifiy the Triggers to use to move from target point to point during
     # the validation sequence....
-    target_triggers = KeyboardTrigger(' ') #TimeTrigger(start_time=None, delay=2.5),
+    target_triggers = KeyboardTrigger(' ', on_press=True) #TimeTrigger(start_time=None, delay=2.5),
 
     # Create a validation procedure
     validation_proc = ValidationProcedure(win, target, positions,

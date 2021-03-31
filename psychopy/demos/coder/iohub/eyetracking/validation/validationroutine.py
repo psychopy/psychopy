@@ -159,6 +159,7 @@ class TargetPosSequenceStim(object):
         if io is None:
             io = ioHubConnection.getActiveConnection()
         self.io = io
+        self._keyboard = self.io.devices.keyboard
 
         # If storeevents is True, targetdata will be a list of dict's.
         # Each dict, among other things, contains all ioHub events that occurred
@@ -355,7 +356,7 @@ class TargetPosSequenceStim(object):
                 dev_events.extend(dev.getEvents())
 
     def _checkForTerminate(self):
-        keys = self.io.devices.keyboard.getEvents(EventConstants.KEYBOARD_PRESS, clearEvents=False)
+        keys = self._keyboard.getEvents(EventConstants.KEYBOARD_PRESS, clearEvents=False)
         for k in keys:
             if k.key == self.terminate_key:
                 self._terminate_requested = True
@@ -363,11 +364,11 @@ class TargetPosSequenceStim(object):
         return self._terminate_requested
 
     def _checkForToggleGaze(self):
-        keys = self.io.devices.keyboard.getEvents(EventConstants.KEYBOARD_PRESS, clearEvents=False)
+        keys = self._keyboard.getEvents(EventConstants.KEYBOARD_PRESS, clearEvents=False)
         for k in keys:
             if k.key == self.gaze_cursor_key:
                 # get (clear) the event so it does not trigger multiple times.
-                self.io.devices.keyboard.getEvents(EventConstants.KEYBOARD_PRESS, clearEvents=True)
+                self._keyboard.getEvents(EventConstants.KEYBOARD_PRESS, clearEvents=True)
                 self.display_gaze = not self.display_gaze
                 self._draw()
                 self.win.flip()
@@ -765,10 +766,11 @@ class ValidationProcedure(object):
             b) display of the target position sequence used for validation data collection.
             c) display of a validation accuracy results plot.
         """
+        keyboard = self.io.devices.keyboard
         if self.show_intro_screen:
             # Display Validation Intro Screen
             self.showIntroScreen()
-            if self.terminate_key and self.terminate_key in self.io.devices.keyboard.waitForReleases(keys=None):
+            if self.terminate_key and self.terminate_key in keyboard.waitForReleases(keys=[' ', self.terminate_key]):
                 print("Escape key pressed. Exiting validation")
                 self.validation_results = None
                 return
@@ -786,7 +788,7 @@ class ValidationProcedure(object):
 
         if self.show_results_screen:
             if self.showResultsScreen() is not None:
-                if self.terminate_key and self.terminate_key in self.io.devices.keyboard.waitForReleases(keys=None):
+                if self.terminate_key and self.terminate_key in keyboard.waitForPresses(keys=[' ', self.terminate_key]):
                     print("Escape key pressed. Exiting validation")
                     self.validation_results = None
                     return
