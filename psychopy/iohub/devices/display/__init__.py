@@ -231,8 +231,7 @@ class Display(Device):
 
     def getCoordBounds(self):
         """Get the Display's left, top, right, and bottom border bounds,
-        specified in the coordinate space returned by
-        Display.getCoordinateType()
+        specified in the coordinate space returned by Display.getCoordinateType()
 
         Args:
             None
