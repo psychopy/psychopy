@@ -800,14 +800,15 @@ class Experiment(object):
             #    Path('C:/test/test.xlsx').is_absolute() returns False
             #    Path('/folder/file.xlsx').relative_to('/Applications') gives error
             #    but os.path.relpath('/folder/file.xlsx', '/Applications') correctly uses ../
-            if len(filePath) > 2 and (filePath[0] == "/" or filePath[1] == ":")\
-                    and os.path.isfile(filePath):
-                thisFile['abs'] = filePath
-                thisFile['rel'] = os.path.relpath(filePath, srcRoot)
+            filePathStr = str(filePath);            
+            if len(filePathStr) > 2 and (filePathStr[0] == "/" or filePathStr[1] == ":")\
+                    and os.path.isfile(filePathStr):
+                thisFile['abs'] = filePathStr
+                thisFile['rel'] = os.path.relpath(filePathStr, srcRoot)
                 return thisFile
             else:
-                thisFile['rel'] = filePath
-                thisFile['abs'] = os.path.normpath(join(srcRoot, filePath))
+                thisFile['rel'] = filePathStr
+                thisFile['abs'] = os.path.normpath(join(srcRoot, filePathStr))
                 if os.path.isfile(thisFile['abs']):
                     return thisFile
 
