@@ -930,20 +930,28 @@ class ValidationProcedure(object):
 
             stationary_samples = samplesforpos[samplesforpos['targ_state'] == self.targetsequence.TARGET_STATIONARY]
 
-            last_stime = stationary_samples[-1]['eye_time']
-            first_stime = stationary_samples[0]['eye_time']
+            if len(stationary_samples):
+                last_stime = stationary_samples[-1]['eye_time']
+                first_stime = stationary_samples[0]['eye_time']
 
-            filter_stime = last_stime - self.accuracy_period_start
-            filter_etime = last_stime - self.accuracy_period_stop
+                filter_stime = last_stime - self.accuracy_period_start
+                filter_etime = last_stime - self.accuracy_period_stop
 
-            all_samples_for_accuracy_calc = stationary_samples[stationary_samples['eye_time'] >= filter_stime]
-            all_samples_for_accuracy_calc = all_samples_for_accuracy_calc[all_samples_for_accuracy_calc['eye_time'] < filter_etime]
+                all_samples_for_accuracy_calc = stationary_samples[stationary_samples['eye_time'] >= filter_stime]
+                all_samples_for_accuracy_calc = all_samples_for_accuracy_calc[all_samples_for_accuracy_calc['eye_time'] < filter_etime]
 
-            good_samples_for_accuracy_calc = all_samples_for_accuracy_calc[all_samples_for_accuracy_calc['eye_status'] <= 1]
+                good_samples_for_accuracy_calc = all_samples_for_accuracy_calc[all_samples_for_accuracy_calc['eye_status'] <= 1]
 
-            all_samples_for_accuracy_count = all_samples_for_accuracy_calc.shape[0]
-            good_accuracy_sample_count = good_samples_for_accuracy_calc.shape[0]
-            accuracy_calc_good_sample_perc = good_accuracy_sample_count / float(all_samples_for_accuracy_count)
+                all_samples_for_accuracy_count = all_samples_for_accuracy_calc.shape[0]
+                good_accuracy_sample_count = good_samples_for_accuracy_calc.shape[0]
+                try:
+                    accuracy_calc_good_sample_perc = good_accuracy_sample_count / float(all_samples_for_accuracy_count)
+                except ZeroDivisionError:
+                    accuracy_calc_good_sample_perc = 0
+            else:
+                all_samples_for_accuracy_calc = []
+                good_samples_for_accuracy_calc = []
+                accuracy_calc_good_sample_perc = 0
 
             # Ordered dictionary of the different levels of samples selected during filtering
             # for valid samples to use in accuracy calculations.
@@ -968,7 +976,7 @@ class ValidationProcedure(object):
 
             position_results['sample_from_filter_stages'] = sample_msg_data_filtering
 
-            if accuracy_calc_good_sample_perc == 0.0:
+            if int(accuracy_calc_good_sample_perc*100) == 0:
                 position_results['calculation_status'] = 'FAILED'
                 results['positions_failed_processing'] += 1
             else:
@@ -1031,7 +1039,8 @@ class ValidationProcedure(object):
             unit_type = 'degrees'
         mean_error = summed_error / point_count
         err_results = dict(reporting_unit_type=unit_type, min_error=min_error, max_error=max_error,
-                           mean_error=mean_error)
+                           mean_error=mean_error, passed=results['positions_failed_processing'] == 0,
+                           positions_failed_processing=results['positions_failed_processing'])
 
         for k, v in err_results.items():
             self.io.sendMessageEvent('{}: {}'.format(k, v), 'VALIDATION')
@@ -1064,7 +1073,6 @@ class ValidationProcedure(object):
             pindex = position_results['pos_index']
             if position_results['calculation_status'] == 'FAILED':
                 # Draw nothing for failed position
-                # TODO: Draw something. ;)
                 pass
             else:
                 samples = position_results['sample_from_filter_stages']['used_samples']
@@ -1078,11 +1086,10 @@ class ValidationProcedure(object):
                     gaze_x = samples[:]['eye_x']
                     gaze_y = samples[:]['eye_y']
 
-                normed_time = (time - time.min()) / (time.max() - time.min())
                 pl.scatter(target_x[0], target_y[0], s=400, color=[0.75, 0.75, 0.75], alpha=0.5)
                 pl.text(target_x[0], target_y[0], str(pindex), size=11, horizontalalignment='center',
                         verticalalignment='center')
-                pl.scatter(gaze_x, gaze_y, s=40, c=normed_time, cmap=cm, alpha=0.75)
+                pl.scatter(gaze_x, gaze_y, s=40, c='g', alpha=0.75)
 
         if self.results_in_degrees:
             l, b = toDeg(self.win, (-pixw / 2,), (-pixh / 2, ))
@@ -1099,7 +1106,6 @@ class ValidationProcedure(object):
                                                                                 results['max_error'],
                                                                                 results['mean_error']))
 
-        # pl.colorbar()
         fig.tight_layout()
         return fig
 

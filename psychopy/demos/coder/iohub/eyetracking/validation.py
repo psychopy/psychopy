@@ -66,6 +66,8 @@ if __name__ == "__main__":
     validation_results = validation_proc.run()
 
     print("++++ Validation Results ++++")
+    print("Passed:", validation_results['passed'])
+    print("failed_pos_count:", validation_results['positions_failed_processing'])
     print("Units:", validation_results['reporting_unit_type'])
     print("min_error:", validation_results['min_error'])
     print("max_error:", validation_results['max_error'])
