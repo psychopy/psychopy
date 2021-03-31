@@ -9,8 +9,9 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 __all__ = [
-    'OpenGL',
-    'getOpenGL'
+    'OpenGLEnv',
+    'getOpenGL',
+    'OpenGL'
 ]
 
 import ctypes
@@ -47,6 +48,7 @@ class OpenGLEnv(object):
     _gl = None
     _glu = None
     _glx = None
+    _loader = None  # only one in use right now
 
     # _const = {}
     # _func = {}
@@ -58,6 +60,8 @@ class OpenGLEnv(object):
         """
         if cls.__instance is None:
             cls.__instance = super(OpenGLEnv, cls).__new__(cls)
+
+            cls._loader = 'pyglet'  # only one in use right now
 
             # base OpenGL (GL)
             try:
@@ -114,6 +118,14 @@ class OpenGLEnv(object):
             return val.decode('UTF-8')
 
         return gl_get_string(gl.GL_VERSION)
+
+    @property
+    def loader(self):
+        """Name of the library used to provide bindings to OpenGL (e.g., pyglet,
+        PyOpenGL, etc.) that is currently in use (`str`).
+
+        """
+        return self._loader
 
     # @property
     # def const(self):
