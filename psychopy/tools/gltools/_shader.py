@@ -12,8 +12,16 @@ are made to PsychoPy's graphics API to utilize shaders more often.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 __all__ = [
+    'Program',
+    'Shader',
+    'nullProgram',
+    'nullProgramARB',
     'createProgram',
     'createProgramObjectARB',
+    'createShader',
+    'createShaderObjectARB',
+    'shaderSource',
+    'shaderSourceARB',
     'compileShader',
     'compileShaderObjectARB',
     'embedShaderSourceDefs',
@@ -77,6 +85,12 @@ class Shader(object):
         """OpenGL handle or name for this shader object (`int`).
         """
         return self._name
+
+    @property
+    def shaderType(self):
+        """Symbolic constant representing the type of shader (`int`).
+        """
+        return self._shaderType
 
     @property
     def legacy(self):
@@ -218,30 +232,6 @@ class Shader(object):
 
         return self._isCompiled
 
-    # @property
-    # def defines(self):
-    #     """Mapping of pre-processor variable names and values to define
-    #     (`dict`).
-    #
-    #     Examples
-    #     --------
-    #     Set a pre-processor variable named `MAX_LIGHTS` to some value::
-    #
-    #         shaderCode.defines["MAX_LIGHTS"] = 4
-    #
-    #     Will result in the following line being inserted into the GLSL source
-    #     code::
-    #
-    #         #define MAX_LIGHTS 4
-    #
-    #     """
-    #     return self._defines
-
-    # @property
-    # def code(self):
-    #     """GLSL source code listing after embedding `defines` (`str`)."""
-    #     return self._embedShaderSourceDefs()
-
     def __del__(self):
         pass
 
@@ -253,20 +243,28 @@ class Program(object):
     ----------
     name : int
         Handle for the shader program.
+    shaders : dict or None
+        Mapping of symbolic constants specifying the shader type and the shader
+        objects.
+    legacy : bool
+        Use legacy program functions. Shaders attached to this object must all
+        be `legacy` if `True`.
 
     """
     __slots__ = [
         '_name',
         '_legacy',
-        '_compiled'
+        '_shaders'
     ]
 
-    def __init__(self, name, legacy=False):
+    def __init__(self, name, shaders=None, legacy=False):
         self._name = name
+        self._shaders = {} if shaders is None else shaders
+        assert isinstance(self._shaders, dict)
         self._legacy = legacy
 
     @staticmethod
-    def create(legacy=False):
+    def create(shaders=None, legacy=False):
         """Create a new shader program object.
 
         Returns
@@ -278,22 +276,112 @@ class Program(object):
         progHandle = \
             GL.glCreateProgramObjectARB() if legacy else GL.glCreateProgram()
 
-        return Program(progHandle, legacy=legacy)
+        return Program(progHandle, shaders=shaders, legacy=legacy)
 
     @property
-    def compiled(self):
-        """`True` if all attached shader programs have been successfully
-        compiled (`bool`).
+    def shaders(self):
+        """Shaders attached to this program object (`dict`)."""
+        return self._shaders
+
+    def attachShader(self, shader):
+        """Attach a shader to this object.
+
+        Parameters
+        ----------
+        shader : Shader
+            Shader object to attach.
+
         """
-        return self._compiled
+        if not self._legacy:
+            attachShader(self._name, shader.name)
+        else:
+            attachObjectARB(self._name, shader.name)
+
+        # add to the `_shaders` dictionary
+        self._shaders[shader.shaderType] = shader
+
+    def detachShader(self, shaderType):
+        """Detach a shader from this object.
+
+        Parameters
+        ----------
+        shaderType : int
+            Shader object to detach.
+
+        """
+        shader = self._shaders[shaderType]
+
+        if not self._legacy:
+            detachShader(self._name, shader.name)
+        else:
+            detachObjectARB(self._name, shader.name)
+
+        # add to the `_shaders` dictionary
+        self._shaders[shader.shaderType] = shader
+
+    @property
+    def vertexShader(self):
+        """Vertex shader attached to this program object (`Shader`)."""
+        try:
+            return self._shaders[GL.GL_VERTEX_SHADER]
+        except KeyError:
+            return None
+
+    @property
+    def fragmentShader(self):
+        """Fragment shader attached to this object (`Shader`)."""
+        try:
+            return self._shaders[GL.GL_FRAGMENT_SHADER]
+        except KeyError:
+            return None
+
+    @property
+    def geometryShader(self):
+        """Geometry shader attached to this object (`Shader`)."""
+        try:
+            return self._shaders[GL.GL_GEOMETRY_SHADER]
+        except KeyError:
+            return None
+
+    def link(self):
+        """Link a shader program.
+
+        Any attached shader objects will be made executable to run on associated
+        GPU processor units when the program is used.
+
+        """
+        if not self._legacy:
+            linkProgram(self._name)
+        else:
+            linkProgramObjectARB(self._name)
 
     def use(self):
-        """Install this shader program object into the current context.
+        """Use a program object's executable shader attachments in the current
+        OpenGL rendering state.
+
+        In order to install the program object in the current rendering state, a
+        program must have been successfully linked by calling :meth:`link`.
+
+        Examples
+        --------
+        Use the shader program in the current context::
+
+            shaderProg.use()
+
+        To `unbind` or deactivate the shader, either bind another or use the
+        `nullProgram` (`nullProgARB` if using legacy shaders)::
+
+            nullProgram.use()
+
         """
-        GL.glUseProgram(self._name)
+        if not self._legacy:
+            useProgram(self._name)
+        else:
+            useProgramObjectARB(self._name)
 
 
 nullProgram = Program(0)
+nullProgramARB = Program(0, legacy=True)
 
 
 # -------------------------------
@@ -475,7 +563,7 @@ def shaderSourceARB(shaderId, code):
 
     Parameters
     ----------
-    shader : int
+    shaderId : int
         Handle of shader object to attach. Must have originated from a
         :func:`createShaderARB` or `glCreateShaderObjectARB` call.
     code : str
