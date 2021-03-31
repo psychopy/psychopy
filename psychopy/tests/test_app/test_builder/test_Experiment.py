@@ -20,6 +20,7 @@ import locale
 from lxml import etree
 import numpy
 import sys
+import re
 
 # Jeremy Gray March 2011
 
@@ -32,6 +33,7 @@ import sys
 #   load should change things
 
 allComponents = psychopy.experiment.getComponents(fetchIcons=False)
+isTime = re.compile(r"\d+:\d+(:\d+)?( [AP]M)?")
 
 
 def _filterout_legal(lines):
@@ -91,6 +93,9 @@ class TestExpt(object):
             exp.loadFromXML(temp)
             # Compile again
             test = exp.writeScript()
+            # Remove any timestamps from script (these can cause false errors if compile takes longer than a second)
+            test = re.sub(isTime, "", test)
+            target = re.sub(isTime, "", target)
             # Compare two scripts to make sure saving and loading hasn't changed anything
             diff = difflib.unified_diff(target.splitlines(), test.splitlines())
             assert list(diff) == []
