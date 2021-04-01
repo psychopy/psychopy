@@ -20,7 +20,7 @@ import numpy as np
 from time import sleep
 import os
 import sys
-from PIL import Image
+from matplotlib import pyplot as pl
 from collections import OrderedDict
 
 from psychopy import visual, core
@@ -106,7 +106,7 @@ class ValidationProcedure(object):
         """
         ValidationProcedure is used to check the accuracy of a calibrated eye tracking system.
 
-        Once a ValidationProcedure class instance has been created, the run(**kwargs) method
+        Once a ValidationProcedure class instance has been created, the `.run()` method
         can be called to start the validation process.
 
         The validation process consists of the following stages:
@@ -168,7 +168,7 @@ class ValidationProcedure(object):
            average error is displayed for all target positions. A key press is used
            to remove the validation results plot, and control is returned to the
            script that started the validation display. Note that the plot is also
-           saved as a png file in the same directory as the calling stript.
+           saved as a png file in the same directory as the calling script.
 
         See the validation.py demo in demos.coder.iohub.eyetracker for example usage.
 
@@ -210,6 +210,7 @@ class ValidationProcedure(object):
         self.accuracy_period_stop = accuracy_period_stop
         self.show_intro_screen = show_intro_screen
         self.intro_text = intro_text
+        self.intro_text_stim = None
         self.show_results_screen = show_results_screen
         self.results_in_degrees = results_in_degrees
         self.save_figure_path = save_figure_path
@@ -234,8 +235,7 @@ class ValidationProcedure(object):
                                                        terminate_key=terminate_key,
                                                        gaze_cursor_key=toggle_gaze_cursor_key)
         # Stim for results screen
-        self.imagestim = None
-        self.textstim = None
+        self.results_screen = dict()
         self.use_dpi = 90
 
     def run(self):
@@ -275,24 +275,21 @@ class ValidationProcedure(object):
 
     def showResultsScreen(self):
         self._buildResultScreen()
-        if self.imagestim:
-            self.imagestim.draw()
-        self.textstim.draw()
         return self.win.flip()
 
     def showIntroScreen(self):
         text = self.intro_text + '\nPress SPACE to Start....'
         textpos = (0, 0)
-        if self.textstim:
-            self.textstim.setText(text)
-            self.textstim.setPos(textpos)
+        if self.intro_text_stim:
+            self.intro_text_stim.setText(text)
+            self.intro_text_stim.setPos(textpos)
         else:
-            self.textstim = visual.TextStim(self.win, text=text, pos=textpos, height=30, color=(0, 0, 0),
-                                            colorSpace='rgb255', opacity=1.0, contrast=1.0, units='pix',
-                                            ori=0.0, antialias=True, bold=False, italic=False, anchorHoriz='center',
-                                            anchorVert='center', wrapWidth=self.win.size[0] * .8)
+            self.intro_text_stim = visual.TextStim(self.win, text=text, pos=textpos, height=30, color=(0, 0, 0),
+                                                   colorSpace='rgb255', opacity=1.0, contrast=1.0, units='pix',
+                                                   ori=0.0, antialias=True, bold=False, italic=False, anchorHoriz='center',
+                                                   anchorVert='center', wrapWidth=self.win.size[0] * .8)
 
-        self.textstim.draw()
+        self.intro_text_stim.draw()
         return self.win.flip()
 
     def getValidationResults(self):
@@ -473,8 +470,6 @@ class ValidationProcedure(object):
         Creates a matplotlib figure of validation results.
         :return:
         """
-        from matplotlib import pyplot as pl
-
         results = self.getValidationResults()
         if results is None:
             raise RuntimeError("Validation must be run before creating results plot.")
@@ -536,45 +531,72 @@ class ValidationProcedure(object):
         rootScriptPath = os.path.dirname(sys.argv[0])
         return normjoin(rootScriptPath, file_name)
 
-    def _buildResultScreen(self, replot=False):
+    def _buildResultScreen(self, rebuild=False):
         """
         Build validation results screen.
-        Currently saves the plot from .createPlot() to disk and the loads that as an image.
+
         :param replot:
         :return:
         """
-        if replot or self.imagestim is None:
-            iname = self._generateImageName()
-            self.createPlot().savefig(iname, dpi=self.use_dpi)
 
-            text_pos = (0, 0)
-            text = 'Accuracy Calculation not Possible do to Analysis Error. Press SPACE to continue.'
+        results = self.getValidationResults()
 
-            if iname:
-                fig_image = Image.open(iname)
+        for tp in self.positions.getPositions():
+            self.targetsequence.target.setPos(tp)
+            self.targetsequence.target.draw()
 
-                if self.imagestim:
-                    self.imagestim.setImage(fig_image)
+        title_txt = 'Validation Accuracy\nMin: %.4f, Max: %.4f,' \
+                    ' Mean %.4f (%s units)' % (results['min_error'], results['max_error'],
+                                               results['mean_error'], results['reporting_unit_type'])
+        title_stim = visual.TextStim(self.win, text=title_txt, height=24, pos=(0.0, (self.win.size[1] / 2.0) * .9),
+                                     color=(0, 0, 0), colorSpace='rgb255', units='pix', antialias=True,
+                                     anchorVert='center', anchorHoriz='center', wrapWidth=self.win.size[0] * .8)
+        title_stim.draw()
+
+        exit_text = visual.TextStim(self.win, text='Press SPACE to continue.', opacity=1.0, units='pix', height=None,
+                                    pos=(0.0, -(self.win.size[1] / 2.0) * .9), color=(0, 0, 0), colorSpace='rgb255',
+                                    antialias=True, bold=True, anchorVert='center', anchorHoriz='center',
+                                    wrapWidth=self.win.size[0] * .8)
+        exit_text.draw()
+
+        color_list = pl.cm.tab20b(np.linspace(0, 1, (len(results['position_results']))))
+        # draw eye samples
+        ci = 0
+        sample_gfx_radius = deg2pix(0.33, self.win.monitor, correctFlat=False)
+        for position_results in results['position_results']:
+            pindex = position_results['pos_index']
+            color = color_list[ci]*2.0-1.0
+            self.results_screen['target_%d_sample' % pindex] = visual.Circle(self.win, radius=sample_gfx_radius,
+                                                                             fillColor=color, lineColor=[1, 1, 1],
+                                                                             lineWidth=1, edges=64, units='pix',
+                                                                             colorSpace='rgb', opacity=0.66,
+                                                                             interpolate=True, autoLog=False)
+            sample_gfx = self.results_screen['target_%d_sample' % pindex]
+
+            if position_results['calculation_status'] == 'FAILED':
+                print("TODO: Draw gfx for FAILED validation point.")
+                pass
+            else:
+                samples = position_results['sample_from_filter_stages']['used_samples']
+                target_x = samples[:]['targ_pos_x']
+                target_y = samples[:]['targ_pos_y']
+                if self.targetsequence.sample_type == EventConstants.BINOCULAR_EYE_SAMPLE:
+                    gaze_x = (samples[:]['left_eye_x'] + samples[:]['right_eye_x']) / 2.0
+                    gaze_y = (samples[:]['left_eye_y'] + samples[:]['right_eye_y']) / 2.0
                 else:
-                    self.imagestim = visual.ImageStim(self.win, image=fig_image, units='pix', pos=(0.0, 0.0))
+                    gaze_x = samples[:]['eye_x']
+                    gaze_y = samples[:]['eye_y']
 
-                text = 'Press SPACE to continue.'
-                text_pos = (0.0, -(self.win.size[1] / 2.0) * .9)
-            else:
-                self.imagestim = None
-
-            if self.textstim is None:
-                self.textstim = visual.TextStim(self.win, text=text, pos=text_pos, color=(0, 0, 0), colorSpace='rgb255',
-                                                opacity=1.0, contrast=1.0, units='pix', ori=0.0, height=None,
-                                                antialias=True, bold=False, italic=False, anchorVert='center',
-                                                anchorHoriz='center', wrapWidth=self.win.size[0] * .8)
-            else:
-                self.textstim.setText(text)
-                self.textstim.setPos(text_pos)
-
-        elif self.imagestim:
-            return True
-        return False
+                for i in range(len(gaze_x)):
+                    pix_pos = toPix(self.win, gaze_x[i], gaze_y[i])
+                    pix_pos = pix_pos[0][0], pix_pos[1][0]
+                    sample_gfx.setPos(pix_pos)
+                    sample_gfx.draw()
+                #pl.text(target_x[0], target_y[0], str(pindex), size=16, color=color_list[ci],
+                #        horizontalalignment='center',
+                #        verticalalignment='center')
+                #pl.scatter(gaze_x, gaze_y, s=40, color=color_list[ci], alpha=0.75)
+                ci += 1
 
 
 class ValidationTargetRenderer(object):
@@ -628,9 +650,10 @@ class ValidationTargetRenderer(object):
         """
         ValidationTargetRenderer is an internal class used by `ValidationProcedure`.
 
-        psychopy.iohub.Trigger based classes are used to define the criteria used to
-        start displaying the next target position graphics. By providing a set of
-        DeviceEventTriggers, complex criteria for target position pacing can be defined.
+        psychopy.iohub.client.eyetracker.validation.Trigger based classes are used
+        to define the criteria used to start displaying the next target position graphics.
+        By providing a set of DeviceEventTriggers, complex criteria for
+        target position pacing can be defined.
 
         iohub devices can be provided in the storeeventsfor keyword argument.
         Events which occur during each target position presentation period are

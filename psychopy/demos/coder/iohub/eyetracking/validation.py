@@ -38,8 +38,8 @@ if __name__ == "__main__":
 
     # target_positions: Provide your own list of validation positions,
     # or use the PositionGrid class to generate a set.
-    target_positions = [(0.0, 0.0), (0.85, 0.85), (-0.85, 0.0), (0.85, 0.0), (0.85, -0.85), (-0.85, 0.85),
-                 (-0.85, -0.85), (0.0, 0.85), (0.0, -0.85)]
+    target_positions = [(0.0, 0.0), (0.85, 0.85), (-0.85, 0.0),]# (0.85, 0.0), (0.85, -0.85), (-0.85, 0.85),
+    #             (-0.85, -0.85), (0.0, 0.85), (0.0, -0.85)]
 
     # Create a validation procedure
     validation_proc = ValidationProcedure(win,
