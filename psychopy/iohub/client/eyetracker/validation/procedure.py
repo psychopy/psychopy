@@ -171,7 +171,7 @@ class ValidationTargetRenderer(object):
                                         ('pupil_size', np.float64)]
 
     def __init__(self, win, target, positions, background=None, storeeventsfor=[], triggers=None, msgcategory='',
-                 config=None, io=None, terminate_key='escape', gaze_cursor_key='g'):
+                 io=None, terminate_key='escape', gaze_cursor_key='g'):
         """
         ValidationTargetRenderer combines an instance of a Target stim and an
         instance of a PositionGrid to create everything needed to present the
@@ -201,7 +201,6 @@ class ValidationTargetRenderer(object):
         :param storeeventsfor:
         :param triggers:
         :param msgcategory:
-        :param config:
         :param io:
         """
         self.terminate_key = terminate_key
@@ -231,14 +230,6 @@ class ValidationTargetRenderer(object):
         self.targetdata = []
         self.triggers = triggers
 
-
-
-    def getIO(self):
-        """
-        Get the active ioHubConnection instance.
-        """
-        return self.io
-
     def _draw(self):
         """
         Fill the window with the specified background color and draw the
@@ -264,7 +255,7 @@ class ValidationTargetRenderer(object):
         Return the flip time when the target was first drawn at the newpos
         location.
         """
-        io = self.getIO()
+        io = self.io
         if frompos is not None:
             velocity = kwargs.get('velocity')
             if velocity:
@@ -339,7 +330,7 @@ class ValidationTargetRenderer(object):
         directly. Instead, use the display() method to start the full
         target position presentation sequence.
         """
-        io = self.getIO()
+        io = self.io
         fpx, fpy = -1, -1
         if frompos is not None:
             fpx, fpy = frompos[0], frompos[1]
@@ -389,7 +380,7 @@ class ValidationTargetRenderer(object):
                 event_type_id = trig_evt.type
             # get time trigger of trigger event
             event_time = triggered.getTriggeringTime()
-            self.getIO().sendMessageEvent('NEXT_POS_TRIG %d %.3f' % (event_type_id, event_time), self.msgcategory)
+            self.io.sendMessageEvent('NEXT_POS_TRIG %d %.3f' % (event_type_id, event_time), self.msgcategory)
             for trig in self.triggers:
                 trig.resetTrigger()
         return triggered
@@ -505,7 +496,7 @@ class ValidationTargetRenderer(object):
         del self.targetdata[:]
         prevpos = None
 
-        io = self.getIO()
+        io = self.io
         io.clearEvents('all')
         io.sendMessageEvent('BEGIN_SEQUENCE {0}'.format(len(self.positions.positions)), self.msgcategory)
         turn_rec_off = []
@@ -780,6 +771,7 @@ class ValidationProcedure(object):
         :param terminate_key:
         :param toggle_gaze_cursor_key:
         """
+        print("TODO: Add max error threshold to filter 'valid' samples for each target position.")
         self.terminate_key = terminate_key
         self.toggle_gaze_cursor_key = toggle_gaze_cursor_key
 
@@ -937,21 +929,21 @@ class ValidationProcedure(object):
                 filter_stime = last_stime - self.accuracy_period_start
                 filter_etime = last_stime - self.accuracy_period_stop
 
-                all_samples_for_accuracy_calc = stationary_samples[stationary_samples['eye_time'] >= filter_stime]
-                all_samples_for_accuracy_calc = all_samples_for_accuracy_calc[all_samples_for_accuracy_calc['eye_time'] < filter_etime]
+                all_samples_in_period = stationary_samples[stationary_samples['eye_time'] >= filter_stime]
+                all_samples_in_period = all_samples_in_period[all_samples_in_period['eye_time'] < filter_etime]
 
-                good_samples_for_accuracy_calc = all_samples_for_accuracy_calc[all_samples_for_accuracy_calc['eye_status'] <= 1]
+                good_samples_in_period = all_samples_in_period[all_samples_in_period['eye_status'] == 0]
 
-                all_samples_for_accuracy_count = all_samples_for_accuracy_calc.shape[0]
-                good_accuracy_sample_count = good_samples_for_accuracy_calc.shape[0]
+                all_samples_count = all_samples_in_period.shape[0]
+                good_sample_count = good_samples_in_period.shape[0]
                 try:
-                    accuracy_calc_good_sample_perc = good_accuracy_sample_count / float(all_samples_for_accuracy_count)
+                    good_sample_ratio = good_sample_count / float(all_samples_count)
                 except ZeroDivisionError:
-                    accuracy_calc_good_sample_perc = 0
+                    good_sample_ratio = 0
             else:
-                all_samples_for_accuracy_calc = []
-                good_samples_for_accuracy_calc = []
-                accuracy_calc_good_sample_perc = 0
+                all_samples_in_period = []
+                good_samples_in_period = []
+                good_sample_ratio = 0
 
             # Ordered dictionary of the different levels of samples selected during filtering
             # for valid samples to use in accuracy calculations.
@@ -961,37 +953,37 @@ class ValidationProcedure(object):
                                                     stationary_samples=stationary_samples,
                                                     # Samples that occurred within the
                                                     # defined time selection period.
-                                                    time_filtered_samples=all_samples_for_accuracy_calc,
+                                                    time_filtered_samples=all_samples_in_period,
                                                     # Samples from the selection period that
                                                     # do not have missing data
-                                                    used_samples=good_samples_for_accuracy_calc)
+                                                    used_samples=good_samples_in_period)
 
             position_results = dict(pos_index=pindex,
                                     sample_time_range=[first_stime, last_stime],
                                     filter_samples_time_range=[filter_stime, filter_etime],
-                                    valid_filtered_sample_perc=accuracy_calc_good_sample_perc)
+                                    valid_filtered_sample_perc=good_sample_ratio)
 
             for k, v in position_results.items():
                 self.io.sendMessageEvent('{}: {}'.format(k, v), 'VALIDATION')
 
             position_results['sample_from_filter_stages'] = sample_msg_data_filtering
 
-            if int(accuracy_calc_good_sample_perc*100) == 0:
+            if int(good_sample_ratio*100) == 0:
                 position_results['calculation_status'] = 'FAILED'
                 results['positions_failed_processing'] += 1
             else:
-                target_x = good_samples_for_accuracy_calc[:]['targ_pos_x']
-                target_y = good_samples_for_accuracy_calc[:]['targ_pos_y']
+                target_x = good_samples_in_period[:]['targ_pos_x']
+                target_y = good_samples_in_period[:]['targ_pos_y']
 
                 if self.targetsequence.sample_type == EventConstants.BINOCULAR_EYE_SAMPLE:
-                    left_x = good_samples_for_accuracy_calc[:]['left_eye_x']
-                    left_y = good_samples_for_accuracy_calc[:]['left_eye_y']
+                    left_x = good_samples_in_period[:]['left_eye_x']
+                    left_y = good_samples_in_period[:]['left_eye_y']
                     left_error_x = target_x - left_x
                     left_error_y = target_y - left_y
                     left_error_xy = np.hypot(left_error_x, left_error_y)
 
-                    right_x = good_samples_for_accuracy_calc[:]['right_eye_x']
-                    right_y = good_samples_for_accuracy_calc[:]['right_eye_y']
+                    right_x = good_samples_in_period[:]['right_eye_x']
+                    right_y = good_samples_in_period[:]['right_eye_y']
                     right_error_x = target_x - right_x
                     right_error_y = target_y - right_y
                     right_error_xy = np.hypot(right_error_x, right_error_y)
@@ -1006,8 +998,8 @@ class ValidationProcedure(object):
                     summed_error += lr_error_mean
                     point_count += 1.0
                 else:
-                    eye_x = good_samples_for_accuracy_calc[:]['eye_x']
-                    eye_y = good_samples_for_accuracy_calc[:]['eye_y']
+                    eye_x = good_samples_in_period[:]['eye_x']
+                    eye_y = good_samples_in_period[:]['eye_y']
                     error_x = target_x - eye_x
                     error_y = target_y - eye_y
                     error_xy = np.hypot(error_x, error_y)
@@ -1067,8 +1059,8 @@ class ValidationProcedure(object):
         pl.clf()
         fig = pl.gcf()
         fig.set_size_inches((pixw * .9) / self.use_dpi, (pixh * .8) / self.use_dpi)
-        cm = pl.cm.get_cmap('RdYlBu')
-
+        color_list = pl.cm.tab20b(np.linspace(0, 1, (len(results['position_results']))))
+        ci = 0
         for position_results in results['position_results']:
             pindex = position_results['pos_index']
             if position_results['calculation_status'] == 'FAILED':
@@ -1076,7 +1068,6 @@ class ValidationProcedure(object):
                 pass
             else:
                 samples = position_results['sample_from_filter_stages']['used_samples']
-                time = samples[:]['eye_time']
                 target_x = samples[:]['targ_pos_x']
                 target_y = samples[:]['targ_pos_y']
                 if self.targetsequence.sample_type == EventConstants.BINOCULAR_EYE_SAMPLE:
@@ -1086,10 +1077,12 @@ class ValidationProcedure(object):
                     gaze_x = samples[:]['eye_x']
                     gaze_y = samples[:]['eye_y']
 
-                pl.scatter(target_x[0], target_y[0], s=400, color=[0.75, 0.75, 0.75], alpha=0.5)
-                pl.text(target_x[0], target_y[0], str(pindex), size=11, horizontalalignment='center',
+                pl.scatter(target_x[0], target_y[0], s=400, color=color_list[ci])
+                pl.scatter(target_x[0], target_y[0], s=300, color=(0.75, 0.75, 0.75))
+                pl.text(target_x[0], target_y[0], str(pindex), size=16, color=color_list[ci], horizontalalignment='center',
                         verticalalignment='center')
-                pl.scatter(gaze_x, gaze_y, s=40, c='g', alpha=0.75)
+                pl.scatter(gaze_x, gaze_y, s=40, color=color_list[ci], alpha=0.75)
+                ci += 1
 
         if self.results_in_degrees:
             l, b = toDeg(self.win, (-pixw / 2,), (-pixh / 2, ))
@@ -1156,5 +1149,3 @@ class ValidationProcedure(object):
         elif self.imagestim:
             return True
         return False
-
-from psychopy.iohub.util.visualangle import VisualAngleCalc
