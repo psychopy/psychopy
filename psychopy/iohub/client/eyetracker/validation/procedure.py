@@ -235,7 +235,6 @@ class ValidationProcedure(object):
                                                        terminate_key=terminate_key,
                                                        gaze_cursor_key=toggle_gaze_cursor_key)
         # Stim for results screen
-        self.results_screen = dict()
         self.use_dpi = 90
 
     def run(self):
@@ -274,7 +273,7 @@ class ValidationProcedure(object):
         return self.validation_results
 
     def showResultsScreen(self):
-        self._buildResultScreen()
+        self.drawResultScreen()
         return self.win.flip()
 
     def showIntroScreen(self):
@@ -304,6 +303,7 @@ class ValidationProcedure(object):
         """
         self.validation_results = None
         sample_array = self.targetsequence.getSampleMessageData()
+        target_positions_used = self.targetsequence.positions.getPositions()
 
         if self.results_in_degrees:
             for postdat in sample_array:
@@ -331,7 +331,7 @@ class ValidationProcedure(object):
         self.io.sendMessageEvent('Results', 'VALIDATION')
         results = dict(display_units=self.win.units, display_bounds=self.positions.bounds,
                        display_pix=self.win.size, position_count=len(sample_array),
-                       target_positions=self.targetsequence.positions.getPositions())
+                       target_positions=target_positions_used)
 
         for k, v in results.items():
             self.io.sendMessageEvent('{}: {}'.format(k, v), 'VALIDATION')
@@ -380,7 +380,8 @@ class ValidationProcedure(object):
                                                     # do not have missing data
                                                     used_samples=good_samples_in_period)
 
-            position_results = dict(pos_index=pindex,
+            position_results = dict(index=pindex,
+                                    position=target_positions_used[pindex],
                                     sample_time_range=[first_stime, last_stime],
                                     filter_samples_time_range=[filter_stime, filter_etime],
                                     valid_filtered_sample_perc=good_sample_ratio)
@@ -390,8 +391,9 @@ class ValidationProcedure(object):
 
             position_results['sample_from_filter_stages'] = sample_msg_data_filtering
 
+            position_results2 = dict()
             if int(good_sample_ratio * 100) == 0:
-                position_results['calculation_status'] = 'FAILED'
+                position_results2['calculation_status'] = 'FAILED'
                 results['positions_failed_processing'] += 1
             else:
                 target_x = good_samples_in_period[:]['targ_pos_x']
@@ -435,18 +437,17 @@ class ValidationProcedure(object):
                     summed_error += lr_error_mean
                     point_count += 1.0
 
-                position_results2 = dict()
                 position_results2['calculation_status'] = 'PASSED'
                 position_results2['target_position'] = (target_x[0], target_y[0])
                 position_results2['min_error'] = lr_error_min
                 position_results2['max_error'] = lr_error_max
                 position_results2['mean_error'] = lr_error_mean
                 position_results2['stdev_error'] = lr_error_std
-                for k, v in position_results2.items():
-                    self.io.sendMessageEvent('{}: {}'.format(k, v), 'VALIDATION')
-                    position_results[k] = v
-                results['position_results'].append(position_results)
-                self.io.sendMessageEvent('Done Target Position Results : {0}'.format(pindex), 'VALIDATION')
+            for k, v in position_results2.items():
+                self.io.sendMessageEvent('{}: {}'.format(k, v), 'VALIDATION')
+                position_results[k] = v
+            results['position_results'].append(position_results)
+            self.io.sendMessageEvent('Done Target Position Results : {0}'.format(pindex), 'VALIDATION')
 
         unit_type = self.win.units
         if self.results_in_degrees:
@@ -465,64 +466,6 @@ class ValidationProcedure(object):
         self.validation_results = results
         return self.validation_results
 
-    def createPlot(self):
-        """
-        Creates a matplotlib figure of validation results.
-        :return:
-        """
-        results = self.getValidationResults()
-        if results is None:
-            raise RuntimeError("Validation must be run before creating results plot.")
-
-        pixw, pixh = results['display_pix']
-
-        pl.clf()
-        fig = pl.gcf()
-        fig.set_size_inches((pixw * .9) / self.use_dpi, (pixh * .8) / self.use_dpi)
-        color_list = pl.cm.tab20b(np.linspace(0, 1, (len(results['position_results']))))
-        ci = 0
-        for position_results in results['position_results']:
-            pindex = position_results['pos_index']
-            if position_results['calculation_status'] == 'FAILED':
-                # Draw nothing for failed position
-                pass
-            else:
-                samples = position_results['sample_from_filter_stages']['used_samples']
-                target_x = samples[:]['targ_pos_x']
-                target_y = samples[:]['targ_pos_y']
-                if self.targetsequence.sample_type == EventConstants.BINOCULAR_EYE_SAMPLE:
-                    gaze_x = (samples[:]['left_eye_x'] + samples[:]['right_eye_x']) / 2.0
-                    gaze_y = (samples[:]['left_eye_y'] + samples[:]['right_eye_y']) / 2.0
-                else:
-                    gaze_x = samples[:]['eye_x']
-                    gaze_y = samples[:]['eye_y']
-
-                pl.scatter(target_x[0], target_y[0], s=400, color=color_list[ci])
-                pl.scatter(target_x[0], target_y[0], s=300, color=(0.75, 0.75, 0.75))
-                pl.text(target_x[0], target_y[0], str(pindex), size=16, color=color_list[ci],
-                        horizontalalignment='center',
-                        verticalalignment='center')
-                pl.scatter(gaze_x, gaze_y, s=40, color=color_list[ci], alpha=0.75)
-                ci += 1
-
-        if self.results_in_degrees:
-            l, b = toDeg(self.win, (-pixw / 2,), (-pixh / 2,))
-            r, t = toDeg(self.win, (pixw / 2,), (pixh / 2,))
-        else:
-            l, t, r, b = results['display_bounds']
-
-        pl.xlim(l, r)
-        pl.ylim(b, t)
-        pl.xlabel('Horizontal Position (%s)' % (results['reporting_unit_type']))
-        pl.ylabel('Vertical Position (%s)' % (results['reporting_unit_type']))
-        pl.title('Validation Accuracy (%s)\nMin: %.4f, Max: %.4f, Mean %.4f' % (results['reporting_unit_type'],
-                                                                                results['min_error'],
-                                                                                results['max_error'],
-                                                                                results['mean_error']))
-
-        fig.tight_layout()
-        return fig
-
     def _generateImageName(self):
         import datetime
         file_name = 'validation_' + datetime.datetime.now().strftime('%d_%m_%Y_%H_%M') + '.png'
@@ -531,11 +474,9 @@ class ValidationProcedure(object):
         rootScriptPath = os.path.dirname(sys.argv[0])
         return normjoin(rootScriptPath, file_name)
 
-    def _buildResultScreen(self, rebuild=False):
+    def drawResultScreen(self):
         """
-        Build validation results screen.
-
-        :param replot:
+        Draw validation results screen.
         :return:
         """
 
@@ -548,13 +489,13 @@ class ValidationProcedure(object):
         title_txt = 'Validation Accuracy\nMin: %.4f, Max: %.4f,' \
                     ' Mean %.4f (%s units)' % (results['min_error'], results['max_error'],
                                                results['mean_error'], results['reporting_unit_type'])
-        title_stim = visual.TextStim(self.win, text=title_txt, height=24, pos=(0.0, (self.win.size[1] / 2.0) * .9),
+        title_stim = visual.TextStim(self.win, text=title_txt, height=24, pos=(0.0, (self.win.size[1] / 2.0) * .95),
                                      color=(0, 0, 0), colorSpace='rgb255', units='pix', antialias=True,
                                      anchorVert='center', anchorHoriz='center', wrapWidth=self.win.size[0] * .8)
         title_stim.draw()
 
         exit_text = visual.TextStim(self.win, text='Press SPACE to continue.', opacity=1.0, units='pix', height=None,
-                                    pos=(0.0, -(self.win.size[1] / 2.0) * .9), color=(0, 0, 0), colorSpace='rgb255',
+                                    pos=(0.0, -(self.win.size[1] / 2.0) * .95), color=(0, 0, 0), colorSpace='rgb255',
                                     antialias=True, bold=True, anchorVert='center', anchorHoriz='center',
                                     wrapWidth=self.win.size[0] * .8)
         exit_text.draw()
@@ -564,22 +505,22 @@ class ValidationProcedure(object):
         ci = 0
         sample_gfx_radius = deg2pix(0.33, self.win.monitor, correctFlat=False)
         for position_results in results['position_results']:
-            pindex = position_results['pos_index']
             color = color_list[ci]*2.0-1.0
-            self.results_screen['target_%d_sample' % pindex] = visual.Circle(self.win, radius=sample_gfx_radius,
-                                                                             fillColor=color, lineColor=[1, 1, 1],
-                                                                             lineWidth=1, edges=64, units='pix',
-                                                                             colorSpace='rgb', opacity=0.66,
-                                                                             interpolate=True, autoLog=False)
-            sample_gfx = self.results_screen['target_%d_sample' % pindex]
+            sample_gfx = visual.Circle(self.win, radius=sample_gfx_radius, fillColor=color, lineColor=[1, 1, 1],
+                                       lineWidth=1, edges=64, units='pix', colorSpace='rgb', opacity=0.66,
+                                       interpolate=True, autoLog=False)
 
             if position_results['calculation_status'] == 'FAILED':
-                print("TODO: Draw gfx for FAILED validation point.")
-                pass
+                position_txt = "Failed"
+                txt_bold=True
+                position_txt_color = "red"
+                target_x, target_y = position_results['position']
+                text_pix_pos = toPix(self.win, target_x, target_y)
+                text_pix_pos = text_pix_pos[0][0], text_pix_pos[1][0]
             else:
                 samples = position_results['sample_from_filter_stages']['used_samples']
-                target_x = samples[:]['targ_pos_x']
-                target_y = samples[:]['targ_pos_y']
+                target_x = samples[:]['targ_pos_x'][0]
+                target_y = samples[:]['targ_pos_y'][0]
                 if self.targetsequence.sample_type == EventConstants.BINOCULAR_EYE_SAMPLE:
                     gaze_x = (samples[:]['left_eye_x'] + samples[:]['right_eye_x']) / 2.0
                     gaze_y = (samples[:]['left_eye_y'] + samples[:]['right_eye_y']) / 2.0
@@ -592,11 +533,20 @@ class ValidationProcedure(object):
                     pix_pos = pix_pos[0][0], pix_pos[1][0]
                     sample_gfx.setPos(pix_pos)
                     sample_gfx.draw()
-                #pl.text(target_x[0], target_y[0], str(pindex), size=16, color=color_list[ci],
-                #        horizontalalignment='center',
-                #        verticalalignment='center')
-                #pl.scatter(gaze_x, gaze_y, s=40, color=color_list[ci], alpha=0.75)
-                ci += 1
+                txt_bold = False
+                position_txt = "Gaze Error:\nMin: %.4f\nMax: %.4f\nAvg: %.4f\nStdev: %.4f"%(position_results['min_error'],
+                                                                                       position_results['max_error'],
+                                                                                       position_results['mean_error'],
+                                                                                       position_results['stdev_error'])
+                position_txt_color = "green"
+                text_pix_pos = toPix(self.win, target_x, target_y)
+                text_pix_pos = text_pix_pos[0][0], text_pix_pos[1][0]
+
+            target_text_stim = visual.TextStim(self.win, text=position_txt, units='pix', pos=text_pix_pos,
+                                               height=21, color=position_txt_color, antialias=True, bold=txt_bold,
+                                               anchorVert='center', anchorHoriz='center')
+            target_text_stim.draw()
+            ci += 1
 
 
 class ValidationTargetRenderer(object):
