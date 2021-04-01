@@ -285,8 +285,9 @@ class ValidationProcedure(object):
         else:
             self.intro_text_stim = visual.TextStim(self.win, text=text, pos=textpos, height=30, color=(0, 0, 0),
                                                    colorSpace='rgb255', opacity=1.0, contrast=1.0, units='pix',
-                                                   ori=0.0, antialias=True, bold=False, italic=False, anchorHoriz='center',
-                                                   anchorVert='center', wrapWidth=self.win.size[0] * .8)
+                                                   ori=0.0, antialias=True, bold=False, italic=False,
+                                                   anchorHoriz='center', anchorVert='center',
+                                                   wrapWidth=self.win.size[0] * .8)
 
         self.intro_text_stim.draw()
         return self.win.flip()
@@ -309,7 +310,7 @@ class ValidationProcedure(object):
             for postdat in sample_array:
                 postdat['targ_pos_x'], postdat['targ_pos_y'] = toDeg(self.win,
                                                                      *toPix(self.win, postdat['targ_pos_x'],
-                                                                                      postdat['targ_pos_y']))
+                                                                            postdat['targ_pos_y']))
 
                 if self.targetsequence.sample_type == EventConstants.BINOCULAR_EYE_SAMPLE:
                     postdat['left_eye_x'], postdat['left_eye_y'] = toDeg(self.win,
@@ -505,14 +506,14 @@ class ValidationProcedure(object):
         ci = 0
         sample_gfx_radius = deg2pix(0.33, self.win.monitor, correctFlat=False)
         for position_results in results['position_results']:
-            color = color_list[ci]*2.0-1.0
+            color = color_list[ci] * 2.0 - 1.0
             sample_gfx = visual.Circle(self.win, radius=sample_gfx_radius, fillColor=color, lineColor=[1, 1, 1],
                                        lineWidth=1, edges=64, units='pix', colorSpace='rgb', opacity=0.66,
                                        interpolate=True, autoLog=False)
 
             if position_results['calculation_status'] == 'FAILED':
                 position_txt = "Failed"
-                txt_bold=True
+                txt_bold = True
                 position_txt_color = "red"
                 target_x, target_y = position_results['position']
                 text_pix_pos = toPix(self.win, target_x, target_y)
@@ -534,10 +535,11 @@ class ValidationProcedure(object):
                     sample_gfx.setPos(pix_pos)
                     sample_gfx.draw()
                 txt_bold = False
-                position_txt = "Gaze Error:\nMin: %.4f\nMax: %.4f\nAvg: %.4f\nStdev: %.4f"%(position_results['min_error'],
-                                                                                       position_results['max_error'],
-                                                                                       position_results['mean_error'],
-                                                                                       position_results['stdev_error'])
+                position_txt = "Gaze Error:\nMin: %.4f\nMax: %.4f\n" \
+                               "Avg: %.4f\nStdev: %.4f" % (position_results['min_error'],
+                                                           position_results['max_error'],
+                                                           position_results['mean_error'],
+                                                           position_results['stdev_error'])
                 position_txt_color = "green"
                 text_pix_pos = toPix(self.win, target_x, target_y)
                 text_pix_pos = text_pix_pos[0][0], text_pix_pos[1][0]
@@ -785,8 +787,10 @@ class ValidationTargetRenderer(object):
         for trig in self.triggers:
             if trig.triggered(**kwargs):
                 triggered = trig
+            self._addDeviceEvents(trig.clearEventHistory(True))
+            if triggered:
                 break
-        self._addDeviceEvents(trig.clearEventHistory(True))
+
         if triggered:
             # by default, assume it was a timer trigger,so use 255 as 'event type'
             event_type_id = 255
@@ -940,7 +944,7 @@ class ValidationTargetRenderer(object):
             io.sendMessageEvent('VALIDATION TERMINATED BY USER', self.msgcategory)
             return False
 
-        io.sendMessageEvent('DONE_SEQUENCE {0}'.format( len(self.positions.positions)), self.msgcategory)
+        io.sendMessageEvent('DONE_SEQUENCE {0}'.format(len(self.positions.positions)), self.msgcategory)
         sleep(0.025)
         self._addDeviceEvents()
         io.clearEvents('all')
@@ -950,8 +954,6 @@ class ValidationTargetRenderer(object):
         self.target_pos_msgs = []
         self.saved_pos_samples = []
         for pd in self.targetdata:
-            frompos = pd.get('frompos')
-            topos = pd.get('topos')
             events = pd.get('events')
 
             # create a dict of device labels as keys, device events as value
@@ -1067,7 +1069,7 @@ class ValidationTargetRenderer(object):
 
                 while si < pos_sample_count:
                     sample = samples[si]
-                    if sample.time >= last_msg_time and sample.time < current_msg[0]:
+                    if last_msg_time <= sample.time < current_msg[0]:
                         sarray = [pindex, last_msg_time, last_msg_type,
                                   current_msg[0], current_msg[2],
                                   current_target_pos[0], current_target_pos[1],

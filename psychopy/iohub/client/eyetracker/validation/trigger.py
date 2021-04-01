@@ -49,18 +49,15 @@ class Trigger(object):
             return {}
 
     @classmethod
-    def getTriggersFrom(cls,triggers):
+    def getTriggersFrom(cls, triggers):
         """
         Returns a list of Trigger instances generated based on the contents of the
         input triggers.
 
-        :param io:
         :param triggers:
         :return:
         """
         # Handle different valid trigger object types
-        trig_list = ()
-        io = cls.io
         if isinstance(triggers, (list, tuple)):
             # Support is provided for a list of Trigger objects or a list of
             # strings.
@@ -94,6 +91,7 @@ class Trigger(object):
             raise ValueError('The triggers kwarg could not be understood as a valid triggers input value.')
         return trig_list
 
+
 class TimeTrigger(Trigger):
     """
     A TimeTrigger associates a delay from the provided start_time
@@ -101,6 +99,7 @@ class TimeTrigger(Trigger):
     start_time and delay can be sec.msec float, or a callable object
     (that takes no parameters).
     """
+
     def __init__(self, start_time, delay, repeat_count=0, trigger_function=lambda a, b, c: True, user_kwargs={}):
         Trigger.io = ioHubConnection.getActiveConnection()
         Trigger.__init__(self, trigger_function, user_kwargs, repeat_count)
@@ -112,6 +111,7 @@ class TimeTrigger(Trigger):
                 if self._start_time is None:
                     self._start_time = getTime()
                 return self._start_time
+
             self.startTime = startTimeFunc
         else:
             self.startTime = start_time
@@ -120,6 +120,7 @@ class TimeTrigger(Trigger):
         if not callable(delay):
             def delayFunc():
                 return delay
+
             self.delay = delayFunc
 
     def triggered(self, **kwargs):
@@ -157,6 +158,7 @@ class DeviceEventTrigger(Trigger):
     returns True.
     """
     _lastEventsByDevice = dict()
+
     def __init__(self, device, event_type, event_attribute_conditions={}, repeat_count=-1,
                  trigger_function=lambda a, b, c: True, user_kwargs={}):
         Trigger.io = ioHubConnection.getActiveConnection()
@@ -231,4 +233,3 @@ class KeyboardTrigger(DeviceEventTrigger):
             etype = EventConstants.KEYBOARD_RELEASE
         DeviceEventTrigger.__init__(self, self.io.devices.keyboard, event_type=etype,
                                     event_attribute_conditions={'key': key})
-

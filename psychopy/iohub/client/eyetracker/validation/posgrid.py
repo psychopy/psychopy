@@ -1,6 +1,7 @@
 import numpy as np
 from psychopy.iohub.client import ioHubConnection
 
+
 class PositionGrid(object):
     def __init__(self,
                  bounds=None,
@@ -88,7 +89,7 @@ class PositionGrid(object):
         if self.bounds is None:
             self.bounds = ioHubConnection.getActiveConnection().devices.display.getCoordBounds()
 
-        winSize = self.bounds[2]-self.bounds[0], self.bounds[3]-self.bounds[1]
+        winSize = self.bounds[2] - self.bounds[0], self.bounds[3] - self.bounds[1]
         self.firstposindex = firstposindex
 
         self.repeatfirstpos = repeatFirstPos
@@ -117,7 +118,7 @@ class PositionGrid(object):
         if posList:
             # User has provided the target positions, use posList to set
             # self.positions as array of x,y pairs.
-            if (len(posList) == 2 and len(posList[0]) != 2 and len(posList[0]) == len(posList[1])):
+            if len(posList) == 2 and len(posList[0]) != 2 and len(posList[0]) == len(posList[1]):
                 # positions were provided in ((x1,x2,..,xn),(y1,y2,..,yn))
                 # format
                 self.positions = np.column_stack((posList[0], posList[1]))
@@ -157,7 +158,6 @@ class PositionGrid(object):
                         ymin = bottomMargin / pixh
                     else:
                         raise ValueError('PositionGrid bottomMargin kwarg must be < winSize[1]')
-
 
                 if horzScale:
                     if 0.0 < horzScale <= 1.0:
