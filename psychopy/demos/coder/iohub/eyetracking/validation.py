@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
 Example of performing eye tracker validation using the ioHub Common Eye Tracker interface

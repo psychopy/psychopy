@@ -3,16 +3,15 @@
 Eye Tracker Validation procedure using the ioHub common eye tracker interface.
 
 To use the validation process from within a Coder script:
-* Create an instance of TargetStim, specifying the fixation target appearance.
-* Create an instance of PositionGrid, which defines target position information.
-* Create a ValidationTargetRenderer instance, providing the TargetStim and
-  PositionGrid objects created, as well as the Trigger's which should be used
-  to transition from one target position to another during the sequence of
-  target graphics presentation and the defined positions.
-* Use ValidationTargetRenderer.display() to run the full presentation procedure.
-* Use ValidationTargetRenderer.targetdata to access information about each target
-  position displayed and the events collected during the display duration for
-  each position.
+* Create a target stim, using TargetStim, or any stim class that has a `.setPos()`, `setRadius()`, and `.draw()`
+  method.
+* Create a list of target positions to use during validation. Use PositionGrid class to help create
+  a target position list.
+* Create a ValidationProcedure class instance, providing the target stim and position list
+  and other arguments to define details of the validation procedure.
+* Use `ValidationProcedure.run()` to perform the validation routine.
+* Use `ValidationProcedure.getValidationResults()` to access information about each target
+  position displayed and the events collected during the each target validation period.
 
 See demos/coder/iohub/eyetracking/validation.py for a complete example.
 """
@@ -34,32 +33,6 @@ from psychopy.tools.monitorunittools import pix2deg, deg2pix
 from psychopy.iohub.client.eyetracker.validation import PositionGrid, Trigger, KeyboardTrigger
 
 getTime = core.getTime
-
-
-def toPix(win, x, y):
-    """Returns the stim's position in pixels,
-    based on its pos, units, and win.
-    """
-    try:
-        xy = np.zeros((len(x), 2))
-    except TypeError:
-        xy = np.zeros((1, 2))
-
-    xy[:, 0] = x
-    xy[:, 1] = y
-    r = convertToPix(np.asarray((0, 0)), xy, win.units, win)
-    return r[:, 0], r[:, 1]
-
-
-def toDeg(win, x, y):
-    try:
-        xy = np.zeros((len(x), 2))
-    except TypeError:
-        xy = np.zeros((1, 2))
-    xy[:, 0] = x
-    xy[:, 1] = y
-    r = pix2deg(xy, win.monitor, correctFlat=False)
-    return r[:, 0], r[:, 1]
 
 
 class TargetStim(object):
@@ -124,6 +97,486 @@ class TargetStim(object):
         return self.stim[0].contains(p)
 
 
+class ValidationProcedure(object):
+    def __init__(self, win=None, target=None, positions=None, target_animation={}, randomize_positions=True,
+                 background=None, triggers=None, storeeventsfor=None, accuracy_period_start=0.350,
+                 accuracy_period_stop=.050, show_intro_screen=True, intro_text='Ready to Start Validation Procedure.',
+                 show_results_screen=True, results_in_degrees=False, save_figure_path=None,
+                 terminate_key="escape", toggle_gaze_cursor_key="g"):
+        """
+        ValidationProcedure is used to check the accuracy of a calibrated eye tracking system.
+
+        Once a ValidationProcedure class instance has been created, the run(**kwargs) method
+        can be called to start the validation process.
+
+        The validation process consists of the following stages:
+
+        1) Display an Introduction / Instruction screen. A key press is used to
+           start target presentation.
+        2) The validation target presentation sequence. Based on the Target and
+           PositionGrid objects provided when the ValidationProcedure was created,
+           a series of target positions are displayed. The progression from one
+           target position to the next is controlled by the triggers specified.
+           The target can simply jump from one position to the next, or optional
+           linear motion settings can be used to have the target move across the
+           screen from one point to the next. The Target graphic itself can also
+           be configured to expand or contract once it has reached a location
+           defined in the position grid.
+        3) During stage 2), data is collected from the devices being monitored by
+           iohub. Specifically eye tracker samples and experiment messages are
+           collected.
+        4) The data collected during the validation target sequence is used to
+           calculate accuracy information for each target position presented.
+           The raw data as well as the computed accuracy data is available via the
+           ValidationProcedure class. Calculated measures are provided separately
+           for each target position and include:
+
+               a) An array of the samples used for the accuracy calculation. The
+                  samples used are selected using the following criteria:
+                       i) Only samples where the target was stationary and
+                          not expanding or contracting are selected.
+
+                       ii) Samples are selected that fall between:
+
+                              start_time_filter = last_sample_time - accuracy_period_start
+
+                           and
+
+                              end_time_filter = last_sample_time - accuracy_period_end
+
+                           Therefore, the duration of the selected sample period is:
+
+                              selection_period_dur = end_time_filter - start_time_filter
+
+                       iii) Sample that contain missing / invalid position data
+                            are then removed, providing the final set of samples
+                            used for accuracy calculations. The min, max, and mean
+                            values from each set of selected samples is calculated.
+
+               b) The x and y error of each samples gaze position relative to the
+                  current target position. This data is in the same units as is
+                  used by the Target instance. Computations are done for each eye
+                  being recorded. The values are signed floats.
+
+               c) The xy distance error from the from each eye's gaze position to
+                  the target position. This is also calculated as an average of
+                  both eyes when binocular data is available. The data is unsigned,
+                  providing the absolute distance from gaze to target positions
+
+        5) A 2D plot is created displaying each target position and the position of
+           each sample used for the accuracy calculation. The minimum, maximum, and
+           average error is displayed for all target positions. A key press is used
+           to remove the validation results plot, and control is returned to the
+           script that started the validation display. Note that the plot is also
+           saved as a png file in the same directory as the calling stript.
+
+        See the validation.py demo in demos.coder.iohub.eyetracker for example usage.
+
+        :param win:
+        :param target:
+        :param positions:
+        :param target_animation:
+        :param randomize_positions:
+        :param background:
+        :param triggers:
+        :param storeeventsfor:
+        :param accuracy_period_start:
+        :param accuracy_period_stop:
+        :param show_intro_screen:
+        :param intro_text:
+        :param show_results_screen:
+        :param results_in_degrees:
+        :param save_figure_path:
+        :param terminate_key:
+        :param toggle_gaze_cursor_key:
+        """
+        self.terminate_key = terminate_key
+        self.toggle_gaze_cursor_key = toggle_gaze_cursor_key
+
+        self.io = ioHubConnection.getActiveConnection()
+
+        if isinstance(positions, (list, tuple)):
+            positions = PositionGrid(posList=positions, firstposindex=0, repeatFirstPos=False)
+        self.positions = positions
+
+        self.randomize_positions = randomize_positions
+        if self.randomize_positions:
+            self.positions.randomize()
+        self.win = proxy(win)
+        if target_animation is None:
+            target_animation = {}
+        self.animation_params = target_animation
+        self.accuracy_period_start = accuracy_period_start
+        self.accuracy_period_stop = accuracy_period_stop
+        self.show_intro_screen = show_intro_screen
+        self.intro_text = intro_text
+        self.show_results_screen = show_results_screen
+        self.results_in_degrees = results_in_degrees
+        self.save_figure_path = save_figure_path
+        self.validation_results = None
+        if storeeventsfor is None:
+            storeeventsfor = [self.io.devices.keyboard,
+                              self.io.devices.mouse,
+                              self.io.devices.tracker,
+                              self.io.devices.experiment
+                              ]
+
+        if triggers is None:
+            # Use space key press as default target trigger
+            triggers = KeyboardTrigger(' ', on_press=True)
+        triggers = Trigger.getTriggersFrom(triggers)
+
+        # Create the ValidationTargetRenderer instance; used to control the sequential
+        # presentation of the target at each of the grid positions.
+        self.targetsequence = ValidationTargetRenderer(win, target=target, positions=self.positions,
+                                                       background=background,
+                                                       triggers=triggers, storeeventsfor=storeeventsfor,
+                                                       terminate_key=terminate_key,
+                                                       gaze_cursor_key=toggle_gaze_cursor_key)
+        # Stim for results screen
+        self.imagestim = None
+        self.textstim = None
+        self.use_dpi = 90
+
+    def run(self):
+        """
+        Run the validation procedure, returning after the full validation process is complete, including:
+            a) display of an instruction screen
+            b) display of the target position sequence used for validation data collection.
+            c) display of a validation accuracy results plot.
+        """
+        keyboard = self.io.devices.keyboard
+        if self.show_intro_screen:
+            # Display Validation Intro Screen
+            self.showIntroScreen()
+            if self.terminate_key and self.terminate_key in keyboard.waitForReleases(keys=[' ', self.terminate_key]):
+                print("Escape key pressed. Exiting validation")
+                self.validation_results = None
+                return
+
+        # Perform Validation.....
+        terminate = not self.targetsequence.display(**self.animation_params)
+        if terminate:
+            print("Escape key pressed. Exiting validation")
+            self.validation_results = None
+            return
+
+        self.io.clearEvents('all')
+
+        self._createValidationResults()
+
+        if self.show_results_screen:
+            if self.showResultsScreen() is not None:
+                if self.terminate_key and self.terminate_key in keyboard.waitForPresses(keys=[' ', self.terminate_key]):
+                    print("Escape key pressed. Exiting validation")
+                    self.validation_results = None
+                    return
+        return self.validation_results
+
+    def showResultsScreen(self):
+        self._buildResultScreen()
+        if self.imagestim:
+            self.imagestim.draw()
+        self.textstim.draw()
+        return self.win.flip()
+
+    def showIntroScreen(self):
+        text = self.intro_text + '\nPress SPACE to Start....'
+        textpos = (0, 0)
+        if self.textstim:
+            self.textstim.setText(text)
+            self.textstim.setPos(textpos)
+        else:
+            self.textstim = visual.TextStim(self.win, text=text, pos=textpos, height=30, color=(0, 0, 0),
+                                            colorSpace='rgb255', opacity=1.0, contrast=1.0, units='pix',
+                                            ori=0.0, antialias=True, bold=False, italic=False, anchorHoriz='center',
+                                            anchorVert='center', wrapWidth=self.win.size[0] * .8)
+
+        self.textstim.draw()
+        return self.win.flip()
+
+    def getValidationResults(self):
+        return self.validation_results
+
+    def _createValidationResults(self):
+        """
+        Create validation results dict and save validation analysis info as experiment messages to
+        the iohub .hdf5 file.
+
+        :return: dict
+        """
+        self.validation_results = None
+        sample_array = self.targetsequence.getSampleMessageData()
+
+        if self.results_in_degrees:
+            for postdat in sample_array:
+                postdat['targ_pos_x'], postdat['targ_pos_y'] = toDeg(self.win,
+                                                                     *toPix(self.win, postdat['targ_pos_x'],
+                                                                                      postdat['targ_pos_y']))
+
+                if self.targetsequence.sample_type == EventConstants.BINOCULAR_EYE_SAMPLE:
+                    postdat['left_eye_x'], postdat['left_eye_y'] = toDeg(self.win,
+                                                                         *toPix(self.win, postdat['left_eye_x'],
+                                                                                postdat['left_eye_y']))
+
+                    postdat['right_eye_x'], postdat['right_eye_y'] = toDeg(self.win,
+                                                                           *toPix(self.win, postdat['right_eye_x'],
+                                                                                  postdat['right_eye_y']))
+                else:
+                    postdat['eye_x'], postdat['eye_y'] = toDeg(self.win,
+                                                               *toPix(self.win, postdat['eye_x'], postdat['eye_y']))
+
+        min_error = 100000.0
+        max_error = 0.0
+        summed_error = 0.0
+        point_count = 0
+
+        self.io.sendMessageEvent('Results', 'VALIDATION')
+        results = dict(display_units=self.win.units, display_bounds=self.positions.bounds,
+                       display_pix=self.win.size, position_count=len(sample_array),
+                       target_positions=self.targetsequence.positions.getPositions())
+
+        for k, v in results.items():
+            self.io.sendMessageEvent('{}: {}'.format(k, v), 'VALIDATION')
+
+        results['position_results'] = []
+        results['positions_failed_processing'] = 0
+
+        for pindex, samplesforpos in enumerate(sample_array):
+            self.io.sendMessageEvent('Target Position Results: {0}'.format(pindex), 'VALIDATION')
+
+            stationary_samples = samplesforpos[samplesforpos['targ_state'] == self.targetsequence.TARGET_STATIONARY]
+
+            if len(stationary_samples):
+                last_stime = stationary_samples[-1]['eye_time']
+                first_stime = stationary_samples[0]['eye_time']
+
+                filter_stime = last_stime - self.accuracy_period_start
+                filter_etime = last_stime - self.accuracy_period_stop
+
+                all_samples_in_period = stationary_samples[stationary_samples['eye_time'] >= filter_stime]
+                all_samples_in_period = all_samples_in_period[all_samples_in_period['eye_time'] < filter_etime]
+
+                good_samples_in_period = all_samples_in_period[all_samples_in_period['eye_status'] == 0]
+
+                all_samples_count = all_samples_in_period.shape[0]
+                good_sample_count = good_samples_in_period.shape[0]
+                try:
+                    good_sample_ratio = good_sample_count / float(all_samples_count)
+                except ZeroDivisionError:
+                    good_sample_ratio = 0
+            else:
+                all_samples_in_period = []
+                good_samples_in_period = []
+                good_sample_ratio = 0
+
+            # Ordered dictionary of the different levels of samples selected during filtering
+            # for valid samples to use in accuracy calculations.
+            sample_msg_data_filtering = OrderedDict(all_samples=samplesforpos,  # All samples from target period.
+                                                    # Sample during stationary period at end of target
+                                                    # presentation display.
+                                                    stationary_samples=stationary_samples,
+                                                    # Samples that occurred within the
+                                                    # defined time selection period.
+                                                    time_filtered_samples=all_samples_in_period,
+                                                    # Samples from the selection period that
+                                                    # do not have missing data
+                                                    used_samples=good_samples_in_period)
+
+            position_results = dict(pos_index=pindex,
+                                    sample_time_range=[first_stime, last_stime],
+                                    filter_samples_time_range=[filter_stime, filter_etime],
+                                    valid_filtered_sample_perc=good_sample_ratio)
+
+            for k, v in position_results.items():
+                self.io.sendMessageEvent('{}: {}'.format(k, v), 'VALIDATION')
+
+            position_results['sample_from_filter_stages'] = sample_msg_data_filtering
+
+            if int(good_sample_ratio * 100) == 0:
+                position_results['calculation_status'] = 'FAILED'
+                results['positions_failed_processing'] += 1
+            else:
+                target_x = good_samples_in_period[:]['targ_pos_x']
+                target_y = good_samples_in_period[:]['targ_pos_y']
+
+                if self.targetsequence.sample_type == EventConstants.BINOCULAR_EYE_SAMPLE:
+                    left_x = good_samples_in_period[:]['left_eye_x']
+                    left_y = good_samples_in_period[:]['left_eye_y']
+                    left_error_x = target_x - left_x
+                    left_error_y = target_y - left_y
+                    left_error_xy = np.hypot(left_error_x, left_error_y)
+
+                    right_x = good_samples_in_period[:]['right_eye_x']
+                    right_y = good_samples_in_period[:]['right_eye_y']
+                    right_error_x = target_x - right_x
+                    right_error_y = target_y - right_y
+                    right_error_xy = np.hypot(right_error_x, right_error_y)
+
+                    lr_error = (right_error_xy + left_error_xy) / 2.0
+                    lr_error_max = lr_error.max()
+                    lr_error_min = lr_error.min()
+                    lr_error_mean = lr_error.mean()
+                    lr_error_std = np.std(lr_error)
+                    min_error = min(min_error, lr_error_min)
+                    max_error = max(max_error, lr_error_max)
+                    summed_error += lr_error_mean
+                    point_count += 1.0
+                else:
+                    eye_x = good_samples_in_period[:]['eye_x']
+                    eye_y = good_samples_in_period[:]['eye_y']
+                    error_x = target_x - eye_x
+                    error_y = target_y - eye_y
+                    error_xy = np.hypot(error_x, error_y)
+                    lr_error = error_xy
+                    lr_error_max = lr_error.max()
+                    lr_error_min = lr_error.min()
+                    lr_error_mean = lr_error.mean()
+                    lr_error_std = np.std(lr_error)
+                    min_error = min(min_error, lr_error_min)
+                    max_error = max(max_error, lr_error_max)
+                    summed_error += lr_error_mean
+                    point_count += 1.0
+
+                position_results2 = dict()
+                position_results2['calculation_status'] = 'PASSED'
+                position_results2['target_position'] = (target_x[0], target_y[0])
+                position_results2['min_error'] = lr_error_min
+                position_results2['max_error'] = lr_error_max
+                position_results2['mean_error'] = lr_error_mean
+                position_results2['stdev_error'] = lr_error_std
+                for k, v in position_results2.items():
+                    self.io.sendMessageEvent('{}: {}'.format(k, v), 'VALIDATION')
+                    position_results[k] = v
+                results['position_results'].append(position_results)
+                self.io.sendMessageEvent('Done Target Position Results : {0}'.format(pindex), 'VALIDATION')
+
+        unit_type = self.win.units
+        if self.results_in_degrees:
+            unit_type = 'degrees'
+        mean_error = summed_error / point_count
+        err_results = dict(reporting_unit_type=unit_type, min_error=min_error, max_error=max_error,
+                           mean_error=mean_error, passed=results['positions_failed_processing'] == 0,
+                           positions_failed_processing=results['positions_failed_processing'])
+
+        for k, v in err_results.items():
+            self.io.sendMessageEvent('{}: {}'.format(k, v), 'VALIDATION')
+            results[k] = v
+
+        self.io.sendMessageEvent('Validation Report Complete', 'VALIDATION')
+
+        self.validation_results = results
+        return self.validation_results
+
+    def createPlot(self):
+        """
+        Creates a matplotlib figure of validation results.
+        :return:
+        """
+        from matplotlib import pyplot as pl
+
+        results = self.getValidationResults()
+        if results is None:
+            raise RuntimeError("Validation must be run before creating results plot.")
+
+        pixw, pixh = results['display_pix']
+
+        pl.clf()
+        fig = pl.gcf()
+        fig.set_size_inches((pixw * .9) / self.use_dpi, (pixh * .8) / self.use_dpi)
+        color_list = pl.cm.tab20b(np.linspace(0, 1, (len(results['position_results']))))
+        ci = 0
+        for position_results in results['position_results']:
+            pindex = position_results['pos_index']
+            if position_results['calculation_status'] == 'FAILED':
+                # Draw nothing for failed position
+                pass
+            else:
+                samples = position_results['sample_from_filter_stages']['used_samples']
+                target_x = samples[:]['targ_pos_x']
+                target_y = samples[:]['targ_pos_y']
+                if self.targetsequence.sample_type == EventConstants.BINOCULAR_EYE_SAMPLE:
+                    gaze_x = (samples[:]['left_eye_x'] + samples[:]['right_eye_x']) / 2.0
+                    gaze_y = (samples[:]['left_eye_y'] + samples[:]['right_eye_y']) / 2.0
+                else:
+                    gaze_x = samples[:]['eye_x']
+                    gaze_y = samples[:]['eye_y']
+
+                pl.scatter(target_x[0], target_y[0], s=400, color=color_list[ci])
+                pl.scatter(target_x[0], target_y[0], s=300, color=(0.75, 0.75, 0.75))
+                pl.text(target_x[0], target_y[0], str(pindex), size=16, color=color_list[ci],
+                        horizontalalignment='center',
+                        verticalalignment='center')
+                pl.scatter(gaze_x, gaze_y, s=40, color=color_list[ci], alpha=0.75)
+                ci += 1
+
+        if self.results_in_degrees:
+            l, b = toDeg(self.win, (-pixw / 2,), (-pixh / 2,))
+            r, t = toDeg(self.win, (pixw / 2,), (pixh / 2,))
+        else:
+            l, t, r, b = results['display_bounds']
+
+        pl.xlim(l, r)
+        pl.ylim(b, t)
+        pl.xlabel('Horizontal Position (%s)' % (results['reporting_unit_type']))
+        pl.ylabel('Vertical Position (%s)' % (results['reporting_unit_type']))
+        pl.title('Validation Accuracy (%s)\nMin: %.4f, Max: %.4f, Mean %.4f' % (results['reporting_unit_type'],
+                                                                                results['min_error'],
+                                                                                results['max_error'],
+                                                                                results['mean_error']))
+
+        fig.tight_layout()
+        return fig
+
+    def _generateImageName(self):
+        import datetime
+        file_name = 'validation_' + datetime.datetime.now().strftime('%d_%m_%Y_%H_%M') + '.png'
+        if self.save_figure_path:
+            return normjoin(self.save_figure_path, file_name)
+        rootScriptPath = os.path.dirname(sys.argv[0])
+        return normjoin(rootScriptPath, file_name)
+
+    def _buildResultScreen(self, replot=False):
+        """
+        Build validation results screen.
+        Currently saves the plot from .createPlot() to disk and the loads that as an image.
+        :param replot:
+        :return:
+        """
+        if replot or self.imagestim is None:
+            iname = self._generateImageName()
+            self.createPlot().savefig(iname, dpi=self.use_dpi)
+
+            text_pos = (0, 0)
+            text = 'Accuracy Calculation not Possible do to Analysis Error. Press SPACE to continue.'
+
+            if iname:
+                fig_image = Image.open(iname)
+
+                if self.imagestim:
+                    self.imagestim.setImage(fig_image)
+                else:
+                    self.imagestim = visual.ImageStim(self.win, image=fig_image, units='pix', pos=(0.0, 0.0))
+
+                text = 'Press SPACE to continue.'
+                text_pos = (0.0, -(self.win.size[1] / 2.0) * .9)
+            else:
+                self.imagestim = None
+
+            if self.textstim is None:
+                self.textstim = visual.TextStim(self.win, text=text, pos=text_pos, color=(0, 0, 0), colorSpace='rgb255',
+                                                opacity=1.0, contrast=1.0, units='pix', ori=0.0, height=None,
+                                                antialias=True, bold=False, italic=False, anchorVert='center',
+                                                anchorHoriz='center', wrapWidth=self.win.size[0] * .8)
+            else:
+                self.textstim.setText(text)
+                self.textstim.setPos(text_pos)
+
+        elif self.imagestim:
+            return True
+        return False
+
+
 class ValidationTargetRenderer(object):
     TARGET_STATIONARY = 1
     TARGET_MOVING = 2
@@ -173,21 +626,11 @@ class ValidationTargetRenderer(object):
     def __init__(self, win, target, positions, background=None, storeeventsfor=[], triggers=None, msgcategory='',
                  io=None, terminate_key='escape', gaze_cursor_key='g'):
         """
-        ValidationTargetRenderer combines an instance of a Target stim and an
-        instance of a PositionGrid to create everything needed to present the
-        target at each position returned by the PositionGrid instance within the
-        psychopy window used to create the Target stim. The target is presented at
-        each position sequentially.
-
-        By providing keyword arguments to the ValidationTargetRenderer.display(...)
-        method, position animation between target positions, and target stim
-        expansion and / or contraction transitions are possible.
+        ValidationTargetRenderer is an internal class used by `ValidationProcedure`.
 
         psychopy.iohub.Trigger based classes are used to define the criteria used to
-        start displaying the next target position graphics. By providing a list
-        of a TimerTrigger and a set of DeviceEventTriggers, complex criteria
-        for target position pacing can be easily defined for use during the display
-        period.
+        start displaying the next target position graphics. By providing a set of
+        DeviceEventTriggers, complex criteria for target position pacing can be defined.
 
         iohub devices can be provided in the storeeventsfor keyword argument.
         Events which occur during each target position presentation period are
@@ -677,475 +1120,27 @@ class ValidationTargetRenderer(object):
         return np.asanyarray(target_pos_samples, dtype=object)
 
 
-class ValidationProcedure(object):
-    def __init__(self, win=None, target=None, positions=None, target_animation={}, randomize_positions=True,
-                 background=None, triggers=None, storeeventsfor=None, accuracy_period_start=0.350,
-                 accuracy_period_stop=.050, show_intro_screen=True, intro_text='Ready to Start Validation Procedure.',
-                 show_results_screen=True, results_in_degrees=False, save_figure_path=None,
-                 terminate_key="escape", toggle_gaze_cursor_key="g"):
-        """
-        ValidationProcedure can be used to check the accuracy of a calibrated
-        eye tracking system.
-
-        Once a ValidationProcedure class instance has been created, the display(**kwargs) method
-        can be called to run the validation process.
-
-        The validation process consists of the following stages:
-
-        1) Display an Introduction / Instruction screen. A key press is used to
-           start target presentation.
-        2) The validation target presentation sequence. Based on the Target and
-           PositionGrid objects provided when the ValidationProcedure was created,
-           a series of target positions are displayed. The progression from one
-           target position to the next is controlled by the triggers specified.
-           The target can simply jump from one position to the next, or optional
-           linear motion settings can be used to have the target move across the
-           screen from one point to the next. The Target graphic itself can also
-           be configured to expand or contract once it has reached a location
-           defined in the position grid.
-        3) During stage 2), data is collected from the devices being monitored by
-           iohub. Specifically eye tracker samples and experiment messages are
-           collected.
-        4) The data collected during the validation target sequence is used to
-           calculate accuracy information for each target position presented.
-           The raw data as well as the computed accuracy data is available via the
-           ValidationProcedure class. Calculated measures are provided seperately
-           for each target position and include:
-
-               a) An array of the samples used for the accuracy calculation. The
-                  samples used are selected using the following criteria:
-                       i) Only samples where the target was stationary and
-                          not expanding or contracting are selected.
-
-                       ii) Samples are selected that fall between:
-
-                              start_time_filter = last_sample_time - accuracy_period_start
-
-                           and
-
-                              end_time_filter = last_sample_time - accuracy_period_end
-
-                           Therefore, the duration of the selected sample period is:
-
-                              selection_period_dur = end_time_filter - start_time_filter
-
-                       iii) Sample that contain missing / invalid position data
-                            are then removed, providing the final set of samples
-                            used for accuracy calculations. The min, max, and mean
-                            values from each set of selected samples is calculated.
-
-               b) The x and y error of each samples gaze position relative to the
-                  current target position. This data is in the same units as is
-                  used by the Target instance. Computations are done for each eye
-                  being recorded. The values are signed floats.
-
-               c) The xy distance error from the from each eye's gaze position to
-                  the target position. This is also calculated as an average of
-                  both eyes when binocular data is available. The data is unsigned,
-                  providing the absolute distance from gaze to target positions
-
-        5) A 2D plot is created displaying each target position and the position of
-           each sample used for the accuracy calculation. The minimum, maximum, and
-           average error is displayed for all target positions. A key press is used
-           to remove the validation results plot, and control is returned to the
-           script that started the validation display. Note that the plot is also
-           saved as a png file in the same directory as the calling stript.
-
-        See the validation.py demo in demos.coder.iohub.eyetracker for example usage.
-
-        :param win:
-        :param target:
-        :param positions:
-        :param target_animation:
-        :param randomize_positions:
-        :param background:
-        :param triggers:
-        :param storeeventsfor:
-        :param accuracy_period_start:
-        :param accuracy_period_stop:
-        :param show_intro_screen:
-        :param intro_text:
-        :param show_results_screen:
-        :param results_in_degrees:
-        :param save_figure_path:
-        :param terminate_key:
-        :param toggle_gaze_cursor_key:
-        """
-        print("TODO: Add max error threshold to filter 'valid' samples for each target position.")
-        self.terminate_key = terminate_key
-        self.toggle_gaze_cursor_key = toggle_gaze_cursor_key
-
-        self.io = ioHubConnection.getActiveConnection()
-
-        if isinstance(positions, (list, tuple)):
-            positions = PositionGrid(posList=positions, firstposindex=0, repeatFirstPos=False)
-        self.positions = positions
-
-        self.randomize_positions = randomize_positions
-        if self.randomize_positions:
-            self.positions.randomize()
-        self.win = proxy(win)
-        if target_animation is None:
-            target_animation = {}
-        self.animation_params = target_animation
-        self.accuracy_period_start = accuracy_period_start
-        self.accuracy_period_stop = accuracy_period_stop
-        self.show_intro_screen = show_intro_screen
-        self.intro_text = intro_text
-        self.show_results_screen = show_results_screen
-        self.results_in_degrees = results_in_degrees
-        self.save_figure_path = save_figure_path
-        self.validation_results = None
-        if storeeventsfor is None:
-            storeeventsfor = [self.io.devices.keyboard,
-                              self.io.devices.mouse,
-                              self.io.devices.tracker,
-                              self.io.devices.experiment
-                              ]
-
-        if triggers is None:
-            # Use space key press as default target trigger
-            triggers = KeyboardTrigger(' ', on_press=True)
-        triggers = Trigger.getTriggersFrom(triggers)
-
-        # Create the ValidationTargetRenderer instance; used to control the sequential
-        # presentation of the target at each of the grid positions.
-        self.targetsequence = ValidationTargetRenderer(win, target=target, positions=self.positions, background=background,
-                                                       triggers=triggers, storeeventsfor=storeeventsfor,
-                                                       terminate_key=terminate_key, gaze_cursor_key=toggle_gaze_cursor_key)
-        # Stim for results screen
-        self.imagestim = None
-        self.textstim = None
-        self.use_dpi = 90
-
-    def run(self):
-        """
-        Run the validation procedure, returning after the full validation process is complete, including:
-            a) display of an instruction screen
-            b) display of the target position sequence used for validation data collection.
-            c) display of a validation accuracy results plot.
-        """
-        keyboard = self.io.devices.keyboard
-        if self.show_intro_screen:
-            # Display Validation Intro Screen
-            self.showIntroScreen()
-            if self.terminate_key and self.terminate_key in keyboard.waitForReleases(keys=[' ', self.terminate_key]):
-                print("Escape key pressed. Exiting validation")
-                self.validation_results = None
-                return
-
-        # Perform Validation.....
-        terminate = not self.targetsequence.display(**self.animation_params)
-        if terminate:
-            print("Escape key pressed. Exiting validation")
-            self.validation_results = None
-            return
-
-        self.io.clearEvents('all')
-
-        self._createValidationResults()
-
-        if self.show_results_screen:
-            if self.showResultsScreen() is not None:
-                if self.terminate_key and self.terminate_key in keyboard.waitForPresses(keys=[' ', self.terminate_key]):
-                    print("Escape key pressed. Exiting validation")
-                    self.validation_results = None
-                    return
-        return self.validation_results
-
-    def showResultsScreen(self):
-        self._buildResultScreen()
-        if self.imagestim:
-            self.imagestim.draw()
-        self.textstim.draw()
-        return self.win.flip()
-
-    def showIntroScreen(self):
-        text = self.intro_text + '\nPress SPACE to Start....'
-        textpos = (0, 0)
-        if self.textstim:
-            self.textstim.setText(text)
-            self.textstim.setPos(textpos)
-        else:
-            self.textstim = visual.TextStim(self.win, text=text, pos=textpos, height=30, color=(0, 0, 0),
-                                            colorSpace='rgb255', opacity=1.0, contrast=1.0, units='pix',
-                                            ori=0.0, antialias=True, bold=False, italic=False, anchorHoriz='center',
-                                            anchorVert='center', wrapWidth=self.win.size[0] * .8)
-
-        self.textstim.draw()
-        return self.win.flip()
-
-    def getValidationResults(self):
-        return self.validation_results
-
-    def _createValidationResults(self):
-        """
-        Create validation results dict and save validation analysis info as experiment messages to
-        the iohub .hdf5 file.
-
-        :return: dict
-        """
-        self.validation_results = None
-        sample_array = self.targetsequence.getSampleMessageData()
-
-        if self.results_in_degrees:
-            for postdat in sample_array:
-                postdat['targ_pos_x'], postdat['targ_pos_y'] = toDeg(self.win, *toPix(self.win, postdat['targ_pos_x'], postdat['targ_pos_y']))
-
-                if self.targetsequence.sample_type == EventConstants.BINOCULAR_EYE_SAMPLE:
-                    postdat['left_eye_x'], postdat['left_eye_y'] = toDeg(self.win, *toPix(self.win, postdat['left_eye_x'],
-                                                                                postdat['left_eye_y']))
-
-                    postdat['right_eye_x'], postdat['right_eye_y'] = toDeg(self.win, *toPix(self.win, postdat['right_eye_x'],
-                                                                                  postdat['right_eye_y']))
-                else:
-                    postdat['eye_x'], postdat['eye_y'] = toDeg(self.win, *toPix(self.win, postdat['eye_x'], postdat['eye_y']))
-
-        min_error = 100000.0
-        max_error = 0.0
-        summed_error = 0.0
-        point_count = 0
-
-        self.io.sendMessageEvent('Results', 'VALIDATION')
-        results = dict(display_units=self.win.units, display_bounds=self.positions.bounds,
-                       display_pix=self.win.size, position_count=len(sample_array),
-                       target_positions=self.targetsequence.positions.getPositions())
-
-        for k, v in results.items():
-            self.io.sendMessageEvent('{}: {}'.format(k, v), 'VALIDATION')
-
-        results['position_results'] = []
-        results['positions_failed_processing'] = 0
-
-        for pindex, samplesforpos in enumerate(sample_array):
-            self.io.sendMessageEvent('Target Position Results: {0}'.format(pindex), 'VALIDATION')
-
-            stationary_samples = samplesforpos[samplesforpos['targ_state'] == self.targetsequence.TARGET_STATIONARY]
-
-            if len(stationary_samples):
-                last_stime = stationary_samples[-1]['eye_time']
-                first_stime = stationary_samples[0]['eye_time']
-
-                filter_stime = last_stime - self.accuracy_period_start
-                filter_etime = last_stime - self.accuracy_period_stop
-
-                all_samples_in_period = stationary_samples[stationary_samples['eye_time'] >= filter_stime]
-                all_samples_in_period = all_samples_in_period[all_samples_in_period['eye_time'] < filter_etime]
-
-                good_samples_in_period = all_samples_in_period[all_samples_in_period['eye_status'] == 0]
-
-                all_samples_count = all_samples_in_period.shape[0]
-                good_sample_count = good_samples_in_period.shape[0]
-                try:
-                    good_sample_ratio = good_sample_count / float(all_samples_count)
-                except ZeroDivisionError:
-                    good_sample_ratio = 0
-            else:
-                all_samples_in_period = []
-                good_samples_in_period = []
-                good_sample_ratio = 0
-
-            # Ordered dictionary of the different levels of samples selected during filtering
-            # for valid samples to use in accuracy calculations.
-            sample_msg_data_filtering = OrderedDict(all_samples=samplesforpos,  # All samples from target period.
-                                                    # Sample during stationary period at end of target
-                                                    # presentation display.
-                                                    stationary_samples=stationary_samples,
-                                                    # Samples that occurred within the
-                                                    # defined time selection period.
-                                                    time_filtered_samples=all_samples_in_period,
-                                                    # Samples from the selection period that
-                                                    # do not have missing data
-                                                    used_samples=good_samples_in_period)
-
-            position_results = dict(pos_index=pindex,
-                                    sample_time_range=[first_stime, last_stime],
-                                    filter_samples_time_range=[filter_stime, filter_etime],
-                                    valid_filtered_sample_perc=good_sample_ratio)
-
-            for k, v in position_results.items():
-                self.io.sendMessageEvent('{}: {}'.format(k, v), 'VALIDATION')
-
-            position_results['sample_from_filter_stages'] = sample_msg_data_filtering
-
-            if int(good_sample_ratio*100) == 0:
-                position_results['calculation_status'] = 'FAILED'
-                results['positions_failed_processing'] += 1
-            else:
-                target_x = good_samples_in_period[:]['targ_pos_x']
-                target_y = good_samples_in_period[:]['targ_pos_y']
-
-                if self.targetsequence.sample_type == EventConstants.BINOCULAR_EYE_SAMPLE:
-                    left_x = good_samples_in_period[:]['left_eye_x']
-                    left_y = good_samples_in_period[:]['left_eye_y']
-                    left_error_x = target_x - left_x
-                    left_error_y = target_y - left_y
-                    left_error_xy = np.hypot(left_error_x, left_error_y)
-
-                    right_x = good_samples_in_period[:]['right_eye_x']
-                    right_y = good_samples_in_period[:]['right_eye_y']
-                    right_error_x = target_x - right_x
-                    right_error_y = target_y - right_y
-                    right_error_xy = np.hypot(right_error_x, right_error_y)
-
-                    lr_error = (right_error_xy + left_error_xy) / 2.0
-                    lr_error_max = lr_error.max()
-                    lr_error_min = lr_error.min()
-                    lr_error_mean = lr_error.mean()
-                    lr_error_std = np.std(lr_error)
-                    min_error = min(min_error, lr_error_min)
-                    max_error = max(max_error, lr_error_max)
-                    summed_error += lr_error_mean
-                    point_count += 1.0
-                else:
-                    eye_x = good_samples_in_period[:]['eye_x']
-                    eye_y = good_samples_in_period[:]['eye_y']
-                    error_x = target_x - eye_x
-                    error_y = target_y - eye_y
-                    error_xy = np.hypot(error_x, error_y)
-                    lr_error = error_xy
-                    lr_error_max = lr_error.max()
-                    lr_error_min = lr_error.min()
-                    lr_error_mean = lr_error.mean()
-                    lr_error_std = np.std(lr_error)
-                    min_error = min(min_error, lr_error_min)
-                    max_error = max(max_error, lr_error_max)
-                    summed_error += lr_error_mean
-                    point_count += 1.0
-
-                position_results2 = dict()
-                position_results2['calculation_status'] = 'PASSED'
-                position_results2['target_position'] = (target_x[0], target_y[0])
-                position_results2['min_error'] = lr_error_min
-                position_results2['max_error'] = lr_error_max
-                position_results2['mean_error'] = lr_error_mean
-                position_results2['stdev_error'] = lr_error_std
-                for k, v in position_results2.items():
-                    self.io.sendMessageEvent('{}: {}'.format(k, v), 'VALIDATION')
-                    position_results[k] = v
-                results['position_results'].append(position_results)
-                self.io.sendMessageEvent('Done Target Position Results : {0}'.format(pindex), 'VALIDATION')
-
-        unit_type = self.win.units
-        if self.results_in_degrees:
-            unit_type = 'degrees'
-        mean_error = summed_error / point_count
-        err_results = dict(reporting_unit_type=unit_type, min_error=min_error, max_error=max_error,
-                           mean_error=mean_error, passed=results['positions_failed_processing'] == 0,
-                           positions_failed_processing=results['positions_failed_processing'])
-
-        for k, v in err_results.items():
-            self.io.sendMessageEvent('{}: {}'.format(k, v), 'VALIDATION')
-            results[k] = v
-
-        self.io.sendMessageEvent('Validation Report Complete', 'VALIDATION')
-
-        self.validation_results = results
-        return self.validation_results
-
-    def createPlot(self):
-        """
-        Creates a matplotlib figure of validation results.
-        :return:
-        """
-        from matplotlib import pyplot as pl
-
-        results = self.getValidationResults()
-        if results is None:
-            raise RuntimeError("Validation must be run before creating results plot.")
-
-        pixw, pixh = results['display_pix']
-
-        pl.clf()
-        fig = pl.gcf()
-        fig.set_size_inches((pixw * .9) / self.use_dpi, (pixh * .8) / self.use_dpi)
-        color_list = pl.cm.tab20b(np.linspace(0, 1, (len(results['position_results']))))
-        ci = 0
-        for position_results in results['position_results']:
-            pindex = position_results['pos_index']
-            if position_results['calculation_status'] == 'FAILED':
-                # Draw nothing for failed position
-                pass
-            else:
-                samples = position_results['sample_from_filter_stages']['used_samples']
-                target_x = samples[:]['targ_pos_x']
-                target_y = samples[:]['targ_pos_y']
-                if self.targetsequence.sample_type == EventConstants.BINOCULAR_EYE_SAMPLE:
-                    gaze_x = (samples[:]['left_eye_x'] + samples[:]['right_eye_x']) / 2.0
-                    gaze_y = (samples[:]['left_eye_y'] + samples[:]['right_eye_y']) / 2.0
-                else:
-                    gaze_x = samples[:]['eye_x']
-                    gaze_y = samples[:]['eye_y']
-
-                pl.scatter(target_x[0], target_y[0], s=400, color=color_list[ci])
-                pl.scatter(target_x[0], target_y[0], s=300, color=(0.75, 0.75, 0.75))
-                pl.text(target_x[0], target_y[0], str(pindex), size=16, color=color_list[ci], horizontalalignment='center',
-                        verticalalignment='center')
-                pl.scatter(gaze_x, gaze_y, s=40, color=color_list[ci], alpha=0.75)
-                ci += 1
-
-        if self.results_in_degrees:
-            l, b = toDeg(self.win, (-pixw / 2,), (-pixh / 2, ))
-            r, t = toDeg(self.win, (pixw / 2, ), (pixh / 2, ))
-        else:
-            l, t, r, b = results['display_bounds']
-
-        pl.xlim(l, r)
-        pl.ylim(b, t)
-        pl.xlabel('Horizontal Position (%s)' % (results['reporting_unit_type']))
-        pl.ylabel('Vertical Position (%s)' % (results['reporting_unit_type']))
-        pl.title('Validation Accuracy (%s)\nMin: %.4f, Max: %.4f, Mean %.4f' % (results['reporting_unit_type'],
-                                                                                results['min_error'],
-                                                                                results['max_error'],
-                                                                                results['mean_error']))
-
-        fig.tight_layout()
-        return fig
-
-    def _generateImageName(self):
-        import datetime
-        file_name = 'validation_' + datetime.datetime.now().strftime('%d_%m_%Y_%H_%M') + '.png'
-        if self.save_figure_path:
-            return normjoin(self.save_figure_path, file_name)
-        rootScriptPath = os.path.dirname(sys.argv[0])
-        return normjoin(rootScriptPath, file_name)
-
-    def _buildResultScreen(self, replot=False):
-        """
-        Build validation results screen.
-        Currently saves the plot from .createPlot() to disk and the loads that as an image.
-        :param replot:
-        :return:
-        """
-        if replot or self.imagestim is None:
-            iname = self._generateImageName()
-            self.createPlot().savefig(iname, dpi=self.use_dpi)
-
-            text_pos = (0, 0)
-            text = 'Accuracy Calculation not Possible do to Analysis Error. Press SPACE to continue.'
-
-            if iname:
-                fig_image = Image.open(iname)
-
-                if self.imagestim:
-                    self.imagestim.setImage(fig_image)
-                else:
-                    self.imagestim = visual.ImageStim(self.win, image=fig_image, units='pix', pos=(0.0, 0.0))
-
-                text = 'Press SPACE to continue.'
-                text_pos = (0.0, -(self.win.size[1] / 2.0) * .9)
-            else:
-                self.imagestim = None
-
-            if self.textstim is None:
-                self.textstim = visual.TextStim(self.win, text=text, pos=text_pos, color=(0, 0, 0), colorSpace='rgb255',
-                                                opacity=1.0, contrast=1.0, units='pix', ori=0.0, height=None,
-                                                antialias=True, bold=False, italic=False, anchorVert='center',
-                                                anchorHoriz='center', wrapWidth=self.win.size[0] * .8)
-            else:
-                self.textstim.setText(text)
-                self.textstim.setPos(text_pos)
-
-        elif self.imagestim:
-            return True
-        return False
+def toPix(win, x, y):
+    """Returns the stim's position in pixels,
+    based on its pos, units, and win.
+    """
+    try:
+        xy = np.zeros((len(x), 2))
+    except TypeError:
+        xy = np.zeros((1, 2))
+
+    xy[:, 0] = x
+    xy[:, 1] = y
+    r = convertToPix(np.asarray((0, 0)), xy, win.units, win)
+    return r[:, 0], r[:, 1]
+
+
+def toDeg(win, x, y):
+    try:
+        xy = np.zeros((len(x), 2))
+    except TypeError:
+        xy = np.zeros((1, 2))
+    xy[:, 0] = x
+    xy[:, 1] = y
+    r = pix2deg(xy, win.monitor, correctFlat=False)
+    return r[:, 0], r[:, 1]
