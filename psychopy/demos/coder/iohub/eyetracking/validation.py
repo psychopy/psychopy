@@ -54,6 +54,7 @@ if __name__ == "__main__":
                                           show_intro_screen=True,
                                           intro_text='Validation procedure is now going to be performed.',
                                           show_results_screen=True, results_in_degrees=False,
+                                          save_results_screen=True,
                                           toggle_gaze_cursor_key='g', terminate_key='escape')
 
     # Run the validation procedure. run() does not return until the validation is complete.

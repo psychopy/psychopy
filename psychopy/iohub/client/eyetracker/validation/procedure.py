@@ -104,7 +104,7 @@ class ValidationProcedure(object):
     def __init__(self, win=None, target=None, positions=None, target_animation={}, randomize_positions=True,
                  background=None, triggers=None, storeeventsfor=None, accuracy_period_start=0.350,
                  accuracy_period_stop=.050, show_intro_screen=True, intro_text='Ready to Start Validation Procedure.',
-                 show_results_screen=True, results_in_degrees=False, save_figure_path=None,
+                 show_results_screen=True, results_in_degrees=False, save_results_screen=False,
                  terminate_key="escape", toggle_gaze_cursor_key="g"):
         """
         ValidationProcedure is used to check the accuracy of a calibrated eye tracking system.
@@ -189,7 +189,7 @@ class ValidationProcedure(object):
         :param intro_text:
         :param show_results_screen:
         :param results_in_degrees:
-        :param save_figure_path:
+        :param save_results_screen:
         :param terminate_key:
         :param toggle_gaze_cursor_key:
         """
@@ -216,7 +216,7 @@ class ValidationProcedure(object):
         self.intro_text_stim = None
         self.show_results_screen = show_results_screen
         self.results_in_degrees = results_in_degrees
-        self.save_figure_path = save_figure_path
+        self.save_results_screen = save_results_screen
         self.validation_results = None
         if storeeventsfor is None:
             storeeventsfor = [self.io.devices.keyboard,
@@ -277,7 +277,11 @@ class ValidationProcedure(object):
 
     def showResultsScreen(self):
         self.drawResultScreen()
-        return self.win.flip()
+        ftime = self.win.flip()
+        if self.save_results_screen:
+            self.win.getMovieFrame()
+            self.win.saveMovieFrames(self._generateImageName())
+        return ftime
 
     def showIntroScreen(self):
         text = self.intro_text + '\nPress SPACE to Start....'
@@ -473,8 +477,8 @@ class ValidationProcedure(object):
     def _generateImageName(self):
         import datetime
         file_name = 'validation_' + datetime.datetime.now().strftime('%d_%m_%Y_%H_%M') + '.png'
-        if self.save_figure_path:
-            return normjoin(self.save_figure_path, file_name)
+        #if self.save_results_screen:
+        #    return normjoin(self.save_results_screen, file_name)
         rootScriptPath = os.path.dirname(sys.argv[0])
         return normjoin(rootScriptPath, file_name)
 
