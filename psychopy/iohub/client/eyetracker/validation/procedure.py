@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+# Part of the psychopy.iohub library.
+# Copyright (C) 2012-2021 iSolver Software Solutions
+# Distributed under the terms of the GNU General Public License (GPL).
 """
 Eye Tracker Validation procedure using the ioHub common eye tracker interface.
 
