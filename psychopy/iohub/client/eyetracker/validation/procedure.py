@@ -22,18 +22,17 @@ from time import sleep
 import os
 import sys
 from matplotlib import pyplot as pl
-from collections import OrderedDict
 
-from psychopy import visual, core
+from psychopy import visual
 from psychopy.iohub.util import win32MessagePump, normjoin
 from psychopy.iohub.constants import EventConstants
-from psychopy.iohub.client import ioHubConnection
+from psychopy.iohub.client import ioHubConnection, Computer
 from psychopy.tools.monitorunittools import convertToPix
 from psychopy.tools.monitorunittools import pix2deg, deg2pix
 
 from psychopy.iohub.client.eyetracker.validation import PositionGrid, Trigger, KeyboardTrigger
 
-getTime = core.getTime
+getTime = Computer.getTime
 
 
 class TargetStim(object):
@@ -326,6 +325,38 @@ class ValidationProcedure(object):
            This is also calculated as an average of both eyes when binocular data is available.
            The data is unsigned, providing the absolute distance from gaze to target positions
 
+        Validation Results Dict Structure
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+        {'display_bounds': [-1.0, 1.0, 1.0, -1.0],
+         'display_pix': array([1920, 1080]),
+         'display_units': 'norm',
+         'max_error': 2.3668638421479,
+         'mean_error': 0.9012516727129639,
+         'min_error': 0.0,
+         'passed': True,
+         'position_count': 9,
+         'positions_failed_processing': 0,
+         'reporting_unit_type': 'degree',
+         'target_positions': [array([0., 0.]), array([0.85, 0.85]), array([-0.85,  0.  ]),
+                              array([0.85, 0.  ]), array([ 0.85, -0.85]), array([-0.85,  0.85]),
+                              array([-0.85, -0.85]), array([0.  , 0.85]), array([ 0.  , -0.85])],
+         'position_results': [{'index': 0,
+                               'calculation_status': 'PASSED',
+                               'target_position': array([0., 0.]),
+                               'sample_time_range': [4.774341499977744, 6.8343414999777],
+                               'filter_samples_time_range': [6.2843414999777005, 6.6843414999777],
+                               'min_error': 0.0,
+                               'max_error': 0.7484680652684592,
+                               'mean_error': 0.39518431321527914,
+                               'stdev_error': 0.24438398690651483,
+                               'valid_filtered_sample_perc': 1.0,
+                              },
+                              # Validation results dict is given for each target position
+                              # ....
+                             ]
+        }
+
         :return: validation results dict.
         """
         return self.validation_results
@@ -403,9 +434,9 @@ class ValidationProcedure(object):
                 good_samples_in_period = []
                 good_sample_ratio = 0
 
-            # Ordered dictionary of the different levels of samples selected during filtering
+            # Dictionary of the different levels of samples selected during filtering
             # for valid samples to use in accuracy calculations.
-            sample_msg_data_filtering = OrderedDict(all_samples=samplesforpos,  # All samples from target period.
+            sample_msg_data_filtering = dict(all_samples=samplesforpos,  # All samples from target period.
                                                     # Sample during stationary period at end of target
                                                     # presentation display.
                                                     stationary_samples=stationary_samples,
