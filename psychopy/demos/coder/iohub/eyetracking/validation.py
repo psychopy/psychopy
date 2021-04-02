@@ -50,12 +50,15 @@ if __name__ == "__main__":
                                                                 expandedscale=3.0,
                                                                 expansionduration=0.2,
                                                                 contractionduration=0.4),
-                                          accuracy_period_start=0.550, accuracy_period_stop=.150,
+                                          accuracy_period_start=0.550,
+                                          accuracy_period_stop=.150,
                                           show_intro_screen=True,
-                                          intro_text='Validation procedure is now going to be performed.',
-                                          show_results_screen=True, results_in_degrees=False,
+                                          intro_text='Eye Tracker Validation Procedure.',
+                                          show_results_screen=True,
+                                          results_in_degrees=True,
                                           save_results_screen=True,
-                                          toggle_gaze_cursor_key='g', terminate_key='escape')
+                                          toggle_gaze_cursor_key='g',
+                                          terminate_key='escape')
 
     # Run the validation procedure. run() does not return until the validation is complete.
     validation_results = validation_proc.run()

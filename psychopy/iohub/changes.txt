@@ -20,5 +20,7 @@ Changes made to iohub for 2021.2 Release
 - Removed iohub/devices/display/unit_conversions.py. Moving to psychopy monitorutil functions.
 - launchHubServer now accepts a psychopy window using the window kwarg.
   iohub display info is updated using window information like .monitor, .colorSpace, .units, .screen
-- If psychopy window (with monitor config) is passed to launchHubServer,
-  user can forget about need for iohub Display config.
+- If psychopy window (with monitor config) is passed to launchHubServer, no need for iohub Display config.
+- Added common eye tracker interface validation procedure. Coder Demo: demos/coder/iohub/eyetracking/validation.py
+    - TODO: Retest all eye trackers
+- Updated psychopy.iohub API docs.

@@ -6,15 +6,13 @@
 Eye Tracker Validation procedure using the ioHub common eye tracker interface.
 
 To use the validation process from within a Coder script:
-* Create a target stim, using TargetStim, or any stim class that has a `.setPos()`, `setRadius()`, and `.draw()`
-  method.
-* Create a list of target positions to use during validation. Use PositionGrid class to help create
-  a target position list.
-* Create a ValidationProcedure class instance, providing the target stim and position list
-  and other arguments to define details of the validation procedure.
+* Create a target stim, using TargetStim, or any stim class that has a `.setPos()`, `setRadius()`, and `.draw()` method.
+* Create a list of validation target positions. Use the `PositionGrid` class to help create a target position list.
+* Create a ValidationProcedure class instance, providing the target stim and position list and other arguments
+  to define details of the validation procedure.
 * Use `ValidationProcedure.run()` to perform the validation routine.
-* Use `ValidationProcedure.getValidationResults()` to access information about each target
-  position displayed and the events collected during the each target validation period.
+* Use `ValidationProcedure.getValidationResults()` to access information about each target position displayed and
+  the events collected during the each target validation period.
 
 See demos/coder/iohub/eyetracking/validation.py for a complete example.
 """
@@ -44,7 +42,7 @@ class TargetStim(object):
         """
         TargetStim is a 'doughnut' style target graphic used during the validation procedure.
 
-        :param win: Window being sued for validation.
+        :param win: Window being used for validation.
         :param radius: The outer radius of the target.
         :param fillcolor: The color used to fill the target body.
         :param edgecolor: The color for the edge around the target.
@@ -71,18 +69,20 @@ class TargetStim(object):
                                       colorSpace=colorspace, opacity=opacity, contrast=contrast, autoLog=False)
             self.stim.append(centerdot)
 
-    def setRadius(self, r):
-        """
-        Update the radius of the target stim.
-        """
-        self.stim[0].radius = r
-
     def setPos(self, pos):
         """
-        Set the center position of the target stim.
+        Set the center position of the target stim. Used during validation procedure to
+        change target position.
         """
         for s in self.stim:
             s.setPos(pos)
+
+    def setRadius(self, r):
+        """
+        Update the radius of the target stim. (Optionally) used during validation procedure to
+        expand / contract the target stim.
+        """
+        self.stim[0].radius = r
 
     def draw(self):
         """
@@ -95,103 +95,93 @@ class TargetStim(object):
         """
         Is point p contained within the Target Stim?
         :param p: x, y position in stim units
-        :return: bool
+        :return: bool: True: p is within the stim
         """
         return self.stim[0].contains(p)
 
 
 class ValidationProcedure(object):
     def __init__(self, win=None, target=None, positions=None, target_animation={}, randomize_positions=True,
-                 background=None, triggers=None, storeeventsfor=None, accuracy_period_start=0.350,
-                 accuracy_period_stop=.050, show_intro_screen=True, intro_text='Ready to Start Validation Procedure.',
+                 background=None, triggers=None, storeeventsfor=None, accuracy_period_start=0.550,
+                 accuracy_period_stop=.150, show_intro_screen=True, intro_text='Ready to Start Validation Procedure.',
                  show_results_screen=True, results_in_degrees=False, save_results_screen=False,
                  terminate_key="escape", toggle_gaze_cursor_key="g"):
         """
-        ValidationProcedure is used to check the accuracy of a calibrated eye tracking system.
+        ValidationProcedure is used to calculate the gaze accuracy of a calibrated eye tracking system.
 
-        Once a ValidationProcedure class instance has been created, the `.run()` method
-        can be called to start the validation process.
+        Once a ValidationProcedure class instance has been created, the `.run()` method is called to actually start
+        the validation process, which consists of the following steps:
 
-        The validation process consists of the following stages:
+        1) (Optionally) Display an Introduction screen. A 'space' key press is used to start target presentation.
+        2) Displaying the validation target at each position being validated. Target progression from one
+           position to the next is controlled by the specified `triggers`, defaulting to a 'space' key press.
+           The target graphics can simply jump from one position to the next, or optional target_animation settings
+           can be used to have the target move across the screen from one point to the next and / or expand / contract
+           at each target location.
+        3) (Optionally) Display a Results screen. The Results screen shows each target position, the position of
+           each sample used for the accuracy calculation, and some validation result statistics.
 
-        1) Display an Introduction / Instruction screen. A key press is used to
-           start target presentation.
-        2) The validation target presentation sequence. Based on the Target and
-           PositionGrid objects provided when the ValidationProcedure was created,
-           a series of target positions are displayed. The progression from one
-           target position to the next is controlled by the triggers specified.
-           The target can simply jump from one position to the next, or optional
-           linear motion settings can be used to have the target move across the
-           screen from one point to the next. The Target graphic itself can also
-           be configured to expand or contract once it has reached a location
-           defined in the position grid.
-        3) During stage 2), data is collected from the devices being monitored by
-           iohub. Specifically eye tracker samples and experiment messages are
-           collected.
-        4) The data collected during the validation target sequence is used to
-           calculate accuracy information for each target position presented.
-           The raw data as well as the computed accuracy data is available via the
-           ValidationProcedure class. Calculated measures are provided separately
-           for each target position and include:
+        Data collected during the validation target sequence is used to calculate accuracy information
+        for each target position presented. The raw data as well as the computed accuracy stats is
+        available via the `.getValidationResults()` method.
 
-               a) An array of the samples used for the accuracy calculation. The
-                  samples used are selected using the following criteria:
-                       i) Only samples where the target was stationary and
-                          not expanding or contracting are selected.
+        To make the validation output consistent across iohub common eye tracker implementations, validation is
+        performed on monocular eye data. If binocular eye samples are being recorded, the average of the
+        left and right eye positions is used for each gaze sample.
 
-                       ii) Samples are selected that fall between:
+        Example:
 
-                              start_time_filter = last_sample_time - accuracy_period_start
+            # Create a *full screen* PsychoPy Window with a valid PsychoPy Monitor file.
+            win = visual.Window((1920, 1080), fullscr=True, allowGUI=False, monitor='a_VALID_monitor')
 
-                           and
+            # Start the ioHub process.
+            iohub_config = dict(experiment_code='validation_demo', session_code='default_session')
+            iohub_config['eyetracker.hw.mouse.EyeTracker'] = dict(name='tracker')
+            tracker = io.devices.tracker
 
-                              end_time_filter = last_sample_time - accuracy_period_end
+            # Run eyetracker calibration
+            r = tracker.runSetupProcedure()
 
-                           Therefore, the duration of the selected sample period is:
+            # Create a validation target. Use any stim that has `.setPos()`, `.setRadius()`, and `.draw()` methods.
+            # iohub.client.eyetracker.validation.TargetStim provides a standard doughnut style target.
+            target_stim = TargetStim(win, radius=0.025, fillcolor=[.5, .5, .5], edgecolor=[-1, -1, -1], edgewidth=2,
+                                     dotcolor=[1, -1, -1], dotradius=0.005, colorspace='rgb')
 
-                              selection_period_dur = end_time_filter - start_time_filter
+            # target_positions: 9 point calibration
+            target_positions = [(0.0, 0.0), (0.85, 0.85), (-0.85, 0.0), (0.85, 0.0), (0.85, -0.85), (-0.85, 0.85),
+                                (-0.85, -0.85), (0.0, 0.85), (0.0, -0.85)]
 
-                       iii) Sample that contain missing / invalid position data
-                            are then removed, providing the final set of samples
-                            used for accuracy calculations. The min, max, and mean
-                            values from each set of selected samples is calculated.
+            # Create the validation procedure
+            validation_proc = ValidationProcedure(win, target=target_stim, positions=target_positions,
+                                                  randomize_positions=False,
+                                                  show_intro_screen=True,
+                                                  intro_text='Eye Tracker Validation',
+                                                  show_results_screen=True,
+                                                  save_results_screen=True)
 
-               b) The x and y error of each samples gaze position relative to the
-                  current target position. This data is in the same units as is
-                  used by the Target instance. Computations are done for each eye
-                  being recorded. The values are signed floats.
+            # Run the validation procedure. Method does not return until the validation is complete.
+            validation_results = validation_proc.run()
 
-               c) The xy distance error from the from each eye's gaze position to
-                  the target position. This is also calculated as an average of
-                  both eyes when binocular data is available. The data is unsigned,
-                  providing the absolute distance from gaze to target positions
 
-        5) A 2D plot is created displaying each target position and the position of
-           each sample used for the accuracy calculation. The minimum, maximum, and
-           average error is displayed for all target positions. A key press is used
-           to remove the validation results plot, and control is returned to the
-           script that started the validation display. Note that the plot is also
-           saved as a png file in the same directory as the calling script.
+        See the validation.py demo in demos.coder.iohub.eyetracking for a more complete example.
 
-        See the validation.py demo in demos.coder.iohub.eyetracker for example usage.
-
-        :param win:
-        :param target:
-        :param positions:
+        :param win: PsychoPy window to use for validation. Must be full screen.
+        :param target: Stimulus to use as validation target. If None, default `TargetStim` is used.
+        :param positions: Positions to validate. Provide list of x,y pairs, or use a `PositionGrid` class.
         :param target_animation:
-        :param randomize_positions:
-        :param background:
-        :param triggers:
-        :param storeeventsfor:
-        :param accuracy_period_start:
-        :param accuracy_period_stop:
-        :param show_intro_screen:
-        :param intro_text:
-        :param show_results_screen:
-        :param results_in_degrees:
-        :param save_results_screen:
-        :param terminate_key:
-        :param toggle_gaze_cursor_key:
+        :param randomize_positions: bool: Randomize target positions before presentation.
+        :param background: color: background color of validation screen.
+        :param show_intro_screen: bool: Display a validation procedure Introduction screen.
+        :param intro_text: Introduction screen text.
+        :param show_results_screen: bool: Display a validation procedure Results screen.
+        :param results_in_degrees: bool: Convert results to visual degrees.
+        :param save_results_screen: bool: Save results screen as image.
+        :param terminate_key: Key that will end the validation procedure. Default is 'escape'.
+        :param toggle_gaze_cursor_key: Key to toggle gaze cursor visibility (hidden to start). Default is key is 'g'.
+        :param accuracy_period_start: Time prior to target trigger to use as start of period for valid samples.
+        :param accuracy_period_stop: Time prior to target trigger to use as end of period for valid samples.
+        :param triggers: Target progression triggers. Default is 'space' key press.
+        :param storeeventsfor: iohub devices that events should be stored for.
         """
         self.terminate_key = terminate_key
         self.toggle_gaze_cursor_key = toggle_gaze_cursor_key
@@ -237,8 +227,6 @@ class ValidationProcedure(object):
                                                        triggers=triggers, storeeventsfor=storeeventsfor,
                                                        terminate_key=terminate_key,
                                                        gaze_cursor_key=toggle_gaze_cursor_key)
-        # Stim for results screen
-        self.use_dpi = 90
 
     def run(self):
         """
@@ -268,11 +256,19 @@ class ValidationProcedure(object):
         self._createValidationResults()
 
         if self.show_results_screen:
-            if self.showResultsScreen() is not None:
-                if self.terminate_key and self.terminate_key in keyboard.waitForPresses(keys=[' ', self.terminate_key]):
+            self.showResultsScreen()
+            kb_presses = keyboard.waitForPresses(keys=[' ', self.terminate_key, self.targetsequence.gaze_cursor_key])
+            while ' ' not in kb_presses:
+                if self.targetsequence.gaze_cursor_key in kb_presses:
+                    self.targetsequence.display_gaze = not self.targetsequence.display_gaze
+                    self.showResultsScreen()
+                if self.terminate_key in kb_presses:
                     print("Escape key pressed. Exiting validation")
-                    self.validation_results = None
-                    return
+                    break
+                kb_presses = keyboard.waitForPresses(keys=[' ',
+                                                           self.terminate_key,
+                                                           self.targetsequence.gaze_cursor_key])
+
         return self.validation_results
 
     def showResultsScreen(self):
@@ -300,6 +296,38 @@ class ValidationProcedure(object):
         return self.win.flip()
 
     def getValidationResults(self):
+        """
+        Return the validation results dict for the last validation run. If a validation as not yet been run(),
+        None is returned. Validation results are provided separately for each target position and include:
+
+        a) An array of the samples used for the accuracy calculation. The samples used are selected
+           using the following criteria:
+                i) Only samples where the target was stationary and not expanding or contracting are selected.
+                ii) Samples are selected that fall between:
+
+                              start_time_filter = last_sample_time - accuracy_period_start
+
+                           and
+
+                              end_time_filter = last_sample_time - accuracy_period_end
+
+                           Therefore, the duration of the selected sample period is:
+
+                              selection_period_dur = end_time_filter - start_time_filter
+
+                iii) Sample that contain missing / invalid position data are removed, providing the
+                     final set of samples used for accuracy calculations. The min, max, and mean values
+                     from each set of selected samples is calculated.
+
+        b) The x and y error of sampled gaze position relative to the current target position.
+           This data is in the same units as is used by the validation window.
+
+        c) The xy distance error from the from each eye's gaze position to the target position.
+           This is also calculated as an average of both eyes when binocular data is available.
+           The data is unsigned, providing the absolute distance from gaze to target positions
+
+        :return: validation results dict.
+        """
         return self.validation_results
 
     def _createValidationResults(self):
@@ -389,7 +417,7 @@ class ValidationProcedure(object):
                                                     used_samples=good_samples_in_period)
 
             position_results = dict(index=pindex,
-                                    position=target_positions_used[pindex],
+                                    target_position=target_positions_used[pindex],
                                     sample_time_range=[first_stime, last_stime],
                                     filter_samples_time_range=[filter_stime, filter_etime],
                                     valid_filtered_sample_perc=good_sample_ratio)
@@ -446,7 +474,6 @@ class ValidationProcedure(object):
                     point_count += 1.0
 
                 position_results2['calculation_status'] = 'PASSED'
-                position_results2['target_position'] = (target_x[0], target_y[0])
                 position_results2['min_error'] = lr_error_min
                 position_results2['max_error'] = lr_error_max
                 position_results2['mean_error'] = lr_error_mean
@@ -459,7 +486,7 @@ class ValidationProcedure(object):
 
         unit_type = self.win.units
         if self.results_in_degrees:
-            unit_type = 'degrees'
+            unit_type = 'degree'
         mean_error = summed_error / point_count
         err_results = dict(reporting_unit_type=unit_type, min_error=min_error, max_error=max_error,
                            mean_error=mean_error, passed=results['positions_failed_processing'] == 0,
@@ -494,7 +521,7 @@ class ValidationProcedure(object):
             self.targetsequence.target.setPos(tp)
             self.targetsequence.target.draw()
 
-        title_txt = 'Validation Accuracy\nMin: %.4f, Max: %.4f,' \
+        title_txt = 'Validation Results\nMin: %.4f, Max: %.4f,' \
                     ' Mean %.4f (%s units)' % (results['min_error'], results['max_error'],
                                                results['mean_error'], results['reporting_unit_type'])
         title_stim = visual.TextStim(self.win, text=title_txt, height=24, pos=(0.0, (self.win.size[1] / 2.0) * .95),
@@ -511,24 +538,25 @@ class ValidationProcedure(object):
         color_list = pl.cm.tab20b(np.linspace(0, 1, (len(results['position_results']))))
         # draw eye samples
         ci = 0
-        sample_gfx_radius = deg2pix(0.33, self.win.monitor, correctFlat=False)
         for position_results in results['position_results']:
             color = color_list[ci] * 2.0 - 1.0
+            utype = 'pix'
+            target_x, target_y = position_results['target_position']
+
+            sample_gfx_radius = deg2pix(0.33, self.win.monitor, correctFlat=False)
+            if self.results_in_degrees:
+                sample_gfx_radius = 0.33
+                utype='deg'
             sample_gfx = visual.Circle(self.win, radius=sample_gfx_radius, fillColor=color, lineColor=[1, 1, 1],
-                                       lineWidth=1, edges=64, units='pix', colorSpace='rgb', opacity=0.66,
+                                       lineWidth=1, edges=64, units=utype, colorSpace='rgb', opacity=0.66,
                                        interpolate=True, autoLog=False)
 
             if position_results['calculation_status'] == 'FAILED':
                 position_txt = "Failed"
                 txt_bold = True
                 position_txt_color = "red"
-                target_x, target_y = position_results['position']
-                text_pix_pos = toPix(self.win, target_x, target_y)
-                text_pix_pos = text_pix_pos[0][0], text_pix_pos[1][0]
             else:
                 samples = position_results['sample_from_filter_stages']['used_samples']
-                target_x = samples[:]['targ_pos_x'][0]
-                target_y = samples[:]['targ_pos_y'][0]
                 if self.targetsequence.sample_type == EventConstants.BINOCULAR_EYE_SAMPLE:
                     gaze_x = (samples[:]['left_eye_x'] + samples[:]['right_eye_x']) / 2.0
                     gaze_y = (samples[:]['left_eye_y'] + samples[:]['right_eye_y']) / 2.0
@@ -537,9 +565,12 @@ class ValidationProcedure(object):
                     gaze_y = samples[:]['eye_y']
 
                 for i in range(len(gaze_x)):
-                    pix_pos = toPix(self.win, gaze_x[i], gaze_y[i])
-                    pix_pos = pix_pos[0][0], pix_pos[1][0]
-                    sample_gfx.setPos(pix_pos)
+                    if self.results_in_degrees:
+                        g_pos = gaze_x[i], gaze_y[i]
+                    else:
+                        g_pos = toPix(self.win, gaze_x[i], gaze_y[i])
+                        g_pos = g_pos[0][0], g_pos[1][0]
+                    sample_gfx.setPos(g_pos)
                     sample_gfx.draw()
                 txt_bold = False
                 position_txt = "Gaze Error:\nMin: %.4f\nMax: %.4f\n" \
@@ -548,13 +579,14 @@ class ValidationProcedure(object):
                                                            position_results['mean_error'],
                                                            position_results['stdev_error'])
                 position_txt_color = "green"
+
+            if self.targetsequence.display_gaze:
                 text_pix_pos = toPix(self.win, target_x, target_y)
                 text_pix_pos = text_pix_pos[0][0], text_pix_pos[1][0]
-
-            target_text_stim = visual.TextStim(self.win, text=position_txt, units='pix', pos=text_pix_pos,
-                                               height=21, color=position_txt_color, antialias=True, bold=txt_bold,
-                                               anchorVert='center', anchorHoriz='center')
-            target_text_stim.draw()
+                target_text_stim = visual.TextStim(self.win, text=position_txt, units='pix', pos=text_pix_pos,
+                                                   height=21, color=position_txt_color, antialias=True,
+                                                   bold=txt_bold, anchorVert='center', anchorHoriz='center')
+                target_text_stim.draw()
             ci += 1
 
 
