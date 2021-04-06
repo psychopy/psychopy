@@ -645,9 +645,14 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         Note: units are psychopy -1..+1 rgb units to three decimal places,
         preserving 24-bit color.
         """
-        dlg = PsychoColorPicker(None)  # doesn't need a parent
-        dlg.ShowModal()
-        dlg.Destroy()
+        if self.coder is None:
+            return
+
+        document = self.coder.currentDoc
+        if document is not None:
+            dlg = PsychoColorPicker(document)  # doesn't need a parent
+            dlg.ShowModal()
+            dlg.Destroy()
 
         if event is not None:
             event.Skip()
