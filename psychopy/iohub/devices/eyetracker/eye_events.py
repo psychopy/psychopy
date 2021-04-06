@@ -1,15 +1,11 @@
-"""ioHub Common Eye Tracker Interface"""
- # Part of the psychopy.iohub library.
- # Copyright (C) 2012-2016 iSolver Software Solutions
- # Distributed under the terms of the GNU General Public License (GPL).
-
+# -*- coding: utf-8 -*-
+# Part of the psychopy.iohub library.
+# Copyright (C) 2012-2021 iSolver Software Solutions
+# Distributed under the terms of the GNU General Public License (GPL).
 from .. import DeviceEvent
 from ...constants import EventConstants
 from . import EyeTrackerDevice
 import numpy as np
-
-##################### Eye Tracker Sample Stream Types ####################
-#
 
 
 class EyeTrackerEvent(DeviceEvent):

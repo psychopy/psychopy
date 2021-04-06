@@ -41,7 +41,8 @@ if __name__ == "__main__":
     target_positions = [(0.0, 0.0), (0.85, 0.85), (-0.85, 0.0), (0.85, 0.0), (0.85, -0.85), (-0.85, 0.85),
                         (-0.85, -0.85), (0.0, 0.85), (0.0, -0.85)]
 
-    # Create a validation procedure
+    # Create a validation procedure, iohub must already be running with an
+    # eye tracker device, or errors will occur.
     validation_proc = ValidationProcedure(win,
                                           target=target_stim,
                                           positions=target_positions,

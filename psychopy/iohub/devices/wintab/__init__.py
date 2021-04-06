@@ -1,13 +1,8 @@
 # -*- coding: utf-8 -*-
 # Part of the psychopy.iohub library.
-# Copyright (C) 2012-2016 iSolver Software Solutions
+# Copyright (C) 2012-2021 iSolver Software Solutions
 # Distributed under the terms of the GNU General Public License (GPL).
 
-#
-# TODO List
-#
-#   2) Check for missing serial numbers in PACKET evt stream.
-#
 _is_epydoc = False
 
 # Pen digitizers /tablets that support Wintab API

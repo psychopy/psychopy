@@ -106,7 +106,7 @@ class ValidationProcedure(object):
                  show_results_screen=True, results_in_degrees=False, save_results_screen=False,
                  terminate_key="escape", toggle_gaze_cursor_key="g"):
         """
-        ValidationProcedure is used to calculate the gaze accuracy of a calibrated eye tracking system.
+        ValidationProcedure is used to test the gaze accuracy of a calibrated eye tracking system.
 
         Once a ValidationProcedure class instance has been created, the `.run()` method is called to actually start
         the validation process, which consists of the following steps:
