@@ -115,7 +115,7 @@ class PsychoColorPicker(wx.Dialog):
         self.pnlHSV = ColorPickerPageHSV(self.nbColorSpaces)
 
         self.nbColorSpaces.AddPage(self.pnlRGB, _translate(u"RGB"), True)
-        self.nbColorSpaces.AddPage(self.pnlHSV, _translate(u"HSV/HSB"), False)
+        self.nbColorSpaces.AddPage(self.pnlHSV, _translate(u"HSV"), False)
 
     def _setupUI(self):
         """Setup the UI for the color picker dialog box.
@@ -245,6 +245,10 @@ class PsychoColorPicker(wx.Dialog):
         self.cboOutputSpace.Bind(
             wx.EVT_CHOICE, self.onOutputSpaceChanged)
         self.cmdClose.Bind(wx.EVT_BUTTON, self.onClose)
+
+        # disable insert if parent is not a valid context, allow copying though
+        if self.parent is None:
+            self.cmdInsertColor.Enable(False)
 
     def _copyToClipboard(self, text):
         """Copy text to the clipboard.

@@ -649,10 +649,9 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
             return
 
         document = self.coder.currentDoc
-        if document is not None:
-            dlg = PsychoColorPicker(document)  # doesn't need a parent
-            dlg.ShowModal()
-            dlg.Destroy()
+        dlg = PsychoColorPicker(document)  # doesn't need a parent
+        dlg.ShowModal()
+        dlg.Destroy()
 
         if event is not None:
             event.Skip()
