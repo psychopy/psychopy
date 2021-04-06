@@ -1,9 +1,5 @@
 eyetracker.hw.sr_research.eyelink.EyeTracker:
-    name: 
-        IOHUB_STRING:
-            min_length: 1
-            max_length: 32
-            first_char_alpha: True
+    name: tracker
     enable: IOHUB_BOOL
     save_events: IOHUB_BOOL
     stream_events: IOHUB_BOOL
@@ -105,6 +101,6 @@ eyetracker.hw.sr_research.eyelink.EyeTracker:
     # manufacturer_name:    Used by Builder as the displayed name in the eye tracker selection dropdown.
     #
     manufacturer_name: SR Research Ltd
-    builder_hides: ['builder_hides', 'enable', 'name', 'device_number', 'device_timer', 'auto_report_events']
+    builder_hides: ['builder_hides', 'enable', 'device_number', 'device_timer', 'auto_report_events']
 
 

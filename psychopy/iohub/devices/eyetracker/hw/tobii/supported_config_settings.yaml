@@ -1,9 +1,5 @@
 eyetracker.hw.tobii.EyeTracker:
-    name: 
-        IOHUB_STRING:
-            min_length: 1
-            max_length: 32
-            first_char_alpha: True
+    name: tracker
     enable: IOHUB_BOOL
     model_name:
         IOHUB_STRING:
@@ -83,4 +79,4 @@ eyetracker.hw.tobii.EyeTracker:
                 contract_only: IOHUB_BOOL
     device_number: 0
     manufacturer_name: Tobii Technology
-    builder_hides: ['builder_hides', 'enable', 'name', 'device_number', 'calibration.target_positions', 'auto_report_events']
+    builder_hides: ['builder_hides', 'enable', 'device_number', 'calibration.target_positions', 'auto_report_events']

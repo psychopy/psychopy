@@ -66,5 +66,5 @@ eyetracker.hw.gazepoint.gp3.EyeTracker:
     # device configuration, or you can complete any ones that are relevant for FYI
     # purposes only at this time.
     device_number: 0
-    builder_hides: [ 'builder_hides', 'enable', 'name', 'device_number', 'device_timer', 'auto_report_events', 'runtime_settings.track_eyes', 'calibration.use_builtin' ]
+    builder_hides: [ 'builder_hides', 'enable', 'device_number', 'device_timer', 'auto_report_events', 'runtime_settings.track_eyes', 'calibration.use_builtin' ]
 

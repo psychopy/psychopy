@@ -43,4 +43,4 @@ eyetracker.hw.mouse.EyeTracker:
         track_eyes: RIGHT_EYE
     device_number: 0
     manufacturer_name: MouseGaze
-    builder_hides: ['builder_hides', 'enable', 'name', 'device_number', 'device_timer', 'auto_report_events']
+    builder_hides: ['builder_hides', 'enable', 'device_number', 'device_timer', 'auto_report_events']

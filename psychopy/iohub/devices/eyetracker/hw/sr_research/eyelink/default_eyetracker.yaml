@@ -219,4 +219,4 @@ eyetracker.hw.sr_research.eyelink.EyeTracker:
     #   device_number is not used by this device type.
     #
     device_number: 0
-    builder_hides: ['builder_hides', 'enable', 'name', 'device_number', 'device_timer', 'auto_report_events']
+    builder_hides: ['builder_hides', 'enable', 'device_number', 'device_timer', 'auto_report_events']
