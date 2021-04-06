@@ -39,6 +39,7 @@ from .form import Form
 from .brush import Brush
 from .textbox2.textbox2 import TextBox2
 from .button import ButtonStim
+from .roi import ROI
 # window, should always be loaded first
 from .window import Window, getMsPerFrame, openWindows
 
