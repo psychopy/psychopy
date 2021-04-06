@@ -35,7 +35,7 @@ class PsychoColorPicker(wx.Dialog):
             id=wx.ID_ANY,
             title=_translate("Color Picker"),
             pos=wx.DefaultPosition,
-            size=wx.Size(640, 480),
+            size=wx.Size(680, 480),
             style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
 
         self.parent = parent
