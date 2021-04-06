@@ -28,7 +28,7 @@ class EyetrackerComponent(BaseComponent):
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim='',
-                 events="", rois="",
+                 events="",
                  #legacy
                  save='final', configFile='myTracker.yaml'):
         BaseComponent.__init__(self, exp, parentName, name=name,
@@ -49,13 +49,6 @@ class EyetrackerComponent(BaseComponent):
             label=_translate("Event Types")
         )
 
-        self.params['rois'] = Param(
-            rois, valType='list', inputType='single', categ='Basic',
-            hint=_translate("Regions of interest (ROIs) for the eyetracker, should be a list of component names. "
-                            "To define an ROI without showing it, create a Polygon component with opacity set to 0."),
-            label=_translate("ROIs")
-        )
-
     def writePreWindowCode(self, buff):
         pass
 
@@ -67,8 +60,7 @@ class EyetrackerComponent(BaseComponent):
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(1, relative=True)
         code = (
-                "events=%(events)s,\n"
-                "rois=%(rois)s)\n"
+                "events=%(events)s)\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
