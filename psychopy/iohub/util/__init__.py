@@ -145,7 +145,6 @@ def getDevicePaths(device_name=""):
     iohub_device_path = module_directory(import_device)
     if device_name:
         iohub_device_path = os.path.join(iohub_device_path, device_name.replace('.', os.path.sep))
-
     scs_yaml_paths = []
     for root, dirs, files in os.walk(iohub_device_path):
         device_folder = None
@@ -183,6 +182,8 @@ def getDeviceDefaultConfig(device_name, builder_hides=True):
          'save_events': True,
          'stream_events': True}
     """
+    if device_name.endswith(".EyeTracker"):
+        device_name = device_name[:-11]
     device_paths = getDevicePaths(device_name)
     device_configs = []
     for dpath, dconf in device_paths:
@@ -227,13 +228,14 @@ def getDeviceNames(device_name="eyetracker.hw"):
         print(eyetrackers)
 
     Output:
-        ['eyetracker.hw.gazepoint.gp3', 'eyetracker.hw.sr_research.eyelink', 'eyetracker.hw.tobii']
+        ['eyetracker.hw.gazepoint.gp3.EyeTracker', 'eyetracker.hw.sr_research.eyelink.EyeTracker',
+         'eyetracker.hw.tobii.EyeTracker']
     """
     names = []
     dconfigs = getDeviceDefaultConfig(device_name)
     for dcfg in dconfigs:
         d_name = tuple(dcfg.keys())[0]
-        d_name = d_name[:d_name.rfind('.')]
+        #d_name = d_name[:d_name.rfind('.')]
         names.append(d_name)
     return names
 
@@ -245,6 +247,8 @@ def getDeviceFile(device_name, file_name):
     :param: file_name: name of device yaml file to load
     :return: dict
     """
+    if device_name.endswith(".EyeTracker"):
+        device_name = device_name[:-11]
     device_paths = getDevicePaths(device_name)
     device_sconfigs = []
     for dpath, _ in device_paths:
