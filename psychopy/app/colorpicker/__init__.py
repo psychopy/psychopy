@@ -289,16 +289,16 @@ class PsychoColorPicker(wx.Dialog):
         outputSpace = self.cboOutputSpace.GetSelection()
         dlgCol = self.GetTopLevelParent().color
         if outputSpace == 0:  # RGB
-            colorOut = '({:.4f}, {:.4f}, {:.4f})'.format(*dlgCol.rgb)
+            colorOut = '{:.4f}, {:.4f}, {:.4f}'.format(*dlgCol.rgb)
         elif outputSpace == 1:  # RGB1
-            colorOut = '({:.4f}, {:.4f}, {:.4f})'.format(*dlgCol.rgb1)
+            colorOut = '{:.4f}, {:.4f}, {:.4f}'.format(*dlgCol.rgb1)
         elif outputSpace == 2:  # RGB255
-            colorOut = '({:d}, {:d}, {:d})'.format(
+            colorOut = '{:d}, {:d}, {:d}'.format(
                 *[int(i) for i in dlgCol.rgb255])
         elif outputSpace == 3:  # Hex
             colorOut = "'{}'".format(dlgCol.hex)
         elif outputSpace == 4:  # HSV
-            colorOut = '({:.4f}, {:.4f}, {:.4f})'.format(*dlgCol.hsv)
+            colorOut = '{:.4f}, {:.4f}, {:.4f}'.format(*dlgCol.hsv)
         else:
             raise ValueError(
                 "Invalid output color space selection. Have you added any "
@@ -327,9 +327,9 @@ class PsychoColorPicker(wx.Dialog):
         """
         if isinstance(self.parent, wx.TextCtrl):
             self.parent.SetValue(self.getOutputValue())
-        elif isinstance(self.parent, stc.StyledTextCtrl):  # likely stc
+        elif isinstance(self.parent, stc.StyledTextCtrl):
             self.parent.InsertText(
-                self.parent.GetCurrentPos(), self.getOutputValue())
+                self.parent.GetCurrentPos(), "(" + self.getOutputValue() + ")")
 
         self.Close()
         event.Skip()
