@@ -55,7 +55,7 @@ class ColorPickerPageRGB(wx.Panel):
         szrRGBPage = wx.BoxSizer(wx.VERTICAL)
 
         fraRGBChannels = wx.StaticBoxSizer(
-            wx.StaticBox(self, wx.ID_ANY, u"RGBA Channels"), wx.VERTICAL)
+            wx.StaticBox(self, wx.ID_ANY, u"RGB Channels"), wx.VERTICAL)
 
         szrRGBArea = wx.FlexGridSizer(4, 3, 5, 5)
         szrRGBArea.AddGrowableCol(1)
@@ -189,7 +189,7 @@ class ColorPickerPageRGB(wx.Panel):
             wx.StaticBox(
                 self,
                 wx.ID_ANY,
-                u"Hex/HTML (no Alpha)"),
+                u"Hex/HTML"),
             wx.VERTICAL)
 
         self.txtHex = wx.TextCtrl(
@@ -282,7 +282,8 @@ class ColorPickerPageRGB(wx.Panel):
         self.sldRed.SetValue(rgba255[0])
         self.sldGreen.SetValue(rgba255[1])
         self.sldBlue.SetValue(rgba255[2])
-        #self.sldAlpha.SetValue(rgbaColor.alpha * SLIDER_RES)  # arrrg! should be 255!!!
+        # self.sldAlpha.SetValue(
+        #    rgbaColor.alpha * SLIDER_RES)  # arrrg! should be 255!!!
 
         channelMode = self.rbxRGBFormat.GetSelection()
         convFunc = self._posToValFunc[channelMode]
@@ -457,7 +458,7 @@ class ColorPickerPageHSV(wx.Panel):
         szrRGBPage = wx.BoxSizer(wx.VERTICAL)
 
         fraHSVChannels = wx.StaticBoxSizer(
-            wx.StaticBox(self, wx.ID_ANY, u"HSV/HSB Values"), wx.VERTICAL)
+            wx.StaticBox(self, wx.ID_ANY, u"HSV Values"), wx.VERTICAL)
 
         szrHSVArea = wx.FlexGridSizer(4, 3, 5, 5)
         szrHSVArea.AddGrowableCol(1)

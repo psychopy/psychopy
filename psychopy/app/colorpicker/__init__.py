@@ -59,7 +59,7 @@ class PsychoColorPicker(wx.Dialog):
         self._outputChoices = [
             u'PsychoPy RGB (rgb)',
             u'Normalized RGB (rgb1)',
-            u'8-bit RGBA (rgb255)',
+            u'8-bit RGB (rgb255)',
             u'Hex/HTML (hex)',
             u'Hue-Saturation-Value (hsv)'
         ]
