@@ -7,7 +7,7 @@ and the psychopy.iohub.client.eyetracker.validation.ValidationProcedure class.
 import time
 from psychopy import visual
 from psychopy.iohub import launchHubServer
-from psychopy.iohub.client.eyetracker.validation import TargetStim, ValidationProcedure
+from psychopy.iohub.client.eyetracker.validation import TargetStim, ValidationProcedure, PositionGrid
 
 if __name__ == "__main__":
     # Create a default PsychoPy Window
@@ -37,16 +37,17 @@ if __name__ == "__main__":
                              dotcolor=[1, -1, -1], dotradius=0.005, units='norm', colorspace='rgb')
 
     # target_positions: Provide your own list of validation positions,
-    # or use the PositionGrid class to generate a set.
     target_positions = [(0.0, 0.0), (0.85, 0.85), (-0.85, 0.0), (0.85, 0.0), (0.85, -0.85), (-0.85, 0.85),
                         (-0.85, -0.85), (0.0, 0.85), (0.0, -0.85)]
+    # or use the PositionGrid class to generate a set.
+    #target_positions = PositionGrid(bounds=[-.85, .85, .85, -.85], shape=(3, 3), firstposindex=4, repeatFirstPos=True)
 
     # Create a validation procedure, iohub must already be running with an
     # eye tracker device, or errors will occur.
     validation_proc = ValidationProcedure(win,
                                           target=target_stim,
                                           positions=target_positions,
-                                          randomize_positions=False,
+                                          randomize_positions=True,
                                           target_animation=dict(velocity=1.0,
                                                                 expandedscale=3.0,
                                                                 expansionduration=0.2,
