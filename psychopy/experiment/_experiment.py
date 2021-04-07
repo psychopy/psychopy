@@ -794,21 +794,24 @@ class Experiment(object):
             :param filePath: str to a potential file path (rel or abs)
             :return: dict of 'asb' and 'rel' paths or None
             """
+            # Only construct paths if filePath is a string
+            if type(filePath) != str:
+              return None
+
             thisFile = {}
             # NB: Pathlib might be neater here but need to be careful
             # e.g. on mac:
             #    Path('C:/test/test.xlsx').is_absolute() returns False
             #    Path('/folder/file.xlsx').relative_to('/Applications') gives error
             #    but os.path.relpath('/folder/file.xlsx', '/Applications') correctly uses ../
-            filePathStr = str(filePath);            
-            if len(filePathStr) > 2 and (filePathStr[0] == "/" or filePathStr[1] == ":")\
-                    and os.path.isfile(filePathStr):
-                thisFile['abs'] = filePathStr
-                thisFile['rel'] = os.path.relpath(filePathStr, srcRoot)
+            if len(filePath) > 2 and (filePath[0] == "/" or filePath[1] == ":")\
+                    and os.path.isfile(filePath):
+                thisFile['abs'] = filePath
+                thisFile['rel'] = os.path.relpath(filePath, srcRoot)
                 return thisFile
             else:
-                thisFile['rel'] = filePathStr
-                thisFile['abs'] = os.path.normpath(join(srcRoot, filePathStr))
+                thisFile['rel'] = filePath
+                thisFile['abs'] = os.path.normpath(join(srcRoot, filePath))
                 if os.path.isfile(thisFile['abs']):
                     return thisFile
 
@@ -894,7 +897,9 @@ class Experiment(object):
             if thisFile:
                 resources.append(thisFile)
         # Check for any resources not in experiment path
+        print(resources)
         for res in resources:
+            print(res)
             if srcRoot not in res['abs']:
                 psychopy.logging.warning("{} is not in the experiment path and "
                                          "so will not be copied to Pavlovia"
