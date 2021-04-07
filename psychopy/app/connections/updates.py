@@ -16,6 +16,8 @@ import time
 import zipfile
 import platform
 import os
+import json
+from packaging.version import Version
 from pkg_resources import parse_version
 import wx
 import wx.lib.filebrowsebutton
@@ -42,6 +44,28 @@ versionURL = "https://www.psychopy.org/version.txt"
 out if a new version is found. The actual updating is handled by
 InstallUpdateDialog (via Updater.doUpdate() ).
 """
+
+
+def getVersions():
+    """Get a list of available PsychoPy versions"""
+    # Get releases page from GitHub API
+    try:
+        page = urllib.request.urlopen("https://api.github.com/repos/psychopy/psychopy/releases")
+    except urllib.error.URLError:
+        # If GitHub isn't available, just return current version
+        return [None]
+    contents = page.readlines()[0]
+    # Parse as a json and get tag of each version
+    parsed = json.loads(contents)
+    versionList = [Version(vdict['tag_name']) for vdict in parsed]
+    # Flip it so that the newest version is last
+    versionList.sort()
+    return versionList
+
+
+def getLatestVersion():
+    # Return version number as Version object
+    return getVersions()[-1]
 
 
 def getLatestVersionInfo(app=None):
@@ -275,10 +299,7 @@ class InstallUpdateDialog(wx.Dialog):
         if app.updater in [False, None]:
             # user has turned off check for updates in prefs so check now
             app.updater = updater = Updater(app=self.app)
-            # don't need a warning - we'll provide one ourselves
-            self.latest = updater.getLatestInfo(warnMsg=False)
-        else:
-            self.latest = app.updater.latest
+        self.latest = getLatestVersion()
         self.runningVersion = app.updater.runningVersion
         wx.Dialog.__init__(self, parent, ID,
                            title=_translate('PsychoPy Updates'),
@@ -288,7 +309,7 @@ class InstallUpdateDialog(wx.Dialog):
         # set the actual content of status msg later in self.updateStatus()
         self.statusMessage = wx.StaticText(
             self, -1, "msg", style=wx.ALIGN_CENTER)
-        mainSizer.Add(self.statusMessage, flag=wx.EXPAND | wx.ALL, border=5)
+        mainSizer.Add(self.statusMessage, flag=wx.EXPAND | wx.ALL, border=16)
         # ctrls for auto-update from web
         msg = _translate(" Auto-update (will fetch latest version)")
         self.useLatestBtn = wx.RadioButton(self, -1, msg,
@@ -318,7 +339,7 @@ class InstallUpdateDialog(wx.Dialog):
         btnSizer = wx.BoxSizer(wx.HORIZONTAL)
         btnSizer.Add(self.installBtn)
         btnSizer.Add(self.cancelBtn, flag= wx.LEFT, border=5)
-        mainSizer.Add(btnSizer, flag= wx.ALL, border=5)
+        mainSizer.Add(btnSizer, flag=wx.ALIGN_RIGHT | wx.ALL, border=5)
 
         self.SetSizerAndFit(mainSizer)
         self.SetAutoLayout(True)
@@ -331,39 +352,33 @@ class InstallUpdateDialog(wx.Dialog):
     def updateStatus(self):
         """Check the current version and most recent version and update ctrls
         """
-        if self.latest == -1:
-            msg = _translate(
-                "You are running PsychoPy v%s.\n ") % self.runningVersion
-            msg += _translate("PsychoPy could not connect to the \n internet"
-                              " to check for more recent versions.\n")
-            msg += _translate("Check proxy settings in preferences.")
-        elif (parse_version(self.latest['version'])
-                  < parse_version(self.runningVersion)):
-            msg = _translate(
-                "You are running PsychoPy (%(running)s), which is ahead of "
-                "the latest official version (%(latest)s)") % {
-                'running':self.runningVersion, 'latest':self.latest['version']}
-        elif self.latest['version'] == self.runningVersion:
-            msg = _translate(
-                "You are running the latest version of PsychoPy (%s)\n ") % self.runningVersion
-            msg += _translate("You can revert to a previous version by "
-                              "selecting a specific .zip source installation file")
-        else:
-            txt = _translate(
-                "PsychoPy v%(latest)s is available\nYou are running v%(running)s")
-            msg = txt % {'latest': self.latest['version'],
-                         'running': self.runningVersion}
-            if (parse_version(self.latest['lastUpdatable'])
-                                  <= parse_version(self.runningVersion)):
-                msg += _translate("\nYou can update to the latest version automatically")
-            else:
-                msg += _translate("\nYou cannot update to the latest version "
-                                  "automatically.\nPlease fetch the latest "
-                                  "Standalone package from www.psychopy.org")
+        msg = _translate("You are running PsychoPy v%s. ") % self.runningVersion
+        if self.latest is None:
+            msg += _translate(
+                "PsychoPy could not connect to the internet to check for more recent versions. \n"
+                "Check proxy settings in preferences. "
+            )
+        elif self.latest < Version(self.runningVersion):
+            msg += _translate(
+                "This is ahead of the latest official version (v%s). "
+            ) % self.latest
+        elif self.latest == Version(self.runningVersion):
+            msg += _translate(
+                "This is the latest version of PsychoPy.\n "
+            )
+            msg += _translate(
+                "You can revert to a previous version by selecting a specific .zip source "
+                "installation file. "
+            )
+        elif self.latest > Version(self.runningVersion):
+            msg += _translate(
+                "A newer version of PsychoPy (v%s) is available. \n"
+                "You can update to the latest version automatically. "
+            ) % self.latest
         self.statusMessage.SetLabel(msg)
-        areRunningLatest = self.latest['version'] == self.runningVersion
-        notUpdateable = self.latest['lastUpdatable'] > self.runningVersion
-        if self.latest == -1 or areRunningLatest or notUpdateable:
+        areRunningLatest = self.latest == Version(self.runningVersion)
+        notUpdateable = self.latest is None
+        if self.latest is None or areRunningLatest or notUpdateable:
             # can't auto-update
             self.currentSelection = self.useZipBtn
             self.useZipBtn.SetValue(True)
