@@ -55,7 +55,7 @@ class ColorPickerPageRGB(wx.Panel):
         szrRGBPage = wx.BoxSizer(wx.VERTICAL)
 
         fraRGBChannels = wx.StaticBoxSizer(
-            wx.StaticBox(self, wx.ID_ANY, u"RGBA Channels"), wx.VERTICAL)
+            wx.StaticBox(self, wx.ID_ANY, u"RGB Channels"), wx.VERTICAL)
 
         szrRGBArea = wx.FlexGridSizer(4, 3, 5, 5)
         szrRGBArea.AddGrowableCol(1)
@@ -81,17 +81,17 @@ class ColorPickerPageRGB(wx.Panel):
             u"B:",
             wx.DefaultPosition,
             wx.DefaultSize, 0)
-        self.lblAlpha = wx.StaticText(
-            fraRGBChannels.GetStaticBox(),
-            wx.ID_ANY,
-            u"A:",
-            wx.DefaultPosition,
-            wx.DefaultSize, 0)
+        # self.lblAlpha = wx.StaticText(
+        #     fraRGBChannels.GetStaticBox(),
+        #     wx.ID_ANY,
+        #     u"A:",
+        #     wx.DefaultPosition,
+        #     wx.DefaultSize, 0)
 
         self.lblRed.Wrap(-1)
         self.lblGreen.Wrap(-1)
         self.lblBlue.Wrap(-1)
-        self.lblAlpha.Wrap(-1)
+        # self.lblAlpha.Wrap(-1)
 
         # sliders for setting each channel
         self.sldRed = wx.Slider(
@@ -115,13 +115,13 @@ class ColorPickerPageRGB(wx.Panel):
             wx.DefaultPosition,
             wx.DefaultSize,
             wx.SL_HORIZONTAL)
-        self.sldAlpha = wx.Slider(
-            fraRGBChannels.GetStaticBox(),
-            wx.ID_ANY,
-            SLIDER_RES, 0, SLIDER_RES,
-            wx.DefaultPosition,
-            wx.DefaultSize,
-            wx.SL_HORIZONTAL)
+        # self.sldAlpha = wx.Slider(
+        #     fraRGBChannels.GetStaticBox(),
+        #     wx.ID_ANY,
+        #     SLIDER_RES, 0, SLIDER_RES,
+        #     wx.DefaultPosition,
+        #     wx.DefaultSize,
+        #     wx.SL_HORIZONTAL)
 
         # spin (double) controls
         self.spnRed = wx.SpinCtrlDouble(
@@ -145,18 +145,18 @@ class ColorPickerPageRGB(wx.Panel):
             wx.DefaultPosition,
             wx.DefaultSize, wx.SP_ARROW_KEYS,
             -1, 1, 0, 0.05)
-        self.spnAlpha = wx.SpinCtrlDouble(
-            fraRGBChannels.GetStaticBox(),
-            wx.ID_ANY,
-            u"1",
-            wx.DefaultPosition,
-            wx.DefaultSize, wx.SP_ARROW_KEYS,
-            0, 1, 0, 0.05)  # non-standard specification for alpha here!!!
+        # self.spnAlpha = wx.SpinCtrlDouble(
+        #     fraRGBChannels.GetStaticBox(),
+        #     wx.ID_ANY,
+        #     u"1",
+        #     wx.DefaultPosition,
+        #     wx.DefaultSize, wx.SP_ARROW_KEYS,
+        #     0, 1, 0, 0.05)  # non-standard specification for alpha here!!!
 
         self.spnRed.SetDigits(4)
         self.spnGreen.SetDigits(4)
         self.spnBlue.SetDigits(4)
-        self.spnAlpha.SetDigits(4)
+        #self.spnAlpha.SetDigits(4)
 
         # add widgets to the color channel area
         szrRGBArea.Add(
@@ -174,11 +174,11 @@ class ColorPickerPageRGB(wx.Panel):
         szrRGBArea.Add(self.sldBlue, 1, wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, 5)
         szrRGBArea.Add(self.spnBlue, 0, wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, 5)
 
-        szrRGBArea.Add(
-            self.lblAlpha, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT, 5)
-        szrRGBArea.Add(
-            self.sldAlpha, 1, wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, 5)
-        szrRGBArea.Add(self.spnAlpha, 0, wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, 5)
+        # szrRGBArea.Add(
+        #     self.lblAlpha, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT, 5)
+        #szrRGBArea.Add(
+        #    self.sldAlpha, 1, wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, 5)
+        #szrRGBArea.Add(self.spnAlpha, 0, wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, 5)
 
         fraRGBChannels.Add(szrRGBArea, 1, wx.ALL | wx.EXPAND, 5)
         szrRGBPage.Add(
@@ -189,7 +189,7 @@ class ColorPickerPageRGB(wx.Panel):
             wx.StaticBox(
                 self,
                 wx.ID_ANY,
-                u"Hex/HTML (no Alpha)"),
+                u"Hex/HTML"),
             wx.VERTICAL)
 
         self.txtHex = wx.TextCtrl(
@@ -237,9 +237,9 @@ class ColorPickerPageRGB(wx.Panel):
         self.sldBlue.Bind(wx.EVT_SCROLL, self.onBlueScroll)
         self.spnBlue.Bind(wx.EVT_SPINCTRLDOUBLE, self.onBlueUpdate)
         self.spnBlue.Bind(wx.EVT_TEXT_ENTER, self.onBlueUpdate)
-        self.sldAlpha.Bind(wx.EVT_SCROLL, self.onAlphaScroll)
-        self.spnAlpha.Bind(wx.EVT_SPINCTRLDOUBLE, self.onAlphaUpdate)
-        self.spnAlpha.Bind(wx.EVT_TEXT_ENTER, self.onAlphaUpdate)
+        # self.sldAlpha.Bind(wx.EVT_SCROLL, self.onAlphaScroll)
+        # self.spnAlpha.Bind(wx.EVT_SPINCTRLDOUBLE, self.onAlphaUpdate)
+        # self.spnAlpha.Bind(wx.EVT_TEXT_ENTER, self.onAlphaUpdate)
         self.txtHex.Bind(wx.EVT_TEXT_ENTER, self.onHexChanged)
         self.rbxRGBFormat.Bind(wx.EVT_RADIOBOX, self.onRGBMode)
 
@@ -254,8 +254,8 @@ class ColorPickerPageRGB(wx.Panel):
         spinVals = [
             self.spnRed.GetValue(),
             self.spnGreen.GetValue(),
-            self.spnBlue.GetValue(),
-            self.spnAlpha.GetValue()]
+            self.spnBlue.GetValue()]
+            #self.spnAlpha.GetValue()]
 
         channelFormat = self.rbxRGBFormat.GetSelection()
         if channelFormat == 0:
@@ -282,7 +282,8 @@ class ColorPickerPageRGB(wx.Panel):
         self.sldRed.SetValue(rgba255[0])
         self.sldGreen.SetValue(rgba255[1])
         self.sldBlue.SetValue(rgba255[2])
-        self.sldAlpha.SetValue(rgbaColor.alpha * SLIDER_RES)  # arrrg! should be 255!!!
+        # self.sldAlpha.SetValue(
+        #    rgbaColor.alpha * SLIDER_RES)  # arrrg! should be 255!!!
 
         channelMode = self.rbxRGBFormat.GetSelection()
         convFunc = self._posToValFunc[channelMode]
@@ -311,7 +312,7 @@ class ColorPickerPageRGB(wx.Panel):
         self.spnRed.SetValue(spnColVals[0])
         self.spnGreen.SetValue(spnColVals[1])
         self.spnBlue.SetValue(spnColVals[2])
-        self.spnAlpha.SetValue(rgbaColor.alpha)
+        # self.spnAlpha.SetValue(rgbaColor.alpha)
 
     def onRedScroll(self, event):
         """Called when the red channel slider is moved. Updates the spin control
@@ -382,25 +383,25 @@ class ColorPickerPageRGB(wx.Panel):
         self.updateDialog()
         event.Skip()
 
-    def onAlphaScroll(self, event):
-        """Called when the alpha (transparency) channel slider is moved. Updates
-        the spin control and the color specified by the dialog.
-
-        """
-        self.spnAlpha.SetValue(event.Position / SLIDER_RES)
-        self.updateHex()
-        self.updateDialog()
-        event.Skip()
-
-    def onAlphaUpdate(self, event):
-        """Called when the alpha channel spin control is changed. Updates the
-        hex value and the color specified by the dialog.
-
-        """
-        self.sldAlpha.SetValue(event.Value * SLIDER_RES)
-        self.updateHex()
-        self.updateDialog()
-        event.Skip()
+    # def onAlphaScroll(self, event):
+    #     """Called when the alpha (transparency) channel slider is moved. Updates
+    #     the spin control and the color specified by the dialog.
+    #
+    #     """
+    #     # self.spnAlpha.SetValue(event.Position / SLIDER_RES)
+    #     self.updateHex()
+    #     self.updateDialog()
+    #     event.Skip()
+    #
+    # def onAlphaUpdate(self, event):
+    #     """Called when the alpha channel spin control is changed. Updates the
+    #     hex value and the color specified by the dialog.
+    #
+    #     """
+    #     # self.sldAlpha.SetValue(event.Value * SLIDER_RES)
+    #     self.updateHex()
+    #     self.updateDialog()
+    #     event.Skip()
 
     def onHexChanged(self, event):
         """Called when the user manually enters a hex value into the field.
@@ -457,7 +458,7 @@ class ColorPickerPageHSV(wx.Panel):
         szrRGBPage = wx.BoxSizer(wx.VERTICAL)
 
         fraHSVChannels = wx.StaticBoxSizer(
-            wx.StaticBox(self, wx.ID_ANY, u"HSV/HSB Values"), wx.VERTICAL)
+            wx.StaticBox(self, wx.ID_ANY, u"HSV Values"), wx.VERTICAL)
 
         szrHSVArea = wx.FlexGridSizer(4, 3, 5, 5)
         szrHSVArea.AddGrowableCol(1)
@@ -483,17 +484,17 @@ class ColorPickerPageHSV(wx.Panel):
             u"V:",
             wx.DefaultPosition,
             wx.DefaultSize, 0)
-        self.lblAlpha = wx.StaticText(
-            fraHSVChannels.GetStaticBox(),
-            wx.ID_ANY,
-            u"A:",
-            wx.DefaultPosition,
-            wx.DefaultSize, 0)
+        # self.lblAlpha = wx.StaticText(
+        #     fraHSVChannels.GetStaticBox(),
+        #     wx.ID_ANY,
+        #     u"A:",
+        #     wx.DefaultPosition,
+        #     wx.DefaultSize, 0)
 
         self.lblHue.Wrap(-1)
         self.lblSat.Wrap(-1)
         self.lblVal.Wrap(-1)
-        self.lblAlpha.Wrap(-1)
+        # self.lblAlpha.Wrap(-1)
 
         # sliders for setting each channel
         self.sldHue = wx.Slider(
@@ -517,13 +518,13 @@ class ColorPickerPageHSV(wx.Panel):
             wx.DefaultPosition,
             wx.DefaultSize,
             wx.SL_HORIZONTAL)
-        self.sldAlpha = wx.Slider(
-            fraHSVChannels.GetStaticBox(),
-            wx.ID_ANY,
-            0, 0, SLIDER_RES,
-            wx.DefaultPosition,
-            wx.DefaultSize,
-            wx.SL_HORIZONTAL)
+        # self.sldAlpha = wx.Slider(
+        #     fraHSVChannels.GetStaticBox(),
+        #     wx.ID_ANY,
+        #     0, 0, SLIDER_RES,
+        #     wx.DefaultPosition,
+        #     wx.DefaultSize,
+        #     wx.SL_HORIZONTAL)
 
         # spin (double) controls
         self.spnHue = wx.SpinCtrlDouble(
@@ -547,18 +548,18 @@ class ColorPickerPageHSV(wx.Panel):
             wx.DefaultPosition,
             wx.DefaultSize, wx.SP_ARROW_KEYS,
             0, 1, 0, 0.05)
-        self.spnAlpha = wx.SpinCtrlDouble(
-            fraHSVChannels.GetStaticBox(),
-            wx.ID_ANY,
-            u"1",
-            wx.DefaultPosition,
-            wx.DefaultSize, wx.SP_ARROW_KEYS,
-            0, 1, 0, 0.05)
+        # self.spnAlpha = wx.SpinCtrlDouble(
+        #     fraHSVChannels.GetStaticBox(),
+        #     wx.ID_ANY,
+        #     u"1",
+        #     wx.DefaultPosition,
+        #     wx.DefaultSize, wx.SP_ARROW_KEYS,
+        #     0, 1, 0, 0.05)
 
         self.spnHue.SetDigits(4)
         self.spnSat.SetDigits(4)
         self.spnVal.SetDigits(4)
-        self.spnAlpha.SetDigits(4)
+        # self.spnAlpha.SetDigits(4)
 
         # add widgets to the color channel area
         szrHSVArea.Add(
@@ -576,11 +577,11 @@ class ColorPickerPageHSV(wx.Panel):
         szrHSVArea.Add(self.sldVal, 10, wx.EXPAND, 5)
         szrHSVArea.Add(self.spnVal, 0, wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, 5)
 
-        szrHSVArea.Add(
-            self.lblAlpha, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT, 5)
-        szrHSVArea.Add(
-            self.sldAlpha, 1, wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, 5)
-        szrHSVArea.Add(self.spnAlpha, 0, wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, 5)
+        # szrHSVArea.Add(
+        #     self.lblAlpha, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT, 5)
+        # szrHSVArea.Add(
+        #     self.sldAlpha, 1, wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, 5)
+        # szrHSVArea.Add(self.spnAlpha, 0, wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, 5)
 
         fraHSVChannels.Add(szrHSVArea, 1, wx.ALL | wx.EXPAND, 5)
         szrRGBPage.Add(
@@ -599,9 +600,9 @@ class ColorPickerPageHSV(wx.Panel):
         self.sldVal.Bind(wx.EVT_SCROLL, self.onValScroll)
         self.spnVal.Bind(wx.EVT_SPINCTRLDOUBLE, self.onValUpdate)
         self.spnVal.Bind(wx.EVT_TEXT_ENTER, self.onValUpdate)
-        self.sldAlpha.Bind(wx.EVT_SCROLL, self.onAlphaScroll)
-        self.spnAlpha.Bind(wx.EVT_SPINCTRLDOUBLE, self.onAlphaUpdate)
-        self.spnAlpha.Bind(wx.EVT_TEXT_ENTER, self.onAlphaUpdate)
+        # self.sldAlpha.Bind(wx.EVT_SCROLL, self.onAlphaScroll)
+        # self.spnAlpha.Bind(wx.EVT_SPINCTRLDOUBLE, self.onAlphaUpdate)
+        # self.spnAlpha.Bind(wx.EVT_TEXT_ENTER, self.onAlphaUpdate)
 
     def updateDialog(self):
         """Update the color specified by the dialog.
@@ -614,8 +615,8 @@ class ColorPickerPageHSV(wx.Panel):
         spinVals = [
             self.spnHue.GetValue(),
             self.spnSat.GetValue(),
-            self.spnVal.GetValue(),
-            self.spnAlpha.GetValue()]
+            self.spnVal.GetValue()]
+            # self.spnAlpha.GetValue()]
 
         dlgColor.hsva = spinVals
 
@@ -635,13 +636,13 @@ class ColorPickerPageHSV(wx.Panel):
         self.sldHue.SetValue(hsva[0])
         self.sldSat.SetValue(hsva[1] * SLIDER_RES)
         self.sldVal.SetValue(hsva[2] * SLIDER_RES)
-        self.sldAlpha.SetValue(hsva[3] * SLIDER_RES)  # arrrg! should be 255!!!
+        # self.sldAlpha.SetValue(hsva[3] * SLIDER_RES)  # arrrg! should be 255!!!
 
         # set the value in the new range
         self.spnHue.SetValue(hsva[0])
         self.spnSat.SetValue(hsva[1])
         self.spnVal.SetValue(hsva[2])
-        self.spnAlpha.SetValue(hsva[3])
+        # self.spnAlpha.SetValue(hsva[3])
 
     def onHueScroll(self, event):
         """Called when the red channel slider is moved. Updates the spin control
@@ -697,23 +698,23 @@ class ColorPickerPageHSV(wx.Panel):
         self.updateDialog()
         event.Skip()
 
-    def onAlphaScroll(self, event):
-        """Called when the alpha (transparency) channel slider is moved. Updates
-        the spin control and the color specified by the dialog.
-
-        """
-        self.spnAlpha.SetValue(event.Position / SLIDER_RES)
-        self.updateDialog()
-        event.Skip()
-
-    def onAlphaUpdate(self, event):
-        """Called when the alpha spin control. Updates the hex value and the
-        color specified by the dialog.
-
-        """
-        self.sldAlpha.SetValue(event.GetValue() * SLIDER_RES)
-        self.updateDialog()
-        event.Skip()
+    # def onAlphaScroll(self, event):
+    #     """Called when the alpha (transparency) channel slider is moved. Updates
+    #     the spin control and the color specified by the dialog.
+    #
+    #     """
+    #     # self.spnAlpha.SetValue(event.Position / SLIDER_RES)
+    #     self.updateDialog()
+    #     event.Skip()
+    #
+    # def onAlphaUpdate(self, event):
+    #     """Called when the alpha spin control. Updates the hex value and the
+    #     color specified by the dialog.
+    #
+    #     """
+    #     # self.sldAlpha.SetValue(event.GetValue() * SLIDER_RES)
+    #     self.updateDialog()
+    #     event.Skip()
 
 
 if __name__ == "__main__":
