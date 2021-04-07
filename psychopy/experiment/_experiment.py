@@ -897,9 +897,7 @@ class Experiment(object):
             if thisFile:
                 resources.append(thisFile)
         # Check for any resources not in experiment path
-        print(resources)
         for res in resources:
-            print(res)
             if srcRoot not in res['abs']:
                 psychopy.logging.warning("{} is not in the experiment path and "
                                          "so will not be copied to Pavlovia"
