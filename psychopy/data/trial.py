@@ -273,7 +273,7 @@ class TrialHandler(_BaseTrialHandler):
             # indices*nReps, flatten, shuffle, unflatten; only use seed once
             sequential = np.repeat(indices, self.nReps, 1)  # = sequential
             randGenerator = np.random.default_rng(seed=self.seed)
-            randomFlat = randGenerator.permutation(sequential.flat, seed=self.seed)
+            randomFlat = randGenerator.permutation(sequential.flat)
             sequenceIndices = np.reshape(
                 randomFlat, (len(indices), self.nReps))
         if self.autoLog:
@@ -984,7 +984,7 @@ class TrialHandler2(_BaseTrialHandler):
                 # we've only just started on a fullRandom sequence
                 sequence *= self.nReps
                 # NB permutation *returns* a shuffled array
-                self.remainingIndices = self._rng.permutation(sequence)
+                self.remainingIndices = list(self._rng.permutation(sequence))
             elif (self.method in ('sequential', 'random') and
                           self.thisRepN < self.nReps):
                 # start a new repetition
@@ -992,7 +992,7 @@ class TrialHandler2(_BaseTrialHandler):
                 self.thisRepN += 1
                 if self.method == 'random':
                     self._rng.shuffle(sequence)  # shuffle (is in-place)
-                self.remainingIndices = sequence
+                self.remainingIndices = list(sequence)
             else:
                 # we've finished
                 self.finished = True
@@ -1432,14 +1432,16 @@ class TrialHandlerExt(TrialHandler):
                 # indices * nReps, flatten, shuffle, unflatten;
                 # only use seed once
                 randomFlat = repeat(indices, self.nReps, 1)
-                np.random.shuffle(randomFlat, seed=self.seed)
+                rng = np.random.default_rng(seed=self.seed)
+                rng.shuffle(randomFlat)
                 seqIndices = reshape(randomFlat,
                                      (len(indices), self.nReps))
             else:
                 _base = repeat(indices, self.trialWeights, 0)
                 sequential = repeat(_base, self.nReps, 1)
                 randomFlat = sequential.flat
-                np.random.shuffle(randomFlat, seed=self.seed)
+                rng = np.random.default_rng(seed=self.seed)
+                rng.shuffle(randomFlat)
                 seqIndices = reshape(randomFlat,
                                      (sum(self.trialWeights), self.nReps))
 
