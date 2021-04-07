@@ -332,11 +332,14 @@ class InstallUpdateDialog(wx.Dialog):
         """Check the current version and most recent version and update ctrls
         """
         if self.latest == -1:
+            # Set message and display, and return early if version could not be found
             msg = _translate(
                 "You are running PsychoPy v%s.\n ") % self.runningVersion
             msg += _translate("PsychoPy could not connect to the \n internet"
                               " to check for more recent versions.\n")
             msg += _translate("Check proxy settings in preferences.")
+            self.statusMessage.SetLabel(msg)
+            return
         elif (parse_version(self.latest['version'])
                   < parse_version(self.runningVersion)):
             msg = _translate(
