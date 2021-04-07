@@ -438,17 +438,20 @@ class EyeTracker(EyeTrackerDevice):
         self._waitForAck('CALIBRATE_DELAY', timeout=2.0)
 
         self._gp3set('CALIBRATE_SHOW', STATE=1)  
-        self._gp3set('CALIBRATE_START', STATE=1)  
-        cal_result = self._waitForAck('CALIB_RESULT', timeout=30.0)
+        self._gp3set('CALIBRATE_START', STATE=1)
 
-        if cal_result:        
-            #print2err("GP3 calibration done.")
-            #print2err("Closing GP3 calibration window....")
+        cal_result = self._waitForAck('CALIB_RESULT', timeout=30.0)
+        if cal_result:
             self._gp3set('CALIBRATE_SHOW', STATE=0)  
             self._gp3get('CALIBRATE_RESULT_SUMMARY')
-    
-            cal_result['SUMMARY']=self._waitForAck('CALIBRATE_RESULT_SUMMARY')
-        #print2err("CAL_RESULT: ",cal_result)
+            del cal_result['type']
+            del cal_result['ID']
+
+            cal_summary = self._waitForAck('CALIBRATE_RESULT_SUMMARY')
+            del cal_summary['type']
+            del cal_summary['ID']
+            cal_result['SUMMARY'] = cal_summary
+
         return cal_result
         
     def _poll(self):

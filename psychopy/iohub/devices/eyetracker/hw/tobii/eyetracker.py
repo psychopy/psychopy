@@ -185,11 +185,9 @@ class EyeTracker(EyeTrackerDevice):
             from .tobiiCalibrationGraphics import TobiiPsychopyCalibrationGraphics
 
             calibration_properties = self.getConfiguration().get('calibration')
-            screenColor = calibration_properties.get(
-                'screen_background_color')                     # [r,g,b] of screen
+            screenColor = calibration_properties.get('screen_background_color') # [r,g,b] of screen
 
-            genv = TobiiPsychopyCalibrationGraphics(
-                self, screenColor=screenColor)
+            genv = TobiiPsychopyCalibrationGraphics(self, screenColor=screenColor)
 
             calibrationOK = genv.runCalibration()
 

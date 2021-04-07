@@ -503,6 +503,8 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
                 self.state = 'validation'
             elif char == 'a':
                 pylink_key = ord(char)
+            elif char == 'o':
+                pylink_key = ord(char)
             elif char == 'pageup':
                 pylink_key = pylink.PAGE_UP
             elif char == 'pagedown':

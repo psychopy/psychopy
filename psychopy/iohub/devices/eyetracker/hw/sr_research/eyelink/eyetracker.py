@@ -400,9 +400,6 @@ class EyeTracker(EyeTrackerDevice):
             * ESC can be pressed at any time to exit the current state of the setup procedure and return to the initial blank screen state.
             * O = Exit the runSetupProcedure method and continue with the experiment.
         """
-#        if starting_state != EyeTrackerConstants.DEFAULT_SETUP_PROCEDURE:
-#            printExceptionDetailsToStdErr()
-
         try:
             from . import eyeLinkCoreGraphicsIOHubPsychopy
             EyeLinkCoreGraphicsIOHubPsychopy = eyeLinkCoreGraphicsIOHubPsychopy.EyeLinkCoreGraphicsIOHubPsychopy
@@ -415,8 +412,7 @@ class EyeTracker(EyeTrackerDevice):
             targetOuterDiameter = circle_attributes.get('outer_diameter')
             targetInnerDiameter = circle_attributes.get('inner_diameter')
 
-            genv = EyeLinkCoreGraphicsIOHubPsychopy(
-                self,
+            genv = EyeLinkCoreGraphicsIOHubPsychopy(self,
                 targetForegroundColor=targetForegroundColor,
                 targetBackgroundColor=targetBackgroundColor,
                 screenColor=screenColor,
@@ -424,13 +420,38 @@ class EyeTracker(EyeTrackerDevice):
                 targetInnerDiameter=targetInnerDiameter)
 
             pylink.openGraphicsEx(genv)
+
             self._eyelink.doTrackerSetup()
+
+            m = self._eyelink.getCalibrationMessage()
+            r = self._eyelink.getCalibrationResult()
+
+            # from pylink docs, getCalibrationResult should return:
+            #
+            # NO_REPLY if calibration not completed yet.
+            # OK_RESULT(0) if success.
+            # ABORT_REPLY(27) if 'ESC'  key aborted calibration.
+            # -1 if calibration failed.
+            # 1 if poor calibration or excessive validation error.
+            #
+            # but it returns 1000. ??
+            #
+            # getCalibrationResult returns "calibration_result: 0", where
+            # 0 == OK_RESULT == successful calibration.
+            # TODO: Test if eyelink returns different calibration_result if calibration fails.
+            reply = dict(message=m, result=r)
+            # reply is returning:
+            # {'message': 'calibration_result: 0', 'result': 1000}
+            # on a successful calibration.
+            # TODO: Parse into more meaningful message if possible.
+
             genv._unregisterEventMonitors()
             genv.clearAllEventBuffers()
             genv.window.close()
             del genv.window
             del genv
-            return EyeTrackerConstants.EYETRACKER_OK
+
+            return reply
 
         except Exception as e:
             printExceptionDetailsToStdErr()
@@ -1455,8 +1476,7 @@ class EyeTracker(EyeTrackerDevice):
             self._COMMAND_TO_FUNCTION['doDriftCorrect'] = _doDriftCorrect
             self._COMMAND_TO_FUNCTION['eyeAvailable'] = _eyeAvailable
             self._COMMAND_TO_FUNCTION['enableDummyOpen'] = _dummyOpen
-            self._COMMAND_TO_FUNCTION[
-                'getLastCalibrationInfo'] = _getCalibrationMessage
+            self._COMMAND_TO_FUNCTION['getLastCalibrationInfo'] = _getCalibrationMessage
             self._COMMAND_TO_FUNCTION['applyDriftCorrect'] = _applyDriftCorrect
             self._COMMAND_TO_FUNCTION['setIPAddress'] = _setIPAddress
             self._COMMAND_TO_FUNCTION['setLockEye'] = _setLockEye
@@ -1580,7 +1600,7 @@ if 1 not in _EYELINK_HOST_MODES:
 
 def _getTrackerMode(*args, **kwargs):
     try:
-        r = pylink.getEyeLink().getTrackerMode()
+        r = pylink.getEYELINK().getTrackerMode()
         return _EYELINK_HOST_MODES[r]
     except Exception as e:
         printExceptionDetailsToStdErr()
@@ -1590,7 +1610,7 @@ def _doDriftCorrect(*args, **kwargs):
     try:
         if len(args) == 4:
             x, y, draw, allow_setup = args
-            r = pylink.getEyeLink().doDriftCorrect(x, y, draw, allow_setup)
+            r = pylink.getEYELINK().doDriftCorrect(x, y, draw, allow_setup)
             return r
         else:
             print2err('doDriftCorrect requires 4 parameters, received: ', args)
@@ -1601,7 +1621,7 @@ def _doDriftCorrect(*args, **kwargs):
 
 def _applyDriftCorrect():
     try:
-        r = pylink.getEyeLink().applyDriftCorrect()
+        r = pylink.getEYELINK().applyDriftCorrect()
         if r == 0:
             return True
         else:
@@ -1612,7 +1632,7 @@ def _applyDriftCorrect():
 
 def _eyeAvailable(*args, **kwargs):
     try:
-        r = pylink.getEyeLink().eyeAvailable()
+        r = pylink.getEYELINK().eyeAvailable()
         if r == 0:
             return EyeTrackerConstants.getName(EyeTrackerConstants.LEFT_EYE)
         elif r == 1:
@@ -1627,7 +1647,7 @@ def _eyeAvailable(*args, **kwargs):
 
 def _dummyOpen(*args, **kwargs):
     try:
-        r = pylink.getEyeLink().dummy_open()
+        r = pylink.getEYELINK().dummy_open()
         return r
     except Exception as e:
         printExceptionDetailsToStdErr()
@@ -1635,15 +1655,13 @@ def _dummyOpen(*args, **kwargs):
 
 def _getCalibrationMessage(*args, **kwargs):
     try:
-        m = pylink.getEyeLink().getCalibrationMessage()
-        r = pylink.getEyeLink().getCalibrationResult()
+        m = pylink.getEYELINK().getCalibrationMessage()
+        r = pylink.getEYELINK().getCalibrationResult()
         if r in _eyeLinkCalibrationResultDict:
             r = _eyeLinkCalibrationResultDict[r]
         else:
             r = 'NO_REPLY'
-        rString = 'Last Calibration Message:\n{0}\n\nLastCalibrationResult:\n{1}'.format(
-            m, r)
-        return rString
+        return dict(message=m, result=r)
     except Exception as e:
         printExceptionDetailsToStdErr()
 
@@ -1652,7 +1670,7 @@ def _setIPAddress(*args, **kwargs):
     try:
         if len(args) == 1:
             ipString = args[0]
-            r = pylink.getEyeLink().setAddress(ipString)
+            r = pylink.getEYELINK().setAddress(ipString)
             if r == 0:
                 return True
         return [
@@ -1667,7 +1685,7 @@ def _setLockEye(*args, **kwargs):
     try:
         if len(args) == 1:
             enable = args[0]
-            r = pylink.getEyeLink().sendCommand('lock_eye_after_calibration %d' % (enable))
+            r = pylink.getEYELINK().sendCommand('lock_eye_after_calibration %d' % (enable))
             return r
         return ['EYE_TRACKER_ERROR', 'setLockEye',
                 'One argument is required, bool type.']

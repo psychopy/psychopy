@@ -228,8 +228,8 @@ class TobiiPsychopyCalibrationGraphics(object):
         self.marker_heights = (-sh / 2.0 * .7, -sh / 2.0 * .75, -sh /
                                2.0 * .8, -sh / 2.0 * .7, -sh / 2.0 * .75, -sh / 2.0 * .8)
 
-        bar_vertices = [-hbox_bar_length / 2, -hbox_bar_height / 2], [hbox_bar_length / 2, -hbox_bar_height /
-                                                                      2], [hbox_bar_length / 2, hbox_bar_height / 2], [-hbox_bar_length / 2, hbox_bar_height / 2]
+        bar_vertices = ([-hbox_bar_length / 2, -hbox_bar_height / 2], [hbox_bar_length / 2, -hbox_bar_height / 2],
+                        [hbox_bar_length / 2, hbox_bar_height / 2], [-hbox_bar_length / 2, hbox_bar_height / 2])
 
         self.feedback_resources = OrderedDict()
 
@@ -338,12 +338,9 @@ class TobiiPsychopyCalibrationGraphics(object):
         if not continue_calibration:
             return False
 
-        auto_pace = self._eyetrackerinterface.getConfiguration()['calibration'][
-            'auto_pace']
-        pacing_speed = self._eyetrackerinterface.getConfiguration()['calibration'][
-            'pacing_speed']
-        randomize_points = self._eyetrackerinterface.getConfiguration()['calibration'][
-            'randomize']
+        auto_pace = self._eyetrackerinterface.getConfiguration()['calibration']['auto_pace']
+        pacing_speed = self._eyetrackerinterface.getConfiguration()['calibration']['pacing_speed']
+        randomize_points = self._eyetrackerinterface.getConfiguration()['calibration']['randomize']
 
         cal_target_list = self.CALIBRATION_POINT_LIST[1:-1]
         if randomize_points is True:
@@ -410,8 +407,9 @@ class TobiiPsychopyCalibrationGraphics(object):
         self.clearCalibrationWindow()
         self.clearAllEventBuffers()
 
+        calibration_result = None
         if _quit:
-            return False
+            return calibration_result
         
         self._lastCalibrationOK = False
         if calibration:
@@ -422,20 +420,19 @@ class TobiiPsychopyCalibrationGraphics(object):
                 self._lastCalibrationOK = False
             calibration.leave_calibration_mode()
             calibration = None
-            
-            
-            
+
         if self._lastCalibrationOK is False:
             instuction_text = 'Calibration Failed. Options: SPACE: Re-run Calibration; ESCAPE: Exit Setup'
             continue_method = self.showSystemSetupMessageScreen(
                 instuction_text, True, msg_types=['SPACE_KEY_ACTION', 'QUIT'])
             if continue_method is False:
                 return self.runCalibration()
-            return False
+            return calibration_result
         
         instuction_text = "Calibration Passed. PRESS 'SPACE' KEY TO CONTINUE."
         self.showSystemSetupMessageScreen(instuction_text, True, msg_types=['SPACE_KEY_ACTION'])
-        return True
+
+        return calibration_result
     
     def clearCalibrationWindow(self):
         self.window.flip(clearBuffer=True)
