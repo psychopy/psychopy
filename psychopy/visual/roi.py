@@ -30,5 +30,4 @@ class ROI(Polygon):
     @property
     def isLookedIn(self):
         (x, y) = self.tracker.getPos()
-        print(bool(self.contains(x, y, self.units)))
         return bool(self.contains(x, y, self.units))

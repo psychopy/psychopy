@@ -32,8 +32,7 @@ class RegionOfInterestComponent(PolygonComponent):
                  startEstim='', durationEstim='',
                  timeRelativeTo='roi onset',
                  fixDur=100, debug=False,
-                 #legacy
-                 save='final', configFile='myTracker.yaml'):
+                 save='every look'):
 
         PolygonComponent.__init__(self, exp, parentName, name=name,
                  units=units,
@@ -43,7 +42,7 @@ class RegionOfInterestComponent(PolygonComponent):
                  stopType=stopType, stopVal=stopVal,
                  startEstim=startEstim, durationEstim=durationEstim)
         self.type = 'ROI'
-        self.url = "https://www.psychopy.org/builder/components/eyetracker.html"
+        self.url = "https://www.psychopy.org/builder/components/roi.html"
         self.exp.requirePsychopyLibs(['iohub', 'hardware'])
         # params
         self.order = ['config']  # first param after the name
@@ -90,14 +89,22 @@ class RegionOfInterestComponent(PolygonComponent):
         if self.params['units'].val == 'from exp settings':
             unitsStr = ""
         else:
-            unitsStr = "units=%(units)s," % self.params
+            unitsStr = "units=%(units)s, " % self.params
         # do writing of init
         inits = getInitVals(self.params, 'PsychoPy')
         code = (
             "%(name)s = visual.ROI(win, name='%(name)s',\n"
-            "debug=%(debug)s,\n"
-            "shape=%(shape)s,\n"
-            + unitsStr + " pos=(0, 0), size=(1, 1), ori=0.0)\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(1, relative=True)
+        code = (
+                "debug=%(debug)s,\n"
+                "shape=%(shape)s,\n"
+                + unitsStr + "pos=(0, 0), size=(1, 1), ori=0.0)\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(-1, relative=True)
+        code = (
             "%(name)s.roiClock = core.Clock()"
         )
         buff.writeIndentedLines(code % inits)
