@@ -63,15 +63,16 @@ if __name__ == "__main__":
                                           terminate_key='escape')
 
     # Run the validation procedure. run() does not return until the validation is complete.
-    validation_results = validation_proc.run()
-    if validation_results:
+    validation_proc.run()
+    if validation_proc.results:
+        results = validation_proc.results
         print("++++ Validation Results ++++")
-        print("Passed:", validation_results['passed'])
-        print("failed_pos_count:", validation_results['positions_failed_processing'])
-        print("Units:", validation_results['reporting_unit_type'])
-        print("min_error:", validation_results['min_error'])
-        print("max_error:", validation_results['max_error'])
-        print("mean_error:", validation_results['mean_error'])
+        print("Passed:", results['passed'])
+        print("failed_pos_count:", results['positions_failed_processing'])
+        print("Units:", results['reporting_unit_type'])
+        print("min_error:", results['min_error'])
+        print("max_error:", results['max_error'])
+        print("mean_error:", results['mean_error'])
     else:
         print("Validation Aborted by User.")
     io.quit()

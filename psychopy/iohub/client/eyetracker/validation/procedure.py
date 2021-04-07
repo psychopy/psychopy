@@ -159,7 +159,7 @@ class ValidationProcedure(object):
                                                   save_results_screen=True)
 
             # Run the validation procedure. Method does not return until the validation is complete.
-            validation_results = validation_proc.run()
+            _validation_results = validation_proc.run()
 
 
         See the validation.py demo in demos.coder.iohub.eyetracking for a more complete example.
@@ -206,7 +206,7 @@ class ValidationProcedure(object):
         self.show_results_screen = show_results_screen
         self.results_in_degrees = results_in_degrees
         self.save_results_screen = save_results_screen
-        self.validation_results = None
+        self._validation_results = None
         if storeeventsfor is None:
             storeeventsfor = [self.io.devices.keyboard,
                               self.io.devices.mouse,
@@ -240,14 +240,14 @@ class ValidationProcedure(object):
             self.showIntroScreen()
             if self.terminate_key and self.terminate_key in keyboard.waitForReleases(keys=[' ', self.terminate_key]):
                 print("Escape key pressed. Exiting validation")
-                self.validation_results = None
+                self._validation_results = None
                 return
 
         # Perform Validation.....
         terminate = not self.targetsequence.display(**self.animation_params)
         if terminate:
             print("Escape key pressed. Exiting validation")
-            self.validation_results = None
+            self._validation_results = None
             return
 
         self.io.clearEvents('all')
@@ -268,7 +268,7 @@ class ValidationProcedure(object):
                                                            self.terminate_key,
                                                            self.targetsequence.gaze_cursor_key])
 
-        return self.validation_results
+        return self._validation_results
 
     def showResultsScreen(self):
         self.drawResultScreen()
@@ -293,6 +293,14 @@ class ValidationProcedure(object):
 
         self.intro_text_stim.draw()
         return self.win.flip()
+
+    @property
+    def results(self):
+        """
+        See getValidationResults().
+        :return:
+        """
+        return self._validation_results
 
     def getValidationResults(self):
         """
@@ -359,7 +367,7 @@ class ValidationProcedure(object):
 
         :return: validation results dict.
         """
-        return self.validation_results
+        return self._validation_results
 
     def _createValidationResults(self):
         """
@@ -368,7 +376,7 @@ class ValidationProcedure(object):
 
         :return: dict
         """
-        self.validation_results = None
+        self._validation_results = None
         sample_array = self.targetsequence.getSampleMessageData()
         target_positions_used = self.targetsequence.positions.getPositions()
 
@@ -529,8 +537,8 @@ class ValidationProcedure(object):
 
         self.io.sendMessageEvent('Validation Report Complete', 'VALIDATION')
 
-        self.validation_results = results
-        return self.validation_results
+        self._validation_results = results
+        return self._validation_results
 
     def _generateImageName(self):
         import datetime
