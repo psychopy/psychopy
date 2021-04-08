@@ -16,9 +16,9 @@ from psychopy.iohub.devices.eyetracker import eventTypes
 _localized = __localized.copy()
 
 
-class EyetrackerComponent(BaseComponent):
+class EyetrackerRecordComponent(BaseComponent):
     """A class for using one of several eyetrackers to follow gaze"""
-    categories = ['Responses']
+    categories = ['Eyetracking']
     targets = ['PsychoPy']
     iconFile = Path(__file__).parent / 'eyetracker_record.png'
     tooltip = _translate('Eyetracker: use one of several eyetrackers to follow '

@@ -18,7 +18,7 @@ _localized = __localized.copy()
 
 class RegionOfInterestComponent(PolygonComponent):
     """A class for using one of several eyetrackers to follow gaze"""
-    categories = ['Responses']
+    categories = ['Eyetracking']
     targets = ['PsychoPy']
     iconFile = Path(__file__).parent / 'roi.png'
     tooltip = _translate('Region Of Interest: Define a region of interest for use with eyetrackers')
