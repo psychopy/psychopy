@@ -12,7 +12,6 @@ from os import path
 from pathlib import Path
 from psychopy.experiment.components import BaseComponent, Param, _translate
 from psychopy.localization import _localized as __localized
-from psychopy.iohub.devices.eyetracker import eventTypes
 _localized = __localized.copy()
 
 
@@ -28,7 +27,7 @@ class EyetrackerRecordComponent(BaseComponent):
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim='',
-                 events="",
+                 eyeType="binocular", fixation=True, fixDur=100, saccade=True, blink=True,
                  #legacy
                  save='final', configFile='myTracker.yaml'):
         BaseComponent.__init__(self, exp, parentName, name=name,
@@ -37,16 +36,40 @@ class EyetrackerRecordComponent(BaseComponent):
                                startEstim=startEstim, durationEstim=durationEstim)
         self.type = 'Eyetracker'
         self.url = "https://www.psychopy.org/builder/components/eyetracker.html"
-        self.exp.requirePsychopyLibs(['iohub', 'hardware'])
+        self.exp.requirePsychopyLibs(['iohub'])
         # params
-        self.order = ['config']  # first param after the name
+        self.order += ["eyeType", "fixation", "fixDur", "saccade", "blink"]
 
         # useful params for the eyetracker - keep to a minimum if possible! ;-)
-        self.params['events'] = Param(
-            events, valType='list', inputType='multiChoice', categ='Basic',
-            allowedVals=eventTypes,
-            hint=_translate("What events should the eye tracker listen for?"),
-            label=_translate("Event Types")
+        self.params['eyeType'] = Param(
+            eyeType, valType='list', inputType='choice', categ='Data',
+            allowedVals=['monocular', 'binocular'],
+            hint=_translate("Should the eyetracker record each eye separately?"),
+            label=_translate("Monocular / Binocular")
+        )
+
+        self.params['fixation'] = Param(
+            fixation, valType='bool', inputType='bool', categ='Data',
+            hint=_translate("Should the eyetracker record fixations?"),
+            label=_translate("Fixations")
+        )
+
+        self.params['fixDur'] = Param(
+            fixDur, valType='num', inputType='single', categ='Data',
+            hint=_translate("Minimum time (ms) required for an event to be marked as a fixation"),
+            label=_translate("Min. Fixation Dur")
+        )
+
+        self.params['saccade'] = Param(
+            saccade, valType='bool', inputType='bool', categ='Data',
+            hint=_translate("Should the eyetracker record saccades?"),
+            label=_translate("Saccades")
+        )
+
+        self.params['blink'] = Param(
+            saccade, valType='bool', inputType='bool', categ='Data',
+            hint=_translate("Should the eyetracker record blinks?"),
+            label=_translate("Blinks")
         )
 
     def writePreWindowCode(self, buff):
