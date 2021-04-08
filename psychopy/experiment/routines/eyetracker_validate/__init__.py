@@ -6,7 +6,7 @@ from pathlib import Path
 class EyetrackerValidationRoutine(BaseStandaloneRoutine):
     categories = ['Eyetracking']
     targets = ["PsychoPy"]
-    iconFile = Path(__file__).parent / "unknown.png"
+    iconFile = Path(__file__).parent / "eyetracker_calib.png"
     tooltip = "Validation routine for eyetrackers"
 
     def __init__(self, exp, name='validation',
