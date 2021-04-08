@@ -4,7 +4,7 @@ from psychopy.experiment import Param
 from pathlib import Path
 
 class EyetrackerValidationRoutine(BaseStandaloneRoutine):
-    categories = ['Responses']
+    categories = ['Eyetracking']
     targets = ["PsychoPy"]
     iconFile = Path(__file__).parent / "unknown.png"
     tooltip = "Validation routine for eyetrackers"
