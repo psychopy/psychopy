@@ -28,6 +28,7 @@ from wx.lib import scrolledpanel
 from wx.lib import platebtn
 from wx.html import HtmlWindow
 
+from ...experiment.components import getAllCategories
 from ...experiment.routines import Routine
 from ...tools.stringtools import prettyname
 
@@ -2398,12 +2399,11 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         del self.components['SettingsComponent']
         self.routines = experiment.getAllStandaloneRoutines()
         # Get categories
-        self.categories = ['Favorites']
-        for name, comp in self.components.items():
-            self.categories.extend(comp.categories)
+        self.categories = getAllCategories()
         for name, rt in self.routines.items():
-            self.categories.extend(rt.categories)
-        self.categories = list({key: None for key in self.categories})  # convert to dict and back to remove duplicates
+            for cat in rt.categories:
+                if cat not in self.categories:
+                    self.categories.append(cat)
         # Get favorites
         self.faveThreshold = 20
         self.faveLevels = self.prefs.appDataCfg['builder']['favComponents']
@@ -2445,7 +2445,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         # Make a button for each routine
         self.rtButtons = []
         for name, rt in self.routines.items():
-            for cat in comp.categories:  # make one button for each category
+            for cat in rt.categories:  # make one button for each category
                 self.rtButtons.append(
                     self.RoutineButton(self, name, rt, cat)
                 )
