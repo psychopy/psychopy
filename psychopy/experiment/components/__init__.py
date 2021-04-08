@@ -41,7 +41,7 @@ for filename in pycFiles:
 
 def getAllCategories(folderList=()):
     allComps = getAllComponents(folderList)
-    allCats = ['Stimuli', 'Responses', 'Custom']
+    allCats = ['Favorites', 'Stimuli', 'Responses', 'Custom']
     for name, thisComp in list(allComps.items()):
         for thisCat in thisComp.categories:
             if thisCat not in allCats:
