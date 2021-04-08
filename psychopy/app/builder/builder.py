@@ -3024,6 +3024,20 @@ class FlowPanel(wx.ScrolledWindow):
                         if comp.getType() == 'Routine':
                             self.frame.routinePanel.setCurrentRoutine(
                                 routine=comp)
+                        if comp.getType() in getAllStandaloneRoutines():
+                            name = comp.params['name'].val
+                            # does this routine have a help page?
+                            if hasattr(comp, 'url'):
+                                helpUrl = comp.url
+                            else:
+                                helpUrl = None
+                            dlg = DlgComponentProperties(frame=self.frame,
+                                                   title='{} Properties'.format(name),
+                                                   params=comp.params, order=comp.order,
+                                                   helpUrl=helpUrl,
+                                                   depends=comp.depends,
+                                                   timeout=None, type=comp.type)
+                            self.draw()
             elif event.RightDown():
                 icons = self.pdc.FindObjectsByBBox(x, y)
                 # todo: clean-up remove `comp`, its unused
