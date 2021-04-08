@@ -111,7 +111,7 @@ class SettingsComponent(object):
                  saveWideCSVFile=True, savePsydatFile=True,
                  savedDataFolder='', savedDataDelim='auto',
                  useVersion='',
-                 eyeModel="None", eyeAutoReport=True, eyeInterval=0.001, eyeSamplingRate=2000,
+                 eyeModel="mouse", eyeAutoReport=True, eyeInterval=0.001, eyeSamplingRate=2000,
                  filename=None, exportHTML='on Sync'):
         self.type = 'Settings'
         self.exp = exp  # so we can access the experiment if necess
@@ -137,7 +137,8 @@ class SettingsComponent(object):
                       'Audio lib', 'Audio latency priority', "Force stereo",  # Audio tab
                       'HTML path', 'exportHTML', 'Completed URL', 'Incomplete URL', 'Resources',  # Online tab
                       'Monitor', 'Screen', 'Full-screen window', 'Window size (pixels)', 'Units', 'color',
-                      'colorSpace'  # Screen tab
+                      'colorSpace',  # Screen tab
+                      'eyeModel', 'eyeInterval', 'eyeSamplingRate', 'eyeAutoReport', # Eyetracking tab
                       ]
         # basic params
         self.params['expName'] = Param(
@@ -321,7 +322,7 @@ class SettingsComponent(object):
         # Eyetracking params
         self.params['eyeModel'] = Param(
             eyeModel, valType='str', inputType="choice",
-            allowedVals=models,
+            allowedVals=[model for model in models if isinstance(model, str)],
             hint=_translate("What kind of eye tracker should PsychoPy configure"),
             label=_translate("Eyetracker Device"), categ="Eyetracking"
         )
