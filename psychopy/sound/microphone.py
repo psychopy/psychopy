@@ -318,8 +318,6 @@ class Microphone(object):
         out of memory. By default, the recording buffer is set to 24000 KB (or
         24 MB). At a sample rate of 48kHz, this will result in 62.5 seconds of
         continuous audio being recorded before the buffer is full.
-    volume : float
-        Input volume (or gain). Specified as a value between 0 and 1.
     warmUp : bool
         Warm-up the stream after opening it. This helps prevent additional
         latency the first time `start` is called on some systems.
@@ -366,7 +364,6 @@ class Microphone(object):
                  channels=2,
                  streamBufferSecs=2.0,
                  maxRecordingSize=24000,
-                 volume=0.5,
                  warmUp=True):
 
         if not _hasPTB:  # fail if PTB is not installed
@@ -431,10 +428,6 @@ class Microphone(object):
 
         # set latency bias
         self._stream.latency_bias = 0.0
-
-        # set the volume
-        assert 0. <= volume <= 1.
-        self._stream.volume = float(volume)
 
         # pre-allocate recording buffer, called once
         self._stream.get_audio_data(self._streamBufferSecs)
@@ -535,17 +528,6 @@ class Microphone(object):
     @latencyBias.setter
     def latencyBias(self, value):
         self._stream.latency_bias = float(value)
-
-    @property
-    def volume(self):
-        """The recording volume (`float`). Specified as a value between 0 and 1
-        and applied to all channels.
-        """
-        return self._stream.volume
-
-    @volume.setter
-    def volume(self, value):
-        self._stream.volume = float(value)
 
     @property
     def streamBufferSecs(self):
