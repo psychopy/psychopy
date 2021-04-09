@@ -51,16 +51,10 @@ class RecordingBuffer(object):
     maxRecordingSize : int
         Maximum size of the recording in kilobytes. This specifies how much
         memory is available to store samples.
-    loopback : bool
-        Allow for continuous recording. Usually if the recording buffer is full
-        no more samples can be saved to the buffer. If `loopback=True`, samples
-        wil be written to the beginning of the track once there is no more
-        space. Default is `False`.
 
     """
     def __init__(self, sampleRateHz=SAMPLE_RATE_48kHz, channels=2,
-                 maxRecordingSize=24000, loopback=True,
-                 policyWhenFull='ignore'):
+                 maxRecordingSize=24000, policyWhenFull='ignore'):
         self._channels = channels
         self._sampleRateHz = sampleRateHz
         self._maxRecordingSize = maxRecordingSize
@@ -70,7 +64,6 @@ class RecordingBuffer(object):
         self._spaceRemaining = None  # set in `_allocRecBuffer`
         self._totalSamples = None  # set in `_allocRecBuffer`
 
-        self._loopback = loopback
         self._policyWhenFull = policyWhenFull
         self._warnedRecBufferFull = False
         self._loops = 0
