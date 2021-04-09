@@ -449,7 +449,7 @@ class Microphone(object):
             freq=self._sampleRateHz,
             channels=self._channels)
 
-        logging.debug('Stream opened.')
+        logging.debug('Stream opened')
 
         # set latency bias
         self._stream.latency_bias = 0.0
@@ -475,10 +475,11 @@ class Microphone(object):
 
         # do the warm-up
         if warmUp:
-            logging.debug('Waking up the audio driver and hardware.')
+            logging.debug('Waking up the audio driver and hardware ...')
             self.warmUp()
 
-        logging.debug('Audio capture device #{} ready')
+        logging.debug('Audio capture device #{} ready'.format(
+            self._device.deviceIndex))
 
     @staticmethod
     def getDevices():
