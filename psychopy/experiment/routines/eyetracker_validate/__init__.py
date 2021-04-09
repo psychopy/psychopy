@@ -13,8 +13,9 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
                  showCursor=True,
                  color="red", fillColor="gray", borderColor="black", colorSpace="rgb", borderWidth=0.005,
                  units="height", targetSize=0.025, dotSize=0.005, randomisePos=True,
-                 positions=[(0.0, 0.0), (0.85, 0.85), (-0.85, 0.0), (0.85, 0.0), (0.85, -0.85),
-                            (-0.85, 0.85), (-0.85, -0.85), (0.0, 0.85), (0.0, -0.85)],
+                 targetLayout="nine-point", positions=[(0.0, 0.0), (0.85, 0.85), (-0.85, 0.0),
+                                                      (0.85, 0.0), (0.85, -0.85), (-0.85, 0.85),
+                                                      (-0.85, -0.85), (0.0, 0.85), (0.0, -0.85)],
                  velocity=1, expandScale=3, expandDur=0.2
                  ):
         # Initialise base routine
@@ -26,6 +27,7 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
             "borderColor",
             "colorSpace",
             "size",
+            "targetLayout",
             "positions",
             "randomisePos",
             "targetSize",
@@ -72,6 +74,12 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
                          'height', 'degFlatPos', 'degFlat'],
             hint=_translate("Units of dimensions for this stimulus"),
             label=_translate("Spatial Units"))
+
+        self.params['targetLayout'] = Param(targetLayout,
+            valType='str', inputType="choice", categ='Layout',
+            allowedVals=['four-point', 'seven-point', 'nine-point', 'custom...'],
+            hint=_translate("Pre-defined point layouts"),
+            label=_translate("Target Layout"))
 
         self.params['positions'] = Param(positions,
             valType='list', inputType="single", categ='Layout',
