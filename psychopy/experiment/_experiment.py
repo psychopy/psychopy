@@ -34,7 +34,7 @@ from psychopy import data, __version__, logging
 from .exports import IndentingBuffer, NameSpace
 from .flow import Flow
 from .loops import TrialHandler, LoopInitiator, \
-    LoopTerminator
+    LoopTerminator, StairHandler, MultiStairHandler
 from .params import _findParam, Param, legacyParams
 from psychopy.experiment.routines._base import Routine, BaseStandaloneRoutine
 from psychopy.experiment.routines import getAllStandaloneRoutines
@@ -46,7 +46,7 @@ import locale
 
 # standard_library.install_aliases()
 
-from collections import namedtuple
+from collections import namedtuple, OrderedDict
 
 from ..alerts import alert
 
