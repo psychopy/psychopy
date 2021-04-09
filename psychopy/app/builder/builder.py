@@ -3051,7 +3051,7 @@ class FlowPanel(wx.ScrolledWindow):
                         if thisComp.getType() in handlerTypes:
                             comp = thisComp  # unused
                             icon = thisIcon
-                        if thisComp.getType() == 'Routine':
+                        if thisComp.getType() in ['Routine'] + list(getAllStandaloneRoutines()):
                             comp = thisComp
                             icon = thisIcon
                             break  # we've found a Routine so stop looking
@@ -3159,7 +3159,7 @@ class FlowPanel(wx.ScrolledWindow):
         """Remove either a Routine or a Loop from the Flow
         """
         flow = self.frame.exp.flow
-        if component.getType() == 'Routine':
+        if component.getType() in ['Routine'] + list(getAllStandaloneRoutines()):
             # check whether this will cause a collapsed loop
             # prev and next elements on flow are a loop init/end
             prevIsLoop = nextIsLoop = False
