@@ -40,7 +40,7 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
             label=_translate("Show Gaze Cursor"))
 
         # Appearance Params
-        self.params['colorSpace'] = Param(color,
+        self.params['colorSpace'] = Param(colorSpace,
             valType='color', inputType="color", categ='Appearance',
             hint=_translate("In what format (color space) have you specified the colors? (rgb, dkl, lms, hsv)"),
             label=_translate("Color Space"))
@@ -60,7 +60,7 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
             hint=_translate("Color of the line around the target"),
             label=_translate("Target Border Color"))
 
-        self.params['borderWidth'] = Param(borderColor,
+        self.params['borderWidth'] = Param(borderWidth,
             valType='num', inputType="single", categ='Appearance',
             hint=_translate("Width of the line around the target"),
             label=_translate("Target Border Width"))
