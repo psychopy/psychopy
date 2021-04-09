@@ -18,6 +18,8 @@ The code that writes out a *_lastrun.py experiment file is (in order):
 
 from __future__ import absolute_import, print_function
 # from future import standard_library
+from xml.etree.ElementTree import Element
+
 from past.builtins import basestring
 from builtins import object
 
@@ -269,6 +271,20 @@ class Param(object):
         """Return a bool, so we can do `if thisParam`
         rather than `if thisParam.val`"""
         return bool(self.val)
+
+    @property
+    def xml(self):
+        # Make root element
+        element = Element('Param')
+        # Assign values
+        if hasattr(self, 'val'):
+            element.set('val', u"{}".format(self.val).replace("\n", "&#10;"))
+        if hasattr(self, 'valType'):
+            element.set('valType', self.valType)
+        if hasattr(self, 'updates'):
+            element.set('updates', "{}".format(self.updates))
+
+        return element
 
     def dollarSyntax(self):
         """

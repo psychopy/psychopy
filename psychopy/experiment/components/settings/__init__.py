@@ -325,15 +325,9 @@ class SettingsComponent(object):
             if key == 'name':
                 continue
             # Create node
-            paramNode = Element("Param")
+            paramNode = param.xml
             paramNode.set("name", key)
-            # Assign values
-            if hasattr(param, 'updates'):
-                paramNode.set('updates', "{}".format(param.updates))
-            if hasattr(param, 'val'):
-                paramNode.set('val', u"{}".format(param.val).replace("\n", "&#10;"))
-            if hasattr(param, 'valType'):
-                paramNode.set('valType', param.valType)
+            # Add node
             element.append(paramNode)
         return element
 
