@@ -13,6 +13,7 @@ __all__ = ['Microphone']
 import sys
 import psychopy.logging as logging
 from psychopy.constants import NOT_STARTED, STARTED
+from psychopy.preferences import prefs
 from .audioclip import *
 from .audiodevice import *
 from .exceptions import *
@@ -422,6 +423,7 @@ class Microphone(object):
         # session
         self._stream = audio.Stream(
             device_id=self._device.deviceIndex,
+            latency_class=prefs.hardware["audioLatencyMode"],
             mode=self._mode,
             freq=self._sampleRateHz,
             channels=self._channels)
