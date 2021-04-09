@@ -319,6 +319,10 @@ class Microphone(object):
         out of memory. By default, the recording buffer is set to 24000 KB (or
         24 MB). At a sample rate of 48kHz, this will result in 62.5 seconds of
         continuous audio being recorded before the buffer is full.
+    audioLatencyMode : int or None
+        Audio latency mode to use, values range between 0-4. If `None`, the
+        setting from preferences will be used. By default, mode `3` is adequate
+        for most applications.
     warmUp : bool
         Warm-up the stream after opening it. This helps prevent additional
         latency the first time `start` is called on some systems.
@@ -365,6 +369,7 @@ class Microphone(object):
                  channels=2,
                  streamBufferSecs=2.0,
                  maxRecordingSize=24000,
+                 audioLatencyMode=None,
                  warmUp=True):
 
         if not _hasPTB:  # fail if PTB is not installed
@@ -419,11 +424,19 @@ class Microphone(object):
         # PTB specific stuff
         self._mode = 2  # open a stream in capture mode
 
+        # set the audio latency mode
+        if audioLatencyMode is None:
+            self._audioLatencyMode = int(prefs.hardware["audioLatencyMode"])
+        else:
+            self._audioLatencyMode = audioLatencyMode
+
+        assert 0 <= self._audioLatencyMode <= 4  # sanity check for pref
+
         # Handle for the recording stream, should only be opened once per
         # session
         self._stream = audio.Stream(
             device_id=self._device.deviceIndex,
-            latency_class=prefs.hardware["audioLatencyMode"],
+            latency_class=self._audioLatencyMode,
             mode=self._mode,
             freq=self._sampleRateHz,
             channels=self._channels)
@@ -600,6 +613,14 @@ class Microphone(object):
     def isStarted(self):
         """``True`` if stream recording has been started (`bool`)."""
         return self.status == STARTED
+
+    @property
+    def audioLatencyMode(self):
+        """Audio latency mode in use (`int`). Cannot be set after
+        initialization.
+
+        """
+        return self._audioLatencyMode
 
     def start(self, when=None, waitForStart=0, stopTime=None):
         """Start an audio recording.
