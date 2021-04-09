@@ -391,7 +391,7 @@ class Microphone(object):
 
             self._device = devices[0]  # use first
 
-        logging.info('Using audio device #{} ({}) for audio capture.'.format(
+        logging.info('Using audio device #{} ({}) for audio capture'.format(
             self._device.deviceIndex, self._device.deviceName))
 
         # error if specified device is not suitable for capture
@@ -405,14 +405,14 @@ class Microphone(object):
             self._device.defaultSampleRate if sampleRateHz is None else int(
                 sampleRateHz)
 
-        logging.debug('Set stream sample rate to {} Hz.'.format(
+        logging.debug('Set stream sample rate to {} Hz'.format(
             self._sampleRateHz))
 
         # set the number of recording channels
         self._channels = \
             self._device.inputChannels if channels is None else int(channels)
 
-        logging.debug('Set recording channels to {} ({}).'.format(
+        logging.debug('Set recording channels to {} ({})'.format(
             self._channels, 'stereo' if self._channels > 1 else 'mono'))
 
         if self._channels > self._device.inputChannels:
@@ -432,14 +432,15 @@ class Microphone(object):
         else:
             self._audioLatencyMode = audioLatencyMode
 
-        logging.debug('Set audio latency mode to {}.'.format(
+        logging.debug('Set audio latency mode to {}'.format(
             self._audioLatencyMode))
 
         assert 0 <= self._audioLatencyMode <= 4  # sanity check for pref
 
         # Handle for the recording stream, should only be opened once per
         # session
-        logging.debug('Opening audio stream ...')
+        logging.debug('Opening audio stream for device #{}'.format(
+            self._device.deviceIndex))
 
         self._stream = audio.Stream(
             device_id=self._device.deviceIndex,
@@ -453,14 +454,14 @@ class Microphone(object):
         # set latency bias
         self._stream.latency_bias = 0.0
 
-        logging.debug('Set stream latency bias to {} milliseconds.'.format(
+        logging.debug('Set stream latency bias to {} ms'.format(
             self._stream.latency_bias))
 
         # pre-allocate recording buffer, called once
         self._stream.get_audio_data(self._streamBufferSecs)
 
         logging.debug(
-            'Allocated stream buffer to hold {} seconds of data.'.format(
+            'Allocated stream buffer to hold {} seconds of data'.format(
                 self._streamBufferSecs))
 
         # status flag
@@ -476,6 +477,8 @@ class Microphone(object):
         if warmUp:
             logging.debug('Waking up the audio driver and hardware.')
             self.warmUp()
+
+        logging.debug('Audio capture device #{} ready')
 
     @staticmethod
     def getDevices():
@@ -687,6 +690,10 @@ class Microphone(object):
         # recording has begun or is scheduled to do so
         self._statusFlag = STARTED
 
+        logging.debug(
+            'Scheduled start of audio capture for device #{} at t={}.'.format(
+                self._device.deviceIndex, startTime))
+
         return startTime
 
     def stop(self, blockUntilStopped=True, stopTime=None):
@@ -724,6 +731,11 @@ class Microphone(object):
             stopTime=stopTime)
         self._statusFlag = NOT_STARTED
 
+        logging.debug(
+            ('Device #{} stopped capturing audio samples at estimated time '
+             't={}. Total overruns: {} Total recording time: {}').format(
+                self._device.deviceIndex, estStopTime, xruns, endPositionSecs))
+
         return startTime, endPositionSecs, xruns, estStopTime
 
     def close(self):
@@ -735,6 +747,7 @@ class Microphone(object):
 
         """
         self._stream.close()
+        logging.debug('Stream closed')
 
     def poll(self):
         """Poll audio samples.
