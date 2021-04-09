@@ -12,6 +12,7 @@ from __future__ import absolute_import, print_function
 from past.builtins import basestring
 from xml.etree.ElementTree import Element
 
+from psychopy.experiment import getAllStandaloneRoutines
 from psychopy.experiment.routines._base import Routine, BaseStandaloneRoutine
 from psychopy.experiment.loops import LoopTerminator, LoopInitiator
 
@@ -106,7 +107,7 @@ class Flow(list):
                         toBeRemoved.append(comp)
             for comp in toBeRemoved:
                 self.remove(comp)
-        elif component.getType() == 'Routine':
+        elif component.getType() in ['Routine'] + list(getAllStandaloneRoutines()):
             if id is None:
                 # a Routine may come up multiple times - remove them all
                 # self.remove(component)  # cant do this - two empty routines
