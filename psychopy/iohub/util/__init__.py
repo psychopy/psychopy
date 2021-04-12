@@ -219,24 +219,30 @@ _iohub2builderValType = dict(IOHUB_STRING='str', IOHUB_BOOL='bool', IOHUB_FLOAT=
 _iohub2builderInputType = dict(IOHUB_STRING='single', IOHUB_BOOL='bool', IOHUB_FLOAT='single', IOHUB_INT='single',
                                IOHUB_LIST=('choice','multi'), IOHUB_COLOR='color', IOHUB_IP_ADDRESS_V4='single')
 
-def getDeviceNames(device_name="eyetracker.hw"):
+def getDeviceNames(device_name="eyetracker.hw", get_paths=True):
     """
-    Return a list of iohub eye tracker device names, as would be used as keys to launchHubServer.
+    Return a list of iohub eye tracker device names, as would be used as keys to launchHubServer. If get_paths is true,
+    return both device manufacturer name (for display in builder) as well as iohub device name.
 
     Example:
         eyetrackers = getDeviceNames()
         print(eyetrackers)
 
     Output:
-        ['eyetracker.hw.gazepoint.gp3.EyeTracker', 'eyetracker.hw.sr_research.eyelink.EyeTracker',
-         'eyetracker.hw.tobii.EyeTracker']
+        [('GazePoint', 'eyetracker.hw.gazepoint.gp3.EyeTracker'),
+         ('MouseGaze', 'eyetracker.hw.mouse.EyeTracker'),
+         ('SR Research Ltd', 'eyetracker.hw.sr_research.eyelink.EyeTracker'),
+         ('Tobii Technology', 'eyetracker.hw.tobii.EyeTracker')]
     """
     names = []
     dconfigs = getDeviceDefaultConfig(device_name)
     for dcfg in dconfigs:
-        d_name = tuple(dcfg.keys())[0]
-        #d_name = d_name[:d_name.rfind('.')]
-        names.append(d_name)
+        d_path = tuple(dcfg.keys())[0]
+        d_config = tuple(dcfg.values())[0]
+        if get_paths is False:
+            names.append(d_path)
+        else:
+            names.append((d_config.get('manufacturer_name'), d_path))
     return names
 
 def getDeviceFile(device_name, file_name):
@@ -359,7 +365,7 @@ def getDeviceParams(device_name):
                     slabel = slabel+k.replace("_", " ").title()
 
                     if isinstance(sconfig_data, dict):
-                        iohub_type, type_constraints =list(sconfig_data.items())[0]
+                        iohub_type, type_constraints = list(sconfig_data.items())[0]
                         builderValType = _iohub2builderValType[iohub_type]
                         builderInputType = _iohub2builderInputType[iohub_type]
                         valid_values = None
@@ -369,6 +375,7 @@ def getDeviceParams(device_name):
                                 builderInputType = builderInputType[0]
                             else:
                                 builderInputType = builderInputType[1]
+                            builderValType = type(valid_values[0])
                         if valid_values:
                             nv = dict(valType=builderValType, inputType=builderInputType, defaultVal=v,
                                       allowedVals=valid_values, hint=shint, label=slabel)
@@ -376,7 +383,7 @@ def getDeviceParams(device_name):
                             nv = dict(valType=builderValType, inputType=builderInputType, defaultVal=v,
                                       hint=shint, label=slabel)
                     elif isinstance(sconfig_data, list):
-                        nv = dict(valType='list', inputType='static', defaultVal=v, hint=shint, label=slabel)
+                        nv = dict(valType=type(v), inputType='static', defaultVal=v, hint=shint, label=slabel)
                     elif sconfig_data in _iohub2builderValType.keys():
                         nv = dict(valType=_iohub2builderValType[sconfig_data],
                                   inputType=_iohub2builderInputType[sconfig_data], defaultVal=v,
