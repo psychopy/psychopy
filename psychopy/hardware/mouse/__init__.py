@@ -12,6 +12,49 @@ import numpy as np
 import psychopy.core as core
 
 
+class MouseEvent(object):
+    """Class representing a pointing device event.
+
+    Instances of this class are created automatically by the `Mouse` class.
+    Users should not create instances of this class themselves unless there is a
+    good reason to.
+
+    Parameters
+    ----------
+    eventType : int
+        Type of event.
+    absTime : float
+        Absolute time in seconds the event was registered.
+
+    """
+    __slots__ = [
+        '_eventType',
+        '_absTime'
+    ]
+
+    def __init__(self, eventType, absTime=0.0):
+        self.eventType = eventType
+        self.absTime = absTime
+
+    @property
+    def eventType(self):
+        """Type of mouse event (`int`)."""
+        return self._eventType
+
+    @eventType.setter
+    def eventType(self, value):
+        self._eventType = int(value)
+
+    @property
+    def absTime(self):
+        """Absolute time in seconds the mouse event was registered (`float`)."""
+        return self._absTime
+
+    @absTime.setter
+    def absTime(self, value):
+        self._absTime = float(value)
+
+
 class Mouse(object):
     """Class for using pointing devices (e.g., mice, trackballs, etc.) for
     input.
