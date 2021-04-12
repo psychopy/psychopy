@@ -255,6 +255,16 @@ class RecordingBuffer(object):
         d = nSamples - self._spaceRemaining
         return 0 if d < 0 else d
 
+    def clear(self):
+        # reset all live attributes
+        self._samples = None
+        self._offset = 0
+        self._lastSample = 0
+        self._spaceRemaining = None
+        self._totalSamples = None
+        # reallocate buffer
+        self._allocRecBuffer()
+
     def getSegment(self, start=0, end=None):
         """Get a segment of recording data as an `AudioClip`.
 
@@ -472,6 +482,9 @@ class Microphone(object):
             sampleRateHz=self._sampleRateHz,
             channels=self._channels,
             maxRecordingSize=maxRecordingSize)
+
+        # setup clips dict
+        self.clips = {}
 
         # do the warm-up
         if warmUp:
@@ -791,6 +804,32 @@ class Microphone(object):
         overruns = self._recording.write(audioData)
 
         return overruns
+
+    def bank(self, tag=None):
+        """Store current buffer as a clip within the mic object
+        """
+        # append current recording to clip list according to tag
+        if tag not in self.clips:
+            self.clips[tag] = []
+        self.clips[tag].append(self._recording.getSegment())
+        # clear recording buffer
+        self._recording.clear()
+
+    def clear(self):
+        """Wipe all clips
+        """
+        # clear clips
+        self.clips = {}
+        # clear recording
+        self._recording.clear()
+
+    def flush(self):
+        # get copy of clips dict
+        clips = self.clips.copy()
+        # clear
+        self.clear()
+
+        return clips
 
     def getRecording(self):
         """Get audio data from the last microphone recording.
