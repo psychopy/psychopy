@@ -354,7 +354,7 @@ class Microphone(object):
     # Force the use of WASAPI for audio capture on Windows. If `True`, only
     # WASAPI devices will be returned when calling static method
     # `Microphone.getDevices()`
-    enforceWASAPI = True
+    enforceWASAPI = False
 
     def __init__(self,
                  device=None,
@@ -493,6 +493,11 @@ class Microphone(object):
             empty, no capture devices have been found.
 
         """
+        try:
+            Microphone.enforceWASAPI = bool(prefs.hardware["audioForceWASAPI"])
+        except KeyError:
+            pass  # use default if option not present in settings
+
         # query PTB for devices
         if Microphone.enforceWASAPI and sys.platform == 'win32':
             allDevs = audio.get_devices(device_type=13)
