@@ -25,13 +25,14 @@ class RegionOfInterestComponent(PolygonComponent):
 
     def __init__(self, exp, parentName, name='roi',
                  units='from exp settings',
+                 endRoutineOn="none",
                  shape='triangle', nVertices=4,
                  pos=(0, 0), size=(0.5, 0.5), ori=0,
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim='',
                  timeRelativeTo='roi onset',
-                 fixDur=100, debug=False,
+                 lookDur=100, debug=False,
                  save='every look'):
 
         PolygonComponent.__init__(self, exp, parentName, name=name,
@@ -45,17 +46,24 @@ class RegionOfInterestComponent(PolygonComponent):
         self.url = "https://www.psychopy.org/builder/components/roi.html"
         self.exp.requirePsychopyLibs(['iohub', 'hardware'])
         # params
-        self.order = ['config']  # first param after the name
+        self.order += ['config']  # first param after the name
 
         # Delete all appearance parameters
         for param in list(self.params).copy():
             if self.params[param].categ in ["Appearance", "Texture"]:
                 del self.params[param]
 
-        self.params['fixDur'] = Param(
-            fixDur, valType='num', inputType='single', categ='Basic',
-            hint=_translate("Minimum time (ms) required for an event to be marked as a fixation"),
-            label=_translate("Min. Fixation Dur")
+        self.params['endRoutineOn'] = Param(endRoutineOn,
+            valType='str', inputType='choice', categ='Basic',
+            allowedVals=["look at", "look away", "none"],
+            hint=_translate("Under what condition should this ROI end the routine?"),
+            label=_translate("End Routine On...")
+        )
+
+        self.params['lookDur'] = Param(lookDur,
+            valType='num', inputType='single', categ='Basic',
+            hint=_translate("How long (ms) does the participant need to look at the ROI to count as a look?"),
+            label=_translate("Min. Look Time")
         )
 
         self.params['debug'] = Param(
