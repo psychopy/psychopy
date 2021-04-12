@@ -6,7 +6,6 @@ Dots (RDK) Component
 The Dots Component allows you to present a Random Dot Kinematogram (RDK) to the participant of your study. These are fields of dots that drift in different directions and subjects are typically required to identify the 'global motion' of the field. 
 
 There are many ways to define the motion of the signal and noise dots. In PsychoPy the way the dots are configured follows `Scase, Braddick & Raymond (1996) <http://www.sciencedirect.com/science/article/pii/0042698995003258>`_. Although Scase et al (1996) show that the choice of algorithm for your dots actually makes relatively little difference there are some **potential** gotchas. Think carefully about whether each of these will affect your particular case:
-
     * **limited dot lifetimes:** as your dots drift in one direction they go off the edge of the stimulus and are replaced randomly in the stimulus field. This could lead to a higher density of dots in the direction of motion providing subjects with an alternative cue to direction. Keeping dot lives relatively short prevents this.
     
     * **noiseDots='direction':** some groups have used noise dots that appear in a random location on each frame (noiseDots='location'). This has the disadvantage that the noise dots not only have a random direction but also a random speed (whereas signal dots have a constant speed and constant direction)
