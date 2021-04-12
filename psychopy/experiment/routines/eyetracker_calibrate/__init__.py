@@ -3,14 +3,14 @@ from psychopy.localization import _translate
 from psychopy.experiment import Param
 from pathlib import Path
 
-class EyetrackerValidationRoutine(BaseStandaloneRoutine):
+class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
     categories = ['Eyetracking']
     targets = ["PsychoPy"]
     iconFile = Path(__file__).parent / "eyetracker_calib.png"
-    tooltip = "Validation routine for eyetrackers"
+    tooltip = _translate("Calibration or validation routine for eyetrackers")
 
     def __init__(self, exp, name='validation',
-                 showCursor=True,
+                 mode="calibrate", showCursor=True,
                  color="red", fillColor="gray", borderColor="black", colorSpace="rgb", borderWidth=0.005,
                  units="height", targetSize=0.025, dotSize=0.005, randomisePos=True,
                  targetLayout="nine-point", positions=[(0.0, 0.0), (0.85, 0.85), (-0.85, 0.0),
@@ -22,6 +22,7 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
         BaseStandaloneRoutine.__init__(self, exp, name=name)
         # Define order
         self.order += [
+            "mode"
             "color",
             "fillColor",
             "borderColor",
@@ -34,8 +35,35 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
             "dotSize",
             "units",
         ]
+        # Define relationships
+        self.depends = [  # allows params to turn each other off/on
+            # Only enable positions if targetLayout is custom
+            {"dependsOn": "targetLayout",  # must be param name
+             "condition": "=='custom...'",  # val to check for
+             "param": "positions",  # param property to alter
+             "true": "enable",  # what to do with param if condition is True
+             "false": "disable",  # permitted: hide, show, enable, disable
+             },
+        ]
+        # Disable all parameters which aren't implemented for calibration yet if mode is set to calibration
+        for depParam in ["showCursor", "colorSpace", "color", "fillColor", "borderColor", "borderWidth", "units", "targetLayout", "positions", "randomisePos", "targetSize", "dotSize", "velocity", "expandScale", "expandDur", ]:
+            self.depends.append(
+                {"dependsOn": "mode",  # must be param name
+                 "condition": "=='validate'",  # val to check for
+                 "param": depParam,  # param property to alter
+                 "true": "enable",  # what to do with param if condition is True
+                 "false": "disable",  # permitted: hide, show, enable, disable
+                 }
+            )
+
 
         # Basic Params
+        self.params['mode'] = Param(mode,
+            valType="str", inputType="choice", categ="Basic",
+            allowedVals=["validate", "calibrate"],
+            hint=_translate("Are you using this to calibrate an eye tracker, or validate it?"),
+            label=_translate("Validate / Calibrate"))
+
         self.params['showCursor'] = Param(showCursor,
             valType="bool", inputType="bool", categ="Basic",
             hint=_translate("Should a cursor be visible, showing where the participant is looking?"),
@@ -43,7 +71,7 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
 
         # Appearance Params
         self.params['colorSpace'] = Param(colorSpace,
-            valType='color', inputType="color", categ='Appearance',
+            valType='str', inputType="choice", categ='Appearance',
             hint=_translate("In what format (color space) have you specified the colors? (rgb, dkl, lms, hsv)"),
             label=_translate("Color Space"))
 
