@@ -398,6 +398,20 @@ def getDeviceParams(device_name):
     settings2Params([], device_params)
     return device_params
 
+def getDeviceParamsFlattenned(device_name):
+    flattenned = {}
+    dconf = getDeviceParams(device_name)
+    def flatten_dict(d):
+        for k, v in d.items():
+            if isinstance(v, dict):
+                if v.get('inputType'):
+                    flattenned[v.get('label')] = v
+                else:
+                    flatten_dict(v)
+    flatten_dict(dconf)
+    return flattenned
+
+
 if sys.platform == 'win32':
     import pythoncom
 
