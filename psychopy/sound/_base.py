@@ -28,13 +28,13 @@ elif platform.startswith("linux"):
     mediaLocation = "/usr/share/sounds"
 
 stepsFromA = {
-    'C': -9, 'Csh': -8,
-    'Dfl': -8, 'D': -7, 'Dsh': -6,
-    'Efl': -6, 'E': -5,
-    'F': -4, 'Fsh': -3,
-    'Gfl': -3, 'G': -2, 'Gsh': -1,
-    'Afl': -1, 'A': 0, 'Ash': +1,
-    'Bfl': +1, 'B': +2, 'Bsh': +2}
+                         'C': -9, 'Csh': -8,
+    'Dfl': -8, 'D♭': -8, 'D': -7, 'Dsh': -6, 'D#': -6,
+    'Efl': -6, 'E♭': -6, 'E': -5,
+                         'F': -4, 'Fsh': -3, 'F#': -3,
+    'Gfl': -3, 'G♭': -3, 'G': -2, 'Gsh': -1, 'G#': -1,
+    'Afl': -1, 'A♭': -1, 'A': +0, 'Ash': +1, 'A#': +1,
+    'Bfl': +1, 'B♭': +1, 'B': +2, 'Bsh': +2, 'B#': +2}
 knownNoteNames = sorted(stepsFromA.keys())
 
 
