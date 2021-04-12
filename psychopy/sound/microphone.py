@@ -25,8 +25,9 @@ try:
 except (ImportError, ModuleNotFoundError):
     logging.warning(
         "The 'psychtoolbox' library cannot be loaded but is required for audio "
-        "capture. Microphone recording is unavailable this session. Note that "
-        "opening a microphone stream will raise an error.")
+        "capture (use `pip install psychtoolbox` to get it). Microphone "
+        "recording will be unavailable this session. Note that opening a "
+        "microphone stream will raise an error.")
     _hasPTB = False
 
 
@@ -49,8 +50,18 @@ class RecordingBuffer(object):
     channels : int
         Number of channels to record samples to `1=Mono` and `2=Stereo`.
     maxRecordingSize : int
-        Maximum size of the recording in kilobytes. This specifies how much
-        memory is available to store samples.
+        Maximum recording size in kilobytes (Kb). Since audio recordings tend to
+        consume a large amount of system memory, one might want to limit the
+        size of the recording buffer to ensure that the application does not run
+        out of memory. By default, the recording buffer is set to 24000 KB (or
+        24 MB). At a sample rate of 48kHz, this will result in 62.5 seconds of
+        continuous audio being recorded before the buffer is full.
+    policyWhenFull : str
+        What to do when the recording buffer is full and cannot accept any more
+        samples. If 'ignore', samples will be silently dropped and the `isFull`
+        property will be set to `True`. If 'warn', a warning will be logged and
+        the `isFull` flag will be set. Finally, if 'error' the application will
+        raise an exception.
 
     """
     def __init__(self, sampleRateHz=SAMPLE_RATE_48kHz, channels=2,
