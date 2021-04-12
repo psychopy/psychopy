@@ -30,7 +30,8 @@ try:
     _recognizer = sr.Recognizer()
 except (ImportError, ModuleNotFoundError):
     logging.warning(
-        "Text-to-speech recognition module not available. Transcription will be"
+        "Text-to-speech recognition module not available (use command `pip "
+        "install SpeechRecognition` to get it. Transcription will be"
         " unavailable (i.e. `AudioClip.toText()`).")
     _hasSpeechRecognition = False
 
