@@ -335,8 +335,9 @@ class Microphone(object):
         continuous audio being recorded before the buffer is full.
     audioLatencyMode : int or None
         Audio latency mode to use, values range between 0-4. If `None`, the
-        setting from preferences will be used. By default, mode `3` is adequate
-        for most applications.
+        setting from preferences will be used. By default, `2` (exclusive mode)
+        is adequate for most applications and required if using WASAPI on
+        Windows.
     warmUp : bool
         Warm-up the stream after opening it. This helps prevent additional
         latency the first time `start` is called on some systems.
@@ -375,7 +376,7 @@ class Microphone(object):
     # Force the use of WASAPI for audio capture on Windows. If `True`, only
     # WASAPI devices will be returned when calling static method
     # `Microphone.getDevices()`
-    enforceWASAPI = False
+    enforceWASAPI = True
 
     def __init__(self,
                  device=None,
@@ -429,6 +430,17 @@ class Microphone(object):
         logging.debug('Set stream sample rate to {} Hz'.format(
             self._sampleRateHz))
 
+        # set the audio latency mode
+        if audioLatencyMode is None:
+            self._audioLatencyMode = int(prefs.hardware["audioLatencyMode"])
+        else:
+            self._audioLatencyMode = audioLatencyMode
+
+        logging.debug('Set audio latency mode to {}'.format(
+            self._audioLatencyMode))
+
+        assert 0 <= self._audioLatencyMode <= 4  # sanity check for pref
+
         # set the number of recording channels
         self._channels = \
             self._device.inputChannels if channels is None else int(channels)
@@ -446,17 +458,6 @@ class Microphone(object):
 
         # PTB specific stuff
         self._mode = 2  # open a stream in capture mode
-
-        # set the audio latency mode
-        if audioLatencyMode is None:
-            self._audioLatencyMode = int(prefs.hardware["audioLatencyMode"])
-        else:
-            self._audioLatencyMode = audioLatencyMode
-
-        logging.debug('Set audio latency mode to {}'.format(
-            self._audioLatencyMode))
-
-        assert 0 <= self._audioLatencyMode <= 4  # sanity check for pref
 
         # Handle for the recording stream, should only be opened once per
         # session

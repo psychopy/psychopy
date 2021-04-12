@@ -126,7 +126,7 @@
     # latency mode for PsychToolbox audio (3 is good for most applications. See
     audioLatencyMode = option(0, 1, 2, 3, 4, default=3)
     # use only WASAPI for audio input on Windows
-    audioForceWASAPI = boolean(default=False)
+    audioForceWASAPI = boolean(default=True)
     # audio driver to use
     audioDriver = list(default=list('Primary Sound','ASIO','Audigy'))
     # audio device to use (if audioLib allows control)
