@@ -252,13 +252,14 @@ class TextboxComponent(BaseVisualComponent):
         super().writeRoutineEndCode(buff)
 
     def writeRoutineEndCodeJS(self, buff):
+        name = self.params['name']
         if len(self.exp.flow._loopList):
             currLoop = self.exp.flow._loopList[-1]  # last (outer-most) loop
         else:
             currLoop = self.exp._expHandler
         if self.params['editable']:
-            buff.writeIndented("psychoJS.experiment.addData('%(name)s.text', %(name)s.text);\n" %
-                               self.params)
+            buff.writeIndentedLines(f"psychoJS.experiment.addData('{name}.text',{name}.text)\n"
+                                    f"{name}.reset()\n")
         # get parent to write code too (e.g. store onset/offset times)
         super().writeRoutineEndCodeJS(buff)
 

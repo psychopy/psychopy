@@ -500,6 +500,8 @@ class KeyboardComponent(BaseComponent):
         store = self.params['store'].val
         forceEnd = self.params['forceEndRoutine'].val
         if store == 'nothing':
+            # Still stop keyboard to prevent textbox from not working on single keypresses due to buffer
+            buff.writeIndentedLines("%(name)s.stop();\n" % self.params)
             return
         if len(self.exp.flow._loopList):
             currLoop = self.exp.flow._loopList[-1]  # last (outer-most) loop
