@@ -171,12 +171,12 @@ class Param(object):
                 # will work if it can be represented as a float
                 return "{}".format(float(self.val))
             except Exception:  # might be an array
-                return "asarray(%s, dytpe=float)" % self.val
+                return "%s" % self.val
         elif self.valType == 'int':
             try:
                 return "%i" % self.val  # int and float -> str(int)
             except TypeError:
-                return "asarray(%s, dytpe=int)" % self.val  # try array of float instead?
+                return "%s" % self.val  # try array of float instead?
         elif self.valType in ['extendedStr','str', 'file', 'table', 'color']:
             # at least 1 non-escaped '$' anywhere --> code wanted
             # return str if code wanted
