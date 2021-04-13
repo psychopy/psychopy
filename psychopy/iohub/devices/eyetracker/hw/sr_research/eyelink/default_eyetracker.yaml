@@ -112,8 +112,8 @@ eyetracker.hw.sr_research.eyelink.EyeTracker:
         #
         target_attributes:
             # outer_diameter and inner_diameter are specified in pixels
-            outer_diameter: 33
-            inner_diameter: 6
+            outer_diameter: 33.0
+            inner_diameter: 6.0
             outer_color: [255,255,255]
             inner_color: [0,0,0]
 
@@ -219,4 +219,4 @@ eyetracker.hw.sr_research.eyelink.EyeTracker:
     #   device_number is not used by this device type.
     #
     device_number: 0
-    builder_hides: ['builder_hides', 'enable', 'name', 'device_number', 'device_timer', 'auto_report_events']
+    builder_hides: ['builder_hides', 'enable', 'device_number', 'device_timer', 'auto_report_events']
