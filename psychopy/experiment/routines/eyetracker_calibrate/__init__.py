@@ -3,6 +3,27 @@ from psychopy.localization import _translate
 from psychopy.experiment import Param
 from pathlib import Path
 
+
+positionsMap = {
+    "three-point":
+        [(-0.85, +0.00), (+0.00, +0.00), (+0.85, +0.00)],
+    "five-point":
+        [(+0.00, +0.85),
+         (-0.85, +0.00), (+0.00, +0.00), (+0.85, +0.00),
+         (+0.85, -0.85)],
+    "nine-point":
+        [(-0.85, +0.85), (+0.00, +0.85), (+0.85, +0.85),
+         (-0.85, +0.00), (+0.00, +0.00), (+0.85, +0.00),
+         (-0.85, -0.85), (+0.85, -0.85), (+0.00, -0.85)],
+    "thirteen-point":
+        [(-0.850, +0.850), (+0.000, +0.850), (+0.850, +0.850),
+         (-0.425, +0.425), (+0.425, +0.425),
+         (-0.850, +0.000), (+0.000, +0.000), (+0.850, +0.000),
+         (-0.425, -0.425), (+0.425, -0.425),
+         (-0.850, -0.850), (+0.850, -0.850), (+0.000, -0.850)],
+}
+
+
 class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
     categories = ['Eyetracking']
     targets = ["PsychoPy"]
@@ -13,9 +34,7 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
                  mode="calibrate", showCursor=True,
                  color="red", fillColor="gray", borderColor="black", colorSpace="rgb", borderWidth=0.005,
                  units="height", targetSize=0.025, dotSize=0.005, randomisePos=True,
-                 targetLayout="nine-point", positions=[(0.0, 0.0), (0.85, 0.85), (-0.85, 0.0),
-                                                      (0.85, 0.0), (0.85, -0.85), (-0.85, 0.85),
-                                                      (-0.85, -0.85), (0.0, 0.85), (0.0, -0.85)],
+                 targetLayout="nine-point", positions=positionsMap['nine-point'],
                  velocity=1, expandScale=3, expandDur=0.2
                  ):
         # Initialise base routine
@@ -147,6 +166,10 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
             label=_translate("Expand / Contract Duration"))
 
     def writeMainCode(self, buff):
+        # If positions are preset, override param value
+        if self.params['targetLayout'].val in positionsMap:
+            self.params['positions'].val = positionsMap[self.params['targetLayout'].val]
+
         # Make target
         code = (
             "%(name)sTarget = visual.TargetStim(win, \n"
