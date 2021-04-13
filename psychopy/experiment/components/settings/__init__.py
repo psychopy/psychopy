@@ -137,6 +137,7 @@ class SettingsComponent(object):
 
         # params
         self.params = {}
+        self.depends = []
         self.order = ['expName', 'Use version', 'Show info dlg', 'Enable Escape',  'Experiment info',  # Basic tab
                       'Data filename', 'Data file delimiter', 'Save excel file', 'Save csv file', 'Save wide csv file',
                       'Save psydat file', 'Save log file', 'logging level',  # Data tab
@@ -144,7 +145,6 @@ class SettingsComponent(object):
                       'HTML path', 'exportHTML', 'Completed URL', 'Incomplete URL', 'Resources',  # Online tab
                       'Monitor', 'Screen', 'Full-screen window', 'Window size (pixels)', 'Units', 'color',
                       'colorSpace',  # Screen tab
-                      'eyeModel', 'eyeInterval', 'eyeSamplingRate', 'eyeAutoReport', # Eyetracking tab
                       ]
         # basic params
         self.params['expName'] = Param(
@@ -326,6 +326,30 @@ class SettingsComponent(object):
             label=_localized["Export HTML"], categ='Online')
 
         # Eyetracking params
+        self.order += ["eyetracker",
+                       "gpAddress", "gpPort",
+                       "elModel", "elAddress", "elSimMode"]
+
+        # Hide params when not relevant to current eyetracker
+        trackerParams = {
+            "MouseGaze": ["mgMove", "mgBlink", "mgSaccade"],
+            "GazePoint": ["gpAddress", "gpPort"],
+            "SR Research Ltd": ["elModel", "elSimMode", "elSampleRate", "elTrackEyes", "elLiveFiltering",
+                                "elDataFiltering", "elTrackingMode", "elPupilMeasure", "elPupilAlgorithm",
+                                "elAddress"],
+            "Tobii Technology": [],
+        }
+        for tracker in trackerParams:
+            for depParam in trackerParams[tracker]:
+                self.depends.append(
+                    {"dependsOn": "eyetracker",  # must be param name
+                     "condition": "=='"+tracker+"'",  # val to check for
+                     "param": depParam,  # param property to alter
+                     "true": "show",  # what to do with param if condition is True
+                     "false": "hide",  # permitted: hide, show, enable, disable
+                     }
+                )
+
         self.params['eyetracker'] = Param(
             eyetracker, valType='str', inputType="choice",
             allowedVals=list(ioDeviceMap),
@@ -384,7 +408,7 @@ class SettingsComponent(object):
 
         self.params['elSampleRate'] = Param(
             elSampleRate, valType='num', inputType="choice",
-            allowedVals=[250, 500, 1000, 2000],
+            allowedVals=['250', '500', '1000', '2000'],
             hint=_translate("Eye tracker sampling rate."),
             label=_translate("Sampling Rate"), categ="Eyetracking"
         )
