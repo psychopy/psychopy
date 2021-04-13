@@ -112,6 +112,7 @@ class SettingsComponent(object):
                  savedDataFolder='', savedDataDelim='auto',
                  useVersion='',
                  eyetracker="MouseGaze",
+                 mgMove='RIGHT_BUTTON', mgBlink=['LEFT_BUTTON', 'RIGHT_BUTTON'], mgSaccade=0.5,
                  gpAddress='127.0.0.1', gpPort=4242,
                  elModel='EYELINK 1000 DESKTOP', elSimMode=False, elSampleRate=250, elTrackEyes="left",
                  elLiveFiltering="off", elDataFiltering="off",
@@ -332,6 +333,28 @@ class SettingsComponent(object):
                             "the mouse to simulate eye movement (for debugging without a tracker connected)"),
             label=_translate("Eyetracker Device"), categ="Eyetracking"
         )
+
+        #mousegaze
+        self.params['mgMove'] = Param(
+            mgMove, valType='str', inputType="choice",
+            allowedVals=['LEFT_BUTTON', 'MIDDLE_BUTTON', 'RIGHT_BUTTON'],
+            hint=_translate("Mouse button to press for eye movement."),
+            label=_translate("Move Button"), categ="Eyetracking"
+        )
+
+        self.params['mgBlink'] = Param(
+            mgBlink, valType='str', inputType="multichoice",
+            allowedVals=['LEFT_BUTTON', 'MIDDLE_BUTTON', 'RIGHT_BUTTON'],
+            hint=_translate("Mouse button to press for eye movement."),
+            label=_translate("Blink Button"), categ="Eyetracking"
+        )
+
+        self.params['mgSaccade'] = Param(
+            mgMove, valType='num', inputType="single",
+            hint=_translate("Visual degree threshold for Saccade event creation."),
+            label=_translate("Saccade Threshold"), categ="Eyetracking"
+        )
+
         # gazepoint
         self.params['gpAddress'] = Param(
             gpAddress, valType='str', inputType="single",
