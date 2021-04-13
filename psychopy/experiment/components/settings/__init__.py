@@ -112,7 +112,7 @@ class SettingsComponent(object):
                  savedDataFolder='', savedDataDelim='auto',
                  useVersion='',
                  eyetracker="MouseGaze",
-                 mgMove='RIGHT_BUTTON', mgBlink=['LEFT_BUTTON', 'RIGHT_BUTTON'], mgSaccade=0.5,
+                 mgMove='RIGHT_BUTTON', mgBlink='MIDDLE_BUTTON', mgSaccade=0.5,
                  gpAddress='127.0.0.1', gpPort=4242,
                  elModel='EYELINK 1000 DESKTOP', elSimMode=False, elSampleRate=250, elTrackEyes="left",
                  elLiveFiltering="off", elDataFiltering="off",
@@ -343,9 +343,9 @@ class SettingsComponent(object):
         )
 
         self.params['mgBlink'] = Param(
-            mgBlink, valType='str', inputType="multichoice",
+            mgBlink, valType='str', inputType="choice",
             allowedVals=['LEFT_BUTTON', 'MIDDLE_BUTTON', 'RIGHT_BUTTON'],
-            hint=_translate("Mouse button to press for eye movement."),
+            hint=_translate("Mouse button to press for a blink."),
             label=_translate("Blink Button"), categ="Eyetracking"
         )
 
