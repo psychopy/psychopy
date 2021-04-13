@@ -105,7 +105,7 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
 
         self.params['targetLayout'] = Param(targetLayout,
             valType='str', inputType="choice", categ='Layout',
-            allowedVals=['four-point', 'seven-point', 'nine-point', 'custom...'],
+            allowedVals=['three-point', 'five-point', 'nine-point', 'custom...'],
             hint=_translate("Pre-defined point layouts"),
             label=_translate("Target Layout"))
 
