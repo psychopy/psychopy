@@ -111,7 +111,12 @@ class SettingsComponent(object):
                  saveWideCSVFile=True, savePsydatFile=True,
                  savedDataFolder='', savedDataDelim='auto',
                  useVersion='',
-                 eyeModel="MouseGaze", eyeAutoReport=True, eyeInterval=0.001, eyeSamplingRate=2000,
+                 eyetracker="MouseGaze",
+                 gpAddress='127.0.0.1', gpPort=4242,
+                 elModel='EYELINK 1000 DESKTOP', elSimMode=False, elSampleRate=250, elTrackEyes="left",
+                 elLiveFiltering="off", elDataFiltering="off",
+                 elTrackingMode='PUPIL_CR_TRACKING', elPupilMeasure='PUPIL_AREA', elPupilAlgorithm='PUPIL_CR_TRACKING',
+                 elAddress='100.1.1.1',
                  filename=None, exportHTML='on Sync'):
         self.type = 'Settings'
         self.exp = exp  # so we can access the experiment if necess
@@ -320,12 +325,95 @@ class SettingsComponent(object):
             label=_localized["Export HTML"], categ='Online')
 
         # Eyetracking params
-        self.params['eyeModel'] = Param(
-            eyeModel, valType='str', inputType="choice",
+        self.params['eyetracker'] = Param(
+            eyetracker, valType='str', inputType="choice",
             allowedVals=list(ioDeviceMap),
             hint=_translate("What kind of eye tracker should PsychoPy use? Select 'MouseGaze' to use "
                             "the mouse to simulate eye movement (for debugging without a tracker connected)"),
             label=_translate("Eyetracker Device"), categ="Eyetracking"
+        )
+        # gazepoint
+        self.params['gpAddress'] = Param(
+            gpAddress, valType='str', inputType="single",
+            hint=_translate("IP Address of the computer running GazePoint Control."),
+            label=_translate("GazePoint IP Address"), categ="Eyetracking"
+        )
+
+        self.params['gpPort'] = Param(
+            gpPort, valType='num', inputType="single",
+            hint=_translate("Port of the GazePoint Control server. Usually 4242."),
+            label=_translate("GazePoint Port"), categ="Eyetracking"
+        )
+        # eyelink
+        self.params['elModel'] = Param(
+            elModel, valType='str', inputType="choice",
+            allowedVals=['EYELINK 1000 DESKTOP', 'EYELINK 1000 TOWER', 'EYELINK 1000 REMOTE',
+                         'EYELINK 1000 LONG RANGE'],
+            hint=_translate("Eye tracker model."),
+            label=_translate("Model Name"), categ="Eyetracking"
+        )
+
+        self.params['elSimMode'] = Param(
+            elSimMode, valType='bool', inputType="bool",
+            hint=_translate("Set the EyeLink to run in mouse simulation mode."),
+            label=_translate("Mouse Simulation Mode"), categ="Eyetracking"
+        )
+
+        self.params['elSampleRate'] = Param(
+            elSampleRate, valType='num', inputType="choice",
+            allowedVals=[250, 500, 1000, 2000],
+            hint=_translate("Eye tracker sampling rate."),
+            label=_translate("Sampling Rate"), categ="Eyetracking"
+        )
+
+        self.params['elTrackEyes'] = Param(
+            elTrackEyes, valType='str', inputType="choice",
+            allowedVals=['left', 'right', 'both'],
+            hint=_translate("Select with eye(s) to track."),
+            label=_translate("Track Eyes"), categ="Eyetracking"
+        )
+
+        self.params['elLiveFiltering'] = Param(
+            elLiveFiltering, valType='str', inputType="choice",
+            allowedVals=['off', 'level 1', 'level 2'],
+            hint=_translate("Filter eye sample data live, as it is streamed to the driving device. "
+                            "This may reduce the sampling speed."),
+            label=_translate("Live Sample Filtering"), categ="Eyetracking"
+        )
+
+        self.params['elDataFiltering'] = Param(
+            elLiveFiltering, valType='str', inputType="choice",
+            allowedVals=['off', 'level 1', 'level 2'],
+            hint=_translate("Filter eye sample data when it is saved to the output file. This will "
+                            "not affect the sampling speed."),
+            label=_translate("Saved Sample Filtering"), categ="Eyetracking"
+        )
+
+        self.params['elTrackingMode'] = Param(
+            elTrackingMode, valType='str', inputType="choice",
+            allowedVals=['PUPIL_CR_TRACKING', 'PUPIL_ONLY_TRACKING'],
+            hint=_translate("Track Pupil-CR or Pupil only."),
+            label=_translate("Pupil Tracking Mode"), categ="Eyetracking"
+        )
+
+        self.params['elPupilAlgorithm'] = Param(
+            elPupilAlgorithm, valType='str', inputType="choice",
+            allowedVals=['ELLIPSE_FIT', 'CENTROID_FIT'],
+            hint=_translate("Algorithm used to detect the pupil center."),
+            label=_translate("Pupil Center Algorithm"), categ="Eyetracking"
+        )
+
+        self.params['elPupilMeasure'] = Param(
+            elPupilMeasure, valType='str', inputType="choice",
+            allowedVals=['PUPIL_AREA', 'PUPIL_DIAMETER', 'NEITHER'],
+            hint=_translate("Type of pupil data to record."),
+            label=_translate("Pupil Data Type"), categ="Eyetracking"
+        )
+
+        self.params['elAddress'] = Param(
+            elAddress, valType='str', inputType="single",
+            hint=_translate("IP Address of the EyeLink *Host* computer."),
+            label=_translate("EyeLink IP Address"), categ="Eyetracking"
         )
 
     @property
