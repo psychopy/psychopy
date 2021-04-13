@@ -16,7 +16,7 @@ from psychopy.experiment.components import Param, _translate
 from psychopy.tools.versionchooser import versionOptions, availableVersions, _versionFilter, latestVersion
 from psychopy.constants import PY3
 from psychopy.monitors import Monitor
-from psychopy.iohub.devices.eyetracker import models
+from psychopy.iohub import util as ioUtil
 
 # for creating html output folders:
 import shutil
@@ -322,24 +322,9 @@ class SettingsComponent(object):
         # Eyetracking params
         self.params['eyeModel'] = Param(
             eyeModel, valType='str', inputType="choice",
-            allowedVals=[model for model in models if isinstance(model, str)],
+            allowedVals=list(dict(ioUtil.getDeviceNames())),
             hint=_translate("What kind of eye tracker should PsychoPy configure"),
             label=_translate("Eyetracker Device"), categ="Eyetracking"
-        )
-        self.params['eyeAutoReport'] = Param(
-            eyeAutoReport, valType='bool', inputType="bool",
-            hint=_translate("Should eye events be reported?"),
-            label=_translate("Auto Report"), categ="Eyetracking"
-        )
-        self.params['eyeInterval'] = Param(
-            eyeInterval, valType='num', inputType="single",
-            hint=_translate("Interval between samples"),
-            label=_translate("Interval"), categ="Eyetracking"
-        )
-        self.params['eyeSamplingRate'] = Param(
-            eyeSamplingRate, valType='num', inputType="single",
-            hint=_translate("Rate samples are gathered at"),
-            label=_translate("Sample Rate"), categ="Eyetracking"
         )
 
     @property
