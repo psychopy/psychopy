@@ -118,6 +118,7 @@ class SettingsComponent(object):
                  elLiveFiltering="off", elDataFiltering="off",
                  elTrackingMode='PUPIL_CR_TRACKING', elPupilMeasure='PUPIL_AREA', elPupilAlgorithm='PUPIL_CR_TRACKING',
                  elAddress='100.1.1.1',
+                 tbModel="", tbSampleRate=60,
                  filename=None, exportHTML='on Sync'):
         self.type = 'Settings'
         self.exp = exp  # so we can access the experiment if necess
@@ -461,6 +462,19 @@ class SettingsComponent(object):
             elAddress, valType='str', inputType="single",
             hint=_translate("IP Address of the EyeLink *Host* computer."),
             label=_translate("EyeLink IP Address"), categ="Eyetracking"
+        )
+
+        # tobii
+        self.params['tbModel'] = Param(
+            tbModel, valType='str', inputType="single",
+            hint=_translate("Eye tracker model."),
+            label=_translate("Model Name"), categ="Eyetracking"
+        )
+
+        self.params['tbSampleRate'] = Param(
+            tbSampleRate, valType='num', inputType="single",
+            hint=_translate("Eye tracker sampling rate."),
+            label=_translate("Sampling Rate"), categ="Eyetracking"
         )
 
     @property
