@@ -338,7 +338,7 @@ class SettingsComponent(object):
             "SR Research Ltd": ["elModel", "elSimMode", "elSampleRate", "elTrackEyes", "elLiveFiltering",
                                 "elDataFiltering", "elTrackingMode", "elPupilMeasure", "elPupilAlgorithm",
                                 "elAddress"],
-            "Tobii Technology": [],
+            "Tobii Technology": ["tbModel", "tbSampleRate"],
         }
         for tracker in trackerParams:
             for depParam in trackerParams[tracker]:
