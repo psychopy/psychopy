@@ -183,22 +183,25 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
         )
         buff.writeIndentedLines(code % self.params)
         buff.setIndentLevel(-1, relative=True)
-        # Setup validation
-        code = (
-            "%(name)s = ValidationProcedure(win, %(name)sTarget,\n"
-        )
-        buff.writeIndentedLines(code % self.params)
-        buff.setIndentLevel(1, relative=True)
-        # Split expandDur into two if needed
-        if len(self.params['expandDur'].val) == 2:
-            expString = f"expandDur={self.params['expandDur'].val[0]}, contractDur={self.params['expandDur'].val[1]}, \n"
-        else:
-            expString = f"expandDur={self.params['expandDur'].val}, contractDur={self.params['expandDur'].val}, \n"
-        code = (
-                "positions=%(positions)s,\n"
-                "velocity=%(velocity)s, expandScale=%(expandScale)s,\n"
-                +expString+
-                "randomize_positions=%(randomisePos)s)\n"
-        )
-        buff.writeIndentedLines(code % self.params)
-        buff.setIndentLevel(-1, relative=True)
+        if self.params['mode'].val == "validation":
+            # Setup validation
+            code = (
+                "%(name)s = ValidationProcedure(win, %(name)sTarget,\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+            buff.setIndentLevel(1, relative=True)
+            # Split expandDur into two if needed
+            if len(self.params['expandDur'].val) == 2:
+                expString = f"expandDur={self.params['expandDur'].val[0]}, contractDur={self.params['expandDur'].val[1]}, \n"
+            else:
+                expString = f"expandDur={self.params['expandDur'].val}, contractDur={self.params['expandDur'].val}, \n"
+            code = (
+                    "positions=%(positions)s,\n"
+                    "velocity=%(velocity)s, expandScale=%(expandScale)s,\n"
+                    +expString+
+                    "randomize_positions=%(randomisePos)s)\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+            buff.setIndentLevel(-1, relative=True)
+        if self.params['mode'].val == "calibration":
+            pass
