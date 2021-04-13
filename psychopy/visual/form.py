@@ -59,7 +59,7 @@ _synonyms = {
 
 
 class Form(BaseVisualStim, ContainerMixin, ColorMixin):
-    """A class to add Forms to a `psycopy.visual.Window`
+    """A class to add Forms to a `psychopy.visual.Window`
 
     The Form allows Psychopy to be used as a questionnaire tool, where
     participants can be presented with a series of questions requiring responses.
