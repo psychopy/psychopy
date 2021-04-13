@@ -71,7 +71,7 @@ _localized = {'expName': _translate("Experiment name"),
               'JS libs': _translate("JS libs"),
               'Force stereo': _translate("Force stereo"),
               'Export HTML': _translate("Export HTML")}
-
+ioDeviceMap = dict(ioUtil.getDeviceNames())
 #
 #
 # # customize the Proj ID Param class to
@@ -111,7 +111,7 @@ class SettingsComponent(object):
                  saveWideCSVFile=True, savePsydatFile=True,
                  savedDataFolder='', savedDataDelim='auto',
                  useVersion='',
-                 eyeModel="mouse", eyeAutoReport=True, eyeInterval=0.001, eyeSamplingRate=2000,
+                 eyeModel="MouseGaze", eyeAutoReport=True, eyeInterval=0.001, eyeSamplingRate=2000,
                  filename=None, exportHTML='on Sync'):
         self.type = 'Settings'
         self.exp = exp  # so we can access the experiment if necess
@@ -322,8 +322,9 @@ class SettingsComponent(object):
         # Eyetracking params
         self.params['eyeModel'] = Param(
             eyeModel, valType='str', inputType="choice",
-            allowedVals=list(dict(ioUtil.getDeviceNames())),
-            hint=_translate("What kind of eye tracker should PsychoPy configure"),
+            allowedVals=list(ioDeviceMap),
+            hint=_translate("What kind of eye tracker should PsychoPy use? Select 'MouseGaze' to use "
+                            "the mouse to simulate eye movement (for debugging without a tracker connected)"),
             label=_translate("Eyetracker Device"), categ="Eyetracking"
         )
 
