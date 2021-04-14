@@ -9,7 +9,7 @@ import sys
 import tempfile
 import os
 from ..... import DeviceEvent, Computer
-from ......constants import EventConstants, KeyboardConstants
+from ......constants import EventConstants
 from ......errors import print2err, printExceptionDetailsToStdErr
 from ......util import convertCamelToSnake, win32MessagePump
 import pylink
@@ -18,27 +18,31 @@ import pylink
 class FixationTarget(object):
     def __init__(self, psychopy_eyelink_graphics):
         win = psychopy_eyelink_graphics.window
+        config = psychopy_eyelink_graphics._eyetrackerinterface.getConfiguration()
+        color_type = config.get('calibration').get('color_type')
+        unit_type = config.get('calibration').get('unit_type')
+
         self.calibrationPointOuter = visual.Circle(
             win,
             pos=(0, 0),
             lineWidth=1.0,
             lineColor=psychopy_eyelink_graphics.CALIBRATION_POINT_OUTER_COLOR,
-            colorSpace=win.colorSpace,
+            colorSpace=color_type,
             fillColor=psychopy_eyelink_graphics.CALIBRATION_POINT_OUTER_COLOR,
             radius=psychopy_eyelink_graphics.CALIBRATION_POINT_OUTER_RADIUS,
             name='CP_OUTER',
-            units=win.units,
+            units=unit_type,
             opacity=1.0,
             interpolate=False)
         self.calibrationPointInner = visual.Circle(
             win,
             pos=(0, 0), lineWidth=1.0,
             lineColor=psychopy_eyelink_graphics.CALIBRATION_POINT_INNER_COLOR,
-            colorSpace=win.colorSpace,
+            colorSpace=color_type,
             fillColor=psychopy_eyelink_graphics.CALIBRATION_POINT_INNER_COLOR,
             radius=psychopy_eyelink_graphics.CALIBRATION_POINT_INNER_RADIUS,
             name='CP_INNER',
-            units=win.units,
+            units=unit_type,
             opacity=1.0,
             interpolate=False)
 
@@ -113,39 +117,39 @@ class IntroScreen(object):
         font_height = 24
         space_per_lines = font_height * 2.5
         if window.useRetina:
-            topline_y = window.size[1]/4-font_height*2
+            topline_y = window.size[1] / 4 - font_height * 2
         else:
-            topline_y = window.size[1]/2-font_height*2
+            topline_y = window.size[1] / 2 - font_height * 2
         wrap_width = window.size[1] * .8
-           
+
         self.introlines = []
 
         self.introlines.append(visual.TextStim(window,
-                    text='>>>> Eyelink System Setup:  Keyboard Actions <<<<',
-                    pos=(
-                        0,
-                        topline_y),
-                    height=font_height * 1.2,
-                    color=(
-                        0,
-                        0,
-                        0),
-                    colorSpace='rgb255',
-                    opacity=1.0,
-                    contrast=1.0,
-                    units='pix',
-                    ori=0.0,
-                    antialias=True,
-                    bold=True,
-                    italic=False,
-                    wrapWidth=wrap_width))
+                                               text='>>>> Eyelink System Setup:  Keyboard Actions <<<<',
+                                               pos=(
+                                                   0,
+                                                   topline_y),
+                                               height=font_height * 1.2,
+                                               color=(
+                                                   0,
+                                                   0,
+                                                   0),
+                                               colorSpace='rgb255',
+                                               opacity=1.0,
+                                               contrast=1.0,
+                                               units='pix',
+                                               ori=0.0,
+                                               antialias=True,
+                                               bold=True,
+                                               italic=False,
+                                               wrapWidth=wrap_width))
 
         if window.useRetina:
-            left_margin = -window.size[0]/4
+            left_margin = -window.size[0] / 4
         else:
-            left_margin = -window.size[0]/2
-        left_margin = left_margin *.4
-        topline_y = topline_y - space_per_lines/3
+            left_margin = -window.size[0] / 2
+        left_margin = left_margin * .4
+        topline_y = topline_y - space_per_lines / 3
         self.introlines.append(visual.TextStim(window,
                                                text='* ENTER: Begin Camera Setup Mode',
                                                pos=(left_margin,
@@ -226,12 +230,12 @@ class IntroScreen(object):
                                                anchorHoriz='left',
                                                wrapWidth=wrap_width))
 
-        topline_y = topline_y - space_per_lines/3
+        topline_y = topline_y - space_per_lines / 3
         self.introlines.append(visual.TextStim(window,
                                                text='------ Camera Setup Mode Specific Actions ------',
                                                pos=(0,
                                                     topline_y - space_per_lines * (len(self.introlines))),
-                                               height=font_height*1.2,
+                                               height=font_height * 1.2,
                                                color=(0,
                                                       0,
                                                       0),
@@ -244,8 +248,8 @@ class IntroScreen(object):
                                                bold=True,
                                                italic=False,
                                                wrapWidth=wrap_width))
-        
-        topline_y = topline_y - space_per_lines/3
+
+        topline_y = topline_y - space_per_lines / 3
         self.introlines.append(visual.TextStim(window,
                                                text='* Left / Right Arrow: Switch Between Camera Views',
                                                pos=(left_margin,
@@ -332,7 +336,7 @@ class IntroScreen(object):
 
 
 class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
-    IOHUB_HEARTBEAT_INTERVAL = 0.050   # seconds between forced run through of
+    IOHUB_HEARTBEAT_INTERVAL = 0.050  # seconds between forced run through of
     # micro threads, since one is blocking
     # on camera setup.
 
@@ -340,7 +344,7 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
     CALIBRATION_POINT_OUTER_RADIUS = None
     CALIBRATION_POINT_OUTER_EDGE_COUNT = 64
     CALIBRATION_POINT_OUTER_COLOR = None
-    CALIBRATION_POINT_INNER_RADIUS =None
+    CALIBRATION_POINT_INNER_RADIUS = None
     CALIBRATION_POINT_INNER_EDGE_COUNT = 64
     CALIBRATION_POINT_INNER_COLOR = None
 
@@ -374,10 +378,10 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
         EyeLinkCoreGraphicsIOHubPsychopy.CALIBRATION_POINT_OUTER_COLOR = targetForegroundColor
         EyeLinkCoreGraphicsIOHubPsychopy.CALIBRATION_POINT_INNER_COLOR = targetBackgroundColor
         EyeLinkCoreGraphicsIOHubPsychopy.WINDOW_BACKGROUND_COLOR = screenColor
-        EyeLinkCoreGraphicsIOHubPsychopy.CALIBRATION_POINT_OUTER_RADIUS = targetOuterDiameter / \
-            2.0, targetOuterDiameter / 2.0
-        EyeLinkCoreGraphicsIOHubPsychopy.CALIBRATION_POINT_INNER_RADIUS = targetInnerDiameter / \
-            2.0, targetInnerDiameter / 2.0
+        EyeLinkCoreGraphicsIOHubPsychopy.CALIBRATION_POINT_OUTER_RADIUS = (targetOuterDiameter / 2.0,
+                                                                           targetOuterDiameter / 2.0)
+        EyeLinkCoreGraphicsIOHubPsychopy.CALIBRATION_POINT_INNER_RADIUS = (targetInnerDiameter / 2.0,
+                                                                           targetInnerDiameter / 2.0)
 
         self.tmp_file = os.path.join(tempfile.gettempdir(), '_eleye.png')
 
@@ -411,7 +415,7 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
         self.eye_frame_size = (0, 0)
 
         self._registerEventMonitors()
-        #self._ioMouse.setSystemCursorVisibility(False)
+        # self._ioMouse.setSystemCursorVisibility(False)
         self._lastMsgPumpTime = Computer.getTime()
         self.clearAllEventBuffers()
 
@@ -424,7 +428,8 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
 
     def _registerEventMonitors(self):
         self._iohub_server = self._eyetrackerinterface._iohub_server
-
+        kbDevice = None
+        mouseDevice = None
         if self._iohub_server:
             for dev in self._iohub_server.devices:
                 if dev.__class__.__name__ == 'Keyboard':
@@ -435,13 +440,7 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
         if kbDevice:
             eventIDs = []
             for event_class_name in kbDevice.__class__.EVENT_CLASS_NAMES:
-                eventIDs.append(
-                    getattr(
-                        EventConstants,
-                        convertCamelToSnake(
-                            event_class_name[
-                                :-5],
-                            False)))
+                eventIDs.append(getattr(EventConstants, convertCamelToSnake(event_class_name[:-5], False)))
 
             self._ioKeyboard = kbDevice
             self._ioKeyboard._addEventListener(self, eventIDs)
@@ -452,13 +451,7 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
         if mouseDevice:
             eventIDs = []
             for event_class_name in mouseDevice.__class__.EVENT_CLASS_NAMES:
-                eventIDs.append(
-                    getattr(
-                        EventConstants,
-                        convertCamelToSnake(
-                            event_class_name[
-                                :-5],
-                            False)))
+                eventIDs.append(getattr(EventConstants, convertCamelToSnake(event_class_name[:-5], False)))
 
             self._ioMouse = mouseDevice
             self._ioMouse._addEventListener(self, eventIDs)
@@ -479,7 +472,7 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
             key_index = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('key')
             char = event[key_index]
             if isinstance(char, bytes):
-                char = str(event[key_index],'utf-8')
+                char = str(event[key_index], 'utf-8')
 
             if char:
                 char = char.lower()
@@ -572,7 +565,7 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
     def draw_cal_target(self, x, y):
         """Draws calibration target."""
         # convert to psychopy pix coords
-        x, y = self._eyetrackerinterface._eyeTrackerToDisplayCoords((x,y))
+        x, y = self._eyetrackerinterface._eyeTrackerToDisplayCoords((x, y))
 
         self.blankdisplay.draw()
         self.fixationpoint.draw((x, y))
@@ -586,7 +579,7 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
             self.clear_cal_display()
             self.last_mouse_state = -1
             if self.rgb_index_array is None:
-                self.rgb_index_array = np.zeros((int(height/2), int(width/2)), dtype=np.uint8)
+                self.rgb_index_array = np.zeros((int(height / 2), int(width / 2)), dtype=np.uint8)
 
     def exit_image_display(self):
         """Exits the image display."""
@@ -639,7 +632,7 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
         if line == totlines:
             try:
                 image = Image.fromarray(self.rgb_index_array,
-                                           mode='P')
+                                        mode='P')
                 image.putpalette(self.rgb_pallete)
                 image = ImageOps.fit(image, [640, 480])
                 if self.eye_image is None:
@@ -660,7 +653,7 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
                 printExceptionDetailsToStdErr()
 
     def set_image_palette(self, r, g, b):
-        """Set color palette ued by host pc when sending images.
+        """Set color palette used by host pc when sending images.
 
         Saves the different r,g,b values provided by the eyelink host
         palette. When building up each eye image frame, eyelink sends
@@ -680,7 +673,7 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
         """Prints alert message to psychopy stderr."""
         print2err('eyelink_graphics.alert_printf(): %s' % msg)
 
-###
+    ###
 
     def play_beep(self, pylink_sound_index):
         """

@@ -3,22 +3,21 @@
 # Copyright (C) 2012-2021 iSolver Software Solutions
 # Distributed under the terms of the GNU General Public License (GPL).
 
-import psychopy
+
 from psychopy import visual
 import gevent
-import time
-import copy
 import numpy as np
 from collections import OrderedDict
 from .....util import convertCamelToSnake
 from .... import DeviceEvent, Computer
 from .....constants import EventConstants
 from .....errors import print2err, printExceptionDetailsToStdErr
+
 currentTime = Computer.getTime
 
 
 class TobiiPsychopyCalibrationGraphics(object):
-    IOHUB_HEARTBEAT_INTERVAL = 0.050   # seconds between forced run through of
+    IOHUB_HEARTBEAT_INTERVAL = 0.050  # seconds between forced run through of
     # micro threads, since one is blocking
     # on camera setup.
     WINDOW_BACKGROUND_COLOR = None
@@ -83,6 +82,7 @@ class TobiiPsychopyCalibrationGraphics(object):
                                                                             0.9),
                                                                            (0.5, 0.5)]
         display = self._eyetrackerinterface._display_device
+
         self.window = visual.Window(
             self.screenSize,
             monitor=display.getPsychopyMonitorName(),
@@ -91,7 +91,7 @@ class TobiiPsychopyCalibrationGraphics(object):
             allowGUI=False,
             screen=display.getIndex(),
             color=self.WINDOW_BACKGROUND_COLOR[
-                0:3],
+                  0:3],
             colorSpace=display.getColorSpace())
         self.window.flip(clearBuffer=True)
 
@@ -107,9 +107,9 @@ class TobiiPsychopyCalibrationGraphics(object):
             d.clearEvents()
 
     def _registerEventMonitors(self):
+        kbDevice = None
         if self._eyetrackerinterface._iohub_server:
             for dev in self._eyetrackerinterface._iohub_server.devices:
-                #ioHub.print2err("dev: ",dev.__class__.__name__)
                 if dev.__class__.__name__ == 'Keyboard':
                     kbDevice = dev
 
@@ -121,7 +121,7 @@ class TobiiPsychopyCalibrationGraphics(object):
                         EventConstants,
                         convertCamelToSnake(
                             event_class_name[
-                                :-5],
+                            :-5],
                             False)))
 
             self._ioKeyboard = kbDevice
@@ -158,7 +158,7 @@ class TobiiPsychopyCalibrationGraphics(object):
             self._lastMsgPumpTime = currentTime()
 
     def getNextMsg(self):
-        if len(self._msg_queue)>0:
+        if len(self._msg_queue) > 0:
             msg = self._msg_queue[0]
             self._msg_queue = self._msg_queue[1:]
             return msg
@@ -176,9 +176,11 @@ class TobiiPsychopyCalibrationGraphics(object):
             inner_line_color: [0,0,0]
             calibration_prefs=self._eyetrackerinterface.getConfiguration()['calibration']['target_attributes']
         """
-        coord_type = self._eyetrackerinterface._display_device.getCoordinateType()
-        calibration_prefs = self._eyetrackerinterface.getConfiguration()['calibration'][
-            'target_attributes']
+        config = self._eyetrackerinterface.getConfiguration()
+        color_type = config.get('calibration').get('color_type')
+        unit_type = config.get('calibration').get('unit_type')
+
+        calibration_prefs = self._eyetrackerinterface.getConfiguration()['calibration']['target_attributes']
         self.calibrationPointOUTER = visual.Circle(
             self.window,
             pos=(
@@ -192,7 +194,7 @@ class TobiiPsychopyCalibrationGraphics(object):
             opacity=1.0,
             interpolate=False,
             edges=64,
-            units=coord_type)
+            units=unit_type, colorSpace=color_type)
 
         self.calibrationPointINNER = visual.Circle(
             self.window,
@@ -207,7 +209,7 @@ class TobiiPsychopyCalibrationGraphics(object):
             opacity=1.0,
             interpolate=False,
             edges=64,
-            units=coord_type)
+            units=unit_type, colorSpace=color_type)
 
         instuction_text = 'Press SPACE to Start Calibration; ESCAPE to Exit.'
         self.textLineStim = visual.TextStim(self.window,
@@ -321,9 +323,6 @@ class TobiiPsychopyCalibrationGraphics(object):
     def runCalibration(self):
         """Performs a simple Tobii - like (@2010) calibration routine.
 
-        Args:
-            None
-
         Result:
             bool: True if calibration was successful. False if not.
 
@@ -356,6 +355,7 @@ class TobiiPsychopyCalibrationGraphics(object):
         calibration.enter_calibration_mode()
 
         i = 0
+        _quit = False
         for pt in cal_target_list:
             self.clearAllEventBuffers()
             left, top, right, bottom = self._eyetrackerinterface._display_device.getCoordBounds()
@@ -364,6 +364,7 @@ class TobiiPsychopyCalibrationGraphics(object):
             self.drawCalibrationTarget(i, (x, y))
             self.clearAllEventBuffers()
             stime = currentTime()
+
             def waitingForNextTargetTime():
                 return True
 
@@ -391,9 +392,9 @@ class TobiiPsychopyCalibrationGraphics(object):
 
             # TODO: Switch to support per target status check available
             # in tobii_research.
-            #if calibration.collect_data(pt[0], pt[1]) != self._tobii.CALIBRATION_STATUS_SUCCESS:
-                # Try again if it didn't go well the first time.
-                # Not all eye tracker models will fail at this point, but instead fail on ComputeAndApply.
+            # if calibration.collect_data(pt[0], pt[1]) != self._tobii.CALIBRATION_STATUS_SUCCESS:
+            # Try again if it didn't go well the first time.
+            # Not all eye tracker models will fail at this point, but instead fail on ComputeAndApply.
             #    print2err("Calibration failed for target {}. Recollecting data.... TODO: Give visual feedback.")
             #    calibration.collect_data(pt[0], pt[1])
 
@@ -410,7 +411,7 @@ class TobiiPsychopyCalibrationGraphics(object):
         calibration_result = None
         if _quit:
             return calibration_result
-        
+
         self._lastCalibrationOK = False
         if calibration:
             if calibration_sequence_completed:
@@ -428,22 +429,17 @@ class TobiiPsychopyCalibrationGraphics(object):
             if continue_method is False:
                 return self.runCalibration()
             return calibration_result
-        
+
         instuction_text = "Calibration Passed. PRESS 'SPACE' KEY TO CONTINUE."
         self.showSystemSetupMessageScreen(instuction_text, True, msg_types=['SPACE_KEY_ACTION'])
 
         return calibration_result
-    
+
     def clearCalibrationWindow(self):
         self.window.flip(clearBuffer=True)
 
-    def showSystemSetupMessageScreen(
-        self,
-        text_msg='Press SPACE to Start Calibration; ESCAPE to Exit.',
-        enable_recording=False,
-        msg_types=[
-            'SPACE_KEY_ACTION',
-            'QUIT']):
+    def showSystemSetupMessageScreen(self, text_msg='Press SPACE to Start Calibration; ESCAPE to Exit.',
+                                     enable_recording=False, msg_types=('SPACE_KEY_ACTION', 'QUIT')):
         if enable_recording is True:
             self._eyetrackerinterface.setRecordingState(True)
 
@@ -474,7 +470,7 @@ class TobiiPsychopyCalibrationGraphics(object):
             for i, p in enumerate(eye_positions):
                 if p is not None:
                     mpoint = hbox_bar_length * p - \
-                        hbox_bar_length / 2.0, marker_heights[i]
+                             hbox_bar_length / 2.0, marker_heights[i]
                     self.feedback_resources[marker_names[i]].setPos(mpoint)
                     self.feedback_resources[marker_names[i]].setOpacity(1.0)
                 else:
@@ -508,26 +504,20 @@ class TobiiPsychopyCalibrationGraphics(object):
         right_eye_cam_z = None
 
         if len(events) == 0:
-            return (left_eye_cam_x, left_eye_cam_y,
-                    left_eye_cam_z), (right_eye_cam_x, right_eye_cam_y, right_eye_cam_z)
+            return (left_eye_cam_x, left_eye_cam_y, left_eye_cam_z), (right_eye_cam_x, right_eye_cam_y, right_eye_cam_z)
 
         event = events[-1]
-        if abs(
-                event.left_eye_cam_x) != 1.0 and abs(
-                event.left_eye_cam_y) != 1.0:
+        if abs(event.left_eye_cam_x) != 1.0 and abs(event.left_eye_cam_y) != 1.0:
             left_eye_cam_x = 1.0 - event.left_eye_cam_x
             left_eye_cam_y = event.left_eye_cam_y
         if event.left_eye_cam_z != 0.0:
             left_eye_cam_z = event.left_eye_cam_z
-        if abs(
-                event.right_eye_cam_x) != 1.0 and abs(
-                event.right_eye_cam_y) != 1.0:
+        if abs(event.right_eye_cam_x) != 1.0 and abs(event.right_eye_cam_y) != 1.0:
             right_eye_cam_x = 1.0 - event.right_eye_cam_x
             right_eye_cam_y = event.right_eye_cam_y
         if event.right_eye_cam_z != 0.0:
             right_eye_cam_z = event.right_eye_cam_z
-        return (left_eye_cam_x, left_eye_cam_y,
-                left_eye_cam_z), (right_eye_cam_x, right_eye_cam_y, right_eye_cam_z)
+        return (left_eye_cam_x, left_eye_cam_y, left_eye_cam_z), (right_eye_cam_x, right_eye_cam_y, right_eye_cam_z)
 
     def setTargetDefaults(self):
         """
@@ -546,7 +536,7 @@ class TobiiPsychopyCalibrationGraphics(object):
             'target_attributes']
 
         self.calibrationPointOUTER.radius = calibration_prefs[
-            'outer_diameter'] / 2.0
+                                                'outer_diameter'] / 2.0
         self.calibrationPointOUTER.setLineColor(
             calibration_prefs['outer_line_color'])
         self.calibrationPointOUTER.setFillColor(
@@ -555,7 +545,7 @@ class TobiiPsychopyCalibrationGraphics(object):
             calibration_prefs['outer_stroke_width'])
 
         self.calibrationPointINNER.radius = calibration_prefs[
-            'inner_diameter'] / 2.0
+                                                'inner_diameter'] / 2.0
         self.calibrationPointINNER.setLineColor(
             calibration_prefs['inner_line_color'])
         self.calibrationPointINNER.setFillColor(
