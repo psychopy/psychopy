@@ -181,16 +181,6 @@ class EyeTracker(EyeTrackerDevice):
                             THIRTEEN_POINTS='HV13')
                         eyelink.setCalibrationType(
                             VALID_CALIBRATION_TYPES[cal_val])
-                    elif cal_key == 'target_type':
-                        pass
-                    elif cal_key == 'screen_background_color':
-                        pass
-                    elif cal_key == 'target_attributes':
-                        pass
-                    else:
-                        print2err(
-                            'WARNING: unhandled eye tracker calibration setting: {0}, value: {1}'.format(
-                                cal_key, cal_val))
 
             # native data recording file
             default_native_data_file_name = tracker_config.get(

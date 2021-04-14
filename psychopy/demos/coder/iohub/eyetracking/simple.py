@@ -11,7 +11,7 @@ from psychopy.iohub import launchHubServer, EventConstants
 
 
 # Eye tracker to use ('mouse', 'eyelink', 'gazepoint', or 'tobii')
-TRACKER = 'mouse'
+TRACKER = 'eyelink'
 
 eyetracker_config = dict(name='tracker')
 devices_config = {}
@@ -39,7 +39,9 @@ win = visual.Window((1920, 1080),
                     units='pix',
                     fullscr=True,
                     allowGUI=False,
-                    monitor='55w_60dist'
+                    colorSpace='rgb255',
+                    monitor='55w_60dist',
+                    color=[128, 128, 128]
                     )
 
 win.setMouseVisible(False)
@@ -58,15 +60,16 @@ tracker = io.getDevice('tracker')
 win.winHandle.minimize()  # minimize the PsychoPy window
 
 # run eyetracker calibration
-tracker.runSetupProcedure()
+result = tracker.runSetupProcedure()
+print("Calibration returned: ", result)
 
 win.winHandle.maximize()  # maximize the PsychoPy window
 win.winHandle.activate()
 
-gaze_ok_region = visual.Circle(win, lineColor='black', radius=300, units='pix')
+gaze_ok_region = visual.Circle(win, lineColor='black', radius=300, units='pix', colorSpace='named')
 
 gaze_dot = visual.GratingStim(win, tex=None, mask='gauss', pos=(0, 0),
-                              size=(40, 40), color='green', units='pix')
+                              size=(40, 40), color='green', colorSpace='named', units='pix')
 
 text_stim_str = 'Eye Position: %.2f, %.2f. In Region: %s\n'
 text_stim_str += 'Press space key to start next trial.'
@@ -74,7 +77,7 @@ missing_gpos_str = 'Eye Position: MISSING. In Region: No\n'
 missing_gpos_str += 'Press space key to start next trial.'
 text_stim = visual.TextStim(win, text=text_stim_str,
                             pos=[0, 0], height=24,
-                            color='black', units='pix',
+                            color='black', units='pix', colorSpace='named',
                             wrapWidth=win.size[0] * .9)
 
 # Run Trials.....
@@ -87,9 +90,9 @@ while t < TRIAL_COUNT:
     while run_trial is True:
         # Get the latest gaze position in dispolay coord space..
         gpos = tracker.getLastGazePosition()
-        for evt in tracker.getEvents():
-            if evt.type != EventConstants.MONOCULAR_EYE_SAMPLE:
-                print(evt)
+        #for evt in tracker.getEvents():
+        #    if evt.type != EventConstants.MONOCULAR_EYE_SAMPLE:
+        #        print(evt)
         # Update stim based on gaze position
         valid_gaze_pos = isinstance(gpos, (tuple, list))
         gaze_in_region = valid_gaze_pos and gaze_ok_region.contains(gpos)

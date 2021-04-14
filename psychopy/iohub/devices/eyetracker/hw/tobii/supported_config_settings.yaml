@@ -32,6 +32,16 @@ eyetracker.hw.tobii.EyeTracker:
                 valid_values: [THREE_POINTS,FIVE_POINTS,NINE_POINTS]
                 min_length: 1
                 max_length: 1
+        unit_type:
+            IOHUB_LIST:
+                valid_values: [norm, pix, cm, height, deg, degFlatPos, degFlat]
+                min_length: 0
+                max_length: 1
+        color_type:
+            IOHUB_LIST:
+                valid_values: [rgb, dkl, lms, hsv, hex, named, rgb255]
+                min_length: 0
+                max_length: 1
         randomize: IOHUB_BOOL
         target_positions: []
         auto_pace: IOHUB_BOOL

@@ -15,12 +15,15 @@ Changes made to iohub for 2021.2 Release
 - Added wintab device for Wacom based digital pens. (Windows only)
 - Added iohub MouseGaze eye tracker simulator.
 - Added 'color_space' setting to Display settings.
-- Eyelink and tobii calibration gfx can now use same color space as window instead of always rgb255.
+- Eyelink and tobii calibration gfx can now use color_type and unit_type settings, or same color space as window,
+  instead of always rgb255.
     - TODO: Retest all eyetracking examples with all eye trackers on all OS's
 - Removed iohub/devices/display/unit_conversions.py. Moving to psychopy monitorutil functions.
 - launchHubServer now accepts a psychopy window using the window kwarg.
   iohub display info is updated using window information like .monitor, .colorSpace, .units, .screen
 - If psychopy window (with monitor config) is passed to launchHubServer, no need for iohub Display config.
 - Added common eye tracker interface validation procedure. Coder Demo: demos/coder/iohub/eyetracking/validation.py
+    - TODO: Finalize functionality / api
     - TODO: Retest all eye trackers
 - Updated psychopy.iohub API docs.
+- Added color_type and unit_type settings to EyeLink and Tobii config settings.
