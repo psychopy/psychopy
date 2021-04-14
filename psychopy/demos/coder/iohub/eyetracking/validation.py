@@ -48,19 +48,18 @@ if __name__ == "__main__":
                                           target=target_stim,
                                           positions=target_positions,
                                           randomize_positions=True,
-                                          target_animation=dict(velocity=1.0,
-                                                                expandedscale=3.0,
-                                                                expansionduration=0.2,
-                                                                contractionduration=0.4),
-                                          accuracy_period_start=0.550,
-                                          accuracy_period_stop=.150,
-                                          show_intro_screen=True,
-                                          intro_text='Eye Tracker Validation Procedure.',
+                                          animation_velocity=1.0,
+                                          animation_scale=3.0,
+                                          animation_duration=(0.2, 0.4),
+                                          color_space=None,  # None == use window color space
+                                          unit_type=None, # Must be None for now.
+                                          progress_on_timeout=None,  # float or None
+                                          progress_on_key=' ',  # str, list of str, or None
+                                          gaze_cursor_color=(-1.0, 1.0, -1.0),
+                                          #accuracy_period_start=0.550,
+                                          #accuracy_period_stop=.150,
                                           show_results_screen=True,
-                                          results_in_degrees=True,
-                                          save_results_screen=True,
-                                          toggle_gaze_cursor_key='g',
-                                          terminate_key='escape')
+                                          save_results_screen=True)
 
     # Run the validation procedure. run() does not return until the validation is complete.
     validation_proc.run()
