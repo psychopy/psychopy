@@ -564,7 +564,7 @@ class _BaseParamsDlg(wx.Dialog):
         (after its tab has been created)
         """
         # create the sizers to fit the params and set row to zero
-        sizer = wx.GridBagSizer(vgap=6, hgap=6)
+        sizer = wx.GridBagSizer(vgap=0, hgap=0)
         currRow = 0
         # does the dlg need an 'updates' row (do any params use it?)
         self.useUpdates = False
@@ -665,7 +665,7 @@ class _BaseParamsDlg(wx.Dialog):
         startAllCrtlSizer.Add(startEstimSizer)
         sizer.Add(label, (currRow, 0), (1, 1))
         # add our new row
-        sizer.Add(startAllCrtlSizer, (currRow, 1), (1, 1), flag=wx.EXPAND)
+        sizer.Add(startAllCrtlSizer, (currRow, 1), (1, 1), border=6, flag=wx.EXPAND | wx.ALL)
         currRow += 1
         remaining.remove('startType')
         remaining.remove('startVal')
@@ -709,7 +709,7 @@ class _BaseParamsDlg(wx.Dialog):
         stopAllCrtlSizer.Add(stopEstimSizer)
         sizer.Add(label, (currRow, 0), (1, 1))
         # add our new row
-        sizer.Add(stopAllCrtlSizer, (currRow, 1), (1, 1), flag=wx.EXPAND)
+        sizer.Add(stopAllCrtlSizer, (currRow, 1), (1, 1), border=6, flag=wx.EXPAND | wx.ALL)
         currRow += 1
         remaining.remove('stopType')
         remaining.remove('stopVal')
@@ -747,18 +747,18 @@ class _BaseParamsDlg(wx.Dialog):
             ctrls.valueCtrl.Bind(wx.EVT_KEY_UP, self.doValidate)
 
         # add the controls to the sizer
-        _flag = wx.LEFT | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL
-        sizer.Add(ctrls.nameCtrl, (currRow, 0), border=5, flag=_flag)
+        _flag = wx.ALL | wx.ALIGN_CENTER_VERTICAL
+        sizer.Add(ctrls.nameCtrl, (currRow, 0), border=6, flag=_flag)
         if ctrls.updateCtrl:
-            sizer.Add(ctrls.updateCtrl, (currRow, 2), border=5, flag=_flag)
+            sizer.Add(ctrls.updateCtrl, (currRow, 2), border=6, flag=_flag)
         if ctrls.typeCtrl:
-            sizer.Add(ctrls.typeCtrl, (currRow, 3), border=5, flag=_flag)
+            sizer.Add(ctrls.typeCtrl, (currRow, 3), border=6, flag=_flag)
         # different flag for the value control (expand)
         _flag = wx.EXPAND | wx.ALL
         if hasattr(ctrls.valueCtrl, '_szr'):
-            sizer.Add(ctrls.valueCtrl._szr, (currRow, 1), border=5, flag=_flag)
+            sizer.Add(ctrls.valueCtrl._szr, (currRow, 1), border=6, flag=_flag)
         else:
-            sizer.Add(ctrls.valueCtrl, (currRow, 1), border=5, flag=_flag)
+            sizer.Add(ctrls.valueCtrl, (currRow, 1), border=6, flag=_flag)
 
         # use monospace font to signal code:
         if fieldName != 'name' and hasattr(ctrls.valueCtrl, 'GetFont'):
