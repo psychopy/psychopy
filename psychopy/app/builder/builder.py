@@ -2865,7 +2865,7 @@ class FlowPanel(wx.ScrolledWindow):
                 limitProgress = 0
                 for rt in flow:
                     limitProgress += int(isinstance(rt, type(routine)))
-                item.Enable(limitProgress < routine.limit)
+                item.Enable(limitProgress < routine.limit or routine in flow)
             self.routinesFromID[id] = name
             menu.Bind(wx.EVT_MENU, self.onInsertRoutineSelect, id=id)
         btnPos = self.btnInsertRoutine.GetRect()
