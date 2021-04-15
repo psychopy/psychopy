@@ -43,7 +43,6 @@ class SoundComponent(BaseComponent):
         self.type = 'Sound'
         self.url = "https://www.psychopy.org/builder/components/sound.html"
         self.exp.requirePsychopyLibs(['sound'])
-        self.targets = ['PsychoPy', 'PsychoJS']
         self.order += [
             "sound",  # Basic tab
             "volume", "hammingWindow",  # Playback tab

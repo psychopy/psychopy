@@ -1,0 +1,19 @@
+
+code: 4052
+cat: Experiment configuration
+msg: Experiment was built in a past version of PsychoPy ({version}), saving it in this version may add parameters which cannot be parsed.
+
+# The following are typically used for online help pages, and support reStructured Text.
+label: Experiment fixed to past version
+
+synopsis: |
+  It looks like your experiment is set to run in a version before 2021.1.0, the version of PsychoPy you have currently installed is newer than this, so saving the experiment in your current version may add new types of parameters which the version it is set to cannot interpret.
+
+details: |
+  Between different version of PsychoPy, we make a number of changes to improve useability and performance, but which mean that newer experiments may contain code which older versions do not know how to handle. We always try to maintain "backwards compatability" - so that experiments built in older versions run the same in newer versions. However, we cannot predict what changes we will make years down the line, so cannot guarantee "forwards compatability" in the same way. This means that experiments built in the current version of PsychoPy but set to run in an older version may not run as expected, or at all. This is a particular issue between 2020.2.10 and 2021.1.0 as between the two we added several new types of parameter, meaning if you run in 2020.2 PsychoPy will not recognise them.
+
+solutions: |
+  To fix this, we recommend setting the experiment version in the Experiment Settings menu to be 2021.1.0 or newer, as these will have the ability to recognise the new parameter types.
+
+versions: |
+  >2021.1.0

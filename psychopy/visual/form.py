@@ -59,7 +59,7 @@ _synonyms = {
 
 
 class Form(BaseVisualStim, ContainerMixin, ColorMixin):
-    """A class to add Forms to a `psycopy.visual.Window`
+    """A class to add Forms to a `psychopy.visual.Window`
 
     The Form allows Psychopy to be used as a questionnaire tool, where
     participants can be presented with a series of questions requiring responses.
@@ -136,7 +136,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         self.borderColor = borderColor
 
         self.textHeight = textHeight
-        self._scrollBarSize = (0.016, self.size[1])
+        self._scrollBarSize = (0.016, self.size[1]/1.2)
         self._baseYpositions = []
         self.leftEdge = None
         self.rightEdge = None
@@ -785,7 +785,8 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         """
         for i in self.items:
             if i['responseCtrl']:
-                i['responseCtrl'].setAutoDraw(value)
+                i['responseCtrl'].__dict__['autoDraw'] = value
+                self.win.addEditable(i['responseCtrl'])
         BaseVisualStim.setAutoDraw(self, value, log)
 
     def draw(self):

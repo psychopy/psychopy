@@ -1045,8 +1045,13 @@ def getGitRoot(p):
     if not p.is_dir():
         p = p.parent  # given a file instead of folder?
 
-    if 'not a git repository' in subprocess.check_output(["git", "branch", "--show-current"],
-                                                         cwd=str(p)).decode('utf-8'):
+    proc = subprocess.Popen('git branch --show-current',
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE,
+                            cwd=str(p), shell=True,
+                            universal_newlines=True)  # newlines forces stdout to unicode
+    stdout, stderr = proc.communicate()
+    if 'not a git repository' in (stdout + stderr):
         return None
     else:
         # this should have been possible with git rev-parse --top-level

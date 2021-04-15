@@ -367,23 +367,24 @@ class PygletBackend(BaseBackend):
         :return:
         """
         wins = _default_display_.get_windows()
-
         for win in wins:
             win.dispatch_events()
 
     def onKey(self, evt, modifiers):
         "Check for tab key then pass all events to event package"
-        thisKey = pyglet.window.key.symbol_string(evt).lower()
-        if thisKey == 'tab':
-            self.onText('\t')
-        event._onPygletKey(evt, modifiers)
+        if evt is not None:
+            thisKey = pyglet.window.key.symbol_string(evt).lower()
+            if thisKey == 'tab':
+                self.onText('\t')
+            event._onPygletKey(evt, modifiers)
 
     def onText(self, evt):
         """Retrieve the character event(s?) for this window"""
-        currentEditable = self.win.currentEditable
-        if currentEditable:
-            currentEditable._onText(evt)
-        event._onPygletText(evt)  # duplicate the event to the psychopy.events lib
+        if evt is not None:
+            currentEditable = self.win.currentEditable
+            if currentEditable:
+                currentEditable._onText(evt)
+            event._onPygletText(evt)  # duplicate the event to the psychopy.events lib
 
     def onCursorKey(self, evt):
         """Processes the events from pyglet.window.on_text_motion
