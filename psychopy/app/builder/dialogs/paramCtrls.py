@@ -122,6 +122,7 @@ class SingleLineCtrl(wx.TextCtrl, _ValidatorMixin):
         wx.TextCtrl.Show(self, value)
         self.dollarLbl.Show(value)
 
+
 class MultiLineCtrl(SingleLineCtrl, _ValidatorMixin):
     def __init__(self, parent, valType,
                  val="", fieldName="",
