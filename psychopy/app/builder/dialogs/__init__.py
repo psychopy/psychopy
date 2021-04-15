@@ -550,6 +550,11 @@ class _BaseParamsDlg(wx.Dialog):
                         evalStr = ("dependentCtrls.{}.{}()"
                                    .format(ctrlName, action.title()))
                         eval(evalStr)
+            for child in self.ctrls.GetChildren():
+                sizer = child.GetSizer()
+                #sizer.SetEmptyCellSize((0, 0))
+                sizer.Layout()
+                sizer.Fit(child)
             self.mainSizer.Layout()
             self.Fit()
             self.Refresh()
