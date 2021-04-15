@@ -2856,10 +2856,17 @@ class FlowPanel(wx.ScrolledWindow):
         menu.Append(id, '(new)')
         self.routinesFromID[id] = '(new)'
         menu.Bind(wx.EVT_MENU, self.insertNewRoutine, id=id)
-        for routine in self.frame.exp.routines:
+        flow = self.frame.exp.flow
+        for name, routine in self.frame.exp.routines.items():
             id = wx.NewIdRef()
-            menu.Append(id, routine)
-            self.routinesFromID[id] = routine
+            item = menu.Append(id, name)
+            # Enable / disable each routine's button according to limits
+            if hasattr(routine, "limit"):
+                limitProgress = 0
+                for rt in flow:
+                    limitProgress += int(isinstance(rt, type(routine)))
+                item.Enable(limitProgress < routine.limit)
+            self.routinesFromID[id] = name
             menu.Bind(wx.EVT_MENU, self.onInsertRoutineSelect, id=id)
         btnPos = self.btnInsertRoutine.GetRect()
         menuPos = (btnPos[0], btnPos[1] + btnPos[3])
