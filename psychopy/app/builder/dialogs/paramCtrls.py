@@ -118,6 +118,10 @@ class SingleLineCtrl(wx.TextCtrl, _ValidatorMixin):
         self.Bind(wx.EVT_TEXT, self.validate)
         self.validate()
 
+    def Show(self, value=True):
+        wx.TextCtrl.Show(self, value)
+        self.dollarLbl.Show(value)
+
 class MultiLineCtrl(SingleLineCtrl, _ValidatorMixin):
     def __init__(self, parent, valType,
                  val="", fieldName="",
