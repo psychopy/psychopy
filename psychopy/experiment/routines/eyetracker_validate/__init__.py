@@ -31,12 +31,12 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
     tooltip = _translate("Validation routine for eyetrackers")
 
     def __init__(self, exp, name='validation',
-                 mode="calibrate", showCursor=True,
+                 showCursor=True, progressKey=["ENTER"], progressTime="", showResults=False,
                  color="red", fillColor="", borderColor="white", cursorColor="red", colorSpace="rgb",
                  targetStyle="dot", borderWidth=0.005,
                  units="height", targetSize=0.025, dotSize=0.005, randomisePos=True,
                  targetLayout="nine-point", positions=positionsMap['nine-point'],
-                 velocity=1, expandScale=3, expandDur=0.2, progressKey=["ENTER"], progressTime="", showResults=False,
+                 velocity=1, expandScale=3, expandDur=0.2,
                  saveAsImg=False
                  ):
         # Initialise base routine
@@ -78,7 +78,7 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
             label=_translate("Progress On Key..."))
 
         self.params['progressTime'] = Param(progressTime,
-            valType='list', inputType="single", categ='Basic',
+            valType='num', inputType="single", categ='Basic',
             hint=_translate(
                 "Time limit (s) after which progress to next position (leave blank for no limit)"),
             label=_translate("Progress After Time..."))
@@ -131,8 +131,6 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
             valType='num', inputType="single", categ='Appearance',
             hint=_translate("Width of the line around the target"),
             label=_translate("Target Border Width"))
-
-
 
         # Layout Params
         self.order += [
