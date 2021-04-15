@@ -120,7 +120,8 @@ class SingleLineCtrl(wx.TextCtrl, _ValidatorMixin):
 
     def Show(self, value=True):
         wx.TextCtrl.Show(self, value)
-        self.dollarLbl.Show(value)
+        if hasattr(self, "dollarLbl"):
+            self.dollarLbl.Show(value)
 
 
 class MultiLineCtrl(SingleLineCtrl, _ValidatorMixin):
