@@ -23,6 +23,7 @@ class BaseStandaloneRoutine:
     targets = []
     iconFile = Path(__file__).parent / "unknown" / "unknown.png"
     tooltip = ""
+    limit = float('inf')
 
     def __init__(self, exp, name='',
                  stopType='duration (s)', stopVal=''):
