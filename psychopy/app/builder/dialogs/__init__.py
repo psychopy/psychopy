@@ -552,7 +552,7 @@ class _BaseParamsDlg(wx.Dialog):
                         eval(evalStr)
             for child in self.ctrls.GetChildren():
                 sizer = child.GetSizer()
-                #sizer.SetEmptyCellSize((0, 0))
+                sizer.SetEmptyCellSize((0, 0))
                 sizer.Layout()
                 sizer.Fit(child)
             self.mainSizer.Layout()
@@ -564,14 +564,17 @@ class _BaseParamsDlg(wx.Dialog):
         (after its tab has been created)
         """
         # create the sizers to fit the params and set row to zero
-        sizer = wx.GridBagSizer(vgap=2, hgap=2)
+        sizer = wx.GridBagSizer(vgap=6, hgap=6)
         currRow = 0
         # does the dlg need an 'updates' row (do any params use it?)
         self.useUpdates = False
 
         # create a header row of titles
-        if not self.suppressTitles:
-            size = wx.Size(1.5 * self.dpi, -1)
+        size = wx.Size(1.5 * self.dpi, -1)
+        if self.suppressTitles:
+            sizer.Add(wx.StaticText(parent, -1, '', size=size,
+                                    style=wx.ALIGN_CENTER), (currRow, 0))
+        else:
             sizer.Add(wx.StaticText(parent, -1, 'Parameter', size=size,
                                     style=wx.ALIGN_CENTER), (currRow, 0))
             sizer.Add(wx.StaticText(parent, -1, 'Value', size=size,
