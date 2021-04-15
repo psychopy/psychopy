@@ -90,3 +90,27 @@ class TargetStim(Circle):
     def draw(self, win=None, keepMatrix=False):
         Circle.draw(self, win, keepMatrix)
         self.inner.draw(win, keepMatrix)
+
+    def getCalibSettings(self, tracker):
+        if tracker == "Tobii Technology":
+            return {
+                'outer_diameter': self.outerRadius * 2,
+                'outer_stroke_width': self.lineWidth,
+                'outer_fill_color': self.fillColor,
+                'outer_line_color': self.borderColor,
+                'inner_diameter': self.innerRadius * 2,
+                'inner_stroke_width': self.lineWidth,
+                'inner_fill_color': self.inner.fillColor,
+                'inner_line_color': self.inner.borderColor,
+            }
+        if tracker == "SR Research Ltd":
+            return {
+                'outer_diameter': self.outerRadius * 2,
+                'inner_diameter': self.innerRadius * 2,
+                'outer_color': self.borderColor,
+                'inner_color': self.inner.borderColor
+            }
+        if tracker == "GazePoint":
+            return {}
+        if tracker == "MouseGaze":
+            return self
