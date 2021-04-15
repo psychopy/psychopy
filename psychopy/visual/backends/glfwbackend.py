@@ -18,7 +18,8 @@ import atexit
 import sys, os
 import glob
 import numpy as np
-from psychopy import logging, event, prefs
+from psychopy import logging, event, prefs, core
+from psychopy.tools.monitorunittools import cm2pix, deg2pix, pix2cm, pix2deg
 from psychopy.tools.attributetools import attributeSetter
 from psychopy.visual import window
 from .gamma import createLinearRamp
@@ -57,6 +58,8 @@ _CURSORS_ = {
 # load window icon
 _WINDOW_ICON_ = Image.open(
     os.path.join(prefs.paths['resources'], 'psychopy.png'))
+
+import psychopy.hardware.mouse as mouse
 
 
 class GLFWBackend(BaseBackend):
@@ -370,8 +373,10 @@ class GLFWBackend(BaseBackend):
 
         # Assign event callbacks, these are dispatched when 'poll_events' is
         # called.
-        glfw.set_mouse_button_callback(self.winHandle, event._onGLFWMouseButton)
-        glfw.set_scroll_callback(self.winHandle, event._onGLFWMouseScroll)
+        glfw.set_mouse_button_callback(self.winHandle, self.onMouseButton)
+        glfw.set_cursor_pos_callback(self.winHandle, self.onMouseMove)
+        glfw.set_cursor_enter_callback(self.winHandle, self.onMouseEnter)
+        glfw.set_scroll_callback(self.winHandle, self.onMouseScroll)
         glfw.set_key_callback(self.winHandle, event._onGLFWKey)
         glfw.set_char_mods_callback(self.winHandle, event._onGLFWText)
 
@@ -387,6 +392,7 @@ class GLFWBackend(BaseBackend):
         #self.winHandle.on_resize = _onResize  # avoid circular reference
 
         # TODO - handle window resizing
+        self.mouseEventHandler = mouse.Mouse()
 
     def setSwapInterval(self, interval):
         """Set the swap interval for the current GLFW context."""
@@ -640,6 +646,79 @@ class GLFWBackend(BaseBackend):
         """Sets the window to/from full-screen mode"""
         raise NotImplementedError("Toggling fullscreen mode is not currently "
                              "supported on GFLW windows")
+
+    def onMouseButton(self, *args):
+        """Event handler for mouse click events."""
+
+        # global mouseButtons, mouseClick, mouseTimes
+        # now = core.getTime()
+        win_ptr, button, action, modifier = args
+        # win = glfw.get_window_user_pointer(win_ptr)
+
+        # get current position of the mouse
+        # this might not be at the exact location of the mouse press
+        # self.mouseEventHandler.lastPos = self.mouseEventHandler.pos
+        # self.mouseEventHandler.pos = glfw.get_cursor_pos(win_ptr)
+
+        # process actions
+        if action == glfw.PRESS:
+            if button == glfw.MOUSE_BUTTON_LEFT:
+                self.mouseEventHandler.buttons[mouse.MOUSE_BUTTON_LEFT] = True
+                # mouseTimes[0] = now - mouseClick[0].getLastResetTime()
+            elif button == glfw.MOUSE_BUTTON_MIDDLE:
+                self.mouseEventHandler.buttons[mouse.MOUSE_BUTTON_MIDDLE] = True
+                # mouseTimes[1] = now - mouseClick[1].getLastResetTime()
+            elif button == glfw.MOUSE_BUTTON_RIGHT:
+                self.mouseEventHandler.buttons[mouse.MOUSE_BUTTON_RIGHT] = True
+                # mouseTimes[2] = now - mouseClick[2].getLastResetTime()
+        elif action == glfw.RELEASE:
+            if button == glfw.MOUSE_BUTTON_LEFT:
+                self.mouseEventHandler.buttons[mouse.MOUSE_BUTTON_LEFT] = False
+            elif button == glfw.MOUSE_BUTTON_MIDDLE:
+                self.mouseEventHandler.buttons[mouse.MOUSE_BUTTON_MIDDLE] = False
+            elif button == glfw.MOUSE_BUTTON_RIGHT:
+                self.mouseEventHandler.buttons[mouse.MOUSE_BUTTON_RIGHT] = False
+
+    def _pix2windowUnits(self, pos):
+        if self.win is None:
+            return pos
+
+        if self.win.units == 'pix':
+            if self.win.useRetina:
+                pos /= 2.0
+            return pos
+        elif self.win.units == 'norm':
+            return pos * 2.0 / self.win.size
+        elif self.win.units == 'cm':
+            return pix2cm(pos, self.win.monitor)
+        elif self.win.units == 'deg':
+            return pix2deg(pos, self.win.monitor)
+        elif self.win.units == 'height':
+            return pos / float(self.win.size[1])
+
+    def onMouseScroll(self, *args):
+        """Event handler for mouse scroll events."""
+        win_ptr, xoffset, yoffset = args
+
+    def onMouseMove(self, *args):
+        """Event handler for mouse move events."""
+        win_ptr, xpos, ypos = args
+
+        pos = np.asarray((xpos, ypos), dtype=np.float32) - \
+              np.array(self.win.size) / 2.
+        pos[1] *= -1
+
+        self.mouseEventHandler.lastPos = self.mouseEventHandler.pos
+        self.mouseEventHandler.pos = self._pix2windowUnits(pos)
+
+    def onMouseEnter(self, *args):
+        """Event called when the mouse enters the window."""
+        _, entered = args
+
+        if bool(entered):
+            self.mouseEventHandler.win = self.win
+        else:
+            self.mouseEventHandler.win = None
 
 
 def _onResize(width, height):
