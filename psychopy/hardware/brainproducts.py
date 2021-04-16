@@ -378,7 +378,7 @@ class RemoteControlServer(object):
             raise ValueError(errMsg)
         if serialNumber:
             # LiveAmp allows you to send the serial number
-            msg = "SN:{}".format(amplifier)
+            msg = "SN:{}".format(serialNumber)
             self.sendRaw(msg, checkOutput=msg + ':OK')
         self._amplifier = amplifier
         self._amplifierSN = serialNumber
