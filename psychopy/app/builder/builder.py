@@ -29,7 +29,7 @@ from wx.lib import platebtn
 from wx.html import HtmlWindow
 
 from ...experiment.components import getAllCategories
-from ...experiment.routines import Routine
+from ...experiment.routines import Routine, BaseStandaloneRoutine
 from ...tools.stringtools import prettyname
 
 try:
@@ -58,7 +58,7 @@ from ..themes._themes import PsychopyDockArt, PsychopyTabArt, ThemeSwitcher
 from psychopy import logging, constants, data
 from psychopy.tools.filetools import mergeFolder
 from .dialogs import (DlgComponentProperties, DlgExperimentProperties,
-                      DlgCodeComponentProperties, DlgLoopProperties)
+                      DlgCodeComponentProperties, DlgLoopProperties, ParamCtrls)
 from ..utils import (PsychopyToolbar, PsychopyPlateBtn, WindowFrozen,
                      FileDropTarget, FrameSwitcher, updateDemosMenu)
 
@@ -1477,9 +1477,15 @@ class RoutinesNotebook(aui.AuiNotebook, ThemeMixin):
         return None
 
     def addRoutinePage(self, routineName, routine):
-        #        routinePage = RoutinePage(parent=self, routine=routine)
-        routinePage = RoutineCanvas(notebook=self, routine=routine)
-        self.AddPage(routinePage, routineName)
+        # Make page
+        routinePage = None
+        if isinstance(routine, Routine):
+            routinePage = RoutineCanvas(notebook=self, routine=routine)
+        elif isinstance(routine, BaseStandaloneRoutine):
+            routinePage = StandaloneRoutineCanvas(parent=self, routine=routine)
+        # Add page
+        if routinePage:
+            self.AddPage(routinePage, routineName)
 
     def renameRoutinePage(self, index, newName, ):
         self.SetPageText(index, newName)
@@ -2098,6 +2104,80 @@ class RoutineCanvas(wx.ScrolledWindow):
         return self.getMaxTime() / pixels
 
 
+class StandaloneRoutineCanvas(wx.Panel, ThemeMixin):
+
+    class CategoryPage(wx.Panel, ThemeMixin):
+        def __init__(self, parent, dlg, params):
+            wx.Panel.__init__(self, parent, size=(600, -1))
+            self.parent = parent
+            self.dlg = dlg
+            # Setup sizer
+            self.sizer = wx.GridBagSizer(0, 0)
+            self.SetSizer(self.sizer)
+            # Add controls
+            row = 0
+            for name, param in params.items():
+                # Make ctrl
+                ctrls = ParamCtrls(self.dlg, param.label, param, self, name)
+                # Add value ctrl
+                _flag = wx.EXPAND | wx.ALL
+                if hasattr(ctrls.valueCtrl, '_szr'):
+                    self.sizer.Add(ctrls.valueCtrl._szr, (row, 1), border=6, flag=_flag)
+                else:
+                    self.sizer.Add(ctrls.valueCtrl, (row, 1), border=6, flag=_flag)
+                # Add other ctrl stuff
+                _flag = wx.LEFT | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL
+                self.sizer.Add(ctrls.nameCtrl, (row, 0), (1, 1), border=5, flag=_flag)
+                if ctrls.typeCtrl:
+                    self.sizer.Add(ctrls.typeCtrl, (row, 2), border=5, flag=_flag)
+                if ctrls.updateCtrl:
+                    self.sizer.Add(ctrls.updateCtrl, (row, 3), border=5, flag=_flag)
+                # Iterate row
+                row += 1
+
+        def _applyAppTheme(self, target=None):
+            self.SetBackgroundColour("white")
+
+    def __init__(self, parent, routine=None):
+        # Init super
+        wx.Panel.__init__(
+            self, parent,
+            style=wx.BORDER_NONE)
+        # Store basics
+        self.frame = parent.frame
+        self.app = self.frame.app
+        self.dpi = self.app.dpi
+        self.routine = routine
+        # Get arrays of params
+        paramsByCateg = {}
+        for name, param in routine.params.items():
+            # Add categ if not present
+            if param.categ not in paramsByCateg:
+                paramsByCateg[param.categ] = {}
+            # Append param to categ
+            paramsByCateg[param.categ].update({name: param})
+        # Setup sizer
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.SetSizer(self.sizer)
+        # Setup categ notebook
+        self.ctrls = wx.Notebook(self)
+        self.sizer.Add(self.ctrls, border=12, proportion=1, flag=wx.ALIGN_CENTER | wx.ALL)
+        # Setup pages
+        for categ, params in paramsByCateg.items():
+            page = self.CategoryPage(self.ctrls, self, params)
+            self.ctrls.AddPage(page, categ)
+
+        # Style
+        self._applyAppTheme()
+
+    def _applyAppTheme(self, target=None):
+        ThemeMixin._applyAppTheme(self)
+        self.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
+        self.ctrls.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
+        for page in self.ctrls.GetChildren():
+            page._applyAppTheme()
+
+
 class ComponentsPanel(scrolledpanel.ScrolledPanel):
     """Panel containing buttons for each component, sorted by category"""
 
@@ -2315,37 +2395,21 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             self.Bind(wx.EVT_RIGHT_DOWN, self.onRightClick)
 
         def onClick(self, evt=None, timeout=None):
-            exp = self.parent.frame.exp
-            page = self.parent.frame.routinePanel.getCurrentPage()
+            # Make a routine instance
             comp = self.routine(exp=self.parent.frame.exp)
-            name = comp.params['name'].val
-            # does this routine have a help page?
-            if hasattr(comp, 'url'):
-                helpUrl = comp.url
-            else:
-                helpUrl = None
-            # create routine template
-            if comp.type == 'Code':
-                _Dlg = DlgCodeComponentProperties
-            else:
-                _Dlg = DlgComponentProperties
-            dlg = _Dlg(frame=self.parent.frame,
-                       title='{} Properties'.format(name),
-                       params=comp.params, order=comp.order,
-                       helpUrl=helpUrl,
-                       depends=comp.depends,
-                       timeout=timeout, type=comp.type)
-
-            if dlg.OK:
-                # Add to the actual routine
-                namespace = exp.namespace
-                name = comp.params['name'].val = namespace.makeValid(name)
-                namespace.add(name)
-                exp.addStandaloneRoutine(name, comp)
-                # update the routine's view with the new routine too
-                self.parent.frame.addToUndoStack(
-                    "ADD `%s` to `%s`" % (name, exp.name))
-            return True
+            # Add to the actual routine
+            exp = self.parent.frame.exp
+            namespace = exp.namespace
+            name = comp.params['name'].val = namespace.makeValid(comp.params['name'].val)
+            namespace.add(name)
+            exp.addStandaloneRoutine(name, comp)
+            # update the routine's view with the new routine too
+            self.parent.frame.addToUndoStack(
+                "ADD `%s` to `%s`" % (name, exp.name))
+            # Add a routine page
+            notebook = self.parent.frame.routinePanel
+            notebook.addRoutinePage(name, comp)
+            notebook.setCurrentRoutine(comp)
 
         def onRightClick(self, evt):
             """
@@ -3028,23 +3092,9 @@ class FlowPanel(wx.ScrolledWindow):
                         comp = self.componentFromID[thisIcon]
                         if comp.getType() in handlerTypes:
                             self.editLoopProperties(loop=comp)
-                        if comp.getType() == 'Routine':
+                        if comp.getType() in ['Routine'] + list(getAllStandaloneRoutines()):
                             self.frame.routinePanel.setCurrentRoutine(
                                 routine=comp)
-                        if comp.getType() in getAllStandaloneRoutines():
-                            name = comp.params['name'].val
-                            # does this routine have a help page?
-                            if hasattr(comp, 'url'):
-                                helpUrl = comp.url
-                            else:
-                                helpUrl = None
-                            dlg = DlgComponentProperties(frame=self.frame,
-                                                   title='{} Properties'.format(name),
-                                                   params=comp.params, order=comp.order,
-                                                   helpUrl=helpUrl,
-                                                   depends=comp.depends,
-                                                   timeout=None, type=comp.type)
-                            self.draw()
             elif event.RightDown():
                 icons = self.pdc.FindObjectsByBBox(x, y)
                 # todo: clean-up remove `comp`, its unused
