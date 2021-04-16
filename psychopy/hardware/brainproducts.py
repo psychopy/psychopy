@@ -334,7 +334,19 @@ class RemoteControlServer(object):
 
     @property
     def amplifier(self):
-        """Get/set the amplifier to use
+        """Get/set the amplifier to use. Could be one of
+        "  ['actiCHamp', 'BrainAmp Family',"
+        " 'LiveAmp', 'QuickAmp USB', 'Simulated Amplifier',"
+        " 'V-Amp / FirstAmp']
+
+        For Liveamp you should also provide the serial number,
+        comma separated from the amplifier type.
+
+        Examples:
+            rcs = RemoteControlServer()
+            rcs.amplifier = 'LiveAmp', 'LA-05490-0200'
+            # OR
+            rcs.amplifier = 'actiCHamp'
         """
         return self._amplifier
 
@@ -351,7 +363,7 @@ class RemoteControlServer(object):
         # check for LiveAmp that we also have a SN
         if amplifier == 'LiveAmp' and not serialNumber:
             logging.warning("LiveAmp may need a serial number. Use\n"
-                          "  rcs.amplifier = 'Liveamp', 'LA-serialNumberHere'")
+                          "  rcs.amplifier = 'LiveAmp', 'LA-serialNumberHere'")
         if amplifier in ['actiCHamp', 'BrainAmp Family',
                          'LiveAmp', 'QuickAmp USB', 'Simulated Amplifier',
                          'V-Amp / FirstAmp']:
