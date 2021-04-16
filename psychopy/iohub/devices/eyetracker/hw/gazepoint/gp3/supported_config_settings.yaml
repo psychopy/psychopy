@@ -48,4 +48,3 @@ eyetracker.hw.gazepoint.gp3.EyeTracker:
                 max: 2.5
     device_number: 0
     manufacturer_name: GazePoint
-    builder_hides: ['builder_hides', 'enable', 'device_number', 'device_timer', 'auto_report_events', 'runtime_settings.track_eyes', 'calibration.use_builtin']

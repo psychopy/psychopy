@@ -111,6 +111,3 @@ eyetracker.hw.sr_research.eyelink.EyeTracker:
     # manufacturer_name:    Used by Builder as the displayed name in the eye tracker selection dropdown.
     #
     manufacturer_name: SR Research Ltd
-    builder_hides: ['builder_hides', 'enable', 'device_number', 'device_timer', 'auto_report_events']
-
-
