@@ -2111,6 +2111,7 @@ class StandaloneRoutineCanvas(wx.Panel, ThemeMixin):
             wx.Panel.__init__(self, parent, size=(600, -1))
             self.parent = parent
             self.dlg = dlg
+            self.app = self.dlg.app
             # Setup sizer
             self.sizer = wx.GridBagSizer(0, 0)
             self.SetSizer(self.sizer)
