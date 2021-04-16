@@ -9,7 +9,6 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 __all__ = [
-    'MouseEvent',
     'Mouse'
 ]
 
@@ -21,12 +20,14 @@ from psychopy.tools.monitorunittools import cm2pix, deg2pix, pix2cm, pix2deg
 MOUSE_BUTTON_LEFT = 0
 MOUSE_BUTTON_MIDDLE = 1
 MOUSE_BUTTON_RIGHT = 2
+MOUSE_BUTTON_COUNT = 3
 
 # mouse action events
 MOUSE_EVENT_MOTION = 0
 MOUSE_EVENT_BUTTON_PRESSED = 1
 MOUSE_EVENT_BUTTON_RELEASED = 2
 MOUSE_EVENT_SCROLLED = 3
+MOUSE_EVENT_COUNT = 4
 
 # offsets in storage arrays
 MOUSE_POS_CURRENT = 0
@@ -58,10 +59,11 @@ class Mouse(object):
     _currentWindow = None
 
     # mouse button states
-    _mouseButtons = np.zeros((3,), dtype=bool)
+    _mouseButtons = np.zeros((MOUSE_BUTTON_COUNT,), dtype=bool)
+    _mouseButtonsAbsTimes = np.zeros((2, MOUSE_BUTTON_COUNT), dtype=np.float32)
 
-    # absolute times press events have occurred
-    _mouseAbsTimes = np.zeros((3,), dtype=np.float32)
+    # mouse motion timing
+    _mouseMotionAbsTimes = np.zeros((2,), dtype=np.float32)
 
     # Mouse positions during motion are stored in this 2x2 array. The first row
     # is the current mouse position and the second is the last position like
@@ -74,11 +76,74 @@ class Mouse(object):
     # position is written to the first row.
     _mousePos = np.zeros((3, 2, 2), dtype=np.float32)
 
+    # velocity of the mouse cursor and direction vector
+    _mouseVelocity = 0.0
+    _mouseVector = np.zeros((2,), dtype=np.float32)
+    _velocityNeedsUpdate = True
+
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super(Mouse, cls).__new__(cls)
 
         return cls._instance
+
+    def setMouseMotionState(self, pos, absTime=None):
+        """Set the mouse motion state.
+
+        This method is called by callback functions bound to mouse motion events
+        emitted by the mouse driver interface. However, the user may call this
+        to simulate a mouse motion event.
+
+        Parameters
+        ----------
+        pos : ArrayLike
+            Position of the mouse (x, y).
+        absTime : float or None
+            Absolute time `pos` was obtained. If `None` a timestamp will be
+            created using the default clock.
+
+        """
+        if absTime is None:
+            absTime = self._clock.getTime()
+
+        self._mousePos[MOUSE_EVENT_MOTION, MOUSE_POS_PREVIOUS, :] = \
+            self._mousePos[MOUSE_EVENT_MOTION, MOUSE_POS_CURRENT, :]
+        self._mousePos[MOUSE_EVENT_MOTION, MOUSE_POS_CURRENT, :] = pos
+
+        self._mouseMotionAbsTimes[MOUSE_POS_PREVIOUS] = \
+            self._mouseMotionAbsTimes[MOUSE_POS_CURRENT]
+        self._mouseMotionAbsTimes[MOUSE_POS_CURRENT] = absTime
+        self._velocityNeedsUpdate = True
+
+    def setMouseButtonState(self, button, pressed, absTime=None):
+        """Set a mouse button state.
+
+        This method is called by callback functions bound to mouse press events
+        emitted by the mouse driver interface. However, the user may call this
+        to simulate a mouse click events.
+
+        Parameters
+        ----------
+        button : ArrayLike
+            Mouse button whose state is being updated. Can be one of the
+            following symbolic constants `MOUSE_BUTTON_LEFT`,
+            `MOUSE_BUTTON_MIDDLE` or `MOUSE_BUTTON_RIGHT`.
+        pressed : bool
+            `True` if the button is presently being pressed down, otherwise
+            `False` if released.
+        absTime : float or None
+            Absolute time the values of `buttons` was obtained. If `None` a
+            timestamp will be created using the default clock.
+
+        """
+        if absTime is None:
+            absTime = self._clock.getTime()
+
+        # set the value of the button states
+        self._mouseButtons[button] = bool(pressed)
+
+        # update the timing info
+        self._mouseButtonsAbsTimes[int(pressed), button] = absTime
 
     @property
     def win(self):
@@ -127,6 +192,7 @@ class Mouse(object):
         """
         assert len(value) == 2
         self._mousePos[MOUSE_EVENT_MOTION, MOUSE_POS_CURRENT, :] = value
+        self._velocityNeedsUpdate = True
 
     @property
     def lastPos(self):
@@ -172,99 +238,139 @@ class Mouse(object):
         """`True` if the mouse if hovering over a content window (`bool`)."""
         return self.win is not None
 
-
-class MouseEvent(object):
-    """Class representing a pointing device event.
-
-    Instances of this class are created automatically by the `Mouse` class.
-    Users should not create instances of this class themselves unless there is a
-    good reason to.
-
-    Parameters
-    ----------
-    eventType : int
-        Type of event.
-    win : `~psychopy.visual.Window` or None
-        Window associated with the mouse event. If `None`, it's assumed that
-        we're using 'raw mode' where mouse motion corresponds to motion over a
-        surface rather than the window.
-    absTime : float
-        Absolute time in seconds the event was registered.
-
-    """
-    __slots__ = [
-        '_win',
-        '_eventType',
-        '_absTime',
-        '_pos'
-    ]
-
-    def __init__(self, eventType, win=None, absTime=0.0, pos=(0, 0)):
-        self.eventType = eventType
-        self.win = win
-        self.absTime = absTime
-        self.pos = np.asarray(pos, dtype=np.float32)
-
     @property
-    def win(self):
-        """Window associated with this mouse event (`~psychopy.visual.Window`).
+    def motionAbsTime(self):
+        """Absolute time in seconds the most recent mouse motion was polled
+        (`float`). Setting this will automatically update the previous motion
+        timestamp.
         """
-        return self._win
+        return self._mouseMotionAbsTimes[MOUSE_POS_CURRENT]
 
-    @win.setter
-    def win(self, value):
-        self._win = value
-
-    @property
-    def eventType(self):
-        """Type of mouse event (`int`)."""
-        return self._eventType
-
-    @eventType.setter
-    def eventType(self, value):
-        self._eventType = int(value)
+    @motionAbsTime.setter
+    def motionAbsTime(self, value):
+        self._mouseMotionAbsTimes[MOUSE_POS_CURRENT] = value
+        self._velocityNeedsUpdate = True
 
     @property
-    def absTime(self):
-        """Absolute time in seconds the mouse event was registered (`float`)."""
-        return self._absTime
-
-    @absTime.setter
-    def absTime(self, value):
-        self._absTime = float(value)
-
-    @property
-    def pos(self):
-        """Position (x, y) of the mouse in window units (`ndarray`)."""
-        return self._pos
-
-    @pos.setter
-    def pos(self, value):
-        assert len(value) == 2
-        self._pos[:] = value
-
-    def getTimeElapsed(self, event):
-        """Get the amount of time elapsed between this and another event.
-
-        Parameters
-        ----------
-        event : MouseEvent or float
-            The other mouse event or absolute time in seconds.
-
-        Returns
-        -------
-        float
-            Elapsed time in seconds.
-
+    def vector(self):
+        """Motion vector of the mouse cursor (`ndarray`). Computed using the
+        two last known positions of the cursor.
         """
-        if isinstance(event, MouseEvent):
-            return self.absTime - event.absTime
+        return self._mousePos[MOUSE_EVENT_MOTION, MOUSE_POS_CURRENT, :] - \
+            self._mousePos[MOUSE_EVENT_MOTION, MOUSE_POS_PREVIOUS, :]
 
-        if isinstance(event, (float, int)):
-            return self.absTime - event
+    @property
+    def velocity(self):
+        """The velocity of the mouse cursor on-screen in window units (`float`).
+        """
+        if self._velocityNeedsUpdate:
+            vecLength = np.sqrt(np.sum(np.square(self.vector), dtype=np.float32))
 
-        raise TypeError("Value for parameter `event` should be type `float` or "
-                        "`MouseEvent`.")
+            tdelta = self.motionAbsTime - \
+                self._mouseMotionAbsTimes[MOUSE_POS_PREVIOUS]
+
+            if tdelta > 0.0:
+                self._mouseVelocity = vecLength / tdelta
+            else:
+                self._mouseVelocity = 0.0
+
+            self._velocityNeedsUpdate = False
+
+        return self._mouseVelocity
+
+
+# class MouseEvent(object):
+#     """Class representing a pointing device event.
+#
+#     Instances of this class are created automatically by the `Mouse` class.
+#     Users should not create instances of this class themselves unless there is a
+#     good reason to.
+#
+#     Parameters
+#     ----------
+#     eventType : int
+#         Type of event.
+#     win : `~psychopy.visual.Window` or None
+#         Window associated with the mouse event. If `None`, it's assumed that
+#         we're using 'raw mode' where mouse motion corresponds to motion over a
+#         surface rather than the window.
+#     absTime : float
+#         Absolute time in seconds the event was registered.
+#
+#     """
+#     __slots__ = [
+#         '_win',
+#         '_eventType',
+#         '_absTime',
+#         '_pos'
+#     ]
+#
+#     def __init__(self, eventType, win=None, absTime=0.0, pos=(0, 0)):
+#         self.eventType = eventType
+#         self.win = win
+#         self.absTime = absTime
+#         self.pos = np.asarray(pos, dtype=np.float32)
+#
+#     @property
+#     def win(self):
+#         """Window associated with this mouse event (`~psychopy.visual.Window`).
+#         """
+#         return self._win
+#
+#     @win.setter
+#     def win(self, value):
+#         self._win = value
+#
+#     @property
+#     def eventType(self):
+#         """Type of mouse event (`int`)."""
+#         return self._eventType
+#
+#     @eventType.setter
+#     def eventType(self, value):
+#         self._eventType = int(value)
+#
+#     @property
+#     def absTime(self):
+#         """Absolute time in seconds the mouse event was registered (`float`)."""
+#         return self._absTime
+#
+#     @absTime.setter
+#     def absTime(self, value):
+#         self._absTime = float(value)
+#
+#     @property
+#     def pos(self):
+#         """Position (x, y) of the mouse in window units (`ndarray`)."""
+#         return self._pos
+#
+#     @pos.setter
+#     def pos(self, value):
+#         assert len(value) == 2
+#         self._pos[:] = value
+#
+#     def getTimeElapsed(self, event):
+#         """Get the amount of time elapsed between this and another event.
+#
+#         Parameters
+#         ----------
+#         event : MouseEvent or float
+#             The other mouse event or absolute time in seconds.
+#
+#         Returns
+#         -------
+#         float
+#             Elapsed time in seconds.
+#
+#         """
+#         if isinstance(event, MouseEvent):
+#             return self.absTime - event.absTime
+#
+#         if isinstance(event, (float, int)):
+#             return self.absTime - event
+#
+#         raise TypeError("Value for parameter `event` should be type `float` or "
+#                         "`MouseEvent`.")
 
 
 # class Mouse(object):

@@ -663,21 +663,24 @@ class GLFWBackend(BaseBackend):
         # process actions
         if action == glfw.PRESS:
             if button == glfw.MOUSE_BUTTON_LEFT:
-                self.mouseEventHandler.buttons[mouse.MOUSE_BUTTON_LEFT] = True
-                # mouseTimes[0] = now - mouseClick[0].getLastResetTime()
+                self.mouseEventHandler.setMouseButtonState(
+                    mouse.MOUSE_BUTTON_LEFT, True)
             elif button == glfw.MOUSE_BUTTON_MIDDLE:
-                self.mouseEventHandler.buttons[mouse.MOUSE_BUTTON_MIDDLE] = True
-                # mouseTimes[1] = now - mouseClick[1].getLastResetTime()
+                self.mouseEventHandler.setMouseButtonState(
+                    mouse.MOUSE_BUTTON_MIDDLE, True)
             elif button == glfw.MOUSE_BUTTON_RIGHT:
-                self.mouseEventHandler.buttons[mouse.MOUSE_BUTTON_RIGHT] = True
-                # mouseTimes[2] = now - mouseClick[2].getLastResetTime()
+                self.mouseEventHandler.setMouseButtonState(
+                    mouse.MOUSE_BUTTON_RIGHT, True)
         elif action == glfw.RELEASE:
             if button == glfw.MOUSE_BUTTON_LEFT:
-                self.mouseEventHandler.buttons[mouse.MOUSE_BUTTON_LEFT] = False
+                self.mouseEventHandler.setMouseButtonState(
+                    mouse.MOUSE_BUTTON_LEFT, False)
             elif button == glfw.MOUSE_BUTTON_MIDDLE:
-                self.mouseEventHandler.buttons[mouse.MOUSE_BUTTON_MIDDLE] = False
+                self.mouseEventHandler.setMouseButtonState(
+                    mouse.MOUSE_BUTTON_MIDDLE, False)
             elif button == glfw.MOUSE_BUTTON_RIGHT:
-                self.mouseEventHandler.buttons[mouse.MOUSE_BUTTON_RIGHT] = False
+                self.mouseEventHandler.setMouseButtonState(
+                    mouse.MOUSE_BUTTON_RIGHT, False)
 
     def _pix2windowUnits(self, pos):
         if self.win is None:
@@ -708,8 +711,8 @@ class GLFWBackend(BaseBackend):
               np.array(self.win.size) / 2.
         pos[1] *= -1
 
-        self.mouseEventHandler.lastPos = self.mouseEventHandler.pos
-        self.mouseEventHandler.pos = self._pix2windowUnits(pos)
+        self.mouseEventHandler.setMouseMotionState(
+            self._pix2windowUnits(pos), core.getTime())
 
     def onMouseEnter(self, *args):
         """Event called when the mouse enters the window."""
