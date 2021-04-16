@@ -34,6 +34,8 @@ from psychopy.tools import versionchooser as vc
 from ...colorpicker import PsychoColorPicker
 from pathlib import Path
 
+from ...themes import ThemeMixin
+
 white = wx.Colour(255, 255, 255, 255)
 codeSyntaxOkay = wx.Colour(220, 250, 220, 255)  # light green
 
@@ -369,6 +371,60 @@ class ParamCtrls(object):
         else:
             print("setChangesCallback doesn't know how to handle ctrl {}"
                   .format(type(self.valueCtrl)))
+
+
+class ParamNotebook(wx.Notebook, ThemeMixin):
+    class CategoryPage(wx.Panel, ThemeMixin):
+        def __init__(self, parent, dlg, params):
+            wx.Panel.__init__(self, parent, size=(600, -1))
+            self.parent = parent
+            self.dlg = dlg
+            self.app = self.dlg.app
+            # Setup sizer
+            self.sizer = wx.GridBagSizer(0, 0)
+            self.SetSizer(self.sizer)
+            # Add controls
+            row = 0
+            for name, param in params.items():
+                # Make ctrl
+                ctrls = ParamCtrls(self.dlg, param.label, param, self, name)
+                # Add value ctrl
+                _flag = wx.EXPAND | wx.ALL
+                if hasattr(ctrls.valueCtrl, '_szr'):
+                    self.sizer.Add(ctrls.valueCtrl._szr, (row, 1), border=6, flag=_flag)
+                else:
+                    self.sizer.Add(ctrls.valueCtrl, (row, 1), border=6, flag=_flag)
+                # Add other ctrl stuff
+                _flag = wx.LEFT | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL
+                self.sizer.Add(ctrls.nameCtrl, (row, 0), (1, 1), border=5, flag=_flag)
+                if ctrls.typeCtrl:
+                    self.sizer.Add(ctrls.typeCtrl, (row, 2), border=5, flag=_flag)
+                if ctrls.updateCtrl:
+                    self.sizer.Add(ctrls.updateCtrl, (row, 3), border=5, flag=_flag)
+                # Iterate row
+                row += 1
+
+        def _applyAppTheme(self, target=None):
+            self.SetBackgroundColour("white")
+
+    def __init__(self, parent, exp, routine):
+        wx.Notebook.__init__(self, parent)
+        self.parent = parent
+        self.exp = exp
+        # Get arrays of params
+        paramsByCateg = {}
+        for name, param in routine.params.items():
+            # Add categ if not present
+            if param.categ not in paramsByCateg:
+                paramsByCateg[param.categ] = {}
+            # Append param to categ
+            paramsByCateg[param.categ].update({name: param})
+        # Setup pages
+        for categ, params in paramsByCateg.items():
+            page = self.CategoryPage(self, self.parent, params)
+            # Add page to notebook
+            self.AddPage(page, categ)
+
 
 class _BaseParamsDlg(wx.Dialog):
     _style = wx.DEFAULT_DIALOG_STYLE | wx.DIALOG_NO_PARENT | wx.TAB_TRAVERSAL
