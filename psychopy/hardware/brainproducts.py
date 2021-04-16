@@ -357,17 +357,17 @@ class RemoteControlServer(object):
                          'V-Amp / FirstAmp']:
             msg = "SA:{}".format(amplifier)
             self.sendRaw(msg, checkOutput=msg + ':OK')
-        if serialNumber:
-            # LiveAmp allows you to send the serial number
-            msg = "SN:{}".format(amplifier)
-            self.sendRaw(msg, checkOutput=msg + ':OK')
         else:
-            errMsg = ("Unknown amplifier '{amp}'. The `amplifier` value "
+            errMsg = (f"Unknown amplifier '{amplifier}'. The `amplifier` value "
                       "should be a LiveAmp serial number or one of "
                       "['actiCHamp', 'BrainAmp Family',"
                       " 'LiveAmp', 'QuickAmp USB', 'Simulated Amplifier',"
                       " 'V-Amp / FirstAmp']")
             raise ValueError(errMsg)
+        if serialNumber:
+            # LiveAmp allows you to send the serial number
+            msg = "SN:{}".format(amplifier)
+            self.sendRaw(msg, checkOutput=msg + ':OK')
         self._amplifier = amplifier
         self._amplifierSN = serialNumber
 
