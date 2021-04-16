@@ -45,7 +45,7 @@ class PositionGrid(object):
                  firstposindex=0,  # Specify which position in the position
                  # list should be displayed first. This
                  # position is not effected by randomization.
-                 repeatFirstPos=True  # If the first position in the list should
+                 repeatFirstPos=False  # If the first position in the list should
                  # be provided as the last position as well,
                  # set to True. In this case, the number of
                  # positions returned will be position
@@ -195,7 +195,7 @@ class PositionGrid(object):
         if self.positions is None:
             raise AttributeError('PositionGrid is unable to generate positions based on the provided kwargs.')
 
-        if self.firstposindex:
+        if self.firstposindex and self.firstposindex > 0:
             fpos = self.positions[self.firstposindex]
             self.positions = np.delete(self.positions, self.firstposindex, 0)
             self.positions = np.insert(self.positions, 0, fpos, 0)
@@ -219,7 +219,7 @@ class PositionGrid(object):
         Each time randomize() is called, if noiseStd is != 0, a new set of
         normally distributed offsets are created for the target positions.
         """
-        if not self.firstposindex:
+        if self.firstposindex is None:
             np.random.shuffle(self.positions)
         else:
             firstpos = self.positions[0]

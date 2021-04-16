@@ -39,7 +39,9 @@ if __name__ == "__main__":
     # target_positions: Provide your own list of validation positions,
     target_positions = [(0.0, 0.0), (0.85, 0.85), (-0.85, 0.0), (0.85, 0.0), (0.85, -0.85), (-0.85, 0.85),
                         (-0.85, -0.85), (0.0, 0.85), (0.0, -0.85)]
-    # or use the PositionGrid class to generate a set.
+    # or:  use predefined validation point sets (three-point, five-point, nine-point, thirteen-point, seventeen-point)
+    #target_positions = 'nine-point'
+    # or:  use the PositionGrid class to generate a set.
     #target_positions = PositionGrid(bounds=[-.85, .85, .85, -.85], shape=(3, 3), firstposindex=4, repeatFirstPos=True)
 
     # Create a validation procedure, iohub must already be running with an

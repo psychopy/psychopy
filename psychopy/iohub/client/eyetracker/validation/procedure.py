@@ -99,6 +99,48 @@ class TargetStim(object):
         return self.stim[0].contains(p)
 
 
+def create3PointGrid():
+    io = ioHubConnection.getActiveConnection()
+    if io is None:
+        raise RuntimeError("iohub must be running.")
+    l, t, r, b = io.devices.display.getCoordBounds()
+    return [(0.0, (t-b)/4), (-(r-l)/4, -(t-b)/4), ((r-l)/4, -(t-b)/4)]
+
+
+def create5PointGrid():
+    io = ioHubConnection.getActiveConnection()
+    if io is None:
+        raise RuntimeError("iohub must be running.")
+    four_point = PositionGrid(io.devices.display.getCoordBounds(), (2, 2), scale=0.85).getPositions()
+    return [(0.0, 0.0),] + four_point
+
+
+def create9PointGrid():
+    io = ioHubConnection.getActiveConnection()
+    if io is None:
+        raise RuntimeError("iohub must be running.")
+    return PositionGrid(io.devices.display.getCoordBounds(), (3, 3), scale=0.85, firstposindex=4)
+
+
+def create13PointGrid():
+    io = ioHubConnection.getActiveConnection()
+    if io is None:
+        raise RuntimeError("iohub must be running.")
+    nine_point = create9PointGrid().getPositions()
+    four_point = PositionGrid(io.devices.display.getCoordBounds(), (2, 2), scale=0.5).getPositions()
+    thirteen_point = nine_point + four_point
+    return thirteen_point
+
+
+def create17PointGrid():
+    io = ioHubConnection.getActiveConnection()
+    if io is None:
+        raise RuntimeError("iohub must be running.")
+    sixteen_pos = PositionGrid(io.devices.display.getCoordBounds(), (4, 4), scale=0.85).getPositions()
+    return [(0.0, 0.0), ] + sixteen_pos
+
+
+
 class ValidationProcedure(object):
     def __init__(self,
                  win=None,  # psychopy window
@@ -208,14 +250,27 @@ class ValidationProcedure(object):
 
         if isinstance(positions, str):
             # position set constant, three-point, five-point, nine-point, thirteen-point
-            print("TODO: Support %s positions constant" % positions)
-        elif isinstance(positions, (list, tuple)):
+            if positions == 'three-point':
+                positions = create3PointGrid()
+            elif positions == 'five-point':
+                positions = create5PointGrid()
+            elif positions == 'nine-point':
+                positions = create9PointGrid()
+            elif positions == 'thirteen-point':
+                positions = create13PointGrid()
+            elif positions == 'seventeen-point':
+                positions = create17PointGrid()
+            else:
+                raise ValueError("Unsupported positions string constant: [{}]".format(positions))
+
+        if isinstance(positions, (list, tuple)):
             positions = PositionGrid(posList=positions, firstposindex=0, repeatFirstPos=False)
         self.positions = positions
 
         self.randomize_positions = randomize_positions
         if self.randomize_positions:
             self.positions.randomize()
+
         self.win = proxy(win)
 
         target_animation = {}
