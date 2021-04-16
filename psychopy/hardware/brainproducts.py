@@ -56,7 +56,7 @@ class RemoteControlServer(object):
                  participant='S0021')
         rcs.openRecorder()
         time.sleep(2)
-        rcs.mode = 'monitor' # or 'impedence', or 'default'
+        rcs.mode = 'monitor' # or 'impedance', or 'default'
         rcs.startRecording()
         time.sleep(2)
         rcs.sendAnnotation('124', 'STIM')
@@ -539,7 +539,7 @@ if __name__ == "__main__":
              participant='S0021')
     rcs.openRecorder()
     time.sleep(2)
-    rcs.mode = 'monitor'  # or 'impedence', or 'default'
+    rcs.mode = 'monitor'  # or 'impedance', or 'default'
     rcs.startRecording()
     time.sleep(2)
     rcs.sendAnnotation('124', 'STIM')
