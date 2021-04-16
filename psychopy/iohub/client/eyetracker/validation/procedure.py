@@ -6,7 +6,7 @@
 Eye Tracker Validation procedure using the ioHub common eye tracker interface.
 
 To use the validation process from within a Coder script:
-* Create a target stim, using TargetStim, or any stim class that has a `.setPos()`, `setRadius()`, and `.draw()` method.
+* Create a target stim, using TargetStim, or any stim class that has a `.setPos()`, `setSize()`, and `.draw()` method.
 * Create a list of validation target positions. Use the `PositionGrid` class to help create a target position list.
 * Create a ValidationProcedure class instance, providing the target stim and position list and other arguments
   to define details of the validation procedure.
@@ -76,12 +76,11 @@ class TargetStim(object):
         for s in self.stim:
             s.setPos(pos)
 
-    def setRadius(self, r):
+    def setSize(self, s):
         """
-        Update the radius of the target stim. (Optionally) used during validation procedure to
-        expand / contract the target stim.
+        Update the size of the target stim.
         """
-        self.stim[0].radius = r
+        self.stim[0].radius = s/2
 
     def draw(self):
         """
@@ -203,7 +202,7 @@ class ValidationProcedure(object):
             # Run eyetracker calibration
             r = tracker.runSetupProcedure()
 
-            # Create a validation target. Use any stim that has `.setPos()`, `.setRadius()`, and `.draw()` methods.
+            # Create a validation target. Use any stim that has `.setPos()`, `.setSize()`, and `.draw()` methods.
             # iohub.client.eyetracker.validation.TargetStim provides a standard doughnut style target.
             target_stim = TargetStim(win, radius=0.025, fillcolor=[.5, .5, .5], edgecolor=[-1, -1, -1], edgewidth=2,
                                      dotcolor=[1, -1, -1], dotradius=0.005, colorspace='rgb')
@@ -892,7 +891,7 @@ class ValidationTargetRenderer(object):
                 while fliptime < expandedtime:
                     mu = (fliptime - starttime) / expansionduration
                     cradius = initialradius * (1.0 - mu) + expandedradius * mu
-                    self.target.setRadius(cradius)
+                    self.target.setSize(cradius*2)
                     self._draw()
                     fliptime = self.win.flip()
                     io.sendMessageEvent('EXPAND_SIZE %.4f %.4f' % (cradius, initialradius), self.msgcategory,
@@ -906,7 +905,7 @@ class ValidationTargetRenderer(object):
                 while fliptime < contractedtime:
                     mu = (fliptime - starttime) / contractionduration
                     cradius = expandedradius * (1.0 - mu) + initialradius * mu
-                    self.target.setRadius(cradius)
+                    self.target.setSize(cradius*2)
                     self._draw()
                     fliptime = self.win.flip()
                     io.sendMessageEvent('CONTRACT_SIZE %.4f %.4f' % (cradius, initialradius), self.msgcategory,
@@ -915,7 +914,7 @@ class ValidationTargetRenderer(object):
                     if self._terminate_requested:
                         return 0
 
-        self.target.setRadius(initialradius)
+        self.target.setSize(initialradius*2)
         return fliptime
 
     def moveTo(self, topos, frompos, **kwargs):
