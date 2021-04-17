@@ -392,7 +392,6 @@ class GLFWBackend(BaseBackend):
         #self.winHandle.on_resize = _onResize  # avoid circular reference
 
         # TODO - handle window resizing
-        self.mouseEventHandler = mouse.Mouse()
 
     def setSwapInterval(self, interval):
         """Set the swap interval for the current GLFW context."""
@@ -660,26 +659,31 @@ class GLFWBackend(BaseBackend):
         # self.mouseEventHandler.lastPos = self.mouseEventHandler.pos
         # self.mouseEventHandler.pos = glfw.get_cursor_pos(win_ptr)
 
+        # don't process mouse events until ready
+        mouseEventHandler = mouse.Mouse.getInstance()
+        if mouseEventHandler is None:
+            return
+
         # process actions
         if action == glfw.PRESS:
             if button == glfw.MOUSE_BUTTON_LEFT:
-                self.mouseEventHandler.setMouseButtonState(
+                mouseEventHandler.setMouseButtonState(
                     mouse.MOUSE_BUTTON_LEFT, True)
             elif button == glfw.MOUSE_BUTTON_MIDDLE:
-                self.mouseEventHandler.setMouseButtonState(
+                mouseEventHandler.setMouseButtonState(
                     mouse.MOUSE_BUTTON_MIDDLE, True)
             elif button == glfw.MOUSE_BUTTON_RIGHT:
-                self.mouseEventHandler.setMouseButtonState(
+                mouseEventHandler.setMouseButtonState(
                     mouse.MOUSE_BUTTON_RIGHT, True)
         elif action == glfw.RELEASE:
             if button == glfw.MOUSE_BUTTON_LEFT:
-                self.mouseEventHandler.setMouseButtonState(
+                mouseEventHandler.setMouseButtonState(
                     mouse.MOUSE_BUTTON_LEFT, False)
             elif button == glfw.MOUSE_BUTTON_MIDDLE:
-                self.mouseEventHandler.setMouseButtonState(
+                mouseEventHandler.setMouseButtonState(
                     mouse.MOUSE_BUTTON_MIDDLE, False)
             elif button == glfw.MOUSE_BUTTON_RIGHT:
-                self.mouseEventHandler.setMouseButtonState(
+                mouseEventHandler.setMouseButtonState(
                     mouse.MOUSE_BUTTON_RIGHT, False)
 
     def _pix2windowUnits(self, pos):
@@ -703,25 +707,39 @@ class GLFWBackend(BaseBackend):
         """Event handler for mouse scroll events."""
         win_ptr, xoffset, yoffset = args
 
+        # don't process mouse events until ready
+        if not mouse.Mouse.ready():
+            return
+
     def onMouseMove(self, *args):
         """Event handler for mouse move events."""
         win_ptr, xpos, ypos = args
+
+        # don't process mouse events until ready
+        mouseEventHandler = mouse.Mouse.getInstance()
+        if mouseEventHandler is None:
+            return
 
         pos = np.asarray((xpos, ypos), dtype=np.float32) - \
               np.array(self.win.size) / 2.
         pos[1] *= -1
 
-        self.mouseEventHandler.setMouseMotionState(
+        mouseEventHandler.setMouseMotionState(
             self._pix2windowUnits(pos), core.getTime())
 
     def onMouseEnter(self, *args):
         """Event called when the mouse enters the window."""
         _, entered = args
 
+        # don't process mouse events until ready
+        mouseEventHandler = mouse.Mouse.getInstance()
+        if mouseEventHandler is None:
+            return
+
         if bool(entered):
-            self.mouseEventHandler.win = self.win
+            mouseEventHandler.win = self.win
         else:
-            self.mouseEventHandler.win = None
+            mouseEventHandler.win = None
 
 
 def _onResize(width, height):

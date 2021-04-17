@@ -8,19 +8,22 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-__all__ = [
-    'Mouse'
-]
+__all__ = ['Mouse']
 
 import numpy as np
 import psychopy.core as core
-from psychopy.tools.monitorunittools import cm2pix, deg2pix, pix2cm, pix2deg
 
 # mouse button indices
 MOUSE_BUTTON_LEFT = 0
 MOUSE_BUTTON_MIDDLE = 1
 MOUSE_BUTTON_RIGHT = 2
 MOUSE_BUTTON_COUNT = 3
+
+buttonNames = {
+    'left': MOUSE_BUTTON_LEFT,
+    'middle': MOUSE_BUTTON_MIDDLE,
+    'right': MOUSE_BUTTON_RIGHT
+}
 
 # mouse action events
 MOUSE_EVENT_MOTION = 0
@@ -37,19 +40,45 @@ MOUSE_POS_PREVIOUS = 1
 class Mouse(object):
     """Class for using pointing devices (e.g., mice, trackballs, etc.) as input.
 
-    This class manages all mouse events emitted by window backends. Window
-    backends will register new events with this class within callbacks. Mouse
-    events are global, meaning that mouse events generated any window show up
-    here.
+    PsychoPy presently only supports one pointing device input at a time.
+    Multiple mice can be used but only one set of events will be registered at a
+    time as if they were all coming from the same mouse.
+
+    Notes
+    -----
+    * This class must be instanced only by the user. Developers are forbidden
+      from instancing `Mouse` outside of the scope of a user's scripts. This
+      allows the user to configure the mouse input system. Callbacks should only
+      reference this class through `Mouse.getInstance()`. If the returned value
+      is `None`, then the user has not instanced this class yet and events
+      should not be registered.
+
+    Examples
+    --------
+    Initialize the mouse, can be done at any point::
+
+        from psychopy.hardware.mouse import Mouse
+        mouse = Mouse()
+
+    Check if the left mouse button is being pressed down within a window::
+
+        pressed = mouse.isLeftPressed
+
+    Move around a stimulus when holding down the right mouse button (dragging)::
+
+        if mouse.isDragging and mouse.isRightPressed:
+            circle.pos = mouse.pos
 
     """
     _instance = None  # class instance (singleton)
+    _initialized = False  # `True` after the user instances this class
 
     # Sub-system used for obtaining mouse events. If 'win' the window backend is
     # used for getting mouse click and motion events. If 'iohub', then iohub is
     # used instead. In either case, mouse hovering events are always gathered by
     # the window backend in use.
-    _mouseBackend = 'win'
+    _device = None
+    _ioHubSrv = None
 
     # internal clock used for timestamping all events
     _clock = core.Clock()
@@ -58,33 +87,87 @@ class Mouse(object):
     # events.
     _currentWindow = None
 
-    # mouse button states
+    # Mouse button states as a length 3 boolean array. You can access the state
+    # for a given button using symbolic constants `MOUSE_BUTTON_*`.
     _mouseButtons = np.zeros((MOUSE_BUTTON_COUNT,), dtype=bool)
+
+    # Times mouse buttons were pressed and released are stored in this array.
+    # The first row stores the release times and the last the pressed times. You
+    # can index the row by passing `int(pressed)` as a row index. Columns
+    # correspond to the buttons which can be indexed using symbolic constants
+    # `MOUSE_BUTTON_*`.
     _mouseButtonsAbsTimes = np.zeros((2, MOUSE_BUTTON_COUNT), dtype=np.float32)
 
-    # mouse motion timing
+    # Mouse motion timing.
     _mouseMotionAbsTimes = np.zeros((2,), dtype=np.float32)
 
-    # Mouse positions during motion are stored in this 2x2 array. The first row
-    # is the current mouse position and the second is the last position like
-    # shown here ...
+    # Mouse positions during motion, press and scroll events are stored in this
+    # array. The first index is the event which the position is associated with.
     #
-    #   _mousePos = [[ x_current, y_current ],
-    #                [ x_last,    y_last    ]]
+    #   _mousePos[MOUSE_EVENT_MOTION] = [[  x_current,  y_current ],
+    #                                    [ x_previous, y_previous ]]
     #
-    # When the mouse position is updated, the rows are swapped and the new
-    # position is written to the first row.
-    _mousePos = np.zeros((3, 2, 2), dtype=np.float32)
+    _mousePos = np.zeros((MOUSE_EVENT_COUNT, 2, 2), dtype=np.float32)
 
     # velocity of the mouse cursor and direction vector
     _mouseVelocity = 0.0
     _mouseVector = np.zeros((2,), dtype=np.float32)
     _velocityNeedsUpdate = True
 
-    def __new__(cls):
+    # properties the user can set to configure the mouse
+    _visible = True
+    _exclusive = True
+
+    # have the window automatically be set when a cursor hovers over it
+    _autoFocus = True
+
+    def __init__(self, device=None, visible=True, exclusive=True):
+        # only setup if previously not instanced
+        if not self._initialized:
+            self._device = device
+            self.visible = visible
+            self._exclusive = exclusive
+        else:
+            raise RuntimeError(
+                "Cannot create a new `psychopy.hardware.mouse.Mouse` instance. "
+                "Already initialized.")
+
+        self._initialized = True  # we can now accept mouse events
+
+    def __new__(cls, *args, **kwargs):
         if cls._instance is None:
             cls._instance = super(Mouse, cls).__new__(cls)
 
+        return cls._instance
+
+    @classmethod
+    def getInstance(cls):
+        """Get the (singleton) instance of the `Mouse` class.
+
+        Getting a reference to the `Mouse` class outside of the scope of the
+        user's scripts should be done through this class method.
+
+        Returns
+        -------
+        Mouse or None
+            Instance of the `Mouse` class created by the user.
+
+        Examples
+        --------
+        Determine if the user has previously instanced the `Mouse` class::
+
+            hasMouse = mouse.Mouse.getInstance() is not None
+
+        Getting an instance of the `Mouse` class::
+
+            mouseEventHandler = mouse.Mouse.getInstance()
+            if mouseEventHandler is None:
+                return
+
+            # do something like this only if instanced
+            mouseEventHandler.setMouseMotionState( ... )
+
+        """
         return cls._instance
 
     def setMouseMotionState(self, pos, absTime=None):
@@ -158,6 +241,48 @@ class Mouse(object):
         self._currentWindow = value
 
     @property
+    def units(self):
+        """The units for this mouse (`str`). Will match the current units for
+        the Window it lives in.
+        """
+        return self.win.units
+
+    @property
+    def visible(self):
+        """Mouse visibility state (`bool`)."""
+        return self.getVisible()
+
+    @visible.setter
+    def visible(self, value):
+        self.setVisible(value)
+
+    def getVisible(self):
+        """Get the visibility state of the mouse.
+
+        Returns
+        -------
+        bool
+            `True` if the pointer is set to be visible on-screen.
+
+        """
+        return self._visible
+
+    def setVisible(self, visible=True):
+        """Set the visibility state of the mouse.
+
+        Parameters
+        ----------
+        visible : bool
+            Mouse visibility state to set. `True` will result in the mouse
+            cursor being draw when over the window. If `False`, the cursor will
+            be invisible. Regardless of the visibility state the mouse pointer
+            can still be moved in response to the user's inputs and changes in
+            position are still registered.
+
+        """
+        self._visible = visible
+
+    @property
     def buttons(self):
         """Global mouse buttons states (`ndarray`).
 
@@ -180,6 +305,31 @@ class Mouse(object):
         assert len(value) == 3
         self._mouseButtons[:] = value
 
+    def getButton(self, button):
+        """Get button state.
+
+        Parameters
+        ----------
+        button : str or int
+            Button name as a string or symbolic constant representing the button
+            (e.g., `MOUSE_BUTTON_LEFT`). Valid button names are 'left', 'middle'
+            and 'right'.
+
+        Returns
+        -------
+        tuple
+            Button state if pressed (`bool`) and absolute time the state of the
+            button last changed (`float`).
+
+        """
+        if isinstance(button, str):
+            button = buttonNames[button]
+
+        state = self.buttons[button]
+        absTime = self._mouseButtonsAbsTimes[button]
+
+        return state, absTime
+
     @property
     def pos(self):
         """Current mouse position (x, y) on window (`ndarray`).
@@ -194,16 +344,72 @@ class Mouse(object):
         self._mousePos[MOUSE_EVENT_MOTION, MOUSE_POS_CURRENT, :] = value
         self._velocityNeedsUpdate = True
 
+        # todo - set the position when this is updated
+
+    def getPos(self):
+        """Get the current position of the mouse pointer.
+
+        Returns
+        -------
+        ndarray
+            Mouse position (x, y) in window units. Is an independent copy of
+            the property `Mouse.pos`.
+
+        """
+        return self.pos.copy()  # returns a copy
+
+    def setPos(self, pos=(0, 0)):
+        """Set the current position of the mouse pointer. Uses the same units as
+        window at `win`.
+
+        Parameters
+        ----------
+        pos : ArrayLike
+            Position (x, y) for the mouse in window units.
+
+        """
+        self.pos = pos
+
     @property
-    def lastPos(self):
-        """Last reported mouse position (x, y) on window (`ndarray`).
+    def previousPos(self):
+        """Previously reported mouse position (x, y) on window (`ndarray`).
         """
         return self._mousePos[MOUSE_EVENT_MOTION, MOUSE_POS_PREVIOUS, :]
 
-    @lastPos.setter
-    def lastPos(self, value):
+    @previousPos.setter
+    def previousPos(self, value):
         assert len(value) == 2
         self._mousePos[MOUSE_EVENT_MOTION, MOUSE_POS_PREVIOUS, :] = value
+
+    @property
+    def relPos(self):
+        """Relative change in position of the mouse (`ndarray`)."""
+        return self.getRelPos()
+
+    def getRelPos(self):
+        """Get the relative change in position of the mouse.
+
+        Returns
+        -------
+        ndarray
+            Vector specifying the relative horizontal and vertical change in
+            cursor position between motion events (`x`, `y`). Normalizing this
+            vector will give the direction vector.
+
+        """
+        return self._mousePos[MOUSE_EVENT_MOTION, MOUSE_POS_CURRENT, :] - \
+            self._mousePos[MOUSE_EVENT_MOTION, MOUSE_POS_PREVIOUS, :]
+
+    def getDistance(self):
+        """Get the distance in window units the mouse moved.
+
+        Returns
+        -------
+        float
+            Distance in window units.
+
+        """
+        return np.sqrt(np.sum(np.square(self.getRelPos()), dtype=np.float32))
 
     @property
     def isLeftPressed(self):
@@ -252,25 +458,15 @@ class Mouse(object):
         self._velocityNeedsUpdate = True
 
     @property
-    def vector(self):
-        """Motion vector of the mouse cursor (`ndarray`). Computed using the
-        two last known positions of the cursor.
-        """
-        return self._mousePos[MOUSE_EVENT_MOTION, MOUSE_POS_CURRENT, :] - \
-            self._mousePos[MOUSE_EVENT_MOTION, MOUSE_POS_PREVIOUS, :]
-
-    @property
     def velocity(self):
         """The velocity of the mouse cursor on-screen in window units (`float`).
         """
         if self._velocityNeedsUpdate:
-            vecLength = np.sqrt(np.sum(np.square(self.vector), dtype=np.float32))
-
             tdelta = self.motionAbsTime - \
                 self._mouseMotionAbsTimes[MOUSE_POS_PREVIOUS]
 
             if tdelta > 0.0:
-                self._mouseVelocity = vecLength / tdelta
+                self._mouseVelocity = self.getRelPos() / tdelta
             else:
                 self._mouseVelocity = 0.0
 
@@ -278,246 +474,34 @@ class Mouse(object):
 
         return self._mouseVelocity
 
+    def setCursorStyle(self, style='arrow'):
+        """Change the appearance of the cursor. Cursor types provide contextual
+        hints about how to interact with on-screen objects.
 
-# class MouseEvent(object):
-#     """Class representing a pointing device event.
-#
-#     Instances of this class are created automatically by the `Mouse` class.
-#     Users should not create instances of this class themselves unless there is a
-#     good reason to.
-#
-#     Parameters
-#     ----------
-#     eventType : int
-#         Type of event.
-#     win : `~psychopy.visual.Window` or None
-#         Window associated with the mouse event. If `None`, it's assumed that
-#         we're using 'raw mode' where mouse motion corresponds to motion over a
-#         surface rather than the window.
-#     absTime : float
-#         Absolute time in seconds the event was registered.
-#
-#     """
-#     __slots__ = [
-#         '_win',
-#         '_eventType',
-#         '_absTime',
-#         '_pos'
-#     ]
-#
-#     def __init__(self, eventType, win=None, absTime=0.0, pos=(0, 0)):
-#         self.eventType = eventType
-#         self.win = win
-#         self.absTime = absTime
-#         self.pos = np.asarray(pos, dtype=np.float32)
-#
-#     @property
-#     def win(self):
-#         """Window associated with this mouse event (`~psychopy.visual.Window`).
-#         """
-#         return self._win
-#
-#     @win.setter
-#     def win(self, value):
-#         self._win = value
-#
-#     @property
-#     def eventType(self):
-#         """Type of mouse event (`int`)."""
-#         return self._eventType
-#
-#     @eventType.setter
-#     def eventType(self, value):
-#         self._eventType = int(value)
-#
-#     @property
-#     def absTime(self):
-#         """Absolute time in seconds the mouse event was registered (`float`)."""
-#         return self._absTime
-#
-#     @absTime.setter
-#     def absTime(self, value):
-#         self._absTime = float(value)
-#
-#     @property
-#     def pos(self):
-#         """Position (x, y) of the mouse in window units (`ndarray`)."""
-#         return self._pos
-#
-#     @pos.setter
-#     def pos(self, value):
-#         assert len(value) == 2
-#         self._pos[:] = value
-#
-#     def getTimeElapsed(self, event):
-#         """Get the amount of time elapsed between this and another event.
-#
-#         Parameters
-#         ----------
-#         event : MouseEvent or float
-#             The other mouse event or absolute time in seconds.
-#
-#         Returns
-#         -------
-#         float
-#             Elapsed time in seconds.
-#
-#         """
-#         if isinstance(event, MouseEvent):
-#             return self.absTime - event.absTime
-#
-#         if isinstance(event, (float, int)):
-#             return self.absTime - event
-#
-#         raise TypeError("Value for parameter `event` should be type `float` or "
-#                         "`MouseEvent`.")
+        The graphics used are 'standard cursors' provided by the operating
+        system. They may vary in appearance and hot spot location across
+        platforms. The following names are valid on most platforms:
 
+        * `'arrow'` : Default system pointer.
+        * `'ibeam'` : Indicates text can be edited.
+        * `'crosshair'` : Crosshair with hot-spot at center.
+        * `'hand'` : A pointing hand.
+        * `'hresize'` : Double arrows pointing horizontally.
+        * `'vresize'` : Double arrows pointing vertically.
 
-# class Mouse(object):
-#     """Class for using pointing devices (e.g., mice, trackballs, etc.) for
-#     input.
-#
-#     Parameters
-#     ----------
-#     win : :class:`~psychopy.visual.Window` or None
-#         Window to capture mouse events with.
-#     visible : bool
-#         Initial visibility of the mouse cursor. Default is `True`. See
-#         :meth:`setVisible` for more information.
-#     cursorStyle : str
-#         Cursor appearance or style to use when over the window. See
-#         `setCursorStyle` for more details.
-#     rawMode : bool
-#         Enable raw input mode if supported by the window backend and system.
-#         This will disable the mouse cursor but provide more accurate reporting
-#         of actual mouse motion by removing any acceleration and motion scaling
-#         applied by the operating system. If `True` mouse visibility will be
-#         forced to `False`.
-#
-#     """
-#     def __init__(self, win, visible=True, cursorStyle='arrow', rawMode=False):
-#         self.win = win
-#         self._visible = visible
-#         self._rawMode = rawMode
-#
-#         # clock to use for event timestamping
-#         self._clock = core.Clock()
-#
-#         # previous position of the mouse
-#         self._prevPos = np.zeros((2,), dtype=np.float32)
-#
-#         # cursor appearance
-#         self._cursorStyle = None  # set later
-#         self.setCursorStyle(cursorStyle)
-#
-#         # status flag for builder
-#         self.status = None
-#
-#     @property
-#     def units(self):
-#         """The units for this mouse. Will match the current units for the
-#         Window it lives in.
-#         """
-#         return self.win.units
-#
-#     @property
-#     def visible(self):
-#         """Mouse visibility state (`bool`)."""
-#         return self.getVisible()
-#
-#     @visible.setter
-#     def visible(self, value):
-#         self.setVisible(value)
-#
-#     def getVisible(self):
-#         """Get the visibility state of the mouse.
-#
-#         Returns
-#         -------
-#         bool
-#             `True` if the pointer is set to be visible on-screen.
-#
-#         """
-#         return self._visible
-#
-#     def setVisible(self, visible=True):
-#         """Set the visibility state of the mouse.
-#
-#         Parameters
-#         ----------
-#         visible : bool
-#             Mouse visibility state to set. `True` will result in the mouse
-#             cursor being draw when over the window. If `False`, the cursor will
-#             be invisible. Regardless of the visibility state the mouse pointer
-#             can still be moved in response to the user's inputs and changes in
-#             position are still registered.
-#
-#         """
-#         pass
-#
-#     @property
-#     def pos(self):
-#         """Mouse position X, Y in window coordinates (`ndarray`)."""
-#         return self.getPos()
-#
-#     @pos.setter
-#     def pos(self, value):
-#         self.setPos(value)
-#
-#     def getPos(self):
-#         """Get the current position of the mouse pointer.
-#
-#         Returns
-#         -------
-#         ndarray
-#             Mouse position (x, y) in window units.
-#
-#         """
-#         return self._prevPos
-#
-#     def setPos(self, pos=(0, 0)):
-#         """Set the current position of the mouse pointer. Uses the same units as
-#         window at `win`.
-#
-#         Parameters
-#         ----------
-#         pos : ArrayLike
-#             Position (x, y) for the mouse in window units.
-#
-#         """
-#         pass
-#
-#     def setCursorStyle(self, style='arrow'):
-#         """Change the appearance of the cursor. Cursor types provide contextual
-#         hints about how to interact with on-screen objects.
-#
-#         The graphics used are 'standard cursors' provided by the operating
-#         system. They may vary in appearance and hot spot location across
-#         platforms. The following names are valid on most platforms:
-#
-#         * `'arrow'` : Default system pointer.
-#         * `'ibeam'` : Indicates text can be edited.
-#         * `'crosshair'` : Crosshair with hot-spot at center.
-#         * `'hand'` : A pointing hand.
-#         * `'hresize'` : Double arrows pointing horizontally.
-#         * `'vresize'` : Double arrows pointing vertically.
-#
-#         Parameters
-#         ----------
-#         style : str
-#             Type of standard cursor to use (see above). Default is `'arrow'`.
-#
-#         Notes
-#         -----
-#         * On Windows the `'crosshair'` option is negated with the background
-#           color. It will not be visible when placed over 50% grey fields.
-#
-#         """
-#         if hasattr(self.win.backend, "setMouseType"):
-#             self.win.backend.setMouseType(style)
-#             self._cursorStyle = style
-#         else:
-#             self._cursorStyle = 'arrow'  # default if backend doesn't support
+        Parameters
+        ----------
+        style : str
+            Type of standard cursor to use (see above). Default is `'arrow'`.
+
+        Notes
+        -----
+        * On Windows the `'crosshair'` option is negated with the background
+          color. It will not be visible when placed over 50% grey fields.
+
+        """
+        if hasattr(self.win.backend, "setMouseType"):
+            self.win.backend.setMouseType(style)
 
 
 if __name__ == "__main__":
