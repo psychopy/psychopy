@@ -42,7 +42,8 @@ class Mouse(object):
 
     PsychoPy presently only supports one pointing device input at a time.
     Multiple mice can be used but only one set of events will be registered at a
-    time as if they were all coming from the same mouse.
+    time as if they were all coming from the same mouse. Users should process
+    mouse events at least once per frame.
 
     Notes
     -----
@@ -169,6 +170,28 @@ class Mouse(object):
 
         """
         return cls._instance
+
+    @classmethod
+    def initialized(cls):
+        """Check if the mouse interface has been initialized by the user.
+
+        Returns
+        -------
+        bool
+            `True` if the `Mouse` class is ready and can accept mouse events.
+
+        Examples
+        --------
+        Checking if we can pass the mouse state to the `Mouse` instance::
+
+            from psychopy.hardware.mouse import Mouse
+
+            if Mouse.initialized():
+                # do something like this only if instanced
+                Mouse.getInstance().setMouseMotionState( ... )
+
+        """
+        return cls._initialized
 
     def setMouseMotionState(self, pos, absTime=None):
         """Set the mouse motion state.
@@ -371,19 +394,21 @@ class Mouse(object):
         self.pos = pos
 
     @property
-    def previousPos(self):
+    def prevPos(self):
         """Previously reported mouse position (x, y) on window (`ndarray`).
         """
         return self._mousePos[MOUSE_EVENT_MOTION, MOUSE_POS_PREVIOUS, :]
 
-    @previousPos.setter
-    def previousPos(self, value):
+    @prevPos.setter
+    def prevPos(self, value):
         assert len(value) == 2
         self._mousePos[MOUSE_EVENT_MOTION, MOUSE_POS_PREVIOUS, :] = value
 
     @property
     def relPos(self):
-        """Relative change in position of the mouse (`ndarray`)."""
+        """Relative change in position of the mouse between motion events
+        (`ndarray`).
+        """
         return self.getRelPos()
 
     def getRelPos(self):
@@ -425,6 +450,25 @@ class Mouse(object):
     def isRightPressed(self):
         """Is the right mouse button being pressed (`bool`)?"""
         return self._mouseButtons[MOUSE_BUTTON_RIGHT] is True
+
+    @property
+    def pressedTimes(self):
+        """Absolute time in seconds each mouse button was last pressed
+        (`ndarray`).
+        """
+        return self._mouseButtonsAbsTimes[1, :]
+
+    @property
+    def releasedTimes(self):
+        """Absolute time in seconds each mouse button was last released
+        (`ndarray`).
+        """
+        return self._mouseButtonsAbsTimes[0, :]
+
+    @property
+    def pressedDuration(self):
+        """Time elapsed between press and release events for each button."""
+        return None
 
     @property
     def isMoving(self):
