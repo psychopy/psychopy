@@ -305,6 +305,43 @@ class Mouse(object):
         """
         self._visible = visible
 
+        if hasattr(self.win.backend, "setVisible"):
+            self.win.backend.setExclusive(self._visible)
+
+    @property
+    def exclusive(self):
+        """Mouse exclusivity mode (`bool`)."""
+        return self.getExclusive()
+
+    @exclusive.setter
+    def exclusive(self, value):
+        self.setExclusive(value)
+
+    def getExclusive(self):
+        """Get whether the mouse in in exclusive mode.
+
+        Returns
+        -------
+        bool
+            `True` if the pointer is exclusive to the window.
+
+        """
+        return self._exclusive
+
+    def setExclusive(self, exclusive=True):
+        """Set mouse exclusive mode.
+
+        Parameters
+        ----------
+        exclusive : bool
+            Mouse exclusivity mode to set.
+
+        """
+        self._exclusive = exclusive
+
+        if hasattr(self.win.backend, "setExclusive"):
+            self.win.backend.setExclusive(self._exclusive)
+
     @property
     def buttons(self):
         """Global mouse buttons states (`ndarray`).
@@ -404,6 +441,18 @@ class Mouse(object):
         assert len(value) == 2
         self._mousePos[MOUSE_EVENT_MOTION, MOUSE_POS_PREVIOUS, :] = value
 
+    def getPrevPos(self):
+        """Get the previous position of the mouse pointer.
+
+        Returns
+        -------
+        ndarray
+            Mouse position (x, y) in window units. Is an independent copy of
+            the property `Mouse.prevPos`.
+
+        """
+        return self.prevPos.copy()  # returns a copy
+
     @property
     def relPos(self):
         """Relative change in position of the mouse between motion events
@@ -437,17 +486,17 @@ class Mouse(object):
         return np.sqrt(np.sum(np.square(self.getRelPos()), dtype=np.float32))
 
     @property
-    def isLeftPressed(self):
+    def leftPressed(self):
         """Is the left mouse button being pressed (`bool`)?"""
         return self._mouseButtons[MOUSE_BUTTON_LEFT] is True
 
     @property
-    def isMiddlePressed(self):
+    def middlePressed(self):
         """Is the middle mouse button being pressed (`bool`)?"""
         return self._mouseButtons[MOUSE_BUTTON_MIDDLE] is True
 
     @property
-    def isRightPressed(self):
+    def rightPressed(self):
         """Is the right mouse button being pressed (`bool`)?"""
         return self._mouseButtons[MOUSE_BUTTON_RIGHT] is True
 
