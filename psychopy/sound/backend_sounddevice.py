@@ -462,7 +462,7 @@ class SoundDeviceSound(_SoundBase):
                               "stereo. Shape={}".format(self.sndArr.shape))
         self._nSamples = thisArray.shape[0]
         if self.stopTime == -1:
-            self.stopTime = self._nSamples/float(self.sampleRate)
+            self.duration = self._nSamples/float(self.sampleRate)
         # set to run from the start:
         self.seek(0)
         self.sourceType = "array"
@@ -508,7 +508,7 @@ class SoundDeviceSound(_SoundBase):
     def _nextBlock(self):
         if self.status == STOPPED:
             return
-        samplesLeft = int((self.stopTime - self.t) * self.sampleRate)
+        samplesLeft = int((self.duration - self.t) * self.sampleRate)
         nSamples = min(self.blockSize, samplesLeft)
         if self.sourceType == 'file' and self.preBuffer == 0:
             # streaming sound block-by-block direct from file

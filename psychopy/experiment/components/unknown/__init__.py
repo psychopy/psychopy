@@ -19,6 +19,7 @@ class UnknownComponent(BaseComponent):
     script-outputs. It should have nothing but a name - other params will be
     added by the loader
     """
+    targets = ['PsychoPy']
 
     categories = ['Custom']
     targets = ['PsychoPy']

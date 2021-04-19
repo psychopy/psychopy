@@ -439,12 +439,10 @@ class Rift(window.Window):
         kwargs['waitBlanking'] = False
 
         # force checkTiming and quad-buffer stereo off
-        kwargs["checkTiming"] = False
-        kwargs["stereo"] = False
-        kwargs['useFBO'] = True
-        kwargs['multiSample'] = False
-        kwargs['bits'] = False
-        # kwargs['waitBlanking'] = False
+        kwargs["checkTiming"] = False  # not used here for now
+        kwargs["stereo"] = False  # false, using our own stuff for stereo
+        kwargs['useFBO'] = True  # true, but uses it's ow FBO logic
+        kwargs['multiSample'] = False  # not for the back buffer of the widow
 
         # do not allow 'endFrame' to be called until _startOfFlip is called
         self._allowHmdRendering = False

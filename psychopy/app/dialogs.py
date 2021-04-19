@@ -57,11 +57,11 @@ class MessageDialog(wx.Dialog):
             self.Bind(wx.EVT_BUTTON, self.onButton, id=wx.ID_YES)
             self.Bind(wx.EVT_BUTTON, self.onButton, id=wx.ID_NO)
 #            self.Bind(wx.EVT_CLOSE, self.onEscape)
-            btnSizer.Add(self.noBtn, 0,
+            btnSizer.Add(self.cancelBtn, 0,
                          wx.ALL | wx.LEFT | wx.ALIGN_CENTER_VERTICAL,
                          border=3)
             btnSizer.AddStretchSpacer()
-            btnSizer.Add(self.cancelBtn, 0,
+            btnSizer.Add(self.noBtn, 0,
                          wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
                          border=3)
             btnSizer.Add(self.yesBtn, 0,
