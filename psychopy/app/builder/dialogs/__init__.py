@@ -496,6 +496,11 @@ class ParamNotebook(wx.Notebook, ThemeMixin):
              "false": "Disable",  # permitted: hide, show, enable, disable
             }"""
             for thisDep in self.parent.element.depends:
+                if not (
+                        thisDep['param'] in self.ctrls
+                        and thisDep['dependsOn'] in self.ctrls):
+                    # If params are on another page, skip
+                    continue
                 dependentCtrls = self.ctrls[thisDep['param']]
                 dependencyCtrls = self.ctrls[thisDep['dependsOn']]
                 condString = "dependencyCtrls.getValue() {}".format(thisDep['condition'])
