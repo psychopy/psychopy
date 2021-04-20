@@ -441,20 +441,29 @@ class RemoteControlServer(object):
         self._amplifierSN = serialNumber
 
     @property
-    def overwriteProtection(self, forceCheck=False):
-        """Get/set whether the 
+    def overwriteProtection(self):
+        """An attribute to get/set whether the overwrite protection is turned on.
+
+        When checking the attribute the state of `rcs.overwriteProtection` a call will be
+        made to the RCS and the report is based on teh response. There is also a
+        variable `rcs._overwriteProtection` that is simply the stored state from the
+        most recent call and does not make any further communication with the RCS itself.
+
+        Usage example::
+
+            rcs.overwriteProtection = True  # set it to be on
+            print(rcs.overwriteProtection)  # print current state
         """
-        if forceCheck or self._overwriteProtection is None:
-            reply = self.sendRaw("OW", checkOutput=None)
-            # reply is OW:0:OK or OW:1:OK
-            if reply == 'OW:0:OK':
-                state = False
-            elif reply == 'OW:1:OK':
-                state = True
-            else:
-                raise IOError("Request for overwrite state received unknown"
-                              "response '{}'".format(reply))
-            self._overwriteProtection = state
+        reply = self.sendRaw("OW", checkOutput=None)  # we'll check this one manually
+        # reply is OW:0:OK or OW:1:OK
+        if reply == 'OW:0:OK':
+            state = False
+        elif reply == 'OW:1:OK':
+            state = True
+        else:
+            raise IOError("Request for overwrite state received unknown"
+                          "response '{}'".format(reply))
+        self._overwriteProtection = state
         return self._overwriteProtection
 
     @overwriteProtection.setter
@@ -473,7 +482,7 @@ class RemoteControlServer(object):
         Example usage::
 
             print(rcs.version)
-        
+
         """
         if not self._RCSversion:
             # otherwise request info from RCS
