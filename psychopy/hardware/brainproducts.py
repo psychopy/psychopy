@@ -160,15 +160,8 @@ class RemoteControlServer(object):
         # did reply include OK message?
         if not checkOutput:
             return
-        # check output
-        OK = False
-        t0 = time.time()
-        while time.time() - t0 < self._timeout and not OK:
-            for reply in self._listener.messages:
-                if reply.endswith(checkOutput):
-                    logging.debug("RCS received {}".format(repr(reply)))
-                    self._listener.messages.remove(reply)
-                    OK = True
+        # wait for message with expected output (means OK)
+        OK = bool(self.waitForMessage(endswith=checkOutput))
         if not OK:
             logging.warning(
                 "RCS Didn't receive expected response from RCS to "
@@ -176,6 +169,43 @@ class RemoteControlServer(object):
                 .format(message, self._listener.messages))
         else:
             return True
+
+    def waitForMessage(self, containing='', endswith=''):
+        """Wait for a message, optionally one that meets certain criteria
+
+        Parameters
+        ----------
+        containing : str
+            A string the message must contain
+        endswith : str
+            A string the message must end with (ignoring newline characters)
+        """
+        # check output
+        OK = False
+        t0 = time.time()
+        while time.time() - t0 < self._timeout and not OK:
+            for reply in self._listener.messages:
+                if reply.endswith(endswith) and reply.contains(containing):
+                    logging.debug("RCS received {}".format(repr(reply)))
+                    self._listener.messages.remove(reply)
+                    OK = True
+
+    def waitForState(self, stateName, permitted):
+        """Helper function to wait for a particular state (or any attribute, for that matter)
+         to have a particular value. Beware this will wait indefinitely, so only call
+         if you are confident that the state will eventually arrive!
+
+        Parameters
+        ----------
+        stateName : str
+            Name of the state (e.g. "applicationState")
+        permitted : list
+            List of values that are permitted before returning
+=        """
+        if type(permitted) is not list:
+            raise TypeError("permitted must be a list of permitted values")
+        while getattr(self, stateName) not in permitted:
+            time.sleep(0.01)
 
     def open(self, expName, participant, workspace):
         """Opens a study/workspace on the RCS server
