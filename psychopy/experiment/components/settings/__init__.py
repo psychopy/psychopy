@@ -137,6 +137,7 @@ class SettingsComponent(object):
                       'Monitor', 'Screen', 'Full-screen window', 'Window size (pixels)', 'Units', 'color',
                       'colorSpace'  # Screen tab
                       ]
+        self.depends = []
         # basic params
         self.params['expName'] = Param(
             expName, valType='str',  inputType="single", allowedTypes=[],

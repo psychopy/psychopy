@@ -1238,10 +1238,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         else:
             helpUrl = None
         title = '%s Properties' % self.exp.getExpName()
-        dlg = DlgExperimentProperties(frame=self, title=title,
-                                      params=component.params,
-                                      helpUrl=helpUrl, order=component.order,
-                                      timeout=timeout)
+        dlg = DlgExperimentProperties(frame=self, element=component, experiment=self.exp)
         if dlg.OK:
             self.addToUndoStack("EDIT experiment settings")
             self.setIsModified(True)
@@ -2069,10 +2066,8 @@ class RoutineCanvas(wx.ScrolledWindow):
         else:
             _Dlg = DlgComponentProperties
         dlg = _Dlg(frame=self.frame,
-                   title=component.params['name'].val + ' Properties',
-                   params=component.params,
-                   order=component.order, helpUrl=helpUrl, editing=True,
-                   depends=component.depends, type=component.type)
+                   element=component,
+                   experiment=self.frame.exp, editing=True)
         if dlg.OK:
             # Redraw if force end routine has changed
             if 'forceEndRoutine' in component.params \
@@ -2119,7 +2114,7 @@ class StandaloneRoutineCanvas(wx.Panel, ThemeMixin):
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.sizer)
         # Setup categ notebook
-        self.ctrls = ParamNotebook(self, exp=self.frame.exp, routine=routine)
+        self.ctrls = ParamNotebook(self, experiment=self.frame.exp, element=routine)
         self.sizer.Add(self.ctrls, border=12, proportion=1, flag=wx.ALIGN_CENTER | wx.ALL)
 
         # Style
@@ -2258,11 +2253,9 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             else:
                 _Dlg = DlgComponentProperties
             dlg = _Dlg(frame=self.parent.frame,
-                       title='{} Properties'.format(name),
-                       params=comp.params, order=comp.order,
-                       helpUrl=helpUrl,
-                       depends=comp.depends,
-                       timeout=timeout, type=comp.type)
+                       element=comp,
+                       experiment=self.parent.frame.exp,
+                       timeout=timeout)
 
             if dlg.OK:
                 # Add to the actual routine
