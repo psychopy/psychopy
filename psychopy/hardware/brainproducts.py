@@ -24,8 +24,8 @@ _recordingStates = {
     'RS:1': 'Monitoring',
     'RS:2': 'Calibration',
     'RS:3': 'Impedance check',
-    'RS:4': 'Saving recording',
-    'RS:5': 'Saving calibration',
+    'RS:4': 'Recording',  # the manual calls this Saving (recording)"
+    'RS:5': 'Saving calibration',  # the manual calls this "Saving calibration"
     'RS:6': 'Paused',
     'RS:7': 'Paused calibration',
     'RS:8': 'Paused impedance check',
@@ -235,6 +235,9 @@ class RemoteControlServer(object):
         """
         msg = 'O'
         self.sendRaw(msg, checkOutput="O:OK")
+        # after reporting OK it should also change the status
+        self.waitForState("applicationState", ["Open"])
+        self.waitForState("recordingState", ["Idle"])
 
     def _updateState(self, msg):
         # Update our state variables from a state message
@@ -314,13 +317,13 @@ class RemoteControlServer(object):
     @property
     def mode(self):
         """
-        Get/set the current mode. 
-        
+        Get/set the current mode.
+
         Mode is a string that can be one of:
 
         - 'default' or 'def' or None will exit special modes
         - 'impedance' or 'imp' for impedance checking
-        - 'monitoring' or 'mon' 
+        - 'monitoring' or 'mon'
         - 'test' or 'tes' to go into test view
 
         """
@@ -329,6 +332,10 @@ class RemoteControlServer(object):
     @mode.setter
     def mode(self, mode):
         if mode in ['impedance', 'imp']:
+            if self.recordingState == "Recording":
+                finalRecordingState = "Paused impedance check"
+            else:
+                finalRecordingState = "Impedance check"
             self._mode = 'impedance'
             msg = 'I'
         elif mode in ['monitor', 'mon']:
@@ -345,7 +352,23 @@ class RemoteControlServer(object):
                    'def, or default.')
             raise ValueError(msg)
 
-        self.sendRaw(msg, checkOutput=msg + ':OK')
+        replyOK = self.sendRaw(msg, checkOutput=msg + ':OK')
+        if not replyOK:
+            raise IOError
+
+        # now wait for appropriate state changes to match our target mode
+        if mode in ['impedance', 'imp']:
+            self.waitForState("recordingState", [finalRecordingState])
+            self.waitForState("acquisitionState", ["Running"])
+        elif mode in ['monitor', 'mon']:
+            self.waitForState("recordingState", ["Monitoring"])
+            self.waitForState("acquisitionState", ["Running"])
+        elif mode in ['test', 'tes']:
+            self.waitForState("recordingState", ["Saving calibration"])
+            self.waitForState("acquisitionState", ["Running"])
+        elif mode in ['default', 'def', None]:
+            self.waitForState("recordingState", ["Stopped"])
+            self.waitForState("acquisitionState", ["Idle"])
 
     @property
     def timeout(self):
@@ -456,6 +479,7 @@ class RemoteControlServer(object):
 
         msg = 'S'
         self.sendRaw(msg)
+        self.waitForState("recordingState", ["Recording", "Saving calibration"])
         self._recording = True
 
     def stopRecording(self):
@@ -469,6 +493,7 @@ class RemoteControlServer(object):
 
         msg = 'Q'
         self.sendRaw(msg)
+        self.waitForState("recordingState", ["Recording", "Calibration"])
         self._recording = False
 
     def pauseRecording(self):
@@ -478,6 +503,7 @@ class RemoteControlServer(object):
         """
         msg = 'P'
         self.sendRaw(msg)
+        self.waitForState("recordingState", ["Paused", "Paused calibration"])
 
     def resumeRecording(self):
         """
@@ -486,6 +512,7 @@ class RemoteControlServer(object):
         """
         msg = 'C'
         self.sendRaw(msg)
+        self.waitForState("recordingState", ["Recording", "Saving calibration"])
 
     def sendAnnotation(self, annotation, annType):
         """Sends a message to be logged on the Recorder. 
@@ -519,6 +546,9 @@ class RemoteControlServer(object):
         """
         msg = 'X'
         self.sendRaw(msg)
+        self.waitForState("recordingState", ["Idle"])
+        self.waitForState("acquisitionState", ["Stopped"])
+        self.waitForState("applicationState", ["Closed"])
 
 
 class _ListenerThread(threading.Thread):
