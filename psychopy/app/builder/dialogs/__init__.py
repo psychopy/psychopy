@@ -521,6 +521,7 @@ class ParamNotebook(wx.Notebook, ThemeMixin):
                                        .format(ctrlName, action.title()))
                             eval(evalStr)
             # Update sizer
+            self.sizer.SetEmptyCellSize((0, 0))
             self.sizer.Layout()
             self.Fit()
             self.Refresh()
