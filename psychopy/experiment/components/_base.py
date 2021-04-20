@@ -55,6 +55,7 @@ class BaseComponent(object):
          "true": "enable",  # what to do with param if condition is True
          "false": "disable",  # permitted: hide, show, enable, disable
          }"""
+        self.order = ['name', 'startVal', 'startEstim', 'startType', 'stopVal', 'durationEstim', 'stopType']  # name first, then timing, then others
 
         msg = _translate(
             "Name of this component (alpha-numeric or _, no spaces)")
@@ -122,8 +123,6 @@ class BaseComponent(object):
             valType='bool', inputType="bool", categ="Testing",
             hint=msg, allowedTypes=[],
             label=_translate('Disable component'))
-
-        self.order = ['name']  # name first, then timing, then others
 
     @property
     def xml(self):

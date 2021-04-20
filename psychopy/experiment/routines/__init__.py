@@ -13,8 +13,8 @@ def getAllStandaloneRoutines(fetchIcons=True):
     # Get list of subclasses of BaseStandalone
     classList = BaseStandaloneRoutine.__subclasses__()
     # Remove unknown
-    if UnknownRoutine in classList:
-        classList.remove(UnknownRoutine)
+    #if UnknownRoutine in classList:
+    #    classList.remove(UnknownRoutine)
     # Get list indexed by class name with Routine removed
     classDict = {c.__name__: c for c in classList}
 

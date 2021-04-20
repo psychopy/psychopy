@@ -58,7 +58,7 @@ from ..themes._themes import PsychopyDockArt, PsychopyTabArt, ThemeSwitcher
 from psychopy import logging, constants, data
 from psychopy.tools.filetools import mergeFolder
 from .dialogs import (DlgComponentProperties, DlgExperimentProperties,
-                      DlgCodeComponentProperties, DlgLoopProperties, ParamCtrls)
+                      DlgCodeComponentProperties, DlgLoopProperties, ParamCtrls, ParamNotebook)
 from ..utils import (PsychopyToolbar, PsychopyPlateBtn, WindowFrozen,
                      FileDropTarget, FrameSwitcher, updateDemosMenu)
 
@@ -1238,10 +1238,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         else:
             helpUrl = None
         title = '%s Properties' % self.exp.getExpName()
-        dlg = DlgExperimentProperties(frame=self, title=title,
-                                      params=component.params,
-                                      helpUrl=helpUrl, order=component.order,
-                                      timeout=timeout, depends=component.depends)
+        dlg = DlgExperimentProperties(frame=self, element=component, experiment=self.exp)
         if dlg.OK:
             self.addToUndoStack("EDIT experiment settings")
             self.setIsModified(True)
@@ -2069,10 +2066,8 @@ class RoutineCanvas(wx.ScrolledWindow):
         else:
             _Dlg = DlgComponentProperties
         dlg = _Dlg(frame=self.frame,
-                   title=component.params['name'].val + ' Properties',
-                   params=component.params,
-                   order=component.order, helpUrl=helpUrl, editing=True,
-                   depends=component.depends, type=component.type)
+                   element=component,
+                   experiment=self.frame.exp, editing=True)
         if dlg.OK:
             # Redraw if force end routine has changed
             if 'forceEndRoutine' in component.params \
@@ -2105,40 +2100,6 @@ class RoutineCanvas(wx.ScrolledWindow):
 
 
 class StandaloneRoutineCanvas(wx.Panel, ThemeMixin):
-
-    class CategoryPage(wx.Panel, ThemeMixin):
-        def __init__(self, parent, dlg, params):
-            wx.Panel.__init__(self, parent, size=(600, -1))
-            self.parent = parent
-            self.dlg = dlg
-            self.app = self.dlg.app
-            # Setup sizer
-            self.sizer = wx.GridBagSizer(0, 0)
-            self.SetSizer(self.sizer)
-            # Add controls
-            row = 0
-            for name, param in params.items():
-                # Make ctrl
-                ctrls = ParamCtrls(self.dlg, param.label, param, self, name)
-                # Add value ctrl
-                _flag = wx.EXPAND | wx.ALL
-                if hasattr(ctrls.valueCtrl, '_szr'):
-                    self.sizer.Add(ctrls.valueCtrl._szr, (row, 1), border=6, flag=_flag)
-                else:
-                    self.sizer.Add(ctrls.valueCtrl, (row, 1), border=6, flag=_flag)
-                # Add other ctrl stuff
-                _flag = wx.LEFT | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL
-                self.sizer.Add(ctrls.nameCtrl, (row, 0), (1, 1), border=5, flag=_flag)
-                if ctrls.typeCtrl:
-                    self.sizer.Add(ctrls.typeCtrl, (row, 2), border=5, flag=_flag)
-                if ctrls.updateCtrl:
-                    self.sizer.Add(ctrls.updateCtrl, (row, 3), border=5, flag=_flag)
-                # Iterate row
-                row += 1
-
-        def _applyAppTheme(self, target=None):
-            self.SetBackgroundColour("white")
-
     def __init__(self, parent, routine=None):
         # Init super
         wx.Panel.__init__(
@@ -2149,34 +2110,15 @@ class StandaloneRoutineCanvas(wx.Panel, ThemeMixin):
         self.app = self.frame.app
         self.dpi = self.app.dpi
         self.routine = routine
-        # Get arrays of params
-        paramsByCateg = {}
-        for name, param in routine.params.items():
-            # Add categ if not present
-            if param.categ not in paramsByCateg:
-                paramsByCateg[param.categ] = {}
-            # Append param to categ
-            paramsByCateg[param.categ].update({name: param})
         # Setup sizer
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.sizer)
         # Setup categ notebook
-        self.ctrls = wx.Notebook(self)
+        self.ctrls = ParamNotebook(self, experiment=self.frame.exp, element=routine)
         self.sizer.Add(self.ctrls, border=12, proportion=1, flag=wx.ALIGN_CENTER | wx.ALL)
-        # Setup pages
-        for categ, params in paramsByCateg.items():
-            page = self.CategoryPage(self.ctrls, self, params)
-            self.ctrls.AddPage(page, categ)
 
         # Style
         self._applyAppTheme()
-
-    def _applyAppTheme(self, target=None):
-        ThemeMixin._applyAppTheme(self)
-        self.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
-        self.ctrls.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
-        for page in self.ctrls.GetChildren():
-            page._applyAppTheme()
 
 
 class ComponentsPanel(scrolledpanel.ScrolledPanel):
@@ -2311,11 +2253,9 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             else:
                 _Dlg = DlgComponentProperties
             dlg = _Dlg(frame=self.parent.frame,
-                       title='{} Properties'.format(name),
-                       params=comp.params, order=comp.order,
-                       helpUrl=helpUrl,
-                       depends=comp.depends,
-                       timeout=timeout, type=comp.type)
+                       element=comp,
+                       experiment=self.parent.frame.exp,
+                       timeout=timeout)
 
             if dlg.OK:
                 # Add to the actual routine
