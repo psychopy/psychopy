@@ -20,7 +20,6 @@ class FixationTarget(object):
         win = psychopy_eyelink_graphics.window
         config = psychopy_eyelink_graphics._eyetrackerinterface.getConfiguration()
         color_type = config.get('calibration').get('color_type')
-        unit_type = config.get('calibration').get('unit_type')
 
         self.calibrationPointOuter = visual.Circle(
             win,
@@ -31,7 +30,7 @@ class FixationTarget(object):
             fillColor=psychopy_eyelink_graphics.CALIBRATION_POINT_OUTER_COLOR,
             radius=psychopy_eyelink_graphics.CALIBRATION_POINT_OUTER_RADIUS,
             name='CP_OUTER',
-            units=unit_type,
+            units='pix', # eyelink calibration must always be done in pix units.
             opacity=1.0,
             interpolate=False)
         self.calibrationPointInner = visual.Circle(
@@ -42,7 +41,7 @@ class FixationTarget(object):
             fillColor=psychopy_eyelink_graphics.CALIBRATION_POINT_INNER_COLOR,
             radius=psychopy_eyelink_graphics.CALIBRATION_POINT_INNER_RADIUS,
             name='CP_INNER',
-            units=unit_type,
+            units='pix', # eyelink calibration must always be done in pix units.
             opacity=1.0,
             interpolate=False)
 
@@ -396,7 +395,7 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
 
         self.window = visual.Window(display.getPixelResolution(),
                                     monitor=display.getPsychopyMonitorName(),
-                                    units=display.getCoordinateType(),
+                                    units='pix', #eyelink calibration must always be in 'pix'
                                     color=self.WINDOW_BACKGROUND_COLOR,
                                     colorSpace=display.getColorSpace(),
                                     fullscr=True,

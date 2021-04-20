@@ -10,16 +10,6 @@ try:
 except ImportError:
     ProgressBarDialog = None
 
-try:
-    unicode
-except NameError:
-    unicode = str
-
-try:
-    basestring
-except NameError:
-    basestring = str
-
 from ......constants import EventConstants, EyeTrackerConstants
 from ...... import EXP_SCRIPT_DIRECTORY
 from ......errors import print2err, printExceptionDetailsToStdErr
@@ -163,30 +153,14 @@ class EyeTracker(EyeTrackerDevice):
 
             # calibration related settings
             eyelink = self._eyelink
-            calibration_config = tracker_config.get('calibration', None)
-            if calibration_config:
-                for cal_key, cal_val in calibration_config.items():
-                    if cal_key == 'auto_pace':
-                        if cal_val is True:
-                            eyelink.enableAutoCalibration()
-                        elif cal_val is False:
-                            eyelink.disableAutoCalibration()
-                    elif cal_key == 'pacing_speed':  # in seconds.msec
-                        eyelink.setAutoCalibrationPacing(int(cal_val * 1000))
-                    elif cal_key == 'type':
-                        VALID_CALIBRATION_TYPES = dict(
-                            THREE_POINTS='HV3',
-                            FIVE_POINTS='HV5',
-                            NINE_POINTS='HV9',
-                            THIRTEEN_POINTS='HV13')
-                        eyelink.setCalibrationType(
-                            VALID_CALIBRATION_TYPES[cal_val])
+
+            self.sendCalibrationSettingsCommands(eyelink, tracker_config.get('calibration'))
 
             # native data recording file
             default_native_data_file_name = tracker_config.get(
                 'default_native_data_file_name', None)
             if default_native_data_file_name:
-                if isinstance(default_native_data_file_name, (str, unicode)):
+                if isinstance(default_native_data_file_name, str):
                     r = default_native_data_file_name.rfind('.')
                     if r > 0:
                         if default_native_data_file_name[r:] == 'edf'.lower():
@@ -203,7 +177,7 @@ class EyeTracker(EyeTrackerDevice):
                         EyeTracker._host_edf_name = default_native_data_file_name
                 else:
                     print2err(
-                        'ERROR: default_native_data_file_name must be a string or unicode value')
+                        'ERROR: default_native_data_file_name must be a string value')
 
             if self._local_edf_dir and self._full_edf_name:
                 EyeTracker._active_edf_file = self._full_edf_name + '.EDF'
@@ -378,7 +352,26 @@ class EyeTracker(EyeTrackerDevice):
             printExceptionDetailsToStdErr()
         return EyeTrackerConstants.EYETRACKER_ERROR
 
-    def runSetupProcedure(self):
+    def sendCalibrationSettings(self, eyelink, calibration_config):
+        if calibration_config:
+            for cal_key, cal_val in calibration_config.items():
+                if cal_key == 'auto_pace':
+                    if cal_val is True:
+                        eyelink.enableAutoCalibration()
+                    elif cal_val is False:
+                        eyelink.disableAutoCalibration()
+                elif cal_key == 'pacing_speed':  # in seconds.msec
+                    eyelink.setAutoCalibrationPacing(int(cal_val * 1000))
+                elif cal_key == 'type':
+                    VALID_CALIBRATION_TYPES = dict(
+                        THREE_POINTS='HV3',
+                        FIVE_POINTS='HV5',
+                        NINE_POINTS='HV9',
+                        THIRTEEN_POINTS='HV13')
+                    eyelink.setCalibrationType(
+                        VALID_CALIBRATION_TYPES[cal_val])
+
+    def runSetupProcedure(self, calibration_args={}):
         """Start the EyeLink Camera Setup and Calibration procedure.
 
         During the system setup, the following keys can be used on either the
@@ -394,20 +387,24 @@ class EyeTracker(EyeTrackerDevice):
             from . import eyeLinkCoreGraphicsIOHubPsychopy
             EyeLinkCoreGraphicsIOHubPsychopy = eyeLinkCoreGraphicsIOHubPsychopy.EyeLinkCoreGraphicsIOHubPsychopy
 
-            calibration_properties = self.getConfiguration().get('calibration')
-            circle_attributes = calibration_properties.get('target_attributes')
-            targetForegroundColor = circle_attributes.get('outer_color')
-            targetBackgroundColor = circle_attributes.get('inner_color')
-            screenColor = calibration_properties.get('screen_background_color')
-            targetOuterDiameter = circle_attributes.get('outer_diameter')
-            targetInnerDiameter = circle_attributes.get('inner_diameter')
+            print2err("TODO: test using updated eyelink calibration_args:", calibration_args)
 
-            genv = EyeLinkCoreGraphicsIOHubPsychopy(self,
-                targetForegroundColor=targetForegroundColor,
-                targetBackgroundColor=targetBackgroundColor,
-                screenColor=screenColor,
-                targetOuterDiameter=targetOuterDiameter,
-                targetInnerDiameter=targetInnerDiameter)
+            cal_config = self.getConfiguration().get('calibration')
+            if calibration_args:
+                cal_config = calibration_args
+            self.sendCalibrationSettingsCommands(self._eyelink, cal_config)
+            screenColor = cal_config.get('screen_background_color')
+            targetForegroundColor = cal_config.get('target_attributes').get('outer_color')
+            targetBackgroundColor = cal_config.get('target_attributes').get('inner_color')
+            targetOuterDiameter = cal_config.get('target_attributes').get('outer_diameter')
+            targetInnerDiameter = cal_config.get('target_attributes').get('inner_diameter')
+
+
+            genv = EyeLinkCoreGraphicsIOHubPsychopy(self, targetForegroundColor=targetForegroundColor,
+                                                    targetBackgroundColor=targetBackgroundColor,
+                                                    screenColor=screenColor,
+                                                    targetOuterDiameter=targetOuterDiameter,
+                                                    targetInnerDiameter=targetInnerDiameter)
 
             pylink.openGraphicsEx(genv)
 
@@ -482,7 +479,7 @@ class EyeTracker(EyeTrackerDevice):
         by using the setConnectionState(True) method for recording to be possible.
 
         Args:
-            recording (bool): if True, the eye tracker will start recordng data.; false = stop recording data.
+            recording (bool): if True, the eye tracker will start recording data.; false = stop recording data.
 
         Return:
             bool: the current recording state of the eye tracking device
@@ -1216,7 +1213,7 @@ class EyeTracker(EyeTrackerDevice):
     def _setEyesToTrack(self, track_eyes):
         """"""
         try:
-            if isinstance(track_eyes, basestring):
+            if isinstance(track_eyes, str):
                 pass
             else:
                 track_eyes = EyeTrackerConstants.getName(track_eyes)

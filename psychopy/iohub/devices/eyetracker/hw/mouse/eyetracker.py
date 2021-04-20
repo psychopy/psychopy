@@ -76,7 +76,7 @@ class EyeTracker(EyeTrackerDevice):
     _last_event_start = 0.0
     _last_start_event_pos = None
     _sacc_end_time = 0.0
-    _sacc_amplitude = 0.0
+    _sacc_amplitude = 0.0, 0.0
     _button_ix = dict(LEFT_BUTTON=0, MIDDLE_BUTTON=1, RIGHT_BUTTON=2)
 
     def __init__(self, *args, **kwargs):
@@ -394,7 +394,7 @@ class EyeTracker(EyeTrackerDevice):
         """
         return self._recording
 
-    def runSetupProcedure(self):
+    def runSetupProcedure(self, **calibration_args):
         """
         runSetupProcedure does nothing in the Mouse Simulated eye tracker, as calibration is automatic. ;)
         """
