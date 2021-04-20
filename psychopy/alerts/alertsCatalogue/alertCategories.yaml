@@ -33,6 +33,7 @@
   4050:
     cat: Experiment configuration
     4051: Experiment from future version
+    4052: Experiment fixed to past version
   4100:
     cat: Timing
     4105: Component start time exceeds stop times
@@ -47,6 +48,7 @@
     4310: Cannot calculate parameter
     4315: Invalid dollar sign syntax
     4320: Non-local font
+    4325: Font not available
 
 5000: Online studies
 6000:

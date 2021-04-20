@@ -181,6 +181,7 @@ _localized = {
     'Name': _translate('Name'),
     'nReps': _translate('nReps'),
     'conditions': _translate('Conditions'),  # not the same
+    'conditionsFile':_translate('conditionsFile'),
     'endPoints': _translate('endPoints'),
     'Selected rows': _translate('Selected rows'),
     'loopType': _translate('loopType'),

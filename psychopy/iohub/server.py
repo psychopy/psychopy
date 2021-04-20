@@ -765,7 +765,8 @@ class ioServer(object):
                         self._hookDevice.append('Mouse')
                     if dev_cls_name == 'Keyboard':
                         dkeyboard = deviceDict['Keyboard']
-                        self.deviceMonitors.append(DeviceMonitor(dkeyboard, msgpump_interval))
+                        kbHookMonitor = DeviceMonitor(dkeyboard, 0.001)
+                        self.deviceMonitors.append(kbHookMonitor)
                         dkeyboard._CGEventTapEnable(dkeyboard._tap, True)
                         self._hookDevice.append('Keyboard')
 
