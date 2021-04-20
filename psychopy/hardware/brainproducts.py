@@ -497,12 +497,18 @@ class RemoteControlServer(object):
         Start recording EEG.
 
         """
+        recordingType = self.recordingState
+        if recordingType not in ['Monitoring', 'Calibration', 'Impedance check']:
+            msg = ('To start recording, the RCS must be in one of "Monitoring", '
+                   f'"Calibration" or "Impedance check" states, not {recordingType}')
+            raise RuntimeError(msg)
         if self._recording:
-            msg = 'Recording is still in progress!'
+            msg = 'Recording is already in progress!'
             raise RuntimeError(msg)
 
         msg = 'S'
         self.sendRaw(msg)
+
         self.waitForState("recordingState", ["Recording", "Saving calibration"])
         self._recording = True
 
