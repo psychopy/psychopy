@@ -109,6 +109,7 @@ class RemoteControlServer(object):
         self._workspace = None
         self._amplifier = None
         self._overwriteProtection = None
+        self._RCSversion = None
 
         self._bufferChars = ''  # unprocessed stream from RCS
         self._bufferList = []  # list of messages
@@ -209,7 +210,7 @@ class RemoteControlServer(object):
 
     def open(self, expName, participant, workspace):
         """Opens a study/workspace on the RCS server
-        
+
         Parameters
         ----------
         expName : str
@@ -225,6 +226,7 @@ class RemoteControlServer(object):
         self.workspace = workspace
         self.participant = participant
         self.expName = expName
+        # all appears OK
         logging.info(
             'RCS connected: {} - {}'.format(self.expName, self.participant))
 
@@ -238,6 +240,8 @@ class RemoteControlServer(object):
         # after reporting OK it should also change the status
         self.waitForState("applicationState", ["Open"])
         self.waitForState("recordingState", ["Idle"])
+        # check that the RCS is using the correct messaging version
+        self.sendRaw("VM", checkOutput="VM:2")
 
     def _updateState(self, msg):
         # Update our state variables from a state message
@@ -461,6 +465,26 @@ class RemoteControlServer(object):
         msg = "OW:{}".format(int(value))
         self.sendRaw(msg, checkOutput=msg + ':OK')
         self._overwriteProtection = bool(value)
+
+    @property
+    def version(self):
+        """Reports the version of the RCS application
+
+        Example usage::
+
+            print(rcs.version)
+        
+        """
+        if not self._RCSversion:
+            # otherwise request info from RCS
+            msg = 'VS'
+            self.sendRaw(msg, checkOutput='')
+            reply = self.waitForMessage(containing='VS:')
+            if reply:
+                self._RCSversion = reply.strip().replace("VS:")
+            else:
+                logging.warning("Failed to retrieve the version of the RCS software")
+        return self._RCSversion
 
     def dcReset(self):
         """Use this to reset any DC offset that might have accumulated
