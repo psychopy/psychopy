@@ -376,7 +376,7 @@ class SettingsComponent(object):
         )
 
         self.params['mgSaccade'] = Param(
-            mgMove, valType='num', inputType="single",
+            mgSaccade, valType='num', inputType="single",
             hint=_translate("Visual degree threshold for Saccade event creation."),
             label=_translate("Saccade Threshold"), categ="Eyetracking"
         )
@@ -628,9 +628,9 @@ class SettingsComponent(object):
             "import sys  # to get file system encoding\n"
             "\n")
 
-        if not self.params['eyeModel'] == "None":
+        if not self.params['eyetracker'] == "None":
             code = (
-                "from psychopy.iohub.devices import eyetracker as eyetracking\n"
+                "import psychopy.iohub as io\n"
             )
             buff.writeIndentedLines(code)
 
@@ -916,29 +916,53 @@ class SettingsComponent(object):
 
         buff.writeIndented("frameTolerance = 0.001  # how close to onset before 'same' frame\n")
 
-        # Write iohub initialisation
-        if not self.params['eyeModel'] == "None":
+        # Make ioConfig dict
+        code = (
+            "ioConfig = {\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+        buff.setIndentLevel(1, relative=True)
+        # Initialise for MouseGaze
+        if self.params['eyetracker'] == "MouseGaze":
             code = (
-                "eyetracker = eyetracking.EyeTrackerDevice(dconfig={\n"
+                "'eyetracker.hw.mouse.EyeTracker': {\n"
             )
             buff.writeIndentedLines(code % self.params)
             buff.setIndentLevel(1, relative=True)
             code = (
-                    "'model_name':%(eyeModel)s,\n"
-                    "'save_events':True,\n"
-                    "'stream_events':False,\n"
-                    "'monitor_event_types':eyetracking.eventTypes,\n"
-                    "'auto_report_events':%(eyeAutoReport)s,\n"
-                    "'interval':%(eyeInterval)s,\n"
-                    "'event_buffer_length':1,\n"
-                    "'sampling_rate':%(eyeSamplingRate)s\n"
+                    "'controls': {\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+            buff.setIndentLevel(1, relative=True)
+            code = (
+                        "'move': %(mgMove)s,\n"
+                        "'blink':%(mgBlink)s,\n"
+                        "'saccade_threshold': %(mgSaccade)s,\n"
             )
             buff.writeIndentedLines(code % self.params)
             buff.setIndentLevel(-1, relative=True)
             code = (
-                "})"
+                    "}\n"
             )
             buff.writeIndentedLines(code % self.params)
+            buff.setIndentLevel(-1, relative=True)
+            code = (
+                "}\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+        # Close ioConfig dict
+        buff.setIndentLevel(-1, relative=True)
+        code = (
+            "}\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+
+        # Start iohub server
+        code = (
+            "ioServer = io.launchHubServer(**ioConfig)\n"
+            "eyetracker = ioServer.getDevice('tracker')\n"
+        )
+        buff.writeIndentedLines(code % self.params)
 
     def writeWindowCode(self, buff):
         """Setup the window code.
