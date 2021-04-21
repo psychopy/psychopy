@@ -577,7 +577,12 @@ class _BaseParamsDlg(wx.Dialog):
                  timeout=None):
 
         # translate title
-        title = element.params['name'].val + _translate(' Properties')
+        if "name" in element.params:
+            title = element.params['name'].val + _translate(' Properties')
+        elif "expName" in element.params:
+            title = element.params['expName'].val + _translate(' Properties')
+        else:
+            title = "Properties"
         # get help url
         if hasattr(element, 'url'):
             helpUrl = element.url
@@ -1608,8 +1613,6 @@ class DlgExperimentProperties(_BaseParamsDlg):
                  style=wx.DEFAULT_DIALOG_STYLE | wx.DIALOG_NO_PARENT,
                  timeout=None):
         style = style | wx.RESIZE_BORDER
-        if "name" not in element.params:
-            element.params['name'] = Param(val=experiment.name, valType="str")
         _BaseParamsDlg.__init__(self, frame=frame, element=element, experiment=experiment,
                                 size=size,
                                 style=style,
