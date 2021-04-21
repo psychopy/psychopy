@@ -54,7 +54,7 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
 
         # Basic params
         self.params['progressTime'] = Param(progressTime,
-            valType='list', inputType="single", categ='Basic',
+            valType='code', inputType="single", categ='Basic',
             hint=_translate(
                 "Time limit (s) after which progress to next position (leave blank for no limit)"),
             label=_translate("Progress After Time..."))
@@ -120,7 +120,7 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
 
         self.params['targetLayout'] = Param(targetLayout,
                                             valType='str', inputType="choice", categ='Layout',
-                                            allowedVals=['three-point', 'five-point', 'nine-point', 'custom...'],
+                                            allowedVals=['THREE_POINTS', 'FIVE_POINTS', 'NINE_POINTS', "THIRTEEN_POINTS", 'custom...'],
                                             hint=_translate("Pre-defined point layouts"),
                                             label=_translate("Target Layout"))
 
@@ -170,42 +170,67 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
 
 
     def writeMainCode(self, buff):
+        BaseStandaloneRoutine.writeMainCode(self, buff)
+
         # If positions are preset, override param value
         if self.params['targetLayout'].val in positionsMap:
             self.params['positions'].val = positionsMap[self.params['targetLayout'].val]
 
         # Make target
         code = (
+            "# define target for %(name)s\n"
             "%(name)sTarget = visual.TargetStim(win, \n"
         )
         buff.writeIndentedLines(code % self.params)
         buff.setIndentLevel(1, relative=True)
         code = (
-                "radius=%(targetSize)s, dotradius=%(dotSize)s, edgewidth=%(borderWidth)s,\n"
-                "fillcolor=%(fillColor)s, edgecolor=%(borderColor)s, dotcolor=%(color)s,\n"
-                "units=%(units)s, colorspace=%(colorSpace)s)\n"
+                "name='%(name)sTarget',\n"
+                "outerRadius=%(targetSize)s, innerRadius=%(dotSize)s, lineWidth=%(borderWidth)s,\n"
+                "color=%(color)s, fillColor=%(fillColor)s, borderColor=%(borderColor)s,\n"
+                "colorSpace=%(colorSpace)s, units=%(units)s\n"
         )
         buff.writeIndentedLines(code % self.params)
         buff.setIndentLevel(-1, relative=True)
-        if self.params['mode'].val == "validation":
-            # Setup validation
+        code = (
+            ")"
+        )
+        buff.writeIndentedLines(code % self.params)
+        # Make config dict
+        code = (
+            "# define attributes for calibration for %(name)s\n"
+            "%(name)sCalib = {\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+        buff.setIndentLevel(1, relative=True)
+        # Write config for EyeLink
+        if True:
+            # EyeLink doesn't allow custom positions, so if it's custom, approximate
+            positions = self.params['targetLayout'].val
+            if positions not in ['THREE_POINTS', 'FIVE_POINTS', 'NINE_POINTS', "THIRTEEN_POINTS"]:
+                if len(positions) <= 4:
+                    positions = "'THREE_POINTS'"
+                elif len(positions) <= 7:
+                    positions = "'FIVE_POINTS'"
+                elif len(positions) <= 11:
+                    postions = "'NINE_POINTS'"
+                else:
+                    positions = "'THIRTEEN_POINTS'"
+            # Write
             code = (
-                "%(name)s = ValidationProcedure(win, %(name)sTarget,\n"
+                    "'target_attributes': %(name)sTarget.getCalibSettings('SR Research Ltd'),\n"
+                    "'type': " + positions + ",\n"
+                    "'auto_pace': " + str(bool(self.params['progressTime'])) + ",\n"
+                    "'pacing_speed': %(progressTime)s,\n"
+                    "'screen_background_color': win._color.rgb255\n"
             )
             buff.writeIndentedLines(code % self.params)
-            buff.setIndentLevel(1, relative=True)
-            # Split expandDur into two if needed
-            if len(self.params['expandDur'].val) == 2:
-                expString = f"expandDur={self.params['expandDur'].val[0]}, contractDur={self.params['expandDur'].val[1]}, \n"
-            else:
-                expString = f"expandDur={self.params['expandDur'].val}, contractDur={self.params['expandDur'].val}, \n"
-            code = (
-                    "positions=%(positions)s,\n"
-                    "velocity=%(velocity)s, expandScale=%(expandScale)s,\n"
-                    +expString+
-                    "randomize_positions=%(randomisePos)s)\n"
-            )
-            buff.writeIndentedLines(code % self.params)
-            buff.setIndentLevel(-1, relative=True)
-        if self.params['mode'].val == "calibration":
-            pass
+        buff.setIndentLevel(-1, relative=True)
+        code = (
+            "}\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+        code = (
+            "# run calibration\n"
+            "eyetracker.runSetupProcedure(%(name)sCalib)\n"
+        )
+        buff.writeIndentedLines(code % self.params)

@@ -4,6 +4,7 @@ from psychopy.colors import Color
 
 knownStyles = ["ring", "dot"]
 
+
 class TargetStim(Circle):
     def __init__(self,
                  win, name=None, style="ring",
