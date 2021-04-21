@@ -50,7 +50,7 @@ jobs:
 
     - name: Test with pytest
       run: |
-        pytest psychopy/tests -v
+        pytest psychopy/tests/test_alerts -v
 #
 #    - name: Upload coverage to Codecov
 #      uses: codecov/codecov-action@v1
