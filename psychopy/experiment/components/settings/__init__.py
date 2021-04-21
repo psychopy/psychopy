@@ -950,6 +950,24 @@ class SettingsComponent(object):
                 "}\n"
             )
             buff.writeIndentedLines(code % self.params)
+
+        elif self.params['eyetracker'] == "GazePoint":
+            code = (
+                "'network_settings': {\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+            buff.setIndentLevel(1, relative=True)
+            code = (
+                    "'ip_address': %(gpAddress)s,\n"
+                    "'port': %(gpPort)s\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+            buff.setIndentLevel(-1, relative=True)
+            code = (
+                "}\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+
         elif self.params['eyetracker'] == "SR Research Ltd":
             code = (
                 "'eyetracker.hw.sr_research.eyelink.EyeTracker': {\n"
@@ -1005,6 +1023,7 @@ class SettingsComponent(object):
                 "}\n"
             )
             buff.writeIndentedLines(code % self.params)
+
         # Close ioConfig dict
         buff.setIndentLevel(-1, relative=True)
         code = (
