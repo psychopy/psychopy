@@ -41,21 +41,26 @@ jobs:
 #        Expand-Archive .\swigwin-4.0.1.zip .;
 #        echo "$((Get-Item .).FullName)/swigwin-4.0.1" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
-
+    if: runner.os == 'Linux'
     - name: Install wxPython
       run: |
-         if [ "$RUNNER_OS" == "Linux" ]; then
-              pip install -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-20.04/ wxPython
-         else
-              pip install wxPython
-         fi
+        pip install -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-20.04/ wxpython
 
     - name: Install Depends
       run: |
+        # install testing frameworks
+        pip install flake8 pytest
         # to install all dependencies
         pip install .
-        # remove psychopy itself so that this
+        # remove psychopy itself so that this local is used
         pip uninstall --yes psychopy
+
+    - name: Lint with flake8
+      run: |
+        # stop the build if there are Python syntax errors or undefined names
+        # flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
     - name: Test with pytest
       run: |
@@ -65,3 +70,17 @@ jobs:
 #      uses: codecov/codecov-action@v1
 #      with:
 #        fail_ci_if_error: true
+
+#    - name: Check bdist/sdist
+#      # checks whether different forms of build work (e.g. missing files in sdist)
+#      run: |
+#        python setup.py build
+#        # Build & install sdist
+#        python setup.py sdist --formats=gztar
+#        pip install --no-deps dist/PsychoPy-*.tar.gz
+#        pip uninstall --yes psychopy
+#        # Build & install wheel
+#        python setup.py bdist_wheel
+#        pip install --no-deps dist/PsychoPy-*.whl
+#        # uninstall the build (but not the dependencies)
+#        pip uninstall --yes psychopy
