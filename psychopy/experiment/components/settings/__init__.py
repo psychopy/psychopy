@@ -958,18 +958,45 @@ class SettingsComponent(object):
             buff.writeIndentedLines(code % self.params)
             buff.setIndentLevel(1, relative=True)
             code = (
-                "'network_settings': {\n"
+                    "'network_settings': {\n"
             )
             buff.writeIndentedLines(code % self.params)
             buff.setIndentLevel(1, relative=True)
             code = (
-                    "'ip_address': %(gpAddress)s,\n"
-                    "'port': %(gpPort)s\n"
+                        "'ip_address': %(gpAddress)s,\n"
+                        "'port': %(gpPort)s\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+            buff.setIndentLevel(-1, relative=True)
+            code = (
+                    "}\n"
             )
             buff.writeIndentedLines(code % self.params)
             buff.setIndentLevel(-1, relative=True)
             code = (
                 "}\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+
+        elif self.params['eyetracker'] == "Tobii Technology":
+            code = (
+                "'eyetracker.hw.tobii.EyeTracker': {\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+            buff.setIndentLevel(1, relative=True)
+            code = (
+                    "'model_name': %(tbModel)s,\n"
+                    "'runtime_settings': {\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+            buff.setIndentLevel(1, relative=True)
+            code = (
+                        "'sampling_rate': %(tbSampleRate)s,\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+            buff.setIndentLevel(-1, relative=True)
+            code = (
+                    "}\n"
             )
             buff.writeIndentedLines(code % self.params)
             buff.setIndentLevel(-1, relative=True)
