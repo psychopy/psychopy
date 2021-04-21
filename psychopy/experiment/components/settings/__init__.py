@@ -953,6 +953,11 @@ class SettingsComponent(object):
 
         elif self.params['eyetracker'] == "GazePoint":
             code = (
+                "'eyetracker.hw.gazepoint.gp3.EyeTracker': {"
+            )
+            buff.writeIndentedLines(code % self.params)
+            buff.setIndentLevel(1, relative=True)
+            code = (
                 "'network_settings': {\n"
             )
             buff.writeIndentedLines(code % self.params)
@@ -960,6 +965,11 @@ class SettingsComponent(object):
             code = (
                     "'ip_address': %(gpAddress)s,\n"
                     "'port': %(gpPort)s\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+            buff.setIndentLevel(-1, relative=True)
+            code = (
+                "}\n"
             )
             buff.writeIndentedLines(code % self.params)
             buff.setIndentLevel(-1, relative=True)
