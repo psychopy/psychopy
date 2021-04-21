@@ -950,6 +950,61 @@ class SettingsComponent(object):
                 "}\n"
             )
             buff.writeIndentedLines(code % self.params)
+        elif self.params['eyetracker'] == "SR Research Ltd":
+            code = (
+                "'eyetracker.hw.sr_research.eyelink.EyeTracker': {\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+            buff.setIndentLevel(1, relative=True)
+            code = (
+                "'model_name': %(elModel)s,\n"
+                "'simulation_mode': %(elSimMode)s,\n"
+                "'network_settings': %(elAddress)s,\n"
+                "'default_native_data_file_name': filename + '.edf',\n"
+                "'runtime_settings': {\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+            buff.setIndentLevel(1, relative=True)
+            code = (
+                    "'sampling_rate': %(elSampleRate)s,\n"
+                    "'track_eyes': %(elTrackEyes)s,\n"
+                    "'sample_filtering': {\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+            buff.setIndentLevel(1, relative=True)
+            code = (
+                        "'sample_filtering': %(elDataFiltering)s,\n"
+                        "'elLiveFiltering': %(elLiveFiltering)s,\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+            buff.setIndentLevel(-1, relative=True)
+            code = (
+                    "},\n"
+                    "'vog_settings': {\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+            buff.setIndentLevel(1, relative=True)
+            code = (
+                        "'pupil_measure_types': %(elPupilMeasure)s,\n"
+                        "'tracking_mode': %(elTrackingMode)s,\n"
+                        "'pupil_center_algorithm': %(elPupilAlgorithm)s,\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+            buff.setIndentLevel(-1, relative=True)
+            code = (
+                    "}\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+            buff.setIndentLevel(-1, relative=True)
+            code = (
+                "}\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+            buff.setIndentLevel(-1, relative=True)
+            code = (
+                "}\n"
+            )
+            buff.writeIndentedLines(code % self.params)
         # Close ioConfig dict
         buff.setIndentLevel(-1, relative=True)
         code = (
