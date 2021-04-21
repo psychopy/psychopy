@@ -481,7 +481,10 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 tickLabels = None
             # style/granularity
             if kind == 'slider' and 'granularity' in item:
-                granularity = item['granularity']
+                if item['granularity']:
+                    granularity = item['granularity']
+                else:
+                    granularity = 0
             elif kind == 'slider' and 'granularity' not in item:
                 granularity = 0
             else:
