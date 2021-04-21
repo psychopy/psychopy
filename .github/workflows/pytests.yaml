@@ -41,6 +41,15 @@ jobs:
 #        Expand-Archive .\swigwin-4.0.1.zip .;
 #        echo "$((Get-Item .).FullName)/swigwin-4.0.1" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
+
+    - name: Install wxPython
+      run: |
+         if [ "$RUNNER_OS" == "Linux" ]; then
+              pip install -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-20.04/ wxPython
+         else
+              pip install wxPython
+         fi
+
     - name: Install Depends
       run: |
         # to install all dependencies
