@@ -64,9 +64,15 @@ class PolygonComponent(BaseVisualComponent):
             {"dependsOn": "shape",  # must be param name
              "condition": "=='regular polygon...'",  # val to check for
              "param": "nVertices",  # param property to alter
-             "true": "enable",  # what to do with param if condition is True
-             "false": "disable",  # permitted: hide, show, enable, disable
-             }
+             "true": "show",  # what to do with param if condition is True
+             "false": "hide",  # permitted: hide, show, enable, disable
+             },
+            {"dependsOn": "shape",  # must be param name
+             "condition": "=='custom polygon...'",  # val to check for
+             "param": "vertices",  # param property to alter
+             "true": "show",  # what to do with param if condition is True
+             "false": "hide",  # permitted: hide, show, enable, disable
+             },
         ]
 
         # params
