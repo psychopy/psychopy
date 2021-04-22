@@ -19,7 +19,7 @@ import os
 import numpy as np
 
 import psychopy
-from psychopy import prefs, core
+from psychopy import core
 from psychopy.hardware import mouse
 from psychopy import logging, event, platform_specific, constants
 from psychopy.visual import window
@@ -46,6 +46,8 @@ if pyglet.version < '1.4':
 else:
     _default_display_ = pyglet.canvas.get_display()
 
+# Cursors available to pyglet. These are used to map string names to symbolic
+# constants used to specify which cursor to use.
 _PYGLET_CURSORS_ = {
     # common with GLFW
     'default': pyglet_window.Window.CURSOR_DEFAULT,
@@ -82,7 +84,9 @@ class PygletBackend(BaseBackend):
     """The pyglet backend is the most used backend. It has no dependencies
     or C libs that need compiling, but may not be as fast or efficient as libs
     like GLFW.
+
     """
+
     GL = pyglet.gl
     winTypeName = 'pyglet'
 
@@ -136,12 +140,12 @@ class PygletBackend(BaseBackend):
                 'card does not appear to support GL_STEREO')
             win.stereo = False
 
-        if sys.platform=='darwin' and not win.useRetina and pyglet.version >= "1.3":
-            raise ValueError("As of PsychoPy 1.85.3 OSX windows should all be "
-                             "set to useRetina=True (or remove the argument). "
-                             "Pyglet 1.3 appears to be forcing "
-                             "us to use retina on any retina-capable screen "
-                             "so setting to False has no effect.")
+        if sys.platform == 'darwin' and not win.useRetina and pyglet.version >= "1.3":
+            raise ValueError(
+                "As of PsychoPy 1.85.3 OSX windows should all be set to "
+                "`useRetina=True` (or remove the argument). Pyglet 1.3 appears "
+                "to be forcing us to use retina on any retina-capable screen "
+                "so setting to False has no effect.")
 
         # window framebuffer configuration
         bpc = backendConf.get('bpc', (8, 8, 8))
@@ -164,7 +168,7 @@ class PygletBackend(BaseBackend):
         if win.multiSample:
             sample_buffers = 1
             # get maximum number of samples the driver supports
-            max_samples = (GL.GLint)()
+            max_samples = GL.GLint()
             GL.glGetIntegerv(GL.GL_MAX_SAMPLES, max_samples)
 
             if (win.numSamples >= 2) and (
@@ -215,8 +219,8 @@ class PygletBackend(BaseBackend):
 
         # if fullscreen check screen size
         if win._isFullScr:
-            win._checkMatchingSizes(win.clientSize, [thisScreen.width,
-                                                  thisScreen.height])
+            win._checkMatchingSizes(
+                win.clientSize, [thisScreen.width, thisScreen.height])
             w = h = None
         else:
             w, h = win.clientSize
@@ -266,7 +270,8 @@ class PygletBackend(BaseBackend):
                 bounds = view.convertRectToBacking_(view.bounds()).size
                 if win.clientSize[0] == bounds.width:
                     win.useRetina = False  # the screen is not a retina display
-                self._frameBufferSize = np.array([int(bounds.width), int(bounds.height)])
+                self._frameBufferSize = np.array(
+                    [int(bounds.width), int(bounds.height)])
             else:
                 self._frameBufferSize = win.clientSize
             try:
@@ -318,10 +323,10 @@ class PygletBackend(BaseBackend):
             # work out where the centre should be 
             if win.useRetina:
                 win.pos = [(thisScreen.width - win.clientSize[0]/2) / 2,
-                            (thisScreen.height - win.clientSize[1]/2) / 2]
+                           (thisScreen.height - win.clientSize[1]/2) / 2]
             else:
                 win.pos = [(thisScreen.width - win.clientSize[0]) / 2,
-                            (thisScreen.height - win.clientSize[1]) / 2]
+                           (thisScreen.height - win.clientSize[1]) / 2]
         if not win._isFullScr:
             # add the necessary amount for second screen
             self.winHandle.set_location(int(win.pos[0] + thisScreen.x),
@@ -423,6 +428,7 @@ class PygletBackend(BaseBackend):
             currentEditable = self.win.currentEditable
             if currentEditable:
                 currentEditable._onText(evt)
+
             event._onPygletText(evt)  # duplicate the event to the psychopy.events lib
 
     def onCursorKey(self, evt):
@@ -639,7 +645,7 @@ class PygletBackend(BaseBackend):
     # Window unit conversion
     #
 
-    def _winToBufferCoords(self, pos):
+    def _windowToBufferCoords(self, pos):
         """Convert window coordinates to OpenGL buffer coordinates.
 
         The standard convention for window coordinates is that the origin is at
@@ -660,11 +666,37 @@ class PygletBackend(BaseBackend):
         """
         # We override `_winToBufferCoords` here since Pyglet uses the OpenGL
         # window coordinate convention by default.
-        return np.array(pos, dtype=np.float32)
+        return np.asarray(pos, dtype=np.float32)
+
+    def _bufferToWindowCoords(self, pos):
+        """OpenGL buffer coordinates to window coordinates.
+
+        This is the inverse of `_windowToBufferCoords`.
+
+        Parameters
+        ----------
+        pos : ArrayLike
+            Position `(x, y)` in window coordinates.
+
+        Returns
+        -------
+        ndarray
+            Position `(x, y)` in buffer coordinates.
+
+        """
+        return np.asarray(pos, dtype=np.float32)
 
     # --------------------------------------------------------------------------
     # Mouse button event handlers
     #
+    def onMouseButton(self, *args, **kwargs):
+        """Event handler for any mouse button event (pressed and released).
+
+        This is used by backends which combine both button state changes into
+        a single event. Usually this would pass events to the appropriate
+        `onMouseButtonPress` and `onMouseButtonRelease` events.
+        """
+        pass
 
     def onMouseButtonPress(self, *args, **kwargs):
         """Event handler for mouse press events."""
@@ -675,12 +707,10 @@ class PygletBackend(BaseBackend):
 
         x, y, button, _ = args
         absTime = core.getTime()
+        absPos = self._windowCoordsToPix((x, y))
 
         mouseEventHandler.setMouseButtonState(
-            _PYGLET_MOUSE_BUTTONS_[button], True, absTime)
-
-        absPos = self._winToPixCoords((x, y))
-        mouseEventHandler.setMouseMotionState(absPos, absTime)
+            _PYGLET_MOUSE_BUTTONS_[button], True, absPos, absTime)
 
     def onMouseButtonRelease(self, *args, **kwargs):
         """Event handler for mouse press events."""
@@ -691,11 +721,10 @@ class PygletBackend(BaseBackend):
 
         x, y, button, _ = args
         absTime = core.getTime()
-        mouseEventHandler.setMouseButtonState(
-            _PYGLET_MOUSE_BUTTONS_[button], False, absTime)
+        absPos = self._windowCoordsToPix((x, y))
 
-        absPos = self._winToPixCoords((x, y))
-        mouseEventHandler.setMouseMotionState(absPos, absTime)
+        mouseEventHandler.setMouseButtonState(
+            _PYGLET_MOUSE_BUTTONS_[button], False, absPos, absTime)
 
     def onMouseScroll(self, *args, **kwargs):
         """Event handler for mouse scroll events."""
@@ -707,7 +736,7 @@ class PygletBackend(BaseBackend):
         # register mouse position associated with event
         x, y, scroll_x, scroll_y = args
         absTime = core.getTime()
-        absPos = self._winToPixCoords((x, y))
+        absPos = self._windowCoordsToPix((x, y))
         mouseEventHandler.setMouseMotionState(absPos, absTime)
 
     def onMouseMove(self, *args, **kwargs):
@@ -720,7 +749,7 @@ class PygletBackend(BaseBackend):
         x, y, _, _ = args
 
         absTime = core.getTime()
-        absPos = self._winToPixCoords((x, y))
+        absPos = self._windowCoordsToPix((x, y))
         mouseEventHandler.setMouseMotionState(absPos, absTime)
 
     def onMouseEnter(self, *args, **kwargs):
@@ -731,7 +760,7 @@ class PygletBackend(BaseBackend):
             return
 
         absTime = core.getTime()
-        absPos = self._winToPixCoords(args)
+        absPos = self._windowCoordsToPix(args)
         mouseEventHandler.setMouseMotionState(absPos, absTime)
 
         mouseEventHandler.win = self.win
@@ -744,7 +773,7 @@ class PygletBackend(BaseBackend):
             return
 
         absTime = core.getTime()
-        absPos = self._winToPixCoords(args)
+        absPos = self._windowCoordsToPix(args)
         mouseEventHandler.setMouseMotionState(absPos, absTime)
 
         mouseEventHandler.win = None

@@ -19,7 +19,6 @@ import sys, os
 import glob
 import numpy as np
 from psychopy import logging, event, prefs, core
-from psychopy.tools.monitorunittools import cm2pix, deg2pix, pix2cm, pix2deg
 from psychopy.tools.attributetools import attributeSetter
 from psychopy.visual import window
 from .gamma import createLinearRamp
@@ -27,6 +26,7 @@ import psychopy.hardware.mouse as mouse
 from .. import globalVars
 from ._base import BaseBackend
 from PIL import Image
+import pyglet
 
 # on mac Standalone app check for packaged libglfw dylib
 if prefs.paths['libs']:
@@ -42,7 +42,6 @@ if not glfw.init():
                        "different backend. Exiting.")
 
 atexit.register(glfw.terminate)
-import pyglet
 pyglet.options['debug_gl'] = False
 GL = pyglet.gl
 
@@ -146,6 +145,10 @@ class GLFWBackend(BaseBackend):
         M. Cutone 2018: Initial work on GLFW backend.
 
     """
+
+    def onMouseLeave(self, *args, **kwargs):
+        pass
+
     GL = pyglet.gl  # use Pyglet's OpenGL interface for now, should use PyOpenGL
     winTypeName = 'glfw'  # needed to identify class for plugins
 
@@ -703,9 +706,9 @@ class GLFWBackend(BaseBackend):
 
         # process actions
         if action == glfw.PRESS:
-            self.onMouseButtonPress(args)
+            self.onMouseButtonPress(*args)
         elif action == glfw.RELEASE:
-            self.onMouseButtonRelease(args)
+            self.onMouseButtonRelease(*args)
 
     def onMouseButtonPress(self, *args, **kwargs):
         """Event handler for mouse press events."""
@@ -714,10 +717,11 @@ class GLFWBackend(BaseBackend):
         if mouseEventHandler is None:
             return
 
-        _, button, _, _ = args
+        win_handle, button, _, _ = args
         absTime = core.getTime()
+        absPos = self._windowCoordsToPix(glfw.get_cursor_pos(win_handle))
         mouseEventHandler.setMouseButtonState(
-            _GLFW_MOUSE_BUTTONS_[button], True, absTime)
+            _GLFW_MOUSE_BUTTONS_[button], True, absPos, absTime)
 
     def onMouseButtonRelease(self, *args, **kwargs):
         """Event handler for mouse press events."""
@@ -726,27 +730,11 @@ class GLFWBackend(BaseBackend):
         if mouseEventHandler is None:
             return
 
-        _, button, _, _ = args
+        win_handle, button, _, _ = args
         absTime = core.getTime()
+        absPos = self._windowCoordsToPix(glfw.get_cursor_pos(win_handle))
         mouseEventHandler.setMouseButtonState(
-            _GLFW_MOUSE_BUTTONS_[button], False, absTime)
-
-    def _pix2windowUnits(self, pos):
-        if self.win is None:
-            return pos
-
-        if self.win.units == 'pix':
-            if self.win.useRetina:
-                pos /= 2.0
-            return pos
-        elif self.win.units == 'norm':
-            return pos * 2.0 / self.win.size
-        elif self.win.units == 'cm':
-            return pix2cm(pos, self.win.monitor)
-        elif self.win.units == 'deg':
-            return pix2deg(pos, self.win.monitor)
-        elif self.win.units == 'height':
-            return pos / float(self.win.size[1])
+            _GLFW_MOUSE_BUTTONS_[button], False, absPos, absTime)
 
     def onMouseScroll(self, *args):
         """Event handler for mouse scroll events."""
@@ -764,18 +752,15 @@ class GLFWBackend(BaseBackend):
         if mouseEventHandler is None:
             return
 
-        win_ptr, xpos, ypos = args
+        _, xpos, ypos = args
 
-        pos = np.asarray((xpos, ypos), dtype=np.float32) - \
-              np.array(self.win.size) / 2.
-        pos[1] *= -1
-
-        mouseEventHandler.setMouseMotionState(
-            self._pix2windowUnits(pos), core.getTime())
+        absTime = core.getTime()
+        absPos = self._windowCoordsToPix((xpos, ypos))
+        mouseEventHandler.setMouseMotionState(absPos, absTime)
 
     def onMouseEnter(self, *args):
         """Event called when the mouse enters the window."""
-        _, entered = args
+        win_handle, entered = args
 
         # don't process mouse events until ready
         mouseEventHandler = mouse.Mouse.getInstance()

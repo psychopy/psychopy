@@ -8,10 +8,16 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-__all__ = ['Mouse']
+__all__ = [
+    'Mouse',
+    'MOUSE_BUTTON_LEFT',
+    'MOUSE_BUTTON_MIDDLE',
+    'MOUSE_BUTTON_RIGHT'
+]
 
 import numpy as np
 import psychopy.core as core
+from psychopy.tools.monitorunittools import pix2cm, pix2deg
 
 # mouse button indices
 MOUSE_BUTTON_LEFT = 0
@@ -111,6 +117,10 @@ class Mouse(object):
     #                                    [ x_previous, y_previous ]]
     #
     _mousePos = np.zeros((MOUSE_EVENT_COUNT, 2, 2), dtype=np.float32)
+
+    # positions where mouse button events occurred
+    _mouseButtonPosPressed = np.zeros((MOUSE_BUTTON_COUNT, 2))
+    _mouseButtonPosReleased = np.zeros((MOUSE_BUTTON_COUNT, 2))
 
     # velocity of the mouse cursor and direction vector
     _mouseVelocity = 0.0
@@ -223,7 +233,7 @@ class Mouse(object):
         self._mouseMotionAbsTimes[MOUSE_POS_CURRENT] = absTime
         self._velocityNeedsUpdate = True
 
-    def setMouseButtonState(self, button, pressed, absTime=None):
+    def setMouseButtonState(self, button, pressed, pos=(0, 0), absTime=None):
         """Set a mouse button state.
 
         This method is called by callback functions bound to mouse press events
@@ -239,6 +249,8 @@ class Mouse(object):
         pressed : bool
             `True` if the button is presently being pressed down, otherwise
             `False` if released.
+        pos : ArrayLike
+            Position `(x, y)` the mouse event occurred in 'pix' units.
         absTime : float or None
             Absolute time the values of `buttons` was obtained. If `None` a
             timestamp will be created using the default clock.
@@ -250,8 +262,55 @@ class Mouse(object):
         # set the value of the button states
         self._mouseButtons[button] = bool(pressed)
 
+        # set position
+        if pressed:
+            self._mouseButtonPosPressed[button] = pos
+        else:
+            self._mouseButtonPosReleased[button] = pos
+
         # update the timing info
         self._mouseButtonsAbsTimes[int(pressed), button] = absTime
+
+    def setMouseScrollState(self, pos=(0, 0), offset=(0, 0), absTime=None):
+        """Set the scroll wheel state.
+        """
+        pass
+
+    def _pixToWindowUnits(self, pos):
+        """Conversion from 'pix' units to window units.
+
+        The mouse class stores mouse positions in 'pix' units. This function is
+        used by getter and setter methods to convert position values to the
+        units specified by the window.
+
+        Parameters
+        ----------
+        pos : ArrayLike
+            Position `(x, y)` in 'pix' coordinates to convert.
+
+        Returns
+        -------
+        ndarray
+            Position `(x, y)` in window units.
+
+        """
+        pos = np.asarray(pos, dtype=np.float32)
+
+        if self.win is None:
+            return pos
+
+        if self.win.units == 'pix':
+            if self.win.useRetina:
+                pos /= 2.0
+            return pos
+        elif self.win.units == 'norm':
+            return pos * 2.0 / self.win.size
+        elif self.win.units == 'cm':
+            return pix2cm(pos, self.win.monitor)
+        elif self.win.units == 'deg':
+            return pix2deg(pos, self.win.monitor)
+        elif self.win.units == 'height':
+            return pos / float(self.win.size[1])
 
     @property
     def win(self):
@@ -306,9 +365,6 @@ class Mouse(object):
 
         """
         self._visible = visible
-
-        # if hasattr(self.win.backend, "setVisible"):
-        #     self.win.backend.setExclusive(self._visible)
 
     @property
     def exclusive(self):
@@ -488,17 +544,17 @@ class Mouse(object):
         return np.sqrt(np.sum(np.square(self.getRelPos()), dtype=np.float32))
 
     @property
-    def leftPressed(self):
+    def leftButtonPressed(self):
         """Is the left mouse button being pressed (`bool`)?"""
         return self._mouseButtons[MOUSE_BUTTON_LEFT]
 
     @property
-    def middlePressed(self):
+    def middleButtonPressed(self):
         """Is the middle mouse button being pressed (`bool`)?"""
         return self._mouseButtons[MOUSE_BUTTON_MIDDLE]
 
     @property
-    def rightPressed(self):
+    def rightButtonPressed(self):
         """Is the right mouse button being pressed (`bool`)?"""
         return self._mouseButtons[MOUSE_BUTTON_RIGHT]
 
@@ -510,11 +566,23 @@ class Mouse(object):
         return self._mouseButtonsAbsTimes[1, :]
 
     @property
+    def pressedPos(self):
+        """Positions buttons were last pressed (`ndarray`).
+        """
+        return self._mouseButtonPosPressed
+
+    @property
     def releasedTimes(self):
         """Absolute time in seconds each mouse button was last released
         (`ndarray`).
         """
         return self._mouseButtonsAbsTimes[0, :]
+
+    @property
+    def releasedPos(self):
+        """Positions buttons were last released (`ndarray`).
+        """
+        return self._mouseButtonPosReleased
 
     @property
     def pressedDuration(self):
@@ -569,34 +637,56 @@ class Mouse(object):
 
         return self._mouseVelocity
 
-    def setCursorStyle(self, style='arrow'):
-        """Change the appearance of the cursor. Cursor types provide contextual
-        hints about how to interact with on-screen objects.
+    def setCursorStyle(self, cursorType='default'):
+        """Change the appearance of the cursor for this window. Cursor types
+        provide contextual hints about how to interact with on-screen objects.
 
-        The graphics used are 'standard cursors' provided by the operating
-        system. They may vary in appearance and hot spot location across
-        platforms. The following names are valid on most platforms:
+        The graphics used 'standard cursors' provided by the operating system.
+        They may vary in appearance and hot spot location across platforms. The
+        following names are valid on most platforms and backends:
 
-        * `'arrow'` : Default system pointer.
-        * `'ibeam'` : Indicates text can be edited.
-        * `'crosshair'` : Crosshair with hot-spot at center.
-        * `'hand'` : A pointing hand.
-        * `'hresize'` : Double arrows pointing horizontally.
-        * `'vresize'` : Double arrows pointing vertically.
+        * ``'arrow`` or ``default``: Default system pointer.
+        * ``ibeam`` or ``text``: Indicates text can be edited.
+        * ``crosshair``: Crosshair with hot-spot at center.
+        * ``hand``: A pointing hand.
+        * ``hresize``: Double arrows pointing horizontally.
+        * ``vresize``: Double arrows pointing vertically.
+
+        These cursors are only supported when using the Pyglet window type
+        (``winType='pyglet'``):
+
+        * ``help``: Arrow with a question mark beside it (Windows only).
+        * ``no``: 'No entry' sign or circle with diagonal bar.
+        * ``size``: Vertical and horizontal sizing.
+        * ``downleft`` or ``upright``: Double arrows pointing diagonally with
+          positive slope (Windows only).
+        * ``downright`` or ``upleft``: Double arrows pointing diagonally with
+          negative slope (Windows only).
+        * ``lresize``: Arrow pointing left (Mac OS X only).
+        * ``rresize``: Arrow pointing right (Mac OS X only).
+        * ``uresize``: Arrow pointing up (Mac OS X only).
+        * ``dresize``: Arrow pointing down (Mac OS X only).
+        * ``wait``: Hourglass (Windows) or watch (Mac OS X) to indicate the
+           system is busy.
+        * ``waitarrow``: Hourglass beside a default pointer (Windows only).
+
+        In cases where a cursor is not supported on the platform, the default
+        for the system will be used.
 
         Parameters
         ----------
-        style : str
-            Type of standard cursor to use (see above). Default is `'arrow'`.
+        cursorType : str
+            Type of standard cursor to use. If not specified, `'default'` is
+            used.
 
         Notes
         -----
-        * On Windows the `'crosshair'` option is negated with the background
-          color. It will not be visible when placed over 50% grey fields.
+        * On some platforms the 'crosshair' cursor may not be visible on uniform
+          grey backgrounds.
 
         """
-        if hasattr(self.win.backend, "setMouseType"):
-            self.win.backend.setMouseType(style)
+        if hasattr(self.win.backend, "setMouseCursor"):
+            self.win.backend.setMouseCursor(cursorType)
 
 
 if __name__ == "__main__":
