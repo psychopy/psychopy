@@ -51,10 +51,13 @@ jobs:
     - name: Install wxPython from source
       if: runner.os=='Linux'
       run: |
-        sudo apt-get install python3-dev gtk+-3.0
-        sudo apt-get install libgstreamer1.0-0 gstreamer1.0-plugins-base
-        sudo apt-get install libwebkit2gtk-3.0
-        sudo apt-get install libpng-dev libjpeg-dev libtiff-dev libsdl-dev libnotify-dev libsm-dev
+        # these are
+        sudo apt-get install -qq xvfb xauth libgl1-mesa-dri
+        # these are needed to build wxPython
+        sudo apt-get install -qq python3-dev gtk+-3.0
+        sudo apt-get install -qq libgstreamer1.0-0 gstreamer1.0-plugins-base
+        sudo apt-get install -qq libwebkit2gtk-3.0
+        sudo apt-get install -qq libpng-dev libjpeg-dev libtiff-dev libsdl-dev libnotify-dev libsm-dev
         pip install -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-20.04/ wxPython
 
     - name: Install Depends
@@ -66,12 +69,12 @@ jobs:
         # remove psychopy itself so that this local is used
         pip uninstall --yes psychopy
 
-    - name: Lint with flake8
-      run: |
-        # stop the build if there are Python syntax errors or undefined names
-        # flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+#    - name: Lint with flake8
+#      run: |
+#        # stop the build if there are Python syntax errors or undefined names
+#        # flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+#        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+#        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
     - name: Test with pytest
       run: |
