@@ -73,6 +73,7 @@ _GLFW_CURSORS_ = {
 # load window icon
 _WINDOW_ICON_ = Image.open(
     os.path.join(prefs.paths['resources'], 'psychopy.png'))
+
 _GLFW_MOUSE_BUTTONS_ = {
     glfw.MOUSE_BUTTON_LEFT: mouse.MOUSE_BUTTON_LEFT,
     glfw.MOUSE_BUTTON_MIDDLE: mouse.MOUSE_BUTTON_MIDDLE,
@@ -719,6 +720,7 @@ class GLFWBackend(BaseBackend):
 
         win_handle, button, _, _ = args
         absTime = core.getTime()
+        mouseEventHandler.win = self.win
         absPos = self._windowCoordsToPix(glfw.get_cursor_pos(win_handle))
         mouseEventHandler.setMouseButtonState(
             _GLFW_MOUSE_BUTTONS_[button], True, absPos, absTime)
@@ -732,6 +734,7 @@ class GLFWBackend(BaseBackend):
 
         win_handle, button, _, _ = args
         absTime = core.getTime()
+        mouseEventHandler.win = self.win
         absPos = self._windowCoordsToPix(glfw.get_cursor_pos(win_handle))
         mouseEventHandler.setMouseButtonState(
             _GLFW_MOUSE_BUTTONS_[button], False, absPos, absTime)
@@ -753,9 +756,9 @@ class GLFWBackend(BaseBackend):
             return
 
         _, xpos, ypos = args
-
         absTime = core.getTime()
         absPos = self._windowCoordsToPix((xpos, ypos))
+        mouseEventHandler.win = self.win
         mouseEventHandler.setMouseMotionState(absPos, absTime)
 
     def onMouseEnter(self, *args):

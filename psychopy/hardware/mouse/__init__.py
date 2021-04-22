@@ -452,7 +452,8 @@ class Mouse(object):
     def pos(self):
         """Current mouse position (x, y) on window (`ndarray`).
         """
-        return self._mousePos[MOUSE_EVENT_MOTION, MOUSE_POS_CURRENT, :]
+        return self._pixToWindowUnits(
+            self._mousePos[MOUSE_EVENT_MOTION, MOUSE_POS_CURRENT, :])
 
     @pos.setter
     def pos(self, value):

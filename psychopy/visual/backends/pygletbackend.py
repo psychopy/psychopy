@@ -708,7 +708,7 @@ class PygletBackend(BaseBackend):
         x, y, button, _ = args
         absTime = core.getTime()
         absPos = self._windowCoordsToPix((x, y))
-
+        mouseEventHandler.win = self.win
         mouseEventHandler.setMouseButtonState(
             _PYGLET_MOUSE_BUTTONS_[button], True, absPos, absTime)
 
@@ -722,7 +722,7 @@ class PygletBackend(BaseBackend):
         x, y, button, _ = args
         absTime = core.getTime()
         absPos = self._windowCoordsToPix((x, y))
-
+        mouseEventHandler.win = self.win
         mouseEventHandler.setMouseButtonState(
             _PYGLET_MOUSE_BUTTONS_[button], False, absPos, absTime)
 
@@ -737,6 +737,7 @@ class PygletBackend(BaseBackend):
         x, y, scroll_x, scroll_y = args
         absTime = core.getTime()
         absPos = self._windowCoordsToPix((x, y))
+        mouseEventHandler.win = self.win
         mouseEventHandler.setMouseMotionState(absPos, absTime)
 
     def onMouseMove(self, *args, **kwargs):
@@ -747,9 +748,9 @@ class PygletBackend(BaseBackend):
             return
 
         x, y, _, _ = args
-
         absTime = core.getTime()
         absPos = self._windowCoordsToPix((x, y))
+        mouseEventHandler.win = self.win
         mouseEventHandler.setMouseMotionState(absPos, absTime)
 
     def onMouseEnter(self, *args, **kwargs):
@@ -761,9 +762,8 @@ class PygletBackend(BaseBackend):
 
         absTime = core.getTime()
         absPos = self._windowCoordsToPix(args)
-        mouseEventHandler.setMouseMotionState(absPos, absTime)
-
         mouseEventHandler.win = self.win
+        mouseEventHandler.setMouseMotionState(absPos, absTime)
 
     def onMouseLeave(self, *args, **kwargs):
         """Event called when the mouse enters the window."""
@@ -775,7 +775,6 @@ class PygletBackend(BaseBackend):
         absTime = core.getTime()
         absPos = self._windowCoordsToPix(args)
         mouseEventHandler.setMouseMotionState(absPos, absTime)
-
         mouseEventHandler.win = None
 
 
