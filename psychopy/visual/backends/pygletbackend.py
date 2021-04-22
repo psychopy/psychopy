@@ -19,6 +19,8 @@ import os
 import numpy as np
 
 import psychopy
+from psychopy import prefs, core
+from psychopy.hardware import mouse
 from psychopy import logging, event, platform_specific, constants
 from psychopy.visual import window
 from psychopy.tools.attributetools import attributeSetter
@@ -27,6 +29,7 @@ from .. import globalVars
 from ._base import BaseBackend
 
 import pyglet
+import pyglet.window.mouse as pyglet_mouse
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
 # other calls to pyglet or pyglet submodules, otherwise it may not get picked
 # up by the pyglet GL engine and have no effect.
@@ -267,9 +270,9 @@ class PygletBackend(BaseBackend):
         self.winHandle.on_text = self.onText
         self.winHandle.on_text_motion = self.onCursorKey
         self.winHandle.on_key_press = self.onKey
-        self.winHandle.on_mouse_press = event._onPygletMousePress
-        self.winHandle.on_mouse_release = event._onPygletMouseRelease
-        self.winHandle.on_mouse_scroll = event._onPygletMouseWheel
+        self.winHandle.on_mouse_press = self.onMouseButtonPress
+        self.winHandle.on_mouse_release = self.onMouseButtonRelease
+        self.winHandle.on_mouse_scroll = self.onMouseScroll
         if not win.allowGUI:
             # make mouse invisible. Could go further and make it 'exclusive'
             # (but need to alter x,y handling then)
@@ -457,7 +460,8 @@ class PygletBackend(BaseBackend):
             scrBytes = self.winHandle._dc
             if constants.PY3:
                 try:
-                    _screenID = 0xFFFFFFFF & int.from_bytes(scrBytes, byteorder='little')
+                    _screenID = 0xFFFFFFFF & int.from_bytes(
+                        scrBytes, byteorder='little')
                 except TypeError:
                     _screenID = 0xFFFFFFFF & scrBytes
             else:
@@ -513,6 +517,135 @@ class PygletBackend(BaseBackend):
     def setFullScr(self, value):
         """Sets the window to/from full-screen mode"""
         self.winHandle.set_fullscreen(value)
+
+    # --------------------------------------------------------------------------
+    # Window unit conversion
+    #
+
+    def _winToBufferCoords(self, pos):
+        """Convert window coordinates to OpenGL buffer coordinates.
+
+        The standard convention for window coordinates is that the origin is at
+        the top-left corner. The `y` coordinate increases in the downwards
+        direction. OpenGL places the origin at bottom left corner, where `y`
+        increases in the upwards direction.
+
+        Parameters
+        ----------
+        pos : ArrayLike
+            Position `(x, y)` in window coordinates.
+
+        Returns
+        -------
+        ndarray
+            Position `(x, y)` in buffer coordinates.
+
+        """
+        # We override `_winToBufferCoords` here since Pyglet uses the OpenGL
+        # window coordinate convention by default.
+        return np.array((pos[0], pos[1]), dtype=np.float32)
+
+    # --------------------------------------------------------------------------
+    # Mouse button event handlers
+    #
+
+    def onMouseButtonPress(self, *args):
+        """Event handler for mouse press events."""
+        # don't process mouse events until ready
+        mouseEventHandler = mouse.Mouse.getInstance()
+        if mouseEventHandler is None:
+            return
+
+        x, y, button, _ = args
+        absTime = core.getTime()
+
+        if button == pyglet_mouse.LEFT:
+            mouseEventHandler.setMouseButtonState(
+                mouse.MOUSE_BUTTON_LEFT, True, absTime)
+        elif button == pyglet_mouse.MIDDLE:
+            mouseEventHandler.setMouseButtonState(
+                mouse.MOUSE_BUTTON_MIDDLE, True, absTime)
+        elif button == pyglet_mouse.RIGHT:
+            mouseEventHandler.setMouseButtonState(
+                mouse.MOUSE_BUTTON_RIGHT, True, absTime)
+
+        absPos = self._winToPixCoords((x, y))
+        mouseEventHandler.setMouseMotionState(absPos, absTime)
+
+    def onMouseButtonRelease(self, *args):
+        """Event handler for mouse press events."""
+        # don't process mouse events until ready
+        mouseEventHandler = mouse.Mouse.getInstance()
+        if mouseEventHandler is None:
+            return
+
+        x, y, button, _ = args
+        absTime = core.getTime()
+
+        if button == pyglet_mouse.LEFT:
+            mouseEventHandler.setMouseButtonState(
+                mouse.MOUSE_BUTTON_LEFT, False, absTime)
+        elif button == pyglet_mouse.MIDDLE:
+            mouseEventHandler.setMouseButtonState(
+                mouse.MOUSE_BUTTON_MIDDLE, False, absTime)
+        elif button == pyglet_mouse.RIGHT:
+            mouseEventHandler.setMouseButtonState(
+                mouse.MOUSE_BUTTON_RIGHT, False, absTime)
+
+        absPos = self._winToPixCoords((x, y))
+        mouseEventHandler.setMouseMotionState(absPos, absTime)
+
+    def onMouseScroll(self, *args):
+        """Event handler for mouse scroll events."""
+        # don't process mouse events until ready
+        mouseEventHandler = mouse.Mouse.getInstance()
+        if mouseEventHandler is None:
+            return
+
+        # register mouse position associated with event
+        x, y, scroll_x, scroll_y = args
+        absTime = core.getTime()
+        absPos = self._winToPixCoords((x, y))
+        mouseEventHandler.setMouseMotionState(absPos, absTime)
+
+    def onMouseMove(self, *args):
+        """Event handler for mouse move events."""
+        # don't process mouse events until ready
+        mouseEventHandler = mouse.Mouse.getInstance()
+        if mouseEventHandler is None:
+            return
+
+        x, y, _, _ = args
+
+        absTime = core.getTime()
+        absPos = self._winToPixCoords((x, y))
+        mouseEventHandler.setMouseMotionState(absPos, absTime)
+
+    def onMouseEnter(self, *args):
+        """Event called when the mouse enters the window."""
+        # don't process mouse events until ready
+        mouseEventHandler = mouse.Mouse.getInstance()
+        if mouseEventHandler is None:
+            return
+
+        absTime = core.getTime()
+        absPos = self._winToPixCoords(args)
+        mouseEventHandler.setMouseMotionState(absPos, absTime)
+
+        mouseEventHandler.win = self.win
+
+    def onMouseLeave(self, *args):
+        """Event called when the mouse enters the window."""
+        # don't process mouse events until ready
+        mouseEventHandler = mouse.Mouse.getInstance()
+        if mouseEventHandler is None:
+            return
+
+        absTime = core.getTime()
+        absPos = self._winToPixCoords(args)
+        mouseEventHandler.setMouseMotionState(absPos, absTime)
+
+        mouseEventHandler.win = None
 
 
 def _onResize(width, height):

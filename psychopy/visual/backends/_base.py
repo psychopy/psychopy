@@ -17,6 +17,7 @@ from __future__ import absolute_import, print_function
 from builtins import object
 import weakref
 
+import numpy as np
 from psychopy import logging
 from psychopy.tools.attributetools import attributeSetter
 
@@ -144,3 +145,112 @@ class BaseBackend(object):
     def name(self):
         """Name of the backend is only used for logging purposes"""
         return "{}_backend".format(self.win.name)
+
+    # --------------------------------------------------------------------------
+    # Window unit conversion
+    #
+
+    def _winToBufferCoords(self, pos):
+        """Convert window coordinates to OpenGL buffer coordinates.
+
+        The standard convention for window coordinates is that the origin is at
+        the top-left corner. The `y` coordinate increases in the downwards
+        direction. OpenGL places the origin at bottom left corner, where `y`
+        increases in the upwards direction.
+
+        Parameters
+        ----------
+        pos : ArrayLike
+            Position `(x, y)` in window coordinates.
+
+        Returns
+        -------
+        ndarray
+            Position `(x, y)` in buffer coordinates.
+
+        """
+        return np.array((pos[0], self.win.size[1] - pos[1]), dtype=np.float32)
+
+    def _winToPixCoords(self, pos):
+        """Convert window coordinates to the PsychoPy 'pix' coordinate system.
+
+        Parameters
+        ----------
+        pos : ArrayLike
+            Position `(x, y)` in window coordinates.
+
+        Returns
+        -------
+        ndarray
+            Position `(x, y)` in PsychoPy pixel coordinates.
+
+        """
+        return np.asarray(self._winToBufferCoords(pos) - self.win.size / 2.0,
+                          dtype=np.float32)
+
+    def _pixToWindowUnits(self, pos):
+        """Convert window coordinates to the coordinate system used by PsychoPy.
+
+        Parameters
+        ----------
+        pos : ArrayLike
+            Mouse coordinates `(x, y)` reported by the backend.
+
+        Returns
+        -------
+        ndarray
+            Window coordinates in PsychoPy units.
+
+        """
+        raise NotImplementedError(
+            "`_pixToWindowUnits` is not yet implemented for this backend.")
+
+    # --------------------------------------------------------------------------
+    # Mouse event handlers
+    #
+    # These methods are used to handle mouse events. Each function is bound to
+    # the appropriate callback which registers the mouse event with the global
+    # mouse event handler (psychopy.hardware.mouse.Mouse). Each callback has an
+    # `*args` parameter which allows the backend to pass whatever parameters.
+    #
+
+    def onMouseButtonPress(self, *args, **kwargs):
+        """Event handler for mouse press events. This handler can also be used
+        for release events if the backend passes all button events to the same
+        callback.
+        """
+        raise NotImplementedError(
+            "`onMouseButtonPress` is not yet implemented for this backend.")
+
+    def onMouseButtonRelease(self, *args, **kwargs):
+        """Event handler for mouse release events."""
+        raise NotImplementedError(
+            "`onMouseButtonRelease` is not yet implemented for this backend.")
+
+    def onMouseScroll(self, *args, **kwargs):
+        """Event handler for mouse scroll events. Called when the mouse scroll
+        wheel is moved."""
+        raise NotImplementedError(
+            "`onMouseScroll` is not yet implemented for this backend.")
+
+    def onMouseMove(self, *args, **kwargs):
+        """Event handler for mouse move events."""
+        raise NotImplementedError(
+            "`onMouseMove` is not yet implemented for this backend.")
+
+    def onMouseEnter(self, *args, **kwargs):
+        """Event called when the mouse enters the window. Some backends might
+        combine enter and leave events to the same callback, this will handle
+        both if so.
+        """
+        raise NotImplementedError(
+            "`onMouseEnter` is not yet implemented for this backend.")
+
+    def onMouseLeave(self, *args, **kwargs):
+        """Event called when a mouse leaves the window."""
+        raise NotImplementedError(
+            "`onMouseLeave` is not yet implemented for this backend.")
+
+
+if __name__ == "__main__":
+    pass
