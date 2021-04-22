@@ -31,7 +31,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install pytest
         pip install wheel
-        pip install six  # just needed for configobj
+        pip install six  # for configobj and wxpython
         pip install distro  # used by createInitFile
         python ./building/plat_custom_installs.py
 
@@ -51,8 +51,8 @@ jobs:
     - name: Install wxPython from source
       if: runner.os=='Linux'
       run: |
-        sudo apt-get python3-dev gtk+-3.0
-        sudo apt-get libgstreamer1.0-0 gstreamer1.0-plugins-base
+        sudo apt-get install python3-dev gtk+-3.0
+        sudo apt-get install libgstreamer1.0-0 gstreamer1.0-plugins-base
         sudo apt-get install libwebkit2gtk-3.0
         sudo apt-get install libpng-dev libjpeg-dev libtiff-dev libsdl-dev libnotify-dev libsm-dev
         pip install -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-20.04/ wxPython
