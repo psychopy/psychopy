@@ -24,7 +24,7 @@ _localized.update({'Items': _translate('Items'),
                    'Data Format': _translate('Data Format'),
                    'Randomize': _translate('Randomize')
                    })
-knownStyles = form.Form.knownStyles
+knownStyles = list(form.Form.knownStyles)
 
 
 class FormComponent(BaseVisualComponent):
