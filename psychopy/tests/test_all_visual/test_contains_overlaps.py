@@ -90,10 +90,10 @@ def contains_overlaps(testType):
                     assert shape.contains(x, y) == res
                 elif testType == 'overlaps':
                     res = shape.overlaps(testPoints[j])
-                assert res == correctResults[i][j], \
-                        dbgStr % (testType, param['units'], postures[i]['ori'],
+                thisDebugStr = dbgStr % (testType, param['units'], postures[i]['ori'],
                             postures[i]['size'], postures[i]['pos'], points[j],
-                            correctResults[i][j])
+                            correctResults[i][j]))
+                assert res == correctResults[i][j], thisDebugStr
                 if res:
                     testPoints[j].setFillColor('green', log=False)
                 else:
