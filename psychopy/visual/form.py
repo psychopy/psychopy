@@ -29,7 +29,7 @@ _REQUIRED = -12349872349873  # an unlikely int
 _knownFields = {
     'index': None,  # optional field to index into the rows
     'itemText': _REQUIRED,  # (question used until 2020.2)
-    'itemColor': 'fg',
+    'itemColor': None,
     'itemWidth': 0.8,  # fraction of the form
     'type': _REQUIRED,  # type of response box (see below)
     'options': ('Yes', 'No'),  # for choice box
@@ -37,7 +37,8 @@ _knownFields = {
     'tickLabels': None,
     # for rating/slider
     'responseWidth': 0.8,  # fraction of the form
-    'responseColor': 'fg',
+    'responseColor': None,
+    'markerColor': None,
     'layout': 'horiz',  # can be vert or horiz
 }
 _doNotSave = [
@@ -101,19 +102,23 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                  win,
                  name='default',
                  colorSpace='rgb',
-                 color='white',
-                 fillColor='red',
-                 borderColor='white',
-                 foreColor='white',
+                 fillColor=None,
+                 borderColor=None,
+                 itemColor='white',
+                 responseColor='white',
+                 markerColor='red',
                  items=None,
                  textHeight=.02,
                  size=(.5, .5),
                  pos=(0, 0),
-                 style='dark',
+                 style=None,
                  itemPadding=0.05,
                  units='height',
                  randomize=False,
                  autoLog=True,
+                 # legacy
+                 color=None,
+                 foreColor=None
                  ):
 
         super(Form, self).__init__(win, units, autoLog=False)
@@ -132,8 +137,15 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         # Appearance
         self.colorSpace = colorSpace
         self.fillColor = fillColor
-        self.foreColor = color
         self.borderColor = borderColor
+        self.itemColor = itemColor
+        self.responseColor = responseColor
+        self.markerColor = markerColor
+        if color:
+            self.foreColor = color
+        if foreColor:
+            self.foreColor = color
+        self.style = style
 
         self.textHeight = textHeight
         self._scrollBarSize = (0.016, self.size[1]/1.2)
@@ -154,7 +166,6 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
         # Create layout of form
         self._createItemCtrls()
-        self.style = style
 
         if self.autoLog:
             logging.exp("Created {} = {}".format(self.name, repr(self)))
@@ -378,7 +389,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 size=[w, None],  # expand height with text
                 autoLog=False,
                 colorSpace=self.colorSpace,
-                color=item['itemColor'] or self.color,
+                color=item['itemColor'] or self.itemColor,
                 fillColor=None,
                 padding=0,  # handle this by padding between items
                 borderWidth=1,
@@ -386,6 +397,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 editable=False,
                 bold=bold,
                 font='Arial')
+        print(item['itemColor'] or self.itemColor)
 
         questionHeight = question.size[1]
         questionWidth = question.size[0]
@@ -513,9 +525,9 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 flip=True,
                 style=style,
                 autoLog=False,
-                color=item['responseColor'] or self.color,
-                fillColor=self.fillColor,
-                borderColor=self.borderColor,
+                color=item['responseColor'] or self.responseColor,
+                fillColor=item['markerColor'] or self.markerColor,
+                borderColor=item['responseColor'] or self.responseColor,
                 colorSpace=self.colorSpace)
 
         if item['layout'] == 'horiz':
@@ -567,11 +579,11 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 letterHeight=self.textHeight,
                 units=self.units,
                 anchor='top-right',
-                color=item['responseColor'] or self.color,
+                color=item['responseColor'] or self.responseColor,
                 colorSpace=self.colorSpace,
                 font='Open Sans',
                 editable=True,
-                borderColor=self.borderColor,
+                borderColor=item['responseColor'] or self.responseColor,
                 borderWidth=2,
                 fillColor=None,
                 onTextCallback=self._layoutY,
@@ -595,8 +607,8 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                                       size=self._scrollBarSize,
                                       ticks=[0, 1],
                                       style='scrollbar',
-                                      borderColor= self.borderColor,
-                                      fillColor= self.fillColor,
+                                      borderColor=self.responseColor,
+                                      fillColor=self.markerColor,
                                       pos=(self.rightEdge - .008, self.pos[1]),
                                       autoLog=False)
         return scroll
@@ -615,8 +627,8 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                                     width=self.size[0],
                                     height=self.size[1],
                                     colorSpace=self.colorSpace,
-                                    fillColor=None,
-                                    lineColor=None,
+                                    fillColor=self.fillColor,
+                                    lineColor=self.borderColor,
                                     opacity=None,
                                     autoLog=False)
 
@@ -915,38 +927,80 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
     @property
     def foreColor(self):
         return ColorMixin.foreColor.fget(self)
+
     @foreColor.setter
     def foreColor(self, value):
         ColorMixin.foreColor.fset(self, value)
-        for item in self.items:
-            if 'itemCtrl' in item:
-                if hasattr(item['itemCtrl'], 'color'):
-                    item['itemCtrl'].color = self._foreColor.copy()
-            if 'responseCtrl' in item:
-                if hasattr(item['responseCtrl'], 'color'):
-                    item['responseCtrl'].color = self._foreColor.copy()
+        self.itemColor = value
+        self.responseColor = value
 
     @property
     def fillColor(self):
         return ColorMixin.fillColor.fget(self)
+
     @fillColor.setter
     def fillColor(self, value):
         ColorMixin.fillColor.fset(self, value)
-        for item in self.items:
-            if 'responseCtrl' in item:
-                if hasattr(item['responseCtrl'], 'fillColor') and not isinstance(item['responseCtrl'], psychopy.visual.TextBox2):
-                    item['responseCtrl'].fillColor = self._fillColor.copy()
+        if hasattr(self, "border"):
+            self.border.fillColor = value
 
     @property
     def borderColor(self):
         return ColorMixin.borderColor.fget(self)
+
     @borderColor.setter
     def borderColor(self, value):
         ColorMixin.borderColor.fset(self, value)
+        if hasattr(self, "border"):
+            self.border.borderColor = value
+
+    @property
+    def itemColor(self):
+        return self._itemColor
+
+    @itemColor.setter
+    def itemColor(self, value):
+        self._itemColor = value
+        # Set text color on each item
+        for item in self.items:
+            if 'itemCtrl' in item:
+                if isinstance(item['itemCtrl'], psychopy.visual.TextBox2):
+                    item['itemCtrl'].foreColor = value
+
+    @property
+    def responseColor(self):
+        if hasattr(self, "_responseColor"):
+            return self._responseColor
+
+    @responseColor.setter
+    def responseColor(self, value):
+        self._responseColor = value
+        # Set line color on scrollbar
+        if hasattr(self, "scrollbar"):
+            self.scrollbar.borderColor = value
+        # Set line and label color on each item
         for item in self.items:
             if 'responseCtrl' in item:
-                if hasattr(item['responseCtrl'], 'borderColor'):
-                    item['responseCtrl'].borderColor = self._borderColor.copy()
+                if isinstance(item['responseCtrl'], psychopy.visual.Slider):
+                    item['responseCtrl'].borderColor = value
+                    item['responseCtrl'].foreColor = value
+
+    @property
+    def markerColor(self):
+        if hasattr(self, "_markerColor"):
+            return self._markerColor
+
+    @markerColor.setter
+    def markerColor(self, value):
+        self._markerColor = value
+        # Set marker color on scrollbar
+        if hasattr(self, "scrollbar"):
+            self.scrollbar.fillColor = value
+        # Set marker color on each item
+        for item in self.items:
+            if 'responseCtrl' in item:
+                if isinstance(item['responseCtrl'], psychopy.visual.Slider):
+                    item['responseCtrl'].fillColor = value
 
     @property
     def style(self):
