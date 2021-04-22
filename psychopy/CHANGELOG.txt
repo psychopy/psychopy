@@ -110,6 +110,26 @@ FIXES:
 - PsychoPy lib: better handling of unknown fonts (fall back to Open Sans and Alert) #fba09ef8d0a
 - PsychoPy lib: better timing on iohub for macOS key/mouse polling #fba09ef8d0a
 
+PsychoPy 2021.1.4
+~~~~~~~~~~~~~~~~~~
+
+FIXES:
+
+- Py Lib: Sounds from files were being truncated #3689
+- Py Lib: TrialHandlerExt now compatible with current numpy (had an index error before) #3705
+- Py Lib: MoviStim raising an error if opacity was None #50334df2f
+- Py Lib: RIFT backend not working #428f62f80
+- Builder: When letter height was set to a variable it raised an error at run time `TypeError: len() of unsized object` #b1a77ca3a
+- Builder: Raising an error when floats looking like file names #3719
+- Builder: better handling of failure to updateVersion #afec41226
+- JS: TextBox when editable was not being reset on each trial #3706
+- JS: Keyboard should stop consuming keypresses at end of trial, even if not storing data #3706
+- JS: Add Sound.setSound() method to allow for dynamically deciding audio source psychopy/psychojs#154
+- JS: Allow for PIXI updates when dynamically adjusting opacity, including on polygons psychopy/psychojs#203
+- JS: Give Form radio type support psychopy/psychojs#281
+- JS: Improve ImageStim.setImage() attribute checking psychopy/psychojs#292
+- JS: Give TrackPlayer fades on play / stop psychopy/psychojs#296
+- JS: Fix TextBox eating up key presses psychopy/psychojs#302
 
 PsychoPy 2020.2
 -----------------

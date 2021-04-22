@@ -177,7 +177,9 @@ class BuilderFrame(wx.Frame, ThemeMixin):
             self.lastSavedCopy = None
             # don't try to close before opening
             self.fileNew(closeCurrent=False)
-        self.updateReadme()
+
+        self.readmeFrame = None
+        self.updateReadme()  # check/create frame as needed
 
         # control the panes using aui manager
         self._mgr = aui.AuiManager(
@@ -763,14 +765,19 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         self.app.coder.fileOpen(filename=htmlPath)
 
     def editREADME(self, event):
-        self.showReadme()
         folder = Path(self.filename).parent
         if folder == folder.parent:
-            raise FileNotFoundError("Please save experiment before editing the README file")
+            dlg = wx.MessageDialog(
+                self,
+                _translate("Please save experiment before editing the README file"),
+                _translate("No readme file"),
+                wx.OK | wx.ICON_WARNING | wx.CENTRE)
+            dlg.ShowModal()
             return
         possible = [folder / 'README.txt',
                   folder / 'README.md']
         exists = False
+        self.showReadme()
         for readme in possible:
             if readme.is_file():
                 # If README file exists, open it
@@ -797,7 +804,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         """Check whether there is a readme file in this folder and try to show
         """
         # create the frame if we don't have one yet
-        if not hasattr(self, 'readmeFrame') or self.readmeFrame is None:
+        if self.readmeFrame is None:
             self.readmeFrame = ReadmeFrame(parent=self)
         # look for a readme file
         if self.filename and self.filename != 'untitled.psyexp':
@@ -822,6 +829,8 @@ class BuilderFrame(wx.Frame, ThemeMixin):
     def showReadme(self, evt=None, value=True):
         """Shows Readme file
         """
+        if not self.readmeFrame:
+            self.updateReadme()
         if not self.readmeFrame.IsShown():
             self.readmeFrame.Show(value)
 
@@ -829,7 +838,6 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         """Toggles visibility of Readme file
         """
         if self.readmeFrame is None:
-            self.updateReadme()
             self.showReadme()
         else:
             self.readmeFrame.toggleVisible()
@@ -2594,7 +2602,7 @@ class ReadmeFrame(wx.Frame):
         mtime = os.path.getmtime(self.filename)
         if self._fileLastModTime and mtime > self._fileLastModTime:
             logging.warning(
-                'readme file has been changed by another programme?')
+                'readme file has been changed by another program?')
         txt = self.rawText
         with codecs.open(self.filename, 'w', 'utf-8-sig') as f:
             f.write(txt)
