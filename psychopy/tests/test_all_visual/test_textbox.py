@@ -2,6 +2,7 @@ from builtins import object
 from pathlib import Path
 
 from psychopy import visual, event
+from psychopy.alerts._errorHandler import _BaseErrorHandler
 from psychopy.visual import Window
 from psychopy.visual import TextBox2
 from psychopy.visual.textbox2.fontmanager import FontManager
@@ -15,7 +16,8 @@ from psychopy.tests import utils
 @pytest.mark.textbox
 class Test_textbox(object):
     def setup_class(self):
-        self.win = Window([128, 128], pos=[50, 50], allowGUI=False, autoLog=False)
+        self.win = Window([128,128], pos=[50,50], allowGUI=False, autoLog=False)
+        self.error = _BaseErrorHandler()
         self.textbox = TextBox2(self.win, "", "Noto Sans",
                                 pos=(0, 0), size=(1, 1), units='height',
                                 letterHeight=0.1, colorSpace="rgb")
@@ -117,10 +119,10 @@ class Test_textbox(object):
             self.textbox.fillColor = case['fillColor']
             self.textbox.borderColor = case['borderColor']
             for lineBreaking in ('default', 'uax14'):
-                self.win.flip()
+            self.win.flip()
                 self.textbox.draw()
-                if case['screenshot']:
-                    # Uncomment to save current configuration as desired
+            if case['screenshot']:
+                # Uncomment to save current configuration as desired
                     filename = "textbox_{}_{}".format(self.textbox._lineBreaking, case['screenshot'])
                     # self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / filename)
                     utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / filename, self.win, crit=20)
@@ -131,19 +133,23 @@ class Test_textbox(object):
     def test_something(self):
         # to-do: test visual display, char position, etc
         pass
+            
+    def test_alerts(self):
+        noFontTextbox = TextBox2(self.win, "", font="Raleway Dots", bold=True)
+        assert (self.error.alerts[0].code == 4325)
 
 
 def test_font_manager():
-    # Create a font manager
-    mgr = FontManager()
-    # Check that it finds fonts which should be pre-packaged with PsychoPy in the resources folder
-    assert bool(mgr.getFontNamesSimilar("Open Sans"))
-    # Check that it doesn't find fonts which aren't installed as default
-    assert not bool(mgr.getFontNamesSimilar("Dancing Script"))
-    # Check that it can install fonts from Google
-    mgr.addGoogleFont("Hanalei")
-    # Check that these fonts are found once installed
-    assert bool(mgr.getFontNamesSimilar("Hanalei"))
+        # Create a font manager
+        mgr = FontManager()
+        # Check that it finds fonts which should be pre-packaged with PsychoPy in the resources folder
+        assert bool(mgr.getFontNamesSimilar("Open Sans"))
+        # Check that it doesn't find fonts which aren't installed as default
+        assert not bool(mgr.getFontNamesSimilar("Dancing Script"))
+        # Check that it can install fonts from Google
+        mgr.addGoogleFont("Hanalei")
+        # Check that these fonts are found once installed
+        assert bool(mgr.getFontNamesSimilar("Hanalei"))
 
 
 @pytest.mark.uax14

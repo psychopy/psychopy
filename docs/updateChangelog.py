@@ -47,13 +47,13 @@ print("found %i CHANGE" %(len(noncompat.findall(txt_hash))))
 txt_hash_noncompat = noncompat.sub(repl_noncompat, txt_hash)
 
 # one-off specific .rst directives:
-newRST = txt_hash_noncompat.replace('.. note::', """.. raw:: html
+newRST = txt_hash_noncompat.replace('PsychoPy uses **major.minor.patch** version numbers', """.. raw:: html
 
     <style> .noncompat {color:red} </style>
 
 .. role:: noncompat
 
-.. note::""", 1)
+PsychoPy uses **major.minor.patch** version numbers""", 1)
 
 # add note about blue meaning a change?
 

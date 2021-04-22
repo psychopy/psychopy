@@ -118,6 +118,12 @@ class SingleLineCtrl(wx.TextCtrl, _ValidatorMixin):
         self.Bind(wx.EVT_TEXT, self.validate)
         self.validate()
 
+    def Show(self, value=True):
+        wx.TextCtrl.Show(self, value)
+        if hasattr(self, "dollarLbl"):
+            self.dollarLbl.Show(value)
+
+
 class MultiLineCtrl(SingleLineCtrl, _ValidatorMixin):
     def __init__(self, parent, valType,
                  val="", fieldName="",
@@ -339,8 +345,9 @@ class TableCtrl(wx.TextCtrl, _ValidatorMixin, _FileMixin):
         file = self.rootDir / self.GetValue()
         if not (file.is_file() and file.suffix in self.validExt): # If not a valid file
             dlg = wx.MessageDialog(self, _translate(
-                f"Once you have created and saved your table, please remember to add it to {self.Name}"),
-                             caption="Reminder")
+                "Once you have created and saved your table,"
+                "please remember to add it to {name}").format(name=_translate(self.Name)),
+                             caption=_translate("Reminder"))
             dlg.ShowModal()
             if hasattr(self.GetTopLevelParent(), 'type'):
                 if self.GetTopLevelParent().type in self.templates:

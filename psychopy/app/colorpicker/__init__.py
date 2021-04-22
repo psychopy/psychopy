@@ -13,7 +13,7 @@ from psychopy.colors import Color
 from psychopy.localization import _translate
 
 LAST_COLOR = Color((0, 0, 0, 1), space='rgba')
-LAST_OUTPUT_SPACE = 0
+LAST_OUTPUT_SPACE = 1
 
 
 class PsychoColorPicker(wx.Dialog):
@@ -28,7 +28,7 @@ class PsychoColorPicker(wx.Dialog):
         Reference to a :class:`~wx.Frame` which owns this dialog.
 
     """
-    def __init__(self, parent):
+    def __init__(self, parent, context=None):
         wx.Dialog.__init__(
             self,
             parent,
@@ -42,6 +42,9 @@ class PsychoColorPicker(wx.Dialog):
 
         self.SetSizeHints(wx.DefaultSize, wx.DefaultSize)
         self.SetMinSize(wx.Size(600, 480))
+
+        # Store context
+        self.context = context
 
         # current output color, should be displayed in the preview
         global LAST_COLOR
