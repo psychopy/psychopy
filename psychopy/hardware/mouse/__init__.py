@@ -305,8 +305,8 @@ class Mouse(object):
         """
         self._visible = visible
 
-        if hasattr(self.win.backend, "setVisible"):
-            self.win.backend.setExclusive(self._visible)
+        # if hasattr(self.win.backend, "setVisible"):
+        #     self.win.backend.setExclusive(self._visible)
 
     @property
     def exclusive(self):
@@ -488,17 +488,17 @@ class Mouse(object):
     @property
     def leftPressed(self):
         """Is the left mouse button being pressed (`bool`)?"""
-        return self._mouseButtons[MOUSE_BUTTON_LEFT] is True
+        return self._mouseButtons[MOUSE_BUTTON_LEFT]
 
     @property
     def middlePressed(self):
         """Is the middle mouse button being pressed (`bool`)?"""
-        return self._mouseButtons[MOUSE_BUTTON_MIDDLE] is True
+        return self._mouseButtons[MOUSE_BUTTON_MIDDLE]
 
     @property
     def rightPressed(self):
         """Is the right mouse button being pressed (`bool`)?"""
-        return self._mouseButtons[MOUSE_BUTTON_RIGHT] is True
+        return self._mouseButtons[MOUSE_BUTTON_RIGHT]
 
     @property
     def pressedTimes(self):

@@ -23,6 +23,7 @@ from psychopy.tools.monitorunittools import cm2pix, deg2pix, pix2cm, pix2deg
 from psychopy.tools.attributetools import attributeSetter
 from psychopy.visual import window
 from .gamma import createLinearRamp
+import psychopy.hardware.mouse as mouse
 from .. import globalVars
 from ._base import BaseBackend
 from PIL import Image
@@ -58,8 +59,11 @@ _CURSORS_ = {
 # load window icon
 _WINDOW_ICON_ = Image.open(
     os.path.join(prefs.paths['resources'], 'psychopy.png'))
-
-import psychopy.hardware.mouse as mouse
+_GLFW_MOUSE_BUTTONS_ = {
+    glfw.MOUSE_BUTTON_LEFT: mouse.MOUSE_BUTTON_LEFT,
+    glfw.MOUSE_BUTTON_MIDDLE: mouse.MOUSE_BUTTON_MIDDLE,
+    glfw.MOUSE_BUTTON_RIGHT: mouse.MOUSE_BUTTON_RIGHT
+}
 
 
 class GLFWBackend(BaseBackend):
@@ -643,48 +647,52 @@ class GLFWBackend(BaseBackend):
 
     def setFullScr(self, value):
         """Sets the window to/from full-screen mode"""
-        raise NotImplementedError("Toggling fullscreen mode is not currently "
-                             "supported on GFLW windows")
+        raise NotImplementedError(
+            "Toggling fullscreen mode is not currently supported on GFLW "
+            "windows")
 
-    def onMouseButton(self, *args):
-        """Event handler for mouse click events."""
+    # --------------------------------------------------------------------------
+    # Mouse button event handlers
+    #
 
-        # global mouseButtons, mouseClick, mouseTimes
-        # now = core.getTime()
-        win_ptr, button, action, modifier = args
-        # win = glfw.get_window_user_pointer(win_ptr)
-
-        # get current position of the mouse
-        # this might not be at the exact location of the mouse press
-        # self.mouseEventHandler.lastPos = self.mouseEventHandler.pos
-        # self.mouseEventHandler.pos = glfw.get_cursor_pos(win_ptr)
-
+    def onMouseButton(self, *args, **kwargs):
+        """Event handler for any mouse button event (pressed and released)."""
         # don't process mouse events until ready
         mouseEventHandler = mouse.Mouse.getInstance()
         if mouseEventHandler is None:
             return
 
+        _, _, action, _ = args
+
         # process actions
         if action == glfw.PRESS:
-            if button == glfw.MOUSE_BUTTON_LEFT:
-                mouseEventHandler.setMouseButtonState(
-                    mouse.MOUSE_BUTTON_LEFT, True)
-            elif button == glfw.MOUSE_BUTTON_MIDDLE:
-                mouseEventHandler.setMouseButtonState(
-                    mouse.MOUSE_BUTTON_MIDDLE, True)
-            elif button == glfw.MOUSE_BUTTON_RIGHT:
-                mouseEventHandler.setMouseButtonState(
-                    mouse.MOUSE_BUTTON_RIGHT, True)
+            self.onMouseButtonPress(args)
         elif action == glfw.RELEASE:
-            if button == glfw.MOUSE_BUTTON_LEFT:
-                mouseEventHandler.setMouseButtonState(
-                    mouse.MOUSE_BUTTON_LEFT, False)
-            elif button == glfw.MOUSE_BUTTON_MIDDLE:
-                mouseEventHandler.setMouseButtonState(
-                    mouse.MOUSE_BUTTON_MIDDLE, False)
-            elif button == glfw.MOUSE_BUTTON_RIGHT:
-                mouseEventHandler.setMouseButtonState(
-                    mouse.MOUSE_BUTTON_RIGHT, False)
+            self.onMouseButtonRelease(args)
+
+    def onMouseButtonPress(self, *args, **kwargs):
+        """Event handler for mouse press events."""
+        # don't process mouse events until ready
+        mouseEventHandler = mouse.Mouse.getInstance()
+        if mouseEventHandler is None:
+            return
+
+        _, button, _, _ = args
+        absTime = core.getTime()
+        mouseEventHandler.setMouseButtonState(
+            _GLFW_MOUSE_BUTTONS_[button], True, absTime)
+
+    def onMouseButtonRelease(self, *args, **kwargs):
+        """Event handler for mouse press events."""
+        # don't process mouse events until ready
+        mouseEventHandler = mouse.Mouse.getInstance()
+        if mouseEventHandler is None:
+            return
+
+        _, button, _, _ = args
+        absTime = core.getTime()
+        mouseEventHandler.setMouseButtonState(
+            _GLFW_MOUSE_BUTTONS_[button], False, absTime)
 
     def _pix2windowUnits(self, pos):
         if self.win is None:
@@ -708,17 +716,18 @@ class GLFWBackend(BaseBackend):
         win_ptr, xoffset, yoffset = args
 
         # don't process mouse events until ready
-        if not mouse.Mouse.ready():
+        mouseEventHandler = mouse.Mouse.getInstance()
+        if mouseEventHandler is None:
             return
 
     def onMouseMove(self, *args):
         """Event handler for mouse move events."""
-        win_ptr, xpos, ypos = args
-
         # don't process mouse events until ready
         mouseEventHandler = mouse.Mouse.getInstance()
         if mouseEventHandler is None:
             return
+
+        win_ptr, xpos, ypos = args
 
         pos = np.asarray((xpos, ypos), dtype=np.float32) - \
               np.array(self.win.size) / 2.

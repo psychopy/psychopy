@@ -45,6 +45,12 @@ if pyglet.version < '1.4':
 else:
     _default_display_ = pyglet.canvas.get_display()
 
+_PYGLET_MOUSE_BUTTONS_ = {
+    pyglet_mouse.LEFT: mouse.MOUSE_BUTTON_LEFT,
+    pyglet_mouse.MIDDLE: mouse.MOUSE_BUTTON_MIDDLE,
+    pyglet_mouse.RIGHT: mouse.MOUSE_BUTTON_RIGHT
+}
+
 
 class PygletBackend(BaseBackend):
     """The pyglet backend is the most used backend. It has no dependencies
@@ -273,6 +279,10 @@ class PygletBackend(BaseBackend):
         self.winHandle.on_mouse_press = self.onMouseButtonPress
         self.winHandle.on_mouse_release = self.onMouseButtonRelease
         self.winHandle.on_mouse_scroll = self.onMouseScroll
+        self.winHandle.on_mouse_motion = self.onMouseMove
+        self.winHandle.on_mouse_enter = self.onMouseEnter
+        self.winHandle.on_mouse_leave = self.onMouseLeave
+
         if not win.allowGUI:
             # make mouse invisible. Could go further and make it 'exclusive'
             # (but need to alter x,y handling then)
@@ -550,7 +560,7 @@ class PygletBackend(BaseBackend):
     # Mouse button event handlers
     #
 
-    def onMouseButtonPress(self, *args):
+    def onMouseButtonPress(self, *args, **kwargs):
         """Event handler for mouse press events."""
         # don't process mouse events until ready
         mouseEventHandler = mouse.Mouse.getInstance()
@@ -560,20 +570,13 @@ class PygletBackend(BaseBackend):
         x, y, button, _ = args
         absTime = core.getTime()
 
-        if button == pyglet_mouse.LEFT:
-            mouseEventHandler.setMouseButtonState(
-                mouse.MOUSE_BUTTON_LEFT, True, absTime)
-        elif button == pyglet_mouse.MIDDLE:
-            mouseEventHandler.setMouseButtonState(
-                mouse.MOUSE_BUTTON_MIDDLE, True, absTime)
-        elif button == pyglet_mouse.RIGHT:
-            mouseEventHandler.setMouseButtonState(
-                mouse.MOUSE_BUTTON_RIGHT, True, absTime)
+        mouseEventHandler.setMouseButtonState(
+            _PYGLET_MOUSE_BUTTONS_[button], True, absTime)
 
         absPos = self._winToPixCoords((x, y))
         mouseEventHandler.setMouseMotionState(absPos, absTime)
 
-    def onMouseButtonRelease(self, *args):
+    def onMouseButtonRelease(self, *args, **kwargs):
         """Event handler for mouse press events."""
         # don't process mouse events until ready
         mouseEventHandler = mouse.Mouse.getInstance()
@@ -582,21 +585,13 @@ class PygletBackend(BaseBackend):
 
         x, y, button, _ = args
         absTime = core.getTime()
-
-        if button == pyglet_mouse.LEFT:
-            mouseEventHandler.setMouseButtonState(
-                mouse.MOUSE_BUTTON_LEFT, False, absTime)
-        elif button == pyglet_mouse.MIDDLE:
-            mouseEventHandler.setMouseButtonState(
-                mouse.MOUSE_BUTTON_MIDDLE, False, absTime)
-        elif button == pyglet_mouse.RIGHT:
-            mouseEventHandler.setMouseButtonState(
-                mouse.MOUSE_BUTTON_RIGHT, False, absTime)
+        mouseEventHandler.setMouseButtonState(
+            _PYGLET_MOUSE_BUTTONS_[button], False, absTime)
 
         absPos = self._winToPixCoords((x, y))
         mouseEventHandler.setMouseMotionState(absPos, absTime)
 
-    def onMouseScroll(self, *args):
+    def onMouseScroll(self, *args, **kwargs):
         """Event handler for mouse scroll events."""
         # don't process mouse events until ready
         mouseEventHandler = mouse.Mouse.getInstance()
@@ -609,7 +604,7 @@ class PygletBackend(BaseBackend):
         absPos = self._winToPixCoords((x, y))
         mouseEventHandler.setMouseMotionState(absPos, absTime)
 
-    def onMouseMove(self, *args):
+    def onMouseMove(self, *args, **kwargs):
         """Event handler for mouse move events."""
         # don't process mouse events until ready
         mouseEventHandler = mouse.Mouse.getInstance()
@@ -622,7 +617,7 @@ class PygletBackend(BaseBackend):
         absPos = self._winToPixCoords((x, y))
         mouseEventHandler.setMouseMotionState(absPos, absTime)
 
-    def onMouseEnter(self, *args):
+    def onMouseEnter(self, *args, **kwargs):
         """Event called when the mouse enters the window."""
         # don't process mouse events until ready
         mouseEventHandler = mouse.Mouse.getInstance()
@@ -635,7 +630,7 @@ class PygletBackend(BaseBackend):
 
         mouseEventHandler.win = self.win
 
-    def onMouseLeave(self, *args):
+    def onMouseLeave(self, *args, **kwargs):
         """Event called when the mouse enters the window."""
         # don't process mouse events until ready
         mouseEventHandler = mouse.Mouse.getInstance()

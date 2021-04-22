@@ -214,6 +214,15 @@ class BaseBackend(object):
     # `*args` parameter which allows the backend to pass whatever parameters.
     #
 
+    def onMouseButton(self, *args, **kwargs):
+        """Event handler for any mouse button event (pressed and released).
+        This is used by backends which combine both button state changes into
+        a single event. Usually this would pass events to the appropriate
+        `onMouseButtonPress` and `onMouseButtonRelease` events.
+        """
+        raise NotImplementedError(
+            "`onMouseButton` is not yet implemented for this backend.")
+
     def onMouseButtonPress(self, *args, **kwargs):
         """Event handler for mouse press events. This handler can also be used
         for release events if the backend passes all button events to the same
