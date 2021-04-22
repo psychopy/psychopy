@@ -15,6 +15,8 @@ jobs:
         exclude:
           - os: windows-latest
             python-version: 3.6  # will fail because no pyWinhook
+#          - os: ubuntu-latest
+#            python-version: 3.8  # no wxPython wheel at
 
     steps:
     - uses: actions/checkout@v2
@@ -41,9 +43,18 @@ jobs:
 #        Expand-Archive .\swigwin-4.0.1.zip .;
 #        echo "$((Get-Item .).FullName)/swigwin-4.0.1" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
-    - name: Install wxPython
-      if: runner.os == 'Linux'
+#    - name: Install wxPython wheel
+#      if: runner.os=='Linux' && matrix.python-version==3.6
+#      run: |
+#        pip install -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-20.04/ wxPython
+
+    - name: Install wxPython from source
+      if: runner.os=='Linux'
       run: |
+        sudo apt-get python3-dev gtk+-3.0
+        sudo apt-get libgstreamer1.0-0 gstreamer1.0-plugins-base
+        sudo apt-get install libwebkit2gtk-3.0
+        sudo apt-get install libpng-dev libjpeg-dev libtiff-dev libsdl-dev libnotify-dev libsm-dev
         pip install -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-20.04/ wxPython
 
     - name: Install Depends
@@ -64,7 +75,7 @@ jobs:
 
     - name: Test with pytest
       run: |
-        pytest psychopy/tests/test_alerts -v
+        pytest psychopy/tests -v
 #
 #    - name: Upload coverage to Codecov
 #      uses: codecov/codecov-action@v1
