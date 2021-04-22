@@ -18,13 +18,8 @@ To add a new stimulus test use _base so that it gets tested in all contexts
 
 """
 
-# are we testing on Travis and is it Anaconda or system python?
-_travisTesting = bool("{}".format(os.environ.get('TRAVIS')).lower() == 'true')
-_anacondaTesting = bool("{}".format(os.environ.get('CONDA')).lower() == 'true')
-# the ffmpeg doesn't seem to work on Travis system python (using 12.04)
-# upgrading to trusty (14.04) we could get ffmpeg to work but then test_bitsShaders
-# stopped working on conda and system python setup would even build with all the
-# dependencies. It was test environment hell! (sorry, it's been a bad day)
+from psychopy.tests.utils import _travisTesting, _anacondaTesting
+
 
 class Test_Window(object):
     """Some tests just for the window - we don't really care about what's drawn inside it

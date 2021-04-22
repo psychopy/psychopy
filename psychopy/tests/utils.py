@@ -23,6 +23,10 @@ except Exception:
 
 from pytest import skip
 
+_travisTesting = bool("{}".format(os.environ.get('TRAVIS')).lower() == 'true')
+_anacondaTesting = bool("{}".format(os.environ.get('CONDA')).lower() == 'true')
+_githubActions = str(os.environ.get('GITHUB_WORKFLOW')) != 'None'
+
 # define the path where to find testing data
 # so tests could be ran from any location
 TESTS_PATH = abspath(dirname(__file__))
@@ -242,13 +246,6 @@ def comparePixelColor(screen, color, coord=(0,0)):
         closeEnough = closeEnough and abs(pixCol[i] - color[i]) <= 1 # Allow for 1/255 lenience due to rounding up/down in rgb255
     assert all(c for c in color == pixCol) or closeEnough
 
-_travisTesting = bool(str(os.environ.get('TRAVIS')).lower() == 'true')  # in Travis-CI testing
-
-# Alternative skip_under_travis implementation;
-# Seems fine, but Jon / Jeremy can decide to use it or loose it.
-#
-# skip_under_travis = pytest.mark.skipif(_travisTesting == True,
-#                                       reason="Cannot be tested under Travis-CI")
 
 def skip_under_travis(fn=None):
     """Skip if a test is executed under Travis testing environment
@@ -256,7 +253,7 @@ def skip_under_travis(fn=None):
     unparametrized in the code
     """
     # TODO: ad-hoc check ATM -- there might be better ways
-    if _travisTesting:
+    if _travisTesting or _githubActions:
         skip, msg = pytest.skip, "Cannot be tested under Travis-CI"
         if fn is not None:
             def _inner():

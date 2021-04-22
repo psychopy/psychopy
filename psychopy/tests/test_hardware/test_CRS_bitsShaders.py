@@ -10,6 +10,7 @@ from builtins import str
 from builtins import range
 from psychopy import visual
 from psychopy.hardware import crs
+from psychopy.tests import utils
 import numpy as np
 import pytest
 
@@ -62,12 +63,8 @@ expectedVals = {
         'lowR': array([ 36,  63,   8, 211,   3, 112,  56,  34,   0,   0]),
         'highG': array([119, 118, 120, 119, 121, 120])}}}
 
-
+@utils.skip_under_travis
 def test_bitsShaders():
-
-    if _travisTesting:
-        pytest.skip("no Bits device on a virtual machine")
-
     win = visual.Window([1024, 768], fullscr=0, screen=1, useFBO=True,
                         autoLog=True)
     bits = crs.bits.BitsSharp(win, mode='bits++', noComms=True)
