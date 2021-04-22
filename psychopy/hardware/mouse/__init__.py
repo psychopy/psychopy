@@ -17,7 +17,9 @@ __all__ = [
 
 import numpy as np
 import psychopy.core as core
+import psychopy.visual.window as window
 from psychopy.tools.monitorunittools import pix2cm, pix2deg
+
 
 # mouse button indices
 MOUSE_BUTTON_LEFT = 0
@@ -364,7 +366,15 @@ class Mouse(object):
             position are still registered.
 
         """
-        self._visible = visible
+        if not window.openWindows:
+            return
+
+        for ref in window.openWindows:
+            win = ref()  # resolve weak ref
+            if hasattr(win.backend, 'setMouseVisibility'):
+                win.backend.setMouseVisibility(visible)
+
+            self._visible = visible
 
     @property
     def exclusive(self):
@@ -396,9 +406,6 @@ class Mouse(object):
 
         """
         self._exclusive = exclusive
-
-        if hasattr(self.win.backend, "setExclusive"):
-            self.win.backend.setExclusive(self._exclusive)
 
     @property
     def buttons(self):
