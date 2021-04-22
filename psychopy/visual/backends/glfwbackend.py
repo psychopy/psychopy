@@ -49,13 +49,28 @@ GL = pyglet.gl
 retinaContext = None  # it will be set to an actual context if needed
 
 # generate and cache standard cursors
-_CURSORS_ = {
+_GLFW_CURSORS_ = {
     'arrow': glfw.create_standard_cursor(glfw.ARROW_CURSOR),
     'ibeam': glfw.create_standard_cursor(glfw.IBEAM_CURSOR),
     'crosshair': glfw.create_standard_cursor(glfw.CROSSHAIR_CURSOR),
     'hand': glfw.create_standard_cursor(glfw.HAND_CURSOR),
     'hresize': glfw.create_standard_cursor(glfw.HRESIZE_CURSOR),
-    'vresize': glfw.create_standard_cursor(glfw.VRESIZE_CURSOR)}
+    'vresize': glfw.create_standard_cursor(glfw.VRESIZE_CURSOR),
+    # not supported, raises warning or error
+    'help': None,
+    'no': None,
+    'size': None,
+    'downleft': None,
+    'downright': None,
+    'lresize': None,
+    'rresize': None,
+    'uresize': None,
+    'upleft': None,
+    'upright': None,
+    'wait': None,
+    'waitarrow': None
+}
+
 # load window icon
 _WINDOW_ICON_ = Image.open(
     os.path.join(prefs.paths['resources'], 'psychopy.png'))
@@ -448,20 +463,7 @@ class GLFWBackend(BaseBackend):
         """Change the appearance of the cursor for this window. Cursor types
         provide contextual hints about how to interact with on-screen objects.
 
-        The graphics used 'standard cursors' provided by the operating system.
-        They may vary in appearance and hot spot location across platforms. The
-        following names are valid on most platforms:
-
-        * ``arrow`` : Default pointer
-        * ``ibeam`` : Indicates text can be edited
-        * ``crosshair`` : Crosshair with hot-spot at center
-        * ``hand`` : A pointing hand
-        * ``hresize`` : Double arrows pointing horizontally
-        * ``vresize`` : Double arrows pointing vertically
-
-        Requires the GLFW backend, otherwise this function does nothing! Note,
-        on Windows the ``crosshair`` option is negated with the background
-        color. It will not be visible when placed over 50% grey fields.
+        **Deprecated!** Use `setMouseCursor` instead.
 
         Parameters
         ----------
@@ -469,12 +471,47 @@ class GLFWBackend(BaseBackend):
             Type of standard cursor to use.
 
         """
+        self.setMouseCursor(name)
+
+    def setMouseCursor(self, cursorType='arrow'):
+        """Change the appearance of the cursor for this window. Cursor types
+        provide contextual hints about how to interact with on-screen objects.
+
+        The graphics used 'standard cursors' provided by the operating system.
+        They may vary in appearance and hot spot location across platforms. The
+        following names are valid on most platforms:
+
+        * ``arrow`` or ``default`` : Default system pointer.
+        * ``ibeam`` or ``text`` : Indicates text can be edited.
+        * ``crosshair`` : Crosshair with hot-spot at center.
+        * ``hand`` : A pointing hand.
+        * ``hresize`` : Double arrows pointing horizontally.
+        * ``vresize`` : Double arrows pointing vertically.
+
+        Parameters
+        ----------
+        cursorType : str
+            Type of standard cursor to use.
+
+        """
         try:
-            glfw.set_cursor(self.winHandle, _CURSORS_[name])
+            cursor = _GLFW_CURSORS_[cursorType]  # get cursor
+
+            if cursor is None:  # check supported by backend
+                logging.warn(
+                    "Cursor type name '{}', is not supported by this backend. "
+                    "Setting cursor to system default.".format(cursorType))
+
+                cursor = _GLFW_CURSORS_['default']  # all backends define this
+
         except KeyError:
             logging.warn(
-                "Invalid cursor type name '{}', using default.".format(type))
-            glfw.set_cursor(self.winHandle, _CURSORS_['arrow'])
+                "Invalid cursor type name '{}', using system default.".format(
+                    cursorType))
+
+            cursor = _GLFW_CURSORS_['default']
+
+        glfw.set_cursor(self.winHandle, cursor)
 
     def setCurrent(self):
         """Sets this window to be the current rendering target.

@@ -43,7 +43,9 @@ class Mouse(object):
     PsychoPy presently only supports one pointing device input at a time.
     Multiple mice can be used but only one set of events will be registered at a
     time as if they were all coming from the same mouse. Users should process
-    mouse events at least once per frame.
+    mouse events at least once per frame. Mouse window positions are stored
+    internally in 'pix' units. Coordinates are automatically converted to the
+    units used by the window by getter and setter methods.
 
     Notes
     -----
@@ -63,7 +65,7 @@ class Mouse(object):
 
     Check if the left mouse button is being pressed down within a window::
 
-        pressed = mouse.isLeftPressed
+        pressed = mouse.leftPressed
 
     Move around a stimulus when holding down the right mouse button (dragging)::
 

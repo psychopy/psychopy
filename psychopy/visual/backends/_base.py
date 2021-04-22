@@ -146,6 +146,67 @@ class BaseBackend(object):
         """Name of the backend is only used for logging purposes"""
         return "{}_backend".format(self.win.name)
 
+    def setMouseType(self, name='arrow'):
+        """Change the appearance of the cursor for this window. Cursor types
+        provide contextual hints about how to interact with on-screen objects.
+
+        **Deprecated!** Use `setMouseCursor` instead.
+
+        Parameters
+        ----------
+        name : str
+            Type of standard cursor to use.
+
+        """
+        self.setMouseCursor(name)
+
+    def setMouseCursor(self, cursorType='default'):
+        """Change the appearance of the cursor for this window. Cursor types
+        provide contextual hints about how to interact with on-screen objects.
+
+        The graphics used 'standard cursors' provided by the operating system.
+        They may vary in appearance and hot spot location across platforms. The
+        following names are valid on most platforms:
+
+        * ``arrow`` or ``default`` : Default system pointer.
+        * ``ibeam`` or ``text`` : Indicates text can be edited.
+        * ``crosshair`` : Crosshair with hot-spot at center.
+        * ``hand`` : A pointing hand.
+        * ``hresize`` : Double arrows pointing horizontally.
+        * ``vresize`` : Double arrows pointing vertically.
+        * ``help`` : Arrow with a question mark beside it (Windows only).
+        * ``no`` : 'No entry' sign or circle with diagonal bar.
+        * ``size`` : Vertical and horizontal sizing.
+        * ``downleft`` or ``upright`` : Double arrows pointing diagonally with
+          positive slope (Windows only).
+        * ``downright`` or ``upleft`` : Double arrows pointing diagonally with
+          negative slope (Windows only).
+        * ``lresize`` : Arrow pointing left (Mac OS X only).
+        * ``rresize`` : Arrow pointing right (Mac OS X only).
+        * ``uresize`` : Arrow pointing up (Mac OS X only).
+        * ``dresize`` : Arrow pointing down (Mac OS X only).
+        * ``wait`` : Hourglass (Windows) or watch (Mac OS X) to indicate the
+           system is busy.
+        * ``waitarrow`` : Hourglass beside a default pointer (Windows only).
+
+        In cases where a cursor is not supported, the default for the system
+        will be used.
+
+        Parameters
+        ----------
+        cursorType : str
+            Type of standard cursor to use. If not specified, `'default'` is
+            used.
+
+        Notes
+        -----
+        * On some platforms the 'crosshair' cursor may not be visible on uniform
+          grey backgrounds.
+
+        """
+        raise NotImplementedError(
+            "`setMouseCursor` is not yet implemented for this backend.")
+
     # --------------------------------------------------------------------------
     # Window unit conversion
     #

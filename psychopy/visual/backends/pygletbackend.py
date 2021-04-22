@@ -29,6 +29,7 @@ from .. import globalVars
 from ._base import BaseBackend
 
 import pyglet
+import pyglet.window as pyglet_window
 import pyglet.window.mouse as pyglet_mouse
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
 # other calls to pyglet or pyglet submodules, otherwise it may not get picked
@@ -44,6 +45,31 @@ if pyglet.version < '1.4':
     _default_display_ = pyglet.window.get_platform().get_default_display()
 else:
     _default_display_ = pyglet.canvas.get_display()
+
+_PYGLET_CURSORS_ = {
+    # common with GLFW
+    'default': pyglet_window.Window.CURSOR_DEFAULT,
+    'arrow': pyglet_window.Window.CURSOR_DEFAULT,
+    'ibeam': pyglet_window.Window.CURSOR_TEXT,
+    'text': pyglet_window.Window.CURSOR_TEXT,
+    'crosshair': pyglet_window.Window.CURSOR_CROSSHAIR,
+    'hand': pyglet_window.Window.CURSOR_HAND,
+    'hresize': pyglet_window.Window.CURSOR_SIZE_LEFT_RIGHT,
+    'vresize': pyglet_window.Window.CURSOR_SIZE_UP_DOWN,
+    # pyglet only
+    'help': pyglet_window.Window.CURSOR_HELP,
+    'no': pyglet_window.Window.CURSOR_NO,
+    'size': pyglet_window.Window.CURSOR_SIZE,
+    'downleft': pyglet_window.Window.CURSOR_SIZE_DOWN_LEFT,
+    'downright': pyglet_window.Window.CURSOR_SIZE_DOWN_RIGHT,
+    'lresize': pyglet_window.Window.CURSOR_SIZE_LEFT,
+    'rresize': pyglet_window.Window.CURSOR_SIZE_RIGHT,
+    'uresize': pyglet_window.Window.CURSOR_SIZE_UP,
+    'upleft': pyglet_window.Window.CURSOR_SIZE_UP_LEFT,
+    'upright': pyglet_window.Window.CURSOR_SIZE_UP_RIGHT,
+    'wait': pyglet_window.Window.CURSOR_WAIT,
+    'waitarrow': pyglet_window.Window.CURSOR_WAIT_ARROW
+}
 
 _PYGLET_MOUSE_BUTTONS_ = {
     pyglet_mouse.LEFT: mouse.MOUSE_BUTTON_LEFT,
@@ -488,6 +514,9 @@ class PygletBackend(BaseBackend):
                 _screenID = self.winHandle._screen._cg_display_id  # pyglet1.2
         elif sys.platform.startswith('linux'):
             _screenID = self.winHandle._x_screen_id
+        else:
+            raise RuntimeError("Cannot get pyglet screen ID.")
+
         return _screenID
 
     @property
@@ -529,6 +558,83 @@ class PygletBackend(BaseBackend):
         """Sets the window to/from full-screen mode"""
         self.winHandle.set_fullscreen(value)
 
+    def setMouseType(self, name='arrow'):
+        """Change the appearance of the cursor for this window. Cursor types
+        provide contextual hints about how to interact with on-screen objects.
+
+        **Deprecated!** Use `setMouseCursor` instead.
+
+        Parameters
+        ----------
+        name : str
+            Type of standard cursor to use.
+
+        """
+        self.setMouseCursor(name)
+
+    def setMouseCursor(self, cursorType='default'):
+        """Change the appearance of the cursor for this window. Cursor types
+        provide contextual hints about how to interact with on-screen objects.
+
+        The graphics used 'standard cursors' provided by the operating system.
+        They may vary in appearance and hot spot location across platforms. The
+        following names are valid on most platforms:
+
+        * ``arrow`` or ``default`` : Default system pointer.
+        * ``ibeam`` or ``text`` : Indicates text can be edited.
+        * ``crosshair`` : Crosshair with hot-spot at center.
+        * ``hand`` : A pointing hand.
+        * ``hresize`` : Double arrows pointing horizontally.
+        * ``vresize`` : Double arrows pointing vertically.
+        * ``help`` : Arrow with a question mark beside it (Windows only).
+        * ``no`` : 'No entry' sign or circle with diagonal bar.
+        * ``size`` : Vertical and horizontal sizing.
+        * ``downleft`` or ``upright`` : Double arrows pointing diagonally with
+          positive slope (Windows only).
+        * ``downright`` or ``upleft`` : Double arrows pointing diagonally with
+          negative slope (Windows only).
+        * ``lresize`` : Arrow pointing left (Mac OS X only).
+        * ``rresize`` : Arrow pointing right (Mac OS X only).
+        * ``uresize`` : Arrow pointing up (Mac OS X only).
+        * ``dresize`` : Arrow pointing down (Mac OS X only).
+        * ``wait`` : Hourglass (Windows) or watch (Mac OS X) to indicate the
+           system is busy.
+        * ``waitarrow`` : Hourglass beside a default pointer (Windows only).
+
+        In cases where a cursor is not supported, the default for the system
+        will be used.
+
+        Parameters
+        ----------
+        cursorType : str
+            Type of standard cursor to use. If not specified, `'default'` is
+            used.
+
+        Notes
+        -----
+        * On some platforms the 'crosshair' cursor may not be visible on uniform
+          grey backgrounds.
+
+        """
+        try:
+            cursor = _PYGLET_CURSORS_[cursorType]  # get cursor
+
+            if cursor is None:  # check supported by backend
+                logging.warn(
+                    "Cursor type name '{}', is not supported by this backend. "
+                    "Setting cursor to system default.".format(cursorType))
+
+                cursor = _PYGLET_CURSORS_['default']  # all backends define this
+
+        except KeyError:
+            logging.warn(
+                "Invalid cursor type name '{}', using default.".format(
+                    cursorType))
+
+            cursor = _PYGLET_CURSORS_['default']
+
+        self.win.set_mouse_cursor(cursor)
+
     # --------------------------------------------------------------------------
     # Window unit conversion
     #
@@ -554,7 +660,7 @@ class PygletBackend(BaseBackend):
         """
         # We override `_winToBufferCoords` here since Pyglet uses the OpenGL
         # window coordinate convention by default.
-        return np.array((pos[0], pos[1]), dtype=np.float32)
+        return np.array(pos, dtype=np.float32)
 
     # --------------------------------------------------------------------------
     # Mouse button event handlers
