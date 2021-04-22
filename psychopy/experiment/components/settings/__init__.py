@@ -1060,6 +1060,10 @@ class SettingsComponent(object):
                 "}\n"
             )
             buff.writeIndentedLines(code % self.params)
+        else:
+            code = (
+                "'unknown': None\n"
+            )
 
         # Close ioConfig dict
         buff.setIndentLevel(-1, relative=True)
@@ -1072,6 +1076,7 @@ class SettingsComponent(object):
         code = (
             "ioServer = io.launchHubServer(**ioConfig)\n"
             "eyetracker = ioServer.getDevice('tracker')\n"
+            "eyedevice = next(iter(ioConfig.keys()))"
         )
         buff.writeIndentedLines(code % self.params)
 

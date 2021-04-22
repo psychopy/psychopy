@@ -196,34 +196,101 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
         )
         buff.writeIndentedLines(code % self.params)
         # Make config dict
+        progressTime = self.params['progressTime'].val or None
         code = (
             "# define attributes for calibration for %(name)s\n"
             "%(name)sCalib = {\n"
         )
         buff.writeIndentedLines(code % self.params)
         buff.setIndentLevel(1, relative=True)
-        # Write config for EyeLink
-        if True:
-            # EyeLink doesn't allow custom positions, so if it's custom, approximate
-            positions = self.params['targetLayout'].val
-            if positions not in ['THREE_POINTS', 'FIVE_POINTS', 'NINE_POINTS', "THIRTEEN_POINTS"]:
-                if len(positions) <= 4:
-                    positions = "'THREE_POINTS'"
-                elif len(positions) <= 7:
-                    positions = "'FIVE_POINTS'"
-                elif len(positions) <= 11:
-                    postions = "'NINE_POINTS'"
-                else:
-                    positions = "'THIRTEEN_POINTS'"
-            # Write
-            code = (
+
+        # Eyelink
+        code = (
+            "'eyetracker.hw.sr_research.eyelink.EyeTracker': {\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+        buff.setIndentLevel(1, relative=True)
+        # EyeLink doesn't allow custom positions, so if it's custom, approximate
+        elPositions = self.params['targetLayout'].val
+        if elPositions not in ['THREE_POINTS', 'FIVE_POINTS', 'NINE_POINTS', "THIRTEEN_POINTS"]:
+            if len(elPositions) <= 4:
+                elPositions = "'THREE_POINTS'"
+            elif len(elPositions) <= 7:
+                elPositions = "'FIVE_POINTS'"
+            elif len(elPositions) <= 11:
+                elPositions = "'NINE_POINTS'"
+            else:
+                elPositions = "'THIRTEEN_POINTS'"
+        code = (
                     "'target_attributes': %(name)sTarget.getCalibSettings('SR Research Ltd'),\n"
-                    "'type': " + positions + ",\n"
+                    "'type': " + elPositions + ",\n"
                     "'auto_pace': " + str(bool(self.params['progressTime'])) + ",\n"
-                    "'pacing_speed': %(progressTime)s,\n"
+                    "'pacing_speed': " + str(progressTime) + ",\n"
                     "'screen_background_color': win._color.rgb255\n"
-            )
-            buff.writeIndentedLines(code % self.params)
+        )
+        buff.writeIndentedLines(code % self.params)
+        buff.setIndentLevel(-1, relative=True)
+        code = (
+                "},\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+
+        # GazePoint
+        targetDur = self.params['expandDur'].val
+        if not isinstance(targetDur, (list, tuple)):
+            targetDur = [targetDur]
+        if len(targetDur) > 1:
+            targetDur = sum(targetDur)
+        else:
+            targetDur = targetDur[0] * 2
+        code = (
+                "'eyetracker.hw.tobii.EyeTracker': {\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+        buff.setIndentLevel(1, relative=True)
+        code = (
+                "'target_delay': " + str(self.params['progressTime'].val or 1) + ",\n"
+                "'target_duration': " + str(targetDur) + "\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+        buff.setIndentLevel(-1, relative=True)
+        code = (
+                "},\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+
+        # Tobii
+        if elPositions == 'THIRTEEN_POINTS':
+            tbPositions = 'NINE_POINTS'
+        else:
+            tbPositions = elPositions
+        code = (
+            "'eyetracker.hw.tobii.EyeTracker': {\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+        buff.setIndentLevel(1, relative=True)
+        code = (
+                "'target_attributes': %(name)sTarget.getCalibSettings('SR Research Ltd'),\n"
+                "'type': " + tbPositions + ",\n"
+                "'randomize': %(randomisePos)s,\n"
+                "'auto_pace': " + str(bool(self.params['progressTime'])) + ",\n"
+                "'pacing_speed': " + str(progressTime) + ",\n"
+                "'screen_background_color': win._color.rgb255\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+        buff.setIndentLevel(-1, relative=True)
+        code = (
+            "},\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+
+        # MouseGaze & unknown
+        code = (
+            "'eyetracker.hw.mouse.EyeTracker': {},\n"
+            "'unknown': {}\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+
         buff.setIndentLevel(-1, relative=True)
         code = (
             "}\n"
