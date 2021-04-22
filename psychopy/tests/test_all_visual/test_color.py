@@ -36,88 +36,93 @@ tykes = [
     {'rgba': None, 'named': None, 'hex': None, 'hsva': None},  # None as a value
 ]
 
-# Test window for visual objects
-win = visual.Window([128, 128], pos=[50, 50], allowGUI=False, autoLog=False)
+class Test_Window(object):
+    """Some tests just for the window - we don't really care about what's drawn inside it
+    """
+    @classmethod
+    def setup_class(self):
+        self.win = visual.Window([128,128], pos=[50,50], allowGUI=False, autoLog=False)
 
+    @classmethod
+    def teardown_class(self):
+        self.win.close()
 
-# Begin test
-def test_colors():
-    for colorSet in exemplars + tykes:
-        # Construct matrix of space pairs
-        spaceMatrix = []
-        for space1 in colorSet:
-            spaceMatrix.extend([[space1, space2] for space2 in colorSet if space2 != space1])
-        # Compare each space pair for consistency
-        for space1, space2 in spaceMatrix:
-            col1 = colors.Color(colorSet[space1], space1)
-            col2 = colors.Color(colorSet[space2], space2)
-            closeEnough = all(abs(col1.rgba[i]-col2.rgba[i])<0.02 for i in range(4))
-            # Check that valid color has been created
-            assert bool(col1) and bool(col2)
-            # Check setters
-            assert col1 == col2 or closeEnough
+    # Begin test
+    def test_colors(self):
+        for colorSet in exemplars + tykes:
+            # Construct matrix of space pairs
+            spaceMatrix = []
+            for space1 in colorSet:
+                spaceMatrix.extend([[space1, space2] for space2 in colorSet if space2 != space1])
+            # Compare each space pair for consistency
+            for space1, space2 in spaceMatrix:
+                col1 = colors.Color(colorSet[space1], space1)
+                col2 = colors.Color(colorSet[space2], space2)
+                closeEnough = all(abs(col1.rgba[i]-col2.rgba[i])<0.02 for i in range(4))
+                # Check that valid color has been created
+                assert bool(col1) and bool(col2)
+                # Check setters
+                assert col1 == col2 or closeEnough
 
+    def test_window_colors(self):
+        # Iterate through color sets
+        for colorSet in exemplars + tykes:
+            for space in colorSet:
+                # Set window color
+                self.win.colorSpace = space
+                self.win.color = colorSet[space]
+                self.win.flip()
+                utils.comparePixelColor(self.win, colors.Color(colorSet[space], space))
 
-def test_window_colors():
-    # Iterate through color sets
-    for colorSet in exemplars + tykes:
-        for space in colorSet:
-            # Set window color
-            win.colorSpace = space
-            win.color = colorSet[space]
-            win.flip()
-            utils.comparePixelColor(win, colors.Color(colorSet[space], space))
-
-
-def test_shape_colors():
-    # Create rectangle with chunky border
-    obj = visual.Rect(win, units="pix", pos=(0,0), size=(128, 128), lineWidth=10)
-    # Iterate through color sets
-    for colorSet in exemplars + tykes:
-        for space in colorSet:
-            # Check border color
-            obj.colorSpace = space
-            obj.borderColor = colorSet[space]
-            obj.fillColor = 'white'
-            obj.opacity = 1  # Fix opacity at full as this is not what we're testing
-            win.flip()
-            obj.draw()
-            if colorSet[space]: # skip this comparison if color is None
-                utils.comparePixelColor(win, colors.Color(colorSet[space], space), coord=(1, 1))
-            utils.comparePixelColor(win, colors.Color('white'), coord=(50, 50))
-            # Check fill color
-            obj.colorSpace = space
-            obj.fillColor = colorSet[space]
-            obj.borderColor = 'white'
-            obj.opacity = 1  # Fix opacity at full as this is not what we're testing
-            win.flip()
-            obj.draw()
-            if colorSet[space]: # skip this comparison if color is None
-                utils.comparePixelColor(win, colors.Color(colorSet[space], space), coord=(50, 50))
-            utils.comparePixelColor(win, colors.Color('white'), coord=(1,1))
-
-            # Testing foreColor is already done in test_textbox
-
-
-def test_element_array_colors():
-    # Create element array with two elements covering the whole window in two block colours
-    obj = visual.ElementArrayStim(win, units="pix",
-                                  fieldPos=(0, 0), fieldSize=(128, 128), fieldShape='square', nElements=2,
-                                  sizes=[[64, 128], [64, 128]], xys=[[-32, 0], [32, 0]], elementMask=None, elementTex=None)
-    # Iterate through color sets
-    for colorSet in exemplars + tykes:
-        for space in colorSet:
-            if space not in colors.strSpaces and not isinstance(colorSet[space], (str, type(None))):
-                # Check that setting color arrays renders correctly
+    def test_shape_colors(self):
+        # Create rectangle with chunky border
+        obj = visual.Rect(self.win, units="pix", pos=(0,0), size=(128, 128), lineWidth=10)
+        # Iterate through color sets
+        for colorSet in exemplars + tykes:
+            for space in colorSet:
+                # Check border color
                 obj.colorSpace = space
-                col1 = np.array(colorSet[space]).reshape((1, -1))
-                col2 = getattr(colors.Color('black'), space).reshape((1, -1))
-                obj.colors = np.append(col1, col2, 0)  # Set first color to current color set, second to black in same color space
+                obj.borderColor = colorSet[space]
+                obj.fillColor = 'white'
                 obj.opacity = 1  # Fix opacity at full as this is not what we're testing
-                win.flip()
+                self.win.flip()
                 obj.draw()
-                utils.comparePixelColor(win, colors.Color(colorSet[space], space), coord=(10, 10))
-                utils.comparePixelColor(win, colors.Color('black'), coord=(10, 100))
+                if colorSet[space]: # skip this comparison if color is None
+                    utils.comparePixelColor(self.win, colors.Color(colorSet[space], space), coord=(1, 1))
+                utils.comparePixelColor(self.win, colors.Color('white'), coord=(50, 50))
+                # Check fill color
+                obj.colorSpace = space
+                obj.fillColor = colorSet[space]
+                obj.borderColor = 'white'
+                obj.opacity = 1  # Fix opacity at full as this is not what we're testing
+                self.win.flip()
+                obj.draw()
+                if colorSet[space]: # skip this comparison if color is None
+                    utils.comparePixelColor(self.win, colors.Color(colorSet[space], space), coord=(50, 50))
+                utils.comparePixelColor(self.win, colors.Color('white'), coord=(1,1))
+
+                # Testing foreColor is already done in test_textbox
+
+
+    def test_element_array_colors(self):
+        # Create element array with two elements covering the whole window in two block colours
+        obj = visual.ElementArrayStim(self.win, units="pix",
+                                      fieldPos=(0, 0), fieldSize=(128, 128), fieldShape='square', nElements=2,
+                                      sizes=[[64, 128], [64, 128]], xys=[[-32, 0], [32, 0]], elementMask=None, elementTex=None)
+        # Iterate through color sets
+        for colorSet in exemplars + tykes:
+            for space in colorSet:
+                if space not in colors.strSpaces and not isinstance(colorSet[space], (str, type(None))):
+                    # Check that setting color arrays renders correctly
+                    obj.colorSpace = space
+                    col1 = np.array(colorSet[space]).reshape((1, -1))
+                    col2 = getattr(colors.Color('black'), space).reshape((1, -1))
+                    obj.colors = np.append(col1, col2, 0)  # Set first color to current color set, second to black in same color space
+                    obj.opacity = 1  # Fix opacity at full as this is not what we're testing
+                    self.win.flip()
+                    obj.draw()
+                    utils.comparePixelColor(self.win, colors.Color(colorSet[space], space), coord=(10, 10))
+                    utils.comparePixelColor(self.win, colors.Color('black'), coord=(10, 100))
 
 
 def test_color_operators():
