@@ -98,6 +98,25 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         Randomize order of Form elements
     """
 
+    knownStyles = {
+        'light': {
+            'fillColor': [0.89, 0.89, 0.89],
+            'borderColor': None,
+            'itemColor': 'black',
+            'responseColor': 'black',
+            'markerColor': [0.89, -0.35, -0.28],
+            'font': "Open Sans",
+        },
+        'dark': {
+            'fillColor': [-0.19, -0.19, -0.14],
+            'borderColor': None,
+            'itemColor': 'white',
+            'responseColor': 'white',
+            'markerColor': [0.89, -0.35, -0.28],
+            'font': "Open Sans",
+        },
+    }
+
     def __init__(self,
                  win,
                  name='default',
@@ -108,6 +127,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                  responseColor='white',
                  markerColor='red',
                  items=None,
+                 font="Open Sans",
                  textHeight=.02,
                  size=(.5, .5),
                  pos=(0, 0),
@@ -146,6 +166,8 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         if foreColor:
             self.foreColor = color
         self.style = style
+
+        self.font = font
 
         self.textHeight = textHeight
         self._scrollBarSize = (0.016, self.size[1]/1.2)
@@ -920,10 +942,6 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         self.getData()
         return self._complete
 
-    knownStyles = ["basic", "legalPad"]
-    legacyStyles = ["light", "dark"]
-    knownStyles = legacyStyles # Overwrite new styles until implemented
-
     @property
     def foreColor(self):
         return ColorMixin.foreColor.fget(self)
@@ -1004,7 +1022,9 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
     @property
     def style(self):
-        return self._style
+        if hasattr(self, "_style"):
+            return self._style
+
     @style.setter
     def style(self, style):
         """Sets some predefined styles or use these to create your own.
@@ -1022,63 +1042,19 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
         """
         self._style = style
-
-        if style == "basic":
-            # Basic is the default, do nothing
+        # If style is custom, skip the rest
+        if style in ['custom...', 'None', None]:
             return
-
-        if style == 'legalPad':
-            # Set page fill color
-            self.border.fillColor = '#F2F6A7' # Legal pad yellow
-
-            # Add left line
-            margin = psychopy.visual.Line(self.win,
-                                 start=[self.pos[0]-self.size[0]/2+self.itemPadding*0.8, self.pos[1]+self.size[1]/2],
-                                 end=[self.pos[0]-self.size[0]/2+self.itemPadding*0.8, self.pos[1]-self.size[1]/2],
-                                 units=self.units,
-                                 lineColor='red'
-                                 )
-            self._decorations.append(margin)
-
-            # Create a drop shadow
-            unitAdjs = {
-                'height': 0.02,
-                'norm': 0.02,
-                'pix': 10,
-                'cm': 1,
-                'deg': 0.5,
-                'degFlatPos': 0.5,
-                'degFlat': 0.5
-            }
-            if self.units in unitAdjs:
-                shadowAdj = unitAdjs[self.units]
-            else:
-                shadowAdj = 0
-            shadow = psychopy.visual.Rect(self.win,
-                units=self.units,
-                pos=[self.pos[0] + shadowAdj, self.pos[1] - shadowAdj],
-                width=self.size[0],
-                height=self.size[1],
-                colorSpace=self.colorSpace,
-                fillColor=Color((-1, -1, -1, 0.2), 'rgb'),
-                lineColor=None,
-                opacity=None,
-                autoLog=False)
-            self._externalDecorations.insert(0, shadow)
-
-        # Legacy
-        if style == 'light' or str(style) == "['light']":
-            # ...then replace set colors with colors from style
-            self.color = 'black'
-            self.borderColor = 'black'
-            self.fillColor = Color([0.89, -0.35, -0.28], 'rgb')
-            self.border.fillColor = Color([0.89,0.89,0.89], 'rgb')
-        if style == 'dark' or str(style) == "['dark']":
-            # ...then replace set colors with colors from style
-            self.color = 'white'
-            self.borderColor = 'white'
-            self.fillColor = Color([0.89, -0.35, -0.28], 'rgb')
-            self.border.fillColor = Color([-0.19,-0.19,-0.14], 'rgb')
+        # If style is a string of a known style, use that
+        if style in self.knownStyles:
+            style = self.knownStyles[style]
+        # By here, style should be a dict
+        if not isinstance(style, dict):
+            return
+        # Apply each key in the style dict as an attr
+        for key, val in style.items():
+            if hasattr(self, key):
+                setattr(self, key, val)
 
     @property
     def values(self):
