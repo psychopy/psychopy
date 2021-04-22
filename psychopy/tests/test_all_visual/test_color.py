@@ -60,9 +60,9 @@ class Test_Window(object):
                 col2 = colors.Color(colorSet[space2], space2)
                 closeEnough = all(abs(col1.rgba[i]-col2.rgba[i])<0.02 for i in range(4))
                 # Check that valid color has been created
-                assert bool(col1) and bool(col2)
+                assert (bool(col1) and bool(col2))
                 # Check setters
-                assert col1 == col2 or closeEnough
+                assert (col1 == col2 or closeEnough)
 
     def test_window_colors(self):
         # Iterate through color sets
@@ -131,5 +131,4 @@ def test_color_operators():
     redRGB = colors.Color((1, -1, -1), space='rgb')
     redRGB1 = colors.Color((1, 0, 0), space='rgb1')
 
-    assert red255 == redRGB == redRGB1
-
+    assert (red255 == redRGB == redRGB1)
