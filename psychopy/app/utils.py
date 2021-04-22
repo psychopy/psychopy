@@ -30,6 +30,7 @@ from .themes import ThemeMixin
 from psychopy.localization import _translate
 from psychopy.tools.stringtools import prettyname
 
+
 class FileDropTarget(wx.FileDropTarget):
     """On Mac simply setting a handler for the EVT_DROP_FILES isn't enough.
     Need this too.
@@ -135,7 +136,7 @@ class PsychopyToolbar(wx.ToolBar, ThemeMixin):
         self._needMakeTools = True
         # Configure toolbar appearance
         self.SetWindowStyle(wx.TB_HORIZONTAL | wx.NO_BORDER | wx.TB_FLAT | wx.TB_NODIVIDER)
-        #self.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
+        # self.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
         # Set icon size (16 for win/linux small mode, 32 for everything else
         self.iconSize = 32  # mac: 16 either doesn't work, or looks bad
         self.SetToolBitmapSize((self.iconSize, self.iconSize))
@@ -363,20 +364,27 @@ class PsychopyScrollbar(wx.ScrollBar):
             pageSize=vsz
         )
 
+
 def updateDemosMenu(frame, menu, folder, ext):
     """Update Demos menu as needed."""
     def _makeButton(parent, menu, demo):
+        # Skip if demo name starts with _
+        if demo.name.startswith("_"):
+            return
         # Create menu button
-        item = menu.Append(wx.ID_ANY, prettyname(demo.name))
+        item = menu.Append(wx.ID_ANY, demo.name)
         # Store in window's demos list
         parent.demos.update({item.Id: demo})
         # Link button to demo opening function
         parent.Bind(wx.EVT_MENU, parent.demoLoad, item)
 
     def _makeFolder(parent, menu, folder, ext):
+        # Skip if underscore in folder name
+        if folder.name.startswith("_"):
+            return
         # Create and append menu for this folder
         submenu = wx.Menu()
-        menu.AppendSubMenu(submenu, prettyname(folder.name))
+        menu.AppendSubMenu(submenu, folder.name)
         # Get folder contents
         folderContents = glob.glob(str(folder / '*'))
         for subfolder in sorted(folderContents):
@@ -386,15 +394,17 @@ def updateDemosMenu(frame, menu, folder, ext):
             # subfile according to whether it matches the ext
             if subfolder.is_dir():
                 subContents = glob.glob(str(subfolder / '*'))
-                if any(file.endswith(".psyexp") for file in subContents):
+                if any(file.endswith(".psyexp") and not file.startswith("_") for file in subContents):
                     _makeButton(parent, submenu, subfolder)
                 else:
                     _makeFolder(parent, submenu, subfolder, ext)
-            elif subfolder.suffix == ext:
+            elif subfolder.suffix == ext and not subfolder.name.startswith("_"):
                 _makeButton(parent, submenu, subfolder)
 
     # Make blank dict to store demo details in
     frame.demos = {}
+    if not folder:  # if there is no unpacked demos folder then just return
+        return
 
     # Get root folders
     rootGlob = glob.glob(str(Path(folder) / '*'))

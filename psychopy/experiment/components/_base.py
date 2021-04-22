@@ -19,7 +19,7 @@ from psychopy.experiment.utils import CodeGenerationException
 from psychopy.experiment.utils import unescapedDollarSign_re
 from psychopy.experiment.params import getCodeFromParamStr
 from psychopy.alerts import alerttools
-from psychopy.colors import colorSpaces
+from psychopy.colors import nonAlphaSpaces
 
 from psychopy.localization import _translate, _localized
 
@@ -578,8 +578,8 @@ class BaseVisualComponent(BaseComponent):
     categories = ['Stimuli']
 
     def __init__(self, exp, parentName, name='',
-                 units='from exp settings', color='white', fillColor="None", borderColor="None",
-                 pos=(0, 0), size=(0, 0), ori=0, colorSpace='rgb', opacity=1, contrast=1,
+                 units='from exp settings', color='white', fillColor="", borderColor="",
+                 pos=(0, 0), size=(0, 0), ori=0, colorSpace='rgb', opacity="", contrast=1,
                  startType='time (s)', startVal='',
                  stopType='duration (s)', stopVal='',
                  startEstim='', durationEstim='',
@@ -617,8 +617,7 @@ class BaseVisualComponent(BaseComponent):
             hint=msg,
             label=_localized['units'])
 
-        msg = _translate("Foreground color of this stimulus (e.g. $[1,1,0], red );"
-                         " Right-click to bring up a color-picker (rgb only)")
+        msg = _translate("Foreground color of this stimulus (e.g. $[1,1,0], red )")
         self.params['color'] = Param(color,
             valType='color', inputType="color", categ='Appearance',
             allowedTypes=[],
@@ -631,13 +630,12 @@ class BaseVisualComponent(BaseComponent):
                          "the colors? (rgb, dkl, lms, hsv)")
         self.params['colorSpace'] = Param(colorSpace,
             valType='str', inputType="choice", categ='Appearance',
-            allowedVals=['named', 'rgb', 'dkl', 'lms', 'hsv'],
+            allowedVals=['rgb', 'dkl', 'lms', 'hsv'],
             updates='constant',
             hint=msg,
             label=_localized['colorSpace'])
 
-        msg = _translate("Fill color of this stimulus (e.g. $[1,1,0], red );"
-                         " Right-click to bring up a color-picker (rgb only)")
+        msg = _translate("Fill color of this stimulus (e.g. $[1,1,0], red )")
         self.params['fillColor'] = Param(fillColor,
             valType='color', inputType="color", categ='Appearance',
             updates='constant', allowedTypes=[],
@@ -645,8 +643,7 @@ class BaseVisualComponent(BaseComponent):
             hint=msg,
             label=_localized['fillColor'])
 
-        msg = _translate("Color of this stimulus (e.g. $[1,1,0], red );"
-                         " Right-click to bring up a color-picker (rgb only)")
+        msg = _translate("Color of this stimulus (e.g. $[1,1,0], red )")
         self.params['borderColor'] = Param(borderColor,
             valType='color', inputType="color", categ='Appearance',
             updates='constant',allowedTypes=[],
@@ -654,8 +651,8 @@ class BaseVisualComponent(BaseComponent):
             hint=msg,
             label=_localized['borderColor'])
 
-        msg = _translate("Opacity of the stimulus (1=opaque, 0=fully "
-                         "transparent, 0.5=translucent)")
+        msg = _translate("Opacity of the stimulus (1=opaque, 0=fully transparent, 0.5=translucent). "
+                         "Leave blank for each color to have its own opacity (recommended if any color is None).")
         self.params['opacity'] = Param(opacity,
             valType='num', inputType="single", categ='Appearance',
             updates='constant', allowedTypes=[],

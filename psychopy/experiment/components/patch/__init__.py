@@ -29,7 +29,7 @@ _localized.update({'image': _translate('Image/tex'),
 
 class PatchComponent(BaseVisualComponent):
     """An event class for presenting image-based stimuli"""
-
+    targets = ['PsychoPy']
     def __init__(self, exp, parentName, name='patch', image='sin', mask='None',
                  sf='None', interpolate='linear',
                  units='from exp settings', color='$[1,1,1]', colorSpace='rgb',
@@ -46,7 +46,7 @@ class PatchComponent(BaseVisualComponent):
             startEstim=startEstim, durationEstim=durationEstim)
 
         self.type = 'Patch'
-        self.url = "http://www.psychopy.org/builder/components/patch.html"
+        self.url = "https://www.psychopy.org/builder/components/patch.html"
         # params
 
         msg = _translate("The image to be displayed - 'sin','sqr'... or a "

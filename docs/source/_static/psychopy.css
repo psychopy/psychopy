@@ -355,3 +355,19 @@ h3, .h3 {
         padding: 80px;
     }
 }
+
+/* Classes for coloured text (first used in online/status.rst) */
+.darkgreen {
+  color: darkgreen;
+  font-weight: bold;
+}
+
+.darkorange {
+  color: darkorange;
+  font-weight: bold;
+}
+
+.darkred {
+  color: darkred;
+  font-weight: bold;
+}

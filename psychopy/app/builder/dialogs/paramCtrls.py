@@ -1,4 +1,14 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Part of the PsychoPy library
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Distributed under the terms of the GNU General Public License (GPL).
+
 import os
+import subprocess
+import sys
+
 import wx
 
 from psychopy.app.colorpicker import PsychoColorPicker
@@ -12,8 +22,9 @@ from pathlib import Path
 
 from ..localizedStrings import _localizedDialogs as _localized
 
+
 class _ValidatorMixin():
-    def validate(self, evt):
+    def validate(self, evt=None):
         """Redirect validate calls to global validate method, assigning appropriate valType"""
         validate(self, self.valType)
 
@@ -23,12 +34,23 @@ class _ValidatorMixin():
             return
         if valid:
             self.SetForegroundColour(wx.Colour(
-                ThemeMixin.codeColors['base']['fg']
+                0, 0, 0
             ))
         else:
             self.SetForegroundColour(wx.Colour(
                 1, 0, 0
             ))
+
+    def updateCodeFont(self, valType):
+        """Style input box according to code wanted"""
+        if not hasattr(self, "SetFont") or self.GetName() == "name":
+            # Skip if font not applicable to object type
+            return
+        if valType == "code":
+            # Set font
+            self.SetFont(self.GetTopLevelParent().app._codeFont)
+        else:
+            self.SetFont(self.GetTopLevelParent().app._mainFont)
 
 class _FileMixin:
     @property
@@ -93,27 +115,13 @@ class SingleLineCtrl(wx.TextCtrl, _ValidatorMixin):
         # Add self to sizer
         self._szr.Add(self, proportion=1, border=5, flag=wx.EXPAND)
         # Bind to validation
-        self.Bind(wx.EVT_TEXT, self.codeWanted)
-        self.codeWanted(None)
-
-    def codeWanted(self, evt):
-        if self.GetValue().startswith("$") or not self.valType == "str" and not self.GetName() == "name":
-            spec = ThemeMixin.codeColors.copy()
-            base = spec['base']
-            # Override base font with user spec if present
-            if prefs.coder['codeFont'].lower() != "From Theme...".lower():
-                base['font'] = prefs.coder['codeFont']
-            self.SetFont(self.GetTopLevelParent().app._codeFont)
-            validate(self, "code")
-        else:
-            validate(self, self.valType)
-            self.SetFont(self.GetTopLevelParent().app._mainFont)
-
+        self.Bind(wx.EVT_TEXT, self.validate)
+        self.validate()
 
 class MultiLineCtrl(SingleLineCtrl, _ValidatorMixin):
     def __init__(self, parent, valType,
                  val="", fieldName="",
-                 size=wx.Size(-1, 72)):
+                 size=wx.Size(-1, 144)):
         SingleLineCtrl.__init__(self, parent, valType,
                                 val=val, fieldName=fieldName,
                                 size=size, style=wx.TE_MULTILINE)
@@ -157,8 +165,43 @@ class ChoiceCtrl(wx.Choice, _ValidatorMixin):
         self.Create(parent, -1, size=size, choices=choiceLabels, name=fieldName)
         self._choices = choices
         self.valType = valType
-        if val in choices:
-            self.SetSelection(choices.index(val))
+        self.SetStringSelection(val)
+
+    def SetStringSelection(self, string):
+        if string not in self._choices:
+            self._choices.append(string)
+            self.SetItems(self._choices)
+        # Don't use wx.Choice.SetStringSelection here
+        # because label string is localized.
+        wx.Choice.SetSelection(self, self._choices.index(string))
+
+
+class MultiChoiceCtrl(wx.CheckListBox, _ValidatorMixin):
+    def __init__(self, parent, valType,
+                 vals="", choices=[], fieldName="",
+                 size=wx.Size(-1, 144)):
+        wx.CheckListBox.__init__(self)
+        self.Create(parent, id=wx.ID_ANY, size=size, choices=choices, name=fieldName, style=wx.LB_MULTIPLE)
+        self.valType = valType
+        self._choices = choices
+        # Make initial selection
+        if isinstance(vals, str):
+            # Convert to list if needed
+            vals = data.utils.listFromString(vals, excludeEmpties=True)
+        self.SetCheckedStrings(vals)
+        self.validate()
+
+    def SetCheckedStrings(self, strings):
+        if not isinstance(strings, (list, tuple)):
+            strings = [strings]
+        for s in strings:
+            if s not in self._choices:
+                self._choices.append(s)
+                self.SetItems(self._choices)
+        wx.CheckListBox.SetCheckedStrings(self, strings)
+
+    def GetValue(self, evt=None):
+        return self.GetCheckedStrings()
 
 
 class FileCtrl(wx.TextCtrl, _ValidatorMixin, _FileMixin):
@@ -180,6 +223,7 @@ class FileCtrl(wx.TextCtrl, _ValidatorMixin, _FileMixin):
         self._szr.Add(self.findBtn)
         # Configure validation
         self.Bind(wx.EVT_TEXT, self.validate)
+        self.validate()
 
     def findFile(self, evt):
         file = self.getFile()
@@ -268,6 +312,7 @@ class TableCtrl(wx.TextCtrl, _ValidatorMixin, _FileMixin):
         }
         # Configure validation
         self.Bind(wx.EVT_TEXT, self.validate)
+        self.validate()
         self.validExt = [".csv",".tsv",".txt",
                          ".xl",".xlsx",".xlsm",".xlsb",".xlam",".xltx",".xltm",".xls",".xlt",
                          ".htm",".html",".mht",".mhtml",
@@ -277,7 +322,8 @@ class TableCtrl(wx.TextCtrl, _ValidatorMixin, _FileMixin):
                          ".iqy",".dqy",".rqy",".oqy",
                          ".cub",".atom",".atomsvc",
                          ".prn",".slk",".dif"]
-    def validate(self, evt):
+
+    def validate(self, evt=None):
         """Redirect validate calls to global validate method, assigning appropriate valType"""
         validate(self, "file")
         # Enable Excel button if valid
@@ -291,18 +337,23 @@ class TableCtrl(wx.TextCtrl, _ValidatorMixin, _FileMixin):
     def openExcel(self, event):
         """Either open the specified excel sheet, or make a new one from a template"""
         file = self.rootDir / self.GetValue()
-        if file.is_file() and file.suffix in self.validExt:
-            os.startfile(file)
-        else:
+        if not (file.is_file() and file.suffix in self.validExt): # If not a valid file
             dlg = wx.MessageDialog(self, _translate(
-                f"Once you have created and saved your table, please remember to add it to {self.Name}"),
-                             caption="Reminder")
+                "Once you have created and saved your table,"
+                "please remember to add it to {name}").format(name=_translate(self.Name)),
+                             caption=_translate("Reminder"))
             dlg.ShowModal()
             if hasattr(self.GetTopLevelParent(), 'type'):
                 if self.GetTopLevelParent().type in self.templates:
-                    os.startfile(self.templates[self.GetTopLevelParent().type])
-                    return
-            os.startfile(self.templates['None']) # Open blank template
+                    file = self.templates[self.GetTopLevelParent().type] # Open type specific template
+                else:
+                    file = self.templates['None'] # Open blank template
+        # Open whatever file is used
+        try:
+            os.startfile(file)
+        except AttributeError:
+            opener = "open" if sys.platform == "darwin" else "xdg-open"
+            subprocess.call([opener, file])
 
     def findFile(self, event):
         _wld = f"All Table Files({'*'+';*'.join(self.validExt)})|{'*'+';*'.join(self.validExt)}|All Files (*.*)|*.*"
@@ -337,9 +388,12 @@ class ColorCtrl(wx.TextCtrl, _ValidatorMixin):
         self._szr.Add(self.pickerBtn)
         # Bind to validation
         self.Bind(wx.EVT_TEXT, self.validate)
+        self.validate()
 
     def colorPicker(self, evt):
-        PsychoColorPicker(self.GetTopLevelParent().frame)
+        dlg = PsychoColorPicker(self.GetTopLevelParent().frame, context='builder')
+        dlg.ShowModal()
+        dlg.Destroy()
 
 def validate(obj, valType):
     val = str(obj.GetValue())
@@ -418,6 +472,9 @@ def validate(obj, valType):
     if hasattr(obj, "showValid"):
         obj.showValid(valid)
 
+    # Update code font
+    obj.updateCodeFont(valType)
+
 class DictCtrl(ListWidget, _ValidatorMixin):
     def __init__(self, parent,
                  val={}, valType='dict',
@@ -433,12 +490,8 @@ class DictCtrl(ListWidget, _ValidatorMixin):
         # If any items within the list are not dicts or are dicts longer than 1, throw error
         if not all(isinstance(v, dict) and len(v) == 2 for v in val):
             raise ValueError("DictCtrl must be supplied with either a dict or a list of 1-long dicts, value supplied was {}".format(val))
-        # Iterate through list of dicts to get each key in order
-        order = []
-        for row in val:
-            order.append(row['Field'])
         # Create ListWidget
-        ListWidget.__init__(self, parent, val, order=order)
+        ListWidget.__init__(self, parent, val, order=['Field', 'Default'])
 
     def SetForegroundColour(self, color):
         for child in self.Children:

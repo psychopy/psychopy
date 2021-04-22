@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import psychopy
 from psychopy import visual, core, event, logging
 import numpy as np
 
@@ -48,22 +47,19 @@ txt3 = TextBox2(win, text='Good for non-editable text (Esc to quit)',
 
 txt1.autoDraw=True
 txt2.autoDraw=True
+txt3.autoDraw=True
 
 clock = core.Clock()
 t=0
-while t<20:
+while t<30:
     t= clock.getTime()
 
     txt2.pos = (0.2*np.sin(t), 0.2*np.cos(t))
-    
-    # Do not need to call draw() each flip() 
-    # for txt1 or txt2 since autoDraw is enabled for them.
-        
-    txt3.draw()
-    
+            
     if 'escape' in event.getKeys():
         core.quit()
-
+    
     win.flip()
+
 logging.flush()
 

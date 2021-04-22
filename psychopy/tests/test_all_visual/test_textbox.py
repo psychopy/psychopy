@@ -2,6 +2,7 @@ from builtins import object
 from pathlib import Path
 
 from psychopy import visual, event
+from psychopy.alerts._errorHandler import _BaseErrorHandler
 from psychopy.visual import Window
 from psychopy.visual import TextBox2
 from psychopy.visual.textbox2.fontmanager import FontManager
@@ -15,6 +16,7 @@ from psychopy.tests import utils
 class Test_textbox(object):
     def setup_class(self):
         self.win = Window([128,128], pos=[50,50], allowGUI=False, autoLog=False)
+        self.error = _BaseErrorHandler()
 
     def teardown_class(self):
         self.win.close()
@@ -67,7 +69,7 @@ class Test_textbox(object):
             if case['screenshot']:
                 # Uncomment to save current configuration as desired
                 #self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / case['screenshot'])
-                utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / case['screenshot'], self.win)
+                utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / case['screenshot'], self.win, crit=20)
 
     def test_colors(self):
         textbox = TextBox2(self.win, "",
@@ -86,19 +88,24 @@ class Test_textbox(object):
             # White on black in hex
             {"color": "#ffffff", "fillColor": "#000000", "borderColor": "#000000", "space": "hex",
              "screenshot": "textbox_colors_WOB.png"},
+            {"color": "red", "fillColor": "yellow", "borderColor": "blue", "space": "rgb",
+             "screenshot": "textbox_colors_exemplar1.png"},
+            {"color": "yellow", "fillColor": "blue", "borderColor": "red", "space": "rgb",
+             "screenshot": "textbox_colors_exemplar2.png"},
+            {"color": "blue", "fillColor": "red", "borderColor": "yellow", "space": "rgb",
+             "screenshot": "textbox_colors_exemplar3.png"},
         ]
         # Some colors which are likely to cause problems if something isn't working
         tykes = [
             # Text only
             {"color": "white", "fillColor": None, "borderColor": None, "space": "rgb",
              "screenshot": "textbox_colors_tyke1.png"},
-            # The following will only work when the Color class is implemented (currently opacity is all or nothing)
             # Fill only
-            # {"color": None, "fillColor": "white", "borderColor": None, "space": "rgb",
-            #  "screenshot": "textbox_colors_tyke2.png"},
+            {"color": None, "fillColor": "white", "borderColor": None, "space": "rgb",
+             "screenshot": "textbox_colors_tyke2.png"},
             # Border only
-            # {"color": None, "fillColor": None, "borderColor": "white", "space": "rgb",
-            # "screenshot": "textbox_colors_tyke3.png"},
+            {"color": None, "fillColor": None, "borderColor": "white", "space": "rgb",
+            "screenshot": "textbox_colors_tyke3.png"},
         ]
         # Test each case and compare against screenshot
         for case in exemplars + tykes:
@@ -115,7 +122,7 @@ class Test_textbox(object):
             if case['screenshot']:
                 # Uncomment to save current configuration as desired
                 # self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / case['screenshot'])
-                utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / case['screenshot'], self.win)
+                utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / case['screenshot'], self.win, crit=20)
 
 
     def test_basic(self):
@@ -124,3 +131,19 @@ class Test_textbox(object):
     def test_something(self):
         # to-do: test visual display, char position, etc
         pass
+
+    def test_font_manager(self):
+        # Create a font manager
+        mgr = FontManager()
+        # Check that it finds fonts which should be pre-packaged with PsychoPy in the resources folder
+        assert bool(mgr.getFontNamesSimilar("Open Sans"))
+        # Check that it doesn't find fonts which aren't installed as default
+        assert not bool(mgr.getFontNamesSimilar("Dancing Script"))
+        # Check that it can install fonts from Google
+        mgr.addGoogleFont("Hanalei")
+        # Check that these fonts are found once installed
+        assert bool(mgr.getFontNamesSimilar("Hanalei"))
+
+    def test_alerts(self):
+        noFontTextbox = TextBox2(self.win, "", font="Raleway Dots", bold=True)
+        assert (self.error.alerts[0].code == 4325)

@@ -48,7 +48,7 @@ class TextboxComponent(BaseVisualComponent):
                  # effectively just a display-value
                  text=_translate('Any text\n\nincluding line breaks'),
                  font='Open Sans', units='from exp settings', bold=False, italic=False,
-                 color='white', colorSpace='rgb', opacity=1.0,
+                 color='white', colorSpace='rgb', opacity="",
                  pos=(0, 0), size='', letterHeight=0.05, ori=0,
                  lineSpacing=1.0, padding="",  # gap between box and text
                  startType='time (s)', startVal=0.0, anchor='center',
@@ -73,7 +73,7 @@ class TextboxComponent(BaseVisualComponent):
                                             startEstim=startEstim,
                                             durationEstim=durationEstim)
         self.type = 'Textbox'
-        self.url = "http://www.psychopy.org/builder/components/text.html"
+        self.url = "https://www.psychopy.org/builder/components/textbox.html"
         self.order += [  # controls order of params within tabs
             "editable", "text",  # Basic tab
             "borderWidth", "opacity",  # Appearance tab
@@ -229,6 +229,7 @@ class TextboxComponent(BaseVisualComponent):
                 "  opacity: %(opacity)s,\n"
                 "  padding: %(padding)s,\n"
                 "  editable: %(editable)s,\n"
+                "  multiline: true,\n"
                 "  anchor: %(anchor)s,\n")
         buff.writeIndentedLines(code % inits)
 
@@ -236,6 +237,7 @@ class TextboxComponent(BaseVisualComponent):
         code = ("  depth: %.1f \n"
                 "});\n\n" % (depth))
         buff.writeIndentedLines(code)
+        depth = -self.getPosInRoutine()
 
     def writeRoutineEndCode(self, buff):
         name = self.params['name']
@@ -250,13 +252,14 @@ class TextboxComponent(BaseVisualComponent):
         super().writeRoutineEndCode(buff)
 
     def writeRoutineEndCodeJS(self, buff):
+        name = self.params['name']
         if len(self.exp.flow._loopList):
             currLoop = self.exp.flow._loopList[-1]  # last (outer-most) loop
         else:
             currLoop = self.exp._expHandler
         if self.params['editable']:
-            buff.writeIndented("psychoJS.experiment.addData('%(name)s.text', %(name)s.text);\n" %
-                               self.params)
+            buff.writeIndentedLines(f"psychoJS.experiment.addData('{name}.text',{name}.text)\n"
+                                    f"{name}.reset()\n")
         # get parent to write code too (e.g. store onset/offset times)
         super().writeRoutineEndCodeJS(buff)
 

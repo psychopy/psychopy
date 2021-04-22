@@ -45,6 +45,8 @@ Examples:
 
 The reason that these colors are expressed ranging between 1 and -1 (rather than 0:1 or 0:255) is that many experiments, particularly in visual science where PsychoPy has its roots, express colors as deviations from a grey screen. Under that scheme a value of -1 is the maximum decrement from grey and +1 is the maximum increment above grey.
 
+You can still specify colors in RGB from 0:1 or 0:255, but you will need to let PsychoPy know that this is what you're doing. To do this, set the color space to be `rgb1` for 0:1 or `rgb255` for 0:255 - if the color space is just `rgb`, then values will be from -1:1
+
 Note that PsychoPy will use your monitor calibration to linearize this for each gun. E.g., 0 will be halfway between the minimum luminance and maximum luminance for each gun, if your monitor gammaGrid is set correctly.
 
 .. _HSV:

@@ -198,15 +198,6 @@ class CodeSnippetValidator(BaseValidator):
         # Validate as list
         allKeyBoardKeys = list(key._key_names.values()) + [str(num) for num in range(10)]
         allKeyBoardKeys = [key.lower() for key in allKeyBoardKeys]
-        if self.fieldName == 'correctAns' and not val.startswith('$'):
-            keyList = listFromString(val)
-            if isinstance(keyList, str):
-                keyList = [keyList]
-            potentialVars = list(set(keyList) - set(allKeyBoardKeys))  # Elements of keyList not in allKeyBoardKeys
-            _highlightParamVal(parent, bool(potentialVars))
-            if len(potentialVars):
-                msg = _translate("It looks like your 'Correct answer' contains a variable - prepend variables with '$' e.g. ${val}")
-                msg = msg.format(val=potentialVars[0].lower())
 
         # Check if it is a Google font
         if self.fieldName == 'font' and not val.startswith('$'):
@@ -262,7 +253,7 @@ class CodeSnippetValidator(BaseValidator):
                         if newName in [*namespace.user, *namespace.builder, *namespace.constants]:
                             # Continue if name is a variable
                             continue
-                        if newName in [*namespace.nonUserBuilder, *namespace.numpy] and not re.search(newName+"(?!\(\))", val):
+                        if newName in [*namespace.nonUserBuilder, *namespace.numpy] and not re.search(newName+r"(?!\(\))", val):
                             # Continue if name is an external function being called correctly
                             continue
                         used = namespace.exists(newName)

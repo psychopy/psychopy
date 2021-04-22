@@ -13,7 +13,7 @@ import copy
 import numpy as np
 
 from psychopy import core, logging, event
-from .basevisual import MinimalStim, ColorMixin
+from .basevisual import MinimalStim, ColorMixin, BaseVisualStim
 from .rect import Rect
 from .grating import GratingStim
 from .elementarray import ElementArrayStim
@@ -55,11 +55,14 @@ class Slider(MinimalStim, ColorMixin):
                  size=None,
                  units=None,
                  flip=False,
-                 style='rating',
+                 style='rating', styleTweaks=[],
                  granularity=0,
                  readOnly=False,
-                 color='LightGray',
+                 color='White',
+                 fillColor='Red',
+                 borderColor='White',
                  colorSpace='rgb',
+                 opacity=None,
                  font='Helvetica Bold',
                  depth=0,
                  name=None,
@@ -155,6 +158,9 @@ class Slider(MinimalStim, ColorMixin):
         self.granularity = granularity
         self.colorSpace = colorSpace
         self.color = color
+        self.fillColor = fillColor
+        self.borderColor = borderColor
+        self.opacity = opacity
         self.font = font
         self.autoDraw = autoDraw
         self.depth = depth
@@ -194,7 +200,9 @@ class Slider(MinimalStim, ColorMixin):
         self.responseClock = core.Clock()
 
         # set the style when everything else is set
+        self.styleTweaks = []
         self.style = style
+        self.styleTweaks += styleTweaks
 
     def __repr__(self, complete=False):
         return self.__str__(complete=complete)  # from MinimalStim
@@ -229,6 +237,57 @@ class Slider(MinimalStim, ColorMixin):
         """
         return self._size
 
+    @property
+    def opacity(self):
+        BaseVisualStim.opacity.fget(self)
+    @opacity.setter
+    def opacity(self, value):
+        BaseVisualStim.opacity.fset(self, value)
+        self.fillColor = self._fillColor.copy()
+        self.borderColor = self._borderColor.copy()
+        self.foreColor = self._foreColor.copy()
+    def setOpacity(self, value):
+        self.opacity = value
+
+    @property
+    def foreColor(self):
+        ColorMixin.foreColor.fget(self)
+    @foreColor.setter
+    def foreColor(self, value):
+        ColorMixin.foreColor.fset(self, value)
+        # Set color of each label
+        if hasattr(self, 'labelObjs'):
+            for lbl in self.labelObjs:
+                lbl.color = self._foreColor.copy()
+
+    @property
+    def fillColor(self):
+        ColorMixin.fillColor.fget(self)
+    @fillColor.setter
+    def fillColor(self, value):
+        ColorMixin.fillColor.fset(self, value)
+        # Set color of marker
+        if hasattr(self, 'marker'):
+            self.marker.fillColor = self._foreColor.copy()
+
+    @property
+    def borderColor(self):
+        ColorMixin.borderColor.fget(self)
+    @borderColor.setter
+    def borderColor(self, value):
+        ColorMixin.borderColor.fset(self, value)
+        # Set color of lines
+        if hasattr(self, 'line'):
+            if self.style not in ["scrollbar"]: # Scrollbar doesn't have an outline
+                self.line.color = self._borderColor.copy()
+            self.line.fillColor = self._borderColor.copy()
+            if self.style in ["slider", "scrollbar"]: # Slider and scrollbar need translucent fills
+                self.line._fillColor.alpha *= 0.2
+        if hasattr(self, 'tickLines'):
+            self.tickLines.colors = self._borderColor.copy()
+            self.tickLines.opacities = self._borderColor.alpha
+
+
     def reset(self):
         """Resets the slider to its starting state (so that it can be restarted
         on each trial with a new stimulus)
@@ -249,14 +308,15 @@ class Slider(MinimalStim, ColorMixin):
         else:
             lineSize = self._lineW, self._lineL
             tickSize = self._tickL, self._lineW
-        self.line = GratingStim(win=self.win, pos=self.pos, color=self._foreColor, colorSpace=self.colorSpace,
+        self.line = GratingStim(win=self.win, pos=self.pos, color=self._borderColor.copy(), colorSpace=self.colorSpace,
                                 size=lineSize, sf=0, units=self.units,
                                 autoLog=False)
         self.tickLines = ElementArrayStim(win=self.win, units=self.units,
                                           nElements=len(self.ticks),
                                           xys=self.tickLocs,
                                           elementMask=None,
-                                          colors=self._foreColor, colorSpace = self.colorSpace,
+                                          colors=self._borderColor.copy(), colorSpace = self.colorSpace,
+                                          opacities=self._borderColor.alpha,
                                           sizes=tickSize, sfs=0,
                                           autoLog=False)
 
@@ -286,7 +346,7 @@ class Slider(MinimalStim, ColorMixin):
 
                 obj = TextStim(self.win, label, font=self.font,
                                anchorHoriz=alignHoriz, anchorVert=alignVert,
-                               units=self.units, color=self._foreColor, colorSpace=self.colorSpace,
+                               units=self.units, color=self._foreColor.copy(), colorSpace=self.colorSpace,
                                pos=self.labelLocs[tickN, :],
                                height=self.labelHeight, 
                                wrapWidth=self.labelWrapWidth,
@@ -302,14 +362,13 @@ class Slider(MinimalStim, ColorMixin):
 
         self.marker = Circle(self.win, units=self.units,
                              size=markerSize,
-                             color='red',
+                             fillColor=self._fillColor,
                              autoLog=False)
 
         # create a rectangle to check for clicks
         self.validArea = Rect(self.win, units=self.units,
                               pos=self.pos,
-                              width=self.size[0] * 1.1,
-                              height=self.size[1] * 1.1,
+                              size=[d * 1.1 for d in self.size],
                               lineColor='DarkGrey',
                               autoLog=False)
 
@@ -551,8 +610,44 @@ class Slider(MinimalStim, ColorMixin):
 
         self._mouseStateXY = xy
 
-    knownStyles = ['slider', 'rating', 'radio', 'labels45', 'whiteOnBlack',
-                   'triangleMarker']
+    # Overload color setters so they set sub-components
+    @property
+    def foreColor(self):
+        ColorMixin.foreColor.fget(self)
+    @foreColor.setter
+    def foreColor(self, value):
+        ColorMixin.foreColor.fset(self, value)
+        # Set color for all labels
+        if hasattr(self, "labelObjs"):
+            for obj in self.labelObjs:
+                obj.color = self._foreColor.copy()
+
+    @property
+    def fillColor(self):
+        ColorMixin.fillColor.fget(self)
+    @fillColor.setter
+    def fillColor(self, value):
+        ColorMixin.fillColor.fset(self, value)
+        # Set color for marker
+        if hasattr(self, "marker"):
+            self.marker.fillColor = self._fillColor.copy()
+
+    @property
+    def borderColor(self):
+        ColorMixin.borderColor.fget(self)
+    @borderColor.setter
+    def borderColor(self, value):
+        ColorMixin.borderColor.fset(self, value)
+        # Set color for lines
+        if hasattr(self, "line"):
+            self.line.color = self._borderColor.copy()
+        if hasattr(self, "tickLines"):
+            self.tickLines.colors = self._borderColor.copy()
+
+    knownStyles = ['slider', 'rating', 'radio', 'scrollbar']
+    legacyStyles = []
+    knownStyleTweaks = ['labels45', 'triangleMarker']
+    legacyStyleTweaks = ['whiteOnBlack']
 
     @attributeSetter
     def style(self, style):
@@ -562,26 +657,117 @@ class Slider(MinimalStim, ColorMixin):
 
         Parameters
         ----------
-        style: list of strings
+        style: string
 
             Known styles currently include:
 
                 'rating': the marker is a circle
-                'triangleMarker': the marker is a triangle
                 'slider': looks more like an application slider control
                 'whiteOnBlack': a sort of color-inverse rating scale
-                'labels45': the text is rotated by 45 degrees
                 'scrollbar': looks like a scrollbar for a window
 
-            Styles can be combined in a list e.g. `['whiteOnBlack','labels45']`
+            Styles cannot be combined in a list - they are discrete
 
         """
         self.__dict__['style'] = style
 
-        if 'rating' in style:
+        # Legacy: If given a list (as was once the case), take the first style
+        if isinstance(style, (list, tuple)):
+            styles = style
+            style = "rating"
+            for val in styles:
+                # If list contains a style, use it
+                if val in self.knownStyles + self.legacyStyles:
+                    style = val
+                # Apply any tweaks
+                if val in self.knownStyleTweaks + self.legacyStyleTweaks:
+                    self.styleTweaks += val
+
+        if style == 'rating':
             pass  # this is just the default
 
-        if 'triangleMarker' in style:
+        if style == 'slider':
+            # make it more like a slider using a box instead of line
+            self.line = Rect(self.win, units=self.units,
+                             pos=self.pos,
+                             size=self.size,
+                             fillColor=self._borderColor.copy(),
+                             lineColor=None,
+                             autoLog=False)
+            self.line._fillColor.alpha *= 0.2
+            if self.horiz:
+                markerW = self.size[0] * 0.01
+                markerH = self.size[1] * 0.8
+            else:
+                markerW = self.size[0] * 0.8
+                markerH = self.size[1] * 0.01
+
+            self.marker = Rect(self.win, units=self.units,
+                               size=[markerW, markerH],
+                               fillColor=self._fillColor,
+                               lineColor=None,
+                               autoLog=False)
+
+        if style == 'radio':
+            # no line, ticks are circles
+            self.line.opacity = 0
+            # ticks are circles
+            self.tickLines.sizes = (self._tickL, self._tickL)
+            self.tickLines.elementMask = 'circle'
+            # marker must be smalle than a "tick" circle
+            self.marker.size = self._tickL * 0.7
+            self.marker.fillColor = self._fillColor.copy()
+
+        if style == 'scrollbar':
+            # Make marker the full height and 20% of the width of the slider
+            markerSz = self.size[0]*0.2 if self.horiz else self.size[1]*0.2
+            w, h = self.size
+            self.marker = Rect(self.win, units=self.units,
+                               size=[markerSz, h] if self.horiz else [w, markerSz],
+                               fillColor=self._fillColor,
+                               lineColor=None,
+                               autoLog=False)
+            # Make the line a translucent box
+            self.line = Rect(self.win, units=self.units,
+                             pos=self.pos,
+                             size=[w+markerSz, h] if self.horiz else [w, h+markerSz],
+                             fillColor=self._borderColor.copy(),
+                             lineColor=None,
+                             autoLog=False)
+            self.line._fillColor.alpha *= 0.05
+            self.tickLines = Rect(self.win, size=(0,0), lineColor=None, fillColor=None)
+
+        # Legacy: If given a tweak, apply it as a tweak rather than a style
+        if style in self.knownStyleTweaks + self.legacyStyleTweaks:
+            self.styleTweaks.append(style)
+
+    @attributeSetter
+    def styleTweaks(self, styleTweaks):
+        """Sets some predefined style tweaks or use these to create your own.
+
+        If you fancy creating and including your own style tweaks that would be great!
+
+        Parameters
+        ----------
+        styleTweaks: list of strings
+
+            Known style tweaks currently include:
+
+                'triangleMarker': the marker is a triangle
+                'labels45': the text is rotated by 45 degrees
+
+            Legacy style tweaks include:
+
+                'whiteOnBlack': a sort of color-inverse rating scale
+
+            Legacy style tweaks will work if set in code, but are not exposed in Builder as they are redundant
+
+            Style tweaks can be combined in a list e.g. `['labels45']`
+
+        """
+        self.__dict__['styleTweaks'] = styleTweaks
+
+        if 'triangleMarker' in styleTweaks:
             if self.horiz and self.flip:
                 ori = -90
             elif self.horiz:
@@ -596,39 +782,12 @@ class Slider(MinimalStim, ColorMixin):
                                     vertices=[[0, 0], [0.5, 0.5], [0.5, -0.5]],
                                     size=markerSize,
                                     ori=ori,
-                                    fillColor='DarkRed',
-                                    lineColor='DarkRed',
+                                    fillColor=self._fillColor.copy(),
+                                    lineColor=None,
+                                    lineWidth=0,
                                     autoLog=False)
 
-        if 'slider' in style:
-            # make it more like a slider using a box instead of line
-            self.line = Rect(self.win, units=self.units,
-                             pos=self.pos,
-                             width=self.size[0],
-                             height=self.size[1],
-                             fillColor='DarkGray',
-                             lineColor='LightGray',
-                             autoLog=False)
-            if self.horiz:
-                markerW = self.size[0] * 0.1
-                markerH = self.size[1] * 0.8
-            else:
-                markerW = self.size[0] * 0.8
-                markerH = self.size[1] * 0.1
-
-            self.marker = Rect(self.win, units=self.units,
-                               width=markerW,
-                               height=markerH,
-                               fillColor='DarkSlateGray',
-                               lineColor='GhostWhite',
-                               autoLog=False)
-
-        if 'whiteOnBlack' in style:
-            self.line.color = 'black'
-            self.tickLines.colors = 'black'
-            self.marker.color = 'white'
-
-        if 'labels45' in style:
+        if 'labels45' in styleTweaks:
             for label in self.labelObjs:
                 if self.flip:
                     label.alignHoriz = 'left'
@@ -636,12 +795,10 @@ class Slider(MinimalStim, ColorMixin):
                     label.alignHoriz = 'right'
                 label.ori = -45
 
-        if 'radio' in style:
-            # no line, ticks are circles
-            self.line.opacity = 0
-            # ticks are circles
-            self.tickLines.sizes = (self._tickL, self._tickL)
-            self.tickLines.elementMask = 'circle'
-            # marker must be smalle than a "tick" circle
-            self.marker.size = self._tickL * 0.7
-            self.marker.fillColor = "DarkRed"
+        # Legacy
+        if 'whiteOnBlack' in styleTweaks:
+            self.line.color = 'black'
+            self.tickLines.colors = 'black'
+            self.marker.color = 'white'
+            for label in self.labelObjs:
+                label.color = 'white'

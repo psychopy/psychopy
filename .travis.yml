@@ -1,6 +1,6 @@
 # vim ft=yaml
 # travis-ci.org and coveralls definition for PsychoPy tests
-dist: trusty  # trusty is giving an error on bitsShaders test (glReadpixels()?)
+dist: bionic  # trusty is giving an error on bitsShaders test (glReadpixels()?)
 sudo: true
 
 language: python

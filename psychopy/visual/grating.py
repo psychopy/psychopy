@@ -17,7 +17,7 @@ from __future__ import absolute_import, division, print_function
 # Shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
 import pyglet
 
-from psychopy.colors import Color, AdvancedColor
+from psychopy.colors import Color
 
 pyglet.options['debug_gl'] = False
 import ctypes
@@ -86,7 +86,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
                  color=(1.0, 1.0, 1.0),
                  colorSpace='rgb',
                  contrast=1.0,
-                 opacity=1.0,
+                 opacity=None,
                  depth=0,
                  rgbPedestal=(0.0, 0.0, 0.0),
                  interpolate=False,
@@ -138,11 +138,11 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         elif dkl != None:
             logging.warning("Use of dkl arguments to stimuli are deprecated."
                             " Please use color and colorSpace args instead")
-            self.color = AdvancedColor(dkl, 'dkl')
+            self.color = Color(dkl, 'dkl')
         elif lms != None:
             logging.warning("Use of lms arguments to stimuli are deprecated."
                             " Please use color and colorSpace args instead")
-            self.color = AdvancedColor(lms, 'lms')
+            self.color = Color(lms, 'lms')
 
         # set other parameters
         self.ori = float(ori)
@@ -157,7 +157,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         self.tex = tex
         self.mask = mask
         self.contrast = float(contrast)
-        self.opacity = float(opacity)
+        self.opacity = opacity
         self.autoLog = autoLog
         self.autoDraw = autoDraw
         self.blendmode=blendmode

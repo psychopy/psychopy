@@ -46,7 +46,7 @@ _localized.update({'noiseImage': _translate('Image from which to derive noise sp
 
 class NoiseStimComponent(BaseVisualComponent):
     """A class for presenting grating stimuli"""
-
+    targets = ['PsychoPy']
     def __init__(self, exp, parentName, name='noise', noiseImage='None',
                  mask='None', sf='None', interpolate='nearest',
                  units='from exp settings', color='$[1,1,1]', colorSpace='rgb',
@@ -74,7 +74,7 @@ class NoiseStimComponent(BaseVisualComponent):
         self._forceUpdateSeconds = False
 
         self.type = 'NoiseStim'
-        self.url = "http://www.psychopy.org/builder/components/NoiseStim.html"
+        self.url = "https://www.psychopy.org/builder/components/NoiseStim.html"
         self.order += [
             'blendmode',  # Appearance tab
             'noiseElementSize',  # Layout tab

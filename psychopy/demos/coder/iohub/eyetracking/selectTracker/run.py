@@ -63,7 +63,7 @@ class ExperimentRuntime(ioHubExperimentRuntime):
                                     allowGUI=False,
                                     screen= 0
                                     )
-
+        window.setMouseVisible(False)
         # Create a dict of image stim for trials and a gaze blob to show gaze position.
         #
         display_coord_type=display.getCoordinateType()

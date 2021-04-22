@@ -32,8 +32,10 @@ _localized.update({'tex': _translate('Texture'),
 class GratingComponent(BaseVisualComponent):
     """A class for presenting grating stimuli"""
 
+    targets = ['PsychoPy']
+
     def __init__(self, exp, parentName, name='grating', image='sin',
-                 mask='None', sf='None', interpolate='linear',
+                 mask='', sf='', interpolate='linear',
                  units='from exp settings', color='$[1,1,1]', colorSpace='rgb',
                  contrast=1.0, pos=(0, 0), size=(0.5, 0.5), ori=0, phase=0.0, texRes='128',
                  startType='time (s)', startVal=0.0,
@@ -48,7 +50,7 @@ class GratingComponent(BaseVisualComponent):
             startEstim=startEstim, durationEstim=durationEstim)
 
         self.type = 'Grating'
-        self.url = "http://www.psychopy.org/builder/components/grating.html"
+        self.url = "https://www.psychopy.org/builder/components/grating.html"
         self.order += [
             'tex', 'mask', 'phase', 'sf', 'texture resolution', 'interpolate',  # Texture tab
         ]
@@ -66,7 +68,7 @@ class GratingComponent(BaseVisualComponent):
         msg = _translate("An image to define the alpha mask (ie shape)- "
                          "gauss, circle... or a filename (including path)")
         self.params['mask'] = Param(
-            mask, valType='file', inputType="file", allowedVals=["gauss, circle"], allowedTypes=[], categ='Texture',
+            mask, valType='file', inputType="file", allowedVals=["gauss", "circle"], allowedTypes=[], categ='Texture',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,

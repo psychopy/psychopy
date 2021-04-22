@@ -118,6 +118,7 @@ class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
         self.verticesBase = xys
         self._needVertexUpdate = True
         self._needColorUpdate = True
+        self._RGBAs = None
         self.useShaders = True
         self.interpolate = interpolate
         self.__dict__['fieldDepth'] = fieldDepth
@@ -409,25 +410,12 @@ class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
         simultaneously or use operations on colors.
         """
         if hasattr(self, '_colors'):
-            # Render each color in the object's color space
-            rendered = []
-            for color in self._colors:
-                rendered.append(color.render(self.colorSpace))
             # Return array of rendered colors
-            return rendered
+            return self._colors.render(self.colorSpace)
     @colors.setter
     def colors(self, value):
         # Create blank array of colors
-        self._colors = []
-        # Prepare value for iteration
-        if isinstance(value, numpy.ndarray):
-            value = list(value)
-        if not isinstance(value, (list, tuple)):
-            value = [value]
-        # Iterate through values
-        for color in value:
-            # Append to colors
-            self._colors.append(Color(color, self.colorSpace))
+        self._colors = Color(value, self.colorSpace, self.contrast)
         self._needColorUpdate = True
 
     def setColors(self, colors, colorSpace=None, operation='', log=None):
@@ -446,8 +434,7 @@ class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
         self._opacity = value
         if hasattr(self, "_colors"):
             # Set the alpha value of each color to be the desired opacity
-            for color in self._colors:
-                color.alpha = value
+            self._colors.alpha = value
 
 
     @attributeSetter
@@ -534,15 +521,8 @@ class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
         self.win.setScale('pix')
 
         cpcd = ctypes.POINTER(ctypes.c_double)
-        RGBAs = numpy.zeros([len(self.verticesPix), 4], 'd')
-        v = 0
-        while v < len(self.verticesPix):
-            for col in self._colors:
-                RGBAs[v,:] = col.render('rgba1')
-                v += 1
-        RGBAs = RGBAs.reshape([len(self.verticesPix), 1, 4]).repeat(4, 1)
         GL.glColorPointer(4, GL.GL_DOUBLE, 0,
-                          RGBAs.ctypes.data_as(cpcd))
+                          self._RGBAs.ctypes.data_as(cpcd))
         GL.glVertexPointer(3, GL.GL_DOUBLE, 0,
                            self.verticesPix.ctypes.data_as(cpcd))
 
@@ -647,6 +627,11 @@ class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
         element so this function also converts them to be one for
         each vertex of each element.
         """
+        N = self.nElements
+        _RGBAs = numpy.zeros([len(self.verticesPix), 4], 'd')
+        _RGBAs[:,:] = self._colors.render('rgba1')
+        _RGBAs[:, -1] = self.opacities.reshape([N, ])
+        self._RGBAs = _RGBAs.reshape([len(self.verticesPix), 1, 4]).repeat(4, 1)
         self._needColorUpdate = False
 
     def updateTextureCoords(self):

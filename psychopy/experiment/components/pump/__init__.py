@@ -32,7 +32,7 @@ _localized.update({'pumpIndex': _translate('Pump index'),
 class QmixPumpComponent(BaseComponent):
     """Operate a Cetoni neMESYS syringe pump"""
     categories = ['I/O']
-
+    targets = ['PsychoPy']
     def __init__(self, exp, parentName, name='pump',
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
@@ -52,7 +52,7 @@ class QmixPumpComponent(BaseComponent):
             startEstim=startEstim, durationEstim=durationEstim)
 
         self.type = 'QmixPump'
-        self.url = 'http://www.psychopy.org/builder/components/pump.html'
+        self.url = 'https://www.psychopy.org/builder/components/pump.html'
         self.categories = ['I/O']
 
         self.exp.requireImport(importName='qmix',

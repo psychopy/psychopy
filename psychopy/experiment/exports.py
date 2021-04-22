@@ -332,7 +332,7 @@ class NameSpace(object):
 
     def makeLoopIndex(self, name):
         """return a valid, readable loop-index name:
-            'this' + (plural->singular).capitalize() [+ (_\d+)]
+            'this' + (plural->singular).capitalize() [+ (_\\d+)]
         """
         try:
             newName = str(name)

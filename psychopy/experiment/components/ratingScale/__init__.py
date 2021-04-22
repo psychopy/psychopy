@@ -50,7 +50,7 @@ class RatingScaleComponent(BaseComponent):
     """A class for presenting a rating scale as a builder component
     """
     categories = ['Responses']
-
+    targets = ['PsychoPy']
     def __init__(self, exp, parentName,
                  name='rating',
                  scaleDescription='',
@@ -78,7 +78,7 @@ class RatingScaleComponent(BaseComponent):
             stopType=stopType, stopVal=stopVal,
             startEstim=startEstim, durationEstim=durationEstim)
         self.type = 'RatingScale'
-        self.url = "http://www.psychopy.org/builder/components/ratingscale.html"
+        self.url = "https://www.psychopy.org/builder/components/ratingscale.html"
         self.exp.requirePsychopyLibs(['visual', 'event'])
 
         # params
@@ -128,6 +128,7 @@ class RatingScaleComponent(BaseComponent):
             label=_localized['labels'])
         self.params['marker'] = Param(
             marker, valType='str', inputType="choice", allowedTypes=[], categ='Interface',
+            allowedVals=['triangle', 'circle', 'glow', 'slider', 'hover'],
             updates='constant', allowedUpdates=[],  # categ="Advanced",
             hint=_translate("Style for the marker: triangle, circle, glow, "
                             "slider, hover"),
@@ -187,7 +188,7 @@ class RatingScaleComponent(BaseComponent):
 
         # customization:
         self.params['customize_everything'] = Param(
-            customize_everything, valType='extendedStr', allowedTypes=[],
+            customize_everything, valType='code', inputType="multi", allowedTypes=[],
             updates='constant', allowedUpdates=[], categ="Custom",
             hint=_translate("Use this text to create the rating scale as you"
                             " would in a code component; overrides all"
@@ -224,7 +225,15 @@ class RatingScaleComponent(BaseComponent):
                 init_str += ', marker=%s' % repr(self.params['marker'].val)
                 if self.params['marker'].val == 'glow':
                     init_str += ', markerExpansion=5'
-            init_str += ", size=%s" % self.params['size']
+
+            s = str(self.params['size'].val)
+            s = s.lstrip('([ ').strip(')] ')
+            try:
+                size = list(map(float, s.split(','))) * 2
+                init_str += ", size=%s" % size[0]
+            except Exception:
+                pass  # size = None
+
             s = str(self.params['pos'].val)
             s = s.lstrip('([ ').strip(')] ')
             try:

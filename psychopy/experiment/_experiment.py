@@ -28,6 +28,7 @@ import xml.etree.ElementTree as xml
 from xml.dom import minidom
 from copy import deepcopy
 from pathlib import Path
+from packaging.version import Version
 
 import psychopy
 from psychopy import data, __version__, logging
@@ -35,7 +36,7 @@ from .exports import IndentingBuffer, NameSpace
 from .flow import Flow
 from .loops import TrialHandler, LoopInitiator, \
     LoopTerminator, StairHandler, MultiStairHandler
-from .params import _findParam, Param
+from .params import _findParam, Param, legacyParams
 from .routine import Routine
 from . import utils, py2js
 from .components import getComponents, getAllComponents
@@ -46,6 +47,9 @@ import locale
 # standard_library.install_aliases()
 
 from collections import OrderedDict, namedtuple
+
+from ..alerts import alert
+
 RequiredImport = namedtuple('RequiredImport',
                             field_names=('importName',
                                          'importFrom',
@@ -208,9 +212,9 @@ class Experiment(object):
             self_copy.flow.writeBody(script)
             self_copy.settings.writeEndCode(script)  # close log file
             script = script.getvalue()
+
         elif target == "PsychoJS":
             script.oneIndent = "  "  # use 2 spaces rather than python 4
-
 
             self_copy.settings.writeInitCodeJS(script,self_copy.psychopyVersion,
                                                localDateTime, modular)
@@ -372,7 +376,10 @@ class Experiment(object):
 
         # custom settings (to be used when
         if valType == 'fixedList':  # convert the string to a list
-            params[name].val = eval('list({})'.format(val))
+            try:
+                params[name].val = eval('list({})'.format(val))
+            except NameError:  # if val is a single string it will look like variable
+                params[name].val = [val]
         elif name == 'storeResponseTime':
             return  # deprecated in v1.70.00 because it was redundant
         elif name == 'nVertices':  # up to 1.85 there was no shape param
@@ -448,11 +455,14 @@ class Experiment(object):
             params['stopType'].val = "{}".format('time (s)')
             params['stopVal'].val = "{}".format(times[1])
             return  # times doesn't need to update its type or 'updates' rule
-        elif name in ('Begin Experiment', 'Begin Routine', 'Each Frame',
-                      'End Routine', 'End Experiment'):
+        elif name in ('Before Experiment', 'Begin Experiment', 'Begin Routine', 'Each Frame',
+                      'End Routine', 'End Experiment',
+                      'Before JS Experiment', 'Begin JS Experiment', 'Begin JS Routine', 'Each JS Frame',
+                      'End JS Routine', 'End JS Experiment'):
+            # up to version 1.78.00 and briefly in 2021.1.0-1.1 these were 'code'
             params[name].val = val
-            params[name].valType = 'extendedCode'  # changed in 1.78.00
-            return  # so that we don't update valTyp again below
+            params[name].valType = 'extendedCode'
+            return  # so that we don't update valType again below
         elif name == 'Saved data folder':
             # deprecated in 1.80 for more complete data filename control
             params[name] = Param(
@@ -522,7 +532,7 @@ class Experiment(object):
                     if params[name].allowedTypes is None:
                         params[name].allowedTypes = []
                     params[name].readOnly = True
-                    if name not in ['JS libs', 'OSF Project ID']:
+                    if name not in legacyParams + ['JS libs', 'OSF Project ID']:
                         # don't warn people if we know it's OK (e.g. for params
                         # that have been removed
                         msg = _translate(
@@ -567,6 +577,12 @@ class Experiment(object):
             # the current exp is already vaporized at this point, oops
             return
         self.psychopyVersion = root.get('version')
+        # If running an experiment from a future version, send alert to change "Use Version"
+        if Version(psychopy.__version__) < Version(self.psychopyVersion):
+            alert(code=4051, strFields={'version': self.psychopyVersion})
+        # If versions are either side of 2021, send alert
+        if Version(psychopy.__version__) >= Version("2021.1.0") > Version(self.psychopyVersion):
+            alert(code=4052, strFields={'version': self.psychopyVersion})
 
         # Parse document nodes
         # first make sure we're empty
@@ -778,6 +794,10 @@ class Experiment(object):
             :param filePath: str to a potential file path (rel or abs)
             :return: dict of 'asb' and 'rel' paths or None
             """
+            # Only construct paths if filePath is a string
+            if type(filePath) != str:
+              return None
+
             thisFile = {}
             # NB: Pathlib might be neater here but need to be careful
             # e.g. on mac:

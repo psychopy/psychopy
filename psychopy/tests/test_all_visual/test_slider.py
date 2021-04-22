@@ -26,16 +26,16 @@ class Test_Slider(object):
         self.win.close()
 
     def test_color(self):
-        colors = ['black', 'red']
+        colors = [['red', 'blue', 'yellow'], ['blue', 'yellow', 'red'], ['yellow', 'red', 'blue']]
 
         for color in colors:
-            s = Slider(self.win, color=color)
-
-            assert s.line._foreColor == Color(color, s.colorSpace)
-            assert s.tickLines._colors[0] == Color(color, s.colorSpace)
+            s = Slider(self.win, color=color[0], fillColor=color[1], borderColor=color[2])
 
             for l in s.labelObjs:
-                assert l.color == color
+                assert l._foreColor == Color(color[0], s.colorSpace)
+            assert s.marker._fillColor == Color(color[1], s.colorSpace)
+            assert s.line._foreColor == Color(color[2], s.colorSpace)
+            assert s.tickLines._colors == Color(color[2], s.colorSpace)
 
     def test_change_color(self):
         s = Slider(self.win, color='black')
