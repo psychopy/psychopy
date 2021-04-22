@@ -1552,7 +1552,7 @@ class RoutinesNotebook(aui.AuiNotebook, ThemeMixin):
         self.removePages()
         displayOrder = sorted(self.frame.exp.routines.keys())  # alphabetical
         for routineName in displayOrder:
-            if isinstance(self.frame.exp.routines[routineName], Routine):
+            if isinstance(self.frame.exp.routines[routineName], (Routine, BaseStandaloneRoutine)):
                 self.addRoutinePage(
                     routineName, self.frame.exp.routines[routineName])
         if currPage > -1:
