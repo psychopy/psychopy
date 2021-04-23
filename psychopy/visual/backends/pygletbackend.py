@@ -789,6 +789,31 @@ class PygletBackend(BaseBackend):
         """
         self.winHandle.set_exclusive_mouse(bool(exclusive))
 
+    def getMousePos(self):
+        """Get the position of the mouse on the current window.
+
+        Returns
+        -------
+        ndarray
+            Position `(x, y)` in window coordinates.
+
+        """
+        winX = self.winHandle._mouse_x
+        winY = self.winHandle._mouse_y
+        return self._windowCoordsToPix((winX, winY))
+
+    def setMousePos(self, pos):
+        """Set/move the position of the mouse on the current window.
+
+        Parameters
+        ----------
+        pos : ArrayLike
+            Position `(x, y)` in window coordinates.
+
+        """
+        x, y = self._pixToWindowCoords(pos)
+        self.winHandle.set_mouse_position(int(x), int(y))
+
 
 def _onResize(width, height):
     """A default resize event handler.

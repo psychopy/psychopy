@@ -297,6 +297,32 @@ class BaseBackend(ABC):
         raise NotImplementedError(
             "`onMouseLeave` is not yet implemented for this backend.")
 
+    @abstractmethod
+    def getMousePos(self):
+        """Get the position of the mouse on the current window.
+
+        Returns
+        -------
+        ndarray
+            Position `(x, y)` in window coordinates.
+
+        """
+        raise NotImplementedError(
+            "`getMousePos` is not yet implemented for this backend.")
+
+    @abstractmethod
+    def setMousePos(self, pos):
+        """Set/move the position of the mouse on the current window.
+
+        Parameters
+        ----------
+        pos : ArrayLike
+            Position `(x, y)` in window coordinates.
+
+        """
+        raise NotImplementedError(
+            "`setMousePos` is not yet implemented for this backend.")
+
     def setMouseType(self, name='arrow'):
         """Change the appearance of the cursor for this window. Cursor types
         provide contextual hints about how to interact with on-screen objects.

@@ -18,7 +18,7 @@ __all__ = [
 import numpy as np
 import psychopy.core as core
 import psychopy.visual.window as window
-from psychopy.tools.monitorunittools import pix2cm, pix2deg
+from psychopy.tools.monitorunittools import pix2cm, pix2deg, cm2pix, deg2pix
 
 
 # mouse button indices
@@ -344,7 +344,21 @@ class Mouse(object):
             Position `(x, y)` in window units.
 
         """
-        pass
+        pos = np.asarray(pos, dtype=np.float32)
+
+        if self.win is None:
+            return pos
+
+        if self.win.units == 'pix':
+            return pos
+        elif self.win.units == 'norm':
+            return pos * self.win.size / 2.0
+        elif self.win.units == 'cm':
+            return cm2pix(pos, self.win.monitor)
+        elif self.win.units == 'deg':
+            return deg2pix(pos, self.win.monitor)
+        elif self.win.units == 'height':
+            return pos * float(self.win.size[1])
 
     @property
     def win(self):
@@ -458,6 +472,11 @@ class Mouse(object):
             self._exclusive = None
 
     @property
+    def isExclusive(self):
+        """`True` if the mouse is in exclusive mode (`bool`)."""
+        return self._exclusive is not None
+
+    @property
     def buttons(self):
         """Global mouse buttons states (`ndarray`).
 
@@ -517,7 +536,13 @@ class Mouse(object):
         """Current mouse position (x, y) on window (`ndarray`).
         """
         assert len(value) == 2
-        self._mousePos[MOUSE_EVENT_MOTION, MOUSE_POS_CURRENT, :] = value
+        self._mousePos[MOUSE_EVENT_MOTION, MOUSE_POS_CURRENT, :] = \
+            self._windowUnitsToPix(value)
+
+        if self.win is not None:
+            self.win.backend.setMousePos(
+                self._mousePos[MOUSE_EVENT_MOTION, MOUSE_POS_CURRENT, :])
+
         self._velocityNeedsUpdate = True
 
         # todo - set the position when this is updated
@@ -550,12 +575,14 @@ class Mouse(object):
     def prevPos(self):
         """Previously reported mouse position (x, y) on window (`ndarray`).
         """
-        return self._mousePos[MOUSE_EVENT_MOTION, MOUSE_POS_PREVIOUS, :]
+        return self._pixToWindowUnits(
+            self._mousePos[MOUSE_EVENT_MOTION, MOUSE_POS_PREVIOUS, :])
 
     @prevPos.setter
     def prevPos(self, value):
         assert len(value) == 2
-        self._mousePos[MOUSE_EVENT_MOTION, MOUSE_POS_PREVIOUS, :] = value
+        self._mousePos[MOUSE_EVENT_MOTION, MOUSE_POS_PREVIOUS, :] = \
+            self._windowUnitsToPix(value)
 
     def getPrevPos(self):
         """Get the previous position of the mouse pointer.
@@ -587,8 +614,10 @@ class Mouse(object):
             vector will give the direction vector.
 
         """
-        return self._mousePos[MOUSE_EVENT_MOTION, MOUSE_POS_CURRENT, :] - \
+        relPos = self._mousePos[MOUSE_EVENT_MOTION, MOUSE_POS_CURRENT, :] - \
             self._mousePos[MOUSE_EVENT_MOTION, MOUSE_POS_PREVIOUS, :]
+
+        return self._pixToWindowUnits(relPos)
 
     def getDistance(self):
         """Get the distance in window units the mouse moved.
@@ -599,7 +628,8 @@ class Mouse(object):
             Distance in window units.
 
         """
-        return np.sqrt(np.sum(np.square(self.getRelPos()), dtype=np.float32))
+        distPix = np.sqrt(np.sum(np.square(self.getRelPos()), dtype=np.float32))
+        return self._pixToWindowUnits(distPix)
 
     @property
     def leftButtonPressed(self):
@@ -627,7 +657,7 @@ class Mouse(object):
     def pressedPos(self):
         """Positions buttons were last pressed (`ndarray`).
         """
-        return self._mouseButtonPosPressed
+        return self._pixToWindowUnits(self._mouseButtonPosPressed)
 
     @property
     def releasedTimes(self):
@@ -640,7 +670,7 @@ class Mouse(object):
     def releasedPos(self):
         """Positions buttons were last released (`ndarray`).
         """
-        return self._mouseButtonPosReleased
+        return self._pixToWindowUnits(self._mouseButtonPosReleased)
 
     @property
     def pressedDuration(self):
@@ -693,7 +723,7 @@ class Mouse(object):
 
             self._velocityNeedsUpdate = False
 
-        return self._mouseVelocity
+        return self._pixToWindowUnits(self._mouseVelocity)
 
     def setCursorStyle(self, cursorType='default'):
         """Change the appearance of the cursor for all windows. Cursor types

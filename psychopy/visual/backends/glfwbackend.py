@@ -787,11 +787,39 @@ class GLFWBackend(BaseBackend):
 
         """
         if exclusive:
-            glfw.set_input_mode(self.winHandle, glfw.CURSOR, glfw.CURSOR_DISABLED)
-            glfw.set_input_mode(self.winHandle, glfw.RAW_MOUSE_MOTION, glfw.TRUE)
+            glfw.set_input_mode(
+                self.winHandle, glfw.CURSOR, glfw.CURSOR_DISABLED)
+            glfw.set_input_mode(
+                self.winHandle, glfw.RAW_MOUSE_MOTION, glfw.TRUE)
         else:
-            glfw.set_input_mode(self.winHandle, glfw.CURSOR, glfw.CURSOR_NORMAL)
-            glfw.set_input_mode(self.winHandle, glfw.RAW_MOUSE_MOTION, glfw.FALSE)
+            glfw.set_input_mode(
+                self.winHandle, glfw.CURSOR, glfw.CURSOR_NORMAL)
+            glfw.set_input_mode(
+                self.winHandle, glfw.RAW_MOUSE_MOTION, glfw.FALSE)
+
+    def getMousePos(self):
+        """Get the position of the mouse on the current window.
+
+        Returns
+        -------
+        ndarray
+            Position `(x, y)` in window coordinates.
+
+        """
+        winX, winY = glfw.get_cursor_pos(self.winHandle)
+        return self._windowCoordsToPix((winX, winY))
+
+    def setMousePos(self, pos):
+        """Set/move the position of the mouse on the current window.
+
+        Parameters
+        ----------
+        pos : ArrayLike
+            Position `(x, y)` in window coordinates.
+
+        """
+        x, y = self._pixToWindowCoords(pos)
+        glfw.set_cursor_pos(self.winHandle, int(x), int(y))
 
 
 def _onResize(width, height):
