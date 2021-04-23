@@ -639,14 +639,13 @@ class Experiment(object):
                 else:
                     # Otherwise treat as unknown
                     routine = allRoutines['UnknownRoutine'](exp=self, name=routineNode.get('name'))
-                # Add routine to experiment
-                self.addStandaloneRoutine(routine.name, routine)
                 # Apply all params
                 for paramNode in routineNode:
                     if paramNode.tag == "Param":
-                        attrs = {key: value for key, value in paramNode.items()}
-                        del attrs['name']
-                        routine.params[paramNode.get("name")] = Param(**attrs)
+                        for key, val in paramNode.items():
+                            setattr(routine.params[paramNode.get("name")], key, val)
+                # Add routine to experiment
+                self.addStandaloneRoutine(routine.name, routine)
         # for each component that uses a Static for updates, we need to set
         # that
         for thisRoutine in list(self.routines.values()):
