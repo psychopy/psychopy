@@ -818,8 +818,8 @@ class GLFWBackend(BaseBackend):
             Position `(x, y)` in window coordinates.
 
         """
-        x, y = self._pixToWindowCoords(pos)
-        glfw.set_cursor_pos(self.winHandle, int(x), int(y))
+        wcs = self._pixToWindowCoords(pos)
+        glfw.set_cursor_pos(self.winHandle, int(wcs[0]), int(wcs[1]))
 
 
 def _onResize(width, height):

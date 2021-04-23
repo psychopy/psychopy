@@ -545,8 +545,6 @@ class Mouse(object):
 
         self._velocityNeedsUpdate = True
 
-        # todo - set the position when this is updated
-
     def getPos(self):
         """Get the current position of the mouse pointer.
 

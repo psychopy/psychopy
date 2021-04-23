@@ -196,7 +196,7 @@ class BaseBackend(ABC):
         # some other convention, that backend class should override this method
         # to ensure `_windowToPixCoords` returns the correct value.
         #
-        return np.array((pos[0], self.win.size[1] + pos[1]), dtype=np.float32)
+        return np.array((pos[0], -pos[1] + self.win.size[1]), dtype=np.float32)
 
     def _windowCoordsToPix(self, pos):
         """Convert window coordinates to the PsychoPy 'pix' coordinate system.
