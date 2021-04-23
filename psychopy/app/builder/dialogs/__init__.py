@@ -150,7 +150,7 @@ class ParamCtrls(object):
         elif param.inputType == 'bool':
             self.valueCtrl = paramCtrls.BoolCtrl(parent,
                                          name=fieldName,size=wx.Size(self.valueWidth, 24))
-            self.valueCtrl.SetValue(param.val)
+            self.valueCtrl.SetValue(bool(param.val))
         elif param.inputType == 'file' or browse:
             self.valueCtrl = paramCtrls.FileCtrl(parent,
                                                  val=str(param.val), valType=param.valType,
@@ -534,9 +534,10 @@ class ParamNotebook(wx.Notebook, ThemeMixin):
         self.parent = parent
         self.exp = experiment
         self.element = element
+        self.params = element.params
         # Get arrays of params
         paramsByCateg = OrderedDict()
-        for name, param in element.params.items():
+        for name, param in self.params.items():
             # Add categ if not present
             if param.categ not in paramsByCateg:
                 paramsByCateg[param.categ] = OrderedDict()
@@ -564,6 +565,60 @@ class ParamNotebook(wx.Notebook, ThemeMixin):
         """
         for i in range(self.GetPageCount()):
             self.GetPage(i).checkDepends(event)
+
+    def getParams(self):
+        """retrieves data from any fields in self.paramCtrls
+        (populated during the __init__ function)
+
+        The new data from the dlg get inserted back into the original params
+        used in __init__ and are also returned from this method.
+        """
+        # get data from input fields
+        for fieldName in self.params:
+            param = self.params[fieldName]
+            # Get control
+            ctrl = self.paramCtrls[fieldName]
+            # Get value
+            if hasattr(ctrl, "getValue"):
+                param.val = ctrl.getValue()
+            elif isinstance(ctrl, wx.Choice):
+                param.val = ctrl.GetStringSelection()
+            elif hasattr(ctrl, "GetValue"):
+                param.val = ctrl.GetValue()
+            # Get type
+            if hasattr(ctrl, "typeCtrl"):
+                if ctrl.typeCtrl:
+                    param.valType = ctrl.typeCtrl.GetStringSelection()
+            # Get update type
+            if hasattr(ctrl, "updateCtrl"):
+                if ctrl.updateCtrl:
+                    updates = ctrl.updateCtrl.GetStringSelection()
+                    # may also need to update a static
+                    if param.updates != updates:
+                        self._updateStaticUpdates(fieldName,
+                                                  param.updates, updates)
+                        param.updates = updates
+        return self.params
+
+    def _updateStaticUpdates(self, fieldName, updates, newUpdates):
+        """If the old/new updates ctrl is using a Static component then we
+        need to remove/add the component name to the appropriate static
+        """
+        exp = self.exp
+        compName = self.params['name'].val
+        if hasattr(updates, 'startswith') and "during:" in updates:
+            # remove the part that says 'during'
+            updates = updates.split(': ')[1]
+            origRoutine, origStatic = updates.split('.')
+            _comp = exp.routines[origRoutine].getComponentFromName(origStatic)
+            if _comp is not None:
+                _comp.remComponentUpdate(origRoutine, compName, fieldName)
+        if hasattr(newUpdates, 'startswith') and "during:" in newUpdates:
+            # remove the part that says 'during'
+            newUpdates = newUpdates.split(': ')[1]
+            newRoutine, newStatic = newUpdates.split('.')
+            _comp = exp.routines[newRoutine].getComponentFromName(newStatic)
+            _comp.addComponentUpdate(newRoutine, compName, fieldName)
 
 
 class _BaseParamsDlg(wx.Dialog):
@@ -640,6 +695,9 @@ class _BaseParamsDlg(wx.Dialog):
                                proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
 
         self.SetSizerAndFit(self.mainSizer)
+
+    def getParams(self):
+        return self.ctrls.getParams()
 
     def openMonitorCenter(self, event):
         self.app.openMonitorCenter(event)
@@ -869,60 +927,6 @@ class _BaseParamsDlg(wx.Dialog):
 
         if hasattr(event, 'Skip'):
             event.Skip()
-
-    def getParams(self):
-        """retrieves data from any fields in self.paramCtrls
-        (populated during the __init__ function)
-
-        The new data from the dlg get inserted back into the original params
-        used in __init__ and are also returned from this method.
-        """
-        # get data from input fields
-        for fieldName in self.params:
-            param = self.params[fieldName]
-            # Get control
-            ctrl = self.ctrls.paramCtrls[fieldName]
-            # Get value
-            if hasattr(ctrl, "getValue"):
-                param.val = ctrl.getValue()
-            elif isinstance(ctrl, wx.Choice):
-                param.val = ctrl.GetStringSelection()
-            elif hasattr(ctrl, "GetValue"):
-                param.val = ctrl.GetValue()
-            # Get type
-            if hasattr(ctrl, "typeCtrl"):
-                if ctrl.typeCtrl:
-                    param.valType = ctrl.typeCtrl.GetStringSelection()
-            # Get update type
-            if hasattr(ctrl, "updateCtrl"):
-                if ctrl.updateCtrl:
-                    updates = ctrl.updateCtrl.GetStringSelection()
-                    # may also need to update a static
-                    if param.updates != updates:
-                        self._updateStaticUpdates(fieldName,
-                                                  param.updates, updates)
-                        param.updates = updates
-        return self.params
-
-    def _updateStaticUpdates(self, fieldName, updates, newUpdates):
-        """If the old/new updates ctrl is using a Static component then we
-        need to remove/add the component name to the appropriate static
-        """
-        exp = self.frame.exp
-        compName = self.params['name'].val
-        if hasattr(updates, 'startswith') and "during:" in updates:
-            # remove the part that says 'during'
-            updates = updates.split(': ')[1]
-            origRoutine, origStatic = updates.split('.')
-            _comp = exp.routines[origRoutine].getComponentFromName(origStatic)
-            if _comp != None:
-                _comp.remComponentUpdate(origRoutine, compName, fieldName)
-        if hasattr(newUpdates, 'startswith') and "during:" in newUpdates:
-            # remove the part that says 'during'
-            newUpdates = newUpdates.split(': ')[1]
-            newRoutine, newStatic = newUpdates.split('.')
-            _comp = exp.routines[newRoutine].getComponentFromName(newStatic)
-            _comp.addComponentUpdate(newRoutine, compName, fieldName)
 
     def _checkName(self, event=None, name=None):
         """checks namespace, return error-msg (str), enable (bool)
