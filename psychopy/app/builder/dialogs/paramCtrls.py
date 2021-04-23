@@ -307,7 +307,10 @@ class TableCtrl(wx.TextCtrl, _ValidatorMixin, _FileMixin):
         expRoot = Path(cmpRoot).parent
         self.templates = {
             'Form': Path(cmpRoot) / "form" / "formItems.xltx",
-            'Loop': Path(expRoot) / "loopTemplate.xltx",
+            'TrialHandler': Path(expRoot) / "loopTemplate.xltx",
+            'StairHandler': Path(expRoot) / "loopTemplate.xltx",
+            'MultiStairHandler': Path(expRoot) / "loopTemplate.xltx",
+            'QuestHandler': Path(expRoot) / "loopTemplate.xltx",
             'None': Path(expRoot) / 'blankTemplate.xltx',
         }
         # Configure validation

@@ -1120,7 +1120,6 @@ class DlgLoopProperties(_BaseParamsDlg):
 
         wx.Dialog.__init__(self, None, wx.ID_ANY, localizedTitle,
                            pos, size, style)
-        self.type = 'Loop'
         self.helpUrl = helpUrl
         self.frame = frame
         self.exp = frame.exp
@@ -1506,6 +1505,15 @@ class DlgLoopProperties(_BaseParamsDlg):
         self.mainSizer.Layout()
         self.Fit()
         self.Refresh()
+
+    @property
+    def type(self):
+        """What type of loop is represented by this dlg"""
+        return self.currentHandler.type
+
+    @type.setter
+    def type(self, value):
+        self.setCtrls(value)
 
     def onTypeChanged(self, evt=None):
         newType = evt.GetString()
