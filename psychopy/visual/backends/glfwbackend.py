@@ -50,7 +50,9 @@ retinaContext = None  # it will be set to an actual context if needed
 # generate and cache standard cursors
 _GLFW_CURSORS_ = {
     'arrow': glfw.create_standard_cursor(glfw.ARROW_CURSOR),
+    'default': glfw.create_standard_cursor(glfw.ARROW_CURSOR),
     'ibeam': glfw.create_standard_cursor(glfw.IBEAM_CURSOR),
+    'text': glfw.create_standard_cursor(glfw.IBEAM_CURSOR),
     'crosshair': glfw.create_standard_cursor(glfw.CROSSHAIR_CURSOR),
     'hand': glfw.create_standard_cursor(glfw.HAND_CURSOR),
     'hresize': glfw.create_standard_cursor(glfw.HRESIZE_CURSOR),
@@ -774,6 +776,22 @@ class GLFWBackend(BaseBackend):
             mouseEventHandler.win = self.win
         else:
             mouseEventHandler.win = None
+
+    def setMouseExclusive(self, exclusive):
+        """Set mouse exclusivity.
+
+        Parameters
+        ----------
+        exclusive : bool
+            Mouse exclusivity mode.
+
+        """
+        if exclusive:
+            glfw.set_input_mode(self.winHandle, glfw.CURSOR, glfw.CURSOR_DISABLED)
+            glfw.set_input_mode(self.winHandle, glfw.RAW_MOUSE_MOTION, glfw.TRUE)
+        else:
+            glfw.set_input_mode(self.winHandle, glfw.CURSOR, glfw.CURSOR_NORMAL)
+            glfw.set_input_mode(self.winHandle, glfw.RAW_MOUSE_MOTION, glfw.FALSE)
 
 
 def _onResize(width, height):

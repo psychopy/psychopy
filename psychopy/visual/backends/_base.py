@@ -23,14 +23,18 @@ from psychopy.tools.attributetools import attributeSetter
 
 
 class BaseBackend(ABC):
-    """The backend class provides all the core low-level functions required by
-    a Window class, such as the ability to create an OpenGL context and flip
-    the window.
+    """The backend abstract base class that defines all the core low-level
+    functions required by a :class:`~psychopy.visual.Window` class.
+
+    Such functions as the ability to create an OpenGL context, process events,
+    and flip the window. Sub-classes of this function must implement the
+    abstract methods shown here to be complete.
 
     Users simply call visual.Window(..., winType='pyglet') and the `winType` is
     then used by `backends.getBackend(winType)` which will locate the
     appropriate class and initialize an instance using the attributes of the
     Window.
+
     """
     # define GL here as a class attribute that includes all the opengl funcs
     # e.g. GL = pyglet.gl
@@ -86,11 +90,6 @@ class BaseBackend(ABC):
     def shadersSupported(self):
         """This is a read-only property indicating whether or not this backend
         supports OpenGL shaders"""
-        raise NotImplementedError(
-                "Backend has failed to override a necessary method")
-
-    def setMouseVisibility(self, visibility):
-        """Set visibility of the mouse to True or False"""
         raise NotImplementedError(
                 "Backend has failed to override a necessary method")
 
@@ -250,7 +249,7 @@ class BaseBackend(ABC):
 
         This is used by backends which combine both button state changes into
         a single event. Usually this would pass events to the appropriate
-        `onMouseButtonPress` and `onMouseButtonRelease` events.
+        `onMouseButtonPress` and `onMouseButtonRelease` methods.
         """
         raise NotImplementedError(
             "`onMouseButton` is not yet implemented for this backend.")
@@ -359,6 +358,32 @@ class BaseBackend(ABC):
         """
         raise NotImplementedError(
             "`setMouseCursor` is not yet implemented for this backend.")
+
+    @abstractmethod
+    def setMouseVisibility(self, visible):
+        """Set mouse visibility.
+
+        Parameters
+        ----------
+        visible : bool
+            Mouse visibility mode.
+
+        """
+        raise NotImplementedError(
+            "`setMouseVisibility` is not yet implemented for this backend.")
+
+    @abstractmethod
+    def setMouseExclusive(self, exclusive):
+        """Set mouse exclusivity.
+
+        Parameters
+        ----------
+        exclusive : bool
+            Mouse exclusivity mode.
+
+        """
+        raise NotImplementedError(
+            "`setMouseExclusive` is not yet implemented for this backend.")
 
 
 if __name__ == "__main__":

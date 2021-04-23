@@ -639,7 +639,8 @@ class PygletBackend(BaseBackend):
 
             cursor = _PYGLET_CURSORS_['default']
 
-        self.win.set_mouse_cursor(cursor)
+        cursor = self.winHandle.get_system_mouse_cursor(cursor)
+        self.winHandle.set_mouse_cursor(cursor)
 
     # --------------------------------------------------------------------------
     # Window unit conversion
@@ -687,7 +688,7 @@ class PygletBackend(BaseBackend):
         return np.asarray(pos, dtype=np.float32)
 
     # --------------------------------------------------------------------------
-    # Mouse button event handlers
+    # Mouse event handlers and utilities
     #
     def onMouseButton(self, *args, **kwargs):
         """Event handler for any mouse button event (pressed and released).
@@ -776,6 +777,17 @@ class PygletBackend(BaseBackend):
         absPos = self._windowCoordsToPix(args)
         mouseEventHandler.setMouseMotionState(absPos, absTime)
         mouseEventHandler.win = None
+
+    def setMouseExclusive(self, exclusive):
+        """Set mouse exclusivity.
+
+        Parameters
+        ----------
+        exclusive : bool
+            Mouse exclusivity mode.
+
+        """
+        self.winHandle.set_exclusive_mouse(bool(exclusive))
 
 
 def _onResize(width, height):

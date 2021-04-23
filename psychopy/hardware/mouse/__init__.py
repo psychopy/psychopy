@@ -131,17 +131,17 @@ class Mouse(object):
 
     # properties the user can set to configure the mouse
     _visible = True
-    _exclusive = True
+    _exclusive = None
 
     # have the window automatically be set when a cursor hovers over it
     _autoFocus = True
 
-    def __init__(self, device=None, visible=True, exclusive=True):
+    def __init__(self, device=None, visible=True, exclusive=None):
         # only setup if previously not instanced
         if not self._initialized:
             self._device = device
             self.visible = visible
-            self._exclusive = exclusive
+            self.exclusive = exclusive
         else:
             raise RuntimeError(
                 "Cannot create a new `psychopy.hardware.mouse.Mouse` instance. "
@@ -275,6 +275,21 @@ class Mouse(object):
 
     def setMouseScrollState(self, pos=(0, 0), offset=(0, 0), absTime=None):
         """Set the scroll wheel state.
+
+        This method is called by callback functions bound to mouse scroll events
+        emitted by the mouse driver interface. However, the user may call this
+        to simulate a mouse scroll events.
+
+        Parameters
+        ----------
+        pos : ArrayLike
+            Position `(x, y)` of the cursor the scroll event was registered.
+        offset : ArrayLike
+            Vertical and horizontal offset of the scroll wheel.
+        absTime : ArrayLike
+            Absolute time in seconds the event was registered. If `None`, a
+            timestamp will be generated automatically.
+
         """
         pass
 
@@ -313,6 +328,23 @@ class Mouse(object):
             return pix2deg(pos, self.win.monitor)
         elif self.win.units == 'height':
             return pos / float(self.win.size[1])
+
+    def _windowUnitsToPix(self, pos):
+        """Convert user specified window units to 'pix'. This method is the
+        inverse of `_pixToWindowUnits`.
+
+        Parameters
+        ----------
+        pos : ArrayLike
+            Position `(x, y)` in 'pix' coordinates to convert.
+
+        Returns
+        -------
+        ndarray
+            Position `(x, y)` in window units.
+
+        """
+        pass
 
     @property
     def win(self):
@@ -378,7 +410,10 @@ class Mouse(object):
 
     @property
     def exclusive(self):
-        """Mouse exclusivity mode (`bool`)."""
+        """Window the mouse is exclusive to exclusivity mode
+        (:class:`~psychopy.visual.Window` or None). See `setExclusive` for more
+        information.
+        """
         return self.getExclusive()
 
     @exclusive.setter
@@ -386,26 +421,41 @@ class Mouse(object):
         self.setExclusive(value)
 
     def getExclusive(self):
-        """Get whether the mouse in in exclusive mode.
+        """Get the window the mouse is exclusive to.
 
         Returns
         -------
-        bool
-            `True` if the pointer is exclusive to the window.
+        :class:`~psychopy.visual.Window` or None
+            Window the mouse is exclusive to. If `None`, the mouse is not
+            exclusive to any window.
 
         """
         return self._exclusive
 
-    def setExclusive(self, exclusive=True):
-        """Set mouse exclusive mode.
+    def setExclusive(self, win=None):
+        """Set the mouse cursor to be exclusive to the specified window. This
+        prevents the mouse from leaving the specified window.
 
         Parameters
         ----------
-        exclusive : bool
-            Mouse exclusivity mode to set.
+        win : :class:`~psychopy.visual.Window` or None
+            Window to make the mouse exclusive to. If `None`, window exclusivity
+            will be disabled.
 
         """
-        self._exclusive = exclusive
+        # disable exclusivity for the current window
+        if self._exclusive is not None:
+            self.win.backend.setMouseExclusive(False)
+
+        if win is not None:  # disable exclusivity if `None`
+            # disable exclusivity for the current window before changing (if set)
+            if self._exclusive is not None:
+                self.win.backend.setMouseExclusive(False)
+
+            self._exclusive = self.win = win  # exclusive window always `win`
+            self._exclusive.backend.setMouseExclusive(True)
+        else:
+            self._exclusive = None
 
     @property
     def buttons(self):
@@ -646,7 +696,7 @@ class Mouse(object):
         return self._mouseVelocity
 
     def setCursorStyle(self, cursorType='default'):
-        """Change the appearance of the cursor for this window. Cursor types
+        """Change the appearance of the cursor for all windows. Cursor types
         provide contextual hints about how to interact with on-screen objects.
 
         The graphics used 'standard cursors' provided by the operating system.
@@ -693,8 +743,13 @@ class Mouse(object):
           grey backgrounds.
 
         """
-        if hasattr(self.win.backend, "setMouseCursor"):
-            self.win.backend.setMouseCursor(cursorType)
+        if not window.openWindows:
+            return
+
+        for ref in window.openWindows:
+            win = ref()  # resolve weak ref
+            if hasattr(win.backend, 'setMouseCursor'):
+                win.backend.setMouseCursor(cursorType)
 
 
 if __name__ == "__main__":
