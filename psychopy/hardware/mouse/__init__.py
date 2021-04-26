@@ -53,16 +53,36 @@ class Mouse(object):
     time as if they were all coming from the same mouse. Users should process
     mouse events at least once per frame. Mouse window positions are stored
     internally in 'pix' units. Coordinates are automatically converted to the
-    units used by the window by getter and setter methods.
+    units used by the window the mouse is in.
+
+    You can create a `Mouse` instance at any time, however you are limited to
+    one per session. Calling `Mouse()` again will raise an error. You can
+    create the instance of this class at any time, even before any windows are
+    spawned. However, it is recommended that all windows are realized before
+    doing so.
+
+    Parameters
+    ----------
+    win : :class:`~psychopy.visual.Window` or None
+        Initial window for the mouse. If `None`, the window created first will
+        be used automatically.
+    visible : bool
+        Show the mouse cursor. This applies to all windows created before
+        instantiating this class.
+    exclusive : bool
+        Enable exclusive mode for `win`, which makes the window take ownership
+        of the cursor. This should be used for fullscreen applications which
+        require mouse input but do not show the system cursor. When enabled, the
+        cursor will not be visible.
 
     Notes
     -----
-    * This class must be instanced only by the user. Developers are forbidden
-      from instancing `Mouse` outside of the scope of a user's scripts. This
-      allows the user to configure the mouse input system. Callbacks should only
-      reference this class through `Mouse.getInstance()`. If the returned value
-      is `None`, then the user has not instanced this class yet and events
-      should not be registered.
+    * This class must be instanced only by the user. It is forbidden to instance
+      `Mouse` outside of the scope of a user's scripts. This allows the user to
+      configure the mouse input system. Callbacks should only reference this
+      class through `Mouse.getInstance()`. If the returned value is `None`, then
+      the user has not instanced this class yet and events should not be
+      registered.
 
     Examples
     --------
@@ -79,6 +99,22 @@ class Mouse(object):
 
         if mouse.isDragging and mouse.isRightPressed:
             circle.pos = mouse.pos
+
+    Check if the `Mouse` has been initialized by the user using static method
+    `initialized()`::
+
+        mouseReady = Mouse.initialized()
+
+    You must get the instance of `Mouse` outside the scope of the user's script
+    by calling `getInstance()`. Only developers of PsychoPy or advanced users
+    working with mice need to concern themselves with this (see Notes)::
+
+        mouseInput = Mouse.getInstance()
+        if mouseInput is not None:  # has been created by the user
+            mouseInput.win = win  # set the window as an example
+
+        # never do this, only the user is allowed to!
+        mouseInput = Mouse()
 
     """
     _instance = None  # class instance (singleton)
@@ -114,10 +150,6 @@ class Mouse(object):
 
     # Mouse positions during motion, press and scroll events are stored in this
     # array. The first index is the event which the position is associated with.
-    #
-    #   _mousePos[MOUSE_EVENT_MOTION] = [[  x_current,  y_current ],
-    #                                    [ x_previous, y_previous ]]
-    #
     _mousePos = np.zeros((MOUSE_EVENT_COUNT, 2, 2), dtype=np.float32)
 
     # positions where mouse button events occurred
@@ -131,15 +163,15 @@ class Mouse(object):
 
     # properties the user can set to configure the mouse
     _visible = True
-    _exclusive = None
+    _exclusive = False
 
     # have the window automatically be set when a cursor hovers over it
     _autoFocus = True
 
-    def __init__(self, device=None, visible=True, exclusive=None):
+    def __init__(self, win=None, visible=True, exclusive=False):
         # only setup if previously not instanced
         if not self._initialized:
-            self._device = device
+            self.win = win
             self.visible = visible
             self.exclusive = exclusive
         else:
@@ -370,7 +402,8 @@ class Mouse(object):
 
     @win.setter
     def win(self, value):
-        self._currentWindow = value
+        if not self._exclusive:
+            self._currentWindow = value
 
     @property
     def units(self):
@@ -424,9 +457,7 @@ class Mouse(object):
 
     @property
     def exclusive(self):
-        """Window the mouse is exclusive to exclusivity mode
-        (:class:`~psychopy.visual.Window` or None). See `setExclusive` for more
-        information.
+        """Make the current window (at property `win`) exclusive (`bool`).
         """
         return self.getExclusive()
 
@@ -435,46 +466,33 @@ class Mouse(object):
         self.setExclusive(value)
 
     def getExclusive(self):
-        """Get the window the mouse is exclusive to.
+        """Get if the window is exclusive.
 
         Returns
         -------
-        :class:`~psychopy.visual.Window` or None
+        bool
             Window the mouse is exclusive to. If `None`, the mouse is not
             exclusive to any window.
 
         """
         return self._exclusive
 
-    def setExclusive(self, win=None):
-        """Set the mouse cursor to be exclusive to the specified window. This
-        prevents the mouse from leaving the specified window.
+    def setExclusive(self, exclusive):
+        """Set the current window (at property `win`) to exclusive. When a
+        window is in exclusive/raw mode all mouse events are captured by the
+        window.
 
         Parameters
         ----------
-        win : :class:`~psychopy.visual.Window` or None
-            Window to make the mouse exclusive to. If `None`, window exclusivity
-            will be disabled.
+        exclusive : bool
+            If `True`, the window will be set to exclusive/raw mode.
 
         """
-        # disable exclusivity for the current window
-        if self._exclusive is not None:
-            self.win.backend.setMouseExclusive(False)
-
-        if win is not None:  # disable exclusivity if `None`
-            # disable exclusivity for the current window before changing (if set)
-            if self._exclusive is not None:
-                self.win.backend.setMouseExclusive(False)
-
-            self._exclusive = self.win = win  # exclusive window always `win`
-            self._exclusive.backend.setMouseExclusive(True)
+        if self.win is not None:
+            self._exclusive = exclusive
+            self.win.backend.setMouseExclusive(self._exclusive)
         else:
-            self._exclusive = None
-
-    @property
-    def isExclusive(self):
-        """`True` if the mouse is in exclusive mode (`bool`)."""
-        return self._exclusive is not None
+            self._exclusive = False
 
     @property
     def buttons(self):
