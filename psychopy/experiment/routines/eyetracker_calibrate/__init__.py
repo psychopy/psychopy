@@ -242,9 +242,9 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
         if len(targetDur) > 1:
             targetDur = sum(targetDur)
         else:
-            targetDur = targetDur[0] * 2
+            targetDur = targetDur * 2
         code = (
-                "'eyetracker.hw.tobii.EyeTracker': {\n"
+                "'eyetracker.hw.gazepoint.gp3.EyeTracker': {\n"
         )
         buff.writeIndentedLines(code % self.params)
         buff.setIndentLevel(1, relative=True)
