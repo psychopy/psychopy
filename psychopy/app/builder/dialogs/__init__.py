@@ -371,6 +371,8 @@ class ParamCtrls(object):
             self.valueCtrl.Bind(wx.EVT_CHECKLISTBOX, callbackFunction)
         elif isinstance(self.valueCtrl, wx.CheckBox):
             self.valueCtrl.Bind(wx.EVT_CHECKBOX, callbackFunction)
+        elif isinstance(self.valueCtrl, (paramCtrls.DictCtrl, paramCtrls.FileListCtrl)):
+            pass
         else:
             print("setChangesCallback doesn't know how to handle ctrl {}"
                   .format(type(self.valueCtrl)))
@@ -704,9 +706,8 @@ class _BaseParamsDlg(wx.Dialog):
         self.ctrls = ParamNotebook(self, element, experiment)
         self.paramCtrls = self.ctrls.paramCtrls
 
-        if self.__class__ != DlgExperimentProperties:
-            self.mainSizer.Add(self.ctrls,  # ctrls is the notebook of params
-                               proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
+        self.mainSizer.Add(self.ctrls,  # ctrls is the notebook of params
+                           proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
 
         self.SetSizerAndFit(self.mainSizer)
 
@@ -1661,56 +1662,3 @@ class DlgExperimentProperties(_BaseParamsDlg):
         self.mainSizer.Layout()
         self.Fit()
         self.Refresh()
-
-    def show(self):
-        """Adds an OK and cancel button, shows dialogue.
-
-        This method returns wx.ID_OK (as from ShowModal), but also
-        sets self.OK to be True or False
-        """
-        # add buttons for help, OK and Cancel
-        self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-        buttons = wx.BoxSizer()
-        if self.helpUrl is not None:
-            helpBtn = wx.Button(self, wx.ID_HELP, _translate(" Help "))
-            helpBtn.SetHelpText(_translate("Get help about this component"))
-            helpBtn.Bind(wx.EVT_BUTTON, self.onHelp)
-            buttons.Add(helpBtn, 0,
-                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, border=3)
-
-        self.OKbtn = wx.Button(self, wx.ID_OK, _translate(" OK "))
-        self.OKbtn.SetDefault()
-        CANCEL = wx.Button(self, wx.ID_CANCEL, _translate(" Cancel "))
-
-        buttons.AddStretchSpacer()
-        if sys.platform == 'darwin':
-            buttons.Add(CANCEL, 0,
-                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, border=3)
-            buttons.Add(self.OKbtn, 0,
-                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, border=3)
-        else:
-            buttons.Add(self.OKbtn, 0,
-                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, border=3)
-            buttons.Add(CANCEL, 0,
-                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, border=3)
-
-        self.mainSizer.Add(self.ctrls, proportion=1, flag=wx.EXPAND)
-        self.mainSizer.Add(buttons, border=3,
-                           flag=wx.ALL | wx.RIGHT | wx.EXPAND)
-        self.SetSizerAndFit(self.mainSizer)
-
-        # move the position to be v near the top of screen and to the
-        # right of the left-most edge of builder
-        builderPos = self.frame.GetPosition()
-        self.SetPosition((builderPos[0] + 200, 20))
-
-        # do show and process return
-        if self.timeout is not None:
-            timeout = wx.CallLater(self.timeout, self.autoTerminate)
-            timeout.Start()
-        retVal = self.ShowModal()
-        if retVal == wx.ID_OK:
-            self.OK = True
-        else:
-            self.OK = False
-        return wx.ID_OK
