@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
-# Part of the psychopy.iohub library.
-# Copyright (C) 2012-2016 iSolver Software Solutions
+# Part of the PsychoPy library
+# Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
-# .. fileauthor:: Martin Guest
-# .. fileauthor:: Sol Simpson
 from __future__ import division
 from ......errors import print2err, printExceptionDetailsToStdErr
 from ......constants import EventConstants, EyeTrackerConstants
@@ -428,29 +426,41 @@ class EyeTracker(EyeTrackerDevice):
             return self._recording
         return False
 
-    def runSetupProcedure(self):
+    def runSetupProcedure(self, calibration_args={}):
         """runSetupProcedure opens the GP3 Calibration window.
         """
-        
         cal_config = self.getConfiguration().get('calibration')
-        targ_timeout = cal_config.get('target_duration')
-        targ_delay = cal_config.get('target_delay')
-        self._gp3set('CALIBRATE_TIMEOUT', VALUE=targ_timeout)  
+
+        targ_timeout = calibration_args.get('target_duration')
+        if targ_timeout is None:
+            targ_timeout = cal_config.get('target_duration')
+
+        targ_delay = calibration_args.get('targ_delay')
+        if targ_delay is None:
+            targ_delay = cal_config.get('target_delay')
+
+        print2err("targ_timeout: ", targ_timeout)
+        print2err("targ_delay: ", targ_delay)
+
+        self._gp3set('CALIBRATE_TIMEOUT', VALUE=targ_timeout)
         self._gp3set('CALIBRATE_DELAY', VALUE=targ_delay)        
         self._waitForAck('CALIBRATE_DELAY', timeout=2.0)
 
         self._gp3set('CALIBRATE_SHOW', STATE=1)  
-        self._gp3set('CALIBRATE_START', STATE=1)  
-        cal_result = self._waitForAck('CALIB_RESULT', timeout=30.0)
+        self._gp3set('CALIBRATE_START', STATE=1)
 
-        if cal_result:        
-            #print2err("GP3 calibration done.")
-            #print2err("Closing GP3 calibration window....")
+        cal_result = self._waitForAck('CALIB_RESULT', timeout=30.0)
+        if cal_result:
             self._gp3set('CALIBRATE_SHOW', STATE=0)  
             self._gp3get('CALIBRATE_RESULT_SUMMARY')
-    
-            cal_result['SUMMARY']=self._waitForAck('CALIBRATE_RESULT_SUMMARY')
-        #print2err("CAL_RESULT: ",cal_result)
+            del cal_result['type']
+            del cal_result['ID']
+
+            cal_summary = self._waitForAck('CALIBRATE_RESULT_SUMMARY')
+            del cal_summary['type']
+            del cal_summary['ID']
+            cal_result['SUMMARY'] = cal_summary
+
         return cal_result
         
     def _poll(self):

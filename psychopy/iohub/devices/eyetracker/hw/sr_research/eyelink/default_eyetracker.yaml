@@ -82,6 +82,12 @@ eyetracker.hw.sr_research.eyelink.EyeTracker:
         #   THREE_POINTS, FIVE_POINTS, NINE_POINTS, THIRTEEN_POINTS
         type: NINE_POINTS
 
+        # color_type: rgb, rgb255, named, hex, etc. Leave blank to use window's color space.
+        color_type: rgb255
+
+        # unit_type: norm, pix, height, deg, etc. Leave blank to use window's unit type.
+        unit_type: pix
+
         # auto_pace: If True, the eye tracker will automatically progress from
         # one calibration point to the next. If False, a manual key or button press
         # is needed to progress to the next point.
@@ -94,9 +100,8 @@ eyetracker.hw.sr_research.eyelink.EyeTracker:
         #
         pacing_speed: 1.5
         
-        # screen_background_color: Specifies the r,g,b,a background color to 
-        #   set the calibration, validation, etc, screens to. Each element of the color
-        #   should be a value between 0 and 255. 0 == black, 255 == white.
+        # screen_background_color: Specifies the background color to
+        #   set the calibration, validation, etc, screens to.
         screen_background_color: [128,128,128]
         
         # target_type: Defines what form of calibration graphic should be used
@@ -219,4 +224,3 @@ eyetracker.hw.sr_research.eyelink.EyeTracker:
     #   device_number is not used by this device type.
     #
     device_number: 0
-    builder_hides: ['builder_hides', 'enable', 'name', 'device_number', 'device_timer', 'auto_report_events']

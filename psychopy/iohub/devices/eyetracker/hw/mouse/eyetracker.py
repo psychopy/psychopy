@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-# Part of the psychopy.iohub library.
-# Copyright (C) 2012-2016 iSolver Software Solutions
+# Part of the PsychoPy library
+# Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 from psychopy.iohub.errors import print2err, printExceptionDetailsToStdErr
 from psychopy.iohub.constants import EyeTrackerConstants, EventConstants
@@ -76,7 +76,7 @@ class EyeTracker(EyeTrackerDevice):
     _last_event_start = 0.0
     _last_start_event_pos = None
     _sacc_end_time = 0.0
-    _sacc_amplitude = 0.0
+    _sacc_amplitude = 0.0, 0.0
     _button_ix = dict(LEFT_BUTTON=0, MIDDLE_BUTTON=1, RIGHT_BUTTON=2)
 
     def __init__(self, *args, **kwargs):
@@ -394,7 +394,7 @@ class EyeTracker(EyeTrackerDevice):
         """
         return self._recording
 
-    def runSetupProcedure(self):
+    def runSetupProcedure(self, **calibration_args):
         """
         runSetupProcedure does nothing in the Mouse Simulated eye tracker, as calibration is automatic. ;)
         """

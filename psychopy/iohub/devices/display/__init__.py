@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-# Part of the psychopy.iohub library.
-# Copyright (C) 2012-2016 iSolver Software Solutions
+# Part of the PsychoPy library
+# Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import sys
@@ -231,8 +231,7 @@ class Display(Device):
 
     def getCoordBounds(self):
         """Get the Display's left, top, right, and bottom border bounds,
-        specified in the coordinate space returned by
-        Display.getCoordinateType()
+        specified in the coordinate space returned by Display.getCoordinateType()
 
         Args:
             None
