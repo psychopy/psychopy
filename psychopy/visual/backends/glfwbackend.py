@@ -15,7 +15,8 @@ and initialize an instance using the attributes of the Window.
 
 from __future__ import absolute_import, print_function
 import atexit
-import sys, os
+import sys
+import os
 import glob
 import numpy as np
 from psychopy import logging, event, prefs, core
@@ -148,10 +149,6 @@ class GLFWBackend(BaseBackend):
         M. Cutone 2018: Initial work on GLFW backend.
 
     """
-
-    def onMouseLeave(self, *args, **kwargs):
-        pass
-
     GL = pyglet.gl  # use Pyglet's OpenGL interface for now, should use PyOpenGL
     winTypeName = 'glfw'  # needed to identify class for plugins
 
@@ -723,7 +720,7 @@ class GLFWBackend(BaseBackend):
         win_handle, button, _, _ = args
         absTime = core.getTime()
         mouseEventHandler.win = self.win
-        absPos = self._windowCoordsToPix(glfw.get_cursor_pos(win_handle))
+        absPos = self.getMousePos()
         mouseEventHandler.setMouseButtonState(
             _GLFW_MOUSE_BUTTONS_[button], True, absPos, absTime)
 
@@ -737,18 +734,23 @@ class GLFWBackend(BaseBackend):
         win_handle, button, _, _ = args
         absTime = core.getTime()
         mouseEventHandler.win = self.win
-        absPos = self._windowCoordsToPix(glfw.get_cursor_pos(win_handle))
+        absPos = self.getMousePos()
         mouseEventHandler.setMouseButtonState(
             _GLFW_MOUSE_BUTTONS_[button], False, absPos, absTime)
 
     def onMouseScroll(self, *args):
         """Event handler for mouse scroll events."""
-        win_ptr, xoffset, yoffset = args
-
         # don't process mouse events until ready
         mouseEventHandler = mouse.Mouse.getInstance()
         if mouseEventHandler is None:
             return
+
+        _, xoffset, yoffset = args
+        absPos = self.getMousePos()
+        absTime = core.getTime()
+        relOffset = self._windowCoordsToPix((xoffset, yoffset))
+        mouseEventHandler.win = self.win
+        mouseEventHandler.setMouseScrollState(absPos, relOffset, absTime)
 
     def onMouseMove(self, *args):
         """Event handler for mouse move events."""

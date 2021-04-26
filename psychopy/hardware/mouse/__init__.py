@@ -152,6 +152,9 @@ class Mouse(object):
     # array. The first index is the event which the position is associated with.
     _mousePos = np.zeros((MOUSE_EVENT_COUNT, 2, 2), dtype=np.float32)
 
+    # position the last mouse scroll event occurred
+    _mouseScrollPos = np.zeros((2,), dtype=np.float32)
+
     # positions where mouse button events occurred
     _mouseButtonPosPressed = np.zeros((MOUSE_BUTTON_COUNT, 2))
     _mouseButtonPosReleased = np.zeros((MOUSE_BUTTON_COUNT, 2))
@@ -323,7 +326,11 @@ class Mouse(object):
             timestamp will be generated automatically.
 
         """
-        pass
+        # todo - figure out how to handle this better
+        if absTime is None:
+            absTime = self._clock.getTime()
+
+        self._mouseScrollPos[:] = pos
 
     def _pixToWindowUnits(self, pos):
         """Conversion from 'pix' units to window units.
@@ -396,7 +403,7 @@ class Mouse(object):
     def win(self):
         """Window the cursor is presently hovering over
         (:class:`~psychopy.visual.Window` or `None`). This is usually set by the
-        window backend.
+        window backend. This value cannot be updated when ``exclusive=True``.
         """
         return self._currentWindow
 
@@ -408,7 +415,8 @@ class Mouse(object):
     @property
     def units(self):
         """The units for this mouse (`str`). Will match the current units for
-        the Window it lives in.
+        the Window it lives in. To change the units of the mouse, you must
+        change the window units.
         """
         return self.win.units
 
@@ -742,12 +750,13 @@ class Mouse(object):
         return self._pixToWindowUnits(self._mouseVelocity)
 
     def setCursorStyle(self, cursorType='default'):
-        """Change the appearance of the cursor for all windows. Cursor types
-        provide contextual hints about how to interact with on-screen objects.
+        """Change the appearance of the cursor for all windows.
 
-        The graphics used 'standard cursors' provided by the operating system.
-        They may vary in appearance and hot spot location across platforms. The
-        following names are valid on most platforms and backends:
+        Cursor types provide contextual hints about how to interact with
+        on-screen objects. The graphics used 'standard cursors' provided by the
+        operating system. They may vary in appearance and hot spot location
+        across platforms. The following names are valid on most platforms and
+        backends:
 
         * ``'arrow`` or ``default``: Default system pointer.
         * ``ibeam`` or ``text``: Indicates text can be edited.
