@@ -37,29 +37,6 @@ class EyetrackerRecordComponent(BaseComponent):
         self.url = "https://www.psychopy.org/builder/components/eyetracker.html"
         self.exp.requirePsychopyLibs(['iohub'])
 
-    def writePreWindowCode(self, buff):
-        pass
-
-    def writeInitCode(self, buff):
-        inits = self.params
-        code = (
-            "%(name)s = eyetracker.EyeTrackerRecorder(win, eyetracker,\n"
-        )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(1, relative=True)
-        code = (
-                "events=%(events)s)\n"
-        )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(-1, relative=True)
-
-    def writeRoutineStartCode(self, buff):
-        """Write the code that will be called at the start of the routine
-        """
-        # create some lists to store recorded values positions and events if we
-        # need more than one
-        pass
-
     def writeFrameCode(self, buff):
         """Write the code that will be called every frame
         """
@@ -71,17 +48,8 @@ class EyetrackerRecordComponent(BaseComponent):
         self.writeStartTestCode(buff)
         code = (
                 "%(name)s.status = STARTED\n"
-        )
-        buff.writeIndentedLines(code % self.params)
-        buff.setIndentLevel(-1, relative=True)
-        # Get rating each frame
-        code = (
-            "if %(name)s.status == STARTED:\n"
-        )
-        buff.writeIndentedLines(code % self.params)
-        buff.setIndentLevel(1, relative=True)
-        code = (
-                "%(name)s.poll()\n"
+                "ioServer.clearEvents()\n"
+                "eyetracker.setRecordingState(True)\n"
         )
         buff.writeIndentedLines(code % self.params)
         buff.setIndentLevel(-1, relative=True)
@@ -95,20 +63,3 @@ class EyetrackerRecordComponent(BaseComponent):
             buff.writeIndentedLines(code % self.params)
             # to get out of the if statement
             buff.setIndentLevel(-2, relative=True)
-
-    def writeRoutineEndCode(self, buff):
-        inits = self.params
-
-        if len(self.exp.flow._loopList):
-            inits['loop'] = self.exp.flow._loopList[-1].params['name']
-            code = (
-                 "%(loop)s.addData('%(name)s.x', list(%(name)s.data['x']))\n"
-                 "%(loop)s.addData('%(name)s.y', list(%(name)s.data['y']))\n"
-                 "%(loop)s.addData('%(name)s.roi', list(%(name)s.data['roi']))\n"
-                 "%(loop)s.addData('%(name)s.pupil', list(%(name)s.data['pupil']))\n"
-            )
-            buff.writeIndentedLines(code % inits)
-        super().writeRoutineEndCode(buff)
-
-    def writeExperimentEndCode(self, buff):
-        pass
