@@ -101,7 +101,7 @@ class RegionOfInterestComponent(PolygonComponent):
         # do writing of init
         inits = getInitVals(self.params, 'PsychoPy')
         code = (
-            "%(name)s = visual.ROI(win, name='%(name)s',\n"
+            "%(name)s = visual.ROI(win, name='%(name)s', tracker=eyetracker,\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(1, relative=True)
