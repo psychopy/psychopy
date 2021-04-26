@@ -921,7 +921,7 @@ class SettingsComponent(object):
         code = (
             "\n"
             "# Setup eyetracking\n"
-            "ioDevice = " + ioDeviceMap[self.params['eyetracker'].val] + "\n"
+            "ioDevice = '" + ioDeviceMap[self.params['eyetracker'].val] + "'\n"
             "ioConfig = {\n"
         )
         buff.writeIndentedLines(code % self.params)
