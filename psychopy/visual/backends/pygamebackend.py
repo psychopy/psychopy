@@ -21,7 +21,7 @@ import pygame
 from abc import abstractmethod
 from ._base import BaseBackend
 import psychopy
-from psychopy import core, platform_specific
+from psychopy import core
 from psychopy.tools.attributetools import attributeSetter
 
 try:
