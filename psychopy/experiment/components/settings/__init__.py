@@ -918,21 +918,21 @@ class SettingsComponent(object):
 
         # Make ioConfig dict
         code = (
+            "\n"
+            "# Setup eyetracking\n"
+            "ioDevice = " + ioDeviceMap[self.params['eyetracker'].val] + "\n"
             "ioConfig = {\n"
         )
         buff.writeIndentedLines(code % self.params)
         buff.setIndentLevel(1, relative=True)
         code = (
             "'name': 'tracker',\n"
+            "ioDevice: {\n"
         )
         buff.writeIndentedLines(code % self.params)
+        buff.setIndentLevel(1, relative=True)
         # Initialise for MouseGaze
         if self.params['eyetracker'] == "MouseGaze":
-            code = (
-                "'eyetracker.hw.mouse.EyeTracker': {\n"
-            )
-            buff.writeIndentedLines(code % self.params)
-            buff.setIndentLevel(1, relative=True)
             code = (
                     "'controls': {\n"
             )
@@ -957,11 +957,6 @@ class SettingsComponent(object):
 
         elif self.params['eyetracker'] == "GazePoint":
             code = (
-                "'eyetracker.hw.gazepoint.gp3.EyeTracker': {"
-            )
-            buff.writeIndentedLines(code % self.params)
-            buff.setIndentLevel(1, relative=True)
-            code = (
                     "'network_settings': {\n"
             )
             buff.writeIndentedLines(code % self.params)
@@ -984,11 +979,6 @@ class SettingsComponent(object):
 
         elif self.params['eyetracker'] == "Tobii Technology":
             code = (
-                "'eyetracker.hw.tobii.EyeTracker': {\n"
-            )
-            buff.writeIndentedLines(code % self.params)
-            buff.setIndentLevel(1, relative=True)
-            code = (
                     "'model_name': %(tbModel)s,\n"
                     "'runtime_settings': {\n"
             )
@@ -1010,11 +1000,6 @@ class SettingsComponent(object):
             buff.writeIndentedLines(code % self.params)
 
         elif self.params['eyetracker'] == "SR Research Ltd":
-            code = (
-                "'eyetracker.hw.sr_research.eyelink.EyeTracker': {\n"
-            )
-            buff.writeIndentedLines(code % self.params)
-            buff.setIndentLevel(1, relative=True)
             code = (
                 "'model_name': %(elModel)s,\n"
                 "'simulation_mode': %(elSimMode)s,\n"
@@ -1064,10 +1049,6 @@ class SettingsComponent(object):
                 "}\n"
             )
             buff.writeIndentedLines(code % self.params)
-        else:
-            code = (
-                "'unknown': None\n"
-            )
 
         # Close ioConfig dict
         buff.setIndentLevel(-1, relative=True)
@@ -1078,9 +1059,19 @@ class SettingsComponent(object):
 
         # Start iohub server
         code = (
-            "ioServer = io.launchHubServer(**ioConfig)\n"
+            "ioSession = '1'\n"
+            "if 'session' in expInfo:\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+        buff.setIndentLevel(1, relative=True)
+        code = (
+                "ioSession = str(expInfo['session'])\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+        buff.setIndentLevel(-1, relative=True)
+        code = (
+            "ioServer = io.launchHubServer(experiment_code=%(expName)s, session_code=ioSession, **etConfig)\n"
             "eyetracker = ioServer.getDevice('tracker')\n"
-            "eyedevice = next(iter(ioConfig.keys()))"
         )
         buff.writeIndentedLines(code % self.params)
 
