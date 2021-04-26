@@ -28,6 +28,7 @@ from wx.lib import scrolledpanel
 from wx.lib import platebtn
 from wx.html import HtmlWindow
 
+from .validators import WarningManager
 from ...experiment.components import getAllCategories
 from ...experiment.routines import Routine, BaseStandaloneRoutine
 from ...tools.stringtools import prettyname
@@ -2110,19 +2111,23 @@ class StandaloneRoutineCanvas(wx.Panel, ThemeMixin):
         self.app = self.frame.app
         self.dpi = self.app.dpi
         self.routine = routine
+        self.params = routine.params
         # Setup sizer
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.sizer)
         # Setup categ notebook
         self.ctrls = ParamNotebook(self, experiment=self.frame.exp, element=routine)
         self.sizer.Add(self.ctrls, border=12, proportion=1, flag=wx.ALIGN_CENTER | wx.ALL)
-        # Setup buttons sizer
-        self.btnsSizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.sizer.Add(self.btnsSizer, border=6, proportion=0, flag=wx.ALIGN_RIGHT | wx.ALL)
         # Make buttons
+        self.btnsSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.updateBtn = wx.Button(self, label=_translate("Update"))
         self.updateBtn.Bind(wx.EVT_BUTTON, self.update)
         self.btnsSizer.Add(self.updateBtn, border=6, flag=wx.ALL)
+        # Add validator stuff
+        self.warnings = WarningManager(self, self.updateBtn)
+        self.sizer.Add(self.warnings.output, border=3, flag=wx.EXPAND | wx.ALL)
+        # Add buttons to sizer
+        self.sizer.Add(self.btnsSizer, border=6, proportion=0, flag=wx.ALIGN_RIGHT | wx.ALL)
 
         # Style
         self._applyAppTheme()
@@ -2139,6 +2144,9 @@ class StandaloneRoutineCanvas(wx.Panel, ThemeMixin):
                 self.frame.exp.routines[self.routine.params['name'].val] = self.frame.exp.routines.pop(name)
         # Redraw the flow panel
         self.frame.flowPanel.draw()
+
+    def Validate(self, *args, **kwargs):
+        return self.ctrls.Validate()
 
 
 class ComponentsPanel(scrolledpanel.ScrolledPanel):

@@ -27,7 +27,7 @@ from psychopy.experiment import Param
 
 from ... import dialogs
 from .. import experiment
-from .. validators import NameValidator, CodeSnippetValidator
+from .. validators import NameValidator, CodeSnippetValidator, WarningManager
 from .dlgsConditions import DlgConditions
 from .dlgsCode import DlgCodeComponentProperties, CodeBox
 from . import paramCtrls
@@ -467,7 +467,13 @@ class ParamNotebook(wx.Notebook, ThemeMixin):
             if self.ctrls[name].updateCtrl:
                 self.sizer.Add(self.ctrls[name].updateCtrl, (self.row, 3), border=5, flag=_flag)
             # Link to depends callback
-            self.ctrls[name].setChangesCallback(self.checkDepends)
+            if name == 'name':
+                self.ctrls[name].valueCtrl.Bind(wx.EVT_KEY_UP, self.doValidate)
+                self.ctrls[name].valueCtrl.SetFocus()
+            elif isinstance(self.ctrls[name].valueCtrl, (wx.TextCtrl, CodeBox)):
+                self.ctrls[name].valueCtrl.Bind(wx.EVT_KEY_UP, self.doValidate)
+            else:
+                self.ctrls[name].setChangesCallback(self.checkDepends)
             # Iterate row
             self.row += 1
 
@@ -526,6 +532,13 @@ class ParamNotebook(wx.Notebook, ThemeMixin):
             self.Fit()
             self.Refresh()
 
+        def doValidate(self, event=None):
+            valid = self.Validate()
+            dlg = self.GetTopLevelParent()
+            # If notebook is within a dlg, enable/disable OK button according to valid
+            if hasattr(dlg, "OKbtn"):
+                dlg.OKbtn.Enable(valid)
+
         def _applyAppTheme(self, target=None):
             self.SetBackgroundColour("white")
 
@@ -535,6 +548,9 @@ class ParamNotebook(wx.Notebook, ThemeMixin):
         self.exp = experiment
         self.element = element
         self.params = element.params
+        # Setup sizer
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.SetSizer(self.sizer)
         # Get arrays of params
         paramsByCateg = OrderedDict()
         for name, param in self.params.items():
@@ -654,7 +670,6 @@ class _BaseParamsDlg(wx.Dialog):
         self.params = params = element.params  # dict
         self.title = title
         self.timeout = timeout
-        self.warningsDict = {}  # to store warnings for all fields
         if (not editing and
                 title != 'Experiment Settings' and
                 'name' in self.params):
@@ -668,7 +683,6 @@ class _BaseParamsDlg(wx.Dialog):
         self.order = element.order
         self.depends = element.depends
         self.data = []
-        self.nameOKlabel = None
         # max( len(str(self.params[x])) for x in keys )
         self.maxFieldLength = 10
         self.timeParams = ['startType', 'startVal', 'stopType', 'stopVal']
@@ -726,17 +740,6 @@ class _BaseParamsDlg(wx.Dialog):
         This method returns wx.ID_OK (as from ShowModal), but also
         sets self.OK to be True or False
         """
-        # add a label to check name
-        if 'name' in self.params:
-            # if len(self.params['name'].val):
-            #    nameInfo=''
-            # else:
-            #    nameInfo='Need a name'
-            nameInfo = ''
-            self.nameOKlabel = wx.StaticText(self, -1, nameInfo,
-                                             style=wx.ALIGN_CENTRE)
-            self.nameOKlabel.SetForegroundColour(wx.RED)
-            self.mainSizer.Add(self.nameOKlabel, 0, flag=wx.ALIGN_CENTRE|wx.ALL, border=3)
         # add buttons for OK and Cancel
         buttons = wx.BoxSizer(wx.HORIZONTAL)
         # help button if we know the url
@@ -753,9 +756,12 @@ class _BaseParamsDlg(wx.Dialog):
         if type(self) == DlgLoopProperties:
             self.OKbtn.Bind(wx.EVT_BUTTON, self.onOK)
         self.OKbtn.SetDefault()
-
-        self.doValidate()  # disables OKbtn if bad name, syntax error, etc
         CANCEL = wx.Button(self, wx.ID_CANCEL, _translate(" Cancel "))
+
+        # Add validator stuff
+        self.warnings = WarningManager(self, self.OKbtn)
+        self.mainSizer.Add(self.warnings.output, border=3, flag=wx.EXPAND | wx.ALL)
+        self.Validate()  # disables OKbtn if bad name, syntax error, etc
 
         buttons.AddStretchSpacer()
         if sys.platform == 'darwin':
@@ -807,16 +813,7 @@ class _BaseParamsDlg(wx.Dialog):
     def Validate(self, *args, **kwargs):
         """Validate form data and disable OK button if validation fails.
         """
-        valid = super(_BaseParamsDlg, self).Validate(*args, **kwargs)
-        # also validate each page in the ctrls notebook
-        for thisPanel in self.panels:
-            stillValid = thisPanel.Validate()
-            valid = valid and stillValid
-        if valid:
-            self.OKbtn.Enable()
-        else:
-            self.OKbtn.Disable()
-        return valid
+        return self.ctrls.Validate()
 
     def onOK(self, event=None):
         """Handler for OK button which should validate dialog contents.
@@ -958,11 +955,6 @@ class _BaseParamsDlg(wx.Dialog):
                 return msg, True
             else:
                 return "", True
-
-    def doValidate(self, event=None):
-        """Issue a form validation on event, e.g., name or text change.
-        """
-        self.Validate()
 
     def onHelp(self, event=None):
         """Uses self.app.followLink() to self.helpUrl
@@ -1124,7 +1116,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                                flag=wx.EXPAND | wx.ALL)
             row += 1
 
-        self.globalCtrls['name'].valueCtrl.Bind(wx.EVT_TEXT, self.doValidate)
+        self.globalCtrls['name'].valueCtrl.Bind(wx.EVT_TEXT, self.Validate)
         self.Bind(wx.EVT_CHOICE, self.onTypeChanged,
                   self.globalCtrls['loopType'].valueCtrl)
         return panel
