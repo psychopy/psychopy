@@ -166,5 +166,3 @@ eyetracker.hw.tobii.EyeTracker:
     auto_report_events: False
 
     device_number: 0
-
-    builder_hides: ['builder_hides', 'enable', 'calibration.target_positions', 'device_number', 'auto_report_events']

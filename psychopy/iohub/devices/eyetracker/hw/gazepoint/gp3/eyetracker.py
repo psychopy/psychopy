@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-# Part of the psychopy.iohub library.
-# Copyright (C) 2012-2021 iSolver Software Solutions
+# Part of the PsychoPy library
+# Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 from __future__ import division
 from ......errors import print2err, printExceptionDetailsToStdErr
@@ -426,14 +426,23 @@ class EyeTracker(EyeTrackerDevice):
             return self._recording
         return False
 
-    def runSetupProcedure(self):
+    def runSetupProcedure(self, calibration_args={}):
         """runSetupProcedure opens the GP3 Calibration window.
         """
-        
         cal_config = self.getConfiguration().get('calibration')
-        targ_timeout = cal_config.get('target_duration')
-        targ_delay = cal_config.get('target_delay')
-        self._gp3set('CALIBRATE_TIMEOUT', VALUE=targ_timeout)  
+
+        targ_timeout = calibration_args.get('target_duration')
+        if targ_timeout is None:
+            targ_timeout = cal_config.get('target_duration')
+
+        targ_delay = calibration_args.get('targ_delay')
+        if targ_delay is None:
+            targ_delay = cal_config.get('target_delay')
+
+        print2err("targ_timeout: ", targ_timeout)
+        print2err("targ_delay: ", targ_delay)
+
+        self._gp3set('CALIBRATE_TIMEOUT', VALUE=targ_timeout)
         self._gp3set('CALIBRATE_DELAY', VALUE=targ_delay)        
         self._waitForAck('CALIBRATE_DELAY', timeout=2.0)
 

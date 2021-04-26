@@ -94,6 +94,7 @@ ioDeviceMap = dict(ioUtil.getDeviceNames())
 class SettingsComponent(object):
     """This component stores general info about how to run the experiment
     """
+    targets = ['PsychoPy']
 
     categories = ['Custom']
     targets = ['PsychoPy', 'PsychoJS']

@@ -19,6 +19,7 @@ recursive-include psychopy/iohub *.yaml
 recursive-include psychopy/iohub/devices/eyetracker/hw/sr_research/eyelink/win32 *.pyc *.dll *.pyd
 
 recursive-include psychopy/visual/textbox/fonts *.ttf
+recursive-include psychopy/experiment/components *.xltx
 
 recursive-include psychopy/demos/coder *.mov *.jpg *.ttf *.yaml *.py *.part *.xlsx *.xls
 recursive-include psychopy/demos/builder *.psyexp *.csv *.xlsx *.wav *.yaml

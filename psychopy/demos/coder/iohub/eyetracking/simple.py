@@ -7,11 +7,11 @@ Select which tracker to use by setting the TRACKER variable below.
 
 from __future__ import absolute_import, division, print_function
 from psychopy import core, visual
-from psychopy.iohub import launchHubServer, EventConstants
+from psychopy.iohub import launchHubServer
 
 
 # Eye tracker to use ('mouse', 'eyelink', 'gazepoint', or 'tobii')
-TRACKER = 'eyelink'
+TRACKER = 'mouse'
 
 eyetracker_config = dict(name='tracker')
 devices_config = {}

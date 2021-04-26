@@ -977,7 +977,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         """
         if newTitle is None:
             shortName = os.path.split(self.filename)[-1]
-            newTitle = '%s - PsychoPy Builder' % (shortName)
+            newTitle = '%s - PsychoPy Builder (v%s)' % (shortName, self.app.version)
         self.SetTitle(newTitle)
 
     def setIsModified(self, newVal=None):
@@ -2515,7 +2515,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         # Style category labels
         for lbl in self.catLabels:
             self.catLabels[lbl].SetForegroundColour(cs['text'])
-        # then apply to all children as well
+            # then apply to all children as well
         for c in self.GetChildren():
             if hasattr(c, '_applyAppTheme'):
                 # if the object understands themes then request that
@@ -3084,8 +3084,8 @@ class FlowPanel(wx.ScrolledWindow):
                 self.frame.routinePanel.setCurrentRoutine(comp)
                 try:
                     self._menuComponentID = icon
-                    xy = wx.Point(x + self.GetPosition()[0],
-                                  y + self.GetPosition()[1])
+                    xy = wx.Point(event.X + self.GetPosition()[0],
+                                  event.Y + self.GetPosition()[1])
                     self.showContextMenu(self._menuComponentID, xy=xy)
                 except UnboundLocalError:
                     # right click but not on an icon

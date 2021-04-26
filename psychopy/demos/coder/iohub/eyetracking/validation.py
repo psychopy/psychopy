@@ -7,7 +7,7 @@ and the psychopy.iohub.client.eyetracker.validation.ValidationProcedure class.
 import time
 from psychopy import visual
 from psychopy.iohub import launchHubServer
-from psychopy.iohub.client.eyetracker.validation import TargetStim, ValidationProcedure, PositionGrid
+from psychopy.iohub.client.eyetracker.validation import TargetStim, ValidationProcedure
 
 if __name__ == "__main__":
     # Create a default PsychoPy Window
@@ -39,8 +39,8 @@ if __name__ == "__main__":
     # target_positions: Provide your own list of validation positions,
     target_positions = [(0.0, 0.0), (0.85, 0.85), (-0.85, 0.0), (0.85, 0.0), (0.85, -0.85), (-0.85, 0.85),
                         (-0.85, -0.85), (0.0, 0.85), (0.0, -0.85)]
-    # or use the PositionGrid class to generate a set.
-    #target_positions = PositionGrid(bounds=[-.85, .85, .85, -.85], shape=(3, 3), firstposindex=4, repeatFirstPos=True)
+    # or:  use predefined validation point sets (three-point, five-point, nine-point, thirteen-point, seventeen-point)
+    #target_positions = 'nine-point'
 
     # Create a validation procedure, iohub must already be running with an
     # eye tracker device, or errors will occur.
@@ -48,19 +48,16 @@ if __name__ == "__main__":
                                           target=target_stim,
                                           positions=target_positions,
                                           randomize_positions=True,
-                                          target_animation=dict(velocity=1.0,
-                                                                expandedscale=3.0,
-                                                                expansionduration=0.2,
-                                                                contractionduration=0.4),
-                                          accuracy_period_start=0.550,
-                                          accuracy_period_stop=.150,
-                                          show_intro_screen=True,
-                                          intro_text='Eye Tracker Validation Procedure.',
+                                          animation_velocity=1.0,
+                                          animation_scale=3.0,
+                                          animation_duration=(0.2, 0.4),
+                                          color_space=None,  # None == use window color space
+                                          unit_type=None,  # Must be None for now.
+                                          progress_on_timeout=None,  # float or None
+                                          progress_on_key=' ',  # str, list of str, or None
+                                          gaze_cursor_color=(-1.0, 1.0, -1.0),
                                           show_results_screen=True,
-                                          results_in_degrees=True,
-                                          save_results_screen=True,
-                                          toggle_gaze_cursor_key='g',
-                                          terminate_key='escape')
+                                          save_results_screen=True)
 
     # Run the validation procedure. run() does not return until the validation is complete.
     validation_proc.run()

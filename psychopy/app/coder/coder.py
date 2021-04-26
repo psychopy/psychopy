@@ -2059,7 +2059,10 @@ class CoderFrame(wx.Frame, ThemeMixin):
         # open the find dialog if not already open
         if self.findDlg is not None:
             return
+        if not self.currentDoc:
+            return
         win = wx.Window.FindFocus()
+        self.findData.SetFindString(self.currentDoc.GetSelectedText())
         self.findDlg = wx.FindReplaceDialog(win, self.findData, "Find",
                                             wx.FR_NOWHOLEWORD)
         self.findDlg.Bind(wx.EVT_FIND_CLOSE, self.OnFindClose)
@@ -2326,8 +2329,8 @@ class CoderFrame(wx.Frame, ThemeMixin):
             self.currentDoc.SetWrapMode(
                 wx.stc.STC_WRAP_WORD if self.lineWrapChk.IsChecked() else wx.stc.STC_WRAP_NONE)
             self.statusBar.SetStatusText(fileType, 2)
-
-        self.SetLabel('%s - PsychoPy Coder' % self.currentDoc.filename)
+        fname = Path(self.currentDoc.filename).name
+        self.SetLabel('%s - PsychoPy Coder (v%s)' % (fname, psychopy.__version__))
         #if len(self.getOpenFilenames()) > 0:
         self.currentDoc.analyseScript()
 

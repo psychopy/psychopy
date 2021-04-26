@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-# Part of the psychopy.iohub library.
-# Copyright (C) 2012-2021 iSolver Software Solutions
+# Part of the PsychoPy library
+# Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 from __future__ import division
 
@@ -212,13 +212,6 @@ def getDeviceDefaultConfig(device_name, builder_hides=True):
         return list(device_configs[0].values())[0]
     return device_configs
 
-
-_iohub2builderValType = dict(IOHUB_STRING='str', IOHUB_BOOL='bool', IOHUB_FLOAT='float', IOHUB_INT='int',
-                             IOHUB_LIST='list', IOHUB_COLOR='color', IOHUB_IP_ADDRESS_V4='str')
-
-_iohub2builderInputType = dict(IOHUB_STRING='single', IOHUB_BOOL='bool', IOHUB_FLOAT='single', IOHUB_INT='single',
-                               IOHUB_LIST=('choice','multi'), IOHUB_COLOR='color', IOHUB_IP_ADDRESS_V4='single')
-
 def getDeviceNames(device_name="eyetracker.hw", get_paths=True):
     """
     Return a list of iohub eye tracker device names, as would be used as keys to launchHubServer. If get_paths is true,
@@ -272,145 +265,6 @@ def getDeviceSupportedConfig(device_name):
     :return: dict
     """
     return getDeviceFile(device_name, 'supported_config_settings.yaml')
-
-def getDeviceConfigHints(device_name):
-    """
-    Returns the contents of the builder_hints.yaml for the specified device.
-
-    :param device_name: iohub device name
-    :return: dict
-    """
-    try:
-        return getDeviceFile(device_name, 'builder_hints.yaml')
-    except FileNotFoundError:
-        pass
-    return None
-
-def getDeviceParams(device_name):
-    """
-    Return a param dict for each setting of the device that Builder needs. Dist structure should match
-    wht is returned by getDeviceDefaultConfig(), but each setting value should be a 'param' dict.
-    If field is not editable, inputType should equal 'static'.
-
-    For example,
-
-        print(getDeviceParams('eyetracker.hw.gazepoint.gp3'))
-
-    Output (partial):
-
-        {'event_buffer_length': {'defaultVal': 1024,
-                                 'hint': 'Maximum number of samples / events that will '
-                                         'be buffered by iohub.',
-                                 'inputType': 'single',
-                                 'label': 'Event Buffer Length',
-                                 'valType': 'int'},
-         'manufacturer_name': {'defaultVal': 'GazePoint',
-                               'hint': 'Eye tracker manufacturer.',
-                               'inputType': 'static',
-                               'label': 'Manufacturer Name',
-                               'valType': 'str'},
-         'model_name': {'allowedVals': ['GP3', 'GP3 HD'],
-                        'defaultVal': 'GP3',
-                        'hint': 'Eye tracker model name.',
-                        'inputType': 'choice',
-                        'label': 'Model Name',
-                        'valType': 'list'},
-        .....
-        }
-
-    """
-    supported_config = getDeviceSupportedConfig(device_name)
-    default_config = getDeviceDefaultConfig(device_name)
-    hints_data = getDeviceConfigHints(device_name)
-    device_params = dict()
-    updateDict(device_params, default_config)
-
-    def getSubDict(parent, path):
-        r = parent
-        for p in path:
-            r = r.get(p)
-        return r
-
-    def setValue(settings, path, value):
-        r = settings
-        for p in path[:-1]:
-            r = r.get(p)
-        r[path[-1]] = value
-
-    # convert default config values into builder param dicts
-    def settings2Params(parent_list, settings):
-        for k, v in settings.items():
-            if isinstance(v, dict):
-                nlparent = copy.copy(parent_list)
-                nlparent.append(k)
-                settings2Params(nlparent, v)
-            else:
-                try:
-                    sconfig_data = getSubDict(supported_config, parent_list).get(k)
-
-                    shint = "TODO: %s hint" % k
-                    if hints_data:
-                        try:
-                            shint = getSubDict(hints_data, parent_list).get(k)
-                        except AttributeError:
-                            # Hint is missing, default will be displayed.
-                            # TODO: print a warning?
-                            pass
-                    cspath = list(parent_list)
-                    cspath.append(k)
-
-                    slabel = ""
-                    if len(parent_list):
-                        slabel = "->".join(parent_list).replace("_", " ").title()+"->"
-                    slabel = slabel+k.replace("_", " ").title()
-
-                    if isinstance(sconfig_data, dict):
-                        iohub_type, type_constraints = list(sconfig_data.items())[0]
-                        builderValType = _iohub2builderValType[iohub_type]
-                        builderInputType = _iohub2builderInputType[iohub_type]
-                        valid_values = None
-                        if iohub_type == 'IOHUB_LIST':
-                            valid_values = type_constraints.get('valid_values')
-                            if type_constraints.get('max_length') == 1:
-                                builderInputType = builderInputType[0]
-                            else:
-                                builderInputType = builderInputType[1]
-                            builderValType = type(valid_values[0])
-                        if valid_values:
-                            nv = dict(valType=builderValType, inputType=builderInputType, defaultVal=v,
-                                      allowedVals=valid_values, hint=shint, label=slabel)
-                        else:
-                            nv = dict(valType=builderValType, inputType=builderInputType, defaultVal=v,
-                                      hint=shint, label=slabel)
-                    elif isinstance(sconfig_data, list):
-                        nv = dict(valType=type(v), inputType='static', defaultVal=v, hint=shint, label=slabel)
-                    elif sconfig_data in _iohub2builderValType.keys():
-                        nv = dict(valType=_iohub2builderValType[sconfig_data],
-                                  inputType=_iohub2builderInputType[sconfig_data], defaultVal=v,
-                                  hint=shint, label=slabel)
-                    else:
-                        nv = dict(valType='str', inputType='static', defaultVal=v, hint=shint, label=slabel)
-                    if nv:
-                        setValue(device_params, cspath, nv)
-                except Exception as e:
-                    raise RuntimeWarning("settings2Params failed for {}, {}".format(k, v))
-
-    settings2Params([], device_params)
-    return device_params
-
-def getDeviceParamsFlattenned(device_name):
-    flattenned = {}
-    dconf = getDeviceParams(device_name)
-    def flatten_dict(d):
-        for k, v in d.items():
-            if isinstance(v, dict):
-                if v.get('inputType'):
-                    flattenned[v.get('label')] = v
-                else:
-                    flatten_dict(v)
-    flatten_dict(dconf)
-    return flattenned
-
 
 if sys.platform == 'win32':
     import pythoncom

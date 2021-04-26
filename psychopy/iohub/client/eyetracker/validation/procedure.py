@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
-# Part of the psychopy.iohub library.
-# Copyright (C) 2012-2021 iSolver Software Solutions
+# Part of the PsychoPy library
+# Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 """
 Eye Tracker Validation procedure using the ioHub common eye tracker interface.
 
 To use the validation process from within a Coder script:
-* Create a target stim, using TargetStim, or any stim class that has a `.setPos()`, `setRadius()`, and `.draw()` method.
+* Create a target stim, using TargetStim, or any stim class that has a `.setPos()`, `setSize()`, and `.draw()` method.
 * Create a list of validation target positions. Use the `PositionGrid` class to help create a target position list.
 * Create a ValidationProcedure class instance, providing the target stim and position list and other arguments
   to define details of the validation procedure.
@@ -30,7 +30,7 @@ from psychopy.iohub.client import ioHubConnection, Computer
 from psychopy.tools.monitorunittools import convertToPix
 from psychopy.tools.monitorunittools import pix2deg, deg2pix
 
-from psychopy.iohub.client.eyetracker.validation import PositionGrid, Trigger, KeyboardTrigger
+from psychopy.iohub.client.eyetracker.validation import PositionGrid, Trigger, KeyboardTrigger, TimeTrigger
 
 getTime = Computer.getTime
 
@@ -76,12 +76,11 @@ class TargetStim(object):
         for s in self.stim:
             s.setPos(pos)
 
-    def setRadius(self, r):
+    def setSize(self, s):
         """
-        Update the radius of the target stim. (Optionally) used during validation procedure to
-        expand / contract the target stim.
+        Update the size of the target stim.
         """
-        self.stim[0].radius = r
+        self.stim[0].radius = s/2
 
     def draw(self):
         """
@@ -99,12 +98,74 @@ class TargetStim(object):
         return self.stim[0].contains(p)
 
 
+def create3PointGrid():
+    io = ioHubConnection.getActiveConnection()
+    if io is None:
+        raise RuntimeError("iohub must be running.")
+    l, t, r, b = io.devices.display.getCoordBounds()
+    return [(0.0, (t-b)/4), (-(r-l)/4, -(t-b)/4), ((r-l)/4, -(t-b)/4)]
+
+
+def create5PointGrid():
+    io = ioHubConnection.getActiveConnection()
+    if io is None:
+        raise RuntimeError("iohub must be running.")
+    four_point = PositionGrid(io.devices.display.getCoordBounds(), (2, 2), scale=0.85).getPositions()
+    return [(0.0, 0.0),] + four_point
+
+
+def create9PointGrid():
+    io = ioHubConnection.getActiveConnection()
+    if io is None:
+        raise RuntimeError("iohub must be running.")
+    return PositionGrid(io.devices.display.getCoordBounds(), (3, 3), scale=0.85, firstposindex=4)
+
+
+def create13PointGrid():
+    io = ioHubConnection.getActiveConnection()
+    if io is None:
+        raise RuntimeError("iohub must be running.")
+    nine_point = create9PointGrid().getPositions()
+    four_point = PositionGrid(io.devices.display.getCoordBounds(), (2, 2), scale=0.5).getPositions()
+    thirteen_point = nine_point + four_point
+    return thirteen_point
+
+
+def create17PointGrid():
+    io = ioHubConnection.getActiveConnection()
+    if io is None:
+        raise RuntimeError("iohub must be running.")
+    sixteen_pos = PositionGrid(io.devices.display.getCoordBounds(), (4, 4), scale=0.85).getPositions()
+    return [(0.0, 0.0), ] + sixteen_pos
+
+
+
 class ValidationProcedure(object):
-    def __init__(self, win=None, target=None, positions=None, target_animation={}, randomize_positions=True,
-                 background=None, triggers=None, storeeventsfor=None, accuracy_period_start=0.550,
-                 accuracy_period_stop=.150, show_intro_screen=True, intro_text='Ready to Start Validation Procedure.',
-                 show_results_screen=True, results_in_degrees=False, save_results_screen=False,
-                 terminate_key="escape", toggle_gaze_cursor_key="g"):
+    def __init__(self,
+                 win=None,  # psychopy window
+                 target=None,  # target stim
+                 positions=None,  # string constant or list of points
+                 randomize_positions=True,  # boolean
+                 animation_duration=None,  # float or (float, float)
+                 animation_scale=None,  # float or (float, float)
+                 animation_velocity=None,  # float
+                 color_space=None,  # None == use window color space
+                 unit_type=None,  # None == use window unit type (may need to enforce this for Validation)
+                 progress_on_timeout=None,  # float or None
+                 progress_on_key=None,  # str, list of str, or None
+                 gaze_cursor_color=(-1.0, 1.0, -1.0),  # color
+                 show_results_screen=True,  # bool
+                 save_results_screen=False,  # bool
+                 # args not used by Builder at this time, if ever ;)
+                 triggers=None,
+                 storeeventsfor=None,
+                 accuracy_period_start=0.550,
+                 accuracy_period_stop=.150,
+                 show_intro_screen=False,
+                 intro_text='Ready to Start Validation Procedure.',
+                 results_in_degrees=False,
+                 terminate_key="escape",
+                 toggle_gaze_cursor_key="g"):
         """
         ValidationProcedure is used to test the gaze accuracy of a calibrated eye tracking system.
 
@@ -141,7 +202,7 @@ class ValidationProcedure(object):
             # Run eyetracker calibration
             r = tracker.runSetupProcedure()
 
-            # Create a validation target. Use any stim that has `.setPos()`, `.setRadius()`, and `.draw()` methods.
+            # Create a validation target. Use any stim that has `.setPos()`, `.setSize()`, and `.draw()` methods.
             # iohub.client.eyetracker.validation.TargetStim provides a standard doughnut style target.
             target_stim = TargetStim(win, radius=0.025, fillcolor=[.5, .5, .5], edgecolor=[-1, -1, -1], edgewidth=2,
                                      dotcolor=[1, -1, -1], dotradius=0.005, colorspace='rgb')
@@ -169,7 +230,6 @@ class ValidationProcedure(object):
         :param positions: Positions to validate. Provide list of x,y pairs, or use a `PositionGrid` class.
         :param target_animation:
         :param randomize_positions: bool: Randomize target positions before presentation.
-        :param background: color: background color of validation screen.
         :param show_intro_screen: bool: Display a validation procedure Introduction screen.
         :param intro_text: Introduction screen text.
         :param show_results_screen: bool: Display a validation procedure Results screen.
@@ -187,6 +247,21 @@ class ValidationProcedure(object):
 
         self.io = ioHubConnection.getActiveConnection()
 
+        if isinstance(positions, str):
+            # position set constant, three-point, five-point, nine-point, thirteen-point
+            if positions == 'three-point':
+                positions = create3PointGrid()
+            elif positions == 'five-point':
+                positions = create5PointGrid()
+            elif positions == 'nine-point':
+                positions = create9PointGrid()
+            elif positions == 'thirteen-point':
+                positions = create13PointGrid()
+            elif positions == 'seventeen-point':
+                positions = create17PointGrid()
+            else:
+                raise ValueError("Unsupported positions string constant: [{}]".format(positions))
+
         if isinstance(positions, (list, tuple)):
             positions = PositionGrid(posList=positions, firstposindex=0, repeatFirstPos=False)
         self.positions = positions
@@ -194,11 +269,27 @@ class ValidationProcedure(object):
         self.randomize_positions = randomize_positions
         if self.randomize_positions:
             self.positions.randomize()
+
         self.win = proxy(win)
-        if target_animation is None:
-            target_animation = {}
+
+        target_animation = {}
+        if animation_duration:
+            # expansionduration, contractionduration
+            if isinstance(animation_duration, (list, tuple)):
+                target_animation['expansionduration'] = animation_duration[0]
+                target_animation['contractionduration'] = animation_duration[1]
+            else:
+                target_animation['expansionduration'] = animation_duration
+                target_animation['contractionduration'] = animation_duration
+        if animation_scale:
+            # expandedscale
+            target_animation['expandedscale'] = animation_scale
+        if animation_velocity:
+            # velocity
+            target_animation['velocity'] = animation_velocity
         self.animation_params = target_animation
         self.accuracy_period_start = accuracy_period_start
+
         self.accuracy_period_stop = accuracy_period_stop
         self.show_intro_screen = show_intro_screen
         self.intro_text = intro_text
@@ -214,18 +305,30 @@ class ValidationProcedure(object):
                               self.io.devices.experiment
                               ]
 
-        if triggers is None:
+        trig_list = []
+        if progress_on_timeout:
+            trig_list.append(TimeTrigger(start_time=None, delay=progress_on_timeout),)
+        if progress_on_key:
+            if isinstance(progress_on_key, (list, tuple)):
+                for k in progress_on_key:
+                    trig_list.append(KeyboardTrigger(k, on_press=True))
+            else:
+                trig_list.append(KeyboardTrigger(progress_on_key, on_press=True))
+
+        if triggers:
             # Use space key press as default target trigger
-            triggers = KeyboardTrigger(' ', on_press=True)
-        triggers = Trigger.getTriggersFrom(triggers)
+            trig_list = triggers
+        #trig_list = triggers = KeyboardTrigger(' ', on_press=True)
+        triggers = Trigger.getTriggersFrom(trig_list)
 
         # Create the ValidationTargetRenderer instance; used to control the sequential
         # presentation of the target at each of the grid positions.
         self.targetsequence = ValidationTargetRenderer(win, target=target, positions=self.positions,
-                                                       background=background,
                                                        triggers=triggers, storeeventsfor=storeeventsfor,
                                                        terminate_key=terminate_key,
-                                                       gaze_cursor_key=toggle_gaze_cursor_key)
+                                                       gaze_cursor_key=toggle_gaze_cursor_key,
+                                                       gaze_cursor_color=gaze_cursor_color,
+                                                       color_space=color_space, unit_type=unit_type)
 
     def run(self):
         """
@@ -675,8 +778,9 @@ class ValidationTargetRenderer(object):
                                         ('eye_y', np.float64),
                                         ('pupil_size', np.float64)]
 
-    def __init__(self, win, target, positions, background=None, storeeventsfor=[], triggers=None, msgcategory='',
-                 io=None, terminate_key='escape', gaze_cursor_key='g'):
+    def __init__(self, win, target, positions, storeeventsfor=[], triggers=None, msgcategory='',
+                 io=None, terminate_key='escape', gaze_cursor_key='g', gaze_cursor_color='green',
+                 color_space=None, unit_type=None):
         """
         ValidationTargetRenderer is an internal class used by `ValidationProcedure`.
 
@@ -693,7 +797,6 @@ class ValidationTargetRenderer(object):
         :param win:
         :param target:
         :param positions:
-        :param background:
         :param storeeventsfor:
         :param triggers:
         :param msgcategory:
@@ -704,11 +807,10 @@ class ValidationTargetRenderer(object):
         self.display_gaze = False
         gc_size = deg2pix(3.0, win.monitor, correctFlat=False)
         self.gaze_cursor = visual.GratingStim(win, tex=None, mask='gauss', pos=(0, 0), size=(gc_size, gc_size),
-                                              color='green', units='pix', opacity=0.8)
+                                              color=gaze_cursor_color, colorSpace=color_space, units='pix', opacity=0.8)
         self._terminate_requested = False
         self.win = proxy(win)
         self.target = target
-        self.background = background
         self.positions = positions
         self.storeevents = storeeventsfor
         self.msgcategory = msgcategory
@@ -728,11 +830,8 @@ class ValidationTargetRenderer(object):
 
     def _draw(self):
         """
-        Fill the window with the specified background color and draw the
-        target stim.
+        Draw the target stim.
         """
-        if self.background:
-            self.background.draw()
         self.target.draw()
         if self.display_gaze:
             gpos = self.io.devices.tracker.getLastGazePosition()
@@ -792,7 +891,7 @@ class ValidationTargetRenderer(object):
                 while fliptime < expandedtime:
                     mu = (fliptime - starttime) / expansionduration
                     cradius = initialradius * (1.0 - mu) + expandedradius * mu
-                    self.target.setRadius(cradius)
+                    self.target.setSize(cradius*2)
                     self._draw()
                     fliptime = self.win.flip()
                     io.sendMessageEvent('EXPAND_SIZE %.4f %.4f' % (cradius, initialradius), self.msgcategory,
@@ -806,7 +905,7 @@ class ValidationTargetRenderer(object):
                 while fliptime < contractedtime:
                     mu = (fliptime - starttime) / contractionduration
                     cradius = expandedradius * (1.0 - mu) + initialradius * mu
-                    self.target.setRadius(cradius)
+                    self.target.setSize(cradius*2)
                     self._draw()
                     fliptime = self.win.flip()
                     io.sendMessageEvent('CONTRACT_SIZE %.4f %.4f' % (cradius, initialradius), self.msgcategory,
@@ -815,7 +914,7 @@ class ValidationTargetRenderer(object):
                     if self._terminate_requested:
                         return 0
 
-        self.target.setRadius(initialradius)
+        self.target.setSize(initialradius*2)
         return fliptime
 
     def moveTo(self, topos, frompos, **kwargs):

@@ -491,7 +491,7 @@ class SoundPTB(_SoundBase):
                               "stereo. Shape={}".format(self.sndArr.shape))
         self._nSamples = thisArray.shape[0]
         if self.stopTime == -1:
-            self.stopTime = self._nSamples / float(self.sampleRate)
+            self.duration = self._nSamples / float(self.sampleRate)
         # set to run from the start:
         self.seek(0)
         self.sourceType = "array"

@@ -27,3 +27,8 @@ Changes made to iohub for 2021.2 Release
     - TODO: Retest all eye trackers
 - Updated psychopy.iohub API docs.
 - Added color_type and unit_type settings to EyeLink and Tobii config settings.
+     - note eyelink unit type must always be pix as calibration coords in eyelink are int's.
+- eyetracker.runSetupProcedure returns calibration result data, if available.
+  Return contents vary between eye tracker manufacturers. TODO: Doc return data for each eye tracker
+- eyetracker.runSetupProcedure accepts calibration_args dict, which must have the same structure as the eyetracker's
+  calibration settings section.
