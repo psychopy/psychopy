@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
+# Part of the PsychoPy library
+# Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
+# Distributed under the terms of the GNU General Public License (GPL).
 from __future__ import division
 from builtins import object
 """
 Pixel to Visual Angle Calculation.
 
-Uses "symmetric angles" formula provided by Dr. Josh Borah
-(jborah AT asleyetracking.com), via email correspondence in 2012.
+Uses "symmetric angles" formula.
 
 Assumptions:
    1) unit origin == position 0.0, 0.0 == screen center
    2) Eye is orthogonal to origin of 2D plane
-
 """
 
 import numpy as np
@@ -20,7 +21,6 @@ hypot = np.hypot
 
 
 class VisualAngleCalc(object):
-
     def __init__(self, display_size_mm, display_res_pix, eye_distance_mm=None):
         """Used to store calibrated surface information and eye to screen
         distance so that pixel positions can be converted to visual degree

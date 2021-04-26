@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-# Part of the psychopy.iohub library.
-# Copyright (C) 2012-2016 iSolver Software Solutions
+# Part of the PsychoPy library
+# Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import sys
@@ -148,6 +148,21 @@ class Display(Device):
         """
         return self.getConfiguration()['reporting_unit_type']
 
+    def getColorSpace(self):
+        """
+        Returns the color space to use for PsychoPy Windows.
+
+        Please refer to the psychoPy documentation for a detailed description of
+        supported color spaces.
+
+        Args:
+            None
+
+        Returns:
+            str: Display color space
+        """
+        return self.getConfiguration()['color_space']
+
     def getPixelsPerDegree(self):
         """Returns the Display's horizontal and vertical pixels per degree This
         is currently calculated using the PsychoPy built in function. Therefore
@@ -216,8 +231,7 @@ class Display(Device):
 
     def getCoordBounds(self):
         """Get the Display's left, top, right, and bottom border bounds,
-        specified in the coordinate space returned by
-        Display.getCoordinateType()
+        specified in the coordinate space returned by Display.getCoordinateType()
 
         Args:
             None

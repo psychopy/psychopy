@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-# Part of the psychopy.iohub library.
-# Copyright (C) 2012-2016 iSolver Software Solutions
+# Part of the PsychoPy library
+# Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 from __future__ import division, absolute_import
 
@@ -765,7 +765,8 @@ class ioServer(object):
                         self._hookDevice.append('Mouse')
                     if dev_cls_name == 'Keyboard':
                         dkeyboard = deviceDict['Keyboard']
-                        self.deviceMonitors.append(DeviceMonitor(dkeyboard, msgpump_interval))
+                        kbHookMonitor = DeviceMonitor(dkeyboard, 0.001)
+                        self.deviceMonitors.append(kbHookMonitor)
                         dkeyboard._CGEventTapEnable(dkeyboard._tap, True)
                         self._hookDevice.append('Keyboard')
 

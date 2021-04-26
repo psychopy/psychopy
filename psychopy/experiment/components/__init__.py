@@ -259,7 +259,7 @@ def getInitVals(params, target="PsychoPy"):
             inits[name].val = "norm"
             inits[name].valType = 'str'
         elif name == 'text':
-            inits[name].val = "default text"
+            inits[name].val = ""
             inits[name].valType = 'str'
         elif name == 'flip':
             inits[name].val = ""

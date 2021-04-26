@@ -2,6 +2,7 @@ monitor_devices:
     - Display:
         name: display
         reporting_unit_type: pix
+        color_space: rgb255
         device_number: 0
         physical_dimensions:
             width: 590
@@ -21,43 +22,53 @@ monitor_devices:
     - Experiment:
         name: experimentRuntime
 
-# Gazepoint GP3 Config (uncomment below device config to use)
-    - eyetracker.hw.gazepoint.gp3.EyeTracker:
+# MouseGaze Simulated Eye Tracker Config (uncomment below device config to use)
+    - eyetracker.hw.mouse.EyeTracker:
         enable: True
+        name: tracker
+        controls:
+            move: RIGHT_BUTTON
+            blink: [LEFT_BUTTON, RIGHT_BUTTON]
+            saccade_threshold: 0.5
+        monitor_event_types: [ MonocularEyeSampleEvent, FixationStartEvent, FixationEndEvent, SaccadeStartEvent, SaccadeEndEvent, BlinkStartEvent, BlinkEndEvent]
+
+# Gazepoint GP3 Config (uncomment below device config to use)
+#    - eyetracker.hw.gazepoint.gp3.EyeTracker:
+#        enable: True
     
         # The variable name of the device that will be used to access the ioHub Device class
         # during experiment run-time, via the devices.[name] attribute of the ioHub
         # connection or experiment runtime class.
-        name: tracker
+#        name: tracker
     
         # Should eye tracker events be saved to the ioHub DataStore file when the device
         # is recording data ?
-        save_events: True
+#        save_events: True
     
         # Should eye tracker events be sent to the Experiment process when the device
         # is recording data ?
-        stream_events: True
+#        stream_events: True
     
         # How many eye events (including samples) should be saved in the ioHub event buffer before
         # old eye events start being replaced by new events. When the event buffer reaches
         # the maximum event length of the buffer defined here, older events will start to be dropped.
-        event_buffer_length: 1024
+#        event_buffer_length: 1024
     
         # The GP3 implementation of the common eye tracker interface supports the
         # BinocularEyeSampleEvent event type.
-        monitor_event_types: [ BinocularEyeSampleEvent, FixationStartEvent, FixationEndEvent]
+#        monitor_event_types: [ BinocularEyeSampleEvent, FixationStartEvent, FixationEndEvent]
     
-        device_timer:
-            interval: 0.005
+#        device_timer:
+#            interval: 0.005
     
-        calibration:        
+#        calibration:
             # target_duration is the number of sec.msec that a calibration point should
             # be displayed before moving onto the next point.
             # (Sets the GP3 CALIBRATE_TIMEOUT)
-            target_duration: 1.25
+#            target_duration: 1.25
             # target_delay specifies the target animation duration in sec.msec.
             # (Sets the GP3 CALIBRATE_DELAY)
-            target_delay: 0.5
+#            target_delay: 0.5
 
 # SRR EyeLink Config (uncomment below device config to use)
 #    - eyetracker.hw.sr_research.eyelink.EyeTracker:
@@ -91,7 +102,7 @@ monitor_devices:
 #                inner_diameter: 6
 #                outer_color: [255,255,255]
 #                inner_color: [0,0,0]
-#        model_name: EYELINK 1000 TOWER
+#        model_name: EYELINK 1000 DESKTOP
 
 # Tobii Config (uncomment below device config to use)
 #    - eyetracker.hw.tobii.EyeTracker:

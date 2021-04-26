@@ -19,8 +19,20 @@ __all__ = [
 
 import numpy as np
 import soundfile as sf
+import psychopy.logging as logging
 from psychopy.tools.audiotools import *
 from .exceptions import AudioUnsupportedCodecError
+
+_recognizer = None
+_hasSpeechRecognition = True
+try:
+    import speech_recognition as sr
+    _recognizer = sr.Recognizer()
+except (ImportError, ModuleNotFoundError):
+    logging.warning(
+        "Text-to-speech recognition module not available. Transcription will be"
+        " unavailable (i.e. `AudioClip.toText()`).")
+    _hasSpeechRecognition = False
 
 # supported formats for loading and saving audio samples to file
 AUDIO_SUPPORTED_CODECS = [s.lower() for s in sf.available_formats().keys()]
@@ -614,6 +626,88 @@ class AudioClip(object):
     def userData(self, value):
         assert isinstance(value, dict)
         self._userData = value
+
+    def toText(self, engine='sphinx', config=None):
+        """Convert speech in audio to text.
+
+        This feature passes the audio clip samples to a text-to-speech engine
+        which will attempt to transcribe any speech within. The efficacy of the
+        transcription depends on the engine selected. By default, `PocketSphinx`
+        is used which provides decent transcription capabilities offline.
+
+        If the audio clip has multiple channels, they will be combined prior to
+        being passed to the engine.
+
+        Parameters
+        ----------
+        engine : str
+            Text-to-speech engine to use. Can be one of 'sphinx', 'google',
+            'googleCloud', 'bing', 'ibm' or 'houndify'.
+        config : dict
+            Additional configuration options for the specified engine.
+
+        Returns
+        -------
+        list
+            List of transcribed words as strings.
+
+        Examples
+        --------
+        Use a voice command as a response to a task::
+
+            resp = mic.getRecording()
+            respText = resp.toText()
+
+            if respText:
+                if 'right' in resp:
+                    print("You responded right is bigger.")
+                elif 'left' in resp:
+                    print("You responded left is bigger.")
+                else:
+                    print("Please indicate 'left' or 'right'.")
+            else:
+                print("Sorry I don't understand what you said.")
+
+        """
+        if not _hasSpeechRecognition:  # don't have speech recognition
+            return []
+
+        # combine channels if needed
+        if self.channels > 1:
+            samplesMixed = \
+                np.sum(self._samples, axis=1, dtype=np.float32) / np.float32(2.)
+        else:
+            samplesMixed = self._samples
+
+        # convert samples to WAV PCM format
+        clipDataInt16 = np.asarray(
+            samplesMixed * ((1 << 15) - 1), dtype=np.int16).tobytes()
+
+        sampleWidth = 2  # two bytes per sample
+        audio = sr.AudioData(clipDataInt16,
+                             sample_rate=self._sampleRateHz,
+                             sample_width=sampleWidth)
+
+        config = {} if config is None else config
+        assert isinstance(config, dict)
+
+        # do the conversion
+        txt = ''
+        try:
+            if engine == 'sphinx':
+                txt = _recognizer.recognize_sphinx(audio, **config)
+            elif engine == 'google':
+                txt = _recognizer.recognize_google(audio, **config)
+            elif engine == 'googleCloud':
+                txt = _recognizer.recognize_google_cloud(audio, **config)
+            elif engine == 'bing':
+                txt = _recognizer.recognize_bing(audio, **config)
+            else:
+                ValueError("Invalid value for `engine` specified.")
+        except sr.UnknownValueError:
+            pass
+
+        return txt.split(' ')  # split words
 
 
 def load(filename, codec=None):

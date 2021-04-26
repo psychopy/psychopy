@@ -93,7 +93,7 @@ class MenuFrame(wx.Frame, themes.ThemeMixin):
     """A simple empty frame with a menubar, should be last frame closed on mac
     """
 
-    def __init__(self, parent=None, ID=-1, app=None, title="PsychoPy3"):
+    def __init__(self, parent=None, ID=-1, app=None, title="PsychoPy"):
 
         wx.Frame.__init__(self, parent, ID, title, size=(1, 1))
         self.app = app
@@ -536,7 +536,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         # have to reimport because it is only local to __init__ so far
         from . import coder
         if self.coder is None:
-            title = "PsychoPy3 Coder (IDE) (v%s)"
+            title = "PsychoPy Coder (IDE) (v%s)"
             wx.BeginBusyCursor()
             self.coder = coder.CoderFrame(None, -1,
                                           title=title % self.version,
@@ -554,7 +554,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         # have to reimport because it is ony local to __init__ so far
         wx.BeginBusyCursor()
         from .builder.builder import BuilderFrame
-        title = "PsychoPy3 Experiment Builder (v%s)"
+        title = "PsychoPy Builder (v%s)"
         self.builder = BuilderFrame(None, -1,
                                  title=title % self.version,
                                  fileName=fileName, app=self)
@@ -595,7 +595,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
     def newRunnerFrame(self, event=None):
         # have to reimport because it is only local to __init__ so far
         from .runner.runner import RunnerFrame
-        title = "PsychoPy3 Experiment Runner (v{})".format(self.version)
+        title = "PsychoPy Runner (v{})".format(self.version)
         wx.BeginBusyCursor()
         self.runner = RunnerFrame(parent=None,
                              id=-1,
@@ -645,7 +645,11 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         Note: units are psychopy -1..+1 rgb units to three decimal places,
         preserving 24-bit color.
         """
-        dlg = PsychoColorPicker(None)  # doesn't need a parent
+        if self.coder is None:
+            return
+
+        document = self.coder.currentDoc
+        dlg = PsychoColorPicker(document)  # doesn't need a parent
         dlg.ShowModal()
         dlg.Destroy()
 
@@ -655,7 +659,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
     def openMonitorCenter(self, event):
         from psychopy.monitors import MonitorCenter
         self.monCenter = MonitorCenter.MainFrame(
-            None, 'PsychoPy3 Monitor Center')
+            None, 'PsychoPy Monitor Center')
         self.monCenter.Show(True)
 
     def terminateHubProcess(self):

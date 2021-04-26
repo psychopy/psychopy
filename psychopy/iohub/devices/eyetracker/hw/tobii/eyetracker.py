@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
-# Part of the psychopy.iohub library.
-# Copyright (C) 2012-2016 iSolver Software Solutions
+# Part of the PsychoPy library
+# Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
-
-"""ioHub Common Eye Tracker Interface for Tobii (C) Eye Tracking System"""
 from __future__ import absolute_import
 import math
 from .....constants import EventConstants, EyeTrackerConstants
@@ -179,19 +177,17 @@ class EyeTracker(EyeTrackerDevice):
         Tracker Interface."""
         return EyeTrackerConstants.EYETRACKER_INTERFACE_METHOD_NOT_SUPPORTED
 
-    def runSetupProcedure(self):
+    def runSetupProcedure(self, calibration_args={}):
         """runSetupProcedure performs a calibration routine for the Tobii eye
         tracking system.
         """
         try:
             from .tobiiCalibrationGraphics import TobiiPsychopyCalibrationGraphics
 
-            calibration_properties = self.getConfiguration().get('calibration')
-            screenColor = calibration_properties.get(
-                'screen_background_color')                     # [r,g,b] of screen
+            print2err("TODO: Test using updated Tobii calibration_args:", calibration_args)
 
-            genv = TobiiPsychopyCalibrationGraphics(
-                self, screenColor=screenColor)
+
+            genv = TobiiPsychopyCalibrationGraphics(self, calibration_args)
 
             calibrationOK = genv.runCalibration()
 
