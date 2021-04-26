@@ -14,11 +14,11 @@ and initialize an instance using the attributes of the Window.
 """
 
 from __future__ import absolute_import, print_function
-from builtins import object
 
 import os
 import sys
 import pygame
+from abc import abstractmethod
 from ._base import BaseBackend
 import psychopy
 from psychopy import core, platform_specific
@@ -175,3 +175,171 @@ class PygameBackend(BaseBackend):
         """Sets the window to/from full-screen mode"""
         raise NotImplementedError("Toggling fullscreen mode is not currently "
                              "supported on pygame windows")
+
+    # --------------------------------------------------------------------------
+    # Mouse related methods (e.g., event handlers)
+    #
+    # These methods are used to handle mouse events. Each function is bound to
+    # the appropriate callback which registers the mouse event with the global
+    # mouse event handler (psychopy.hardware.mouse.Mouse). Each callback has an
+    # `*args` parameter which allows the backend to pass whatever parameters.
+    #
+
+    @abstractmethod
+    def onMouseButton(self, *args, **kwargs):
+        """Event handler for any mouse button event (pressed and released).
+
+        This is used by backends which combine both button state changes into
+        a single event. Usually this would pass events to the appropriate
+        `onMouseButtonPress` and `onMouseButtonRelease` methods.
+        """
+        raise NotImplementedError(
+            "`onMouseButton` is not yet implemented for this backend.")
+
+    @abstractmethod
+    def onMouseButtonPress(self, *args, **kwargs):
+        """Event handler for mouse press events. This handler can also be used
+        for release events if the backend passes all button events to the same
+        callback.
+        """
+        raise NotImplementedError(
+            "`onMouseButtonPress` is not yet implemented for this backend.")
+
+    @abstractmethod
+    def onMouseButtonRelease(self, *args, **kwargs):
+        """Event handler for mouse release events."""
+        raise NotImplementedError(
+            "`onMouseButtonRelease` is not yet implemented for this backend.")
+
+    @abstractmethod
+    def onMouseScroll(self, *args, **kwargs):
+        """Event handler for mouse scroll events. Called when the mouse scroll
+        wheel is moved."""
+        raise NotImplementedError(
+            "`onMouseScroll` is not yet implemented for this backend.")
+
+    @abstractmethod
+    def onMouseMove(self, *args, **kwargs):
+        """Event handler for mouse move events."""
+        raise NotImplementedError(
+            "`onMouseMove` is not yet implemented for this backend.")
+
+    @abstractmethod
+    def onMouseEnter(self, *args, **kwargs):
+        """Event called when the mouse enters the window. Some backends might
+        combine enter and leave events to the same callback, this will handle
+        both if so.
+        """
+        raise NotImplementedError(
+            "`onMouseEnter` is not yet implemented for this backend.")
+
+    @abstractmethod
+    def onMouseLeave(self, *args, **kwargs):
+        """Event called when a mouse leaves the window."""
+        raise NotImplementedError(
+            "`onMouseLeave` is not yet implemented for this backend.")
+
+    @abstractmethod
+    def getMousePos(self):
+        """Get the position of the mouse on the current window.
+
+        Returns
+        -------
+        ndarray
+            Position `(x, y)` in window coordinates.
+
+        """
+        raise NotImplementedError(
+            "`getMousePos` is not yet implemented for this backend.")
+
+    @abstractmethod
+    def setMousePos(self, pos):
+        """Set/move the position of the mouse on the current window.
+
+        Parameters
+        ----------
+        pos : ArrayLike
+            Position `(x, y)` in window coordinates.
+
+        """
+        raise NotImplementedError(
+            "`setMousePos` is not yet implemented for this backend.")
+
+    def setMouseType(self, name='arrow'):
+        """Change the appearance of the cursor for this window. Cursor types
+        provide contextual hints about how to interact with on-screen objects.
+
+        **Deprecated!** Use `setMouseCursor` instead.
+
+        Parameters
+        ----------
+        name : str
+            Type of standard cursor to use.
+
+        """
+        self.setMouseCursor(name)
+
+    @abstractmethod
+    def setMouseCursor(self, cursorType='default'):
+        """Change the appearance of the cursor for this window. Cursor types
+        provide contextual hints about how to interact with on-screen objects.
+
+        The graphics used 'standard cursors' provided by the operating system.
+        They may vary in appearance and hot spot location across platforms. The
+        following names are valid on most platforms:
+
+        * ``arrow`` or ``default`` : Default system pointer.
+        * ``ibeam`` or ``text`` : Indicates text can be edited.
+        * ``crosshair`` : Crosshair with hot-spot at center.
+        * ``hand`` : A pointing hand.
+        * ``hresize`` : Double arrows pointing horizontally.
+        * ``vresize`` : Double arrows pointing vertically.
+        * ``help`` : Arrow with a question mark beside it (Windows only).
+        * ``no`` : 'No entry' sign or circle with diagonal bar.
+        * ``size`` : Vertical and horizontal sizing.
+        * ``downleft`` or ``upright`` : Double arrows pointing diagonally with
+          positive slope (Windows only).
+        * ``downright`` or ``upleft`` : Double arrows pointing diagonally with
+          negative slope (Windows only).
+        * ``lresize`` : Arrow pointing left (Mac OS X only).
+        * ``rresize`` : Arrow pointing right (Mac OS X only).
+        * ``uresize`` : Arrow pointing up (Mac OS X only).
+        * ``dresize`` : Arrow pointing down (Mac OS X only).
+        * ``wait`` : Hourglass (Windows) or watch (Mac OS X) to indicate the
+           system is busy.
+        * ``waitarrow`` : Hourglass beside a default pointer (Windows only).
+
+        In cases where a cursor is not supported, the default for the system
+        will be used.
+
+        Parameters
+        ----------
+        cursorType : str
+            Type of standard cursor to use. If not specified, `'default'` is
+            used.
+
+        Notes
+        -----
+        * On some platforms the 'crosshair' cursor may not be visible on uniform
+          grey backgrounds.
+
+        """
+        raise NotImplementedError(
+            "`setMouseCursor` is not yet implemented for this backend.")
+
+    @abstractmethod
+    def setMouseExclusive(self, exclusive):
+        """Set mouse exclusivity.
+
+        Parameters
+        ----------
+        exclusive : bool
+            Mouse exclusivity mode.
+
+        """
+        raise NotImplementedError(
+            "`setMouseExclusive` is not yet implemented for this backend.")
+
+
+if __name__ == "__main__":
+    pass
