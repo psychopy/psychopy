@@ -1071,7 +1071,7 @@ class SettingsComponent(object):
         buff.writeIndentedLines(code % self.params)
         buff.setIndentLevel(-1, relative=True)
         code = (
-            "ioServer = io.launchHubServer(experiment_code=%(expName)s, session_code=ioSession, **etConfig)\n"
+            "ioServer = io.launchHubServer(experiment_code=%(expName)s, session_code=ioSession, **ioConfig)\n"
             "eyetracker = ioServer.getDevice('tracker')\n"
         )
         buff.writeIndentedLines(code % self.params)
