@@ -91,6 +91,7 @@ ioDeviceMap = dict(ioUtil.getDeviceNames())
 #     def allowedVals(self, allowed):
 #         pass
 
+
 class SettingsComponent(object):
     """This component stores general info about how to run the experiment
     """
@@ -363,14 +364,14 @@ class SettingsComponent(object):
 
         #mousegaze
         self.params['mgMove'] = Param(
-            mgMove, valType='str', inputType="choice",
+            mgMove, valType='str', inputType="multiChoice",
             allowedVals=['LEFT_BUTTON', 'MIDDLE_BUTTON', 'RIGHT_BUTTON'],
             hint=_translate("Mouse button to press for eye movement."),
             label=_translate("Move Button"), categ="Eyetracking"
         )
 
         self.params['mgBlink'] = Param(
-            mgBlink, valType='str', inputType="choice",
+            mgBlink, valType='str', inputType="multiChoice",
             allowedVals=['LEFT_BUTTON', 'MIDDLE_BUTTON', 'RIGHT_BUTTON'],
             hint=_translate("Mouse button to press for a blink."),
             label=_translate("Blink Button"), categ="Eyetracking"
