@@ -356,7 +356,7 @@ class SettingsComponent(object):
 
         self.params['eyetracker'] = Param(
             eyetracker, valType='str', inputType="choice",
-            allowedVals=list(ioDeviceMap),
+            allowedVals=list(ioDeviceMap) + ["None"],
             hint=_translate("What kind of eye tracker should PsychoPy use? Select 'MouseGaze' to use "
                             "the mouse to simulate eye movement (for debugging without a tracker connected)"),
             label=_translate("Eyetracker Device"), categ="Eyetracking"
@@ -922,160 +922,169 @@ class SettingsComponent(object):
         code = (
             "\n"
             "# Setup eyetracking\n"
-            "ioDevice = '" + ioDeviceMap[self.params['eyetracker'].val] + "'\n"
-            "ioConfig = {\n"
         )
         buff.writeIndentedLines(code % self.params)
-        buff.setIndentLevel(1, relative=True)
-        code = (
-            "'name': 'tracker',\n"
-            "ioDevice: {\n"
-        )
-        buff.writeIndentedLines(code % self.params)
-        buff.setIndentLevel(1, relative=True)
-        # Initialise for MouseGaze
-        if self.params['eyetracker'] == "MouseGaze":
+        if self.params['eyetracker'] == "None":
             code = (
-                    "'controls': {\n"
+                "ioDevice = ioConfig = ioSession = ioServer = eyetracker = None\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+        else:
+            code = (
+                "ioDevice = '" + ioDeviceMap[self.params['eyetracker'].val] + "'\n"
+                "ioConfig = {\n"
             )
             buff.writeIndentedLines(code % self.params)
             buff.setIndentLevel(1, relative=True)
             code = (
-                        "'move': %(mgMove)s,\n"
-                        "'blink':%(mgBlink)s,\n"
-                        "'saccade_threshold': %(mgSaccade)s,\n"
-            )
-            buff.writeIndentedLines(code % self.params)
-            buff.setIndentLevel(-1, relative=True)
-            code = (
-                    "}\n"
-            )
-            buff.writeIndentedLines(code % self.params)
-            buff.setIndentLevel(-1, relative=True)
-            code = (
-                "}\n"
-            )
-            buff.writeIndentedLines(code % self.params)
-
-        elif self.params['eyetracker'] == "GazePoint":
-            code = (
-                    "'network_settings': {\n"
+                "'name': 'tracker',\n"
+                "ioDevice: {\n"
             )
             buff.writeIndentedLines(code % self.params)
             buff.setIndentLevel(1, relative=True)
-            code = (
-                        "'ip_address': %(gpAddress)s,\n"
-                        "'port': %(gpPort)s\n"
-            )
-            buff.writeIndentedLines(code % self.params)
-            buff.setIndentLevel(-1, relative=True)
-            code = (
+            # Initialise for MouseGaze
+            if self.params['eyetracker'] == "MouseGaze":
+                code = (
+                        "'controls': {\n"
+                )
+                buff.writeIndentedLines(code % self.params)
+                buff.setIndentLevel(1, relative=True)
+                code = (
+                            "'move': %(mgMove)s,\n"
+                            "'blink':%(mgBlink)s,\n"
+                            "'saccade_threshold': %(mgSaccade)s,\n"
+                )
+                buff.writeIndentedLines(code % self.params)
+                buff.setIndentLevel(-1, relative=True)
+                code = (
+                        "}\n"
+                )
+                buff.writeIndentedLines(code % self.params)
+                buff.setIndentLevel(-1, relative=True)
+                code = (
                     "}\n"
-            )
-            buff.writeIndentedLines(code % self.params)
-            buff.setIndentLevel(-1, relative=True)
-            code = (
-                "}\n"
-            )
-            buff.writeIndentedLines(code % self.params)
+                )
+                buff.writeIndentedLines(code % self.params)
 
-        elif self.params['eyetracker'] == "Tobii Technology":
-            code = (
-                    "'model_name': %(tbModel)s,\n"
+            elif self.params['eyetracker'] == "GazePoint":
+                code = (
+                        "'network_settings': {\n"
+                )
+                buff.writeIndentedLines(code % self.params)
+                buff.setIndentLevel(1, relative=True)
+                code = (
+                            "'ip_address': %(gpAddress)s,\n"
+                            "'port': %(gpPort)s\n"
+                )
+                buff.writeIndentedLines(code % self.params)
+                buff.setIndentLevel(-1, relative=True)
+                code = (
+                        "}\n"
+                )
+                buff.writeIndentedLines(code % self.params)
+                buff.setIndentLevel(-1, relative=True)
+                code = (
+                    "}\n"
+                )
+                buff.writeIndentedLines(code % self.params)
+
+            elif self.params['eyetracker'] == "Tobii Technology":
+                code = (
+                        "'model_name': %(tbModel)s,\n"
+                        "'runtime_settings': {\n"
+                )
+                buff.writeIndentedLines(code % self.params)
+                buff.setIndentLevel(1, relative=True)
+                code = (
+                            "'sampling_rate': %(tbSampleRate)s,\n"
+                )
+                buff.writeIndentedLines(code % self.params)
+                buff.setIndentLevel(-1, relative=True)
+                code = (
+                        "}\n"
+                )
+                buff.writeIndentedLines(code % self.params)
+                buff.setIndentLevel(-1, relative=True)
+                code = (
+                    "}\n"
+                )
+                buff.writeIndentedLines(code % self.params)
+
+            elif self.params['eyetracker'] == "SR Research Ltd":
+                code = (
+                    "'model_name': %(elModel)s,\n"
+                    "'simulation_mode': %(elSimMode)s,\n"
+                    "'network_settings': %(elAddress)s,\n"
+                    "'default_native_data_file_name': filename + '.edf',\n"
                     "'runtime_settings': {\n"
-            )
-            buff.writeIndentedLines(code % self.params)
-            buff.setIndentLevel(1, relative=True)
-            code = (
-                        "'sampling_rate': %(tbSampleRate)s,\n"
-            )
-            buff.writeIndentedLines(code % self.params)
-            buff.setIndentLevel(-1, relative=True)
-            code = (
+                )
+                buff.writeIndentedLines(code % self.params)
+                buff.setIndentLevel(1, relative=True)
+                code = (
+                        "'sampling_rate': %(elSampleRate)s,\n"
+                        "'track_eyes': %(elTrackEyes)s,\n"
+                        "'sample_filtering': {\n"
+                )
+                buff.writeIndentedLines(code % self.params)
+                buff.setIndentLevel(1, relative=True)
+                code = (
+                            "'sample_filtering': %(elDataFiltering)s,\n"
+                            "'elLiveFiltering': %(elLiveFiltering)s,\n"
+                )
+                buff.writeIndentedLines(code % self.params)
+                buff.setIndentLevel(-1, relative=True)
+                code = (
+                        "},\n"
+                        "'vog_settings': {\n"
+                )
+                buff.writeIndentedLines(code % self.params)
+                buff.setIndentLevel(1, relative=True)
+                code = (
+                            "'pupil_measure_types': %(elPupilMeasure)s,\n"
+                            "'tracking_mode': %(elTrackingMode)s,\n"
+                            "'pupil_center_algorithm': %(elPupilAlgorithm)s,\n"
+                )
+                buff.writeIndentedLines(code % self.params)
+                buff.setIndentLevel(-1, relative=True)
+                code = (
+                        "}\n"
+                )
+                buff.writeIndentedLines(code % self.params)
+                buff.setIndentLevel(-1, relative=True)
+                code = (
                     "}\n"
-            )
-            buff.writeIndentedLines(code % self.params)
-            buff.setIndentLevel(-1, relative=True)
-            code = (
-                "}\n"
-            )
-            buff.writeIndentedLines(code % self.params)
-
-        elif self.params['eyetracker'] == "SR Research Ltd":
-            code = (
-                "'model_name': %(elModel)s,\n"
-                "'simulation_mode': %(elSimMode)s,\n"
-                "'network_settings': %(elAddress)s,\n"
-                "'default_native_data_file_name': filename + '.edf',\n"
-                "'runtime_settings': {\n"
-            )
-            buff.writeIndentedLines(code % self.params)
-            buff.setIndentLevel(1, relative=True)
-            code = (
-                    "'sampling_rate': %(elSampleRate)s,\n"
-                    "'track_eyes': %(elTrackEyes)s,\n"
-                    "'sample_filtering': {\n"
-            )
-            buff.writeIndentedLines(code % self.params)
-            buff.setIndentLevel(1, relative=True)
-            code = (
-                        "'sample_filtering': %(elDataFiltering)s,\n"
-                        "'elLiveFiltering': %(elLiveFiltering)s,\n"
-            )
-            buff.writeIndentedLines(code % self.params)
-            buff.setIndentLevel(-1, relative=True)
-            code = (
-                    "},\n"
-                    "'vog_settings': {\n"
-            )
-            buff.writeIndentedLines(code % self.params)
-            buff.setIndentLevel(1, relative=True)
-            code = (
-                        "'pupil_measure_types': %(elPupilMeasure)s,\n"
-                        "'tracking_mode': %(elTrackingMode)s,\n"
-                        "'pupil_center_algorithm': %(elPupilAlgorithm)s,\n"
-            )
-            buff.writeIndentedLines(code % self.params)
-            buff.setIndentLevel(-1, relative=True)
-            code = (
+                )
+                buff.writeIndentedLines(code % self.params)
+                buff.setIndentLevel(-1, relative=True)
+                code = (
                     "}\n"
-            )
-            buff.writeIndentedLines(code % self.params)
-            buff.setIndentLevel(-1, relative=True)
-            code = (
-                "}\n"
-            )
-            buff.writeIndentedLines(code % self.params)
+                )
+                buff.writeIndentedLines(code % self.params)
+
+            # Close ioConfig dict
             buff.setIndentLevel(-1, relative=True)
             code = (
                 "}\n"
             )
             buff.writeIndentedLines(code % self.params)
 
-        # Close ioConfig dict
-        buff.setIndentLevel(-1, relative=True)
-        code = (
-            "}\n"
-        )
-        buff.writeIndentedLines(code % self.params)
-
-        # Start iohub server
-        code = (
-            "ioSession = '1'\n"
-            "if 'session' in expInfo:\n"
-        )
-        buff.writeIndentedLines(code % self.params)
-        buff.setIndentLevel(1, relative=True)
-        code = (
-                "ioSession = str(expInfo['session'])\n"
-        )
-        buff.writeIndentedLines(code % self.params)
-        buff.setIndentLevel(-1, relative=True)
-        code = (
-            "ioServer = io.launchHubServer(experiment_code=%(expName)s, session_code=ioSession, **ioConfig)\n"
-            "eyetracker = ioServer.getDevice('tracker')\n"
-        )
-        buff.writeIndentedLines(code % self.params)
+            # Start iohub server
+            code = (
+                "ioSession = '1'\n"
+                "if 'session' in expInfo:\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+            buff.setIndentLevel(1, relative=True)
+            code = (
+                    "ioSession = str(expInfo['session'])\n"
+            )
+            buff.writeIndentedLines(code % self.params)
+            buff.setIndentLevel(-1, relative=True)
+            code = (
+                "ioServer = io.launchHubServer(experiment_code=%(expName)s, session_code=ioSession, **ioConfig)\n"
+                "eyetracker = ioServer.getDevice('tracker')\n"
+            )
+            buff.writeIndentedLines(code % self.params)
 
     def writeWindowCode(self, buff):
         """Setup the window code.
