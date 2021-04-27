@@ -763,7 +763,10 @@ class PygletBackend(BaseBackend):
 
         absTime = core.getTime()
         absPos = self._windowCoordsToPix(args)
-        mouseEventHandler.win = self.win
+        # check if auto focus is enabled
+        if mouseEventHandler.autoFocus:
+            mouseEventHandler.win = self.win
+
         mouseEventHandler.setMouseMotionState(absPos, absTime)
 
     def onMouseLeave(self, *args, **kwargs):
@@ -776,7 +779,9 @@ class PygletBackend(BaseBackend):
         absTime = core.getTime()
         absPos = self._windowCoordsToPix(args)
         mouseEventHandler.setMouseMotionState(absPos, absTime)
-        mouseEventHandler.win = None
+
+        if mouseEventHandler.autoFocus:
+            mouseEventHandler.win = None
 
     def setMouseExclusive(self, exclusive):
         """Set mouse exclusivity.

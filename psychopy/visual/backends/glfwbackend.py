@@ -774,10 +774,12 @@ class GLFWBackend(BaseBackend):
         if mouseEventHandler is None:
             return
 
-        if bool(entered):
-            mouseEventHandler.win = self.win
-        else:
-            mouseEventHandler.win = None
+        # check if auto focus is enabled
+        if mouseEventHandler.autoFocus:
+            if bool(entered):
+                mouseEventHandler.win = self.win
+            else:
+                mouseEventHandler.win = None
 
     def setMouseExclusive(self, exclusive):
         """Set mouse exclusivity.

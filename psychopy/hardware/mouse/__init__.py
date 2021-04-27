@@ -66,6 +66,10 @@ class Mouse(object):
     win : :class:`~psychopy.visual.Window` or None
         Initial window for the mouse. If `None`, the window created first will
         be used automatically.
+    pos : ArrayLike or None
+        Initial position of the mouse cursor on the window `(x, y)` in window
+        `units`. If `None` or if `win` is `None, the position of the cursor will
+        not be set.
     visible : bool
         Show the mouse cursor. This applies to all windows created before
         instantiating this class.
@@ -74,6 +78,11 @@ class Mouse(object):
         of the cursor. This should be used for fullscreen applications which
         require mouse input but do not show the system cursor. When enabled, the
         cursor will not be visible.
+    autoFocus : bool
+        Automatically update the `win` property to the window the cursor is
+        presently hovering over. If `False`, you must manually update which
+        window the cursor is in. This should be enabled if you plan on using
+        multiple windows.
 
     Notes
     -----
@@ -145,7 +154,8 @@ class Mouse(object):
     # `MOUSE_BUTTON_*`.
     _mouseButtonsAbsTimes = np.zeros((2, MOUSE_BUTTON_COUNT), dtype=np.float32)
 
-    # Mouse motion timing.
+    # Mouse motion timing, first item is when the mouse started moving, second
+    # is when it stopped.
     _mouseMotionAbsTimes = np.zeros((2,), dtype=np.float32)
 
     # Mouse positions during motion, press and scroll events are stored in this
@@ -171,12 +181,18 @@ class Mouse(object):
     # have the window automatically be set when a cursor hovers over it
     _autoFocus = True
 
-    def __init__(self, win=None, visible=True, exclusive=False):
+    def __init__(self, win=None, pos=(0, 0), visible=True, exclusive=False,
+                 autoFocus=True):
         # only setup if previously not instanced
         if not self._initialized:
             self.win = win
             self.visible = visible
             self.exclusive = exclusive
+            self.autoFocus = autoFocus
+
+            if self.win is not None and pos is not None:
+                self.setPos(pos)
+
         else:
             raise RuntimeError(
                 "Cannot create a new `psychopy.hardware.mouse.Mouse` instance. "
@@ -501,6 +517,40 @@ class Mouse(object):
             self.win.backend.setMouseExclusive(self._exclusive)
         else:
             self._exclusive = False
+
+    @property
+    def autoFocus(self):
+        """Automatically update `win` to that which the cursor is hovering over
+        (`bool`).
+        """
+        return self.getAutoFocus()
+
+    @autoFocus.setter
+    def autoFocus(self, value):
+        self.setAutoFocus(value)
+
+    def getAutoFocus(self):
+        """Get if auto focus is enabled.
+
+        Returns
+        -------
+        bool
+            `True` if auto focus is enabled.
+
+        """
+        return self._autoFocus
+
+    def setAutoFocus(self, autoFocus):
+        """Set cursor auto focus. If enabled, `win` will be automatically
+        to the window the cursor is presently hovering over.
+
+        Parameters
+        ----------
+        autoFocus : bool
+            If `True`, auto focus will be enabled.
+
+        """
+        self._autoFocus = autoFocus
 
     @property
     def buttons(self):
