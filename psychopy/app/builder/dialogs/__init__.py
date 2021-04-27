@@ -1094,6 +1094,12 @@ class DlgLoopProperties(_BaseParamsDlg):
         if 'conditionsFile' in self.currentHandler.params:
             self.currentHandler.params['conditions'].val = self.conditions
 
+    def Validate(self, *args, **kwargs):
+        for ctrl in self.globalCtrls.values():
+            checker = ctrl.valueCtrl.GetValidator()
+            if checker:
+                checker.Validate(self)
+
     def makeGlobalCtrls(self):
         panel = wx.Panel(parent=self)
         panelSizer = wx.GridBagSizer(5, 5)
