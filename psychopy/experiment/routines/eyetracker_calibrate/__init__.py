@@ -270,7 +270,7 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
         buff.writeIndentedLines(code % self.params)
         buff.setIndentLevel(1, relative=True)
         code = (
-                "'target_attributes': %(name)sTarget.getCalibSettings('SR Research Ltd'),\n"
+                "'target_attributes': %(name)sTarget.getCalibSettings('Tobii Technology'),\n"
                 "'type': " + tbPositions + ",\n"
                 "'randomize': %(randomisePos)s,\n"
                 "'auto_pace': " + str(bool(self.params['progressTime'])) + ",\n"
