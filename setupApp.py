@@ -81,7 +81,6 @@ packages = ['wx', 'psychopy',
             'pkg_resources',  # needed for objc
             'pyolib', 'pyo',
             'requests', 'certifi', 'cryptography',
-            'pyosf',
             # for unit testing
             'coverage',
             # handy external science libs
