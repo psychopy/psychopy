@@ -35,7 +35,7 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
                  progressTime="",
                  color="red", fillColor="", borderColor="white", cursorColor="red", colorSpace="rgb",
                  borderWidth=0.005,
-                 units="height", targetSize=0.025, dotSize=0.005, randomisePos=True,
+                 units='from exp settings', targetSize=0.025, dotSize=0.005, randomisePos=True,
                  targetLayout="nine-point", positions=positionsMap['nine-point'],
                  velocity=1, expandScale=3, expandDur=0.2):
         # Initialise base routine

@@ -34,7 +34,7 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
                  showCursor=True, progressKey=["ENTER"], progressTime="", showResults=False,
                  color="red", fillColor="", borderColor="white", cursorColor="red", colorSpace="rgb",
                  targetStyle="dot", borderWidth=0.005,
-                 units="height", targetSize=0.025, dotSize=0.005, randomisePos=True,
+                 units='from exp settings', targetSize=0.025, dotSize=0.005, randomisePos=True,
                  targetLayout="nine-point", positions=positionsMap['nine-point'],
                  velocity=1, expandScale=3, expandDur=0.2,
                  saveAsImg=False
