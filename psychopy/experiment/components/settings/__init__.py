@@ -13,10 +13,12 @@ import wx.__version__
 import psychopy
 from psychopy import logging
 from psychopy.experiment.components import Param, _translate
+from psychopy.experiment.routines.eyetracker_calibrate import EyetrackerCalibrationRoutine
 from psychopy.tools.versionchooser import versionOptions, availableVersions, _versionFilter, latestVersion
 from psychopy.constants import PY3
 from psychopy.monitors import Monitor
 from psychopy.iohub import util as ioUtil
+from psychopy.alerts import alert
 
 # for creating html output folders:
 import shutil
@@ -930,6 +932,12 @@ class SettingsComponent(object):
             )
             buff.writeIndentedLines(code % self.params)
         else:
+            # Alert user if they need calibration and don't have it
+            if self.params['eyetracker'].val != "MouseGaze":
+                if not any(isinstance(rt, EyetrackerCalibrationRoutine)
+                           for rt in self.exp.flow):
+                    alert(code=4510, strFields={"eyetracker": self.params['eyetracker'].val})
+            # Write code
             code = (
                 "ioDevice = '" + ioDeviceMap[self.params['eyetracker'].val] + "'\n"
                 "ioConfig = {\n"
