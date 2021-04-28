@@ -113,7 +113,7 @@ class SettingsComponent(object):
                  saveWideCSVFile=True, savePsydatFile=True,
                  savedDataFolder='', savedDataDelim='auto',
                  useVersion='',
-                 eyetracker="MouseGaze",
+                 eyetracker="None",
                  mgMove='RIGHT_BUTTON', mgBlink='MIDDLE_BUTTON', mgSaccade=0.5,
                  gpAddress='127.0.0.1', gpPort=4242,
                  elModel='EYELINK 1000 DESKTOP', elSimMode=False, elSampleRate=250, elTrackEyes="left",
