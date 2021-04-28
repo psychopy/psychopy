@@ -22,17 +22,6 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
         # Initialise base routine
         BaseStandaloneRoutine.__init__(self, exp, name=name)
 
-        # Define relationships
-        self.depends = [  # allows params to turn each other off/on
-            # Only enable positions if targetLayout is custom
-            {"dependsOn": "targetLayout",  # must be param name
-             "condition": "=='custom...'",  # val to check for
-             "param": "positions",  # param property to alter
-             "true": "show",  # what to do with param if condition is True
-             "false": "hide",  # permitted: hide, show, enable, disable
-             },
-        ]
-
         # Basic params
         self.params['progressTime'] = Param(progressTime,
             valType='code', inputType="single", categ='Basic',
