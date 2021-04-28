@@ -35,7 +35,26 @@ class EyetrackerRecordComponent(BaseComponent):
                                startEstim=startEstim, durationEstim=durationEstim)
         self.type = 'Eyetracker'
         self.url = "https://www.psychopy.org/builder/components/eyetracker.html"
-        self.exp.requirePsychopyLibs(['iohub'])
+        self.exp.requirePsychopyLibs(['iohub', 'hardware'])
+
+    def writeInitCode(self, buff):
+        inits = self.params
+        # Make a controller object
+        code = (
+            "%(name)s = hardware.eyetracker.EyetrackerControl(\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(1, relative=True)
+        code = (
+                "server=ioServer,\n"
+                "tracker=eyetracker\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(-1, relative=True)
+        code = (
+            ")"
+        )
+        buff.writeIndentedLines(code % inits)
 
     def writeFrameCode(self, buff):
         """Write the code that will be called every frame
@@ -48,8 +67,6 @@ class EyetrackerRecordComponent(BaseComponent):
         self.writeStartTestCode(buff)
         code = (
                 "%(name)s.status = STARTED\n"
-                "ioServer.clearEvents()\n"
-                "eyetracker.setRecordingState(True)\n"
         )
         buff.writeIndentedLines(code % self.params)
         buff.setIndentLevel(-1, relative=True)
@@ -58,8 +75,9 @@ class EyetrackerRecordComponent(BaseComponent):
         if self.params['stopVal'].val not in ['', None, -1, 'None']:
             # writes an if statement to determine whether to draw etc
             self.writeStopTestCode(buff)
-            code = ("%(name)s.status = FINISHED\n"
-                    "%(name)s.setRecordingState(False)\n")
+            code = (
+                "%(name)s.status = FINISHED\n"
+            )
             buff.writeIndentedLines(code % self.params)
             # to get out of the if statement
             buff.setIndentLevel(-2, relative=True)
