@@ -937,11 +937,14 @@ class SettingsComponent(object):
             buff.writeIndentedLines(code % self.params)
             buff.setIndentLevel(1, relative=True)
             code = (
-                "'name': 'tracker',\n"
                 "ioDevice: {\n"
             )
             buff.writeIndentedLines(code % self.params)
             buff.setIndentLevel(1, relative=True)
+            code = (
+                    "'name': 'tracker',\n"
+            )
+            buff.writeIndentedLines(code % self.params)
             # Initialise for MouseGaze
             if self.params['eyetracker'] == "MouseGaze":
                 code = (
