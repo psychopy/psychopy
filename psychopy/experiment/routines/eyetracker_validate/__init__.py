@@ -212,6 +212,10 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
         # Alert user if eyetracking isn't setup
         if self.exp.eyetracking == "None":
             alert(code=4505)
+        # Alert user if validation can't progress
+        if (self.params['progressKey'].val in ["", None, "None"]
+                and self.params['progressTime'].val in ["", None, "None"]):
+            alert(code=4515, strFields={'name': self.params['name'].val})
 
         # If positions are preset, override param value
         if self.params['targetLayout'].val in positionsMap:
