@@ -4,26 +4,6 @@ from psychopy.experiment import Param
 from pathlib import Path
 
 
-positionsMap = {
-    "three-point":
-        [(-0.85, +0.00), (+0.00, +0.00), (+0.85, +0.00)],
-    "five-point":
-        [(+0.00, +0.85),
-         (-0.85, +0.00), (+0.00, +0.00), (+0.85, +0.00),
-         (+0.85, -0.85)],
-    "nine-point":
-        [(-0.85, +0.85), (+0.00, +0.85), (+0.85, +0.85),
-         (-0.85, +0.00), (+0.00, +0.00), (+0.85, +0.00),
-         (-0.85, -0.85), (+0.85, -0.85), (+0.00, -0.85)],
-    "thirteen-point":
-        [(-0.850, +0.850), (+0.000, +0.850), (+0.850, +0.850),
-         (-0.425, +0.425), (+0.425, +0.425),
-         (-0.850, +0.000), (+0.000, +0.000), (+0.850, +0.000),
-         (-0.425, -0.425), (+0.425, -0.425),
-         (-0.850, -0.850), (+0.850, -0.850), (+0.000, -0.850)],
-}
-
-
 class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
     categories = ['Eyetracking']
     targets = ["PsychoPy"]
@@ -105,7 +85,6 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
         # Layout Params
         self.order += [
             "targetLayout",
-            "positions",
             "randomisePos",
             "targetSize",
             "dotSize",
@@ -123,11 +102,6 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
                                             allowedVals=['THREE_POINTS', 'FIVE_POINTS', 'NINE_POINTS', "THIRTEEN_POINTS", 'custom...'],
                                             hint=_translate("Pre-defined point layouts"),
                                             label=_translate("Target Layout"))
-
-        self.params['positions'] = Param(positions,
-                                         valType='list', inputType="single", categ='Layout',
-                                         hint=_translate("List of positions (x, y) at which the target can appear"),
-                                         label=_translate("Target Positions"))
 
         self.params['randomisePos'] = Param(randomisePos,
                                             valType='bool', inputType="bool", categ='Layout',
@@ -168,13 +142,8 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
                                             "How long it takes the target stimulus to move from one position to the next"),
                                         label=_translate("Velocity"))
 
-
     def writeMainCode(self, buff):
         BaseStandaloneRoutine.writeMainCode(self, buff)
-
-        # If positions are preset, override param value
-        if self.params['targetLayout'].val in positionsMap:
-            self.params['positions'].val = positionsMap[self.params['targetLayout'].val]
 
         # Make target
         code = (
