@@ -121,6 +121,11 @@ class Experiment(object):
             self.requireImport(importName=lib,
                                importFrom='psychopy')
 
+    @property
+    def eyetracking(self):
+        """What kind of eyetracker this experiment is set up for"""
+        return self.settings.params['eyetracker']
+
     def requireImport(self, importName, importFrom='', importAs=''):
         """Add a top-level import to the experiment.
 

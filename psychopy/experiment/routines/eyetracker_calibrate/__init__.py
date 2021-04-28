@@ -2,6 +2,7 @@ from .. import BaseStandaloneRoutine
 from psychopy.localization import _translate
 from psychopy.experiment import Param
 from pathlib import Path
+from psychopy.alerts import alert
 
 
 class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
@@ -143,6 +144,10 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
                                         label=_translate("Velocity"))
 
     def writeMainCode(self, buff):
+        # Alert user if eyetracking isn't setup
+        if self.exp.eyetracking == "None":
+            alert(code=4505)
+
         BaseStandaloneRoutine.writeMainCode(self, buff)
 
         # Make target

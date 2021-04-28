@@ -12,6 +12,7 @@ from os import path
 from pathlib import Path
 from psychopy.experiment.components import BaseComponent, Param, _translate
 from psychopy.localization import _localized as __localized
+from psychopy.alerts import alert
 _localized = __localized.copy()
 
 
@@ -59,6 +60,10 @@ class EyetrackerRecordComponent(BaseComponent):
     def writeFrameCode(self, buff):
         """Write the code that will be called every frame
         """
+        # Alert user if eyetracking isn't setup
+        if self.exp.eyetracking == "None":
+            alert(code=4505)
+
         inits = self.params
         buff.writeIndentedLines("# *%s* updates\n" % self.params['name'])
 

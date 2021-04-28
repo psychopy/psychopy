@@ -2,6 +2,7 @@ from .. import BaseStandaloneRoutine
 from psychopy.localization import _translate
 from psychopy.experiment import Param
 from pathlib import Path
+from psychopy.alerts import alert
 
 
 positionsMap = {
@@ -208,6 +209,10 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
             label=_translate("Save As Image"))
 
     def writeMainCode(self, buff):
+        # Alert user if eyetracking isn't setup
+        if self.exp.eyetracking == "None":
+            alert(code=4505)
+
         # If positions are preset, override param value
         if self.params['targetLayout'].val in positionsMap:
             self.params['positions'].val = positionsMap[self.params['targetLayout'].val]
