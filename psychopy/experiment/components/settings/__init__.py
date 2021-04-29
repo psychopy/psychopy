@@ -920,6 +920,7 @@ class SettingsComponent(object):
 
         buff.writeIndented("frameTolerance = 0.001  # how close to onset before 'same' frame\n")
 
+    def writeEyetrackerCode(self, buff):
         # Make ioConfig dict
         code = (
             "\n"
@@ -1092,7 +1093,7 @@ class SettingsComponent(object):
             buff.writeIndentedLines(code % self.params)
             buff.setIndentLevel(-1, relative=True)
             code = (
-                "ioServer = io.launchHubServer(experiment_code=%(expName)s, session_code=ioSession, **ioConfig)\n"
+                "ioServer = io.launchHubServer(window=win, experiment_code=%(expName)s, session_code=ioSession, **ioConfig)\n"
                 "eyetracker = ioServer.getDevice('tracker')\n"
             )
             buff.writeIndentedLines(code % self.params)
