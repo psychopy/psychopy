@@ -141,7 +141,7 @@ class ParamCtrls(object):
         elif param.inputType == 'multiChoice':
             self.valueCtrl = paramCtrls.MultiChoiceCtrl(parent, valType=param.valType,
                                                         vals=param.val, choices=param.allowedVals, fieldName=fieldName,
-                                                        size=wx.Size(self.valueWidth, 144))
+                                                        size=wx.Size(self.valueWidth, -1))
         elif param.inputType == 'bool':
             self.valueCtrl = paramCtrls.BoolCtrl(parent,
                                          name=fieldName,size=wx.Size(self.valueWidth, 24))
