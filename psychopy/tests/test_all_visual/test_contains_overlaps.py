@@ -92,7 +92,7 @@ def contains_overlaps(testType):
                     res = shape.overlaps(testPoints[j])
                 thisDebugStr = dbgStr % (testType, param['units'], postures[i]['ori'],
                             postures[i]['size'], postures[i]['pos'], points[j],
-                            correctResults[i][j]))
+                            correctResults[i][j])
                 assert res == correctResults[i][j], thisDebugStr
                 if res:
                     testPoints[j].setFillColor('green', log=False)
