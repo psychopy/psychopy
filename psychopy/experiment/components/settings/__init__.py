@@ -366,14 +366,14 @@ class SettingsComponent(object):
 
         #mousegaze
         self.params['mgMove'] = Param(
-            mgMove, valType='str', inputType="multiChoice",
+            mgMove, valType='list', inputType="multiChoice",
             allowedVals=['LEFT_BUTTON', 'MIDDLE_BUTTON', 'RIGHT_BUTTON'],
             hint=_translate("Mouse button to press for eye movement."),
             label=_translate("Move Button"), categ="Eyetracking"
         )
 
         self.params['mgBlink'] = Param(
-            mgBlink, valType='str', inputType="multiChoice",
+            mgBlink, valType='list', inputType="multiChoice",
             allowedVals=['LEFT_BUTTON', 'MIDDLE_BUTTON', 'RIGHT_BUTTON'],
             hint=_translate("Mouse button to press for a blink."),
             label=_translate("Blink Button"), categ="Eyetracking"
