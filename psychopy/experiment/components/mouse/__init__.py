@@ -9,15 +9,11 @@ from __future__ import absolute_import, print_function
 from builtins import super  # provides Py3-style super() using python-future
 
 from os import path
+from pathlib import Path
 from psychopy.experiment.components import BaseComponent, Param, _translate
 from psychopy.localization import _localized as __localized
 _localized = __localized.copy()
 import re
-
-# the absolute path to the folder containing this path
-thisFolder = path.abspath(path.dirname(__file__))
-iconFile = path.join(thisFolder, 'mouse.png')
-tooltip = _translate('Mouse: query mouse position and buttons')
 
 # only use _localized values for label values, nothing functional:
 _localized.update({'saveMouseState': _translate('Save mouse state'),
@@ -34,6 +30,8 @@ class MouseComponent(BaseComponent):
     """
     categories = ['Responses']
     targets = ['PsychoPy', 'PsychoJS']
+    iconFile = Path(__file__).parent / 'mouse.png'
+    tooltip = _translate('Mouse: query mouse position and buttons')
 
     def __init__(self, exp, parentName, name='mouse',
                  startType='time (s)', startVal=0.0,
@@ -50,7 +48,6 @@ class MouseComponent(BaseComponent):
         self.type = 'Mouse'
         self.url = "https://www.psychopy.org/builder/components/mouse.html"
         self.exp.requirePsychopyLibs(['event'])
-        self.categories = ['Inputs']
 
         self.order += [
             'forceEndRoutineOnPress',  # Basic tab

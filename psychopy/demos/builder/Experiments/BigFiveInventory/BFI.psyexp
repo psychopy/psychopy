@@ -77,6 +77,7 @@
         <Param name="Randomize" val="False" valType="bool" updates="constant"/>
         <Param name="Style" val="light" valType="str" updates="constant"/>
         <Param name="Text Height" val="0.025" valType="num" updates="constant"/>
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
         <Param name="contrast" val="1" valType="code" updates="constant"/>
         <Param name="disabled" val="False" valType="bool" updates="None"/>
         <Param name="durationEstim" val="" valType="num" updates="None"/>
@@ -172,6 +173,7 @@
         <Param name="Randomize" val="False" valType="bool" updates="constant"/>
         <Param name="Style" val="light" valType="str" updates="constant"/>
         <Param name="Text Height" val="0.025" valType="num" updates="constant"/>
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
         <Param name="contrast" val="1" valType="code" updates="constant"/>
         <Param name="disabled" val="False" valType="bool" updates="None"/>
         <Param name="durationEstim" val="" valType="num" updates="None"/>

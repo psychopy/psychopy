@@ -7,6 +7,7 @@ Created on Fri Apr 28 11:20:49 2017
 from __future__ import absolute_import, print_function
 
 from os import path
+from pathlib import Path
 from psychopy.experiment.components import (BaseComponent, Param, getInitVals,
                                             _translate)
 # overwrite (filemode='w') a detailed log of the last run in this dir
@@ -15,10 +16,6 @@ from ..emotiv_record import CORTEX_OBJ
 from psychopy.localization import _localized as __localized
 _localized = __localized.copy()
 
-thisFolder = path.abspath(path.dirname(__file__))
-iconFile = path.join(thisFolder, 'emotiv_marking.png')
-tooltip = _translate('Mark a period of EEG')
-
 _localized.update({'marker_label': _translate('Marker Label'),
                    'marker_value': _translate('Marker Value'),
                    'stop_marker': _translate('Stop Marker')})
@@ -26,7 +23,10 @@ _localized.update({'marker_label': _translate('Marker Label'),
 
 class EmotivMarkingComponent(BaseComponent):  # or (VisualComponent)
 
+    categories = ['Custom']
     targets = ['PsychoPy']
+    iconFile = Path(__file__).parent / 'emotiv_marking.png'
+    tooltip = _translate('Mark a period of EEG')
 
     def __init__(self, exp, parentName, name='eeg_marker',
                  startType='time (s)', startVal=0.0,

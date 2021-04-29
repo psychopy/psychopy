@@ -9,14 +9,10 @@
 from __future__ import absolute_import, print_function
 
 from os import path
+from pathlib import Path
 from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals, _translate
 from psychopy.localization import _localized as __localized
 _localized = __localized.copy()
-
-# the absolute path to the folder containing this path
-thisFolder = path.abspath(path.dirname(__file__))
-iconFile = path.join(thisFolder, 'noise.png')
-tooltip = _translate('Noise stimuli: generates a range of different types of random visual patterns')
 
 # only use _localized values for label values, nothing functional:
 _localized.update({'noiseImage': _translate('Image from which to derive noise spectrum'),
@@ -46,7 +42,12 @@ _localized.update({'noiseImage': _translate('Image from which to derive noise sp
 
 class NoiseStimComponent(BaseVisualComponent):
     """A class for presenting grating stimuli"""
+
+    categories = ['Stimuli']
     targets = ['PsychoPy']
+    iconFile = Path(__file__).parent / 'noise.png'
+    tooltip = _translate('Noise stimuli: generates a range of different types of random visual patterns')
+
     def __init__(self, exp, parentName, name='noise', noiseImage='None',
                  mask='None', sf='None', interpolate='nearest',
                  units='from exp settings', color='$[1,1,1]', colorSpace='rgb',

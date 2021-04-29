@@ -6,6 +6,7 @@ from __future__ import absolute_import, print_function
 from builtins import str
 from builtins import object
 import os
+from pathlib import Path
 import re
 import wx.__version__
 import psychopy
@@ -23,7 +24,7 @@ import ast  # for doing literal eval to convert '["a","b"]' to a list
 
 
 def readTextFile(relPath):
-    fullPath = os.path.join(thisFolder, relPath)
+    fullPath = os.path.join(Path(__file__).parent, relPath)
     with open(fullPath, "r") as f:
         txt = f.read()
     return txt
@@ -69,7 +70,6 @@ _localized = {'expName': _translate("Experiment name"),
               'Force stereo': _translate("Force stereo"),
               'Export HTML': _translate("Export HTML")}
 
-thisFolder = os.path.split(__file__)[0]
 #
 #
 # # customize the Proj ID Param class to
@@ -93,6 +93,11 @@ class SettingsComponent(object):
     """This component stores general info about how to run the experiment
     """
     targets = ['PsychoPy']
+
+    categories = ['Custom']
+    targets = ['PsychoPy', 'PsychoJS']
+    iconFile = Path(__file__).parent / 'settings.png'
+    tooltip = _translate("Edit settings for this experiment")
 
     def __init__(self, parentName, exp, expName='', fullScr=True,
                  winSize=(1024, 768), screen=1, monitor='testMonitor',
