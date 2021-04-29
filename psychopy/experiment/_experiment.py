@@ -333,25 +333,6 @@ class Experiment(object):
     def _getShortName(self, longName):
         return longName.replace('(', '').replace(')', '').replace(' ', '')
 
-    def _setXMLparam(self, parent, param, name):
-        """Add a new child to a given xml node. name can include
-        spaces and parens, which will be removed to create child name
-        """
-        if hasattr(param, 'getType'):
-            thisType = param.getType()
-        else:
-            thisType = 'Param'
-        # creates and appends to parent
-        thisChild = xml.SubElement(parent, thisType)
-        thisChild.set('name', name)
-        if hasattr(param, 'val'):
-            thisChild.set('val', u"{}".format(param.val).replace("\n", "&#10;"))
-        if hasattr(param, 'valType'):
-            thisChild.set('valType', param.valType)
-        if hasattr(param, 'updates'):
-            thisChild.set('updates', "{}".format(param.updates))
-        return thisChild
-
     def _getXMLparam(self, params, paramNode, componentNode=None):
         """params is the dict of params of the builder component
         (e.g. stimulus) into which the parameters will be inserted

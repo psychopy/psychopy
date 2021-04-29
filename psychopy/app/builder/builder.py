@@ -1469,6 +1469,12 @@ class RoutinesNotebook(aui.AuiNotebook, ThemeMixin):
             if routine is self.GetPage(ii).routine:
                 self.SetSelection(ii)
 
+    def SetSelection(self, index, force=False):
+        aui.AuiNotebook.SetSelection(self, index, force=force)
+        self.frame.componentButtons.enableComponents(
+            not isinstance(self.GetPage(index).routine, BaseStandaloneRoutine)
+        )
+
     def getCurrentPage(self):
         if self.GetSelection() >= 0:
             return self.GetPage(self.GetSelection())
@@ -2548,6 +2554,11 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         button.Hide()
         # Do sizing
         self.Layout()
+
+    def enableComponents(self, enable=True):
+        for button in self.compButtons:
+            button.Enable(enable)
+        self.Update()
 
 
 class ReadmeFrame(wx.Frame):
