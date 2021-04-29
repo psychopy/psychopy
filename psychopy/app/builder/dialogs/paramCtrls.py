@@ -185,7 +185,7 @@ class ChoiceCtrl(wx.Choice, _ValidatorMixin):
 class MultiChoiceCtrl(wx.CheckListBox, _ValidatorMixin):
     def __init__(self, parent, valType,
                  vals="", choices=[], fieldName="",
-                 size=wx.Size(-1, 144)):
+                 size=wx.Size(-1, -1)):
         wx.CheckListBox.__init__(self)
         self.Create(parent, id=wx.ID_ANY, size=size, choices=choices, name=fieldName, style=wx.LB_MULTIPLE)
         self.valType = valType
