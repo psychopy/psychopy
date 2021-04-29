@@ -12,6 +12,7 @@ from __future__ import absolute_import, print_function
 from builtins import str, object, super
 from past.builtins import basestring
 from pathlib import Path
+from xml.etree.ElementTree import Element
 
 from psychopy import prefs
 from psychopy.constants import FOREVER
@@ -123,6 +124,21 @@ class BaseComponent(object):
             label=_translate('Disable component'))
 
         self.order = ['name']  # name first, then timing, then others
+
+    @property
+    def xml(self):
+        # Make root element
+        element = Element(self.__class__.__name__)
+        element.set("name", self.params['name'].val)
+        # Add an element for each parameter
+        for key, param in sorted(self.params.items()):
+            # Create node
+            paramNode = param.xml
+            paramNode.set("name", key)
+            # Add node
+            element.append(paramNode)
+
+        return element
 
     def integrityCheck(self):
         """

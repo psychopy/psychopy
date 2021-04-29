@@ -10,6 +10,7 @@
 
 from __future__ import absolute_import, print_function
 from past.builtins import basestring
+from xml.etree.ElementTree import Element
 
 from psychopy.experiment.routine import Routine
 from psychopy.experiment.loops import LoopTerminator, LoopInitiator
@@ -53,6 +54,22 @@ class Flow(list):
 
     def __repr__(self):
         return "psychopy.experiment.Flow(%s)" % (str(list(self)))
+
+    @property
+    def xml(self):
+        # Make root element
+        element = Element("Flow")
+        # Add an element for every Routine, Loop Initiator, Loop Terminator
+        for item in self:
+            sub = item.xml
+            if isinstance(item, Routine):
+                # Remove all sub elements (we only need its name)
+                comps = [comp for comp in sub]
+                for comp in comps:
+                    sub.remove(comp)
+            element.append(sub)
+
+        return element
 
     def addLoop(self, loop, startPos, endPos):
         """Adds initiator and terminator objects for the loop
