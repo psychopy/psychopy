@@ -148,6 +148,7 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
         else:
             self.size = val2array(size)
         self.ori = ori
+        self.setupTextureBuffers()
         self._updateVertices()
 
     def reset(self):
@@ -300,6 +301,43 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
         """
         return self._nextFrameT - self._frameInterval
 
+    def setupTextureBuffers(self):
+        """Setup texture buffers which hold frame data. This creates a texture
+        and pixel buffer. The pixel buffer is used to stream movie frame data to
+        the texture.
+
+        """
+        # create the pixel buffer object, this is mapped so pixel data can be
+        # pushed out to the texture directly
+        self._pboId = GL.GLuint()
+        GL.glGenBuffers(1, ctypes.byref(self._pboId))
+        GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, self._pboId)
+        GL.glBufferData(
+            GL.GL_PIXEL_UNPACK_BUFFER, 1280 * 720 * 3 * ctypes.sizeof(GL.GLuint),
+            None, GL.GL_STREAM_COPY)
+        GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, 0)
+
+        # the actual texture
+        self._texID = GL.GLuint()
+        GL.glGenTextures(1, ctypes.byref(self._texID))
+        GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
+        GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGB8,
+                        1280,
+                        720, 0,
+                        GL.GL_RGB, GL.GL_UNSIGNED_BYTE,
+                        None)
+        GL.glTexParameteri(
+            GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR)
+        GL.glTexParameteri(
+            GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)
+        GL.glTexParameteri(
+            GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP)
+        GL.glTexParameteri(
+            GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP)
+        # data from PIL/numpy is packed, but default for GL is 4 bytes
+
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+
     def _updateFrameTexture(self):
         if self._nextFrameT is None or self._nextFrameT < 0:
             # movie has no current position (or invalid position -JK), 
@@ -317,68 +355,53 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
                                    self._retraceInterval/2.0):
                 return None
         try:
-            self._numpyFrame = self._mov.get_frame(self._nextFrameT) 
+            self._numpyFrame = self._mov.get_frame(self._nextFrameT)
         except OSError:
             if self.autoLog:
-                logging.warning("Frame {} not found, moving one frame and trying again" 
+                logging.warning("Frame {} not found, moving one frame and trying again"
                     .format(self._nextFrameT), obj=self)
             self._nextFrameT += self._frameInterval
             self._updateFrameTexture()
         useSubTex = self.useTexSubImage2D
+
         if self._texID is None:
-            self._texID = GL.GLuint()
-            GL.glGenTextures(1, ctypes.byref(self._texID))
-            useSubTex = False
+            return
 
         # bind the texture in openGL
         GL.glEnable(GL.GL_TEXTURE_2D)
+
         # bind that name to the target
+        GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, self._pboId)
+
+        # size of the data
+        nBytes = self._numpyFrame.shape[1] * \
+                 self._numpyFrame.shape[0] * \
+                 3 * ctypes.sizeof(GL.GLubyte)
+
+        # deref buffer to prevent stalling the GPU when mapping
+        GL.glBufferData(GL.GL_PIXEL_UNPACK_BUFFER, nBytes, None,
+                        GL.GL_STREAM_COPY)
+
+        # map the PBO to a numpy array
+        bufferPtr = GL.glMapBuffer(GL.GL_PIXEL_UNPACK_BUFFER, GL.GL_WRITE_ONLY)
+        # the mapped buffer
+        bufferArray = numpy.ctypeslib.as_array(
+            ctypes.cast(bufferPtr, ctypes.POINTER(GL.GLubyte)),
+            shape=self._numpyFrame.shape)
+        bufferArray[:, :, :] = self._numpyFrame  # copy directly
+        GL.glUnmapBuffer(GL.GL_PIXEL_UNPACK_BUFFER)
+
+        # copy the PBO to the texture
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
-        # makes the texture map wrap (this is actually default anyway)
-        GL.glTexParameteri(
-            GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP)
-        GL.glTexParameteri(
-            GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP)
-        # data from PIL/numpy is packed, but default for GL is 4 bytes
         GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1)
-        # important if using bits++ because GL_LINEAR
-        # sometimes extrapolates to pixel vals outside range
-        if self.interpolate:
-            GL.glTexParameteri(
-                GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR)
-            GL.glTexParameteri(
-                GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)
-            if useSubTex is False:
-                GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGB8,
-                                self._numpyFrame.shape[1],
-                                self._numpyFrame.shape[0], 0,
-                                GL.GL_RGB, GL.GL_UNSIGNED_BYTE,
-                                self._numpyFrame.ctypes)
-            else:
-                GL.glTexSubImage2D(GL.GL_TEXTURE_2D, 0, 0, 0,
-                                   self._numpyFrame.shape[1],
-                                   self._numpyFrame.shape[0],
-                                   GL.GL_RGB, GL.GL_UNSIGNED_BYTE,
-                                   self._numpyFrame.ctypes)
-        else:
-            GL.glTexParameteri(
-                GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST)
-            GL.glTexParameteri(
-                GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST)
-            if useSubTex is False:
-                GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGB8,
-                                self._numpyFrame.shape[1],
-                                self._numpyFrame.shape[0], 0,
-                                GL.GL_BGR, GL.GL_UNSIGNED_BYTE,
-                                self._numpyFrame.ctypes)
-            else:
-                GL.glTexSubImage2D(GL.GL_TEXTURE_2D, 0, 0, 0,
-                                   self._numpyFrame.shape[1],
-                                   self._numpyFrame.shape[0],
-                                   GL.GL_BGR, GL.GL_UNSIGNED_BYTE,
-                                   self._numpyFrame.ctypes)
-        GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE,
-                     GL.GL_MODULATE)  # ?? do we need this - think not!
+        GL.glTexSubImage2D(GL.GL_TEXTURE_2D, 0, 0, 0,
+                           self._numpyFrame.shape[1],
+                           self._numpyFrame.shape[0],
+                           GL.GL_RGB, GL.GL_UNSIGNED_BYTE,
+                           0)  # no pointer using the PBO
+
+        GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, 0)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
 
         if self.status == PLAYING:
             self._nextFrameT += self._frameInterval
