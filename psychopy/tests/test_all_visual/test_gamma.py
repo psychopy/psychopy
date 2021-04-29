@@ -4,6 +4,8 @@ import numpy
 
 from psychopy.tests import utils
 
+
+@utils.skip_under_vm
 def test_low_gamma():
     """setting gamma low (dark screen)"""
     win = visual.Window([600,600], gamma=0.5, autoLog=False)#should make the entire screen bright
@@ -11,6 +13,9 @@ def test_low_gamma():
         win.flip()
     assert win.useNativeGamma==False
     win.close()
+
+
+@utils.skip_under_vm
 def test_mid_gamma():
     """setting gamma high (bright screen)"""
     win = visual.Window([600,600], gamma=2.0, autoLog=False)#should make the entire screen bright
@@ -18,6 +23,9 @@ def test_mid_gamma():
         win.flip()
     assert win.useNativeGamma==False
     win.close()
+
+
+@utils.skip_under_vm
 def test_high_gamma():
     """setting gamma high (bright screen)"""
     win = visual.Window([600,600], gamma=4.0, autoLog=False)#should make the entire screen bright
@@ -25,6 +33,9 @@ def test_high_gamma():
         win.flip()
     assert win.useNativeGamma==False
     win.close()
+
+
+@utils.skip_under_vm
 def test_no_gamma():
     """check that no gamma is used if not passed"""
     win = visual.Window([600,600], autoLog=False)#should not change gamma
@@ -35,16 +46,21 @@ def test_no_gamma():
     assert win.useNativeGamma==True
     win.close()
 
+
+@utils.skip_under_vm
 def test_monitorGetGamma():
     #create our monitor object
     gammaVal = [2.2, 2.2, 2.2]
     mon = monitors.Monitor('test')
     mon.setGamma(gammaVal)
     #create window using that monitor
+    utils.skip_under_vm()
     win = visual.Window([100,100], monitor=mon, autoLog=False)
     assert numpy.alltrue(win.gamma==gammaVal)
     win.close()
 
+
+@utils.skip_under_vm
 def test_monitorGetGammaGrid():
     #create (outdated) gamma grid (new one is [4,6])
     newGrid = numpy.array([[0,150,2.0],#lum
@@ -58,6 +74,8 @@ def test_monitorGetGammaGrid():
     assert numpy.alltrue(win.gamma==numpy.array([2.0, 2.0, 2.0]))
     win.close()
 
+
+@utils.skip_under_vm
 def test_monitorGetGammaAndGrid():
     """test what happens if gamma (old) and gammaGrid (new) are both present"""
     #create (outdated) gamma grid (new one is [4,6])
@@ -75,6 +93,7 @@ def test_monitorGetGammaAndGrid():
     win.close()
 
 
+@utils.skip_under_vm
 def test_setGammaRamp():
     """test that the gamma ramp is set as requested"""
 
@@ -108,6 +127,7 @@ def test_setGammaRamp():
     assert numpy.allclose(desiredRamp, setRamp, atol=1.0 / desiredRamp.shape[1])
 
 
+@utils.skip_under_vm
 def test_gammaSetGetMatch():
     """test that repeatedly getting and setting the gamma table has no
     cumulative effect."""
@@ -131,8 +151,6 @@ def test_gammaSetGetMatch():
             assert numpy.all(currGammaTable == startGammaTable)
 
         win.close()
-
-    utils.skip_under_travis()
 
 
 if __name__=='__main__':
