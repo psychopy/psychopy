@@ -12,6 +12,177 @@ from __future__ import absolute_import, print_function
 
 from psychopy.constants import FOREVER
 from xml.etree.ElementTree import Element
+from pathlib import Path
+
+from psychopy.localization import _translate
+from psychopy.experiment import Param
+
+
+class BaseStandaloneRoutine:
+    categories = ['Custom']
+    targets = []
+    iconFile = Path(__file__).parent / "unknown" / "unknown.png"
+    tooltip = ""
+    limit = float('inf')
+
+    def __init__(self, exp, name='',
+                 stopType='duration (s)', stopVal=''):
+        self.params = {}
+        self.name = name
+        self.exp = exp
+        self.type = 'StandaloneRoutine'
+        self.depends = []  # allows params to turn each other off/on
+        self.order = ['stopVal', 'stopType', 'name']
+
+        msg = _translate(
+            "Name of this routine (alpha-numeric or _, no spaces)")
+        self.params['name'] = Param(name,
+                                    valType='code', inputType="single", categ='Basic',
+                                    hint=msg,
+                                    label=_translate('name'))
+
+        self.params['stopVal'] = Param(stopVal,
+            valType='num', inputType="single", categ='Basic',
+            updates='constant', allowedUpdates=[], allowedTypes=[],
+            hint=_translate("When does the routine end? (blank is endless)"),
+            label=_translate('Stop'))
+
+        msg = _translate("How do you want to define your end point?")
+        self.params['stopType'] = Param(stopType,
+            valType='str', inputType="choice", categ='Basic',
+            allowedVals=['duration (s)', 'duration (frames)', 'condition'],
+            hint=msg,
+            label=_translate('Stop Type...'))
+
+    def __repr__(self):
+        _rep = "psychopy.experiment.%s(name='%s', exp=%s)"
+        return _rep % (self.__class__, self.name, self.exp)
+
+    def __iter__(self):
+        """Overloaded iteration behaviour - if iterated through, a standaloneRoutine returns
+        itself once, so it can be treated like a regular routine"""
+        self.__iterstop = False
+        return self
+
+    def __next__(self):
+        """Overloaded iteration behaviour - if iterated through, a standaloneRoutine returns
+        itself once, so it can be treated like a regular routine"""
+        if self.__iterstop:
+            # Stop after one iteration
+            self.__iterstop = False
+            raise StopIteration
+        else:
+            self.__iterstop = True
+            return self
+
+    @property
+    def xml(self):
+        # Make root element
+        element = Element(self.__class__.__name__)
+        element.set("name", self.params['name'].val)
+        # Add an element for each parameter
+        for key, param in sorted(self.params.items()):
+            # Create node
+            paramNode = Element("Param")
+            paramNode.set("name", key)
+            # Assign values
+            if hasattr(param, 'updates'):
+                paramNode.set('updates', "{}".format(param.updates))
+            if hasattr(param, 'val'):
+                paramNode.set('val', u"{}".format(param.val).replace("\n", "&#10;"))
+            if hasattr(param, 'valType'):
+                paramNode.set('valType', param.valType)
+            element.append(paramNode)
+
+        return element
+
+    def writePreCode(self, buff):
+        return
+
+    def writePreCodeJS(self, buff):
+        return
+
+    def writeStartCode(self, buff):
+        return
+
+    def writeStartCodeJS(self, buff):
+        return
+
+    def writeRunOnceInitCode(self, buff):
+        return
+
+    def writeInitCode(self, buff):
+        return
+
+    def writeInitCodeJS(self, buff):
+        return
+
+    def writeMainCode(self, buff):
+        code = (
+            "\n"
+            "# -------Run Routine '%(name)s'-------\n"
+            "\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+        return
+
+    def writeRoutineBeginCodeJS(self, buff, modular):
+        return
+
+    def writeEachFrameCodeJS(self, buff, modular):
+        return
+
+    def writeRoutineEndCodeJS(self, buff, modular):
+        return
+
+    def writeExperimentEndCode(self, buff):
+        return
+
+    def writeExperimentEndCodeJS(self, buff):
+        return
+
+    def getType(self):
+        return self.__class__.__name__
+
+    def getComponentFromName(self, name):
+        return None
+
+    def getComponentFromType(self, type):
+        return None
+
+    def hasOnlyStaticComp(self):
+        return False
+
+    def getMaxTime(self):
+        """If routine has a set duration, will return this along with True (as this routine is nonSlipSafe, i.e. has a fixed duration). Otherwise, will treat max time as 0 and will mark routine as nonSlipSafe (i.e. has a variable duration)..
+        """
+
+        # Assume max time of 0 and not nonSlipSafe
+        maxTime = 0
+        nonSlipSafe = False
+        # If has a set duration, store set duration and mark as nonSlipSafe
+        if 'stopVal' in self.params and 'stopType' in self.params:
+            if self.params['stopType'] in ['duration (s)', 'duration (frames)']:
+                maxTime = float(self.params['stopVal'].val or 0)
+                nonSlipSafe = True
+
+        return maxTime, nonSlipSafe
+
+    def getStatics(self):
+        return []
+
+    @property
+    def name(self):
+        if hasattr(self, 'params'):
+            if 'name' in self.params:
+                return self.params['name'].val
+        return self.type
+
+    @name.setter
+    def name(self, value):
+        if hasattr(self, 'params'):
+            if 'name' in self.params:
+                self.params['name'].val = value
 
 
 class Routine(list):

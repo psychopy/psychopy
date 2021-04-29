@@ -18,7 +18,6 @@ The code that writes out a *_lastrun.py experiment file is (in order):
 
 from __future__ import absolute_import, print_function
 # from future import standard_library
-import re
 
 from past.builtins import basestring
 from builtins import object
@@ -37,7 +36,8 @@ from .flow import Flow
 from .loops import TrialHandler, LoopInitiator, \
     LoopTerminator, StairHandler, MultiStairHandler
 from .params import _findParam, Param, legacyParams
-from .routine import Routine
+from psychopy.experiment.routines._base import Routine, BaseStandaloneRoutine
+from psychopy.experiment.routines import getAllStandaloneRoutines
 from . import utils, py2js
 from .components import getComponents, getAllComponents
 
@@ -46,7 +46,7 @@ import locale
 
 # standard_library.install_aliases()
 
-from collections import OrderedDict, namedtuple
+from collections import namedtuple, OrderedDict
 
 from ..alerts import alert
 
@@ -151,6 +151,15 @@ class Experiment(object):
             self.routines[routineName] = Routine(routineName, exp=self)
         else:
             self.routines[routineName] = routine
+        return self.routines[routineName]
+
+    def addStandaloneRoutine(self, routineName, routine):
+        """Add a standalone Routine to the current list of them.
+
+        Can take a Routine object directly or will create
+        an empty one if none is given.
+        """
+        self.routines[routineName] = routine
         return self.routines[routineName]
 
     def integrityCheck(self):
@@ -562,55 +571,71 @@ class Experiment(object):
         routinesNode = root.find('Routines')
         allCompons = getAllComponents(
             self.prefsBuilder['componentsFolders'], fetchIcons=False)
+        allRoutines = getAllStandaloneRoutines(fetchIcons=False)
         # get each routine node from the list of routines
         for routineNode in routinesNode:
-            routineGoodName = self.namespace.makeValid(
-                routineNode.get('name'))
-            if routineGoodName != routineNode.get('name'):
-                modifiedNames.append(routineNode.get('name'))
-            self.namespace.user.append(routineGoodName)
-            routine = Routine(name=routineGoodName, exp=self)
-            # self._getXMLparam(params=routine.params, paramNode=routineNode)
-            self.routines[routineNode.get('name')] = routine
-            for componentNode in routineNode:
+            if routineNode.tag == "Routine":
+                routineGoodName = self.namespace.makeValid(
+                    routineNode.get('name'))
+                if routineGoodName != routineNode.get('name'):
+                    modifiedNames.append(routineNode.get('name'))
+                self.namespace.user.append(routineGoodName)
+                routine = Routine(name=routineGoodName, exp=self)
+                # self._getXMLparam(params=routine.params, paramNode=routineNode)
+                self.routines[routineNode.get('name')] = routine
+                for componentNode in routineNode:
 
-                componentType = componentNode.tag
-                if componentType in allCompons:
-                    # create an actual component of that type
-                    component = allCompons[componentType](
-                        name=componentNode.get('name'),
-                        parentName=routineNode.get('name'), exp=self)
+                    componentType = componentNode.tag
+                    if componentType in allCompons:
+                        # create an actual component of that type
+                        component = allCompons[componentType](
+                            name=componentNode.get('name'),
+                            parentName=routineNode.get('name'), exp=self)
+                    else:
+                        # create UnknownComponent instead
+                        component = allCompons['UnknownComponent'](
+                            name=componentNode.get('name'),
+                            parentName=routineNode.get('name'), exp=self)
+                    # check for components that were absent in older versions of
+                    # the builder and change the default behavior
+                    # (currently only the new behavior of choices for RatingScale,
+                    # HS, November 2012)
+                    # HS's modification superceded Jan 2014, removing several
+                    # RatingScale options
+                    if componentType == 'RatingScaleComponent':
+                        if (componentNode.get('choiceLabelsAboveLine') or
+                                componentNode.get('lowAnchorText') or
+                                componentNode.get('highAnchorText')):
+                            pass
+                        # if not componentNode.get('choiceLabelsAboveLine'):
+                        #    # this rating scale was created using older version
+                        #    component.params['choiceLabelsAboveLine'].val=True
+                    # populate the component with its various params
+                    for paramNode in componentNode:
+                        self._getXMLparam(params=component.params,
+                                          paramNode=paramNode,
+                                          componentNode=componentNode)
+                    compGoodName = self.namespace.makeValid(
+                        componentNode.get('name'))
+                    if compGoodName != componentNode.get('name'):
+                        modifiedNames.append(componentNode.get('name'))
+                    self.namespace.add(compGoodName)
+                    component.params['name'].val = compGoodName
+                    routine.append(component)
+            else:
+                if routineNode.tag in allRoutines:
+                    # If not a routine, may be a standalone routine
+                    routine = allRoutines[routineNode.tag](exp=self, name=routineNode.get('name'))
                 else:
-                    # create UnknownComponent instead
-                    component = allCompons['UnknownComponent'](
-                        name=componentNode.get('name'),
-                        parentName=routineNode.get('name'), exp=self)
-                # check for components that were absent in older versions of
-                # the builder and change the default behavior
-                # (currently only the new behavior of choices for RatingScale,
-                # HS, November 2012)
-                # HS's modification superceded Jan 2014, removing several
-                # RatingScale options
-                if componentType == 'RatingScaleComponent':
-                    if (componentNode.get('choiceLabelsAboveLine') or
-                            componentNode.get('lowAnchorText') or
-                            componentNode.get('highAnchorText')):
-                        pass
-                    # if not componentNode.get('choiceLabelsAboveLine'):
-                    #    # this rating scale was created using older version
-                    #    component.params['choiceLabelsAboveLine'].val=True
-                # populate the component with its various params
-                for paramNode in componentNode:
-                    self._getXMLparam(params=component.params,
-                                      paramNode=paramNode,
-                                      componentNode=componentNode)
-                compGoodName = self.namespace.makeValid(
-                    componentNode.get('name'))
-                if compGoodName != componentNode.get('name'):
-                    modifiedNames.append(componentNode.get('name'))
-                self.namespace.add(compGoodName)
-                component.params['name'].val = compGoodName
-                routine.append(component)
+                    # Otherwise treat as unknown
+                    routine = allRoutines['UnknownRoutine'](exp=self, name=routineNode.get('name'))
+                # Apply all params
+                for paramNode in routineNode:
+                    if paramNode.tag == "Param":
+                        for key, val in paramNode.items():
+                            setattr(routine.params[paramNode.get("name")], key, val)
+                # Add routine to experiment
+                self.addStandaloneRoutine(routine.name, routine)
         # for each component that uses a Static for updates, we need to set
         # that
         for thisRoutine in list(self.routines.values()):
@@ -683,7 +708,7 @@ class Experiment(object):
             elif elementNode.tag == "LoopTerminator":
                 self.flow.append(LoopTerminator(
                     loop=loops[elementNode.get('name')]))
-            elif elementNode.tag == "Routine":
+            else:
                 if elementNode.get('name') in self.routines:
                     self.flow.append(self.routines[elementNode.get('name')])
                 else:
