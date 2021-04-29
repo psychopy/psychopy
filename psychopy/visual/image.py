@@ -317,6 +317,7 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
                             stim=self,
                             res=self.texRes,
                             maskParams=self.maskParams,
+                            forcePOW2=False,
                             wrapping=True)
 
     def setMask(self, value, log=None):
