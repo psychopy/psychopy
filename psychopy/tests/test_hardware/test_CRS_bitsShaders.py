@@ -20,7 +20,6 @@ except ImportError:
     import Image
 import os
 
-_travisTesting = bool(str(os.environ.get('TRAVIS')).lower() == 'true')  # in Travis-CI testing
 
 array=np.array
 #expectedVals = {'bits++':{}, 'mono++':{}, 'color++':{}}
@@ -96,13 +95,12 @@ def test_bitsShaders():
             #fr = np.array(win._getFrame(buffer='back').transpose(Image.ROTATE_270))
             win.flip()
             fr = np.array(win._getFrame(buffer='front').transpose(Image.ROTATE_270))
-            if not _travisTesting:
-                assert np.alltrue(thisExpected['lowR'] == fr[0:10,-1,0])
-                assert np.alltrue(thisExpected['lowG'] == fr[0:10,-1,1])
-                assert np.alltrue(thisExpected['highR'] == fr[250:256,-1,0])
-                assert np.alltrue(thisExpected['highG'] == fr[250:256,-1,1])
+            if not utils._travisTesting:
+                assert np.alltrue(thisExpected['lowR'] == fr[0:10, -1, 0])
+                assert np.alltrue(thisExpected['lowG'] == fr[0:10, -1, 1])
+                assert np.alltrue(thisExpected['highR'] == fr[250:256, -1, 0])
+                assert np.alltrue(thisExpected['highG'] == fr[250:256, -1, 1])
 
-            if not _travisTesting:
                 print('R', repr(fr[0:10,-1,0]), repr(fr[250:256,-1,0]))
                 print('G', repr(fr[0:10,-1,1]), repr(fr[250:256,-1,0]))
             #event.waitKeys()

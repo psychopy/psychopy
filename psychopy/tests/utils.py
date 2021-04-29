@@ -8,7 +8,6 @@ import shutil
 import numpy as np
 import io
 from psychopy import logging, colors
-from psychopy.visual import Window
 
 try:
     from PIL import Image
@@ -26,12 +25,14 @@ from pytest import skip
 _travisTesting = bool("{}".format(os.environ.get('TRAVIS')).lower() == 'true')
 _anacondaTesting = bool("{}".format(os.environ.get('CONDA')).lower() == 'true')
 _githubActions = str(os.environ.get('GITHUB_WORKFLOW')) != 'None'
+_vmTesting = _travisTesting  or _githubActions
 
 # define the path where to find testing data
 # so tests could be ran from any location
 TESTS_PATH = abspath(dirname(__file__))
 TESTS_DATA_PATH = pjoin(TESTS_PATH, 'data')
 TESTS_FONT = pjoin(TESTS_DATA_PATH, 'DejaVuSerif.ttf')
+
 
 def compareScreenshot(fileName, win, crit=5.0):
     """Compare the current back buffer of the given window with the file
@@ -222,7 +223,7 @@ def compareXlsxFiles(pathToActual, pathToCorrect):
         raise IOError(error)
 
 def comparePixelColor(screen, color, coord=(0,0)):
-    if isinstance(screen, Window):
+    if hasattr(screen, 'getMovieFrame'):  # check it is a Window class (without importing visual in this file)
         # If given a window, get frame from window
         screen.getMovieFrame(buffer='back')
         frame = screen.movieFrames[-1]
@@ -247,20 +248,45 @@ def comparePixelColor(screen, color, coord=(0,0)):
     assert all(c for c in color == pixCol) or closeEnough
 
 
+def _do_skip(fn, msg):
+    """Performs a skip, potentially on a decorated function"""
+    if fn is not None:  # called as a decorator
+        def _inner():
+            skip(msg)
+        _inner.__name__ = fn.__name__
+        return _inner
+    else:  # called as a function itself
+        skip(msg)
+
+
+def skip_under_vm(fn=None):
+    """Skip if a test is executed under Travis testing environment
+    Could also be used as a decorator (if argument provided) or
+    unparametrized in the code
+    """
+    if _travisTesting or _githubActions:
+        return _do_skip(fn, "Cannot be tested on a Virtual Machine")
+    else:
+        return fn
+
+
 def skip_under_travis(fn=None):
     """Skip if a test is executed under Travis testing environment
     Could also be used as a decorator (if argument provided) or
     unparametrized in the code
     """
-    # TODO: ad-hoc check ATM -- there might be better ways
-    if _travisTesting or _githubActions:
-        skip, msg = pytest.skip, "Cannot be tested under Travis-CI"
-        if fn is not None:
-            def _inner():
-                skip(msg)
-            _inner.__name__ = fn.__name__
-            return _inner
-        else:
-            skip(msg)
+    if _travisTesting:
+        return _do_skip(fn, "Cannot be tested on a Travis VM")
+    else:
+        return fn
+
+
+def skip_under_ghActions(fn=None):
+    """Skip if a test is executed under Travis testing environment
+    Could also be used as a decorator (if argument provided) or
+    unparametrized in the code
+    """
+    if _githubActions:
+        return _do_skip(fn, 'Cannot be tested under GitHub Actions VMs')
     else:
         return fn

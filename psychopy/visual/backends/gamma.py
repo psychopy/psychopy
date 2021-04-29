@@ -17,6 +17,7 @@ import platform
 import ctypes
 import ctypes.util
 from psychopy import logging, prefs
+from psychopy.tests.utils import _vmTesting
 import os
 
 # import platform specific C++ libs for controlling gamma
@@ -137,7 +138,7 @@ def setGammaRamp(screenID, newRamp, nAttempts=3, xDisplay=None,
             elif gammaErrorPolicy == 'warn':
                 logging.warning(warn_msg.format(func=func))
 
-    if sys.platform.startswith('linux') and not _TravisTesting:
+    if sys.platform.startswith('linux') and not _vmTesting:
         newRamp = (numpy.around(65535 * newRamp)).astype(numpy.uint16)
         success = xf86vm.XF86VidModeSetGammaRamp(
             xDisplay, screenID, LUTlength,
@@ -151,9 +152,9 @@ def setGammaRamp(screenID, newRamp, nAttempts=3, xDisplay=None,
             elif gammaErrorPolicy == 'warn':
                 logging.warning(raise_msg.format(func=func))
 
-    elif _TravisTesting:
-        logging.warn("It looks like we're running in the Travis-CI testing "
-                     "environment. Hardware gamma table cannot be set")
+    elif _vmTesting:
+        logging.warn("It looks like we're running in a Virtual Machine. "
+                     "Hardware gamma table cannot be set")
 
 
 def getGammaRamp(screenID, xDisplay=None, gammaErrorPolicy=None):
@@ -201,7 +202,7 @@ def getGammaRamp(screenID, xDisplay=None, gammaErrorPolicy=None):
             elif gammaErrorPolicy == 'warn':
                 logging.warning(warn_msg.format(func=func))
 
-    if sys.platform.startswith('linux') and not _TravisTesting:
+    if sys.platform.startswith('linux') and not _vmTesting:
         origramps = numpy.empty((3, rampSize), dtype=numpy.uint16)
         success = xf86vm.XF86VidModeGetGammaRamp(
             xDisplay, screenID, rampSize,
@@ -217,9 +218,9 @@ def getGammaRamp(screenID, xDisplay=None, gammaErrorPolicy=None):
         else:
             origramps = origramps/65535.0  # rescale to 0:1
 
-    elif _TravisTesting:
-        logging.warn("It looks like we're running in the Travis-CI testing "
-                     "environment. Hardware gamma table cannot be retrieved")
+    elif _vmTesting:
+        logging.warn("It looks like we're running in a virtual machine. "
+                     "Hardware gamma table cannot be retrieved")
         origramps = None
 
     return origramps
@@ -326,7 +327,7 @@ def getGammaRampSize(screenID, xDisplay=None, gammaErrorPolicy=None):
         rampSize = 256
     elif sys.platform == 'darwin':
         rampSize = carbon.CGDisplayGammaTableCapacity(screenID)
-    elif sys.platform.startswith('linux') and not _TravisTesting:
+    elif sys.platform.startswith('linux') and not _vmTesting:
         rampSize = ctypes.c_int()
         success = xf86vm.XF86VidModeGetGammaRampSize(
             xDisplay,
@@ -342,7 +343,6 @@ def getGammaRampSize(screenID, xDisplay=None, gammaErrorPolicy=None):
         else:
             rampSize = rampSize.value
     else:
-        assert _TravisTesting
         rampSize = 256
 
     if rampSize == 0:
