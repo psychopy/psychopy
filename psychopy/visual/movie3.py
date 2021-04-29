@@ -35,7 +35,7 @@ reportNDroppedFrames = 10
 
 import os
 
-from psychopy import logging, prefs #adding prefs to be able to check sound lib -JK
+from psychopy import logging, prefs  # adding prefs to be able to check sound lib -JK
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.attributetools import logAttrib, setAttribute
 from psychopy.tools.filetools import pathToString
@@ -52,16 +52,33 @@ import pyglet.gl as GL
 
 
 class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
-    """A stimulus class for playing movies (mpeg, avi, etc...) in PsychoPy
-    that does not require avbin. Instead it requires the cv2 python package
+    """A stimulus class for playing movies.
+
+
+
+    Instead it requires the cv2 python package
     for OpenCV. The VLC media player also needs to be installed on the
     psychopy computer.
 
-    **Example**::
+    Parameters
+    ----------
+    filename : str
+        A string giving the relative or absolute path to the movie.
+    flipVert : True or *False*
+        If True then the movie will be top-bottom flipped
+    flipHoriz : True or *False*
+        If True then the movie will be right-left flipped
+    volume :
+        The nominal level is 100, and 0 is silence.
+    loop : bool, optional
+        Whether to start the movie over from the beginning if draw is called and
+        the movie is done.
 
-        See Movie2Stim.py for demo.
+    Examples
+    --------
+    See Movie2Stim.py for demo.
+
     """
-
     def __init__(self, win,
                  filename="",
                  units='pix',
@@ -82,22 +99,6 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
                  vframe_callback=None,
                  fps=None,
                  interpolate=True):
-        """
-        :Parameters:
-
-            filename :
-                a string giving the relative or absolute path to the movie.
-            flipVert : True or *False*
-                If True then the movie will be top-bottom flipped
-            flipHoriz : True or *False*
-                If True then the movie will be right-left flipped
-            volume :
-                The nominal level is 100, and 0 is silence.
-            loop : bool, optional
-                Whether to start the movie over from the beginning if draw is
-                called and the movie is done.
-
-        """
         # what local vars are defined (these are the init params) for use
         # by __repr__
         self._initParams = dir()
@@ -124,6 +125,7 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
         self.noAudio = noAudio
         self._audioStream = None
         self.useTexSubImage2D = True
+        self._videoFrameBufferSize = None  # size of the video buffer in bytes
 
         if noAudio:  # to avoid dependency problems in silent movies
             self.sound = None
@@ -181,7 +183,7 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
 
         # Create Video Stream stuff
         if os.path.isfile(filename):
-            self._mov = VideoFileClip(filename, audio=(1 - self.noAudio))
+            self._mov = VideoFileClip(filename, audio=(1 - self.noAudio), fps_source='fps')
             if (not self.noAudio) and (self._mov.audio is not None):
                 sound = self.sound
                 try:
@@ -206,7 +208,9 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
             # size, duration, fps
         # mov.audio has attributes
             # duration, fps (aka sampleRate), to_soundarray()
-        self._frameInterval = 1.0/self._mov.fps
+        self._frameInterval = 1.0 / self._mov.fps
+
+        print(self._mov.fps)
         self.duration = self._mov.duration
         self.filename = filename
         self._updateFrameTexture()
@@ -313,7 +317,7 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
         GL.glGenBuffers(1, ctypes.byref(self._pboId))
         GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, self._pboId)
         GL.glBufferData(
-            GL.GL_PIXEL_UNPACK_BUFFER, 1280 * 720 * 3 * ctypes.sizeof(GL.GLuint),
+            GL.GL_PIXEL_UNPACK_BUFFER, 1280 * 720 * 3 * ctypes.sizeof(GL.GLubyte),
             None, GL.GL_STREAM_COPY)
         GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, 0)
 
