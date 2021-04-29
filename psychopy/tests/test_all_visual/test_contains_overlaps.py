@@ -119,8 +119,8 @@ def test_point():
     poly1 = [(1,1), (1,-1), (-1,-1), (-1,1)]
     poly2 = [(2,2), (1,-1), (-1,-1), (-1,1)]
     assert helpers.pointInPolygon(0, 0, poly1)
-    assert helpers.pointInPolygon(12, 12, poly1) is False
-    assert helpers.pointInPolygon(0, 0, [(0,0), (1,1)]) is False
+    assert (helpers.pointInPolygon(12, 12, poly1) is False)
+    assert (helpers.pointInPolygon(0, 0, [(0,0), (1,1)]) is False)
 
     if have_nxutils:
         helpers.nxutils = nxutils
@@ -179,19 +179,19 @@ def test_border_contains():
     for p in inside_pts:
         assert s.contains(p)
     for p in outside_pts + hole_pts:
-        assert not s.contains(p)
+        assert (not s.contains(p))
 
     # lacking a .border attribute, contains() will improperly succeed in some cases
     del s.border
     for p in hole_pts:
-        assert s.contains(p), "no .border property (falls through to relying on tesselated .vertices)"
+        assert (s.contains(p), "no .border property (falls through to relying on tesselated .vertices)")
     for p in outside_pts:
-        assert not s.contains(p)
+        assert (not s.contains(p))
 
     # ... and should work properly again when restore the .border
     s.border = thingVert
     for p in hole_pts:
-        assert not s.contains(p)
+        assert (not s.contains(p))
 
 
 @pytest.mark.polygon
@@ -204,8 +204,8 @@ def test_line_overlaps():
     assert line.overlaps(circle_1)
     assert circle_1.overlaps(circle_1)
 
-    assert line.overlaps(circle_2) is False
-    assert circle_2.overlaps(line) is False
+    assert (line.overlaps(circle_2) is False)
+    assert (circle_2.overlaps(line) is False)
 
 
 @pytest.mark.polygon
@@ -215,8 +215,8 @@ def test_line_contains():
     point_2 = (0, -0.5)
     line = visual.Line(win, start=(-1, -1), end=(1, 1))
 
-    assert line.contains(point_1) is False
-    assert line.contains(point_2) is False
+    assert (line.contains(point_1) is False)
+    assert (line.contains(point_2) is False)
 
 
 if __name__ == '__main__':
