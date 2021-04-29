@@ -24,7 +24,7 @@ class EyetrackerRecordComponent(BaseComponent):
     tooltip = _translate('Eyetracker: use one of several eyetrackers to follow '
                          'gaze')
 
-    def __init__(self, exp, parentName, name='eyes',
+    def __init__(self, exp, parentName, name='etRecord',
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim='',
