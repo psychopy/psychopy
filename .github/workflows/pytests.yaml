@@ -21,6 +21,11 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - name: get_month
+      if: runner.os=='Linux'
+      id: month
+      run: echo "::set-output name=date::$(date +'%Y-%m')"
+
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
       with:
@@ -48,13 +53,16 @@ jobs:
 #      run: |
 #        pip install -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-20.04/ wxPython
 
-    - name: Install wxPython from source
+
+    - name: cache wxPython for linux
       if: runner.os=='Linux'
       uses: actions/cache@v2
       with:
         path: ~/.cache/pip
-        key: ${{ matrix.os }}-py${{ matrix.python-version }}
+        key: ${{ matrix.os }}-py${{ matrix.python-version }}-${{ steps.get_month.outputs.month }}
 
+    - name: Install wxPython from source for linux
+      if: runner.os=='Linux'
       run: |
         # these are
         sudo apt-get install -qq xvfb xauth libgl1-mesa-dri
