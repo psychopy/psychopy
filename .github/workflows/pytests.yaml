@@ -50,6 +50,11 @@ jobs:
 
     - name: Install wxPython from source
       if: runner.os=='Linux'
+      uses: actions/cache@v2
+      with:
+        path: ~/.cache/pip
+        key: ${{ matrix.os }}-py${{ matrix.python-version }}
+
       run: |
         # these are
         sudo apt-get install -qq xvfb xauth libgl1-mesa-dri
