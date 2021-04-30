@@ -5,7 +5,7 @@ from psychopy.tests import utils
 import pytest
 
 
-@pytest.mark.skipif(utils._vmTesting, "GLFW doesn't work on (macOS) virtual machine")
+@pytest.mark.skipif(utils._vmTesting, reason="GLFW doesn't work on (macOS) virtual machine")
 def test_open_glfw_window():
     from psychopy.visual.window import Window
     win = Window(winType='glfw', autoLog=False)
