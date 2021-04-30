@@ -611,8 +611,7 @@ class Display(Device):
                         nx * ((r - l) / 2.0), ny * ((b - t) / 2.0))
                 return nx, ny
             self._coord2pix = ncoord2pix
-        print2err('coordType: ', coord_type)
-        print2err('_pix2coord: ', self._coord2pix)
+
         if self._pix2coord is None:
             try:
                 from psychopy import misc
@@ -637,23 +636,21 @@ class Display(Device):
                     self._coord2pix = cmcoord2pix
 
                 elif coord_type == 'height':
-                    print2err("Registering unit type 'height'...")
                     def pix2heightcoord(self, x, y, display_index=None):
                         if display_index == self.getIndex():
                             ppx, ppy = display2psychopyPix(x, y)
-                            print2err(ppx / w,",", ppy / w)
-                            return ppx / w, ppy / w
+                            return ppx / h, ppy / h
                         return x, y
                     self._pix2coord = pix2heightcoord
 
                     def height2pix(self, x, y, display_index=None):
                         if display_index == self.getIndex():
                             if False: #win.useRetina:
-                                x = x * w / 2.0
-                                y = y * w / 2.0
+                                x = x * h / 2.0
+                                y = y * h / 2.0
                             else:
-                                x = x * w
-                                y = y * w
+                                x = x * h
+                                y = y * h
                             return psychopy2displayPix(x, y)
 
                         return x, y
