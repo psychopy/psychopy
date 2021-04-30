@@ -27,9 +27,9 @@ _anacondaTesting = bool("{}".format(os.environ.get('CONDA')).lower() == 'true')
 _githubActions = str(os.environ.get('GITHUB_WORKFLOW')) != 'None'
 _vmTesting = _travisTesting  or _githubActions
 # some pytest decorators for those conditions
-skip_under_travis = pytest.mark.skipif(_travisTesting, "Cannot run that test under Travis")
-skip_under_ghActions = pytest.mark.skipif(_githubActions, "Cannot run that test on GitHub Actions")
-skip_under_vm = pytest.mark.skipif(_vmTesting, "Cannot run that test on a virtual machine")
+skip_under_travis = pytest.mark.skipif(_travisTesting, reason="Cannot run that test under Travis")
+skip_under_ghActions = pytest.mark.skipif(_githubActions, reason="Cannot run that test on GitHub Actions")
+skip_under_vm = pytest.mark.skipif(_vmTesting, reason="Cannot run that test on a virtual machine")
 
 # define the path where to find testing data
 # so tests could be ran from any location
