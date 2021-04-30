@@ -321,13 +321,13 @@ def getGammaRampSize(screenID, xDisplay=None, gammaErrorPolicy=None):
     if not gammaErrorPolicy:
         gammaErrorPolicy = defaultGammaErrorPolicy
 
-    if sys.platform == 'win32':
+    if sys.platform == 'win32' or _vmTesting:
         # windows documentation (for SetDeviceGammaRamp) seems to indicate that
         # the LUT size is always 256
         rampSize = 256
     elif sys.platform == 'darwin':
         rampSize = carbon.CGDisplayGammaTableCapacity(screenID)
-    elif sys.platform.startswith('linux') and not _vmTesting:
+    elif sys.platform.startswith('linux'):
         rampSize = ctypes.c_int()
         success = xf86vm.XF86VidModeGetGammaRampSize(
             xDisplay,
