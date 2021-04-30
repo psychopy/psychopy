@@ -6,7 +6,7 @@ from psychopy.tests import utils
 import pytest
 
 
-@pytest.mark.skipif(utils._vmTesting, "Cannot test gamma in a virtual machine")
+@pytest.mark.skipif(utils._vmTesting, reason="Cannot test gamma in a virtual machine")
 def test_low_gamma():
     """setting gamma low (dark screen)"""
     win = visual.Window([600,600], gamma=0.5, autoLog=False)#should make the entire screen bright
@@ -16,7 +16,7 @@ def test_low_gamma():
     win.close()
 
 
-@pytest.mark.skipif(utils._vmTesting, "Cannot test gamma in a virtual machine")
+@pytest.mark.skipif(utils._vmTesting, reason="Cannot test gamma in a virtual machine")
 def test_mid_gamma():
     """setting gamma high (bright screen)"""
     win = visual.Window([600,600], gamma=2.0, autoLog=False)#should make the entire screen bright
@@ -26,7 +26,7 @@ def test_mid_gamma():
     win.close()
 
 
-@pytest.mark.skipif(utils._vmTesting, "Cannot test gamma in a virtual machine")
+@pytest.mark.skipif(utils._vmTesting, reason="Cannot test gamma in a virtual machine")
 def test_high_gamma():
     """setting gamma high (bright screen)"""
     win = visual.Window([600,600], gamma=4.0, autoLog=False)#should make the entire screen bright
@@ -36,7 +36,7 @@ def test_high_gamma():
     win.close()
 
 
-@pytest.mark.skipif(utils._vmTesting, "Cannot test gamma in a virtual machine")
+@pytest.mark.skipif(utils._vmTesting, reason="Cannot test gamma in a virtual machine")
 def test_no_gamma():
     """check that no gamma is used if not passed"""
     win = visual.Window([600,600], autoLog=False)#should not change gamma
@@ -48,7 +48,7 @@ def test_no_gamma():
     win.close()
 
 
-@pytest.mark.skipif(utils._vmTesting, "Cannot test gamma in a virtual machine")
+@pytest.mark.skipif(utils._vmTesting, reason="Cannot test gamma in a virtual machine")
 def test_monitorGetGamma():
     #create our monitor object
     gammaVal = [2.2, 2.2, 2.2]
@@ -60,7 +60,7 @@ def test_monitorGetGamma():
     win.close()
 
 
-@pytest.mark.skipif(utils._vmTesting, "Cannot test gamma in a virtual machine")
+@pytest.mark.skipif(utils._vmTesting, reason="Cannot test gamma in a virtual machine")
 def test_monitorGetGammaGrid():
     #create (outdated) gamma grid (new one is [4,6])
     newGrid = numpy.array([[0,150,2.0],#lum
@@ -75,7 +75,7 @@ def test_monitorGetGammaGrid():
     win.close()
 
 
-@pytest.mark.skipif(utils._vmTesting, "Cannot test gamma in a virtual machine")
+@pytest.mark.skipif(utils._vmTesting, reason="Cannot test gamma in a virtual machine")
 def test_monitorGetGammaAndGrid():
     """test what happens if gamma (old) and gammaGrid (new) are both present"""
     #create (outdated) gamma grid (new one is [4,6])
@@ -93,7 +93,7 @@ def test_monitorGetGammaAndGrid():
     win.close()
 
 
-@pytest.mark.skipif(utils._vmTesting, "Cannot test gamma in a virtual machine")
+@pytest.mark.skipif(utils._vmTesting, reason="Cannot test gamma in a virtual machine")
 def test_setGammaRamp():
     """test that the gamma ramp is set as requested"""
 
@@ -127,7 +127,7 @@ def test_setGammaRamp():
     assert numpy.allclose(desiredRamp, setRamp, atol=1.0 / desiredRamp.shape[1])
 
 
-@pytest.mark.skipif(utils._vmTesting, "Cannot test gamma in a virtual machine")
+@pytest.mark.skipif(utils._vmTesting, reason="Cannot test gamma in a virtual machine")
 def test_gammaSetGetMatch():
     """test that repeatedly getting and setting the gamma table has no
     cumulative effect."""
