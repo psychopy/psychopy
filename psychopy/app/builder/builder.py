@@ -778,21 +778,8 @@ class BuilderFrame(wx.Frame, ThemeMixin):
                 wx.OK | wx.ICON_WARNING | wx.CENTRE)
             dlg.ShowModal()
             return
-        possible = [folder / 'README.txt',
-                  folder / 'README.md']
-        exists = False
+        self.updateReadme()
         self.showReadme()
-        for readme in possible:
-            if readme.is_file():
-                # If README file exists, open it
-                exists = True
-                self.app.coder.fileOpen(filename=str(readme))
-                break
-        if not exists:
-            # If no README file exists, make one and then open it
-            readme = folder / 'README.md'
-            open(readme, "x")
-            self.app.coder.fileOpen(filename=str(readme))
         return
 
     def getShortFilename(self):
@@ -820,7 +807,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
             # still haven't found a file so use default name
             if len(possibles) == 0:
                 self.readmeFilename = os.path.join(
-                    dirname, 'readme.txt')  # use this as our default
+                    dirname, 'readme.md')  # use this as our default
             else:
                 self.readmeFilename = possibles[0]  # take the first one found
         else:
@@ -2474,7 +2461,9 @@ class ReadmeFrame(wx.Frame):
         if filename is None:  # check if we can write to the directory
             return False
         elif not os.path.exists(filename):
-            self.filename = None
+            with open(filename, "w") as f:
+                f.write("")
+            self.filename = filename
             return False
         elif not os.access(filename, os.R_OK):
             msg = "Found readme file (%s) no read permissions"
@@ -2514,6 +2503,8 @@ class ReadmeFrame(wx.Frame):
     def fileEdit(self, evt=None):
         self.parent.app.showCoder()
         coder = self.parent.app.coder
+        if not self.filename:
+            self.parent.updateReadme()
         coder.fileOpen(filename=self.filename)
         # Close README window
         self.Close()
