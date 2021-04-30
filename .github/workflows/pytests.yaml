@@ -73,8 +73,12 @@ jobs:
         sudo apt-get install -qq libpng-dev libjpeg-dev libtiff-dev libsdl-dev libnotify-dev libsm-dev
         pip install -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-20.04/ wxPython
 
-    - name: setup GL software renderer on linux
+    - name: Setup GL software renderer on linux
+      if: runner.os=='Linux'
       uses: openrndr/setup-opengl@v1.1
+
+    - name: Check GL software renderer on linux
+      if: runner.os=='Linux'
       run: xvfb-run glxinfo
 
     - name: Install Depends
