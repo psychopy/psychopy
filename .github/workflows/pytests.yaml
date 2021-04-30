@@ -92,11 +92,12 @@ jobs:
 
     - name: config xserver-dummy
       run: |
+        ls
         sudo X -config ./building/dummy-1920x1080.conf
 
-    - name: start xvfb daemon
-      run: |
-        /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 1024x768x24 -ac +extension GLX +extension RANDR +render -noreset
+#    - name: start xvfb daemon
+#      run: |
+#        /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 1024x768x24 -ac +extension GLX +extension RANDR +render -noreset
 
     - name: get_month
       if: runner.os=='Linux'
