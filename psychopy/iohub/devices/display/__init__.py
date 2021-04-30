@@ -645,7 +645,7 @@ class Display(Device):
 
                     def height2pix(self, x, y, display_index=None):
                         if display_index == self.getIndex():
-                            if False: #win.useRetina:
+                            if False: #TODO: Deal with win.useRetina when we don't have a win.
                                 x = x * h / 2.0
                                 y = y * h / 2.0
                             else:
