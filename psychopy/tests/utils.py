@@ -26,6 +26,10 @@ _travisTesting = bool("{}".format(os.environ.get('TRAVIS')).lower() == 'true')
 _anacondaTesting = bool("{}".format(os.environ.get('CONDA')).lower() == 'true')
 _githubActions = str(os.environ.get('GITHUB_WORKFLOW')) != 'None'
 _vmTesting = _travisTesting  or _githubActions
+# some pytest decorators for those conditions
+skip_under_travis = pytest.mark.skipif(_travisTesting, "Cannot run that test under Travis")
+skip_under_ghActions = pytest.mark.skipif(_githubActions, "Cannot run that test on GitHub Actions")
+skip_under_vm = pytest.mark.skipif(_vmTesting, "Cannot run that test on a virtual machine")
 
 # define the path where to find testing data
 # so tests could be ran from any location
@@ -174,6 +178,7 @@ def compareTextFiles(pathToActual, pathToCorrect, delim=None,
         logging.error(msg)
         raise AssertionError(err)
 
+
 def compareXlsxFiles(pathToActual, pathToCorrect):
     from openpyxl.reader.excel import load_workbook
     # Make sure the file is there
@@ -222,6 +227,7 @@ def compareXlsxFiles(pathToActual, pathToCorrect):
         logging.warning("xlsxActual!=xlsxCorr: Saving local copy to %s" %pathToLocal)
         raise IOError(error)
 
+
 def comparePixelColor(screen, color, coord=(0,0)):
     if hasattr(screen, 'getMovieFrame'):  # check it is a Window class (without importing visual in this file)
         # If given a window, get frame from window
@@ -246,47 +252,3 @@ def comparePixelColor(screen, color, coord=(0,0)):
     for i in range(min(pixCol.size, color.size)):
         closeEnough = closeEnough and abs(pixCol[i] - color[i]) <= 1 # Allow for 1/255 lenience due to rounding up/down in rgb255
     assert all(c for c in color == pixCol) or closeEnough
-
-
-def _do_skip(fn, msg):
-    """Performs a skip, potentially on a decorated function"""
-    if fn is not None:  # called as a decorator
-        def _inner():
-            skip(msg)
-        _inner.__name__ = fn.__name__
-        return _inner
-    else:  # called as a function itself
-        skip(msg)
-
-
-def skip_under_vm(fn=None):
-    """Skip if a test is executed under Travis testing environment
-    Could also be used as a decorator (if argument provided) or
-    unparametrized in the code
-    """
-    if _travisTesting or _githubActions:
-        return _do_skip(fn, "Cannot be tested on a Virtual Machine")
-    else:
-        return fn
-
-
-def skip_under_travis(fn=None):
-    """Skip if a test is executed under Travis testing environment
-    Could also be used as a decorator (if argument provided) or
-    unparametrized in the code
-    """
-    if _travisTesting:
-        return _do_skip(fn, "Cannot be tested on a Travis VM")
-    else:
-        return fn
-
-
-def skip_under_ghActions(fn=None):
-    """Skip if a test is executed under Travis testing environment
-    Could also be used as a decorator (if argument provided) or
-    unparametrized in the code
-    """
-    if _githubActions:
-        return _do_skip(fn, 'Cannot be tested under GitHub Actions VMs')
-    else:
-        return fn
