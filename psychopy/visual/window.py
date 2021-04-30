@@ -327,7 +327,7 @@ class Window(object):
 
         self.autoLog = False  # to suppress log msg during init
         self.name = name
-        self.clientSize = numpy.array(size, numpy.int)  # size of window, not buffer
+        self.clientSize = numpy.array(size, int)  # size of window, not buffer
         self.pos = pos
         # this will get overridden once the window is created
         self.winHandle = None
@@ -1693,7 +1693,7 @@ class Window(object):
 
     @viewport.setter
     def viewport(self, value):
-        self._viewport = numpy.array(value, numpy.int)
+        self._viewport = numpy.array(value, int)
         GL.glViewport(*self._viewport)
 
     @property
@@ -1718,7 +1718,7 @@ class Window(object):
 
     @scissor.setter
     def scissor(self, value):
-        self._scissor = numpy.array(value, numpy.int)
+        self._scissor = numpy.array(value, int)
         GL.glScissor(*self._scissor)
 
     @property

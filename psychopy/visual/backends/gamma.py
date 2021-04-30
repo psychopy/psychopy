@@ -189,7 +189,7 @@ def getGammaRamp(screenID, xDisplay=None, gammaErrorPolicy=None):
     if sys.platform == 'darwin':
         # init R, G, and B ramps
         origramps = numpy.empty((3, rampSize), dtype=numpy.float32)
-        n = numpy.empty([1], dtype=numpy.int)
+        n = numpy.empty([1], dtype=int)
         error = carbon.CGGetDisplayTransferByTable(
             screenID, rampSize,
             origramps[0, :].ctypes,
