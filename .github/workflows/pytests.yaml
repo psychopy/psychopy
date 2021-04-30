@@ -83,9 +83,14 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - uses: openrndr/setup-opengl@v1.1
 
-    - name: Check GL software renderer on linux
+    - name: apt installs
+      run: sudo apt install libllvm-4.0-ocaml-dev  # for xvfb
+
+    - name: Install xvfb GL renderer on linux
+      uses: openrndr/setup-opengl@v1.1
+
+    - name: Check xvfb GL renderer on linux
       run: xvfb-run -e /dev/stdout glxinfo
 
     - name: get_month
