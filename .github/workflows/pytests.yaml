@@ -88,6 +88,8 @@ jobs:
       run: |
         sudo apt install llvm-6.0-dev  # for xvfb
         sudo apt install xvfb xauth libgl1-mesa-dri
+        sudo apt install xpra xserver-xorg-video-dummy
+        sudo X -config ./building/dummy-1920x1080.conf
         /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 1024x768x24 -ac +extension GLX +extension RANDR +render -noreset
 
     - name: get_month

@@ -8,7 +8,7 @@ source ./travis/travis_retry.bash
 
 # This might come in handy once we switch to Trusty, as its Xvfb
 # doesn't properly support the RANDR extension
-# - travis_retry sudo apt-get install -qq xpra xserver-xorg-video-dummy
+travis_retry sudo apt-get install -qq xpra xserver-xorg-video-dummy
 
 travis_retry sudo apt-get install -qq xvfb xauth libgl1-mesa-dri
 travis_retry sudo apt-get install -qq libportaudio2
