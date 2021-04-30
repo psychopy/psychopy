@@ -475,7 +475,8 @@ class _baseVisualTest(object):
         text.draw()
         grat1.draw()
         grat2.draw()
-        utils.skip_under_travis()
+        if utils._vmTesting:
+            pytest.skip("Blendmode='add' doesn't work under a virtual machine for some reason")
         if self.win.winType != 'pygame':
             utils.compareScreenshot('blend_add_%s.png' %self.contextName,
                                     win, crit=20)
@@ -484,9 +485,7 @@ class _baseVisualTest(object):
         win = self.win
         if self.win.winType == 'pygame':
             pytest.skip("movies only available for pyglet backend")
-        elif _travisTesting and not _anacondaTesting:
-            pytest.skip("Travis with system Python doesn't seem to have a "
-                        "working ffmpeg")
+
         win.flip()
         #construct full path to the movie file
         fileName = os.path.join(utils.TESTS_DATA_PATH, 'testMovie.mp4')
@@ -741,12 +740,12 @@ class _baseVisualTest(object):
         utils.compareScreenshot('ratingscale1_%s.png' %(self.contextName), win, crit=40.0)
         win.flip()#AFTER compare screenshot
 
+    @skip_under_travis
     def test_refresh_rate(self):
         if self.win.winType=='pygame':
             pytest.skip("getMsPerFrame seems to crash the testing of pygame")
         #make sure that we're successfully syncing to the frame rate
         msPFavg, msPFstd, msPFmed = visual.getMsPerFrame(self.win,nFrames=60, showVisual=True)
-        utils.skip_under_travis()             # skip late so we smoke test the code
         assert (1000/150.0) < msPFavg < (1000/40.0), \
             "Your frame period is %.1fms which suggests you aren't syncing to the frame" %msPFavg
 

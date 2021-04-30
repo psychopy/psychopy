@@ -133,7 +133,6 @@ def test_point():
     matplotlib.__version__ = mpl_version
 
 
-@pytest.mark.polygon
 def test_contains():
     contains_overlaps('contains')  # matplotlib.path.Path
     if have_nxutils:
@@ -146,7 +145,6 @@ def test_contains():
     matplotlib.__version__ = mpl_version
 
 
-@pytest.mark.polygon
 def test_overlaps():
     contains_overlaps('overlaps')  # matplotlib.path.Path
     if have_nxutils:
@@ -159,7 +157,6 @@ def test_overlaps():
     matplotlib.__version__ = mpl_version
 
 
-@pytest.mark.polygon
 def test_border_contains():
     # tests that the .border of ShapeStim is detected and used by .contains()
     win.units = 'height'
@@ -184,7 +181,7 @@ def test_border_contains():
     # lacking a .border attribute, contains() will improperly succeed in some cases
     del s.border
     for p in hole_pts:
-        assert (s.contains(p), "no .border property (falls through to relying on tesselated .vertices)")
+        assert s.contains(p), "no .border property (falls through to relying on tesselated .vertices)"
     for p in outside_pts:
         assert (not s.contains(p))
 
@@ -194,7 +191,6 @@ def test_border_contains():
         assert (not s.contains(p))
 
 
-@pytest.mark.polygon
 def test_line_overlaps():
     win.units = 'height'
     circle_1 = visual.Circle(win, radius=0.25, pos=(0, 0))
@@ -208,7 +204,6 @@ def test_line_overlaps():
     assert (circle_2.overlaps(line) is False)
 
 
-@pytest.mark.polygon
 def test_line_contains():
     win.units = 'height'
     point_1 = (0, 0)
