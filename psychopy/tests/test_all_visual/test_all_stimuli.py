@@ -18,7 +18,7 @@ To add a new stimulus test use _base so that it gets tested in all contexts
 
 """
 
-from psychopy.tests.utils import _travisTesting, _anacondaTesting, _vmTesting
+from psychopy.tests.utils import _travisTesting, skip_under_travis
 
 
 class Test_Window(object):
@@ -551,7 +551,6 @@ class _baseVisualTest(object):
         poly.edges = 3
         poly.radius = 1
 
-    @pytest.mark.shape2
     def test_shape(self):
         win = self.win
         arrow = [(-0.4,0.05), (-0.4,-0.05), (-.2,-0.05), (-.2,-0.1), (0,0), (-.2,0.1), (-.2,0.05)]

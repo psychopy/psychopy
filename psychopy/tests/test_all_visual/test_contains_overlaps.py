@@ -114,7 +114,6 @@ except Exception:
 # else: fall through to pure python
 
 
-@pytest.mark.polygon
 def test_point():
     poly1 = [(1,1), (1,-1), (-1,-1), (-1,1)]
     poly2 = [(2,2), (1,-1), (-1,-1), (-1,1)]
