@@ -85,7 +85,7 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: apt installs
-      run: sudo apt install libllvm-4.0-ocaml-dev  # for xvfb
+      run: sudo apt install llvm-10-dev  # for xvfb
 
     - name: Install xvfb GL renderer on linux
       uses: openrndr/setup-opengl@v1.1
