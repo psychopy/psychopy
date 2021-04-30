@@ -944,6 +944,9 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
     @property
     def foreColor(self):
+        """
+        Sets both `itemColor` and `responseColor` to the same value
+        """
         return ColorMixin.foreColor.fget(self)
 
     @foreColor.setter
@@ -954,6 +957,9 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
     @property
     def fillColor(self):
+        """
+        Color of the form's background
+        """
         return ColorMixin.fillColor.fget(self)
 
     @fillColor.setter
@@ -964,6 +970,9 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
     @property
     def borderColor(self):
+        """
+        Color of the line around the form
+        """
         return ColorMixin.borderColor.fget(self)
 
     @borderColor.setter
@@ -974,6 +983,9 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
     @property
     def itemColor(self):
+        """
+        Color of the text on form items
+        """
         return self._itemColor
 
     @itemColor.setter
@@ -987,6 +999,9 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
     @property
     def responseColor(self):
+        """
+        Color of the lines and text on form responses
+        """
         if hasattr(self, "_responseColor"):
             return self._responseColor
 
@@ -1005,6 +1020,9 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
     @property
     def markerColor(self):
+        """
+        Color of the marker on any sliders in this form
+        """
         if hasattr(self, "_markerColor"):
             return self._markerColor
 
