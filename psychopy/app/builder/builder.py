@@ -2436,6 +2436,10 @@ class ReadmeFrame(wx.Frame):
         self.makeMenus()
         self.rawText = ""
         self.ctrl = HtmlWindow(self, wx.ID_ANY)
+        self.ctrl.Bind(wx.html.EVT_HTML_LINK_CLICKED, self.onUrl)
+
+    def onUrl(self, evt=None):
+        webbrowser.open(evt.LinkInfo.Href)
 
     def onClose(self, evt=None):
         """
