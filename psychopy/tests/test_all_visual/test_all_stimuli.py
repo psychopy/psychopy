@@ -18,7 +18,7 @@ To add a new stimulus test use _base so that it gets tested in all contexts
 
 """
 
-from psychopy.tests.utils import _travisTesting, _anacondaTesting
+from psychopy.tests.utils import _travisTesting, _anacondaTesting, _vmTesting
 
 
 class Test_Window(object):
