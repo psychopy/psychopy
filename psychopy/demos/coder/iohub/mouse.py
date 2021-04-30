@@ -24,28 +24,27 @@ mouse = io.devices.mouse
 display_resolution = display.getPixelResolution()
 
 # ioHub currently supports the use of a single full-screen PsychoPy Window
-win = visual.Window(display_resolution,
-                    units='pix', fullscr=True, allowGUI=False, screen=0)
+win = visual.Window(display_resolution, units='height', fullscr=True, allowGUI=False, screen=0)
 
 win.setMouseVisible(False)
 
 # Create some psychopy visual stim (same as how you would do so normally):
 fixSpot = visual.GratingStim(win, tex="none", mask="gauss",
-    pos=(0, 0), size=(30, 30), color='black', autoLog=False)
-grating = visual.GratingStim(win, pos=(300, 0),
+    pos=(0, 0), size=(.02, .02), color='black', autoLog=False)
+grating = visual.GratingStim(win, pos=(.1, 0),
     tex="sin", mask="gauss",
     color=[1.0, 0.5, -1.0],
-    size=(150.0, 150.0), sf=(0.01, 0.0),
+    size=(.1, .1), sf=(0.01, 0.0),
     autoLog=False)
-message = visual.TextStim(win, pos=(0.0, -(display_resolution[1]/3)),
-    height=40,
+message = visual.TextStim(win, pos=(0.0, -0.2),
+    height=.05,
     alignText='center', anchorHoriz='center', anchorVert='center',
     text='move=mv-spot, left-drag=SF, right-drag=mv-grating, scroll=ori',
-    autoLog=False, wrapWidth=display_resolution[0] * .9)
-message2 = visual.TextStim(win, pos=(0.0, -(display_resolution[1]/4)),
-    alignText='center', anchorHoriz='center', anchorVert='center', height=40,
+    autoLog=False, wrapWidth=.6)
+message2 = visual.TextStim(win, pos=(0.0, -0.4),
+    alignText='center', anchorHoriz='center', anchorVert='center', height=.05,
     text='Press Any Key to Quit.',
-    autoLog=False, wrapWidth=display_resolution[0] * .9)
+    autoLog=False, wrapWidth=.6)
 
 last_wheelPosY = 0
 
