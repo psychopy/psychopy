@@ -594,7 +594,10 @@ class _baseVisualTest(object):
         wedge.angularPhase = 0.1
         wedge.draw()
         "{}".format(wedge) #check that str(xxx) is working
-        if win.winType != 'pygame' and (sys.version_info.major, sys.version_info.minor) != (3, 6):  # pygame and 3.6 definitely get radialstim wrong!
+        if (
+                win.winType != 'pygame'  # pygame gets this wrong
+                and 'noShader' not in self.contextName  # no shaders not supported
+        ):
             utils.compareScreenshot('wedge2_%s.png' %(self.contextName),
                                     win, crit=thresh)
         else:
@@ -744,7 +747,7 @@ class _baseVisualTest(object):
         if self.win.winType=='pygame':
             pytest.skip("getMsPerFrame seems to crash the testing of pygame")
         #make sure that we're successfully syncing to the frame rate
-        msPFavg, msPFstd, msPFmed = visual.getMsPerFrame(self.win,nFrames=60, showVisual=True)
+        msPFavg, msPFstd, msPFmed = visual.getMsPerFrame(self.win, nFrames=60, showVisual=True)
         assert (1000/150.0) < msPFavg < (1000/40.0), \
             "Your frame period is %.1fms which suggests you aren't syncing to the frame" %msPFavg
 
