@@ -9,6 +9,10 @@ eyetracker.hw.tobii.EyeTracker:
         IOHUB_STRING:
             min_length: 0
             max_length: 32
+    license_file:
+        IOHUB_STRING:
+            min_length: 0
+            max_length: 1024
     save_events: IOHUB_BOOL
     stream_events: IOHUB_BOOL
     auto_report_events: False
