@@ -51,7 +51,7 @@ jobs:
 
     - name: Test with pytest
       run: |
-        pytest psychopy/tests/test_all_visual -v
+        pytest --cov-config .travis_coveragerc --cov=psychopy -v -s psychopy
 
     - name: upload failed screenshots
       if: always()
@@ -160,4 +160,4 @@ jobs:
 
     - name: Test with pytest
       run: |
-        pytest psychopy/tests/test_all_visual -v
+        pytest --cov-config .travis_coveragerc --cov=psychopy -v

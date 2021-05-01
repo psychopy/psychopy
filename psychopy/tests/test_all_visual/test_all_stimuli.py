@@ -596,7 +596,7 @@ class _baseVisualTest(object):
         "{}".format(wedge) #check that str(xxx) is working
         if (
                 win.winType != 'pygame'  # pygame gets this wrong
-                and 'noShader' not in self.contextName  # no shaders not supported
+                and 'NoShade' not in self.contextName  # no shaders not supported
         ):
             utils.compareScreenshot('wedge2_%s.png' %(self.contextName),
                                     win, crit=thresh)
