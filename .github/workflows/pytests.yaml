@@ -52,11 +52,22 @@ jobs:
     - name: Test with pytest
       run: |
         pytest psychopy/tests/test_all_visual -v
-#
-#    - name: Upload coverage to Codecov
-#      uses: codecov/codecov-action@v1
-#      with:
-#        fail_ci_if_error: true
+
+    - name: upload failed screenshots
+      if: always()
+      uses: actions/upload-artifact@v2
+      with:
+        name: test artifacts
+        path: |
+          psychopy/tests/data
+          !**/*.mp4
+          !psychopy/tests/**/*.data
+          !**/*.wav
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v1
+      with:
+        fail_ci_if_error: true
 
 #    - name: Check bdist/sdist
 #      # checks whether different forms of build work (e.g. missing files in sdist)
