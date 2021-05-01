@@ -118,11 +118,8 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
         self.pos = numpy.asarray(pos, float)
         self.depth = depth
         self.opacity = opacity
-        self._interpolate = interpolate
-        self._texFilterNeedsUpdate = False  # update texture filtering param
         self.noAudio = noAudio
         self._audioStream = None
-        self.useTexSubImage2D = True
         self._videoFrameBufferSize = None  # size of the video buffer in bytes
         self._audioTrack = None
 
@@ -131,6 +128,11 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
         else:
             from psychopy import sound
             self.sound = sound
+
+        # interpolation
+        self._interpolate = None  # defined here, set in property
+        self._texFilterNeedsUpdate = None
+        self.interpolate = interpolate
 
         # set autoLog (now that params have been initialised)
         self.autoLog = autoLog
@@ -431,26 +433,39 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
         if self._texID is None:  # no nothing until we have a texture
             return
 
-        # bind that name to the target
+        # Copy frame pixel data retrieved from the video decoder this frame.
+        # Here we use "texture streaming" which permits the efficient transfer
+        # of video data to the GPU by mapping the texture memory store to client
+        # (CPU) memory space.
+
+        # bind pixel unpack buffer
         GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, self._pixBuffId)
 
-        # free last storage buffer to prevent stalling the GPU when mapping
+        # Free last storage buffer before mapping and writing new frame data.
+        # This allows the GPU to process the extant buffer in VRAM uploaded last
+        # cycle without being stalled by the CPU accessing it.
         GL.glBufferData(
             GL.GL_PIXEL_UNPACK_BUFFER,
             self._videoFrameBufferSize,
             None,
             GL.GL_STREAM_DRAW)
 
-        # map the PBO to a numpy array, write only to optimize for that
+        # Map the buffer to client memory, `GL_WRITE_ONLY` to tell the driver to
+        # optimize for a one-way copy operation. This returns a pointer which
+        # we can encapsulate with a numpy array for easy access.
         bufferPtr = GL.glMapBuffer(GL.GL_PIXEL_UNPACK_BUFFER, GL.GL_WRITE_ONLY)
-        # transform the pointer to a numpy array
-        bufferArray = numpy.ctypeslib.as_array(
-            ctypes.cast(bufferPtr, ctypes.POINTER(GL.GLubyte)),
-            shape=self._numpyFrame.shape)
 
-        numpy.copyto(bufferArray, self._numpyFrame, casting='no')
-        #bufferArray[:, :, :] = self._numpyFrame  # upload pixel data
-        GL.glUnmapBuffer(GL.GL_PIXEL_UNPACK_BUFFER)  # free the pointer
+        # upload pixel data by copying
+        numpy.copyto(
+            numpy.ctypeslib.as_array(
+                ctypes.cast(bufferPtr, ctypes.POINTER(GL.GLubyte)),
+                shape=self._numpyFrame.shape),
+            self._numpyFrame,
+            casting='no')
+
+        # Very important that we unmap the buffer data after copying, but keep
+        # the buffer bound for setting the texture.
+        GL.glUnmapBuffer(GL.GL_PIXEL_UNPACK_BUFFER)
 
         # bind the texture in openGL
         GL.glEnable(GL.GL_TEXTURE_2D)
@@ -463,7 +478,7 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
             self._numpyFrame.shape[0],
             GL.GL_RGB,
             GL.GL_UNSIGNED_BYTE,
-            0)  # no pointer using the PBO
+            0)  # point to the presently bound buffer
 
         # update texture filtering if needed
         if self._texFilterNeedsUpdate:
@@ -525,16 +540,16 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
         vertsPix = self.verticesPix
 
         # bind textures
+        GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glActiveTexture(GL.GL_TEXTURE1)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-        GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
-        GL.glEnable(GL.GL_TEXTURE_2D)
 
         # sets opacity (1,1,1 = RGB placeholder)
         GL.glColor4f(1, 1, 1, self.opacity)
 
+        # Why do this every frame? Only when `verticesPix` is updated :/
         array = (GL.GLfloat * 32)(
             1, 1,  # texture coords
             vertsPix[0, 0], vertsPix[0, 1], 0.,  # vertex
