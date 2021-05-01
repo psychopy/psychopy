@@ -27,7 +27,7 @@ jobs:
     - name: Pre-Install
       run: |
         python -m pip install --upgrade pip
-        pip install pytest
+        pip install pytest pytest-cov flake
         pip install wheel
         pip install six  # for configobj and wxpython
         pip install distro  # used by createInitFile
@@ -36,7 +36,6 @@ jobs:
     - name: Install Depends
       run: |
         # install testing frameworks
-        pip install flake8 pytest
         # to install all dependencies
         pip install .
         # remove psychopy itself so that this local is used
@@ -144,7 +143,7 @@ jobs:
     - name: Pre-Install
       run: |
         python -m pip install --upgrade pip
-        pip install pytest
+        pip install pytest pytest-cov flake
         pip install wheel
         pip install six  # for configobj and wxpython
         pip install distro  # used by createInitFile
@@ -160,4 +159,4 @@ jobs:
 
     - name: Test with pytest
       run: |
-        pytest --cov-config .travis_coveragerc --cov=psychopy -v
+        pytest --cov-config=.travis_coveragerc --cov=psychopy -v
