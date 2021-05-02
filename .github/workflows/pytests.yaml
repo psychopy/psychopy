@@ -131,10 +131,11 @@ jobs:
     - name: Install wxPython dependencies
       if: runner.os=='Linux' && matrix.python-version==3.6
       run: |
-        sudo apt-get install -qq python3-dev libgtk-3-dev libsdl2-dev
+        sudo apt-get install -qq python3-dev libgtk-3-dev
         sudo apt-get install -qq libgstreamer1.0-0 gstreamer1.0-plugins-base
         sudo apt-get install -qq libwebkit2gtk-3.0
-        sudo apt-get install -qq libpng-dev libjpeg-dev libtiff-dev libsdl-dev libnotify-dev libsm-dev
+        sudo apt-get install -qq libpng-dev libjpeg-dev libtiff-dev libnotify-dev libsm-dev
+        sudo apt-get install -qq libsdl-dev libsdl2-mixer-2.0-0 libsdl2-image-2.0-0 libsdl2-2.0-0
 
     - name: Install wxPython from source for linux
       if: runner.os=='Linux'
