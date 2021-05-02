@@ -98,6 +98,7 @@ jobs:
       run: |
         sudo apt install llvm-6.0-dev  # for xvfb
         sudo apt install xvfb xauth libgl1-mesa-dri
+        export LIBGL_ALWAYS_INDIRECT=0
 #        sudo apt install xpra xserver-xorg-video-dummy
 #
 #    - name: config xserver-dummy
