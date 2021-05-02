@@ -1,13 +1,14 @@
 from builtins import object
 import io
 import pytest
+from psychopy.tests.utils import skip_under_vm
 from psychopy.tools.wizard import ConfigWizard, BenchmarkWizard
-
 import psychopy.tools.wizard
 
 # py.test -k wizard --cov-report term-missing --cov wizard.py
 
 @pytest.mark.wizard
+@skip_under_vm
 class TestWizard(object):
 
     def setup(self):
@@ -16,6 +17,7 @@ class TestWizard(object):
     def teardown(self):
         pass
 
+    @
     def test_firstrunWizardWithBadCard(self):
         def notOkay():
             return False
