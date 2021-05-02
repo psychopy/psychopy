@@ -2,22 +2,21 @@ from builtins import object
 import io
 import pytest
 from psychopy.tests.utils import skip_under_vm
-from psychopy.tools.wizard import ConfigWizard, BenchmarkWizard
-import psychopy.tools.wizard
 
 # py.test -k wizard --cov-report term-missing --cov wizard.py
 
+
 @pytest.mark.wizard
-@skip_under_vm
+@skip_under_vm  # a VM won't have audio cards etc and cant end dialog
 class TestWizard(object):
 
     def setup(self):
-        pass
+        from psychopy.tools.wizard import ConfigWizard, BenchmarkWizard
+        import psychopy.tools.wizard
 
     def teardown(self):
         pass
 
-    @
     def test_firstrunWizardWithBadCard(self):
         def notOkay():
             return False

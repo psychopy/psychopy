@@ -2,14 +2,11 @@ from __future__ import division
 
 from builtins import object
 from past.utils import old_div
-from psychopy import microphone, core, web
-from psychopy.microphone import *
-from psychopy.microphone import _getFlacPath
 import pytest
 import shutil, os, glob
 from tempfile import mkdtemp
 from os.path import abspath, dirname, join
-
+from psychopy.tests.utils import skip_under_vm
 
 # py.test -k microphone --cov-report term-missing --cov microphone.py tests/
 
@@ -21,9 +18,13 @@ from psychopy.tests.utils import TESTS_PATH, TESTS_DATA_PATH
 @pytest.mark.needs_sound
 @pytest.mark.microphone
 @pytest.mark.slow
+@skip_under_vm
 class TestMicrophone(object):
     @classmethod
     def setup_class(self):
+        from psychopy import microphone
+        from psychopy.microphone import *
+        from psychopy.microphone import _getFlacPath
         global sound
         from psychopy import sound
         switchOn(48000)
