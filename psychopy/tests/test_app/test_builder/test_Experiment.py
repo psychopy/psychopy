@@ -15,9 +15,10 @@ import codecs
 from psychopy import core, tests, prefs
 import pytest
 import locale
-from lxml import etree
 import numpy
 import sys
+
+import xmlschema
 
 # Jeremy Gray March 2011
 
@@ -85,15 +86,12 @@ class TestExpt(object):
 
         # get schema
 
-        schema_name = path.join(self.exp.prefsPaths['psychopy'], 'experiment', 'experiment.xsd');
-        schema_root = etree.parse(schema_name)
-        schema = etree.XMLSchema(schema_root)
-
-        # validate files with schema
+        schema_name = path.join(self.exp.prefsPaths['psychopy'], 'experiment', 'experiment.xsd')
+        schema = xmlschema.XMLSchema(schema_name)
 
         for psyexp_file in psyexp_files:
             project_root = etree.parse(psyexp_file)
-            schema.assertValid(project_root)
+            assert schema.is_valid(psyexp_file)
 
     def test_missing_dotval(self):
         """search for a builder component gotcha:
