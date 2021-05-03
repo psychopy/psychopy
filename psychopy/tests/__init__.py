@@ -1,8 +1,9 @@
+import os
 
 _travisTesting = bool("{}".format(os.environ.get('TRAVIS')).lower() == 'true')
 _anacondaTesting = bool("{}".format(os.environ.get('CONDA')).lower() == 'true')
 _githubActions = str(os.environ.get('GITHUB_WORKFLOW')) != 'None'
-_vmTesting = _travisTesting  or _githubActions
+_vmTesting = _travisTesting or _githubActions
 
 if _vmTesting:  # then let's also create some skip functions
     import pytest  # only import if we are testing
