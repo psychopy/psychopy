@@ -26,7 +26,8 @@ if version.parse(pytest.__version__) < version.parse('5'):
 @pytest.fixture(scope='session', autouse=True)
 def requires_app(request):
     # set_up
-    psychopyApp._called_from_test = True
+    PsychoPyApp._called_from_test = True  # NB class variable must be set
+    # _called_from_test is used in __init__ so set before instantiation
     request.cls._app = PsychoPyApp(testMode=True, showSplash=False)
 
     # yield, to let all tests within the scope run

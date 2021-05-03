@@ -135,7 +135,8 @@ class PsychopyPyShell(wx.py.shell.Shell, ThemeMixin):
         """Called when the shell loses focus."""
         # Set the callback to use the dialog when errors occur outside the
         # shell.
-        sys.excepthook = exceptionCallback
+        if not self.app._called_from_test:
+            sys.excepthook = exceptionCallback
 
         if evt:
             evt.Skip()
