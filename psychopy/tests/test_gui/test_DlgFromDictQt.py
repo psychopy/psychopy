@@ -4,7 +4,6 @@
 from builtins import object
 from collections import OrderedDict
 from psychopy.gui.qtgui import DlgFromDict
-import pytest
 
 
 class TestDlgFromDictQt(object):
