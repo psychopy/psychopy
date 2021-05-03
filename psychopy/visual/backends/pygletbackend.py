@@ -22,7 +22,7 @@ import psychopy
 from psychopy import logging, event, platform_specific, constants
 from psychopy.visual import window
 from psychopy.tools.attributetools import attributeSetter
-from psychopy.tests.utils import _vmTesting
+from psychopy.tests import _vmTesting
 from .gamma import setGamma, setGammaRamp, getGammaRamp, getGammaRampSize
 from .. import globalVars
 from ._base import BaseBackend

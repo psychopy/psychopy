@@ -14,22 +14,7 @@ try:
 except ImportError:
     import Image
 
-try:
-    import pytest
-    usePytest=True
-except Exception:
-    usePytest=False
-
-from pytest import skip
-
-_travisTesting = bool("{}".format(os.environ.get('TRAVIS')).lower() == 'true')
-_anacondaTesting = bool("{}".format(os.environ.get('CONDA')).lower() == 'true')
-_githubActions = str(os.environ.get('GITHUB_WORKFLOW')) != 'None'
-_vmTesting = _travisTesting  or _githubActions
-# some pytest decorators for those conditions
-skip_under_travis = pytest.mark.skipif(_travisTesting, reason="Cannot run that test under Travis")
-skip_under_ghActions = pytest.mark.skipif(_githubActions, reason="Cannot run that test on GitHub Actions")
-skip_under_vm = pytest.mark.skipif(_vmTesting, reason="Cannot run that test on a virtual machine")
+import pytest
 
 # define the path where to find testing data
 # so tests could be ran from any location
@@ -56,7 +41,7 @@ def compareScreenshot(fileName, win, crit=5.0):
         frame = frame.resize((int(frame.size[0]/2), int(frame.size[1]/2)),
                              resample=Image.LANCZOS)
         frame.save(fileName, optimize=1)
-        skip("Created %s" % basename(fileName))
+        pytest.skip("Created %s" % basename(fileName))
     else:
         expected = Image.open(fileName)
         expDat = np.array(expected.getdata())

@@ -10,7 +10,7 @@ from psychopy import microphone
 from psychopy.microphone import _getFlacPath
 from psychopy import core
 
-from psychopy.tests.utils import skip_under_vm
+from psychopy.tests import skip_under_vm
 
 # py.test -k microphone --cov-report term-missing --cov microphone.py tests/
 

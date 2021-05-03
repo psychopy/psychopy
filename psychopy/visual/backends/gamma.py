@@ -17,7 +17,7 @@ import platform
 import ctypes
 import ctypes.util
 from psychopy import logging, prefs
-from psychopy.tests.utils import _vmTesting
+from psychopy.tests import _vmTesting
 import os
 
 # import platform specific C++ libs for controlling gamma

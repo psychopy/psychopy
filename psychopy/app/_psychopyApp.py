@@ -68,7 +68,7 @@ if not PY3 and sys.platform == 'darwin':
 else:
     blockTips = False
 
-travisCI = bool(str(os.environ.get('TRAVIS')).lower() == 'true')
+_called_from_test = False  # pytest needs to change this
 
 # Enable high-dpi support if on Windows. This fixes blurry text rendering.
 if sys.platform == 'win32':
@@ -229,7 +229,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         logging.flush()
 
         # set the exception hook to present unhandled errors in a dialog
-        if not travisCI:
+        if not _called_from_test:
             from psychopy.app.errorDlg import exceptionCallback
             sys.excepthook = exceptionCallback
 

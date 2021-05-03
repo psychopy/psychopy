@@ -2,7 +2,7 @@
     for 'global' and 'device' level event buffers.
 """
 import pytest
-from psychopy.tests.utils import skip_under_travis
+from psychopy.tests import skip_under_travis
 from psychopy.tests.test_iohub.testutil import startHubProcess, stopHubProcess, getTime
 
 @skip_under_travis

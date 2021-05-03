@@ -18,7 +18,7 @@ To add a new stimulus test use _base so that it gets tested in all contexts
 
 """
 
-from psychopy.tests.utils import _travisTesting, skip_under_travis
+from psychopy.tests import _travisTesting, skip_under_travis
 
 
 class Test_Window(object):

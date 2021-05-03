@@ -16,27 +16,25 @@ from psychopy.app._psychopyApp import PsychoPyApp
 from PIL import Image
 Image.DEBUG = False
 
-if version.parse(pytest.__version__) > version.parse('5'):
-    # this method seems to work on at least Pytest 5.4+
-    @pytest.fixture(scope='session', autouse=True)
-    def app_fixture():
-        # set_up
-        psychopyApp._called_from_test = True
-        psychopyApp._app = PsychoPyApp(testMode=True, showSplash=False)
+if version.parse(pytest.__version__) < version.parse('5'):
+    class VersionError(Exception):
+        pass
+    raise VersionError("PsychoPy test suite requires pytest>=5.4")
 
-        # yield, to let all tests within the scope run
-        yield
 
-        # teasr_down: then clear table at the end of the scope
-        psychopyApp._app.quit()
-else:
-    # this method seems to work on Pytest 4.6.4 and the above does not
-    def pytest_configure():
-        psychopyApp._called_from_test = True
-        psychopyApp._app = PsychoPyApp(testMode=True, showSplash=False)
+# this method seems to work on at least Pytest 5.4+
+@pytest.fixture(scope='session', autouse=True)
+def requires_app(request):
+    # set_up
+    psychopyApp._called_from_test = True
+    request.cls._app = PsychoPyApp(testMode=True, showSplash=False)
 
-    def pytest_unconfigure():
-        psychopyApp._app.quit()
+    # yield, to let all tests within the scope run
+    yield
+
+    # teasr_down: then clear table at the end of the scope
+    request.cls._app.quit()
+
 
 
 if __name__ == '__main__':

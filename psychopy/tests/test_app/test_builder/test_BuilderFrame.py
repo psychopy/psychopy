@@ -12,7 +12,6 @@ import time
 
 import psychopy.experiment
 from psychopy import prefs
-from psychopy.app import psychopyApp
 from psychopy.app.builder.dialogs import DlgComponentProperties
 from psychopy.app.builder.validators import CodeSnippetValidator
 from psychopy.experiment import Param
@@ -30,15 +29,15 @@ from psychopy.experiment import Param
 allComponents = psychopy.experiment.getComponents(fetchIcons=False)
 import wx
 
+
+@pytest.mark.usefixtures("requires_app")
 class Test_BuilderFrame(object):
     """This test fetches all standard components and checks that, with default
     settings, they can be added to a Routine and result in a script that compiles
     """
 
     def setup(self):
-        self.app = psychopyApp._app
-
-        self.builder = self.app.newBuilderFrame()
+        self.builder = self._app.newBuilderFrame()  # self._app comes from requires_app
         self.exp = self.builder.exp
         self.here = path.abspath(path.dirname(__file__))
         self.tmp_dir = mkdtemp(prefix='psychopy-tests-app')
@@ -53,7 +52,7 @@ class Test_BuilderFrame(object):
         """Tests of the Builder frame. We can call dialog boxes using
         a timeout (will simulate OK being pressed)
         """
-        builderView = self.app.newBuilderFrame()
+        builderView = self._app.newBuilderFrame()  # self._app comes from requires_app
 
         expfile = path.join(prefs.paths['tests'],
                             'data', 'test001EntryImporting.psyexp')
@@ -98,7 +97,7 @@ class Test_BuilderFrame(object):
     def test_ComponentDialogs(self):
         """Test the message dialog
         """
-        builderView = self.app.newBuilderFrame()
+        builderView = self._app.newBuilderFrame()  # self._app comes from requires_app
         componsPanel = builderView.componentButtons
         for thisComponName in list(componsPanel.components):
             # simulate clicking the button for each component

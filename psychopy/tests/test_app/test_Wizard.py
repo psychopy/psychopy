@@ -1,7 +1,7 @@
 from builtins import object
 import io
 import pytest
-from psychopy.tests.utils import skip_under_vm
+from psychopy.tests import skip_under_vm
 
 # py.test -k wizard --cov-report term-missing --cov wizard.py
 
