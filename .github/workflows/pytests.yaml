@@ -51,6 +51,14 @@ jobs:
       run: |
         pytest --cov-config=.travis_coveragerc --cov=psychopy -v -s psychopy
 
+    - name: upload failed app data
+      if: always()
+      uses: actions/upload-artifact@v2
+      with:
+        name: last_load_app_data
+        path: |
+          ~/.psychopy3
+
     - name: upload failed screenshots
       if: always()
       uses: actions/upload-artifact@v2
@@ -61,7 +69,6 @@ jobs:
           !**/*.mp4
           !psychopy/tests/**/*.data
           !**/*.wav
-          ~/.psychopy3
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v1
@@ -155,3 +162,11 @@ jobs:
       run: |
         export LIBGL_ALWAYS_INDIRECT=0
         xvfb-run --server-args="-screen 0 1024x768x24" pytest --cov-config=.travis_coveragerc --cov=psychopy -v
+
+    - name: upload failed app data
+      if: always()
+      uses: actions/upload-artifact@v2
+      with:
+        name: last_load_app_data
+        path: |
+          ~/.psychopy3
