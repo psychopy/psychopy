@@ -61,6 +61,7 @@ jobs:
           !**/*.mp4
           !psychopy/tests/**/*.data
           !**/*.wav
+          ~/.psychopy3
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v1
@@ -133,7 +134,7 @@ jobs:
       if: runner.os=='Linux'
       run: |
         # these are needed to build wxPython
-        pip install -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-20.04/ wxPython
+        pip install pip install -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-20.04/ wxPython
 
     - name: Install packaging and testing libs
       run: |
