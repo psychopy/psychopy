@@ -69,10 +69,6 @@ install:
 
 before_script:
   - |
-    if [ "${TRAVIS_OS_NAME}" == "linux" ]; then
-       /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 1024x768x24 -ac +extension GLX +extension RANDR +render -noreset
-    fi
-
   # To enable core.rush() functionality, we need to set capabilities on the Python
   # executable. However, setcap'd binaries ignore LD_LIBRARY_PATH; this will
   # break conda Python. The solution is to add the conda libraries to the "global"
@@ -89,7 +85,7 @@ before_script:
 
 script:
   - |
-    pytest --cov-config .travis_coveragerc --cov=psychopy -v -s psychopy
+    xvfb-run -s "-screen 0 1024x768x24 -ac +extension GLX +render -noreset"  pytest --cov-config .travis_coveragerc --cov=psychopy -v -s psychopy
 
 after_success:
   - coveralls

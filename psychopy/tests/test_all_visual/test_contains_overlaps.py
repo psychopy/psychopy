@@ -9,7 +9,6 @@ from past.utils import old_div
 from psychopy import visual, monitors
 from psychopy.visual import helpers
 from numpy import sqrt, array
-import pytest
 import matplotlib
 
 
@@ -87,13 +86,13 @@ def contains_overlaps(testType):
                     #test for two parameters
                     x = points[j][0] * param['scaleFactor']
                     y = points[j][1] * param['scaleFactor']
-                    assert shape.contains(x, y) == res
+                    assert (shape.contains(x, y) == res)
                 elif testType == 'overlaps':
                     res = shape.overlaps(testPoints[j])
                 thisDebugStr = dbgStr % (testType, param['units'], postures[i]['ori'],
                             postures[i]['size'], postures[i]['pos'], points[j],
                             correctResults[i][j])
-                assert res == correctResults[i][j], thisDebugStr
+                assert (res == correctResults[i][j]), thisDebugStr
                 if res:
                     testPoints[j].setFillColor('green', log=False)
                 else:
