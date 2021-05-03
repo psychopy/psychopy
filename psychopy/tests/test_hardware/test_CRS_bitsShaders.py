@@ -10,7 +10,7 @@ from builtins import str
 from builtins import range
 from psychopy import visual
 from psychopy.hardware import crs
-from psychopy.tests import utils
+from psychopy.tests import skip_under_travis, _travisTesting
 import numpy as np
 import pytest
 
@@ -62,7 +62,7 @@ expectedVals = {
         'lowR': array([ 36,  63,   8, 211,   3, 112,  56,  34,   0,   0]),
         'highG': array([119, 118, 120, 119, 121, 120])}}}
 
-@utils.skip_under_travis
+@skip_under_travis
 def test_bitsShaders():
     win = visual.Window([1024, 768], fullscr=0, screen=1, useFBO=True,
                         autoLog=True)
@@ -95,7 +95,7 @@ def test_bitsShaders():
             #fr = np.array(win._getFrame(buffer='back').transpose(Image.ROTATE_270))
             win.flip()
             fr = np.array(win._getFrame(buffer='front').transpose(Image.ROTATE_270))
-            if not utils._travisTesting:
+            if not _travisTesting:
                 assert np.alltrue(thisExpected['lowR'] == fr[0:10, -1, 0])
                 assert np.alltrue(thisExpected['lowG'] == fr[0:10, -1, 1])
                 assert np.alltrue(thisExpected['highR'] == fr[250:256, -1, 0])

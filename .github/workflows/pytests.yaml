@@ -97,7 +97,7 @@ jobs:
       run: |
         sudo apt install llvm-6.0-dev  # for xvfb
         sudo apt install xvfb xauth libgl1-mesa-dri
-        
+
     - name: get_month
       if: runner.os=='Linux'
       id: month
@@ -118,11 +118,12 @@ jobs:
     - name: Install wxPython dependencies
       if: runner.os=='Linux'
       run: |
-        sudo apt-get install -qq python3-dev libgtk-3-dev
-        sudo apt-get install -qq libgstreamer1.0-0 gstreamer1.0-plugins-base
-        sudo apt-get install -qq libwebkit2gtk-4.0-dev
-        sudo apt-get install -qq libpng-dev libjpeg-dev libtiff-dev libnotify-dev libsm-dev
-        sudo apt-get install -qq libsdl-dev libsdl2-mixer-2.0-0 libsdl2-image-2.0-0 libsdl2-2.0-0
+        sudo apt install python3-dev libgtk-3-dev
+        sudo apt install libgstreamer1.0-0 gstreamer1.0-plugins-base
+        sudo apt install libwebkit2gtk-4.0-dev
+        sudo apt install libpng-dev libjpeg-dev libtiff-dev libnotify-dev libsm-dev
+        sudo apt install libsdl-dev libsdl2-mixer-2.0-0 libsdl2-image-2.0-0 libsdl2-2.0-0
+        sudo apt install libportaudio2
 
     - name: Install wxPython from source for linux
       if: runner.os=='Linux'
@@ -130,7 +131,7 @@ jobs:
         # these are needed to build wxPython
         pip install -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-20.04/ wxPython
 
-    - name: Pre-Install
+    - name: Install packaging and testing libs
       run: |
         python -m pip install --upgrade pip
         pip install pytest pytest-cov flake8 xmlschema
