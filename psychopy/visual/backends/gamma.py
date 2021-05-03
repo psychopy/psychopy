@@ -18,7 +18,6 @@ import ctypes
 import ctypes.util
 from psychopy import logging, prefs
 from psychopy.tests import _vmTesting
-import os
 
 # import platform specific C++ libs for controlling gamma
 if sys.platform == 'win32':
@@ -36,8 +35,6 @@ elif sys.platform == 'darwin':
 elif sys.platform.startswith('linux'):
     # we need XF86VidMode
     xf86vm = ctypes.CDLL(ctypes.util.find_library('Xxf86vm'))
-
-_TravisTesting = os.environ.get('TRAVIS') == 'true'  # in Travis-CI testing
 
 # Handling what to do if gamma can't be set
 if prefs.general['gammaErrorPolicy'] == 'abort':  # more clear to Builder users

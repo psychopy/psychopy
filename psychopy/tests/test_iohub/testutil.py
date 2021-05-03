@@ -7,7 +7,7 @@ from psychopy.iohub import launchHubServer, Computer
 
 getTime = Computer.getTime
 
-from psychopy.tests.utils import skip_under_travis
+from psychopy.tests import skip_under_travis
 
 
 @skip_under_travis
