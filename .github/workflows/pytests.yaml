@@ -124,7 +124,7 @@ jobs:
         sudo apt install libpng-dev libjpeg-dev libtiff-dev libnotify-dev libsm-dev
         sudo apt install libsdl-dev libsdl2-mixer-2.0-0 libsdl2-image-2.0-0 libsdl2-2.0-0
         sudo apt install libportaudio2
-#         for pyqt5:
+        # for PyQt
         sudo apt install -y libdbus-1-3 libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1
         sudo apt install -y libxcb-randr0 libxcb-render-util0 libxcb-xinerama0 libxcb-xfixes0
         export QT_DEBUG_PLUGINS=1 # let us know about missing dependencies?
