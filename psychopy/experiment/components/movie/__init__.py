@@ -30,7 +30,7 @@ if _localized['backend'] == 'backend': # this is the only non-capitals label
 
 class MovieComponent(BaseVisualComponent):
     """An event class for presenting movie-based stimuli"""
-
+    targets = ['PsychoPy']
     def __init__(self, exp, parentName, name='movie', movie='',
                  units='from exp settings',
                  pos=(0, 0), size='', ori=0,
@@ -48,7 +48,7 @@ class MovieComponent(BaseVisualComponent):
             startEstim=startEstim, durationEstim=durationEstim)
 
         self.type = 'Movie'
-        self.url = "http://www.psychopy.org/builder/components/movie.html"
+        self.url = "https://www.psychopy.org/builder/components/movie.html"
         # comes immediately after name and timing params
         self.order += ['movie', 'forceEndRoutine', # Basic tab
                        'loop', 'No audio', 'backend',

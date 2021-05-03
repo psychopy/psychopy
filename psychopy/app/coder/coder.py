@@ -32,6 +32,7 @@ import bdb
 import pickle
 import time
 import textwrap
+import codecs
 
 from .. import stdOutRich, dialogs
 from .. import pavlovia_ui
@@ -51,7 +52,7 @@ from psychopy.app.coder.folding import CodeEditorFoldingMixin
 
 try:
     import jedi
-    if jedi.__version__ < "0.15":
+    if jedi.__version__ < "0.16":
         logging.error(
                 "Need a newer version of package `jedi`. Currently using {}"
                 .format(jedi.__version__)
@@ -363,7 +364,7 @@ class UnitTestFrame(wx.Frame):
             havePytest = False
         self.runpyPath = os.path.join(self.prefs.paths['tests'], 'run.py')
         if sys.platform != 'win32':
-            self.runpyPath = self.runpyPath.replace(' ', '\ ')
+            self.runpyPath = self.runpyPath.replace(' ', r'\ ')
         # setup the frame
         self.IDs = self.app.IDs
         # to right, so Cancel button is clickable during a long test
@@ -505,7 +506,7 @@ class UnitTestFrame(wx.Frame):
             # self.scriptProcessID = wx.Execute(command,
             #    # wx.EXEC_ASYNC| wx.EXEC_NOHIDE, self.scriptProcess)
         else:
-            testSubset = ' ' + testSubset.replace(' ', '\ ')  # protect spaces
+            testSubset = ' ' + testSubset.replace(' ', r'\ ')  # protect spaces
             args = (sys.executable, self.runpyPath, coverage,
                     allStdout, testSubset)
             command = '%s -u %s%s%s%s' % args
@@ -868,11 +869,13 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
         if _hasJedi and self.getFileType() == 'Python':
             self.coder.SetStatusText(
                 'Retrieving code completions, please wait ...', 0)
-            # todo - create Script() periodically
-            compList = [i.name for i in jedi.Script(
-                self.getTextUptoCaret(),
+            script = jedi.Script(
+                self.GetText(),
                 path=self.filename if os.path.isabs(self.filename) else
-                None).completions(fuzzy=False)]
+                None)
+            # todo - create Script() periodically
+            compList = [i.name for i in script.complete(
+                self.caretLine + 1, self.caretColumn, fuzzy=False)]
             # todo - check if have a perfect match and veto AC
             self.coder.SetStatusText('', 0)
             if compList:
@@ -1228,28 +1231,37 @@ class CoderFrame(wx.Frame, ThemeMixin):
         # Link to file drop function
         self.SetDropTarget(FileDropTarget(targetFrame=self))
 
+        # Create editor notebook
+        #todo: Why is editor default background not same as usual frame backgrounds?
+        self.notebook = aui.AuiNotebook(
+            self.pnlMain, -1, size=wx.Size(480, 480),
+            agwStyle=aui.AUI_NB_TAB_MOVE | aui.AUI_NB_CLOSE_ON_ACTIVE_TAB)
+
+        #self.notebook.SetArtProvider(PsychopyTabArt())
+        # Add editor panel
+        self.paneManager.AddPane(self.notebook, aui.AuiPaneInfo().
+                                 Name("Editor").
+                                 Caption(_translate("Editor")).
+                                 BestSize((480, 480)).
+                                 Floatable(False).
+                                 Movable(False).
+                                 Center().
+                                 PaneBorder(True).  # 'center panes' expand
+                                 CloseButton(False).
+                                 MaximizeButton(True))
+
         # Create source assistant notebook
         self.sourceAsst = aui.AuiNotebook(
             self.pnlMain,
             wx.ID_ANY,
-            size = wx.Size(450, 600),
+            size = wx.Size(500, 600),
             agwStyle=aui.AUI_NB_CLOSE_ON_ALL_TABS |
                      aui.AUI_NB_TAB_SPLIT |
                      aui.AUI_NB_TAB_MOVE)
 
         self.structureWindow = SourceTreePanel(self.sourceAsst, self)
         self.fileBrowserWindow = FileBrowserPanel(self.sourceAsst, self)
-        # Add source assistant panel
-        self.paneManager.AddPane(self.sourceAsst,
-                                 aui.AuiPaneInfo().
-                                 BestSize((350, 600)).
-                                 FloatingSize((350, 600)).
-                                 Floatable(False).
-                                 BottomDockable(False).TopDockable(False).
-                                 CloseButton(False).PaneBorder(False).
-                                 Name("SourceAsst").
-                                 Caption(_translate("Source Assistant")).
-                                 Left())
+
         # Add structure page to source assistant
         self.structureWindow.SetName("Structure")
         self.sourceAsst.AddPage(self.structureWindow, "Structure")
@@ -1258,27 +1270,20 @@ class CoderFrame(wx.Frame, ThemeMixin):
         self.sourceAsst.AddPage(self.fileBrowserWindow, "File Browser")
 
         # remove close buttons
-        self.sourceAsst.SetCloseButton(0, False)
-        self.sourceAsst.SetCloseButton(1, False)
+        for i in range(self.sourceAsst.GetPageCount()):
+            self.sourceAsst.SetCloseButton(i, False)
 
-        # Create editor notebook
-        #todo: Why is editor default background not same as usual frame backgrounds?
-        self.notebook = aui.AuiNotebook(
-            self.pnlMain, -1, size=wx.Size(480, 600),
-            agwStyle=aui.AUI_NB_TAB_MOVE | aui.AUI_NB_CLOSE_ON_ACTIVE_TAB)
-
-        #self.notebook.SetArtProvider(PsychopyTabArt())
-        # Add editor panel
-        self.paneManager.AddPane(self.notebook, aui.AuiPaneInfo().
-                                 Name("Editor").
-                                 Caption(_translate("Editor")).
-                                 BestSize((600, 600)).
+        # Add source assistant panel
+        self.paneManager.AddPane(self.sourceAsst,
+                                 aui.AuiPaneInfo().
+                                 BestSize((500, 600)).
                                  Floatable(False).
-                                 Movable(False).
-                                 Center().
-                                 PaneBorder(True).  # 'center panes' expand
-                                 CloseButton(False).
-                                 MaximizeButton(True))
+                                 BottomDockable(False).TopDockable(False).
+                                 CloseButton(False).PaneBorder(False).
+                                 Name("SourceAsst").
+                                 Caption(_translate("Source Assistant")).
+                                 Left())
+
         self.notebook.SetFocus()
         # Link functions
         self.notebook.Bind(aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.fileClose)
@@ -1356,8 +1361,9 @@ class CoderFrame(wx.Frame, ThemeMixin):
             self.paneManager.GetPane('SourceAsst').Caption(_translate("Source Assistant"))
             self.paneManager.GetPane('Editor').Caption(_translate("Editor"))
         else:
-            self.SetMinSize(wx.Size(400, 600))  # min size for whole window
-            self.Fit()
+            self.SetMinSize(wx.Size(480, 640))  # min size for whole window
+            self.SetSize(wx.Size(1024, 800))
+            # self.Fit()
         # Update panes PsychopyToolbar
         isExp = filename.endswith(".py") or filename.endswith(".psyexp")
 
@@ -2053,7 +2059,10 @@ class CoderFrame(wx.Frame, ThemeMixin):
         # open the find dialog if not already open
         if self.findDlg is not None:
             return
+        if not self.currentDoc:
+            return
         win = wx.Window.FindFocus()
+        self.findData.SetFindString(self.currentDoc.GetSelectedText())
         self.findDlg = wx.FindReplaceDialog(win, self.findData, "Find",
                                             wx.FR_NOWHOLEWORD)
         self.findDlg.Bind(wx.EVT_FIND_CLOSE, self.OnFindClose)
@@ -2184,7 +2193,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
     def filePrint(self, event=None):
         pr = Printer()
         docName = self.currentDoc.filename
-        text = open(docName, 'r').read()
+        text = codecs.open(docName, 'r', 'utf-8').read()
         pr.Print(text, docName)
 
     def fileNew(self, event=None, filepath=""):
@@ -2320,8 +2329,8 @@ class CoderFrame(wx.Frame, ThemeMixin):
             self.currentDoc.SetWrapMode(
                 wx.stc.STC_WRAP_WORD if self.lineWrapChk.IsChecked() else wx.stc.STC_WRAP_NONE)
             self.statusBar.SetStatusText(fileType, 2)
-
-        self.SetLabel('%s - PsychoPy Coder' % self.currentDoc.filename)
+        fname = Path(self.currentDoc.filename).name
+        self.SetLabel('%s - PsychoPy Coder (v%s)' % (fname, psychopy.__version__))
         #if len(self.getOpenFilenames()) > 0:
         self.currentDoc.analyseScript()
 
@@ -2366,7 +2375,11 @@ class CoderFrame(wx.Frame, ThemeMixin):
                 self.app.newBuilderFrame(fileName=filename)
             else:
                 self.setCurrentDoc(filename)
-                self.setFileModified(False)
+                # don't do the next step if no file was opened (hack!!)
+                if self.notebook.GetPageCount() > 0:
+                    if self.notebook.GetCurrentPage().filename == filename:
+                        self.setFileModified(False)
+
         self.statusBar.SetStatusText('')
 
         # don't do this, this will add unwanted files to the task list - mdc

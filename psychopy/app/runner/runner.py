@@ -6,7 +6,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 import glob
 import json
-
+import errno
 from psychopy.app.themes._themes import ThemeSwitcher
 
 from ..themes import ThemeMixin
@@ -686,6 +686,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
                                    stderr=PIPE,
                                    shell=False,
                                    universal_newlines=True,
+
                                    )
 
         time.sleep(.1)  # Wait for subprocess to start server
@@ -702,20 +703,23 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
 
         Useful for debugging, amending scripts.
         """
-        libPath = str(self.currentFile.parent / self.outputPath / 'lib')
-        ver = '.'.join(self.app.version.split('.')[:2])
+        libPath = self.currentFile.parent / self.outputPath / 'lib'
+        ver = '.'.join(self.app.version.split('.')[:3])
         psychoJSLibs = ['core', 'data', 'util', 'visual', 'sound']
 
-        os.path.exists(libPath) or os.makedirs(libPath)
-
-        if len(sorted(Path(libPath).glob('*.js'))) >= len(psychoJSLibs):  # PsychoJS lib files exist
-            print("##### PsychoJS lib already exists in {} #####\n".format(libPath))
-            return
+        try:  # ask-for-forgiveness rather than query-then-make
+            os.makedirs(libPath)
+        except OSError as e:
+            if e.errno != errno.EEXIST:  # we only want to ignore "exists", not others like permissions
+                raise  # raises the error again
 
         for lib in psychoJSLibs:
+            finalPath = libPath / ("{}-{}.js".format(lib, ver))
+            if finalPath.exists():
+                continue
             url = "https://lib.pavlovia.org/{}-{}.js".format(lib, ver)
             req = requests.get(url)
-            with open(libPath + "/{}-{}.js".format(lib, ver), 'wb') as f:
+            with open(finalPath, 'wb') as f:
                 f.write(req.content)
 
         print("##### PsychoJS libs downloaded to {} #####\n".format(libPath))

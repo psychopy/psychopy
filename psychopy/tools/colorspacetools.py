@@ -5,7 +5,15 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-"""Functions and classes related to color space conversion.
+"""Tools related to working with various color spaces.
+
+The routines provided in the module are used to transform color coordinates
+between spaces. Most of the functions here are *vectorized*, allowing for array
+inputs to convert multiple color values at once.
+
+**As of version 2021.0 of PsychoPy**, users ought to use the
+:class:`~psychopy.colors.Color` class for working with color coordinate values.
+
 """
 from __future__ import absolute_import, division, print_function
 
@@ -17,8 +25,6 @@ from past.utils import old_div
 import numpy
 from psychopy import logging
 from psychopy.tools.coordinatetools import sph2cart
-
-import time
 
 
 def unpackColors(colors):  # used internally, not exported by __all__
@@ -167,7 +173,7 @@ def srgbTF(rgb, reverse=False, **kwargs):
 
 
 def rec709TF(rgb, **kwargs):
-    """Apply the Rec. 709 transfer function (or gamma) to linear RGB values.
+    """Apply the Rec 709 transfer function (or gamma) to linear RGB values.
 
     This transfer function is defined in the ITU-R BT.709 (2015) recommendation
     document (http://www.itu.int/rec/R-REC-BT.709-6-201506-I/en) and is
@@ -397,12 +403,17 @@ def dkl2rgb(dkl, conversionMatrix=None):
     an accurate representation of the color space unless you supply a
     conversion matrix).
 
-    usage::
+    Examples
+    --------
+    Converting a single DKL color to RGB::
 
-        rgb(Nx3) = dkl2rgb(dkl_Nx3(el,az,radius), conversionMatrix)
-        rgb(NxNx3) = dkl2rgb(dkl_NxNx3(el,az,radius), conversionMatrix)
+        dkl = [90, 0, 1]
+        rgb = dkl2rgb(dkl, conversionMatrix)
 
     """
+    # make sure the input is an array
+    dkl = numpy.asarray(dkl)
+
     if conversionMatrix is None:
         conversionMatrix = numpy.asarray([
             # (note that dkl has to be in cartesian coords first!)
@@ -497,7 +508,7 @@ def rgb2hsv(rgb):
     delta = cmax - cmin
 
     # vector to return HSV values
-    hsv_out = numpy.zeros_like(rgb)
+    hsv_out = numpy.zeros_like(rgb, dtype=float)
 
     # --- calculate vibrancy ---
     dzero = delta == 0  # if delta is zero the color is a shade of grey
@@ -634,6 +645,40 @@ def lms2rgb(lms_Nx3, conversionMatrix=None):
     return numpy.transpose(rgb)  # return in the shape we received it
 
 
+def rgb2lms(rgb_Nx3, conversionMatrix=None):
+    """Convert from RGB to cone space (LMS).
+
+    Requires a conversion matrix, which will be generated from generic
+    Sony Trinitron phosphors if not supplied (note that you will not get
+    an accurate representation of the color space unless you supply a
+    conversion matrix)
+
+    usage::
+
+        lms_Nx3 = rgb2lms(rgb_Nx3(el,az,radius), conversionMatrix)
+
+    """
+
+    # its easier to use in the other orientation!
+    rgb_3xN = numpy.transpose(rgb_Nx3)
+
+    if conversionMatrix is None:
+        cones_to_rgb = numpy.asarray([
+            # L        M        S
+            [4.97068857, -4.14354132, 0.17285275],  # R
+            [-0.90913894, 2.15671326, -0.24757432],  # G
+            [-0.03976551, -0.14253782, 1.18230333]])  # B
+
+        logging.warning('This monitor has not been color-calibrated. '
+                        'Using default LMS conversion matrix.')
+    else:
+        cones_to_rgb = conversionMatrix
+    rgb_to_cones = numpy.linalg.inv(cones_to_rgb)
+
+    lms = numpy.dot(rgb_to_cones, rgb_3xN)
+    return numpy.transpose(lms)  # return in the shape we received it
+
+
 def rgb2dklCart(picture, conversionMatrix=None):
     """Convert an RGB image into Cartesian DKL space.
     """
@@ -668,38 +713,7 @@ def rgb2dklCart(picture, conversionMatrix=None):
 
     # Reshape the picture so that it's back to it's original shape
     dklPicture = numpy.reshape(numpy.transpose(dkl), origShape)
+
     return dklPicture
 
 
-def rgb2lms(rgb_Nx3, conversionMatrix=None):
-    """Convert from RGB to cone space (LMS).
-
-    Requires a conversion matrix, which will be generated from generic
-    Sony Trinitron phosphors if not supplied (note that you will not get
-    an accurate representation of the color space unless you supply a
-    conversion matrix)
-
-    usage::
-
-        lms_Nx3 = rgb2lms(rgb_Nx3(el,az,radius), conversionMatrix)
-
-    """
-
-    # its easier to use in the other orientation!
-    rgb_3xN = numpy.transpose(rgb_Nx3)
-
-    if conversionMatrix is None:
-        cones_to_rgb = numpy.asarray([
-            # L        M        S
-            [4.97068857, -4.14354132, 0.17285275],  # R
-            [-0.90913894, 2.15671326, -0.24757432],  # G
-            [-0.03976551, -0.14253782, 1.18230333]])  # B
-
-        logging.warning('This monitor has not been color-calibrated. '
-                        'Using default LMS conversion matrix.')
-    else:
-        cones_to_rgb = conversionMatrix
-    rgb_to_cones = numpy.linalg.inv(cones_to_rgb)
-
-    lms = numpy.dot(rgb_to_cones, rgb_3xN)
-    return numpy.transpose(lms)  # return in the shape we received it

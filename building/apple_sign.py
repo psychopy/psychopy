@@ -1,3 +1,10 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Part of the PsychoPy library
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Distributed under the terms of the GNU General Public License (GPL).
+
 from pathlib import Path
 import subprocess
 import re
@@ -314,10 +321,13 @@ def main():
                         action='store', required=False, default=None)
     parser.add_argument("--runPreDmgBuild", help="Runs up until dmg is built (and notarised) then exits",
                         action='store', required=False, default='true')
+    parser.add_argument("--runDmgBuild", help="Runs the dmg build itself",
+                        action='store', required=False, default='true')
     parser.add_argument("--runPostDmgBuild", help="Runs up until dmg is built (and notarised) then exits",
                         action='store', required=False, default='true')
     args = parser.parse_args()
     args.runPreDmgBuild = args.runPreDmgBuild.lower() in ['true', 'True', '1', 'y', 'yes']
+    args.runDmgBuild = args.runDmgBuild.lower() in ['true', 'True', '1', 'y', 'yes']
     args.runPostDmgBuild = args.runPostDmgBuild.lower() in ['true', 'True', '1', 'y', 'yes']
 
     if args.skipnotarize:
@@ -348,13 +358,13 @@ def main():
                 signer.signAll()
             signer.signCheck(verbose=False)
 
-            if NOTARIZE:
+            if NOTARIZE and args.runDmgBuild:
                 signer.upload(signer.zipFile)
                 # build the read/writable dmg file while waiting for notarize
                 signer.dmgBuild()
                 # notarize and staple
                 signer.awaitNotarized()
-            else:
+            elif args.runDmgBuild:
                 # just build the dmg
                 signer.dmgBuild()
 

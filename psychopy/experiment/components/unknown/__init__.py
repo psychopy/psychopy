@@ -25,6 +25,7 @@ class UnknownComponent(BaseComponent):
     script-outputs. It should have nothing but a name - other params will be
     added by the loader
     """
+    targets = ['PsychoPy']
 
     def __init__(self, exp, parentName, name=''):
         self.type = 'Unknown'

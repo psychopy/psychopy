@@ -52,7 +52,6 @@ _OSXFontDirectories = [
     "/System/Library/Fonts",
     # fonts installed via MacPorts
     "/opt/local/share/fonts",
-    ""
 ]
 
 _weightMap = {
@@ -582,13 +581,15 @@ def findFontFiles(folders=(), recursive=True):
     -------
     list of pathlib.Path objects
     """
-    if sys.platform == 'win32':
-        searchPaths = []  # just leave it to matplotlib as below
-    elif sys.platform == 'darwin':
-        # on mac matplotlib doesn't include 'ttc' files (which are fine)
-        searchPaths = _OSXFontDirectories
-    elif sys.platform.startswith('linux'):
-        searchPaths = _X11FontDirectories
+    searchPaths = folders
+    if searchPaths is None or len(searchPaths)==0:
+        if sys.platform == 'win32':
+            searchPaths = []  # just leave it to matplotlib as below
+        elif sys.platform == 'darwin':
+            # on mac matplotlib doesn't include 'ttc' files (which are fine)
+            searchPaths = _OSXFontDirectories
+        elif sys.platform.startswith('linux'):
+            searchPaths = _X11FontDirectories
     # search those folders
     fontPaths = []
     for thisFolder in searchPaths:
@@ -760,8 +761,8 @@ class FontManager(object):
             # If font name is not found, raise error
             raise MissingFontError("Font `{}` could not be retrieved from the Google Font library.".format(fontName))
         # Get and send file url from returned CSS data
-        fileURL = re.findall("(?<=src: url\().*(?=\) format)", repoResp.content.decode())[0]
-        fileFormat = re.findall("(?<=format\(\').*(?=\'\)\;)", repoResp.content.decode())[0]
+        fileURL = re.findall(r"(?<=src: url\().*(?=\) format)", repoResp.content.decode())[0]
+        fileFormat = re.findall(r"(?<=format\(\').*(?=\'\)\;)", repoResp.content.decode())[0]
         fileResp = requests.get(fileURL)
         if not fileResp.ok:
             # If font file is not available, raise error

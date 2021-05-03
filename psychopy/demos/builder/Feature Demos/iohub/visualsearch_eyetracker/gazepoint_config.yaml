@@ -1,0 +1,14 @@
+eyetracker.hw.gazepoint.gp3.EyeTracker:
+    enable: True
+    name: tracker
+    monitor_event_types: [ BinocularEyeSampleEvent, FixationStartEvent, FixationEndEvent]
+    device_timer:
+        interval: 0.005
+    calibration:        
+        # target_duration is the number of sec.msec that a calibration point should
+        # be displayed before moving onto the next point.
+        # (Sets the GP3 CALIBRATE_TIMEOUT)
+        target_duration: 1.25
+        # target_delay specifies the target animation duration in sec.msec.
+        # (Sets the GP3 CALIBRATE_DELAY)
+        target_delay: 0.5

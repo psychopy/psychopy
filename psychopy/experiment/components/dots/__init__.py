@@ -34,6 +34,8 @@ _localized.update({'nDots': _translate('Number of dots'),
 class DotsComponent(BaseVisualComponent):
     """An event class for presenting Random Dot stimuli"""
 
+    targets = ['PsychoPy']
+
     def __init__(self, exp, parentName, name='dots',
                  nDots=100,
                  direction=0.0, speed=0.1, coherence=1.0,
@@ -41,7 +43,7 @@ class DotsComponent(BaseVisualComponent):
                  dotLife=3, signalDots='same', noiseDots='direction', refreshDots='repeat',
                  fieldShape='circle', fieldSize=1.0, fieldPos=(0.0, 0.0),
                  color='$[1.0,1.0,1.0]', colorSpace='rgb',
-                 opacity=1.0,
+                 opacity="",
                  units='from exp settings',
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
@@ -54,7 +56,7 @@ class DotsComponent(BaseVisualComponent):
             startEstim=startEstim, durationEstim=durationEstim)
 
         self.type = 'Dots'
-        self.url = "http://www.psychopy.org/builder/components/dots.html"
+        self.url = "https://www.psychopy.org/builder/components/dots.html"
         # Put dot/field size and position where regular size and position are in param order
         self.order.insert(self.order.index("size"), "dotSize")
         self.order.insert(self.order.index("size"), "fieldSize")

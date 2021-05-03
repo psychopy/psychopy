@@ -50,7 +50,7 @@ class RatingScaleComponent(BaseComponent):
     """A class for presenting a rating scale as a builder component
     """
     categories = ['Responses']
-
+    targets = ['PsychoPy']
     def __init__(self, exp, parentName,
                  name='rating',
                  scaleDescription='',
@@ -78,7 +78,7 @@ class RatingScaleComponent(BaseComponent):
             stopType=stopType, stopVal=stopVal,
             startEstim=startEstim, durationEstim=durationEstim)
         self.type = 'RatingScale'
-        self.url = "http://www.psychopy.org/builder/components/ratingscale.html"
+        self.url = "https://www.psychopy.org/builder/components/ratingscale.html"
         self.exp.requirePsychopyLibs(['visual', 'event'])
 
         # params
@@ -188,7 +188,7 @@ class RatingScaleComponent(BaseComponent):
 
         # customization:
         self.params['customize_everything'] = Param(
-            customize_everything, valType='extendedStr', allowedTypes=[],
+            customize_everything, valType='code', inputType="multi", allowedTypes=[],
             updates='constant', allowedUpdates=[], categ="Custom",
             hint=_translate("Use this text to create the rating scale as you"
                             " would in a code component; overrides all"

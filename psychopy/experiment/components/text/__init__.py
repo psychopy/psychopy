@@ -36,7 +36,7 @@ class TextComponent(BaseVisualComponent):
     def __init__(self, exp, parentName, name='text',
                  # effectively just a display-value
                  text=_translate('Any text\n\nincluding line breaks'),
-                 font='Arial', units='from exp settings',
+                 font='Open Sans', units='from exp settings',
                  color='white', colorSpace='rgb',
                  pos=(0, 0), letterHeight=0.1, ori=0,
                  startType='time (s)', startVal=0.0,
@@ -56,7 +56,7 @@ class TextComponent(BaseVisualComponent):
                                             startEstim=startEstim,
                                             durationEstim=durationEstim)
         self.type = 'Text'
-        self.url = "http://www.psychopy.org/builder/components/text.html"
+        self.url = "https://www.psychopy.org/builder/components/text.html"
 
         # params
         _allow3 = ['constant', 'set every repeat', 'set every frame']  # list
@@ -85,7 +85,7 @@ class TextComponent(BaseVisualComponent):
                             " the specified units)"),
             label=_localized['wrapWidth'])
         self.params['flip'] = Param(
-            flip, valType='str', inputType="choice", allowedTypes=[], categ='Layout',
+            flip, valType='str', inputType="single", allowedTypes=[], categ='Layout',
             allowedVals=["horiz", "vert", "None"], updates='constant', allowedUpdates=_allow3[:],  # copy the list
             hint=_translate("horiz = left-right reversed; vert = up-down"
                             " reversed; $var = variable"),

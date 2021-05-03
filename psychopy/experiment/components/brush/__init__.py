@@ -29,6 +29,7 @@ class BrushComponent(BaseVisualComponent):
     """A class for drawing freehand responses"""
 
     categories = ['Responses']
+    targets = ['PsychoPy', 'PsychoJS']
 
     def __init__(self, exp, parentName, name='brush',
                  lineColor='$[1,1,1]', lineColorSpace='rgb',
@@ -44,9 +45,8 @@ class BrushComponent(BaseVisualComponent):
             startEstim=startEstim, durationEstim=durationEstim)
 
         self.type = 'Brush'
-        self.url = "http://www.psychopy.org/builder/components/brush.html"
+        self.url = "https://www.psychopy.org/builder/components/brush.html"
         self.exp.requirePsychopyLibs(['visual'])
-        self.targets = ['PsychoPy', 'PsychoJS']
         self.order.remove("opacity")  # Move opacity to the end
         self.order += [
             "lineWidth", "lineColor", "lineColorSpace", "opacity"  # Appearance tab

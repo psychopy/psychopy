@@ -28,6 +28,8 @@ class ApertureComponent(BaseVisualComponent):
     """An event class for using GL stencil to restrict the viewing area to a
     circle or square of a given size and position"""
 
+    targets = ['PsychoPy']
+
     def __init__(self, exp, parentName, name='aperture', units='norm',
                  size=1, pos=(0, 0),
                  startType='time (s)', startVal=0.0,
@@ -42,7 +44,7 @@ class ApertureComponent(BaseVisualComponent):
             startEstim=startEstim, durationEstim=durationEstim)
 
         self.type = 'Aperture'
-        self.url = "http://www.psychopy.org/builder/components/aperture.html"
+        self.url = "https://www.psychopy.org/builder/components/aperture.html"
         self.order += []
 
         msg = _translate(

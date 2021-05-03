@@ -23,7 +23,7 @@ GL = pyglet.gl
 import numpy
 
 import psychopy  # so we can get the __path__
-from psychopy import logging
+from psychopy import logging, colors
 
 from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.tools.arraytools import val2array
@@ -47,7 +47,7 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
                  color=(1.0, 1.0, 1.0),
                  colorSpace='rgb',
                  contrast=1.0,
-                 opacity=1.0,
+                 opacity=None,
                  depth=0,
                  interpolate=False,
                  flipHoriz=False,
@@ -95,7 +95,7 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
         self.colorSpace = colorSpace  # omit decorator
         self.color = color
         self.contrast = float(contrast)
-        self.opacity = float(opacity)
+        self.opacity = opacity
 
         # Set the image and mask-
         self.setImage(image, log=False)
@@ -304,6 +304,9 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
         """The image file to be presented (most formats supported).
         """
         self.__dict__['image'] = self._imName = value
+        # If given a color array, get it in rgb1
+        if isinstance(value, colors.Color):
+            value = value.render('rgb1')
 
         wasLumImage = self.isLumImage
         if type(value) != numpy.ndarray and value == "color":

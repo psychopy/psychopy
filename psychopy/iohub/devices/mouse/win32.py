@@ -143,11 +143,32 @@ class Mouse(MouseDevice):
         this method gets the current system cursor pos.
         """
         if self._position is None:
-            self._position = 0.0, 0.0
-            self._lastPosition = 0.0, 0.0
+            p = 0.0, 0.0
             mpos = ctypes.wintypes.POINT()
             if self._user32.GetCursorPos(ctypes.byref(mpos)):
-                self._position = [mpos.x, mpos.y]
+                display_index = self.getDisplayIndexForMousePosition(
+                    (mpos.x,mpos.y))
+    
+                if display_index == -1 and self._last_display_index is not None:
+                    display_index = self._last_display_index
+
+                if display_index != self._display_device.getIndex():
+                    # sys mouse is currently not in psychopy window
+                    # so keep pos to window center.
+                    display_index = -1
+        
+                if display_index == -1:
+                    self._display_index = self._display_device.getIndex()
+                    self._last_display_index = self._display_index
+                    wm_pix = self._display_device._displayCoord2Pixel(p[0],
+                                                                      p[1],
+                                                                      self._display_index)
+                    self._nativeSetMousePos(*wm_pix)
+                else:
+                    p = self._display_device._pixel2DisplayCoord(
+                        mpos.x, mpos.y, display_index)
+                
+                self._position = p
                 self._lastPosition = self._position
 
     def _nativeSetMousePos(self, px, py):

@@ -1,0 +1,19 @@
+
+code: 4051
+cat: Experiment configuration
+msg: Experiment was built in a future version of PsychoPy ({version}), we recommend either updating PsychoPy or changing the "Use Version" setting in Experiment Settings to this version.
+
+# The following are typically used for online help pages, and support reStructured Text.
+label: Experiment from future version
+
+synopsis: |
+  It looks like you're trying to open an experiment built in a newer version of PsychoPy than you currently have installed. This can cause problems, your experiment may run differently to how you expect or may not run at all.
+
+details: |
+  Between different version of PsychoPy, we make a number of changes to improve useability and performance, but which mean that newer experiments may contain code which older versions do not know how to handle. We always try to maintain "backwards compatability" - so that experiments built in older versions run the same in newer versions. However, we cannot predict what changes we will make years down the line, so cannot guarantee "forwards compatability" in the same way. This means that experiments built on newer versions of PsychoPy may run differently on older versions, or may not run at all.
+
+solutions: |
+  To fix this, we recommend updating to the newest version of PsychoPy. Or, if you need an older version for other reasons, you can set this specific experiment to run in a different version by changing the "Use Version" parameter in Experiment Settings to the version it was created in (or a newer version).
+
+versions: |
+  Any

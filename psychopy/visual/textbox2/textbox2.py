@@ -6,8 +6,7 @@
 #  Distributed under the terms of the new BSD license.
 #
 # -----------------------------------------------------------------------------
-
-"""
+r"""
 TextBox2 provides a combination of features from TextStim and TextBox and then
 some more added:
 
@@ -26,7 +25,7 @@ from psychopy.tools.monitorunittools import convertToPix
 from .fontmanager import FontManager, GLFont
 from .. import shaders
 from ..rect import Rect
-from ... import core
+from ... import core, alerts
 
 allFonts = FontManager()
 
@@ -78,7 +77,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                  fillColor=None, fillColorSpace=None,
                  borderWidth=2, borderColor=None, borderColorSpace=None,
                  contrast=1,
-                 opacity=1.0,
+                 opacity=None,
                  bold=False,
                  italic=False,
                  lineSpacing=1.0,
@@ -128,8 +127,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         BaseVisualStim.__init__(self, win, units=units, name=name)
         self.win = win
         self.colorSpace = colorSpace
-        self.contrast = contrast
-        self.opacity = opacity
         ColorMixin.foreColor.fset(self, color)  # Have to call the superclass directly on init as text has not been set
         self.onTextCallback = onTextCallback
 
@@ -163,6 +160,16 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.padding = padding
         self.glFont = None  # will be set by the self.font attribute setter
         self.font = font
+        # If font not found, default to Open Sans Regular and raise alert
+        if not self.glFont:
+            alerts.alert(4325, self, {
+                'font': font,
+                'weight': 'bold' if self.bold is True else 'regular' if self.bold is False else self.bold,
+                'style': 'italic' if self.italic else '',
+                'name': self.name})
+            self.bold = False
+            self.italic = False
+            self.font = "Open Sans"
 
         # once font is set up we can set the shader (depends on rgb/a of font)
         if self.glFont.atlas.format == 'rgb':
@@ -194,6 +201,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.borderWidth = borderWidth
         self.borderColor = borderColor
         self.fillColor = fillColor
+        self.contrast = contrast
+        self.opacity = opacity
 
         self.box = Rect(
                 win, pos=self.pos,
@@ -213,12 +222,26 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.text = text if text is not None else ""
 
         # caret
-        self.editable = editable
+        self._editable = editable
         self.caret = Caret(self, color=self.color, width=5)
 
 
         self.autoLog = autoLog
 
+    @property
+    def editable(self):
+        return self._editable
+    
+    @editable.setter
+    def editable(self, editable):
+        self._editable = editable
+        if editable is False and self.hasFocus:
+            if self.win:
+                self.win.removeEditable(self)
+        if editable is True:
+            if self.win:
+                self.win.addEditable(self)
+        
     @property
     def pallette(self):
         self._pallette = {
@@ -249,6 +272,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
     def foreColor(self, value):
         ColorMixin.foreColor.fset(self, value)
         self._layout()
+        if hasattr(self, "foreColor") and hasattr(self, 'caret'):
+            self.caret.color = self._foreColor
 
     @attributeSetter
     def font(self, fontName, italic=False, bold=False):
@@ -812,11 +837,18 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         return False
 
     @hasFocus.setter
-    def hasFocus(self, state):
-        # Store focus
-        self._hasFocus = state
-        # Redraw text box
-        self.draw()
+    def hasFocus(self, focus):
+        if focus is False and self.hasFocus:
+            # If focus is being set to False, tell window to 
+            # give focus to next editable.
+            if self.win:
+                self.win.nextEditable()
+        elif focus is True and self.hasFocus is False:
+            # If focus is being set True, set textbox instance to be
+            # window.currentEditable.
+            if self.win:
+                self.win.currentEditable=self
+        return False
 
     def getText(self):
         """Returns the current text in the box, including formating tokens."""
@@ -912,24 +944,14 @@ class Caret(ColorMixin):
         self.colorSpace = colorSpace
         self.color = color
 
-    @attributeSetter
-    def color(self, color):
-        self.setColor(color)
-        self._desiredRGB = [0.89, -0.35, -0.28]
-        # if self.colorSpace not in ['rgb', 'dkl', 'lms', 'hsv']:
-        #     self._desiredRGB = [c / 127.5 - 1 for c in self.rgb]
-        # else:
-        #     self._desiredRGB = self.rgb
-
     def draw(self):
         if not self.visible:
             return
         if core.getTime() % 1 > 0.6:  # Flash every other second
             return
         gl.glLineWidth(self.width)
-        rgb = self._desiredRGB
         gl.glColor4f(
-            rgb[0], rgb[1], rgb[2], self.textbox.opacity
+            *self._foreColor.rgba1
         )
         gl.glBegin(gl.GL_LINES)
         gl.glVertex2f(self.vertices[0, 0], self.vertices[0, 1])

@@ -32,6 +32,8 @@ _localized.update({'tex': _translate('Texture'),
 class GratingComponent(BaseVisualComponent):
     """A class for presenting grating stimuli"""
 
+    targets = ['PsychoPy']
+
     def __init__(self, exp, parentName, name='grating', image='sin',
                  mask='', sf='', interpolate='linear',
                  units='from exp settings', color='$[1,1,1]', colorSpace='rgb',
@@ -48,7 +50,7 @@ class GratingComponent(BaseVisualComponent):
             startEstim=startEstim, durationEstim=durationEstim)
 
         self.type = 'Grating'
-        self.url = "http://www.psychopy.org/builder/components/grating.html"
+        self.url = "https://www.psychopy.org/builder/components/grating.html"
         self.order += [
             'tex', 'mask', 'phase', 'sf', 'texture resolution', 'interpolate',  # Texture tab
         ]

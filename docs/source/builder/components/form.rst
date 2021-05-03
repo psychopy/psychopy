@@ -1,4 +1,4 @@
-.. _form:
+.. _formComponent:
 
 Form Component
 --------------
@@ -68,18 +68,12 @@ Appearance
 How should the stimulus look? Color, borders, etc.
 
 style : light, dark
-    The overall colors to be used for items in your forms - this sets foreground, background and emphasis colors to pre-defined values.
+    Whether to style items in your form for a light or a dark background
 
 border color : color
     See :ref:`colorspaces`
 
-border color space : rgb, dkl, lms, hsv
-    See :ref:`colorspaces`
-
 fill color : color
-    See :ref:`colorspaces`
-
-fill color space : rgb, dkl, lms, hsv
     See :ref:`colorspaces`
 
 opacity :

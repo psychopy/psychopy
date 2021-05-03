@@ -5,7 +5,7 @@
 Recruiting participants and connecting with online services
 -------------------------------------------------------------
 
-Having created your study in Builder, :ref:`uploaded it to Pavlovia <pavloviaUpload>`, and :ref:`activated it to run <pavloviaActivate>`, you now need to recruit your participants to run the study.
+Having created your study in Builder, :ref:`uploaded it to Pavlovia, and activated it <onlineFromBuilder>`, you now need to recruit your participants to run the study.
 
 At the simplest level you can get the URL for the study and distribute it to participants manually (e.g. by email or social media). To get the URL to run you can either press the Builder button to "Run online" |pavloviaRun| and then you can select the URL in the resulting browser window that should appear.
 

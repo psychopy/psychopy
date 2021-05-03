@@ -30,7 +30,7 @@ _localized.update({'sound': _translate('Sound'),
 class SoundComponent(BaseComponent):
     """An event class for presenting sound stimuli"""
     categories = ['Stimuli']
-
+    targets = ['PsychoPy', 'PsychoJS']
     def __init__(self, exp, parentName, name='sound_1', sound='A', volume=1,
                  startType='time (s)', startVal='0.0',
                  stopType='duration (s)', stopVal='1.0',
@@ -42,9 +42,8 @@ class SoundComponent(BaseComponent):
             stopType=stopType, stopVal=stopVal,
             startEstim=startEstim, durationEstim=durationEstim)
         self.type = 'Sound'
-        self.url = "http://www.psychopy.org/builder/components/sound.html"
+        self.url = "https://www.psychopy.org/builder/components/sound.html"
         self.exp.requirePsychopyLibs(['sound'])
-        self.targets = ['PsychoPy', 'PsychoJS']
         self.order += [
             "sound",  # Basic tab
             "volume", "hammingWindow",  # Playback tab

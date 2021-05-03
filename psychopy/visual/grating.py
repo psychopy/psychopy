@@ -86,7 +86,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
                  color=(1.0, 1.0, 1.0),
                  colorSpace='rgb',
                  contrast=1.0,
-                 opacity=1.0,
+                 opacity=None,
                  depth=0,
                  rgbPedestal=(0.0, 0.0, 0.0),
                  interpolate=False,
@@ -157,7 +157,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         self.tex = tex
         self.mask = mask
         self.contrast = float(contrast)
-        self.opacity = float(opacity)
+        self.opacity = opacity
         self.autoLog = autoLog
         self.autoDraw = autoDraw
         self.blendmode=blendmode

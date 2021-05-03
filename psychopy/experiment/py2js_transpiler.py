@@ -244,7 +244,7 @@ def transformPsychoJsCode(psychoJsCode, addons):
         """
 
     if 'pad' in addons:
-        transformedPsychoJSCode += """
+        transformedPsychoJSCode += r"""
         // add-on: pad(n: number, width: number): string
         function pad(n, width) {
             width = width || 2;

@@ -35,7 +35,7 @@ _localized.update({'name': _translate('Name'),
 
 class VariableComponent(BaseComponent):
     """An class for creating variables in builder."""
-
+    targets = ['PsychoPy']
     def __init__(self, exp, parentName,
                  name='var1', startExpValue = '',
                  startRoutineValue='',
@@ -45,7 +45,7 @@ class VariableComponent(BaseComponent):
 
         categories = ['Custom']
         self.type = 'Variable'
-        self.url = "http://www.psychopy.org/builder/components/variable.html"
+        self.url = "https://www.psychopy.org/builder/components/variable.html"
         self.order += ['startExpValue', 'saveStartExp', 'startRoutineValue',  # Basic tab
                        'saveStartRoutine', 'startFrameValue', 'saveFrameValue', 'saveEndRoutine', 'saveEndExp',  # Data tab
                        ]

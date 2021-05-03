@@ -23,6 +23,7 @@ tooltip = _translate('Eyetracker: use one of several eyetrackers to follow '
 class EyetrackerComponent(BaseComponent):
     """A class for using one of several eyetrackers to follow gaze"""
     categories = ['Responses']
+    targets = ['PsychoPy']
 
     def __init__(self, exp, parentName, name='eyes',
                  startType='time (s)', startVal=0.0,
@@ -30,7 +31,7 @@ class EyetrackerComponent(BaseComponent):
                  startEstim='', durationEstim='',
                  save='final', configFile='myTracker.yaml'):
         self.type = 'Eyetracker'
-        self.url = "http://www.psychopy.org/builder/components/eyetracker.html"
+        self.url = "https://www.psychopy.org/builder/components/eyetracker.html"
         self.parentName = parentName
         self.exp = exp  # so we can access the experiment if necess
         self.exp.requirePsychopyLibs(['iohub'])

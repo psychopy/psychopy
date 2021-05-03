@@ -40,9 +40,9 @@ class StdOutRich(wx.richtext.RichTextCtrl, _BaseErrorHandler):
         self.MoveEnd()  # always 'append' text rather than 'writing' it
         """tracebacks have the form:
         Traceback (most recent call last):
-        File "C:\Program Files\wxPython2.8 Docs and Demos\samples\hangman\hangman.py", line 21, in <module>
+        File "C:\\Program Files\\wxPython2.8 Docs and Demos\\samples\\hangman\\hangman.py", line 21, in <module>
             class WordFetcher:
-        File "C:\Program Files\wxPython2.8 Docs and Demos\samples\hangman\hangman.py", line 23, in WordFetcher
+        File "C:\\Program Files\\wxPython2.8 Docs and Demos\\samples\\hangman\\hangman.py", line 23, in WordFetcher
         """
 
         if type(inStr) == AlertEntry:

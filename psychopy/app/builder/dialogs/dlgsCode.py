@@ -38,7 +38,7 @@ class DlgCodeComponentProperties(wx.Dialog):
               | wx.DIALOG_NO_PARENT)
 
     def __init__(self, frame, title, params, order,
-                 helpUrl=None, suppressTitles=True, size=(800,400),
+                 helpUrl=None, suppressTitles=True, size=(1000,600),
                  style=_style, editing=False, depends=[],
                  timeout=None, type="Code"):
 
@@ -105,7 +105,7 @@ class DlgCodeComponentProperties(wx.Dialog):
                                                   _translate(param.label))
             elif paramName == 'disabled':
                 # Create bool control to disable/enable component
-                self.disableCtrl = wx.CheckBox(self, wx.ID_ANY, label=paramName)
+                self.disableCtrl = wx.CheckBox(self, wx.ID_ANY, label=_translate('disabled'))
                 self.disableCtrl.SetValue(bool(param.val))
             else:
                 codeType = ["Py", "JS"]["JS" in paramName]  # Give CodeBox a code type

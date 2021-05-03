@@ -21,6 +21,83 @@ class Rect(BaseShapeStim):
     """Creates a rectangle of given width and height as a special case of a
     :class:`~psychopy.visual.ShapeStim`.
 
+    Parameters
+    ----------
+    win : :class:`~psychopy.visual.Window`
+        Window this shape is being drawn to. The stimulus instance will
+        allocate its required resources using that Windows context. In many
+        cases, a stimulus instance cannot be drawn on different windows
+        unless those windows share the same OpenGL context, which permits
+        resources to be shared between them.
+    width, height : float or int
+        The width or height of the shape. *DEPRECATED* use `size` to define
+        the dimensions of the shape on initialization. If `size` is
+        specified the values of `width` and `height` are ignored. This is to
+        provide legacy compatibility for existing applications.
+    units : str
+        Units to use when drawing. This will affect how parameters and
+        attributes `pos`, `size` and `radius` are interpreted.
+    lineWidth : float
+        Width of the shape's outline.
+    lineColor, fillColor : array_like, str, :class:`~psychopy.colors.Color` or None
+        Color of the shape outline and fill. If `None`, a fully transparent
+        color is used which makes the fill or outline invisible.
+    lineColorSpace, fillColorSpace : str
+        Colorspace to use for the outline and fill. These change how the
+        values passed to `lineColor` and `fillColor` are interpreted.
+        *Deprecated*. Please use `colorSpace` to set both outline and fill
+        colorspace. These arguments may be removed in a future version.
+    pos : array_like
+        Initial position (`x`, `y`) of the shape on-screen relative to
+        the origin located at the center of the window or buffer in `units`.
+        This can be updated after initialization by setting the `pos`
+        property. The default value is `(0.0, 0.0)` which results in no
+        translation.
+    size : array_like, float, int or None
+        Width and height of the shape as `(w, h)` or `[w, h]`. If a single
+        value is provided, the width and height will be set to the same
+        specified value. If `None` is specified, the `size` will be set
+        with values passed to `width` and `height`.
+    ori : float
+        Initial orientation of the shape in degrees about its origin.
+        Positive values will rotate the shape clockwise, while negative
+        values will rotate counterclockwise. The default value for `ori` is
+        0.0 degrees.
+    opacity : float
+        Opacity of the shape. A value of 1.0 indicates fully opaque and 0.0
+        is fully transparent (therefore invisible). Values between 1.0 and
+        0.0 will result in colors being blended with objects in the
+        background. This value affects the fill (`fillColor`) and outline
+        (`lineColor`) colors of the shape.
+    contrast : float
+        Contrast level of the shape (0.0 to 1.0). This value is used to
+        modulate the contrast of colors passed to `lineColor` and
+        `fillColor`.
+    depth : int
+        Depth layer to draw the shape when `autoDraw` is enabled.
+        *DEPRECATED*
+    interpolate : bool
+        Enable smoothing (anti-aliasing) when drawing shape outlines. This
+        produces a smoother (less-pixelated) outline of the shape.
+    lineRGB, fillRGB: array_like, :class:`~psychopy.colors.Color` or None
+        *Deprecated*. Please use `lineColor` and `fillColor`. These
+        arguments may be removed in a future version.
+    name : str
+        Optional name of the stimuli for logging.
+    autoLog : bool
+        Enable auto-logging of events associated with this stimuli. Useful
+        for debugging and to track timing when used in conjunction with
+        `autoDraw`.
+    autoDraw : bool
+        Enable auto drawing. When `True`, the stimulus will be drawn every
+        frame without the need to explicitly call the
+        :py:meth:`~psychopy.visual.shape.ShapeStim.draw()` method.
+    color : array_like, str, :class:`~psychopy.colors.Color` or None
+        Sets both the initial `lineColor` and `fillColor` of the shape.
+    colorSpace : str
+        Sets the colorspace, changing how values passed to `lineColor` and
+        `fillColor` are interpreted.
+
     Attributes
     ----------
     width, height : float or int
@@ -40,9 +117,9 @@ class Rect(BaseShapeStim):
                  fillColor=None,
                  fillColorSpace=None,
                  pos=(0, 0),
-                 size=1.0,
+                 size=None,
                  ori=0.0,
-                 opacity=1.0,
+                 opacity=None,
                  contrast=1.0,
                  depth=0,
                  interpolate=True,
@@ -53,85 +130,6 @@ class Rect(BaseShapeStim):
                  autoDraw=False,
                  color=None,
                  colorSpace='rgb'):
-        """
-        Parameters
-        ----------
-        win : :class:`~psychopy.visual.Window`
-            Window this shape is being drawn to. The stimulus instance will
-            allocate its required resources using that Windows context. In many
-            cases, a stimulus instance cannot be drawn on different windows
-            unless those windows share the same OpenGL context, which permits
-            resources to be shared between them.
-        width, height : float or int
-            The width or height of the shape. *DEPRECATED* use `size` to define
-            the dimensions of the shape on initialization. If `size` is
-            specified the values of `width` and `height` are ignored. This is to
-            provide legacy compatibility for existing applications.
-        units : str
-            Units to use when drawing. This will affect how parameters and
-            attributes `pos`, `size` and `radius` are interpreted.
-        lineWidth : float
-            Width of the shape's outline.
-        lineColor, fillColor : array_like, str, :class:`~psychopy.visual.Color` or None
-            Color of the shape outline and fill. If `None`, a fully transparent
-            color is used which makes the fill or outline invisible.
-        lineColorSpace, fillColorSpace : str
-            Colorspace to use for the outline and fill. These change how the
-            values passed to `lineColor` and `fillColor` are interpreted.
-            *Deprecated*. Please use `colorSpace` to set both outline and fill
-            colorspace. These arguments may be removed in a future version.
-        pos : array_like
-            Initial position (`x`, `y`) of the shape on-screen relative to
-            the origin located at the center of the window or buffer in `units`.
-            This can be updated after initialization by setting the `pos`
-            property. The default value is `(0.0, 0.0)` which results in no
-            translation.
-        size : array_like, float, int or None
-            Width and height of the shape as `(w, h)` or `[w, h]`. If a single
-            value is provided, the width and height will be set to the same
-            specified value. If `None` is specified, the `size` will be set
-            with values passed to `width` and `height`.
-        ori : float
-            Initial orientation of the shape in degrees about its origin.
-            Positive values will rotate the shape clockwise, while negative
-            values will rotate counterclockwise. The default value for `ori` is
-            0.0 degrees.
-        opacity : float
-            Opacity of the shape. A value of 1.0 indicates fully opaque and 0.0
-            is fully transparent (therefore invisible). Values between 1.0 and
-            0.0 will result in colors being blended with objects in the
-            background. This value affects the fill (`fillColor`) and outline
-            (`lineColor`) colors of the shape.
-        contrast : float
-            Contrast level of the shape (0.0 to 1.0). This value is used to
-            modulate the contrast of colors passed to `lineColor` and
-            `fillColor`.
-        depth : int
-            Depth layer to draw the shape when `autoDraw` is enabled.
-            *DEPRECATED*
-        interpolate : bool
-            Enable smoothing (anti-aliasing) when drawing shape outlines. This
-            produces a smoother (less-pixelated) outline of the shape.
-        lineRGB, fillRGB: array_like, :class:`~psychopy.visual.Color` or None
-            *Deprecated*. Please use `lineColor` and `fillColor`. These
-            arguments may be removed in a future version.
-        name : str
-            Optional name of the stimuli for logging.
-        autoLog : bool
-            Enable auto-logging of events associated with this stimuli. Useful
-            for debugging and to track timing when used in conjunction with
-            `autoDraw`.
-        autoDraw : bool
-            Enable auto drawing. When `True`, the stimulus will be drawn every
-            frame without the need to explicitly call the
-            :py:meth:`~psychopy.visual.ShapeStim.draw` method.
-        color : array_like, str, :class:`~psychopy.visual.Color` or None
-            Sets both the initial `lineColor` and `fillColor` of the shape.
-        colorSpace : str
-            Sets the colorspace, changing how values passed to `lineColor` and
-            `fillColor` are interpreted.
-
-        """
         # width and height attributes, these are later aliased with `size`
         self.__dict__['width'] = float(width)
         self.__dict__['height'] = float(height)
@@ -176,8 +174,7 @@ class Rect(BaseShapeStim):
 
     @attributeSetter
     def size(self, value):
-        """array-like.
-        Size of the rectangle (`width` and `height`).
+        """Size of the rectangle (`width` and `height`).
         """
         # Needed to override `size` to ensure `width` and `height` attrs
         # are updated when it changes.
@@ -199,8 +196,7 @@ class Rect(BaseShapeStim):
 
     @attributeSetter
     def width(self, value):
-        """int or float.
-        Width of the Rectangle (in its respective units, if specified).
+        """Width of the Rectangle (in its respective units, if specified).
 
         :ref:`Operations <attrib-operations>` supported.
         """
@@ -215,8 +211,7 @@ class Rect(BaseShapeStim):
 
     @attributeSetter
     def height(self, value):
-        """int or float.
-        Height of the Rectangle (in its respective units, if specified).
+        """Height of the Rectangle (in its respective units, if specified).
 
         :ref:`Operations <attrib-operations>` supported.
         """

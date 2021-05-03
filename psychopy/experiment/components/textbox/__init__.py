@@ -47,8 +47,8 @@ class TextboxComponent(BaseVisualComponent):
     def __init__(self, exp, parentName, name='textbox',
                  # effectively just a display-value
                  text=_translate('Any text\n\nincluding line breaks'),
-                 font='Arial', units='from exp settings', bold=False, italic=False,
-                 color='white', colorSpace='rgb', opacity=1.0,
+                 font='Open Sans', units='from exp settings', bold=False, italic=False,
+                 color='white', colorSpace='rgb', opacity="",
                  pos=(0, 0), size='', letterHeight=0.05, ori=0,
                  lineSpacing=1.0, padding="",  # gap between box and text
                  startType='time (s)', startVal=0.0, anchor='center',
@@ -73,7 +73,7 @@ class TextboxComponent(BaseVisualComponent):
                                             startEstim=startEstim,
                                             durationEstim=durationEstim)
         self.type = 'Textbox'
-        self.url = "http://www.psychopy.org/builder/components/text.html"
+        self.url = "https://www.psychopy.org/builder/components/textbox.html"
         self.order += [  # controls order of params within tabs
             "editable", "text",  # Basic tab
             "borderWidth", "opacity",  # Appearance tab
@@ -229,6 +229,7 @@ class TextboxComponent(BaseVisualComponent):
                 "  opacity: %(opacity)s,\n"
                 "  padding: %(padding)s,\n"
                 "  editable: %(editable)s,\n"
+                "  multiline: true,\n"
                 "  anchor: %(anchor)s,\n")
         buff.writeIndentedLines(code % inits)
 

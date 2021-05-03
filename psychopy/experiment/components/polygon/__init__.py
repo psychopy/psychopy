@@ -34,7 +34,7 @@ _localized.update({'nVertices': _translate('Num. vertices'),
 
 class PolygonComponent(BaseVisualComponent):
     """A class for presenting grating stimuli"""
-
+    targets = ['PsychoPy']
     def __init__(self, exp, parentName, name='polygon', interpolate='linear',
                  units='from exp settings',
                  lineColor='white', lineColorSpace='rgb', lineWidth=1,
@@ -53,7 +53,7 @@ class PolygonComponent(BaseVisualComponent):
             startEstim=startEstim, durationEstim=durationEstim)
 
         self.type = 'Polygon'
-        self.url = "http://www.psychopy.org/builder/components/polygon.html"
+        self.url = "https://www.psychopy.org/builder/components/polygon.html"
         self.exp.requirePsychopyLibs(['visual'])
         self.targets = ['PsychoPy', 'PsychoJS']
         self.order += ['shape', 'nVertices',  # Basic tab

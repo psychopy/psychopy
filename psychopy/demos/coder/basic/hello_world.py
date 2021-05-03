@@ -11,11 +11,17 @@ from __future__ import absolute_import, division, print_function
 from psychopy import visual, core
 
 # Create a visual window:
-win = visual.Window()
+win = visual.Window(units="height")
 
 # Create (but not yet display) some text:
-msg1 = visual.TextStim(win, text=u"Hello world!")  # default position = centered
-msg2 = visual.TextStim(win, text=u"\u00A1Hola mundo!", pos=(0, -0.3))
+msg1 = visual.TextBox2(win, 
+    text=u"Hello world!", 
+    font="Open Sans", letterHeight=0.1,
+    pos=(0, 0.2)) 
+msg2 = visual.TextBox2(win, 
+    text=u"\u00A1Hola mundo!", 
+    font="Open Sans", letterHeight=0.1, 
+    pos=(0, -0.2))
 
 # Draw the text to the hidden visual buffer:
 msg1.draw()
