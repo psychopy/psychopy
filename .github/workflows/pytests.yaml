@@ -33,9 +33,8 @@ jobs:
         pip install distro  # used by createInitFile
         python ./building/plat_custom_installs.py
 
-    - name: Install Depends
+    - name: Install PsychoPy Dependencies
       run: |
-        # install testing frameworks
         # to install all dependencies
         pip install .
         # remove psychopy itself so that this local is used
@@ -105,16 +104,16 @@ jobs:
 #        ls
 #        sudo X -config ./building/dummy-1920x1080.conf
 
-    - name: start xvfb daemon
-      run: |
-        export LIBGL_ALWAYS_INDIRECT=0
-        export DISPLAY=:0
-        /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- $DISPLAY -screen 0 1024x768x24 -ac +extension GLX +extension RANDR +render -noreset
+#    - name: start xvfb daemon
+#      run: |
+#        export LIBGL_ALWAYS_INDIRECT=0
+#        export DISPLAY=:0
+#        /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- $DISPLAY -screen 0 1024x768x24 -ac +extension GLX +extension RANDR +render -noreset
 
     - name: get_month
       if: runner.os=='Linux'
       id: month
-      run: echo "::set-output name=date::$(date +'%Y-%m')"
+      run: echo "::set-output name=month::$(date +'%Y-%m')"
 
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
@@ -129,7 +128,7 @@ jobs:
         key: ${{ matrix.os }}-py${{ matrix.python-version }}-${{ steps.get_month.outputs.month }}
 
     - name: Install wxPython dependencies
-      if: runner.os=='Linux' && matrix.python-version==3.6
+      if: runner.os=='Linux'
       run: |
         sudo apt-get install -qq python3-dev libgtk-3-dev
         sudo apt-get install -qq libgstreamer1.0-0 gstreamer1.0-plugins-base
@@ -151,10 +150,8 @@ jobs:
         pip install six  # for configobj and wxpython
         pip install distro  # used by createInitFile
 
-    - name: Install Dependencies
+    - name: Install PsychoPy Dependencies
       run: |
-        # install testing frameworks
-        pip install flake8 pytest
         # to install all dependencies
         pip install .
         # remove psychopy itself so that this local is used
@@ -162,4 +159,5 @@ jobs:
 
     - name: Test with pytest
       run: |
-        pytest --cov-config=.travis_coveragerc --cov=psychopy -v
+        export LIBGL_ALWAYS_INDIRECT=0
+        xvfb-run --server-args="-screen 0 1024x768x24" pytest --cov-config=.travis_coveragerc --cov=psychopy -v

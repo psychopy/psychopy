@@ -90,7 +90,6 @@ class TestExpt(object):
         schema = xmlschema.XMLSchema(schema_name)
 
         for psyexp_file in psyexp_files:
-            project_root = etree.parse(psyexp_file)
             assert schema.is_valid(psyexp_file)
 
     def test_missing_dotval(self):
