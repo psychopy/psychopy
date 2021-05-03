@@ -46,21 +46,10 @@ class EmotivRecordingComponent(BaseComponent):  # or (VisualComponent)
 
     def writeInitCodeJS(self, buff):
         inits = getInitVals(self.params, 'PsychoJS')
-        # client_id, client_secret = Cortex.parse_client_id_file()
-        # buff.writeIndented(
-        #     f'emotiv.setupExperiment("{client_id}", "{client_secret}");\n')
         obj = {"status": "PsychoJS.Status.NOT_STARTED"}
         code = '{} = {};\n'
         buff.writeIndentedLines(
             code.format(inits['name'], json.dumps(obj)))
-        # buff.writeIndentedLines(
-        #     'let recordName = expName + "_" + (new Date()).getTime().toString()\n' +
-        #     'let subject_name = expInfo["participant"]\n' +
-        #     'let recordId = "";\n' +
-        #     'emotiv.startRecord(recordName, subject_name)\n' +
-        #     '    .then((result)=>recordId=result);\n'
-        # )
-        # check for NoneTypes
         for param in inits:
             if inits[param] in [None, 'None', '']:
                 inits[param].val = 'undefined'
@@ -80,6 +69,3 @@ class EmotivRecordingComponent(BaseComponent):  # or (VisualComponent)
         )
         buff.writeIndentedLines(code)
 
-    # def writeExperimentEndCodeJS(self, buff):
-    #     code = "settimeout(emotiv.stopRecord, 1000)\n"
-    #     buff.writeIndentedLines(code)

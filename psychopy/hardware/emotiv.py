@@ -33,7 +33,7 @@ import pandas as pd
 # Set up logging for websockets library
 
 logger = logging.getLogger('test_logger')
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 fh = logging.FileHandler('cortex.log')
 logger.addHandler(fh)
 

@@ -17,6 +17,10 @@ If you do want PschoPy to record the data into a gzipped csv file you need to se
 variable CORTEX_DATA=1. Otherwise we recommend viewing the eeg data in EmotivPro from which it can be 
 exported as a csv or edf file.
 
+If you are exporting the experiment to HTML the emotiv components will have no effect in Pavlovia.
+To import the experiment into Emotiv OMNI, export the experiment to HTML and follow the instructions
+in the OMNI platform.
+
 Getting Started
 ===============
 
