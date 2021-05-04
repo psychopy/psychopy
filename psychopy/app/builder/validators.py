@@ -42,7 +42,10 @@ class WarningManager(dict):
             self.parent = parent
 
         def __bool__(self):
-            return all(bool(val) for val in self.values())
+            if self.values():
+                return all(bool(val) for val in self.values())
+            else:
+                return True
 
         def __setitem__(self, key, value):
             dict.__setitem__(self, key, value)
