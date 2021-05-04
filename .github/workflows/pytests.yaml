@@ -55,9 +55,11 @@ jobs:
       if: always()
       uses: actions/upload-artifact@v2
       with:
-        name: last_load_app_data
+        name: prefs for ${{ matrix.os }}_${{ matrix.python-version }}
         path: |
           ~/.psychopy3
+          !~/.psychopy3/versions
+          !~/.psychopy3/fonts
 
     - name: upload failed screenshots
       if: always()
@@ -167,6 +169,8 @@ jobs:
       if: always()
       uses: actions/upload-artifact@v2
       with:
-        name: last_load_app_data
+        name: prefs for ${{ matrix.os }}_${{ matrix.python-version }}
         path: |
           ~/.psychopy3
+          !~/.psychopy3/versions
+          !~/.psychopy3/fonts
