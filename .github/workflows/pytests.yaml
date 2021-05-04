@@ -33,12 +33,9 @@ jobs:
         pip install distro  # used by createInitFile
         python ./building/plat_custom_installs.py
 
-    - name: Install PsychoPy Dependencies
+    - name: Install PsychoPy and dependencies
       run: |
-        # to install all dependencies
         pip install .
-        # remove psychopy itself so that this local is used
-        pip uninstall --yes psychopy
 
 #    - name: Lint with flake8
 #      run: |
@@ -57,7 +54,7 @@ jobs:
       run: |
         # quick test of the gui toolkits (without pytest swallowing errors)
         python psychopy/tests/test_gui/test_DlgFromDictWx.py
-        
+
     - name: Test with pytest
       run: |
         pytest --cov-config=.travis_coveragerc --cov=psychopy -v -s psychopy
