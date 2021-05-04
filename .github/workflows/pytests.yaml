@@ -47,6 +47,17 @@ jobs:
 #        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
 #        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
+    - name: Test gui toolkits Qt
+      run: |
+        # quick test of the gui toolkits (without pytest swallowing errors)
+        python psychopy/tests/test_gui/test_DlgFromDictQt.py
+
+    - name: Test gui toolkits Wx
+      if: always()
+      run: |
+        # quick test of the gui toolkits (without pytest swallowing errors)
+        python psychopy/tests/test_gui/test_DlgFromDictWx.py
+        
     - name: Test with pytest
       run: |
         pytest --cov-config=.travis_coveragerc --cov=psychopy -v -s psychopy
@@ -159,6 +170,17 @@ jobs:
         pip install .
         # remove psychopy itself so that this local is used
         pip uninstall --yes psychopy
+
+    - name: Test gui toolkits Qt
+      run: |
+        # quick test of the gui toolkits (without pytest swallowing errors)
+        python psychopy/tests/test_gui/test_DlgFromDictQt.py
+
+    - name: Test gui toolkits Wx
+      if: always()
+      run: |
+        # quick test of the gui toolkits (without pytest swallowing errors)
+        python psychopy/tests/test_gui/test_DlgFromDictWx.py
 
     - name: Test with pytest
       run: |

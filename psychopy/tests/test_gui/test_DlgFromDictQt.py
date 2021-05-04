@@ -4,10 +4,8 @@
 from builtins import object
 from collections import OrderedDict
 from psychopy.gui.qtgui import DlgFromDict
-from psychopy.tests import skip_under_vm
 
 
-@skip_under_vm
 class TestDlgFromDictQt(object):
     def setup(self):
         self.d = dict(
@@ -78,5 +76,6 @@ class TestDlgFromDictQt(object):
         assert field.toolTip() == tip['participant']
 
 if __name__ == '__main__':
-    import pytest
-    pytest.main()
+    cls = TestDlgFromDictQt()
+    cls.setup()
+    cls.test_fixed()

@@ -76,5 +76,6 @@ class TestDlgFromDictWx(object):
 
 
 if __name__ == '__main__':
-    import pytest
-    pytest.main()
+    cls = TestDlgFromDictWx()
+    cls.setup()
+    cls.test_fixed()
