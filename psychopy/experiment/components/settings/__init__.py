@@ -122,7 +122,7 @@ class SettingsComponent(object):
                  elLiveFiltering="off", elDataFiltering="off",
                  elTrackingMode='PUPIL_CR_TRACKING', elPupilMeasure='PUPIL_AREA', elPupilAlgorithm='PUPIL_CR_TRACKING',
                  elAddress='100.1.1.1',
-                 tbModel="", tbSampleRate=60,
+                 tbModel="", tbSerialNo="", tbSampleRate=60,
                  filename=None, exportHTML='on Sync'):
         self.type = 'Settings'
         self.exp = exp  # so we can access the experiment if necess
@@ -343,7 +343,7 @@ class SettingsComponent(object):
             "SR Research Ltd": ["elModel", "elSimMode", "elSampleRate", "elTrackEyes", "elLiveFiltering",
                                 "elDataFiltering", "elTrackingMode", "elPupilMeasure", "elPupilAlgorithm",
                                 "elAddress"],
-            "Tobii Technology": ["tbModel", "tbSampleRate"],
+            "Tobii Technology": ["tbModel", "tbSerialNo", "tbSampleRate"],
         }
         for tracker in trackerParams:
             for depParam in trackerParams[tracker]:
@@ -474,6 +474,12 @@ class SettingsComponent(object):
             tbModel, valType='str', inputType="single",
             hint=_translate("Eye tracker model."),
             label=_translate("Model Name"), categ="Eyetracking"
+        )
+
+        self.params['tbSerialNo'] = Param(
+            tbSerialNo, valType='str', inputType="single",
+            hint=_translate("Eye tracker serial number (optional)."),
+            label=_translate("Serial Number"), categ="Eyetracking"
         )
 
         self.params['tbSampleRate'] = Param(
@@ -997,6 +1003,7 @@ class SettingsComponent(object):
             elif self.params['eyetracker'] == "Tobii Technology":
                 code = (
                         "'model_name': %(tbModel)s,\n"
+                        "'serial_number': %(tbSerialNo)s,\n"
                         "'runtime_settings': {\n"
                 )
                 buff.writeIndentedLines(code % self.params)
