@@ -167,20 +167,23 @@ jobs:
         # to install all dependencies
         pip install .
 
+    - name: Start xvfb
+      run: /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x24
+
     - name: Test gui toolkits Qt
       run: |
         # quick test of the gui toolkits (without pytest swallowing errors)
-        xvfb-run --server-args="-screen 0 1024x768x24" python psychopy/tests/test_gui/test_DlgFromDictQt.py
+        python psychopy/tests/test_gui/test_DlgFromDictQt.py
 
     - name: Test gui toolkits Wx
       if: always()
       run: |
         # quick test of the gui toolkits (without pytest swallowing errors)
-        xvfb-run --server-args="-screen 0 1024x768x24" python psychopy/tests/test_gui/test_DlgFromDictWx.py
+        python psychopy/tests/test_gui/test_DlgFromDictWx.py
 
     - name: Test with pytest
       run: |
-        xvfb-run --server-args="-screen 0 1024x768x24" pytest --cov-config=.travis_coveragerc --cov=psychopy -v
+        pytest --cov-config=.travis_coveragerc --cov=psychopy -v
 
     - name: upload failed app data
       if: always()
