@@ -112,10 +112,6 @@ class RegionOfInterestComponent(PolygonComponent):
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
-        code = (
-            "%(name)s.roiClock = core.Clock()"
-        )
-        buff.writeIndentedLines(code % inits)
 
     def writeFrameCode(self, buff):
         """Write the code that will be called every frame
@@ -186,7 +182,7 @@ class RegionOfInterestComponent(PolygonComponent):
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(1, relative=True)
         code = (
-            f"%(name)s.roiClock.reset() # keep clock at 0 if roi hasn't started / has finished\n"
+            f"%(name)s.clock.reset() # keep clock at 0 if roi hasn't started / has finished\n"
             f"%(name)s.wasLookedIn = False  # if %(name)s is looked at next frame, it is a new look\n"
         )
         buff.writeIndentedLines(code % inits)

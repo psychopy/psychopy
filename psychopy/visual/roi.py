@@ -1,6 +1,7 @@
 from .polygon import Polygon
 from ..event import Mouse
 from ..iohub.devices.eyetracker import EyeTrackerDevice
+from ..core import Clock
 
 
 class ROI(Polygon):
@@ -20,6 +21,7 @@ class ROI(Polygon):
         else:
             self.tracker = tracker
         self.wasLookedIn = False
+        self.clock = Clock()
         self.timesOn = []
         self.timesOff = []
 
