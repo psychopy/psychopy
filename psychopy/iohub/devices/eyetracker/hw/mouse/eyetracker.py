@@ -394,7 +394,7 @@ class EyeTracker(EyeTrackerDevice):
         """
         return self._recording
 
-    def runSetupProcedure(self, **calibration_args):
+    def runSetupProcedure(self, calibration_args={}):
         """
         runSetupProcedure does nothing in the Mouse Simulated eye tracker, as calibration is automatic. ;)
         """
