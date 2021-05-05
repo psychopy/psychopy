@@ -146,10 +146,7 @@ jobs:
         sudo apt install -y libdbus-1-3 libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1
         sudo apt install -y libxcb-randr0 libxcb-render-util0 libxcb-xinerama0 libxcb-xfixes0
         export LIBGL_ALWAYS_INDIRECT=0
-        export DISPLAY=:99
         export QT_DEBUG_PLUGINS=1 # let us know about missing dependencies?
-
-        /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- $DISPLAY -ac -screen 0 1280x1024x24
 
     - name: Install wxPython from source for linux
       if: runner.os=='Linux'
@@ -170,20 +167,23 @@ jobs:
         # to install all dependencies
         pip install .
 
+    - name: Start xvfb
+      run: /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x24
+
     - name: Test gui toolkits Qt
       run: |
         # quick test of the gui toolkits (without pytest swallowing errors)
-        python psychopy/tests/test_gui/test_DlgFromDictQt.py
+        xvfb-run -a --server-args="-screen 0 1024x768x24" python psychopy/tests/test_gui/test_DlgFromDictQt.py
 
     - name: Test gui toolkits Wx
       if: always()
       run: |
         # quick test of the gui toolkits (without pytest swallowing errors)
-        python psychopy/tests/test_gui/test_DlgFromDictWx.py
+        xvfb-run -a --server-args="-screen 0 1024x768x24" python psychopy/tests/test_gui/test_DlgFromDictWx.py
 
     - name: Test with pytest
       run: |
-        pytest --cov-config=.travis_coveragerc --cov=psychopy -v
+        xvfb-run -a --server-args="-screen 0 1024x768x24" pytest --cov-config=.travis_coveragerc --cov=psychopy -v
 
     - name: upload failed app data
       if: always()

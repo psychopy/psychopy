@@ -4,6 +4,8 @@ dist: bionic  # trusty is giving an error on bitsShaders test (glReadpixels()?)
 sudo: true
 
 language: python
+services:
+  - xvfb
 
 matrix:
   include:
@@ -85,7 +87,7 @@ before_script:
 
 script:
   - |
-    xvfb-run -s "-screen 0 1024x768x24 -ac +extension GLX +render -noreset"  pytest --cov-config .travis_coveragerc --cov=psychopy -v -s psychopy
+    pytest --cov-config .travis_coveragerc --cov=psychopy -v -s psychopy
 
 after_success:
   - coveralls
