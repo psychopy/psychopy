@@ -1,6 +1,5 @@
 from .polygon import Polygon
 from ..event import Mouse
-from ..iohub.devices.eyetracker import EyeTrackerDevice
 from ..core import Clock
 
 
@@ -63,10 +62,11 @@ class ROI(Polygon):
                  autoLog=None):
 
         # Create red polygon which doesn't draw if `debug == False`
-        Polygon.__init__(self, win, name=name,
+        Polygon.__init__(self, win, name=name, edges=4,
                          units=units, pos=pos, size=size, ori=0.0,
                          fillColor='red', opacity=int(debug),
                          autoLog=None, autoDraw=debug)
+        self.opacity = int(debug)
         if tracker is None:
             self.tracker = Mouse(win=win)
         else:
@@ -84,10 +84,11 @@ class ROI(Polygon):
     @property
     def isLookedIn(self):
         """Is this ROI currently being looked at"""
-        if isinstance(self.tracker, Mouse):
+        if hasattr(self.tracker, "getPos"):
             (x, y) = self.tracker.getPos()
-        elif isinstance(self.tracker, EyeTrackerDevice):
+        elif hasattr(self.tracker, "getPosition"):
             (x, y) = self.tracker.getPosition()
         else:
-            (x, y) = (0, 0)
-        return bool(self.contains(x, y, self.units))
+            return False
+        return bool(self.contains(x, y, self.win.units))
+

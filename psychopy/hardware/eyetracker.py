@@ -21,7 +21,7 @@ class EyetrackerControl:
         if new == old:
             return
         # Start recording if set to STARTED
-        if new in (STARTED):
+        if new in (STARTED,):
             if old in (NOT_STARTED, STOPPED, FINISHED):
                 # If was previously at a full stop, clear events before starting again
                 self.server.clearEvents()

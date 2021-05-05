@@ -108,7 +108,7 @@ class RegionOfInterestComponent(PolygonComponent):
         code = (
                 "debug=%(debug)s,\n"
                 "shape=%(shape)s,\n"
-                + unitsStr + "pos=(0, 0), size=(1, 1), ori=0.0)\n"
+                + unitsStr + "pos=%(pos)s, size=%(size)s, ori=0.0)\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
@@ -116,12 +116,19 @@ class RegionOfInterestComponent(PolygonComponent):
     def writeFrameCode(self, buff):
         """Write the code that will be called every frame
         """
-        BaseVisualComponent.writeFrameCode(self, buff)
         # do writing of init
         inits = getInitVals(self.params, 'PsychoPy')
+        # Write basics
+        BaseVisualComponent.writeFrameCode(self, buff)
+        buff.setIndentLevel(1, relative=True)
+        code = (
+            "%(name)s.status = STARTED\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(-1, relative=True)
         # String to get time
         if inits['timeRelativeTo'] == 'roi onset':
-            timing = "%(name)s.roiClock.getTime()"
+            timing = "%(name)s.clock.getTime()"
         elif inits['timeRelativeTo'] == 'experiment':
             timing = "globalClock.getTime()"
         elif inits['timeRelativeTo'] == 'routine':
