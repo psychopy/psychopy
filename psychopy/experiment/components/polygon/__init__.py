@@ -98,7 +98,7 @@ class PolygonComponent(BaseVisualComponent):
                          "polygon...' you can set vertices")
         self.params['shape'] = Param(
             shape, valType='str', inputType="choice", categ='Basic',
-            allowedVals=["line", "triangle", "rectangle", "cross", "star",
+            allowedVals=["line", "triangle", "rectangle", "circle", "cross", "star",
                          "regular polygon...", "custom polygon..."],
             updates='constant',
             allowedUpdates=['constant'],
@@ -160,11 +160,15 @@ class PolygonComponent(BaseVisualComponent):
         elif vertices in ['triangle', '3']:
             code = ("%s = visual.ShapeStim(\n" % inits['name'] +
                     "    win=win, name='%s',%s\n" % (inits['name'], unitsStr) +
-                    "    vertices=[[-%(size)s[0]/2.0,-%(size)s[1]/2.0], [+%(size)s[0]/2.0,-%(size)s[1]/2.0], [0,%(size)s[1]/2.0]],\n" % inits)
+                    "    size=%(size)s, vertices='triangle',\n" % inits)
         elif vertices in ['rectangle', '4']:
             code = ("%s = visual.Rect(\n" % inits['name'] +
                     "    win=win, name='%s',%s\n" % (inits['name'], unitsStr) +
                     "    width=%(size)s[0], height=%(size)s[1],\n" % inits)
+        elif vertices in ['circle', '100']:
+            code = ("%s = visual.ShapeStim(\n" % inits['name'] +
+                    "    win=win, name='%s',%s\n" % (inits['name'], unitsStr) +
+                    "    size=%(size)s, vertices='circle',\n" % inits)
         elif vertices in ['star']:
             code = ("%s = visual.ShapeStim(\n" % inits['name'] +
                     "    win=win, name='%s', vertices='star7',%s\n" % (inits['name'], unitsStr) +
