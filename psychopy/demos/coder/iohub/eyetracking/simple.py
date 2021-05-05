@@ -11,7 +11,7 @@ from psychopy.iohub import launchHubServer
 
 
 # Eye tracker to use ('mouse', 'eyelink', 'gazepoint', or 'tobii')
-TRACKER = 'mouse'
+TRACKER = 'tobii'
 
 eyetracker_config = dict(name='tracker')
 devices_config = {}
@@ -24,6 +24,7 @@ elif TRACKER == 'gazepoint':
     eyetracker_config['device_timer'] = {'interval': 0.005}
     devices_config['eyetracker.hw.gazepoint.gp3.EyeTracker'] = eyetracker_config
 elif TRACKER == 'tobii':
+    eyetracker_config['license_file'] = r'D:\tobii_license_test\fake_license.txt'
     devices_config['eyetracker.hw.tobii.EyeTracker'] = eyetracker_config
 elif TRACKER == 'mouse':
     devices_config['eyetracker.hw.mouse.EyeTracker'] = eyetracker_config
