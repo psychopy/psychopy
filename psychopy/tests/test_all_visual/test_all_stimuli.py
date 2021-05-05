@@ -18,7 +18,7 @@ To add a new stimulus test use _base so that it gets tested in all contexts
 
 """
 
-from psychopy.tests import _travisTesting, skip_under_travis
+from psychopy.tests import _travisTesting, skip_under_vm, _vmTesting
 
 
 class Test_Window(object):
@@ -475,7 +475,7 @@ class _baseVisualTest(object):
         text.draw()
         grat1.draw()
         grat2.draw()
-        if utils._vmTesting:
+        if _vmTesting:
             pytest.skip("Blendmode='add' doesn't work under a virtual machine for some reason")
         if self.win.winType != 'pygame':
             utils.compareScreenshot('blend_add_%s.png' %self.contextName,
@@ -742,7 +742,7 @@ class _baseVisualTest(object):
         utils.compareScreenshot('ratingscale1_%s.png' %(self.contextName), win, crit=40.0)
         win.flip()#AFTER compare screenshot
 
-    @skip_under_travis
+    @skip_under_vm
     def test_refresh_rate(self):
         if self.win.winType=='pygame':
             pytest.skip("getMsPerFrame seems to crash the testing of pygame")

@@ -167,8 +167,9 @@ jobs:
         # to install all dependencies
         pip install .
 
-    - name: Start xvfb
-      run: /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x24
+    - name: Set nice level
+      run: |
+        sudo setcap cap_sys_nice=eip python
 
     - name: Test gui toolkits Qt
       run: |

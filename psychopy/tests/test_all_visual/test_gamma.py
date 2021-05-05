@@ -2,7 +2,7 @@ from builtins import range
 from psychopy import visual, monitors
 import numpy
 
-from psychopy.tests import skip_under_vm
+from psychopy.tests import skip_under_vm, _vmTesting
 import pytest
 
 
@@ -120,9 +120,6 @@ def test_setGammaRamp():
     setRamp = win.backend.getGammaRamp()
 
     win.close()
-
-    # can't get/set LUT in travis
-    utils.skip_under_travis()
 
     assert numpy.allclose(desiredRamp, setRamp, atol=1.0 / desiredRamp.shape[1])
 
