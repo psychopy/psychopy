@@ -407,6 +407,9 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
                         (val.startswith('[') and val.endswith(']') or
                                  val.startswith('(') and val.endswith(')'))):
                     val = eval(val)
+                # if it has any line breaks correct them
+                if isinstance(val, str):
+                    val = val.replace('\\n', '\n')
                 # Convert from eu style decimals: replace , with . and try to make it a float
                 if isinstance(val, basestring):
                     tryVal = val.replace(",", ".")

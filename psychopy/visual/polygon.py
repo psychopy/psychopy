@@ -166,10 +166,7 @@ class Polygon(BaseShapeStim):
             colorSpace=colorSpace)
 
     def _calcVertices(self):
-        d = np.pi * 2 / self.edges
-        self.vertices = np.asarray(
-            [np.asarray((np.sin(e * d), np.cos(e * d))) * self.radius
-             for e in range(int(round(self.edges)))])
+        self._calcEquilateralVertices(self.edges, self.radius)
 
     @attributeSetter
     def edges(self, edges):

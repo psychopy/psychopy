@@ -19,6 +19,8 @@ import os
 import numpy as np
 
 import psychopy
+from psychopy import core
+from psychopy.hardware import mouse
 from psychopy import logging, event, platform_specific, constants
 from psychopy.visual import window
 from psychopy.tools.attributetools import attributeSetter
@@ -28,6 +30,8 @@ from .. import globalVars
 from ._base import BaseBackend
 
 import pyglet
+import pyglet.window as pyglet_window
+import pyglet.window.mouse as pyglet_mouse
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
 # other calls to pyglet or pyglet submodules, otherwise it may not get picked
 # up by the pyglet GL engine and have no effect.
@@ -43,12 +47,47 @@ if pyglet.version < '1.4':
 else:
     _default_display_ = pyglet.canvas.get_display()
 
+# Cursors available to pyglet. These are used to map string names to symbolic
+# constants used to specify which cursor to use.
+_PYGLET_CURSORS_ = {
+    # common with GLFW
+    'default': pyglet_window.Window.CURSOR_DEFAULT,
+    'arrow': pyglet_window.Window.CURSOR_DEFAULT,
+    'ibeam': pyglet_window.Window.CURSOR_TEXT,
+    'text': pyglet_window.Window.CURSOR_TEXT,
+    'crosshair': pyglet_window.Window.CURSOR_CROSSHAIR,
+    'hand': pyglet_window.Window.CURSOR_HAND,
+    'hresize': pyglet_window.Window.CURSOR_SIZE_LEFT_RIGHT,
+    'vresize': pyglet_window.Window.CURSOR_SIZE_UP_DOWN,
+    # pyglet only
+    'help': pyglet_window.Window.CURSOR_HELP,
+    'no': pyglet_window.Window.CURSOR_NO,
+    'size': pyglet_window.Window.CURSOR_SIZE,
+    'downleft': pyglet_window.Window.CURSOR_SIZE_DOWN_LEFT,
+    'downright': pyglet_window.Window.CURSOR_SIZE_DOWN_RIGHT,
+    'lresize': pyglet_window.Window.CURSOR_SIZE_LEFT,
+    'rresize': pyglet_window.Window.CURSOR_SIZE_RIGHT,
+    'uresize': pyglet_window.Window.CURSOR_SIZE_UP,
+    'upleft': pyglet_window.Window.CURSOR_SIZE_UP_LEFT,
+    'upright': pyglet_window.Window.CURSOR_SIZE_UP_RIGHT,
+    'wait': pyglet_window.Window.CURSOR_WAIT,
+    'waitarrow': pyglet_window.Window.CURSOR_WAIT_ARROW
+}
+
+_PYGLET_MOUSE_BUTTONS_ = {
+    pyglet_mouse.LEFT: mouse.MOUSE_BUTTON_LEFT,
+    pyglet_mouse.MIDDLE: mouse.MOUSE_BUTTON_MIDDLE,
+    pyglet_mouse.RIGHT: mouse.MOUSE_BUTTON_RIGHT
+}
+
 
 class PygletBackend(BaseBackend):
     """The pyglet backend is the most used backend. It has no dependencies
     or C libs that need compiling, but may not be as fast or efficient as libs
     like GLFW.
+
     """
+
     GL = pyglet.gl
     winTypeName = 'pyglet'
 
@@ -100,12 +139,12 @@ class PygletBackend(BaseBackend):
                 'card does not appear to support GL_STEREO')
             win.stereo = False
 
-        if sys.platform=='darwin' and not win.useRetina and pyglet.version >= "1.3":
-            raise ValueError("As of PsychoPy 1.85.3 OSX windows should all be "
-                             "set to useRetina=True (or remove the argument). "
-                             "Pyglet 1.3 appears to be forcing "
-                             "us to use retina on any retina-capable screen "
-                             "so setting to False has no effect.")
+        if sys.platform == 'darwin' and not win.useRetina and pyglet.version >= "1.3":
+            raise ValueError(
+                "As of PsychoPy 1.85.3 OSX windows should all be set to "
+                "`useRetina=True` (or remove the argument). Pyglet 1.3 appears "
+                "to be forcing us to use retina on any retina-capable screen "
+                "so setting to False has no effect.")
 
         # window framebuffer configuration
         bpc = backendConf.get('bpc', (8, 8, 8))
@@ -128,7 +167,7 @@ class PygletBackend(BaseBackend):
         if win.multiSample:
             sample_buffers = 1
             # get maximum number of samples the driver supports
-            max_samples = (GL.GLint)()
+            max_samples = GL.GLint()
             GL.glGetIntegerv(GL.GL_MAX_SAMPLES, max_samples)
 
             if (win.numSamples >= 2) and (
@@ -179,8 +218,8 @@ class PygletBackend(BaseBackend):
 
         # if fullscreen check screen size
         if win._isFullScr:
-            win._checkMatchingSizes(win.clientSize, [thisScreen.width,
-                                                  thisScreen.height])
+            win._checkMatchingSizes(
+                win.clientSize, [thisScreen.width, thisScreen.height])
             w = h = None
         else:
             w, h = win.clientSize
@@ -230,7 +269,8 @@ class PygletBackend(BaseBackend):
                 bounds = view.convertRectToBacking_(view.bounds()).size
                 if win.clientSize[0] == bounds.width:
                     win.useRetina = False  # the screen is not a retina display
-                self._frameBufferSize = np.array([int(bounds.width), int(bounds.height)])
+                self._frameBufferSize = np.array(
+                    [int(bounds.width), int(bounds.height)])
             else:
                 self._frameBufferSize = win.clientSize
             try:
@@ -266,9 +306,13 @@ class PygletBackend(BaseBackend):
         self.winHandle.on_text = self.onText
         self.winHandle.on_text_motion = self.onCursorKey
         self.winHandle.on_key_press = self.onKey
-        self.winHandle.on_mouse_press = event._onPygletMousePress
-        self.winHandle.on_mouse_release = event._onPygletMouseRelease
-        self.winHandle.on_mouse_scroll = event._onPygletMouseWheel
+        self.winHandle.on_mouse_press = self.onMouseButtonPress
+        self.winHandle.on_mouse_release = self.onMouseButtonRelease
+        self.winHandle.on_mouse_scroll = self.onMouseScroll
+        self.winHandle.on_mouse_motion = self.onMouseMove
+        self.winHandle.on_mouse_enter = self.onMouseEnter
+        self.winHandle.on_mouse_leave = self.onMouseLeave
+
         if not win.allowGUI:
             # make mouse invisible. Could go further and make it 'exclusive'
             # (but need to alter x,y handling then)
@@ -278,10 +322,10 @@ class PygletBackend(BaseBackend):
             # work out where the centre should be 
             if win.useRetina:
                 win.pos = [(thisScreen.width - win.clientSize[0]/2) / 2,
-                            (thisScreen.height - win.clientSize[1]/2) / 2]
+                           (thisScreen.height - win.clientSize[1]/2) / 2]
             else:
                 win.pos = [(thisScreen.width - win.clientSize[0]) / 2,
-                            (thisScreen.height - win.clientSize[1]) / 2]
+                           (thisScreen.height - win.clientSize[1]) / 2]
         if not win._isFullScr:
             # add the necessary amount for second screen
             self.winHandle.set_location(int(win.pos[0] + thisScreen.x),
@@ -383,6 +427,7 @@ class PygletBackend(BaseBackend):
             currentEditable = self.win.currentEditable
             if currentEditable:
                 currentEditable._onText(evt)
+
             event._onPygletText(evt)  # duplicate the event to the psychopy.events lib
 
     def onCursorKey(self, evt):
@@ -457,7 +502,8 @@ class PygletBackend(BaseBackend):
             scrBytes = self.winHandle._dc
             if constants.PY3:
                 try:
-                    _screenID = 0xFFFFFFFF & int.from_bytes(scrBytes, byteorder='little')
+                    _screenID = 0xFFFFFFFF & int.from_bytes(
+                        scrBytes, byteorder='little')
                 except TypeError:
                     _screenID = 0xFFFFFFFF & scrBytes
             else:
@@ -473,6 +519,9 @@ class PygletBackend(BaseBackend):
                 _screenID = self.winHandle._screen._cg_display_id  # pyglet1.2
         elif sys.platform.startswith('linux'):
             _screenID = self.winHandle._x_screen_id
+        else:
+            raise RuntimeError("Cannot get pyglet screen ID.")
+
         return _screenID
 
     @property
@@ -513,6 +562,261 @@ class PygletBackend(BaseBackend):
     def setFullScr(self, value):
         """Sets the window to/from full-screen mode"""
         self.winHandle.set_fullscreen(value)
+
+    def setMouseType(self, name='arrow'):
+        """Change the appearance of the cursor for this window. Cursor types
+        provide contextual hints about how to interact with on-screen objects.
+
+        **Deprecated!** Use `setMouseCursor` instead.
+
+        Parameters
+        ----------
+        name : str
+            Type of standard cursor to use.
+
+        """
+        self.setMouseCursor(name)
+
+    def setMouseCursor(self, cursorType='default'):
+        """Change the appearance of the cursor for this window. Cursor types
+        provide contextual hints about how to interact with on-screen objects.
+
+        The graphics used 'standard cursors' provided by the operating system.
+        They may vary in appearance and hot spot location across platforms. The
+        following names are valid on most platforms:
+
+        * ``arrow`` or ``default`` : Default system pointer.
+        * ``ibeam`` or ``text`` : Indicates text can be edited.
+        * ``crosshair`` : Crosshair with hot-spot at center.
+        * ``hand`` : A pointing hand.
+        * ``hresize`` : Double arrows pointing horizontally.
+        * ``vresize`` : Double arrows pointing vertically.
+        * ``help`` : Arrow with a question mark beside it (Windows only).
+        * ``no`` : 'No entry' sign or circle with diagonal bar.
+        * ``size`` : Vertical and horizontal sizing.
+        * ``downleft`` or ``upright`` : Double arrows pointing diagonally with
+          positive slope (Windows only).
+        * ``downright`` or ``upleft`` : Double arrows pointing diagonally with
+          negative slope (Windows only).
+        * ``lresize`` : Arrow pointing left (Mac OS X only).
+        * ``rresize`` : Arrow pointing right (Mac OS X only).
+        * ``uresize`` : Arrow pointing up (Mac OS X only).
+        * ``dresize`` : Arrow pointing down (Mac OS X only).
+        * ``wait`` : Hourglass (Windows) or watch (Mac OS X) to indicate the
+           system is busy.
+        * ``waitarrow`` : Hourglass beside a default pointer (Windows only).
+
+        In cases where a cursor is not supported, the default for the system
+        will be used.
+
+        Parameters
+        ----------
+        cursorType : str
+            Type of standard cursor to use. If not specified, `'default'` is
+            used.
+
+        Notes
+        -----
+        * On some platforms the 'crosshair' cursor may not be visible on uniform
+          grey backgrounds.
+
+        """
+        try:
+            cursor = _PYGLET_CURSORS_[cursorType]  # get cursor
+
+            if cursor is None:  # check supported by backend
+                logging.warn(
+                    "Cursor type name '{}', is not supported by this backend. "
+                    "Setting cursor to system default.".format(cursorType))
+
+                cursor = _PYGLET_CURSORS_['default']  # all backends define this
+
+        except KeyError:
+            logging.warn(
+                "Invalid cursor type name '{}', using default.".format(
+                    cursorType))
+
+            cursor = _PYGLET_CURSORS_['default']
+
+        cursor = self.winHandle.get_system_mouse_cursor(cursor)
+        self.winHandle.set_mouse_cursor(cursor)
+
+    # --------------------------------------------------------------------------
+    # Window unit conversion
+    #
+
+    def _windowToBufferCoords(self, pos):
+        """Convert window coordinates to OpenGL buffer coordinates.
+
+        The standard convention for window coordinates is that the origin is at
+        the top-left corner. The `y` coordinate increases in the downwards
+        direction. OpenGL places the origin at bottom left corner, where `y`
+        increases in the upwards direction.
+
+        Parameters
+        ----------
+        pos : ArrayLike
+            Position `(x, y)` in window coordinates.
+
+        Returns
+        -------
+        ndarray
+            Position `(x, y)` in buffer coordinates.
+
+        """
+        # We override `_winToBufferCoords` here since Pyglet uses the OpenGL
+        # window coordinate convention by default.
+        return np.asarray(pos, dtype=np.float32)
+
+    def _bufferToWindowCoords(self, pos):
+        """OpenGL buffer coordinates to window coordinates.
+
+        This is the inverse of `_windowToBufferCoords`.
+
+        Parameters
+        ----------
+        pos : ArrayLike
+            Position `(x, y)` in window coordinates.
+
+        Returns
+        -------
+        ndarray
+            Position `(x, y)` in buffer coordinates.
+
+        """
+        return np.asarray(pos, dtype=np.float32)
+
+    # --------------------------------------------------------------------------
+    # Mouse event handlers and utilities
+    #
+    def onMouseButton(self, *args, **kwargs):
+        """Event handler for any mouse button event (pressed and released).
+
+        This is used by backends which combine both button state changes into
+        a single event. Usually this would pass events to the appropriate
+        `onMouseButtonPress` and `onMouseButtonRelease` events.
+        """
+        pass
+
+    def onMouseButtonPress(self, *args, **kwargs):
+        """Event handler for mouse press events."""
+        # don't process mouse events until ready
+        mouseEventHandler = mouse.Mouse.getInstance()
+        if mouseEventHandler is None:
+            return
+
+        x, y, button, _ = args
+        absTime = core.getTime()
+        absPos = self._windowCoordsToPix((x, y))
+        mouseEventHandler.win = self.win
+        mouseEventHandler.setMouseButtonState(
+            _PYGLET_MOUSE_BUTTONS_[button], True, absPos, absTime)
+
+    def onMouseButtonRelease(self, *args, **kwargs):
+        """Event handler for mouse press events."""
+        # don't process mouse events until ready
+        mouseEventHandler = mouse.Mouse.getInstance()
+        if mouseEventHandler is None:
+            return
+
+        x, y, button, _ = args
+        absTime = core.getTime()
+        absPos = self._windowCoordsToPix((x, y))
+        mouseEventHandler.win = self.win
+        mouseEventHandler.setMouseButtonState(
+            _PYGLET_MOUSE_BUTTONS_[button], False, absPos, absTime)
+
+    def onMouseScroll(self, *args, **kwargs):
+        """Event handler for mouse scroll events."""
+        # don't process mouse events until ready
+        mouseEventHandler = mouse.Mouse.getInstance()
+        if mouseEventHandler is None:
+            return
+
+        # register mouse position associated with event
+        x, y, scroll_x, scroll_y = args
+        absTime = core.getTime()
+        absPos = self._windowCoordsToPix((x, y))
+        mouseEventHandler.win = self.win
+        mouseEventHandler.setMouseMotionState(absPos, absTime)
+
+    def onMouseMove(self, *args, **kwargs):
+        """Event handler for mouse move events."""
+        # don't process mouse events until ready
+        mouseEventHandler = mouse.Mouse.getInstance()
+        if mouseEventHandler is None:
+            return
+
+        x, y, _, _ = args
+        absTime = core.getTime()
+        absPos = self._windowCoordsToPix((x, y))
+        mouseEventHandler.win = self.win
+        mouseEventHandler.setMouseMotionState(absPos, absTime)
+
+    def onMouseEnter(self, *args, **kwargs):
+        """Event called when the mouse enters the window."""
+        # don't process mouse events until ready
+        mouseEventHandler = mouse.Mouse.getInstance()
+        if mouseEventHandler is None:
+            return
+
+        absTime = core.getTime()
+        absPos = self._windowCoordsToPix(args)
+        # check if auto focus is enabled
+        if mouseEventHandler.autoFocus:
+            mouseEventHandler.win = self.win
+
+        mouseEventHandler.setMouseMotionState(absPos, absTime)
+
+    def onMouseLeave(self, *args, **kwargs):
+        """Event called when the mouse enters the window."""
+        # don't process mouse events until ready
+        mouseEventHandler = mouse.Mouse.getInstance()
+        if mouseEventHandler is None:
+            return
+
+        absTime = core.getTime()
+        absPos = self._windowCoordsToPix(args)
+        mouseEventHandler.setMouseMotionState(absPos, absTime)
+
+        if mouseEventHandler.autoFocus:
+            mouseEventHandler.win = None
+
+    def setMouseExclusive(self, exclusive):
+        """Set mouse exclusivity.
+
+        Parameters
+        ----------
+        exclusive : bool
+            Mouse exclusivity mode.
+
+        """
+        self.winHandle.set_exclusive_mouse(bool(exclusive))
+
+    def getMousePos(self):
+        """Get the position of the mouse on the current window.
+
+        Returns
+        -------
+        ndarray
+            Position `(x, y)` in window coordinates.
+
+        """
+        winX = self.winHandle._mouse_x
+        winY = self.winHandle._mouse_y
+        return self._windowCoordsToPix((winX, winY))
+
+    def setMousePos(self, pos):
+        """Set/move the position of the mouse on the current window.
+
+        Parameters
+        ----------
+        pos : ArrayLike
+            Position `(x, y)` in window coordinates.
+
+        """
+        x, y = self._pixToWindowCoords(pos)
+        self.winHandle.set_mouse_position(int(x), int(y))
 
 
 def _onResize(width, height):

@@ -67,7 +67,7 @@ def testUsingPsychoPyMonitorConfig():
     print('Display Default Eye Distance: ', display.getDefaultEyeDistance())
     print('Display Physical Dimensions: ', display.getPhysicalDimensions())
 
-    # That's it, shut down the ioHub Proicess and exit. ;)
+    # That's it, shut down the ioHub Process and exit. ;)
     io.quit()
 
 def testEnabledDataStore():

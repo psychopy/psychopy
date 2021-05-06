@@ -20,6 +20,7 @@ from __future__ import absolute_import, print_function
 
 from .params import getCodeFromParamStr, Param
 from .components import getInitVals, getComponents, getAllComponents
+from .routines import getAllStandaloneRoutines
 from ._experiment import Experiment
 from .utils import unescapedDollarSign_re, valid_var_re, \
      nonalphanumeric_re

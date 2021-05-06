@@ -118,6 +118,12 @@ class SingleLineCtrl(wx.TextCtrl, _ValidatorMixin):
         self.Bind(wx.EVT_TEXT, self.validate)
         self.validate()
 
+    def Show(self, value=True):
+        wx.TextCtrl.Show(self, value)
+        if hasattr(self, "dollarLbl"):
+            self.dollarLbl.Show(value)
+
+
 class MultiLineCtrl(SingleLineCtrl, _ValidatorMixin):
     def __init__(self, parent, valType,
                  val="", fieldName="",
@@ -179,7 +185,7 @@ class ChoiceCtrl(wx.Choice, _ValidatorMixin):
 class MultiChoiceCtrl(wx.CheckListBox, _ValidatorMixin):
     def __init__(self, parent, valType,
                  vals="", choices=[], fieldName="",
-                 size=wx.Size(-1, 144)):
+                 size=wx.Size(-1, -1)):
         wx.CheckListBox.__init__(self)
         self.Create(parent, id=wx.ID_ANY, size=size, choices=choices, name=fieldName, style=wx.LB_MULTIPLE)
         self.valType = valType
@@ -307,7 +313,10 @@ class TableCtrl(wx.TextCtrl, _ValidatorMixin, _FileMixin):
         expRoot = Path(cmpRoot).parent
         self.templates = {
             'Form': Path(cmpRoot) / "form" / "formItems.xltx",
-            'Loop': Path(expRoot) / "loopTemplate.xltx",
+            'TrialHandler': Path(expRoot) / "loopTemplate.xltx",
+            'StairHandler': Path(expRoot) / "loopTemplate.xltx",
+            'MultiStairHandler': Path(expRoot) / "loopTemplate.xltx",
+            'QuestHandler': Path(expRoot) / "loopTemplate.xltx",
             'None': Path(expRoot) / 'blankTemplate.xltx',
         }
         # Configure validation
@@ -391,9 +400,10 @@ class ColorCtrl(wx.TextCtrl, _ValidatorMixin):
         self.validate()
 
     def colorPicker(self, evt):
-        dlg = PsychoColorPicker(self.GetTopLevelParent().frame, context='builder')
+        dlg = PsychoColorPicker(self)  # open a color picker
         dlg.ShowModal()
         dlg.Destroy()
+
 
 def validate(obj, valType):
     val = str(obj.GetValue())

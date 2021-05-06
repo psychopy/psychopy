@@ -1,8 +1,7 @@
 #!/usr/bin/env python
-#  -*- coding: utf-8 -*-
-
-# Part of the psychopy.iohub library.
-# Copyright (C) 2012-2016 iSolver Software Solutions
+# -*- coding: utf-8 -*-
+# Part of the PsychoPy library
+# Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 from __future__ import division, absolute_import, print_function
 from past.builtins import unicode
@@ -22,7 +21,7 @@ except ImportError:
     psycho_logging = None
 from past.builtins import basestring
 from ..lazy_import import lazy_import
-from .. import _pkgroot, IOHUB_DIRECTORY
+from .. import IOHUB_DIRECTORY
 from ..util import yload, yLoader
 from ..errors import print2err, ioHubError, printExceptionDetailsToStdErr
 from ..util import isIterable, updateDict, win32MessagePump
@@ -902,32 +901,11 @@ class ioHubConnection(object):
 
         self._iohub_server_config = ioHubConfig
 
-        # >>>> Check for orphaned ioHub Process and kill if found...
-        iopFileName = os.path.join(rootScriptPath, '.iohpid')
-        if os.path.exists(iopFileName):
-            try:
-                iopFile = open(iopFileName, 'r')
-                line = iopFile.readline()
-                iopFile.close()
-                os.remove(iopFileName)
-                _, iohub_pid = line.split(':')
-                iohub_pid = int(iohub_pid.strip())
-                try:
-                    old_iohub_process = psutil.Process(iohub_pid)
-                    if old_iohub_process.name == 'python.exe':
-                        old_iohub_process.kill()
-                except psutil.NoSuchProcess:
-                    pass
-            except Exception: # pylint: disable=broad-except
-                import traceback
-                traceback.print_exc()
-
         if sys.platform == 'darwin':
             self._osxKillAndFreePort()
-        # <<<< Done handling orphaned iohub process fail safe.
 
         # >>>> Start iohub subprocess
-        run_script = os.path.join(IOHUB_DIRECTORY, 'launchHubProcess.py')
+        run_script = os.path.join(IOHUB_DIRECTORY, 'start_iohub_process.py')
         subprocessArgList = [sys.executable,
                              run_script,
                              '%.6f' % Computer.global_clock.getLastResetTime(),
@@ -958,7 +936,11 @@ class ioHubConnection(object):
 
         self._server_process = subprocess.Popen(subprocessArgList,
                                                 env=envars,
-                                                cwd=IOHUB_DIRECTORY)
+                                                cwd=IOHUB_DIRECTORY,
+                                                # set sub process stderr ro be stdout so PsychoPy Runner
+                                                # shows errors from iohub
+                                                stderr=subprocess.STDOUT,
+                                                )
 
         # Get iohub server pid and psutil process object
         # for affinity and process priority setting.
@@ -997,13 +979,6 @@ class ioHubConnection(object):
                 self.registerWindowHandles(*whs)
         except ImportError:
             pass
-
-        # Save ioHub ProcessID to file so next time it is started,
-        # it can be checked and killed if necessary
-        iopFile = open(iopFileName, 'w')
-        iopFile.write("ioHub PID: {}".format(Computer.iohub_process_id))
-        iopFile.flush()
-        iopFile.close()
 
         # Sending experiment_info if available.....
         if experiment_info:
@@ -1054,7 +1029,7 @@ class ioHubConnection(object):
             dev_cls_name = "{}".format(dev_cls_name)
             dev_name = dev_cls_name.lower()
             cls_name_start = dev_name.rfind('.')
-            dev_mod_pth = '%s.devices.' % _pkgroot
+            dev_mod_pth = 'psychopy.iohub.devices.'
             if cls_name_start > 0:
                 dev_mod_pth2 = dev_name[:cls_name_start]
                 dev_mod_pth = '{0}{1}'.format(dev_mod_pth, dev_mod_pth2)
@@ -1084,8 +1059,7 @@ class ioHubConnection(object):
                 # need to touch local_module since it was lazy loaded
 
                 # pylint: disable=exec-used
-                exec('import {}.client.{}'.format(_pkgroot,
-                                                  dev_cls_name.lower()))
+                exec('import psychopy.iohub.client.{}'.format(dev_cls_name.lower()))
                 local_class = getattr(local_module, dev_cls_name, False)
 
             if local_class:
@@ -1186,8 +1160,7 @@ class ioHubConnection(object):
         and returns a new or existing experiment ID based on that criteria.
         """
         fieldOrder = (('experiment_id', 0), ('code', ''), ('title', ''),
-                      ('description', ''), ('version', ''),
-                      ('total_sessions_to_run', 0))
+                      ('description', ''), ('version', ''))
         values = []
         for key, defaultValue in fieldOrder:
             if key in experimentInfoDict:
@@ -1410,10 +1383,10 @@ class ioEvent(object):
                                                  self.id)
 
 _lazyImports = """
-from {pkgroot}.client.connect import launchHubServer
-from {pkgroot}.client import keyboard
-#from {pkgroot}.client import wintabtablet
-""".format(pkgroot=_pkgroot)
+from psychopy.iohub.client.connect import launchHubServer
+from psychopy.iohub.client import keyboard
+from psychopy.iohub.client import wintab
+"""
 
 try:
     lazy_import(globals(), _lazyImports)

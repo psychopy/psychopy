@@ -5,6 +5,7 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
+import sys
 import wx
 from wx.lib.buttons import GenButton
 from wx.lib.scrolledpanel import ScrolledPanel
@@ -50,16 +51,19 @@ class ColorPresets(ScrolledPanel):
         for color in colorList:
             btn = GenButton(self, size=btnSize, label=color, name=color)
             btn.colorData = col = Color(color, 'named')
-            btn.SetOwnBackgroundColour(col.rgba255)
 
-            # Compute the (perceived) luminance of the color, used to set the
-            # foreground text to ensure it's legible on the background. Uses the
-            # the luminance part of formula to convert RGB1 to YIQ.
-            luminance = np.sum(np.asarray((0.299, 0.587, 0.114)) * col.rgb1)
-            if luminance < 0.5:
-                btn.SetForegroundColour(wx.WHITE)
-            else:
-                btn.SetForegroundColour(wx.BLACK)
+            # linux and windows gets pretty buttons, unsupported on MacOS :(
+            if sys.platform != 'darwin':
+                btn.SetOwnBackgroundColour(col.rgba255)
+
+                # Compute the (perceived) luminance of the color, used to set
+                # the foreground text to ensure it's legible on the background.
+                # Uses the the luminance part of formula to convert RGB1 to YIQ.
+                luminance = np.sum(np.asarray((0.299, 0.587, 0.114)) * col.rgb1)
+                if luminance < 0.5:
+                    btn.SetForegroundColour(wx.WHITE)
+                else:
+                    btn.SetForegroundColour(wx.BLACK)
 
             btn.SetBezelWidth(0)
             btn.SetUseFocusIndicator(False)

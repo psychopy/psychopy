@@ -8,18 +8,14 @@
 from __future__ import absolute_import, print_function
 
 from builtins import str
+from pathlib import Path
 from os import path
 import copy
+import numpy as np
 from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals, _translate
 from psychopy import logging
 from psychopy.localization import _localized as __localized
 _localized = __localized.copy()
-
-# the absolute path to the folder containing this path
-thisFolder = path.abspath(path.dirname(__file__))
-iconFile = path.join(thisFolder, 'polygon.png')
-tooltip = _translate('Polygon: any regular polygon (line, triangle, square'
-                     '...circle)')
 
 # only use _localized values for label values, nothing functional:
 _localized = _localized.copy()
@@ -34,12 +30,18 @@ _localized.update({'nVertices': _translate('Num. vertices'),
 
 class PolygonComponent(BaseVisualComponent):
     """A class for presenting grating stimuli"""
-    targets = ['PsychoPy']
+
+    categories = ['Stimuli']
+    targets = ['PsychoPy', 'PsychoJS']
+    iconFile = Path(__file__).parent / 'polygon.png'
+    tooltip = _translate('Polygon: any regular polygon (line, triangle, square'
+                         '...circle)')
+
     def __init__(self, exp, parentName, name='polygon', interpolate='linear',
                  units='from exp settings',
                  lineColor='white', lineColorSpace='rgb', lineWidth=1,
                  fillColor='white', fillColorSpace='rgb',
-                 shape='triangle', nVertices=4,
+                 shape='triangle', nVertices=4, vertices="",
                  pos=(0, 0), size=(0.5, 0.5), ori=0,
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
@@ -55,7 +57,6 @@ class PolygonComponent(BaseVisualComponent):
         self.type = 'Polygon'
         self.url = "https://www.psychopy.org/builder/components/polygon.html"
         self.exp.requirePsychopyLibs(['visual'])
-        self.targets = ['PsychoPy', 'PsychoJS']
         self.order += ['shape', 'nVertices',  # Basic tab
                       ]
         self.order.insert(self.order.index("borderColor"), "lineColor")
@@ -63,9 +64,15 @@ class PolygonComponent(BaseVisualComponent):
             {"dependsOn": "shape",  # must be param name
              "condition": "=='regular polygon...'",  # val to check for
              "param": "nVertices",  # param property to alter
-             "true": "enable",  # what to do with param if condition is True
-             "false": "disable",  # permitted: hide, show, enable, disable
-             }
+             "true": "show",  # what to do with param if condition is True
+             "false": "hide",  # permitted: hide, show, enable, disable
+             },
+            {"dependsOn": "shape",  # must be param name
+             "condition": "=='custom polygon...'",  # val to check for
+             "param": "vertices",  # param property to alter
+             "true": "show",  # what to do with param if condition is True
+             "false": "hide",  # permitted: hide, show, enable, disable
+             },
         ]
 
         # params
@@ -77,12 +84,22 @@ class PolygonComponent(BaseVisualComponent):
             hint=msg,
             label=_localized['nVertices'])
 
+        msg = _translate("What are the vertices of your polygon? Should be an nx2 array or a list of [x, y] lists")
+        self.params['vertices'] = Param(
+            vertices, valType='list', inputType='single', categ='Basic',
+            updates='constant',
+            allowedUpdates=['constant'],
+            hint=msg,
+            label=_translate("Vertices")
+        )
+
         msg = _translate("What shape is this? With 'regular polygon...' you "
-                         "can set number of vertices")
+                         "can set number of vertices and with 'custom "
+                         "polygon...' you can set vertices")
         self.params['shape'] = Param(
             shape, valType='str', inputType="choice", categ='Basic',
-            allowedVals=["line", "triangle", "rectangle", "cross", "star",
-                         "regular polygon..."],
+            allowedVals=["line", "triangle", "rectangle", "circle", "cross", "star",
+                         "regular polygon...", "custom polygon..."],
             updates='constant',
             allowedUpdates=['constant'],
             hint=msg,
@@ -132,6 +149,8 @@ class PolygonComponent(BaseVisualComponent):
 
         if self.params['shape'] == 'regular polygon...':
             vertices = self.params['nVertices']
+        elif self.params['shape'] == 'custom polygon...':
+            vertices = self.params['vertices']
         else:
             vertices = self.params['shape']
         if vertices in ['line', '2']:
@@ -141,11 +160,15 @@ class PolygonComponent(BaseVisualComponent):
         elif vertices in ['triangle', '3']:
             code = ("%s = visual.ShapeStim(\n" % inits['name'] +
                     "    win=win, name='%s',%s\n" % (inits['name'], unitsStr) +
-                    "    vertices=[[-%(size)s[0]/2.0,-%(size)s[1]/2.0], [+%(size)s[0]/2.0,-%(size)s[1]/2.0], [0,%(size)s[1]/2.0]],\n" % inits)
+                    "    size=%(size)s, vertices='triangle',\n" % inits)
         elif vertices in ['rectangle', '4']:
             code = ("%s = visual.Rect(\n" % inits['name'] +
                     "    win=win, name='%s',%s\n" % (inits['name'], unitsStr) +
                     "    width=%(size)s[0], height=%(size)s[1],\n" % inits)
+        elif vertices in ['circle', '100']:
+            code = ("%s = visual.ShapeStim(\n" % inits['name'] +
+                    "    win=win, name='%s',%s\n" % (inits['name'], unitsStr) +
+                    "    size=%(size)s, vertices='circle',\n" % inits)
         elif vertices in ['star']:
             code = ("%s = visual.ShapeStim(\n" % inits['name'] +
                     "    win=win, name='%s', vertices='star7',%s\n" % (inits['name'], unitsStr) +
@@ -154,11 +177,15 @@ class PolygonComponent(BaseVisualComponent):
             code = ("%s = visual.ShapeStim(\n" % inits['name'] +
                     "    win=win, name='%s', vertices='cross',%s\n" % (inits['name'], unitsStr) +
                     "    size=%(size)s,\n" % inits)
-        else:
+        elif isinstance(vertices, (int, float, str)):
             code = ("%s = visual.Polygon(\n" % inits['name'] +
                     "    win=win, name='%s',%s\n" % (inits['name'], unitsStr) +
                     "    edges=%s," % str(inits['nVertices'].val) +
                     " size=%(size)s,\n" % inits)
+        else:
+            code = ("%s = visual.ShapeStim(\n" % inits['name'] +
+                    "    win=win, name='%s', vertices=%s,%s\n" % (inits['name'], vertices, unitsStr) +
+                    "    size=%(size)s,\n" % inits)
 
         code += ("    ori=%(ori)s, pos=%(pos)s,\n"
                  "    lineWidth=%(lineWidth)s, "

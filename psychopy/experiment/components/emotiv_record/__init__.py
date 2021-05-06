@@ -5,20 +5,20 @@ Created on Fri Apr 28 11:20:49 2017
 @author: mrbki
 """
 from os import path
+from pathlib import Path
 from psychopy.experiment.components import BaseComponent, getInitVals
 from psychopy.localization import _translate, _localized as __localized
 _localized = __localized.copy()
 
 CORTEX_OBJ = 'cortex_obj'
 
-thisFolder = path.abspath(path.dirname(__file__))
-iconFile = path.join(thisFolder, 'emotiv_record.png')
-tooltip = _translate('Initialize EMOTIV hardware connection')
-
 
 class EmotivRecordingComponent(BaseComponent):  # or (VisualComponent)
 
+    categories = ['Custom']
     targets = ['PsychoPy']
+    iconFile = Path(__file__).parent / 'emotiv_record.png'
+    tooltip = _translate('Initialize EMOTIV hardware connection')
 
     def __init__(self, exp, parentName, name='cortex_rec'):
         super(EmotivRecordingComponent, self).__init__(
