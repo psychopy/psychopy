@@ -1060,6 +1060,7 @@ class ioHubConnection(object):
                 d = local_class(self, dev_cls_name, dev_config)
             else:
                 full_device_class_name = getFullClassName(dev_cls)[len('psychopy.iohub.devices.'):]
+                full_device_class_name = full_device_class_name.replace('eyetracker.EyeTracker', 'EyeTracker')
                 d = ioHubDeviceView(self, full_device_class_name, dev_cls_name, dev_config)
 
             self.devices.addDevice(name, d)
