@@ -22,6 +22,7 @@ plotting = False
 if plotting:
     import matplotlib.pyplot as plt
 
+
 def test_HammingSmallBlock():
     blockSize = 64
     snd1 = apodize(sndArray, sampleRate)  # is 5 ms
