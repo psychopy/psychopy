@@ -11,10 +11,7 @@ py.test fixtures to create an instance of PsychoPyApp for testing
 from __future__ import print_function
 import pytest
 from packaging import version
-
-import pytest
-pytestmark = pytest.mark.needs_wx
-
+import sys
 from psychopy.app import psychopyApp
 from psychopy.app._psychopyApp import PsychoPyApp
 from PIL import Image
@@ -27,11 +24,11 @@ if version.parse(pytest.__version__) < version.parse('5'):
 
 
 # this method seems to work on at least Pytest 5.4+
+@pytest.mark.needs_wx
 @pytest.fixture(scope='session', autouse=True)
 def requires_app(request):
     # set_up
     PsychoPyApp._called_from_test = True  # NB class variable must be set
-    # _called_from_test is used in __init__ so set before instantiation
     request.cls._app = PsychoPyApp(testMode=True, showSplash=False)
 
     # yield, to let all tests within the scope run

@@ -4,8 +4,10 @@
 from builtins import object
 from collections import OrderedDict
 from psychopy.gui.qtgui import DlgFromDict
+import pytest
 
 
+@pytest.mark.needs_qt
 class TestDlgFromDictQt(object):
     def setup(self):
         self.d = dict(
