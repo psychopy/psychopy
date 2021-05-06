@@ -177,8 +177,7 @@ jobs:
 
     - name: Set nice level
       run: |
-        pythonExe=(which python)
-        sudo setcap cap_sys_nice=eip $pythonExe
+        sudo setcap cap_sys_nice=eip ${{ env.pythonLocation }}/python
 
     - name: Test gui toolkits Qt
       run: |
