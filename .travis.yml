@@ -85,7 +85,7 @@ before_script:
 
 script:
   - |
-    xfvb-run pytest --cov-config .travis_coveragerc --cov=psychopy -v -s psychopy
+    xvfb-run -a --server-args="-screen 0 1024x768x24" pytest --cov-config .travis_coveragerc --cov=psychopy -v -s psychopy
 
 after_success:
   - coveralls

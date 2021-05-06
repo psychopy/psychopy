@@ -890,6 +890,7 @@ class TestPygameNorm(_baseVisualTest):
        self.win = visual.Window([128,128], winType='pygame', allowStencil=True, autoLog=False)
        self.contextName='norm'
        self.scaleFactor=1#applied to size/pos values
+
 #class TestPygamePix(_baseVisualTest):
 #    @classmethod
 #    def setup_class(self):
