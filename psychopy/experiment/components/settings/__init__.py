@@ -7,6 +7,7 @@ from builtins import str
 from builtins import object
 import os
 from pathlib import Path
+from xml.etree.ElementTree import Element
 import re
 import wx.__version__
 import psychopy
@@ -137,6 +138,7 @@ class SettingsComponent(object):
                       'Monitor', 'Screen', 'Full-screen window', 'Window size (pixels)', 'Units', 'color',
                       'colorSpace'  # Screen tab
                       ]
+        self.depends = []
         # basic params
         self.params['expName'] = Param(
             expName, valType='str',  inputType="single", allowedTypes=[],
@@ -315,6 +317,21 @@ class SettingsComponent(object):
             allowedVals=['on Save', 'on Sync', 'manually'],
             hint=_translate("When to export experiment to the HTML folder."),
             label=_localized["Export HTML"], categ='Online')
+
+    @property
+    def xml(self):
+        # Make root element
+        element = Element("Settings")
+        # Add an element for each parameter
+        for key, param in sorted(self.params.items()):
+            if key == 'name':
+                continue
+            # Create node
+            paramNode = param.xml
+            paramNode.set("name", key)
+            # Add node
+            element.append(paramNode)
+        return element
 
     def getInfo(self):
         """Rather than converting the value of params['Experiment Info']
