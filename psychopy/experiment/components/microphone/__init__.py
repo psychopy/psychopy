@@ -142,6 +142,14 @@ class MicrophoneComponent(BaseComponent):
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
 
+    def writeStartCodeJS(self, buff):
+        inits = getInitVals(self.params)
+        code = (
+            "// Define folder to store recordings from %(name)s"
+            "%(name)sRecFolder = filename + '_%(name)s_recorded"
+        )
+        buff.writeIndentedLines(code % inits)
+
     def writeInitCode(self, buff):
         inits = getInitVals(self.params)
         # Substitute sample rate value for numeric equivalent
@@ -169,6 +177,29 @@ class MicrophoneComponent(BaseComponent):
         code = (
             ")\n"
             "%(name)sClips = {}\n"
+        )
+        buff.writeIndentedLines(code % inits)
+
+    def writeInitCodeJS(self, buff):
+        inits = getInitVals(self.params)
+        code = (
+            "%(name)s = new audio.Microphone({\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(1, relative=True)
+        code = (
+                "win : psychoJS.window, \n"
+                "name:'%(name)s',\n"
+                "sampleRateHz : %(sampleRate)s,\n"
+                "channels : %(channels)s,\n"
+                "maxRecordingSize : %(maxSize)s,\n"
+                "loopback : true,\n"
+                "policyWhenFull : 'ignore',\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(-1, relative=True)
+        code = (
+            "});\n"
         )
         buff.writeIndentedLines(code % inits)
 
@@ -212,6 +243,34 @@ class MicrophoneComponent(BaseComponent):
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-2, relative=True)
 
+    def writeFrameCodeJS(self, buff):
+        inits = getInitVals(self.params)
+        inits['routine'] = self.parentName
+        # Start the recording
+        self.writeStartTestCodeJS(buff)
+        code = (
+                "mic.start()\n"
+                "mic.status = STARTED\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(-1, relative=True)
+        code = (
+            "}"
+        )
+        buff.writeIndentedLines(code % inits)
+        # Stop the recording
+        self.writeStopTestCodeJS(buff)
+        code = (
+                "mic.stop()\n"
+                "mic.status = FINISHED\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(-1, relative=True)
+        code = (
+            "}"
+        )
+        buff.writeIndentedLines(code % inits)
+
     def writeRoutineEndCode(self, buff):
         inits = getInitVals(self.params)
         inits['routine'] = self.parentName
@@ -222,6 +281,17 @@ class MicrophoneComponent(BaseComponent):
         buff.writeIndentedLines(code % inits)
         # Write base end routine code
         BaseComponent.writeRoutineEndCode(self, buff)
+
+    def writeRoutineEndCodeJS(self, buff):
+        inits = getInitVals(self.params)
+        inits['routine'] = self.parentName
+        # Store recordings from this routine
+        code = (
+            "%(name)s.bank('%(routine)s')\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        # Write base end routine code
+        BaseComponent.writeRoutineEndCodeJS(self, buff)
 
     def writeExperimentEndCode(self, buff):
         """Write the code that will be called at the end of
@@ -247,3 +317,32 @@ class MicrophoneComponent(BaseComponent):
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-2, relative=True)
+
+    def writeExperimentEndCodeJS(self, buff):
+        inits = getInitVals(self.params)
+        # Get clips from mic object and save them to files
+        code = (
+            "// Save %(name)s recordings\n"
+            "%(name)sClips = %(name)s.flush()\n"
+            "for (let rt of %(name)sClips) {\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(1, relative=True)
+        code = (
+                "for (let [i, clip] of %(name)sClips.entries()) {"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(1, relative=True)
+        code = (
+                    "clip.save(%(name)sRecFolder, f'recording_{rt}_{i}.%(outputType)s')"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(-1, relative=True)
+        code = (
+                "}"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(-1, relative=True)
+        code = (
+            "}"
+        )
