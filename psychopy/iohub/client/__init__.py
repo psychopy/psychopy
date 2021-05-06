@@ -35,6 +35,12 @@ getTime = Computer.getTime
 
 _currentSessionInfo = None
 
+def getFullClassName(klass):
+    module = klass.__module__
+    if module == 'builtins':
+        return klass.__qualname__  # avoid outputs like 'builtins.str'
+    return module + '.' + klass.__qualname__
+
 class DeviceRPC(object):
     '''
     ioHubDeviceView creates an RPC interface with the iohub server. Each
@@ -123,12 +129,11 @@ class ioHubDeviceView(object):
     it connects to the ioHub Process.
     """
 
-    def __init__(self, hubClient, device_class_name, device_config):
+    def __init__(self, hubClient, device_class_path, device_class_name, device_config):
         self.hubClient = hubClient
         self.name = device_config.get('name', device_class_name.lower())
         self.device_class = device_class_name
-        #self._preRemoteMethodCallFunctions = dict()
-        #self._postRemoteMethodCallFunctions = dict()
+        self.device_class_path=device_class_path
 
         rpc_request = ('EXP_DEVICE', 'GET_DEV_INTERFACE', device_class_name)
         r = self.hubClient._sendToHubServer(rpc_request)
@@ -136,22 +141,9 @@ class ioHubDeviceView(object):
 
     def __getattr__(self, name):
         if name in self._methods:
-            #if name in self._preRemoteMethodCallFunctions:
-            #    f, ka = self._preRemoteMethodCallFunctions[name]
-            #    f(ka)
-            r = DeviceRPC(self.hubClient._sendToHubServer, self.device_class,
-                          name)
-            #if name in self._postRemoteMethodCallFunctions:
-            #    f, ka = self._postRemoteMethodCallFunctions[name]
-            #    f(ka)
+            r = DeviceRPC(self.hubClient._sendToHubServer, self.device_class, name)
             return r
         raise AttributeError(self, name)
-
-#    def setPreRemoteMethodCallFunction(self, methodName, funcCall, **kwargs):
-#        self._preRemoteMethodCallFunctions[methodName] = (funcCall, kwargs)
-
-#    def setPostRemoteMethodCallFunction(self, methodName, func_call, **kwargs):
-#        self._postRemoteMethodCallFunctions[methodName] = (func_call, kwargs)
 
     def getName(self):
         """
@@ -166,18 +158,20 @@ class ioHubDeviceView(object):
         """
         return self.name
 
-    def getIOHubDeviceClass(self):
+    def getIOHubDeviceClass(self, full=False):
         """
         Gets the ioHub Device class associated with the oHubDeviceView.
         This is specified for a device in the ioHub configuration file.
         ( the device: device_class: property )
 
-        Args:
-            None
+        :param full:
 
         Returns:
             (class): ioHub Device class associated with this ioHubDeviceView
+
         """
+        if full:
+            return self.device_class_path
         return self.device_class
 
     def getDeviceInterface(self):
@@ -1065,7 +1059,8 @@ class ioHubConnection(object):
             if local_class:
                 d = local_class(self, dev_cls_name, dev_config)
             else:
-                d = ioHubDeviceView(self, dev_cls_name, dev_config)
+                full_device_class_name = getFullClassName(dev_cls)[len('psychopy.iohub.devices.'):]
+                d = ioHubDeviceView(self, full_device_class_name, dev_cls_name, dev_config)
 
             self.devices.addDevice(name, d)
             return d
