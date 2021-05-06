@@ -136,19 +136,20 @@ jobs:
     - name: Install wxPython dependencies
       if: runner.os=='Linux'
       run: |
-        sudo apt install python3-dev libgtk-3-dev
-        sudo apt install libgstreamer1.0-0 gstreamer1.0-plugins-base
-        sudo apt install libwebkit2gtk-4.0-dev
-        sudo apt install libpng-dev libjpeg-dev libtiff-dev libnotify-dev libsm-dev
-        sudo apt install libsdl-dev libsdl2-mixer-2.0-0 libsdl2-image-2.0-0 libsdl2-2.0-0
-        sudo apt install libportaudio2
+        sudo apt-get install python3-dev libgtk-3-dev
+        sudo apt-get install libgstreamer1.0-0 gstreamer1.0-plugins-base
+        sudo apt-get install libwebkit2gtk-4.0-dev
+        sudo apt-get install libpng-dev libjpeg-dev libtiff-dev libnotify-dev libsm-dev
+        sudo apt-get install libsdl-dev libsdl2-mixer-2.0-0 libsdl2-image-2.0-0 libsdl2-2.0-0
+        sudo apt-get install libportaudio2
         # set up fake soudn device?
         sudo apt-get install -qq libasound2-dev alsa-utils alsa-oss
+        sudo apt-get install linux-modules-extra-`uname -r`  # needed for modprobe snd-dummy
         sudo modprobe snd-dummy
         sudo lsmod
         # for PyQt
-        sudo apt install -y libdbus-1-3 libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1
-        sudo apt install -y libxcb-randr0 libxcb-render-util0 libxcb-xinerama0 libxcb-xfixes0
+        sudo apt-get install -y libdbus-1-3 libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1
+        sudo apt-get install -y libxcb-randr0 libxcb-render-util0 libxcb-xinerama0 libxcb-xfixes0
         export LIBGL_ALWAYS_INDIRECT=0
         export QT_DEBUG_PLUGINS=1 # let us know about missing dependencies?
 
