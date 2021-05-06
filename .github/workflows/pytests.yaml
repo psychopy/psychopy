@@ -49,11 +49,12 @@ jobs:
         # quick test of the gui toolkits (without pytest swallowing errors)
         python psychopy/tests/test_gui/test_DlgFromDictQt.py
 
-    - name: Test gui toolkits Wx
-      if: always()
-      run: |
-        # quick test of the gui toolkits (without pytest swallowing errors)
-        pythonw psychopy/tests/test_gui/test_DlgFromDictWx.py
+# always fails due to lack of pythonw
+#    - name: Test gui toolkits Wx
+#      if: always()
+#      run: |
+#        # quick test of the gui toolkits (without pytest swallowing errors)
+#        pythonw psychopy/tests/test_gui/test_DlgFromDictWx.py
 
     - name: Test with pytest
       run: |
@@ -177,7 +178,10 @@ jobs:
 
     - name: Set nice level
       run: |
-        sudo setcap cap_sys_nice=eip ${{ env.pythonLocation }}/python
+        # sudo setcap cap_sys_nice=eip ${{ env.pythonLocation }}/python
+        export PYTHON_EXECUTABLE=`python -c "import os; import sys; print(os.path.realpath(sys.executable))"`
+        sudo setcap cap_sys_nice+ep ${PYTHON_EXECUTABLE}
+        getcap ${PYTHON_EXECUTABLE}  # did it work?
 
     - name: Test gui toolkits Qt
       run: |
