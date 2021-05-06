@@ -438,6 +438,20 @@ class Window(object):
         # backend specific options are passed as a dictionary
         backendConf = backendConf if backendConf is not None else {}
 
+        # Here we make sure all the open windows use the same `winType` and have
+        # context sharing enabled. The context to share is passed as an option
+        # to `backendConf`.
+        if openWindows:
+            primaryWindow = openWindows[0]()  # resolve ref
+            if primaryWindow.winType != self.winType:
+                raise ValueError(
+                    "Only one kind of `winType` can be used per session.")
+
+            # Allow for context sharing, only used by the GLFW backend, Pyglet
+            # uses `shadow_window` by default here so we don't need to worry
+            # about it.
+            backendConf['share'] = self
+
         if not isinstance(backendConf, dict):  # type check on options
             raise TypeError(
                 'Object passed to `backendConf` must be type `dict`.')
