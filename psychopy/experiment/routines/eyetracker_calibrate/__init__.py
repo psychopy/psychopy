@@ -261,6 +261,6 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
         buff.writeIndentedLines(code % self.params)
         code = (
             "# run calibration\n"
-            "eyetracker.runSetupProcedure(%(name)sCalib)\n"
+            "eyetracker.runSetupProcedure(%(name)sCalib[eyetracker.getIOHubDeviceClass(full=True)])\n"
         )
         buff.writeIndentedLines(code % self.params)
