@@ -11,6 +11,10 @@ py.test fixtures to create an instance of PsychoPyApp for testing
 from __future__ import print_function
 import pytest
 from packaging import version
+
+import pytest
+pytestmark = pytest.mark.needs_wx
+
 from psychopy.app import psychopyApp
 from psychopy.app._psychopyApp import PsychoPyApp
 from PIL import Image
