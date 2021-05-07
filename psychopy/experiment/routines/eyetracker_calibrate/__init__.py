@@ -13,21 +13,28 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
     limit = 1
 
     def __init__(self, exp, name='calibration',
-                 progressTime="",
+                 pacingSpeed="", autoPace=True,
                  color="red", fillColor="", borderColor="white", cursorColor="red", colorSpace="rgb",
                  borderWidth=0.005,
                  units='from exp settings', targetSize=0.025, dotSize=0.005, randomisePos=True,
                  targetLayout="nine-point",
-                 velocity=1, expandScale=3, expandDur=(0.75, 0.75)):
+                 enableAnimation=False, velocity=0.5, expandScale=3, expandDur=0.75):
         # Initialise base routine
         BaseStandaloneRoutine.__init__(self, exp, name=name)
 
         # Basic params
-        self.params['progressTime'] = Param(progressTime,
+        self.params['pacingSpeed'] = Param(pacingSpeed,
             valType='code', inputType="single", categ='Basic',
             hint=_translate(
-                "Time limit (s) after which progress to next position (leave blank for no limit)"),
-            label=_translate("Progress After Time..."))
+                "Number of seconds to wait between each calibration point presentation."),
+            label=_translate("Pacing Speed"))
+
+        self.params['autoPace'] = Param(pacingSpeed,
+            valType='bool', inputType="bool", categ='Basic',
+            hint=_translate(
+                "If True, calibration progresses after a fixation, if False, calibration has to "
+                "be progressed by pushing a button."),
+            label=_translate("Auto-Pace"))
 
         # Appearance Params
         self.order += [
@@ -110,26 +117,44 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
 
         # Animation Params
         self.order += [
+            "enableAnimation",
             "velocity",
             "expandScale",
             "expandDur",
         ]
+
+        self.params['enableAnimation'] = Param(enableAnimation,
+                                           valType='bool', inputType="bool", categ='Animation',
+                                           hint=_translate("Enable / disable animations, only applicable for Tobii "
+                                                           "eyetrackers"),
+                                           label=_translate("Enable Animation"))
+
+        for depParam in ["velocity", "expandScale", "expandDur"]:
+            self.depends.append(
+                {"dependsOn": "eyetracker",  # must be param name
+                 "condition": "=='enableAnimation'",  # val to check for
+                 "param": depParam,  # param property to alter
+                 "true": "enable",  # what to do with param if condition is True
+                 "false": "disable",  # permitted: hide, show, enable, disable
+                 }
+            )
+
         self.params['expandScale'] = Param(expandScale,
                                            valType='num', inputType="single", categ='Animation',
                                            hint=_translate("How many times bigger than its size the target grows"),
                                            label=_translate("Expand / Contract Scale"))
 
         self.params['expandDur'] = Param(expandDur,
-                                         valType='list', inputType="single", categ='Animation',
+                                         valType='num', inputType="single", categ='Animation',
                                          hint=_translate(
-                                             "How many seconds it takes the target to expand/contract. Supply a single value for a "
-                                             "uniform animation or two (expand, contract) for differing speeds."),
-                                         label=_translate("Animation Duration"))
+                                             "How many seconds it takes the target to expand/contract."),
+                                         label=_translate("Expand / Contract Duration"))
 
         self.params['velocity'] = Param(velocity,
                                         valType='num', inputType="single", categ='Animation',
                                         hint=_translate(
-                                            "How long it takes the target stimulus to move from one position to the next"),
+                                            "How long it takes the target stimulus to move from one position to "
+                                            "the next"),
                                         label=_translate("Velocity"))
 
     def writeMainCode(self, buff):
@@ -186,8 +211,8 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
         code = (
                     "'target_attributes': %(name)sTarget.getCalibSettings('SR Research Ltd'),\n"
                     "'type': " + elPositions + ",\n"
-                    "'auto_pace': " + str(bool(self.params['progressTime'].val)) + ",\n"
-                    "'pacing_speed': " + str(self.params['progressTime'].val or 0.5) + ",\n"
+                    "'auto_pace': %(autoPace),\n"
+                    "'pacing_speed': " + str(self.params['pacingSpeed'].val or 1.5) + ",\n"
                     "'screen_background_color': win._color.rgb255\n"
         )
         buff.writeIndentedLines(code % self.params)
@@ -207,8 +232,8 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
         buff.writeIndentedLines(code % self.params)
         buff.setIndentLevel(1, relative=True)
         code = (
-                "'target_delay': " + str(self.params['progressTime'].val or 0.5) + ",\n"
-                "'target_duration': " + str(gpTargetDur) + "\n"
+                "'target_delay': %(velocity)s,\n"
+                "'target_duration': %(pacingSpeed)s\n"
         )
         buff.writeIndentedLines(code % self.params)
         buff.setIndentLevel(-1, relative=True)
@@ -231,9 +256,24 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
                 "'target_attributes': %(name)sTarget.getCalibSettings('Tobii Technology'),\n"
                 "'type': " + tbPositions + ",\n"
                 "'randomize': %(randomisePos)s,\n"
-                "'auto_pace': " + str(bool(self.params['progressTime'].val)) + ",\n"
-                "'pacing_speed': " + str(self.params['progressTime'].val or 1) + ",\n"
-                "'screen_background_color': win._color.rgb255\n"
+                "'auto_pace': %(autoPace)s,\n"
+                "'pacing_speed': " + str(self.params['pacingSpeed'].val or 1) + ",\n"
+                "'screen_background_color': win.color\n"
+                "'animate': {"
+        )
+        buff.writeIndentedLines(code % self.params)
+        buff.setIndentLevel(1, relative=True)
+        # Animation settings
+        code = (
+                    "'enable': %(enableAnimation)s,\n"
+                    "'movement_velocity': %(velocity)s,\n"
+                    "'expansion_ratio': %(expandScale)s,\n"
+                    "'expansion_speed': %(expandDur)s"
+        )
+        buff.writeIndentedLines(code % self.params)
+        buff.setIndentLevel(-1, relative=True)
+        code = (
+                "},\n"
         )
         buff.writeIndentedLines(code % self.params)
         buff.setIndentLevel(-1, relative=True)
