@@ -114,7 +114,7 @@ monitor_devices:
 #        # name will be considered as possible candidates for connection.
 #        # If you only have one Tobii system connected to the computer,
 #        # this field can just be left empty.
-#        model_name: Any Pro Model
+#        model_name:
 #
 #        # The serial number of the Tobii device that you wish to connect to.
 #        # If set, only the Tobii system matching that serial number will be

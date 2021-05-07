@@ -12,6 +12,7 @@ from __future__ import absolute_import, print_function
 from builtins import str, object, super
 from past.builtins import basestring
 from pathlib import Path
+from xml.etree.ElementTree import Element
 
 from psychopy import prefs
 from psychopy.constants import FOREVER
@@ -54,6 +55,7 @@ class BaseComponent(object):
          "true": "enable",  # what to do with param if condition is True
          "false": "disable",  # permitted: hide, show, enable, disable
          }"""
+        self.order = ['name', 'startVal', 'startEstim', 'startType', 'stopVal', 'durationEstim', 'stopType']  # name first, then timing, then others
 
         msg = _translate(
             "Name of this component (alpha-numeric or _, no spaces)")
@@ -78,12 +80,12 @@ class BaseComponent(object):
             label=_localized['stopType'])
 
         self.params['startVal'] = Param(startVal,
-            valType='num', inputType="single", categ='Basic',
+            valType='code', inputType="single", categ='Basic',
             hint=_translate("When does the component start?"), allowedTypes=[],
             label=_localized['startVal'])
 
         self.params['stopVal'] = Param(stopVal,
-            valType='num', inputType="single", categ='Basic',
+            valType='code', inputType="single", categ='Basic',
             updates='constant', allowedUpdates=[], allowedTypes=[],
             hint=_translate("When does the component end? (blank is endless)"),
             label=_localized['stopVal'])
@@ -91,14 +93,14 @@ class BaseComponent(object):
         msg = _translate("(Optional) expected start (s), purely for "
                          "representing in the timeline")
         self.params['startEstim'] = Param(startEstim,
-            valType='num', inputType="single", categ='Basic',
+            valType='code', inputType="single", categ='Basic',
             hint=msg,allowedTypes=[],
             label=_localized['startEstim'])
 
         msg = _translate("(Optional) expected duration (s), purely for "
                          "representing in the timeline")
         self.params['durationEstim'] = Param(durationEstim,
-            valType='num', inputType="single", categ='Basic',
+            valType='code', inputType="single", categ='Basic',
             hint=msg, allowedTypes=[],
             label=_localized['durationEstim'])
 
@@ -122,7 +124,20 @@ class BaseComponent(object):
             hint=msg, allowedTypes=[],
             label=_translate('Disable component'))
 
-        self.order = ['name']  # name first, then timing, then others
+    @property
+    def xml(self):
+        # Make root element
+        element = Element(self.__class__.__name__)
+        element.set("name", self.params['name'].val)
+        # Add an element for each parameter
+        for key, param in sorted(self.params.items()):
+            # Create node
+            paramNode = param.xml
+            paramNode.set("name", key)
+            # Add node
+            element.append(paramNode)
+
+        return element
 
     def integrityCheck(self):
         """
