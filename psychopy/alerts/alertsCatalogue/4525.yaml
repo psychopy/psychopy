@@ -1,0 +1,27 @@
+
+code: 4525
+cat: Eyetracking
+msg: As {brand} eyetrackers do not support custom target positions in their calibration routine, target positions
+  for your calibration routine have been set to {value}
+
+# The following are typically used for online help pages, and support reStructured Text.
+label: Custom target positions not used
+
+synopsis: |
+  Some eyetrackers do not support custom target positions in their calibration routine, instead they have to be chosen
+  from a set of options (e.g. `"NINE_POINTS"`). This means that, if you have specified the positions of target stimuli
+  in your calibration routine to be a list of custom coordinates, PsychoPy will choose the closest pre-set value.
+
+details: |
+
+
+solutions: |
+  If you are only using the current eyetracker to test an experiment and will be using one which supports custom
+  target positions, then you don't need to do anything. This alert will stop appearing when you use the other
+  eyetracker.
+
+  Otherwise, you just need to be aware that the positions of the target on screen will not necessarily correspond
+  to the values you supplied due to the limitations of the eyetracker you are using.
+
+versions: |
+  > 2021.2.0

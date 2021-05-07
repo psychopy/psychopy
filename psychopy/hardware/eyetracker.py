@@ -59,12 +59,14 @@ class EyetrackerCalibration:
         if tracker == 'eyetracker.hw.sr_research.eyelink.EyeTracker':
             # Run as eyelink
             if self.enableAnimation:
-                alert() # todo: make alert for animation params when not needed
+                # Alert user that their animation params aren't used
+                alert(code=4520, strFields={"brand": "EyeLink"})
 
             # As EyeLink doesn't allow custom layouts, if given one, estimate
             targetLayout = self.targetLayout
             if targetLayout not in ['THREE_POINTS', 'FIVE_POINTS', 'NINE_POINTS', "THIRTEEN_POINTS"]:
-                alert()  # todo: make alert for when custom positions are simplified
+                # Alert user to what's happened
+                alert(code=4525, strFields={"brand": "EyeLink", "value": targetLayout})
                 if len(targetLayout) <= 4:
                     targetLayout = "THREE_POINTS"
                 elif len(targetLayout) <= 7:
@@ -87,13 +89,14 @@ class EyetrackerCalibration:
             # As Tobii doesn't allow custom layouts, if given one, estimate
             targetLayout = self.targetLayout
             if targetLayout not in ['THREE_POINTS', 'FIVE_POINTS', 'NINE_POINTS']:
-                alert() # todo: make alert for when custom positions are simplified
                 if len(targetLayout) <= 4:
                     targetLayout = "THREE_POINTS"
                 elif len(targetLayout) <= 7:
                     targetLayout = "FIVE_POINTS"
                 else:
                     targetLayout = "NINE_POINTS"
+                # Alert user to what's happened
+                alert(code=4525, strFields={"brand": "Tobii", "value": targetLayout})
 
             # Run as tobii
             self.eyetracker.runSetupProcedure({
@@ -114,7 +117,7 @@ class EyetrackerCalibration:
         elif tracker == 'eyetracker.hw.gazepoint.gp3.EyeTracker':
             # Run as gazepoint
             if self.enableAnimation:
-                alert()  # todo: make alert for animation params when not needed
+                alert(code=4520, strFields={"brand": "GazePoint"})
 
             self.eyetracker.runSetupProcedure({
                 'target_delay': self.velocity if self.enableAnimation else 0.5,
