@@ -3,10 +3,10 @@
 # Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 from __future__ import division
+import gevent
 from ......errors import print2err, printExceptionDetailsToStdErr
-from ......constants import EventConstants, EyeTrackerConstants
+from ......constants import EyeTrackerConstants
 from ..... import Computer, Device
-from .... import EyeTrackerDevice
 from ....eye_events import *
 from gevent import socket
 import sys, errno
@@ -431,6 +431,10 @@ class EyeTracker(EyeTrackerDevice):
         """
         cal_config = self.getConfiguration().get('calibration')
 
+        use_builtin = calibration_args.get('use_builtin')
+        if use_builtin is None:
+            use_builtin = cal_config.get('use_builtin')
+
         targ_timeout = calibration_args.get('target_duration')
         if targ_timeout is None:
             targ_timeout = cal_config.get('target_duration')
@@ -443,15 +447,39 @@ class EyeTracker(EyeTrackerDevice):
         print2err("targ_delay: ", targ_delay)
 
         self._gp3set('CALIBRATE_TIMEOUT', VALUE=targ_timeout)
-        self._gp3set('CALIBRATE_DELAY', VALUE=targ_delay)        
+        self._gp3set('CALIBRATE_DELAY', VALUE=targ_delay)
         self._waitForAck('CALIBRATE_DELAY', timeout=2.0)
 
-        self._gp3set('CALIBRATE_SHOW', STATE=1)  
-        self._gp3set('CALIBRATE_START', STATE=1)
+        use_builtin=False
+        if use_builtin is True:
+            self._gp3set('CALIBRATE_RESET')
+            self._gp3set('CALIBRATE_SHOW', STATE=1)
+            self._gp3set('CALIBRATE_START', STATE=1)
 
+        else:
+            self._gp3set('CALIBRATE_CLEAR')
+
+            points = [(0.5, 0.5), (0.85, 0.15), (0.85, 0.85), (0.15, 0.85), (0.15, 0.15)]
+            for p in points:
+                x, y = p
+                self._gp3set('CALIBRATE_ADDPOINT', X=x, Y=y)
+                self._waitForAck('CALIBRATE_ADDPOINT')
+            self._gp3set('CALIBRATE_SHOW', STATE=0)
+            self._gp3set('CALIBRATE_START', STATE=1)
+
+            # draw calibration targets
+
+            #seems like gps expects animation at state of every target pos.
+            for p in points:
+                print2err("Animate to point: ", p, "over {} seconds...".format(targ_delay))
+                gevent.sleep(targ_delay)
+                print2err("Draw point: ", p, "for {} seconds...".format(targ_timeout))
+                gevent.sleep(targ_timeout)
+
+        # Get calibration result and return to experiment process.
         cal_result = self._waitForAck('CALIB_RESULT', timeout=30.0)
         if cal_result:
-            self._gp3set('CALIBRATE_SHOW', STATE=0)  
+            self._gp3set('CALIBRATE_SHOW', STATE=0)
             self._gp3get('CALIBRATE_RESULT_SUMMARY')
             del cal_result['type']
             del cal_result['ID']
@@ -461,8 +489,11 @@ class EyeTracker(EyeTrackerDevice):
             del cal_summary['ID']
             cal_result['SUMMARY'] = cal_summary
 
+        self._gp3set('CALIBRATE_SHOW', STATE=0)
+        self._gp3set('CALIBRATE_START', STATE=0)
+
         return cal_result
-        
+
     def _poll(self):
         """This method is called by gp3 every n msec based on the polling
         interval set in the eye tracker config.
@@ -506,7 +537,7 @@ class EyeTracker(EyeTrackerDevice):
                         self._addNativeEventToBuffer(fix_evt)
 
                 elif m.get('type') == 'ACK':
-                    pass #print2err('ACK Received: ', m)
+                    print2err('ACK Received: ', m)
                 else:
                     # Message type is not being handled.
                     print2err('UNHANDLED GP3 MESSAGE: ', m)
