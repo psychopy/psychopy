@@ -64,6 +64,7 @@ class SliderComponent(BaseVisualComponent):
                  name='slider',
                  labels='',
                  ticks="(1, 2, 3, 4, 5)",
+                 initVal="",
                  size='(1.0, 0.1)',
                  pos='(0, -0.4)',
                  flip=False,
@@ -114,6 +115,11 @@ class SliderComponent(BaseVisualComponent):
                 hint=_translate("Labels for the tick marks on the scale, "
                                 "separated by commas"),
                 label=_localized['labels'])
+        self.params['initVal'] = Param(
+            initVal, valType='code', inputType="single", categ='Basic',
+            hint=_translate("Value of the slider befre any response, leave blank to hide the marker until clicked on"),
+            label=_translate("Starting Value")
+        )
         self.params['granularity'] = Param(
                 granularity, valType='num', inputType="single", allowedTypes=[], categ='Basic',
                 updates='constant',
@@ -208,6 +214,9 @@ class SliderComponent(BaseVisualComponent):
 
         inits['depth'] = -self.getPosInRoutine()
 
+        # Use None as a start value if none set
+        inits['initVal'] = inits['initVal'] or None
+
         # build up an initialization string for Slider():
         initStr = ("{name} = visual.Slider(win=win, name='{name}',\n"
                    "    size={size}, pos={pos}, units={units},\n"
@@ -216,6 +225,7 @@ class SliderComponent(BaseVisualComponent):
                    "    color={color}, fillColor={fillColor}, borderColor={borderColor}, colorSpace={colorSpace},\n"
                    "    font={font}, labelHeight={letterHeight},\n"
                    "    flip={flip}, depth={depth}, readOnly={readOnly})\n"
+                   "{name}.value = {initVal}"
                    .format(**inits))
         buff.writeIndented(initStr)
 
