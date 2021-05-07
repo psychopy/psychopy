@@ -17,7 +17,7 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
                  color="red", fillColor="", borderColor="white", cursorColor="red", colorSpace="rgb",
                  borderWidth=0.005,
                  units='from exp settings', targetSize=0.025, dotSize=0.005,
-                 targetLayout="nine-point", randomisePos=True,
+                 targetLayout="NINE-POINT", targetPositions="[(0.4, 0.4), (-0.4, 0.4), (0.4, -0.4), (-0.4, -0.4)]", randomisePos=True,
                  enableAnimation=False, velocity=0.5, expandScale=3, expandDur=0.75):
         # Initialise base routine
         BaseStandaloneRoutine.__init__(self, exp, name=name)
@@ -82,11 +82,22 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
         # Layout Params
         self.order += [
             "targetLayout",
+            "targetPositions",
             "randomisePos",
             "targetSize",
             "dotSize",
             "units",
         ]
+
+        self.depends.append(
+            {"dependsOn": "targetLayout",  # must be param name
+             "condition": "=='custom...'",  # val to check for
+             "param": "targetPositions",  # param property to alter
+             "true": "show",  # what to do with param if condition is True
+             "false": "hide",  # permitted: hide, show, enable, disable
+             }
+        )
+
         self.params['units'] = Param(units,
                                      valType='str', inputType="choice", categ='Layout',
                                      allowedVals=['from exp settings', 'deg', 'cm', 'pix', 'norm',
@@ -97,8 +108,14 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
         self.params['targetLayout'] = Param(targetLayout,
                                             valType='str', inputType="choice", categ='Layout',
                                             allowedVals=['THREE_POINTS', 'FIVE_POINTS', 'NINE_POINTS', "THIRTEEN_POINTS", 'custom...'],
-                                            hint=_translate("Pre-defined point layouts"),
+                                            hint=_translate("Pre-defined target layouts"),
                                             label=_translate("Target Layout"))
+
+        self.params['targetPositions'] = Param(targetPositions,
+                                            valType='list', inputType="single", categ='Layout',
+                                            hint=_translate("Define a custom target layout using a list of "
+                                                            "(x, y) coordinates"),
+                                            label=_translate("Target Positions"))
 
         self.params['randomisePos'] = Param(randomisePos,
                                             valType='bool', inputType="bool", categ='Layout',
@@ -131,8 +148,8 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
 
         for depParam in ["velocity", "expandScale", "expandDur"]:
             self.depends.append(
-                {"dependsOn": "eyetracker",  # must be param name
-                 "condition": "=='enableAnimation'",  # val to check for
+                {"dependsOn": "enableAnimation",  # must be param name
+                 "condition": "==True",  # val to check for
                  "param": depParam,  # param property to alter
                  "true": "enable",  # what to do with param if condition is True
                  "false": "disable",  # permitted: hide, show, enable, disable
@@ -163,7 +180,8 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
             alert(code=4505)
         # Get inits
         inits = self.params
-        inits['pacingSpeed'] = inits['pacingSpeed'] or None
+        if self.params['targetLayout'].val not in ['THREE_POINTS', 'FIVE_POINTS', 'NINE_POINTS', "THIRTEEN_POINTS"]:
+            inits['targetLayout'] = inits['targetPositions']
 
         BaseStandaloneRoutine.writeMainCode(self, buff)
 
