@@ -17,15 +17,13 @@ except Exception:
 import pytest
 import copy
 import threading
-import os
 import numpy as np
+from psychopy.tests import skip_under_vm
 
 """test with both pyglet and pygame:
     cd psychopy/psychopy/
     py.test -k event --cov-report term-missing --cov event.py
 """
-
-travis = bool(str(os.environ.get('TRAVIS')).lower() == 'true')
 
 
 class DelayedFakeKeys(threading.Thread):
@@ -148,9 +146,8 @@ class _baseTest(object):
         event.clearEvents('joystick')
         assert event._keyBuffer
 
+    @skip_under_vm
     def test_keys(self):
-        if travis:
-            pytest.skip()  # failing on travis-ci
         if self.win.winType == 'pygame':
             pytest.skip()
         event.clearEvents()
@@ -225,10 +222,8 @@ class _baseTest(object):
     def test_xydist(self):
         assert event.xydist([0,0], [1,1]) == np.sqrt(2)
 
+    @skip_under_vm
     def test_mouseMoved(self):
-        if travis:
-            pytest.skip()  # failing on travis-ci
-
         m = event.Mouse()
         m.prevPos = [0, 0]
         m.lastPos = [0, 1]
