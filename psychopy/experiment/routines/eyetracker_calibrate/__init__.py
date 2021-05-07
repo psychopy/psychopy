@@ -16,20 +16,20 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
                  pacingSpeed="", autoPace=True,
                  color="red", fillColor="", borderColor="white", cursorColor="red", colorSpace="rgb",
                  borderWidth=0.005,
-                 units='from exp settings', targetSize=0.025, dotSize=0.005, randomisePos=True,
-                 targetLayout="nine-point",
+                 units='from exp settings', targetSize=0.025, dotSize=0.005,
+                 targetLayout="nine-point", randomisePos=True,
                  enableAnimation=False, velocity=0.5, expandScale=3, expandDur=0.75):
         # Initialise base routine
         BaseStandaloneRoutine.__init__(self, exp, name=name)
 
         # Basic params
         self.params['pacingSpeed'] = Param(pacingSpeed,
-            valType='code', inputType="single", categ='Basic',
+            valType='num', inputType="single", categ='Basic',
             hint=_translate(
                 "Number of seconds to wait between each calibration point presentation."),
             label=_translate("Pacing Speed"))
 
-        self.params['autoPace'] = Param(pacingSpeed,
+        self.params['autoPace'] = Param(autoPace,
             valType='bool', inputType="bool", categ='Basic',
             hint=_translate(
                 "If True, calibration progresses after a fixation, if False, calibration has to "
@@ -161,6 +161,9 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
         # Alert user if eyetracking isn't setup
         if self.exp.eyetracking == "None":
             alert(code=4505)
+        # Get inits
+        inits = self.params
+        inits['pacingSpeed'] = inits['pacingSpeed'] or None
 
         BaseStandaloneRoutine.writeMainCode(self, buff)
 
@@ -169,7 +172,7 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
             "# define target for %(name)s\n"
             "%(name)sTarget = visual.TargetStim(win, \n"
         )
-        buff.writeIndentedLines(code % self.params)
+        buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(1, relative=True)
         code = (
                 "name='%(name)sTarget',\n"
@@ -177,125 +180,31 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
                 "color=%(color)s, fillColor=%(fillColor)s, borderColor=%(borderColor)s,\n"
                 "colorSpace=%(colorSpace)s, units=%(units)s\n"
         )
-        buff.writeIndentedLines(code % self.params)
+        buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
         code = (
             ")"
         )
-        buff.writeIndentedLines(code % self.params)
-        # Make config dict
+        buff.writeIndentedLines(code % inits)
+        # Make config object
         code = (
-            "# define attributes for calibration for %(name)s\n"
-            "%(name)sCalib = {\n"
+            "# define config object\n"
+            "%(name)s = hardware.eyetracker.EyetrackerCalibration(win, \n"
         )
-        buff.writeIndentedLines(code % self.params)
-        buff.setIndentLevel(1, relative=True)
-
-        # Eyelink
-        code = (
-            "'eyetracker.hw.sr_research.eyelink.EyeTracker': {\n"
-        )
-        buff.writeIndentedLines(code % self.params)
-        buff.setIndentLevel(1, relative=True)
-        # EyeLink doesn't allow custom positions, so if it's custom, approximate
-        elPositions = self.params['targetLayout'].val
-        if elPositions not in ['THREE_POINTS', 'FIVE_POINTS', 'NINE_POINTS', "THIRTEEN_POINTS"]:
-            if len(elPositions) <= 4:
-                elPositions = "'THREE_POINTS'"
-            elif len(elPositions) <= 7:
-                elPositions = "'FIVE_POINTS'"
-            elif len(elPositions) <= 11:
-                elPositions = "'NINE_POINTS'"
-            else:
-                elPositions = "'THIRTEEN_POINTS'"
-        code = (
-                    "'target_attributes': %(name)sTarget.getCalibSettings('SR Research Ltd'),\n"
-                    "'type': " + elPositions + ",\n"
-                    "'auto_pace': %(autoPace),\n"
-                    "'pacing_speed': " + str(self.params['pacingSpeed'].val or 1.5) + ",\n"
-                    "'screen_background_color': win._color.rgb255\n"
-        )
-        buff.writeIndentedLines(code % self.params)
-        buff.setIndentLevel(-1, relative=True)
-        code = (
-                "},\n"
-        )
-        buff.writeIndentedLines(code % self.params)
-
-        # GazePoint
-        gpTargetDur = self.params['expandDur'].val
-        if isinstance(gpTargetDur, (list, tuple)):
-            gpTargetDur = sum(gpTargetDur)
-        code = (
-                "'eyetracker.hw.gazepoint.gp3.EyeTracker': {\n"
-        )
-        buff.writeIndentedLines(code % self.params)
+        buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(1, relative=True)
         code = (
-                "'target_delay': %(velocity)s,\n"
-                "'target_duration': %(pacingSpeed)s\n"
+                "eyetracker, %(name)sTarget,\n"
+                "pacingSpeed=%(pacingSpeed)s, autoPace=%(autoPace)s,\n"
+                "targetLayout=%(targetLayout)s, randomisePos=%(randomisePos)s,\n"
+                "enableAnimation=%(enableAnimation)s, velocity=%(velocity)s,\n"
+                "expandScale=%(expandScale)s, expandDur=%(expandDur)s\n"
         )
-        buff.writeIndentedLines(code % self.params)
+        buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
         code = (
-                "},\n"
-        )
-        buff.writeIndentedLines(code % self.params)
-
-        # Tobii
-        if elPositions == 'THIRTEEN_POINTS':
-            tbPositions = 'NINE_POINTS'
-        else:
-            tbPositions = elPositions
-        code = (
-            "'eyetracker.hw.tobii.EyeTracker': {\n"
-        )
-        buff.writeIndentedLines(code % self.params)
-        buff.setIndentLevel(1, relative=True)
-        code = (
-                "'target_attributes': %(name)sTarget.getCalibSettings('Tobii Technology'),\n"
-                "'type': " + tbPositions + ",\n"
-                "'randomize': %(randomisePos)s,\n"
-                "'auto_pace': %(autoPace)s,\n"
-                "'pacing_speed': " + str(self.params['pacingSpeed'].val or 1) + ",\n"
-                "'screen_background_color': win.color\n"
-                "'animate': {"
-        )
-        buff.writeIndentedLines(code % self.params)
-        buff.setIndentLevel(1, relative=True)
-        # Animation settings
-        code = (
-                    "'enable': %(enableAnimation)s,\n"
-                    "'movement_velocity': %(velocity)s,\n"
-                    "'expansion_ratio': %(expandScale)s,\n"
-                    "'expansion_speed': %(expandDur)s"
-        )
-        buff.writeIndentedLines(code % self.params)
-        buff.setIndentLevel(-1, relative=True)
-        code = (
-                "},\n"
-        )
-        buff.writeIndentedLines(code % self.params)
-        buff.setIndentLevel(-1, relative=True)
-        code = (
-            "},\n"
-        )
-        buff.writeIndentedLines(code % self.params)
-
-        # MouseGaze & unknown
-        code = (
-            "'eyetracker.hw.mouse.EyeTracker': {},\n"
-            "'unknown': {}\n"
-        )
-        buff.writeIndentedLines(code % self.params)
-
-        buff.setIndentLevel(-1, relative=True)
-        code = (
-            "}\n"
-        )
-        buff.writeIndentedLines(code % self.params)
-        code = (
+            ")\n"
             "# run calibration\n"
-            "eyetracker.runSetupProcedure(%(name)sCalib[eyetracker.getIOHubDeviceClass(full=True)])\n"
+            "%(name)s.run()"
         )
-        buff.writeIndentedLines(code % self.params)
+        buff.writeIndentedLines(code % inits)
