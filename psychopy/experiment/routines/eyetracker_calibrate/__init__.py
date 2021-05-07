@@ -18,7 +18,7 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
                  borderWidth=0.005,
                  units='from exp settings', targetSize=0.025, dotSize=0.005, randomisePos=True,
                  targetLayout="nine-point",
-                 velocity=1, expandScale=3, expandDur=0.2):
+                 velocity=1, expandScale=3, expandDur=(0.75, 0.75)):
         # Initialise base routine
         BaseStandaloneRoutine.__init__(self, exp, name=name)
 
@@ -159,7 +159,6 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
         )
         buff.writeIndentedLines(code % self.params)
         # Make config dict
-        progressTime = self.params['progressTime'].val or None
         code = (
             "# define attributes for calibration for %(name)s\n"
             "%(name)sCalib = {\n"
@@ -187,8 +186,8 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
         code = (
                     "'target_attributes': %(name)sTarget.getCalibSettings('SR Research Ltd'),\n"
                     "'type': " + elPositions + ",\n"
-                    "'auto_pace': " + str(bool(self.params['progressTime'])) + ",\n"
-                    "'pacing_speed': " + str(progressTime) + ",\n"
+                    "'auto_pace': " + str(bool(self.params['progressTime'].val)) + ",\n"
+                    "'pacing_speed': " + str(self.params['progressTime'].val or 0.5) + ",\n"
                     "'screen_background_color': win._color.rgb255\n"
         )
         buff.writeIndentedLines(code % self.params)
@@ -199,21 +198,17 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
         buff.writeIndentedLines(code % self.params)
 
         # GazePoint
-        targetDur = self.params['expandDur'].val
-        if not isinstance(targetDur, (list, tuple)):
-            targetDur = [targetDur]
-        if len(targetDur) > 1:
-            targetDur = sum(targetDur)
-        else:
-            targetDur = targetDur * 2
+        gpTargetDur = self.params['expandDur'].val
+        if isinstance(gpTargetDur, (list, tuple)):
+            gpTargetDur = sum(gpTargetDur)
         code = (
                 "'eyetracker.hw.gazepoint.gp3.EyeTracker': {\n"
         )
         buff.writeIndentedLines(code % self.params)
         buff.setIndentLevel(1, relative=True)
         code = (
-                "'target_delay': " + str(self.params['progressTime'].val or 1) + ",\n"
-                "'target_duration': " + str(targetDur) + "\n"
+                "'target_delay': " + str(self.params['progressTime'].val or 0.5) + ",\n"
+                "'target_duration': " + str(gpTargetDur) + "\n"
         )
         buff.writeIndentedLines(code % self.params)
         buff.setIndentLevel(-1, relative=True)
@@ -236,8 +231,8 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
                 "'target_attributes': %(name)sTarget.getCalibSettings('Tobii Technology'),\n"
                 "'type': " + tbPositions + ",\n"
                 "'randomize': %(randomisePos)s,\n"
-                "'auto_pace': " + str(bool(self.params['progressTime'])) + ",\n"
-                "'pacing_speed': " + str(progressTime) + ",\n"
+                "'auto_pace': " + str(bool(self.params['progressTime'].val)) + ",\n"
+                "'pacing_speed': " + str(self.params['progressTime'].val or 1) + ",\n"
                 "'screen_background_color': win._color.rgb255\n"
         )
         buff.writeIndentedLines(code % self.params)
