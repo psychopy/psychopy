@@ -119,7 +119,7 @@ class Test_textbox(object):
             self.textbox.fillColor = case['fillColor']
             self.textbox.borderColor = case['borderColor']
             for lineBreaking in ('default', 'uax14'):
-            self.win.flip()
+                self.win.flip()
                 self.textbox.draw()
             if case['screenshot']:
                 # Uncomment to save current configuration as desired
