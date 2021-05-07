@@ -193,12 +193,14 @@ class _baseTest(object):
             assert result[0][0] == k
             assert result[0][1] - delay < .01  # should be ~0 except for execution time
 
+    @skip_under_vm
     def test_waitKeys_clearEvents_True(self):
         key = 'x'
         DelayedAddFakeKeysToBuffer(key).start()
         key_events = event.waitKeys(clearEvents=True)
         assert key_events == [key]
 
+    @skip_under_vm
     def test_waitKeys_clearEvents_False(self):
         keys = ['x', 'y', 'z']
         [event._onPygletKey(symbol=key, modifiers=0, emulated=True)
@@ -209,6 +211,7 @@ class _baseTest(object):
         assert 'y' in key_events
         assert 'z' in key_events
 
+    @skip_under_vm
     def test_waitKeys_keyList_clearEvents_True(self):
         keys = ['x', 'y', 'z']
         DelayedAddFakeKeysToBuffer(keys).start()
