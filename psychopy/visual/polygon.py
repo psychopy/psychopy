@@ -166,7 +166,7 @@ class Polygon(BaseShapeStim):
             colorSpace=colorSpace)
 
     def _calcVertices(self):
-        self._calcEquilateralVertices(self.edges, self.radius)
+        self.vertices = self._calcEquilateralVertices(self.edges, self.radius)
 
     @attributeSetter
     def edges(self, edges):
