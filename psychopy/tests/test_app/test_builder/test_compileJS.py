@@ -32,7 +32,7 @@ class Test_PsychoJS_from_Builder(object):
     """Some tests just for the window - we don't really care about what's drawn inside it
     """
     @pytest.mark.usefixtures("get_app")
-    def setup_class(self):
+    def setup_class(self, get_app):
         if keepFiles:
             self.temp_dir = Path.home() / "Desktop" / "tmp"
         else:

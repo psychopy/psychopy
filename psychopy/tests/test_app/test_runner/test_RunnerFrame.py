@@ -8,7 +8,7 @@ class Test_RunnerFrame(object):
     This test opens Runner, and several processes.
     """
     @pytest.mark.usefixtures("get_app")
-    def setup(self):
+    def setup(self, get_app):
         self.app = get_app()
         self.runner = self.app.newRunnerFrame()
         self.runner.clearTasks()

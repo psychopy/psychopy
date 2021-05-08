@@ -36,7 +36,7 @@ class Test_BuilderFrame(object):
     settings, they can be added to a Routine and result in a script that compiles
     """
     @pytest.mark.usefixtures("get_app")
-    def setup(self):
+    def setup(self, get_app):
         self.builder = get_app().newBuilderFrame()  # self._app comes from requires_app
         self.exp = self.builder.exp
         self.here = path.abspath(path.dirname(__file__))
@@ -49,7 +49,7 @@ class Test_BuilderFrame(object):
         shutil.rmtree(self.tmp_dir, ignore_errors=True)
 
     @pytest.mark.usefixtures("get_app")
-    def test_BuilderFrame(self):
+    def test_BuilderFrame(self, get_app):
         """Tests of the Builder frame. We can call dialog boxes using
         a timeout (will simulate OK being pressed)
         """
@@ -96,7 +96,7 @@ class Test_BuilderFrame(object):
         assert ok == wx.ID_OK
 
     @pytest.mark.usefixtures("get_app")
-    def test_ComponentDialogs(self):
+    def test_ComponentDialogs(self, get_app):
         """Test the message dialog
         """
         builderView = get_app().newBuilderFrame()  # self._app comes from requires_app
