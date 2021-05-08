@@ -7,8 +7,9 @@ class Test_RunnerFrame(object):
     """
     This test opens Runner, and several processes.
     """
+    @pytest.mark.usefixtures("get_app")
     def setup(self):
-        self.app = psychopyApp._app
+        self.app = get_app()
         self.runner = self.app.newRunnerFrame()
         self.runner.clearTasks()
         self.tempFile = os.path.join(prefs.paths['tests'], 'data', 'test001EntryImporting.psyexp')

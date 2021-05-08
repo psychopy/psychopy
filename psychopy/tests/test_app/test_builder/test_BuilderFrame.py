@@ -30,12 +30,12 @@ allComponents = psychopy.experiment.getComponents(fetchIcons=False)
 import wx
 
 
-@pytest.mark.usefixtures("get_app")
+
 class Test_BuilderFrame(object):
     """This test fetches all standard components and checks that, with default
     settings, they can be added to a Routine and result in a script that compiles
     """
-
+    @pytest.mark.usefixtures("get_app")
     def setup(self):
         self.builder = get_app().newBuilderFrame()  # self._app comes from requires_app
         self.exp = self.builder.exp
@@ -48,6 +48,7 @@ class Test_BuilderFrame(object):
     def teardown(self):
         shutil.rmtree(self.tmp_dir, ignore_errors=True)
 
+    @pytest.mark.usefixtures("get_app")
     def test_BuilderFrame(self):
         """Tests of the Builder frame. We can call dialog boxes using
         a timeout (will simulate OK being pressed)

@@ -27,11 +27,11 @@ demosDir = psychoRoot / 'demos'
 testsDataDir = psychoRoot/'tests/data'
 
 
-@pytest.mark.usefixtures("get_app")
+
 class Test_PsychoJS_from_Builder(object):
     """Some tests just for the window - we don't really care about what's drawn inside it
     """
-
+    @pytest.mark.usefixtures("get_app")
     def setup_class(self):
         if keepFiles:
             self.temp_dir = Path.home() / "Desktop" / "tmp"
