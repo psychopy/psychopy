@@ -25,8 +25,8 @@ if version.parse(pytest.__version__) < version.parse('5'):
 
 # this method seems to work on at least Pytest 5.4+
 @pytest.mark.needs_wx
-@pytest.fixture(scope='session', autouse=True)
-def requires_app(request):
+@pytest.fixture(scope='session')
+def get_app(request):
 
     # ugly hack but @pytest.mark does seem to work for fixtures
     # can't use commandline to ignore the folder because we also have a pytest.ini file
@@ -37,13 +37,13 @@ def requires_app(request):
 
     # set_up
     PsychoPyApp._called_from_test = True  # NB class variable must be set
-    request.cls._app = PsychoPyApp(testMode=True, showSplash=False)
+    _app = PsychoPyApp(testMode=True, showSplash=False)
 
     # yield, to let all tests within the scope run
-    yield
+    yield _app
 
     # teasr_down: then clear table at the end of the scope
-    request.cls._app.quit()
+    _app.quit()
 
 
 

@@ -27,7 +27,7 @@ demosDir = psychoRoot / 'demos'
 testsDataDir = psychoRoot/'tests/data'
 
 
-@pytest.mark.usefixtures("requires_app")
+@pytest.mark.usefixtures("get_app")
 class Test_PsychoJS_from_Builder(object):
     """Some tests just for the window - we don't really care about what's drawn inside it
     """
@@ -37,7 +37,7 @@ class Test_PsychoJS_from_Builder(object):
             self.temp_dir = Path.home() / "Desktop" / "tmp"
         else:
             self.temp_dir = Path(mkdtemp(prefix='psychopy-test_psychojs'))
-        self.builderView = self._app.newBuilderFrame()  # self._app comes from requires_app
+        self.builderView = get_app().newBuilderFrame()  # self._app comes from requires_app
 
     def teardown_class(self):
         if not keepFiles:
