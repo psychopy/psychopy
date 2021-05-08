@@ -99,6 +99,31 @@ eyetracker.hw.gazepoint.gp3.EyeTracker:
              # inner_line_color: color to used for the inner circle edge.
              #
              inner_line_color: [0,0,0]
+             # The Tobii Calibration routine supports using moving target graphics.
+             # The following parameters control target movement (if any).
+             #
+             animate:
+                 # enable: True if the calibration target should be animated.
+                 # False specifies that the calibration targets could just jump
+                 # from one calibration position to another.
+                 #
+                 enable: True
+                 # expansion_ratio: The outer circle of the calibration target
+                 # can expand (and contract) when displayed at each position.
+                 # expansion_ratio gives the largest size of the outer circle
+                 # as a ratio of the outer_diameter length. For example,
+                 # if outer_diameter = 30, and expansion_ratio = 2.0, then
+                 # the outer circle of each calibration point will expand out
+                 # to 60 pixels. Set expansion_ratio to 1.0 for no expansion.
+                 #
+                 expansion_ratio: 3.0
+                 # contract_only: If the calibration target should expand from
+                 # the outer circle initial diameter to the larger diameter
+                 # and then contract back to the original diameter, set
+                 # contract_only to False. To only have the outer circle target
+                 # go from an expanded state to the smaller size, set this to True.
+                 #
+                 contract_only: True
 
     # The model name of the device.
     model_name: GP3

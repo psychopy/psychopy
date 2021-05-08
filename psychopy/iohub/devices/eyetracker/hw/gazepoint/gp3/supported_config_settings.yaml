@@ -85,5 +85,12 @@ eyetracker.hw.gazepoint.gp3.EyeTracker:
                     max: 1000.0
             inner_fill_color: IOHUB_COLOR
             inner_line_color: IOHUB_COLOR
+            animate:
+                enable: IOHUB_BOOL
+                expansion_ratio:
+                    IOHUB_FLOAT:
+                        min: 1.0
+                        max: 100.0
+                contract_only: IOHUB_BOOL
     device_number: 0
     manufacturer_name: GazePoint

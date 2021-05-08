@@ -239,19 +239,41 @@ class GazepointPsychopyCalibrationGraphics(object):
         i = 0
         for pt in cal_target_list:
             start_time = currentTime()
-            self.clearAllEventBuffers()
-            # Target animate / delay
-            print2err("TODO: Animate to point: ", p, "over {} seconds...".format(target_delay))
-            while currentTime()-start_time <= target_delay:
-                self.getNextMsg()
-                self.MsgPump()
-                gevent.sleep(0.001)
 
             # Convert GazePoint normalized positions to psychopy window unit positions
             # by using iohub display/window getCoordBounds.
             x, y = left + w * pt[0], bottom + h * (1.0 - pt[1])
+
+            self.clearAllEventBuffers()
+
+            # Target animate / delay
+            # animate:
+            #    enable: True
+            #    expansion_ratio: 3.0
+            #    contract_only: True
+            animate_enable = self.getCalibSetting(['target_attributes', 'animate', 'enable'])
+            animate_expansion_ratio = self.getCalibSetting(['target_attributes', 'animate', 'expansion_ratio'])
+            animate_contract_only = self.getCalibSetting(['target_attributes', 'animate', 'contract_only'])
+
+            if animate_enable:
+                print2err("TODO: Animate to point: ", p, "over {} seconds...".format(target_delay))
+
+            while currentTime()-start_time <= target_delay:
+                # TODO: (Optional) Animate target during this period.
+                self.getNextMsg()
+                self.MsgPump()
+                gevent.sleep(0.001)
+
             self.drawCalibrationTarget(i, (x, y))
+
+            if animate_expansion_ratio not in [1, 1.0]:
+                print2err("TODO: Expand / contract target: ", p, "over {} seconds...".format(target_duration))
+                if animate_contract_only:
+                    pass
+                else:
+                    pass
             while currentTime()-start_time <= target_delay+target_duration:
+                # TODO: (Optional) Expand / contract target during this period.
                 self.getNextMsg()
                 self.MsgPump()
                 gevent.sleep(0.001)

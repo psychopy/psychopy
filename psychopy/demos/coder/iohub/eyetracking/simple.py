@@ -22,7 +22,7 @@ if TRACKER == 'eyelink':
     devices_config['eyetracker.hw.sr_research.eyelink.EyeTracker'] = eyetracker_config
 elif TRACKER == 'gazepoint':
     eyetracker_config['device_timer'] = {'interval': 0.005}
-    eyetracker_config['calibration'] = {'use_builtin': False}
+    eyetracker_config['calibration'] = dict(use_builtin=False, target_attributes=dict(animate=dict(enable=True, expansion_ratio=1.0)))
     devices_config['eyetracker.hw.gazepoint.gp3.EyeTracker'] = eyetracker_config
 elif TRACKER == 'tobii':
     devices_config['eyetracker.hw.tobii.EyeTracker'] = eyetracker_config
