@@ -443,43 +443,33 @@ class EyeTracker(EyeTrackerDevice):
         if targ_delay is None:
             targ_delay = cal_config.get('target_delay')
 
-        print2err("targ_timeout: ", targ_timeout)
-        print2err("targ_delay: ", targ_delay)
-
         self._gp3set('CALIBRATE_TIMEOUT', VALUE=targ_timeout)
         self._gp3set('CALIBRATE_DELAY', VALUE=targ_delay)
         self._waitForAck('CALIBRATE_DELAY', timeout=2.0)
 
-        use_builtin=False
         if use_builtin is True:
             self._gp3set('CALIBRATE_RESET')
             self._gp3set('CALIBRATE_SHOW', STATE=1)
             self._gp3set('CALIBRATE_START', STATE=1)
 
         else:
-            self._gp3set('CALIBRATE_CLEAR')
+            from .gazepointCalibrationGraphics import GazepointPsychopyCalibrationGraphics
+            calibration = GazepointPsychopyCalibrationGraphics(self, calibration_args)
 
-            points = [(0.5, 0.5), (0.85, 0.15), (0.85, 0.85), (0.15, 0.85), (0.15, 0.15)]
-            for p in points:
-                x, y = p
-                self._gp3set('CALIBRATE_ADDPOINT', X=x, Y=y)
-                self._waitForAck('CALIBRATE_ADDPOINT')
-            self._gp3set('CALIBRATE_SHOW', STATE=0)
-            self._gp3set('CALIBRATE_START', STATE=1)
+            calibration.runCalibration()
 
-            # draw calibration targets
+            calibration.window.winHandle.set_visible(False)
+            calibration.window.winHandle.minimize()
+            calibration.window.close()
 
-            #seems like gps expects animation at state of every target pos.
-            for p in points:
-                print2err("Animate to point: ", p, "over {} seconds...".format(targ_delay))
-                gevent.sleep(targ_delay)
-                print2err("Draw point: ", p, "for {} seconds...".format(targ_timeout))
-                gevent.sleep(targ_timeout)
+            calibration._unregisterEventMonitors()
+            calibration.clearAllEventBuffers()
 
         # Get calibration result and return to experiment process.
         cal_result = self._waitForAck('CALIB_RESULT', timeout=30.0)
         if cal_result:
             self._gp3set('CALIBRATE_SHOW', STATE=0)
+            self._gp3set('CALIBRATE_START', STATE=0)
             self._gp3get('CALIBRATE_RESULT_SUMMARY')
             del cal_result['type']
             del cal_result['ID']
@@ -537,7 +527,7 @@ class EyeTracker(EyeTrackerDevice):
                         self._addNativeEventToBuffer(fix_evt)
 
                 elif m.get('type') == 'ACK':
-                    print2err('ACK Received: ', m)
+                    pass#print2err('ACK Received: ', m)
                 else:
                     # Message type is not being handled.
                     print2err('UNHANDLED GP3 MESSAGE: ', m)
