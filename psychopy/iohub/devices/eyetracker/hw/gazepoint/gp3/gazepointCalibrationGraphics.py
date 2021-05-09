@@ -205,20 +205,23 @@ class GazepointPsychopyCalibrationGraphics(object):
         target_delay = self.getCalibSetting('target_delay')
         target_duration = self.getCalibSetting('target_duration')
 
-        # TODO: Decide how to handle gaze point target randomization.
         cal_target_list = self.CALIBRATION_POINT_LIST
-        #randomize_points = self.getCalibSetting('randomize')
-        #cal_target_list = self.CALIBRATION_POINT_LIST[1:-1]
-        #if randomize_points is True:
-        #    import random
-        #    random.seed(None)
-        #    random.shuffle(cal_target_list)
-        #cal_target_list.insert(0, self.CALIBRATION_POINT_LIST[0])
-        #cal_target_list.append(self.CALIBRATION_POINT_LIST[-1])
+        randomize_points = self.getCalibSetting('randomize')
+        if randomize_points is True:
+            # Randomize all but first target position.
+            cal_target_list = self.CALIBRATION_POINT_LIST[1:]
+            import random
+            random.seed(None)
+            random.shuffle(cal_target_list)
+            cal_target_list.insert(0, self.CALIBRATION_POINT_LIST[0])
+
+        self._eyetracker._gp3set('CALIBRATE_SHOW', STATE=0)
+        self._eyetracker._gp3set('CALIBRATE_START', STATE=0)
 
         self._eyetracker._gp3set('CALIBRATE_CLEAR')
 
-        print2err("TODO: Send screen coord info to gazepoint.")
+        self._eyetracker._gp3set('SCREEN_SIZE', X=0, Y=0, WIDTH=self.width, HEIGHT=self.height)
+        #print2err("Set GP3 SCREEN_SIZE: ", self._eyetracker._waitForAck('SCREEN_SIZE'))
 
         # Inform GazePoint of target list to be used
         for p in cal_target_list:
