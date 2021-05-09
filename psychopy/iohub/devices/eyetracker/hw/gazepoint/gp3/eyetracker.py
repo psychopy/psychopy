@@ -458,8 +458,6 @@ class EyeTracker(EyeTrackerDevice):
 
             calibration.runCalibration()
 
-            calibration.window.winHandle.set_visible(False)
-            calibration.window.winHandle.minimize()
             calibration.window.close()
 
             calibration._unregisterEventMonitors()

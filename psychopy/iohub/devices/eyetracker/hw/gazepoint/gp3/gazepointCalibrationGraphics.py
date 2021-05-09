@@ -241,49 +241,74 @@ class GazepointPsychopyCalibrationGraphics(object):
         # seems like gps expects animation at state of every target pos.
         i = 0
         for pt in cal_target_list:
-            start_time = currentTime()
-
             # Convert GazePoint normalized positions to psychopy window unit positions
             # by using iohub display/window getCoordBounds.
             x, y = left + w * pt[0], bottom + h * (1.0 - pt[1])
+            self.drawCalibrationTarget((x, y), False)
+            start_time = currentTime()
 
             self.clearAllEventBuffers()
 
             # Target animate / delay
-            # animate:
-            #    enable: True
-            #    expansion_ratio: 3.0
-            #    contract_only: True
             animate_enable = self.getCalibSetting(['target_attributes', 'animate', 'enable'])
             animate_expansion_ratio = self.getCalibSetting(['target_attributes', 'animate', 'expansion_ratio'])
             animate_contract_only = self.getCalibSetting(['target_attributes', 'animate', 'contract_only'])
 
-            if animate_enable:
-                print2err("TODO: Animate to point: ", p, "over {} seconds...".format(target_delay))
-
             while currentTime()-start_time <= target_delay:
-                # TODO: (Optional) Animate target during this period.
+                if animate_enable:
+                    t = (currentTime()-start_time) / target_delay
+                    if i > 0:
+                        v1 = cal_target_list[i-1]
+                        v2 = pt
+                        t = 60.0 * ((1.0 / 10.0) * t ** 5 - (1.0 / 4.0) * t ** 4 + (1.0 / 6.0) * t ** 3)
+                        mx, my = ((1.0 - t) * v1[0] + t * v2[0], (1.0 - t) * v1[1] + t * v2[1])
+                        moveTo = left + w * mx, bottom + h * (1.0 - my)
+                        self.drawCalibrationTarget(moveTo, reset=False)
+                else:
+                    gevent.sleep(0.01)
                 self.getNextMsg()
                 self.MsgPump()
-                gevent.sleep(0.001)
 
-            self.drawCalibrationTarget(i, (x, y))
+            self.drawCalibrationTarget((x, y))
+            start_time = currentTime()
 
-            if animate_expansion_ratio not in [1, 1.0]:
-                print2err("TODO: Expand / contract target: ", p, "over {} seconds...".format(target_duration))
+            outer_diameter = self.getCalibSetting(['target_attributes', 'outer_diameter'])
+            inner_diameter = self.getCalibSetting(['target_attributes', 'inner_diameter'])
+            while currentTime()-start_time <= target_duration:
+                elapsed_time = currentTime()-start_time
+                d = t = None
                 if animate_contract_only:
-                    pass
-                else:
-                    pass
-            while currentTime()-start_time <= target_delay+target_duration:
-                # TODO: (Optional) Expand / contract target during this period.
+                    # Change target size from outer diameter to inner diameter over target_duration seconds.
+                    t = elapsed_time / target_duration
+                    d = outer_diameter - t * (outer_diameter - inner_diameter)
+                    self.calibrationPointOUTER.radius = d / 2
+                    self.calibrationPointOUTER.draw()
+                    self.calibrationPointINNER.draw()
+                    self.window.flip(clearBuffer=True)
+                elif animate_expansion_ratio not in [1, 1.0]:
+                    if elapsed_time <= target_duration/2:
+                        # In expand phase
+                        t = elapsed_time / (target_duration/2)
+                        d = outer_diameter + t * (outer_diameter*animate_expansion_ratio - outer_diameter)
+                    else:
+                        # In contract phase
+                        t = (elapsed_time-target_duration/2) / (target_duration/2)
+                        d = outer_diameter*animate_expansion_ratio - t * (outer_diameter*animate_expansion_ratio - inner_diameter)
+                if d:
+                    self.calibrationPointOUTER.radius = d / 2
+                    self.calibrationPointOUTER.draw()
+                    self.calibrationPointINNER.draw()
+                    self.window.flip(clearBuffer=True)
+
+                #print2err(inner_diameter, " ", outer_diameter, " ", t, " ", d)
+
                 self.getNextMsg()
                 self.MsgPump()
                 gevent.sleep(0.001)
 
             self.clearCalibrationWindow()
             self.clearAllEventBuffers()
-
+            i += 1
         instuction_text = "Calibration Complete. Press 'SPACE' key to continue."
         self.showSystemSetupMessageScreen(instuction_text)
 
@@ -324,7 +349,12 @@ class GazepointPsychopyCalibrationGraphics(object):
         self.calibrationPointINNER.draw()
         return self.window.flip(clearBuffer=True)
 
-    def drawCalibrationTarget(self, target_number, tp):
+    def drawCalibrationTarget(self, tp, reset=True):
         self.calibrationPointOUTER.setPos(tp)
         self.calibrationPointINNER.setPos(tp)
-        self.drawDefaultTarget()
+        if reset:
+            return self.drawDefaultTarget()
+        else:
+            self.calibrationPointOUTER.draw()
+            self.calibrationPointINNER.draw()
+            return self.window.flip(clearBuffer=True)
