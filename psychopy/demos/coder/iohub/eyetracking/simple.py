@@ -11,7 +11,7 @@ from psychopy.iohub import launchHubServer
 
 
 # Eye tracker to use ('mouse', 'eyelink', 'gazepoint', or 'tobii')
-TRACKER = 'tobii'
+TRACKER = 'mouse'
 
 eyetracker_config = dict(name='tracker')
 devices_config = {}
@@ -24,7 +24,6 @@ elif TRACKER == 'gazepoint':
     eyetracker_config['device_timer'] = {'interval': 0.005}
     devices_config['eyetracker.hw.gazepoint.gp3.EyeTracker'] = eyetracker_config
 elif TRACKER == 'tobii':
-    eyetracker_config['license_file'] = r'D:\tobii_license_test\fake_license.txt'
     devices_config['eyetracker.hw.tobii.EyeTracker'] = eyetracker_config
 elif TRACKER == 'mouse':
     devices_config['eyetracker.hw.mouse.EyeTracker'] = eyetracker_config
@@ -55,7 +54,6 @@ io = launchHubServer(window=win, **devices_config)
 
 # Get some iohub devices for future access.
 keyboard = io.getDevice('keyboard')
-display = io.getDevice('display')
 tracker = io.getDevice('tracker')
 
 win.winHandle.minimize()  # minimize the PsychoPy window
@@ -91,9 +89,6 @@ while t < TRIAL_COUNT:
     while run_trial is True:
         # Get the latest gaze position in dispolay coord space..
         gpos = tracker.getLastGazePosition()
-        #for evt in tracker.getEvents():
-        #    if evt.type != EventConstants.MONOCULAR_EYE_SAMPLE:
-        #        print(evt)
         # Update stim based on gaze position
         valid_gaze_pos = isinstance(gpos, (tuple, list))
         gaze_in_region = valid_gaze_pos and gaze_ok_region.contains(gpos)
