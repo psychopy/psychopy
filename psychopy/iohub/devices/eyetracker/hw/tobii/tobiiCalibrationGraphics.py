@@ -59,7 +59,13 @@ class TobiiPsychopyCalibrationGraphics(object):
 
             if num_points == 3:
                 TobiiPsychopyCalibrationGraphics.CALIBRATION_POINT_LIST = [
-                    (0.5, 0.1), (0.1, 0.9), (0.9, 0.9), (0.5, 0.1)]
+                    (0.5, 0.1), (0.1, 0.9), (0.9, 0.9)]
+            elif num_points == 5:
+                TobiiPsychopyCalibrationGraphics.CALIBRATION_POINT_LIST = [(0.5, 0.5),
+                                                                           (0.1, 0.1),
+                                                                           (0.9, 0.1),
+                                                                           (0.9, 0.9),
+                                                                           (0.1, 0.9)]
             elif num_points == 9:
                 TobiiPsychopyCalibrationGraphics.CALIBRATION_POINT_LIST = [(0.5, 0.5),
                                                                            (0.1,
@@ -77,8 +83,22 @@ class TobiiPsychopyCalibrationGraphics(object):
                                                                            (0.5,
                                                                             0.9),
                                                                            (0.1,
-                                                                            0.9),
-                                                                           (0.5, 0.5)]
+                                                                            0.9)]
+            elif num_points == 13:
+                TobiiPsychopyCalibrationGraphics.CALIBRATION_POINT_LIST = [(0.5, 0.5),
+                                                                               (0.1, 0.5),
+                                                                               (0.9, 0.5),
+                                                                               (0.1, 0.1),
+                                                                               (0.5, 0.1),
+                                                                               (0.9, 0.1),
+                                                                               (0.9, 0.9),
+                                                                               (0.5, 0.9),
+                                                                               (0.1, 0.9),
+                                                                               (0.25, 0.25),
+                                                                               (0.25, 0.75),
+                                                                               (0.75, 0.75),
+                                                                               (0.75, 0.25)
+                                                                               ]
         display = self._eyetrackerinterface._display_device
 
         self.window = visual.Window(
@@ -353,14 +373,13 @@ class TobiiPsychopyCalibrationGraphics(object):
         pacing_speed = self.getCalibSetting('pacing_speed')
         randomize_points = self.getCalibSetting('randomize')
 
-        cal_target_list = self.CALIBRATION_POINT_LIST[1:-1]
+        cal_target_list = self.CALIBRATION_POINT_LIST[1:]
         if randomize_points is True:
             import random
             random.seed(None)
             random.shuffle(cal_target_list)
 
         cal_target_list.insert(0, self.CALIBRATION_POINT_LIST[0])
-        cal_target_list.append(self.CALIBRATION_POINT_LIST[-1])
 
         calibration = self._tobii.newScreenCalibration()
 
