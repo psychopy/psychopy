@@ -6,6 +6,9 @@ knownStyles = ["ring", "dot"]
 
 
 class TargetStim(Circle):
+    """
+    A target for use in eyetracker calibration, if converted to a dict will return in the correct format for ioHub
+    """
     def __init__(self,
                  win, name=None, style="ring",
                  outerRadius=.05, innerRadius=.01, pos=(0, 0), lineWidth=2, units='height',
@@ -13,7 +16,7 @@ class TargetStim(Circle):
                  autoLog=None, autoDraw=False):
         # Init super (creates outer circle)
         Circle.__init__(self, win, name=name,
-                        radius=outerRadius, pos=pos, lineWidth=lineWidth, units=units,
+                        radius=outerRadius, pos=pos, lineWidth=lineWidth, units=units or '',
                         fillColor=fillColor, lineColor=borderColor, colorSpace=colorSpace,
                         autoLog=autoLog, autoDraw=autoDraw)
         self._outerRadius = outerRadius
@@ -92,26 +95,16 @@ class TargetStim(Circle):
         Circle.draw(self, win, keepMatrix)
         self.inner.draw(win, keepMatrix)
 
-    def getCalibSettings(self, tracker):
-        if tracker == "Tobii Technology":
-            return {
-                'outer_diameter': self.outerRadius * 2,
-                'outer_stroke_width': self.lineWidth,
-                'outer_fill_color': self.fillColor,
-                'outer_line_color': self.borderColor,
-                'inner_diameter': self.innerRadius * 2,
-                'inner_stroke_width': self.lineWidth,
-                'inner_fill_color': self.inner.fillColor,
-                'inner_line_color': self.inner.borderColor,
-            }
-        if tracker == "SR Research Ltd":
-            return {
-                'outer_diameter': self.outerRadius * 2,
-                'inner_diameter': self.innerRadius * 2,
-                'outer_color': self.borderColor,
-                'inner_color': self.inner.borderColor
-            }
-        if tracker == "GazePoint":
-            return {}
-        if tracker == "MouseGaze":
-            return self
+    def __dict__(self):
+        return {
+            # Outer circle
+            'outer_diameter': self.outerRadius * 2,
+            'outer_stroke_width': self.lineWidth,
+            'outer_fill_color': self.fillColor,
+            'outer_line_color': self.borderColor,
+            # Inner circle
+            'inner_diameter': self.innerRadius * 2,
+            'inner_stroke_width': self.lineWidth,
+            'inner_fill_color': self.inner.fillColor,
+            'inner_line_color': self.inner.borderColor,
+        }

@@ -36,9 +36,10 @@ class EyetrackerControl:
 class EyetrackerCalibration:
     def __init__(self, win,
                  eyetracker, target,
+                 units="height", colorSpace="rgb",
                  pacingSpeed="", autoPace=True,
                  targetLayout="NINE_POINTS", randomisePos=True,
-                 enableAnimation=False, velocity=0.5, expandScale=3, expandDur=0.75
+                 enableAnimation=False, contractOnly=False, velocity=0.5, expandScale=3, expandDur=0.75
                  ):
         # Store params
         self.win = win
@@ -48,7 +49,11 @@ class EyetrackerCalibration:
         self.autoPace = autoPace
         self.targetLayout = targetLayout
         self.randomisePos = randomisePos
+        self.units = units or self.win.units
+        self.colorSpace = colorSpace
+        # Animation
         self.enableAnimation = enableAnimation
+        self.contractOnly = contractOnly
         self.velocity = velocity
         self.expandScale = expandScale
         self.expandDur = expandDur
@@ -62,67 +67,66 @@ class EyetrackerCalibration:
                 # Alert user that their animation params aren't used
                 alert(code=4520, strFields={"brand": "EyeLink"})
 
-            # As EyeLink doesn't allow custom layouts, if given one, estimate
-            targetLayout = self.targetLayout
-            if targetLayout not in ['THREE_POINTS', 'FIVE_POINTS', 'NINE_POINTS', "THIRTEEN_POINTS"]:
-                # Alert user to what's happened
-                alert(code=4525, strFields={"brand": "EyeLink", "value": targetLayout})
-                if len(targetLayout) <= 4:
-                    targetLayout = "THREE_POINTS"
-                elif len(targetLayout) <= 7:
-                    targetLayout = "FIVE_POINTS"
-                elif len(targetLayout) <= 11:
-                    targetLayout = "NINE_POINTS"
-                else:
-                    targetLayout = "THIRTEEN_POINTS"
             # Make params dict
             self.eyetracker.runSetupProcedure({
-                'target_attributes': self.target.getCalibSettings('SR Research Ltd'),
-                'type': targetLayout,
+                'target_attributes': dict(self.target),
+                'type': self.targetLayout,
                 'auto_pace': self.autoPace,
                 'pacing_speed': self.pacingSpeed or 1.5,
-                'screen_background_color': self.win.color
+                'screen_background_color': getattr(self.win._color, self.colorSpace)
             })
 
         elif tracker == 'eyetracker.hw.tobii.EyeTracker':
-
-            # As Tobii doesn't allow custom layouts, if given one, estimate
-            targetLayout = self.targetLayout
-            if targetLayout not in ['THREE_POINTS', 'FIVE_POINTS', 'NINE_POINTS']:
-                if len(targetLayout) <= 4:
-                    targetLayout = "THREE_POINTS"
-                elif len(targetLayout) <= 7:
-                    targetLayout = "FIVE_POINTS"
-                else:
-                    targetLayout = "NINE_POINTS"
-                # Alert user to what's happened
-                alert(code=4525, strFields={"brand": "Tobii", "value": targetLayout})
+            targetAttrs = dict(self.target)
+            targetAttrs['animate'] = {
+                'enable': self.enableAnimation,
+                'movement_velocity': self.velocity,
+                'expansion_ratio': self.expandScale,
+                'expansion_speed': self.expandDur,
+                'contract_only': self.contractOnly
+            }
 
             # Run as tobii
             self.eyetracker.runSetupProcedure({
-                'target_attributes': self.target.getCalibSettings('Tobii Technology'),
+                'target_attributes': targetAttrs,
                 'type': self.targetLayout,
                 'randomize': self.randomisePos,
                 'auto_pace': self.autoPace,
                 'pacing_speed': self.pacingSpeed or 1,
-                'screen_background_color': self.win.color,
-                'animate': {
-                    'enable': self.enableAnimation,
-                    'movement_velocity': self.velocity,
-                    'expansion_ratio': self.expandScale,
-                    'expansion_speed': self.expandDur
-                }
+                'unit_type': self.units,
+                'color_type': self.colorSpace,
+                'screen_background_color': getattr(self.win._color, self.colorSpace),
             })
 
         elif tracker == 'eyetracker.hw.gazepoint.gp3.EyeTracker':
-            # Run as gazepoint
-            if self.enableAnimation:
-                alert(code=4520, strFields={"brand": "GazePoint"})
+
+            # As GazePoint doesn't use auto-pace, alert user
+            if not self.autoPace:
+                alert(4530, strFields={"brand": "GazePoint"})
+
+            targetAttrs = dict(self.target)
+            targetAttrs['animate'] = {
+                'enable': self.enableAnimation,
+                'movement_velocity': self.velocity,
+                'expansion_ratio': self.expandScale,
+                'expansion_speed': self.expandDur,
+                'contract_only': self.contractOnly
+            }
 
             self.eyetracker.runSetupProcedure({
+                'use_builtin': False,
                 'target_delay': self.velocity if self.enableAnimation else 0.5,
-                'target_duration': self.pacingSpeed or 1.5
+                'target_duration': self.pacingSpeed or 1.5,
+                'target_attributes': targetAttrs,
+                'type': self.targetLayout,
+                'randomize': self.randomisePos,
+                'unit_type': self.units,
+                'color_type': self.colorSpace,
+                'screen_background_color': getattr(self.win._color, self.colorSpace),
             })
+
+        elif tracker == 'eyetracker.hw.mouse.EyeTracker':
+            self.eyetracker.runSetupProcedure({})
 
         else:
             self.eyetracker.runSetupProcedure({})

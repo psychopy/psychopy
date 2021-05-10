@@ -17,8 +17,8 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
                  color="red", fillColor="", borderColor="white", cursorColor="red", colorSpace="rgb",
                  borderWidth=0.005,
                  units='from exp settings', targetSize=0.025, dotSize=0.005,
-                 targetLayout="NINE-POINT", targetPositions="[(0.4, 0.4), (-0.4, 0.4), (0.4, -0.4), (-0.4, -0.4)]", randomisePos=True,
-                 enableAnimation=False, velocity=0.5, expandScale=3, expandDur=0.75):
+                 targetLayout="NINE_POINT", randomisePos=True,
+                 enableAnimation=False, contractOnly=False, velocity=0.5, expandScale=3, expandDur=0.75):
         # Initialise base routine
         BaseStandaloneRoutine.__init__(self, exp, name=name)
 
@@ -89,15 +89,6 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
             "units",
         ]
 
-        self.depends.append(
-            {"dependsOn": "targetLayout",  # must be param name
-             "condition": "=='custom...'",  # val to check for
-             "param": "targetPositions",  # param property to alter
-             "true": "show",  # what to do with param if condition is True
-             "false": "hide",  # permitted: hide, show, enable, disable
-             }
-        )
-
         self.params['units'] = Param(units,
                                      valType='str', inputType="choice", categ='Layout',
                                      allowedVals=['from exp settings', 'deg', 'cm', 'pix', 'norm',
@@ -107,15 +98,9 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
 
         self.params['targetLayout'] = Param(targetLayout,
                                             valType='str', inputType="choice", categ='Layout',
-                                            allowedVals=['THREE_POINTS', 'FIVE_POINTS', 'NINE_POINTS', "THIRTEEN_POINTS", 'custom...'],
+                                            allowedVals=['THREE_POINTS', 'FIVE_POINTS', 'NINE_POINTS', "THIRTEEN_POINTS"],
                                             hint=_translate("Pre-defined target layouts"),
                                             label=_translate("Target Layout"))
-
-        self.params['targetPositions'] = Param(targetPositions,
-                                            valType='list', inputType="single", categ='Layout',
-                                            hint=_translate("Define a custom target layout using a list of "
-                                                            "(x, y) coordinates"),
-                                            label=_translate("Target Positions"))
 
         self.params['randomisePos'] = Param(randomisePos,
                                             valType='bool', inputType="bool", categ='Layout',
@@ -136,6 +121,7 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
         self.order += [
             "enableAnimation",
             "velocity",
+            "contractOnly",
             "expandScale",
             "expandDur",
         ]
@@ -146,7 +132,7 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
                                                            "eyetrackers"),
                                            label=_translate("Enable Animation"))
 
-        for depParam in ["velocity", "expandScale", "expandDur"]:
+        for depParam in ["velocity", "contractOnly", "expandScale", "expandDur"]:
             self.depends.append(
                 {"dependsOn": "enableAnimation",  # must be param name
                  "condition": "==True",  # val to check for
@@ -155,6 +141,12 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
                  "false": "disable",  # permitted: hide, show, enable, disable
                  }
             )
+
+        self.params['contractOnly'] = Param(contractOnly,
+                                           valType='bool', inputType="bool", categ='Animation',
+                                           hint=_translate("If True, then target stim won't expand in the animation, "
+                                                           "only contract"),
+                                           label=_translate("Contract Only"))
 
         self.params['expandScale'] = Param(expandScale,
                                            valType='num', inputType="single", categ='Animation',
@@ -180,8 +172,8 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
             alert(code=4505)
         # Get inits
         inits = self.params
-        if self.params['targetLayout'].val not in ['THREE_POINTS', 'FIVE_POINTS', 'NINE_POINTS', "THIRTEEN_POINTS"]:
-            inits['targetLayout'] = inits['targetPositions']
+        if self.params['units'].val == 'from exp settings':
+            inits['units'].val = None
 
         BaseStandaloneRoutine.writeMainCode(self, buff)
 
@@ -213,10 +205,11 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
         buff.setIndentLevel(1, relative=True)
         code = (
                 "eyetracker, %(name)sTarget,\n"
+                "units=%(units)s, colorSpace=%(colorSpace)s,\n"
                 "pacingSpeed=%(pacingSpeed)s, autoPace=%(autoPace)s,\n"
                 "targetLayout=%(targetLayout)s, randomisePos=%(randomisePos)s,\n"
                 "enableAnimation=%(enableAnimation)s, velocity=%(velocity)s,\n"
-                "expandScale=%(expandScale)s, expandDur=%(expandDur)s\n"
+                "contractOnly=%(contractOnly)s, expandScale=%(expandScale)s, expandDur=%(expandDur)s\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
