@@ -566,7 +566,6 @@ class Display(Device):
             print2err(
                 ' *** Display device error: Unknown coordinate type: {0}'.format(coord_type))
             return
-        print2err("_calculateCoordMappingFunctions(")
         self._pix2coord = None
 
         # For now, use psychopy unit conversions so that drawing positions match
