@@ -22,6 +22,7 @@ if TRACKER == 'eyelink':
     devices_config['eyetracker.hw.sr_research.eyelink.EyeTracker'] = eyetracker_config
 elif TRACKER == 'gazepoint':
     eyetracker_config['device_timer'] = {'interval': 0.005}
+    #eyetracker_config['calibration'] = dict(use_builtin=False, target_attributes=dict(animate=dict(enable=True, expansion_ratio=1.25, contract_only=False)))
     devices_config['eyetracker.hw.gazepoint.gp3.EyeTracker'] = eyetracker_config
 elif TRACKER == 'tobii':
     devices_config['eyetracker.hw.tobii.EyeTracker'] = eyetracker_config
@@ -87,14 +88,13 @@ while t < TRIAL_COUNT:
     run_trial = True
     tstart_time = core.getTime()
     while run_trial is True:
-        # Get the latest gaze position in dispolay coord space..
+        # Get the latest gaze position in display coord space.
         gpos = tracker.getLastGazePosition()
         # Update stim based on gaze position
         valid_gaze_pos = isinstance(gpos, (tuple, list))
         gaze_in_region = valid_gaze_pos and gaze_ok_region.contains(gpos)
         if valid_gaze_pos:
-            # If we have a gaze position from the tracker, update gc stim
-            # and text stim.
+            # If we have a gaze position from the tracker, update gc stim and text stim.
             if gaze_in_region:
                 gaze_in_region = 'Yes'
             else:

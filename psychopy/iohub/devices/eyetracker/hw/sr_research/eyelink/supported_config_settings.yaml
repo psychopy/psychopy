@@ -46,11 +46,25 @@ eyetracker.hw.sr_research.eyelink.EyeTracker:
                 IOHUB_FLOAT:
                     min: 0.01
                     max: 250.0
-            inner_diameter: 
+            outer_stroke_width:
+                IOHUB_FLOAT:
+                    min: 0.01
+                    max: 1000.0
+            outer_fill_color: IOHUB_COLOR
+            outer_line_color: IOHUB_COLOR
+            inner_diameter:
                 IOHUB_FLOAT:
                     min: 0.01
                     max: 250.0
+            inner_stroke_width:
+                IOHUB_FLOAT:
+                    min: 0.01
+                    max: 1000.0
+            inner_fill_color: IOHUB_COLOR
+            inner_line_color: IOHUB_COLOR
+            # Deprecated. Use 'outer_fill_color' and 'outer_line_color'
             outer_color: IOHUB_COLOR
+            # Deprecated. Use 'outer_fill_color' and 'outer_line_color'
             inner_color: IOHUB_COLOR
     simulation_mode: IOHUB_BOOL
     enable_interface_without_connection: IOHUB_BOOL

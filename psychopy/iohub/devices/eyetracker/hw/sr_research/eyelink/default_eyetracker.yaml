@@ -116,11 +116,17 @@ eyetracker.hw.sr_research.eyelink.EyeTracker:
         #   target_type value they will simple be ignored.
         #
         target_attributes:
-            # outer_diameter and inner_diameter are specified in pixels
             outer_diameter: 33.0
             inner_diameter: 6.0
-            outer_color: [255,255,255]
-            inner_color: [0,0,0]
+            outer_stroke_width: 2.0
+            outer_fill_color: [64,64,64]
+            outer_line_color: [255,255,255]
+            inner_stroke_width: 1.0
+            inner_fill_color: [255,0,0]
+            inner_line_color: [0,0,0]
+            # outer_color and inner_color are deprecated
+            outer_color:
+            inner_color:
 
     # network_settings: Specify the Host computer IP address. Normally
     #   leaving it set to the default value is fine.
