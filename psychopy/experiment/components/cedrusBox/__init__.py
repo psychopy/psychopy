@@ -82,7 +82,7 @@ class cedrusButtonBoxComponent(KeyboardComponent):
         msg = _translate('Device number, if you have multiple devices which'
                          ' one do you want (0, 1, 2...)')
         self.params['deviceNumber'] = Param(
-            deviceNumber, valType='num', inputType="spin", allowedTypes=[], categ='Hardware',
+            deviceNumber, valType='int', inputType="spin", allowedTypes=[], categ='Hardware',
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized['deviceNumber'])

@@ -41,8 +41,20 @@ GL = pyglet.gl
 
 
 knownShapes = {
+    "triangle": [
+        (+0.0, 0.5),  # Point
+        (-0.5, -0.5),  # Bottom left
+        (+0.5, -0.5),  # Bottom right
+    ],
+    "rectangle": [
+        [-.5,  .5],  # Top left
+        [ .5,  .5],  # Top right
+        [ .5, -.5],  # Bottom left
+        [-.5, -.5],  # Bottom right
+    ],
+    "circle": 100,  # Make 100 point equilateral
     "cross": [
-        (-0.1, +0.5), # up
+        (-0.1, +0.5),  # up
         (+0.1, +0.5),
         (+0.1, +0.1),
         (+0.5, +0.1),  # right
@@ -349,6 +361,18 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         """
         setAttribute(self, 'vertices', value, log, operation)
 
+    @staticmethod
+    def _calcEquilateralVertices(edges, radius=0.5):
+        """
+        Get vertices for an equilateral shape with a given number of sides, will assume radius is 0.5 (relative) but
+        can be manually specified
+        """
+        d = numpy.pi * 2 / edges
+        vertices = numpy.asarray(
+            [numpy.asarray((numpy.sin(e * d), numpy.cos(e * d))) * radius
+             for e in range(int(round(edges)))])
+        return vertices
+
     def draw(self, win=None, keepMatrix=False):
         """Draw the stimulus in its relevant window.
 
@@ -637,6 +661,8 @@ class ShapeStim(BaseShapeStim):
         # check if this is a name of one of our known shapes
         if isinstance(newVerts, basestring) and newVerts in knownShapes:
             newVerts = knownShapes[newVerts]
+        if isinstance(newVerts, int):
+            newVerts = self._calcEquilateralVertices(newVerts)
 
         # Check shape
         self.__dict__['vertices'] = val2array(newVerts, withNone=True,

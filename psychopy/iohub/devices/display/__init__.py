@@ -21,12 +21,11 @@ class Display(Device):
 
     """
     _coord_type_mappings = dict(pix='pix', pixel='pix', pixels='pix',
-                                deg='deg', degree='deg', degrees='deg',
-                                cm='cm',  # mm='mm', inch='inch', inches='inch',
+                                deg='deg', degree='deg', degrees='deg', cm='cm',
                                 norm='norm', normalize='norm', normalized='norm',
-                                # perc='perc',percent='perc', percentage='perc'
+                                height='height'
                                 )
-    _supported_origin_types = ['center', ]  # ,'top_left','bottom_left']
+    _supported_origin_types = ['center', ]
 
     _enabled_display_instances = []
     _computer_display_runtime_info_list = None
@@ -567,7 +566,7 @@ class Display(Device):
             print2err(
                 ' *** Display device error: Unknown coordinate type: {0}'.format(coord_type))
             return
-
+        print2err("_calculateCoordMappingFunctions(")
         self._pix2coord = None
 
         # For now, use psychopy unit conversions so that drawing positions match
@@ -636,6 +635,27 @@ class Display(Device):
                         return cx, cy
                     self._coord2pix = cmcoord2pix
 
+                elif coord_type == 'height':
+                    def pix2heightcoord(self, x, y, display_index=None):
+                        if display_index == self.getIndex():
+                            ppx, ppy = display2psychopyPix(x, y)
+                            return ppx / h, ppy / h
+                        return x, y
+                    self._pix2coord = pix2heightcoord
+
+                    def height2pix(self, x, y, display_index=None):
+                        if display_index == self.getIndex():
+                            if False: #TODO: Deal with win.useRetina when we don't have a win.
+                                x = x * h / 2.0
+                                y = y * h / 2.0
+                            else:
+                                x = x * h
+                                y = y * h
+                            return psychopy2displayPix(x, y)
+
+                        return x, y
+                    self._coord2pix = height2pix
+
                 elif coord_type == 'deg':
                     def pix2degcoord(self, x, y, display_index=None):
                         if display_index == self.getIndex():
@@ -654,9 +674,10 @@ class Display(Device):
                                     degy, self._psychopy_monitor))
                         return degx, degy
                     self._coord2pix = degcoord2pix
-            except ImportError:
-                print2err(
-                    'WARNING: iohub.devices.Display: cm and deg coord types only supported with psychopy.')
+            except:
+                print2err('Error during _calculateCoordMappingFunctions')
+                printExceptionDetailsToStdErr()
+
 
     def _createPsychopyCalibrationFile(self):
         display_config = self.getConfiguration()
