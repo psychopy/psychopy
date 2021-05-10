@@ -50,7 +50,7 @@ class EyetrackerCalibration:
         self.targetLayout = targetLayout
         self.randomisePos = randomisePos
         self.units = units or self.win.units
-        self.colorSpace = colorSpace
+        self.colorSpace = colorSpace or self.win.colorSpace
         # Animation
         self.enableAnimation = enableAnimation
         self.contractOnly = contractOnly
