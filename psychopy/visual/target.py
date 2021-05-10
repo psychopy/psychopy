@@ -95,8 +95,9 @@ class TargetStim(Circle):
         Circle.draw(self, win, keepMatrix)
         self.inner.draw(win, keepMatrix)
 
-    def __dict__(self):
-        return {
+    def __iter__(self):
+        """Overload dict() method to return in ioHub format"""
+        asDict = {
             # Outer circle
             'outer_diameter': self.outerRadius * 2,
             'outer_stroke_width': self.lineWidth,
@@ -108,3 +109,5 @@ class TargetStim(Circle):
             'inner_fill_color': self.inner.fillColor,
             'inner_line_color': self.inner.borderColor,
         }
+        for key, value in asDict.items():
+            yield key, value
