@@ -80,12 +80,12 @@ class BaseComponent(object):
             label=_localized['stopType'])
 
         self.params['startVal'] = Param(startVal,
-            valType='num', inputType="single", categ='Basic',
+            valType='code', inputType="single", categ='Basic',
             hint=_translate("When does the component start?"), allowedTypes=[],
             label=_localized['startVal'])
 
         self.params['stopVal'] = Param(stopVal,
-            valType='num', inputType="single", categ='Basic',
+            valType='code', inputType="single", categ='Basic',
             updates='constant', allowedUpdates=[], allowedTypes=[],
             hint=_translate("When does the component end? (blank is endless)"),
             label=_localized['stopVal'])
@@ -93,14 +93,14 @@ class BaseComponent(object):
         msg = _translate("(Optional) expected start (s), purely for "
                          "representing in the timeline")
         self.params['startEstim'] = Param(startEstim,
-            valType='num', inputType="single", categ='Basic',
+            valType='code', inputType="single", categ='Basic',
             hint=msg,allowedTypes=[],
             label=_localized['startEstim'])
 
         msg = _translate("(Optional) expected duration (s), purely for "
                          "representing in the timeline")
         self.params['durationEstim'] = Param(durationEstim,
-            valType='num', inputType="single", categ='Basic',
+            valType='code', inputType="single", categ='Basic',
             hint=msg, allowedTypes=[],
             label=_localized['durationEstim'])
 

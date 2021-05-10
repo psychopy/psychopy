@@ -9,7 +9,7 @@ Mouse:
     stream_events: IOHUB_BOOL
     auto_report_events: IOHUB_BOOL    
 
-    # report_system_wide_events: Should the keyboard report events
+    # report_system_wide_events: Should the mouse report events
     #   even when the OS window target is not a PsychoPy Window? 
     #   True: All events will be reported regardless of window target.
     #   False: Only events indicating that a PsychoPy Window
