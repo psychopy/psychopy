@@ -1,58 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-r"""
-A stimulus class for playing movies (mpeg, avi, etc...) in PsychoPy
-using VLC.  movie4 does /not/ require avbin to be installed.
-
-Testing has only been done on Windows.
-
-VlcMovieStim requires:
-~~~~~~~~~~~~~~~~~~~~~
-
-1. VLC. Just install the standard VLC of the same bitness as python
-    for your OS.
-
-    http://www.videolan.org/vlc/index.html
-
-2. pip install python-vlc
-
-To play a video:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Create a new instance, `mov = visual.VlcMovieStim(..)`
-
-    shouldflip = mov.play()
-    continueRoutine = True
-    while continueRoutine:
-        if shouldflip:
-            # Draw other stimuli here
-            win.flip()
-        else:
-            time.sleep(0.001)
-        shouldflip = mov.draw()
-
-
-To fix "stale cache" VLC errors on Windows...
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Libvlc has a bug related to changing from daylight standard time to daylight 
-saving time. After the time change libvlc complains that the plugin cache is 
-stale. The error message begins with "main libvlc error: stale plugins cache: 
-...". VLC provides an executable to update the plugin cache timestamps. To run 
-it, execute this as Administrator:
-
-    cd "C:\Program Files\VideoLAN\VLC"
-    vlc-cache-gen.exe "C:\Program Files\VideoLAN\VLC\plugins"
-
-
-Not implemented:
-~~~~~~~~~~~~~~~~
-
-* Horizontal/vertical flipping
-* getCurrentFrameTime
-* getPercentageComplete
-
+"""A stimulus class for playing movies (mpeg, avi, etc...) in PsychoPy using a
+local installation of VLC media player (https://www.videolan.org/).
 """
 
 # Part of the PsychoPy library
@@ -64,14 +14,11 @@ Not implemented:
 
 from __future__ import absolute_import, division, print_function
 
-# If True then, on each flip a new movie frame is displayed, the frame index,
-# flip time, and time since last movie frame flip will be printed
-reportNDroppedFrames = 10
-
 import os
 import sys
 import threading
 import weakref
+import ctypes
 
 from psychopy import core, logging
 from psychopy.tools.attributetools import logAttrib, setAttribute
@@ -80,82 +27,25 @@ from psychopy.visual.basevisual import BaseVisualStim, ContainerMixin
 from psychopy.clock import Clock
 from psychopy.constants import FINISHED, NOT_STARTED, PAUSED, PLAYING, STOPPED
 
-import ctypes
 import numpy
-
-
-# Ensure setting pyglet.options['debug_gl'] to False is done prior to any
-# other calls to pyglet or pyglet submodules, otherwise it may not get picked
-# up by the pyglet GL engine and have no effect.
-# Shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
-
 import pyglet
 pyglet.options['debug_gl'] = False
 GL = pyglet.gl
 
 try:
+    # check if the lib can be loaded
     import vlc
 except Exception as err:
-    if sys.maxsize == 2 ** 64:
-        bits = 64
-    else:
-        bits = 32
     if "wrong architecture" in err:
         msg = ("Failed to import `vlc` module required by `vlcmoviestim`.\n"
                "You're using %i-bit python. Is your VLC install the same?"
-               % bits)
+               % 64 if sys.maxsize == 2 ** 64 else 32)
         raise OSError(msg)
     else:
         raise err
 
-# vlc.CallbackDecorators in python-vlc lib are incorrect and don't match VLC docs
-CorrectVideoLockCb = ctypes.CFUNCTYPE(
-    ctypes.c_void_p,
-    ctypes.c_void_p,
-    ctypes.POINTER(ctypes.c_void_p))
-
-CorrectVideoUnlockCb = ctypes.CFUNCTYPE(
-    ctypes.c_void_p,
-    ctypes.c_void_p,
-    ctypes.c_void_p,
-    ctypes.POINTER(ctypes.c_void_p))
-
-
-@CorrectVideoLockCb
-def vlcLockCallback(user_data, planes):
-    """Callback invoked when """
-    self = ctypes.cast(
-        user_data, ctypes.POINTER(ctypes.py_object)).contents.value
-    self.pixel_lock.acquire()
-
-    # tell VLC to take the data and stuff it into the buffer
-    planes[0] = ctypes.cast(self.pixel_buffer, ctypes.c_void_p)
-
-
-@CorrectVideoUnlockCb
-def vlcUnlockCallback(user_data, picture, planes):
-    self = ctypes.cast(
-        user_data, ctypes.POINTER(ctypes.py_object)).contents.value
-    self.pixel_lock.release()
-
-
-@vlc.CallbackDecorators.VideoDisplayCb
-def vlcDisplayCallback(user_data, picture):
-    self = ctypes.cast(user_data, ctypes.POINTER(ctypes.py_object)).contents.value
-    self.frame_counter += 1
-
-
-def vlcTimeCallback(event, user_data, player):
-    if user_data():
-        tm = -event.u.new_time/1000.0
-        user_data()._vlc_clock.reset(tm)
-    return
-
-
-def vlcEndReached(event, user_data, player):
-    if user_data():
-        user_data()._onEos()
-    return
+# flip time, and time since last movie frame flip will be printed
+reportNDroppedFrames = 10
 
 
 class VlcMovieStim(BaseVisualStim, ContainerMixin):
@@ -190,6 +80,8 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
     loop : bool, optional
         Whether to start the movie over from the beginning if draw is called and
         the movie is done.
+    autoStart : bool
+        Automatically begin playback of the video when `flip()` is called.
 
     """
     def __init__(self, win,
@@ -211,7 +103,8 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
                  noAudio=False,
                  vframe_callback=None,
                  fps=None,
-                 interpolate=True):
+                 interpolate=True,
+                 autoStart=True):
         # what local vars are defined (these are the init params) for use
         # by __repr__
         self._initParams = dir()
@@ -239,6 +132,8 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         self.opacity = float(opacity)
         self._volume = volume
         self.no_audio = noAudio
+        self.current_frame = -1
+        self._frameNeedsUpdate = True
 
         # video pixel and texture buffer variables, setup later
         self.interpolate = interpolate
@@ -252,6 +147,8 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         self.loadMovie(self.filename)
         self.setVolume(volume)
         self.nDroppedFrames = 0
+        self._autoStart = autoStart
+        self._glReady = False  # OpenGL surfaces are ready
 
         self.ori = ori
         # set autoLog (now that params have been initialised)
@@ -264,7 +161,8 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         """Enable linear interpolation (`bool').
 
         If `True` linear filtering will be applied to the video making the image
-        less pixelated if scaled.
+        less pixelated if scaled. You may leave this off if the native size of
+        the video is used.
 
         """
         return self._interpolate
@@ -274,11 +172,28 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         self._interpolate = value
         self._texFilterNeedsUpdate = True
 
+    def _restartPlayback(self):
+        """Restart the playback system."""
+        pass
+
     def _reset(self):
-        """Internal method to reset video playback."""
+        """Internal method to reset video playback system. Frees any OpenGL
+        textures and pixel buffers, releases the VLC stream. This puts the
+        system into the original state, ready to play a movie.
+
+        """
         self.status = NOT_STARTED
         self.frame_counter = self.current_frame = 0
         self.width = self.height = self.duration = self.frame_rate = None
+
+        # free pixel and texture buffers
+        if self._pixbuff_id.value > 0:
+            GL.glDeleteBuffers(1, self._pixbuff_id)
+            self._pixbuff_id.value = 0
+
+        if self._texture_id.value > 0:
+            GL.glDeleteTextures(1, self._texture_id)
+            self._texture_id.value = 0
 
         if self._vlc_initialized:
             self._release_vlc()
@@ -315,8 +230,7 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         logAttrib(self, log, 'movie', filename)
 
     def _vlc_start(self):
-        """
-        Create the vlc stream player for the video using python-vlc.
+        """Create the vlc stream player for the video using python-vlc.
         """
         if not os.access(self.filename, os.R_OK):
             raise RuntimeError('Error: %s file not readable' % self.filename)
@@ -383,6 +297,7 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         logging.info("Initialized VLC...")
         self._vlc_initialized = True
 
+        # setup texture buffers
         self._setupTextureBuffers()
 
     def _release_vlc(self):
@@ -473,11 +388,16 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
 
+        self._glReady = True
+
     def _update_texture(self):
         """Take the pixel buffer (assumed to be RGBA) and cram it into the GL
         texture.
 
         """
+        if not self._glReady:
+            return  # only do this if OpenGL is ready to accept data from decoder
+
         with self.pixel_lock:
             # bind pixel unpack buffer
             GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, self._pixbuff_id)
@@ -559,23 +479,25 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
 
     def play(self, log=True):
         """Start or continue a paused movie from current position.
+
+        Returns
+        -------
+        int
+            Frame index playback started at. Should always be `0` if starting at
+            the beginning of the video.
+
         """
-        cstat = self.status
-        if cstat != PLAYING:
-            self.status = PLAYING
+        if not self._player:
+            return  # nop if there is no player open
 
-            if self._pause_time:
-                self._vlc_clock.reset(self._pause_time)
-
-            if self._player:
-                if cstat == PAUSED:
-                    self._player.pause()
-                else:
-                    self._player.play()
+        if not self.isPlaying:
+            self.status = PLAYING  # set the status to playing
+            self._player.play()
 
             if log and self.autoLog:
-                self.win.logOnFlip("Set %s playing" % (self.name),
-                                   level=logging.EXP, obj=self)
+                self.win.logOnFlip(
+                    "Set %s playing" % self.name,
+                    level=logging.EXP, obj=self)
 
             self._update_texture()
             return self.current_frame
@@ -613,9 +535,10 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         will not advance). Once stopped the movie cannot be restarted - it must
         be loaded again.
 
-        Use `pause()` if you may need to restart the movie.
+        Use `pause()` instead if you may need to restart the movie.
+
         """
-        if self.status != STOPPED:
+        if self.isPlaying or self.isPaused:
             self.status = STOPPED
 
             if log and self.autoLog:
@@ -626,8 +549,16 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
 
     def seek(self, timestamp, log=True):
         """Seek to a particular timestamp in the movie.
+
+        Parameters
+        ----------
+        timestamp : float
+            Time in seconds.
+        log : bool
+            Log this change.
+
         """
-        if self.status in [PLAYING, PAUSED]:
+        if self.isPlaying or self.isPaused:
             player = self._player
             if player and player.is_seekable():
                 player.set_time(int(timestamp * 1000.0))
@@ -709,16 +640,25 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         return self.frame_rate
 
     def getCurrentFrameNumber(self):
-        """Get the current movie frame number.
-        The first frame number in a file is 1.
+        """Get the current movie frame number (`int`), same as `frameIndex`.
         """
         return self.frame_counter
+
+    @property
+    def percentageComplete(self):
+        """Percentage of the video completed (`float`)."""
+        return self.getPercentageComplete()
 
     def getCurrentFrameTime(self):
         """Get the time that the movie file specified the current video frame as
         having.
         """
         return self._vlc_clock.getTime()
+
+    @property
+    def percentageComplete(self):
+        """Percentage of the video completed (`float`)."""
+        return self.getPercentageComplete()
 
     def getPercentageComplete(self):
         """Provides a value between 0.0 and 100.0, indicating the amount of the
@@ -758,6 +698,11 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         GL.glPopAttrib()
         GL.glPopMatrix()
 
+    @property
+    def frameIndex(self):
+        """Current frame index being displayed (`int`)."""
+        return self.current_frame
+
     def draw(self, win=None):
         """Draw the current frame to a particular visual.Window (or to the
         default win for this object if not specified).
@@ -772,21 +717,35 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
             Window the video is being drawn to. If `None`, the window specified
             at initialization will be used instead.
 
+        Returns
+        -------
+        bool
+            `True` if the frame was updated this draw call.
+
         """
+        # check if we need to pull a new frame this round
+        if self.current_frame == self.frame_counter:
+            return False  # frame does not need an update this round
+
+        # update the current frame
+        self.current_frame = self.frame_counter
+
         if self.status == NOT_STARTED or (self.status == FINISHED and self.loop):
             self.play()
         elif self.status == FINISHED and not self.loop:
-            return
-        if win is None:
-            win = self.win
-        self._selectWindow(win)
+            return False
 
+        # select the window to output to
+        self._selectWindow(self.win if win is None else win)
+
+        # update the texture, getting the most recent frame
         self._update_texture()
+
+        # draw the frame to the window
         self._draw_rectangle(win)
 
-        if self.current_frame != self.frame_counter:
-            self.current_frame = self.frame_counter
-            return True
+        # token gesture for existing code, we handle this logic internally now
+        return True
 
     def _unload(self):
         """Internal method called when the video stream is closed or stopped.
@@ -794,6 +753,8 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         """
         if self._vlc_initialized:
             self._release_vlc()
+
+        self._glReady = False
 
         if self._pixbuff_id.value > 0:
             GL.glDeleteBuffers(1, self._pixbuff_id)
@@ -839,6 +800,68 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
             self.pause(log=False)
         # add to drawing list and update status
         setAttribute(self, 'autoDraw', val, log)
+
+
+# ------------------------------------------------------------------------------
+# Callback functions for `libvlc`
+#
+
+VlcVideoLockCb = ctypes.CFUNCTYPE(
+    ctypes.c_void_p,
+    ctypes.c_void_p,
+    ctypes.POINTER(ctypes.c_void_p))
+
+
+@VlcVideoLockCb
+def vlcLockCallback(user_data, planes):
+    """Callback invoked when VLC has new texture data."""
+    self = ctypes.cast(
+        user_data, ctypes.POINTER(ctypes.py_object)).contents.value
+    self.pixel_lock.acquire()
+
+    # tell VLC to take the data and stuff it into the buffer
+    planes[0] = ctypes.cast(self.pixel_buffer, ctypes.c_void_p)
+
+
+VlcVideoUnlockCb = ctypes.CFUNCTYPE(
+    ctypes.c_void_p,
+    ctypes.c_void_p,
+    ctypes.c_void_p,
+    ctypes.POINTER(ctypes.c_void_p))
+
+
+@VlcVideoUnlockCb
+def vlcUnlockCallback(user_data, picture, planes):
+    self = ctypes.cast(
+        user_data, ctypes.POINTER(ctypes.py_object)).contents.value
+    self.pixel_lock.release()
+
+
+@vlc.CallbackDecorators.VideoDisplayCb
+def vlcDisplayCallback(user_data, picture):
+    """Callback used by VLC when its ready to display a new frame."""
+    self = ctypes.cast(
+        user_data, ctypes.POINTER(ctypes.py_object)).contents.value
+    self.frame_counter += 1
+
+
+def vlcTimeCallback(event, user_data, player):
+    """Callback used by VC to update the time. This is called very few hundred
+    milliseconds.
+    """
+    if not user_data():
+        return
+
+    tm = -event.u.new_time / 1000.0
+    user_data()._vlc_clock.reset(tm)
+
+
+def vlcEndReached(event, user_data, player):
+    """Callback used by VLC when the stream has ended."""
+    if not user_data():
+        return
+
+    user_data()._onEos()
 
 
 if __name__ == "__main__":
