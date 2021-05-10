@@ -3,7 +3,6 @@
 # Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 from __future__ import division
-import gevent
 from ......errors import print2err, printExceptionDetailsToStdErr
 from ......constants import EyeTrackerConstants
 from ..... import Computer, Device

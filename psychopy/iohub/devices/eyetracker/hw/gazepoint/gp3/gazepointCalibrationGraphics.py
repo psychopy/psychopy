@@ -6,7 +6,6 @@
 
 from psychopy import visual
 import gevent
-import numpy as np
 from psychopy.iohub.util import convertCamelToSnake, updateDict
 from psychopy.iohub.devices import DeviceEvent, Computer
 from psychopy.iohub.constants import EventConstants as EC
@@ -42,7 +41,8 @@ class GazepointPsychopyCalibrationGraphics(object):
 
         calibration_methods = dict(THREE_POINTS=3,
                                    FIVE_POINTS=5,
-                                   NINE_POINTS=9)
+                                   NINE_POINTS=9,
+                                   THIRTEEN_POINT=13)
 
         cal_type = self.getCalibSetting('type')
 
@@ -69,6 +69,21 @@ class GazepointPsychopyCalibrationGraphics(object):
                                                                                (0.9, 0.9),
                                                                                (0.5, 0.9),
                                                                                (0.1, 0.9)]
+            elif num_points == 13:
+                GazepointPsychopyCalibrationGraphics.CALIBRATION_POINT_LIST = [(0.5, 0.5),
+                                                                               (0.1, 0.5),
+                                                                               (0.9, 0.5),
+                                                                               (0.1, 0.1),
+                                                                               (0.5, 0.1),
+                                                                               (0.9, 0.1),
+                                                                               (0.9, 0.9),
+                                                                               (0.5, 0.9),
+                                                                               (0.1, 0.9),
+                                                                               (0.25, 0.25),
+                                                                               (0.25, 0.75),
+                                                                               (0.75, 0.75),
+                                                                               (0.75, 0.25)
+                                                                               ]
             display = self._eyetracker._display_device
 
         self.window = visual.Window(

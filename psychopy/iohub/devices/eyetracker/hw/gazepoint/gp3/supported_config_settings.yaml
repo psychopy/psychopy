@@ -49,7 +49,7 @@ eyetracker.hw.gazepoint.gp3.EyeTracker:
         # Remaining calibration config settings only apply if use_builtin == False
         type:
             IOHUB_LIST:
-                valid_values: [THREE_POINTS,FIVE_POINTS,NINE_POINTS]
+                valid_values: [THREE_POINTS,FIVE_POINTS,NINE_POINTS, THIRTEEN_POINTS]
                 min_length: 1
                 max_length: 1
         unit_type:
