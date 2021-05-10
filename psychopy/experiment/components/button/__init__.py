@@ -185,7 +185,7 @@ class ButtonComponent(BaseVisualComponent):
                     "name='%(name)s'\n"
         )
         buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(1, relative=True)
+        buff.setIndentLevel(-1, relative=True)
         code = (
                 ")\n"
                 "%(name)s.buttonClock = core.Clock()"
