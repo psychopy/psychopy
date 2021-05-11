@@ -794,6 +794,10 @@ class Experiment(object):
             :param filePath: str to a potential file path (rel or abs)
             :return: dict of 'asb' and 'rel' paths or None
             """
+            # Only construct paths if filePath is a string
+            if type(filePath) != str:
+              return None
+
             thisFile = {}
             # NB: Pathlib might be neater here but need to be careful
             # e.g. on mac:

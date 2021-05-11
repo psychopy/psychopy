@@ -23,8 +23,6 @@ except ImportError:
     pass
 
 from past.builtins import basestring, unicode
-from psychopy.constants import PY3
-from . import _pkgroot
 from . import IOHUB_DIRECTORY, EXP_SCRIPT_DIRECTORY, _DATA_STORE_AVAILABLE
 from .errors import print2err, printExceptionDetailsToStdErr, ioHubError
 from .net import MAX_PACKET_SIZE
@@ -519,10 +517,7 @@ class DeviceMonitor(Greenlet):
             stime = ctime()
             self.device._poll()
             i = self.sleep_interval - (ctime() - stime)
-            if i > 0.001:
-                gevent.sleep(i)
-            else:
-                gevent.sleep(0.001)
+            gevent.sleep(max(0,i))
 
     def __del__(self):
         self.device = None
@@ -658,7 +653,7 @@ class ioServer(object):
                 self._running = False
                 break
             dur = sleep_interval - (Computer.getTime() - stime)
-            gevent.sleep(max(0.001, dur))
+            gevent.sleep(max(0.0, dur))
 
     def createNewMonitoredDevice(self, dev_cls_name, dev_conf):
         self._all_dev_conf_errors = dict()
@@ -735,7 +730,6 @@ class ioServer(object):
             elif Computer.platform.startswith('linux'):
                 from .devices import pyXHook
                 if hookManager is None:
-                    # iohub.log("Creating pyXHook Monitors....")
                     log_evt = self.config.get('log_raw_kb_mouse_events', False)
                     self._hookManager = pyXHook.HookManager(log_evt)
                     hookManager = self._hookManager
@@ -763,10 +757,10 @@ class ioServer(object):
                 if self._hookDevice is None:
                     self._hookDevice = []
                 if dev_cls_name not in self._hookDevice:
+                    msgpump_interval = self.config.get('msgpump_interval', 0.001)
                     if dev_cls_name == 'Mouse':
                         dmouse = deviceDict['Mouse']
-                        mouseHookMonitor = DeviceMonitor(dmouse, 0.001)
-                        self.deviceMonitors.append(mouseHookMonitor)
+                        self.deviceMonitors.append(DeviceMonitor(dmouse, msgpump_interval))
                         dmouse._CGEventTapEnable(dmouse._tap, True)
                         self._hookDevice.append('Mouse')
                     if dev_cls_name == 'Keyboard':
@@ -784,7 +778,7 @@ class ioServer(object):
 
         DeviceClass = None
         cls_name_start = dev_cls_name.rfind('.')
-        iohub_submod = '%s.' % _pkgroot
+        iohub_submod = 'psychopy.iohub.'
         iohub_submod_len = len(iohub_submod)
         dev_mod_pth = iohub_submod + 'devices.'
         if cls_name_start > 0:
@@ -902,7 +896,7 @@ class ioServer(object):
             stime = Computer.getTime()
             self.processDeviceEvents()
             dur = sleep_interval - (Computer.getTime() - stime)
-            gevent.sleep(max(0.001, dur))
+            gevent.sleep(max(0, dur))
 
     def processDeviceEvents(self):
         for device in self.devices:

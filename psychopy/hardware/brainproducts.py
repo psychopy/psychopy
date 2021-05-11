@@ -24,8 +24,8 @@ _recordingStates = {
     'RS:1': 'Monitoring',
     'RS:2': 'Calibration',
     'RS:3': 'Impedance check',
-    'RS:4': 'Saving recording',
-    'RS:5': 'Saving calibration',
+    'RS:4': 'Recording',  # the manual calls this Saving (recording)"
+    'RS:5': 'Saving calibration',  # the manual calls this "Saving calibration"
     'RS:6': 'Paused',
     'RS:7': 'Paused calibration',
     'RS:8': 'Paused impedance check',
@@ -56,7 +56,7 @@ class RemoteControlServer(object):
                  participant='S0021')
         rcs.openRecorder()
         time.sleep(2)
-        rcs.mode = 'monitor' # or 'impedence', or 'default'
+        rcs.mode = 'monitor' # or 'impedance', or 'default'
         rcs.startRecording()
         time.sleep(2)
         rcs.sendAnnotation('124', 'STIM')
@@ -109,6 +109,7 @@ class RemoteControlServer(object):
         self._workspace = None
         self._amplifier = None
         self._overwriteProtection = None
+        self._RCSversion = None
 
         self._bufferChars = ''  # unprocessed stream from RCS
         self._bufferList = []  # list of messages
@@ -160,15 +161,8 @@ class RemoteControlServer(object):
         # did reply include OK message?
         if not checkOutput:
             return
-        # check output
-        OK = False
-        t0 = time.time()
-        while time.time() - t0 < self._timeout and not OK:
-            for reply in self._listener.messages:
-                if reply.endswith(checkOutput):
-                    logging.debug("RCS received {}".format(repr(reply)))
-                    self._listener.messages.remove(reply)
-                    OK = True
+        # wait for message with expected output (means OK)
+        OK = bool(self.waitForMessage(endswith=checkOutput))
         if not OK:
             logging.warning(
                 "RCS Didn't receive expected response from RCS to "
@@ -177,9 +171,46 @@ class RemoteControlServer(object):
         else:
             return True
 
+    def waitForMessage(self, containing='', endswith=''):
+        """Wait for a message, optionally one that meets certain criteria
+
+        Parameters
+        ----------
+        containing : str
+            A string the message must contain
+        endswith : str
+            A string the message must end with (ignoring newline characters)
+        """
+        # check output
+        OK = False
+        t0 = time.time()
+        while time.time() - t0 < self._timeout and not OK:
+            for reply in self._listener.messages:
+                if reply.endswith(endswith) and reply.contains(containing):
+                    logging.debug("RCS received {}".format(repr(reply)))
+                    self._listener.messages.remove(reply)
+                    OK = True
+
+    def waitForState(self, stateName, permitted):
+        """Helper function to wait for a particular state (or any attribute, for that matter)
+         to have a particular value. Beware this will wait indefinitely, so only call
+         if you are confident that the state will eventually arrive!
+
+        Parameters
+        ----------
+        stateName : str
+            Name of the state (e.g. "applicationState")
+        permitted : list
+            List of values that are permitted before returning
+=        """
+        if type(permitted) is not list:
+            raise TypeError("permitted must be a list of permitted values")
+        while getattr(self, stateName) not in permitted:
+            time.sleep(0.01)
+
     def open(self, expName, participant, workspace):
         """Opens a study/workspace on the RCS server
-        
+
         Parameters
         ----------
         expName : str
@@ -195,6 +226,7 @@ class RemoteControlServer(object):
         self.workspace = workspace
         self.participant = participant
         self.expName = expName
+        # all appears OK
         logging.info(
             'RCS connected: {} - {}'.format(self.expName, self.participant))
 
@@ -205,6 +237,11 @@ class RemoteControlServer(object):
         """
         msg = 'O'
         self.sendRaw(msg, checkOutput="O:OK")
+        # after reporting OK it should also change the status
+        self.waitForState("applicationState", ["Open"])
+        self.waitForState("recordingState", ["Idle"])
+        # check that the RCS is using the correct messaging version
+        self.sendRaw("VM", checkOutput="VM:2")
 
     def _updateState(self, msg):
         # Update our state variables from a state message
@@ -284,13 +321,13 @@ class RemoteControlServer(object):
     @property
     def mode(self):
         """
-        Get/set the current mode. 
-        
+        Get/set the current mode.
+
         Mode is a string that can be one of:
 
         - 'default' or 'def' or None will exit special modes
         - 'impedance' or 'imp' for impedance checking
-        - 'monitoring' or 'mon' 
+        - 'monitoring' or 'mon'
         - 'test' or 'tes' to go into test view
 
         """
@@ -299,6 +336,10 @@ class RemoteControlServer(object):
     @mode.setter
     def mode(self, mode):
         if mode in ['impedance', 'imp']:
+            if self.recordingState == "Recording":
+                finalRecordingState = "Paused impedance check"
+            else:
+                finalRecordingState = "Impedance check"
             self._mode = 'impedance'
             msg = 'I'
         elif mode in ['monitor', 'mon']:
@@ -315,7 +356,23 @@ class RemoteControlServer(object):
                    'def, or default.')
             raise ValueError(msg)
 
-        self.sendRaw(msg, checkOutput=msg + ':OK')
+        replyOK = self.sendRaw(msg, checkOutput=msg + ':OK')
+        if not replyOK:
+            raise IOError
+
+        # now wait for appropriate state changes to match our target mode
+        if mode in ['impedance', 'imp']:
+            self.waitForState("recordingState", [finalRecordingState])
+            self.waitForState("acquisitionState", ["Running"])
+        elif mode in ['monitor', 'mon']:
+            self.waitForState("recordingState", ["Monitoring"])
+            self.waitForState("acquisitionState", ["Running"])
+        elif mode in ['test', 'tes']:
+            self.waitForState("recordingState", ["Saving calibration"])
+            self.waitForState("acquisitionState", ["Running"])
+        elif mode in ['default', 'def', None]:
+            self.waitForState("recordingState", ["Stopped"])
+            self.waitForState("acquisitionState", ["Idle"])
 
     @property
     def timeout(self):
@@ -334,7 +391,19 @@ class RemoteControlServer(object):
 
     @property
     def amplifier(self):
-        """Get/set the amplifier to use
+        """Get/set the amplifier to use. Could be one of
+        "  ['actiCHamp', 'BrainAmp Family',"
+        " 'LiveAmp', 'QuickAmp USB', 'Simulated Amplifier',"
+        " 'V-Amp / FirstAmp']
+
+        For Liveamp you should also provide the serial number,
+        comma separated from the amplifier type.
+
+        Examples:
+            rcs = RemoteControlServer()
+            rcs.amplifier = 'LiveAmp', 'LA-05490-0200'
+            # OR
+            rcs.amplifier = 'actiCHamp'
         """
         return self._amplifier
 
@@ -351,41 +420,50 @@ class RemoteControlServer(object):
         # check for LiveAmp that we also have a SN
         if amplifier == 'LiveAmp' and not serialNumber:
             logging.warning("LiveAmp may need a serial number. Use\n"
-                          "  rcs.amplifier = 'Liveamp', 'LA-serialNumberHere'")
+                          "  rcs.amplifier = 'LiveAmp', 'LA-serialNumberHere'")
         if amplifier in ['actiCHamp', 'BrainAmp Family',
                          'LiveAmp', 'QuickAmp USB', 'Simulated Amplifier',
                          'V-Amp / FirstAmp']:
             msg = "SA:{}".format(amplifier)
             self.sendRaw(msg, checkOutput=msg + ':OK')
-        if serialNumber:
-            # LiveAmp allows you to send the serial number
-            msg = "SN:{}".format(amplifier)
-            self.sendRaw(msg, checkOutput=msg + ':OK')
         else:
-            errMsg = ("Unknown amplifier '{amp}'. The `amplifier` value "
+            errMsg = (f"Unknown amplifier '{amplifier}'. The `amplifier` value "
                       "should be a LiveAmp serial number or one of "
                       "['actiCHamp', 'BrainAmp Family',"
                       " 'LiveAmp', 'QuickAmp USB', 'Simulated Amplifier',"
                       " 'V-Amp / FirstAmp']")
             raise ValueError(errMsg)
+        if serialNumber:
+            # LiveAmp allows you to send the serial number
+            msg = "SN:{}".format(serialNumber)
+            self.sendRaw(msg, checkOutput=msg + ':OK')
         self._amplifier = amplifier
         self._amplifierSN = serialNumber
 
     @property
-    def overwriteProtection(self, forceCheck=False):
-        """Get/set whether the 
+    def overwriteProtection(self):
+        """An attribute to get/set whether the overwrite protection is turned on.
+
+        When checking the attribute the state of `rcs.overwriteProtection` a call will be
+        made to the RCS and the report is based on teh response. There is also a
+        variable `rcs._overwriteProtection` that is simply the stored state from the
+        most recent call and does not make any further communication with the RCS itself.
+
+        Usage example::
+
+            rcs.overwriteProtection = True  # set it to be on
+            print(rcs.overwriteProtection)  # print current state
         """
-        if forceCheck or self._overwriteProtection is None:
-            reply = self.sendRaw("OW", checkOutput=None)
-            # reply is OW:0:OK or OW:1:OK
-            if reply == 'OW:0:OK':
-                state = False
-            elif reply == 'OW:1:OK':
-                state = True
-            else:
-                raise IOError("Request for overwrite state received unknown"
-                              "response '{}'".format(reply))
-            self._overwriteProtection = state
+        reply = self.sendRaw("OW", checkOutput=None)  # we'll check this one manually
+        # reply is OW:0:OK or OW:1:OK
+        if reply == 'OW:0:OK':
+            state = False
+        elif reply == 'OW:1:OK':
+            state = True
+        else:
+            raise IOError("Request for overwrite state received unknown"
+                          "response '{}'".format(reply))
+        self._overwriteProtection = state
         return self._overwriteProtection
 
     @overwriteProtection.setter
@@ -396,6 +474,26 @@ class RemoteControlServer(object):
         msg = "OW:{}".format(int(value))
         self.sendRaw(msg, checkOutput=msg + ':OK')
         self._overwriteProtection = bool(value)
+
+    @property
+    def version(self):
+        """Reports the version of the RCS application
+
+        Example usage::
+
+            print(rcs.version)
+
+        """
+        if not self._RCSversion:
+            # otherwise request info from RCS
+            msg = 'VS'
+            self.sendRaw(msg, checkOutput='')
+            reply = self.waitForMessage(containing='VS:')
+            if reply:
+                self._RCSversion = reply.strip().replace("VS:")
+            else:
+                logging.warning("Failed to retrieve the version of the RCS software")
+        return self._RCSversion
 
     def dcReset(self):
         """Use this to reset any DC offset that might have accumulated
@@ -408,12 +506,19 @@ class RemoteControlServer(object):
         Start recording EEG.
 
         """
+        recordingType = self.recordingState
+        if recordingType not in ['Monitoring', 'Calibration', 'Impedance check']:
+            msg = ('To start recording, the RCS must be in one of "Monitoring", '
+                   f'"Calibration" or "Impedance check" states, not {recordingType}')
+            raise RuntimeError(msg)
         if self._recording:
-            msg = 'Recording is still in progress!'
+            msg = 'Recording is already in progress!'
             raise RuntimeError(msg)
 
         msg = 'S'
         self.sendRaw(msg)
+
+        self.waitForState("recordingState", ["Recording", "Saving calibration"])
         self._recording = True
 
     def stopRecording(self):
@@ -427,6 +532,7 @@ class RemoteControlServer(object):
 
         msg = 'Q'
         self.sendRaw(msg)
+        self.waitForState("recordingState", ["Recording", "Calibration"])
         self._recording = False
 
     def pauseRecording(self):
@@ -436,6 +542,7 @@ class RemoteControlServer(object):
         """
         msg = 'P'
         self.sendRaw(msg)
+        self.waitForState("recordingState", ["Paused", "Paused calibration"])
 
     def resumeRecording(self):
         """
@@ -444,6 +551,7 @@ class RemoteControlServer(object):
         """
         msg = 'C'
         self.sendRaw(msg)
+        self.waitForState("recordingState", ["Recording", "Saving calibration"])
 
     def sendAnnotation(self, annotation, annType):
         """Sends a message to be logged on the Recorder. 
@@ -477,6 +585,9 @@ class RemoteControlServer(object):
         """
         msg = 'X'
         self.sendRaw(msg)
+        self.waitForState("recordingState", ["Idle"])
+        self.waitForState("acquisitionState", ["Stopped"])
+        self.waitForState("applicationState", ["Closed"])
 
 
 class _ListenerThread(threading.Thread):
@@ -539,7 +650,7 @@ if __name__ == "__main__":
              participant='S0021')
     rcs.openRecorder()
     time.sleep(2)
-    rcs.mode = 'monitor'  # or 'impedence', or 'default'
+    rcs.mode = 'monitor'  # or 'impedance', or 'default'
     rcs.startRecording()
     time.sleep(2)
     rcs.sendAnnotation('124', 'STIM')

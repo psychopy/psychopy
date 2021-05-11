@@ -35,17 +35,22 @@ After importing sound, the sound lib and driver being used will be stored as::
 
 from __future__ import absolute_import, division, print_function
 
+__all__ = []
+
 from builtins import str
 from past.types import basestring
 import sys
 import os
 from psychopy import logging, prefs, exceptions, constants
+from .audiodevice import *
+from .audioclip import *  # import objects related to AudioClip
+from .microphone import *  # import objects related to the microphone class
 
 pyoSndServer = None
 Sound = None
 audioLib = None
 audioDriver = None
-bits32 = (sys.maxsize==4294967296)
+bits32 = sys.maxsize == 2 ** 32
 
 _audioLibs = ['PTB', 'sounddevice', 'pyo', 'pysoundcard', 'pygame']
 failed = []

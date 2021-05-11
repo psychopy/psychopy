@@ -9,40 +9,11 @@ eyetracker.EyeTrackerDevice:
         interval: 0.001
     event_buffer_length: 1024
     monitor_event_types: [ EyeSampleEvent, MonocularEyeSampleEvent, BinocularEyeSampleEvent, FixationStartEvent, FixationEndEvent, SaccadeStartEvent, SaccadeEndEvent, BlinkStartEvent, BlinkEndEvent]
-    runtime_settings:
-        # Sampling rate must be an int representing the sampling rate in Hz to
-        # set the eye tracker to. If the eye tracker being used does not support
-        # the sampling rate given, an error will be printed and the closest valid
-        # sampling rate will be used.
-        sampling_rate: 250
     # The model_name setting allows the specification of the eye tracker model being used
     # Some implementations of the eye tracker interface will use this value to determine 
     # the appropriate logic to be run for a given eye tracker model supported by the vendor implementation. 
-    model_name: Default
-    # The model_number can be used to hold a string representation of the model number of the
-    # eye tracker being used, assuming a model number is provided by the manufacturer.
-    model_number: N/A
-    # manufacturer_name can be used to store the name of the maker of the eye tracking
-    # device being used. This is for informational purposes only.
+    model_name: Unknown
+    # manufacturer_name: Used by Builder as the displayed name in the eye tracker selection dropdown.
+    #
     manufacturer_name: Unknown
-    # serial_number can be used to store the unique serial number of the eye tracking
-    # device being used. This is for informational purposes only. The serial number should be in
-    # a string representation.
-    serial_number: N/A
-    # manufacture_date can be used to store the date of manufacture of the eye tracking
-    # device being used if it is provided by the eye tracker manufacturer.
-    # This is for informational purposes only. The serial number should be in
-    # a string representation using the format DD-MM-YYYY.
-    manufacture_date: DD-MM-YYYY
-    # software_version can be used to store the native device API / SDK interface
-    # being used by the ioHub common eye tracker interface on the back end.
-    # This is generally for informational purposes only.
-    software_version: N/A
-    # hardware_version can be used to store the native device's hardware version
-    # number if device models also include a version or revision number by the supplier.
-    # This is generally for informational purposes only.
-    hardware_version: N/A
-    # firmware_version can be used to store the native device's firmware version
-    # if a device provides such information.    
-    # This is generally for informational purposes only.
-    firmware_version: N/A
+

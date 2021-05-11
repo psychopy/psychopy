@@ -1,6 +1,6 @@
 global_event_buffer: 2048
 udp_port: 9034
-windows_msgpump_interval: 0.001
+msgpump_interval: 0.001
 data_store:
     enable: False
     filename: events
