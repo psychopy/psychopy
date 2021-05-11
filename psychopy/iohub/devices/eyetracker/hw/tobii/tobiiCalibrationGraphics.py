@@ -29,7 +29,7 @@ class TobiiPsychopyCalibrationGraphics(object):
     _keyboard_key_index = EventConstants.getClass(
         EventConstants.KEYBOARD_RELEASE).CLASS_ATTRIBUTE_NAMES.index('key')
 
-    def __init__(self, eyetrackerInterface, calibration_args):
+    def __init__(self, eyetrackerInterface, calibration_args={}):
         self._eyetrackerinterface = eyetrackerInterface
         self._tobii = eyetrackerInterface._tobii
 
@@ -59,7 +59,13 @@ class TobiiPsychopyCalibrationGraphics(object):
 
             if num_points == 3:
                 TobiiPsychopyCalibrationGraphics.CALIBRATION_POINT_LIST = [
-                    (0.5, 0.1), (0.1, 0.9), (0.9, 0.9), (0.5, 0.1)]
+                    (0.5, 0.1), (0.1, 0.9), (0.9, 0.9)]
+            elif num_points == 5:
+                TobiiPsychopyCalibrationGraphics.CALIBRATION_POINT_LIST = [(0.5, 0.5),
+                                                                           (0.1, 0.1),
+                                                                           (0.9, 0.1),
+                                                                           (0.9, 0.9),
+                                                                           (0.1, 0.9)]
             elif num_points == 9:
                 TobiiPsychopyCalibrationGraphics.CALIBRATION_POINT_LIST = [(0.5, 0.5),
                                                                            (0.1,
@@ -77,8 +83,22 @@ class TobiiPsychopyCalibrationGraphics(object):
                                                                            (0.5,
                                                                             0.9),
                                                                            (0.1,
-                                                                            0.9),
-                                                                           (0.5, 0.5)]
+                                                                            0.9)]
+            elif num_points == 13:
+                TobiiPsychopyCalibrationGraphics.CALIBRATION_POINT_LIST = [(0.5, 0.5),
+                                                                               (0.1, 0.5),
+                                                                               (0.9, 0.5),
+                                                                               (0.1, 0.1),
+                                                                               (0.5, 0.1),
+                                                                               (0.9, 0.1),
+                                                                               (0.9, 0.9),
+                                                                               (0.5, 0.9),
+                                                                               (0.1, 0.9),
+                                                                               (0.25, 0.25),
+                                                                               (0.25, 0.75),
+                                                                               (0.75, 0.75),
+                                                                               (0.75, 0.25)
+                                                                               ]
         display = self._eyetrackerinterface._display_device
 
         self.window = visual.Window(
@@ -106,10 +126,12 @@ class TobiiPsychopyCalibrationGraphics(object):
         device_calib_config = self._device_config.get('calibration')
         if setting:
             for s in setting[:-1]:
-                calibration_args = calibration_args.get(s)
+                if calibration_args:
+                    calibration_args = calibration_args.get(s)
                 device_calib_config = device_calib_config.get(s)
-
-            v = calibration_args.get(setting[-1])
+            v = None
+            if calibration_args:
+                v = calibration_args.get(setting[-1])
             if v is None:
                 v = device_calib_config[setting[-1]]
             return v
@@ -351,14 +373,13 @@ class TobiiPsychopyCalibrationGraphics(object):
         pacing_speed = self.getCalibSetting('pacing_speed')
         randomize_points = self.getCalibSetting('randomize')
 
-        cal_target_list = self.CALIBRATION_POINT_LIST[1:-1]
+        cal_target_list = self.CALIBRATION_POINT_LIST[1:]
         if randomize_points is True:
             import random
             random.seed(None)
             random.shuffle(cal_target_list)
 
         cal_target_list.insert(0, self.CALIBRATION_POINT_LIST[0])
-        cal_target_list.append(self.CALIBRATION_POINT_LIST[-1])
 
         calibration = self._tobii.newScreenCalibration()
 
@@ -417,14 +438,21 @@ class TobiiPsychopyCalibrationGraphics(object):
         self.clearCalibrationWindow()
         self.clearAllEventBuffers()
 
-        calibration_result = None
+        cal_result_dict = None
         if _quit:
-            return calibration_result
+            return cal_result_dict
 
         self._lastCalibrationOK = False
         if calibration:
             if calibration_sequence_completed:
                 calibration_result = calibration.compute_and_apply()
+                cal_result_dict = dict(status=calibration_result.status)
+                cal_result_dict['points']=[]
+                for cp in calibration_result.calibration_points:
+                    csamples = []
+                    for cs in cp.calibration_samples:
+                        csamples.append((cs.left_eye.position_on_display_area, cs.left_eye.validity))
+                    cal_result_dict['points'].append((cp.position_on_display_area, csamples))
                 self._lastCalibrationOK = calibration_result.status == 'calibration_status_success'
             else:
                 self._lastCalibrationOK = False
@@ -437,12 +465,12 @@ class TobiiPsychopyCalibrationGraphics(object):
                 instuction_text, True, msg_types=['SPACE_KEY_ACTION', 'QUIT'])
             if continue_method is False:
                 return self.runCalibration()
-            return calibration_result
+            return cal_result_dict
 
         instuction_text = "Calibration Passed. PRESS 'SPACE' KEY TO CONTINUE."
         self.showSystemSetupMessageScreen(instuction_text, True, msg_types=['SPACE_KEY_ACTION'])
 
-        return calibration_result
+        return cal_result_dict   
 
     def clearCalibrationWindow(self):
         self.window.flip(clearBuffer=True)
