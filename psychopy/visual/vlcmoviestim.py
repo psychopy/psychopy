@@ -50,7 +50,13 @@ reportNDroppedFrames = 10
 
 class VlcMovieStim(BaseVisualStim, ContainerMixin):
     """A stimulus class for playing movies in various formats (mpeg, avi,
-    etc...) in PsychoPy using the VLC media player as a decoder (`libvlc`).
+    etc...) in PsychoPy using the VLC media player as a decoder.
+
+    This movie class is very efficient and better suited for playing
+    high-resolution videos (720p+) than the other movie classes. However, audio
+    is only played using the default output device. This may be adequate for
+    most applications where the user is not concerned about precision audio
+    onset times.
 
     The VLC media player (https://www.videolan.org/) must be installed on the
     machine running PsychoPy to use this class. Make certain that the version
@@ -138,8 +144,8 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
 
         # video pixel and texture buffer variables, setup later
         self.interpolate = interpolate
-        self._texture_id = GL.GLuint()
-        self._pixbuff_id = GL.GLuint()
+        self._textureId = GL.GLuint()
+        self._pixbuffId = GL.GLuint()
 
         self._pause_time = 0
         self._vlc_clock = Clock()
@@ -149,29 +155,12 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         self.setVolume(volume)
         self.nDroppedFrames = 0
         self._autoStart = autoStart
-        self._glReady = False  # OpenGL surfaces are ready
 
         self.ori = ori
         # set autoLog (now that params have been initialised)
         self.autoLog = autoLog
         if autoLog:
             logging.exp("Created {} = {}".format(self.name, self))
-
-    @property
-    def interpolate(self):
-        """Enable linear interpolation (`bool').
-
-        If `True` linear filtering will be applied to the video making the image
-        less pixelated if scaled. You may leave this off if the native size of
-        the video is used.
-
-        """
-        return self._interpolate
-
-    @interpolate.setter
-    def interpolate(self, value):
-        self._interpolate = value
-        self._texFilterNeedsUpdate = True
 
     def _reset(self):
         """Internal method to reset video playback system. Frees any OpenGL
@@ -183,19 +172,10 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         self.frame_counter = self.current_frame = self._loopCount = 0
         self.width = self.height = self.duration = self.frame_rate = None
 
-        # free pixel and texture buffers
-        if self._pixbuff_id.value > 0:
-            GL.glDeleteBuffers(1, self._pixbuff_id)
-            self._pixbuff_id = GL.GLuint()
-
-        if self._texture_id.value > 0:
-            GL.glDeleteTextures(1, self._texture_id)
-            self._texture_id = GL.GLuint()
-
-        self._glReady = False
-
         if self._vlc_initialized:
             self._release_vlc()
+
+        self._freeBuffers()  # clean up
 
     def setMovie(self, filename, log=True):
         """See `~MovieStim.loadMovie` (the functions are identical).
@@ -302,6 +282,9 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         # setup texture buffers
         self._setupTextureBuffers()
 
+    def _new_vlc_player(self):
+        """Create a new VLC player object."""
+
     def _release_vlc(self):
         logging.info("Releasing VLC...")
 
@@ -325,20 +308,36 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         self._instance = None
         self._vlc_initialized = False
 
+    def _freeBuffers(self):
+        """Free texture and pixel buffers. Call this when tearing down this
+        class or if a movie is stopped.
+        """
+        try:
+            # delete buffers and textures if previously created
+            if self._pixbuffId.value > 0:
+                GL.glDeleteBuffers(1, self._pixbuffId)
+                self._pixbuffId = GL.GLuint()
+
+            # delete the old texture if present
+            if self._textureId.value > 0:
+                GL.glDeleteTextures(1, self._textureId)
+                self._textureId = GL.GLuint()
+        except TypeError:  # can happen when unloading or shutting down
+            pass
+
     def _setupTextureBuffers(self):
         """Setup texture buffers which hold frame data. This creates a 2D
         RGB texture and pixel buffer. The pixel buffer serves as the store for
         texture color data. Each frame, the pixel buffer memory is mapped and
         frame data is copied over to the GPU from the decoder.
 
-        This is called everytime a video file is loaded, destroying any pixel
-        buffers or textures previously in use.
+        This is called everytime a video file is loaded. The `_freeBuffers`
+        method is called in this routine prior to creating new buffers, so it's
+        safe to call this right after loading a new movie without having to
+        `_freeBuffers` first.
 
         """
-        # delete buffers and textures if previously created
-        if self._pixbuff_id.value > 0:
-            GL.glDeleteBuffers(1, self._pixbuff_id)
-            self._pixbuff_id = GL.GLuint()
+        self._freeBuffers()  # clean up any buffers previously allocated
 
         # Calculate the total size of the pixel store in bytes needed to hold a
         # single video frame. This value is reused during the pixel upload
@@ -348,8 +347,8 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
 
         # Create the pixel buffer object which will serve as the texture memory
         # store. Pixel data will be copied to this buffer each frame.
-        GL.glGenBuffers(1, ctypes.byref(self._pixbuff_id))
-        GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, self._pixbuff_id)
+        GL.glGenBuffers(1, ctypes.byref(self._pixbuffId))
+        GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, self._pixbuffId)
         GL.glBufferData(
             GL.GL_PIXEL_UNPACK_BUFFER,
             self._videoFrameBufferSize,
@@ -357,20 +356,15 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
             GL.GL_STREAM_DRAW)  # one-way app -> GL
         GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, 0)
 
-        # delete the old texture if present
-        if self._texture_id.value > 0:
-            GL.glDeleteTextures(1, self._texture_id)
-            self._texture_id = GL.GLuint()
-
         # Create a texture which will hold the data streamed to the pixel
         # buffer. Only one texture needs to be allocated.
-        GL.glGenTextures(1, ctypes.byref(self._texture_id))
-        GL.glBindTexture(GL.GL_TEXTURE_2D, self._texture_id)
+        GL.glGenTextures(1, ctypes.byref(self._textureId))
+        GL.glBindTexture(GL.GL_TEXTURE_2D, self._textureId)
         GL.glTexImage2D(
             GL.GL_TEXTURE_2D,
             0,
             GL.GL_RGB8,
-            self.video_width, self.video_height,  # frame width and height in pixels
+            self.video_width, self.video_height,  # frame dims in pixels
             0,
             GL.GL_RGB,
             GL.GL_UNSIGNED_BYTE,
@@ -395,14 +389,21 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
 
-    def _update_texture(self):
+    @property
+    def frameTexture(self):
+        """Texture ID for the current video frame (`GLuint`). You can use this
+        as a video texture.
+        """
+        return self._textureId
+
+    def _updateTexture(self):
         """Take the pixel buffer (assumed to be RGBA) and cram it into the GL
         texture.
 
         """
         with self.pixel_lock:
             # bind pixel unpack buffer
-            GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, self._pixbuff_id)
+            GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, self._pixbuffId)
 
             # Free last storage buffer before mapping and writing new frame
             # data. This allows the GPU to process the extant buffer in VRAM
@@ -446,7 +447,7 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
             GL.glEnable(GL.GL_TEXTURE_2D)
 
             # copy the PBO to the texture
-            GL.glBindTexture(GL.GL_TEXTURE_2D, self._texture_id)
+            GL.glBindTexture(GL.GL_TEXTURE_2D, self._textureId)
             GL.glTexSubImage2D(
                 GL.GL_TEXTURE_2D, 0, 0, 0,
                 self.video_width,
@@ -455,7 +456,7 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
                 GL.GL_UNSIGNED_BYTE,
                 0)  # point to the presently bound buffer
 
-            # update texture filtering if needed
+            # update texture filtering only if needed
             if self._texFilterNeedsUpdate:
                 if self.interpolate:
                     texFilter = GL.GL_LINEAR
@@ -478,16 +479,33 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
             GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
             GL.glDisable(GL.GL_TEXTURE_2D)
 
+    # --------------------------------------------------------------------------
+    # Video playback controls and status
+    #
     @property
     def isPlaying(self):
-        """`True` if the video is presently playing."""
+        """`True` if the video is presently playing (`bool`)."""
+        # Status flags as properties are pretty useful for users since they are
+        # self documenting and prevent the user from touching the status flag
+        # value directly.
+        #
         return self.status == PLAYING
 
     @property
     def isNotStarted(self):
-        """`True` if the video has not be started yet. This status is given
-        after a video is loaded and play has yet to be called."""
+        """`True` if the video has not be started yet (`bool`). This status is
+        given after a video is loaded and play has yet to be called."""
         return self.status == NOT_STARTED
+
+    @property
+    def isStopped(self):
+        """`True` if the video is stopped (`bool`)."""
+        return self.status == STOPPED
+
+    @property
+    def isPaused(self):
+        """`True` if the video is presently paused (`bool`)."""
+        return self.status == PAUSED
 
     def play(self, log=True):
         """Start or continue a paused movie from current position.
@@ -511,16 +529,11 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
                     "Set %s playing" % self.name,
                     level=logging.EXP, obj=self)
 
-            self._update_texture()
+            self._updateTexture()
 
             return self.current_frame
         elif self.isPaused:  # video is presently paused
             pass
-
-    @property
-    def isPaused(self):
-        """`True` if the video is presently paused."""
-        return self.status == PAUSED
 
     def pause(self, log=True):
         """Pause the current point in the movie.
@@ -539,11 +552,6 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
             self.win.logOnFlip("Failed Set %s paused" % self.name,
                                level=logging.EXP, obj=self)
         return False
-
-    @property
-    def isStopped(self):
-        """`True` if the video is stopped."""
-        return self.status == STOPPED
 
     def stop(self, log=True):
         """Stop the current point in the movie (sound will stop, current frame
@@ -585,22 +593,25 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
             if log:
                 logAttrib(self, log, 'seek', timestamp)
 
-    def setFlipHoriz(self, newVal=True, log=True):
-        """If set to True then the movie will be flipped horizontally
-        (left-to-right). Note that this is relative to the original, not
-        relative to the current state.
-        """
-        self.flipHoriz = newVal
-        logAttrib(self, log, 'flipHoriz')
+    # def fastForward(self, t):
+    #     """Fast-forward the video.
+    #
+    #     Parameters
+    #     ----------
+    #     t : float
+    #         Time in seconds to fast forward from the current position.
+    #
+    #     Returns
+    #     -------
+    #     float
+    #         Timestamp after fast forwarding the video.
+    #
+    #     """
+    #     pass
 
-    def setFlipVert(self, newVal=True, log=True):
-        """If set to True then the movie will be flipped vertically
-        (top-to-bottom). Note that this is relative to the original, not
-        relative to the current state.
-        """
-        self.flipVert = not newVal
-        logAttrib(self, log, 'flipVert')
-
+    # --------------------------------------------------------------------------
+    # Volume controls
+    #
     @property
     def volume(self):
         """Audio track volume (`int` or `float`). See `setVolume for more
@@ -704,6 +715,21 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
 
         return self._volume
 
+    # --------------------------------------------------------------------------
+    # Video and playback information
+    #
+    @property
+    def frameIndex(self):
+        """Current frame index being displayed (`int`)."""
+        return self.current_frame
+
+    @property
+    def loopCount(self):
+        """Number of loops completed since playback started (`int`). This value
+        is reset when either `stop` or `loadMovie` is called.
+        """
+        return self._loopCount
+
     @property
     def fps(self):
         """Movie frames per second (`float`)."""
@@ -747,7 +773,44 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         """
         return self._player.get_position() * 100.0
 
-    def _draw_rectangle(self, win):
+    # --------------------------------------------------------------------------
+    # Drawing methods and properties
+    #
+    @property
+    def interpolate(self):
+        """Enable linear interpolation (`bool').
+
+        If `True` linear filtering will be applied to the video making the image
+        less pixelated if scaled. You may leave this off if the native size of
+        the video is used.
+
+        """
+        return self._interpolate
+
+    @interpolate.setter
+    def interpolate(self, value):
+        self._interpolate = value
+        self._texFilterNeedsUpdate = True
+
+    def setFlipHoriz(self, newVal=True, log=True):
+        """If set to True then the movie will be flipped horizontally
+        (left-to-right). Note that this is relative to the original, not
+        relative to the current state.
+        """
+        self.flipHoriz = newVal
+        logAttrib(self, log, 'flipHoriz')
+
+    def setFlipVert(self, newVal=True, log=True):
+        """If set to True then the movie will be flipped vertically
+        (top-to-bottom). Note that this is relative to the original, not
+        relative to the current state.
+        """
+        self.flipVert = not newVal
+        logAttrib(self, log, 'flipVert')
+
+    def _drawRectangle(self):
+        """Draw the frame to the window. This is called by the `draw()` method.
+        """
         # make sure that textures are on and GL_TEXTURE0 is active
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glEnable(GL.GL_TEXTURE_2D)
@@ -770,7 +833,7 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         )
         GL.glPushAttrib(GL.GL_ENABLE_BIT)
         GL.glEnable(GL.GL_TEXTURE_2D)
-        GL.glBindTexture(GL.GL_TEXTURE_2D, self._texture_id)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, self._textureId)
         GL.glPushClientAttrib(GL.GL_CLIENT_VERTEX_ARRAY_BIT)
         # 2D texture array, 3D vertex array
         GL.glInterleavedArrays(GL.GL_T2F_V3F, 0, array)
@@ -778,18 +841,6 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         GL.glPopClientAttrib()
         GL.glPopAttrib()
         GL.glPopMatrix()
-
-    @property
-    def frameIndex(self):
-        """Current frame index being displayed (`int`)."""
-        return self.current_frame
-
-    @property
-    def loopCount(self):
-        """Number of loops completed since playback started (`int`). This value
-        is reset when either `stop` or `loadMovie` is called.
-        """
-        return self._loopCount
 
     def draw(self, win=None):
         """Draw the current frame to a particular visual.Window (or to the
@@ -817,10 +868,10 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         if self.current_frame == self.frame_counter:
 
             # update the texture, getting the most recent frame
-            self._update_texture()
+            self._updateTexture()
 
             # draw the frame to the window
-            self._draw_rectangle(win)
+            self._drawRectangle()
 
             return False  # frame does not need an update this round
 
@@ -837,10 +888,10 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         self._selectWindow(self.win if win is None else win)
 
         # update the texture, getting the most recent frame
-        self._update_texture()
+        self._updateTexture()
 
         # draw the frame to the window
-        self._draw_rectangle(win)
+        self._drawRectangle()
 
         # token gesture for existing code, we handle this logic internally now
         return True
@@ -852,15 +903,7 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         if self._vlc_initialized:
             self._release_vlc()
 
-        self._glReady = False
-
-        if self._pixbuff_id.value > 0:
-            GL.glDeleteBuffers(1, self._pixbuff_id)
-            self._pixbuff_id.value = 0
-
-        if self._texture_id.value > 0:
-            GL.glDeleteTextures(1, self._texture_id)
-            self._texture_id.value = 0
+        self._freeBuffers()
 
         self.status = FINISHED
 
