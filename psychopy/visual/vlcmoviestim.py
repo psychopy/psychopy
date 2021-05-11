@@ -60,7 +60,7 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
 
     The VLC media player (https://www.videolan.org/) must be installed on the
     machine running PsychoPy to use this class. Make certain that the version
-    of VLC installed matches the architecture of the Python version is use by
+    of VLC installed matches the architecture of the Python interpreter hosting
     PsychoPy.
 
     Parameters
@@ -83,9 +83,9 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
     volume : int or float
         If specifying an `int` the nominal level is 100, and 0 is silence. If a
         `float`, values between 0 and 1 may be used.
-    loop : bool, optional
+    loop : bool
         Whether to start the movie over from the beginning if draw is called and
-        the movie is done.
+        the movie is done. Default is `False.
     autoStart : bool
         Automatically begin playback of the video when `flip()` is called.
 
@@ -137,13 +137,13 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         self.depth = depth
         self.opacity = float(opacity)
         self._volume = volume
-        self.no_audio = noAudio
-        self.current_frame = -1
+        self._noAudio = noAudio
+        self._currentFrame = -1
         self._loopCount = 0
         self._frameNeedsUpdate = True
 
         # video pixel and texture buffer variables, setup later
-        self.interpolate = interpolate
+        self.interpolate = interpolate  # use setter
         self._textureId = GL.GLuint()
         self._pixbuffId = GL.GLuint()
 
@@ -169,11 +169,11 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
 
         """
         self.status = NOT_STARTED
-        self.frame_counter = self.current_frame = self._loopCount = 0
+        self._frameCounter = self._currentFrame = self._loopCount = 0
         self.width = self.height = self.duration = self.frame_rate = None
 
         if self._vlc_initialized:
-            self._release_vlc()
+            self._releaseVLC()
 
         self._freeBuffers()  # clean up
 
@@ -195,25 +195,25 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
 
         Notes
         -----
-        * Due to VLC oddness, .duration is not correct until the movie starts
-        playing.
+        * Due to VLC oddness, `.duration` is not correct until the movie starts
+          playing.
 
         """
         self._reset()
         self.filename = pathToString(filename)
 
         # Initialize VLC
-        self._vlc_start()
+        self._startVLC()
 
         self.status = NOT_STARTED
         logAttrib(self, log, 'movie', filename)
 
-    def _vlc_start(self):
+    def _startVLC(self):
         """Create the vlc stream player for the video using python-vlc.
         """
         if not os.access(self.filename, os.R_OK):
             raise RuntimeError('Error: %s file not readable' % self.filename)
-        if self.no_audio:
+        if self._noAudio:
             instance = vlc.Instance("--no-audio")
         else:
             instance = vlc.Instance()
@@ -233,26 +233,25 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         # Load up the file
         stream.parse()
         size = player.video_get_size()
-        self.video_width = size[0]
-        self.video_height = size[1]
+        self.videoWidth = size[0]
+        self.videoHeight = size[1]
         self.frame_rate = player.get_fps()
-        self.frame_counter = 0
+        self._frameCounter = 0
 
         # TODO: Why is duration -1 still even after parsing? Newer vlc docs seem
         # to hint this won't work until playback starts.
         duration = player.get_length()
         logging.info("Video is %ix%i, duration %s, fps %s" % (
-            self.video_width, self.video_height, duration, self.frame_rate))
+            self.videoWidth, self.videoHeight, duration, self.frame_rate))
         logging.flush()
 
         # We assume we can use the RGBA format here
         player.video_set_format(
-            "RGBA", self.video_width, self.video_height, self.video_width << 2)
+            "RGBA", self.videoWidth, self.videoHeight, self.videoWidth << 2)
 
-        # Configure a lock and a buffer for the pixels coming from VLC
-        self.pixel_lock = threading.Lock()
-        self.pixel_buffer = \
-            (ctypes.c_ubyte * self.video_width * self.video_height * 4)()
+        # Resources shared by VLC and PsychoPy
+        self.pixelLock = threading.Lock()  # semaphore for VLC pixel transfer
+        self.framePixelBuffer = None  # buffer pointer to draw to
 
         # Once you set these callbacks, you are in complete control of what to
         # do with the video buffer.
@@ -285,7 +284,7 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
     def _new_vlc_player(self):
         """Create a new VLC player object."""
 
-    def _release_vlc(self):
+    def _releaseVLC(self):
         logging.info("Releasing VLC...")
 
         if self._player:
@@ -308,6 +307,31 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         self._instance = None
         self._vlc_initialized = False
 
+    def _unload(self):
+        """Internal method called when the video stream is closed or stopped.
+        Unloads any OpenGL resources associated with the last video.
+        """
+        if self._vlc_initialized:
+            self._releaseVLC()
+
+        self._freeBuffers()
+
+        self.status = FINISHED
+
+    def _onEos(self):
+        """Internal method called when the decoder encounters the end of the
+        stream.
+        """
+        if self.loop:
+            self.seek(0.0)
+        else:
+            self.status = FINISHED
+            self.stop()
+
+        if self.autoLog:
+            self.win.logOnFlip(
+                "Set %s finished" % self.name, level=logging.EXP, obj=self)
+
     def _freeBuffers(self):
         """Free texture and pixel buffers. Call this when tearing down this
         class or if a movie is stopped.
@@ -322,6 +346,7 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
             if self._textureId.value > 0:
                 GL.glDeleteTextures(1, self._textureId)
                 self._textureId = GL.GLuint()
+
         except TypeError:  # can happen when unloading or shutting down
             pass
 
@@ -343,7 +368,7 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         # single video frame. This value is reused during the pixel upload
         # process. Assumes RGBA color format.
         self._videoFrameBufferSize = \
-            self.video_width * self.video_height * 4 * ctypes.sizeof(GL.GLubyte)
+            self.videoWidth * self.videoHeight * 4 * ctypes.sizeof(GL.GLubyte)
 
         # Create the pixel buffer object which will serve as the texture memory
         # store. Pixel data will be copied to this buffer each frame.
@@ -364,7 +389,7 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
             GL.GL_TEXTURE_2D,
             0,
             GL.GL_RGB8,
-            self.video_width, self.video_height,  # frame dims in pixels
+            self.videoWidth, self.videoHeight,  # frame dims in pixels
             0,
             GL.GL_RGB,
             GL.GL_UNSIGNED_BYTE,
@@ -401,7 +426,7 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         texture.
 
         """
-        with self.pixel_lock:
+        with self.pixelLock:
             # bind pixel unpack buffer
             GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, self._pixbuffId)
 
@@ -425,7 +450,7 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
             # This gets passed to the callback, VLC will draw the frame directly
             # to this buffer. Since buffer mapping only happens when VLC has a
             # pixel lock, it should be safe to do this.
-            self.pixel_buffer = bufferPtr
+            self.framePixelBuffer = bufferPtr
 
             # vlcFrameAsNDArray = numpy.ctypeslib.as_array(
             #     ctypes.cast(self.pixel_buffer, ctypes.POINTER(GL.GLubyte)),
@@ -450,8 +475,8 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
             GL.glBindTexture(GL.GL_TEXTURE_2D, self._textureId)
             GL.glTexSubImage2D(
                 GL.GL_TEXTURE_2D, 0, 0, 0,
-                self.video_width,
-                self.video_height,
+                self.videoWidth,
+                self.videoHeight,
                 GL.GL_RGBA,
                 GL.GL_UNSIGNED_BYTE,
                 0)  # point to the presently bound buffer
@@ -487,7 +512,7 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         """`True` if the video is presently playing (`bool`)."""
         # Status flags as properties are pretty useful for users since they are
         # self documenting and prevent the user from touching the status flag
-        # value directly.
+        # attribute directly.
         #
         return self.status == PLAYING
 
@@ -507,38 +532,58 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         """`True` if the video is presently paused (`bool`)."""
         return self.status == PAUSED
 
+    @property
+    def isFinished(self):
+        """`True` if the video is finished (`bool`)."""
+        return self.status == FINISHED
+
     def play(self, log=True):
         """Start or continue a paused movie from current position.
 
+        Parameters
+        ----------
+        log : bool
+            Log the play event.
+
         Returns
         -------
-        int
+        int or None
             Frame index playback started at. Should always be `0` if starting at
-            the beginning of the video.
+            the beginning of the video. Returns `None` if the player has not
+            been initialized.
 
         """
         if not self._player:
             return  # nop if there is no player open
 
-        if self.isNotStarted:  # video has not been played yet
+        if self.isPlaying:  # do nothing, were already playing
+            pass
+        elif self.isNotStarted:  # video has not been played yet
             self.status = PLAYING
             self._player.play()
 
             if log and self.autoLog:
                 self.win.logOnFlip(
                     "Set %s playing" % self.name,
-                    level=logging.EXP, obj=self)
+                    level=logging.EXP,
+                    obj=self)
 
             self._updateTexture()
-
-            return self.current_frame
         elif self.isPaused:  # video is presently paused
             pass
 
+        return self._currentFrame
+
     def pause(self, log=True):
         """Pause the current point in the movie.
+
+        Parameters
+        ----------
+        log : bool
+            Log the pause event.
+
         """
-        if self.status == PLAYING:
+        if self.isPlaying:
             self.status = PAUSED
             player = self._player
             if player and player.can_pause():
@@ -560,6 +605,11 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
 
         Use `pause()` instead if you may need to restart the movie.
 
+        Parameters
+        ----------
+        log : bool
+            Log the stop event.
+
         """
         if self.isPlaying or self.isPaused:
             self.status = STOPPED
@@ -578,7 +628,7 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         timestamp : float
             Time in seconds.
         log : bool
-            Log this change.
+            Log the seek event.
 
         """
         if self.isPlaying or self.isPaused:
@@ -614,7 +664,7 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
     #
     @property
     def volume(self):
-        """Audio track volume (`int` or `float`). See `setVolume for more
+        """Audio track volume (`int` or `float`). See `setVolume` for more
         information about valid values.
 
         """
@@ -624,94 +674,119 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
     def volume(self, value):
         self.setVolume(value)
 
-    def setVolume(self, v):
+    def setVolume(self, volume):
         """Set the audio track volume.
 
-        0 = mute, 100 = 0 dB. float values between 0.0 and 1.0 are also
-        accepted, and scaled to an int between 0 and 100.
+        Parameters
+        ----------
+        volume : int or float
+            Volume level to set. 0 = mute, 100 = 0 dB. float values between 0.0
+            and 1.0 are also accepted, and scaled to an int between 0 and 100.
 
         """
         if self._player:
-            if 0.0 <= v <= 1.0 and isinstance(v, float):
-                v = int(v * 100)
+            if 0.0 <= volume <= 1.0 and isinstance(volume, float):
+                v = int(volume * 100)
             else:
-                v = int(v)
+                v = int(volume)
             self._volume = v
+
             if self._player:
                 self._player.audio_set_volume(v)
 
     def getVolume(self):
         """Returns the current movie audio volume.
 
-        0 is no audio, 100 is max audio volume.
+        Returns
+        -------
+        int
+            Volume level, 0 is no audio, 100 is max audio volume.
+
         """
         if self._player:
             self._volume = self._player.audio_get_volume()
+
         return self._volume
 
-    def increaseVolume(self, amount=5):
+    def increaseVolume(self, amount=10):
         """Increase the volume.
 
         Parameters
         ----------
         amount : int
-            Increase the volume by this amount. This gets added to the preset
-            volume level.
+            Increase the volume by this amount. This gets added to the present
+            volume level. If the value of `amount` and the current volume is
+            outside the valid range of 0 to 100, the value will be clipped.
+            The default value is 10 (or 10% increase).
 
         Returns
         -------
         int
-            Volume after being changed.
+            Volume after changed.
+
+        See also
+        --------
+        getVolume
+        setVolume
+        decreaseVolume
+
+        Examples
+        --------
+        Adjust the volume of the current video using key presses::
+
+            # assume `mov` is an instance of this class defined previously
+            for key in event.getKeys():
+                if key == 'minus':
+                    mov.decreaseVolume()
+                elif key == 'equals':
+                    mov.increaseVolume()
 
         """
         if not self._player:
             return 0
 
-        currentVolume = self.getVolume()
-        newVolume = int(amount) + currentVolume
-
-        # clip the volume in range
-        if newVolume > 100:
-            newVolume = 100
-        elif newVolume < 0:
-            newVolume = 0
-        else:
-            newVolume = newVolume
-
-        self.setVolume(newVolume)
+        self.setVolume(min(max(self.getVolume() + int(amount), 0), 100))
 
         return self._volume
 
-    def decreaseVolume(self, amount=5):
+    def decreaseVolume(self, amount=10):
         """Decrease the volume.
 
         Parameters
         ----------
         amount : int
             Decrease the volume by this amount. This gets subtracted from the
-            preset volume level.
+            present volume level. If the value of `amount` and the current
+            volume is outside the valid range of 0 to 100, the value will be
+            clipped. The default value is 10 (or 10% decrease).
 
         Returns
         -------
         int
-            Volume after being changed.
+            Volume after change.
+
+        See also
+        --------
+        getVolume
+        setVolume
+        increaseVolume
+
+        Examples
+        --------
+        Adjust the volume of the current video using key presses::
+
+            # assume `mov` is an instance of this class defined previously
+            for key in event.getKeys():
+                if key == 'minus':
+                    mov.decreaseVolume()
+                elif key == 'equals':
+                    mov.increaseVolume()
 
         """
         if not self._player:
             return 0
 
-        currentVolume = self.getVolume()
-        newVolume = currentVolume - int(amount)
-
-        # clip the volume in range
-        if newVolume > 100:
-            newVolume = 100
-        elif newVolume < 0:
-            newVolume = 0
-        else:
-            newVolume = newVolume
-
-        self.setVolume(newVolume)
+        self.setVolume(min(max(self.getVolume() - int(amount), 0), 100))
 
         return self._volume
 
@@ -721,7 +796,7 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
     @property
     def frameIndex(self):
         """Current frame index being displayed (`int`)."""
-        return self.current_frame
+        return self._currentFrame
 
     @property
     def loopCount(self):
@@ -749,7 +824,7 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
     def getCurrentFrameNumber(self):
         """Get the current movie frame number (`int`), same as `frameIndex`.
         """
-        return self.frame_counter
+        return self._frameCounter
 
     @property
     def percentageComplete(self):
@@ -865,7 +940,7 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         self._selectWindow(self.win if win is None else win)
 
         # check if we need to pull a new frame this round
-        if self.current_frame == self.frame_counter:
+        if self._currentFrame == self._frameCounter:
 
             # update the texture, getting the most recent frame
             self._updateTexture()
@@ -876,9 +951,9 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
             return False  # frame does not need an update this round
 
         # update the current frame
-        self.current_frame = self.frame_counter
+        self._currentFrame = self._frameCounter
 
-        if self.status == NOT_STARTED or (self.status == FINISHED and self.loop):
+        if self.isNotStarted or (self.isFinished and self.loop):
             self._loopCount += 1
             self.play()
         elif self.status == FINISHED and not self.loop:
@@ -896,37 +971,6 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         # token gesture for existing code, we handle this logic internally now
         return True
 
-    def _unload(self):
-        """Internal method called when the video stream is closed or stopped.
-        Unloads any OpenGL resources associated with the last video.
-        """
-        if self._vlc_initialized:
-            self._release_vlc()
-
-        self._freeBuffers()
-
-        self.status = FINISHED
-
-    def _onEos(self):
-        """Internal method called when the decoder encounters the end of the
-        stream.
-        """
-        if self.loop:
-            self.seek(0.0)
-        else:
-            self.status = FINISHED
-            self.stop()
-
-        if self.autoLog:
-            self.win.logOnFlip(
-                "Set %s finished" % self.name, level=logging.EXP, obj=self)
-
-    def __del__(self):
-        try:
-            self._unload()
-        except (ImportError, ModuleNotFoundError, TypeError):
-            pass  # has probably been garbage-collected already
-
     def setAutoDraw(self, val, log=None):
         """Add or remove a stimulus from the list of stimuli that will be
         automatically drawn on each flip
@@ -942,6 +986,12 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         # add to drawing list and update status
         setAttribute(self, 'autoDraw', val, log)
 
+    def __del__(self):
+        try:
+            self._unload()
+        except (ImportError, ModuleNotFoundError, TypeError):
+            pass  # has probably been garbage-collected already
+
 
 # ------------------------------------------------------------------------------
 # Callback functions for `libvlc`
@@ -952,10 +1002,10 @@ def vlcLockCallback(user_data, planes):
     """Callback invoked when VLC has new texture data."""
     cls = ctypes.cast(
         user_data, ctypes.POINTER(ctypes.py_object)).contents.value
-    cls.pixel_lock.acquire()
+    cls.pixelLock.acquire()
 
     # tell VLC to take the data and stuff it into the buffer
-    planes[0] = ctypes.cast(cls.pixel_buffer, ctypes.c_void_p)
+    planes[0] = ctypes.cast(cls.framePixelBuffer, ctypes.c_void_p)
 
 
 @vlc.CallbackDecorators.VideoUnlockCb
@@ -963,7 +1013,7 @@ def vlcUnlockCallback(user_data, picture, planes):
     """Called when VLC releases the frame draw buffer."""
     cls = ctypes.cast(
         user_data, ctypes.POINTER(ctypes.py_object)).contents.value
-    cls.pixel_lock.release()
+    cls.pixelLock.release()
 
 
 @vlc.CallbackDecorators.VideoDisplayCb
@@ -972,7 +1022,7 @@ def vlcDisplayCallback(user_data, picture):
     """
     cls = ctypes.cast(
         user_data, ctypes.POINTER(ctypes.py_object)).contents.value
-    cls.frame_counter += 1
+    cls._frameCounter += 1
 
 
 @vlc.CallbackDecorators.LogCb
