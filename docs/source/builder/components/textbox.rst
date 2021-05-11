@@ -88,4 +88,4 @@ line spacing : float
 
 .. seealso::
 	
-	API reference for :class:`~psychopy.visual.TextStim`
+	API reference for :class:`~psychopy.visual.TextBox`

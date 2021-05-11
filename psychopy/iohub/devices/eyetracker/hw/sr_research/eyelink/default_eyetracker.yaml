@@ -112,8 +112,8 @@ eyetracker.hw.sr_research.eyelink.EyeTracker:
         #
         target_attributes:
             # outer_diameter and inner_diameter are specified in pixels
-            outer_diameter: 33
-            inner_diameter: 6
+            outer_diameter: 33.0
+            inner_diameter: 6.0
             outer_color: [255,255,255]
             inner_color: [0,0,0]
 
@@ -208,50 +208,15 @@ eyetracker.hw.sr_research.eyelink.EyeTracker:
     # model_name: The model_name setting allows the definition of the eye tracker model being used.
     #   For the eyelink implementation, valid values are:
     #       'EYELINK 1000 DESKTOP', 'EYELINK 1000 TOWER', 'EYELINK 1000 REMOTE', 
-    #       'EYELINK 1000 LONG RANGE', 'EYELINK 2'
+    #       'EYELINK 1000 LONG RANGE'
     model_name: EYELINK 1000 DESKTOP
 
-    # manufacturer_name:    manufacturer_name is used to store the name of the
-    #   maker of the eye tracking device. This is for informational purposes only.
+    # manufacturer_name: Used by Builder as the displayed name in the eye tracker selection dropdown.
     #
-    manufacturer_name: SR Research Ltd.
-
-    # model_name: The below parameters are not used by the EyeGaze eye tracker
-    #   implementation, so they can be left as is, or filled out for FYI only.
-    #
-    model_name: EYELINK
-
-    # serial_number: The serial number for the specific isnstance of device used
-    #   can be specified here. It is not used by the ioHub, so is FYI only.
-    #
-    serial_number: N/A
-
-    # manufacture_date: The date of manufactiurer of the device 
-    # can be specified here. It is not used by the ioHub,
-    # so is FYI only.
-    #   
-    manufacture_date: DD-MM-YYYY
-
-    # hardware_version: The device's hardware version can be specified here.
-    #   It is not used by the ioHub, so is FYI only.
-    #
-    hardware_version: N/A
-    
-    # firmware_version: If the device has firmware, its revision number
-    #   can be indicated here. It is not used by the ioHub, so is FYI only.
-    #
-    firmware_version: N/A
-
-    # model_number: The device model number can be specified here.
-    #   It is not used by the ioHub, so is FYI only.
-    #
-    model_number: N/A
-    
-    # software_version: The device driver and / or SDK software version number.
-    #   This field is not used by ioHub, so is FYI only. 
-    software_version: N/A
+    manufacturer_name: SR Research Ltd
 
     # device_number: The device number to assign to the Analog Input device. 
     #   device_number is not used by this device type.
     #
     device_number: 0
+    builder_hides: ['builder_hides', 'enable', 'name', 'device_number', 'device_timer', 'auto_report_events']

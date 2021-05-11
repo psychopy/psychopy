@@ -167,16 +167,18 @@ class Param(object):
 
     def __str__(self):
         if self.valType == 'num':
+            if self.val in [None, ""]:
+                return "None"
             try:
                 # will work if it can be represented as a float
                 return "{}".format(float(self.val))
             except Exception:  # might be an array
-                return "asarray(%s)" % (self.val)
+                return "%s" % self.val
         elif self.valType == 'int':
             try:
                 return "%i" % self.val  # int and float -> str(int)
             except TypeError:
-                return "{}".format(self.val)  # try array of float instead?
+                return "%s" % self.val  # try array of float instead?
         elif self.valType in ['extendedStr','str', 'file', 'table', 'color']:
             # at least 1 non-escaped '$' anywhere --> code wanted
             # return str if code wanted
@@ -340,13 +342,14 @@ def toList(val):
     if isinstance(val, (list, tuple, ndarray)):
         return val  # already a list. Nothing to do
     if isinstance(val, (int, float)):
-        return [val] # single value, just needs putting in a cell
+        return [val]  # single value, just needs putting in a cell
     # we really just need to check if they need parentheses
     stripped = val.strip()
     if utils.scriptTarget == "PsychoJS":
         return py2js.expression2js(stripped)
-    elif not ((stripped.startswith('(') and stripped.endswith(')')) \
-              or ((stripped.startswith('[') and stripped.endswith(']')))):
-        return "[{}]".format(stripped)
-    else:
+    elif (stripped.startswith('(') and stripped.endswith(')')) or (stripped.startswith('[') and stripped.endswith(']')):
         return stripped
+    elif utils.valid_var_re.fullmatch(stripped):
+        return "{}".format(stripped)
+    else:
+        return "[{}]".format(stripped)

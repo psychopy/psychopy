@@ -4,15 +4,9 @@
 from __future__ import absolute_import, print_function
 
 from os import path
+from pathlib import Path
 from psychopy.experiment.components import BaseComponent, Param, _translate
 from psychopy import prefs
-
-# the absolute path to the folder containing this path
-thisFolder = path.abspath(path.dirname(__file__))
-iconFile = path.join(thisFolder, 'unknown.png')
-tooltip = _translate('Unknown: A component that is not known by the current '
-                     'installed version of PsychoPy\n(most likely from the '
-                     'future)')
 
 # only use _localized values for label values, nothing functional:
 _localized = {'name': _translate('Name')}
@@ -26,6 +20,13 @@ class UnknownComponent(BaseComponent):
     added by the loader
     """
     targets = ['PsychoPy']
+
+    categories = ['Custom']
+    targets = ['PsychoPy']
+    iconFile = Path(__file__).parent / 'unknown.png'
+    tooltip = _translate('Unknown: A component that is not known by the current '
+                         'installed version of PsychoPy\n(most likely from the '
+                         'future)')
 
     def __init__(self, exp, parentName, name=''):
         self.type = 'Unknown'

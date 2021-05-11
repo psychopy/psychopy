@@ -96,6 +96,41 @@ FIXES:
 - Slider styles weren't generating correct JS code
 - New Button component (Python only) was not cleaning previous clicks so they tended to act as if clicking all trials! #3641
 
+PsychoPy 2021.1.3
+~~~~~~~~~~~~~~~~~~
+
+FIXES:
+
+- Builder: Fix `'list' object has no attribute 'contains'` with clickable mouse objects #3651
+- Builder: context (right-click) menu was not aligned with mouse in Flow for large Flows #3657
+- Builder: Slider styles were not being used correctly from previous versions (<2021.0) #3665
+- Builder: crash if the filter preference was used to filter out pure Python or pure JS Components from Builder #3649
+- Builder: Color Picker defaults to RGB to reduce chance of users pasting in RGBA to visual Components  #3667
+- Runner: local debug of online studies working again (was trying to fetch the wrong PsychoJS version) #af6622c712
+- PsychoPy lib: better handling of unknown fonts (fall back to Open Sans and Alert) #fba09ef8d0a
+- PsychoPy lib: better timing on iohub for macOS key/mouse polling #fba09ef8d0a
+
+PsychoPy 2021.1.4
+~~~~~~~~~~~~~~~~~~
+
+FIXES:
+
+- Py Lib: Sounds from files were being truncated #3689
+- Py Lib: TrialHandlerExt now compatible with current numpy (had an index error before) #3705
+- Py Lib: MoviStim raising an error if opacity was None #50334df2f
+- Py Lib: RIFT backend not working #428f62f80
+- Builder: When letter height was set to a variable it raised an error at run time `TypeError: len() of unsized object` #b1a77ca3a
+- Builder: Raising an error when floats looking like file names #3719
+- Builder: better handling of failure to updateVersion #afec41226
+- JS: TextBox when editable was not being reset on each trial #3706
+- JS: Keyboard should stop consuming keypresses at end of trial, even if not storing data #3706
+- JS: Add Sound.setSound() method to allow for dynamically deciding audio source psychopy/psychojs#154
+- JS: Allow for PIXI updates when dynamically adjusting opacity, including on polygons psychopy/psychojs#203
+- JS: Give Form radio type support psychopy/psychojs#281
+- JS: Improve ImageStim.setImage() attribute checking psychopy/psychojs#292
+- JS: Give TrackPlayer fades on play / stop psychopy/psychojs#296
+- JS: Fix TextBox eating up key presses psychopy/psychojs#302
+
 PsychoPy 2020.2
 -----------------
 

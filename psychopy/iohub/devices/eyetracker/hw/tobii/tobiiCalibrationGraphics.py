@@ -25,9 +25,8 @@ class TobiiPsychopyCalibrationGraphics(object):
     IOHUB_HEARTBEAT_INTERVAL = 0.050   # seconds between forced run through of
     # micro threads, since one is blocking
     # on camera setup.
-    WINDOW_BACKGROUND_COLOR = (128, 128, 128)
-    CALIBRATION_POINT_LIST = [
-        (0.5, 0.5), (0.1, 0.1), (0.9, 0.1), (0.9, 0.9), (0.1, 0.9), (0.5, 0.5)]
+    WINDOW_BACKGROUND_COLOR = None
+    CALIBRATION_POINT_LIST = [(0.5, 0.5), (0.1, 0.1), (0.9, 0.1), (0.9, 0.9), (0.1, 0.9), (0.5, 0.5)]
 
     TEXT_POS = [0, 0]
     TEXT_COLOR = [0, 0, 0]
@@ -97,7 +96,7 @@ class TobiiPsychopyCalibrationGraphics(object):
             screen=display.getIndex(),
             color=self.WINDOW_BACKGROUND_COLOR[
                 0:3],
-            colorSpace='rgb255')
+            colorSpace=display.getColorSpace())
         self.window.flip(clearBuffer=True)
 
         self._createStim()
@@ -194,7 +193,6 @@ class TobiiPsychopyCalibrationGraphics(object):
             name='CP_OUTER',
             fillColor=calibration_prefs['outer_fill_color'],
             lineColor=calibration_prefs['outer_line_color'],
-            colorSpace='rgb255',
             opacity=1.0,
             interpolate=False,
             edges=64,
@@ -210,7 +208,6 @@ class TobiiPsychopyCalibrationGraphics(object):
             name='CP_INNER',
             fillColor=calibration_prefs['inner_fill_color'],
             lineColor=calibration_prefs['inner_line_color'],
-            colorSpace='rgb255',
             opacity=1.0,
             interpolate=False,
             edges=64,
@@ -245,6 +242,7 @@ class TobiiPsychopyCalibrationGraphics(object):
             lineColor='White',
             fillColor='Firebrick',
             vertices=bar_vertices,
+            units='pix',
             pos=(
                 0,
                 self.marker_heights[0]))
@@ -253,6 +251,7 @@ class TobiiPsychopyCalibrationGraphics(object):
             lineColor='White',
             fillColor='DarkSlateGray',
             vertices=bar_vertices,
+            units='pix',
             pos=(
                 0,
                 self.marker_heights[1]))
@@ -261,6 +260,7 @@ class TobiiPsychopyCalibrationGraphics(object):
             lineColor='White',
             fillColor='GoldenRod',
             vertices=bar_vertices,
+            units='pix',
             pos=(
                 0,
                 self.marker_heights[2]))
@@ -272,6 +272,7 @@ class TobiiPsychopyCalibrationGraphics(object):
             lineColor='White',
             fillColor='Black',
             vertices=marker_vertices,
+            units='pix',
             pos=(
                 0,
                 self.marker_heights[0]))
@@ -279,6 +280,7 @@ class TobiiPsychopyCalibrationGraphics(object):
             win=self.window,
             lineColor='White',
             fillColor='Black',
+            units='pix',
             vertices=marker_vertices,
             pos=(
                 0,
@@ -287,6 +289,7 @@ class TobiiPsychopyCalibrationGraphics(object):
             win=self.window,
             lineColor='White',
             fillColor='Black',
+            units='pix',
             vertices=marker_vertices,
             pos=(
                 0,
@@ -295,6 +298,7 @@ class TobiiPsychopyCalibrationGraphics(object):
             win=self.window,
             lineColor='White',
             fillColor='DimGray',
+            units='pix',
             vertices=marker_vertices,
             pos=(
                 0,
@@ -303,6 +307,7 @@ class TobiiPsychopyCalibrationGraphics(object):
             win=self.window,
             lineColor='White',
             fillColor='DimGray',
+            units='pix',
             vertices=marker_vertices,
             pos=(
                 0,
@@ -311,6 +316,7 @@ class TobiiPsychopyCalibrationGraphics(object):
             win=self.window,
             lineColor='White',
             fillColor='DimGray',
+            units='pix',
             vertices=marker_vertices,
             pos=(
                 0,

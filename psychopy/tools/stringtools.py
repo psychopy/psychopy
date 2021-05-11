@@ -13,7 +13,7 @@ import re
 __all__ = ["prettyname"]
 
 
-def prettyname(name):
+def prettyname(name, wrap=False):
     """Convert a camelCase, TitleCase or underscore_delineated title to Full Title Case"""
     # Replace _ with space
     name = name.replace("_", " ")
@@ -23,5 +23,23 @@ def prettyname(name):
     name = name.title()
     # Treat the word "PsychoPy" as a special case
     name = name.replace("Psycho Py", "PsychoPy")
+    # Split into multiple lines if wrap is requested
+    if wrap:
+        sentence = []
+        letter = 0
+        # Iterate through each word
+        for word in name.split(" "):
+            # Count its letters
+            letter += len(word)
+            if letter > wrap >= len(word):
+                # If this brings the current letters this line to more than the wrap limit, insert a line break
+                sentence.append("\n")
+                letter = 0
+            # Insert word
+            sentence.append(word)
+        # Recombine name
+        name = " ".join(sentence)
+        # Remove spaces after line
+        name.replace(" \n ", "\n")
 
     return name

@@ -15,7 +15,7 @@ import sys
 import psutil
 
 from ..errors import print2err
-from ..util import clock
+from psychopy import clock
 
 REALTIME_PRIORITY_CLASS = -18
 HIGH_PRIORITY_CLASS = -10

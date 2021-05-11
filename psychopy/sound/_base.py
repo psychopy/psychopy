@@ -7,9 +7,7 @@
 
 from __future__ import absolute_import, division, print_function
 
-from builtins import range
 from past.builtins import basestring
-from builtins import object
 import numpy
 import copy
 from os import path
@@ -28,13 +26,24 @@ elif platform.startswith("linux"):
     mediaLocation = "/usr/share/sounds"
 
 stepsFromA = {
-    'C': -9, 'Csh': -8,
-    'Dfl': -8, 'D': -7, 'Dsh': -6,
-    'Efl': -6, 'E': -5,
-    'F': -4, 'Fsh': -3,
-    'Gfl': -3, 'G': -2, 'Gsh': -1,
-    'Afl': -1, 'A': 0, 'Ash': +1,
-    'Bfl': +1, 'B': +2, 'Bsh': +2}
+    'C': -9,
+    'Csh': -8, 'C#': -8,
+    'Dfl': -8, 'D♭': -8,
+    'D': -7,
+    'Dsh': -6, 'D#': -6,
+    'Efl': -6, 'E♭': -6,
+    'E': -5,
+    'F': -4,
+    'Fsh': -3, 'F#': -3,
+    'Gfl': -3, 'G♭': -3,
+    'G': -2,
+    'Gsh': -1, 'G#': -1,
+    'Afl': -1, 'A♭': -1,
+    'A': +0,
+    'Ash': +1, 'A#': +1,
+    'Bfl': +1, 'B♭': +1,
+    'B': +2,
+    'Bsh': +2, 'B#': +2}
 knownNoteNames = sorted(stepsFromA.keys())
 
 
@@ -110,6 +119,7 @@ class HammingWindow(object):
             block.shape = [len(block), 1]
         return block
 
+
 class _SoundBase(object):
     """Base class for sound object, from one of many ways.
     """
@@ -129,32 +139,28 @@ class _SoundBase(object):
         Often this is not needed by the user - it is called implicitly during
         initialisation.
 
-        :parameters:
+        Parameters
+        ----------
+        value : ArrayLike, int or str
+            If it's a number between 37 and 32767 then a tone will be generated
+            at that frequency in Hz. It could be a string for a note ('A',
+            'Bfl', 'B', 'C', 'Csh'. ...). Then you may want to specify which
+            octave.O r a string could represent a filename in the current
+            location, or media location, or a full path combo. Or by giving an
+            Nx2 numpy array of floats (-1:1).
+        secs : float
+            Duration of a tone if a note name is to `value`.
+        octave : int
+            Is only relevant if the value is a note name. Middle octave of a
+            piano is 4. Most computers won't output sounds in the bottom octave
+            (1) and the top octave (8) is generally painful.
+        hamming : bool
+            To indicate if the sound should be apodized (i.e., the onset and
+            offset smoothly ramped up from down to zero). The function apodize
+            uses a Hanning window, but arguments named 'hamming' are preserved
+            so that existing code is not broken by the change from Hamming to
+            Hanning internally. Not applied to sounds from files.
 
-            value: can be a number, string or an array:
-                * If it's a number between 37 and 32767 then a tone will
-                  be generated at that frequency in Hz.
-                * It could be a string for a note ('A', 'Bfl', 'B', 'C',
-                  'Csh'. ...). Then you may want to specify which octave.
-                * Or a string could represent a filename in the current
-                  location, or mediaLocation, or a full path combo
-                * Or by giving an Nx2 numpy array of floats (-1:1) you can
-                  specify the sound yourself as a waveform
-
-            secs: duration (only relevant if the value is a note name or
-                a frequency value)
-
-            octave: is only relevant if the value is a note name.
-                Middle octave of a piano is 4. Most computers won't
-                output sounds in the bottom octave (1) and the top
-                octave (8) is generally painful
-
-            hamming: boolean (default True) to indicate if the sound should
-                be apodized (i.e., the onset and offset smoothly ramped up from
-                down to zero). The function apodize uses a Hanning window, but
-                arguments named 'hamming' are preserved so that existing code
-                is not broken by the change from Hamming to Hanning internally.
-                Not applied to sounds from files.
         """
         # Re-init sound to ensure bad values will raise error during setting:
         self._snd = None

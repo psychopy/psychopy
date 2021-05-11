@@ -181,8 +181,8 @@ def getComponents(folder=None, fetchIcons=True):
 
                 if hasattr(module, 'tooltip'):
                     tooltips[name] = module.tooltip
-                if hasattr(module, 'iconFile'):
-                    iconFiles[name] = module.iconFile
+                if hasattr(components[attrib], 'iconFile'):
+                    iconFiles[name] = components[attrib].iconFile
                 # assign the module categories to the Component
                 if not hasattr(components[attrib], 'categories'):
                     components[attrib].categories = ['Custom']
