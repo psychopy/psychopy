@@ -57,6 +57,8 @@ class EyetrackerCalibration:
         self.velocity = velocity
         self.expandScale = expandScale
         self.expandDur = expandDur
+        # Attribute to store data from last run
+        self.last = None
 
     def run(self):
         tracker = self.eyetracker.getIOHubDeviceClass(full=True)
@@ -66,13 +68,11 @@ class EyetrackerCalibration:
 
         # Run calibration
         if tracker == 'eyetracker.hw.sr_research.eyelink.EyeTracker':
-            # Run as eyelink
             if self.enableAnimation:
                 # Alert user that their animation params aren't used
                 alert(code=4520, strFields={"brand": "EyeLink"})
-
-            # Make params dict
-            self.eyetracker.runSetupProcedure({
+            # Run as eyelink
+            self.last = self.eyetracker.runSetupProcedure({
                 'target_attributes': dict(self.target),
                 'type': self.targetLayout,
                 'auto_pace': self.autoPace,
@@ -91,7 +91,7 @@ class EyetrackerCalibration:
             }
 
             # Run as tobii
-            self.eyetracker.runSetupProcedure({
+            self.last = self.eyetracker.runSetupProcedure({
                 'target_attributes': targetAttrs,
                 'type': self.targetLayout,
                 'randomize': self.randomisePos,
@@ -103,9 +103,8 @@ class EyetrackerCalibration:
             })
 
         elif tracker == 'eyetracker.hw.gazepoint.gp3.EyeTracker':
-
-            # As GazePoint doesn't use auto-pace, alert user
             if not self.autoPace:
+                # As GazePoint doesn't use auto-pace, alert user
                 alert(4530, strFields={"brand": "GazePoint"})
 
             targetAttrs = dict(self.target)
@@ -116,8 +115,8 @@ class EyetrackerCalibration:
                 'expansion_speed': self.expandDur,
                 'contract_only': self.contractOnly
             }
-
-            self.eyetracker.runSetupProcedure({
+            # Run as GazePoint
+            self.last = self.eyetracker.runSetupProcedure({
                 'use_builtin': False,
                 'target_delay': self.velocity if self.enableAnimation else 0.5,
                 'target_duration': self.pacingSpeed or 1.5,
@@ -130,10 +129,10 @@ class EyetrackerCalibration:
             })
 
         elif tracker == 'eyetracker.hw.mouse.EyeTracker':
-            self.eyetracker.runSetupProcedure({})
+            self.last = self.eyetracker.runSetupProcedure({})
 
         else:
-            self.eyetracker.runSetupProcedure({})
+            self.last = self.eyetracker.runSetupProcedure({})
 
         # Bring back PsychoPy window
         self.win.winHandle.maximize()
