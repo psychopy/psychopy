@@ -8,11 +8,8 @@
 py.test fixtures to create an instance of PsychoPyApp for testing
 """
 
-from __future__ import print_function
 import pytest
 from packaging import version
-import sys
-from psychopy.tests import _githubActions
 from psychopy.app._psychopyApp import PsychoPyApp
 from PIL import Image
 Image.DEBUG = False
@@ -27,13 +24,6 @@ if version.parse(pytest.__version__) < version.parse('5'):
 @pytest.mark.needs_wx
 @pytest.fixture(scope='session')
 def get_app(request):
-
-    # ugly hack but @pytest.mark does seem to work for fixtures
-    # can't use commandline to ignore the folder because we also have a pytest.ini file
-    # can't get rid of pytest.ini because of warnings about pytest.mark
-    # can't use the ignore settings of pytest.ini because we *do* want to test on ubuntu!
-    if _githubActions and sys.platform=='darwin':
-        return
 
     # set_up
     PsychoPyApp._called_from_test = True  # NB class variable must be set

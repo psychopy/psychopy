@@ -58,7 +58,7 @@ jobs:
 
     - name: Test with pytest
       run: |
-        pytest --ignore=test_app -m "not needs_sound and not needs_wx and not emulator" -v psychopy
+        pytest --ignore="psychopy/tests/test_app" -m "not needs_sound and not needs_wx and not emulator" -v psychopy
 
     - name: upload failed app data
       if: always()
