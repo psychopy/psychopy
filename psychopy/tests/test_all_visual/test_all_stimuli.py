@@ -884,13 +884,13 @@ class TestPygletDegFlatPos(_baseVisualTest):
         self.contextName='degFlatPos'
         self.scaleFactor=4#applied to size/pos values
 
-@pytest.mark.needs_pygame
-class TestPygameNorm(_baseVisualTest):
-   @classmethod
-   def setup_class(self):
-       self.win = visual.Window([128,128], winType='pygame', allowStencil=True, autoLog=False)
-       self.contextName='norm'
-       self.scaleFactor=1#applied to size/pos values
+# @pytest.mark.needs_pygame
+# class TestPygameNorm(_baseVisualTest):
+#    @classmethod
+#    def setup_class(self):
+#        self.win = visual.Window([128,128], winType='pygame', allowStencil=True, autoLog=False)
+#        self.contextName='norm'
+#        self.scaleFactor=1#applied to size/pos values
 
 #class TestPygamePix(_baseVisualTest):
 #    @classmethod
@@ -903,6 +903,7 @@ class TestPygameNorm(_baseVisualTest):
 #            units='pix', autoLog=False)
 #        self.contextName='pix'
 #        self.scaleFactor=60#applied to size/pos values
+
 #class TestPygameCm(_baseVisualTest):
 #    @classmethod
 #    def setup_class(self):
@@ -914,6 +915,7 @@ class TestPygameNorm(_baseVisualTest):
 #            units='cm')
 #        self.contextName='cm'
 #        self.scaleFactor=2#applied to size/pos values
+
 #class TestPygameDeg(_baseVisualTest):
 #    @classmethod
 #    def setup_class(self):
