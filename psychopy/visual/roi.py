@@ -84,11 +84,17 @@ class ROI(Polygon):
     @property
     def isLookedIn(self):
         """Is this ROI currently being looked at"""
+        # Get current eye position
         if hasattr(self.tracker, "getPos"):
-            (x, y) = self.tracker.getPos()
+            pos = self.tracker.getPos()
         elif hasattr(self.tracker, "getPosition"):
-            (x, y) = self.tracker.getPosition()
+            pos = self.tracker.getPosition()
         else:
+            # If there's no position functions, assume False
             return False
-        return bool(self.contains(x, y, self.win.units))
+        if pos is None:
+            # If there's no eye data (e.g. during a blink) assume False
+            return False
+        # Check contains
+        return bool(self.contains(pos[0], pos[1], self.win.units))
 
