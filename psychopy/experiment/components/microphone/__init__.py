@@ -46,7 +46,7 @@ class MicrophoneComponent(BaseComponent):
                  startEstim='', durationEstim='',
                  channels='stereo', device="default",
                  sampleRate='DVD Audio (48kHz)', maxSize=24000,
-                 outputType='wav', speakTimes=True, trimSilent=False,
+                 outputType='default', speakTimes=True, trimSilent=False,
                  #legacy
                  stereo=None, channel=None):
         super(MicrophoneComponent, self).__init__(
@@ -107,7 +107,7 @@ class MicrophoneComponent(BaseComponent):
             "What file type should output audio files be saved as?")
         self.params['outputType'] = Param(
             outputType, valType='code', inputType='choice', categ='Data',
-            allowedVals=AUDIO_SUPPORTED_CODECS,
+            allowedVals=["default"] + AUDIO_SUPPORTED_CODECS,
             hint=msg,
             label=_translate("Output File Type")
         )
@@ -292,33 +292,18 @@ class MicrophoneComponent(BaseComponent):
     def writeRoutineEndCodeJS(self, buff):
         inits = getInitVals(self.params)
         inits['routine'] = self.parentName
-        # Store recordings from this routine
-        code = (
-            "%(name)s.bank('%(routine)s')\n"
-        )
-        buff.writeIndentedLines(code % inits)
         # Write base end routine code
         BaseComponent.writeRoutineEndCodeJS(self, buff)
-        # Get clips from mic object and save them to files
+        # Store recordings from this routine
         code = (
             "// Save %(name)s recordings\n"
             "%(name)sClips = %(name)s.flush()\n"
-            "for (let rt of %(name)sClips) {\n"
+            "for (let [i, clip] of %(name)sClips.entries()) {"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(1, relative=True)
         code = (
-                "for (let [i, clip] of %(name)sClips.entries()) {"
-        )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(1, relative=True)
-        code = (
-                    "clip.save(%(name)sRecFolder, f'recording_{rt}_{i}.%(outputType)s')"
-        )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(-1, relative=True)
-        code = (
-                "}"
+                "clip.save(%(name)sRecFolder, `recording_%(routine)s_${i}.%(outputType)s`)"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
