@@ -175,7 +175,7 @@ jobs:
         pip install .
 
     - name: start psychopy
-      run: python -m psychopy.app.psychopyApp
+      run: xvfb-run -a --server-args="-screen 0 1024x768x24" python -m psychopy.app.psychopyApp
 
     - name: Set nice level
       run: |

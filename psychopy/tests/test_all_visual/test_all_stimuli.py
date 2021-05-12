@@ -437,10 +437,10 @@ class _baseVisualTest(object):
             height=0.8*self.scaleFactor, pos=[0,0], font='DejaVu Serif',
             fontFiles=[fontFile])
         stim.draw()
-        if self.win.winType != 'pygame':
+        if self.win.winType != 'pygame' and not 'NoShader' in self.contextName:
             #compare with a LIBERAL criterion (fonts do differ)
             utils.compareScreenshot('text1_%s.png' %(self.contextName), win, crit=20)
-        win.flip()#AFTER compare screenshot
+        win.flip()  # AFTER compare screenshot
         #using set
         stim.text = 'y'
         if sys.platform=='win32':
@@ -455,7 +455,7 @@ class _baseVisualTest(object):
         stim.opacity = 0.8
         stim.draw()
         "{}".format(stim) #check that str(xxx) is working
-        if self.win.winType != 'pygame':
+        if self.win.winType != 'pygame' and not 'NoShader' in self.contextName:
             #compare with a LIBERAL criterion (fonts do differ)
             utils.compareScreenshot('text2_%s.png' %self.contextName,
                                     win, crit=20)
