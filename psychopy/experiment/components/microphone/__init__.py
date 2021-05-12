@@ -33,7 +33,7 @@ devices['default'] = None
 class MicrophoneComponent(BaseComponent):
     """An event class for capturing short sound stimuli"""
     categories = ['Responses']
-    targets = ['PsychoPy']
+    targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'microphone.png'
     tooltip = _translate('Microphone: basic sound capture (fixed onset & '
                          'duration), okay for spoken words')
