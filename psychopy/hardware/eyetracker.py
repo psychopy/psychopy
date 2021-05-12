@@ -61,6 +61,10 @@ class EyetrackerCalibration:
     def run(self):
         tracker = self.eyetracker.getIOHubDeviceClass(full=True)
 
+        # Minimise PsychoPy window
+        self.win.winHandle.minimize()
+
+        # Run calibration
         if tracker == 'eyetracker.hw.sr_research.eyelink.EyeTracker':
             # Run as eyelink
             if self.enableAnimation:
@@ -130,3 +134,7 @@ class EyetrackerCalibration:
 
         else:
             self.eyetracker.runSetupProcedure({})
+
+        # Bring back PsychoPy window
+        self.win.winHandle.maximize()
+        self.win.winHandle.activate()
