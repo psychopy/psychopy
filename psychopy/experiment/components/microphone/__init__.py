@@ -182,6 +182,7 @@ class MicrophoneComponent(BaseComponent):
 
     def writeInitCodeJS(self, buff):
         inits = getInitVals(self.params)
+        inits['sampleRate'] = sampleRates[inits['sampleRate'].val]
         code = (
             "%(name)s = new audio.Microphone({\n"
         )
