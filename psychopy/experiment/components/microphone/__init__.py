@@ -293,34 +293,6 @@ class MicrophoneComponent(BaseComponent):
         buff.writeIndentedLines(code % inits)
         # Write base end routine code
         BaseComponent.writeRoutineEndCodeJS(self, buff)
-
-    def writeExperimentEndCode(self, buff):
-        """Write the code that will be called at the end of
-        an experiment (e.g. save log files or reset hardware)
-        """
-        inits = getInitVals(self.params)
-        # Save recording
-        code = (
-            "# Save %(name)s recordings\n"
-            "%(name)sClips = %(name)s.flush()\n"
-            "for rt in %(name)sClips:\n"
-        )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(1, relative=True)
-        code = (
-                "for i, clip in enumerate(%(name)sClips[rt]):\n"
-        )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(1, relative=True)
-        code = (
-                    "clipName = os.path.join(%(name)sRecFolder, f'recording_{rt}_{i}.%(outputType)s')\n"
-                    "clip.save(clipName)\n"
-        )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(-2, relative=True)
-
-    def writeExperimentEndCodeJS(self, buff):
-        inits = getInitVals(self.params)
         # Get clips from mic object and save them to files
         code = (
             "// Save %(name)s recordings\n"
@@ -347,3 +319,28 @@ class MicrophoneComponent(BaseComponent):
         code = (
             "}"
         )
+
+    def writeExperimentEndCode(self, buff):
+        """Write the code that will be called at the end of
+        an experiment (e.g. save log files or reset hardware)
+        """
+        inits = getInitVals(self.params)
+        # Save recording
+        code = (
+            "# Save %(name)s recordings\n"
+            "%(name)sClips = %(name)s.flush()\n"
+            "for rt in %(name)sClips:\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(1, relative=True)
+        code = (
+                "for i, clip in enumerate(%(name)sClips[rt]):\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(1, relative=True)
+        code = (
+                    "clipName = os.path.join(%(name)sRecFolder, f'recording_{rt}_{i}.%(outputType)s')\n"
+                    "clip.save(clipName)\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(-2, relative=True)
