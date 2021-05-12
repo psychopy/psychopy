@@ -56,6 +56,7 @@ class Test_Window(object):
         self.win.callOnFlip(assertThisIs2, 2)
         self.win.flip()
 
+
 class _baseVisualTest(object):
     #this class allows others to be created that inherit all the tests for
     #a different window config
