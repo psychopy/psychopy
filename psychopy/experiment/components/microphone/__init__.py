@@ -12,6 +12,8 @@ from builtins import super  # provides Py3-style super() using python-future
 
 from os import path
 from pathlib import Path
+
+from psychopy.alerts import alert
 from psychopy.experiment.components import BaseComponent, Param, getInitVals, _translate
 from psychopy.sound.microphone import Microphone, _hasPTB
 from psychopy.sound.audiodevice import sampleRateQualityLevels
@@ -183,6 +185,10 @@ class MicrophoneComponent(BaseComponent):
     def writeInitCodeJS(self, buff):
         inits = getInitVals(self.params)
         inits['sampleRate'] = sampleRates[inits['sampleRate'].val]
+        # Alert user if non-default value is selected for device
+        if inits['device'].val != 'default':
+            alert(5055, strFields={'name': inits['name'].val})
+        # Write code
         code = (
             "%(name)s = new audio.Microphone({\n"
         )
