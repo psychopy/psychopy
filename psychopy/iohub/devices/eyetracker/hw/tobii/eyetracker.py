@@ -81,19 +81,36 @@ class EyeTracker(EyeTrackerDevice):
     def __init__(self, *args, **kwargs):
         EyeTrackerDevice.__init__(self, *args, **kwargs)
 
+        if self.model_name:
+            self.model_name = self.model_name.strip()
+            if len(self.model_name) == 0:
+                self.model_name = None
         model_name = self.model_name
-        serial_num = self.serial_number
-
-        if model_name and len(model_name) == 0:
-            model_name = None
-        if serial_num and len(serial_num) == 0:
-            serial_num = None
+        serial_num = self.getConfiguration().get('serial_number')
 
         EyeTracker._tobii = None
         try:
             EyeTracker._tobii = TobiiTracker(serial_num, model_name)
         except Exception:
             print2err('Error creating Tobii Device class')
+            printExceptionDetailsToStdErr()
+
+        # Apply license file if needed
+        try:
+            license_file = self.getConfiguration().get('license_file', "")
+            if license_file != "":
+                with open(license_file, "rb") as f:
+                    license = f.read()
+                    res = self._tobii._eyetracker.apply_licenses(license)
+                    if len(res) == 0:
+                        print2err("Successfully applied Tobii license from: {}".format(license_file))
+                    else:
+                        print2err("Error: Failed to apply Tobii license from single key. "
+                                  "Validation result: %s." % (res[0].validation_result))
+            else:
+                print2err("No Tobii license_file in config. Skipping.")
+        except Exception:
+            print2err("Error calling Tobii.apply_licenses with file {}.".format(license_file))
             printExceptionDetailsToStdErr()
 
         srate = self._runtime_settings['sampling_rate']

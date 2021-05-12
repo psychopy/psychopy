@@ -619,14 +619,15 @@ class ioServer(object):
             print2err('Error PubSub Device listener association ....')
             printExceptionDetailsToStdErr()
 
-    def processDeviceConfigDictionary(self, dev_mod_path, dev_cls_name,
-                                      dev_conf, def_dev_conf):
+    def processDeviceConfigDictionary(self, dev_mod_path, dev_cls_name, dev_conf, def_dev_conf):
         for dparam, dvalue in def_dev_conf.items():
-            if dparam not in dev_conf:
+            if dparam in dev_conf:
+                if isinstance(dvalue, (dict, OrderedDict)):
+                    self.processDeviceConfigDictionary(None, None, dev_conf.get(dparam), dvalue)
+            elif dparam not in dev_conf:
                 if isinstance(dvalue, (dict, OrderedDict)):
                     sub_param = dict()
-                    self.processDeviceConfigDictionary(None, None, sub_param,
-                                                       dvalue)
+                    self.processDeviceConfigDictionary(None, None, sub_param, dvalue)
                     dev_conf[dparam] = sub_param
                 else:
                     dev_conf[dparam] = dvalue

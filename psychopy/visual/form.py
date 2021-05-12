@@ -29,7 +29,7 @@ _REQUIRED = -12349872349873  # an unlikely int
 _knownFields = {
     'index': None,  # optional field to index into the rows
     'itemText': _REQUIRED,  # (question used until 2020.2)
-    'itemColor': 'fg',
+    'itemColor': None,
     'itemWidth': 0.8,  # fraction of the form
     'type': _REQUIRED,  # type of response box (see below)
     'options': ('Yes', 'No'),  # for choice box
@@ -37,7 +37,8 @@ _knownFields = {
     'tickLabels': None,
     # for rating/slider
     'responseWidth': 0.8,  # fraction of the form
-    'responseColor': 'fg',
+    'responseColor': None,
+    'markerColor': None,
     'layout': 'horiz',  # can be vert or horiz
 }
 _doNotSave = [
@@ -97,23 +98,47 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         Randomize order of Form elements
     """
 
+    knownStyles = {
+        'light': {
+            'fillColor': [0.89, 0.89, 0.89],
+            'borderColor': None,
+            'itemColor': 'black',
+            'responseColor': 'black',
+            'markerColor': [0.89, -0.35, -0.28],
+            'font': "Open Sans",
+        },
+        'dark': {
+            'fillColor': [-0.19, -0.19, -0.14],
+            'borderColor': None,
+            'itemColor': 'white',
+            'responseColor': 'white',
+            'markerColor': [0.89, -0.35, -0.28],
+            'font': "Open Sans",
+        },
+    }
+
     def __init__(self,
                  win,
                  name='default',
                  colorSpace='rgb',
-                 color='white',
-                 fillColor='red',
-                 borderColor='white',
-                 foreColor='white',
+                 fillColor=None,
+                 borderColor=None,
+                 itemColor='white',
+                 responseColor='white',
+                 markerColor='red',
                  items=None,
+                 font="Open Sans",
                  textHeight=.02,
                  size=(.5, .5),
                  pos=(0, 0),
-                 style='dark',
+                 style=None,
                  itemPadding=0.05,
                  units='height',
                  randomize=False,
                  autoLog=True,
+                 # legacy
+                 color=None,
+                 foreColor=None
                  ):
 
         super(Form, self).__init__(win, units, autoLog=False)
@@ -132,8 +157,17 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         # Appearance
         self.colorSpace = colorSpace
         self.fillColor = fillColor
-        self.foreColor = color
         self.borderColor = borderColor
+        self.itemColor = itemColor
+        self.responseColor = responseColor
+        self.markerColor = markerColor
+        if color:
+            self.foreColor = color
+        if foreColor:
+            self.foreColor = color
+        self.style = style
+
+        self.font = font
 
         self.textHeight = textHeight
         self._scrollBarSize = (0.016, self.size[1]/1.2)
@@ -154,7 +188,6 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
         # Create layout of form
         self._createItemCtrls()
-        self.style = style
 
         if self.autoLog:
             logging.exp("Created {} = {}".format(self.name, repr(self)))
@@ -378,7 +411,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 size=[w, None],  # expand height with text
                 autoLog=False,
                 colorSpace=self.colorSpace,
-                color=item['itemColor'] or self.color,
+                color=item['itemColor'] or self.itemColor,
                 fillColor=None,
                 padding=0,  # handle this by padding between items
                 borderWidth=1,
@@ -386,6 +419,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 editable=False,
                 bold=bold,
                 font='Arial')
+        print(item['itemColor'] or self.itemColor)
 
         questionHeight = question.size[1]
         questionWidth = question.size[0]
@@ -480,7 +514,12 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
             else:
                 tickLabels = None
             # style/granularity
-            if kind == 'slider':
+            if kind == 'slider' and 'granularity' in item:
+                if item['granularity']:
+                    granularity = item['granularity']
+                else:
+                    granularity = 0
+            elif kind == 'slider' and 'granularity' not in item:
                 granularity = 0
             else:
                 granularity = 1
@@ -513,9 +552,9 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 flip=True,
                 style=style,
                 autoLog=False,
-                color=item['responseColor'] or self.color,
-                fillColor=self.fillColor,
-                borderColor=self.borderColor,
+                color=item['responseColor'] or self.responseColor,
+                fillColor=item['markerColor'] or self.markerColor,
+                borderColor=item['responseColor'] or self.responseColor,
                 colorSpace=self.colorSpace)
 
         if item['layout'] == 'horiz':
@@ -567,11 +606,11 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 letterHeight=self.textHeight,
                 units=self.units,
                 anchor='top-right',
-                color=item['responseColor'] or self.color,
+                color=item['responseColor'] or self.responseColor,
                 colorSpace=self.colorSpace,
                 font='Open Sans',
                 editable=True,
-                borderColor=self.borderColor,
+                borderColor=item['responseColor'] or self.responseColor,
                 borderWidth=2,
                 fillColor=None,
                 onTextCallback=self._layoutY,
@@ -595,8 +634,8 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                                       size=self._scrollBarSize,
                                       ticks=[0, 1],
                                       style='scrollbar',
-                                      borderColor= self.borderColor,
-                                      fillColor= self.fillColor,
+                                      borderColor=self.responseColor,
+                                      fillColor=self.markerColor,
                                       pos=(self.rightEdge - .008, self.pos[1]),
                                       autoLog=False)
         return scroll
@@ -615,8 +654,8 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                                     width=self.size[0],
                                     height=self.size[1],
                                     colorSpace=self.colorSpace,
-                                    fillColor=None,
-                                    lineColor=None,
+                                    fillColor=self.fillColor,
+                                    lineColor=self.borderColor,
                                     opacity=None,
                                     autoLog=False)
 
@@ -908,49 +947,107 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         self.getData()
         return self._complete
 
-    knownStyles = ["basic", "legalPad"]
-    legacyStyles = ["light", "dark"]
-    knownStyles = legacyStyles # Overwrite new styles until implemented
-
     @property
     def foreColor(self):
+        """
+        Sets both `itemColor` and `responseColor` to the same value
+        """
         return ColorMixin.foreColor.fget(self)
+
     @foreColor.setter
     def foreColor(self, value):
         ColorMixin.foreColor.fset(self, value)
-        for item in self.items:
-            if 'itemCtrl' in item:
-                if hasattr(item['itemCtrl'], 'color'):
-                    item['itemCtrl'].color = self._foreColor.copy()
-            if 'responseCtrl' in item:
-                if hasattr(item['responseCtrl'], 'color'):
-                    item['responseCtrl'].color = self._foreColor.copy()
+        self.itemColor = value
+        self.responseColor = value
 
     @property
     def fillColor(self):
+        """
+        Color of the form's background
+        """
         return ColorMixin.fillColor.fget(self)
+
     @fillColor.setter
     def fillColor(self, value):
         ColorMixin.fillColor.fset(self, value)
-        for item in self.items:
-            if 'responseCtrl' in item:
-                if hasattr(item['responseCtrl'], 'fillColor') and not isinstance(item['responseCtrl'], psychopy.visual.TextBox2):
-                    item['responseCtrl'].fillColor = self._fillColor.copy()
+        if hasattr(self, "border"):
+            self.border.fillColor = value
 
     @property
     def borderColor(self):
+        """
+        Color of the line around the form
+        """
         return ColorMixin.borderColor.fget(self)
+
     @borderColor.setter
     def borderColor(self, value):
         ColorMixin.borderColor.fset(self, value)
+        if hasattr(self, "border"):
+            self.border.borderColor = value
+
+    @property
+    def itemColor(self):
+        """
+        Color of the text on form items
+        """
+        return self._itemColor
+
+    @itemColor.setter
+    def itemColor(self, value):
+        self._itemColor = value
+        # Set text color on each item
+        for item in self.items:
+            if 'itemCtrl' in item:
+                if isinstance(item['itemCtrl'], psychopy.visual.TextBox2):
+                    item['itemCtrl'].foreColor = value
+
+    @property
+    def responseColor(self):
+        """
+        Color of the lines and text on form responses
+        """
+        if hasattr(self, "_responseColor"):
+            return self._responseColor
+
+    @responseColor.setter
+    def responseColor(self, value):
+        self._responseColor = value
+        # Set line color on scrollbar
+        if hasattr(self, "scrollbar"):
+            self.scrollbar.borderColor = value
+        # Set line and label color on each item
         for item in self.items:
             if 'responseCtrl' in item:
-                if hasattr(item['responseCtrl'], 'borderColor'):
-                    item['responseCtrl'].borderColor = self._borderColor.copy()
+                if isinstance(item['responseCtrl'], psychopy.visual.Slider):
+                    item['responseCtrl'].borderColor = value
+                    item['responseCtrl'].foreColor = value
+
+    @property
+    def markerColor(self):
+        """
+        Color of the marker on any sliders in this form
+        """
+        if hasattr(self, "_markerColor"):
+            return self._markerColor
+
+    @markerColor.setter
+    def markerColor(self, value):
+        self._markerColor = value
+        # Set marker color on scrollbar
+        if hasattr(self, "scrollbar"):
+            self.scrollbar.fillColor = value
+        # Set marker color on each item
+        for item in self.items:
+            if 'responseCtrl' in item:
+                if isinstance(item['responseCtrl'], psychopy.visual.Slider):
+                    item['responseCtrl'].fillColor = value
 
     @property
     def style(self):
-        return self._style
+        if hasattr(self, "_style"):
+            return self._style
+
     @style.setter
     def style(self, style):
         """Sets some predefined styles or use these to create your own.
@@ -968,63 +1065,19 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
         """
         self._style = style
-
-        if style == "basic":
-            # Basic is the default, do nothing
+        # If style is custom, skip the rest
+        if style in ['custom...', 'None', None]:
             return
-
-        if style == 'legalPad':
-            # Set page fill color
-            self.border.fillColor = '#F2F6A7' # Legal pad yellow
-
-            # Add left line
-            margin = psychopy.visual.Line(self.win,
-                                 start=[self.pos[0]-self.size[0]/2+self.itemPadding*0.8, self.pos[1]+self.size[1]/2],
-                                 end=[self.pos[0]-self.size[0]/2+self.itemPadding*0.8, self.pos[1]-self.size[1]/2],
-                                 units=self.units,
-                                 lineColor='red'
-                                 )
-            self._decorations.append(margin)
-
-            # Create a drop shadow
-            unitAdjs = {
-                'height': 0.02,
-                'norm': 0.02,
-                'pix': 10,
-                'cm': 1,
-                'deg': 0.5,
-                'degFlatPos': 0.5,
-                'degFlat': 0.5
-            }
-            if self.units in unitAdjs:
-                shadowAdj = unitAdjs[self.units]
-            else:
-                shadowAdj = 0
-            shadow = psychopy.visual.Rect(self.win,
-                units=self.units,
-                pos=[self.pos[0] + shadowAdj, self.pos[1] - shadowAdj],
-                width=self.size[0],
-                height=self.size[1],
-                colorSpace=self.colorSpace,
-                fillColor=Color((-1, -1, -1, 0.2), 'rgb'),
-                lineColor=None,
-                opacity=None,
-                autoLog=False)
-            self._externalDecorations.insert(0, shadow)
-
-        # Legacy
-        if style == 'light' or str(style) == "['light']":
-            # ...then replace set colors with colors from style
-            self.color = 'black'
-            self.borderColor = 'black'
-            self.fillColor = Color([0.89, -0.35, -0.28], 'rgb')
-            self.border.fillColor = Color([0.89,0.89,0.89], 'rgb')
-        if style == 'dark' or str(style) == "['dark']":
-            # ...then replace set colors with colors from style
-            self.color = 'white'
-            self.borderColor = 'white'
-            self.fillColor = Color([0.89, -0.35, -0.28], 'rgb')
-            self.border.fillColor = Color([-0.19,-0.19,-0.14], 'rgb')
+        # If style is a string of a known style, use that
+        if style in self.knownStyles:
+            style = self.knownStyles[style]
+        # By here, style should be a dict
+        if not isinstance(style, dict):
+            return
+        # Apply each key in the style dict as an attr
+        for key, val in style.items():
+            if hasattr(self, key):
+                setattr(self, key, val)
 
     @property
     def values(self):

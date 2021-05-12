@@ -24,7 +24,7 @@ _localized.update({'Items': _translate('Items'),
                    'Data Format': _translate('Data Format'),
                    'Randomize': _translate('Randomize')
                    })
-knownStyles = form.Form.knownStyles
+knownStyles = list(form.Form.knownStyles)
 
 
 class FormComponent(BaseVisualComponent):
@@ -40,16 +40,20 @@ class FormComponent(BaseVisualComponent):
                  items='.csv',
                  textHeight=.03,
                  randomize=False,
-                 color='white',
-                 fillColor='red',
-                 borderColor='white',
+                 fillColor='',
+                 borderColor='',
+                 itemColor='white',
+                 responseColor='white',
+                 markerColor='red',
                  size=(1, .7),
                  pos=(0, 0),
                  style='dark',
                  itemPadding=0.05,
                  startType='time (s)', startVal='0.0',
                  stopType='duration (s)', stopVal='',
-                 startEstim='', durationEstim=''):
+                 startEstim='', durationEstim='',
+                 # legacy
+                 color='white'):
 
         super(FormComponent, self).__init__(
             exp, parentName, name=name,
@@ -62,6 +66,7 @@ class FormComponent(BaseVisualComponent):
         # these are defined by the BaseVisual but we don't want them
         del self.params['ori']
         del self.params['units']  # we only support height units right now
+        del self.params['color']
 
         self.type = 'Form'
         self.url = "https://www.psychopy.org/builder/components/form.html"
@@ -107,24 +112,55 @@ class FormComponent(BaseVisualComponent):
             hint=_translate("Store item data by columns, or rows"),
             label=_localized['Data Format'])
 
+        # Appearance
+        for param in ['fillColor', 'borderColor', 'itemColor', 'responseColor', 'markerColor', 'Style']:
+            if param in self.order:
+                self.order.remove(param)
+            self.order.insert(
+                self.order.index("colorSpace"),
+                param
+            )
+
         self.params['Style'] = Param(
             style, valType='str', inputType="choice", categ="Appearance",
-            updates='constant', allowedVals=knownStyles,
+            updates='constant', allowedVals=knownStyles + ["custom..."],
             hint=_translate(
                     "Styles determine the appearance of the form"),
             label=_localized['Style'])
 
-        self.params['color'].label = _translate("Text Color")
-        self.params['color'].allowedUpdates = []
-        self.params['fillColor'].label = _translate("Marker Colors")
-        self.params['fillColor'].allowedUpdates = []
-        self.params['borderColor'].label =_translate("Lines Color")
-        self.params['borderColor'].allowedUpdates = []
+        for param in ['fillColor', 'borderColor', 'itemColor', 'responseColor', 'markerColor']:
+            self.depends += [{
+                "dependsOn": "Style",  # must be param name
+                "condition": "=='custom...'",  # val to check for
+                "param": param,  # param property to alter
+                "true": "enable",  # what to do with param if condition is True
+                "false": "disable",  # permitted: hide, show, enable, disable
+            }]
 
-        # TEMPORARY: Hide color params until we have something that works
-        del self.params['color']
-        del self.params['fillColor']
-        del self.params['borderColor']
+        self.params['fillColor'].hint = _translate("Color of the form's background")
+
+        self.params['borderColor'].hint = _translate("Color of the outline around the form")
+
+        self.params['itemColor'] = Param(itemColor,
+            valType='color', inputType="color", categ='Appearance',
+            updates='constant',
+            allowedUpdates=['constant', 'set every repeat', 'set every frame'],
+            hint=_translate("Base text color for questions"),
+            label=_translate("Item Color"))
+
+        self.params['responseColor'] = Param(responseColor,
+            valType='color', inputType="color", categ='Appearance',
+            updates='constant',
+            allowedUpdates=['constant', 'set every repeat', 'set every frame'],
+            hint=_translate("Base text color for responses, also sets color of lines in sliders and borders of textboxes"),
+            label=_translate("Response Color"))
+
+        self.params['markerColor'] = Param(markerColor,
+            valType='color', inputType="color", categ='Appearance',
+            updates='constant',
+            allowedUpdates=['constant', 'set every repeat', 'set every frame'],
+            hint=_translate("Color of markers and the scrollbar"),
+            label=_translate("Marker Color"))
 
         self.params['pos'].allowedUpdates = []
         self.params['size'].allowedUpdates = []
@@ -132,18 +168,29 @@ class FormComponent(BaseVisualComponent):
     def writeInitCode(self, buff):
         inits = getInitVals(self.params)
         # build up an initialization string for Form():
-        initStr = ("win.allowStencil = True\n"
-                   "{name} = visual.Form(win=win, name='{name}',\n"
-                   "    items={Items},\n"
-                   "    textHeight={Text Height},\n"
-                   "    randomize={Randomize},\n"
-                   # "    color={color}, fillColor={fillColor}, borderColor={borderColor}, colorSpace={colorSpace}, \n"
-                   "    size={size},\n"
-                   "    pos={pos},\n"
-                   "    style={Style},\n"
-                   "    itemPadding={Item Padding},"
-                   ")\n".format(**inits))
-        buff.writeIndented(initStr)
+        code = (
+            "win.allowStencil = True\n"
+            "%(name)s = visual.Form(win=win, name='%(name)s',\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(1, relative=True)
+        code = (
+            "items=%(Items)s,\n"
+            "textHeight=%(Text Height)s,\n"
+            "randomize=%(Randomize)s,\n"
+            "style=%(Style)s,\n"
+            "fillColor=%(fillColor)s, borderColor=%(borderColor)s, itemColor=%(itemColor)s, \n"
+            "responseColor=%(responseColor)s, markerColor=%(markerColor)s, colorSpace=%(colorSpace)s, \n"
+            "size=%(size)s,\n"
+            "pos=%(pos)s,\n"
+            "itemPadding=%(Item Padding)s"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(-1, relative=True)
+        code = (
+            ")\n"
+        )
+        buff.writeIndentedLines(code % inits)
 
     def writeInitCodeJS(self, buff):
         inits = getInitVals(self.params)
