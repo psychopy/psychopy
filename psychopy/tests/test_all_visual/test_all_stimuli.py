@@ -437,7 +437,7 @@ class _baseVisualTest(object):
             height=0.8*self.scaleFactor, pos=[0,0], font='DejaVu Serif',
             fontFiles=[fontFile])
         stim.draw()
-        if self.win.winType != 'pygame' and not 'NoShader' in self.contextName:
+        if self.win.winType != 'pygame':
             #compare with a LIBERAL criterion (fonts do differ)
             utils.compareScreenshot('text1_%s.png' %(self.contextName), win, crit=20)
         win.flip()  # AFTER compare screenshot
@@ -455,7 +455,7 @@ class _baseVisualTest(object):
         stim.opacity = 0.8
         stim.draw()
         "{}".format(stim) #check that str(xxx) is working
-        if self.win.winType != 'pygame' and not 'NoShader' in self.contextName:
+        if self.win.winType != 'pygame':
             #compare with a LIBERAL criterion (fonts do differ)
             utils.compareScreenshot('text2_%s.png' %self.contextName,
                                     win, crit=20)
@@ -595,10 +595,7 @@ class _baseVisualTest(object):
         wedge.angularPhase = 0.1
         wedge.draw()
         "{}".format(wedge) #check that str(xxx) is working
-        if (
-                win.winType != 'pygame'  # pygame gets this wrong
-                and 'NoShade' not in self.contextName  # no shaders not supported
-        ):
+        if win.winType != 'pygame': # pygame gets this wrong:
             utils.compareScreenshot('wedge2_%s.png' %(self.contextName),
                                     win, crit=thresh)
         else:
@@ -796,17 +793,6 @@ class TestPygletHeight(_baseVisualTest):
         self.win = visual.Window([128,64], winType='pyglet', pos=[50,50],
                                  allowStencil=False, autoLog=False)
         self.contextName='height'
-        self.scaleFactor=1#applied to size/pos values
-
-
-class TestPygletNormNoShaders(_baseVisualTest):
-    @classmethod
-    def setup_class(self):
-        self.win = visual.Window([128,128], monitor='testMonitor',
-                                 winType='pyglet', pos=[50,50],
-                                 allowStencil=True, autoLog=False)
-        self.win._haveShaders=False
-        self.contextName='normNoShade'
         self.scaleFactor=1#applied to size/pos values
 
 
