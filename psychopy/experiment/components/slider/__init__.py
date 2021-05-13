@@ -225,7 +225,7 @@ class SliderComponent(BaseVisualComponent):
                    "    color={color}, fillColor={fillColor}, borderColor={borderColor}, colorSpace={colorSpace},\n"
                    "    font={font}, labelHeight={letterHeight},\n"
                    "    flip={flip}, depth={depth}, readOnly={readOnly})\n"
-                   "{name}.value = {initVal}"
+                   "{name}.markerPos = {initVal}"
                    .format(**inits))
         buff.writeIndented(initStr)
 
