@@ -17,7 +17,7 @@ import platform
 import ctypes
 import ctypes.util
 from psychopy import logging, prefs
-import os
+from psychopy.tests import _vmTesting
 
 # import platform specific C++ libs for controlling gamma
 if sys.platform == 'win32':
@@ -35,8 +35,6 @@ elif sys.platform == 'darwin':
 elif sys.platform.startswith('linux'):
     # we need XF86VidMode
     xf86vm = ctypes.CDLL(ctypes.util.find_library('Xxf86vm'))
-
-_TravisTesting = os.environ.get('TRAVIS') == 'true'  # in Travis-CI testing
 
 # Handling what to do if gamma can't be set
 if prefs.general['gammaErrorPolicy'] == 'abort':  # more clear to Builder users
@@ -137,7 +135,7 @@ def setGammaRamp(screenID, newRamp, nAttempts=3, xDisplay=None,
             elif gammaErrorPolicy == 'warn':
                 logging.warning(warn_msg.format(func=func))
 
-    if sys.platform.startswith('linux') and not _TravisTesting:
+    if sys.platform.startswith('linux') and not _vmTesting:
         newRamp = (numpy.around(65535 * newRamp)).astype(numpy.uint16)
         success = xf86vm.XF86VidModeSetGammaRamp(
             xDisplay, screenID, LUTlength,
@@ -151,9 +149,9 @@ def setGammaRamp(screenID, newRamp, nAttempts=3, xDisplay=None,
             elif gammaErrorPolicy == 'warn':
                 logging.warning(raise_msg.format(func=func))
 
-    elif _TravisTesting:
-        logging.warn("It looks like we're running in the Travis-CI testing "
-                     "environment. Hardware gamma table cannot be set")
+    elif _vmTesting:
+        logging.warn("It looks like we're running in a Virtual Machine. "
+                     "Hardware gamma table cannot be set")
 
 
 def getGammaRamp(screenID, xDisplay=None, gammaErrorPolicy=None):
@@ -188,7 +186,7 @@ def getGammaRamp(screenID, xDisplay=None, gammaErrorPolicy=None):
     if sys.platform == 'darwin':
         # init R, G, and B ramps
         origramps = numpy.empty((3, rampSize), dtype=numpy.float32)
-        n = numpy.empty([1], dtype=numpy.int)
+        n = numpy.empty([1], dtype=int)
         error = carbon.CGGetDisplayTransferByTable(
             screenID, rampSize,
             origramps[0, :].ctypes,
@@ -201,7 +199,7 @@ def getGammaRamp(screenID, xDisplay=None, gammaErrorPolicy=None):
             elif gammaErrorPolicy == 'warn':
                 logging.warning(warn_msg.format(func=func))
 
-    if sys.platform.startswith('linux') and not _TravisTesting:
+    if sys.platform.startswith('linux') and not _vmTesting:
         origramps = numpy.empty((3, rampSize), dtype=numpy.uint16)
         success = xf86vm.XF86VidModeGetGammaRamp(
             xDisplay, screenID, rampSize,
@@ -217,9 +215,9 @@ def getGammaRamp(screenID, xDisplay=None, gammaErrorPolicy=None):
         else:
             origramps = origramps/65535.0  # rescale to 0:1
 
-    elif _TravisTesting:
-        logging.warn("It looks like we're running in the Travis-CI testing "
-                     "environment. Hardware gamma table cannot be retrieved")
+    elif _vmTesting:
+        logging.warn("It looks like we're running in a virtual machine. "
+                     "Hardware gamma table cannot be retrieved")
         origramps = None
 
     return origramps
@@ -320,13 +318,13 @@ def getGammaRampSize(screenID, xDisplay=None, gammaErrorPolicy=None):
     if not gammaErrorPolicy:
         gammaErrorPolicy = defaultGammaErrorPolicy
 
-    if sys.platform == 'win32':
+    if sys.platform == 'win32' or _vmTesting:
         # windows documentation (for SetDeviceGammaRamp) seems to indicate that
         # the LUT size is always 256
         rampSize = 256
     elif sys.platform == 'darwin':
         rampSize = carbon.CGDisplayGammaTableCapacity(screenID)
-    elif sys.platform.startswith('linux') and not _TravisTesting:
+    elif sys.platform.startswith('linux'):
         rampSize = ctypes.c_int()
         success = xf86vm.XF86VidModeGetGammaRampSize(
             xDisplay,
@@ -342,7 +340,6 @@ def getGammaRampSize(screenID, xDisplay=None, gammaErrorPolicy=None):
         else:
             rampSize = rampSize.value
     else:
-        assert _TravisTesting
         rampSize = 256
 
     if rampSize == 0:

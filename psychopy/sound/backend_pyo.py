@@ -28,6 +28,7 @@ except ImportError as err:
     if not travisCI:
         # convert this import error to our own, pyo probably not installed
         raise exceptions.DependencyError(repr(err))
+
 if PY3:
     from contextlib import redirect_stdout
     from io import StringIO

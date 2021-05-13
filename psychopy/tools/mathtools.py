@@ -1451,7 +1451,7 @@ def intersectRayAABB(rayOrig, rayDir, boundsOffset, boundsExtents, dtype=None):
     extents = np.asarray(boundsExtents, dtype=dtype) + boundsOffset
 
     invDir = 1.0 / rayDir
-    sign = np.zeros((3,), dtype=np.int)
+    sign = np.zeros((3,), dtype=int)
     sign[invDir < 0.0] = 1
 
     tmin = (extents[sign[0], 0] - rayOrig[0]) * invDir[0]

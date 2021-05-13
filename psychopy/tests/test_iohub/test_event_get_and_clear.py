@@ -2,10 +2,10 @@
     for 'global' and 'device' level event buffers.
 """
 import pytest
-from psychopy.tests.utils import skip_under_travis
+from psychopy.tests import skip_under_vm
 from psychopy.tests.test_iohub.testutil import startHubProcess, stopHubProcess, getTime
 
-@skip_under_travis
+@skip_under_vm
 def testGetEvents():
     """
     """
@@ -37,7 +37,7 @@ def testGetEvents():
 
     stopHubProcess()
 
-@skip_under_travis
+@skip_under_vm
 def testGlobalBufferOnlyClear():
     """
     """
@@ -56,7 +56,7 @@ def testGlobalBufferOnlyClear():
 
     stopHubProcess()
 
-@skip_under_travis
+@skip_under_vm
 def testDeviceBufferOnlyClear():
     """
     """
@@ -75,7 +75,7 @@ def testDeviceBufferOnlyClear():
 
     stopHubProcess()
 
-@skip_under_travis
+@skip_under_vm
 def testAllBuffersClear():
     """
     """

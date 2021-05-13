@@ -24,6 +24,7 @@ from psychopy.hardware import mouse
 from psychopy import logging, event, platform_specific, constants
 from psychopy.visual import window
 from psychopy.tools.attributetools import attributeSetter
+from psychopy.tests import _vmTesting
 from .gamma import setGamma, setGammaRamp, getGammaRamp, getGammaRampSize
 from .. import globalVars
 from ._base import BaseBackend
@@ -124,8 +125,6 @@ class PygletBackend(BaseBackend):
         if not isinstance(backendConf, dict):  # type check on options
             raise TypeError(
                 'Object passed to `backendConf` must be type `dict`.')
-
-        self._TravisTesting = (os.environ.get('TRAVIS') == 'true')
 
         self._gammaErrorPolicy = win.gammaErrorPolicy
         self._origGammaRamp = None
@@ -446,7 +445,7 @@ class PygletBackend(BaseBackend):
     @attributeSetter
     def gamma(self, gamma):
         self.__dict__['gamma'] = gamma
-        if self._TravisTesting:
+        if _vmTesting:
             return
         if self._origGammaRamp is None:  # get the original if we haven't yet
             self._getOrigGammaRamp()
@@ -465,7 +464,7 @@ class PygletBackend(BaseBackend):
         """Gets the gamma ramp or sets it to a new value (an Nx3 or Nx1 array)
         """
         self.__dict__['gammaRamp'] = gammaRamp
-        if self._TravisTesting:
+        if _vmTesting:
             return
         if self._origGammaRamp is None:  # get the original if we haven't yet
             self._getOrigGammaRamp()
