@@ -394,11 +394,12 @@ class EyeTracker(EyeTrackerDevice):
         """
         return self._recording
 
-    def runSetupProcedure(self, **calibration_args):
+    def runSetupProcedure(self, calibration_args={}):
         """
         runSetupProcedure does nothing in the Mouse Simulated eye tracker, as calibration is automatic. ;)
         """
         print2err("Mouse Simulated eye tracker runSetupProcedure called.")
+        print2err("calibration_args: ", calibration_args)
         return True
 
     def _getIOHubEventObject(self, native_event_data):
