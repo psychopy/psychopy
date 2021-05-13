@@ -84,7 +84,7 @@ class GazepointPsychopyCalibrationGraphics(object):
                                                                                (0.75, 0.75),
                                                                                (0.75, 0.25)
                                                                                ]
-            display = self._eyetracker._display_device
+        display = self._eyetracker._display_device
 
         self.window = visual.Window(
             self.screenSize,
