@@ -1,28 +1,35 @@
-from .circle import Circle
+from .shape import ShapeStim
 from .basevisual import ColorMixin
 from psychopy.colors import Color
 
-knownStyles = ["ring", "dot"]
+knownStyles = ["circles", "cross", ]
 
 
-class TargetStim(Circle):
+class TargetStim(ShapeStim):
     """
     A target for use in eyetracker calibration, if converted to a dict will return in the correct format for ioHub
     """
     def __init__(self,
-                 win, name=None, style="ring",
-                 outerRadius=.05, innerRadius=.01, pos=(0, 0), lineWidth=2, units='height',
-                 color="red", fillColor=(1, 1, 1, 0.1), borderColor="white", colorSpace="rgb",
+                 win, name=None, style="circles",
+                 radius=.05, fillColor=(1, 1, 1, 0.1), borderColor="white", lineWidth=2,
+                 innerRadius=.01, innerFillColor="red", innerBorderColor=None, innerLineWidth=None,
+                 pos=(0, 0),  units='height',
+                 colorSpace="rgb",
                  autoLog=None, autoDraw=False):
         # Init super (creates outer circle)
-        Circle.__init__(self, win, name=name,
-                        radius=outerRadius, pos=pos, lineWidth=lineWidth, units=units or '',
-                        fillColor=fillColor, lineColor=borderColor, colorSpace=colorSpace,
-                        autoLog=autoLog, autoDraw=autoDraw)
-        self._outerRadius = outerRadius
-        self._innerRadius = innerRadius
-        self._foreColor = Color(color, space=colorSpace)
-        self._scale = 1
+        ShapeStim.__init__(self, win, name=name,
+                           vertices="circle",
+                           size=(radius*2, radius*2), pos=pos,
+                           lineWidth=lineWidth, units=(units or ''),
+                           fillColor=fillColor, lineColor=borderColor, colorSpace=colorSpace,
+                           autoLog=autoLog, autoDraw=autoDraw)
+
+        self.inner = ShapeStim(win, name=name+"Inner",
+                               vertices="circle",
+                               size=(innerRadius*2, innerRadius*2), pos=pos, units=(units or ''),
+                               lineWidth=(innerLineWidth or lineWidth),
+                               fillColor=innerFillColor, lineColor=innerBorderColor, colorSpace=colorSpace,
+                               autoLog=autoLog, autoDraw=autoDraw)
         self.style = style
 
     @property
@@ -32,38 +39,14 @@ class TargetStim(Circle):
 
     @style.setter
     def style(self, value):
-        if value == "ring":
-            # PsychoPy default style
-            self.inner = Circle(self.win, name=self.name + "Inner",
-                                radius=self._innerRadius, pos=self.pos, lineWidth=self.lineWidth, units=self.units,
-                                fillColor=None, lineColor=self._foreColor, colorSpace=self.colorSpace,
-                                autoLog=self.autoLog, autoDraw=self.autoDraw)
-            # Keeps track of the attribute of self.inner which self.color corresponds to
-            self.inner.colorAttr = "lineColor"
-        elif value == "dot":
-            # PsychoPy default style
-            self.inner = Circle(self.win, name=self.name + "Inner",
-                                radius=self._innerRadius, pos=self.pos, lineWidth=self.lineWidth, units=self.units,
-                                fillColor=self._foreColor, lineColor=None, colorSpace=self.colorSpace,
-                                autoLog=self.autoLog, autoDraw=self.autoDraw)
-            # Keeps track of the attribute of self.inner which self.color corresponds to
-            self.inner.colorAttr = "fillColor"
-
-    @property
-    def innerRadius(self):
-        return self.inner.radius
-
-    @innerRadius.setter
-    def innerRadius(self, value):
-        self.inner.radius = value
-
-    @property
-    def outerRadius(self):
-        return self.radius
-
-    @outerRadius.setter
-    def outerRadius(self, value):
-        self.radius = value
+        self._style = value
+        if value == "circles":
+            # Two circles
+            self.vertices = self.inner.vertices = "circle"
+        elif value == "cross":
+            # Circle with a cross inside
+            self.vertices = "circle"
+            self.inner.vertices = "cross"
 
     @property
     def scale(self):
@@ -75,31 +58,48 @@ class TargetStim(Circle):
     @scale.setter
     def scale(self, newScale):
         oldScale = self.scale
-        self.outerRadius = self.outerRadius / oldScale * newScale
+        self.radius = self.radius / oldScale * newScale
         self.innerRadius = self.innerRadius / oldScale * newScale
         self._scale = newScale
 
     @property
+    def radius(self):
+        return sum(self.size)/2
+
+    @radius.setter
+    def radius(self, value):
+        self.size = (value*2, value*2)
+
+    @property
+    def innerRadius(self):
+        return sum(self.inner.size) / 2
+
+    @innerRadius.setter
+    def innerRadius(self, value):
+        self.inner.size = (value * 2, value * 2)
+
+    @property
     def foreColor(self):
-        if hasattr(self, "_foreColor"):
-            return self._foreColor
+        # Return whichever inner color is not None
+        return self.inner.fillColor or self.inner.borderColor
 
     @foreColor.setter
     def foreColor(self, value):
-        self._foreColor = value
-        if hasattr(self.inner, "colorAttr"):
-            # If self.inner has a colorAttr, set it according to new foreColor value
-            setattr(self.inner, self.inner.colorAttr)
+        # Set whichever inner color is not None
+        if self.inner.fillColor is not None:
+            self.inner.fillColor = value
+        if self.inner.borderColor is not None:
+            self.inner.borderColor = value
 
     def draw(self, win=None, keepMatrix=False):
-        Circle.draw(self, win, keepMatrix)
+        ShapeStim.draw(self, win, keepMatrix)
         self.inner.draw(win, keepMatrix)
 
     def __iter__(self):
         """Overload dict() method to return in ioHub format"""
         asDict = {
             # Outer circle
-            'outer_diameter': self.outerRadius * 2,
+            'outer_diameter': self.radius * 2,
             'outer_stroke_width': self.lineWidth,
             'outer_fill_color': self.fillColor,
             'outer_line_color': self.borderColor,

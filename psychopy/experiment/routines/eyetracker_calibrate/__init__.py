@@ -14,9 +14,9 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
 
     def __init__(self, exp, name='calibration',
                  pacingSpeed="", autoPace=True,
-                 color="red", fillColor="", borderColor="white", cursorColor="red", colorSpace="rgb",
-                 borderWidth=0.005,
-                 units='from exp settings', targetSize=0.025, dotSize=0.005,
+                 innerFillColor="red", innerBorderColor="", innerBorderWidth="", outerRadius=0.025,
+                 fillColor="", borderColor="white", borderWidth=2, innerRadius=0.005,
+                 cursorColor="red", colorSpace="rgb", units='from exp settings',
                  targetLayout="NINE_POINT", randomisePos=True,
                  enableAnimation=False, contractOnly=False, velocity=0.5, expandScale=3, expandDur=0.75):
         # Initialise base routine
@@ -39,28 +39,35 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
         # Appearance Params
         self.order += [
             "targetStyle",
-            "color",
             "fillColor",
             "borderColor",
+            "innerFillColor",
+            "innerBorderColor",
             "cursorColor",
             "colorSpace",
             "borderWidth",
+            "innerBorderWidth",
         ]
 
-        self.params['color'] = Param(color,
+        self.params['innerFillColor'] = Param(innerFillColor,
                                      valType='color', inputType="color", categ='Appearance',
-                                     hint=_translate("Color of the dot inside the target"),
-                                     label=_translate("Target Inner Color"))
+                                     hint=_translate("Fill color of the inner part of the target"),
+                                     label=_translate("Inner Fill Color"))
+
+        self.params['innerBorderColor'] = Param(innerBorderColor,
+                                           valType='color', inputType="color", categ='Appearance',
+                                           hint=_translate("Border color of the inner part of the target"),
+                                           label=_translate("Inner Border Color"))
 
         self.params['fillColor'] = Param(fillColor,
                                          valType='color', inputType="color", categ='Appearance',
-                                         hint=_translate("Color of the inside of the target"),
-                                         label=_translate("Target Fill Color"))
+                                         hint=_translate("Fill color of the outer part of the target"),
+                                         label=_translate("Outer Fill Color"))
 
         self.params['borderColor'] = Param(borderColor,
                                            valType='color', inputType="color", categ='Appearance',
-                                           hint=_translate("Color of the line around the target"),
-                                           label=_translate("Target Border Color"))
+                                           hint=_translate("Border color of the outer part of the target"),
+                                           label=_translate("Outer Border Color"))
 
         self.params['cursorColor'] = Param(cursorColor,
                                            valType='color', inputType="color", categ='Appearance',
@@ -76,16 +83,21 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
 
         self.params['borderWidth'] = Param(borderWidth,
                                            valType='num', inputType="single", categ='Appearance',
-                                           hint=_translate("Width of the line around the target"),
-                                           label=_translate("Target Border Width"))
+                                           hint=_translate("Width of the line around the outer part of the target"),
+                                           label=_translate("Outer Border Width"))
+
+        self.params['innerBorderWidth'] = Param(innerBorderWidth,
+                                           valType='num', inputType="single", categ='Appearance',
+                                           hint=_translate("Width of the line around the inner part of the target"),
+                                           label=_translate("Inner Border Width"))
 
         # Layout Params
         self.order += [
             "targetLayout",
             "targetPositions",
             "randomisePos",
-            "targetSize",
-            "dotSize",
+            "outerRadius",
+            "innerRadius",
             "units",
         ]
 
@@ -107,15 +119,15 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
                                             hint=_translate("Should the order of target positions be randomised?"),
                                             label=_translate("Randomise Target Positions"))
 
-        self.params['targetSize'] = Param(targetSize,
+        self.params['outerRadius'] = Param(outerRadius,
                                           valType='num', inputType="single", categ='Layout',
-                                          hint=_translate("Size (radius) of each target"),
-                                          label=_translate("Target Size"))
+                                          hint=_translate("Size (radius) of the outer part of the target"),
+                                          label=_translate("Outer Radius"))
 
-        self.params['dotSize'] = Param(dotSize,
+        self.params['innerRadius'] = Param(innerRadius,
                                        valType='num', inputType="single", categ='Layout',
-                                       hint=_translate("Size (radius) of the dot in each target and the gaze cursor"),
-                                       label=_translate("Target / Cursor Dot Size"))
+                                       hint=_translate("Size (radius) of te inner part of the target"),
+                                       label=_translate("Inner Radius"))
 
         # Animation Params
         self.order += [
@@ -186,8 +198,8 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
         buff.setIndentLevel(1, relative=True)
         code = (
                 "name='%(name)sTarget',\n"
-                "outerRadius=%(targetSize)s, innerRadius=%(dotSize)s, lineWidth=%(borderWidth)s,\n"
-                "color=%(color)s, fillColor=%(fillColor)s, borderColor=%(borderColor)s,\n"
+                "radius=%(outerRadius)s, fillColor=%(fillColor)s, borderColor=%(borderColor)s, lineWidth=%(borderWidth)s,\n"
+                "innerRadius=%(innerRadius)s, innerFillColor=%(innerFillColor)s, innerBorderColor=%(innerBorderColor)s, innerLineWidth=%(innerBorderWidth)s,\n"
                 "colorSpace=%(colorSpace)s, units=%(units)s\n"
         )
         buff.writeIndentedLines(code % inits)
