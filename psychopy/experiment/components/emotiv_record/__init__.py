@@ -5,9 +5,12 @@ Created on Fri Apr 28 11:20:49 2017
 @author: mrbki
 """
 from os import path
+import json
 from pathlib import Path
 from psychopy.experiment.components import BaseComponent, getInitVals
 from psychopy.localization import _translate, _localized as __localized
+from psychopy.hardware.emotiv import Cortex
+
 _localized = __localized.copy()
 
 CORTEX_OBJ = 'cortex_obj'
@@ -16,7 +19,7 @@ CORTEX_OBJ = 'cortex_obj'
 class EmotivRecordingComponent(BaseComponent):  # or (VisualComponent)
 
     categories = ['Custom']
-    targets = ['PsychoPy']
+    targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'emotiv_record.png'
     tooltip = _translate('Initialize EMOTIV hardware connection')
 
@@ -42,7 +45,22 @@ class EmotivRecordingComponent(BaseComponent):  # or (VisualComponent)
                 .format(CORTEX_OBJ))
         buff.writeIndentedLines(code)
 
+    def writeInitCodeJS(self, buff):
+        inits = getInitVals(self.params, 'PsychoJS')
+        obj = {"status": "PsychoJS.Status.NOT_STARTED"}
+        code = '{} = {};\n'
+        buff.writeIndentedLines(
+            code.format(inits['name'], json.dumps(obj)))
+        for param in inits:
+            if inits[param] in [None, 'None', '']:
+                inits[param].val = 'undefined'
+                if param == 'text':
+                    inits[param].val = ""
+
     def writeFrameCode(self, buff):
+        pass
+
+    def writeFrameCodeJS(self, buff):
         pass
 
     def writeExperimentEndCode(self, buff):
@@ -51,3 +69,4 @@ class EmotivRecordingComponent(BaseComponent):  # or (VisualComponent)
                 "{}.close_session()\n".format(CORTEX_OBJ)
         )
         buff.writeIndentedLines(code)
+
