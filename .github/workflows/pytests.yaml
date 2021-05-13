@@ -1,4 +1,4 @@
-name: PsychoPy pytesting
+name: pytest
 
 on: [push]
 
