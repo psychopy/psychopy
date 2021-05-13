@@ -118,9 +118,9 @@ class SettingsComponent(object):
                  eyetracker="None",
                  mgMove='RIGHT_BUTTON', mgBlink='MIDDLE_BUTTON', mgSaccade=0.5,
                  gpAddress='127.0.0.1', gpPort=4242,
-                 elModel='EYELINK 1000 DESKTOP', elSimMode=False, elSampleRate=250, elTrackEyes="left",
-                 elLiveFiltering="off", elDataFiltering="off",
-                 elTrackingMode='PUPIL_CR_TRACKING', elPupilMeasure='PUPIL_AREA', elPupilAlgorithm='PUPIL_CR_TRACKING',
+                 elModel='EYELINK 1000 DESKTOP', elSimMode=False, elSampleRate=1000, elTrackEyes="right",
+                 elLiveFiltering="level 2", elDataFiltering="off",
+                 elTrackingMode='PUPIL_CR_TRACKING', elPupilMeasure='PUPIL_AREA', elPupilAlgorithm='ELLIPSE_FIT',
                  elAddress='100.1.1.1',
                  tbModel="", tbSerialNo="", tbSampleRate=60,
                  filename=None, exportHTML='on Sync'):
