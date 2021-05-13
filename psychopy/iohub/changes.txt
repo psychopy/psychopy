@@ -32,4 +32,5 @@ Changes made to iohub for 2021.2 Release
   Return contents vary between eye tracker manufacturers. TODO: Doc return data for each eye tracker
 - eyetracker.runSetupProcedure accepts calibration_args dict, which must have the same structure as the eyetracker's
   calibration settings section.
+- Added license_file setting to Tobii interface.
 - ioHub GazePoint interface now supports psychopy based calibration graphics.
