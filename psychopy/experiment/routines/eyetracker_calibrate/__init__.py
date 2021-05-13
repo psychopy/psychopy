@@ -17,7 +17,7 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
                  innerFillColor="red", innerBorderColor="", innerBorderWidth="", outerRadius=0.025,
                  fillColor="", borderColor="white", borderWidth=2, innerRadius=0.005,
                  cursorColor="red", colorSpace="rgb", units='from exp settings',
-                 targetLayout="NINE_POINT", randomisePos=True,
+                 targetLayout="NINE_POINTS", randomisePos=True,
                  enableAnimation=False, contractOnly=False, velocity=0.5, expandScale=3, expandDur=0.75):
         # Initialise base routine
         BaseStandaloneRoutine.__init__(self, exp, name=name)

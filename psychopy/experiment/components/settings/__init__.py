@@ -118,8 +118,8 @@ class SettingsComponent(object):
                  eyetracker="None",
                  mgMove='RIGHT_BUTTON', mgBlink='MIDDLE_BUTTON', mgSaccade=0.5,
                  gpAddress='127.0.0.1', gpPort=4242,
-                 elModel='EYELINK 1000 DESKTOP', elSimMode=False, elSampleRate=1000, elTrackEyes="right",
-                 elLiveFiltering="level 2", elDataFiltering="off",
+                 elModel='EYELINK 1000 DESKTOP', elSimMode=False, elSampleRate=1000, elTrackEyes="RIGHT_EYE",
+                 elLiveFiltering="FILTER_LEVEL_2", elDataFiltering="FILTER_LEVEL_OFF",
                  elTrackingMode='PUPIL_CR_TRACKING', elPupilMeasure='PUPIL_AREA', elPupilAlgorithm='ELLIPSE_FIT',
                  elAddress='100.1.1.1',
                  tbModel="", tbSerialNo="", tbSampleRate=60,
@@ -421,14 +421,14 @@ class SettingsComponent(object):
 
         self.params['elTrackEyes'] = Param(
             elTrackEyes, valType='str', inputType="choice",
-            allowedVals=['left', 'right', 'both'],
+            allowedVals=['LEFT_EYE', 'RIGHT_EYE', 'BOTH'],
             hint=_translate("Select with eye(s) to track."),
             label=_translate("Track Eyes"), categ="Eyetracking"
         )
 
         self.params['elLiveFiltering'] = Param(
             elLiveFiltering, valType='str', inputType="choice",
-            allowedVals=['off', 'level 1', 'level 2'],
+            allowedVals=['FILTER_LEVEL_OFF', 'FILTER_LEVEL_1', 'FILTER_LEVEL_2'],
             hint=_translate("Filter eye sample data live, as it is streamed to the driving device. "
                             "This may reduce the sampling speed."),
             label=_translate("Live Sample Filtering"), categ="Eyetracking"
@@ -436,7 +436,7 @@ class SettingsComponent(object):
 
         self.params['elDataFiltering'] = Param(
             elLiveFiltering, valType='str', inputType="choice",
-            allowedVals=['off', 'level 1', 'level 2'],
+            allowedVals=['FILTER_LEVEL_OFF', 'FILTER_LEVEL_1', 'FILTER_LEVEL_2'],
             hint=_translate("Filter eye sample data when it is saved to the output file. This will "
                             "not affect the sampling speed."),
             label=_translate("Saved Sample Filtering"), categ="Eyetracking"
@@ -1028,7 +1028,7 @@ class SettingsComponent(object):
                     "'model_name': %(elModel)s,\n"
                     "'simulation_mode': %(elSimMode)s,\n"
                     "'network_settings': %(elAddress)s,\n"
-                    "'default_native_data_file_name': filename + '.edf',\n"
+                    "'default_native_data_file_name': 'eyedata.edf',\n"
                     "'runtime_settings': {\n"
                 )
                 buff.writeIndentedLines(code % self.params)
