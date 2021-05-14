@@ -65,6 +65,7 @@ class EyetrackerCalibration:
         tracker = self.eyetracker.getIOHubDeviceClass(full=True)
 
         # Minimise PsychoPy window
+        self.win.winHandle.set_fullscreen(False)
         self.win.winHandle.minimize()
 
         # Make sure that target will use the same color space and units as calibration
@@ -144,5 +145,6 @@ class EyetrackerCalibration:
             self.last = self.eyetracker.runSetupProcedure({})
 
         # Bring back PsychoPy window
+        self.win.winHandle.set_fullscreen(True)
         self.win.winHandle.maximize()
         self.win.winHandle.activate()
