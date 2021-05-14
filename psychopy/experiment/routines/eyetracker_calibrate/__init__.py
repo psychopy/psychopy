@@ -16,7 +16,7 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
                  pacingSpeed="", autoPace=True,
                  innerFillColor="red", innerBorderColor="", innerBorderWidth="", outerRadius=0.025,
                  fillColor="", borderColor="white", borderWidth=2, innerRadius=0.005,
-                 cursorColor="red", colorSpace="rgb", units='from exp settings',
+                 colorSpace="rgb", units='from exp settings',
                  targetLayout="NINE_POINTS", randomisePos=True,
                  enableAnimation=False, contractOnly=False, velocity=0.5, expandScale=3, expandDur=0.75):
         # Initialise base routine
@@ -43,7 +43,6 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
             "borderColor",
             "innerFillColor",
             "innerBorderColor",
-            "cursorColor",
             "colorSpace",
             "borderWidth",
             "innerBorderWidth",
@@ -68,11 +67,6 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
                                            valType='color', inputType="color", categ='Appearance',
                                            hint=_translate("Border color of the outer part of the target"),
                                            label=_translate("Outer Border Color"))
-
-        self.params['cursorColor'] = Param(cursorColor,
-                                           valType='color', inputType="color", categ='Appearance',
-                                           hint=_translate("Color of the gaze cursor"),
-                                           label=_translate("Gaze Cursor Color"))
 
         self.params['colorSpace'] = Param(colorSpace,
                                           valType='str', inputType="choice", categ='Appearance',
