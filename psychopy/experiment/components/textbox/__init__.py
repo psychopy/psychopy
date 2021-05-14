@@ -238,6 +238,22 @@ class TextboxComponent(BaseVisualComponent):
         buff.writeIndentedLines(code)
         depth = -self.getPosInRoutine()
 
+    def writeRoutineStartCode(self, buff):
+        BaseVisualComponent.writeRoutineStartCode(self, buff)
+
+        code = (
+            "%(name)s.reset()"
+        )
+        buff.writeIndentedLines(code % self.params)
+
+    def writeRoutineStartCodeJS(self, buff):
+        BaseVisualComponent.writeRoutineStartCode(self, buff)
+
+        code = (
+            "%(name)s.reset()"
+        )
+        buff.writeIndentedLines(code % self.params)
+
     def writeRoutineEndCode(self, buff):
         name = self.params['name']
         if len(self.exp.flow._loopList):
@@ -245,8 +261,7 @@ class TextboxComponent(BaseVisualComponent):
         else:
             currLoop = self.exp._expHandler
         if self.params['editable']:
-            buff.writeIndentedLines(f"{currLoop.params['name']}.addData('{name}.text',{name}.text)\n"
-                               f"{name}.reset()\n")
+            buff.writeIndentedLines(f"{currLoop.params['name']}.addData('{name}.text',{name}.text)\n")
         # get parent to write code too (e.g. store onset/offset times)
         super().writeRoutineEndCode(buff)
 
@@ -257,8 +272,7 @@ class TextboxComponent(BaseVisualComponent):
         else:
             currLoop = self.exp._expHandler
         if self.params['editable']:
-            buff.writeIndentedLines(f"psychoJS.experiment.addData('{name}.text',{name}.text)\n"
-                                    f"{name}.reset()\n")
+            buff.writeIndentedLines(f"psychoJS.experiment.addData('{name}.text',{name}.text)\n")
         # get parent to write code too (e.g. store onset/offset times)
         super().writeRoutineEndCodeJS(buff)
 

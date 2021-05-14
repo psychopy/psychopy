@@ -15,6 +15,10 @@ unique. Additionally the length of the interval
 must be greater than 0.2 seconds.  If you need higher speeds than this, it is best to
 record the times of your markers manually and compare them to the times in the raw EEG data.
 
+If you are exporting the experiment to HTML the emotiv components will have no effect in Pavlovia.
+To import the experiment into Emotiv OMNI, export the experiment to HTML and follow the instructions
+in the OMNI platform.
+
 Parameters
 ~~~~~~~~~~~~
 
