@@ -120,9 +120,7 @@ class EyetrackerCalibration:
             targetAttrs = dict(target)
             targetAttrs['animate'] = {
                 'enable': self.enableAnimation,
-                'movement_velocity': self.velocity,
                 'expansion_ratio': self.expandScale,
-                'expansion_speed': self.expandDur,
                 'contract_only': self.contractOnly
             }
             # Run as GazePoint
