@@ -57,12 +57,18 @@
     4520: Animation params not used
     4530: Auto pace param not used
 
-5000: Online studies
+5000:
+  cat: Online studies
+  5050:
+    cat: Parameters not used online
+    5055: Microphone device not applicable online
+
 6000:
   cat: Interface
   6100:
     cat: File not found
     6105: Run nonexistant file
+
 7000: Python dependencies
 8000: None
 9000: None

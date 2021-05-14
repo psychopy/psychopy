@@ -518,18 +518,18 @@ class Rift(window.Window):
             if self._monoscopic:
                 return np.array(
                     (self._hmdBufferSize[0], self._hmdBufferSize[1]),
-                    np.int)
+                    int)
             else:
                 return np.array(
                     (int(self._hmdBufferSize[0] / 2), self._hmdBufferSize[1]),
-                    np.int)
+                    int)
 
     @size.setter
     def size(self, value):
         """Set the size of the window.
 
         """
-        self.__dict__['size'] = np.array(value, np.int)
+        self.__dict__['size'] = np.array(value, int)
 
     def setSize(self, value, log=True):
         setAttribute(self, 'size', value, log=log)

@@ -7,26 +7,34 @@ class Test_RunnerFrame(object):
     """
     This test opens Runner, and several processes.
     """
-    def setup(self):
-        self.app = psychopyApp._app
-        self.runner = self.app.newRunnerFrame()
-        self.runner.clearTasks()
+    def setup(self, get_app):
         self.tempFile = os.path.join(prefs.paths['tests'], 'data', 'test001EntryImporting.psyexp')
 
-    def test_RunnerFrame(self):
-        self.runner = self.app.newRunnerFrame()
-        self.app.showRunner()
+    def _getRunnerView(self, app):
+        runner = app.newRunnerFrame()
+        runner.clearTasks()
+        return runner
 
-    def test_addFile(self):
-        self.runner.addTask(fileName=self.tempFile)
-        assert self.runner.panel.expCtrl.FindItem(-1, self.tempFile)
+    @pytest.mark.usefixtures("get_app")
+    def test_RunnerFrame(self, get_app):
+        app = get_app
+        app.showRunner()
 
-    def test_removeTask(self):
-        self.runner.removeTask(self.runner.panel.currentSelection)
-        assert self.runner.panel.expCtrl.FindItem(-1, self.tempFile) == -1
+    @pytest.mark.usefixtures("get_app")
+    def test_addFile(self, get_app):
+        runner = self._getRunnerView(get_app)
+        runner.addTask(fileName=self.tempFile)
+        assert runner.panel.expCtrl.FindItem(-1, self.tempFile)
 
-    def test_clearItems(self):
-        self.runner.addTask(fileName=self.tempFile)
-        self.runner.clearTasks()
-        assert self.runner.panel.expCtrl.FindItem(-1, self.tempFile) == -1
+    @pytest.mark.usefixtures("get_app")
+    def test_removeTask(self, get_app):
+        runner = self._getRunnerView(get_app)
+        runner.removeTask(runner.panel.currentSelection)
+        assert runner.panel.expCtrl.FindItem(-1, self.tempFile) == -1
 
+    @pytest.mark.usefixtures("get_app")
+    def test_clearItems(self, get_app):
+        runner = self._getRunnerView(get_app)
+        runner.addTask(fileName=self.tempFile)
+        runner.clearTasks()
+        assert runner.panel.expCtrl.FindItem(-1, self.tempFile) == -1

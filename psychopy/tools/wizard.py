@@ -313,7 +313,7 @@ class BaseWizard(object):
         # ----- IMPORTS (relevant for developers & non-StandAlone): -----
         if verbose:  # always False for a real first-run
             report.append((_translate('Python packages'), '', '', False))
-            packages = ['PIL', 'openpyxl', 'lxml', 'setuptools', 'pytest',
+            packages = ['PIL', 'openpyxl', 'setuptools', 'pytest',
                         'sphinx', 'psignifit', 'pyserial', 'pp',
                         'pynetstation', 'labjack']
             if sys.platform == 'win32':
@@ -329,8 +329,6 @@ class BaseWizard(object):
                     if pkg == 'PIL':
                         import PIL
                         ver = PIL.__version__
-                    # elif pkg == 'lxml':
-                    #
                     elif pkg == 'pynetstation':
                         from psychopy.hardware import egi
                         ver = 'import ok'

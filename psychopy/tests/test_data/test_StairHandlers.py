@@ -851,8 +851,8 @@ def makeBasicResponseCycles(cycles=10, nCorrect=4, nIncorrect=4,
         `cycles * (nCorrect + nIncorrect)`.
 
     """
-    responsesCorrectPerCycle = np.ones(nCorrect, dtype=np.int)
-    responsesIncorrectPerCycle = np.zeros(nIncorrect, dtype=np.int)
+    responsesCorrectPerCycle = np.ones(nCorrect, dtype=int)
+    responsesIncorrectPerCycle = np.zeros(nIncorrect, dtype=int)
 
     responses = np.tile(
         np.r_[responsesCorrectPerCycle, responsesIncorrectPerCycle],

@@ -12,6 +12,8 @@ from builtins import super  # provides Py3-style super() using python-future
 
 from os import path
 from pathlib import Path
+
+from psychopy.alerts import alert
 from psychopy.experiment.components import BaseComponent, Param, getInitVals, _translate
 from psychopy.sound.microphone import Microphone, _hasPTB
 from psychopy.sound.audiodevice import sampleRateQualityLevels
@@ -33,7 +35,7 @@ devices['default'] = None
 class MicrophoneComponent(BaseComponent):
     """An event class for capturing short sound stimuli"""
     categories = ['Responses']
-    targets = ['PsychoPy']
+    targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'microphone.png'
     tooltip = _translate('Microphone: basic sound capture (fixed onset & '
                          'duration), okay for spoken words')
@@ -44,7 +46,7 @@ class MicrophoneComponent(BaseComponent):
                  startEstim='', durationEstim='',
                  channels='stereo', device="default",
                  sampleRate='DVD Audio (48kHz)', maxSize=24000,
-                 outputType='wav', speakTimes=True, trimSilent=False,
+                 outputType='default', speakTimes=True, trimSilent=False,
                  #legacy
                  stereo=None, channel=None):
         super(MicrophoneComponent, self).__init__(
@@ -105,7 +107,7 @@ class MicrophoneComponent(BaseComponent):
             "What file type should output audio files be saved as?")
         self.params['outputType'] = Param(
             outputType, valType='code', inputType='choice', categ='Data',
-            allowedVals=AUDIO_SUPPORTED_CODECS,
+            allowedVals=["default"] + AUDIO_SUPPORTED_CODECS,
             hint=msg,
             label=_translate("Output File Type")
         )
@@ -142,6 +144,14 @@ class MicrophoneComponent(BaseComponent):
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
 
+    def writeStartCodeJS(self, buff):
+        inits = getInitVals(self.params)
+        code = (
+            "// Define folder to store recordings from %(name)s"
+            "%(name)sRecFolder = filename + '_%(name)s_recorded"
+        )
+        buff.writeIndentedLines(code % inits)
+
     def writeInitCode(self, buff):
         inits = getInitVals(self.params)
         # Substitute sample rate value for numeric equivalent
@@ -169,6 +179,34 @@ class MicrophoneComponent(BaseComponent):
         code = (
             ")\n"
             "%(name)sClips = {}\n"
+        )
+        buff.writeIndentedLines(code % inits)
+
+    def writeInitCodeJS(self, buff):
+        inits = getInitVals(self.params)
+        inits['sampleRate'] = sampleRates[inits['sampleRate'].val]
+        # Alert user if non-default value is selected for device
+        if inits['device'].val != 'default':
+            alert(5055, strFields={'name': inits['name'].val})
+        # Write code
+        code = (
+            "%(name)s = new audio.Microphone({\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(1, relative=True)
+        code = (
+                "win : psychoJS.window, \n"
+                "name:'%(name)s',\n"
+                "sampleRateHz : %(sampleRate)s,\n"
+                "channels : %(channels)s,\n"
+                "maxRecordingSize : %(maxSize)s,\n"
+                "loopback : true,\n"
+                "policyWhenFull : 'ignore',\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(-1, relative=True)
+        code = (
+            "});\n"
         )
         buff.writeIndentedLines(code % inits)
 
@@ -212,6 +250,34 @@ class MicrophoneComponent(BaseComponent):
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-2, relative=True)
 
+    def writeFrameCodeJS(self, buff):
+        inits = getInitVals(self.params)
+        inits['routine'] = self.parentName
+        # Start the recording
+        self.writeStartTestCodeJS(buff)
+        code = (
+                "mic.start()\n"
+                "mic.status = STARTED\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(-1, relative=True)
+        code = (
+            "}"
+        )
+        buff.writeIndentedLines(code % inits)
+        # Stop the recording
+        self.writeStopTestCodeJS(buff)
+        code = (
+                "mic.stop()\n"
+                "mic.status = FINISHED\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(-1, relative=True)
+        code = (
+            "}"
+        )
+        buff.writeIndentedLines(code % inits)
+
     def writeRoutineEndCode(self, buff):
         inits = getInitVals(self.params)
         inits['routine'] = self.parentName
@@ -222,6 +288,28 @@ class MicrophoneComponent(BaseComponent):
         buff.writeIndentedLines(code % inits)
         # Write base end routine code
         BaseComponent.writeRoutineEndCode(self, buff)
+
+    def writeRoutineEndCodeJS(self, buff):
+        inits = getInitVals(self.params)
+        inits['routine'] = self.parentName
+        # Write base end routine code
+        BaseComponent.writeRoutineEndCodeJS(self, buff)
+        # Store recordings from this routine
+        code = (
+            "// Save %(name)s recordings\n"
+            "%(name)sClips = %(name)s.flush()\n"
+            "for (let [i, clip] of %(name)sClips.entries()) {"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(1, relative=True)
+        code = (
+                "clip.save(%(name)sRecFolder, `recording_%(routine)s_${i}.%(outputType)s`)"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(-1, relative=True)
+        code = (
+            "}"
+        )
 
     def writeExperimentEndCode(self, buff):
         """Write the code that will be called at the end of
