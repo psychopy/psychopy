@@ -435,7 +435,7 @@ class SettingsComponent(object):
         )
 
         self.params['elDataFiltering'] = Param(
-            elLiveFiltering, valType='str', inputType="choice",
+            elDataFiltering, valType='str', inputType="choice",
             allowedVals=['FILTER_LEVEL_OFF', 'FILTER_LEVEL_1', 'FILTER_LEVEL_2'],
             hint=_translate("Filter eye sample data when it is saved to the output file. This will "
                             "not affect the sampling speed."),
