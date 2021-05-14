@@ -97,17 +97,25 @@ class TargetStim(ShapeStim):
 
     def __iter__(self):
         """Overload dict() method to return in ioHub format"""
+        # ioHub doesn't treat None as transparent, so we need to handle transparency here
+        # For outer circle, use window color as transparent
+        fillColor = self.fillColor if self._fillColor else self.win.color
+        borderColor = self._borderColor if self._borderColor else self.win.color
+        # For inner circle, use outer circle fill as transparent
+        innerFillColor = self.inner.fillColor if self.inner._fillColor else fillColor
+        innerBorderColor = self.inner.borderColor if self.inner._borderColor else borderColor
+        # Assemble dict
         asDict = {
             # Outer circle
             'outer_diameter': self.radius * 2,
             'outer_stroke_width': self.lineWidth,
-            'outer_fill_color': self.fillColor,
-            'outer_line_color': self.borderColor,
+            'outer_fill_color': fillColor,
+            'outer_line_color': borderColor,
             # Inner circle
             'inner_diameter': self.innerRadius * 2,
             'inner_stroke_width': self.lineWidth,
-            'inner_fill_color': self.inner.fillColor,
-            'inner_line_color': self.inner.borderColor,
+            'inner_fill_color': innerFillColor,
+            'inner_line_color': innerBorderColor,
         }
         for key, value in asDict.items():
             yield key, value
