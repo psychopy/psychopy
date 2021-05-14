@@ -259,8 +259,6 @@ class GazepointPsychopyCalibrationGraphics(object):
             # Convert GazePoint normalized positions to psychopy window unit positions
             # by using iohub display/window getCoordBounds.
             x, y = left + w * pt[0], bottom + h * (1.0 - pt[1])
-            self.drawCalibrationTarget((x, y), False)
-            start_time = currentTime()
 
             self.clearAllEventBuffers()
 
@@ -269,10 +267,10 @@ class GazepointPsychopyCalibrationGraphics(object):
             animate_expansion_ratio = self.getCalibSetting(['target_attributes', 'animate', 'expansion_ratio'])
             animate_contract_only = self.getCalibSetting(['target_attributes', 'animate', 'contract_only'])
 
+            start_time = currentTime()
             while currentTime()-start_time <= target_delay:
-                if animate_enable:
-                    t = (currentTime()-start_time) / target_delay
-                    if i > 0:
+                if animate_enable and i > 0:
+                        t = (currentTime() - start_time) / target_delay
                         v1 = cal_target_list[i-1]
                         v2 = pt
                         t = 60.0 * ((1.0 / 10.0) * t ** 5 - (1.0 / 4.0) * t ** 4 + (1.0 / 6.0) * t ** 3)
@@ -280,7 +278,8 @@ class GazepointPsychopyCalibrationGraphics(object):
                         moveTo = left + w * mx, bottom + h * (1.0 - my)
                         self.drawCalibrationTarget(moveTo, reset=False)
                 else:
-                    gevent.sleep(0.01)
+                    self.drawCalibrationTarget((x, y), False)
+
                 self.getNextMsg()
                 self.MsgPump()
 
