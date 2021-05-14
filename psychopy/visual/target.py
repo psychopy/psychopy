@@ -111,3 +111,27 @@ class TargetStim(ShapeStim):
         }
         for key, value in asDict.items():
             yield key, value
+
+
+def targetFromDict(win, spec,
+                   name="target", style="circles",
+                   pos=(0, 0), units='height',
+                   colorSpace="rgb",
+                   autoLog=None, autoDraw=False):
+    # Make sure spec has all the required keys, even if it just fills them with None
+    required = [
+        'outer_diameter', 'outer_stroke_width', 'outer_fill_color', 'outer_line_color',
+        'inner_diameter', 'inner_stroke_width', 'inner_fill_color', 'inner_line_color'
+    ]
+    for key in required:
+        if key not in spec:
+            spec[key] = None
+    # Make a target stim from spec
+    TargetStim(win, name=name, style=style,
+               radius=spec['outer_diameter']/2, lineWidth=spec['outer_stroke_width'],
+               fillColor=spec['outer_fill_color'], borderColor=spec['outer_line_color'],
+               innerRadius=spec['outer_diameter']/2, innerLineWidth=spec['inner_stroke_width'],
+               innerFillColor=spec['inner_fill_color'], innerBorderColor=spec['inner_line_color'],
+               pos=pos, units=units,
+               colorSpace=colorSpace,
+               autoLog=autoLog, autoDraw=autoDraw)
