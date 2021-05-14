@@ -398,8 +398,18 @@ class EyeTracker(EyeTrackerDevice):
         """
         runSetupProcedure does nothing in the Mouse Simulated eye tracker, as calibration is automatic. ;)
         """
-        print2err("Mouse Simulated eye tracker runSetupProcedure called.")
-        return True
+        from psychopy.iohub.devices.eyetracker.hw.mouse.moumouCalibrationGraphics import GazepointPsychopyCalibrationGraphics
+        calibration = GazepointPsychopyCalibrationGraphics(self, calibration_args)
+
+        calibration.runCalibration()
+
+        calibration.window.close()
+
+        calibration._unregisterEventMonitors()
+        calibration.clearAllEventBuffers()
+
+        return {"RESULT": "ALWAYS_OK"}
+
 
     def _getIOHubEventObject(self, native_event_data):
         """The _getIOHubEventObject method is called by the ioHub Process to
