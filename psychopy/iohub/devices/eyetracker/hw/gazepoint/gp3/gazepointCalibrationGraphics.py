@@ -42,7 +42,7 @@ class GazepointPsychopyCalibrationGraphics(object):
         calibration_methods = dict(THREE_POINTS=3,
                                    FIVE_POINTS=5,
                                    NINE_POINTS=9,
-                                   THIRTEEN_POINT=13)
+                                   THIRTEEN_POINTS=13)
 
         cal_type = self.getCalibSetting('type')
 
