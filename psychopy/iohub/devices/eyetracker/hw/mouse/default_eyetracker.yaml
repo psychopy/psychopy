@@ -25,9 +25,6 @@ eyetracker.hw.mouse.EyeTracker:
         # Target position animation optionally occurs during this time period as well.
         target_delay: 0.75
 
-        #
-        # Remaining calibration settings are only used if 'use_builtin' == False
-        #
         # Number of calibration points to present.
         # THREE_POINTS,FIVE_POINTS,NINE_POINTS, THIRTEEN_POINTS
         type: NINE_POINTS

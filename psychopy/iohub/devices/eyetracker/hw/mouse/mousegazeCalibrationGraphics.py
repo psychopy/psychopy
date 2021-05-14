@@ -108,18 +108,10 @@ class MouseGazePsychopyCalibrationGraphics(object):
         if isinstance(setting, str):
             setting = [setting, ]
         calibration_args = self._calibration_args
-        device_calib_config = self._device_config.get('calibration')
         if setting:
             for s in setting[:-1]:
-                if calibration_args:
-                    calibration_args = calibration_args.get(s)
-                device_calib_config = device_calib_config.get(s)
-            v = None
-            if calibration_args:
-                v = calibration_args.get(setting[-1])
-            if v is None:
-                v = device_calib_config[setting[-1]]
-            return v
+                calibration_args = calibration_args.get(s)
+            return calibration_args.get(setting[-1])
 
     def clearAllEventBuffers(self):
         self._eyetracker._iohub_server.eventBuffer.clear()
@@ -222,10 +214,8 @@ class MouseGazePsychopyCalibrationGraphics(object):
     def runCalibration(self):
         """Run calibration sequence
         """
-        print2err("started runCalibration...")
         instuction_text = 'Press SPACE to Start Calibration.'
         self.showSystemSetupMessageScreen(instuction_text)
-        print2err("called showSystemSetupMessageScreen")
 
         target_delay = self.getCalibSetting('target_delay')
         target_duration = self.getCalibSetting('target_duration')
@@ -260,7 +250,6 @@ class MouseGazePsychopyCalibrationGraphics(object):
             animate_enable = self.getCalibSetting(['target_attributes', 'animate', 'enable'])
             animate_expansion_ratio = self.getCalibSetting(['target_attributes', 'animate', 'expansion_ratio'])
             animate_contract_only = self.getCalibSetting(['target_attributes', 'animate', 'contract_only'])
-            print2err("Drawing: ",x, ",",y)
             while currentTime()-start_time <= target_delay:
                 if animate_enable:
                     t = (currentTime()-start_time) / target_delay
