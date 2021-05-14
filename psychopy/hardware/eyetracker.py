@@ -1,5 +1,6 @@
 from psychopy.constants import STARTED, NOT_STARTED, PAUSED, STOPPED, FINISHED
 from psychopy.alerts import alert
+from copy import copy
 
 
 class EyetrackerControl:
@@ -66,6 +67,14 @@ class EyetrackerCalibration:
         # Minimise PsychoPy window
         self.win.winHandle.minimize()
 
+        # Make sure that target will use the same color space and units as calibration
+        if self.target.colorSpace == self.colorSpace and self.target.units == self.units:
+            target = self.target
+        else:
+            target = copy(self.target)
+            target.colorSpace = self.colorSpace
+            target.units = self.units
+
         # Run calibration
         if tracker == 'eyetracker.hw.sr_research.eyelink.EyeTracker':
             if self.enableAnimation:
@@ -73,7 +82,7 @@ class EyetrackerCalibration:
                 alert(code=4520, strFields={"brand": "EyeLink"})
             # Run as eyelink
             self.last = self.eyetracker.runSetupProcedure({
-                'target_attributes': dict(self.target),
+                'target_attributes': dict(target),
                 'type': self.targetLayout,
                 'auto_pace': self.autoPace,
                 'pacing_speed': self.pacingSpeed or 1.5,
@@ -81,7 +90,7 @@ class EyetrackerCalibration:
             })
 
         elif tracker == 'eyetracker.hw.tobii.EyeTracker':
-            targetAttrs = dict(self.target)
+            targetAttrs = dict(target)
             targetAttrs['animate'] = {
                 'enable': self.enableAnimation,
                 'movement_velocity': self.velocity,
@@ -107,7 +116,7 @@ class EyetrackerCalibration:
                 # As GazePoint doesn't use auto-pace, alert user
                 alert(4530, strFields={"brand": "GazePoint"})
 
-            targetAttrs = dict(self.target)
+            targetAttrs = dict(target)
             targetAttrs['animate'] = {
                 'enable': self.enableAnimation,
                 'movement_velocity': self.velocity,
