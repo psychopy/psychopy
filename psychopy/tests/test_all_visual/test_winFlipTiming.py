@@ -1,6 +1,7 @@
 
 
 from builtins import object
+import sys
 from psychopy import visual, clock
 import pytest
 import numpy as np
@@ -38,7 +39,6 @@ class Test_WinFlipTiming(object):
         now = clock.monotonicClock.getTime()
         next = self.win.getFutureFlipTime(clock=clk)
         self.win.flip()
-
 
         errsNext = []
         # check nextFrame against reality for 10 frames
@@ -85,10 +85,10 @@ class Test_WinFlipTiming(object):
         print('delay requestT expectT diff'.format(now, self.win._frameTimes[-1]))
         for requested in np.arange(0, 0.04, 0.001):
             expect = self.win.getFutureFlipTime(requested)
-            diff = expect-requested
+            diff = expect-(now+requested)
             print("{:.4f}, {:.5f} {:.5f} {:.5f}".format(requested, requested, expect, diff))
             # should always be within 1/2 frame
-        if self.testOutputs:
+        if self.testOutputs and sys.platform != 'darwin':
             assert abs(diff) < self.win.monitorFramePeriod/2.0
 
 

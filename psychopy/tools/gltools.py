@@ -3784,7 +3784,7 @@ def loadObjFile(objFile):
 
     # convert indices for materials to numpy arrays
     for key, val in materialGroups.items():
-        materialGroups[key] = np.asarray(val, dtype=np.int)
+        materialGroups[key] = np.asarray(val, dtype=int)
 
     # indicate if file has any texture coordinates of normals
     hasTexCoords = nTextureCoords > 0

@@ -119,13 +119,13 @@ class Test_textbox(object):
             self.textbox.fillColor = case['fillColor']
             self.textbox.borderColor = case['borderColor']
             for lineBreaking in ('default', 'uax14'):
-            self.win.flip()
+                self.win.flip()
                 self.textbox.draw()
             if case['screenshot']:
                 # Uncomment to save current configuration as desired
-                    filename = "textbox_{}_{}".format(self.textbox._lineBreaking, case['screenshot'])
-                    # self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / filename)
-                    utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / filename, self.win, crit=20)
+                filename = "textbox_{}_{}".format(self.textbox._lineBreaking, case['screenshot'])
+                # self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / filename)
+                utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / filename, self.win, crit=20)
 
     def test_basic(self):
         pass

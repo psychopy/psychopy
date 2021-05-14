@@ -10,6 +10,7 @@ from builtins import str
 from builtins import range
 from psychopy import visual
 from psychopy.hardware import crs
+from psychopy.tests import skip_under_vm, _vmTesting
 import numpy as np
 import pytest
 
@@ -19,7 +20,6 @@ except ImportError:
     import Image
 import os
 
-_travisTesting = bool(str(os.environ.get('TRAVIS')).lower() == 'true')  # in Travis-CI testing
 
 array=np.array
 #expectedVals = {'bits++':{}, 'mono++':{}, 'color++':{}}
@@ -62,12 +62,8 @@ expectedVals = {
         'lowR': array([ 36,  63,   8, 211,   3, 112,  56,  34,   0,   0]),
         'highG': array([119, 118, 120, 119, 121, 120])}}}
 
-
+@skip_under_vm
 def test_bitsShaders():
-
-    if _travisTesting:
-        pytest.skip("no Bits device on a virtual machine")
-
     win = visual.Window([1024, 768], fullscr=0, screen=1, useFBO=True,
                         autoLog=True)
     bits = crs.bits.BitsSharp(win, mode='bits++', noComms=True)
@@ -99,13 +95,12 @@ def test_bitsShaders():
             #fr = np.array(win._getFrame(buffer='back').transpose(Image.ROTATE_270))
             win.flip()
             fr = np.array(win._getFrame(buffer='front').transpose(Image.ROTATE_270))
-            if not _travisTesting:
-                assert np.alltrue(thisExpected['lowR'] == fr[0:10,-1,0])
-                assert np.alltrue(thisExpected['lowG'] == fr[0:10,-1,1])
-                assert np.alltrue(thisExpected['highR'] == fr[250:256,-1,0])
-                assert np.alltrue(thisExpected['highG'] == fr[250:256,-1,1])
+            if not _vmTesting:
+                assert np.alltrue(thisExpected['lowR'] == fr[0:10, -1, 0])
+                assert np.alltrue(thisExpected['lowG'] == fr[0:10, -1, 1])
+                assert np.alltrue(thisExpected['highR'] == fr[250:256, -1, 0])
+                assert np.alltrue(thisExpected['highG'] == fr[250:256, -1, 1])
 
-            if not _travisTesting:
                 print('R', repr(fr[0:10,-1,0]), repr(fr[250:256,-1,0]))
                 print('G', repr(fr[0:10,-1,1]), repr(fr[250:256,-1,0]))
             #event.waitKeys()
