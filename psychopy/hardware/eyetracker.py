@@ -137,7 +137,24 @@ class EyetrackerCalibration:
             })
 
         elif tracker == 'eyetracker.hw.mouse.EyeTracker':
-            self.last = self.eyetracker.runSetupProcedure({})
+
+            targetAttrs = dict(target)
+            targetAttrs['animate'] = {
+                'enable': self.enableAnimation,
+                'expansion_ratio': self.expandScale,
+                'contract_only': self.contractOnly
+            }
+            # Run as MouseGaze
+            self.last = self.eyetracker.runSetupProcedure({
+                'target_attributes': targetAttrs,
+                'type': self.targetLayout,
+                'randomize': self.randomisePos,
+                'auto_pace': self.autoPace,
+                'pacing_speed': self.pacingSpeed or 1,
+                'unit_type': self.units,
+                'color_type': self.colorSpace,
+                'screen_background_color': getattr(self.win._color, self.colorSpace),
+            })
 
         else:
             self.last = self.eyetracker.runSetupProcedure({})
