@@ -122,7 +122,7 @@ class SettingsComponent(object):
                  elLiveFiltering="FILTER_LEVEL_2", elDataFiltering="FILTER_LEVEL_OFF",
                  elTrackingMode='PUPIL_CR_TRACKING', elPupilMeasure='PUPIL_AREA', elPupilAlgorithm='ELLIPSE_FIT',
                  elAddress='100.1.1.1',
-                 tbModel="", tbSerialNo="", tbSampleRate=60,
+                 tbModel="", tbLicenseFile="", tbSerialNo="", tbSampleRate=60,
                  filename=None, exportHTML='on Sync'):
         self.type = 'Settings'
         self.exp = exp  # so we can access the experiment if necess
@@ -343,7 +343,7 @@ class SettingsComponent(object):
             "SR Research Ltd": ["elModel", "elSimMode", "elSampleRate", "elTrackEyes", "elLiveFiltering",
                                 "elDataFiltering", "elTrackingMode", "elPupilMeasure", "elPupilAlgorithm",
                                 "elAddress"],
-            "Tobii Technology": ["tbModel", "tbSerialNo", "tbSampleRate"],
+            "Tobii Technology": ["tbModel", "tbLicenseFile", "tbSerialNo", "tbSampleRate"],
         }
         for tracker in trackerParams:
             for depParam in trackerParams[tracker]:
@@ -474,6 +474,12 @@ class SettingsComponent(object):
             tbModel, valType='str', inputType="single",
             hint=_translate("Eye tracker model."),
             label=_translate("Model Name"), categ="Eyetracking"
+        )
+
+        self.params['tbLicenseFile'] = Param(
+            tbLicenseFile, valType='str', inputType="file",
+            hint=_translate("Eye tracker license file (optional)."),
+            label=_translate("License File"), categ="Eyetracking"
         )
 
         self.params['tbSerialNo'] = Param(
