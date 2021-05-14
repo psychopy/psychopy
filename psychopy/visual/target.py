@@ -100,7 +100,7 @@ class TargetStim(ShapeStim):
         # ioHub doesn't treat None as transparent, so we need to handle transparency here
         # For outer circle, use window color as transparent
         fillColor = self.fillColor if self._fillColor else self.win.color
-        borderColor = self._borderColor if self._borderColor else self.win.color
+        borderColor = self.borderColor if self._borderColor else self.win.color
         # For inner circle, use outer circle fill as transparent
         innerFillColor = self.inner.fillColor if self.inner._fillColor else fillColor
         innerBorderColor = self.inner.borderColor if self.inner._borderColor else borderColor
