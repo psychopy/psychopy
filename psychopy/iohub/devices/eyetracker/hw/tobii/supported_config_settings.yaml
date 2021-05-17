@@ -49,6 +49,15 @@ eyetracker.hw.tobii.EyeTracker:
         randomize: IOHUB_BOOL
         target_positions: []
         auto_pace: IOHUB_BOOL
+        target_duration:
+            IOHUB_FLOAT:
+                min: 0.5
+                max: 2.5
+        target_delay:
+            IOHUB_FLOAT:
+                min: 0.5
+                max: 2.5
+        # pacing_speed is deprecated. Please use 'target_delay' instead.
         pacing_speed:
             IOHUB_FLOAT:
                 min: 0.5
