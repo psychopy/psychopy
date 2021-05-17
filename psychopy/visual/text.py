@@ -382,6 +382,8 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
             rgba255 = [int(c) for c in rgba255]
             self._pygletTextObj = pyglet.text.Label(
                 self.text, self.font, int(self._heightPix*0.75),
+                italic=self.italic,
+                bold=self.bold,
                 anchor_x=self.anchorHoriz,
                 anchor_y=self.anchorVert,  # the point we rotate around
                 align=self.alignText,

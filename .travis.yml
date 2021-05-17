@@ -64,7 +64,6 @@ install:
   # Test entry point.
   - psychopy --version
 
-  - pip uninstall --yes psychopy
   - rm -rf build/ dist/
 
 before_script:
@@ -87,5 +86,3 @@ script:
   - |
     xvfb-run -a --server-args="-screen 0 1024x768x24" pytest --ignore="psychopy/tests/test_app" -m "not needs_sound and not needs_wx and not needs_qt and not needs_pygame" -v -s psychopy/tests/test_alerts
 
-after_success:
-  - coveralls
