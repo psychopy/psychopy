@@ -501,6 +501,7 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
         # important to unbind the PBO
         GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, 0)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+        GL.glDisable(GL.GL_TEXTURE_2D)
 
         if self.status == PLAYING:
             self._nextFrameT += self._frameInterval

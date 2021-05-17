@@ -19,6 +19,7 @@ import os
 import sys
 import threading
 import ctypes
+import weakref
 
 from psychopy import core, logging
 from psychopy.tools.attributetools import logAttrib, setAttribute
@@ -251,6 +252,15 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         # create a new player object, reusable by by just changing the stream
         self._player = self._instance.media_player_new()
 
+        # setup the event manager
+        self._manager = self._player.event_manager()
+        # self._manager.event_attach(
+        #     vlc.EventType.MediaPlayerTimeChanged, vlcMediaEventCallback,
+        #     weakref.ref(self), self._player)
+        self._manager.event_attach(
+            vlc.EventType.MediaPlayerEndReached, vlcMediaEventCallback,
+            weakref.ref(self), self._player)
+
         self._vlcInitialized = True
 
         logging.debug("VLC instance created.")
@@ -264,6 +274,11 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
 
         if self._player is not None:
             self._player.stop()
+
+            # shutdown the manager
+            self._manager.event_detach(vlc.EventType.MediaPlayerEndReached)
+            self._manager = None
+
             # Doing this here since I figured Python wasn't shutting down due to
             # callbacks remaining bound. Seems to actually fix the problem.
             self._player.video_set_callbacks(None, None, None, None)
@@ -1187,17 +1202,17 @@ def vlcLogCallback(user_data, level, ctx, fmt, args):
     pass  # suppress messages from VLC, look scary but can be mostly ignored
 
 
-# def vlcMediaEventCallback(event, user_data, player):
-#     """Callback used by VLC for handling media player events.
-#     """
-#     if not user_data():
-#         return
-#
-#     cls = user_data()  # ref to movie class
-#     event = event.type
-#
-#     if event == vlc.EventType.MediaPlayerEndReached:
-#         cls._onEos()
+def vlcMediaEventCallback(event, user_data, player):
+    """Callback used by VLC for handling media player events.
+    """
+    if not user_data():
+        return
+
+    cls = user_data()  # ref to movie class
+    event = event.type
+
+    if event == vlc.EventType.MediaPlayerEndReached:
+        cls._onEos()
 
 
 if __name__ == "__main__":
