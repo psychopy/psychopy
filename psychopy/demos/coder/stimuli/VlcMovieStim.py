@@ -7,12 +7,12 @@ needs to updated to point to a video you have.
 
 This requires:
 
-1. VLC. Just install the standard VLC of the same bitness as python
-    for your OS.
+1. VLC. Just install the standard VLC of the same bitness as Python for your OS.
 
     http://www.videolan.org/vlc/index.html
 
 2. pip install python-vlc
+
 """
 
 from __future__ import division
@@ -25,88 +25,61 @@ videopath = os.path.join(os.getcwd(), videopath)
 if not os.path.exists(videopath):
     raise RuntimeError("Video File could not be found:" + videopath)
 
-win = visual.Window([1024, 768])
+win = visual.Window([800, 800], fullscr=False)
 
 keystext = "PRESS 'q' or 'escape' to Quit.\n"
-keystext += "  #     's': Stop/restart Movie.\n"
-keystext += "  #     'p': Pause/Unpause Movie.\n"
-keystext += "  #     '>': Seek Forward 1 Second.\n"
-keystext += "  #     '<': Seek Backward 1 Second.\n"
-keystext += "  #     '-': Decrease Movie Volume.\n"
-keystext += "  #     '+': Increase Movie Volume."
+keystext += "'s': Stop and restart\n"
+keystext += "'p': Pause/unpause\n"
+keystext += "'>': Seek forward 1 second\n"
+keystext += "'<': Seek backward 1 second\n"
+keystext += "'-': Decrease volume.\n"
+keystext += "'+': Increase volume"
 
-text = visual.TextStim(win, keystext, pos=(0, -250), units = 'pix')
+text = visual.TextStim(win, keystext, pos=(0, -250), units='pix')
 
 # Create your movie stim.
 mov = visual.VlcMovieStim(win, videopath,
-    size=640,
+    size=600,
     # pos specifies the /center/ of the movie stim location
-    pos=[0, 100],
+    pos=[0, 0],
     flipVert=False, flipHoriz=False,
     loop=False)
 
-# Start the movie stim by preparing it to play
-shouldflip = mov.play()
-while mov.status != constants.FINISHED:
-    # Only flip when a new frame should be displayed. Can significantly reduce
-    # CPU usage. This only makes sense if the movie is the only /dynamic/ stim
-    # displayed.
-    if shouldflip:
-        # Movie has already been drawn , so just draw text stim and flip
-        text.draw()
-        win.flip()
-    else:
-        # Give the OS a break if a flip is not needed
-        time.sleep(0.001)
-    # Drawn movie stim again. Updating of movie stim frames as necessary
-    # is handled internally.
-    shouldflip = mov.draw()
 
+while not mov.isFinished:
     # Check for action keys.....
     for key in event.getKeys():
         if key in ['escape', 'q']:
-            win.close()
+            mov.stop()
             core.quit()
         elif key in ['s', ]:
-            if mov.status in [constants.PLAYING, constants.PAUSED]:
-                # To stop the movie being played.....
-                mov.stop()
-                # Clear screen of last displayed frame.
-                win.flip()
-                # When movie stops, clear screen of last displayed frame,
-                # and display text stim only....
-                text.draw()
-                win.flip()
-            else:
-                # To replay a movie that was stopped.....
-                mov.loadMovie(videopath)
-                shouldflip = mov.play()
+            mov.replay()
         elif key in ['p', ]:
             # To pause the movie while it is playing....
-            if mov.status == constants.PLAYING:
-                mov.pause()
-            elif mov.status == constants.PAUSED:
-                # To /unpause/ the movie if pause has been called....
+            if mov.isNotStarted or mov.isPaused:
                 mov.play()
-                text.draw()
-                win.flip()
+            elif mov.isPlaying:
+                mov.pause()
         elif key == 'period':
             # To skip ahead 1 second in movie.
-            ntime = min(mov.getCurrentFrameTime() + 1.0, mov.duration)
-            mov.seek(ntime)
+            mov.fastForward(1.0)
         elif key == 'comma':
             # To skip back 1 second in movie ....
-            ntime = max(mov.getCurrentFrameTime() - 1.0, 0.0)
-            mov.seek(ntime)
+            mov.rewind(1.0)
         elif key == 'minus':
             # To decrease movie sound a bit ....
-            cv = max(mov.getVolume() - 5, 0)
-            mov.setVolume(cv)
+            mov.decreaseVolume(5)
         elif key == 'equal':
             # To increase movie sound a bit ....
-            cv = mov.getVolume()
-            cv = min(mov.getVolume() + 5, 100)
-            mov.setVolume(cv)
+            mov.increaseVolume(5)
+
+    # Only flip when a new frame should be displayed. Can significantly reduce
+    # CPU usage. This only makes sense if the movie is the only /dynamic/ stim
+    # displayed.
+    mov.draw()
+    text.draw()
+    win.flip()
+
 
 win.close()
 core.quit()
