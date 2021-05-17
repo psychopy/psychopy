@@ -102,7 +102,7 @@ eyetracker.hw.sr_research.eyelink.EyeTracker:
         # target_delay specifies the time between target position presentations.
         target_delay: 0.75
 
-        # **pacing_speed is deprecated. Please use 'target_duration' instead.**
+        # **pacing_speed is deprecated. Please use 'target_delay' instead.**
         pacing_speed:
         
         # screen_background_color: Specifies the background color to
