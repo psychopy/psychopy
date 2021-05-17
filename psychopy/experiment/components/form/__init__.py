@@ -207,6 +207,7 @@ class FormComponent(BaseVisualComponent):
                    "  win : psychoJS.window, name:'{name}',\n"
                    "  items : {Items},\n"
                    "  textHeight : {Text Height},\n"
+                   "  font : {Font},\n"
                    "  randomize : {Randomize},\n"
                    "  size : {size},\n"
                    "  pos : {pos},\n"
