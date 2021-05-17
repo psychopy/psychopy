@@ -410,7 +410,6 @@ class EyeTracker(EyeTrackerDevice):
 
         return {"RESULT": "ALWAYS_OK"}
 
-
     def _getIOHubEventObject(self, native_event_data):
         """The _getIOHubEventObject method is called by the ioHub Process to
         convert new native device event objects that have been received to the

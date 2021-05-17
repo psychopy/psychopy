@@ -65,6 +65,7 @@ eyetracker.hw.mouse.EyeTracker:
                 valid_values: [rgb, dkl, lms, hsv, hex, named, rgb255]
                 min_length: 0
                 max_length: 1
+        auto_pace: IOHUB_BOOL
         randomize: IOHUB_BOOL
         screen_background_color: IOHUB_COLOR
         target_attributes:
