@@ -47,6 +47,12 @@ win = visual.Window((1920, 1080),
 
 win.setMouseVisible(False)
 
+text_stim = visual.TextStim(win, text="start of experiment",
+                            pos=[0, 0], height=24,
+                            color='black', units='pix', colorSpace='named',
+                            wrapWidth=win.size[0] * .9)
+text_stim.draw()
+win.flip()
 
 # Since no experiment or session code is given, no iohub hdf5 file
 # will be saved, but device events are still available at runtime.
@@ -58,13 +64,15 @@ keyboard = io.getDevice('keyboard')
 tracker = io.getDevice('tracker')
 
 win.winHandle.minimize()  # minimize the PsychoPy window
+win.winHandle.set_fullscreen(False)
 
 # run eyetracker calibration
 result = tracker.runSetupProcedure()
 print("Calibration returned: ", result)
 
+win.winHandle.set_fullscreen(True)
 win.winHandle.maximize()  # maximize the PsychoPy window
-win.winHandle.activate()
+
 
 gaze_ok_region = visual.Circle(win, lineColor='black', radius=300, units='pix', colorSpace='named')
 
@@ -75,10 +83,7 @@ text_stim_str = 'Eye Position: %.2f, %.2f. In Region: %s\n'
 text_stim_str += 'Press space key to start next trial.'
 missing_gpos_str = 'Eye Position: MISSING. In Region: No\n'
 missing_gpos_str += 'Press space key to start next trial.'
-text_stim = visual.TextStim(win, text=text_stim_str,
-                            pos=[0, 0], height=24,
-                            color='black', units='pix', colorSpace='named',
-                            wrapWidth=win.size[0] * .9)
+text_stim.setText(text_stim_str)
 
 # Run Trials.....
 t = 0

@@ -68,12 +68,8 @@ eyetracker.hw.tobii.EyeTracker:
         # Target position animation optionally occurs during this time period as well.
         target_delay: 0.75
 
-        # **pacing_speed is deprecated. Please use 'target_duration' instead.**
-        # pacing_speed is the number of sec.msec that a calibration point should
-        # be displayed before moving onto the next point when auto_pace is set to true.
-        # If auto_pace is False, pacing_speed is ignored.
-        #
-        pacing_speed: 1.0
+        # **pacing_speed is deprecated. Please use 'target_delay' instead.**
+        pacing_speed:
 
         # screen_background_color specifies the r,g,b background color to 
         # set the calibration, validation, etc, screens to. Each element of the color
