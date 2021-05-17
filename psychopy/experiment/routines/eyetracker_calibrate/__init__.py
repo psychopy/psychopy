@@ -196,7 +196,7 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
                 "units=%(units)s, colorSpace=%(colorSpace)s,\n"
                 "targetDelay=%(targetDelay)s, targetDuration=%(targetDuration)s, autoPace=%(autoPace)s,\n"
                 "targetLayout=%(targetLayout)s, randomisePos=%(randomisePos)s,\n"
-                "enableAnimation=%(enableAnimation)s, velocity=%(velocity)s,\n"
+                "enableAnimation=%(enableAnimation)s,\n"
                 "expandScale=%(expandScale)s\n"
         )
         buff.writeIndentedLines(code % inits)
