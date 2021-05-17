@@ -42,7 +42,7 @@ class RegionOfInterestComponent(PolygonComponent):
                  startType=startType, startVal=startVal,
                  stopType=stopType, stopVal=stopVal,
                  startEstim=startEstim, durationEstim=durationEstim)
-        self.type = 'ROI'
+        self.type = 'RegionOfInterest'
         self.url = "https://www.psychopy.org/builder/components/roi.html"
         self.exp.requirePsychopyLibs(['iohub', 'hardware'])
         # params
