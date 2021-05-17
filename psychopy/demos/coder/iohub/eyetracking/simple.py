@@ -22,7 +22,7 @@ if TRACKER == 'eyelink':
     devices_config['eyetracker.hw.sr_research.eyelink.EyeTracker'] = eyetracker_config
 elif TRACKER == 'gazepoint':
     eyetracker_config['device_timer'] = {'interval': 0.005}
-    #eyetracker_config['calibration'] = dict(use_builtin=False, target_attributes=dict(animate=dict(enable=True, expansion_ratio=1.25, contract_only=False)))
+    eyetracker_config['calibration'] = dict(use_builtin=False, target_attributes=dict(animate=dict(enable=True, expansion_ratio=1.25, contract_only=False)))
     devices_config['eyetracker.hw.gazepoint.gp3.EyeTracker'] = eyetracker_config
 elif TRACKER == 'tobii':
     devices_config['eyetracker.hw.tobii.EyeTracker'] = eyetracker_config
@@ -46,11 +46,11 @@ win = visual.Window((1920, 1080),
                     )
 
 win.setMouseVisible(False)
-
-text_stim = visual.TextStim(win, text="start of experiment",
+text_stim = visual.TextStim(win, text="Start of Experiment",
                             pos=[0, 0], height=24,
                             color='black', units='pix', colorSpace='named',
                             wrapWidth=win.size[0] * .9)
+
 text_stim.draw()
 win.flip()
 
@@ -63,6 +63,7 @@ io = launchHubServer(window=win, **devices_config)
 keyboard = io.getDevice('keyboard')
 tracker = io.getDevice('tracker')
 
+win.winHandle.set_fullscreen(False)
 win.winHandle.minimize()  # minimize the PsychoPy window
 win.winHandle.set_fullscreen(False)
 
