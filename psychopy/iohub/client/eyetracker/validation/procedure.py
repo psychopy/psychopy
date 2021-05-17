@@ -249,15 +249,15 @@ class ValidationProcedure(object):
 
         if isinstance(positions, str):
             # position set constant, three-point, five-point, nine-point, thirteen-point
-            if positions == 'three-point':
+            if positions in ['three-point', 'THREE_POINTS']:
                 positions = create3PointGrid()
-            elif positions == 'five-point':
+            elif positions in ['five-point', 'FIVE_POINTS']:
                 positions = create5PointGrid()
-            elif positions == 'nine-point':
+            elif positions in ['nine-point', 'NINE_POINTS']:
                 positions = create9PointGrid()
-            elif positions == 'thirteen-point':
+            elif positions in ['thirteen-point', 'THIRTEEN_POINTS']:
                 positions = create13PointGrid()
-            elif positions == 'seventeen-point':
+            elif positions in ['seventeen-point', 'SEVENTEEN_POINTS']:
                 positions = create17PointGrid()
             else:
                 raise ValueError("Unsupported positions string constant: [{}]".format(positions))
