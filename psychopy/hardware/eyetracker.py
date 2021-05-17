@@ -38,15 +38,14 @@ class EyetrackerCalibration:
     def __init__(self, win,
                  eyetracker, target,
                  units="height", colorSpace="rgb",
-                 pacingSpeed="", autoPace=True,
+                 autoPace=True,
                  targetLayout="NINE_POINTS", randomisePos=True,
-                 enableAnimation=False, contractOnly=False, velocity=0.5, expandScale=3, expandDur=0.75
+                 enableAnimation=False, expandScale=3, targetDelay=1.25, targetDuration=0.5
                  ):
         # Store params
         self.win = win
         self.eyetracker = eyetracker
         self.target = target
-        self.pacingSpeed = pacingSpeed
         self.autoPace = autoPace
         self.targetLayout = targetLayout
         self.randomisePos = randomisePos
@@ -54,10 +53,9 @@ class EyetrackerCalibration:
         self.colorSpace = colorSpace or self.win.colorSpace
         # Animation
         self.enableAnimation = enableAnimation
-        self.contractOnly = contractOnly
-        self.velocity = velocity
+        self.targetDelay = targetDelay
+        self.targetDuration = targetDuration
         self.expandScale = expandScale
-        self.expandDur = expandDur
         # Attribute to store data from last run
         self.last = None
 
@@ -86,7 +84,7 @@ class EyetrackerCalibration:
                 'target_attributes': dict(target),
                 'type': self.targetLayout,
                 'auto_pace': self.autoPace,
-                'pacing_speed': self.pacingSpeed or 1.5,
+                'pacing_speed': self.targetDelay,
                 'screen_background_color': getattr(self.win._color, self.colorSpace)
             })
 
@@ -94,10 +92,9 @@ class EyetrackerCalibration:
             targetAttrs = dict(target)
             targetAttrs['animate'] = {
                 'enable': self.enableAnimation,
-                'movement_velocity': self.velocity,
                 'expansion_ratio': self.expandScale,
-                'expansion_speed': self.expandDur,
-                'contract_only': self.contractOnly
+                'expansion_speed': self.targetDuration,
+                'contract_only': self.expandScale == 1
             }
 
             # Run as tobii
@@ -106,7 +103,7 @@ class EyetrackerCalibration:
                 'type': self.targetLayout,
                 'randomize': self.randomisePos,
                 'auto_pace': self.autoPace,
-                'pacing_speed': self.pacingSpeed or 1,
+                'pacing_speed': self.targetDelay,
                 'unit_type': self.units,
                 'color_type': self.colorSpace,
                 'screen_background_color': getattr(self.win._color, self.colorSpace),
@@ -121,13 +118,13 @@ class EyetrackerCalibration:
             targetAttrs['animate'] = {
                 'enable': self.enableAnimation,
                 'expansion_ratio': self.expandScale,
-                'contract_only': self.contractOnly
+                'contract_only': self.expandScale == 1
             }
             # Run as GazePoint
             self.last = self.eyetracker.runSetupProcedure({
                 'use_builtin': False,
-                'target_delay': self.velocity if self.enableAnimation else 0.5,
-                'target_duration': self.pacingSpeed or 1.5,
+                'target_delay': self.targetDelay,
+                'target_duration': self.targetDuration,
                 'target_attributes': targetAttrs,
                 'type': self.targetLayout,
                 'randomize': self.randomisePos,
@@ -142,7 +139,7 @@ class EyetrackerCalibration:
             targetAttrs['animate'] = {
                 'enable': self.enableAnimation,
                 'expansion_ratio': self.expandScale,
-                'contract_only': self.contractOnly
+                'contract_only': self.expandScale == 1
             }
             # Run as MouseGaze
             self.last = self.eyetracker.runSetupProcedure({
@@ -150,7 +147,7 @@ class EyetrackerCalibration:
                 'type': self.targetLayout,
                 'randomize': self.randomisePos,
                 'auto_pace': self.autoPace,
-                'pacing_speed': self.pacingSpeed or 1,
+                'pacing_speed': self.targetDelay,
                 'unit_type': self.units,
                 'color_type': self.colorSpace,
                 'screen_background_color': getattr(self.win._color, self.colorSpace),
