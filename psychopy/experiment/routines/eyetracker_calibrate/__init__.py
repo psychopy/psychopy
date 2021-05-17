@@ -22,6 +22,8 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
         # Initialise base routine
         BaseStandaloneRoutine.__init__(self, exp, name=name)
 
+        self.exp.requirePsychopyLibs(['iohub', 'hardware'])
+
         # Basic params
         self.params['pacingSpeed'] = Param(pacingSpeed,
             valType='num', inputType="single", categ='Basic',
