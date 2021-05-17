@@ -39,6 +39,7 @@ class FormComponent(BaseVisualComponent):
                  name='form',
                  items='.csv',
                  textHeight=.03,
+                 font="Open Sans",
                  randomize=False,
                  fillColor='',
                  borderColor='',
@@ -92,6 +93,12 @@ class FormComponent(BaseVisualComponent):
             updates='constant',
             hint=_translate("The size of the item text for Form"),
             label=_localized['Text Height'])
+
+        self.params['Font'] = Param(
+            font, valType='str', inputType="single", allowedTypes=[], categ='Formatting',
+            updates='constant', allowedUpdates=["constant"],
+            hint=_translate("The font name (e.g. Comic Sans)"),
+            label=_translate('Font'))
 
         self.params['Randomize'] = Param(
             randomize, valType='bool', inputType="bool", allowedTypes=[], categ='Basic',
@@ -177,6 +184,7 @@ class FormComponent(BaseVisualComponent):
         code = (
             "items=%(Items)s,\n"
             "textHeight=%(Text Height)s,\n"
+            "font=%(Font)s,\n"
             "randomize=%(Randomize)s,\n"
             "style=%(Style)s,\n"
             "fillColor=%(fillColor)s, borderColor=%(borderColor)s, itemColor=%(itemColor)s, \n"
