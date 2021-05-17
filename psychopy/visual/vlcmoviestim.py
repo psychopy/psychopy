@@ -159,6 +159,7 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         self._pixelLock = threading.Lock()  # semaphore for VLC pixel transfer
         self._framePixelBuffer = None  # buffer pointer to draw to
         self._videoFrameBufferSize = None
+        self._streamEnded = False
 
         # spawn a VLC instance for this class instance
         self._createVLCInstance()
@@ -185,6 +186,15 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
     @filename.setter
     def filename(self, value):
         self.loadMovie(value)
+
+    @property
+    def autoStart(self):
+        """Start playback when `.draw()` is called (`bool`)."""
+        return self._autoStart
+
+    @autoStart.setter
+    def autoStart(self, value):
+        self._autoStart = bool(value)
 
     def setMovie(self, filename, log=True):
         """See `~MovieStim.loadMovie` (the functions are identical).
@@ -243,7 +253,8 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
 
         # Using "--quiet" here is just sweeping anything VLC pukes out under the
         # rug. Most of the time the errors only look scary but can be ignored.
-        params = " ".join(["--no-audio" if self._noAudio else "", "--quiet"])
+        params = " ".join(
+            ["--no-audio" if self._noAudio else "", "--sout-keep", "--quiet"])
         self._instance = vlc.Instance(params)
 
         # used to capture log messages from VLC
@@ -269,7 +280,6 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         """Internal method to release a VLC instance. Calling this implicitly
         stops and releases any stream presently loaded and playing.
         """
-
         self._vlcInitialized = False
 
         if self._player is not None:
@@ -295,6 +305,7 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
 
         if self._stream is not None:
             self._stream.release()
+            self._streamEnded = False
             self._stream = None
 
         if self._instance is not None:
@@ -349,7 +360,8 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         self._videoWidth = videoWidth
         self._videoHeight = videoHeight
         self._frameRate = self._player.get_fps()
-        self._frameCounter = 0
+        self._frameCounter = self._loopCount = 0
+        self._streamEnded = False
 
         # uncomment if not using direct GPU write, might be more thread-safe
         # self._framePixelBuffer = \
@@ -398,9 +410,12 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         """Internal method called when the decoder encounters the end of the
         stream.
         """
-        if self.loop:
-            self.seek(0.0)
-        else:
+        # Do not call the libvlc API in this method, causes a deadlock which
+        # freezes PsychoPy. Just set the flag below and the stream will restart
+        # on the ned `.draw()` call.
+        self._streamEnded = True
+
+        if not self.loop:
             self.status = FINISHED
 
         if self.autoLog:
@@ -1099,6 +1114,15 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
             `True` if the frame was updated this draw call.
 
         """
+        if self.isNotStarted and self._autoStart:
+            self.play()
+        elif self._streamEnded and self.loop:
+            self._loopCount += 1
+            self._streamEnded = False
+            self.replay()
+        elif self.isFinished:
+            return False
+
         self._selectWindow(self.win if win is None else win)
 
         # check if we need to pull a new frame this round
@@ -1112,17 +1136,10 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
 
             return False  # frame does not need an update this round
 
+        # Below not called if the frame hasn't advanced yet ------
+
         # update the current frame
         self._currentFrame = self._frameCounter
-
-        if self.isNotStarted or (self.isFinished and self.loop):
-            self._loopCount += 1
-            self.play()
-        elif self.isFinished and not self.loop:
-            return False
-
-        # select the window to output to
-        self._selectWindow(self.win if win is None else win)
 
         # update the texture, getting the most recent frame
         self.updateTexture()
@@ -1157,6 +1174,12 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
 
 # ------------------------------------------------------------------------------
 # Callback functions for `libvlc`
+#
+# WARNING: Due to a limitation of libvlc, you cannot call the API from within
+# the callbacks below. Doing so will result in a deadlock that stalls the
+# application. This applies to any method in the `VloMovieStim` class being
+# called wihtin a callback too. They cannot have any libvlc calls in their
+# routines.
 #
 
 @vlc.CallbackDecorators.VideoLockCb

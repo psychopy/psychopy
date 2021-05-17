@@ -43,7 +43,7 @@ mov = visual.VlcMovieStim(win, videopath,
     # pos specifies the /center/ of the movie stim location
     pos=[0, 0],
     flipVert=False, flipHoriz=False,
-    loop=False)
+    loop=False, autoStart=True)
 
 
 while not mov.isFinished:
