@@ -11,7 +11,7 @@ from psychopy.iohub import launchHubServer
 
 
 # Eye tracker to use ('mouse', 'eyelink', 'gazepoint', or 'tobii')
-TRACKER = 'mouse'
+TRACKER = 'tobii'
 
 eyetracker_config = dict(name='tracker')
 devices_config = {}

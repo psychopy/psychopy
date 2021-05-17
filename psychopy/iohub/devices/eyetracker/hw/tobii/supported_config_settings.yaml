@@ -89,7 +89,7 @@ eyetracker.hw.tobii.EyeTracker:
                 enable: IOHUB_BOOL
                 movement_velocity: # 300 pix / sec
                     IOHUB_FLOAT:
-                        min: 1.0
+                        min: -1.0
                         max: 1000.0
                 expansion_ratio: # expands to 3 x the starting size
                     IOHUB_FLOAT:
@@ -97,7 +97,7 @@ eyetracker.hw.tobii.EyeTracker:
                         max: 100.0
                 expansion_speed: # exapands at 30.0 pix / sec
                     IOHUB_FLOAT:
-                        min: 1.0
+                        min: -1.0
                         max: 100.0
                 contract_only: IOHUB_BOOL
     device_number: 0

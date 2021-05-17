@@ -373,16 +373,18 @@ class TobiiPsychopyCalibrationGraphics(object):
         pacing_speed = self.getCalibSetting('pacing_speed')
         randomize_points = self.getCalibSetting('randomize')
 
+        movement_velocity = self.getCalibSetting(['target_attributes', 'animate', 'movement_velocity'])
+        expansion_speed = self.getCalibSetting(['target_attributes', 'animate', 'expansion_speed'])
+        use_deprecated_gfx = movement_velocity or expansion_speed
+
         cal_target_list = self.CALIBRATION_POINT_LIST[1:]
         if randomize_points is True:
             import random
             random.seed(None)
             random.shuffle(cal_target_list)
-
         cal_target_list.insert(0, self.CALIBRATION_POINT_LIST[0])
 
         calibration = self._tobii.newScreenCalibration()
-
         calibration.enter_calibration_mode()
 
         i = 0
@@ -392,7 +394,10 @@ class TobiiPsychopyCalibrationGraphics(object):
             left, top, right, bottom = self._eyetrackerinterface._display_device.getCoordBounds()
             w, h = right - left, top - bottom
             x, y = left + w * pt[0], bottom + h * (1.0 - pt[1])
-            self.drawCalibrationTarget(i, (x, y))
+            if use_deprecated_gfx:
+                self.drawCalibrationTarget(i, (x, y))
+            else:
+                print2err("TODO: Implement new Tobii gfx logic for: ",i, " ", (x, y))
             self.clearAllEventBuffers()
             stime = currentTime()
 

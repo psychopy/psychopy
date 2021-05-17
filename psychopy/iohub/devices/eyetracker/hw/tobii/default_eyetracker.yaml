@@ -155,7 +155,7 @@ eyetracker.hw.tobii.EyeTracker:
                  # ** expansion_speed: Deprecated, target_duration is now used. **
                  #
                  expansion_speed:
-    
+
     runtime_settings:
         # The supported sampling rates for Tobii are model dependent. 
         # If the sampling rate specified here is not supported by the model being used,
