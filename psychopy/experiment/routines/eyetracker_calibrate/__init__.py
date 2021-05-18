@@ -18,7 +18,7 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
                  fillColor="", borderColor="white", borderWidth=2, innerRadius=0.005,
                  colorSpace="rgb", units='from exp settings',
                  targetLayout="NINE_POINTS", randomisePos=True,
-                 enableAnimation=False, expandScale=3):
+                 movementAnimation=False, expandScale=3):
         # Initialise base routine
         BaseStandaloneRoutine.__init__(self, exp, name=name)
 
@@ -143,7 +143,7 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
                                                "Number of seconds to wait between each calibration point presentation."),
                                            label=_translate("Target Delay"))
 
-        self.params['enableAnimation'] = Param(enableAnimation,
+        self.params['movementAnimation'] = Param(movementAnimation,
                                            valType='bool', inputType="bool", categ='Animation',
                                            hint=_translate("Enable / disable animations as target stim changes position, "
                                                            "only applicable for Tobii eyetrackers"),
@@ -196,7 +196,7 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
                 "units=%(units)s, colorSpace=%(colorSpace)s,\n"
                 "targetDelay=%(targetDelay)s, targetDuration=%(targetDuration)s, autoPace=%(autoPace)s,\n"
                 "targetLayout=%(targetLayout)s, randomisePos=%(randomisePos)s,\n"
-                "enableAnimation=%(enableAnimation)s,\n"
+                "movementAnimation=%(movementAnimation)s,\n"
                 "expandScale=%(expandScale)s\n"
         )
         buff.writeIndentedLines(code % inits)
