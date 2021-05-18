@@ -329,7 +329,7 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
         # Make validation object
         code = (
             "# define parameters for %(name)s\n"
-            "%(name)s = iohub.client.eyetracker.validation.ValidationProcedure(win,\n"
+            "%(name)s = iohub.ValidationProcedure(win,\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(1, relative=True)
