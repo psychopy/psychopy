@@ -297,6 +297,9 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
             inits['progressKey'] = "'SPACE'"
         else:
             inits['progressKey'] = "None"
+        # If set to not use gaze cursor, override gaze cursor color
+        if not inits['showCursor'].val:
+            inits['cursorFillColor'].val = None
         # If positions are preset, override param value
         if inits['targetLayout'].val in positions:
             inits['targetPositions'].val = inits['targetLayout'].val
@@ -323,25 +326,6 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
         )
         buff.writeIndentedLines(code % inits)
 
-        # Make gaze cursor
-        if inits['showCursor'].val:
-            code = (
-                "# define gaze cursor for %(name)s\n"
-                "%(name)sCursor = visual.GratingStim(win, name='%(name)sCursor',\n"
-            )
-            buff.writeIndentedLines(code % inits)
-            buff.setIndentLevel(1, relative=True)
-            code = (
-                   "tex=None, mask='gauss', pos=(0, 0), size=(3, 3),\n"
-                   "color=%(cursorFillColor)s, colorSpace=%(colorSpace)s, units='deg', opacity=0.8\n"
-            )
-            buff.writeIndentedLines(code % inits)
-            buff.setIndentLevel(-1, relative=True)
-            code = (
-                ")\n"
-            )
-            buff.writeIndentedLines(code % inits)
-
         # Make validation object
         code = (
             "# define parameters for %(name)s\n"
@@ -352,14 +336,7 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
 
         code = (
                 "target=%(name)sTarget,\n"
-        )
-        buff.writeIndentedLines(code % inits)
-        if inits['showCursor'].val:
-            code = (
-                "gaze_cursor=%(name)sCursor, \n"
-            )
-            buff.writeIndentedLines(code % inits)
-        code = (
+                "gaze_cursor=%(cursorFillColor)s, \n"
                 "positions=%(targetPositions)s, randomize_positions=%(randomisePos)s,\n"
                 "expand_scale=%(expandScale)s, target_duration=%(targetDur)s,\n"
                 "enable_position_animation=%(movementAnimation)s, target_delay=%(targetDelay)s,\n"
