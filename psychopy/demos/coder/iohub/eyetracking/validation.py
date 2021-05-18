@@ -57,7 +57,7 @@ if __name__ == "__main__":
                                           target_duration=1.5,  # float
                                           target_delay=1.0,  # float
                                           enable_position_animation=True,
-                                          color_space=None,  # None == use window color space
+                                          color_space=None,
                                           unit_type=None,
                                           progress_on_key=" ",  # str or None
                                           gaze_cursor=(-1.0, 1.0, -1.0),  # None or color value
