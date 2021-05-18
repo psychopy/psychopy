@@ -209,7 +209,7 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
         )
 
         self.params['expandDur'] = Param(expandDur,
-                                           valType='list', inputType="single", categ='Animation',
+                                           valType='num', inputType="single", categ='Animation',
                                            hint=_translate(
                                                "Duration of the target expand/contract animation"),
                                            label=_translate("Expand / Contract Duration"))
@@ -277,23 +277,26 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
         if self.exp.eyetracking == "None":
             alert(code=4505)
 
-        # Alert user if validation can't progress
-        if (self.params['progressKey'].val in ["", None, "None"]
-                and self.params['progressTime'].val in ["", None, "None"]):
-            alert(code=4515, strFields={'name': self.params['name'].val})
-
         # Get inits
         inits = deepcopy(self.params)
         # Code-ify 'from exp settings'
         if inits['units'].val == 'from exp settings':
             inits['units'].val = None
-        # Split expandDur into two if needed
-        if len(inits['expandDur'].val) == 2:
-            inits['expandDur'] = self.params['expandDur'].val[0]
-            inits['contractDur'] = self.params['expandDur'].val[1]
+        # Synonymise expand dur and target dur
+        if inits['progressMode'].val == 'time':
+            inits['expandDur'] = inits['targetDur']
+        if inits['progressMode'].val == 'space key':
+            inits['targetDur'] = inits['expandDur']
+        # Synonymise movement dur and target delay
+        if inits['movementAnimation'].val:
+            inits['targetDelay'] = inits['movementDur']
         else:
-            inits['expandDur'] = self.params['expandDur'].val
-            inits['contractDur'] = self.params['expandDur'].val
+            inits['movementDur'] = inits['targetDelay']
+        # Convert progress mode to ioHub format
+        if inits['progressMode'].val == 'space key':
+            inits['progressKey'] = "'SPACE'"
+        else:
+            inits['progressKey'] = "None"
         # If positions are preset, override param value
         if inits['targetLayout'].val in positions:
             inits['targetPositions'].val = inits['targetLayout'].val
@@ -320,8 +323,28 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
         )
         buff.writeIndentedLines(code % inits)
 
+        # Make gaze cursor
+        if inits['showCursor'].val:
+            code = (
+                "# define gaze cursor for %(name)s\n"
+                "%(name)sCursor = visual.GratingStim(win, name='%(name)sCursor',\n"
+            )
+            buff.writeIndentedLines(code % inits)
+            buff.setIndentLevel(1, relative=True)
+            code = (
+                   "tex=None, mask='gauss', pos=(0, 0), size=(3, 3),\n"
+                   "color=%(cursorFillColor)s, colorSpace=%(colorSpace)s, units='deg', opacity=0.8\n"
+            )
+            buff.writeIndentedLines(code % inits)
+            buff.setIndentLevel(-1, relative=True)
+            code = (
+                ")\n"
+            )
+            buff.writeIndentedLines(code % inits)
+
         # Make validation object
         code = (
+            ""# define parameters for %(name)s\n""
             "%(name)s = ValidationProcedure(win,\n"
         )
         buff.writeIndentedLines(code % inits)
@@ -329,11 +352,30 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
 
         code = (
                 "target=%(name)sTarget,\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        if inits['showCursor'].val:
+            code = (
+                "gaze_cursor=%(name)sCursor, \n"
+            )
+            buff.writeIndentedLines(code % inits)
+        code = (
                 "positions=%(targetPositions)s, randomize_positions=%(randomisePos)s,\n"
-                "animation_velocity=%(velocity)s, animation_scale=%(expandScale)s,\n"
-                "animation_duration=(%(expandDur)s, %(contractDur)s),\n"
+                "expand_scale=%(expandScale)s, target_duration=%(targetDur)s,\n"
+                "enable_position_animation=%(movementAnimation)s, target_delay=%(targetDelay)s,\n"
+                "progress_on_key=%(progressKey)s,\n"
+                "show_results_screen=%(showResults)s, save_results_screen=%(saveAsImg)s,\n"
                 "color_space=%(colorSpace)s, unit_type=%(units)s\n"
-                "progress_on_timeout=%(autoPace)s, "
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
+        code = (
+            ")\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        # Run
+        code = (
+            "# run %(name)s\n"
+            "%(name)s.run()"
+        )
+
