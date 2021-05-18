@@ -190,6 +190,7 @@ class MicrophoneComponent(BaseComponent):
             alert(5055, strFields={'name': inits['name'].val})
         # Write code
         code = (
+            "%(name)sClips = {}\n"
             "%(name)s = new audio.Microphone({\n"
         )
         buff.writeIndentedLines(code % inits)
@@ -268,7 +269,7 @@ class MicrophoneComponent(BaseComponent):
         # Stop the recording
         self.writeStopTestCodeJS(buff)
         code = (
-                "mic.stop()\n"
+                "mic.pause()\n"
                 "mic.status = FINISHED\n"
         )
         buff.writeIndentedLines(code % inits)
@@ -283,7 +284,7 @@ class MicrophoneComponent(BaseComponent):
         inits['routine'] = self.parentName
         # Store recordings from this routine
         code = (
-            "%(name)s.bank('%(routine)s')\n"
+            "%(name)sClips['%(routine)s'] = %(name)s.getRecording()\n"
         )
         buff.writeIndentedLines(code % inits)
         # Write base end routine code
@@ -297,13 +298,12 @@ class MicrophoneComponent(BaseComponent):
         # Store recordings from this routine
         code = (
             "// Save %(name)s recordings\n"
-            "%(name)sClips = %(name)s.flush()\n"
-            "for (let [i, clip] of %(name)sClips.entries()) {"
+            "for (let [i, clip] of %(name)sClips['%(routine)s'].entries()) {"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(1, relative=True)
         code = (
-                "clip.save(%(name)sRecFolder, `recording_%(routine)s_${i}.%(outputType)s`)"
+                "clip.upload(%(name)sRecFolder, `recording_%(routine)s_${i}.%(outputType)s`)"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
