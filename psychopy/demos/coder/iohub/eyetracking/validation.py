@@ -6,8 +6,8 @@ and the psychopy.iohub.client.eyetracker.validation.ValidationProcedure class.
 """
 import time
 from psychopy import visual
-from psychopy.iohub import launchHubServer
-from psychopy.iohub.client.eyetracker.validation import TargetStim, ValidationProcedure
+from psychopy import iohub
+from psychopy.iohub.client.eyetracker.validation import TargetStim
 
 if __name__ == "__main__":
     # Create a default PsychoPy Window
@@ -21,7 +21,7 @@ if __name__ == "__main__":
     iohub_config['eyetracker.hw.mouse.EyeTracker'] = dict(name='tracker')
 
     # Start the ioHub process.
-    io = launchHubServer(window=win, **iohub_config)
+    io = iohub.launchHubServer(window=win, **iohub_config)
 
     # Get the eye tracker device.
     tracker = io.devices.tracker
@@ -30,7 +30,7 @@ if __name__ == "__main__":
     win.winHandle.minimize()  # minimize the PsychoPy window
 
     # Run eyetracker calibration
-    #r = tracker.runSetupProcedure()
+    r = tracker.runSetupProcedure()
 
     win.winHandle.set_fullscreen(True)
     win.winHandle.maximize()  # maximize the PsychoPy window
@@ -49,7 +49,7 @@ if __name__ == "__main__":
 
     # Create a validation procedure, iohub must already be running with an
     # eye tracker device, or errors will occur.
-    validation_proc = ValidationProcedure(win,
+    validation_proc = iohub.ValidationProcedure(win,
                                           target=target_stim,  # target stim
                                           positions=target_positions,  # string constant or list of points
                                           randomize_positions=True,  # boolean
