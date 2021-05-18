@@ -102,6 +102,7 @@ _localizedDialogs = {
     'cross': _translate('cross'),
     'star': _translate('star'),
     'regular polygon...': _translate('regular polygon...'),
+    'custom polygon...': _translate('custom polygon...'),
     # Form
     'rows': _translate('rows'),
     'columns': _translate('columns'),
