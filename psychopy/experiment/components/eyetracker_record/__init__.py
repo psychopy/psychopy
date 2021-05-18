@@ -34,7 +34,7 @@ class EyetrackerRecordComponent(BaseComponent):
                                startType=startType, startVal=startVal,
                                stopType=stopType, stopVal=stopVal,
                                startEstim=startEstim, durationEstim=durationEstim)
-        self.type = 'Eyetracker'
+        self.type = 'EyetrackerRecord'
         self.url = "https://www.psychopy.org/builder/components/eyetracker.html"
         self.exp.requirePsychopyLibs(['iohub', 'hardware'])
 
