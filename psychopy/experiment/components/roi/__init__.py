@@ -157,6 +157,11 @@ class RegionOfInterestComponent(PolygonComponent):
             f"%(name)s.timesOff.append({timing}) # store time looked until\n"
         )
         buff.writeIndentedLines(code % inits)
+        if self.params['endRoutineOn'].val == "look at":
+            code = (
+                "continueRoutine = False # end routine on look at\n"
+            )
+            buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
         code = (
             f"else:\n"
@@ -179,7 +184,23 @@ class RegionOfInterestComponent(PolygonComponent):
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(1, relative=True)
         code = (
+            f"if %(name)s.wasLookedIn:"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(1, relative=True)
+        code = (
+            f"%(name)s.timesOff[-1] = {timing} # update time looked until\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        if self.params['endRoutineOn'].val == "look away":
+            code = (
+                f"continueRoutine = False # end routine on look away\n"
+            )
+            buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(-1, relative=True)
+        code = (
             f"%(name)s.wasLookedIn = False  # if %(name)s is looked at next frame, it is a new look\n"
+
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-2, relative=True)
