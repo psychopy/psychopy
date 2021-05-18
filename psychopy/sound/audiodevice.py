@@ -14,6 +14,8 @@ __all__ = [
     'NULL_AUDIO_DEVICE',
     'NULL_AUDIO_DEVICE_STATUS',
     'sampleRateQualityLevels',
+    'latencyClassLevels',
+    'runModeLevels',
     'SAMPLE_RATE_8kHz',
     'SAMPLE_RATE_TELCOM_QUALITY',
     'SAMPLE_RATE_16kHz',
@@ -35,6 +37,10 @@ __all__ = [
     'AUDIO_PTB_LATENCY_CLASS_EXCLUSIVE',
     'AUDIO_PTB_LATENCY_CLASS_AGGRESSIVE',
     'AUDIO_PTB_LATENCY_CLASS_CRITICAL',
+    'AUDIO_PTB_RUN_MODE0',
+    'AUDIO_PTB_RUN_MODE1',
+    'AUDIO_PTB_RUN_MODE_STANDBY',
+    'AUDIO_PTB_RUN_MODE_KEEP_HOT',
     'AUDIO_LIBRARY_PTB'
 ]
 
@@ -78,6 +84,15 @@ latencyClassLevels = {
     2: (AUDIO_PTB_LATENCY_CLASS2, 'Exclusive low-latency'),  # <<< default
     3: (AUDIO_PTB_LATENCY_CLASS3, 'Aggressive low-latency'),
     4: (AUDIO_PTB_LATENCY_CLASS4, 'Latency critical'),
+}
+
+# Run modes for the PsychPortAudio backend.
+AUDIO_PTB_RUN_MODE0 = AUDIO_PTB_RUN_MODE_STANDBY = 0
+AUDIO_PTB_RUN_MODE1 = AUDIO_PTB_RUN_MODE_KEEP_HOT = 1
+
+runModeLevels = {
+    0: (AUDIO_PTB_RUN_MODE0, 'Standby (low resource use, higher latency)'),
+    1: (AUDIO_PTB_RUN_MODE1, 'Keep hot (higher resource use, low latency)')
 }
 
 
