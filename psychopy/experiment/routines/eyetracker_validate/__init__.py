@@ -15,14 +15,13 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
     tooltip = _translate("Validation routine for eyetrackers")
 
     def __init__(self, exp, name='validation',
-                 showCursor=True,
+                 showCursor=True, cursorFillColor="red",
                  innerFillColor="red", innerBorderColor="", innerBorderWidth="", outerRadius=0.025,
                  fillColor="", borderColor="white", borderWidth=2, innerRadius=0.005,
                  colorSpace="rgb", units='from exp settings',
                  randomisePos=True, targetLayout="NINE_POINTS", targetPositions="NINE_POINTS",
-                 progressMode="key", progressKey="'ENTER',", progressTime=1,
-                 movementAnimation=True, movementDur=1.25,
-                 expandAnimation=True, expandScale=3, expandDur=0.5,
+                 progressMode="space key", targetDur=1, expandDur=1, expandScale=3,
+                 movementAnimation=True, movementDur=1.25, targetDelay=1.25,
                  saveAsImg=False, showResults=True
                  ):
         # Initialise base routine
@@ -50,6 +49,7 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
             "targetPositions"
             "randomisePos",
             "showCursor",
+            "cursorColor",
         ]
 
         self.params['targetLayout'] = Param(targetLayout,
@@ -82,6 +82,20 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
             valType="bool", inputType="bool", categ="Basic",
             hint=_translate("Should a cursor be visible, showing where the participant is looking?"),
             label=_translate("Show Gaze Cursor"))
+
+        self.depends.append(
+            {"dependsOn": "showCursor",  # must be param name
+             "condition": "== True",  # val to check for
+             "param": "cursorColor",  # param property to alter
+             "true": "enable",  # what to do with param if condition is True
+             "false": "disable",  # permitted: hide, show, enable, disable
+             }
+        )
+
+        self.params['cursorFillColor'] = Param(cursorFillColor,
+            valType="color", inputType="color", categ="Basic",
+            hint=_translate("Fill color of the gaze cursor"),
+            label=_translate("Gaze Cursor Color"))
 
         # Target Params
         self.order += [
@@ -155,51 +169,55 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
         # Animation Params
         self.order += [
             "progressMode",
-            "progressKey",
-            "progressTime",
-            "expandAnimation",
-            "expandScale",
+            "targetDur",
             "expandDur",
+            "expandScale",
             "movementAnimation",
             "movementDur",
+            "targetDelay"
         ]
 
         self.params['progressMode'] = Param(progressMode,
                                             valType="str", inputType="choice", categ="Animation",
-                                            allowedVals=["key", "time", "either"],
+                                            allowedVals=["space key", "time"],
                                             hint=_translate("Should the target move to the next position after a "
                                                             "keypress or after an amount of time?"),
                                             label=_translate("Progress Mode"))
 
         self.depends.append(
             {"dependsOn": "progressMode",  # must be param name
-             "condition": "in ['key', 'either']",  # val to check for
-             "param": "progressKey",  # param property to alter
-             "true": "show",  # what to do with param if condition is True
-             "false": "hide",  # permitted: hide, show, enable, disable
-             }
-        )
-
-        self.params['progressKey'] = Param(progressKey,
-                                           valType='list', inputType="single", categ='Animation',
-                                           hint=_translate(
-                                               "Key or keys to press to progress to next position"),
-                                           label=_translate("Progress Key(s)"))
-
-        self.depends.append(
-            {"dependsOn": "progressMode",  # must be param name
              "condition": "in ['time', 'either']",  # val to check for
-             "param": "progressTime",  # param property to alter
+             "param": "targetDur",  # param property to alter
              "true": "show",  # what to do with param if condition is True
              "false": "hide",  # permitted: hide, show, enable, disable
              }
         )
 
-        self.params['progressTime'] = Param(progressTime,
+        self.params['targetDur'] = Param(targetDur,
                                             valType='num', inputType="single", categ='Animation',
                                             hint=_translate(
                                                 "Time limit (s) after which progress to next position"),
-                                            label=_translate("Progress Time"))
+                                            label=_translate("Target Duration"))
+
+        self.depends.append(
+            {"dependsOn": "progressMode",  # must be param name
+             "condition": "in ['space key', 'either']",  # val to check for
+             "param": "expandDur",  # param property to alter
+             "true": "show",  # what to do with param if condition is True
+             "false": "hide",  # permitted: hide, show, enable, disable
+             }
+        )
+
+        self.params['expandDur'] = Param(expandDur,
+                                           valType='list', inputType="single", categ='Animation',
+                                           hint=_translate(
+                                               "Duration of the target expand/contract animation"),
+                                           label=_translate("Expand / Contract Duration"))
+
+        self.params['expandScale'] = Param(expandScale,
+                                           valType='num', inputType="single", categ='Animation',
+                                           hint=_translate("How many times bigger than its size the target grows"),
+                                           label=_translate("Expand Scale"))
 
         self.params['movementAnimation'] = Param(movementAnimation,
                                            valType='bool', inputType="bool", categ='Animation',
@@ -210,53 +228,31 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
             {"dependsOn": "movementAnimation",  # must be param name
              "condition": "== True",  # val to check for
              "param": "movementDur",  # param property to alter
-             "true": "enable",  # what to do with param if condition is True
-             "false": "disable",  # permitted: hide, show, enable, disable
+             "true": "show",  # what to do with param if condition is True
+             "false": "hide",  # permitted: hide, show, enable, disable
              }
         )
 
         self.params['movementDur'] = Param(movementDur,
                                            valType='num', inputType="single", categ='Animation',
                                            hint=_translate(
-                                               "Duration of the animation during position changes. If position changes"
-                                               " are not animated, this is the duration of the delay between positions."),
+                                               "Duration of the animation during position changes."),
                                            label=_translate("Movement Duration"))
 
-        self.params['expandAnimation'] = Param(expandAnimation,
-                                               valType='bool', inputType="bool", categ='Animation',
-                                               hint=_translate(
-                                                   "Add an expand/contract animation"),
-                                               label=_translate("Expand / Contract Animation"))
-
         self.depends.append(
-            {"dependsOn": "expandAnimation",  # must be param name
-             "condition": "== True",  # val to check for
-             "param": "expandScale",  # param property to alter
-             "true": "enable",  # what to do with param if condition is True
-             "false": "disable",  # permitted: hide, show, enable, disable
+            {"dependsOn": "movementAnimation",  # must be param name
+             "condition": "== False",  # val to check for
+             "param": "targetDelay",  # param property to alter
+             "true": "show",  # what to do with param if condition is True
+             "false": "hide",  # permitted: hide, show, enable, disable
              }
         )
 
-        self.params['expandScale'] = Param(expandScale,
+        self.params['targetDelay'] = Param(targetDelay,
                                            valType='num', inputType="single", categ='Animation',
-                                           hint=_translate("How many times bigger than its size the target grows"),
-                                           label=_translate("Expand Scale"))
-
-        self.depends.append(
-            {"dependsOn": "expandAnimation",  # must be param name
-             "condition": "== True",  # val to check for
-             "param": "expandDur",  # param property to alter
-             "true": "enable",  # what to do with param if condition is True
-             "false": "disable",  # permitted: hide, show, enable, disable
-             }
-        )
-
-        self.params['expandDur'] = Param(expandDur,
-                                         valType='code', inputType='single', categ='Animation',
-                                         hint=_translate("How long does the expand/contract animation take? Can be a "
-                                                         "single value for a uniform animation or two for separate "
-                                                         "expand/contract durations."),
-                                         label=_translate("Expand / Contract Duration"))
+                                           hint=_translate(
+                                               "Duration of the delay between positions."),
+                                           label=_translate("Target Delay"))
 
         # Data params
         self.order += [
