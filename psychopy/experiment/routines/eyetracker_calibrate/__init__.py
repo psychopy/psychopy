@@ -255,7 +255,7 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
         code = (
                 "eyetracker, %(name)sTarget,\n"
                 "units=%(units)s, colorSpace=%(colorSpace)s,\n"
-                "progressMode=%(progressMode)s, targetDur=%(targetDur)s, expandScale=%(expandScale)s\n"
+                "progressMode=%(progressMode)s, targetDur=%(targetDur)s, expandScale=%(expandScale)s,\n"
                 "targetLayout=%(targetLayout)s, randomisePos=%(randomisePos)s,\n"
                 "movementAnimation=%(movementAnimation)s, targetDelay=%(targetDelay)s\n"
         )
