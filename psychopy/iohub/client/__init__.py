@@ -1386,7 +1386,6 @@ _lazyImports = """
 from psychopy.iohub.client.connect import launchHubServer
 from psychopy.iohub.client import keyboard
 from psychopy.iohub.client import wintab
-from psychopy.iohub.client.eyetracker import validation
 """
 
 try:
