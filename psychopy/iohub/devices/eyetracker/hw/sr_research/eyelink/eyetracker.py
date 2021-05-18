@@ -349,8 +349,11 @@ class EyeTracker(EyeTrackerDevice):
                         eyelink.enableAutoCalibration()
                     elif cal_val is False:
                         eyelink.disableAutoCalibration()
-                elif cal_key == 'pacing_speed':  # in seconds.msec
-                    eyelink.setAutoCalibrationPacing(int(cal_val * 1000))
+                elif cal_key == 'pacing_speed' and cal_val:  # in seconds.msec
+                        eyelink.setAutoCalibrationPacing(int(cal_val * 1000))
+                elif cal_key == 'target_delay' and cal_val:  # in seconds.msec
+                        print2err("Setting eyelink setAutoCalibrationPacing using 'target_delay' of ", cal_val)
+                        eyelink.setAutoCalibrationPacing(int(cal_val * 1000))
                 elif cal_key == 'type':
                     VALID_CALIBRATION_TYPES = dict(THREE_POINTS='HV3', FIVE_POINTS='HV5', NINE_POINTS='HV9',
                                                    THIRTEEN_POINTS='HV13')

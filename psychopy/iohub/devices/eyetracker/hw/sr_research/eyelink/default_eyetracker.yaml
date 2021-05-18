@@ -94,11 +94,16 @@ eyetracker.hw.sr_research.eyelink.EyeTracker:
         # 
         auto_pace: True
 
-        # pacing_speed: The number of sec.msec that a calibration point should
-        # be displayed before moving onto the next point when auto_pace is set to true.
-        # If auto_pace is False, pacing_speed is ignored.
-        #
-        pacing_speed: 1.5
+
+        # target_duration is the number of sec that a calibration point should
+        # be displayed before moving onto the next point.
+        target_duration: 1.5
+
+        # target_delay specifies the time between target position presentations.
+        target_delay: 0.75
+
+        # **pacing_speed is deprecated. Please use 'target_delay' instead.**
+        pacing_speed:
         
         # screen_background_color: Specifies the background color to
         #   set the calibration, validation, etc, screens to.

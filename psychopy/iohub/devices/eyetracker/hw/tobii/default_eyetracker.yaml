@@ -58,13 +58,19 @@ eyetracker.hw.tobii.EyeTracker:
         # the next point.
         #
         auto_pace: True
-        
-        # pacing_speed is the number of sec.msec that a calibration point should
-        # be displayed before moving onto the next point when auto_pace is set to true.
-        # If auto_pace is False, pacing_speed is ignored.
-        #
-        pacing_speed: 1.0
-        
+
+        # target_duration is the number of sec that a calibration point should
+        # be displayed before moving onto the next point.
+        # Target size expansion / contraction optionally occurs during this time period as well.
+        target_duration: 1.5
+
+        # target_delay specifies the time between target position presentations.
+        # Target position animation optionally occurs during this time period as well.
+        target_delay: 0.75
+
+        # **pacing_speed is deprecated. Please use 'target_delay' instead.**
+        pacing_speed:
+
         # screen_background_color specifies the r,g,b background color to 
         # set the calibration, validation, etc, screens to. Each element of the color
         # should be a value between 0 and 255. 0 == black, 255 == white.
@@ -123,11 +129,6 @@ eyetracker.hw.tobii.EyeTracker:
                  # from one calibration position to another.
                  #
                  enable: True
-                 # movement_velocity: The velocity that a calibration target
-                 # graphic should use when gliding from one calibration
-                 # point to another. Always in pixels / second.
-                 #
-                 movement_velocity: 900.0 
                  # expansion_ratio: The outer circle of the calibration target
                  # can expand (and contract) when displayed at each position.
                  # expansion_ratio gives the largest size of the outer circle 
@@ -137,10 +138,6 @@ eyetracker.hw.tobii.EyeTracker:
                  # to 60 pixels. Set expansion_ratio to 1.0 for no expansion.
                  # 
                  expansion_ratio: 3.0
-                 # expansion_speed: The rate at which the outer circle
-                 # graphic should expand. Always in pixels / second. 
-                 # 
-                 expansion_speed: 60.0
                  # contract_only: If the calibration target should expand from
                  # the outer circle initial diameter to the larger diameter
                  # and then contract back to the original diameter, set 
@@ -148,7 +145,13 @@ eyetracker.hw.tobii.EyeTracker:
                  # go from an expanded state to the smaller size, set this to True.
                  #
                  contract_only: True
-    
+                 # ** movement_velocity: Deprecated, please use target_delay instead. **
+                 #
+                 movement_velocity:
+                 # ** expansion_speed: Deprecated, target_duration is now used. **
+                 #
+                 expansion_speed:
+
     runtime_settings:
         # The supported sampling rates for Tobii are model dependent. 
         # If the sampling rate specified here is not supported by the model being used,
