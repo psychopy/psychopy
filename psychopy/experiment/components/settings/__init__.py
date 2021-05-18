@@ -111,7 +111,7 @@ class SettingsComponent(object):
                  units='height', logging='exp',
                  color='$[0,0,0]', colorSpace='rgb', enableEscape=True,
                  blendMode='avg',
-                 saveXLSXFile=False, saveCSVFile=False,
+                 saveXLSXFile=False, saveCSVFile=False, saveHDF5File=True,
                  saveWideCSVFile=True, savePsydatFile=True,
                  savedDataFolder='', savedDataDelim='auto',
                  useVersion='',
@@ -145,7 +145,7 @@ class SettingsComponent(object):
         self.depends = []
         self.order = ['expName', 'Use version', 'Show info dlg', 'Enable Escape',  'Experiment info',  # Basic tab
                       'Data filename', 'Data file delimiter', 'Save excel file', 'Save csv file', 'Save wide csv file',
-                      'Save psydat file', 'Save log file', 'logging level',  # Data tab
+                      'Save psydat file', 'Save hdf5 file', 'Save log file', 'logging level',  # Data tab
                       'Audio lib', 'Audio latency priority', "Force stereo",  # Audio tab
                       'HTML path', 'exportHTML', 'Completed URL', 'Incomplete URL', 'Resources',  # Online tab
                       'Monitor', 'Screen', 'Full-screen window', 'Window size (pixels)', 'Units', 'color',
@@ -295,6 +295,11 @@ class SettingsComponent(object):
                             "useful for python programmers to generate "
                             "analysis scripts."),
             label=_localized["Save psydat file"], categ='Data')
+        self.params['Save hdf5 file'] = Param(
+            saveHDF5File, valType='bool', inputType="bool",
+            hint=_translate("Save data from eyetrackers in hdf5 format. This is "
+                            "useful for viewing and analyzing complex data in structures."),
+            label=_translate("Save hdf5 file"), categ='Data')
         self.params['logging level'] = Param(
             logging, valType='code', inputType="choice",
             allowedVals=['error', 'warning', 'data', 'exp', 'info', 'debug'],
@@ -355,6 +360,14 @@ class SettingsComponent(object):
                      "false": "hide",  # permitted: hide, show, enable, disable
                      }
                 )
+        self.depends.append(
+            {"dependsOn": "eyetracker",  # must be param name
+             "condition": f" in {list(trackerParams)}",  # val to check for
+             "param": "Save hdf5 file",  # param property to alter
+             "true": "enable",  # what to do with param if condition is True
+             "false": "disable",  # permitted: hide, show, enable, disable
+             }
+        )
 
         self.params['eyetracker'] = Param(
             eyetracker, valType='str', inputType="choice",
@@ -1099,9 +1112,13 @@ class SettingsComponent(object):
             )
             buff.writeIndentedLines(code % self.params)
             buff.setIndentLevel(-1, relative=True)
+            if self.params['Save hdf5 file'].val:
+                saveStr = " experiment_code=%(expName)s, session_code=ioSession, datastore_file=filename,"
+            else:
+                saveStr = ""
             code = (
-                "ioServer = io.launchHubServer(window=win, experiment_code=%(expName)s, session_code=ioSession, **ioConfig)\n"
-                "eyetracker = ioServer.getDevice('tracker')\n"
+                f"ioServer = io.launchHubServer(window=win,{saveStr} **ioConfig)\n"
+                f"eyetracker = ioServer.getDevice('tracker')\n"
             )
             buff.writeIndentedLines(code % self.params)
 
