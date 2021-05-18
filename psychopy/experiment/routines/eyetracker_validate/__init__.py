@@ -46,10 +46,10 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
 
         self.order += [
             "targetLayout",
-            "targetPositions"
+            "targetPositions",
             "randomisePos",
             "showCursor",
-            "cursorColor",
+            "cursorFillColor",
         ]
 
         self.params['targetLayout'] = Param(targetLayout,
@@ -86,7 +86,7 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
         self.depends.append(
             {"dependsOn": "showCursor",  # must be param name
              "condition": "== True",  # val to check for
-             "param": "cursorColor",  # param property to alter
+             "param": "cursorFillColor",  # param property to alter
              "true": "enable",  # what to do with param if condition is True
              "false": "disable",  # permitted: hide, show, enable, disable
              }
