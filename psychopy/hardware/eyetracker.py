@@ -38,23 +38,23 @@ class EyetrackerCalibration:
     def __init__(self, win,
                  eyetracker, target,
                  units="height", colorSpace="rgb",
-                 autoPace=True,
+                 progressMode="time", targetDur=0.5, expandScale=3,
                  targetLayout="NINE_POINTS", randomisePos=True,
-                 enableAnimation=False, expandScale=3, targetDelay=1.25, targetDuration=0.5
+                 movementAnimation=False, targetDelay=1.25
                  ):
         # Store params
         self.win = win
         self.eyetracker = eyetracker
         self.target = target
-        self.autoPace = autoPace
+        self.progressMode = progressMode
         self.targetLayout = targetLayout
         self.randomisePos = randomisePos
         self.units = units or self.win.units
         self.colorSpace = colorSpace or self.win.colorSpace
         # Animation
-        self.enableAnimation = enableAnimation
+        self.movementAnimation = movementAnimation
         self.targetDelay = targetDelay
-        self.targetDuration = targetDuration
+        self.targetDur = targetDur
         self.expandScale = expandScale
         # Attribute to store data from last run
         self.last = None
@@ -76,14 +76,14 @@ class EyetrackerCalibration:
 
         # Run calibration
         if tracker == 'eyetracker.hw.sr_research.eyelink.EyeTracker':
-            if self.enableAnimation:
+            if self.movementAnimation:
                 # Alert user that their animation params aren't used
                 alert(code=4520, strFields={"brand": "EyeLink"})
             # Run as eyelink
             self.last = self.eyetracker.runSetupProcedure({
                 'target_attributes': dict(target),
                 'type': self.targetLayout,
-                'auto_pace': self.autoPace,
+                'auto_pace': self.progressMode == "time",
                 'pacing_speed': self.targetDelay,
                 'screen_background_color': getattr(self.win._color, self.colorSpace)
             })
@@ -91,9 +91,9 @@ class EyetrackerCalibration:
         elif tracker == 'eyetracker.hw.tobii.EyeTracker':
             targetAttrs = dict(target)
             targetAttrs['animate'] = {
-                'enable': self.enableAnimation,
+                'enable': self.movementAnimation,
                 'expansion_ratio': self.expandScale,
-                'expansion_speed': self.targetDuration,
+                'expansion_speed': self.targetDur,
                 'contract_only': self.expandScale == 1
             }
 
@@ -102,7 +102,7 @@ class EyetrackerCalibration:
                 'target_attributes': targetAttrs,
                 'type': self.targetLayout,
                 'randomize': self.randomisePos,
-                'auto_pace': self.autoPace,
+                'auto_pace': self.progressMode == "time",
                 'pacing_speed': self.targetDelay,
                 'unit_type': self.units,
                 'color_type': self.colorSpace,
@@ -110,13 +110,13 @@ class EyetrackerCalibration:
             })
 
         elif tracker == 'eyetracker.hw.gazepoint.gp3.EyeTracker':
-            if not self.autoPace:
+            if not self.progressMode == "time":
                 # As GazePoint doesn't use auto-pace, alert user
                 alert(4530, strFields={"brand": "GazePoint"})
 
             targetAttrs = dict(target)
             targetAttrs['animate'] = {
-                'enable': self.enableAnimation,
+                'enable': self.movementAnimation,
                 'expansion_ratio': self.expandScale,
                 'contract_only': self.expandScale == 1
             }
@@ -124,7 +124,7 @@ class EyetrackerCalibration:
             self.last = self.eyetracker.runSetupProcedure({
                 'use_builtin': False,
                 'target_delay': self.targetDelay,
-                'target_duration': self.targetDuration,
+                'target_duration': self.targetDur,
                 'target_attributes': targetAttrs,
                 'type': self.targetLayout,
                 'randomize': self.randomisePos,
@@ -137,7 +137,7 @@ class EyetrackerCalibration:
 
             targetAttrs = dict(target)
             targetAttrs['animate'] = {
-                'enable': self.enableAnimation,
+                'enable': self.movementAnimation,
                 'expansion_ratio': self.expandScale,
                 'contract_only': self.expandScale == 1
             }
@@ -146,7 +146,7 @@ class EyetrackerCalibration:
                 'target_attributes': targetAttrs,
                 'type': self.targetLayout,
                 'randomize': self.randomisePos,
-                'auto_pace': self.autoPace,
+                'auto_pace': self.progressMode == "time",
                 'pacing_speed': self.targetDelay,
                 'unit_type': self.units,
                 'color_type': self.colorSpace,

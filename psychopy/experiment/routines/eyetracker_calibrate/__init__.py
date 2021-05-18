@@ -13,20 +13,37 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
     limit = 1
 
     def __init__(self, exp, name='calibration',
-                 targetDelay=1.25, targetDuration=0.5, autoPace=True,
+                 progressMode="time", targetDur=0.5, expandDur=0.5, expandScale=3,
+                 movementAnimation=False, movementDur=1.25, targetDelay=1.25,
                  innerFillColor="red", innerBorderColor="", innerBorderWidth="", outerRadius=0.025,
                  fillColor="", borderColor="white", borderWidth=2, innerRadius=0.005,
                  colorSpace="rgb", units='from exp settings',
                  targetLayout="NINE_POINTS", randomisePos=True,
-                 movementAnimation=False, expandScale=3):
+                 ):
         # Initialise base routine
         BaseStandaloneRoutine.__init__(self, exp, name=name)
 
         self.exp.requirePsychopyLibs(['iohub', 'hardware'])
 
         # Basic params
+        self.order += [
+            "targetLayout",
+            "randomisePos",
+        ]
+
         del self.params['stopVal']
         del self.params['stopType']
+
+        self.params['targetLayout'] = Param(targetLayout,
+                                            valType='str', inputType="choice", categ='Basic',
+                                            allowedVals=['THREE_POINTS', 'FIVE_POINTS', 'NINE_POINTS', "THIRTEEN_POINTS"],
+                                            hint=_translate("Pre-defined target layouts"),
+                                            label=_translate("Target Layout"))
+
+        self.params['randomisePos'] = Param(randomisePos,
+                                            valType='bool', inputType="bool", categ='Basic',
+                                            hint=_translate("Should the order of target positions be randomised?"),
+                                            label=_translate("Randomise Target Positions"))
 
         # Target Params
         self.order += [
@@ -89,13 +106,6 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
                                            hint=_translate("Size (radius) of te inner part of the target"),
                                            label=_translate("Inner Radius"))
 
-        # Layout Params
-        self.order += [
-            "targetLayout",
-            "randomisePos",
-            "units",
-        ]
-
         self.params['units'] = Param(units,
                                      valType='str', inputType="choice", categ='Target',
                                      allowedVals=['from exp settings', 'deg', 'cm', 'pix', 'norm',
@@ -103,56 +113,96 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
                                      hint=_translate("Units of dimensions for this stimulus"),
                                      label=_translate("Spatial Units"))
 
-        self.params['targetLayout'] = Param(targetLayout,
-                                            valType='str', inputType="choice", categ='Basic',
-                                            allowedVals=['THREE_POINTS', 'FIVE_POINTS', 'NINE_POINTS', "THIRTEEN_POINTS"],
-                                            hint=_translate("Pre-defined target layouts"),
-                                            label=_translate("Target Layout"))
-
-        self.params['randomisePos'] = Param(randomisePos,
-                                            valType='bool', inputType="bool", categ='Basic',
-                                            hint=_translate("Should the order of target positions be randomised?"),
-                                            label=_translate("Randomise Target Positions"))
-
         # Animation Params
         self.order += [
-            "autoPace",
-            "targetDuration",
-            "contractOnly",
-            "expandScale",
+            "progressMode",
+            "targetDur",
             "expandDur",
+            "expandScale",
+            "movementAnimation",
+            "movementDur",
+            "targetDelay"
         ]
 
-        self.params['autoPace'] = Param(autoPace,
-                                        valType='bool', inputType="bool", categ='Animation',
-                                        hint=_translate(
-                                            "If True, calibration progresses after a fixation, if False, calibration has to "
-                                            "be progressed by pushing a button."),
-                                        label=_translate("Auto-Pace"))
+        self.params['progressMode'] = Param(progressMode,
+                                            valType="str", inputType="choice", categ="Animation",
+                                            allowedVals=["space key", "time"],
+                                            hint=_translate("Should the target move to the next position after a "
+                                                            "keypress or after an amount of time?"),
+                                            label=_translate("Progress Mode"))
 
-        self.params['targetDuration'] = Param(targetDuration,
-                                        valType='num', inputType="single", categ='Animation',
-                                        hint=_translate(
-                                            "How long to display each target. If auto-pace is off, this is just how "
-                                            "long the expand / contract animation takes."),
-                                        label=_translate("Target Duration"))
+        self.depends.append(
+            {"dependsOn": "progressMode",  # must be param name
+             "condition": "in ['time', 'either']",  # val to check for
+             "param": "targetDur",  # param property to alter
+             "true": "show",  # what to do with param if condition is True
+             "false": "hide",  # permitted: hide, show, enable, disable
+             }
+        )
 
-        self.params['targetDelay'] = Param(targetDelay,
-                                           valType='num', inputType="single", categ='Animation',
-                                           hint=_translate(
-                                               "Number of seconds to wait between each calibration point presentation."),
-                                           label=_translate("Target Delay"))
+        self.params['targetDur'] = Param(targetDur,
+                                         valType='num', inputType="single", categ='Animation',
+                                         hint=_translate(
+                                             "Time limit (s) after which progress to next position"),
+                                         label=_translate("Target Duration"))
 
-        self.params['movementAnimation'] = Param(movementAnimation,
-                                           valType='bool', inputType="bool", categ='Animation',
-                                           hint=_translate("Enable / disable animations as target stim changes position, "
-                                                           "only applicable for Tobii eyetrackers"),
-                                           label=_translate("Animate Position Changes"))
+        self.depends.append(
+            {"dependsOn": "progressMode",  # must be param name
+             "condition": "in ['space key', 'either']",  # val to check for
+             "param": "expandDur",  # param property to alter
+             "true": "show",  # what to do with param if condition is True
+             "false": "hide",  # permitted: hide, show, enable, disable
+             }
+        )
+
+        self.params['expandDur'] = Param(expandDur,
+                                         valType='num', inputType="single", categ='Animation',
+                                         hint=_translate(
+                                             "Duration of the target expand/contract animation"),
+                                         label=_translate("Expand / Contract Duration"))
 
         self.params['expandScale'] = Param(expandScale,
                                            valType='num', inputType="single", categ='Animation',
                                            hint=_translate("How many times bigger than its size the target grows"),
                                            label=_translate("Expand Scale"))
+
+        self.params['movementAnimation'] = Param(movementAnimation,
+                                                 valType='bool', inputType="bool", categ='Animation',
+                                                 hint=_translate(
+                                                     "Enable / disable animations as target stim changes position"),
+                                                 label=_translate("Animate Position Changes"))
+
+        self.depends.append(
+            {"dependsOn": "movementAnimation",  # must be param name
+             "condition": "== True",  # val to check for
+             "param": "movementDur",  # param property to alter
+             "true": "show",  # what to do with param if condition is True
+             "false": "hide",  # permitted: hide, show, enable, disable
+             }
+        )
+
+        self.params['movementDur'] = Param(movementDur,
+                                           valType='num', inputType="single", categ='Animation',
+                                           hint=_translate(
+                                               "Duration of the animation during position changes."),
+                                           label=_translate("Movement Duration"))
+
+        self.depends.append(
+            {"dependsOn": "movementAnimation",  # must be param name
+             "condition": "== False",  # val to check for
+             "param": "targetDelay",  # param property to alter
+             "true": "show",  # what to do with param if condition is True
+             "false": "hide",  # permitted: hide, show, enable, disable
+             }
+        )
+
+        self.params['targetDelay'] = Param(targetDelay,
+                                           valType='num', inputType="single", categ='Animation',
+                                           hint=_translate(
+                                               "Duration of the delay between positions."),
+                                           label=_translate("Target Delay"))
+
+
 
     def writeMainCode(self, buff):
         # Alert user if eyetracking isn't setup
@@ -160,8 +210,19 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
             alert(code=4505)
         # Get inits
         inits = self.params
+        # Code-ify 'from exp settings'
         if self.params['units'].val == 'from exp settings':
             inits['units'].val = None
+        # Synonymise expand dur and target dur
+        if inits['progressMode'].val == 'time':
+            inits['expandDur'] = inits['targetDur']
+        if inits['progressMode'].val == 'space key':
+            inits['targetDur'] = inits['expandDur']
+        # Synonymise movement dur and target delay
+        if inits['movementAnimation'].val:
+            inits['targetDelay'] = inits['movementDur']
+        else:
+            inits['movementDur'] = inits['targetDelay']
 
         BaseStandaloneRoutine.writeMainCode(self, buff)
 
@@ -186,7 +247,7 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
         buff.writeIndentedLines(code % inits)
         # Make config object
         code = (
-            "# define config object\n"
+            "# define parameters for %(name)s\n"
             "%(name)s = hardware.eyetracker.EyetrackerCalibration(win, \n"
         )
         buff.writeIndentedLines(code % inits)
@@ -194,10 +255,9 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
         code = (
                 "eyetracker, %(name)sTarget,\n"
                 "units=%(units)s, colorSpace=%(colorSpace)s,\n"
-                "targetDelay=%(targetDelay)s, targetDuration=%(targetDuration)s, autoPace=%(autoPace)s,\n"
+                "progressMode=%(progressMode)s, targetDur=%(targetDur)s, expandScale=%(expandScale)s\n"
                 "targetLayout=%(targetLayout)s, randomisePos=%(randomisePos)s,\n"
-                "movementAnimation=%(movementAnimation)s,\n"
-                "expandScale=%(expandScale)s\n"
+                "movementAnimation=%(movementAnimation)s, targetDelay=%(targetDelay)s\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
