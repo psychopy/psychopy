@@ -82,6 +82,12 @@ class TargetStim(object):
         """
         self.stim[0].radius = s/2
 
+    def getSize(self):
+        """
+        Get the size of the target stim.
+        """
+        return self.stim[0].radius*2
+
     def draw(self):
         """
         Draw the Target stim.
@@ -97,6 +103,11 @@ class TargetStim(object):
         """
         return self.stim[0].contains(p)
 
+    def inner_radius(self):
+        try:
+            return self.stim[1].radius
+        except:
+            return self.stim[0].radius / 2
 
 def create3PointGrid():
     io = ioHubConnection.getActiveConnection()
@@ -227,7 +238,7 @@ class ValidationProcedure(object):
                 positions = create17PointGrid()
             else:
                 raise ValueError("Unsupported positions string constant: [{}]".format(positions))
-        elif isinstance(positions, (list, tuple)):
+        if isinstance(positions, (list, tuple)):
             positions = PositionGrid(posList=positions, firstposindex=0, repeatFirstPos=False)
         self.positions = positions
 
@@ -807,11 +818,9 @@ class ValidationTargetRenderer(object):
         Return the flip time when the target was first drawn at the newpos
         location.
         """
-
-
         io = self.io
 
-        # TODO: Target position animation phase using:
+        # Target position animation phase
         animate_position = kwargs.get('enable')
         targetdelay = kwargs.get('targetdelay')
         if frompos is not None:
@@ -822,8 +831,7 @@ class ValidationTargetRenderer(object):
                     v1 = frompos
                     v2 = topos
                     t = 60.0 * ((1.0 / 10.0) * t ** 5 - (1.0 / 4.0) * t ** 4 + (1.0 / 6.0) * t ** 3)
-                    mx, my = ((1.0 - t) * v1[0] + t * v2[0], (1.0 - t) * v1[1] + t * v2[1])
-                    moveTo = (mx, my) #left + w * mx, bottom + h * (1.0 - my)
+                    moveTo = ((1.0 - t) * v1[0] + t * v2[0], (1.0 - t) * v1[1] + t * v2[1])
                     self.target.setPos(moveTo)
                     self._draw()
                     fliptime = self.win.flip()
@@ -847,11 +855,7 @@ class ValidationTargetRenderer(object):
         io.sendMessageEvent('TARGET_POS %.4f,%.4f' % (topos[0], topos[1]), self.msgcategory, sec_time=fliptime)
         self._addDeviceEvents()
 
-
-        # TODO: Target expand / contract phase using:
-        # target_animation['targetduration'] = target_duration
-        # target_animation['expandedscale'] = expand_scale
-        # target_animation['contracttarget'] = contract_target
+        # Target expand / contract phase
         expandedscale = kwargs.get('expandedscale')
         targetduration = kwargs.get('targetduration')
         contract_target = kwargs.get('contracttarget')
@@ -873,7 +877,7 @@ class ValidationTargetRenderer(object):
 
         if expand_duration:
             expandedradius = self.target.radius * expandedscale
-            starttime = fliptime
+            starttime = getTime()
             expandedtime = fliptime + expand_duration
             while fliptime < expandedtime:
                 mu = (fliptime - starttime) / expand_duration
@@ -888,11 +892,17 @@ class ValidationTargetRenderer(object):
                     return 0
 
         if contract_duration:
-            starttime = fliptime
+            starttime = getTime()
             contractedtime = fliptime + contract_duration
+            start_radius = self.target.getSize()/2
+            try:
+                stop_radius = self.target.inner_radius()
+            except:
+                stop_radius = start_radius/2
+                print("Warning: validation target has no .inner_radius() method.")
             while fliptime < contractedtime:
                 mu = (fliptime - starttime) / contract_duration
-                cradius = expandedradius * (1.0 - mu) + initialradius * mu
+                cradius = start_radius * (1.0 - mu) + stop_radius * mu
                 self.target.setSize(cradius*2)
                 self._draw()
                 fliptime = self.win.flip()
@@ -901,8 +911,6 @@ class ValidationTargetRenderer(object):
                 self._addDeviceEvents()
                 if self._terminate_requested:
                     return 0
-
-        self.target.setSize(initialradius*2)
         return fliptime
 
     def moveTo(self, topos, frompos, **kwargs):
@@ -919,6 +927,7 @@ class ValidationTargetRenderer(object):
             fpx, fpy = frompos[0], frompos[1]
         io.sendMessageEvent('START_DRAW %d %.4f,%.4f %.4f,%.4f' % (self.positions.posIndex, fpx, fpy, topos[0],
                                                                    topos[1]), self.msgcategory)
+
         fliptime = self._animateTarget(topos, frompos, **kwargs)
         io.sendMessageEvent('SYNCTIME %d %.4f,%.4f %.4f,%.4f' % (self.positions.posIndex, fpx, fpy, topos[0], topos[1]),
                             self.msgcategory, sec_time=fliptime)
@@ -1047,17 +1056,19 @@ class ValidationTargetRenderer(object):
                 turn_rec_off.append(d)
 
         sleep(0.025)
+        initialsize=self.target.getSize()
         for pos in self.positions:
             self._initTargetData(prevpos, pos)
             self._addDeviceEvents()
             if self._terminate_requested:
                 break
+            self.target.setSize(initialsize)
             self.moveTo(pos, prevpos, **kwargs)
             prevpos = pos
             self._addDeviceEvents()
             if self._terminate_requested:
                 break
-
+        self.target.setSize(initialsize)
         for d in turn_rec_off:
             d.enableEventReporting(False)
 
