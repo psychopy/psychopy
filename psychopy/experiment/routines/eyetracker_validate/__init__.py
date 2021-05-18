@@ -344,7 +344,7 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
 
         # Make validation object
         code = (
-            ""# define parameters for %(name)s\n""
+            "# define parameters for %(name)s\n"
             "%(name)s = ValidationProcedure(win,\n"
         )
         buff.writeIndentedLines(code % inits)
