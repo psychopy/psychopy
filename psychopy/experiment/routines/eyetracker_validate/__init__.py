@@ -280,7 +280,7 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
             inits['movementDur'] = inits['targetDelay']
         # Convert progress mode to ioHub format
         if inits['progressMode'].val == 'space key':
-            inits['progressKey'] = "'SPACE'"
+            inits['progressKey'] = "' '"
         else:
             inits['progressKey'] = "None"
         # If positions are preset, override param value
