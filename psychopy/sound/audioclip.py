@@ -14,7 +14,13 @@ __all__ = [
     'save',
     'AUDIO_SUPPORTED_CODECS',
     'AUDIO_CHANNELS_MONO',
-    'AUDIO_CHANNELS_STEREO'
+    'AUDIO_CHANNELS_STEREO',
+    'AUDIO_CHANNEL_LEFT',
+    'AUDIO_EAR_LEFT',
+    'AUDIO_CHANNEL_RIGHT',
+    'AUDIO_EAR_RIGHT',
+    'AUDIO_CHANNEL_COUNT',
+    'AUDIO_EAR_COUNT'
 ]
 
 import numpy as np
@@ -41,6 +47,11 @@ AUDIO_SUPPORTED_CODECS = [s.lower() for s in sf.available_formats().keys()]
 # constants for specifying the number of channels
 AUDIO_CHANNELS_MONO = 1
 AUDIO_CHANNELS_STEREO = 2
+
+# constants for indexing channels
+AUDIO_CHANNEL_LEFT = AUDIO_EAR_LEFT = 0
+AUDIO_CHANNEL_RIGHT = AUDIO_EAR_RIGHT = 1
+AUDIO_CHANNEL_COUNT = AUDIO_EAR_COUNT = 2
 
 
 class AudioClip(object):
@@ -628,7 +639,7 @@ class AudioClip(object):
         assert isinstance(value, dict)
         self._userData = value
 
-    def toText(self, engine='sphinx', config=None):
+    def transcribe(self, engine='sphinx', config=None):
         """Convert speech in audio to text.
 
         This feature passes the audio clip samples to a text-to-speech engine
