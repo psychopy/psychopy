@@ -1,18 +1,37 @@
-For simple changes, and for users that aren't so confident with things like version control systems, you may just post your ideas and changes to the [PsychoPy forum](https://discourse.psychopy.org).
+# Have you ever contributed to an Open Source project?
+If you haven't, your first contribution can be a bit intimidating. Feel free to take a chance; we would happily guide you through the process. 
 
-If you want to make more substantial changes, please discuss them first in the [development section of the forum](https://discourse.psychopy.org/c/dev) or in a new [GitHub issue](https://github.com/psychopy/psychopy/issues).
+The first step is discussing what you've got in mind in the [development section of the forum](https://discourse.psychopy.org/c/dev). Depending out the outcome, here is the next step:
+* **I won't program it myself.** Please file a [GitHub issue](https://github.com/psychopy/psychopy/issues).
+* **I'd like to take a shot.** Read on!
 
-The ideal model is to contribute via the PsychoPy GitHub repository. There is more information on that in the [developers](https://github.com/psychopy/psychopy/blob/master/docs/source/developers/developers.rst) section of the documentation.
+# How to contribute
+Contributing to PsychoPy consists of four steps:
+1. Getting your own copy
+2. Making your changes
+3. Committing your changes
+4. Submitting a Pull Request
 
-Please note the importance of a good commit message and **please use the following tags in your commit**:
+## 1. Getting your own copy of the PsychoPy codebase
+To be sure your changes can easily be integrated later on, follow these steps:
+1. **Make a [fork](https://docs.github.com/en/github/getting-started-with-github/fork-a-repo) of the [PsychoPy repo](https://github.com/psychopy/psychopy).** This provides you with your own copy of the PsychoPy source code.
+2. **Inside your fork, make a new [branch](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/about-branches) for the feature you've got in mind.** If you'd like to fix a bug, base your new branch on the *release* branch. If you'd like to add a new feature, base it on the *dev* branch.
+3. **Clone your fork to your hard drive.** Next, switch to the new branch, and you're ready to program!
 
-  - BF : bug fix
-  - FF : ‘feature’ fix. This is for fixes to code that hasn’t been released
-  - RF : refactoring
-  - NF : new feature
-  - ENH : enhancement (to existing code, but don't worry too much about the difference between this and NF)
-  - DOC: for all kinds of documentation related commits
-  - TEST: for adding or changing tests
+Look [here](https://www.psychopy.org/developers/repository.html) for more information about how the PsychoPy repo is setup.
 
-Very importantly, **the difference between BF and FF** is that BF indicates a fix that is appropriate for back-porting to earlier release streams, whereas FF indicates a fix to code that has not been released, and so should not be back-ported. So, if you incorrectly tag a bug fix as FIX then it won't be included in a bug-fix release, only in the next major release.
-If you're unsure whether one of your changes is a BF or FF, feel free to ask.
+## 2. Making your changes
+We've got guides for modifying different parts of PsychoPy in the [developer documentation](https://www.psychopy.org/developers/index.html). To test your modified PsychoPy, do a [developers install](https://www.psychopy.org/download.html#developers-install).
+
+## 3. Committing your changes
+Please use the tags below in your commit, and be sure to add an informative commit message.
+  - **BF:** bug fix. For fixing bugs in the *release* branch.
+  - **FF:** ‘feature’ fix. For fixing bugs in the *dev* branch.
+  - **RF:** refactoring
+  - **NF:** new feature
+  - **ENH:** enhancement (to existing code, but don't worry too much about the difference between this and NF)
+  - **DOC:** for all kinds of documentation related commits
+  - **TEST:** for adding or changing tests
+
+## 4. File a Pull Request
+Once you're done, it's time to add it to the central PsychoPy codebase. File a [Pull Request](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request) from your fork and your new branch to the PsychoPy repo. Be sure to target the right branch in PsychoPy (*release* or *dev*). Thanks for contributing!
