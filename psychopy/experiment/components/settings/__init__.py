@@ -111,7 +111,7 @@ class SettingsComponent(object):
                  units='height', logging='exp',
                  color='$[0,0,0]', colorSpace='rgb', enableEscape=True,
                  blendMode='avg',
-                 saveXLSXFile=False, saveCSVFile=False, saveHDF5File=True,
+                 saveXLSXFile=False, saveCSVFile=False, saveHDF5File=False,
                  saveWideCSVFile=True, savePsydatFile=True,
                  savedDataFolder='', savedDataDelim='auto',
                  useVersion='',
@@ -1113,7 +1113,7 @@ class SettingsComponent(object):
             buff.writeIndentedLines(code % self.params)
             buff.setIndentLevel(-1, relative=True)
             if self.params['Save hdf5 file'].val:
-                saveStr = " experiment_code=%(expName)s, session_code=ioSession, datastore_file=filename,"
+                saveStr = " experiment_code=%(expName)s, session_code=ioSession,"
             else:
                 saveStr = ""
             code = (
