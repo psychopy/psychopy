@@ -49,6 +49,12 @@
     4315: Invalid dollar sign syntax
     4320: Non-local font
     4325: Font not available
+  4500:
+    cat: Eyetracking
+    4505: Eyetracking not configured
+    4510: Eyetracker not calibrated
+    4520: Animation params not used
+    4530: Auto pace param not used
 
 5000:
   cat: Online studies

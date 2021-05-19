@@ -19,7 +19,9 @@ Changes made to iohub for 2021.2 Release
   instead of always rgb255.
     - TODO: Retest all eyetracking examples with all eye trackers on all OS's
 - Removed iohub/devices/display/unit_conversions.py. Moving to psychopy monitorutil functions.
-- launchHubServer now accepts a psychopy window using the window kwarg.
+- launchHubServer now accepts:
+      - a psychopy window using the window kwarg
+      - a file path name for hdf5 using datastore_name kwarg
   iohub display info is updated using window information like .monitor, .colorSpace, .units, .screen
 - If psychopy window (with monitor config) is passed to launchHubServer, no need for iohub Display config.
 - Added common eye tracker interface validation procedure. Coder Demo: demos/coder/iohub/eyetracking/validation.py
@@ -32,5 +34,4 @@ Changes made to iohub for 2021.2 Release
   Return contents vary between eye tracker manufacturers. TODO: Doc return data for each eye tracker
 - eyetracker.runSetupProcedure accepts calibration_args dict, which must have the same structure as the eyetracker's
   calibration settings section.
-- Added license_file setting to Tobii interface.
-- ioHub GazePoint interface now supports psychopy based calibration graphics.
+- added iohub support for 'height' units.

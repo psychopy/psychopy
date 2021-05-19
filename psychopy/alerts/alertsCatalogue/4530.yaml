@@ -1,0 +1,23 @@
+
+code: 4530
+cat: Eyetracking
+msg: Eyetrackers by {brand} do not support manual pacing
+
+# The following are typically used for online help pages, and support reStructured Text.
+label: Auto pace param not used
+
+synopsis: |
+  Some eyetrackers do not support manual pacing for calibration, as pacing is always handled automatically. If you have
+  set "Auto-Pacing" to False while using one of these eyetrackers, this setting will be ignored.
+
+details: |
+
+
+solutions: |
+  If you are only using the current eyetracker to test an experiment and will be using one which supports manual pacing,
+  then you don't need to do anything. This alert will stop appearing when you use the other eyetracker.
+
+  Otherwise, you just need to be aware that pacing will be automatic.
+
+versions: |
+  > 2021.2.0

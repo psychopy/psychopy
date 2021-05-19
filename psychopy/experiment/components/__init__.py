@@ -24,7 +24,7 @@ from psychopy.localization import _translate
 from psychopy.experiment import py2js
 
 excludeComponents = ['BaseComponent', 'BaseVisualComponent',  # templates only
-                     'EyetrackerComponent']  # this one isn't ready yet
+                     ]  # this one isn't ready yet
 
 pluginComponents = {}  # components registered by loaded plugins
 
