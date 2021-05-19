@@ -47,6 +47,7 @@ class MicrophoneComponent(BaseComponent):
                  channels='stereo', device="default",
                  sampleRate='DVD Audio (48kHz)', maxSize=24000,
                  outputType='default', speakTimes=True, trimSilent=False,
+                 transcribe=True, transcribeBackend="GOOGLE", transcribeLang="en-GB", transcribeWords="",
                  #legacy
                  stereo=None, channel=None):
         super(MicrophoneComponent, self).__init__(
@@ -126,6 +127,49 @@ class MicrophoneComponent(BaseComponent):
             trimSilent, valType='bool', inputType='bool', categ='Data',
             hint=msg,
             label=_translate("Trim Silent")
+        )
+
+        # Transcription params
+        self.order += [
+            'transcribe',
+            'transcribeBackend',
+            'transcribeLang',
+            'transcribeWords',
+        ]
+        self.params['transcribe'] = Param(
+            transcribe, valType='bool', inputType='bool', categ='Transcription',
+            hint=_translate("Whether to transcribe the audio recording and store the transcription"),
+            label=_translate("Transcribe Audio")
+        )
+
+        for depParam in ['transcribeBackend', 'transcribeLang', 'transcribeWords']:
+            self.depends.append({
+                "dependsOn": "transcribe",
+                "condition": "==True",
+                "param": depParam,
+                "true": "enable",  # what to do with param if condition is True
+                "false": "disable",  # permitted: hide, show, enable, disable
+            })
+
+        self.params['transcribeBackend'] = Param(
+            transcribeBackend, valType='code', inputType='choice', categ='Transcription',
+            allowedVals=["GOOGLE"],
+            hint=_translate("What transcription service to use to transcribe audio? Only applies online - local "
+                            "transcription uses Python Sphinx."),
+            label=_translate("Online Transcription Backend")
+        )
+
+        self.params['transcribeLang'] = Param(
+            transcribeLang, valType='str', inputType='choice', categ='Transcription',
+            allowedVals=['en-GB'],
+            hint=_translate("What transcription service to use to listen for words"),
+            label=_translate("Transcription Language")
+        )
+
+        self.params['transcribeWords'] = Param(
+            transcribeWords, valType='list', inputType='single', categ='Transcription',
+            hint=_translate("Set list of words to listen for - if blank will listen for all words in chosen language"),
+            label=_translate("Expected Words")
         )
 
     def writeStartCode(self, buff):
@@ -318,8 +362,8 @@ class MicrophoneComponent(BaseComponent):
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(1, relative=True)
         code = (
-                "languageCode: 'en-GB'\n"
-                "engine: sound.AudioClip.Engine.GOOGLE\n"
+                "languageCode: %(transcribeLang)s\n"
+                "engine: sound.AudioClip.Engine.%(transcribeBackend)s\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
