@@ -47,6 +47,7 @@ class MicrophoneComponent(BaseComponent):
                  channels='stereo', device="default",
                  sampleRate='DVD Audio (48kHz)', maxSize=24000,
                  outputType='default', speakTimes=True, trimSilent=False,
+                 transcribe=True, transcribeBackend="GOOGLE", transcribeLang="en-GB", transcribeWords="",
                  #legacy
                  stereo=None, channel=None):
         super(MicrophoneComponent, self).__init__(
@@ -128,6 +129,49 @@ class MicrophoneComponent(BaseComponent):
             label=_translate("Trim Silent")
         )
 
+        # Transcription params
+        self.order += [
+            'transcribe',
+            'transcribeBackend',
+            'transcribeLang',
+            'transcribeWords',
+        ]
+        self.params['transcribe'] = Param(
+            transcribe, valType='bool', inputType='bool', categ='Transcription',
+            hint=_translate("Whether to transcribe the audio recording and store the transcription"),
+            label=_translate("Transcribe Audio")
+        )
+
+        for depParam in ['transcribeBackend', 'transcribeLang', 'transcribeWords']:
+            self.depends.append({
+                "dependsOn": "transcribe",
+                "condition": "==True",
+                "param": depParam,
+                "true": "enable",  # what to do with param if condition is True
+                "false": "disable",  # permitted: hide, show, enable, disable
+            })
+
+        self.params['transcribeBackend'] = Param(
+            transcribeBackend, valType='code', inputType='choice', categ='Transcription',
+            allowedVals=["GOOGLE"],
+            hint=_translate("What transcription service to use to transcribe audio? Only applies online - local "
+                            "transcription uses Python Sphinx."),
+            label=_translate("Online Transcription Backend")
+        )
+
+        self.params['transcribeLang'] = Param(
+            transcribeLang, valType='str', inputType='choice', categ='Transcription',
+            allowedVals=['en-GB'],
+            hint=_translate("What transcription service to use to listen for words"),
+            label=_translate("Transcription Language")
+        )
+
+        self.params['transcribeWords'] = Param(
+            transcribeWords, valType='list', inputType='single', categ='Transcription',
+            hint=_translate("Set list of words to listen for - if blank will listen for all words in chosen language"),
+            label=_translate("Expected Words")
+        )
+
     def writeStartCode(self, buff):
         inits = getInitVals(self.params)
         # Use filename with a suffix to store recordings
@@ -190,6 +234,7 @@ class MicrophoneComponent(BaseComponent):
             alert(5055, strFields={'name': inits['name'].val})
         # Write code
         code = (
+            "%(name)sClips = {}\n"
             "%(name)s = new audio.Microphone({\n"
         )
         buff.writeIndentedLines(code % inits)
@@ -256,8 +301,7 @@ class MicrophoneComponent(BaseComponent):
         # Start the recording
         self.writeStartTestCodeJS(buff)
         code = (
-                "mic.start()\n"
-                "mic.status = STARTED\n"
+                "await %(name)s.start();\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
@@ -268,8 +312,7 @@ class MicrophoneComponent(BaseComponent):
         # Stop the recording
         self.writeStopTestCodeJS(buff)
         code = (
-                "mic.stop()\n"
-                "mic.status = FINISHED\n"
+                "%(name)s.pause();\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
@@ -283,7 +326,7 @@ class MicrophoneComponent(BaseComponent):
         inits['routine'] = self.parentName
         # Store recordings from this routine
         code = (
-            "%(name)s.bank('%(routine)s')\n"
+            "%(name)sClips['%(routine)s'] = %(name)s.getRecording()\n"
         )
         buff.writeIndentedLines(code % inits)
         # Write base end routine code
@@ -296,20 +339,40 @@ class MicrophoneComponent(BaseComponent):
         BaseComponent.writeRoutineEndCodeJS(self, buff)
         # Store recordings from this routine
         code = (
-            "// Save %(name)s recordings\n"
-            "%(name)sClips = %(name)s.flush()\n"
-            "for (let [i, clip] of %(name)sClips.entries()) {"
+            "// flush the microphone (make the audio data ready for upload)\n"
+            "await %(name)s.flush();\n"
+            "// get the recording\n"
+            "const %(name)sClip = await %(name)s.getRecording({\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(1, relative=True)
         code = (
-                "clip.save(%(name)sRecFolder, `recording_%(routine)s_${i}.%(outputType)s`)"
+                "tag: 'word_' + trials.thisN + '_' + text,\n"
+                "flush: false\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
         code = (
-            "}"
+            "});\n"
+            "// start the asynchronous upload to the server\n"
+            "%(name)sClip.upload();\n"
+            "// transcribe the recording\n"
+            "const [transcript, confidence] = await audioClip.transcribe({\n"
         )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(1, relative=True)
+        code = (
+                "languageCode: %(transcribeLang)s\n"
+                "engine: sound.AudioClip.Engine.%(transcribeBackend)s\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(-1, relative=True)
+        code = (
+            "});\n"
+            "// stop the microphone\n"
+            "%(name)s.stop();\n"
+        )
+        buff.writeIndentedLines(code % inits)
 
     def writeExperimentEndCode(self, buff):
         """Write the code that will be called at the end of
