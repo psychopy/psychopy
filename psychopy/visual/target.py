@@ -59,7 +59,6 @@ class TargetStim(ShapeStim):
     def scale(self, newScale):
         oldScale = self.scale
         self.radius = self.radius / oldScale * newScale
-        self.innerRadius = self.innerRadius / oldScale * newScale
         self._scale = newScale
 
     @property
