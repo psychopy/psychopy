@@ -257,8 +257,7 @@ class MicrophoneComponent(BaseComponent):
         # Start the recording
         self.writeStartTestCodeJS(buff)
         code = (
-                "mic.start()\n"
-                "mic.status = STARTED\n"
+                "await %(name)s.start();\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
@@ -269,8 +268,7 @@ class MicrophoneComponent(BaseComponent):
         # Stop the recording
         self.writeStopTestCodeJS(buff)
         code = (
-                "mic.pause()\n"
-                "mic.status = FINISHED\n"
+                "%(name)s.pause();\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
@@ -297,19 +295,40 @@ class MicrophoneComponent(BaseComponent):
         BaseComponent.writeRoutineEndCodeJS(self, buff)
         # Store recordings from this routine
         code = (
-            "// Save %(name)s recordings\n"
-            "for (let [i, clip] of %(name)sClips['%(routine)s'].entries()) {"
+            "// flush the microphone (make the audio data ready for upload)\n"
+            "await %(name)s.flush();\n"
+            "// get the recording\n"
+            "const %(name)sClip = await %(name)s.getRecording({\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(1, relative=True)
         code = (
-                "clip.upload(%(name)sRecFolder, `recording_%(routine)s_${i}.%(outputType)s`)"
+                "tag: 'word_' + trials.thisN + '_' + text,\n"
+                "flush: false\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
         code = (
-            "}"
+            "});\n"
+            "// start the asynchronous upload to the server\n"
+            "%(name)sClip.upload();\n"
+            "// transcribe the recording\n"
+            "const [transcript, confidence] = await audioClip.transcribe({\n"
         )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(1, relative=True)
+        code = (
+                "languageCode: 'en-GB'\n"
+                "engine: sound.AudioClip.Engine.GOOGLE\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(-1, relative=True)
+        code = (
+            "});\n"
+            "// stop the microphone\n"
+            "%(name)s.stop();\n"
+        )
+        buff.writeIndentedLines(code % inits)
 
     def writeExperimentEndCode(self, buff):
         """Write the code that will be called at the end of
