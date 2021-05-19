@@ -56,7 +56,7 @@ class TargetStim(object):
         from weakref import proxy
         self.win = proxy(win)
         self.stim = []
-        self.radius = radius
+        self._radius = radius
         outer = visual.Circle(self.win, radius=radius, fillColor=fillcolor, lineColor=edgecolor, lineWidth=edgewidth,
                               edges=32, units=units, colorSpace=colorspace, opacity=opacity,
                               contrast=contrast, interpolate=True, autoLog=False)
@@ -75,6 +75,14 @@ class TargetStim(object):
         """
         for s in self.stim:
             s.setPos(pos)
+
+    @property
+    def radius(self):
+        return self._radius
+
+    @radius.setter
+    def radius(self, r):
+        self._radius = self.stim[0].radius = r
 
     def setSize(self, s):
         """
@@ -103,6 +111,7 @@ class TargetStim(object):
         """
         return self.stim[0].contains(p)
 
+    @property
     def inner_radius(self):
         try:
             return self.stim[1].radius
@@ -882,7 +891,7 @@ class ValidationTargetRenderer(object):
             while fliptime < expandedtime:
                 mu = (fliptime - starttime) / expand_duration
                 cradius = initialradius * (1.0 - mu) + expandedradius * mu
-                self.target.setSize(cradius*2)
+                self.target.radius = cradius
                 self._draw()
                 fliptime = self.win.flip()
                 io.sendMessageEvent('EXPAND_SIZE %.4f %.4f' % (cradius, initialradius), self.msgcategory,
@@ -894,16 +903,16 @@ class ValidationTargetRenderer(object):
         if contract_duration:
             starttime = getTime()
             contractedtime = fliptime + contract_duration
-            start_radius = self.target.getSize()/2
+            start_radius = self.target.radius
             try:
-                stop_radius = self.target.inner_radius()
+                stop_radius = self.target.inner_radius
             except:
                 stop_radius = start_radius/2
-                print("Warning: validation target has no .inner_radius() method.")
+                print("Warning: validation target has no .inner_radius property.")
             while fliptime < contractedtime:
                 mu = (fliptime - starttime) / contract_duration
                 cradius = start_radius * (1.0 - mu) + stop_radius * mu
-                self.target.setSize(cradius*2)
+                self.target.radius = cradius
                 self._draw()
                 fliptime = self.win.flip()
                 io.sendMessageEvent('CONTRACT_SIZE %.4f %.4f' % (cradius, initialradius), self.msgcategory,
@@ -1056,19 +1065,19 @@ class ValidationTargetRenderer(object):
                 turn_rec_off.append(d)
 
         sleep(0.025)
-        initialsize=self.target.getSize()
+        initialsize=self.target.radius
         for pos in self.positions:
             self._initTargetData(prevpos, pos)
             self._addDeviceEvents()
             if self._terminate_requested:
                 break
-            self.target.setSize(initialsize)
+            self.target.radius = initialsize
             self.moveTo(pos, prevpos, **kwargs)
             prevpos = pos
             self._addDeviceEvents()
             if self._terminate_requested:
                 break
-        self.target.setSize(initialsize)
+        self.target.radius = initialsize
         for d in turn_rec_off:
             d.enableEventReporting(False)
 
