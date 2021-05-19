@@ -36,6 +36,7 @@ from psychopy.iohub.constants import EventConstants, KeyboardConstants, MouseCon
 lazyImports = """
 from psychopy.iohub.client.connect import launchHubServer
 from psychopy.iohub.devices.computer import Computer
+from psychopy.iohub.client.eyetracker.validation import ValidationProcedure
 """
 
 try:
