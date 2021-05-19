@@ -160,9 +160,8 @@ class MicrophoneComponent(BaseComponent):
         )
 
         self.params['transcribeLang'] = Param(
-            transcribeLang, valType='str', inputType='choice', categ='Transcription',
-            allowedVals=['en-GB'],
-            hint=_translate("What transcription service to use to listen for words"),
+            transcribeLang, valType='str', inputType='single', categ='Transcription',
+            hint=_translate("What language you expect the recording to be spoken in, e.g. en-GB for English"),
             label=_translate("Transcription Language")
         )
 
@@ -347,28 +346,38 @@ class MicrophoneComponent(BaseComponent):
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(1, relative=True)
         code = (
-                "tag: 'word_' + trials.thisN + '_' + text,\n"
+                "tag: 'recording_%(routine)s' + trials.thisN,\n"
                 "flush: false\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
         code = (
             "});\n"
+            "psychoJS.experiment.addData('%(name)s.clip', 'recording_%(routine)s' + trials.thisN;\n"
             "// start the asynchronous upload to the server\n"
             "%(name)sClip.upload();\n"
-            "// transcribe the recording\n"
-            "const [transcript, confidence] = await audioClip.transcribe({\n"
         )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(1, relative=True)
+        if self.params['transcribe'].val:
+            code = (
+                "// transcribe the recording\n"
+                "const [transcript, confidence] = await audioClip.transcribe({\n"
+            )
+            buff.writeIndentedLines(code % inits)
+            buff.setIndentLevel(1, relative=True)
+            code = (
+                    "languageCode: %(transcribeLang)s,\n"
+                    "engine: sound.AudioClip.Engine.%(transcribeBackend)s,\n"
+                    "wordList: %(transcribeWords)s\n"
+            )
+            buff.writeIndentedLines(code % inits)
+            buff.setIndentLevel(-1, relative=True)
+            code = (
+                "});\n"
+                "psychoJS.experiment.addData('%(name)s.transcript', transcript);\n"
+                "psychoJS.experiment.addData('%(name)s.confidence', confidence);\n"
+            )
+            buff.writeIndentedLines(code % inits)
         code = (
-                "languageCode: %(transcribeLang)s\n"
-                "engine: sound.AudioClip.Engine.%(transcribeBackend)s\n"
-        )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(-1, relative=True)
-        code = (
-            "});\n"
             "// stop the microphone\n"
             "%(name)s.stop();\n"
         )
@@ -379,6 +388,8 @@ class MicrophoneComponent(BaseComponent):
         an experiment (e.g. save log files or reset hardware)
         """
         inits = getInitVals(self.params)
+        if inits['outputType'].val == 'default':
+            inits['outputType'].val = 'wav'
         # Save recording
         code = (
             "# Save %(name)s recordings\n"
@@ -394,6 +405,9 @@ class MicrophoneComponent(BaseComponent):
         buff.setIndentLevel(1, relative=True)
         code = (
                     "clipName = os.path.join(%(name)sRecFolder, f'recording_{rt}_{i}.%(outputType)s')\n"
+                    "thisExp.addData('%(name)s.clip', clipName)\n"
+                    "clipScript = clip.transcribe(languageCode=%(transcribeLang)s, wordList=%(transcribeWords)s)\n"
+                    "thisExp.addData('%(name)s.transcription', clipScript)\n"
                     "clip.save(clipName)\n"
         )
         buff.writeIndentedLines(code % inits)
