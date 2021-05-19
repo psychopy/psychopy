@@ -193,13 +193,18 @@ class Experiment(object):
 
         # Remove disabled components, but leave original experiment unchanged.
         self_copy = deepcopy(self)
-        for _, routine in list(self_copy.routines.items()):  # PY2/3 compat
-            for component in routine:
-                try:
-                    if component.params['disabled'].val:
-                        routine.removeComponent(component)
-                except KeyError:
-                    pass
+        for key, routine in list(self_copy.routines.items()):  # PY2/3 compat
+            if isinstance(routine, BaseStandaloneRoutine):
+                if routine.params['disabled'].val:
+                    for node in self_copy.flow:
+                        self_copy.flow.removeComponent(node)
+            else:
+                for component in routine:
+                    try:
+                        if component.params['disabled'].val:
+                            routine.removeComponent(component)
+                    except KeyError:
+                        pass
 
         if target == "PsychoPy":
             self_copy.settings.writeInitCode(script, self_copy.psychopyVersion,
