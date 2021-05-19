@@ -78,20 +78,6 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
                                             hint=_translate("Should the order of target positions be randomised?"),
                                             label=_translate("Randomise Target Positions"))
 
-        self.params['showCursor'] = Param(showCursor,
-            valType="bool", inputType="bool", categ="Basic",
-            hint=_translate("Should a cursor be visible, showing where the participant is looking?"),
-            label=_translate("Show Gaze Cursor"))
-
-        self.depends.append(
-            {"dependsOn": "showCursor",  # must be param name
-             "condition": "== True",  # val to check for
-             "param": "cursorFillColor",  # param property to alter
-             "true": "enable",  # what to do with param if condition is True
-             "false": "disable",  # permitted: hide, show, enable, disable
-             }
-        )
-
         self.params['cursorFillColor'] = Param(cursorFillColor,
             valType="color", inputType="color", categ="Basic",
             hint=_translate("Fill color of the gaze cursor"),
@@ -297,12 +283,10 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
             inits['progressKey'] = "'SPACE'"
         else:
             inits['progressKey'] = "None"
-        # If set to not use gaze cursor, override gaze cursor color
-        if not inits['showCursor'].val:
-            inits['cursorFillColor'].val = None
         # If positions are preset, override param value
         if inits['targetLayout'].val in positions:
             inits['targetPositions'].val = inits['targetLayout'].val
+            inits['targetPositions'].valType = 'str'
 
         BaseStandaloneRoutine.writeMainCode(self, buff)
 
@@ -355,4 +339,4 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
             "# run %(name)s\n"
             "%(name)s.run()"
         )
-
+        buff.writeIndentedLines(code % inits)
