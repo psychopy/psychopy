@@ -6,6 +6,7 @@ from psychopy.iohub.errors import print2err, printExceptionDetailsToStdErr
 from psychopy.iohub.constants import EyeTrackerConstants, EventConstants
 from psychopy.iohub.devices import Computer, Device
 from psychopy.iohub.devices.eyetracker import EyeTrackerDevice
+from psychopy.iohub.devices.eyetracker.hw.mouse.mousegazeCalibrationGraphics import MouseGazePsychopyCalibrationGraphics
 import math
 ET_UNDEFINED = EyeTrackerConstants.UNDEFINED
 getTime = Computer.getTime
@@ -394,12 +395,20 @@ class EyeTracker(EyeTrackerDevice):
         """
         return self._recording
 
-    def runSetupProcedure(self, **calibration_args):
+    def runSetupProcedure(self, calibration_args={}):
         """
-        runSetupProcedure does nothing in the Mouse Simulated eye tracker, as calibration is automatic. ;)
+        runSetupProcedure displays a mock calibration procedure. No calibration is actually done.
         """
-        print2err("Mouse Simulated eye tracker runSetupProcedure called.")
-        return True
+        calibration = MouseGazePsychopyCalibrationGraphics(self, calibration_args)
+        print2err("Created MouseGazePsychopyCalibrationGraphics")
+        calibration.runCalibration()
+        print2err("Done calibration.runCalibration()")
+        calibration.window.close()
+
+        calibration._unregisterEventMonitors()
+        calibration.clearAllEventBuffers()
+
+        return {"RESULT": "ALWAYS_OK"}
 
     def _getIOHubEventObject(self, native_event_data):
         """The _getIOHubEventObject method is called by the ioHub Process to

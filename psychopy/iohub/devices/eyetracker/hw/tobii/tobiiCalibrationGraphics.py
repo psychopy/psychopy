@@ -353,55 +353,118 @@ class TobiiPsychopyCalibrationGraphics(object):
                 self.marker_heights[2]))
 
     def runCalibration(self):
-        """Performs a simple Tobii - like (@2010) calibration routine.
-
-        Result:
-            bool: True if calibration was successful. False if not.
-
+        """
+        Performs a Tobii calibration routine.
         """
 
         self._lastCalibrationOK = False
         calibration_sequence_completed = False
 
         instuction_text = 'Press SPACE to Start Calibration; ESCAPE to Exit.'
-        continue_calibration = self.showSystemSetupMessageScreen(
-            instuction_text, True)
+        continue_calibration = self.showSystemSetupMessageScreen(instuction_text, True)
         if not continue_calibration:
             return False
-
         auto_pace = self.getCalibSetting('auto_pace')
         pacing_speed = self.getCalibSetting('pacing_speed')
         randomize_points = self.getCalibSetting('randomize')
+
+        movement_velocity = self.getCalibSetting(['target_attributes', 'animate', 'movement_velocity'])
+        expansion_speed = self.getCalibSetting(['target_attributes', 'animate', 'expansion_speed'])
+        use_deprecated_gfx = movement_velocity or expansion_speed
+        if not use_deprecated_gfx:
+            # If using calibration option as of 2021.2, set pacing_speed
+            # to match target_delay
+            pacing_speed = self.getCalibSetting('target_delay')
 
         cal_target_list = self.CALIBRATION_POINT_LIST[1:]
         if randomize_points is True:
             import random
             random.seed(None)
             random.shuffle(cal_target_list)
-
         cal_target_list.insert(0, self.CALIBRATION_POINT_LIST[0])
 
         calibration = self._tobii.newScreenCalibration()
-
         calibration.enter_calibration_mode()
 
         i = 0
         _quit = False
+        left, top, right, bottom = self._eyetrackerinterface._display_device.getCoordBounds()
+        w, h = right - left, top - bottom
         for pt in cal_target_list:
             self.clearAllEventBuffers()
-            left, top, right, bottom = self._eyetrackerinterface._display_device.getCoordBounds()
-            w, h = right - left, top - bottom
             x, y = left + w * pt[0], bottom + h * (1.0 - pt[1])
-            self.drawCalibrationTarget(i, (x, y))
-            self.clearAllEventBuffers()
-            stime = currentTime()
+            if use_deprecated_gfx:
+                self.drawCalibrationTargetDeprecated(i, (x, y))
+            else:
+                start_time = currentTime()
 
+                # Target animate / delay
+                animate_enable = self.getCalibSetting(['target_attributes', 'animate', 'enable'])
+                animate_expansion_ratio = self.getCalibSetting(['target_attributes', 'animate', 'expansion_ratio'])
+                animate_contract_only = self.getCalibSetting(['target_attributes', 'animate', 'contract_only'])
+                target_delay = self.getCalibSetting(['target_delay'])
+                target_duration = self.getCalibSetting(['target_duration'])
+                while currentTime()-start_time <= target_delay:
+                    if animate_enable and i > 0:
+                        t = (currentTime()-start_time) / target_delay
+                        v1 = cal_target_list[i-1]
+                        v2 = pt
+                        t = 60.0 * ((1.0 / 10.0) * t ** 5 - (1.0 / 4.0) * t ** 4 + (1.0 / 6.0) * t ** 3)
+                        mx, my = ((1.0 - t) * v1[0] + t * v2[0], (1.0 - t) * v1[1] + t * v2[1])
+                        moveTo = left + w * mx, bottom + h * (1.0 - my)
+                        self.drawCalibrationTarget(moveTo, reset=False)
+                    else:
+                        self.drawCalibrationTarget((x, y), False)
+
+                    self.getNextMsg()
+                    self.MsgPump()
+
+                self.drawCalibrationTarget((x, y))
+                start_time = currentTime()
+
+                outer_diameter = self.getCalibSetting(['target_attributes', 'outer_diameter'])
+                inner_diameter = self.getCalibSetting(['target_attributes', 'inner_diameter'])
+                while currentTime()-start_time <= target_duration:
+                    elapsed_time = currentTime()-start_time
+                    d = t = None
+                    if animate_contract_only:
+                        # Change target size from outer diameter to inner diameter over target_duration seconds.
+                        t = elapsed_time / target_duration
+                        d = outer_diameter - t * (outer_diameter - inner_diameter)
+                        self.calibrationPointOUTER.radius = d / 2
+                        self.calibrationPointOUTER.draw()
+                        self.calibrationPointINNER.draw()
+                        self.window.flip(clearBuffer=True)
+                    elif animate_expansion_ratio not in [1, 1.0]:
+                        if elapsed_time <= target_duration/2:
+                            # In expand phase
+                            t = elapsed_time / (target_duration/2)
+                            d = outer_diameter + t * (outer_diameter*animate_expansion_ratio - outer_diameter)
+                        else:
+                            # In contract phase
+                            t = (elapsed_time-target_duration/2) / (target_duration/2)
+                            d = outer_diameter*animate_expansion_ratio - t * (outer_diameter*animate_expansion_ratio - inner_diameter)
+                    if d:
+                        self.calibrationPointOUTER.radius = d / 2
+                        self.calibrationPointOUTER.draw()
+                        self.calibrationPointINNER.draw()
+                        self.window.flip(clearBuffer=True)
+
+                    self.getNextMsg()
+                    self.MsgPump()
+                    gevent.sleep(0.001)
+
+            self.clearAllEventBuffers()
+
+            stime = currentTime()
             def waitingForNextTargetTime():
                 return True
 
             if auto_pace is True:
                 def waitingForNextTargetTime():
-                    return currentTime() - stime < float(pacing_speed)
+                    if use_deprecated_gfx:
+                        return currentTime() - stime < float(pacing_speed)
+                    return False
 
             _quit = False
             while waitingForNextTargetTime():
@@ -420,13 +483,6 @@ class TobiiPsychopyCalibrationGraphics(object):
                 calibration.leave_calibration_mode()
                 calibration = None
                 break
-
-            # TODO: Switch to support per target status check available in tobii_research.
-            # if calibration.collect_data(pt[0], pt[1]) != self._tobii.CALIBRATION_STATUS_SUCCESS:
-            # Try again if it didn't go well the first time.
-            # Not all eye tracker models will fail at this point, but instead fail on ComputeAndApply.
-            #    print2err("Calibration failed for target {}. Recollecting data.... TODO: Give visual feedback.")
-            #    calibration.collect_data(pt[0], pt[1])
 
             self.clearCalibrationWindow()
             self.clearAllEventBuffers()
@@ -649,7 +705,7 @@ class TobiiPsychopyCalibrationGraphics(object):
             self.calibrationPointINNER.draw()
             ftime = self.window.flip(clearBuffer=True)
 
-    def drawCalibrationTarget(self, target_number, tp):
+    def drawCalibrationTargetDeprecated(self, target_number, tp):
         """
             outer_diameter: 35
             outer_stroke_width: 5
@@ -701,3 +757,27 @@ class TobiiPsychopyCalibrationGraphics(object):
 
         except Exception:
             printExceptionDetailsToStdErr()
+
+    def drawDefaultTarget(self):
+        self.calibrationPointOUTER.radius = self.getCalibSetting(['target_attributes', 'outer_diameter']) / 2.0
+        self.calibrationPointOUTER.setLineColor(self.getCalibSetting(['target_attributes', 'outer_line_color']))
+        self.calibrationPointOUTER.setFillColor(self.getCalibSetting(['target_attributes', 'outer_fill_color']))
+        self.calibrationPointOUTER.lineWidth = int(self.getCalibSetting(['target_attributes', 'outer_stroke_width']))
+        self.calibrationPointINNER.radius = self.getCalibSetting(['target_attributes', 'inner_diameter']) / 2.0
+        self.calibrationPointINNER.setLineColor(self.getCalibSetting(['target_attributes', 'inner_line_color']))
+        self.calibrationPointINNER.setFillColor(self.getCalibSetting(['target_attributes', 'inner_fill_color']))
+        self.calibrationPointINNER.lineWidth = int(self.getCalibSetting(['target_attributes', 'inner_stroke_width']))
+
+        self.calibrationPointOUTER.draw()
+        self.calibrationPointINNER.draw()
+        return self.window.flip(clearBuffer=True)
+
+    def drawCalibrationTarget(self, tp, reset=True):
+        self.calibrationPointOUTER.setPos(tp)
+        self.calibrationPointINNER.setPos(tp)
+        if reset:
+            return self.drawDefaultTarget()
+        else:
+            self.calibrationPointOUTER.draw()
+            self.calibrationPointINNER.draw()
+            return self.window.flip(clearBuffer=True)

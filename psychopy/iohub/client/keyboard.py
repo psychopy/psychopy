@@ -201,8 +201,9 @@ class Keyboard(ioHubDeviceView):
     KEY_PRESS = EventConstants.KEYBOARD_PRESS
     KEY_RELEASE = EventConstants.KEYBOARD_RELEASE
     _type2class = {KEY_PRESS: KeyboardPress, KEY_RELEASE: KeyboardRelease}
+
     def __init__(self, ioclient, dev_cls_name, dev_config):
-        super(Keyboard, self).__init__(ioclient, dev_cls_name, dev_config)
+        super(Keyboard, self).__init__(ioclient, 'client.Keyboard', dev_cls_name, dev_config)
         self._events = dict()
         self._reporting = self.isReportingEvents()
         self._pressed_keys = {}

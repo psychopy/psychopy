@@ -2,13 +2,14 @@
 # Part of the PsychoPy library
 # Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
-from __future__ import absolute_import
+
 import math
-from .....constants import EventConstants, EyeTrackerConstants
-from .... import Computer, Device
-from ... import EyeTrackerDevice
-from ...eye_events import *
-from .....errors import print2err, printExceptionDetailsToStdErr
+from psychopy.iohub.constants import EventConstants, EyeTrackerConstants
+from psychopy.iohub.devices import Computer, Device
+from psychopy.iohub.devices.eyetracker import EyeTrackerDevice
+from psychopy.iohub.devices.eyetracker.hw.tobii.tobiiCalibrationGraphics import TobiiPsychopyCalibrationGraphics
+from psychopy.iohub.devices.eyetracker.eye_events import *
+from psychopy.iohub.errors import print2err, printExceptionDetailsToStdErr
 try:
     from .tobiiwrapper import TobiiTracker
 except Exception:
@@ -199,11 +200,6 @@ class EyeTracker(EyeTrackerDevice):
         tracking system.
         """
         try:
-            from .tobiiCalibrationGraphics import TobiiPsychopyCalibrationGraphics
-
-            print2err("TODO: Test using updated Tobii calibration_args:", calibration_args)
-
-
             genv = TobiiPsychopyCalibrationGraphics(self, calibration_args)
 
             calibrationOK = genv.runCalibration()
