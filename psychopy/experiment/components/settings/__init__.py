@@ -1113,7 +1113,7 @@ class SettingsComponent(object):
             buff.writeIndentedLines(code % self.params)
             buff.setIndentLevel(-1, relative=True)
             if self.params['Save hdf5 file'].val:
-                saveStr = " experiment_code=%(expName)s, session_code=ioSession,"
+                saveStr = " experiment_code=%(expName)s, session_code=ioSession, datastore_name=filename,"
             else:
                 saveStr = ""
             code = (
