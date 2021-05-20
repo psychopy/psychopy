@@ -24,6 +24,7 @@ from past.builtins import basestring
 from builtins import object
 
 import re
+from pathlib import Path
 
 from psychopy import logging
 from . import utils
@@ -206,8 +207,8 @@ class Param(object):
                             # but for other targets that will raise an annoying error
                             val = val[1:]
                     if self.valType in ['file', 'table']:
-                        # If param is a file of any kind, escape any \
-                        val = re.sub(r"\\", r"\\\\", val)
+                        # If param is a file of any kind, use Path to make sure it's valid
+                        val = str(Path(val))
                     val=re.sub("\n", "\\n", val) # Replace line breaks with escaped line break character
                     return repr(val)
             return repr(self.val)
