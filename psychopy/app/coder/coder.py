@@ -48,6 +48,7 @@ from psychopy.app.coder.fileBrowser import FileBrowserPanel
 from psychopy.app.coder.sourceTree import SourceTreePanel
 from psychopy.app.themes import ThemeMixin
 from psychopy.app.coder.folding import CodeEditorFoldingMixin
+from psychopy.app.runner.runner import StdOutRich
 # from ..plugin_manager import PluginManagerFrame
 
 try:
@@ -1330,8 +1331,15 @@ class CoderFrame(wx.Frame, ThemeMixin):
             self.shell.SetName("PythonShell")
             self.shelf.AddPage(self.shell, _translate('Shell'))
             # Hide close button
-            for i in range(self.shelf.GetPageCount()):
-                self.shelf.SetCloseButton(i, False)
+
+        # script output panel
+        self.scriptOutput = wx.richtext.RichTextCtrl(self.shelf)
+        self.scriptOutput.SetName("ConsoleOutput")
+        self.shelf.AddPage(self.scriptOutput, _translate('Console Output'))
+
+        for i in range(self.shelf.GetPageCount()):
+            self.shelf.SetCloseButton(i, False)
+
         # Add shelf panel
         self.paneManager.AddPane(self.shelf,
                                  aui.AuiPaneInfo().
@@ -1351,7 +1359,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         # Link to Runner output
         if self.app.runner is None:
             self.app.showRunner()
-        self.outputWindow = self.app.runner.stdOut
+        self.outputWindow = self.app.stdStreamDispatcher
         self.outputWindow.write(_translate('Welcome to PsychoPy3!') + '\n')
         self.outputWindow.write("v%s\n" % self.app.version)
 
@@ -1364,7 +1372,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         else:
             self.SetMinSize(wx.Size(480, 640))  # min size for whole window
             self.SetSize(wx.Size(1024, 800))
-            # self.Fit()
+            self.Fit()
         # Update panes PsychopyToolbar
         isExp = filename.endswith(".py") or filename.endswith(".psyexp")
 

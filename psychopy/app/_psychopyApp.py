@@ -23,6 +23,7 @@ from psychopy.constants import PY3
 from . import urls
 from . import frametracker
 from . import themes
+from . import console
 
 import io
 
@@ -192,6 +193,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         self._stdout = sys.stdout
         self._stderr = sys.stderr
         self._stdoutFrame = None
+        self.stdStreamDispatcher = console.StdStreamDispatcher(self)
         self.iconCache = themes.IconCache()
 
         if not self.testMode:
@@ -403,7 +405,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         # wx-windows on some platforms (Mac 10.9.4) with wx-3.0:
         v = parse_version
         if sys.platform == 'darwin':
-            if v('3.0') <= v(wx.version()) <v('4.0'):
+            if v('3.0') <= v(wx.version()) < v('4.0'):
                 _Showgui_Hack()  # returns ~immediately, no display
                 # focus stays in never-land, so bring back to the app:
                 if prefs.app['defaultView'] in ['all', 'builder', 'coder', 'runner']:
@@ -423,6 +425,11 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
             logging.console.setLevel(logging.INFO)
 
         return True
+
+    @property
+    def appLoaded(self):
+        """`True` if the app has been fully loaded (`bool`)."""
+        return self._appLoaded
 
     def _wizard(self, selector, arg=''):
         from psychopy import core
