@@ -21,12 +21,10 @@ class StdStreamDispatcher(object):
     """Class for broadcasting standard output to text boxes.
 
     This class serves to redirect and log standard streams within the PsychoPy
-    GUI suite. An instance of this class is created on-startup and referenced by
+    GUI suite, usually from sub-processes (e.g., a running script) to display
+    somewhere. An instance of this class is created on-startup and referenced by
     the main application instance. Only one instance of this class can be
     created per-session (singleton).
-
-    Callbacks can be registered so that console output gets broadcast when
-    received.
 
     Parameters
     ----------
@@ -39,7 +37,6 @@ class StdStreamDispatcher(object):
     # and coder output panel. This will allow changes being made on those
     # objects not requiring any changes here.
     #
-
     _instance = None
     _initialized = False
     _app = None  # reference to parent app
@@ -117,7 +114,8 @@ class StdStreamDispatcher(object):
 
         coder = self._app.coder
         if coder is not None:
-            pass   # write output to coder output window
+            if hasattr(coder, 'consoleOutput'):
+                pass   # write output to coder output window
 
         runner = self._app.runner
         if runner is not None:
@@ -131,7 +129,8 @@ class StdStreamDispatcher(object):
 
         coder = self._app.coder
         if coder is not None:
-            pass   # write output to coder output window
+            if hasattr(coder, 'consoleOutput'):
+                pass   # write output to coder output window
 
         runner = self._app.runner
         if runner is not None:
