@@ -40,7 +40,6 @@ from psychopy.tools.arraytools import val2array
 from psychopy.tools.attributetools import logAttrib, setAttribute
 from psychopy.tools.filetools import pathToString
 from psychopy.visual.basevisual import BaseVisualStim, ContainerMixin, TextureMixin
-
 from moviepy.video.io.VideoFileClip import VideoFileClip
 
 import ctypes
@@ -142,6 +141,9 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
         self._videoClock = Clock()
         self._pixBuffId = GL.GLuint(0)
         self._texID = GL.GLuint(0)
+        self._mov = None
+        self._numpyFrame = None
+        self._nextFrameT = None
         self.loadMovie(self.filename)
         self.setVolume(volume)
         self.nDroppedFrames = 0
@@ -162,7 +164,6 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
 
         If `True` linear filtering will be applied to the video making the image
         less pixelated if scaled.
-
         """
         return self._interpolate
 
@@ -170,6 +171,26 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
     def interpolate(self, value):
         self._interpolate = value
         self._texFilterNeedsUpdate = True
+
+    @property
+    def duration(self):
+        """Duration of the video clip in seconds (`float`). Only valid after
+        loading a clip, always returning `0.0` if not.
+        """
+        if self._mov is None:
+            return 0.0
+
+        return self._mov.duration
+
+    @property
+    def frameInterval(self):
+        """Time in seconds each frame is to be presented on screen (`float`).
+        Value is `0.0` if no movie is loaded.
+        """
+        if self._mov is None:
+            return 0.0
+
+        return 1. / self._mov.fps
 
     def reset(self):
         self._numpyFrame = None
@@ -183,19 +204,30 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
 
         This form is provided for syntactic consistency with other visual
         stimuli.
+
+        Parameters
+        ----------
+        filename : str
+            The name of the file, including path if necessary.
+        log : bool
+            Log this event.
+
         """
         self.loadMovie(filename, log=log)
 
     def loadMovie(self, filename, log=True):
-        """Load a movie from file
+        """Load a movie from file.
 
-        :Parameters:
-
-            filename: string
-                The name of the file, including path if necessary
-
-        After the file is loaded MovieStim.duration is updated with the movie
+        After the file is loaded `MovieStim.duration` is updated with the movie
         duration (in seconds).
+
+        Parameters
+        ----------
+        filename : str
+            The name of the file, including path if necessary.
+        log : bool
+            Log this event.
+
         """
         filename = pathToString(filename)
         self.reset()  # set status and timestamps etc
@@ -204,7 +236,7 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
         if os.path.isfile(filename):
             self._mov = VideoFileClip(
                 filename,
-                audio=(1 - self.noAudio),
+                audio=(not self.noAudio),
                 fps_source='fps')  # actual FPS from file metadata
 
             if (not self.noAudio) and (self._mov.audio is not None):
@@ -213,7 +245,7 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
                     self._audioStream = sound.Sound(
                         self._mov.audio.to_soundarray(),
                         sampleRate=self._mov.audio.fps)
-                except:
+                except BaseException:
                     # JWE added this as a patch for a moviepy oddity where the
                     # duration is inflated in the saved file causes the
                     # audioclip to be the wrong length, so round down and it
@@ -223,7 +255,6 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
                         jwe_tmp.audio.to_soundarray(),
                         sampleRate=self._mov.audio.fps)
                     del jwe_tmp
-                    pass
             else:  # make sure we set to None (in case prev clip had audio)
                 self._audioStream = None
         else:
@@ -232,8 +263,6 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
             # size, duration, fps
         # mov.audio has attributes
             # duration, fps (aka sampleRate), to_soundarray()
-        self._frameInterval = 1.0 / self._mov.fps
-        self.duration = self._mov.duration
         self.filename = filename
 
         self._setupTextureBuffers()  # create appropriate buffers
@@ -247,7 +276,7 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
         if status != PLAYING:
             self.status = PLAYING  # moved this to get better audio behavior - JK
             # Added extra check to prevent audio doubling - JK
-            if self._audioStream is not None and self._audioStream.status is not PLAYING: 
+            if self._audioStream is not None and self._audioStream.status is not PLAYING:
                 self._audioStream.play()
             if status == PAUSED:
                 if self.getCurrentFrameTime() < 0:  # Check for valid timestamp, correct if needed -JK
@@ -256,7 +285,7 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
                     self._audioSeek(self.getCurrentFrameTime())
             self._videoClock.reset(-self.getCurrentFrameTime())
             if log and self.autoLog:
-                self.win.logOnFlip("Set %s playing" % (self.name),
+                self.win.logOnFlip("Set %s playing" % self.name,
                                    level=logging.EXP, obj=self)
             self._updateFrameTexture()
 
@@ -274,11 +303,11 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
                     self._audioStream.stop()
             if log and self.autoLog:
                 self.win.logOnFlip("Set %s paused" %
-                                   (self.name), level=logging.EXP, obj=self)
+                                   self.name, level=logging.EXP, obj=self)
             return True
         if log and self.autoLog:
             self.win.logOnFlip("Failed Set %s paused" %
-                               (self.name), level=logging.EXP, obj=self)
+                               self.name, level=logging.EXP, obj=self)
         return False
 
     def stop(self, log=True):
@@ -290,9 +319,9 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
         if self.status != STOPPED:
             self._unload()
             self.reset()
-            self.status = STOPPED # set status to STOPPED after _unload
+            self.status = STOPPED  # set status to STOPPED after _unload
             if log and self.autoLog:
-                self.win.logOnFlip("Set %s stopped" % (self.name),
+                self.win.logOnFlip("Set %s stopped" % self.name,
                                    level=logging.EXP, obj=self)
 
     def setVolume(self, volume):
@@ -331,7 +360,7 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
         """Get the time that the movie file specified the current
         video frame as having.
         """
-        return self._nextFrameT - self._frameInterval
+        return self._nextFrameT - self.frameInterval
 
     def _setupTextureBuffers(self):
         """Setup texture buffers which hold frame data. This creates a 2D
@@ -406,9 +435,9 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
 
         """
         if self._nextFrameT is None or self._nextFrameT < 0:
-            # movie has no current position (or invalid position -JK), 
-            # need to reset the clock to zero in order to have the 
-            # timing logic work otherwise the video stream would skip 
+            # movie has no current position (or invalid position -JK),
+            # need to reset the clock to zero in order to have the
+            # timing logic work otherwise the video stream would skip
             # frames until the time since creating the movie object has passed
             self._videoClock.reset()
             self._nextFrameT = 0.0
@@ -427,7 +456,7 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
                 logging.warning(
                     "Frame {} not found, moving one frame and trying "
                     "again".format(self._nextFrameT), obj=self)
-            self._nextFrameT += self._frameInterval
+            self._nextFrameT += self.frameInterval
             self._updateFrameTexture()
 
         if self._texID is None:  # no nothing until we have a texture
@@ -504,7 +533,7 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
         GL.glDisable(GL.GL_TEXTURE_2D)
 
         if self.status == PLAYING:
-            self._nextFrameT += self._frameInterval
+            self._nextFrameT += self.frameInterval
 
     def draw(self, win=None):
         """Draw the current frame to a particular visual.Window (or to the
@@ -594,11 +623,11 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
             startIndex = int(t * self._mov.audio.fps)
             self._audioStream = sound.Sound(
                 sndArray[startIndex:, :], sampleRate=self._mov.audio.fps)
-            if self.status != PAUSED: #Allows for seeking while paused - JK
+            if self.status != PAUSED:  # Allows for seeking while paused - JK
                 self._audioStream.play()
 
-    def _getAudioStreamTime(self):
-        return self._audio_stream_clock.getTime()
+    # def _getAudioStreamTime(self):
+    #     return self._audio_stream_clock.getTime()
 
     def _unload(self):
         # remove textures from graphics card to prevent crash
@@ -643,3 +672,7 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
             self.pause(log=False)
         # add to drawing list and update status
         setAttribute(self, 'autoDraw', val, log)
+
+
+if __name__ == "__main__":
+    pass
