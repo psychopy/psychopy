@@ -48,7 +48,7 @@ from psychopy.app.coder.fileBrowser import FileBrowserPanel
 from psychopy.app.coder.sourceTree import SourceTreePanel
 from psychopy.app.themes import ThemeMixin
 from psychopy.app.coder.folding import CodeEditorFoldingMixin
-from psychopy.app.runner.runner import StdOutRich
+from psychopy.app.coder.scriptOutput import ScriptOutputPanel
 # from ..plugin_manager import PluginManagerFrame
 
 try:
@@ -1333,9 +1333,9 @@ class CoderFrame(wx.Frame, ThemeMixin):
             # Hide close button
 
         # script output panel
-        self.scriptOutput = wx.richtext.RichTextCtrl(self.shelf)
-        self.scriptOutput.SetName("ConsoleOutput")
-        self.shelf.AddPage(self.scriptOutput, _translate('Console Output'))
+        self.consoleOutput = ScriptOutputPanel(self.shelf)
+        self.consoleOutput.SetName("ConsoleOutput")
+        self.shelf.AddPage(self.consoleOutput, _translate('Output'))
 
         for i in range(self.shelf.GetPageCount()):
             self.shelf.SetCloseButton(i, False)

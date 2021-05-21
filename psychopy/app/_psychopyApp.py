@@ -193,14 +193,13 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         self._stdout = sys.stdout
         self._stderr = sys.stderr
         self._stdoutFrame = None
-        self.stdStreamDispatcher = console.StdStreamDispatcher(self)
         self.iconCache = themes.IconCache()
 
         if not self.testMode:
             self._lastRunLog = open(os.path.join(
                     self.prefs.paths['userPrefsDir'], 'last_app_load.log'),
                     'w')
-            sys.stderr = sys.stdout = lastLoadErrs = self._lastRunLog
+            #sys.stderr = sys.stdout = lastLoadErrs = self._lastRunLog
             logging.console.setLevel(logging.DEBUG)
 
         # indicates whether we're running for testing purposes
@@ -352,6 +351,11 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
                 view.builder = True
                 view.coder = True
                 view.runner = True
+
+        # set the dispatcher for standard output
+        self.stdStreamDispatcher = console.StdStreamDispatcher(self)
+        sys.stderr = self.stdStreamDispatcher
+        sys.stdout = self.stdStreamDispatcher
 
         # Create windows
         if view.runner:
@@ -591,9 +595,8 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
             self.runner.Raise()
             self.SetTopWindow(self.runner)
         # Runner captures standard streams until program closed
-        if self.runner and not self.testMode:
-            sys.stdout = self.runner.stdOut
-            sys.stderr = self.runner.stdOut
+        # if self.runner and not self.testMode:
+        #     sys.stderr = sys.stdout = self.stdStreamDispatcher
 
     def newRunnerFrame(self, event=None):
         # have to reimport because it is only local to __init__ so far

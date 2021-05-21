@@ -115,11 +115,14 @@ class StdStreamDispatcher(object):
         coder = self._app.coder
         if coder is not None:
             if hasattr(coder, 'consoleOutput'):
-                pass   # write output to coder output window
+                coder.consoleOutput.write(text)
 
         runner = self._app.runner
         if runner is not None:
-            runner.write(text)
+            runner.stdOut.write(text)
+
+    def flush(self):
+        pass
 
     def clear(self):
         """Clear all output windows."""
@@ -130,11 +133,11 @@ class StdStreamDispatcher(object):
         coder = self._app.coder
         if coder is not None:
             if hasattr(coder, 'consoleOutput'):
-                pass   # write output to coder output window
+                coder.consoleOutput.Clear()
 
         runner = self._app.runner
         if runner is not None:
-            runner.Clear()
+            runner.stdOut.Clear()
 
 
 if __name__ == "__main__":
