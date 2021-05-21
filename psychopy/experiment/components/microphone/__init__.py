@@ -153,7 +153,7 @@ class MicrophoneComponent(BaseComponent):
 
         self.params['transcribeBackend'] = Param(
             transcribeBackend, valType='code', inputType='choice', categ='Transcription',
-            allowedVals=["GOOGLE"],
+            allowedVals=["GOOGLE", "AZURE"],
             hint=_translate("What transcription service to use to transcribe audio? Only applies online - local "
                             "transcription uses Python Sphinx."),
             label=_translate("Online Transcription Backend")
