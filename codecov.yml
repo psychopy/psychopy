@@ -1,0 +1,6 @@
+ignore:
+  - "psychopy/demos/coder"  # ignore folders and all its contents
+  - "psychopy/tests"
+  - "psychopy/scripts"
+  - "psychopy/iohub"
+  - "psychopy/contrib"

@@ -11,7 +11,7 @@ from psychopy.iohub import launchHubServer
 
 
 # Eye tracker to use ('mouse', 'eyelink', 'gazepoint', or 'tobii')
-TRACKER = 'mouse'
+TRACKER = 'tobii'
 
 eyetracker_config = dict(name='tracker')
 devices_config = {}
@@ -22,6 +22,7 @@ if TRACKER == 'eyelink':
     devices_config['eyetracker.hw.sr_research.eyelink.EyeTracker'] = eyetracker_config
 elif TRACKER == 'gazepoint':
     eyetracker_config['device_timer'] = {'interval': 0.005}
+    eyetracker_config['calibration'] = dict(use_builtin=False, target_attributes=dict(animate=dict(enable=True, expansion_ratio=1.25, contract_only=False)))
     devices_config['eyetracker.hw.gazepoint.gp3.EyeTracker'] = eyetracker_config
 elif TRACKER == 'tobii':
     devices_config['eyetracker.hw.tobii.EyeTracker'] = eyetracker_config
@@ -45,7 +46,13 @@ win = visual.Window((1920, 1080),
                     )
 
 win.setMouseVisible(False)
+text_stim = visual.TextStim(win, text="Start of Experiment",
+                            pos=[0, 0], height=24,
+                            color='black', units='pix', colorSpace='named',
+                            wrapWidth=win.size[0] * .9)
 
+text_stim.draw()
+win.flip()
 
 # Since no experiment or session code is given, no iohub hdf5 file
 # will be saved, but device events are still available at runtime.
@@ -54,17 +61,19 @@ io = launchHubServer(window=win, **devices_config)
 
 # Get some iohub devices for future access.
 keyboard = io.getDevice('keyboard')
-display = io.getDevice('display')
 tracker = io.getDevice('tracker')
 
+win.winHandle.set_fullscreen(False)
 win.winHandle.minimize()  # minimize the PsychoPy window
+win.winHandle.set_fullscreen(False)
 
 # run eyetracker calibration
 result = tracker.runSetupProcedure()
 print("Calibration returned: ", result)
 
+win.winHandle.set_fullscreen(True)
 win.winHandle.maximize()  # maximize the PsychoPy window
-win.winHandle.activate()
+
 
 gaze_ok_region = visual.Circle(win, lineColor='black', radius=300, units='pix', colorSpace='named')
 
@@ -75,10 +84,7 @@ text_stim_str = 'Eye Position: %.2f, %.2f. In Region: %s\n'
 text_stim_str += 'Press space key to start next trial.'
 missing_gpos_str = 'Eye Position: MISSING. In Region: No\n'
 missing_gpos_str += 'Press space key to start next trial.'
-text_stim = visual.TextStim(win, text=text_stim_str,
-                            pos=[0, 0], height=24,
-                            color='black', units='pix', colorSpace='named',
-                            wrapWidth=win.size[0] * .9)
+text_stim.setText(text_stim_str)
 
 # Run Trials.....
 t = 0
@@ -88,17 +94,13 @@ while t < TRIAL_COUNT:
     run_trial = True
     tstart_time = core.getTime()
     while run_trial is True:
-        # Get the latest gaze position in dispolay coord space..
+        # Get the latest gaze position in display coord space.
         gpos = tracker.getLastGazePosition()
-        #for evt in tracker.getEvents():
-        #    if evt.type != EventConstants.MONOCULAR_EYE_SAMPLE:
-        #        print(evt)
         # Update stim based on gaze position
         valid_gaze_pos = isinstance(gpos, (tuple, list))
         gaze_in_region = valid_gaze_pos and gaze_ok_region.contains(gpos)
         if valid_gaze_pos:
-            # If we have a gaze position from the tracker, update gc stim
-            # and text stim.
+            # If we have a gaze position from the tracker, update gc stim and text stim.
             if gaze_in_region:
                 gaze_in_region = 'Yes'
             else:

@@ -121,6 +121,11 @@ class Experiment(object):
             self.requireImport(importName=lib,
                                importFrom='psychopy')
 
+    @property
+    def eyetracking(self):
+        """What kind of eyetracker this experiment is set up for"""
+        return self.settings.params['eyetracker']
+
     def requireImport(self, importName, importFrom='', importAs=''):
         """Add a top-level import to the experiment.
 
@@ -188,13 +193,18 @@ class Experiment(object):
 
         # Remove disabled components, but leave original experiment unchanged.
         self_copy = deepcopy(self)
-        for _, routine in list(self_copy.routines.items()):  # PY2/3 compat
-            for component in routine:
-                try:
-                    if component.params['disabled'].val:
-                        routine.removeComponent(component)
-                except KeyError:
-                    pass
+        for key, routine in list(self_copy.routines.items()):  # PY2/3 compat
+            if isinstance(routine, BaseStandaloneRoutine):
+                if routine.params['disabled'].val:
+                    for node in self_copy.flow:
+                        self_copy.flow.removeComponent(node)
+            else:
+                for component in routine:
+                    try:
+                        if component.params['disabled'].val:
+                            routine.removeComponent(component)
+                    except KeyError:
+                        pass
 
         if target == "PsychoPy":
             self_copy.settings.writeInitCode(script, self_copy.psychopyVersion,
@@ -215,6 +225,7 @@ class Experiment(object):
             # writes any components with a writeStartCode()
             self_copy.flow.writeStartCode(script)
             self_copy.settings.writeWindowCode(script)  # create our visual.Window()
+            self_copy.settings.writeEyetrackerCode(script)
             # for JS the routine begin/frame/end code are funcs so write here
 
             # write the rest of the code for the components

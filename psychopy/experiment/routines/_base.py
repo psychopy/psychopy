@@ -26,7 +26,8 @@ class BaseStandaloneRoutine:
     limit = float('inf')
 
     def __init__(self, exp, name='',
-                 stopType='duration (s)', stopVal=''):
+                 stopType='duration (s)', stopVal='',
+                 disabled=False):
         self.params = {}
         self.name = name
         self.exp = exp
@@ -53,6 +54,13 @@ class BaseStandaloneRoutine:
             allowedVals=['duration (s)', 'duration (frames)', 'condition'],
             hint=msg,
             label=_translate('Stop Type...'))
+
+        # Testing
+        msg = _translate("Disable this component")
+        self.params['disabled'] = Param(disabled,
+            valType='bool', inputType="bool", categ="Testing",
+            hint=msg, allowedTypes=[],
+            label=_translate('Disable component'))
 
     def __repr__(self):
         _rep = "psychopy.experiment.%s(name='%s', exp=%s)"

@@ -692,7 +692,7 @@ def getRMS(data):
         data_tr = np.transpose(data)
         data = data_tr / 32768.
     elif not isinstance(data, np.ndarray):
-        data = np.array(data).astype(np.float)
+        data = np.array(data).astype(float)
     return _rms(data)
 
 

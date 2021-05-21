@@ -127,7 +127,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                  responseColor='white',
                  markerColor='red',
                  items=None,
-                 font="Open Sans",
+                 font=None,
                  textHeight=.02,
                  size=(.5, .5),
                  pos=(0, 0),
@@ -167,7 +167,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
             self.foreColor = color
         self.style = style
 
-        self.font = font
+        self.font = font or "Open Sans"
 
         self.textHeight = textHeight
         self._scrollBarSize = (0.016, self.size[1]/1.2)
@@ -418,7 +418,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 borderColor=None,  # add borderColor to help debug
                 editable=False,
                 bold=bold,
-                font='Arial')
+                font=self.font)
         print(item['itemColor'] or self.itemColor)
 
         questionHeight = question.size[1]
@@ -552,6 +552,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 flip=True,
                 style=style,
                 autoLog=False,
+                font=self.font,
                 color=item['responseColor'] or self.responseColor,
                 fillColor=item['markerColor'] or self.markerColor,
                 borderColor=item['responseColor'] or self.responseColor,
@@ -608,7 +609,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 anchor='top-right',
                 color=item['responseColor'] or self.responseColor,
                 colorSpace=self.colorSpace,
-                font='Open Sans',
+                font=self.font,
                 editable=True,
                 borderColor=item['responseColor'] or self.responseColor,
                 borderWidth=2,

@@ -16,7 +16,6 @@ profiling = False  # turning on will save profile files in currDir
 
 import sys
 import argparse
-import platform
 import psychopy
 from psychopy import prefs
 from pkg_resources import parse_version
@@ -24,10 +23,8 @@ from psychopy.constants import PY3
 from . import urls
 from . import frametracker
 from . import themes
-from . import icons
 
 import io
-import json
 
 if not hasattr(sys, 'frozen'):
     try:
@@ -68,7 +65,6 @@ if not PY3 and sys.platform == 'darwin':
 else:
     blockTips = False
 
-travisCI = bool(str(os.environ.get('TRAVIS')).lower() == 'true')
 
 # Enable high-dpi support if on Windows. This fixes blurry text rendering.
 if sys.platform == 'win32':
@@ -165,6 +161,7 @@ class _Showgui_Hack(object):
 
 
 class PsychoPyApp(wx.App, themes.ThemeMixin):
+    _called_from_test = False  # pytest needs to change this
 
     def __init__(self, arg=0, testMode=False, **kwargs):
         """With a wx.App some things get done here, before App.__init__
@@ -229,10 +226,9 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         logging.flush()
 
         # set the exception hook to present unhandled errors in a dialog
-        if not travisCI:
+        if not PsychoPyApp._called_from_test:  #NB class variable not self
             from psychopy.app.errorDlg import exceptionCallback
             sys.excepthook = exceptionCallback
-
 
     def onInit(self, showSplash=True, testMode=False):
         """This is launched immediately *after* the app initialises with wx

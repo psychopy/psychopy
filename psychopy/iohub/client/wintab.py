@@ -197,7 +197,7 @@ class Wintab(ioHubDeviceView):
                    ENTER: PenEnterRegionEvent,
                    LEAVE: PenLeaveRegionEvent}
     def __init__(self, ioclient, dev_cls_name, dev_config):
-        super(Wintab, self).__init__(ioclient, dev_cls_name, dev_config)
+        super(Wintab, self).__init__(ioclient, 'client.Wintab', dev_cls_name, dev_config)
 
         self._prev_sample = None
         self._events = dict()

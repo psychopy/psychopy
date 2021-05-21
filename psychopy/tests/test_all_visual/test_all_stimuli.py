@@ -18,13 +18,8 @@ To add a new stimulus test use _base so that it gets tested in all contexts
 
 """
 
-# are we testing on Travis and is it Anaconda or system python?
-_travisTesting = bool("{}".format(os.environ.get('TRAVIS')).lower() == 'true')
-_anacondaTesting = bool("{}".format(os.environ.get('CONDA')).lower() == 'true')
-# the ffmpeg doesn't seem to work on Travis system python (using 12.04)
-# upgrading to trusty (14.04) we could get ffmpeg to work but then test_bitsShaders
-# stopped working on conda and system python setup would even build with all the
-# dependencies. It was test environment hell! (sorry, it's been a bad day)
+from psychopy.tests import _travisTesting, skip_under_vm, _vmTesting
+
 
 class Test_Window(object):
     """Some tests just for the window - we don't really care about what's drawn inside it
@@ -60,6 +55,7 @@ class Test_Window(object):
             assert val==2
         self.win.callOnFlip(assertThisIs2, 2)
         self.win.flip()
+
 
 class _baseVisualTest(object):
     #this class allows others to be created that inherit all the tests for
@@ -444,7 +440,7 @@ class _baseVisualTest(object):
         if self.win.winType != 'pygame':
             #compare with a LIBERAL criterion (fonts do differ)
             utils.compareScreenshot('text1_%s.png' %(self.contextName), win, crit=20)
-        win.flip()#AFTER compare screenshot
+        win.flip()  # AFTER compare screenshot
         #using set
         stim.text = 'y'
         if sys.platform=='win32':
@@ -480,7 +476,8 @@ class _baseVisualTest(object):
         text.draw()
         grat1.draw()
         grat2.draw()
-        utils.skip_under_travis()
+        if _vmTesting:
+            pytest.skip("Blendmode='add' doesn't work under a virtual machine for some reason")
         if self.win.winType != 'pygame':
             utils.compareScreenshot('blend_add_%s.png' %self.contextName,
                                     win, crit=20)
@@ -489,9 +486,7 @@ class _baseVisualTest(object):
         win = self.win
         if self.win.winType == 'pygame':
             pytest.skip("movies only available for pyglet backend")
-        elif _travisTesting and not _anacondaTesting:
-            pytest.skip("Travis with system Python doesn't seem to have a "
-                        "working ffmpeg")
+
         win.flip()
         #construct full path to the movie file
         fileName = os.path.join(utils.TESTS_DATA_PATH, 'testMovie.mp4')
@@ -557,7 +552,6 @@ class _baseVisualTest(object):
         poly.edges = 3
         poly.radius = 1
 
-    @pytest.mark.shape2
     def test_shape(self):
         win = self.win
         arrow = [(-0.4,0.05), (-0.4,-0.05), (-.2,-0.05), (-.2,-0.1), (0,0), (-.2,0.1), (-.2,0.05)]
@@ -601,7 +595,7 @@ class _baseVisualTest(object):
         wedge.angularPhase = 0.1
         wedge.draw()
         "{}".format(wedge) #check that str(xxx) is working
-        if win.winType != 'pygame' and (sys.version_info.major, sys.version_info.minor) != (3, 6):  # pygame and 3.6 definitely get radialstim wrong!
+        if win.winType != 'pygame': # pygame gets this wrong:
             utils.compareScreenshot('wedge2_%s.png' %(self.contextName),
                                     win, crit=thresh)
         else:
@@ -746,12 +740,12 @@ class _baseVisualTest(object):
         utils.compareScreenshot('ratingscale1_%s.png' %(self.contextName), win, crit=40.0)
         win.flip()#AFTER compare screenshot
 
+    @skip_under_vm
     def test_refresh_rate(self):
         if self.win.winType=='pygame':
             pytest.skip("getMsPerFrame seems to crash the testing of pygame")
         #make sure that we're successfully syncing to the frame rate
-        msPFavg, msPFstd, msPFmed = visual.getMsPerFrame(self.win,nFrames=60, showVisual=True)
-        utils.skip_under_travis()             # skip late so we smoke test the code
+        msPFavg, msPFstd, msPFmed = visual.getMsPerFrame(self.win, nFrames=60, showVisual=True)
         assert (1000/150.0) < msPFavg < (1000/40.0), \
             "Your frame period is %.1fms which suggests you aren't syncing to the frame" %msPFavg
 
@@ -799,17 +793,6 @@ class TestPygletHeight(_baseVisualTest):
         self.win = visual.Window([128,64], winType='pyglet', pos=[50,50],
                                  allowStencil=False, autoLog=False)
         self.contextName='height'
-        self.scaleFactor=1#applied to size/pos values
-
-
-class TestPygletNormNoShaders(_baseVisualTest):
-    @classmethod
-    def setup_class(self):
-        self.win = visual.Window([128,128], monitor='testMonitor',
-                                 winType='pyglet', pos=[50,50],
-                                 allowStencil=True, autoLog=False)
-        self.win._haveShaders=False
-        self.contextName='normNoShade'
         self.scaleFactor=1#applied to size/pos values
 
 
@@ -887,13 +870,14 @@ class TestPygletDegFlatPos(_baseVisualTest):
         self.contextName='degFlatPos'
         self.scaleFactor=4#applied to size/pos values
 
-@pytest.mark.needs_pygame
-class TestPygameNorm(_baseVisualTest):
-   @classmethod
-   def setup_class(self):
-       self.win = visual.Window([128,128], winType='pygame', allowStencil=True, autoLog=False)
-       self.contextName='norm'
-       self.scaleFactor=1#applied to size/pos values
+# @pytest.mark.needs_pygame
+# class TestPygameNorm(_baseVisualTest):
+#    @classmethod
+#    def setup_class(self):
+#        self.win = visual.Window([128,128], winType='pygame', allowStencil=True, autoLog=False)
+#        self.contextName='norm'
+#        self.scaleFactor=1#applied to size/pos values
+
 #class TestPygamePix(_baseVisualTest):
 #    @classmethod
 #    def setup_class(self):
@@ -905,6 +889,7 @@ class TestPygameNorm(_baseVisualTest):
 #            units='pix', autoLog=False)
 #        self.contextName='pix'
 #        self.scaleFactor=60#applied to size/pos values
+
 #class TestPygameCm(_baseVisualTest):
 #    @classmethod
 #    def setup_class(self):
@@ -916,6 +901,7 @@ class TestPygameNorm(_baseVisualTest):
 #            units='cm')
 #        self.contextName='cm'
 #        self.scaleFactor=2#applied to size/pos values
+
 #class TestPygameDeg(_baseVisualTest):
 #    @classmethod
 #    def setup_class(self):

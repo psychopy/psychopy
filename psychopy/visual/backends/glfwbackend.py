@@ -273,7 +273,7 @@ class GLFWBackend(BaseBackend):
                         win.refreshHz,
                         nativeVidmode.refresh_rate)))
 
-                win.clientSize = np.array((actualWidth, actualHeight), np.int)
+                win.clientSize = np.array((actualWidth, actualHeight), int)
             else:
                 logging.warning(
                     ("Overriding user video settings: bpc {} -> "

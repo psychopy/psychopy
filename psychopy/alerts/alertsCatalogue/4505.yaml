@@ -1,0 +1,22 @@
+
+code: 4505
+cat: Eyetracking
+msg: Experiment includes components or routines which use eyetracking, but no eye tracker is configured.
+
+# The following are typically used for online help pages, and support reStructured Text.
+label: Eyetracking not configured
+
+synopsis: |
+  Experiment includes components or routines which use eyetracking, but no eye tracker is configured.
+
+details: |
+  In order for an Eyetracker Record, Eyetracker Calibrate or Eyetracker Validate routine to work, there needs to be an
+  eyetracker set up in Experiment Settings.
+
+solutions: |
+  Either remove any eyetracking components and routines from the experiment flow or set up an eyetracker in the
+  Eyetracker tab of Experiment Settings. If you are testing an eye tracking experiment but do not have an eye tracker
+  connected, you can use MouseGaze to simulate eye movements with the mouse.
+
+versions: |
+  >2021.2

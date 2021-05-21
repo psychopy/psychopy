@@ -100,8 +100,6 @@ class PolygonComponent(BaseVisualComponent):
             shape, valType='str', inputType="choice", categ='Basic',
             allowedVals=["line", "triangle", "rectangle", "circle", "cross", "star",
                          "regular polygon...", "custom polygon..."],
-            updates='constant',
-            allowedUpdates=['constant'],
             hint=msg,
             label=_localized['shape'])
 

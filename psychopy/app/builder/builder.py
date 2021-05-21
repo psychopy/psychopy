@@ -2118,6 +2118,7 @@ class StandaloneRoutineCanvas(wx.Panel, ThemeMixin):
         self.SetSizer(self.sizer)
         # Setup categ notebook
         self.ctrls = ParamNotebook(self, experiment=self.frame.exp, element=routine)
+        self.paramCtrls = self.ctrls.paramCtrls
         self.sizer.Add(self.ctrls, border=12, proportion=1, flag=wx.ALIGN_CENTER | wx.ALL)
         # Make buttons
         self.btnsSizer = wx.BoxSizer(wx.HORIZONTAL)

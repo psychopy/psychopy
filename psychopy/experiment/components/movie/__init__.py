@@ -70,7 +70,7 @@ class MovieComponent(BaseVisualComponent):
         msg = _translate("What underlying lib to use for loading movies")
         self.params['backend'] = Param(
             backend, valType='str', inputType="choice", categ='Playback',
-            allowedVals=['moviepy', 'avbin', 'opencv'],
+            allowedVals=['moviepy', 'avbin', 'opencv', 'vlc'],
             hint=msg,
             label=_localized['backend'])
 
@@ -128,6 +128,9 @@ class MovieComponent(BaseVisualComponent):
                     "    noAudio = %(No audio)s,\n" % params)
         elif self.params['backend'].val == 'avbin':
             code = ("%s = visual.MovieStim(\n" % params['name'] +
+                    "    win=win, name='%s',%s\n" % (params['name'], unitsStr))
+        elif self.params['backend'].val == 'vlc':
+            code = ("%s = visual.VlcMovieStim(\n" % params['name'] +
                     "    win=win, name='%s',%s\n" % (params['name'], unitsStr))
         else:
             code = ("%s = visual.MovieStim2(\n" % params['name'] +

@@ -7,6 +7,7 @@ from psychopy.gui.qtgui import DlgFromDict
 import pytest
 
 
+@pytest.mark.needs_qt
 class TestDlgFromDictQt(object):
     def setup(self):
         self.d = dict(
@@ -77,5 +78,6 @@ class TestDlgFromDictQt(object):
         assert field.toolTip() == tip['participant']
 
 if __name__ == '__main__':
-    import pytest
-    pytest.main()
+    cls = TestDlgFromDictQt()
+    cls.setup()
+    cls.test_fixed()

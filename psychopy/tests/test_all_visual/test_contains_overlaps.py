@@ -9,7 +9,6 @@ from past.utils import old_div
 from psychopy import visual, monitors
 from psychopy.visual import helpers
 from numpy import sqrt, array
-import pytest
 import matplotlib
 
 
@@ -87,13 +86,13 @@ def contains_overlaps(testType):
                     #test for two parameters
                     x = points[j][0] * param['scaleFactor']
                     y = points[j][1] * param['scaleFactor']
-                    assert shape.contains(x, y) == res
+                    assert (shape.contains(x, y) == res)
                 elif testType == 'overlaps':
                     res = shape.overlaps(testPoints[j])
-                assert res == correctResults[i][j], \
-                        dbgStr % (testType, param['units'], postures[i]['ori'],
+                thisDebugStr = dbgStr % (testType, param['units'], postures[i]['ori'],
                             postures[i]['size'], postures[i]['pos'], points[j],
                             correctResults[i][j])
+                assert (res == correctResults[i][j]), thisDebugStr
                 if res:
                     testPoints[j].setFillColor('green', log=False)
                 else:
@@ -114,13 +113,12 @@ except Exception:
 # else: fall through to pure python
 
 
-@pytest.mark.polygon
 def test_point():
     poly1 = [(1,1), (1,-1), (-1,-1), (-1,1)]
     poly2 = [(2,2), (1,-1), (-1,-1), (-1,1)]
     assert helpers.pointInPolygon(0, 0, poly1)
-    assert helpers.pointInPolygon(12, 12, poly1) is False
-    assert helpers.pointInPolygon(0, 0, [(0,0), (1,1)]) is False
+    assert (helpers.pointInPolygon(12, 12, poly1) is False)
+    assert (helpers.pointInPolygon(0, 0, [(0,0), (1,1)]) is False)
 
     if have_nxutils:
         helpers.nxutils = nxutils
@@ -133,7 +131,6 @@ def test_point():
     matplotlib.__version__ = mpl_version
 
 
-@pytest.mark.polygon
 def test_contains():
     contains_overlaps('contains')  # matplotlib.path.Path
     if have_nxutils:
@@ -146,7 +143,6 @@ def test_contains():
     matplotlib.__version__ = mpl_version
 
 
-@pytest.mark.polygon
 def test_overlaps():
     contains_overlaps('overlaps')  # matplotlib.path.Path
     if have_nxutils:
@@ -159,7 +155,6 @@ def test_overlaps():
     matplotlib.__version__ = mpl_version
 
 
-@pytest.mark.polygon
 def test_border_contains():
     # tests that the .border of ShapeStim is detected and used by .contains()
     win.units = 'height'
@@ -179,22 +174,21 @@ def test_border_contains():
     for p in inside_pts:
         assert s.contains(p)
     for p in outside_pts + hole_pts:
-        assert not s.contains(p)
+        assert (not s.contains(p))
 
     # lacking a .border attribute, contains() will improperly succeed in some cases
     del s.border
     for p in hole_pts:
         assert s.contains(p), "no .border property (falls through to relying on tesselated .vertices)"
     for p in outside_pts:
-        assert not s.contains(p)
+        assert (not s.contains(p))
 
     # ... and should work properly again when restore the .border
     s.border = thingVert
     for p in hole_pts:
-        assert not s.contains(p)
+        assert (not s.contains(p))
 
 
-@pytest.mark.polygon
 def test_line_overlaps():
     win.units = 'height'
     circle_1 = visual.Circle(win, radius=0.25, pos=(0, 0))
@@ -204,19 +198,18 @@ def test_line_overlaps():
     assert line.overlaps(circle_1)
     assert circle_1.overlaps(circle_1)
 
-    assert line.overlaps(circle_2) is False
-    assert circle_2.overlaps(line) is False
+    assert (line.overlaps(circle_2) is False)
+    assert (circle_2.overlaps(line) is False)
 
 
-@pytest.mark.polygon
 def test_line_contains():
     win.units = 'height'
     point_1 = (0, 0)
     point_2 = (0, -0.5)
     line = visual.Line(win, start=(-1, -1), end=(1, 1))
 
-    assert line.contains(point_1) is False
-    assert line.contains(point_2) is False
+    assert (line.contains(point_1) is False)
+    assert (line.contains(point_2) is False)
 
 
 if __name__ == '__main__':
