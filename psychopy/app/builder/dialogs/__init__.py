@@ -992,7 +992,6 @@ class DlgLoopProperties(_BaseParamsDlg):
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
         self.conditions = None
         self.conditionsFile = None
-        self.warningsDict = {}
         # create a valid new name; save old name in case we need to revert
         namespace = frame.exp.namespace
         defaultName = namespace.makeValid('trials')
@@ -1098,6 +1097,7 @@ class DlgLoopProperties(_BaseParamsDlg):
             checker = ctrl.valueCtrl.GetValidator()
             if checker:
                 checker.Validate(self)
+        return bool(self.warnings._valid)
 
     def makeGlobalCtrls(self):
         panel = wx.Panel(parent=self)
