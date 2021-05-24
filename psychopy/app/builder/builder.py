@@ -2209,7 +2209,9 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
                     elif self.parent.filter in ['PsychoPy', 'PsychoJS']:
                         cond = self.parent.filter in comp.targets
                     # Always hide if hidden by prefs
-                    if comp.__name__ in prefs.builder['hiddenComponents'] + ['SettingsComponent', 'UnknownComponent']:
+                    if comp.__name__ in prefs.builder['hiddenComponents'] + [
+                        'SettingsComponent', 'UnknownComponent', 'UnknownRoutine'
+                    ]:
                         cond = False
                     btn.Show(cond)
                 # # Update icon
