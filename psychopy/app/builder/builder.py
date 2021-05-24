@@ -2156,10 +2156,14 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
     class CategoryButton(wx.ToggleButton):
         """Button to show/hide a category of components"""
         def __init__(self, parent, name, cat):
+            if sys.platform == 'darwin':
+                label = name  # on macOS the wx.BU_LEFT flag has no effect
+            else:
+                label = "   "+name
             # Initialise button
             wx.ToggleButton.__init__(self, parent,
-                                     label="   "+name, size=(-1, 24),
-                                     style=wx.BORDER_NONE | wx.BU_LEFT)
+                                     label=label, size=(-1, 24),
+                                     style= wx.BORDER_NONE | wx.BU_LEFT)
             self.parent = parent
             # Link to category of buttons
             self.menu = self.parent.catSizers[cat]
