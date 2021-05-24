@@ -1174,17 +1174,17 @@ class DlgLoopProperties(_BaseParamsDlg):
                                    fieldName=fieldName,
                                    param=text, noCtrls=True)
                 ctrls.valueCtrl = wx.StaticText(
-                    panel, label=text, style=wx.ALIGN_CENTER)
+                    panel, label=text, style=wx.ALIGN_RIGHT)
                 if OK:
                     ctrls.valueCtrl.SetForegroundColour("Black")
                 else:
                     ctrls.valueCtrl.SetForegroundColour("Red")
                 if hasattr(ctrls.valueCtrl, "_szr"):
                     panelSizer.Add(ctrls.valueCtrl._szr, (row, 1),
-                                   flag=wx.ALIGN_CENTER)
+                                   flag=wx.ALIGN_RIGHT)
                 else:
                     panelSizer.Add(ctrls.valueCtrl, (row, 1),
-                                   flag=wx.ALIGN_CENTER)
+                                   flag=wx.ALIGN_RIGHT)
                 row += 1
             else:  # normal text entry field
                 ctrls = ParamCtrls(dlg=self, parent=panel, label=label,
@@ -1398,7 +1398,8 @@ class DlgLoopProperties(_BaseParamsDlg):
                 isSameFilePathAndName = bool(newFullPath == oldFullPath)
             else:
                 isSameFilePathAndName = False
-            newPath = _relpath(newFullPath, expFolder)
+
+            newPath = str(Path(newFullPath).relative_to(expFolder))
             self.conditionsFile = newPath
             needUpdate = False
             try:
@@ -1500,6 +1501,8 @@ class DlgLoopProperties(_BaseParamsDlg):
                     self.currentCtrls['conditions'].valueCtrl.SetForegroundColour("Black")
                 else:
                     self.currentCtrls['conditions'].valueCtrl.SetForegroundColour("Red")
+                self.Layout()
+                self.Fit()
 
     def getParams(self):
         """Retrieves data and re-inserts it into the handler and returns
