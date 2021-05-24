@@ -197,7 +197,8 @@ class Experiment(object):
             if isinstance(routine, BaseStandaloneRoutine):
                 if routine.params['disabled'].val:
                     for node in self_copy.flow:
-                        self_copy.flow.removeComponent(node)
+                        if node == routine:
+                            self_copy.flow.removeComponent(node)
             else:
                 for component in routine:
                     try:
