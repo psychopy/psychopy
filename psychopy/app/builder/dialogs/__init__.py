@@ -323,7 +323,10 @@ class ParamCtrls(object):
             return self._getCtrlValue(self.updateCtrl)
 
     def setVisible(self, newVal=True):
-        self.valueCtrl.Show(newVal)
+        if hasattr(self.valueCtrl, "ShowAll"):
+            self.valueCtrl.ShowAll(newVal)
+        else:
+            self.valueCtrl.Show(newVal)
         self.nameCtrl.Show(newVal)
         if self.updateCtrl:
             self.updateCtrl.Show(newVal)
