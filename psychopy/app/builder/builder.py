@@ -2242,7 +2242,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
                 # Otherwise, use regular colours
                 self.SetForegroundColour(ThemeMixin.appColors['text'])
                 # self.icon.SetForegroundColour(ThemeMixin.appColors['text'])
-                self.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
+                self.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
 
     class ComponentButton(wx.Button):
         """Button to open component parameters dialog"""
