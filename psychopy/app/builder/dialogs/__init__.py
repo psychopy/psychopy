@@ -1038,16 +1038,16 @@ class DlgLoopProperties(_BaseParamsDlg):
         # the controls for Method of Constants
         self.constantsPanel = self.makeConstantsCtrls()
         self.multiStairPanel = self.makeMultiStairCtrls()
-        self.mainSizer.Add(self.globalPanel, border=5,
-                           flag=wx.ALL | wx.ALIGN_CENTRE)
-        self.mainSizer.Add(wx.StaticLine(self), border=5,
+        self.mainSizer.Add(self.globalPanel, border=12,
                            flag=wx.ALL | wx.EXPAND)
-        self.mainSizer.Add(self.stairPanel, border=5,
-                           flag=wx.ALL | wx.ALIGN_CENTRE)
-        self.mainSizer.Add(self.constantsPanel, border=5,
-                           flag=wx.ALL | wx.ALIGN_CENTRE)
-        self.mainSizer.Add(self.multiStairPanel, border=5,
-                           flag=wx.ALL | wx.ALIGN_CENTRE)
+        self.mainSizer.Add(wx.StaticLine(self), border=6,
+                           flag=wx.ALL | wx.EXPAND)
+        self.mainSizer.Add(self.stairPanel, border=12,
+                           flag=wx.ALL | wx.EXPAND)
+        self.mainSizer.Add(self.constantsPanel, border=12,
+                           flag=wx.ALL | wx.EXPAND)
+        self.mainSizer.Add(self.multiStairPanel, border=12,
+                           flag=wx.ALL | wx.EXPAND)
         self.setCtrls(self.currentType)
         # create a list of panels in the dialog, for the validator to step
         # through
@@ -1101,7 +1101,7 @@ class DlgLoopProperties(_BaseParamsDlg):
 
     def makeGlobalCtrls(self):
         panel = wx.Panel(parent=self)
-        panelSizer = wx.GridBagSizer(5, 5)
+        panelSizer = wx.GridBagSizer(0, 0)
         panel.SetSizer(panelSizer)
         row = 0
         for fieldName in ('name', 'loopType', 'isTrials'):
@@ -1112,16 +1112,16 @@ class DlgLoopProperties(_BaseParamsDlg):
             self.globalCtrls[fieldName] = ctrls = ParamCtrls(
                 dlg=self, parent=panel, label=label, fieldName=fieldName,
                 param=self.currentHandler.params[fieldName])
-            panelSizer.Add(ctrls.nameCtrl, [row, 0], border=1,
-                           flag=wx.EXPAND | wx.ALL)
+            panelSizer.Add(ctrls.nameCtrl, [row, 0], border=3,
+                           flag=wx.LEFT | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
             if hasattr(ctrls.valueCtrl, '_szr'):
-                panelSizer.Add(ctrls.valueCtrl._szr, [row, 1], border=1,
+                panelSizer.Add(ctrls.valueCtrl._szr, [row, 1], border=3,
                                flag=wx.EXPAND | wx.ALL)
             else:
-                panelSizer.Add(ctrls.valueCtrl, [row, 1], border=1,
+                panelSizer.Add(ctrls.valueCtrl, [row, 1], border=3,
                                flag=wx.EXPAND | wx.ALL)
             row += 1
-
+        panelSizer.AddGrowableCol(1, 1)
         self.globalCtrls['name'].valueCtrl.Bind(wx.EVT_TEXT, self.Validate)
         self.Bind(wx.EVT_CHOICE, self.onTypeChanged,
                   self.globalCtrls['loopType'].valueCtrl)
@@ -1135,7 +1135,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         keys = list(handler.params.keys())
         panel = wx.Panel(parent=self)
         panel.app=self.app
-        panelSizer = wx.GridBagSizer(5, 5)
+        panelSizer = wx.GridBagSizer(0, 0)
         panel.SetSizer(panelSizer)
         row = 0
         # add conditions stuff to the *end*
@@ -1145,6 +1145,7 @@ class DlgLoopProperties(_BaseParamsDlg):
         if 'conditions' in keys:
             keys.remove('conditions')
             keys.append('conditions')
+        _flag = wx.LEFT | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL | wx.EXPAND
         # then step through them
         for fieldName in keys:
             # try and get alternative "label" for the parameter
@@ -1172,42 +1173,42 @@ class DlgLoopProperties(_BaseParamsDlg):
                 ctrls = ParamCtrls(dlg=self, parent=panel, label=label,
                                    fieldName=fieldName,
                                    param=text, noCtrls=True)
-                size = wx.Size(350, 50)
                 ctrls.valueCtrl = wx.StaticText(
-                    panel, label=text, size=size, style=wx.ALIGN_CENTER)
+                    panel, label=text, style=wx.ALIGN_CENTER)
                 if OK:
                     ctrls.valueCtrl.SetForegroundColour("Black")
                 else:
                     ctrls.valueCtrl.SetForegroundColour("Red")
                 if hasattr(ctrls.valueCtrl, "_szr"):
-                    panelSizer.Add(ctrls.valueCtrl._szr, (row, 0),
-                                   span=(1, 3), flag=wx.ALIGN_CENTER)
+                    panelSizer.Add(ctrls.valueCtrl._szr, (row, 1),
+                                   flag=wx.ALIGN_CENTER)
                 else:
-                    panelSizer.Add(ctrls.valueCtrl, (row, 0),
-                                   span=(1, 3), flag=wx.ALIGN_CENTER)
+                    panelSizer.Add(ctrls.valueCtrl, (row, 1),
+                                   flag=wx.ALIGN_CENTER)
                 row += 1
             else:  # normal text entry field
                 ctrls = ParamCtrls(dlg=self, parent=panel, label=label,
                                    fieldName=fieldName,
                                    param=handler.params[fieldName])
-                panelSizer.Add(ctrls.nameCtrl, [row, 0])
+                panelSizer.Add(ctrls.nameCtrl, [row, 0], border=3, flag=wx.LEFT | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL)
                 if hasattr(ctrls.valueCtrl, "_szr"):
-                    panelSizer.Add(ctrls.valueCtrl._szr, [row, 1])
+                    panelSizer.Add(ctrls.valueCtrl._szr, [row, 1], border=3, flag=wx.EXPAND | wx.ALL)
                 else:
-                    panelSizer.Add(ctrls.valueCtrl, [row, 1])
+                    panelSizer.Add(ctrls.valueCtrl, [row, 1], border=3, flag=wx.EXPAND | wx.ALL)
                 row += 1
             # Link conditions file browse button to its own special method
             if fieldName == 'conditionsFile':
                 ctrls.valueCtrl.findBtn.Bind(wx.EVT_BUTTON, self.onBrowseTrialsFile)
             # store info about the field
             self.constantsCtrls[fieldName] = ctrls
+        panelSizer.AddGrowableCol(1, 1)
         return panel
 
     def makeMultiStairCtrls(self):
         # a list of controls for the random/sequential versions
         panel = wx.Panel(parent=self)
         panel.app = self.app
-        panelSizer = wx.GridBagSizer(5, 5)
+        panelSizer = wx.GridBagSizer(0, 0)
         panel.SetSizer(panelSizer)
         row = 0
         # that can be hidden or shown
@@ -1249,8 +1250,7 @@ class DlgLoopProperties(_BaseParamsDlg):
                 ctrls = ParamCtrls(dlg=self, parent=panel, label=label,
                                    fieldName=fieldName,
                                    param=text, noCtrls=True)
-                size = wx.Size(350, 50)
-                ctrls.valueCtrl = wx.StaticText(panel, label=text, size=size,
+                ctrls.valueCtrl = wx.StaticText(panel, label=text,
                                                 style=wx.ALIGN_CENTER)
                 if OK:
                     ctrls.valueCtrl.SetForegroundColour("Black")
@@ -1268,24 +1268,25 @@ class DlgLoopProperties(_BaseParamsDlg):
                 ctrls = ParamCtrls(dlg=self, parent=panel, label=label,
                                    fieldName=fieldName,
                                    param=handler.params[fieldName])
-                panelSizer.Add(ctrls.nameCtrl, [row, 0])
+                panelSizer.Add(ctrls.nameCtrl, [row, 0], border=3, flag=wx.LEFT | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL)
                 if hasattr(ctrls.valueCtrl, "_szr"):
-                    panelSizer.Add(ctrls.valueCtrl._szr, [row, 1])
+                    panelSizer.Add(ctrls.valueCtrl._szr, [row, 1], border=3, flag=wx.EXPAND | wx.ALL)
                 else:
-                    panelSizer.Add(ctrls.valueCtrl, [row, 1])
+                    panelSizer.Add(ctrls.valueCtrl, [row, 1], border=3, flag=wx.EXPAND | wx.ALL)
                 row += 1
             # Bind file button with its own special method
             if fieldName == 'conditionsFile':
                 ctrls.valueCtrl.findBtn.Bind(wx.EVT_BUTTON, self.onBrowseTrialsFile)
             # store info about the field
             self.multiStairCtrls[fieldName] = ctrls
+        panelSizer.AddGrowableCol(1, 1)
         return panel
 
     def makeStaircaseCtrls(self):
         """Setup the controls for a StairHandler
         """
         panel = wx.Panel(parent=self)
-        panelSizer = wx.GridBagSizer(5, 5)
+        panelSizer = wx.GridBagSizer(0, 0)
         panel.SetSizer(panelSizer)
         row = 0
         handler = self.stairHandler
@@ -1309,14 +1310,15 @@ class DlgLoopProperties(_BaseParamsDlg):
                 ctrls = ParamCtrls(dlg=self, parent=panel, label=label,
                                    fieldName=fieldName,
                                    param=handler.params[fieldName])
-                panelSizer.Add(ctrls.nameCtrl, [row, 0])
+                panelSizer.Add(ctrls.nameCtrl, [row, 0], border=3, flag=wx.LEFT | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL)
                 if hasattr(ctrls.valueCtrl, "_szr"):
-                    panelSizer.Add(ctrls.valueCtrl._szr, [row, 1])
+                    panelSizer.Add(ctrls.valueCtrl._szr, [row, 1], border=3, flag=wx.EXPAND | wx.ALL)
                 else:
-                    panelSizer.Add(ctrls.valueCtrl, [row, 1])
+                    panelSizer.Add(ctrls.valueCtrl, [row, 1], border=3, flag=wx.EXPAND | wx.ALL)
                 row += 1
             # store info about the field
             self.staircaseCtrls[fieldName] = ctrls
+        panelSizer.AddGrowableCol(1, 1)
         return panel
 
     def getTrialsSummary(self, conditions):
