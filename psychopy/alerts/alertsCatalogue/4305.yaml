@@ -1,7 +1,7 @@
 
 code: 4305
 cat: Components
-msg: Your component is currently disabled and will not be written to your experiment script.
+msg: The component {name} is currently disabled and will not be written to your experiment script.
 
 # The following are typically used for online help pages, and support reStructured Text.
 label: Component is currently disabled in your experiment
