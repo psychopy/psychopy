@@ -395,7 +395,7 @@ class _KeyBuffer(object):
             self.dev = hid.Keyboard()  # a PTB keyboard object
         else:
             self.dev = hid.Keyboard(kb_id)  # a PTB keyboard object
-        self.dev._create_queue(bufferSize)
+        self.dev._create_queue(bufferSize, win_handle=None)
 
     def flush(self):
         """Flushes and processes events from the device to this software buffer

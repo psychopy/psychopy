@@ -33,7 +33,7 @@ _knownFields = {
     'itemWidth': 0.8,  # fraction of the form
     'type': _REQUIRED,  # type of response box (see below)
     'options': ('Yes', 'No'),  # for choice box
-    'ticks': (1, 2, 3, 4, 5, 6, 7),
+    'ticks': None,#(1, 2, 3, 4, 5, 6, 7),
     'tickLabels': None,
     # for rating/slider
     'responseWidth': 0.8,  # fraction of the form
@@ -492,7 +492,10 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
         # what are the ticks for the scale/slider?
         if item['type'].lower() in ['radio', 'choice']:
-            ticks = None
+            if item['ticks']:
+                ticks = item['ticks']
+            else:
+                ticks = None
             tickLabels = item['tickLabels'] or item['options'] or item['ticks']
             granularity = 1
             style = 'radio'

@@ -119,6 +119,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         self.btnHandles = {}  # stores toolbar buttons so they can be altered
         self.scriptProcess = None
         self.stdoutBuffer = None
+        self.readmeFrame = None
         self.generateScript = generateScript
 
         if fileName in self.appData['frames']:
@@ -185,7 +186,6 @@ class BuilderFrame(wx.Frame, ThemeMixin):
             # don't try to close before opening
             self.fileNew(closeCurrent=False)
 
-        self.readmeFrame = None
         self.updateReadme()  # check/create frame as needed
 
         # control the panes using aui manager
