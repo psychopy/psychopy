@@ -1047,7 +1047,7 @@ class SettingsComponent(object):
                     "'model_name': %(elModel)s,\n"
                     "'simulation_mode': %(elSimMode)s,\n"
                     "'network_settings': %(elAddress)s,\n"
-                    "'default_native_data_file_name': 'eyedata.edf',\n"
+                    "'default_native_data_file_name': 'EXPFILE',\n"
                     "'runtime_settings': {\n"
                 )
                 buff.writeIndentedLines(code % self.params)
