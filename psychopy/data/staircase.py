@@ -972,7 +972,8 @@ class QuestHandler(StairHandler):
             self._questNextIntensity = self._quest.mode()
         elif self.method == 'quantile':
             self._questNextIntensity = self._quest.quantile()
-        # else: maybe raise an error
+        else:
+            raise TypeError(f"Requested method for QUEST: {self.method} is not a valid method. Please use mean, mode or quantile")
         self._nextIntensity = self._questNextIntensity
 
     def mean(self):

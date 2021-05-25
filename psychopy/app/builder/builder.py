@@ -119,6 +119,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         self.btnHandles = {}  # stores toolbar buttons so they can be altered
         self.scriptProcess = None
         self.stdoutBuffer = None
+        self.readmeFrame = None
         self.generateScript = generateScript
 
         if fileName in self.appData['frames']:
@@ -185,7 +186,6 @@ class BuilderFrame(wx.Frame, ThemeMixin):
             # don't try to close before opening
             self.fileNew(closeCurrent=False)
 
-        self.readmeFrame = None
         self.updateReadme()  # check/create frame as needed
 
         # control the panes using aui manager
@@ -2157,10 +2157,14 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
     class CategoryButton(wx.ToggleButton):
         """Button to show/hide a category of components"""
         def __init__(self, parent, name, cat):
+            if sys.platform == 'darwin':
+                label = name  # on macOS the wx.BU_LEFT flag has no effect
+            else:
+                label = "   "+name
             # Initialise button
             wx.ToggleButton.__init__(self, parent,
-                                     label="   "+name, size=(-1, 24),
-                                     style=wx.BORDER_NONE | wx.BU_LEFT)
+                                     label=label, size=(-1, 24),
+                                     style= wx.BORDER_NONE | wx.BU_LEFT)
             self.parent = parent
             # Link to category of buttons
             self.menu = self.parent.catSizers[cat]
@@ -2242,7 +2246,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
                 # Otherwise, use regular colours
                 self.SetForegroundColour(ThemeMixin.appColors['text'])
                 # self.icon.SetForegroundColour(ThemeMixin.appColors['text'])
-                self.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
+                self.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
 
     class ComponentButton(wx.Button):
         """Button to open component parameters dialog"""

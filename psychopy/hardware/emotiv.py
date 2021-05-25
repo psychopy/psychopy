@@ -42,10 +42,6 @@ MS_SEC_THRESHOLD = 1E+10  # if timestamp is greater than this it is in ms
 EEG_ON = os.environ.get('CORTEX_DATA', False)
 
 
-if platform == "linux" or platform == "linux2":
-    raise NotImplementedError('Linux not yet supported')
-
-
 class CortexApiException(Exception):
     pass
 
@@ -59,16 +55,20 @@ class CortexNoHeadsetException(Exception):
 
 
 class Cortex(object):
-    CORTEX_URL = "wss://localhost:6868"
+    if os.getenv('CORTEX_DEBUG', False):
+        CORTEX_URL = "wss://localhost:7070"
+    else:
+        CORTEX_URL = "wss://localhost:6868"
 
     def __init__(self, client_id_file=None, subject=None):
-        home = str(Path.home())
-        if client_id_file is None:
-            client_id_file = ".emotiv_creds"
-        file_path = os.path.join(home, client_id_file)
+        
+        if platform == "linux" or platform == "linux2":
+            raise NotImplementedError('Linux not yet supported')
+
         self.client_id = None
         self.client_secret = None
-        self.parse_client_id_file(file_path)
+        client_id, client_secret = self.parse_client_id_file()
+        self.set_client_id_and_secret(client_id, client_secret)
         self.id_sequence = 0
         self.session_id = None
         self.marker_dict = {}
@@ -139,7 +139,6 @@ class Cortex(object):
         msg = self.gen_request(method, auth, **kwargs)
         if method == 'injectMarker':
             self.marker_dict[self.id_sequence] = "sent"
-            # print("sending_marker", time.perf_counter())
         self.websocket.send(msg)
         if wait:
             logger.debug("data sent; awaiting response")
@@ -233,12 +232,17 @@ class Cortex(object):
         else:
             raise CortexTimingException(f"Unable to interpret time: '{t}'")
 
-    def parse_client_id_file(self, client_id_file_path):
+    def set_client_id_and_secret(self, client_id, client_secret):
+        self.client_id = client_id
+        self.client_secret = client_secret
+
+    @staticmethod
+    def parse_client_id_file(client_id_file_path=None):
         """
         Parse a client_id file for client_id and client secret.
 
         Parameter:
-            client_id_file_path: absolute or relative path to a client_id file
+            client_id_file_path: absolute path to a client_id file
 
         We expect the client_id file to have the format:
         ```
@@ -247,8 +251,12 @@ class Cortex(object):
         client_secret abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMN
         ```
         """
-        self.client_id = None
-        self.client_secret = None
+        home = str(Path.home())
+        if client_id_file_path is None:
+            client_id_file_path = ".emotiv_creds"
+            client_id_file_path = os.path.join(home, client_id_file_path)
+        client_id = None
+        client_secret = None
         if not os.path.exists(client_id_file_path):
             error_str = ("File {} does not exist. Please add Cortex app client"
                          "id and secret into '.emotiv_creds' file in home " 
@@ -263,18 +271,19 @@ class Cortex(object):
                     continue
                 (key, val) = line.split(' ')
                 if key == 'client_id':
-                    self.client_id = val.strip()
+                    client_id = val.strip()
                 elif key == 'client_secret':
-                    self.client_secret = val.strip()
+                    client_secret = val.strip()
                 else:
                     raise ValueError(
                         f'Found invalid key "{key}" while parsing '
                         f'client_id file {client_id_file_path}')
 
-        if not self.client_id or not self.client_secret:
+        if not client_id or not client_secret:
             raise ValueError(
                 f"Did not find expected keys in client_id file "
                 f"{client_id_file_path}")
+        return client_id, client_secret
 
     def gen_request(self, method, auth, **kwargs):
         """
@@ -366,7 +375,12 @@ class Cortex(object):
     @staticmethod
     def get_user_login_cb(resp):
         """ Example of using the callback functionality of send_command """
-        resp = resp['result'][0]
+        resp = resp['result']
+        if len(resp) == 0:
+            logger.debug(resp)
+            raise CortexApiException(
+                f"No user logged in! Please log in with the Emotiv App")
+        resp = resp[0]
         if 'loggedInOSUId' not in resp:
             logger.debug(resp)
             raise CortexApiException(
@@ -404,6 +418,7 @@ class Cortex(object):
         status = 'active' if activate else 'open'
         if not headset_id:
             headset_id = self.headsets[0]
+        logger.debug(f"Connecting to headset: {headset_id}")
         params = {'cortexToken': self.auth_token,
                   'headset': headset_id,
                   'status': status}
@@ -507,10 +522,6 @@ class Cortex(object):
 
 if __name__ == "__main__":
     cortex = Cortex()
-    print("sending marker")
     cortex.inject_marker(label="test_marker", value=4, port="psychpy")
     time.sleep(10)
-    print("sending stop")
     cortex.update_marker()
-    print("finished")
-    print(cortex.session_id)

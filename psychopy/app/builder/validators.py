@@ -121,7 +121,7 @@ class BaseValidator(_ValidatorBase):
             try:
                 parent = parent.GetParent()
             except Exception:
-                print("Couldn't find the root dialog for this event")
+                raise AttributeError("Could not find warnings manager")
         self.check(parent)
         return parent.warnings.valid
 

@@ -11,13 +11,13 @@ from psychopy.iohub import launchHubServer
 
 
 # Eye tracker to use ('mouse', 'eyelink', 'gazepoint', or 'tobii')
-TRACKER = 'eyelink'
+TRACKER = 'mouse'
 
 eyetracker_config = dict(name='tracker')
 devices_config = {}
 if TRACKER == 'eyelink':
     eyetracker_config['model_name'] = 'EYELINK 1000 DESKTOP'
-    eyetracker_config['default_native_data_file_name'] = 'EXPFILE'
+    #eyetracker_config['default_native_data_file_name'] = 'EXPFILE'
     eyetracker_config['simulation_mode'] = False
     eyetracker_config['runtime_settings'] = dict(sampling_rate=1000, track_eyes='RIGHT')
     devices_config['eyetracker.hw.sr_research.eyelink.EyeTracker'] = eyetracker_config
@@ -28,6 +28,7 @@ elif TRACKER == 'gazepoint':
 elif TRACKER == 'tobii':
     devices_config['eyetracker.hw.tobii.EyeTracker'] = eyetracker_config
 elif TRACKER == 'mouse':
+    eyetracker_config['calibration'] = dict(auto_pace=True, target_attributes=dict(animate=dict(enable=True, expansion_ratio=1.25, contract_only=False)))
     devices_config['eyetracker.hw.mouse.EyeTracker'] = eyetracker_config
 else:
     print("{} is not a valid TRACKER name; please use 'mouse', 'eyelink', 'gazepoint', or 'tobii'.".format(TRACKER))

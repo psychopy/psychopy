@@ -197,7 +197,8 @@ class Experiment(object):
             if isinstance(routine, BaseStandaloneRoutine):
                 if routine.params['disabled'].val:
                     for node in self_copy.flow:
-                        self_copy.flow.removeComponent(node)
+                        if node == routine:
+                            self_copy.flow.removeComponent(node)
             else:
                 for component in routine:
                     try:
@@ -501,7 +502,7 @@ class Experiment(object):
                     # we found an unknown parameter (probably from the future)
                     params[name] = Param(
                         val, valType=paramNode.get('valType'),
-                        allowedTypes=[],
+                        allowedTypes=[], label=_translate(name),
                         hint=_translate(
                             "This parameter is not known by this version "
                             "of PsychoPy. It might be worth upgrading"))

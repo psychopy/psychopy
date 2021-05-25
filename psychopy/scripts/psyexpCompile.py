@@ -169,7 +169,8 @@ def compileScript(infile=None, version=None, outfile=None):
             if isinstance(routine, BaseStandaloneRoutine):
                 if routine.params['disabled'].val:
                     for node in exp.flow:
-                        exp.flow.removeComponent(node)
+                        if node == routine:
+                            exp.flow.removeComponent(node)
             else:
                 for component in routine:
                     try:
