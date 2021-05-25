@@ -1,12 +1,16 @@
 import os.path
+from pathlib import Path
 import io
 import shutil
 from tempfile import mkdtemp
 from psychopy.scripts import psyexpCompile
 from psychopy.tests.utils import TESTS_DATA_PATH
 from psychopy.alerts import alerttools
-from psychopy.experiment.components._base import BaseComponent
+from psychopy.experiment import Experiment
+from psychopy.experiment.routines import Routine, BaseStandaloneRoutine, UnknownRoutine
+from psychopy.experiment.components import BaseComponent
 from psychopy.experiment.params import Param
+from psychopy import logging
 
 
 class TestComponents(object):
@@ -20,7 +24,10 @@ class TestComponents(object):
         psyexp_file = os.path.join(TESTS_DATA_PATH,
                                    'TextComponent_not_disabled.psyexp')
         outfile = os.path.join(self.temp_dir, 'outfile.py')
-        psyexpCompile.compileScript(infile=psyexp_file, outfile=outfile)
+        try:
+            psyexpCompile.compileScript(infile=psyexp_file, outfile=outfile)
+        except NotImplementedError as err:
+            logging.warning(f"Test included feature not implemented: \n{str(err)}")
 
         with io.open(outfile, mode='r', encoding='utf-8-sig') as f:
             script = f.read()
@@ -35,6 +42,28 @@ class TestComponents(object):
         with io.open(outfile, mode='r', encoding='utf-8-sig') as f:
             script = f.read()
             assert 'visual.TextStim' not in script
+
+    def test_disabled_routine_is_not_written_to_script(self):
+        # Make experiment and two test routines
+        exp = Experiment()
+        rt1 = UnknownRoutine(exp, name="testRoutine1")
+        rt2 = UnknownRoutine(exp, name="testRoutine2")
+        # Disable one routine
+        rt1.params['disabled'].val = True
+        rt2.params['disabled'].val = False
+        # Add routines to expriment
+        exp.addStandaloneRoutine("testRoutine1", rt1)
+        exp.flow.addRoutine(rt1, 0)
+        exp.addStandaloneRoutine("testRoutine2", rt2)
+        exp.flow.addRoutine(rt2, 0)
+        # Write python script
+        pyScript = exp.writeScript(target="PsychoPy")
+        # Check that one routine is present and the other is not
+        assert "testRoutine1" not in pyScript and "testRoutine2" in pyScript
+        # Write JS script
+        # TEST DISABLED until JS can compile without saving
+        #jsScript = exp.writeScript(target="PsychoJS")
+        #assert "testRoutine1" not in jsScript and "testRoutine2" in jsScript
 
     def test_all_code_component_tabs(self):
         psyexp_file = os.path.join(TESTS_DATA_PATH,

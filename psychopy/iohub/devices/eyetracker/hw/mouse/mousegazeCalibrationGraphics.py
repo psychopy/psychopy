@@ -219,7 +219,7 @@ class MouseGazePsychopyCalibrationGraphics(object):
 
         target_delay = self.getCalibSetting('target_delay')
         target_duration = self.getCalibSetting('target_duration')
-
+        auto_pace = self.getCalibSetting('auto_pace')
         cal_target_list = self.CALIBRATION_POINT_LIST
         randomize_points = self.getCalibSetting('randomize')
         if randomize_points is True:
@@ -235,10 +235,9 @@ class MouseGazePsychopyCalibrationGraphics(object):
 
         self.clearCalibrationWindow()
 
-        # seems like gps expects animation at state of every target pos.
         i = 0
         for pt in cal_target_list:
-            # Convert GazePoint normalized positions to psychopy window unit positions
+            # Convert normalized positions to psychopy window unit positions
             # by using iohub display/window getCoordBounds.
             x, y = left + w * pt[0], bottom + h * (1.0 - pt[1])
             start_time = currentTime()
@@ -264,9 +263,9 @@ class MouseGazePsychopyCalibrationGraphics(object):
                 self.getNextMsg()
                 self.MsgPump()
 
+            # Target expand / contract phase
             self.drawCalibrationTarget((x, y))
             start_time = currentTime()
-
             outer_diameter = self.getCalibSetting(['target_attributes', 'outer_diameter'])
             inner_diameter = self.getCalibSetting(['target_attributes', 'inner_diameter'])
             while currentTime()-start_time <= target_duration:
@@ -299,9 +298,19 @@ class MouseGazePsychopyCalibrationGraphics(object):
                 self.MsgPump()
                 gevent.sleep(0.001)
 
+            if auto_pace is False:
+                while 1:
+                    msg = self.getNextMsg()
+                    self.MsgPump()
+                    gevent.sleep(0.001)
+                    if msg == 'SPACE_KEY_ACTION':
+                        break
+
+
             self.clearCalibrationWindow()
             self.clearAllEventBuffers()
             i += 1
+
         instuction_text = "Calibration Complete. Press 'SPACE' key to continue."
         self.showSystemSetupMessageScreen(instuction_text)
 
