@@ -232,7 +232,7 @@ class MicrophoneComponent(BaseComponent):
             alert(5055, strFields={'name': inits['name'].val})
         # Write code
         code = (
-            "%(name)s = new audio.Microphone({\n"
+            "%(name)s = new sound.Microphone({\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(1, relative=True)

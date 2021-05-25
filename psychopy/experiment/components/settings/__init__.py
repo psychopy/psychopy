@@ -1242,7 +1242,7 @@ class SettingsComponent(object):
     def writeEndCodeJS(self, buff):
         endLoopInteration = ("\nfunction endLoopIteration(scheduler, snapshot) {\n"
                     "  // ------Prepare for next entry------\n"
-                    "  return function () {\n"
+                    "  return async function () {\n"
                     "    if (typeof snapshot !== 'undefined') {\n"
                     "      // ------Check if user ended loop early------\n"
                     "      if (snapshot.finished) {\n"
