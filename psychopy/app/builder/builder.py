@@ -2577,6 +2577,13 @@ class ReadmeFrame(wx.Frame):
                           size=(600, 500), pos=pos, style=_style)
         self.Bind(wx.EVT_CLOSE, self.onClose)
         self.Hide()
+        # create icon
+        if sys.platform == 'darwin':
+            pass  # doesn't work and not necessary - handled by app bundle
+        else:
+            iconFile = os.path.join(parent.paths['resources'], 'coder.ico')
+            if os.path.isfile(iconFile):
+                self.SetIcon(wx.Icon(iconFile, wx.BITMAP_TYPE_ICO))
         self.makeMenus()
         self.rawText = ""
         self.ctrl = HtmlWindow(self, wx.ID_ANY)
