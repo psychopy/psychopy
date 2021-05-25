@@ -516,8 +516,11 @@ class Microphone(object):
             policyWhenFull=policyWhenFull
         )
 
-        # setup clips dict
+        # setup clips and transcripts dicts
         self.clips = {}
+        self.lastClip = None
+        self.scripts = {}
+        self.lastScript = None
 
         logging.debug('Audio capture device #{} ready'.format(
             self._device.deviceIndex))
@@ -887,21 +890,45 @@ class Microphone(object):
 
         return overruns
 
-    def bank(self, tag=None):
+    def bank(self, tag=None, transcribe=False, config=None):
         """Store current buffer as a clip within the microphone object.
 
         Parameters
         ----------
         tag : str or None
             Label for the clip.
+        transcribe : bool or str
+            Set to the name of a transcription engine (e.g. "GOOGLE") to transcribe using that engine, or set as False
+            to not transcribe.
+        config : dict
+            A dict of values defining the configuration for transcribing, if applicable.
 
         """
-        # append current recording to clip list according to tag
+        # make sure the tag exists in both clips and transcripts dicts
         if tag not in self.clips:
             self.clips[tag] = []
-        self.clips[tag].append(self._recording.getSegment())
+        if tag not in self.scripts:
+            self.scripts[tag] = []
+        # append current recording to clip list according to tag
+        self.lastClip = self._recording.getSegment()
+        self.clips[tag].append(self.lastClip)
+        # append current clip's transcription according to tag
+        if transcribe:
+            if transcribe == True:
+                engine = "sphinx"
+            else:
+                engine = transcribe
+            self.lastScript = self.lastClip.transcribe(engine=engine, config=config)
+        else:
+            self.lastScript = "Transcription disabled."
+        self.scripts[tag].append(self.lastScript)
         # clear recording buffer
         self._recording.clear()
+        # return banked items
+        if transcribe:
+            return self.lastClip, self.lastScript
+        else:
+            return self.lastClip
 
     def clear(self):
         """Wipe all clips.
