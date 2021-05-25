@@ -232,7 +232,6 @@ class MicrophoneComponent(BaseComponent):
             alert(5055, strFields={'name': inits['name'].val})
         # Write code
         code = (
-            "%(name)sClips = {}\n"
             "%(name)s = new audio.Microphone({\n"
         )
         buff.writeIndentedLines(code % inits)
@@ -377,26 +376,26 @@ class MicrophoneComponent(BaseComponent):
             "// flush the microphone (make the audio data ready for upload)\n"
             "await %(name)s.flush();\n"
             "// get the recording\n"
-            "const %(name)sClip = await %(name)s.getRecording({\n"
+            "%(name)s.lastClip = await %(name)s.getRecording({\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(1, relative=True)
         code = (
-                "tag: 'recording_%(routine)s' + trials.thisN,\n"
+                "tag: 'recording_%(name)s' + trials.thisN,\n"
                 "flush: false\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
         code = (
             "});\n"
-            "psychoJS.experiment.addData('%(name)s.clip', 'recording_%(routine)s' + trials.thisN;\n"
+            "psychoJS.experiment.addData('%(name)s.clip', 'recording_%(name)s' + trials.thisN;\n"
             "// start the asynchronous upload to the server\n"
-            "%(name)sClip.upload();\n"
+            "%(name)s.lastClip.upload();\n"
         )
         if self.params['transcribe'].val:
             code = (
                 "// transcribe the recording\n"
-                "const [transcript, confidence] = await audioClip.transcribe({\n"
+                "[%(name)s.lastScript, %(name)s.lastConf] = await audioClip.transcribe({\n"
             )
             buff.writeIndentedLines(code % inits)
             buff.setIndentLevel(1, relative=True)
