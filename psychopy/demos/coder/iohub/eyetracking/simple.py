@@ -11,7 +11,7 @@ from psychopy.iohub import launchHubServer
 
 
 # Eye tracker to use ('mouse', 'eyelink', 'gazepoint', or 'tobii')
-TRACKER = 'mouse'
+TRACKER = 'gazepoint'
 
 eyetracker_config = dict(name='tracker')
 devices_config = {}
@@ -23,6 +23,7 @@ if TRACKER == 'eyelink':
 elif TRACKER == 'gazepoint':
     eyetracker_config['device_timer'] = {'interval': 0.005}
     eyetracker_config['calibration'] = dict(use_builtin=False, target_attributes=dict(animate=dict(enable=True, expansion_ratio=1.25, contract_only=False)))
+    eyetracker_config['network_settings'] = dict(ip_address='127.0.0.1', port=4242)
     devices_config['eyetracker.hw.gazepoint.gp3.EyeTracker'] = eyetracker_config
 elif TRACKER == 'tobii':
     devices_config['eyetracker.hw.tobii.EyeTracker'] = eyetracker_config
@@ -57,7 +58,7 @@ win.flip()
 
 # Since no experiment or session code is given, no iohub hdf5 file
 # will be saved, but device events are still available at runtime.
-io = launchHubServer(window=win, **devices_config)
+io = launchHubServer(experiment_code='simple_exp', window=win, **devices_config)
 
 
 # Get some iohub devices for future access.
