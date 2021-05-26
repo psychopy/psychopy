@@ -1,0 +1,112 @@
+/* Raleway */
+@import url('https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+/* Open Sans */
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,600;0,700;0,800;1,300;1,400;1,600;1,700;1,800&display=swap');
+/* Source Code Pro */
+@import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,900;1,200;1,300;1,400;1,500;1,600;1,700;1,900&display=swap');
+/* Indie Flower */
+@import url('https://fonts.googleapis.com/css2?family=Indie+Flower&display=swap');
+
+:root {
+  --offblack: #181818;
+  --darkgrey: #58585F;
+  --midgrey: #66666E;
+  --lightgrey: #76767F;
+  --offwhite: #F2F2F2;
+  --red: #F2545B;
+  --purple: #C3BEF7;
+  --blue: #02A9EA;
+  --green: #6CCC74;
+  --yellow: #F1D302;
+  --orange: #EC9703;
+
+  --heading: 'Raleway', 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
+  --body: 'Open Sans', sans-serif;
+  --code: 'Menlo', 'Source Code Pro', 'Monaco', 'Consolas', 'Courier New',monospace;
+
+  font-family: var(--body);
+  color: white;
+}
+
+body {
+  background-color: var(--midgrey);
+  margin: 0;
+  padding: 2rem;
+}
+
+/** Headings **/
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--heading);
+  text-decoration: underline;
+  text-decoration-color: var(--red);
+}
+
+/** Code **/
+pre, code {
+  font-family: var(--code);
+  background-color: var(--lightgrey);
+}
+pre {
+  padding: 1rem;
+}
+
+/** Formatting **/
+hr {
+  border: 1px solid var(--lightgrey);
+  margin: 1rem;
+}
+s {
+  text-decoration-color: var(--red);
+}
+a {
+  color: var(--orange);
+  text-decoration: none;
+}
+a:hover {
+  color: var(--blue);
+}
+
+blockquote {
+  position: relative;
+  background-color: var(--lightgrey);
+  padding: 1rem;
+  margin-left: 2rem;
+}
+blockquote::before {
+  content: '“';
+  font-family: var(--heading);
+  font-size: 6rem;
+  color: var(--red);
+  position: absolute;
+  left: -2rem;
+  top: -1rem;
+}
+
+/** Tables **/
+table {
+  border-collapse: collapse;
+}
+tr, th, td {
+  padding: 1rem;
+}
+tr:nth-child(odd) {
+  background-color: var(--lightgrey)
+}
+th {
+  background-color: var(--darkgrey);
+  color: white;
+  font-family: var(--heading);
+}
+
+/* Images */
+img {
+  box-shadow: 0.1rem 0.1rem 1rem rgba(0,0,0,0.1);
+  margin: 1rem;
+}
+
+/* Lists */
+li::marker {
+  color: var(--orange);
+  font-family: 'Indie Flower';
+  font-size: 1.5em;
+}

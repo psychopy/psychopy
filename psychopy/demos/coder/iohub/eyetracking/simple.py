@@ -17,6 +17,7 @@ eyetracker_config = dict(name='tracker')
 devices_config = {}
 if TRACKER == 'eyelink':
     eyetracker_config['model_name'] = 'EYELINK 1000 DESKTOP'
+    #eyetracker_config['default_native_data_file_name'] = 'EXPFILE'
     eyetracker_config['simulation_mode'] = False
     eyetracker_config['runtime_settings'] = dict(sampling_rate=1000, track_eyes='RIGHT')
     devices_config['eyetracker.hw.sr_research.eyelink.EyeTracker'] = eyetracker_config
@@ -57,7 +58,7 @@ win.flip()
 
 # Since no experiment or session code is given, no iohub hdf5 file
 # will be saved, but device events are still available at runtime.
-io = launchHubServer(window=win, **devices_config)
+io = launchHubServer(window=win, experiment_code="et_test", **devices_config)
 
 
 # Get some iohub devices for future access.
@@ -137,6 +138,7 @@ while t < TRIAL_COUNT:
 
 # All Trials are done
 # End experiment
+win.close()
 tracker.setConnectionState(False)
 
 io.quit()
