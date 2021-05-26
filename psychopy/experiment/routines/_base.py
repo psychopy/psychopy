@@ -455,7 +455,7 @@ class Routine(list):
         code = ("\nfunction %(name)sRoutineBegin(snapshot) {\n" % self.params)
         buff.writeIndentedLines(code)
         buff.setIndentLevel(1, relative=True)
-        buff.writeIndentedLines("return function () {\n")
+        buff.writeIndentedLines("return async function () {\n")
         buff.setIndentLevel(1, relative=True)
 
         code = ("//------Prepare to start Routine '%(name)s'-------\n"
@@ -514,7 +514,7 @@ class Routine(list):
         code = ("\nfunction %(name)sRoutineEachFrame(snapshot) {\n" % self.params)
         buff.writeIndentedLines(code)
         buff.setIndentLevel(1, relative=True)
-        buff.writeIndentedLines("return function () {\n")
+        buff.writeIndentedLines("return async function () {\n")
         buff.setIndentLevel(1, relative=True)
 
         code = ("//------Loop for each frame of Routine '%(name)s'-------\n"
@@ -588,7 +588,7 @@ class Routine(list):
         code = ("\nfunction %(name)sRoutineEnd(snapshot) {\n" % self.params)
         buff.writeIndentedLines(code)
         buff.setIndentLevel(1, relative=True)
-        buff.writeIndentedLines("return function () {\n")
+        buff.writeIndentedLines("return async function () {\n")
         buff.setIndentLevel(1, relative=True)
 
         if modular:
