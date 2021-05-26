@@ -86,15 +86,19 @@ class GazepointPsychopyCalibrationGraphics(object):
                                                                                ]
         display = self._eyetracker._display_device
 
+        if display.getCoordinateType() != self.getCalibSetting('unit_type'):
+            raise RuntimeWarning("ioHub GP3 Warning: display.getCoordinateType() != "
+                                 "self.getCalibSetting('unit_type'): {} {}".format(display.getCoordinateType(),
+                                                                                   self.getCalibSetting('unit_type')))
         self.window = visual.Window(
             self.screenSize,
             monitor=display.getPsychopyMonitorName(),
-            units=display.getCoordinateType(),
+            units=self.getCalibSetting('unit_type'),
             fullscr=True,
             allowGUI=False,
             screen=display.getIndex(),
             color=self.WINDOW_BACKGROUND_COLOR[0:3],
-            colorSpace=display.getColorSpace())
+            colorSpace=self.getCalibSetting('color_type'))
         self.window.flip(clearBuffer=True)
 
         self._createStim()
