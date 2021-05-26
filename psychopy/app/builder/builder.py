@@ -113,7 +113,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         self.appPrefs = self.app.prefs.app
         self.paths = self.app.prefs.paths
         self.frameType = 'builder'
-        self.filename = fileName
+        self._filename = fileName
         self.htmlPath = None
         self.project = None  # type: pavlovia.PavloviaProject
         self.btnHandles = {}  # stores toolbar buttons so they can be altered
@@ -595,6 +595,29 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         self.componentButtons.Refresh()
         self.flowPanel.Refresh()
         event.Skip()
+
+    @property
+    def filename(self):
+        """Name of the currently open file"""
+        return self._filename
+
+    @filename.setter
+    def filename(self, value):
+        self._filename = value
+        # Skip if there's no toolbar
+        if not hasattr(self, "toolbar"):
+            return
+        # Enable/disable compile buttons
+        if 'compile_py' in self.toolbar.buttons:
+            self.toolbar.EnableTool(
+                self.toolbar.buttons['compile_py'].GetId(),
+                Path(value).is_file()
+            )
+        if 'compile_js' in self.toolbar.buttons:
+            self.toolbar.EnableTool(
+                self.toolbar.buttons['compile_js'].GetId(),
+                Path(value).is_file()
+            )
 
     def fileNew(self, event=None, closeCurrent=True):
         """Create a default experiment (maybe an empty one instead)
