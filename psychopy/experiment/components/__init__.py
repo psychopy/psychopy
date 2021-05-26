@@ -41,12 +41,16 @@ for filename in pycFiles:
 
 def getAllCategories(folderList=()):
     allComps = getAllComponents(folderList)
-    allCats = ['Favorites', 'Stimuli', 'Responses', 'Custom']
+    # Hardcode some categories to always appear first/last
+    firstCats = ['Favorites', 'Stimuli', 'Responses']
+    lastCats = ['Custom', 'I/O']
+    # Start getting categories
+    allCats = firstCats
     for name, thisComp in list(allComps.items()):
         for thisCat in thisComp.categories:
-            if thisCat not in allCats:
+            if thisCat not in allCats + lastCats:
                 allCats.append(thisCat)
-    return allCats
+    return allCats + lastCats
 
 
 def getAllComponents(folderList=(), fetchIcons=True):
