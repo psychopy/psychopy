@@ -149,6 +149,7 @@ class PsychopyToolbar(wx.ToolBar, ThemeMixin):
                 for k in self.frame.app.keys}
         self.keys['none'] = ''
         # self.makeTools()  # will be done when theme is applied
+        self.buttons = {}
         # Finished setup. Make it happen
 
     def makeTools(self):
@@ -277,12 +278,19 @@ class PsychopyToolbar(wx.ToolBar, ThemeMixin):
                 buttons=['pavloviaSync', 'pavloviaSearch', 'pavloviaUser'])
         frame.btnHandles.update(pavButtons.btnHandles)
         self.Realize()
+        # Disable compile buttons until an experiment is present
+        if 'compile_py' in self.buttons:
+            self.EnableTool(self.buttons['compile_py'].GetId(), False)
+        if 'compile_js' in self.buttons:
+            self.EnableTool(self.buttons['compile_js'].GetId(), False)
 
     def addPsychopyTool(self, name, label, shortcut, tooltip, func,
                         emblem=None):
         if not name.endswith('.png'):
-            name += '.png'
-        item = self.app.iconCache.makeBitmapButton(parent=self, filename=name,
+            filename = name + '.png'
+        else:
+            filename = name
+        self.buttons[name] = self.app.iconCache.makeBitmapButton(parent=self, filename=filename,
                                                    name=label,
                                                    label=("%s [%s]" % (
                                                        label,
@@ -291,8 +299,8 @@ class PsychopyToolbar(wx.ToolBar, ThemeMixin):
                                                    tip=tooltip,
                                                    size=self.iconSize)
         # Bind function
-        self.Bind(wx.EVT_TOOL, func, item)
-        return item
+        self.Bind(wx.EVT_TOOL, func, self.buttons[name])
+        return self.buttons[name]
 
 
 class PsychopyPlateBtn(platebtn.PlateButton, ThemeMixin):
