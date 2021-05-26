@@ -112,11 +112,11 @@ class TargetStim(object):
         return self.stim[0].contains(p)
 
     @property
-    def inner_radius(self):
+    def innerRadius(self):
         try:
             return self.stim[1].radius
         except:
-            return self.stim[0].radius / 2
+            return self.stim[0].radius
 
 def create3PointGrid():
     io = ioHubConnection.getActiveConnection()
@@ -905,10 +905,10 @@ class ValidationTargetRenderer(object):
             contractedtime = fliptime + contract_duration
             start_radius = self.target.radius
             try:
-                stop_radius = self.target.inner_radius
+                stop_radius = self.target.innerRadius
             except:
                 stop_radius = start_radius/2
-                print("Warning: validation target has no .inner_radius property.")
+                print("Warning: validation target has no .innerRadius property.")
             while fliptime < contractedtime:
                 mu = (fliptime - starttime) / contract_duration
                 cradius = start_radius * (1.0 - mu) + stop_radius * mu
