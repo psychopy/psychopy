@@ -420,7 +420,6 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 editable=False,
                 bold=bold,
                 font=item['font'] or self.font)
-        print(item['itemColor'] or self.itemColor)
 
         questionHeight = question.size[1]
         questionWidth = question.size[0]
