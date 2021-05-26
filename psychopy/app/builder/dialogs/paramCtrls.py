@@ -319,9 +319,7 @@ class TableCtrl(wx.TextCtrl, _ValidatorMixin, _FileMixin):
             'QuestHandler': Path(expRoot) / "loopTemplate.xltx",
             'None': Path(expRoot) / 'blankTemplate.xltx',
         }
-        # Configure validation
-        self.Bind(wx.EVT_TEXT, self.validate)
-        self.validate()
+        # Specify valid extensions
         self.validExt = [".csv",".tsv",".txt",
                          ".xl",".xlsx",".xlsm",".xlsb",".xlam",".xltx",".xltm",".xls",".xlt",
                          ".htm",".html",".mht",".mhtml",
@@ -331,6 +329,9 @@ class TableCtrl(wx.TextCtrl, _ValidatorMixin, _FileMixin):
                          ".iqy",".dqy",".rqy",".oqy",
                          ".cub",".atom",".atomsvc",
                          ".prn",".slk",".dif"]
+        # Configure validation
+        self.Bind(wx.EVT_TEXT, self.validate)
+        self.validate()
 
     def validate(self, evt=None):
         """Redirect validate calls to global validate method, assigning appropriate valType"""
@@ -338,7 +339,7 @@ class TableCtrl(wx.TextCtrl, _ValidatorMixin, _FileMixin):
         # Enable Excel button if valid
         self.xlBtn.Enable(self.valid)
         # Is component type available?
-        if hasattr(self.GetTopLevelParent(), 'type'):
+        if self.GetValue() in [None, ""] + self.validExt and hasattr(self.GetTopLevelParent(), 'type'):
             # Does this component have a default template?
             if self.GetTopLevelParent().type in self.templates:
                 self.xlBtn.Enable(True)
@@ -465,12 +466,17 @@ def validate(obj, valType):
             # If object creation fails, input is invalid
             valid = False
     if valType == "file":
-        if not os.path.isfile(os.path.abspath(val)):
+        val = Path(str(val))
+        if not val.is_absolute():
+            frame = obj.GetTopLevelParent().frame
+            # If not an absolute path, append to current directory
+            val = Path(frame.filename).parent / val
+        if not val.is_file():
             # Is value a valid filepath?
             valid = False
         if hasattr(obj, "validExt"):
-            if not val.endswith(tuple(obj.validExt)):
-                # If control has specified list of ext, does value end in correct ext?
+            # If control has specified list of ext, does value end in correct ext?
+            if val.suffix not in obj.validExt:
                 valid = False
     # If additional allowed values are defined, override validation
     if hasattr(obj, "allowedVals"):

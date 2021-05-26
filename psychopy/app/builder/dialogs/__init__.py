@@ -1586,7 +1586,7 @@ class DlgComponentProperties(_BaseParamsDlg):
                  editing=False,
                  timeout=None, testing=False, type=None):
         style = style | wx.RESIZE_BORDER
-        self.type = type
+        self.type = type or element.type
         _BaseParamsDlg.__init__(self, frame=frame, element=element, experiment=experiment,
                                 size=size,
                                 style=style, editing=editing,
