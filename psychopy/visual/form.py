@@ -35,6 +35,7 @@ _knownFields = {
     'options': ('Yes', 'No'),  # for choice box
     'ticks': None,#(1, 2, 3, 4, 5, 6, 7),
     'tickLabels': None,
+    'font': None,
     # for rating/slider
     'responseWidth': 0.8,  # fraction of the form
     'responseColor': None,
@@ -418,7 +419,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 borderColor=None,  # add borderColor to help debug
                 editable=False,
                 bold=bold,
-                font=self.font)
+                font=item['font'] or self.font)
         print(item['itemColor'] or self.itemColor)
 
         questionHeight = question.size[1]
@@ -555,7 +556,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 flip=True,
                 style=style,
                 autoLog=False,
-                font=self.font,
+                font=item['font'] or self.font,
                 color=item['responseColor'] or self.responseColor,
                 fillColor=item['markerColor'] or self.markerColor,
                 borderColor=item['responseColor'] or self.responseColor,
@@ -612,7 +613,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 anchor='top-right',
                 color=item['responseColor'] or self.responseColor,
                 colorSpace=self.colorSpace,
-                font=self.font,
+                font=item['font'] or self.font,
                 editable=True,
                 borderColor=item['responseColor'] or self.responseColor,
                 borderWidth=2,
