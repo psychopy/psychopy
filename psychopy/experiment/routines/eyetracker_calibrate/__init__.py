@@ -19,9 +19,10 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
                  fillColor="", borderColor="white", borderWidth=2, innerRadius=0.005,
                  colorSpace="rgb", units='from exp settings',
                  targetLayout="NINE_POINTS", randomisePos=True,
+                 disabled=False
                  ):
         # Initialise base routine
-        BaseStandaloneRoutine.__init__(self, exp, name=name)
+        BaseStandaloneRoutine.__init__(self, exp, name=name, disabled=disabled)
 
         self.exp.requirePsychopyLibs(['iohub', 'hardware'])
 

@@ -323,7 +323,10 @@ class ParamCtrls(object):
             return self._getCtrlValue(self.updateCtrl)
 
     def setVisible(self, newVal=True):
-        self.valueCtrl.Show(newVal)
+        if hasattr(self.valueCtrl, "ShowAll"):
+            self.valueCtrl.ShowAll(newVal)
+        else:
+            self.valueCtrl.Show(newVal)
         self.nameCtrl.Show(newVal)
         if self.updateCtrl:
             self.updateCtrl.Show(newVal)
@@ -1586,7 +1589,7 @@ class DlgComponentProperties(_BaseParamsDlg):
                  editing=False,
                  timeout=None, testing=False, type=None):
         style = style | wx.RESIZE_BORDER
-        self.type = type
+        self.type = type or element.type
         _BaseParamsDlg.__init__(self, frame=frame, element=element, experiment=experiment,
                                 size=size,
                                 style=style, editing=editing,
