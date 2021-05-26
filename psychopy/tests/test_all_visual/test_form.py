@@ -4,12 +4,15 @@
 from __future__ import division
 
 import os
+from pathlib import Path
+
 import pytest
 from pandas import DataFrame
 from psychopy.visual.window import Window
 from psychopy.visual.form import Form
 from psychopy.visual.textbox2.textbox2 import TextBox2
 from psychopy.visual.slider import Slider
+from psychopy.tests import utils
 from psychopy import constants
 import shutil
 from tempfile import mkdtemp
@@ -141,6 +144,26 @@ class Test_Form(object):
 
     def test_text_height(self):
         assert self.survey.textHeight == 0.02
+
+    def test_font(self):
+        exemplars = [
+            {"file": "form_font_demographics.xlsx", "font": "Open Sans",
+             "screenshot": "form_font_demographics.png"},
+        ]
+        tykes = [
+            {"file": "form_font_demographics.xlsx", "font": "Indie Flower",
+             "screenshot": "form_font_nonstandard.png"},
+            {"file": "form_font_languages.xlsx", "font": "Rubrik",
+             "screenshot": "form_font_languages.png"},
+        ]
+        for case in exemplars + tykes:
+            survey = Form(self.win, items=str(Path(utils.TESTS_DATA_PATH) / case['file']), size=(1, 1), font=case['font'],
+                          fillColor=None, borderColor=None, itemColor="white", responseColor="white", markerColor="red",
+                          pos=(0, 0), autoLog=False)
+            survey.draw()
+            self.win.flip()
+            # self.win.getMovieFrame(buffer='front').save(Path(utils.TESTS_DATA_PATH) / case['screenshot'])
+            utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / case['screenshot'], self.win, crit=20)
 
     def test_item_padding(self):
         assert self.survey.itemPadding == 0.05
