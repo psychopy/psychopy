@@ -706,13 +706,13 @@ class AudioClip(object):
         # do the conversion
         txt = ''
         try:
-            if engine == 'sphinx':
+            if engine.lower() == 'sphinx':
                 txt = _recognizer.recognize_sphinx(audio, **config)
-            elif engine == 'google':
+            elif engine.lower() == 'google':
                 txt = _recognizer.recognize_google(audio, **config)
-            elif engine == 'googleCloud':
+            elif engine.lower() == 'googleCloud':
                 txt = _recognizer.recognize_google_cloud(audio, **config)
-            elif engine == 'bing':
+            elif engine.lower() in ['bing', 'azure']:
                 txt = _recognizer.recognize_bing(audio, **config)
             else:
                 ValueError("Invalid value for `engine` specified.")

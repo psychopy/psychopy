@@ -252,7 +252,7 @@ class Experiment(object):
                                                    self_copy.psychopyVersion)
 
             # initialise the components for all Routines in a single function
-            script.writeIndentedLines("\nfunction experimentInit() {")
+            script.writeIndentedLines("\nasync function experimentInit() {")
             script.setIndentLevel(1, relative=True)
 
             # routine init sections
