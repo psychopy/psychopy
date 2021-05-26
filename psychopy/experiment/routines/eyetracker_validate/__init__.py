@@ -22,10 +22,11 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
                  randomisePos=True, targetLayout="NINE_POINTS", targetPositions="NINE_POINTS",
                  progressMode="space key", targetDur=1, expandDur=1, expandScale=3,
                  movementAnimation=True, movementDur=1.25, targetDelay=1.25,
-                 saveAsImg=False, showResults=True
+                 saveAsImg=False, showResults=True,
+                 disabled=False
                  ):
         # Initialise base routine
-        BaseStandaloneRoutine.__init__(self, exp, name=name)
+        BaseStandaloneRoutine.__init__(self, exp, name=name, disabled=disabled)
 
         self.exp.requirePsychopyLibs(['iohub', 'hardware'])
 
