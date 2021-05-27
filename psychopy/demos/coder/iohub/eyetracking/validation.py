@@ -30,7 +30,7 @@ if __name__ == "__main__":
     win.winHandle.minimize()  # minimize the PsychoPy window
 
     # Run eyetracker calibration
-    #r = tracker.runSetupProcedure()
+    r = tracker.runSetupProcedure()
 
     win.winHandle.set_fullscreen(True)
     win.winHandle.maximize()  # maximize the PsychoPy window

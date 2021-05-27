@@ -6,7 +6,7 @@
 Eye Tracker Validation procedure using the ioHub common eye tracker interface.
 
 To use the validation process from within a Coder script:
-* Create a target stim, using TargetStim, or any stim class that has a `.setPos()`, `setSize()`, and `.draw()` method.
+* Create a target stim
 * Create a list of validation target positions. Use the `PositionGrid` class to help create a target position list.
 * Create a ValidationProcedure class instance, providing the target stim and position list and other arguments
   to define details of the validation procedure.

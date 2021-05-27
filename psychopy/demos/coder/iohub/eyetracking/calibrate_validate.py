@@ -22,13 +22,31 @@ if TRACKER == 'eyelink':
     eyetracker_config['model_name'] = 'EYELINK 1000 DESKTOP'
     eyetracker_config['simulation_mode'] = False
     eyetracker_config['runtime_settings'] = dict(sampling_rate=1000, track_eyes='RIGHT')
+    eyetracker_config['calibration'] = dict(auto_pace=True,
+                                            target_duration=1.5,
+                                            target_delay=1.0,
+                                            screen_background_color=(0, 0, 0),
+                                            type='NINE_POINTS',
+                                            unit_type=None,
+                                            color_type=None,
+                                            target_attributes=dict(outer_diameter=0.05,
+                                                                   inner_diameter=0.025,
+                                                                   outer_fill_color=[-0.5, -0.5, -0.5],
+                                                                   inner_fill_color=[-1, 1, -1],
+                                                                   outer_line_color=[1, 1, 1],
+                                                                   inner_line_color=[-1, -1, -1]
+                                                                   )
+                                            )
     devices_config['eyetracker.hw.sr_research.eyelink.EyeTracker'] = eyetracker_config
 elif TRACKER == 'gazepoint':
     eyetracker_config['device_timer'] = {'interval': 0.005}
     eyetracker_config['calibration'] = dict(use_builtin=False,
+                                            target_duration=1.5,
+                                            target_delay=1.0,
                                             screen_background_color=(0,0,0),
-                                            unit_type=use_unit_type,
-                                            color_type=use_color_type,
+                                            type='NINE_POINTS',
+                                            unit_type=None,
+                                            color_type=None,
                                             target_attributes=dict(outer_diameter=0.05,
                                                                    inner_diameter=0.025,
                                                                    outer_fill_color=[-0.5, -0.5, -0.5],
@@ -42,10 +60,46 @@ elif TRACKER == 'gazepoint':
                                             )
     devices_config['eyetracker.hw.gazepoint.gp3.EyeTracker'] = eyetracker_config
 elif TRACKER == 'tobii':
+    eyetracker_config['calibration'] = dict(auto_pace=True,
+                                            target_duration=1.5,
+                                            target_delay=1.0,
+                                            screen_background_color=(0, 0, 0),
+                                            type='NINE_POINTS',
+                                            unit_type=None,
+                                            color_type=None,
+                                            target_attributes=dict(outer_diameter=0.05,
+                                                                   inner_diameter=0.025,
+                                                                   outer_fill_color=[-0.5, -0.5, -0.5],
+                                                                   inner_fill_color=[-1, 1, -1],
+                                                                   outer_line_color=[1, 1, 1],
+                                                                   inner_line_color=[-1, -1, -1],
+                                                                   animate=dict(enable=True,
+                                                                                expansion_ratio=1.5,
+                                                                                contract_only=False)
+                                                                   )
+                                            )
     devices_config['eyetracker.hw.tobii.EyeTracker'] = eyetracker_config
 elif TRACKER == 'mouse':
     eyetracker_config['calibration'] = dict(auto_pace=True, target_attributes=dict(animate=dict(enable=True, expansion_ratio=1.25, contract_only=False)))
     devices_config['eyetracker.hw.mouse.EyeTracker'] = eyetracker_config
+    eyetracker_config['calibration'] = dict(auto_pace=True,
+                                            target_duration=1.5,
+                                            target_delay=1.0,
+                                            screen_background_color=(0, 0, 0),
+                                            type='NINE_POINTS',
+                                            unit_type=None,
+                                            color_type=None,
+                                            target_attributes=dict(outer_diameter=0.05,
+                                                                   inner_diameter=0.025,
+                                                                   outer_fill_color=[-0.5, -0.5, -0.5],
+                                                                   inner_fill_color=[-1, 1, -1],
+                                                                   outer_line_color=[1, 1, 1],
+                                                                   inner_line_color=[-1, -1, -1],
+                                                                   animate=dict(enable=True,
+                                                                                expansion_ratio=1.5,
+                                                                                contract_only=False)
+                                                                   )
+                                            )
 else:
     print("{} is not a valid TRACKER name; please use 'mouse', 'eyelink', 'gazepoint', or 'tobii'.".format(TRACKER))
     core.quit()
@@ -95,7 +149,7 @@ win.winHandle.maximize()  # maximize the PsychoPy window
 # Validation
 
 # Create a target stim. iohub.client.eyetracker.validation.TargetStim provides a standard doughnut style
-# target. Or use any stim that has `.setPos()`, `.setRadius()`, and `.draw()` methods.
+# target. Or use any stim that has `.setPos()`, `.radius`, `.innerRadius`, and `.draw()`.
 target_stim = TargetStim(win, radius=0.025, fillcolor=[.5, .5, .5], edgecolor=[-1, -1, -1], edgewidth=2,
                          dotcolor=[1, -1, -1], dotradius=0.005, units=use_unit_type, colorspace=use_color_type)
 
