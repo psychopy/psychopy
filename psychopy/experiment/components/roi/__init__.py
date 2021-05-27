@@ -100,6 +100,11 @@ class RegionOfInterestComponent(PolygonComponent):
             unitsStr = "units=%(units)s, " % self.params
         # do writing of init
         inits = getInitVals(self.params, 'PsychoPy')
+        if self.params['shape'] == 'regular polygon...':
+            inits['shape'] = self.params['nVertices']
+        elif self.params['shape'] == 'custom polygon...':
+            inits['shape'] = self.params['vertices']
+
         code = (
             "%(name)s = visual.ROI(win, name='%(name)s', tracker=eyetracker,\n"
         )
