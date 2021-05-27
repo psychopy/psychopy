@@ -23,6 +23,7 @@ __all__ = [
     'AUDIO_EAR_COUNT'
 ]
 
+import os
 import numpy as np
 import soundfile as sf
 import psychopy.logging as logging
@@ -36,7 +37,7 @@ try:
     _recognizer = sr.Recognizer()
 except (ImportError, ModuleNotFoundError):
     logging.warning(
-        "Text-to-speech recognition module not available (use command `pip "
+        "Speech-to-text recognition module not available (use command `pip "
         "install SpeechRecognition` to get it. Transcription will be"
         " unavailable (i.e. `AudioClip.toText()`).")
     _hasSpeechRecognition = False
@@ -639,36 +640,90 @@ class AudioClip(object):
         assert isinstance(value, dict)
         self._userData = value
 
-    def transcribe(self, engine='sphinx', config=None):
+    def convertToWAV(self):
+        """Get a copy of stored audio samples in WAV PCM format.
+
+        Returns
+        -------
+        ndarray
+            Array with the same shapes as `.samples` but in 16-bit WAV PCM
+            format.
+
+        """
+        return np.asarray(
+            self._samples * ((1 << 15) - 1), dtype=np.int16).tobytes()
+
+    def transcribe(self, engine='sphinx', language='en-US', expectedWords=(),
+                   rawResp=False, key=None, config=None):
         """Convert speech in audio to text.
 
         This feature passes the audio clip samples to a text-to-speech engine
         which will attempt to transcribe any speech within. The efficacy of the
-        transcription depends on the engine selected. By default, `PocketSphinx`
-        is used which provides decent transcription capabilities offline.
+        transcription depends on the engine selected, recording hardware
+        and audio quality, and quality of the language support. By default,
+        `PocketSphinx` is used which provides decent transcription capabilities
+        offline for English and a few other languages. For more robust
+        transcription capabilities with a greater range of language support,
+        online providers such as Google may be used.
 
         If the audio clip has multiple channels, they will be combined prior to
-        being passed to the engine.
+        being passed to the transcription service.
 
         Parameters
         ----------
         engine : str
-            Text-to-speech engine to use. Can be one of 'sphinx', 'google',
-            'googleCloud', 'bing', 'ibm' or 'houndify'.
-        config : dict
-            Additional configuration options for the specified engine.
+            Speech-to-text engine to use. Can be one of 'sphinx', 'google',
+            'googleCloud', or 'bing'.
+        language : str
+            BCP-47 language code (eg., 'en-US'). Note that supported languages
+            vary between transcription engines.
+        expectedWords : list or tuple
+            List of strings representing expected words. This will constrain the
+            possible output words to the ones specified. Note not all engines
+            support this feature (only Sphinx and Google Cloud do at this time).
+            A warning will be logged if the engine selected does not support
+            this feature.
+        rawResp : bool
+            Return the raw API response if `True`. Instead of a list of most
+            likely words, the raw response from the API will be returned. The
+            raw response may contain additional information about the
+            transcription, such as confidence.
+        key : str or None
+            API key or credentials, format depends on the API in use. If a file
+            path is provided, the key data will be loaded from it.
+        config : dict or None
+            Additional configuration options for the specified engine. These
+            are specified using a dictionary (ex. `config={'pfilter': 1}` will
+            enable the profanity filter when using the `'google'` engine).
 
         Returns
         -------
-        list
-            List of transcribed words as strings.
+        list or str
+            List of transcribed words as strings. If `rawResp` is `True`, then
+            the raw API response as a string will be returned. You will need to
+            parse that for the information you need. An empty list is always
+            returned in the speech recognition module is not installed.
+
+        Notes
+        -----
+        * Online transcription services (eg., Google, Bing, etc.) provide robust
+          and accurate speech recognition capabilities with broader language
+          support than offline solutions. However, these services may require a
+          paid subscription to use, reliable broadband internet connections, and
+          may not respect the privacy of your participants as their responses
+          are being sent to a third-party. Also consider that a track of audio
+          data being sent over the network can be large, users on metered
+          connections may incur additional costs to run your experiment.
+        * Some errors may be emitted by the `SpeechRecognition` API, check that
+          project's documentation if you encounter such an error for more
+          information.
 
         Examples
         --------
         Use a voice command as a response to a task::
 
             resp = mic.getRecording()
-            respText = resp.toText()
+            respText = resp.transcribe(expectedWords=('left', 'right'))
 
             if respText:
                 if 'right' in resp:
@@ -683,6 +738,62 @@ class AudioClip(object):
         """
         if not _hasSpeechRecognition:  # don't have speech recognition
             return []
+
+        # engine configuration
+        config = {} if config is None else config
+        if not isinstance(config, dict):
+            raise TypeError(
+                "Invalid type for parameter `config` specified, must be `dict` "
+                "or `None`.")
+
+        if not isinstance(language, str):
+            raise TypeError(
+                "Invalid type for parameter `language`, must be type `str`.")
+
+        # common engine configuration options
+        config['language'] = language  # set language code
+        config['show_all'] = bool(rawResp)
+
+        # API specific config
+        expectedWordsNotSupported = requiresKey = False
+        if engine == 'sphinx':
+            config['keyword_entries'] = expectedWords
+        elif engine == 'googleCloud':
+            config['preferred_phrases'] = expectedWords
+            requiresKey = True
+        elif engine == 'google':
+            expectedWordsNotSupported = True
+        elif engine in ('bing', 'azure'):
+            expectedWordsNotSupported = True
+            requiresKey = True
+
+        if expectedWordsNotSupported:
+            logging.warning(
+                "Engine '{engine}' does not allow for expected phrases to "
+                "be specified.".format(engine=engine))
+
+        # API requires a key
+        if requiresKey:
+            # read the key from a file
+            if key is not None:
+                if not isinstance(key, str):
+                    raise TypeError(
+                        "Value for parameter `key` must be either `str` or "
+                        "`None`.")
+
+                # Load the key from a file if a path was given. Not sure how
+                # much this will affect performance since the disk read
+                # operation will happen everytime `transcribe` is invoked. Even
+                # if just to check if a what is provided is a file.
+                if os.path.isfile(key):
+                    with open(key, 'r') as keyFile:
+                        config['key'] = keyFile.read()
+                else:
+                    config['key'] = key
+            else:
+                raise logging.warning(
+                    "Selected speech-to-text engine '{}' requires a key but "
+                    "`None` is specified.")
 
         # combine channels if needed
         if self.channels > 1:
@@ -703,23 +814,24 @@ class AudioClip(object):
         config = {} if config is None else config
         assert isinstance(config, dict)
 
-        # do the conversion
-        txt = ''
+        # submit audio samples to the API
+        respAPI = ''
         try:
             if engine.lower() == 'sphinx':
-                txt = _recognizer.recognize_sphinx(audio, **config)
+                respAPI = _recognizer.recognize_sphinx(audio, **config)
             elif engine.lower() == 'google':
-                txt = _recognizer.recognize_google(audio, **config)
+                respAPI = _recognizer.recognize_google(audio, **config)
             elif engine.lower() == 'googleCloud':
-                txt = _recognizer.recognize_google_cloud(audio, **config)
+                respAPI = _recognizer.recognize_google_cloud(audio, **config)
             elif engine.lower() in ['bing', 'azure']:
-                txt = _recognizer.recognize_bing(audio, **config)
+                respAPI = _recognizer.recognize_bing(audio, **config)
             else:
                 ValueError("Invalid value for `engine` specified.")
         except sr.UnknownValueError:
             pass
 
-        return txt.split(' ')  # split words
+        # split only if the user does not want the raw API data
+        return respAPI.split(' ') if not rawResp else respAPI
 
 
 def load(filename, codec=None):
