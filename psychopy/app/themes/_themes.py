@@ -846,13 +846,13 @@ class IconCache:
             if betaID not in IconCache._bitmaps:
                 self._loadBitmap("beta", theme, emblem=emblem, size=size)
             # Get base icon and beta overlay
-            beta = IconCache._bitmaps[betaID].ConvertToImage()
-            base = IconCache._bitmaps[identifier].ConvertToImage()
+            betaImg = IconCache._bitmaps[betaID].ConvertToImage()
+            baseImg = IconCache._bitmaps[identifier].ConvertToImage()
             # Get color data and alphas
-            betaData = numpy.array(beta.GetData())
-            betaAlpha = numpy.array(beta.GetAlpha(), dtype=int)
-            baseData = numpy.array(base.GetData())
-            baseAlpha = numpy.array(base.GetAlpha(), dtype=int)
+            betaData = numpy.array(betaImg.GetData())
+            betaAlpha = numpy.array(betaImg.GetAlpha(), dtype=int)
+            baseData = numpy.array(baseImg.GetData())
+            baseAlpha = numpy.array(baseImg.GetAlpha(), dtype=int)
             # Overlay colors
             combinedData = baseData
             r = numpy.where(betaAlpha > 0)[0] * 3
@@ -866,7 +866,7 @@ class IconCache:
             combinedAlpha[combinedAlpha > 255] = 255
             combinedAlpha = numpy.uint8(combinedAlpha)
             # Set these back to the base image
-            combined = base
+            combined = betaImg
             combined.SetData(combinedData)
             combined.SetAlpha(combinedAlpha)
             # Replace icon
