@@ -7,6 +7,7 @@ import wx.lib.agw.aui as aui
 import wx.stc as stc
 from psychopy.localization import _translate
 from wx import py
+import numpy
 import keyword
 import builtins
 from pathlib import Path
@@ -826,7 +827,7 @@ class IconCache:
             nameSmall = _getIdentifier(name, theme, emblem, pix//2)
             self._bitmaps[nameSmall] = wx.Bitmap(im.Scale(pix//2, pix//2))
 
-    def getBitmap(self, name, theme=None, size=None, emblem=None):
+    def getBitmap(self, name, theme=None, size=None, emblem=None, beta=False):
         """Retrieves an icon based on its name, theme, size and emblem
         either from the cache or loading from file as needed"""
         if theme is None:
@@ -838,6 +839,39 @@ class IconCache:
         if identifier not in IconCache._bitmaps:
             # load all size icons for this name
             self._loadBitmap(name, theme, emblem=emblem, size=size)
+
+        if beta:
+            # If needed, append beta tag
+            betaID = _getIdentifier("beta", theme=theme, emblem=emblem, size=size)
+            if betaID not in IconCache._bitmaps:
+                self._loadBitmap("beta", theme, emblem=emblem, size=size)
+            # Get base icon and beta overlay
+            beta = IconCache._bitmaps[betaID].ConvertToImage()
+            base = IconCache._bitmaps[identifier].ConvertToImage()
+            # Get color data and alphas
+            betaData = numpy.array(beta.GetData())
+            betaAlpha = numpy.array(beta.GetAlpha(), dtype=int)
+            baseData = numpy.array(base.GetData())
+            baseAlpha = numpy.array(base.GetAlpha(), dtype=int)
+            # Overlay colors
+            combinedData = baseData
+            r = numpy.where(betaAlpha > 0)[0] * 3
+            g = numpy.where(betaAlpha > 0)[0] * 3 + 1
+            b = numpy.where(betaAlpha > 0)[0] * 3 + 2
+            combinedData[r] = betaData[r]
+            combinedData[g] = betaData[g]
+            combinedData[b] = betaData[b]
+            # Combine alphas
+            combinedAlpha = numpy.add(baseAlpha, betaAlpha)
+            combinedAlpha[combinedAlpha > 255] = 255
+            combinedAlpha = numpy.uint8(combinedAlpha)
+            # Set these back to the base image
+            combined = base
+            combined.SetData(combinedData)
+            combined.SetAlpha(combinedAlpha)
+            # Replace icon
+            IconCache._bitmaps[identifier] = combined.ConvertToBitmap()
+
         return IconCache._bitmaps[identifier]
 
     def makeBitmapButton(self, parent, filename,

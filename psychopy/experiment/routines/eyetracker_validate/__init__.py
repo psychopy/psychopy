@@ -13,6 +13,7 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
     targets = ["PsychoPy"]
     iconFile = Path(__file__).parent / "eyetracker_valid.png"
     tooltip = _translate("Validation routine for eyetrackers")
+    beta = True
 
     def __init__(self, exp, name='validation',
                  showCursor=True, cursorFillColor="red",

@@ -23,6 +23,7 @@ class EyetrackerRecordComponent(BaseComponent):
     iconFile = Path(__file__).parent / 'eyetracker_record.png'
     tooltip = _translate('Eyetracker: use one of several eyetrackers to follow '
                          'gaze')
+    beta = True
 
     def __init__(self, exp, parentName, name='etRecord',
                  startType='time (s)', startVal=0.0,
