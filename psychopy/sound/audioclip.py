@@ -791,7 +791,7 @@ class AudioClip(object):
                 else:
                     config['key'] = key
             else:
-                raise logging.warning(
+                logging.warning(
                     "Selected speech-to-text engine '{}' requires a key but "
                     "`None` is specified.")
 
