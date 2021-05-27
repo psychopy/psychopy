@@ -952,6 +952,12 @@ class SettingsComponent(object):
             )
             buff.writeIndentedLines(code % self.params)
         else:
+            # Alert user if window is not fullscreen
+            if not self.params['Full-screen window'].val:
+                alert(code=4540)
+            # Alert user if no monitor config
+            if self.params['Monitor'].val in ["", None, "None"]:
+                alert(code=4545)
             # Alert user if they need calibration and don't have it
             if self.params['eyetracker'].val != "MouseGaze":
                 if not any(isinstance(rt, EyetrackerCalibrationRoutine)
