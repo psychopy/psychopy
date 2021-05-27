@@ -33,6 +33,13 @@ class EyetrackerControl:
         if new in (NOT_STARTED, PAUSED, STOPPED, FINISHED):
             self.tracker.setRecordingState(False)
 
+    @property
+    def pos(self):
+        return self.tracker.getPosition()
+
+    def getPos(self):
+        return self.pos
+
 
 class EyetrackerCalibration:
     def __init__(self, win,
