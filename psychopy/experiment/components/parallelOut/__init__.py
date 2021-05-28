@@ -9,15 +9,11 @@ from __future__ import absolute_import, print_function
 from builtins import super  # provides Py3-style super() using python-future
 
 from os import path
+from pathlib import Path
 from psychopy.experiment.components import BaseComponent, Param, _translate
 from psychopy import prefs
 from psychopy.localization import _localized as __localized
 _localized = __localized.copy()
-
-# the absolute path to the folder containing this path
-thisFolder = path.abspath(path.dirname(__file__))
-iconFile = path.join(thisFolder, 'parallelOut.png')
-tooltip = _translate('Parallel out: send signals from the parallel port')
 
 # only use _localized values for label values, nothing functional:
 _localized.update({'address': _translate('Port address'),
@@ -28,7 +24,11 @@ _localized.update({'address': _translate('Port address'),
 
 class ParallelOutComponent(BaseComponent):
     """A class for sending signals from the parallel port"""
+
     categories = ['I/O']
+    targets = ['PsychoPy']
+    iconFile = Path(__file__).parent / 'parallelOut.png'
+    tooltip = _translate('Parallel out: send signals from the parallel port')
 
     def __init__(self, exp, parentName, name='p_port',
                  startType='time (s)', startVal=0.0,
@@ -43,8 +43,7 @@ class ParallelOutComponent(BaseComponent):
             startEstim=startEstim, durationEstim=durationEstim)
 
         self.type = 'ParallelOut'
-        self.url = "http://www.psychopy.org/builder/components/parallelout.html"
-        self.categories = ['I/O']
+        self.url = "https://www.psychopy.org/builder/components/parallelout.html"
         self.exp.requirePsychopyLibs(['parallel'])
 
         # params

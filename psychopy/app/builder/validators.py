@@ -34,6 +34,66 @@ from pyglet.window import key
 
 fontMGR = FontManager()
 
+
+class WarningManager(dict):
+    class ValidManager(dict):
+        def __init__(self, parent):
+            dict.__init__(self)
+            self.parent = parent
+
+        def __bool__(self):
+            if self.values():
+                return all(bool(val) for val in self.values())
+            else:
+                return True
+
+        def __setitem__(self, key, value):
+            dict.__setitem__(self, key, value)
+            self.parent.check()
+
+        def __delitem__(self, key):
+            dict.__delitem__(self, key)
+            self.parent.check()
+
+    def __init__(self, parent, ok=None):
+        dict.__init__(self)
+        self.parent = parent
+        self.ok = ok
+        self.output = wx.StaticText(parent, label="", style=wx.ALIGN_CENTRE_HORIZONTAL)
+        self.output.SetForegroundColour(wx.RED)
+        self._valid = self.ValidManager(self)
+
+    @property
+    def valid(self):
+        return bool(self._valid)
+
+    def __setitem__(self, key, value):
+        dict.__setitem__(self, key, value)
+        # if given a blank value, delete the key
+        if not value:
+            del self[key]
+            return
+        # update
+        self.check()
+
+    def __delitem__(self, key):
+        dict.__delitem__(self, key)
+        # update
+        self.check()
+
+    def check(self):
+        # Enable / disable ok button
+        if isinstance(self.ok, wx.Button):
+            self.ok.Enable(self.valid)
+        # If there's any errors to show, show them
+        messages = list(self.values())
+        self.output.SetLabel("\n".join(messages))
+        # Update sizer
+        sizer = self.output.GetContainingSizer()
+        if sizer:
+            sizer.Layout()
+
+
 class BaseValidator(_ValidatorBase):
     """
     Component name validator for _BaseParamsDlg class. It depends on access
@@ -57,14 +117,13 @@ class BaseValidator(_ValidatorBase):
         """
         # we need to find the dialog to which the Validate event belongs
         # (the event might be fired by a sub-panel and won't have builder exp)
-        while not hasattr(parent, 'frame'):
+        while not hasattr(parent, 'warnings'):
             try:
                 parent = parent.GetParent()
             except Exception:
-                print("Couldn't find the root dialog for this event")
-        message, valid = self.check(parent)
-        self.updateMessage(parent)
-        return valid
+                raise AttributeError("Could not find warnings manager")
+        self.check(parent)
+        return parent.warnings.valid
 
     def TransferFromWindow(self):
         return True
@@ -74,19 +133,6 @@ class BaseValidator(_ValidatorBase):
 
     def check(self, parent):
         raise NotImplementedError
-
-    def updateMessage(self, parent):
-        """Checks the dict of warning messages for the parent and inserts the
-        top one
-        :param parent: a component params dialog
-        :param message: a
-        :return:
-        """
-        warnings = [w for w in list(parent.warningsDict.values()) if w] or ['']
-        msg = warnings[0]
-        if parent.nameOKlabel and parent.nameOKlabel.GetLabel() != msg:
-            parent.nameOKlabel.SetLabel(msg)
-            parent.Layout()
 
 
 class NameValidator(BaseValidator):
@@ -124,8 +170,9 @@ class NameValidator(BaseValidator):
             elif namespace.isPossiblyDerivable(newName):
                 msg = _translate(namespace.isPossiblyDerivable(newName))
                 OK = True
-        parent.warningsDict['name'] = msg
-        return msg, OK
+
+        parent.warnings['name'] = msg
+        parent.warnings._valid['name'] = OK
 
 
 class CodeSnippetValidator(BaseValidator):
@@ -253,7 +300,7 @@ class CodeSnippetValidator(BaseValidator):
                         if newName in [*namespace.user, *namespace.builder, *namespace.constants]:
                             # Continue if name is a variable
                             continue
-                        if newName in [*namespace.nonUserBuilder, *namespace.numpy] and not re.search(newName+"(?!\(\))", val):
+                        if newName in [*namespace.nonUserBuilder, *namespace.numpy] and not re.search(newName+r"(?!\(\))", val):
                             # Continue if name is an external function being called correctly
                             continue
                         used = namespace.exists(newName)
@@ -266,5 +313,5 @@ class CodeSnippetValidator(BaseValidator):
                             # let the user continue if this is what they intended
                             OK = True
 
-        parent.warningsDict[field] = msg
-        return msg, OK
+        parent.warnings[field] = msg
+        parent.warnings._valid[field] = OK

@@ -1,0 +1,22 @@
+
+code: 4545
+cat: Eyetracking
+msg: A monitor config is required for accurate eyetracking measurements, but none was found.
+
+# The following are typically used for online help pages, and support reStructured Text.
+label: Eyetracking requires a monitor config
+
+synopsis: |
+  In order for eyetracking measurements to be accurate, the eyetracker needs to know about the monitor you are using -
+  how wide is it? How tall? What is its resolution? This is so that it can translate eye movements (in degrees of visual
+  angle) into useable data (in height, pix, etc. units). Without this information, the eyetracker can only guess and will
+  therefore give only approximate data.
+
+details: |
+
+
+solutions: |
+  Using the Monitor Centre, configure your monitor settings.
+
+versions: |
+  > 2021.2.0

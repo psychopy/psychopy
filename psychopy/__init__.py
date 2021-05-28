@@ -12,12 +12,12 @@
 import os
 import sys
 
-__version__ = '2021.1.0'
+__version__ = '2021.2.0'
 __license__ = 'GNU GPLv3 (or more recent equivalent)'
 __author__ = 'Jonathan Peirce'
 __author_email__ = 'jon.peirce@gmail.com'
 __maintainer_email__ = 'jon.peirce@gmail.com'
-__url__ = 'http://www.psychopy.org/'
+__url__ = 'https://www.psychopy.org/'
 __download_url__ = 'https://github.com/psychopy/psychopy/releases/'
 __git_sha__ = 'n/a'
 __build_platform__ = 'n/a'

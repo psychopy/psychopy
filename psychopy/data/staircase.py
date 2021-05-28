@@ -687,7 +687,7 @@ class QuestObject_(QuestObject, _ComparisonMixin):
 
 
 class QuestHandler(StairHandler):
-    """Class that implements the Quest algorithm for quick measurement of
+    r"""Class that implements the Quest algorithm for quick measurement of
     psychophysical thresholds.
 
     Uses Andrew Straw's `QUEST <http://www.visionegg.org/Quest>`_, which is a
@@ -972,7 +972,8 @@ class QuestHandler(StairHandler):
             self._questNextIntensity = self._quest.mode()
         elif self.method == 'quantile':
             self._questNextIntensity = self._quest.quantile()
-        # else: maybe raise an error
+        else:
+            raise TypeError(f"Requested method for QUEST: {self.method} is not a valid method. Please use mean, mode or quantile")
         self._nextIntensity = self._questNextIntensity
 
     def mean(self):

@@ -1,6 +1,8 @@
 from __future__ import print_function
 from past.builtins import execfile
 from builtins import object
+from pathlib import Path
+import xml.etree.ElementTree as xml
 
 import psychopy.experiment
 from psychopy.experiment.components.text import TextComponent
@@ -15,9 +17,11 @@ import codecs
 from psychopy import core, tests, prefs
 import pytest
 import locale
-from lxml import etree
 import numpy
 import sys
+import re
+
+import xmlschema
 
 # Jeremy Gray March 2011
 
@@ -30,6 +34,7 @@ import sys
 #   load should change things
 
 allComponents = psychopy.experiment.getComponents(fetchIcons=False)
+isTime = re.compile(r"\d+:\d+(:\d+)?( [AP]M)?")
 
 
 def _filterout_legal(lines):
@@ -73,6 +78,29 @@ class TestExpt(object):
     def teardown_class(cls):
         shutil.rmtree(cls.tmp_dir, ignore_errors=True)
 
+    def test_xml(self):
+        # Get all psyexp files in demos folder
+        demosFolder = Path(self.exp.prefsPaths['demos']) / 'builder'
+        for file in demosFolder.glob("**/*.psyexp"):
+            # Create experiment and load from psyexp
+            exp = psychopy.experiment.Experiment()
+            exp.loadFromXML(file)
+            # Compile to get what script should look like
+            target = exp.writeScript()
+            # Save as XML
+            temp = str(Path(self.tmp_dir) / "testXML.psyexp")
+            exp.saveToXML(temp)
+            # Load again
+            exp.loadFromXML(temp)
+            # Compile again
+            test = exp.writeScript()
+            # Remove any timestamps from script (these can cause false errors if compile takes longer than a second)
+            test = re.sub(isTime, "", test)
+            target = re.sub(isTime, "", target)
+            # Compare two scripts to make sure saving and loading hasn't changed anything
+            diff = difflib.unified_diff(target.splitlines(), test.splitlines())
+            assert list(diff) == []
+
     def test_xsd(self):
         # get files
 
@@ -85,15 +113,11 @@ class TestExpt(object):
 
         # get schema
 
-        schema_name = path.join(self.exp.prefsPaths['psychopy'], 'experiment', 'experiment.xsd');
-        schema_root = etree.parse(schema_name)
-        schema = etree.XMLSchema(schema_root)
-
-        # validate files with schema
+        schema_name = path.join(self.exp.prefsPaths['psychopy'], 'experiment', 'experiment.xsd')
+        schema = xmlschema.XMLSchema(schema_name)
 
         for psyexp_file in psyexp_files:
-            project_root = etree.parse(psyexp_file)
-            schema.assertValid(project_root)
+            assert schema.is_valid(psyexp_file)
 
     def test_missing_dotval(self):
         """search for a builder component gotcha:

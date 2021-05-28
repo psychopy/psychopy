@@ -327,7 +327,7 @@ class Window(object):
 
         self.autoLog = False  # to suppress log msg during init
         self.name = name
-        self.clientSize = numpy.array(size, numpy.int)  # size of window, not buffer
+        self.clientSize = numpy.array(size, int)  # size of window, not buffer
         self.pos = pos
         # this will get overridden once the window is created
         self.winHandle = None
@@ -437,6 +437,20 @@ class Window(object):
 
         # backend specific options are passed as a dictionary
         backendConf = backendConf if backendConf is not None else {}
+
+        # Here we make sure all the open windows use the same `winType` and have
+        # context sharing enabled. The context to share is passed as an option
+        # to `backendConf`.
+        if openWindows:
+            primaryWindow = openWindows[0]()  # resolve ref
+            if primaryWindow.winType != self.winType:
+                raise ValueError(
+                    "Only one kind of `winType` can be used per session.")
+
+            # Allow for context sharing, only used by the GLFW backend, Pyglet
+            # uses `shadow_window` by default here so we don't need to worry
+            # about it.
+            backendConf['share'] = self
 
         if not isinstance(backendConf, dict):  # type check on options
             raise TypeError(
@@ -1693,7 +1707,7 @@ class Window(object):
 
     @viewport.setter
     def viewport(self, value):
-        self._viewport = numpy.array(value, numpy.int)
+        self._viewport = numpy.array(value, int)
         GL.glViewport(*self._viewport)
 
     @property
@@ -1718,7 +1732,7 @@ class Window(object):
 
     @scissor.setter
     def scissor(self, value):
-        self._scissor = numpy.array(value, numpy.int)
+        self._scissor = numpy.array(value, int)
         GL.glScissor(*self._scissor)
 
     @property
@@ -2244,16 +2258,16 @@ class Window(object):
 
             # box corners in pix
             left = int((rect[0] / 2. + 0.5) * x)
-            top = int((rect[1] / -2. + 0.5) * y)
+            bottom = int((rect[3] / 2. + 0.5) * y)
             w = int((rect[2] / 2. + 0.5) * x) - left
-            h = int((rect[3] / -2. + 0.5) * y) - top
+            h = int((rect[1] / 2. + 0.5) * y) - bottom
         else:
-            left = top = 0
+            left = bottom = 0
             w, h = self.size
 
         # http://www.opengl.org/sdk/docs/man/xhtml/glGetTexImage.xml
         bufferDat = (GL.GLubyte * (4 * w * h))()
-        GL.glReadPixels(left, top, w, h,
+        GL.glReadPixels(left, bottom, w, h,
                         GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, bufferDat)
         try:
             im = Image.fromstring(mode='RGBA', size=(w, h),
@@ -2268,6 +2282,10 @@ class Window(object):
         if self.useFBO and buffer == 'front':
             GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, self.frameBuffer)
         return im
+
+    @property
+    def screenshot(self):
+        return self._getFrame()
 
     def saveMovieFrames(self, fileName, codec='libx264',
                         fps=30, clearFrames=True):

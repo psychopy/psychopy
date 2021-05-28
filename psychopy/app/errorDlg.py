@@ -199,7 +199,7 @@ def isErrorDialogVisible():
     return _error_dlg is not None
 
 
-def exceptionCallback(exc_type, exc_value, exc_traceback):
+def exceptionCallback(exc_type: object, exc_value: object, exc_traceback: object) -> object:
     """Hook when an unhandled exception is raised within the current application
     thread. Gets the exception message and creates an error dialog box.
 

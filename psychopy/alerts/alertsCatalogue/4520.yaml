@@ -1,0 +1,26 @@
+
+code: 4520
+cat: Eyetracking
+msg: As {brand} eyetrackers do not support animations in their calibration routine, animation
+  values have not been used in your calibration routine.
+
+# The following are typically used for online help pages, and support reStructured Text.
+label: Animation params not used
+
+synopsis: |
+  Some eyetrackers do not support animations between target stimuli in their calibration routine, so although you
+  have enabled animation in your calibration routine, due to the limitations of the eyetracker you are using any
+  settings for animation will not be used.
+
+details: |
+
+
+solutions: |
+  If you are only using the current eyetracker to test an experiment and will be using one which supports target
+  animations, then you don't need to do anything. This alert will stop appearing when you use the other
+  eyetracker.
+
+  Otherwise, you just need to be aware that the settings you've specified for animation will not have any effect.
+
+versions: |
+  > 2021.2.0

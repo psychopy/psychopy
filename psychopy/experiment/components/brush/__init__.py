@@ -9,15 +9,11 @@ from __future__ import absolute_import, print_function
 
 from builtins import str
 from os import path
+from pathlib import Path
 from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals, _translate
 from psychopy import logging
 from psychopy.localization import _localized as __localized
 _localized = __localized.copy()
-
-# the absolute path to the folder containing this path
-thisFolder = path.abspath(path.dirname(__file__))
-iconFile = path.join(thisFolder, 'brush.png')
-tooltip = _translate('Brush: a drawing tool')
 
 # only use _localized values for label values, nothing functional:
 _localized.update({'lineWidth': _translate('Brush Size'),
@@ -29,6 +25,9 @@ class BrushComponent(BaseVisualComponent):
     """A class for drawing freehand responses"""
 
     categories = ['Responses']
+    targets = ['PsychoPy', 'PsychoJS']
+    iconFile = Path(__file__).parent / 'brush.png'
+    tooltip = _translate('Brush: a drawing tool')
 
     def __init__(self, exp, parentName, name='brush',
                  lineColor='$[1,1,1]', lineColorSpace='rgb',
@@ -44,9 +43,8 @@ class BrushComponent(BaseVisualComponent):
             startEstim=startEstim, durationEstim=durationEstim)
 
         self.type = 'Brush'
-        self.url = "http://www.psychopy.org/builder/components/brush.html"
+        self.url = "https://www.psychopy.org/builder/components/brush.html"
         self.exp.requirePsychopyLibs(['visual'])
-        self.targets = ['PsychoPy', 'PsychoJS']
         self.order.remove("opacity")  # Move opacity to the end
         self.order += [
             "lineWidth", "lineColor", "lineColorSpace", "opacity"  # Appearance tab

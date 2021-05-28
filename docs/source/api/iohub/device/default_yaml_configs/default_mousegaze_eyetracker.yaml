@@ -1,0 +1,41 @@
+eyetracker.hw.mouse.EyeTracker:
+    #   True = Automatically start reporting events for this device when the experiment starts.
+    #   False = Do not start reporting events for this device until enableEventReporting(True)
+    #   is called for the device.
+    auto_report_events: False
+
+    # Should eye tracker events be saved to the ioHub DataStore file when the device
+    # is recording data ?
+    save_events: True
+
+    # Should eye tracker events be sent to the Experiment process when the device
+    # is recording data ?
+    stream_events: True
+
+    # How many eye events (including samples) should be saved in the ioHub event buffer before
+    # old eye events start being replaced by new events. When the event buffer reaches
+    # the maximum event length of the buffer defined here, older events will start to be dropped.
+    event_buffer_length: 1024
+    runtime_settings:
+        # How many samples / second should Mousegaze Generate.
+        # 50 or 100 hz are supported.
+        sampling_rate: 50
+
+        # MouseGaze always generates Monocular Right eye samples.
+        track_eyes: RIGHT_EYE
+
+    controls:
+        # Mouse Button used to make a MouseGaze position change.
+        # LEFT_BUTTON, MIDDLE_BUTTON, RIGHT_BUTTON.
+        move: RIGHT_BUTTON
+
+        # Mouse Button(s) used to make MouseGaze generate a blink event.
+        # LEFT_BUTTON, MIDDLE_BUTTON, RIGHT_BUTTON.
+        blink: [LEFT_BUTTON, RIGHT_BUTTON]
+
+        # Threshold for saccade generation. Specified in visual degrees.
+        saccade_threshold: 0.5
+
+    # MouseGaze creates (minimally populated) fixation, saccade, and blink events.
+    monitor_event_types: [MonocularEyeSampleEvent, FixationStartEvent, FixationEndEvent, SaccadeStartEvent, SaccadeEndEvent, BlinkStartEvent, BlinkEndEvent]
+

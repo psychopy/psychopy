@@ -754,7 +754,7 @@ class PreferencesDlg(wx.Dialog):
             return
 
         if platform.system() == 'Darwin':
-            re_cmd2ctrl = re.compile('^Cmd\+', re.I)
+            re_cmd2ctrl = re.compile(r'^Cmd\+', re.I)
 
         for sectionName in self.prefsSpec:
             for prefName in self.prefsSpec[sectionName]:

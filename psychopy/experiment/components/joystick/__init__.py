@@ -9,17 +9,13 @@ from __future__ import absolute_import, print_function
 from builtins import super  # provides Py3-style super() using python-future
 
 from os import path
+from pathlib import Path
 from psychopy.experiment.components import BaseComponent, Param, _translate
 from psychopy.experiment import valid_var_re
 from psychopy.experiment import CodeGenerationException, valid_var_re
 from psychopy.localization import _localized as __localized
 _localized = __localized.copy()
 import re
-
-# the absolute path to the folder containing this path
-thisFolder = path.abspath(path.dirname(__file__))
-iconFile = path.join(thisFolder, 'joystick.png')
-tooltip = _translate('Joystick: query joystick position and buttons')
 
 # only use _localized values for label values, nothing functional:
 _localized.update({'saveJoystickState': _translate('Save joystick state'),
@@ -30,12 +26,15 @@ _localized.update({'saveJoystickState': _translate('Save joystick state'),
                    'deviceNumber': _translate('Device number'),
                    'allowedButtons': _translate('Allowed Buttons')})
 
+
 class JoystickComponent(BaseComponent):
     """An event class for checking the joystick location and buttons
     at given timepoints
     """
     categories = ['Responses']
     targets = ['PsychoPy']
+    iconFile = Path(__file__).parent / 'joystick.png'
+    tooltip = _translate('Joystick: query joystick position and buttons')
 
     def __init__(self, exp, parentName, name='joystick',
                  startType='time (s)', startVal=0.0,
@@ -50,7 +49,7 @@ class JoystickComponent(BaseComponent):
             startEstim=startEstim, durationEstim=durationEstim)
 
         self.type = 'Joystick'
-        self.url = "http://www.psychopy.org/builder/components/joystick.html"
+        self.url = "https://www.psychopy.org/builder/components/joystick.html"
         self.exp.requirePsychopyLibs(['event'])
         self.categories = ['Inputs']
 

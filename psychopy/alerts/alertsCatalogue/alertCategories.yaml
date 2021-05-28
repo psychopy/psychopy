@@ -30,7 +30,10 @@
 
 4000:
   cat: Builder experiments
-  4050: Experiment configuration
+  4050:
+    cat: Experiment configuration
+    4051: Experiment from future version
+    4052: Experiment fixed to past version
   4100:
     cat: Timing
     4105: Component start time exceeds stop times
@@ -45,13 +48,29 @@
     4310: Cannot calculate parameter
     4315: Invalid dollar sign syntax
     4320: Non-local font
+    4325: Font not available
+  4500:
+    cat: Eyetracking
+    4505: Eyetracking not configured
+    4510: Eyetracker not calibrated
+    4520: Animation params not used
+    4530: Auto pace param not used
+    4540: Eyetracking requires window to be fullscreen
+    4545: Eyetracking requires a monitor config
+    4550: ROI component with no record component
 
-5000: Online studies
+5000:
+  cat: Online studies
+  5050:
+    cat: Parameters not used online
+    5055: Microphone device not applicable online
+
 6000:
   cat: Interface
-    6100:
-      cat: File not found
-      6105: Run nonexistant file
+  6100:
+    cat: File not found
+    6105: Run nonexistant file
+
 7000: Python dependencies
 8000: None
 9000: None

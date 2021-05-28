@@ -18,16 +18,9 @@ import pytest, copy
     py.test -k projections --cov-report term-missing --cov visual/windowwarp.py
 """
 
-RunningPyTest = False
+foregroundColor = [-1, -1, -1]
+backgroundColor = [1, 1, 1]
 
-def setup_module(module):
-    RunningPyTest = True
-
-def teardown_module(module):
-    RunningPyTest = False
-
-foregroundColor=[-1,-1,-1]
-backgroundColor=[1,1,1]
 
 class ProjectionsLinesAndCircles(object):
     """
@@ -168,13 +161,12 @@ class ProjectionsLinesAndCircles(object):
             self.updateInfo()
 
 
-
-@pytest.mark.windowwarp
 class Test_class_WindowWarp(object):
     def setup_class(self):
         self.win = Window(monitor='testMonitor', screen=1, fullscr=True, color='gray', useFBO = True, autoLog=False)
-        self.warper = Warper (self.win, warp='spherical', warpfile = "", warpGridsize = 128, eyepoint = [0.5, 0.5], flipHorizontal = False, flipVertical = False)
-        self.warper.dist_cm=15
+        self.warper = Warper(self.win, warp='spherical', warpfile="", warpGridsize=128, eyepoint=[0.5, 0.5],
+                             flipHorizontal=False, flipVertical=False)
+        self.warper.dist_cm = 15
         self.g = ProjectionsLinesAndCircles(self.win, self.warper)
 
     def teardown_class(self):
@@ -221,21 +213,6 @@ class Test_class_WindowWarp(object):
         self.draw_projection()
 
 if __name__ == '__main__':
-    if RunningPyTest:
-        cls = Test_class_WindowWarp()
-        cls.setup_class()
-        cls.test_spherical()
-        cls.test_distance()
-        #cls.test_warpfile() #jayb todo
-        cls.test_flipHorizontal()
-        cls.test_flipHorizontal()
-        cls.test_flipVertical()
-        cls.test_flipVertical()
-
-        cls.test_spherical()
-
-        cls.teardown_class()
-    else:
         # running interactive
         cls = Test_class_WindowWarp()
         cls.setup_class()

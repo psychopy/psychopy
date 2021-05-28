@@ -28,14 +28,14 @@ The table below shows you the current state of play of PsychoJS. Per feature we 
     :ref:`Textbox <textboxComponent>`, :darkgreen:`Built-in`, Try it out via `e2e_textbox <https://gitlab.pavlovia.org/tpronk/e2e_textbox>`_    
     , :darkred:`Not supported`, Apertures\, Envelope Gratings\, Gratings\, Noise
   **Responses**,,
-    :ref:`Form <form>`, :darkgreen:`Built-in`, 
+    :ref:`Form <formComponent>`, :darkgreen:`Built-in`,
     Gyroscope, :darkorange:`Prototype`, Measures the orientation of tablets and smartphones. Try it out via `demo_gyroscope <https://gitlab.pavlovia.org/tpronk/demo_gyroscope>`_
     Eye-tracking, :darkorange:`Prototype`, Try it out via `demo_eye_tracking2 <https://gitlab.pavlovia.org/tpronk/demo_eye_tracking2/>`_
     :ref:`Keyboard <keyboard>`, :darkgreen:`Built-in`, 
     :ref:`Mouse <mouse>`, :darkgreen:`Built-in`, 
     :ref:`Slider <slider>`, :darkgreen:`Built-in`, 
     :ref:`Textbox <textboxComponent>`, :darkgreen:`Built-in`, Try it out via `e2e_textbox <https://gitlab.pavlovia.org/tpronk/e2e_textbox>`_
-    , :darkred:`Not supported`, Brush\, Joystick\, Microphone\, Button boxes (Cedrus & IO Labs)
+    , :darkred:`Not supported`, Brush\, Joystick\, Microphone\, Button boxes (Cedrus & IO Labs)\, Button component
   **Data**,,
     :ref:`CSV files <outputs>`, :darkgreen:`Built-in`, These can easily be imported into analysis software\, such as Matlab\, R\, JAMOVI\, or JASP
     :ref:`Log files <outputs>`, :darkgreen:`Built-in`, Low-level logs. These offer detailed information\, but are hard to analyze

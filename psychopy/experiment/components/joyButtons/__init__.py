@@ -12,16 +12,12 @@ from builtins import str
 from builtins import range
 from past.builtins import basestring
 from os import path
+from pathlib import Path
 
 from psychopy.experiment.components import BaseComponent, Param, _translate
 from psychopy.experiment import CodeGenerationException, valid_var_re
 from psychopy.localization import _localized as __localized
 _localized = __localized.copy()
-
-# the absolute path to the folder containing this path
-thisFolder = path.abspath(path.dirname(__file__))
-iconFile = path.join(thisFolder, 'joyButtons.png')
-tooltip = _translate('JoyButtons: check and record joystick/gamepad button presses')
 
 # only use _localized values for label values, nothing functional:
 _localized.update({'allowedKeys': _translate('Allowed buttons'),
@@ -38,6 +34,8 @@ class JoyButtonsComponent(BaseComponent):
     # an attribute of the class, determines the section in components panel
     categories = ['Responses']
     targets = ['PsychoPy']
+    iconFile = Path(__file__).parent / 'joyButtons.png'
+    tooltip = _translate('JoyButtons: check and record joystick/gamepad button presses')
 
     def __init__(self, exp, parentName, name='button_resp',
                  allowedKeys="0,1,2,3,4",
@@ -55,7 +53,7 @@ class JoyButtonsComponent(BaseComponent):
             startEstim=startEstim, durationEstim=durationEstim)
 
         self.type = 'JoyButtons'
-        self.url = "http://www.psychopy.org/builder/components/joyButtons.html"
+        self.url = "https://www.psychopy.org/builder/components/joyButtons.html"
         self.exp.requirePsychopyLibs(['gui'])
 
         self.order += ['forceEndRoutine',  # Basic tab

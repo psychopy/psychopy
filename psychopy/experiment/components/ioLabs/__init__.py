@@ -11,17 +11,12 @@ from psychopy.localization import _localized as __localized
 _localized = __localized.copy()
 
 from os import path
+from pathlib import Path
 
 from psychopy.experiment.components.keyboard import KeyboardComponent, Param, _translate
 from psychopy.experiment.utils import valid_var_re
 
 __author__ = 'Jeremy Gray'
-
-# abs path to the folder containing this path
-thisFolder = path.abspath(path.dirname(__file__))
-iconFile = path.join(thisFolder, 'ioLabs.png')
-tooltip = _translate('ioLabs ButtonBox: check and record response buttons on '
-                     'ioLab Systems ButtonBox')
 
 # only use _localized values for label values, nothing functional:
 _localized.update({'active': _translate('Active buttons'),
@@ -41,6 +36,9 @@ class ioLabsButtonBoxComponent(KeyboardComponent):
     """
     categories = ['Responses']  # which section(s) in the components panel
     targets = ['PsychoPy']
+    iconFile = Path(__file__).parent / 'ioLabs.png'
+    tooltip = _translate('ioLabs ButtonBox: check and record response buttons on '
+                         'ioLab Systems ButtonBox')
 
     def __init__(self, exp, parentName, name='bbox',
                  active="(0,1,2,3,4,5,6,7)", store='first button',
@@ -58,7 +56,7 @@ class ioLabsButtonBoxComponent(KeyboardComponent):
             startEstim=startEstim, durationEstim=durationEstim)
 
         self.type = 'ioLabsButtonBox'
-        self.url = "http://www.psychopy.org/builder/components/ioLabs.html"
+        self.url = "https://www.psychopy.org/builder/components/ioLabs.html"
 
         self.exp.requirePsychopyLibs(['hardware'])
         del self.params['allowedKeys']

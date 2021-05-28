@@ -1547,8 +1547,9 @@ class TrialHandlerExt(TrialHandler):
 
             # get the number of the trial presented by summing in ran for the
             # rows above and all columns
-            nThisTrialPresented = np.sum(
-                self.data['ran'][firstRowIndex:lastRowIndex, :])
+            # BF-Sourav-29032021: numpy returns float, so cast to int
+            nThisTrialPresented = int(round(np.sum(
+                self.data['ran'][firstRowIndex:lastRowIndex, :])))
 
             _tw = self.trialWeights[self.thisIndex]
             dataRowThisTrial = firstRowIndex + (nThisTrialPresented - 1) % _tw
@@ -1577,8 +1578,9 @@ class TrialHandlerExt(TrialHandler):
 
             # get the number of the trial presented by summing in ran for the
             # rows above and all columns
-            nThisTrialPresented = np.sum(
-                self.data['ran'][firstRowIndex:lastRowIndex, :])
+            # BF-Sourav-29032021: numpy returns float, so cast to int
+            nThisTrialPresented = int(round(np.sum(
+                self.data['ran'][firstRowIndex:lastRowIndex, :])))
 
             _tw = self.trialWeights[self.thisIndex]
             dataRowThisTrial = firstRowIndex + nThisTrialPresented % _tw

@@ -9,15 +9,12 @@ from __future__ import absolute_import, print_function
 
 from builtins import str
 from os import path
+from pathlib import Path
 
 from psychopy import prefs
 from psychopy.experiment.components import BaseComponent, Param, _translate
 from psychopy.alerts import alerttools
 
-# the absolute path to the folder containing this path
-thisFolder = path.abspath(path.dirname(__file__))
-iconFile = path.join(thisFolder, 'code.png')
-tooltip = _translate('Code: insert python commands into an experiment')
 _localized = {'Code Type': _translate('Code Type'),
               'Before Experiment': _translate('Before Experiment'),
               'Begin Experiment': _translate('Begin Experiment'),
@@ -35,9 +32,12 @@ _localized = {'Code Type': _translate('Code Type'),
 
 
 class CodeComponent(BaseComponent):
-    # an attribute of the class, determines the section in the components panel
-    categories = ['Custom']
     """An event class for inserting arbitrary code into Builder experiments"""
+
+    categories = ['Custom']
+    targets = ['PsychoPy', 'PsychoJS']
+    iconFile = Path(__file__).parent / 'code.png'
+    tooltip = _translate('Code: insert python commands into an experiment')
 
     def __init__(self, exp, parentName, name='code',
                  beforeExp="",
@@ -49,8 +49,7 @@ class CodeComponent(BaseComponent):
                  codeType=None, translator="manual"):
         super(CodeComponent, self).__init__(exp, parentName, name)
         self.type = 'Code'
-        self.targets = ['PsychoPy', 'PsychoJS']
-        self.url = "http://www.psychopy.org/builder/components/code.html"
+        self.url = "https://www.psychopy.org/builder/components/code.html"
         # params
         # want a copy, else codeParamNames list gets mutated
         self.order = ['name', 'Code Type', 'disabled',
@@ -72,7 +71,7 @@ class CodeComponent(BaseComponent):
         msg = _translate("Code to run before the experiment starts "
                          "(initialization); right-click checks syntax")
         self.params['Before Experiment'] = Param(
-            beforeExp, valType='code', inputType="multi", allowedTypes=[],
+            beforeExp, valType='extendedCode', inputType="multi", allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized['Before Experiment'])
@@ -80,7 +79,7 @@ class CodeComponent(BaseComponent):
         msg = _translate("Code at the start of the experiment ; right-click "
                          "checks syntax")
         self.params['Begin Experiment'] = Param(
-            beginExp, valType='code', inputType="multi", allowedTypes=[],
+            beginExp, valType='extendedCode', inputType="multi", allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized['Begin Experiment'])
@@ -89,7 +88,7 @@ class CodeComponent(BaseComponent):
                          "Routine (e.g. each trial); "
                          "right-click checks syntax")
         self.params['Begin Routine'] = Param(
-            beginRoutine, valType='code', inputType="multi", allowedTypes=[],
+            beginRoutine, valType='extendedCode', inputType="multi", allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized['Begin Routine'])
@@ -98,7 +97,7 @@ class CodeComponent(BaseComponent):
                          " duration of this Routine; "
                          "right-click checks syntax")
         self.params['Each Frame'] = Param(
-            eachFrame, valType='code', inputType="multi", allowedTypes=[],
+            eachFrame, valType='extendedCode', inputType="multi", allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized['Each Frame'])
@@ -107,7 +106,7 @@ class CodeComponent(BaseComponent):
                          " getting/storing responses); "
                          "right-click checks syntax")
         self.params['End Routine'] = Param(
-            endRoutine, valType='code', inputType="multi", allowedTypes=[],
+            endRoutine, valType='extendedCode', inputType="multi", allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized['End Routine'])
@@ -116,7 +115,7 @@ class CodeComponent(BaseComponent):
                          "saving files, resetting computer); "
                          "right-click checks syntax")
         self.params['End Experiment'] = Param(
-            endExperiment, valType='code', inputType="multi", allowedTypes=[],
+            endExperiment, valType='extendedCode', inputType="multi", allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized['End Experiment'])
@@ -124,14 +123,14 @@ class CodeComponent(BaseComponent):
         msg = _translate("Code before the start of the experiment (initialization"
                          "); right-click checks syntax")
         self.params['Before JS Experiment'] = Param(
-            '', valType='code', inputType="multi", allowedTypes=[],
+            '', valType='extendedCode', inputType="multi", allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized['Before JS Experiment'])
         msg = _translate("Code at the start of the experiment (initialization"
                          "); right-click checks syntax")
         self.params['Begin JS Experiment'] = Param(
-            '', valType='code', inputType="multi", allowedTypes=[],
+            '', valType='extendedCode', inputType="multi", allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized['Begin JS Experiment'])
@@ -140,7 +139,7 @@ class CodeComponent(BaseComponent):
                          "Routine (e.g. each trial); "
                          "right-click checks syntax")
         self.params['Begin JS Routine'] = Param(
-            '', valType='code', inputType="multi", allowedTypes=[],
+            '', valType='extendedCode', inputType="multi", allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized['Begin JS Routine'])
@@ -149,7 +148,7 @@ class CodeComponent(BaseComponent):
                          " duration of this Routine; "
                          "right-click checks syntax")
         self.params['Each JS Frame'] = Param(
-            '', valType='code', inputType="multi", allowedTypes=[],
+            '', valType='extendedCode', inputType="multi", allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized['Each JS Frame'])
@@ -158,7 +157,7 @@ class CodeComponent(BaseComponent):
                          " getting/storing responses); "
                          "right-click checks syntax")
         self.params['End JS Routine'] = Param(
-            '', valType='code', inputType="multi", allowedTypes=[],
+            '', valType='extendedCode', inputType="multi", allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized['End JS Routine'])
@@ -167,7 +166,7 @@ class CodeComponent(BaseComponent):
                          "saving files, resetting computer); "
                          "right-click checks syntax")
         self.params['End JS Experiment'] = Param(
-            '', valType='code', inputType="multi", allowedTypes=[],
+            '', valType='extendedCode', inputType="multi", allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized['End JS Experiment'])

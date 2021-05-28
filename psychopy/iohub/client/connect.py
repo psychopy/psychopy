@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
-# Part of the psychopy.iohub library.
-# Copyright (C) 2012-2016 iSolver Software Solutions
+# Part of the PsychoPy library
+# Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 from __future__ import division, absolute_import, print_function
-
 import os
- 
 from .. import _DATA_STORE_AVAILABLE, IOHUB_DIRECTORY
 from . import ioHubConnection
 from ..util import yload, yLoader, readConfig
+from psychopy import logging
 
 
 def launchHubServer(**kwargs):
@@ -33,11 +32,11 @@ def launchHubServer(**kwargs):
     +---------------------+-----------------+---------------+-----------------+
     | kwarg Name          | Value Type      | Description                     |
     +=====================+=================+===============+=================+
-    | experiment_code     | str, <= 24 char | If experiment_code is provided, |
+    | experiment_code     | str, <= 256 char | If experiment_code is provided, |
     |                     |                 | an ioHub HDF5 file will be      |
     |                     |                 | created for the session.        |
     +---------------------+-----------------+---------------+-----------------+
-    | session_code        | str, <= 24 char | When specified, used as the name|
+    | session_code        | str, <= 256 char | When specified, used as the name|
     |                     |                 | of the ioHub HDF5 file created  |
     |                     |                 | for the session.                |
     +---------------------+-----------------+---------------+-----------------+
@@ -45,26 +44,32 @@ def launchHubServer(**kwargs):
     |                     |                 | following experiment metadata   |
     |                     |                 | fields:                         |
     +---------------------+-----------------+---------------+-----------------+
-    |                                       | - code:         str, <= 24 char |
-    |                                       | - title:        str, <= 48 char |
-    |                                       | - description:  str, < 256 char |
-    |                                       | - version:      str, <= 6 char  |
+    |                                       | - code:         str, <= 256 char |
+    |                                       | - title:        str, <= 256 char |
+    |                                       | - description:  str, <= 4096 char |
+    |                                       | - version:      str, <= 32 char  |
     +---------------------+-----------------+---------------+-----------------+
     | session_info        | dict            | Can be used to save the         |
     |                     |                 | following session metadata      |
     |                     |                 | fields:                         |
     +---------------------+-----------------+---------------+-----------------+
-    |                                       | - code:         str, <= 24 char |
-    |                                       | - name:         str, <= 48 char |
-    |                                       | - comments:     str, < 256 char |
+    |                                       | - code:         str, <= 256 char |
+    |                                       | - name:         str, <= 256 char |
+    |                                       | - comments:     str, < 4096 char |
     |                                       | - user_variables:          dict |
     +---------------------+-----------------+---------------+-----------------+
     | datastore_name      | str             | Used to provide an ioHub HDF5   |
     |                     |                 | file name different than the    |
     |                     |                 | session_code.                   |
     +---------------------+-----------------+---------------+-----------------+
-    |psychopy_monitor_name| str             | Provides the path of a          |
-    |                     |                 | PsychoPy Monitor Center config  |
+    | window              | psychopy.visual | The psychoPy experiment window  |
+    |                     | .Window         | being used. Information like    |
+    |                     |                 | display size, viewing distance, |
+    |                     |                 | coord / color type is used to   |
+    |                     |                 | update the ioHub Display device.|
+    +---------------------+-----------------+---------------+-----------------+
+    | psychopy_monitor    | str             | Provides the path of a          |
+    | (Deprecated)        |                 | PsychoPy Monitor Center config  |
     |                     |                 | file. Information like display  |
     |                     |                 | size is read and used to update |
     |                     |                 | the ioHub Display Device config.|
@@ -158,10 +163,6 @@ def launchHubServer(**kwargs):
         elif session_code:
             datastore_name = session_code
 
-    monitor_name = kwargs.get('psychopy_monitor_name')
-    if monitor_name:
-        del kwargs['psychopy_monitor_name']
-
     monitor_devices_config = None
     iohub_conf_file_name = kwargs.get('iohub_config_name')
     if iohub_conf_file_name:
@@ -172,18 +173,58 @@ def launchHubServer(**kwargs):
             monitor_devices_config = _temp_conf_read.get('monitor_devices')
             del kwargs['iohub_config_name']
 
-    iohub_config = None
     device_dict = {}
     if monitor_devices_config:
         device_dict = monitor_devices_config
-    #    iohub_config = dict(monitor_devices=monitor_devices_config)
-    
-    if isinstance(device_dict,(list,tuple)):
+
+    if isinstance(device_dict, (list, tuple)):
         tempdict_ = {}
         for ddict in device_dict:
             tempdict_[list(ddict.keys())[0]] = list(ddict.values())[0]
         device_dict = tempdict_
-        
+
+    # PsychoPy Window & Monitor integration
+
+    # Get default iohub display config settings for experiment
+    display_config = device_dict.get('Display', {})
+    if display_config:
+        del device_dict['Display']
+
+    # Check for a psychopy_monitor_name name
+    monitor_name = kwargs.get('psychopy_monitor_name', kwargs.get('monitor_name'))
+    if monitor_name:
+        if kwargs.get('psychopy_monitor_name'):
+            del kwargs['psychopy_monitor_name']
+        else:
+            del kwargs['monitor_name']
+
+    window = kwargs.get('window')
+    if window:
+        kwargs['window'] = None
+        del kwargs['window']
+        # PsychoPy Window has been provided, so read all info needed for iohub Display from Window
+        if window.units:
+            display_config['reporting_unit_type'] = window.units
+        if window.colorSpace:
+            display_config['color_space'] = window.colorSpace
+        display_config['device_number'] = window.screen
+
+        if window.monitor.name == "__blank__":
+            logging.warning("launchHubServer: window.monitor.name is '__blank__'. "
+                            "Create the PsychoPy window with a valid Monitor name.")
+        elif window.monitor.name:
+            display_config['psychopy_monitor_name'] = window.monitor.name
+            display_config['override_using_psycho_settings'] = True
+
+        if not window._isFullScr:
+            logging.warning("launchHubServer: If using the iohub mouse or eyetracker devices, fullScr should be True.")
+
+    elif monitor_name:
+        display_config['psychopy_monitor_name'] = monitor_name
+        display_config['override_using_psycho_settings'] = True
+        logging.warning("launchHubServer: Use of psychopy_monitor_name is deprecated. "
+                        "Please use window= and provide a psychopy window that has a .monitor.")
+
     device_dict.update(kwargs)
     device_list = []
 
@@ -195,53 +236,41 @@ def launchHubServer(**kwargs):
         return '%s.%s' % (func.__module__, func.__name__)
 
     def configfuncs2str(config):
-        for k, v in list(config.items()):
-            if isinstance(v, dict):
-                configfuncs2str(v)
-            if isFunction(v):
-                config[k] = func2str(v)
+        for key, val in list(config.items()):
+            if isinstance(val, dict):
+                configfuncs2str(val)
+            if isFunction(val):
+                config[key] = func2str(val)
 
     configfuncs2str(device_dict)
-    # <<< WTF is this for .... ?????
 
-    # Ensure a Display Device has been defined. If not, create one.
-    # Insert Display device as first device in dev. list.
-    if 'Display' not in device_dict:
-        if monitor_name:
-            display_config = {'psychopy_monitor_name': monitor_name,
-                              'override_using_psycho_settings': True}
-        else:
-            display_config = {'override_using_psycho_settings': False}
-        device_list.append(dict(Display=display_config))
-    else:
-        device_list.append(dict(Display=device_dict['Display']))
-        del device_dict['Display']
+    # Add Display device as first in list of devices to be sent to iohub
+    device_list.append(dict(Display=display_config))
 
     # Ensure a Experiment, Keyboard, and Mouse Devices have been defined.
     # If not, create them.
     check_for_devs = ['Experiment', 'Keyboard', 'Mouse']
     for adev_name in check_for_devs:
         if adev_name not in device_dict:
-            device_list.append({adev_name : {}})
+            device_list.append({adev_name: {}})
         else:
-            device_list.append({adev_name : device_dict[adev_name]})
+            device_list.append({adev_name: device_dict[adev_name]})
             del device_dict[adev_name]
     
     iohub_config = dict()
-    def_ioconf = readConfig(os.path.join(IOHUB_DIRECTORY,u'default_config.yaml'))
+    def_ioconf = readConfig(os.path.join(IOHUB_DIRECTORY, u'default_config.yaml'))
     # Add remaining defined devices to the device list.
     for class_name, device_config in device_dict.items():
         if class_name in def_ioconf:
             # not a device, a top level iohub config param
             iohub_config[class_name] = device_config
         else:
-            #TODO: Check that class_name is valid before adding to list
             device_list.append({class_name: device_config})
             
     # Create an ioHub configuration dictionary.
     iohub_config['monitor_devices'] = device_list
 
-    if _DATA_STORE_AVAILABLE and experiment_code and session_code:
+    if _DATA_STORE_AVAILABLE and (datastore_name or session_code):
         # If datastore_name kwarg or experiment code has been provided,
         # then enable saving of device events to the iohub datastore hdf5 file.
         # If datastore_name kwarg was provided, it is used for the hdf5 file
@@ -250,13 +279,12 @@ def launchHubServer(**kwargs):
         # the same hdf5 file name.
         if datastore_name is None:
             datastore_name = session_code
+        parent_dir, datastore_name = os.path.split(datastore_name)
         iohub_config['data_store'] = dict(enable=True,
                                           filename=datastore_name,
                                           experiment_info=experiment_info,
                                           session_info=session_info)
+        if parent_dir:
+            iohub_config['data_store']['parent_dir'] = parent_dir
 
-    #import pprint
-    #print()
-    #print('ioHubConnection(iohub_config):')
-    #pprint.pprint(iohub_config)
     return ioHubConnection(iohub_config)

@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+# Part of the PsychoPy library
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Distributed under the terms of the GNU General Public License (GPL).
+
 from __future__ import absolute_import, division, print_function
 
 # from future import standard_library
@@ -165,15 +169,17 @@ def indicesFromString(indsString):
         pass
 
 
-def listFromString(val):
+def listFromString(val, excludeEmpties=False):
     """Take a string that looks like a list (with commas and/or [] and make
     an actual python list"""
+    # was previously called strToList and str2list might have been an option!
+    # I'll leave those here for anyone doing a find-in-path for those
     if type(val) == tuple:
         return list(val)
     elif type(val) == list:
         return list(val)  # nothing to do
     elif type(val) != str:
-        raise ValueError("_strToList requires a string as its input not {}"
+        raise ValueError("listFromString requires a string as its input not {}"
                          .format(repr(val)))
     # try to evaluate with ast (works for "'yes,'no'" or "['yes', 'no']")
     try:
@@ -188,7 +194,10 @@ def listFromString(val):
     if val.startswith(('[', '(')) and val.endswith((']', ')')):
         val = val[1:-1]
     asList = val.split(",")
-    asList = [this.strip() for this in asList]
+    if excludeEmpties:
+        asList = [this.strip() for this in asList if this]
+    else:
+        asList = [this.strip() for this in asList]
     return asList
 
 
@@ -398,6 +407,9 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
                         (val.startswith('[') and val.endswith(']') or
                                  val.startswith('(') and val.endswith(')'))):
                     val = eval(val)
+                # if it has any line breaks correct them
+                if isinstance(val, str):
+                    val = val.replace('\\n', '\n')
                 # Convert from eu style decimals: replace , with . and try to make it a float
                 if isinstance(val, basestring):
                     tryVal = val.replace(",", ".")

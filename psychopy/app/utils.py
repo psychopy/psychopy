@@ -30,6 +30,7 @@ from .themes import ThemeMixin
 from psychopy.localization import _translate
 from psychopy.tools.stringtools import prettyname
 
+
 class FileDropTarget(wx.FileDropTarget):
     """On Mac simply setting a handler for the EVT_DROP_FILES isn't enough.
     Need this too.
@@ -135,7 +136,7 @@ class PsychopyToolbar(wx.ToolBar, ThemeMixin):
         self._needMakeTools = True
         # Configure toolbar appearance
         self.SetWindowStyle(wx.TB_HORIZONTAL | wx.NO_BORDER | wx.TB_FLAT | wx.TB_NODIVIDER)
-        #self.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
+        # self.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
         # Set icon size (16 for win/linux small mode, 32 for everything else
         self.iconSize = 32  # mac: 16 either doesn't work, or looks bad
         self.SetToolBitmapSize((self.iconSize, self.iconSize))
@@ -148,6 +149,7 @@ class PsychopyToolbar(wx.ToolBar, ThemeMixin):
                 for k in self.frame.app.keys}
         self.keys['none'] = ''
         # self.makeTools()  # will be done when theme is applied
+        self.buttons = {}
         # Finished setup. Make it happen
 
     def makeTools(self):
@@ -276,12 +278,19 @@ class PsychopyToolbar(wx.ToolBar, ThemeMixin):
                 buttons=['pavloviaSync', 'pavloviaSearch', 'pavloviaUser'])
         frame.btnHandles.update(pavButtons.btnHandles)
         self.Realize()
+        # Disable compile buttons until an experiment is present
+        if 'compile_py' in self.buttons:
+            self.EnableTool(self.buttons['compile_py'].GetId(), False)
+        if 'compile_js' in self.buttons:
+            self.EnableTool(self.buttons['compile_js'].GetId(), False)
 
     def addPsychopyTool(self, name, label, shortcut, tooltip, func,
                         emblem=None):
         if not name.endswith('.png'):
-            name += '.png'
-        item = self.app.iconCache.makeBitmapButton(parent=self, filename=name,
+            filename = name + '.png'
+        else:
+            filename = name
+        self.buttons[name] = self.app.iconCache.makeBitmapButton(parent=self, filename=filename,
                                                    name=label,
                                                    label=("%s [%s]" % (
                                                        label,
@@ -290,8 +299,8 @@ class PsychopyToolbar(wx.ToolBar, ThemeMixin):
                                                    tip=tooltip,
                                                    size=self.iconSize)
         # Bind function
-        self.Bind(wx.EVT_TOOL, func, item)
-        return item
+        self.Bind(wx.EVT_TOOL, func, self.buttons[name])
+        return self.buttons[name]
 
 
 class PsychopyPlateBtn(platebtn.PlateButton, ThemeMixin):
@@ -363,9 +372,13 @@ class PsychopyScrollbar(wx.ScrollBar):
             pageSize=vsz
         )
 
+
 def updateDemosMenu(frame, menu, folder, ext):
     """Update Demos menu as needed."""
     def _makeButton(parent, menu, demo):
+        # Skip if demo name starts with _
+        if demo.name.startswith("_"):
+            return
         # Create menu button
         item = menu.Append(wx.ID_ANY, demo.name)
         # Store in window's demos list
@@ -374,9 +387,12 @@ def updateDemosMenu(frame, menu, folder, ext):
         parent.Bind(wx.EVT_MENU, parent.demoLoad, item)
 
     def _makeFolder(parent, menu, folder, ext):
+        # Skip if underscore in folder name
+        if folder.name.startswith("_"):
+            return
         # Create and append menu for this folder
         submenu = wx.Menu()
-        menu.AppendSubMenu(submenu, prettyname(folder.name))
+        menu.AppendSubMenu(submenu, folder.name)
         # Get folder contents
         folderContents = glob.glob(str(folder / '*'))
         for subfolder in sorted(folderContents):
@@ -395,6 +411,8 @@ def updateDemosMenu(frame, menu, folder, ext):
 
     # Make blank dict to store demo details in
     frame.demos = {}
+    if not folder:  # if there is no unpacked demos folder then just return
+        return
 
     # Get root folders
     rootGlob = glob.glob(str(Path(folder) / '*'))

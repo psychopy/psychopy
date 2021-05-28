@@ -1,0 +1,43 @@
+Wintab:
+    enable: IOHUB_BOOL
+    name:
+        IOHUB_STRING:
+            min_length: 1
+            max_length: 32
+            first_char_alpha: True    
+    save_events: IOHUB_BOOL
+    stream_events: IOHUB_BOOL
+    auto_report_events: IOHUB_BOOL
+    mouse_simulation:
+        enable: IOHUB_BOOL
+        leave_region_timeout:
+            IOHUB_FLOAT:
+                min: 0.001
+                max: 1000.0
+    device_timer:
+        interval:
+            IOHUB_FLOAT:
+                min: 0.001
+                max: 0.050
+    event_buffer_length:
+        IOHUB_INT:
+            min: 1
+            max: 2048    
+    monitor_event_types:
+        IOHUB_LIST: 
+            valid_values:  [WintabSampleEvent, WintabEnterRegionEvent, WintabLeaveRegionEvent]
+            min_length: 0
+            max_length: 3
+    device_number:
+        IOHUB_INT:
+            min: 0
+            max: 32
+    model_name:
+        IOHUB_STRING:
+            min_length: 1
+            max_length: 32
+    manufacturer_name:
+        IOHUB_STRING:
+            min_length: 1
+            max_length: 64
+

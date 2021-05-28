@@ -375,10 +375,7 @@ class Color(object):
         if isinstance(target, Color):
             return np.all(np.round(target.rgba, 2) == np.round(self.rgba, 2))
         elif target == None:
-            if len(self) > 1:
-                return all(self.alpha == 0)
-            else:
-                return self.alpha == 0
+            return self._requested is None
         else:
             return False
 
@@ -452,6 +449,13 @@ class Color(object):
                 "Could not set alpha as value `{}` of type `{}`".format(
                     value, type(value).__name__))
         self._alpha = value
+
+    @property
+    def opacity(self):
+        return self.alpha
+    @opacity.setter
+    def opacity(self, value):
+        self.alpha = value
 
     def _appendAlpha(self, space):
         # Get alpha, if necessary transform to an array of same length as color

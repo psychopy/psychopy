@@ -1,0 +1,19 @@
+
+code: 4540
+cat: Eyetracking
+msg: Window mode is set to be windowed, but eyetracking requires the window to be full screen.
+
+# The following are typically used for online help pages, and support reStructured Text.
+label: Eyetracking requires window to be fullscreen
+
+synopsis: |
+  Eyetracking requires the expriment window to be fullscreen, otherwise the coordinates returned by the eyetracker won't line up with the coordinates of stimuli within your experiment
+
+details: |
+
+
+solutions: |
+  In Experiment Settings, make sure that "Full-screen window" is checked.
+
+versions: |
+  > 2021.2.0

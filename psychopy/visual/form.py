@@ -29,15 +29,17 @@ _REQUIRED = -12349872349873  # an unlikely int
 _knownFields = {
     'index': None,  # optional field to index into the rows
     'itemText': _REQUIRED,  # (question used until 2020.2)
-    'itemColor': 'fg',
+    'itemColor': None,
     'itemWidth': 0.8,  # fraction of the form
     'type': _REQUIRED,  # type of response box (see below)
     'options': ('Yes', 'No'),  # for choice box
-    'ticks': (1, 2, 3, 4, 5, 6, 7),
+    'ticks': None,#(1, 2, 3, 4, 5, 6, 7),
     'tickLabels': None,
+    'font': None,
     # for rating/slider
     'responseWidth': 0.8,  # fraction of the form
-    'responseColor': 'fg',
+    'responseColor': None,
+    'markerColor': None,
     'layout': 'horiz',  # can be vert or horiz
 }
 _doNotSave = [
@@ -59,7 +61,7 @@ _synonyms = {
 
 
 class Form(BaseVisualStim, ContainerMixin, ColorMixin):
-    """A class to add Forms to a `psycopy.visual.Window`
+    """A class to add Forms to a `psychopy.visual.Window`
 
     The Form allows Psychopy to be used as a questionnaire tool, where
     participants can be presented with a series of questions requiring responses.
@@ -97,33 +99,57 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         Randomize order of Form elements
     """
 
+    knownStyles = {
+        'light': {
+            'fillColor': [0.89, 0.89, 0.89],
+            'borderColor': None,
+            'itemColor': 'black',
+            'responseColor': 'black',
+            'markerColor': [0.89, -0.35, -0.28],
+            'font': "Open Sans",
+        },
+        'dark': {
+            'fillColor': [-0.19, -0.19, -0.14],
+            'borderColor': None,
+            'itemColor': 'white',
+            'responseColor': 'white',
+            'markerColor': [0.89, -0.35, -0.28],
+            'font': "Open Sans",
+        },
+    }
+
     def __init__(self,
                  win,
                  name='default',
                  colorSpace='rgb',
                  fillColor=None,
                  borderColor=None,
-                 foreColor='white',
+                 itemColor='white',
+                 responseColor='white',
+                 markerColor='red',
                  items=None,
+                 font=None,
                  textHeight=.02,
                  size=(.5, .5),
                  pos=(0, 0),
-                 style='dark',
+                 style=None,
                  itemPadding=0.05,
                  units='height',
                  randomize=False,
                  autoLog=True,
+                 # legacy
+                 color=None,
+                 foreColor=None
                  ):
 
         super(Form, self).__init__(win, units, autoLog=False)
         self.win = win
         self.autoLog = autoLog
         self.name = name
-        self.style = style
         self.randomize = randomize
         self.items = self.importItems(items)
         self.size = size
-        self.pos = pos
+        self._pos = pos
         self.itemPadding = itemPadding
         self.scrollSpeed = self.setScrollSpeed(self.items, 4)
         self.units = units
@@ -132,17 +158,27 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         # Appearance
         self.colorSpace = colorSpace
         self.fillColor = fillColor
-        self.foreColor = foreColor
         self.borderColor = borderColor
+        self.itemColor = itemColor
+        self.responseColor = responseColor
+        self.markerColor = markerColor
+        if color:
+            self.foreColor = color
+        if foreColor:
+            self.foreColor = color
+        self.style = style
+
+        self.font = font or "Open Sans"
 
         self.textHeight = textHeight
-        self._scrollBarSize = (0.016, self.size[1])
+        self._scrollBarSize = (0.016, self.size[1]/1.2)
         self._baseYpositions = []
         self.leftEdge = None
         self.rightEdge = None
         self.topEdge = None
         self._currentVirtualY = 0  # Y position in the virtual sheet
         self._decorations = []
+        self._externalDecorations = []
         # Check units - only works with height units for now
         if self.win.units != 'height':
             logging.warning(
@@ -159,8 +195,6 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
     def __repr__(self, complete=False):
         return self.__str__(complete=complete)  # from MinimalStim
-
-    knownStyles = ['light', 'dark']
 
     def importItems(self, items):
         """Import items from csv or excel sheet and convert to list of dicts.
@@ -261,7 +295,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                             continue
                         # Default to colour scheme if specified
                         if defaultValues[header] in ['fg', 'bg', 'em']:
-                            item[header] = self.colorScheme[defaultValues[header]]
+                            item[header] = self.color
                         else:
                             item[header] = defaultValues[header]
                         missingHeaders.append(header)
@@ -378,14 +412,14 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 size=[w, None],  # expand height with text
                 autoLog=False,
                 colorSpace=self.colorSpace,
-                color=item['itemColor'] if item['itemColor'] else self.colorScheme['fg'],
-                fillColor=self.colorScheme['bg'],
+                color=item['itemColor'] or self.itemColor,
+                fillColor=None,
                 padding=0,  # handle this by padding between items
                 borderWidth=1,
                 borderColor=None,  # add borderColor to help debug
                 editable=False,
                 bold=bold,
-                font='Arial')
+                font=item['font'] or self.font)
 
         questionHeight = question.size[1]
         questionWidth = question.size[0]
@@ -458,7 +492,10 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
         # what are the ticks for the scale/slider?
         if item['type'].lower() in ['radio', 'choice']:
-            ticks = None
+            if item['ticks']:
+                ticks = item['ticks']
+            else:
+                ticks = None
             tickLabels = item['tickLabels'] or item['options'] or item['ticks']
             granularity = 1
             style = 'radio'
@@ -480,7 +517,12 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
             else:
                 tickLabels = None
             # style/granularity
-            if kind == 'slider':
+            if kind == 'slider' and 'granularity' in item:
+                if item['granularity']:
+                    granularity = item['granularity']
+                else:
+                    granularity = 0
+            elif kind == 'slider' and 'granularity' not in item:
                 granularity = 0
             else:
                 granularity = 1
@@ -513,12 +555,11 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 flip=True,
                 style=style,
                 autoLog=False,
-                colorSpace=self.colorSpace,
-                color=item['responseColor'])
-        resp.line.lineColor = self.colorScheme['fg']
-        resp.line.fillColor = self.colorScheme['fg']
-        resp.marker.lineColor = self.colorScheme['em']
-        resp.marker.fillColor = self.colorScheme['em']
+                font=item['font'] or self.font,
+                color=item['responseColor'] or self.responseColor,
+                fillColor=item['markerColor'] or self.markerColor,
+                borderColor=item['responseColor'] or self.responseColor,
+                colorSpace=self.colorSpace)
 
         if item['layout'] == 'horiz':
             h += self.textHeight*2
@@ -569,13 +610,13 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 letterHeight=self.textHeight,
                 units=self.units,
                 anchor='top-right',
-                color=self.colorScheme['fg'],
+                color=item['responseColor'] or self.responseColor,
                 colorSpace=self.colorSpace,
-                font='Arial',
+                font=item['font'] or self.font,
                 editable=True,
-                borderColor=self.colorScheme['fg'],
+                borderColor=item['responseColor'] or self.responseColor,
                 borderWidth=2,
-                fillColor=self.colorScheme['bg'],
+                fillColor=None,
                 onTextCallback=self._layoutY,
         )
 
@@ -596,14 +637,11 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         scroll = psychopy.visual.Slider(win=self.win,
                                       size=self._scrollBarSize,
                                       ticks=[0, 1],
-                                      style='slider',
+                                      style='scrollbar',
+                                      borderColor=self.responseColor,
+                                      fillColor=self.markerColor,
                                       pos=(self.rightEdge - .008, self.pos[1]),
                                       autoLog=False)
-        scroll.line.lineColor = self.colorScheme['bg']
-        scroll.line.fillColor = self.colorScheme['bg']
-        scroll.marker.lineColor = self.colorScheme['em']
-        scroll.marker.fillColor = self.colorScheme['em']
-
         return scroll
 
     def _setBorder(self):
@@ -620,8 +658,9 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                                     width=self.size[0],
                                     height=self.size[1],
                                     colorSpace=self.colorSpace,
-                                    fillColor=self.fillColor if self.fillColor is not None else self.colorScheme['bg'],
-                                    lineColor=self.borderColor if self.borderColor is not None else self.colorScheme['bg'],
+                                    fillColor=self.fillColor,
+                                    lineColor=self.borderColor,
+                                    opacity=None,
                                     autoLog=False)
 
     def _setAperture(self):
@@ -762,6 +801,10 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         """Draw decorations on form."""
         [decoration.draw() for decoration in self._decorations]
 
+    def _drawExternalDecorations(self):
+        """Draw decorations outside the aperture"""
+        [decoration.draw() for decoration in self._externalDecorations]
+
     def _drawCtrls(self):
         """Draw elements on form within border range.
 
@@ -780,11 +823,22 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 if self._inRange(element):
                     element.draw()
 
+    def setAutoDraw(self, value, log=None):
+        """Sets autoDraw for Form and any responseCtrl contained within
+        """
+        for i in self.items:
+            if i['responseCtrl']:
+                i['responseCtrl'].__dict__['autoDraw'] = value
+                self.win.addEditable(i['responseCtrl'])
+        BaseVisualStim.setAutoDraw(self, value, log)
+
     def draw(self):
         """Draw all form elements"""
         # Check mouse wheel
         self.scrollbar.markerPos += self.scrollbar.mouse.getWheelRel()[
                                         1] / self.scrollSpeed
+        # draw the box and scrollbar
+        self._drawExternalDecorations()
         # enable aperture
         self.aperture.enable()
         # draw the box and scrollbar
@@ -866,14 +920,137 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         return self.complete
 
     @property
+    def pos(self):
+        if hasattr(self, '_pos'):
+            return self._pos
+    @pos.setter
+    def pos(self, value):
+        self._pos = value
+        if hasattr(self, 'aperture'):
+            self.aperture.pos = value
+        if hasattr(self, 'border'):
+            self.border.pos = value
+        self.leftEdge = self.pos[0] - self.size[0] / 2.0
+        self.rightEdge = self.pos[0] + self.size[0] / 2.0
+        # Set horizontal position of elements
+        for item in self.items:
+            for element in [item['itemCtrl'], item['responseCtrl']]:
+                if element is None:  # e.g. because this has no resp obj
+                    continue
+                element.pos = [value[0], element.pos[1]]
+                element._baseY = value[1]
+                if hasattr(element, 'anchor'):
+                    element.anchor = 'top-center'
+        # Calculate new position for everything on the y axis
+        self.scrollbar.pos = (self.rightEdge - .008, self.pos[1])
+        self._layoutY()
+
+    @property
     def complete(self):
         """A read-only property to determine if the current form is complete"""
         self.getData()
         return self._complete
 
     @property
+    def foreColor(self):
+        """
+        Sets both `itemColor` and `responseColor` to the same value
+        """
+        return ColorMixin.foreColor.fget(self)
+
+    @foreColor.setter
+    def foreColor(self, value):
+        ColorMixin.foreColor.fset(self, value)
+        self.itemColor = value
+        self.responseColor = value
+
+    @property
+    def fillColor(self):
+        """
+        Color of the form's background
+        """
+        return ColorMixin.fillColor.fget(self)
+
+    @fillColor.setter
+    def fillColor(self, value):
+        ColorMixin.fillColor.fset(self, value)
+        if hasattr(self, "border"):
+            self.border.fillColor = value
+
+    @property
+    def borderColor(self):
+        """
+        Color of the line around the form
+        """
+        return ColorMixin.borderColor.fget(self)
+
+    @borderColor.setter
+    def borderColor(self, value):
+        ColorMixin.borderColor.fset(self, value)
+        if hasattr(self, "border"):
+            self.border.borderColor = value
+
+    @property
+    def itemColor(self):
+        """
+        Color of the text on form items
+        """
+        return self._itemColor
+
+    @itemColor.setter
+    def itemColor(self, value):
+        self._itemColor = value
+        # Set text color on each item
+        for item in self.items:
+            if 'itemCtrl' in item:
+                if isinstance(item['itemCtrl'], psychopy.visual.TextBox2):
+                    item['itemCtrl'].foreColor = value
+
+    @property
+    def responseColor(self):
+        """
+        Color of the lines and text on form responses
+        """
+        if hasattr(self, "_responseColor"):
+            return self._responseColor
+
+    @responseColor.setter
+    def responseColor(self, value):
+        self._responseColor = value
+        # Set line color on scrollbar
+        if hasattr(self, "scrollbar"):
+            self.scrollbar.borderColor = value
+        # Set line and label color on each item
+        for item in self.items:
+            if 'responseCtrl' in item:
+                if isinstance(item['responseCtrl'], psychopy.visual.Slider):
+                    item['responseCtrl'].borderColor = value
+                    item['responseCtrl'].foreColor = value
+
+    @property
+    def markerColor(self):
+        """
+        Color of the marker on any sliders in this form
+        """
+        if hasattr(self, "_markerColor"):
+            return self._markerColor
+
+    @markerColor.setter
+    def markerColor(self, value):
+        self._markerColor = value
+        # Set marker color on scrollbar
+        if hasattr(self, "scrollbar"):
+            self.scrollbar.fillColor = value
+        # Set marker color on each item
+        for item in self.items:
+            if 'responseCtrl' in item:
+                if isinstance(item['responseCtrl'], psychopy.visual.Slider):
+                    item['responseCtrl'].fillColor = value
+
+    @property
     def style(self):
-        return self._style
+        if hasattr(self, "_style"):
+            return self._style
 
     @style.setter
     def style(self, style):
@@ -892,25 +1069,19 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
         """
         self._style = style
-        # Default colours
-        self.colorScheme = {
-            'em': Color([0.89, -0.35, -0.28], 'rgb'),  # emphasis
-            'bg': Color([0,0,0], 'rgb'),  # background
-            'fg': Color([1,1,1], 'rgb'),  # foreground
-        }
-        if 'light' in style:
-            self.colorScheme = {
-                'em': Color([0.89, -0.35, -0.28], 'rgb'),  # emphasis
-                'bg': Color([0.89,0.89,0.89], 'rgb'),  # background
-                'fg': Color([-1,-1,-1], 'rgb'),  # foreground
-            }
-
-        if 'dark' in style:
-            self.colorScheme = {
-                'em': Color([0.89, -0.35, -0.28], 'rgb'),  # emphasis
-                'bg': Color([-0.19,-0.19,-0.14], 'rgb'),  # background
-                'fg': Color([0.89,0.89,0.89], 'rgb'),  # foreground
-            }
+        # If style is custom, skip the rest
+        if style in ['custom...', 'None', None]:
+            return
+        # If style is a string of a known style, use that
+        if style in self.knownStyles:
+            style = self.knownStyles[style]
+        # By here, style should be a dict
+        if not isinstance(style, dict):
+            return
+        # Apply each key in the style dict as an attr
+        for key, val in style.items():
+            if hasattr(self, key):
+                setattr(self, key, val)
 
     @property
     def values(self):

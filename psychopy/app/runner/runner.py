@@ -6,7 +6,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 import glob
 import json
-
+import errno
 from psychopy.app.themes._themes import ThemeSwitcher
 
 from ..themes import ThemeMixin
@@ -406,6 +406,64 @@ class RunnerFrame(wx.Frame, ThemeMixin):
 
 
 class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
+
+    class SizerButton(wx.ToggleButton):
+        """Button to show/hide a category of components"""
+
+        def __init__(self, parent, label, sizer):
+            # Initialise button
+            wx.ToggleButton.__init__(self, parent,
+                                     label="   " + label, size=(-1, 24),
+                                     style=wx.BORDER_NONE | wx.BU_LEFT)
+            self.parent = parent
+            # Link to category of buttons
+            self.menu = sizer
+            # Default states to false
+            self.state = False
+            self.hover = False
+            # Bind toggle function
+            self.Bind(wx.EVT_TOGGLEBUTTON, self.ToggleMenu)
+            # Bind hover functions
+            self.Bind(wx.EVT_ENTER_WINDOW, self.hoverOn)
+            self.Bind(wx.EVT_LEAVE_WINDOW, self.hoverOff)
+
+        def ToggleMenu(self, event):
+            # If triggered manually with a bool, treat that as a substitute for event selection
+            if isinstance(event, bool):
+                state = event
+            else:
+                state = event.GetSelection()
+            self.SetValue(state)
+            # Show / hide contents according to state
+            self.menu.Show(state)
+            # Do layout
+            self.parent.Layout()
+            # Restyle
+            self._applyAppTheme()
+
+        def hoverOn(self, event):
+            """Apply hover effect"""
+            self.hover = True
+            self._applyAppTheme()
+
+        def hoverOff(self, event):
+            """Unapply hover effect"""
+            self.hover = False
+            self._applyAppTheme()
+
+        def _applyAppTheme(self):
+            """Apply app theme to this button"""
+            if self.hover:
+                # If hovered over currently, use hover colours
+                self.SetForegroundColour(ThemeMixin.appColors['txtbutton_fg_hover'])
+                # self.icon.SetForegroundColour(ThemeMixin.appColors['txtbutton_fg_hover'])
+                self.SetBackgroundColour(ThemeMixin.appColors['txtbutton_bg_hover'])
+            else:
+                # Otherwise, use regular colours
+                self.SetForegroundColour(ThemeMixin.appColors['text'])
+                # self.icon.SetForegroundColour(ThemeMixin.appColors['text'])
+                self.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
+
     def __init__(self, parent=None, id=wx.ID_ANY, title='', app=None):
         super(RunnerPanel, self).__init__(parent=parent,
                                           id=id,
@@ -416,8 +474,6 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
                                           )
         ScriptProcess.__init__(self, app)
         self.Bind(wx.EVT_END_PROCESS, self.onProcessEnded)
-        #self.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
-        #self.SetForegroundColour(ThemeMixin.appColors['txt_default'])
 
         # double buffered better rendering except if retina
         self.SetDoubleBuffered(parent.IsDoubleBuffered())
@@ -456,28 +512,19 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
         _style = platebtn.PB_STYLE_DROPARROW | platebtn.PB_STYLE_SQUARE
         # Alerts
         self._selectedHiddenAlerts = False  # has user manually hidden alerts?
-        self.alertsToggleBtn = PsychopyPlateBtn(self, -1, _translate('Alerts'),
-                                          style=_style, name='Alerts')
-        # mouse event must be bound like this
-        self.alertsToggleBtn.Bind(wx.EVT_LEFT_DOWN, self.setAlertsVisible)
-        # mouse event must be bound like this
-        self.alertsToggleBtn.Bind(wx.EVT_RIGHT_DOWN, self.setAlertsVisible)
+
         self.alertsCtrl = StdOutText(parent=self,
                                      size=ctrlSize,
                                      style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE)
+        self.alertsToggleBtn = self.SizerButton(self, _translate("Alerts"), self.alertsCtrl)
 
         self.setAlertsVisible(True)
 
         # StdOut
-        self.stdoutToggleBtn = PsychopyPlateBtn(self, -1, _translate('Stdout'),
-                                          style=_style, name='Stdout')
-        # mouse event must be bound like this
-        self.stdoutToggleBtn.Bind(wx.EVT_LEFT_DOWN, self.setStdoutVisible)
-        # mouse event must be bound like this
-        self.stdoutToggleBtn.Bind(wx.EVT_RIGHT_DOWN, self.setStdoutVisible)
         self.stdoutCtrl = StdOutText(parent=self,
                                      size=ctrlSize,
                                      style=wx.TE_READONLY | wx.TE_MULTILINE | wx.BORDER_NONE)
+        self.stdoutToggleBtn = self.SizerButton(self, _translate("Stdout"), self.stdoutCtrl)
         self.setStdoutVisible(True)
 
         # Box sizers
@@ -686,6 +733,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
                                    stderr=PIPE,
                                    shell=False,
                                    universal_newlines=True,
+
                                    )
 
         time.sleep(.1)  # Wait for subprocess to start server
@@ -702,20 +750,23 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
 
         Useful for debugging, amending scripts.
         """
-        libPath = str(self.currentFile.parent / self.outputPath / 'lib')
-        ver = '.'.join(self.app.version.split('.')[:2])
+        libPath = self.currentFile.parent / self.outputPath / 'lib'
+        ver = '.'.join(self.app.version.split('.')[:3])
         psychoJSLibs = ['core', 'data', 'util', 'visual', 'sound']
 
-        os.path.exists(libPath) or os.makedirs(libPath)
-
-        if len(sorted(Path(libPath).glob('*.js'))) >= len(psychoJSLibs):  # PsychoJS lib files exist
-            print("##### PsychoJS lib already exists in {} #####\n".format(libPath))
-            return
+        try:  # ask-for-forgiveness rather than query-then-make
+            os.makedirs(libPath)
+        except OSError as e:
+            if e.errno != errno.EEXIST:  # we only want to ignore "exists", not others like permissions
+                raise  # raises the error again
 
         for lib in psychoJSLibs:
+            finalPath = libPath / ("{}-{}.js".format(lib, ver))
+            if finalPath.exists():
+                continue
             url = "https://lib.pavlovia.org/{}-{}.js".format(lib, ver)
             req = requests.get(url)
-            with open(libPath + "/{}-{}.js".format(lib, ver), 'wb') as f:
+            with open(finalPath, 'wb') as f:
                 f.write(req.content)
 
         print("##### PsychoJS libs downloaded to {} #####\n".format(libPath))
@@ -830,7 +881,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
         else:
             nAlerts = 0
         # update labels and text accordingly
-        self.alertsToggleBtn.SetLabelText(_translate("Alerts ({})").format(nAlerts))
+        self.alertsToggleBtn.SetLabelText("   " + _translate("Alerts ({})").format(nAlerts))
         sys.stdout.flush()
         sys.stdout = sys.stderr = prev
         if nAlerts == 0:

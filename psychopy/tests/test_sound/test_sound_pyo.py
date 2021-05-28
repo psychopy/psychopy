@@ -14,6 +14,7 @@ import numpy as np
 from psychopy import prefs, core
 from psychopy import sound, microphone
 from psychopy.tests.utils import TESTS_DATA_PATH
+from psychopy.tests import skip_under_vm
 from psychopy.constants import PY3
 
 if PY3:
@@ -25,6 +26,7 @@ origSoundPref = prefs.hardware['audioLib']
 
 
 @pytest.mark.needs_sound
+@skip_under_vm
 class TestPyo(object):
     @classmethod
     def setup_class(self):

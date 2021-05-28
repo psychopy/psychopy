@@ -483,7 +483,6 @@ def getKeys(keyList=None, modifiers=False, timeStamped=False):
                         .format(timeStamped, windowSystem, modifiers))
 
 
-
 def waitKeys(maxWait=float('inf'), keyList=None, modifiers=False,
              timeStamped=False, clearEvents=True):
     """Same as `~psychopy.event.getKeys`, but halts everything
@@ -868,7 +867,7 @@ class Mouse(object):
         Ideally, `shape` can be anything that has a `.contains()` method,
         like `ShapeStim` or `Polygon`. Not tested with `ImageStim`.
         """
-        wanted = numpy.zeros(3, dtype=numpy.int)
+        wanted = numpy.zeros(3, dtype=int)
         for c in buttons:
             wanted[c] = 1
         pressed = self.getPressed()

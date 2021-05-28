@@ -16,7 +16,6 @@ profiling = False  # turning on will save profile files in currDir
 
 import sys
 import argparse
-import platform
 import psychopy
 from psychopy import prefs
 from pkg_resources import parse_version
@@ -24,10 +23,9 @@ from psychopy.constants import PY3
 from . import urls
 from . import frametracker
 from . import themes
-from . import icons
+from . import console
 
 import io
-import json
 
 if not hasattr(sys, 'frozen'):
     try:
@@ -68,7 +66,6 @@ if not PY3 and sys.platform == 'darwin':
 else:
     blockTips = False
 
-travisCI = bool(str(os.environ.get('TRAVIS')).lower() == 'true')
 
 # Enable high-dpi support if on Windows. This fixes blurry text rendering.
 if sys.platform == 'win32':
@@ -93,7 +90,7 @@ class MenuFrame(wx.Frame, themes.ThemeMixin):
     """A simple empty frame with a menubar, should be last frame closed on mac
     """
 
-    def __init__(self, parent=None, ID=-1, app=None, title="PsychoPy3"):
+    def __init__(self, parent=None, ID=-1, app=None, title="PsychoPy"):
 
         wx.Frame.__init__(self, parent, ID, title, size=(1, 1))
         self.app = app
@@ -165,6 +162,7 @@ class _Showgui_Hack(object):
 
 
 class PsychoPyApp(wx.App, themes.ThemeMixin):
+    _called_from_test = False  # pytest needs to change this
 
     def __init__(self, arg=0, testMode=False, **kwargs):
         """With a wx.App some things get done here, before App.__init__
@@ -201,7 +199,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
             self._lastRunLog = open(os.path.join(
                     self.prefs.paths['userPrefsDir'], 'last_app_load.log'),
                     'w')
-            sys.stderr = sys.stdout = lastLoadErrs = self._lastRunLog
+            #sys.stderr = sys.stdout = lastLoadErrs = self._lastRunLog
             logging.console.setLevel(logging.DEBUG)
 
         # indicates whether we're running for testing purposes
@@ -229,10 +227,9 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         logging.flush()
 
         # set the exception hook to present unhandled errors in a dialog
-        if not travisCI:
+        if not PsychoPyApp._called_from_test:  #NB class variable not self
             from psychopy.app.errorDlg import exceptionCallback
             sys.excepthook = exceptionCallback
-
 
     def onInit(self, showSplash=True, testMode=False):
         """This is launched immediately *after* the app initialises with wx
@@ -355,6 +352,11 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
                 view.coder = True
                 view.runner = True
 
+        # set the dispatcher for standard output
+        self.stdStreamDispatcher = console.StdStreamDispatcher(self)
+        sys.stderr = self.stdStreamDispatcher
+        sys.stdout = self.stdStreamDispatcher
+
         # Create windows
         if view.runner:
             self.showRunner(fileList=runlist)
@@ -407,7 +409,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         # wx-windows on some platforms (Mac 10.9.4) with wx-3.0:
         v = parse_version
         if sys.platform == 'darwin':
-            if v('3.0') <= v(wx.version()) <v('4.0'):
+            if v('3.0') <= v(wx.version()) < v('4.0'):
                 _Showgui_Hack()  # returns ~immediately, no display
                 # focus stays in never-land, so bring back to the app:
                 if prefs.app['defaultView'] in ['all', 'builder', 'coder', 'runner']:
@@ -427,6 +429,11 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
             logging.console.setLevel(logging.INFO)
 
         return True
+
+    @property
+    def appLoaded(self):
+        """`True` if the app has been fully loaded (`bool`)."""
+        return self._appLoaded
 
     def _wizard(self, selector, arg=''):
         from psychopy import core
@@ -536,7 +543,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         # have to reimport because it is only local to __init__ so far
         from . import coder
         if self.coder is None:
-            title = "PsychoPy3 Coder (IDE) (v%s)"
+            title = "PsychoPy Coder (IDE) (v%s)"
             wx.BeginBusyCursor()
             self.coder = coder.CoderFrame(None, -1,
                                           title=title % self.version,
@@ -554,7 +561,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         # have to reimport because it is ony local to __init__ so far
         wx.BeginBusyCursor()
         from .builder.builder import BuilderFrame
-        title = "PsychoPy3 Experiment Builder (v%s)"
+        title = "PsychoPy Builder (v%s)"
         self.builder = BuilderFrame(None, -1,
                                  title=title % self.version,
                                  fileName=fileName, app=self)
@@ -588,14 +595,13 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
             self.runner.Raise()
             self.SetTopWindow(self.runner)
         # Runner captures standard streams until program closed
-        if self.runner and not self.testMode:
-            sys.stdout = self.runner.stdOut
-            sys.stderr = self.runner.stdOut
+        # if self.runner and not self.testMode:
+        #     sys.stderr = sys.stdout = self.stdStreamDispatcher
 
     def newRunnerFrame(self, event=None):
         # have to reimport because it is only local to __init__ so far
         from .runner.runner import RunnerFrame
-        title = "PsychoPy3 Experiment Runner (v{})".format(self.version)
+        title = "PsychoPy Runner (v{})".format(self.version)
         wx.BeginBusyCursor()
         self.runner = RunnerFrame(parent=None,
                              id=-1,
@@ -645,7 +651,11 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         Note: units are psychopy -1..+1 rgb units to three decimal places,
         preserving 24-bit color.
         """
-        dlg = PsychoColorPicker(None)  # doesn't need a parent
+        if self.coder is None:
+            return
+
+        document = self.coder.currentDoc
+        dlg = PsychoColorPicker(document)  # doesn't need a parent
         dlg.ShowModal()
         dlg.Destroy()
 
@@ -655,7 +665,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
     def openMonitorCenter(self, event):
         from psychopy.monitors import MonitorCenter
         self.monCenter = MonitorCenter.MainFrame(
-            None, 'PsychoPy3 Monitor Center')
+            None, 'PsychoPy Monitor Center')
         self.monCenter.Show(True)
 
     def terminateHubProcess(self):
@@ -780,7 +790,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         info.SetDescription(msg)
 
         info.SetCopyright('(C) 2002-2021 Jonathan Peirce')
-        info.SetWebSite('http://www.psychopy.org')
+        info.SetWebSite('https://www.psychopy.org')
         info.SetLicence(license)
         # developers
 

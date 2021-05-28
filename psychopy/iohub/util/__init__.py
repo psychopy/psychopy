@@ -1,18 +1,20 @@
-# Part of the psychopy.iohub library.
-# Copyright (C) 2012-2016 iSolver Software Solutions
+# -*- coding: utf-8 -*-
+# Part of the PsychoPy library
+# Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 from __future__ import division
 
 from builtins import object
 import sys
 import os
+import copy
 import inspect
 import warnings
 import numpy
 import numbers  # numbers.Integral is like (int, long) but supports Py3
 import datetime
-
 from ..errors import print2err
+import re
 
 ########################
 #
@@ -30,15 +32,6 @@ try:
 except ImportError:
     from collections import Iterable
 
-# Only turn on converting all strings to unicode by the YAML loader
-# if running Python 2.7 or higher. 2.6 does not seem to like unicode dict keys.
-# ???
-#
-if sys.version_info[0] != 2 or sys.version_info[1] >= 7:
-    def construct_yaml_unistr(self, node):
-        return self.construct_scalar(node)
-    yLoader.add_constructor(u'tag:yaml.org,2002:str', construct_yaml_unistr)
-
 
 def saveConfig(config, dst_path):
     '''
@@ -55,6 +48,36 @@ def readConfig(scr_path):
     '''
     return yload(open(scr_path, 'r'), Loader=yLoader)
 
+def mergeConfigurationFiles(base_config_file_path, update_from_config_file_path, merged_save_to_path):
+    """Merges two iohub configuration files into one and saves it to a file
+    using the path/file name in merged_save_to_path."""
+    base_config = yload(open(base_config_file_path, 'r'), Loader=yLoader)
+    update_from_config = yload(
+        open(
+            update_from_config_file_path,
+            'r'),
+        Loader=yLoader)
+
+    def merge(update, base):
+        if isinstance(update, dict) and isinstance(base, dict):
+            for k, v in base.items():
+                if k not in update:
+                    update[k] = v
+                else:
+                    if isinstance(update[k], list):
+                        if isinstance(v, list):
+                            v.extend(update[k])
+                            update[k] = v
+                        else:
+                            update[k].insert(0, v)
+                    else:
+                        update[k] = merge(update[k], v)
+        return update
+
+    merged = merge(copy.deepcopy(update_from_config), base_config)
+    ydump(merged, open(merged_save_to_path, 'w'), Dumper=yDumper)
+
+    return merged
 ########################
 
 
@@ -113,6 +136,136 @@ def module_directory(local_function):
 def isIterable(o):
     return isinstance(o, Iterable)
 
+
+# Get available device module paths
+def getDevicePaths(device_name=""):
+    """
+    """
+    from psychopy.iohub.devices import import_device
+    iohub_device_path = module_directory(import_device)
+    if device_name:
+        iohub_device_path = os.path.join(iohub_device_path, device_name.replace('.', os.path.sep))
+    scs_yaml_paths = []
+    for root, dirs, files in os.walk(iohub_device_path):
+        device_folder = None
+        for file in files:
+            if file == 'supported_config_settings.yaml':
+                device_folder = root
+                break
+        if device_folder:
+            for dfile in files:
+                if dfile.startswith("default_") and dfile.endswith('.yaml'):
+                    scs_yaml_paths.append((device_folder, dfile))
+    return scs_yaml_paths
+
+def getDeviceDefaultConfig(device_name, builder_hides=True):
+    """
+    Return the default iohub config dictionary for the given device(s). The dictionary contains the
+    (possibly nested) settings that should be displayed for the device (the dict item key) and the default value
+    (the dict item value).
+
+    Example:
+        import pprint
+        gp3_et_conf_defaults = getDeviceDefaultConfig('eyetracker.hw.gazepoint.gp3')
+        pprint.pprint(gp3_et_conf_defaults)
+
+    Output:
+        {'calibration': {'target_delay': 0.5, 'target_duration': 1.25},
+         'event_buffer_length': 1024,
+         'manufacturer_name': 'GazePoint',
+         'model_name': 'GP3',
+         'monitor_event_types': ['BinocularEyeSampleEvent',
+                                 'FixationStartEvent',
+                                 'FixationEndEvent'],
+         'network_settings': {'ip_address': '127.0.0.1', 'port': 4242},
+         'runtime_settings': {'sampling_rate': 60},
+         'save_events': True,
+         'stream_events': True}
+    """
+    if device_name.endswith(".EyeTracker"):
+        device_name = device_name[:-11]
+    device_paths = getDevicePaths(device_name)
+    device_configs = []
+    for dpath, dconf in device_paths:
+        dname, dconf_dict = list(readConfig(os.path.join(dpath, dconf)).items())[0]
+        if builder_hides:
+            to_hide = dconf_dict.get('builder_hides', [])
+            for param in to_hide:
+                if param.find('.') >= 0:
+                    # it is a nested param
+                    param_tokens = param.split('.')
+                    cdict = dconf_dict
+                    for pt in param_tokens[:-1]:
+                        cdict = cdict.get(pt)
+                    try:
+                        del cdict[param_tokens[-1]]
+                    except KeyError:
+                        # key does not exist
+                        pass
+                    except TypeError:
+                        pass
+                else:
+                    del dconf_dict[param]
+        device_configs.append({dname: dconf_dict})
+    if len(device_configs) == 1:
+        # simplify return value when only one device was requested
+        return list(device_configs[0].values())[0]
+    return device_configs
+
+def getDeviceNames(device_name="eyetracker.hw", get_paths=True):
+    """
+    Return a list of iohub eye tracker device names, as would be used as keys to launchHubServer. If get_paths is true,
+    return both device manufacturer name (for display in builder) as well as iohub device name.
+
+    Example:
+        eyetrackers = getDeviceNames()
+        print(eyetrackers)
+
+    Output:
+        [('GazePoint', 'eyetracker.hw.gazepoint.gp3.EyeTracker'),
+         ('MouseGaze', 'eyetracker.hw.mouse.EyeTracker'),
+         ('SR Research Ltd', 'eyetracker.hw.sr_research.eyelink.EyeTracker'),
+         ('Tobii Technology', 'eyetracker.hw.tobii.EyeTracker')]
+    """
+    names = []
+    dconfigs = getDeviceDefaultConfig(device_name)
+    for dcfg in dconfigs:
+        d_path = tuple(dcfg.keys())[0]
+        d_config = tuple(dcfg.values())[0]
+        if get_paths is False:
+            names.append(d_path)
+        else:
+            names.append((d_config.get('manufacturer_name'), d_path))
+    return names
+
+def getDeviceFile(device_name, file_name):
+    """
+    Returns the contents of file_name for the specified device. If file_name does not exist, None is returned.
+
+    :param device_name: iohub device name
+    :param: file_name: name of device yaml file to load
+    :return: dict
+    """
+    if device_name.endswith(".EyeTracker"):
+        device_name = device_name[:-11]
+    device_paths = getDevicePaths(device_name)
+    device_sconfigs = []
+    for dpath, _ in device_paths:
+        device_sconfigs.append(readConfig(os.path.join(dpath, file_name)))
+    if len(device_sconfigs) == 1:
+        # simplify return value when only one device was requested
+        return list(device_sconfigs[0].values())[0]
+    return device_sconfigs
+
+def getDeviceSupportedConfig(device_name):
+    """
+    Returns the contents of the supported_config_settings.yaml for the specified device.
+
+    :param device_name: iohub device name
+    :return: dict
+    """
+    return getDeviceFile(device_name, 'supported_config_settings.yaml')
+
 if sys.platform == 'win32':
     import pythoncom
 
@@ -134,12 +287,9 @@ else:
     def win32MessagePump():
         pass
 
-########################
-#
 # Recursive updating of values from one dict into another if the key does not key exist.
 # Supported nested dicts and uses deep copy when setting values in the
 # target dict.
-import copy
 
 
 def updateDict(add_to, add_from):
@@ -150,11 +300,7 @@ def updateDict(add_to, add_from):
             updateDict(add_to[key], value)
 
 
-########################
-#
 # Convert Camel to Snake variable name format
-
-import re
 first_cap_re = re.compile('(.)([A-Z][a-z]+)')
 all_cap_re = re.compile('([a-z0-9])([A-Z])')
 
@@ -165,15 +311,12 @@ def convertCamelToSnake(name, lower_snake=True):
         return all_cap_re.sub(r'\1_\2', s1).lower()
     return all_cap_re.sub(r'\1_\2', s1).upper()
 
-###############################################################################
-#
-## A couple date / time related utility functions
-#
+
+# A couple date / time related utility functions
 
 getCurrentDateTime = datetime.datetime.now
-getCurrentDateTimeString = lambda : getCurrentDateTime().strftime("%Y-%m-%d %H:%M")
+getCurrentDateTimeString = lambda: getCurrentDateTime().strftime("%Y-%m-%d %H:%M")
 
-########################
 
 class NumPyRingBuffer(object):
     """NumPyRingBuffer is a circular buffer implemented using a one dimensional
@@ -395,8 +538,7 @@ def generatedPointGrid(pixel_width, pixel_height, width_scalar=1.0,
 
     return points
 
-###############################################################################
-#
+
 # Rotate a set of points in 2D
 #
 # Rotate a set of n 2D points in the form [[x1,x1],[x2,x2],...[xn,xn]]
@@ -417,24 +559,3 @@ def rotate2D(pts, origin, ang=None):
                                   [-numpy.sin(ang),
                                    numpy.cos(ang)]])) + origin
 
-###############################################################################
-#
-# Verify the validity of a given Python package release number
-#
-
-try:
-    from verlib import suggest_normalized_version, NormalizedVersion
-
-    def validate_version(version):
-        rversion = suggest_normalized_version(version)
-        if rversion is None:
-            raise ValueError('Cannot work with "%s"' % version)
-        if rversion != version:
-            warnings.warn('"%s" is not a normalized version.\n'
-                          'It has been transformed into "%s" '
-                          'for interoperability.' % (version, rversion))
-        return NormalizedVersion(rversion)
-
-except Exception:
-    # just use the version provided if verlib is not installed.
-    validate_version = lambda version: version

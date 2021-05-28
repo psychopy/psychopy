@@ -17,6 +17,8 @@ from psychopy.constants import PY3
 from psychopy import __version__, logging
 
 # parse args for subprocess
+from psychopy.experiment.routines import BaseStandaloneRoutine
+
 parser = argparse.ArgumentParser(description='Compile your python file from here')
 parser.add_argument('infile', help='The input (psyexp) file to be compiled')
 parser.add_argument('--version', '-v', help='The PsychoPy version to use for compiling the script. e.g. 1.84.1')
@@ -45,7 +47,7 @@ def generateScript(experimentPath, exp, target="PsychoPy"):
     if sys.platform == 'win32':  # get name of executable
         pythonExec = sys.executable
     else:
-        pythonExec = sys.executable.replace(' ', '\ ')
+        pythonExec = sys.executable.replace(' ', r'\ ')
 
     filename = experimentPath
     if not PY3:  # encode path in Python2
@@ -163,15 +165,19 @@ def compileScript(infile=None, version=None, outfile=None):
         """
         # Leave original experiment unchanged.
         exp = deepcopy(exp)
-
-        for _, routine in list(exp.routines.items()):  # PY2/3 compat
-            for component in routine:
-                try:
-                    if component.params['disabled'].val:
-                        routine.removeComponent(component)
-                except KeyError:
-                    pass
-
+        for key, routine in list(exp.routines.items()):  # PY2/3 compat
+            if isinstance(routine, BaseStandaloneRoutine):
+                if routine.params['disabled'].val:
+                    for node in exp.flow:
+                        if node == routine:
+                            exp.flow.removeComponent(node)
+            else:
+                for component in routine:
+                    try:
+                        if component.params['disabled'].val:
+                            routine.removeComponent(component)
+                    except KeyError:
+                        pass
         return exp
 
     def _setTarget(outfile):

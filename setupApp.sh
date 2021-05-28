@@ -1,5 +1,6 @@
 #!/bin/sh
 
+
 # defVersion=$(python -c 'import psychopy; print(psychopy.__version__)')
 defVersion=$(<version)  # reads from the version file
 echo "DID YOU UPDATE THE CHANGELOG?"
@@ -18,6 +19,7 @@ rm psychopy/prefSite.cfg
 declare -a pythons=("python3.6")
 declare -a names=("PsychoPy")
 declare -a todo=(0) # or  (1 0) to do both
+TEST_ONLY=0
 
 for i in todo; do
     # mount the disk image and delete previous copy of app
@@ -46,17 +48,23 @@ for i in todo; do
     ditto --arch x86_64 dist/${names[$i]}__fat.app dist/${names[$i]}.app
 
     # built and stripped. Now mac codesign. Running in 2 steps to allow the detach step to work
-    ${pythons[$i]} building/apple_sign.py --app "${names[$i]}.app" --runPostDmgBuild 0
-    ${pythons[$i]} building/apple_sign.py --app "${names[$i]}.app" --runPreDmgBuild 0
+    if [ $TEST_ONLY == 1 ]
+    then
+      # skip notarize and skip post-build if not distributing
+      ${pythons[$i]} building/apple_sign.py --app "${names[$i]}.app" --runPostDmgBuild 0 --skipnotarize 1
+    else
+      ${pythons[$i]} building/apple_sign.py --app "${names[$i]}.app" --runPostDmgBuild 0
+      ${pythons[$i]} building/apple_sign.py --app "${names[$i]}.app" --runPreDmgBuild 0
+    fi
 
-    # mount the disk image and delete previous copy of app
-#    echo "cp -R ${names[$i]}.app /Volumes/PsychoPy"
-#    cp -R "${names[$i]}.app" "/Volumes/PsychoPy"
-#    hdiutil detach "/Volumes/PsychoPy"
-#    echo "removing prev dmg (although may not exist)"
-#    rm $dmgName
-#    echo "creating zlib-compressed dmg: $dmgName"
-#    hdiutil convert "StandalonePsychoPy3_tmpl.dmg" -format UDZO -o $dmgName
+    # mount the disk image and delete previous copy of app (this is now handled by the apple_sign script)
+    #    echo "cp -R ${names[$i]}.app /Volumes/PsychoPy"
+    #    cp -R "${names[$i]}.app" "/Volumes/PsychoPy"
+    #    hdiutil detach "/Volumes/PsychoPy"
+    #    echo "removing prev dmg (although may not exist)"
+    #    rm $dmgName
+    #    echo "creating zlib-compressed dmg: $dmgName"
+    #    hdiutil convert "StandalonePsychoPy3_tmpl.dmg" -format UDZO -o $dmgName
 
     osascript -e "set Volume 0.2"
     say -v kate "Finished building for ${pythons[$i]}"

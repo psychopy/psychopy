@@ -15,7 +15,7 @@ For the easiest installation download and install the Standalone package.
 
     let filename;
     let url;
-    let version='2020.2.10'
+    let version='2021.1.4'
 
     let clientInfo = UAParser(navigator.userAgent);
     var osLabel;
@@ -95,7 +95,7 @@ brew install
 
 On a MacOS machine, `brew` can be used to install PsychoPy::
 
-  brew cask install psychopy
+  brew install --cask psychopy
 
 .. _linux_install:
 

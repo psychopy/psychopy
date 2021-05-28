@@ -11,6 +11,8 @@ from __future__ import absolute_import, print_function
 
 from builtins import str, object, super
 from past.builtins import basestring
+from pathlib import Path
+from xml.etree.ElementTree import Element
 
 from psychopy import prefs
 from psychopy.constants import FOREVER
@@ -19,7 +21,7 @@ from psychopy.experiment.utils import CodeGenerationException
 from psychopy.experiment.utils import unescapedDollarSign_re
 from psychopy.experiment.params import getCodeFromParamStr
 from psychopy.alerts import alerttools
-from psychopy.colors import colorSpaces
+from psychopy.colors import nonAlphaSpaces
 
 from psychopy.localization import _translate, _localized
 
@@ -28,8 +30,11 @@ class BaseComponent(object):
     """A template for components, defining the methods to be overridden"""
     # override the categories property below
     # an attribute of the class, determines the section in the components panel
+
     categories = ['Custom']
-    targets = ['PsychoPy']
+    targets = []
+    iconFile = Path(__file__).parent / "unknown" / "unknown.png"
+    tooltip = ""
 
     def __init__(self, exp, parentName, name='',
                  startType='time (s)', startVal='',
@@ -50,6 +55,7 @@ class BaseComponent(object):
          "true": "enable",  # what to do with param if condition is True
          "false": "disable",  # permitted: hide, show, enable, disable
          }"""
+        self.order = ['name', 'startVal', 'startEstim', 'startType', 'stopVal', 'durationEstim', 'stopType']  # name first, then timing, then others
 
         msg = _translate(
             "Name of this component (alpha-numeric or _, no spaces)")
@@ -74,12 +80,12 @@ class BaseComponent(object):
             label=_localized['stopType'])
 
         self.params['startVal'] = Param(startVal,
-            valType='num', inputType="single", categ='Basic',
+            valType='code', inputType="single", categ='Basic',
             hint=_translate("When does the component start?"), allowedTypes=[],
             label=_localized['startVal'])
 
         self.params['stopVal'] = Param(stopVal,
-            valType='num', inputType="single", categ='Basic',
+            valType='code', inputType="single", categ='Basic',
             updates='constant', allowedUpdates=[], allowedTypes=[],
             hint=_translate("When does the component end? (blank is endless)"),
             label=_localized['stopVal'])
@@ -87,14 +93,14 @@ class BaseComponent(object):
         msg = _translate("(Optional) expected start (s), purely for "
                          "representing in the timeline")
         self.params['startEstim'] = Param(startEstim,
-            valType='num', inputType="single", categ='Basic',
+            valType='code', inputType="single", categ='Basic',
             hint=msg,allowedTypes=[],
             label=_localized['startEstim'])
 
         msg = _translate("(Optional) expected duration (s), purely for "
                          "representing in the timeline")
         self.params['durationEstim'] = Param(durationEstim,
-            valType='num', inputType="single", categ='Basic',
+            valType='code', inputType="single", categ='Basic',
             hint=msg, allowedTypes=[],
             label=_localized['durationEstim'])
 
@@ -118,7 +124,20 @@ class BaseComponent(object):
             hint=msg, allowedTypes=[],
             label=_translate('Disable component'))
 
-        self.order = ['name']  # name first, then timing, then others
+    @property
+    def xml(self):
+        # Make root element
+        element = Element(self.__class__.__name__)
+        element.set("name", self.params['name'].val)
+        # Add an element for each parameter
+        for key, param in sorted(self.params.items()):
+            # Create node
+            paramNode = param.xml
+            paramNode.set("name", key)
+            # Add node
+            element.append(paramNode)
+
+        return element
 
     def integrityCheck(self):
         """
@@ -574,8 +593,11 @@ class BaseComponent(object):
 class BaseVisualComponent(BaseComponent):
     """Base class for most visual stimuli
     """
-    # an attribute of the class, determines section in the components panel
+
     categories = ['Stimuli']
+    targets = []
+    iconFile = Path(__file__).parent / "unknown" / "unknown.png"
+    tooltip = ""
 
     def __init__(self, exp, parentName, name='',
                  units='from exp settings', color='white', fillColor="", borderColor="",
@@ -630,7 +652,7 @@ class BaseVisualComponent(BaseComponent):
                          "the colors? (rgb, dkl, lms, hsv)")
         self.params['colorSpace'] = Param(colorSpace,
             valType='str', inputType="choice", categ='Appearance',
-            allowedVals=['named', 'rgb', 'dkl', 'lms', 'hsv'],
+            allowedVals=['rgb', 'dkl', 'lms', 'hsv'],
             updates='constant',
             hint=msg,
             label=_localized['colorSpace'])

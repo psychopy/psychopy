@@ -1,135 +1,135 @@
 Changelog
-====================
+=========
 
-PsychoPy 2020.2.10
-------------------
+PsychoPy uses **major.minor.patch** version numbers:
 
-FIXES:
+- All changes to **major.minor** numbers indicate that changes are expected to change the behavior of PsychoPy experiments
+- Changes to the **patch** version number are relativel minor bug fixes and we hope they do not change behavior
 
-- Fixed rendering of TextBox2 following Big Sur update of 2020.2.7 #0fcb89c54 #39777a3e0 #1aec9abb9
-- Fixed handling of continueRoutine=False in BeginExperiment of online studies #ae20cb12f
-- Erroneous warnings about code being used as parameters #40bbfe1a3
+Updating without breaking existing studies
+------------------------------------------
 
-PsychoPy 2020.2.9
------------------
+We **strongly recommend** that, once your experiment is finished and is being run "for real",
+that you apply the :ref:`useVersion <useVersion>` setting so that your study will always try
+to run on the same PsychoPy version even where a different version is installed on the computer.
+That setting often even allows PsychoPy to run experiments from versions that have not yet
+been installed! If the dependencies haven't changed it will run.
 
-FIXES:
 
-- TextBox2 broke in 2020.2.8 due to switch from PyOpenGL to pyglet.gl in text rendering #39777a3e0 #1aec9abb9
-- Fixed error Unknown colorSpace: 'Named' #da234cc46
-- Superfluous debug messages from ioHub when no key pressed #9589e4865
+PsychoPy 2021.1
+---------------
 
-PsychoPy 2020.2.10
-------------------
+The first major release of 2021 brings a lot of fixes (the dev team is focussing heavily on making the user experience more smooth at the moment).
 
-Further fixes on top of the [new features in 2020.2](https://www.psychopy.org/changelog.html#psychopy-2020-2):
+On top of those fixes are a number of useful additions though, like the new :ref:`buttonComponent`.
 
-- Fixed rendering of TextBox2 following Big Sur update of 2020.2.7 #0fcb89c54 #39777a3e0 #1aec9abb9
-- Fixed handling of `continueRoutine=False` in BeginExperiment of online studies #ae20cb12f41
-- Erroneous warnings about code being used as parameters #40bbfe1a3
+NEW:
 
-PsychoPy 2020.2.9
------------------
+- Builder has a :ref:`buttonComponent` to make it easier to have clickable image/text objects
+- Builder: Improved layout of Component dialogs:
+  
+    - Consistent tabs for common parameters (like pos, size, color...)
+    - Component parameters that use filenames (sounds, images, etc.) now have a Browse... button
+    - Component parameters that use Excel files now have an “open in Excel” button, if you click this when the field is blank it will open a pre-made template for you
+    - Component parameters that are colors now have a button to open the color picker
 
-Further fixes on top of the [new features in 2020.2](https://www.psychopy.org/changelog.html#psychopy-2020-2):
+- Builder now features separate compile buttons for JS and Py and will open the JS file in the Coder view when compiled
+- Builder readme files now support markdown formatting (and .md extensions) psychopy/psychopy#3377
+- PsychoPy lib: refactored color handling via the :class:`~psychopy.colors.Color` class
 
-- Fixed error Unknown colorSpace: 'Named' #da234cc46
-- Superfluous debug messages from ioHub when no key pressed #9589e4865
+CHANGES (compatibility issues):
 
-PsychoPy 2020.2.8
------------------
+- CHANGED: the new more-flexible parameters of PsychoPy Experiment Components makes experiments from 2021.1 **will not run** on older versions of PsychoPy. If you share your study with people using older versions make sure you set the :ref:`useVersion` setting to be 2021.1.0 or upwards so that it will run elsewhere
+- CHANGED: PsychoJS: orientation for PsychoJS now follows clock convention rather than engineering convention (polar coordinates, positive rotation is anti-clockwise) whereas PsychoPy used the clock convention. From this release onwards both use the clock convention or orientation/rotation.
+- CHANGED: Slider has additional params for colors and fonts of lines/labels/marker that will not exist on older installations
+- CHANGED: BufferImageStim was using an incorrect rect specification for selecting the region of the screen - it was using a bottom-left instead of PsychoPy standard center #3597
 
-FIXES:
-
-- support for macOS 11.1 Big Sur (updated mac pyglet to 1.5.11 and mac Python to 3.6.8)
-- fixed default blank text in textBox for online studies actually showing a pair of quotes #786e1d3f7
-- flag to alphabetically sort Exp Info fields was being set always true #3279
-- Position and Size params for Form Component were being requested twice #d45ca99c9
-- fixed annoying (but harmless) error 'ModuleNotFoundError: import of pyglet halted; None in sys.modules' 
-- further fixes to Runner not showing print() statements #e0ec67e6f
-- Routine panels now support mouse scroll wheel to navigate #6da3707d3
-
-PsychoPy 2020.2.7
------------------
-
-(Binaries never released)
-
-PsychoPy 2020.2.6
------------------
+PsychoPy 2021.1.0
+~~~~~~~~~~~~~~~~~~
 
 FIXES:
 
-- missing resource error in some online experiments, caused by incorrect relative relative paths in Settings>Online>Resources #3285
-- JavaScript Code Components for Before Experiment is now moved earlier in the script - it needed to be positioned before first function opens #3289
-- TextBox was missing setBorderColor and setFillColor so these needed code to change dynamically #eb915732d
-- TextBox was carrying the text from one trial into the next #330f5fa1d
-- Coder FoldAll menu item was having no effect #6d4f66b0d
-- TextStim opacity can now be set dynamically #1045
-- Loop OK button was sometimes left disabled if invalid inputs #3a1104f71
-- fixed non-uniform probabilities of conditions file row selection suggested in docs #3256
-- workaround for scipy.optimize import error on windows machines that are using BitLocker #3287
-- if a TextBox is the only editable thing on the screen then give it focus #3269
+- All: Curly quotation marks (“”), which are sometimes automatically put into text boxes by MacOS and certain keyboard settings, will now be automatically replaced with regular quotation marks (“) when in code. To use curly quotation marks still, you can “escape” them by putting a \ before them.
+- Lib: Fixed syntax warnings on Python 3.8 #3344
+- Lib: The Pygame audio backend can be used again. #3382
+- Lib: Several fixes to iohub ( #3348, #3399, #3412, commit psychopy/psychopy/3912167)
+- Builder/Coder: Fixed the error raised when the “Plot gamma” button in the monitor center is clicked but no calibration data is loaded. #3384 
+- Coder/Builder: Correct detection of retina/high-dpi displays within wxPython on MacOS, Linux, and Windows.
+- Python Lib: TextBox stim text layout not working on linux and macOS.
+- Python Lib: various minor fixes to TextBox2
+- Coder: Miscellaneous bug fixes to demos/coder/stimuli example scripts.
+- Coder: Fixed a possible error when parsing code to build the source tree.
+- Coder: Handle error caused when closing editor tabs.
+- Builder: The “Routine” pane can no longer be-  moved which broke the builder interface.
+- Coder: Make Coder's default size reasonable on fresh install. #3472
+- Coder: Bug where opening an unsupported file type raises an error. #3519
+- Coder: Fixed bug where the source tree raises and error if it comes across things it cannot correctly parse.
+- Online: Prevent Safari from beeping in full screen. psychopy/psychojs#266
+- Online: Slider sizing, tick placement, and event handling improvements. #249 #263 #264
+- Online: Fixed ShapeStim instances ignoring the closeShape property. psychopy/psychojs#245
+- Online: Support `TrialHandler.Method.FULLRANDOM`. psychopy/psychojs#247
+- Online: Improved mouse event accuracy overall. psychopy/psychojs#248
+- Online: Fixed ShapeStim variants ignoring the contrast property. psychopy/psychojs#250
+- Online: Fixed an issue translating ‘\n’ encoded line breaks when importing conditions files. psychopy/psychojs#251
+- Online: Fixed TextBox click handling. psychopy/psychojs#258
+- Online: Improved MovieStim autoplay. psychopy/psychojs#260
+- Online: Allow for parsing of array-like strings when setting VisualStim position or size. psychopy/psychojs#262
+- Online: Prevent Safari from beeping in full screen. psychopy/psychojs#266
 
-PsychoPy 2020.2.5
------------------
-
-FIXES:
-
-- Now code-signing the installer on Windows as well as macOS
-- Failing to send print statements to output, depending on how PsychoPy was launched #4773ec32dcf Only occurred if you launch by double-clicking file or if you close Runner
-- Coder crashing on macOS when using editor with autocomplete=True #687e81dfb
-- ioHub fix for unicode strings #5451ea49a
-- Marker color on RatingScale was not resetting (but use Slider anyway!) #3140
-- Runner sometimes ran wrong script (and never knew which to stop). Now better tracking of running process #3142
-- Slider not honoring the order from the Routine (should render in order from top down) #9e0299544
-- JavaScript Code Components for Before Experiment were having no effect #3151
-- error with trying to poll() on a script process that was NoneType #cc56713cc
-- Editable textboxes were still able to be drawn if you clicked on them (even when they were not told to draw()) #8253f0696
-- warn against using global JS names in experiment #3177
-- Brush not being reset in JavaScript #88812c3bd
-- Movie reset issue #3183
-- countinueRoutine=False had no effect for online studies if in Begin Routine block
-- errors that should have appeared in the console were sometimes appearing in the (app) error dialog #d44f24d63
-- more tolerant of whitespace in Emotiv Client ID file
-- Runner AddTask dialog had wrong format for file filter #3213
-- Sound volume attribute was having no effect on the PTB backend #3215
-- Fixed fill/line colors of TextBox #3222
-- Error in JavaScript code when Movie Component had blank stop time #0b4ddcffc
-- Better handling of stdout encodings when console not set to utf-8 encoding #d77535906
-- Improved Resources box for the online (using relative references #c9558bfd8 and resize with dialog #d607271db)
-- JavaScript code-conversion now uses our own built-in `round()` function mimicking the same function in Python #da426d9e37e
-
-PsychoPy 2020.2.4
------------------
+PsychoPy 2021.1.1
+~~~~~~~~~~~~~~~~~~
 
 FIXES:
 
-- improved search for resources files whne compiling JS (was crashing if using root folder and using code to specify the conditions file) #09816985d5
-- the `Before Experiment` section of Code Components wasn't being written for JavaScript components #bbfd310
-- error with wx complaining about Alignment (in wx 4.1) #a32e2ca #ae508d6
-- TextBox Component default size is None (=autoexpand)
-- TextBox `editable=True` had no effect on the Builder outputs to JavaScript
-- themes menu correctly updates what thte current them is in all open windows #c5cdc49
-- custom fonts that didn't provide a "family name" were causing the font search to crash #ef078ab
-- bug trying to us an invalid "useRunner" preference 3532e4c
-- JavaScript studies failed if there were 2 Mouse Components in a single Routine #0e0b26d4dcc #32a6be2
-- improved Big Five Inventory demo
-- blank TextBox Component should use blank string rather than None #39bf1bb
-- further fix to macOS stapling (might not have worked for users with no internet connection?)
-- Form Component now honors being set to show only at certain times (in keeping with other visual Components) #35ad5bc
-- Coder now correctly providing syntax styling for JS and C
+- Error when trying to sync a new project with Pavlovia #33b3d80ea
+- TextBox in Builder was resetting to "default text" on each repeat rather than blank #8510d9f1a
+- Editable elements of Form were being erroneously drawn when they fell beyond the Form boundary #7d02c8251
+- Several improvements to styling of Form (on Python)
+- Added a preference for Builder to show only the online-compatible Components (or other similar options). This is a BETA testing feature
 
-PsychoPy 2020.2.3
------------------
+PsychoPy 2021.1.2
+~~~~~~~~~~~~~~~~~~
 
 FIXES:
 
-- **Mac version now fully signed and notarized for GateKeeper!** For some time it's been an annoyance that Apple would block PsychoPy because of it not being from a "known developer" but in recent updates GateKeeper has become so aggressive the app has been crashing on startup for some macOS versions. Hopefully Apple will now let us launch in peace!
-- **better handling of non-loading fonts in the application** On mac some fonts weren't being found (although this *might* be due to the now-solved gatekeeper issue)
-- **auto-translate py->js for parameters with $** We were translating code components but not parameter boxes where the user was switching to code using $  #3064
-- better handling when a piece of code fails to convert (warning not error) #3063
-- show progress (in Runner) while syncing project with Pavlovia #3061
-- various fixes and additions to Japanese translations
+- Code Components were raising an error when trying to generate JS code #3643
+- Slider styles weren't generating correct JS code
+- New Button component (Python only) was not cleaning previous clicks so they tended to act as if clicking all trials! #3641
+
+PsychoPy 2021.1.3
+~~~~~~~~~~~~~~~~~~
+
+FIXES:
+
+- Builder: Fix `'list' object has no attribute 'contains'` with clickable mouse objects #3651
+- Builder: context (right-click) menu was not aligned with mouse in Flow for large Flows #3657
+- Builder: Slider styles were not being used correctly from previous versions (<2021.0) #3665
+- Builder: crash if the filter preference was used to filter out pure Python or pure JS Components from Builder #3649
+- Builder: Color Picker defaults to RGB to reduce chance of users pasting in RGBA to visual Components  #3667
+- Runner: local debug of online studies working again (was trying to fetch the wrong PsychoJS version) #af6622c712
+- PsychoPy lib: better handling of unknown fonts (fall back to Open Sans and Alert) #fba09ef8d0a
+- PsychoPy lib: better timing on iohub for macOS key/mouse polling #fba09ef8d0a
+
+PsychoPy 2021.1.4
+~~~~~~~~~~~~~~~~~~
+
+FIXES:
+
+- Py Lib: Sounds from files were being truncated #3689
+- Py Lib: TrialHandlerExt now compatible with current numpy (had an index error before) #3705
+- Py Lib: MoviStim raising an error if opacity was None #50334df2f
+- Py Lib: RIFT backend not working #428f62f80
+- Builder: When letter height was set to a variable it raised an error at run time `TypeError: len() of unsized object` #b1a77ca3a
+- Builder: Raising an error when floats looking like file names #3719
+- Builder: better handling of failure to updateVersion #afec41226
+- JS: TextBox when editable was not being reset on each trial #3706
+- JS: Keyboard should stop consuming keypresses at end of trial, even if not storing data #3706
+- JS: Add Sound.setSound() method to allow for dynamically deciding audio source psychopy/psychojs#154
+- JS: Allow for PIXI updates when dynamically adjusting opacity, including on polygons psychopy/psychojs#203
+- JS: Give Form radio type support psychopy/psychojs#281
+- JS: Improve ImageStim.setImage() attribute checking psychopy/psychojs#292
+- JS: Give TrackPlayer fades on play / stop psychopy/psychojs#296
+- JS: Fix TextBox eating up key presses psychopy/psychojs#302
 
 PsychoPy 2020.2
 -----------------
@@ -184,6 +184,120 @@ FIXES:
 
 - support for wxPython 4.1
 - so many more small fixes!
+
+PsychoPy 2020.2.10
+~~~~~~~~~~~~~~~~~~
+
+Further fixes on top of the `new features in 2020.2 <https://www.psychopy.org/changelog.html#psychopy-2020-2>`_:
+
+- Fixed rendering of TextBox2 following Big Sur update of 2020.2.7 #0fcb89c54 #39777a3e0 #1aec9abb9
+- Fixed handling of `continueRoutine=False` in BeginExperiment of online studies #ae20cb12f41
+- Erroneous warnings about code being used as parameters #40bbfe1a3
+
+PsychoPy 2020.2.9
+~~~~~~~~~~~~~~~~~
+
+Further fixes on top of the `new features in 2020.2 <https://www.psychopy.org/changelog.html#psychopy-2020-2>`_:
+
+- TextBox2 broke in 2020.2.8 due to switch from PyOpenGL to pyglet.gl in text rendering #39777a3e0 #1aec9abb9
+- Fixed error Unknown colorSpace: 'Named' #da234cc46
+- Superfluous debug messages from ioHub when no key pressed #9589e4865
+
+PsychoPy 2020.2.8
+~~~~~~~~~~~~~~~~~
+
+Further fixes on top of the `new features in 2020.2 <https://www.psychopy.org/changelog.html#psychopy-2020-2>`_:
+
+- support for macOS 11.1 Big Sur (updated mac pyglet to 1.5.11 and mac Python to 3.6.8)
+- fixed default blank text in textBox for online studies actually showing a pair of quotes #786e1d3f7
+- flag to alphabetically sort Exp Info fields was being set always true #3279
+- Position and Size params for Form Component were being requested twice #d45ca99c9
+- fixed annoying (but harmless) error 'ModuleNotFoundError: import of pyglet halted; None in sys.modules' 
+- further fixes to Runner not showing print() statements #e0ec67e6f
+- Routine panels now support mouse scroll wheel to navigate #6da3707d3
+
+PsychoPy 2020.2.7
+-----------------
+
+(Binaries never released)
+
+PsychoPy 2020.2.6
+~~~~~~~~~~~~~~~~~
+
+FIXES:
+
+- missing resource error in some online experiments, caused by incorrect relative relative paths in Settings>Online>Resources #3285
+- JavaScript Code Components for Before Experiment is now moved earlier in the script - it needed to be positioned before first function opens #3289
+- TextBox was missing setBorderColor and setFillColor so these needed code to change dynamically #eb915732d
+- TextBox was carrying the text from one trial into the next #330f5fa1d
+- Coder FoldAll menu item was having no effect #6d4f66b0d
+- TextStim opacity can now be set dynamically #1045
+- Loop OK button was sometimes left disabled if invalid inputs #3a1104f71
+- fixed non-uniform probabilities of conditions file row selection suggested in docs #3256
+- workaround for scipy.optimize import error on windows machines that are using BitLocker #3287
+- if a TextBox is the only editable thing on the screen then give it focus #3269
+
+PsychoPy 2020.2.5
+~~~~~~~~~~~~~~~~~
+
+FIXES:
+
+- Now code-signing the installer on Windows as well as macOS
+- Failing to send print statements to output, depending on how PsychoPy was launched #4773ec32dcf Only occurred if you launch by double-clicking file or if you close Runner
+- Coder crashing on macOS when using editor with autocomplete=True #687e81dfb
+- ioHub fix for unicode strings #5451ea49a
+- Marker color on RatingScale was not resetting (but use Slider anyway!) #3140
+- Runner sometimes ran wrong script (and never knew which to stop). Now better tracking of running process #3142
+- Slider not honoring the order from the Routine (should render in order from top down) #9e0299544
+- JavaScript Code Components for Before Experiment were having no effect #3151
+- error with trying to poll() on a script process that was NoneType #cc56713cc
+- Editable textboxes were still able to be drawn if you clicked on them (even when they were not told to draw()) #8253f0696
+- warn against using global JS names in experiment #3177
+- Brush not being reset in JavaScript #88812c3bd
+- Movie reset issue #3183
+- countinueRoutine=False had no effect for online studies if in Begin Routine block
+- errors that should have appeared in the console were sometimes appearing in the (app) error dialog #d44f24d63
+- more tolerant of whitespace in Emotiv Client ID file
+- Runner AddTask dialog had wrong format for file filter #3213
+- Sound volume attribute was having no effect on the PTB backend #3215
+- Fixed fill/line colors of TextBox #3222
+- Error in JavaScript code when Movie Component had blank stop time #0b4ddcffc
+- Better handling of stdout encodings when console not set to utf-8 encoding #d77535906
+- Improved Resources box for the online (using relative references #c9558bfd8 and resize with dialog #d607271db)
+- JavaScript code-conversion now uses our own built-in `round()` function mimicking the same function in Python #da426d9e37e
+
+PsychoPy 2020.2.4
+~~~~~~~~~~~~~~~~~~~~~~
+
+FIXES:
+
+- improved search for resources files whne compiling JS (was crashing if using root folder and using code to specify the conditions file) #09816985d5
+- the `Before Experiment` section of Code Components wasn't being written for JavaScript components #bbfd310
+- error with wx complaining about Alignment (in wx 4.1) #a32e2ca #ae508d6
+- TextBox Component default size is None (=autoexpand)
+- TextBox `editable=True` had no effect on the Builder outputs to JavaScript
+- themes menu correctly updates what thte current them is in all open windows #c5cdc49
+- custom fonts that didn't provide a "family name" were causing the font search to crash #ef078ab
+- bug trying to us an invalid "useRunner" preference 3532e4c
+- JavaScript studies failed if there were 2 Mouse Components in a single Routine #0e0b26d4dcc #32a6be2
+- improved Big Five Inventory demo
+- blank TextBox Component should use blank string rather than None #39bf1bb
+- further fix to macOS stapling (might not have worked for users with no internet connection?)
+- Form Component now honors being set to show only at certain times (in keeping with other visual Components) #35ad5bc
+- Coder now correctly providing syntax styling for JS and C
+
+PsychoPy 2020.2.3
+~~~~~~~~~~~~~~~~~~~~~~
+
+FIXES:
+
+- **Mac version now fully signed and notarized for GateKeeper!** For some time it's been an annoyance that Apple would block PsychoPy because of it not being from a "known developer" but in recent updates GateKeeper has become so aggressive the app has been crashing on startup for some macOS versions. Hopefully Apple will now let us launch in peace!
+- **better handling of non-loading fonts in the application** On mac some fonts weren't being found (although this *might* be due to the now-solved gatekeeper issue)
+- **auto-translate py->js for parameters with $** We were translating code components but not parameter boxes where the user was switching to code using $  #3064
+- better handling when a piece of code fails to convert (warning not error) #3063
+- show progress (in Runner) while syncing project with Pavlovia #3061
+- various fixes and additions to Japanese translations
+
 
 PsychoPy 2020.1
 ----------------
@@ -848,7 +962,7 @@ PsychoPy 1.85.0
 Released: Feb 2017
 
 ADDED:
-    * `Online experiments now supported <http://www.psychopy.org/online/online.html>`_ using new `PsychoJS library <https://github.com/psychopy/psychopy/tree/master/psychojs>`_. See what is supported so far at `PsychoPy online status <http://www.psychopy.org/online/status.html>`_
+    * `Online experiments now supported <https://www.psychopy.org/online/online.html>`_ using new `PsychoJS library <https://github.com/psychopy/psychopy/tree/master/psychojs>`_. See what is supported so far at `PsychoPy online status <https://www.psychopy.org/online/status.html>`_
     * New sound engine using `sounddevice <https://github.com/spatialaudio/python-sounddevice/>`_
     * Checking of image paths for stimuli (did you forget to add ".jpg"?)
     * Copy/paste of a Component is now possible in Builder (right-click the component to copy, use the Experiment menu to paste). This essentially duplicates the component.

@@ -18,6 +18,8 @@ The code that writes out a *_lastrun.py experiment file is (in order):
 
 from __future__ import absolute_import, print_function
 from builtins import object
+from xml.etree.ElementTree import Element
+
 # from future import standard_library
 
 from psychopy.experiment import getInitVals
@@ -592,6 +594,27 @@ class LoopInitiator(object):
         self.exp = loop.exp
         loop.initiator = self
 
+    @property
+    def xml(self):
+        # Make root element
+        element = Element("LoopInitiator")
+        element.set("loopType", self.loop.__class__.__name__)
+        element.set("name", self.loop.params['name'].val)
+        # Add an element for each parameter
+        for key, param in sorted(self.loop.params.items()):
+            # Create node
+            paramNode = Element("Param")
+            paramNode.set("name", key)
+            # Assign values
+            if hasattr(param, 'updates'):
+                paramNode.set('updates', "{}".format(param.updates))
+            if hasattr(param, 'val'):
+                paramNode.set('val', u"{}".format(param.val).replace("\n", "&#10;"))
+            if hasattr(param, 'valType'):
+                paramNode.set('valType', param.valType)
+            element.append(paramNode)
+        return element
+
     def getType(self):
         return 'LoopInitiator'
 
@@ -624,6 +647,14 @@ class LoopTerminator(object):
         self.loop = loop
         self.exp = loop.exp
         loop.terminator = self
+
+    @property
+    def xml(self):
+        # Make root element
+        element = Element("LoopTerminator")
+        element.set("name", self.loop.params['name'].val)
+
+        return element
 
     def getType(self):
         return 'LoopTerminator'

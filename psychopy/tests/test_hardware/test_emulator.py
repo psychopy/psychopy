@@ -23,7 +23,7 @@ BASE_MR_SETTINGS = {
     'skip': 1     # number of volumes lacking a sync pulse at start of scan (for T1 stabilization)
     }
 
-pytest.mark.emulator
+@pytest.mark.emulator
 class TestLaunchScan(object):
     '''A base class to test launchScan with different MR_settings'''
     def setup(self):

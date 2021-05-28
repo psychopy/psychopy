@@ -8,16 +8,11 @@
 from __future__ import absolute_import, print_function
 
 from os import path
+from pathlib import Path
 from psychopy.experiment.components import BaseVisualComponent, Param, \
     getInitVals, _translate
 from psychopy.localization import _localized as __localized
 _localized = __localized.copy()
-
-# the absolute path to the folder containing this path
-thisFolder = path.abspath(path.dirname(__file__))
-iconFile = path.join(thisFolder, 'grating.png')
-tooltip = _translate('Grating: present cyclic textures, prebuilt or from a '
-                     'file')
 
 # only use _localized values for label values, nothing functional:
 _localized.update({'tex': _translate('Texture'),
@@ -31,6 +26,12 @@ _localized.update({'tex': _translate('Texture'),
 
 class GratingComponent(BaseVisualComponent):
     """A class for presenting grating stimuli"""
+
+    categories = ['Stimuli']
+    targets = ['PsychoPy']
+    iconFile = Path(__file__).parent / 'grating.png'
+    tooltip = _translate('Grating: present cyclic textures, prebuilt or from a '
+                         'file')
 
     def __init__(self, exp, parentName, name='grating', image='sin',
                  mask='', sf='', interpolate='linear',
@@ -48,7 +49,7 @@ class GratingComponent(BaseVisualComponent):
             startEstim=startEstim, durationEstim=durationEstim)
 
         self.type = 'Grating'
-        self.url = "http://www.psychopy.org/builder/components/grating.html"
+        self.url = "https://www.psychopy.org/builder/components/grating.html"
         self.order += [
             'tex', 'mask', 'phase', 'sf', 'texture resolution', 'interpolate',  # Texture tab
         ]

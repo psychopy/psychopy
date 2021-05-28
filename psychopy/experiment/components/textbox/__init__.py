@@ -8,16 +8,12 @@
 from __future__ import absolute_import, print_function
 
 from os import path
+from pathlib import Path
 
 from psychopy.alerts import alerttools
 from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals, _translate
 from psychopy.localization import _localized as __localized
 _localized = __localized.copy()
-
-# the absolute path to the folder containing this path
-thisFolder = path.abspath(path.dirname(__file__))
-iconFile = path.join(thisFolder, 'textbox.png')
-tooltip = _translate('Textbox: present text stimuli but cooler')
 
 # only use _localized values for label values, nothing functional:
 _localized.update({'text': _translate('Text'),
@@ -44,6 +40,9 @@ class TextboxComponent(BaseVisualComponent):
     """
     categories = ['Stimuli', 'Responses']
     targets = ['PsychoPy', 'PsychoJS']
+    iconFile = Path(__file__).parent / 'textbox.png'
+    tooltip = _translate('Textbox: present text stimuli but cooler')
+
     def __init__(self, exp, parentName, name='textbox',
                  # effectively just a display-value
                  text=_translate('Any text\n\nincluding line breaks'),
@@ -73,7 +72,7 @@ class TextboxComponent(BaseVisualComponent):
                                             startEstim=startEstim,
                                             durationEstim=durationEstim)
         self.type = 'Textbox'
-        self.url = "http://www.psychopy.org/builder/components/text.html"
+        self.url = "https://www.psychopy.org/builder/components/textbox.html"
         self.order += [  # controls order of params within tabs
             "editable", "text",  # Basic tab
             "borderWidth", "opacity",  # Appearance tab
@@ -229,6 +228,7 @@ class TextboxComponent(BaseVisualComponent):
                 "  opacity: %(opacity)s,\n"
                 "  padding: %(padding)s,\n"
                 "  editable: %(editable)s,\n"
+                "  multiline: true,\n"
                 "  anchor: %(anchor)s,\n")
         buff.writeIndentedLines(code % inits)
 
@@ -238,6 +238,22 @@ class TextboxComponent(BaseVisualComponent):
         buff.writeIndentedLines(code)
         depth = -self.getPosInRoutine()
 
+    def writeRoutineStartCode(self, buff):
+        BaseVisualComponent.writeRoutineStartCode(self, buff)
+
+        code = (
+            "%(name)s.reset()"
+        )
+        buff.writeIndentedLines(code % self.params)
+
+    def writeRoutineStartCodeJS(self, buff):
+        BaseVisualComponent.writeRoutineStartCode(self, buff)
+
+        code = (
+            "%(name)s.reset()"
+        )
+        buff.writeIndentedLines(code % self.params)
+
     def writeRoutineEndCode(self, buff):
         name = self.params['name']
         if len(self.exp.flow._loopList):
@@ -245,19 +261,18 @@ class TextboxComponent(BaseVisualComponent):
         else:
             currLoop = self.exp._expHandler
         if self.params['editable']:
-            buff.writeIndentedLines(f"{currLoop.params['name']}.addData('{name}.text',{name}.text)\n"
-                               f"{name}.reset()\n")
+            buff.writeIndentedLines(f"{currLoop.params['name']}.addData('{name}.text',{name}.text)\n")
         # get parent to write code too (e.g. store onset/offset times)
         super().writeRoutineEndCode(buff)
 
     def writeRoutineEndCodeJS(self, buff):
+        name = self.params['name']
         if len(self.exp.flow._loopList):
             currLoop = self.exp.flow._loopList[-1]  # last (outer-most) loop
         else:
             currLoop = self.exp._expHandler
         if self.params['editable']:
-            buff.writeIndented("psychoJS.experiment.addData('%(name)s.text', %(name)s.text);\n" %
-                               self.params)
+            buff.writeIndentedLines(f"psychoJS.experiment.addData('{name}.text',{name}.text)\n")
         # get parent to write code too (e.g. store onset/offset times)
         super().writeRoutineEndCodeJS(buff)
 

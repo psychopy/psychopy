@@ -13,7 +13,7 @@ import copy
 import numpy as np
 
 from psychopy import core, logging, event
-from .basevisual import MinimalStim, ColorMixin
+from .basevisual import MinimalStim, ColorMixin, BaseVisualStim
 from .rect import Rect
 from .grating import GratingStim
 from .elementarray import ElementArrayStim
@@ -62,6 +62,7 @@ class Slider(MinimalStim, ColorMixin):
                  fillColor='Red',
                  borderColor='White',
                  colorSpace='rgb',
+                 opacity=None,
                  font='Helvetica Bold',
                  depth=0,
                  name=None,
@@ -159,6 +160,7 @@ class Slider(MinimalStim, ColorMixin):
         self.color = color
         self.fillColor = fillColor
         self.borderColor = borderColor
+        self.opacity = opacity
         self.font = font
         self.autoDraw = autoDraw
         self.depth = depth
@@ -235,6 +237,57 @@ class Slider(MinimalStim, ColorMixin):
         """
         return self._size
 
+    @property
+    def opacity(self):
+        BaseVisualStim.opacity.fget(self)
+    @opacity.setter
+    def opacity(self, value):
+        BaseVisualStim.opacity.fset(self, value)
+        self.fillColor = self._fillColor.copy()
+        self.borderColor = self._borderColor.copy()
+        self.foreColor = self._foreColor.copy()
+    def setOpacity(self, value):
+        self.opacity = value
+
+    @property
+    def foreColor(self):
+        ColorMixin.foreColor.fget(self)
+    @foreColor.setter
+    def foreColor(self, value):
+        ColorMixin.foreColor.fset(self, value)
+        # Set color of each label
+        if hasattr(self, 'labelObjs'):
+            for lbl in self.labelObjs:
+                lbl.color = self._foreColor.copy()
+
+    @property
+    def fillColor(self):
+        ColorMixin.fillColor.fget(self)
+    @fillColor.setter
+    def fillColor(self, value):
+        ColorMixin.fillColor.fset(self, value)
+        # Set color of marker
+        if hasattr(self, 'marker'):
+            self.marker.fillColor = self._foreColor.copy()
+
+    @property
+    def borderColor(self):
+        ColorMixin.borderColor.fget(self)
+    @borderColor.setter
+    def borderColor(self, value):
+        ColorMixin.borderColor.fset(self, value)
+        # Set color of lines
+        if hasattr(self, 'line'):
+            if self.style not in ["scrollbar"]: # Scrollbar doesn't have an outline
+                self.line.color = self._borderColor.copy()
+            self.line.fillColor = self._borderColor.copy()
+            if self.style in ["slider", "scrollbar"]: # Slider and scrollbar need translucent fills
+                self.line._fillColor.alpha *= 0.2
+        if hasattr(self, 'tickLines'):
+            self.tickLines.colors = self._borderColor.copy()
+            self.tickLines.opacities = self._borderColor.alpha
+
+
     def reset(self):
         """Resets the slider to its starting state (so that it can be restarted
         on each trial with a new stimulus)
@@ -263,6 +316,7 @@ class Slider(MinimalStim, ColorMixin):
                                           xys=self.tickLocs,
                                           elementMask=None,
                                           colors=self._borderColor.copy(), colorSpace = self.colorSpace,
+                                          opacities=self._borderColor.alpha,
                                           sizes=tickSize, sfs=0,
                                           autoLog=False)
 
@@ -456,6 +510,25 @@ class Slider(MinimalStim, ColorMixin):
         """
         return self.rt
 
+    def getMarkerPos(self):
+        """Get the current marker position (or None if no response yet)
+        """
+        return self.markerPos
+
+    def setMarkerPos(self, rating):
+        """Set the current marker position (or None if no response yet)
+
+        Parameters
+        ----------
+        rating : int or float
+            The rating on the scale where we want to set the marker
+        """
+        if self._updateMarkerPos:
+            self.marker.pos = self._ratingToPos(rating)
+            self.markerPos = rating
+            self._updateMarkerPos = False
+        self.marker.draw()
+
     def draw(self):
         """Draw the Slider, with all its constituent elements on this frame
         """
@@ -556,6 +629,40 @@ class Slider(MinimalStim, ColorMixin):
 
         self._mouseStateXY = xy
 
+    # Overload color setters so they set sub-components
+    @property
+    def foreColor(self):
+        ColorMixin.foreColor.fget(self)
+    @foreColor.setter
+    def foreColor(self, value):
+        ColorMixin.foreColor.fset(self, value)
+        # Set color for all labels
+        if hasattr(self, "labelObjs"):
+            for obj in self.labelObjs:
+                obj.color = self._foreColor.copy()
+
+    @property
+    def fillColor(self):
+        ColorMixin.fillColor.fget(self)
+    @fillColor.setter
+    def fillColor(self, value):
+        ColorMixin.fillColor.fset(self, value)
+        # Set color for marker
+        if hasattr(self, "marker"):
+            self.marker.fillColor = self._fillColor.copy()
+
+    @property
+    def borderColor(self):
+        ColorMixin.borderColor.fget(self)
+    @borderColor.setter
+    def borderColor(self, value):
+        ColorMixin.borderColor.fset(self, value)
+        # Set color for lines
+        if hasattr(self, "line"):
+            self.line.color = self._borderColor.copy()
+        if hasattr(self, "tickLines"):
+            self.tickLines.colors = self._borderColor.copy()
+
     knownStyles = ['slider', 'rating', 'radio', 'scrollbar']
     legacyStyles = []
     knownStyleTweaks = ['labels45', 'triangleMarker']
@@ -608,11 +715,11 @@ class Slider(MinimalStim, ColorMixin):
                              autoLog=False)
             self.line._fillColor.alpha *= 0.2
             if self.horiz:
-                markerW = self.size[0] * 0.1
+                markerW = self.size[0] * 0.01
                 markerH = self.size[1] * 0.8
             else:
                 markerW = self.size[0] * 0.8
-                markerH = self.size[1] * 0.1
+                markerH = self.size[1] * 0.01
 
             self.marker = Rect(self.win, units=self.units,
                                size=[markerW, markerH],
@@ -632,17 +739,17 @@ class Slider(MinimalStim, ColorMixin):
 
         if style == 'scrollbar':
             # Make marker the full height and 20% of the width of the slider
-            markerWidth = self.size[0]*0.2
+            markerSz = self.size[0]*0.2 if self.horiz else self.size[1]*0.2
             w, h = self.size
             self.marker = Rect(self.win, units=self.units,
-                               size=[markerWidth, h],
+                               size=[markerSz, h] if self.horiz else [w, markerSz],
                                fillColor=self._fillColor,
                                lineColor=None,
                                autoLog=False)
             # Make the line a translucent box
             self.line = Rect(self.win, units=self.units,
                              pos=self.pos,
-                             size=[w+markerWidth, h],
+                             size=[w+markerSz, h] if self.horiz else [w, h+markerSz],
                              fillColor=self._borderColor.copy(),
                              lineColor=None,
                              autoLog=False)
@@ -651,7 +758,7 @@ class Slider(MinimalStim, ColorMixin):
 
         # Legacy: If given a tweak, apply it as a tweak rather than a style
         if style in self.knownStyleTweaks + self.legacyStyleTweaks:
-            self.styleTweaks += val
+            self.styleTweaks.append(style)
 
     @attributeSetter
     def styleTweaks(self, styleTweaks):
@@ -695,6 +802,8 @@ class Slider(MinimalStim, ColorMixin):
                                     size=markerSize,
                                     ori=ori,
                                     fillColor=self._fillColor.copy(),
+                                    lineColor=None,
+                                    lineWidth=0,
                                     autoLog=False)
 
         if 'labels45' in styleTweaks:

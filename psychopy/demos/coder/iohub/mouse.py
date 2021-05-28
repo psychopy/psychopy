@@ -1,13 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
-Demo of basic mouse handling from the ioHub (a separate asynchronous process for
-fetching and processing events from hardware; mice, keyboards, eyetrackers).
-
-Initial Version: May 6th, 2013, Sol Simpson
-Abbrieviated: May 2013, Jon Peirce
-Updated July, 2013, Sol, Added timeouts
+Demo of using the iohub mouse.
 """
 
 from __future__ import absolute_import, division, print_function
@@ -17,42 +11,29 @@ import sys
 from psychopy import visual, core
 from psychopy.iohub import launchHubServer
 
+
+win = visual.Window((1920, 1080), units='height', fullscr=True, allowGUI=False, screen=0)
+
 # create the process that will run in the background polling devices
-io = launchHubServer()
+io = launchHubServer(window=win)
 
 # some default devices have been created that can now be used
-display = io.devices.display
 keyboard = io.devices.keyboard
 mouse = io.devices.mouse
 
-# We can use display to find info for the Window creation, like the resolution
-# (which means PsychoPy won't warn you that the fullscreen does not match your requested size)
-display_resolution = display.getPixelResolution()
-
-# ioHub currently supports the use of a single full-screen PsychoPy Window
-win = visual.Window(display_resolution,
-                    units='pix', fullscr=True, allowGUI=False, screen=0)
-
 win.setMouseVisible(False)
 
-# Create some psychopy visual stim (same as how you would do so normally):
-fixSpot = visual.GratingStim(win, tex="none", mask="gauss",
-    pos=(0, 0), size=(30, 30), color='black', autoLog=False)
-grating = visual.GratingStim(win, pos=(300, 0),
-    tex="sin", mask="gauss",
-    color=[1.0, 0.5, -1.0],
-    size=(150.0, 150.0), sf=(0.01, 0.0),
-    autoLog=False)
-message = visual.TextStim(win, pos=(0.0, -(display_resolution[1]/3)),
-    height=40,
-    alignText='center', anchorHoriz='center', anchorVert='center',
-    text='move=mv-spot, left-drag=SF, right-drag=mv-grating, scroll=ori',
-    autoLog=False, wrapWidth=display_resolution[0] * .9)
-message2 = visual.TextStim(win, pos=(0.0, -(display_resolution[1]/4)),
-    alignText='center', anchorHoriz='center', anchorVert='center', height=40,
-    text='Press Any Key to Quit.',
-    autoLog=False, wrapWidth=display_resolution[0] * .9)
-
+# Create some psychopy visual stim
+fixSpot = visual.GratingStim(win, tex="none", mask="gauss", pos=(0, 0), size=(.03, .03), color='black', autoLog=False)
+grating = visual.GratingStim(win, pos=(.3, 0), tex="sin", mask="gauss", color=[1.0, .5, -1.0], size=(.15, .15),
+                             sf=(.01, 0), autoLog=False)
+message = visual.TextStim(win, pos=(0, -.2), height=.03, alignText='center', anchorHoriz='center', anchorVert='center',
+                          wrapWidth=.7, text='move=mv-spot, left-drag=SF, right-drag=mv-grating, scroll=ori',
+                          autoLog=False)
+displayIdMsg = visual.TextStim(win, pos=(0.0, -0.3), alignText='center', anchorHoriz='center', anchorVert='center',
+                               height=.03, text='Display X', autoLog=False, wrapWidth=0.7)
+message3 = visual.TextStim(win, pos=(0.0, -0.4), alignText='center', anchorHoriz='center', anchorVert='center',
+                           height=.03, text='Press Any Key to Quit.', autoLog=False, wrapWidth=0.7)
 last_wheelPosY = 0
 
 io.clearEvents('all')
@@ -61,11 +42,16 @@ demo_timeout_start = core.getTime()
 # Run the example until a keyboard event is received.
 
 kb_events = None
+last_display_ix = -1
 while not kb_events:
     # Get the current mouse position
     # posDelta is the change in position * since the last call *
-    position, posDelta = mouse.getPositionAndDelta()
+    position, posDelta, display_ix = mouse.getPositionAndDelta(return_display_index=True)
     mouse_dX, mouse_dY = posDelta
+
+    if display_ix is not None and display_ix != last_display_ix:
+        displayIdMsg.setText("Display %d" % display_ix)
+        last_display_ix = display_ix
 
     # Get the current state of each of the Mouse Buttons
     left_button, middle_button, right_button = mouse.getCurrentButtonStates()
@@ -102,7 +88,8 @@ while not kb_events:
     fixSpot.draw()
     grating.draw()
     message.draw()
-    message2.draw()
+    message3.draw()
+    displayIdMsg.draw()
     flip_time = win.flip()  # redraw the buffer
 
     # Check for keyboard orand mouse events.

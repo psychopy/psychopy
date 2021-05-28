@@ -12,7 +12,6 @@ import time
 
 import psychopy.experiment
 from psychopy import prefs
-from psychopy.app import psychopyApp
 from psychopy.app.builder.dialogs import DlgComponentProperties
 from psychopy.app.builder.validators import CodeSnippetValidator
 from psychopy.experiment import Param
@@ -30,30 +29,26 @@ from psychopy.experiment import Param
 allComponents = psychopy.experiment.getComponents(fetchIcons=False)
 import wx
 
+
 class Test_BuilderFrame(object):
     """This test fetches all standard components and checks that, with default
     settings, they can be added to a Routine and result in a script that compiles
     """
 
     def setup(self):
-        self.app = psychopyApp._app
 
-        self.builder = self.app.newBuilderFrame()
-        self.exp = self.builder.exp
         self.here = path.abspath(path.dirname(__file__))
         self.tmp_dir = mkdtemp(prefix='psychopy-tests-app')
-        self.exp.addRoutine('testRoutine')
-        self.testRoutine = self.exp.routines['testRoutine']
-        self.exp.flow.addRoutine(self.testRoutine, 0)
 
     def teardown(self):
         shutil.rmtree(self.tmp_dir, ignore_errors=True)
 
-    def test_BuilderFrame(self):
+    @pytest.mark.usefixtures("get_app")
+    def test_BuilderFrame(self, get_app):
         """Tests of the Builder frame. We can call dialog boxes using
         a timeout (will simulate OK being pressed)
         """
-        builderView = self.app.newBuilderFrame()
+        builderView = get_app.newBuilderFrame()  # self._app comes from requires_app
 
         expfile = path.join(prefs.paths['tests'],
                             'data', 'test001EntryImporting.psyexp')
@@ -63,18 +58,29 @@ class Test_BuilderFrame(object):
         builderView.runFile()
         builderView.closeFrame()
 
-    def _checkCompileWith(self, thisComp):
+    def _getCleanExp(self, app):
+        """"""
+        builder = app.newBuilderFrame()
+        exp = builder.exp
+        exp.addRoutine('testRoutine')
+        testRoutine = exp.routines['testRoutine']
+        exp.flow.addRoutine(testRoutine, 0)
+        return exp
+
+    def _checkCompileWith(self, thisComp, app):
         """Adds the component to the current Routine and makes sure it still
         compiles
         """
         filename = thisComp.params['name'].val+'.py'
         filepath = path.join(self.tmp_dir, filename)
 
-        self.testRoutine.addComponent(thisComp)
+        exp = self._getCleanExp(app)
+        testRoutine = exp.routines['testRoutine']
+        testRoutine.addComponent(thisComp)
         #make sure the mouse code compiles
 
         # generate a script, similar to 'lastrun.py':
-        buff = self.exp.writeScript() # is a StringIO object
+        buff = exp.writeScript()  # is a StringIO object
         script = buff.getvalue()
         assert len(script) > 1500 # default empty script is ~2200 chars
 
@@ -95,21 +101,23 @@ class Test_BuilderFrame(object):
         ok = dlg.ShowModal()
         assert ok == wx.ID_OK
 
-    def test_ComponentDialogs(self):
+    @pytest.mark.usefixtures("get_app")
+    def test_ComponentDialogs(self, get_app):
         """Test the message dialog
         """
-        builderView = self.app.newBuilderFrame()
+        builderView = get_app.newBuilderFrame()  # self._app comes from requires_app
         componsPanel = builderView.componentButtons
-        for thisComponName in list(componsPanel.components):
+        for compBtn in list(componsPanel.compButtons):
             # simulate clicking the button for each component
-            assert componsPanel.onClick(thisComponName, timeout=500)
+            assert compBtn.onClick(timeout=500)
         builderView.isModified = False
         builderView.closeFrame()
         del builderView, componsPanel
 
-    def test_param_validator(self):
+    @pytest.mark.usefixtures("get_app")
+    def test_param_validator(self, get_app):
         """Test the code validator for component parameters"""
-
+        builderView = get_app.newBuilderFrame()
         # Define 'tykes' - combinations of values likely to cause an error if certain features aren't working
         tykes = [
             {'fieldName': "brokenCode", 'param': Param(val="for + :", valType="code"), 'msg': "Python syntax error in field `{fieldName}`:  {param.val}"}, # Make sure it's picking up clearly broken code
@@ -118,7 +126,7 @@ class Test_BuilderFrame(object):
         for tyke in tykes:
             # For each tyke, create a dummy environment
             parent = DlgComponentProperties(
-                frame=self.builder, title='Param Testing',
+                frame=builderView, title='Param Testing',
                 params={tyke['fieldName']: tyke['param']}, order=[],
                 testing=True)
             # Set validator and validate

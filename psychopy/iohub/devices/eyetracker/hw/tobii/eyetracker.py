@@ -1,16 +1,15 @@
 # -*- coding: utf-8 -*-
-# Part of the psychopy.iohub library.
-# Copyright (C) 2012-2016 iSolver Software Solutions
+# Part of the PsychoPy library
+# Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-"""ioHub Common Eye Tracker Interface for Tobii (C) Eye Tracking System"""
-from __future__ import absolute_import
 import math
-from .....constants import EventConstants, EyeTrackerConstants
-from .... import Computer, Device
-from ... import EyeTrackerDevice
-from ...eye_events import *
-from .....errors import print2err, printExceptionDetailsToStdErr
+from psychopy.iohub.constants import EventConstants, EyeTrackerConstants
+from psychopy.iohub.devices import Computer, Device
+from psychopy.iohub.devices.eyetracker import EyeTrackerDevice
+from psychopy.iohub.devices.eyetracker.hw.tobii.tobiiCalibrationGraphics import TobiiPsychopyCalibrationGraphics
+from psychopy.iohub.devices.eyetracker.eye_events import *
+from psychopy.iohub.errors import print2err, printExceptionDetailsToStdErr
 try:
     from .tobiiwrapper import TobiiTracker
 except Exception:
@@ -83,19 +82,36 @@ class EyeTracker(EyeTrackerDevice):
     def __init__(self, *args, **kwargs):
         EyeTrackerDevice.__init__(self, *args, **kwargs)
 
+        if self.model_name:
+            self.model_name = self.model_name.strip()
+            if len(self.model_name) == 0:
+                self.model_name = None
         model_name = self.model_name
-        serial_num = self.serial_number
-
-        if model_name and len(model_name) == 0:
-            model_name = None
-        if serial_num and len(serial_num) == 0:
-            serial_num = None
+        serial_num = self.getConfiguration().get('serial_number')
 
         EyeTracker._tobii = None
         try:
             EyeTracker._tobii = TobiiTracker(serial_num, model_name)
         except Exception:
             print2err('Error creating Tobii Device class')
+            printExceptionDetailsToStdErr()
+
+        # Apply license file if needed
+        try:
+            license_file = self.getConfiguration().get('license_file', "")
+            if license_file != "":
+                with open(license_file, "rb") as f:
+                    license = f.read()
+                    res = self._tobii._eyetracker.apply_licenses(license)
+                    if len(res) == 0:
+                        print2err("Successfully applied Tobii license from: {}".format(license_file))
+                    else:
+                        print2err("Error: Failed to apply Tobii license from single key. "
+                                  "Validation result: %s." % (res[0].validation_result))
+            else:
+                print2err("No Tobii license_file in config. Skipping.")
+        except Exception:
+            print2err("Error calling Tobii.apply_licenses with file {}.".format(license_file))
             printExceptionDetailsToStdErr()
 
         srate = self._runtime_settings['sampling_rate']
@@ -179,19 +195,12 @@ class EyeTracker(EyeTrackerDevice):
         Tracker Interface."""
         return EyeTrackerConstants.EYETRACKER_INTERFACE_METHOD_NOT_SUPPORTED
 
-    def runSetupProcedure(self):
+    def runSetupProcedure(self, calibration_args={}):
         """runSetupProcedure performs a calibration routine for the Tobii eye
         tracking system.
         """
         try:
-            from .tobiiCalibrationGraphics import TobiiPsychopyCalibrationGraphics
-
-            calibration_properties = self.getConfiguration().get('calibration')
-            screenColor = calibration_properties.get(
-                'screen_background_color')                     # [r,g,b] of screen
-
-            genv = TobiiPsychopyCalibrationGraphics(
-                self, screenColor=screenColor)
+            genv = TobiiPsychopyCalibrationGraphics(self, calibration_args)
 
             calibrationOK = genv.runCalibration()
 

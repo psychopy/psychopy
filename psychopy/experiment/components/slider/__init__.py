@@ -9,21 +9,18 @@ from __future__ import absolute_import, print_function
 from builtins import super  # provides Py3-style super() using python-future
 
 from os import path
+from pathlib import Path
 from psychopy.experiment.components import BaseVisualComponent, Param, \
     getInitVals, _translate
 from psychopy.visual import slider
 from psychopy.experiment import py2js
 from psychopy import logging
+from psychopy.data import utils
 from psychopy.localization import _localized as __localized
 _localized = __localized.copy()
 import copy
 
 __author__ = 'Jon Peirce'
-
-# the absolute path to the folder containing this path
-thisFolder = path.abspath(path.dirname(__file__))
-iconFile = path.join(thisFolder, 'slider.png')
-tooltip = _translate('Slider: A simple, flexible object for getting ratings')
 
 # only use _localized values for label values, nothing functional:
 _localized.update({'categoryChoices': _translate('Category choices'),
@@ -57,12 +54,17 @@ legacyStyleTweaks = slider.Slider.legacyStyleTweaks
 class SliderComponent(BaseVisualComponent):
     """A class for presenting a rating scale as a builder component
     """
+
     categories = ['Responses']
+    targets = ['PsychoPy', 'PsychoJS']
+    iconFile = Path(__file__).parent / 'slider.png'
+    tooltip = _translate('Slider: A simple, flexible object for getting ratings')
 
     def __init__(self, exp, parentName,
                  name='slider',
                  labels='',
                  ticks="(1, 2, 3, 4, 5)",
+                 initVal="",
                  size='(1.0, 0.1)',
                  pos='(0, -0.4)',
                  flip=False,
@@ -86,9 +88,8 @@ class SliderComponent(BaseVisualComponent):
                 stopType=stopType, stopVal=stopVal,
                 startEstim=startEstim, durationEstim=durationEstim)
         self.type = 'Slider'
-        self.url = "http://www.psychopy.org/builder/components/slider.html"
+        self.url = "https://www.psychopy.org/builder/components/slider.html"
         self.exp.requirePsychopyLibs(['visual', 'event'])
-        self.targets = ['PsychoPy', 'PsychoJS']
 
         # params
         self.order += ['forceEndRoutine',  # Basic tab
@@ -114,6 +115,11 @@ class SliderComponent(BaseVisualComponent):
                 hint=_translate("Labels for the tick marks on the scale, "
                                 "separated by commas"),
                 label=_localized['labels'])
+        self.params['initVal'] = Param(
+            initVal, valType='code', inputType="single", categ='Basic',
+            hint=_translate("Value of the slider befre any response, leave blank to hide the marker until clicked on"),
+            label=_translate("Starting Value")
+        )
         self.params['granularity'] = Param(
                 granularity, valType='num', inputType="single", allowedTypes=[], categ='Basic',
                 updates='constant',
@@ -144,12 +150,12 @@ class SliderComponent(BaseVisualComponent):
                 label=_translate('Flip'))
 
         # Color changes
-        self.params['color'].label = "Label Color"
-        self.params['color'].hint = "Color of all labels on this slider (might be overridden by the style setting)"
-        self.params['fillColor'].label = "Marker Color"
-        self.params['fillColor'].hint = "Color of the marker on this slider (might be overridden by the style setting)"
-        self.params['borderColor'].label = "Line Color"
-        self.params['borderColor'].hint = "Color of all lines on this slider (might be overridden by the style setting)"
+        self.params['color'].label = _translate("Label Color")
+        self.params['color'].hint = _translate("Color of all labels on this slider (might be overridden by the style setting)")
+        self.params['fillColor'].label = _translate("Marker Color")
+        self.params['fillColor'].hint = _translate("Color of the marker on this slider (might be overridden by the style setting)")
+        self.params['borderColor'].label = _translate("Line Color")
+        self.params['borderColor'].hint = _translate("Color of all lines on this slider (might be overridden by the style setting)")
 
         self.params['font'] = Param(
                 font, valType='str', inputType="single", categ='Formatting',
@@ -208,14 +214,18 @@ class SliderComponent(BaseVisualComponent):
 
         inits['depth'] = -self.getPosInRoutine()
 
+        # Use None as a start value if none set
+        inits['initVal'] = inits['initVal'] or None
+
         # build up an initialization string for Slider():
         initStr = ("{name} = visual.Slider(win=win, name='{name}',\n"
                    "    size={size}, pos={pos}, units={units},\n"
-                   "    labels={labels}, ticks={ticks},\n"
-                   "    granularity={granularity}, style={styles}, styleTweaks={styleTweaks},\n"
+                   "    labels={labels}, ticks={ticks}, granularity={granularity},\n"
+                   "    style={styles}, styleTweaks={styleTweaks}, opacity={opacity},\n"
                    "    color={color}, fillColor={fillColor}, borderColor={borderColor}, colorSpace={colorSpace},\n"
                    "    font={font}, labelHeight={letterHeight},\n"
                    "    flip={flip}, depth={depth}, readOnly={readOnly})\n"
+                   "{name}.markerPos = {initVal}\n"
                    .format(**inits))
         buff.writeIndented(initStr)
 
@@ -236,6 +246,7 @@ class SliderComponent(BaseVisualComponent):
 
         boolConverter = {False: 'false', True: 'true'}
         sliderStyles = {'slider': 'SLIDER',
+                        'scrollbar': 'SLIDER',
                         '()': 'RATING',
                         'rating': 'RATING',
                         'radio': 'RADIO',
@@ -248,12 +259,21 @@ class SliderComponent(BaseVisualComponent):
             inits['styles'].val = 'rating'
 
         # reformat styles for JS
-        if not isinstance(inits['styleTweaks'].val, (tuple, list)):
-            inits['styleTweaks'].val = [inits['styleTweaks'].val]
-        inits['styleTweaks'].val = ', '.join(["visual.Slider.StyleTweaks.{}".format(adj)
-                                              for adj in inits['styleTweaks'].val])
-        # add comma so is treated as tuple in py2js and converted to list, as required
-        inits['styles'].val = py2js.expression2js(inits['styles'].val)
+        # concatenate styles and tweaks
+        tweaksList = utils.listFromString(self.params['styleTweaks'].val)
+        if type(inits['styles'].val) == list:  # from an experiment <2021.1
+            stylesList = inits['styles'].val + tweaksList
+        else:
+            stylesList = [inits['styles'].val] + tweaksList
+        stylesListJS = [sliderStyles[this] for this in stylesList]
+        # if not isinstance(inits['styleTweaks'].val, (tuple, list)):
+        #     inits['styleTweaks'].val = [inits['styleTweaks'].val]
+        # inits['styleTweaks'].val = ', '.join(["visual.Slider.StyleTweaks.{}".format(adj)
+        #                                       for adj in inits['styleTweaks'].val])
+
+        # convert that to string and JS-ify
+        inits['styles'].val = py2js.expression2js(str(stylesListJS))
+        inits['styles'].valType = 'code'
 
         inits['depth'] = -self.getPosInRoutine()
 

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-# Part of the psychopy.iohub library.
-# Copyright (C) 2012-2016 iSolver Software Solutions
+# Part of the PsychoPy library
+# Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 from __future__ import division, print_function, absolute_import
 
@@ -161,7 +161,7 @@ class MouseDevice(Device):
             print2err(' mouse.setPos did not update mouse pos')
         else:
             self._lastPosition = self._position
-            self._position = px, py
+            self._position = pos[0], pos[1]
 
             self._last_display_index = self._display_index
             self._display_index = mouse_display_index

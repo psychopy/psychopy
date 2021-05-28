@@ -13,6 +13,7 @@ from builtins import super  # provides Py3-style super() using python-future
 from past.builtins import basestring
 
 from os import path
+from pathlib import Path
 
 from psychopy.constants import PY3
 from psychopy.experiment.components import BaseComponent, Param, _translate
@@ -23,11 +24,6 @@ from pkgutil import find_loader
 
 # Check for psychtoolbox
 havePTB = find_loader('psychtoolbox') is not None
-
-# the absolute path to the folder containing this path
-thisFolder = path.abspath(path.dirname(__file__))
-iconFile = path.join(thisFolder, 'keyboard.png')
-tooltip = _translate('Keyboard: check and record keypresses')
 
 # only use _localized values for label values, nothing functional:
 _localized.update({'allowedKeys': _translate('Allowed keys'),
@@ -44,6 +40,8 @@ class KeyboardComponent(BaseComponent):
     # an attribute of the class, determines the section in components panel
     categories = ['Responses']
     targets = ['PsychoPy', 'PsychoJS']
+    iconFile = Path(__file__).parent / 'keyboard.png'
+    tooltip = _translate('Keyboard: check and record keypresses')
 
     def __init__(self, exp, parentName, name='key_resp',
                  allowedKeys="'y','n','left','right','space'",
@@ -60,7 +58,7 @@ class KeyboardComponent(BaseComponent):
             startEstim=startEstim, durationEstim=durationEstim)
 
         self.type = 'Keyboard'
-        self.url = "http://www.psychopy.org/builder/components/keyboard.html"
+        self.url = "https://www.psychopy.org/builder/components/keyboard.html"
         self.exp.requirePsychopyLibs(['gui'])
 
         # params
@@ -121,7 +119,7 @@ class KeyboardComponent(BaseComponent):
             "correctAns column and use $correctAns to compare to the key "
             "press.")
         self.params['correctAns'] = Param(
-            correctAns, valType='list', inputType="single", allowedTypes=[], categ='Data',
+            correctAns, valType='str', inputType="single", allowedTypes=[], categ='Data',
             updates='constant',
             hint=msg,
             label=_localized['correctAns'])
@@ -500,6 +498,8 @@ class KeyboardComponent(BaseComponent):
         store = self.params['store'].val
         forceEnd = self.params['forceEndRoutine'].val
         if store == 'nothing':
+            # Still stop keyboard to prevent textbox from not working on single keypresses due to buffer
+            buff.writeIndentedLines("%(name)s.stop();\n" % self.params)
             return
         if len(self.exp.flow._loopList):
             currLoop = self.exp.flow._loopList[-1]  # last (outer-most) loop

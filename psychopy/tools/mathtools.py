@@ -1451,7 +1451,7 @@ def intersectRayAABB(rayOrig, rayDir, boundsOffset, boundsExtents, dtype=None):
     extents = np.asarray(boundsExtents, dtype=dtype) + boundsOffset
 
     invDir = 1.0 / rayDir
-    sign = np.zeros((3,), dtype=np.int)
+    sign = np.zeros((3,), dtype=int)
     sign[invDir < 0.0] = 1
 
     tmin = (extents[sign[0], 0] - rayOrig[0]) * invDir[0]
@@ -3814,6 +3814,8 @@ def lensCorrection(xys, coefK=(1.0,), distCenter=(0., 0.), out=None,
     for optical distortion introduced by lenses placed in the optical path of
     the viewer and the display (such as in an HMD).
 
+    See references[1]_ for implementation details.
+
     Parameters
     ----------
     xys : array_like
@@ -3890,7 +3892,7 @@ def lensCorrectionSpherical(xys, coefK=1.0, aspect=1.0, out=None, dtype=None):
     """Simple lens correction.
 
     Lens correction for a spherical lenses with distortion centered at the
-    middle of the display.
+    middle of the display. See references[1]_ for implementation details.
 
     Parameters
     ----------
@@ -3954,13 +3956,10 @@ def lensCorrectionSpherical(xys, coefK=1.0, aspect=1.0, out=None, dtype=None):
     return toReturn
 
 
-if __name__ == "__main__":
-    pass
-
 class infrange():
     """
-    Similar to base Python `range`, but allowing the step to be a float or even 0, useful for specifying ranges for
-    logical comparisons
+    Similar to base Python `range`, but allowing the step to be a float or even
+    0, useful for specifying ranges for logical comparisons.
     """
     def __init__(self, min, max, step=0):
         self.min = min
@@ -3973,17 +3972,22 @@ class infrange():
 
     def __lt__(self, other):
         return other > self.max
+
     def __le__(self, other):
         return other > self.min
+
     def __gt__(self, other):
         return self.min > other
+
     def __ge__(self, other):
         return self.max > other
+
     def __contains__(self, item):
         if self.step == 0:
             return self.min < item < self.max
         else:
             return item in np.linspace(self.min, self.max, int(self.range/self.step)+1)
+
     def __eq__(self, item):
         if isinstance(item, self.__class__):
             return all((
@@ -3995,9 +3999,16 @@ class infrange():
 
     def __add__(self, other):
         return self.__class__(self.min+other, self.max+other, self.step)
+
     def __sub__(self, other):
         return self.__class__(self.min - other, self.max - other, self.step)
+
     def __mul__(self, other):
         return self.__class__(self.min * other, self.max * other, self.step * other)
+
     def __truedic__(self, other):
         return self.__class__(self.min / other, self.max / other, self.step / other)
+
+
+if __name__ == "__main__":
+    pass

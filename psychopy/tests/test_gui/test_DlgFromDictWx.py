@@ -4,8 +4,10 @@
 from builtins import object
 from collections import OrderedDict
 from psychopy.gui.wxgui import DlgFromDict
+import pytest
 
 
+@pytest.mark.needs_wx
 class TestDlgFromDictWx(object):
     def setup(self):
         self.d = dict(
@@ -76,5 +78,6 @@ class TestDlgFromDictWx(object):
 
 
 if __name__ == '__main__':
-    import pytest
-    pytest.main()
+    cls = TestDlgFromDictWx()
+    cls.setup()
+    cls.test_fixed()

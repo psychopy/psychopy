@@ -3,7 +3,7 @@
 Slider Component
 ________________
 
-A slider uses mouse input to collect ratings, either on a continuous scale or Likert scale (1-to-7).
+A Slider uses mouse input to collect ratings, all sliders have the same basic structure (a line, rectangle or series of dots to indicate the range of values, several tick marks and labels, a marker) but their appearance can be varied significantly by changing the `style` parameter. For example, a `radio` style Slider features several dots and a circular marker, while a `scrollbar` style Slider features a translucent rectangle with a long marker like the page scrollbar on a website.
 
 Properties
 ~~~~~~~~~~
@@ -23,7 +23,8 @@ Size : (width, height)
     and oriented vertically otherwise. Default is (1.0, 0.1)
 
 Position : (X,Y)
-    The position of the centre of the stimulus, in the units specified by the stimulus or window. Default is centered left-right, and somewhat lower than the vertical center (0, -0.4).
+    The position of the centre of the stimulus, in the units specified by the stimulus or window.
+    Default is centered left-right, and somewhat lower than the vertical center (0, -0.4).
 
 Ticks : (list or tuple of integers)
     The ticks that will be place on the slider scale. The first and last ticks will be placed
@@ -45,27 +46,44 @@ Granularity :
 Force end of Routine :
     If checked, when the subject makes a rating the routine will be ended.
 
-Opacity : value from 0 to 1
-    If opacity is reduced then the underlying images/stimuli will show through.
+Opacity : value from 0 to 1 or None
+    Setting the opacity of the Slider will set the opacity of all of its
+    parts to the same value, to control these individually set opacity to None
 
 Units :
     See :doc:`../../general/units`.
-
-Appearance
-++++++++++
-
-Font :
-    Font for labels.
 
 Flip :
     By default labels are below the scale or left of the scale.
     By checking this checkbox, the labels are placed above the scale or to the right of the scale.
 
-Color :
-    Color of the line, ticks, and labels. See :ref:`colorspaces`.
+Formatting
+++++++++++
+
+Font :
+    Font for labels.
+
+Letter Height :
+    Font size for labels,
+
+Appearance
+++++++++++
+
+Label Color :
+    Color of the labels. See :ref:`colorspaces`.
+
+Marker Color :
+    Color of the marker. See :ref:`colorspaces`.
+
+Line Color :
+    Color of the lines or, for styles such as `scrollbar` or `slider`, the backboard. See :ref:`colorspaces`.
 
 Styles :
-   A selection of pre-defined styles. Multiple styles can be selected.
+   A selection of pre-defined styles.
+
+Style Tweaks :
+    Tweaks to the style of the slider which can be applied on top of the overall style - multiple tweaks
+    can be selected.
 
 .. seealso::
 

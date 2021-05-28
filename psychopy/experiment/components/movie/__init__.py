@@ -8,16 +8,12 @@
 from __future__ import absolute_import, print_function
 
 from os import path
+from pathlib import Path
 import copy
 from psychopy import logging
 from psychopy.experiment.components import BaseVisualComponent, getInitVals, Param, _translate
 from psychopy.localization import _localized as __localized
 _localized = __localized.copy()
-
-# the absolute path to the folder containing this path
-thisFolder = path.abspath(path.dirname(__file__))
-iconFile = path.join(thisFolder, 'movie.png')
-tooltip = _translate('Movie: play movie files')
 
 # only use _localized values for label values, nothing functional:
 _localized.update({'movie': _translate('Movie file'),
@@ -30,6 +26,11 @@ if _localized['backend'] == 'backend': # this is the only non-capitals label
 
 class MovieComponent(BaseVisualComponent):
     """An event class for presenting movie-based stimuli"""
+
+    categories = ['Stimuli']
+    targets = ['PsychoPy', 'PsychoJS']
+    iconFile = Path(__file__).parent / 'movie.png'
+    tooltip = _translate('Movie: play movie files')
 
     def __init__(self, exp, parentName, name='movie', movie='',
                  units='from exp settings',
@@ -48,12 +49,11 @@ class MovieComponent(BaseVisualComponent):
             startEstim=startEstim, durationEstim=durationEstim)
 
         self.type = 'Movie'
-        self.url = "http://www.psychopy.org/builder/components/movie.html"
+        self.url = "https://www.psychopy.org/builder/components/movie.html"
         # comes immediately after name and timing params
         self.order += ['movie', 'forceEndRoutine', # Basic tab
                        'loop', 'No audio', 'backend',
                        ]
-        self.targets = ['PsychoPy', 'PsychoJS']
 
         # params
         self.params['stopVal'].hint = _translate(
@@ -70,7 +70,7 @@ class MovieComponent(BaseVisualComponent):
         msg = _translate("What underlying lib to use for loading movies")
         self.params['backend'] = Param(
             backend, valType='str', inputType="choice", categ='Playback',
-            allowedVals=['moviepy', 'avbin', 'opencv'],
+            allowedVals=['moviepy', 'avbin', 'opencv', 'vlc'],
             hint=msg,
             label=_localized['backend'])
 
@@ -128,6 +128,9 @@ class MovieComponent(BaseVisualComponent):
                     "    noAudio = %(No audio)s,\n" % params)
         elif self.params['backend'].val == 'avbin':
             code = ("%s = visual.MovieStim(\n" % params['name'] +
+                    "    win=win, name='%s',%s\n" % (params['name'], unitsStr))
+        elif self.params['backend'].val == 'vlc':
+            code = ("%s = visual.VlcMovieStim(\n" % params['name'] +
                     "    win=win, name='%s',%s\n" % (params['name'], unitsStr))
         else:
             code = ("%s = visual.MovieStim2(\n" % params['name'] +

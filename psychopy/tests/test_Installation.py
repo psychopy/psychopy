@@ -10,7 +10,6 @@ def test_essential_imports():
     import pyglet
     import OpenGL
     import openpyxl
-    import lxml
     import pandas
 
 def test_extra_imports():

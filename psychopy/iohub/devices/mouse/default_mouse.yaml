@@ -35,7 +35,7 @@ Mouse:
     #
     save_events: True
 
-    # report_system_wide_events: Should the keyboard report events
+    # report_system_wide_events: Should the mouse report events
     #   even when the OS window target is not a PsychoPy Window?
     #   True: All events will be reported regardless of window target.
     #   False: Only events indicating that a PsychoPy Window
@@ -71,17 +71,6 @@ Mouse:
     #
     device_number: 0
 
-    # serial_number: The serial number for the specific isnstance of device used
-    #   can be specified here. It is not used by the ioHub, so is FYI only.
-    #
-    serial_number: N/A
-
-    # manufacture_date: The date of manufactiurer of the device
-    # can be specified here. It is not used by the ioHub,
-    # so is FYI only.
-    #
-    manufacture_date: DD-MM-YYYY
-
     # The device manufacturer's name.
     #   It is not used by the ioHub, so is FYI only.
     #
@@ -92,22 +81,3 @@ Mouse:
     #
     model_name: N/A
 
-    # model_number: The device model number can be specified here.
-    #   It is not used by the ioHub, so is FYI only.
-    #
-    model_number: N/A
-
-    # software_version: The device driver and / or SDK software version number.
-    #   This field is not used by ioHub, so is FYI only.
-    #
-    software_version: N/A
-
-    # hardware_version: The device's hardware version can be specified here.
-    #   It is not used by the ioHub, so is FYI only.
-    #
-    hardware_version: N/A
-
-    # firmware_version: If the device has firmware, its revision number
-    #   can be indicated here. It is not used by the ioHub, so is FYI only.
-    #
-    firmware_version: N/A
