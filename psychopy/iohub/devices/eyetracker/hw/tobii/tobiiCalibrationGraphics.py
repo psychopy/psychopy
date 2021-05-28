@@ -112,7 +112,7 @@ class TobiiPsychopyCalibrationGraphics(object):
             allowGUI=False,
             screen=display.getIndex(),
             color=self.getCalibSetting(['screen_background_color']),
-            colorSpace=unit_type)
+            colorSpace=color_type)
         self.window.flip(clearBuffer=True)
 
         self._createStim()
