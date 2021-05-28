@@ -306,17 +306,18 @@ class MicrophoneComponent(BaseComponent):
             "}"
         )
         buff.writeIndentedLines(code % inits)
-        # Stop the recording
-        self.writeStopTestCodeJS(buff)
-        code = (
-                "%(name)s.pause();\n"
-        )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(-1, relative=True)
-        code = (
-            "}"
-        )
-        buff.writeIndentedLines(code % inits)
+        if self.params['stopVal'].val not in ['', None, -1, 'None']:
+            # Stop the recording
+            self.writeStopTestCodeJS(buff)
+            code = (
+                    "%(name)s.pause();\n"
+            )
+            buff.writeIndentedLines(code % inits)
+            buff.setIndentLevel(-1, relative=True)
+            code = (
+                "}"
+            )
+            buff.writeIndentedLines(code % inits)
 
     def writeRoutineEndCode(self, buff):
         inits = getInitVals(self.params)
@@ -373,8 +374,8 @@ class MicrophoneComponent(BaseComponent):
         BaseComponent.writeRoutineEndCodeJS(self, buff)
         # Store recordings from this routine
         code = (
-            "// flush the microphone (make the audio data ready for upload)\n"
-            "await %(name)s.flush();\n"
+            "// stop the microphone (make the audio data ready for upload)\n"
+            "await %(name)s.stop();\n"
             "// get the recording\n"
             "%(name)s.lastClip = await %(name)s.getRecording({\n"
         )
@@ -388,10 +389,11 @@ class MicrophoneComponent(BaseComponent):
         buff.setIndentLevel(-1, relative=True)
         code = (
             "});\n"
-            "psychoJS.experiment.addData('%(name)s.clip', 'recording_%(name)s' + trials.thisN;\n"
+            "psychoJS.experiment.addData('%(name)s.clip', 'recording_%(name)s' + trials.thisN);\n"
             "// start the asynchronous upload to the server\n"
             "%(name)s.lastClip.upload();\n"
         )
+        buff.writeIndentedLines(code % inits)
         if self.params['transcribe'].val:
             code = (
                 "// transcribe the recording\n"
@@ -408,15 +410,10 @@ class MicrophoneComponent(BaseComponent):
             buff.setIndentLevel(-1, relative=True)
             code = (
                 "});\n"
-                "psychoJS.experiment.addData('%(name)s.transcript', transcript);\n"
-                "psychoJS.experiment.addData('%(name)s.confidence', confidence);\n"
+                "psychoJS.experiment.addData('%(name)s.transcript', %(name)s.lastScript);\n"
+                "psychoJS.experiment.addData('%(name)s.confidence', %(name)s.lastConf);\n"
             )
             buff.writeIndentedLines(code % inits)
-        code = (
-            "// stop the microphone\n"
-            "%(name)s.stop();\n"
-        )
-        buff.writeIndentedLines(code % inits)
 
     def writeExperimentEndCode(self, buff):
         """Write the code that will be called at the end of
