@@ -260,11 +260,11 @@ class TrialHandler(_BaseTrialHandler):
         # create indices for a single rep
         indices = np.asarray(self._makeIndices(self.trialList), dtype=int)
 
+        rng = np.random.default_rng(seed=self.seed)
         if self.method == 'random':
             sequenceIndices = []
-            randGenerator = np.random.default_rng(seed=self.seed)
             for thisRep in range(self.nReps):
-                thisRepSeq = randGenerator.permutation(indices.flat).tolist()
+                thisRepSeq = rng.permutation(indices.flat).tolist()
                 sequenceIndices.append(thisRepSeq)
             sequenceIndices = np.transpose(sequenceIndices)
         elif self.method == 'sequential':
@@ -272,8 +272,7 @@ class TrialHandler(_BaseTrialHandler):
         elif self.method == 'fullRandom':
             # indices*nReps, flatten, shuffle, unflatten; only use seed once
             sequential = np.repeat(indices, self.nReps, 1)  # = sequential
-            randGenerator = np.random.default_rng(seed=self.seed)
-            randomFlat = randGenerator.permutation(sequential.flat)
+            randomFlat = rng.permutation(sequential.flat)
             sequenceIndices = np.reshape(
                 randomFlat, (len(indices), self.nReps))
         if self.autoLog:
@@ -1411,15 +1410,15 @@ class TrialHandlerExt(TrialHandler):
 
         repeat = np.repeat
         reshape = np.reshape
+        rng = np.random.default_rng(seed=self.seed)
         if self.method == 'random':
             seqIndices = []
-            randomGenerator = np.random.default_rng(seed=self.seed)
             if self.trialWeights is None:
                 thisRepSeq = indices.flat  # take a fresh copy
             else:
                 thisRepSeq = repeat(indices, self.trialWeights)
             for thisRep in range(self.nReps):
-                seqIndices.append(randomGenerator.permutation(thisRepSeq))
+                seqIndices.append(rng.permutation(thisRepSeq))
             seqIndices = np.transpose(seqIndices)
         elif self.method == 'sequential':
             if self.trialWeights is None:
@@ -1431,17 +1430,14 @@ class TrialHandlerExt(TrialHandler):
             if self.trialWeights is None:
                 # indices * nReps, flatten, shuffle, unflatten;
                 # only use seed once
-                randomFlat = repeat(indices, self.nReps, 1)
-                rng = np.random.default_rng(seed=self.seed)
-                rng.shuffle(randomFlat)
-                seqIndices = reshape(randomFlat,
-                                     (len(indices), self.nReps))
+                sequential = np.repeat(indices, self.nReps, 1)  # = sequential
+                randomFlat = rng.permutation(sequential.flat)
+                seqIndices = np.reshape(
+                    randomFlat, (len(indices), self.nReps))
             else:
                 _base = repeat(indices, self.trialWeights, 0)
                 sequential = repeat(_base, self.nReps, 1)
-                randomFlat = sequential.flat
-                rng = np.random.default_rng(seed=self.seed)
-                rng.shuffle(randomFlat)
+                randomFlat = rng.permutation(sequential.flat)
                 seqIndices = reshape(randomFlat,
                                      (sum(self.trialWeights), self.nReps))
 
