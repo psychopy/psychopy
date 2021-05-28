@@ -13,10 +13,10 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
     limit = 1
 
     def __init__(self, exp, name='calibration',
-                 progressMode="time", targetDur=1, expandDur=1, expandScale=3,
-                 movementAnimation=False, movementDur=1.25, targetDelay=1.25,
-                 innerFillColor="red", innerBorderColor="", innerBorderWidth="", outerRadius=0.025,
-                 fillColor="", borderColor="white", borderWidth=2, innerRadius=0.005,
+                 progressMode="time", targetDur=1.5, expandDur=1, expandScale=1.5,
+                 movementAnimation=True, movementDur=1.25, targetDelay=1.25,
+                 innerFillColor='green', innerBorderColor='white', innerBorderWidth="", innerRadius=0.0033,
+                 fillColor='', borderColor="black", borderWidth=2, outerRadius=0.1,
                  colorSpace="rgb", units='from exp settings',
                  targetLayout="NINE_POINTS", randomisePos=True,
                  disabled=False
@@ -109,8 +109,7 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
 
         self.params['units'] = Param(units,
                                      valType='str', inputType="choice", categ='Target',
-                                     allowedVals=['from exp settings', 'deg', 'cm', 'pix', 'norm',
-                                                  'height', 'degFlatPos', 'degFlat'],
+                                     allowedVals=['from exp settings'],
                                      hint=_translate("Units of dimensions for this stimulus"),
                                      label=_translate("Spatial Units"))
 

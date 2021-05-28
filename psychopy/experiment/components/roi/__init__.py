@@ -56,6 +56,9 @@ class RegionOfInterestComponent(PolygonComponent):
             if self.params[param].categ in ["Appearance", "Texture"]:
                 del self.params[param]
 
+        # Fix units as default
+        self.params['units'].allowedVals = ['from exp settings']
+
         self.params['endRoutineOn'] = Param(endRoutineOn,
             valType='str', inputType='choice', categ='Basic',
             allowedVals=["look at", "look away", "none"],
