@@ -140,6 +140,15 @@ class RegionOfInterestComponent(PolygonComponent):
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
 
+    def writeRoutineStartCode(self, buff):
+        inits = getInitVals(self.params, 'PsychoPy')
+        BaseVisualComponent.writeRoutineStartCode(self, buff)
+        code = (
+            "# clear any previous roi data\n"
+            "%(name)s.reset()\n"
+        )
+        buff.writeIndentedLines(code % inits)
+
     def writeFrameCode(self, buff):
         """Write the code that will be called every frame
         """
