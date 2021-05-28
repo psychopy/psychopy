@@ -2145,19 +2145,15 @@ class StandaloneRoutineCanvas(wx.Panel, ThemeMixin):
         self.sizer.Add(self.ctrls, border=12, proportion=1, flag=wx.ALIGN_CENTER | wx.ALL)
         # Make buttons
         self.btnsSizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.updateBtn = wx.Button(self, label=_translate("Update"))
-        self.updateBtn.Bind(wx.EVT_BUTTON, self.update)
-        self.btnsSizer.Add(self.updateBtn, border=6, flag=wx.ALL)
         # Add validator stuff
-        self.warnings = WarningManager(self, self.updateBtn)
+        self.warnings = WarningManager(self)
         self.sizer.Add(self.warnings.output, border=3, flag=wx.EXPAND | wx.ALL)
         # Add buttons to sizer
         self.sizer.Add(self.btnsSizer, border=6, proportion=0, flag=wx.ALIGN_RIGHT | wx.ALL)
-
         # Style
         self._applyAppTheme()
 
-    def update(self, evt=None):
+    def updateExperiment(self, evt=None):
         """Update this routine's saved parameters to what is currently entered"""
         # Get params in correct formats
         self.routine.params = self.ctrls.getParams()

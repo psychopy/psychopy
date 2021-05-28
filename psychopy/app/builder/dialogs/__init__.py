@@ -364,7 +364,9 @@ class ParamCtrls(object):
         changes value
         :return:
         """
-        if isinstance(self.valueCtrl, CodeBox):
+        if isinstance(self.valueCtrl, wx.TextCtrl):
+            self.valueCtrl.Bind(wx.EVT_KEY_UP, callbackFunction)
+        elif isinstance(self.valueCtrl, CodeBox):
             self.valueCtrl.Bind(wx.stc.EVT_STC_CHANGE, callbackFunction)
         elif isinstance(self.valueCtrl, wx.ComboBox):
             self.valueCtrl.Bind(wx.EVT_COMBOBOX, callbackFunction)
@@ -472,13 +474,9 @@ class ParamNotebook(wx.Notebook, ThemeMixin):
             if self.ctrls[name].updateCtrl:
                 self.sizer.Add(self.ctrls[name].updateCtrl, (self.row, 3), border=5, flag=_flag)
             # Link to depends callback
+            self.ctrls[name].setChangesCallback(self.doValidate)
             if name == 'name':
-                self.ctrls[name].valueCtrl.Bind(wx.EVT_KEY_UP, self.doValidate)
                 self.ctrls[name].valueCtrl.SetFocus()
-            elif isinstance(self.ctrls[name].valueCtrl, (wx.TextCtrl, CodeBox)):
-                self.ctrls[name].valueCtrl.Bind(wx.EVT_KEY_UP, self.doValidate)
-            else:
-                self.ctrls[name].setChangesCallback(self.checkDepends)
             # Iterate row
             self.row += 1
 
@@ -538,11 +536,10 @@ class ParamNotebook(wx.Notebook, ThemeMixin):
             self.Refresh()
 
         def doValidate(self, event=None):
-            valid = self.Validate()
-            dlg = self.GetTopLevelParent()
-            # If notebook is within a dlg, enable/disable OK button according to valid
-            if hasattr(dlg, "OKbtn"):
-                dlg.OKbtn.Enable(valid)
+            self.Validate()
+            self.checkDepends(event=event)
+            if hasattr(self.dlg, "updateExperiment"):
+                self.dlg.updateExperiment()
 
         def _applyAppTheme(self, target=None):
             self.SetBackgroundColour("white")
