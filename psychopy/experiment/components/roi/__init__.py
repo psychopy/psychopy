@@ -63,6 +63,15 @@ class RegionOfInterestComponent(PolygonComponent):
             label=_translate("End Routine On...")
         )
 
+        self.depends.append(
+            {"dependsOn": "endRoutineOn",  # must be param name
+             "condition": "=='none'",  # val to check for
+             "param": "lookDur",  # param property to alter
+             "true": "hide",  # what to do with param if condition is True
+             "false": "show",  # permitted: hide, show, enable, disable
+             }
+        )
+
         self.params['lookDur'] = Param(lookDur,
             valType='num', inputType='single', categ='Basic',
             hint=_translate("How long (ms) does the participant need to look at the ROI to count as a look?"),
@@ -172,11 +181,6 @@ class RegionOfInterestComponent(PolygonComponent):
             f"%(name)s.timesOff.append({timing}) # store time looked until\n"
         )
         buff.writeIndentedLines(code % inits)
-        if self.params['endRoutineOn'].val == "look at":
-            code = (
-                "continueRoutine = False # end routine on look at\n"
-            )
-            buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
         code = (
             f"else:\n"
@@ -187,6 +191,17 @@ class RegionOfInterestComponent(PolygonComponent):
             f"%(name)s.timesOff[-1] = {timing} # update time looked until\n"
         )
         buff.writeIndentedLines(code % inits)
+        if self.params['endRoutineOn'].val == "look at":
+            code = (
+                "if %(name)s.timesOff[-1] - %(name)s.timesOn[-1] > %(lookDur)s/1000: # check if they've been looking long enough\n"
+            )
+            buff.writeIndentedLines(code % inits)
+            buff.setIndentLevel(1, relative=True)
+            code = (
+                    "continueRoutine = False # end routine on sufficiently long look\n"
+            )
+            buff.writeIndentedLines(code % inits)
+            buff.setIndentLevel(-1, relative=True)
         buff.setIndentLevel(-1, relative=True)
         code = (
             f"%(name)s.wasLookedIn = True  # if %(name)s is still looked at next frame, it is not a new look\n"
@@ -209,9 +224,15 @@ class RegionOfInterestComponent(PolygonComponent):
         buff.writeIndentedLines(code % inits)
         if self.params['endRoutineOn'].val == "look away":
             code = (
-                f"continueRoutine = False # end routine on look away\n"
+                "if %(name)s.timesOff[-1] - %(name)s.timesOn[-1] > %(lookDur)s/1000: # check if last look was long enough\n"
             )
             buff.writeIndentedLines(code % inits)
+            buff.setIndentLevel(1, relative=True)
+            code = (
+                    "continueRoutine = False # end routine after sufficiently long look\n"
+            )
+            buff.writeIndentedLines(code % inits)
+            buff.setIndentLevel(-1, relative=True)
         buff.setIndentLevel(-1, relative=True)
         code = (
             f"%(name)s.wasLookedIn = False  # if %(name)s is looked at next frame, it is a new look\n"
