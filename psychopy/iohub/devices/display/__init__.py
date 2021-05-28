@@ -5,7 +5,6 @@
 
 import sys
 from .. import Device, Computer
-from ... import _ispkg
 from ...constants import DeviceConstants
 from ...errors import print2err, printExceptionDetailsToStdErr
 import pyglet
@@ -148,6 +147,21 @@ class Display(Device):
             str: The coordinate, or unit, type being used to define the Display stimulus area.
         """
         return self.getConfiguration()['reporting_unit_type']
+
+    def getColorSpace(self):
+        """
+        Returns the color space to use for PsychoPy Windows.
+
+        Please refer to the psychoPy documentation for a detailed description of
+        supported color spaces.
+
+        Args:
+            None
+
+        Returns:
+            str: Display color space
+        """
+        return self.getConfiguration()['color_space']
 
     def getPixelsPerDegree(self):
         """Returns the Display's horizontal and vertical pixels per degree This
@@ -501,8 +515,7 @@ class Display(Device):
             runtime_info = self._getRuntimeInfoByIndex(self.device_number)
             display_config['runtime_info'] = runtime_info
 
-            if _ispkg is False:
-                self._createPsychopyCalibrationFile()
+            self._createPsychopyCalibrationFile()
 
             pixel_width = runtime_info['pixel_width']
             pixel_height = runtime_info['pixel_height']

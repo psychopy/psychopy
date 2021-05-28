@@ -6,6 +6,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import wx
+import wx.stc as stc
 from .panels import ColorPresets, ColorPreview
 from .pages import ColorPickerPageHSV, ColorPickerPageRGB
 from psychopy.colors import Color
@@ -34,8 +35,10 @@ class PsychoColorPicker(wx.Dialog):
             id=wx.ID_ANY,
             title=_translate("Color Picker"),
             pos=wx.DefaultPosition,
-            size=wx.Size(640, 480),
+            size=wx.Size(680, 480),
             style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
+
+        self.parent = parent
 
         self.SetSizeHints(wx.DefaultSize, wx.DefaultSize)
         self.SetMinSize(wx.Size(600, 480))
@@ -49,26 +52,18 @@ class PsychoColorPicker(wx.Dialog):
 
         # output spaces mapped to the `cboOutputSpace` object
         self._spaces = {
-            0: 'rgba',
-            1: 'rgb',
-            2: 'rgba1',
-            3: 'rgb1',
-            4: 'rgba255',
-            5: 'rgb255',
-            6: 'hex',
-            7: 'hsva',
-            8: 'hsv'
+            0: 'rgb',
+            1: 'rgb1',
+            2: 'rgb255',
+            3: 'hex',
+            4: 'hsv'
         }
         # what to show in the output selection, maps to the spaces above
         self._outputChoices = [
-            u'PsychoPy RGBA (rgba)',
             u'PsychoPy RGB (rgb)',
-            u'Normalized RGBA (rgba1)',
             u'Normalized RGB (rgb1)',
-            u'8-bit RGBA (rgba255)',
-            u'8-bit RGBA (rgb255)',
+            u'8-bit RGB (rgb255)',
             u'Hex/HTML (hex)',
-            u'Hue-Saturation-Value-Alpha (hsva)',
             u'Hue-Saturation-Value (hsv)'
         ]
 
@@ -123,7 +118,7 @@ class PsychoColorPicker(wx.Dialog):
         self.pnlHSV = ColorPickerPageHSV(self.nbColorSpaces)
 
         self.nbColorSpaces.AddPage(self.pnlRGB, _translate(u"RGB"), True)
-        self.nbColorSpaces.AddPage(self.pnlHSV, _translate(u"HSV/HSB"), False)
+        self.nbColorSpaces.AddPage(self.pnlHSV, _translate(u"HSV"), False)
 
     def _setupUI(self):
         """Setup the UI for the color picker dialog box.
@@ -219,21 +214,21 @@ class PsychoColorPicker(wx.Dialog):
 
         szrDlgCtrls.Add(self.cboOutputSpace, 1, wx.ALIGN_CENTER_VERTICAL, 5)
 
-        self.cmdCopyObject = wx.Button(
-            self, wx.ID_ANY, _translate(u"Copy as &Object"), wx.DefaultPosition,
+        self.cmdInsertColor = wx.Button(
+            self, wx.ID_ANY, _translate(u"&Insert"), wx.DefaultPosition,
             wx.DefaultSize, 0)
         self.cmdCopy = wx.Button(
-            self, wx.ID_ANY, _translate(u"Copy as &Value"), wx.DefaultPosition,
+            self, wx.ID_ANY, _translate(u"&Copy"), wx.DefaultPosition,
             wx.DefaultSize, 0)
         self.cmdClose = wx.Button(
-            self, wx.ID_ANY, _translate(u"&Cancel"), wx.DefaultPosition, wx.DefaultSize, 0)
+            self, wx.ID_ANY, _translate(u"Canc&el"), wx.DefaultPosition, wx.DefaultSize, 0)
 
-        self.cmdCopyObject.SetToolTip(
-            _translate(u"Copy as a `psychopy.colors.Color` object."))
+        self.cmdInsertColor.SetToolTip(
+            _translate(u"Insert color value."))
         self.cmdCopy.SetToolTip(
-            _translate(u"Copy as a value (tuple)."))
+            _translate(u"Copy color value to clipboard."))
 
-        szrDlgCtrls.Add(self.cmdCopyObject, 0, wx.EXPAND, 5)
+        szrDlgCtrls.Add(self.cmdInsertColor, 0, wx.EXPAND, 5)
         szrDlgCtrls.Add(self.cmdCopy, 0, wx.EXPAND, 5)
         szrDlgCtrls.Add(self.cmdClose, 0, wx.EXPAND, 5)
 
@@ -248,11 +243,15 @@ class PsychoColorPicker(wx.Dialog):
 
         # Connect Events
         self.nbColorSpaces.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.onPageChanged)
-        self.cmdCopyObject.Bind(wx.EVT_BUTTON, self.onCopyObject)
+        self.cmdInsertColor.Bind(wx.EVT_BUTTON, self.onInsertValue)
         self.cmdCopy.Bind(wx.EVT_BUTTON, self.onCopyValue)
         self.cboOutputSpace.Bind(
             wx.EVT_CHOICE, self.onOutputSpaceChanged)
         self.cmdClose.Bind(wx.EVT_BUTTON, self.onClose)
+
+        # disable insert if parent is not a valid context, allow copying though
+        if self.parent is None:
+            self.cmdInsertColor.Enable(False)
 
     def _copyToClipboard(self, text):
         """Copy text to the clipboard.
@@ -292,27 +291,17 @@ class PsychoColorPicker(wx.Dialog):
         """
         outputSpace = self.cboOutputSpace.GetSelection()
         dlgCol = self.GetTopLevelParent().color
-        if outputSpace == 0:  # RGBA
-            colorOut = '({:.4f}, {:.4f}, {:.4f}, {:.4f})'.format(*dlgCol.rgba)
-        elif outputSpace == 1:  # RGB
-            colorOut = '({:.4f}, {:.4f}, {:.4f})'.format(*dlgCol.rgb)
-        elif outputSpace == 2:  # RGBA1
-            colorOut = '({:.4f}, {:.4f}, {:.4f}, {:.4f})'.format(*dlgCol.rgba1)
-        elif outputSpace == 3:  # RGB1
-            colorOut = '({:.4f}, {:.4f}, {:.4f})'.format(*dlgCol.rgb1)
-        elif outputSpace == 4:  # RGBA255
-            r, g, b = [int(i) for i in dlgCol.rgba255[:3]]
-            alpha = dlgCol.alpha
-            colorOut = '({:d}, {:d}, {:d}, {:.4f})'.format(r, g, b, alpha)
-        elif outputSpace == 5:  # RGB255
-            colorOut = '({:d}, {:d}, {:d})'.format(
+        if outputSpace == 0:  # RGB
+            colorOut = '{:.4f}, {:.4f}, {:.4f}'.format(*dlgCol.rgb)
+        elif outputSpace == 1:  # RGB1
+            colorOut = '{:.4f}, {:.4f}, {:.4f}'.format(*dlgCol.rgb1)
+        elif outputSpace == 2:  # RGB255
+            colorOut = '{:d}, {:d}, {:d}'.format(
                 *[int(i) for i in dlgCol.rgb255])
-        elif outputSpace == 6:  # Hex
+        elif outputSpace == 3:  # Hex
             colorOut = "'{}'".format(dlgCol.hex)
-        elif outputSpace == 7:  # HSVA
-            colorOut = '({:.4f}, {:.4f}, {:.4f}, {:.4f})'.format(*dlgCol.hsva)
-        elif outputSpace == 8:  # HSV
-            colorOut = '({:.4f}, {:.4f}, {:.4f})'.format(*dlgCol.hsv)
+        elif outputSpace == 4:  # HSV
+            colorOut = '{:.4f}, {:.4f}, {:.4f}'.format(*dlgCol.hsv)
         else:
             raise ValueError(
                 "Invalid output color space selection. Have you added any "
@@ -335,16 +324,16 @@ class PsychoColorPicker(wx.Dialog):
         self._updateColorSpacePage()
         event.Skip()
 
-    def onCopyObject(self, event):
+    def onInsertValue(self, event):
         """Event to copy the color to the clipboard as a an object.
 
         """
-        outputSpace = self.cboOutputSpace.GetSelection()
-        toReturn = "colors.Color({}, space='{}')".format(
-            self.getOutputValue(), self._spaces[outputSpace])
-        if self.context == 'builder':
-            toReturn = "$" + toReturn
-        self._copyToClipboard(toReturn)
+        if isinstance(self.parent, wx.TextCtrl):
+            self.parent.SetValue(self.getOutputValue())
+        elif isinstance(self.parent, stc.StyledTextCtrl):
+            self.parent.InsertText(
+                self.parent.GetCurrentPos(), "(" + self.getOutputValue() + ")")
+
         self.Close()
         event.Skip()
 
@@ -352,10 +341,7 @@ class PsychoColorPicker(wx.Dialog):
         """Event to copy the color to the clipboard as a value.
 
         """
-        toReturn = self.getOutputValue()
-        if self.context == 'builder':
-            toReturn = "$" + toReturn
-        self._copyToClipboard(toReturn)  # copy out to clipboard
+        self._copyToClipboard(self.getOutputValue())  # copy out to clipboard
         self.Close()
         event.Skip()
 

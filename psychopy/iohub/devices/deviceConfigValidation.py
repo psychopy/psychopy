@@ -2,19 +2,18 @@
 # Part of the psychopy.iohub library.
 # Copyright (C) 2012-2016 iSolver Software Solutions
 # Distributed under the terms of the GNU General Public License (GPL).
-from __future__ import division, absolute_import
-
-# Takes a device configuration yaml dict and processes it based on the devices
-# support_settings_values.yaml (which must be in the same directory as the
-# Device class) to ensure all entries for the device setting are valid values.
-
 from past.builtins import basestring
 import socket
 import os
 import numbers  # numbers.Integral is like (int, long) but supports Py3
-
-from .. import _pkgroot
+from psychopy import colors
+from psychopy.tools import arraytools
 from ..util import yload, yLoader, module_directory
+from ..errors import print2err
+
+# Takes a device configuration yaml dict and processes it based on the devices
+# support_settings_values.yaml (which must be in the same directory as the
+# Device class) to ensure all entries for the device setting are valid values.
 
 class ValidationError(Exception):
     """Base class for exceptions in this module."""
@@ -51,7 +50,6 @@ class StringValueError(ValidationError):
         value_given  -- the value read from the experiment configuration file.
         device_config_param_constraints  -- the set of constraints that apply to the parameter.
         msg -- explanation of the error
-
     """
 
     def __init__(
@@ -248,26 +246,39 @@ MAX_VALID_FLOAT_VALUE = 1000000.0
 MIN_VALID_INT_VALUE = 0
 MAX_VALID_INT_VALUE = 1000000
 
+def is_sequence(arg):
+    return hasattr(arg, "__getitem__") or hasattr(arg, "__iter__")
 
-def isValidRgb255Color(config_param_name, color, constraints):
-    if isinstance(color, (list, tuple)):
-        if len(color) in [3, 4]:
-            for c in color:
-                if isinstance(c, int):
-                    if c < 0 or c > 255:
-                        raise ColorValueError(config_param_name, color)
-                else:
-                    raise ColorValueError(config_param_name, color)
+def isValidColor(config_param_name, color, constraints):
+    """
+    Return color if it is a valid psychopy color (regardless of color space)
+    , otherwise raise error. Color value can be in hex, name, rgb, rgb255 format.
+    """
+    if isinstance(color, str):
+        if color[0] == '#' or color[0:2].lower() == '0x':
+            rgb255color = colors.hex2rgb255(color)
+            if rgb255color is not None:
+                return color
+            else:
+                raise ColorValueError(config_param_name, color)
+
+        if color.lower() in colors.colorNames.keys():
+            return color
         else:
             raise ColorValueError(config_param_name, color)
-
-        return color
-
+    if isinstance(color, (float, int)) or (is_sequence(color) and len(color) == 3):
+        colorarray = arraytools.val2array(color, length=3)
+        if colorarray is not None:
+            return color
+        else:
+            raise ColorValueError(config_param_name, color)
     raise ColorValueError(config_param_name, color)
-
 
 def isValidString(config_param_name, value, constraints):
     if isinstance(value, basestring):
+        if value == constraints:
+            # static string
+            return value
         constraints.setdefault('min_length', MIN_VALID_STR_LENGTH)
         constraints.setdefault('max_length', MAX_VALID_STR_LENGTH)
         constraints.setdefault('first_char_alpha', False)
@@ -316,19 +327,6 @@ def isValidInt(config_param_name, value, constraints):
 
     raise IntValueError(config_param_name, value, constraints)
 
-
-def isValidNumber(config_param_name, value, constraints):
-    try:
-        int_value = isValidInt(config_param_name, value, constraints)
-        return int_value
-    except Exception:
-        try:
-            float_value = isValidFloat(config_param_name, value, constraints)
-            return float_value
-        except Exception:
-            raise NumberValueError(config_param_name, value, constraints)
-
-
 def isBool(config_param_name, value, valid_value):
     try:
         value = bool(value)
@@ -343,22 +341,6 @@ def isValidIpAddress(config_param_name, value, valid_value):
         return value
     except Exception:
         raise IpValueError(config_param_name, value)
-
-
-def isValidDateString(config_param_name, value, valid_value):
-    try:
-        if value == 'DD-MM-YYYY':
-            return value
-        day, month, year = value.split('-')
-        if int(day) < 1 or int(day) > 31:
-            raise DateStringValueError(config_param_name, value)
-        if int(month) < 1 or int(month) > 12:
-            raise DateStringValueError(config_param_name, value)
-        if int(year) < 1900 or int(year) > 2013:
-            raise DateStringValueError(config_param_name, value)
-        return value
-    except Exception:
-        raise DateStringValueError(config_param_name, value)
 
 
 def isValidList(config_param_name, value, constraints):
@@ -388,8 +370,7 @@ def isValidList(config_param_name, value, constraints):
 
         for v in value:
             if v not in valid_values:
-                raise NonSupportedValueError(
-                    config_param_name, v, valid_values)
+                raise NonSupportedValueError(config_param_name, v, valid_values)
 
         return value
 
@@ -398,7 +379,11 @@ def isValidList(config_param_name, value, constraints):
 
 
 def isValueValid(config_param_name, value, valid_values):
-    if value not in valid_values:
+    if isinstance(value, (list, tuple)):
+        for v in value:
+            if v not in valid_values:
+                raise NonSupportedValueError(config_param_name, value, valid_values)
+    elif value not in valid_values:
         raise NonSupportedValueError(config_param_name, value, valid_values)
     return value
 
@@ -407,24 +392,10 @@ CONFIG_VALIDATION_KEY_WORD_MAPPINGS = dict(
     IOHUB_BOOL=isBool,
     IOHUB_FLOAT=isValidFloat,
     IOHUB_INT=isValidInt,
-    IOHUB_NUMBER=isValidNumber,
     IOHUB_LIST=isValidList,
-    IOHUB_RGBA255_COLOR=isValidRgb255Color,
-    IOHUB_IP_ADDRESS_V4=isValidIpAddress,
-    IOHUB_DATE=isValidDateString)
+    IOHUB_COLOR=isValidColor,
+    IOHUB_IP_ADDRESS_V4=isValidIpAddress)
 ###############################################
-
-# load a support_settings_values.yaml
-
-
-def loadYamlFile(yaml_file_path, print_file=False):
-    yaml_file_contents = yload(open(yaml_file_path, 'r'), Loader=yLoader)
-#    if print_file:
-#        print 'yaml_file_contents:'
-#        print 'file: ',yaml_file_path
-#        print 'contents:'
-#        pprint(yaml_file_contents)
-    return yaml_file_contents
 
 _current_dir = module_directory(isValidString)
 
@@ -448,18 +419,18 @@ def buildConfigParamValidatorMapping(
         if keyword_validator_function:
             param_validation_func_mapping[
                 parent_name] = keyword_validator_function, param_config
-#            print2err('ADDED MAPPING')
+            #print2err('ADDED MAPPING1: ', current_param_path, " ", isValueValid, " ", param_config)
         elif isinstance(param_config, basestring):
             keyword_validator_function = CONFIG_VALIDATION_KEY_WORD_MAPPINGS.get(
                 param_config, None)
             if keyword_validator_function:
                 param_validation_func_mapping[
                     current_param_path] = keyword_validator_function, {}
-#                print2err('ADDED MAPPING')
+                #print2err('ADDED MAPPING2: ', current_param_path, " ", isValueValid, " ", param_config)
             else:
                 param_validation_func_mapping[
                     current_param_path] = isValueValid, [param_config, ]
-#                print2err('ADDED MAPPING')
+                #print2err('ADDED MAPPING3: ', current_param_path, " ", isValueValid, " ", param_config)
         elif isinstance(param_config, dict):
             buildConfigParamValidatorMapping(
                 param_config,
@@ -468,11 +439,11 @@ def buildConfigParamValidatorMapping(
         elif isinstance(param_config, (list, tuple)):
             param_validation_func_mapping[
                 current_param_path] = isValueValid, param_config
-#            print2err('ADDED MAPPING')
+            #print2err('ADDED MAPPING4: ', current_param_path, " ", isValueValid, " ", param_config)
         else:
             param_validation_func_mapping[
                 current_param_path] = isValueValid, [param_config, ]
-#            print2err('ADDED MAPPING')
+            #print2err('ADDED MAPPING5: ', current_param_path, " ", isValueValid, " ", param_config)
 
 
 def validateConfigDictToFuncMapping(
@@ -515,51 +486,22 @@ def validateDeviceConfiguration(
         relative_module_path,
         device_class_name,
         current_device_config):
-    validation_file_path = os.path.join(
-        _current_dir, relative_module_path[
-            len(
-                '%s.devices.' %
-                (_pkgroot)):].replace(
-            '.', os.path.sep), 'supported_config_settings_{0}.yaml'.format(
-                    device_class_name.lower()))
+    validation_file_path = os.path.join(_current_dir,
+                                        relative_module_path[len('psychopy.iohub.devices.'):].replace('.', os.path.sep),
+                                        'supported_config_settings_{0}.yaml'.format(device_class_name.lower()))
     if not os.path.exists(validation_file_path):
-        validation_file_path = os.path.join(
-            _current_dir,
-            relative_module_path[
-                len(
-                    '%s.devices.' %
-                    (_pkgroot)):].replace(
-                '.',
-                os.path.sep),
-            'supported_config_settings.yaml')
-    device_settings_validation_dict = loadYamlFile(
-        validation_file_path, print_file=True)
-    device_settings_validation_dict = device_settings_validation_dict[
-        list(device_settings_validation_dict.keys())[0]]
+        validation_file_path = os.path.join(_current_dir,
+                                            relative_module_path[len('psychopy.iohub.devices.'):].replace('.',
+                                                                                                          os.path.sep),
+                                            'supported_config_settings.yaml')
+    device_settings_validation_dict = yload(open(validation_file_path, 'r'), Loader=yLoader)
+    device_settings_validation_dict = device_settings_validation_dict[list(device_settings_validation_dict.keys())[0]]
 
     param_validation_func_mapping = dict()
     parent_config_param_path = None
-    buildConfigParamValidatorMapping(
-        device_settings_validation_dict,
-        param_validation_func_mapping,
-        parent_config_param_path)
+    buildConfigParamValidatorMapping(device_settings_validation_dict, param_validation_func_mapping,
+                                     parent_config_param_path)
 
-# print2err("#### buildConfigParamValidatorMapping
-# results:\n\ncurrent_device_config: {0}\n\n validation_rules config:
-# {1}\n\n Config Constants Mapping:
-# {2}\n".format(current_device_config,device_settings_validation_dict,param_validation_func_mapping))
-
-    validation_results = validateConfigDictToFuncMapping(
-        param_validation_func_mapping, current_device_config, None)
-
-#    print2err('=================================================')
-#    print2err('{0} VALIDATION RESULTS: '.format(device_class_name))
-#    print2err('\tPARAMS NOT FOUND: {0} '.format(len(validation_results['not_found'])))
-#    for p,v in validation_results['not_found']:
-#        print2err('\tparam: {0}\t\tvalue: {1}'.format(p,v))
-#    print2err('\tPARAMS WITH ERROR: {0} '.format(len(validation_results['errors'])))
-#    for p,v in validation_results['errors']:
-#        print2err('\tparam: {0}\t\tvalue: {1}'.format(p,v))
-#    print2err('=================================================')
+    validation_results = validateConfigDictToFuncMapping(param_validation_func_mapping, current_device_config, None)
 
     return validation_results

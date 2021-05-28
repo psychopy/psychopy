@@ -1,0 +1,89 @@
+# This file includes all valid Wintab Device
+# settings that can be specified in an iohub_config.yaml
+# or in Python dictionary form and passed to the launchHubServer
+# method. Any device parameters not specified when the device class is
+# created by the ioHub Process will be assigned the default value
+# indicated here.
+#
+wintab.Wintab:
+    # name: The name you want to assign the Wintab device for the experiment
+    #   This name is what will be used to access the device within the experiment
+    #   script via the devices.[device_name] property of the ioHubConnection
+    #
+    name: pen
+
+    # enable: Specifies if the device should be enabled by ioHub and monitored
+    #   for events.
+    #   True = Enable the device on the ioHub Server Process
+    #   False = Disable the device on the ioHub Server Process. No device events will
+    #   be reported by the ioHub Server.
+    #
+    enable: True
+
+    # device_timer: The Wintab class uses the polling method to
+    #   check for new events received from the device. device_timer.interval
+    #   specifies the sec.msec time between device polls. 0.005 = 5 msec, so the device will
+    #   be polled at a maxximum rate of 200 Hz. This polling rate is a 'target' value,
+    #   and may not always be achieved depending on your computer specifications and the
+    #   number and type of other devices being used. This can be checked by reviewing the
+    #   confidence_interval column of wintab event table saved to the DataStore
+    #    
+    device_timer:
+        interval: 0.004
+
+    mouse_simulation:
+        enable: False
+        leave_region_timeout: 2.0
+
+    # monitor_event_types: *If* the ioHubDataStore is enabled for the experiment, then
+    #   indicate if events for this device should be saved to the
+    #   monitor_event_types: Specified which Wintab Event types should be monitored
+    #   for and therefore saved to the DataStore or sent to the Experiment Process.
+    #
+    monitor_event_types:  [WintabSampleEvent,WintabEnterRegionEvent, WintabLeaveRegionEvent]
+
+    #   save_events: Save Wintab events to the data_collection/Wintab event 
+    #   group in the hdf5 event file.
+    #   True = Save events for this device to the ioDataStore.
+    #   False = Do not save events for this device in the ioDataStore.
+    #
+    save_events: True
+
+    # stream_events: Indicate if events from this device should be made available
+    #   during experiment runtime to the Experiment / PsychoPy Process.
+    #   True = Send events for this device to  the Experiment Process in real-time.
+    #   False = Do *not* send events for this device to the Experiment Process in real-time.
+    #
+    stream_events: True
+
+    # auto_report_events: Indicate if events from this device should start being
+    #   processed by the ioHub as soon as the device is loaded at the start of an experiment,
+    #   or if events should only start to be monitored on the device when a call to the
+    #   device's enableEventReporting method is made with a parameter value of True.
+    #   True = Automatically start reporting events for this device when the experiment starts.
+    #   False = Do not start reporting events for this device until enableEventReporting(True)
+    #       is set for the device during experiment runtime.
+    #
+    auto_report_events: False
+
+    # event_buffer_length: Specify the maximum number of events (for each
+    #   event type the device produces) that can be stored by the ioHub Server
+    #   before each new event results in the oldest event of the same type being
+    #   discarded from the ioHub device event buffer.
+    #
+    event_buffer_length: 256
+    
+    # device_number: The device number to assign to the device. 
+    #   Device_number is not used by this device type.
+    #
+    device_number: 0
+
+    # The device manufacturer's name.
+    #   It is not used by the ioHub, so is FYI only.
+    #
+    manufacturer_name: N/A
+
+    # model_name: The device model name can be specified here.
+    #   It is not used by the ioHub, so is FYI only.
+    #
+    model_name: N/A

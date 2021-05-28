@@ -165,15 +165,15 @@ class EventConstants(Constants):
     GAMEPAD_STATE_CHANGE = 81
     GAMEPAD_DISCONNECT = 82
 
-    WINTAB_TABLET_INPUT = 90
-    #: Constant for a WinTab Tablet Sample Event.
-    WINTAB_TABLET_SAMPLE = 91
+    WINTAB_INPUT = 90
+    #: Constant for a WinTab Pen Sample Event.
+    WINTAB_SAMPLE = 91
 
-    #: Constant for a WinTab Tablet Region Entered Event.
-    WINTAB_TABLET_ENTER_REGION = 92
+    #: Constant for a WinTab Pen Region Entered Event.
+    WINTAB_ENTER_REGION = 92
 
-    #: Constant for a WinTab Tablet Region Leave Event.
-    WINTAB_TABLET_LEAVE_REGION = 93
+    #: Constant for a WinTab Pen Region Leave Event.
+    WINTAB_LEAVE_REGION = 93
 
     #: Constant for MCU digital input Event.
     DIGITAL_INPUT = 101
@@ -267,7 +267,7 @@ class DeviceConstants(Constants):
     GAMEPAD = 80
 
     #: Constant for Tablet Device that uses WinTab DLL.
-    WINTABTABLET = 90
+    WINTAB = 90
 
     #: Constant for a MCU Device.
     MCU = 100

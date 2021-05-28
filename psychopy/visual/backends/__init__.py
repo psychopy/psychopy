@@ -40,18 +40,18 @@ def getBackend(win, *args, **kwargs):
 
     Returns
     -------
-    object
+    :class:`~psychopy.visual.backends._base.BaseBackend`
         Backend class (subclass of BaseBackend).
 
     """
     # Look-up the backend module name for `winType`, this is going to be used
     # when the plugin system goes live. For now we're leaving it here.
-    try:
-        useBackend = winTypes[win.winType]
-    except KeyError:
-        raise KeyError(
-            "User requested Window with winType='{}' but there is no backend "
-            "definition to match that `winType`.".format(win.winType))
+    # try:
+    #     useBackend = winTypes[win.winType]
+    # except KeyError:
+    #     raise KeyError(
+    #         "User requested Window with winType='{}' but there is no backend "
+    #         "definition to match that `winType`.".format(win.winType))
 
     # This loads the backend dynamically, will be enabled when the plugin system
     # goes live.
