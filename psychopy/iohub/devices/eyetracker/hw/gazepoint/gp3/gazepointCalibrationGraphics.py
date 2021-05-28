@@ -16,28 +16,34 @@ currentTime = Computer.getTime
 
 class GazepointPsychopyCalibrationGraphics(object):
     IOHUB_HEARTBEAT_INTERVAL = 0.050
-    WINDOW_BACKGROUND_COLOR = None
     CALIBRATION_POINT_LIST = [(0.5, 0.5), (0.1, 0.1), (0.9, 0.1), (0.9, 0.9), (0.1, 0.9)]
 
     _keyboard_key_index = EC.getClass(EC.KEYBOARD_RELEASE).CLASS_ATTRIBUTE_NAMES.index('key')
 
     def __init__(self, eyetrackerInterface, calibration_args):
         self._eyetracker = eyetrackerInterface
-
         self.screenSize = eyetrackerInterface._display_device.getPixelResolution()
         self.width = self.screenSize[0]
         self.height = self.screenSize[1]
         self._ioKeyboard = None
         self._msg_queue = []
-
         self._lastCalibrationOK = False
-        self._device_config = self._eyetracker.getConfiguration()
+        display = self._eyetracker._display_device
 
+        self._device_config = self._eyetracker.getConfiguration()
         updateDict(calibration_args, self._device_config.get('calibration'))
         self._calibration_args = calibration_args
 
-        screenColor = self.getCalibSetting('screen_background_color')
-        GazepointPsychopyCalibrationGraphics.WINDOW_BACKGROUND_COLOR = screenColor
+        unit_type = self.getCalibSetting('unit_type')
+        if unit_type is None:
+            unit_type = display.getCoordinateType()
+            self._calibration_args['unit_type'] = unit_type
+            print2err("GP3: Using Window unit type: ", unit_type)
+        color_type = self.getCalibSetting('color_type')
+        if color_type is None:
+            color_type = display.getColorSpace()
+            self._calibration_args['color_type'] = color_type
+            print2err("GP3: Using Window color_type: ", color_type)
 
         calibration_methods = dict(THREE_POINTS=3,
                                    FIVE_POINTS=5,
@@ -84,17 +90,20 @@ class GazepointPsychopyCalibrationGraphics(object):
                                                                                (0.75, 0.75),
                                                                                (0.75, 0.25)
                                                                                ]
-        display = self._eyetracker._display_device
 
+        if display.getCoordinateType() != unit_type:
+            raise RuntimeWarning("ioHub GP3 Warning: display.getCoordinateType() != "
+                                 "self.getCalibSetting('unit_type'): {} {}".format(display.getCoordinateType(),
+                                                                                   unit_type))
         self.window = visual.Window(
             self.screenSize,
             monitor=display.getPsychopyMonitorName(),
-            units=display.getCoordinateType(),
+            units=unit_type,
             fullscr=True,
             allowGUI=False,
             screen=display.getIndex(),
-            color=self.WINDOW_BACKGROUND_COLOR[0:3],
-            colorSpace=display.getColorSpace())
+            color=self.getCalibSetting(['screen_background_color']),
+            colorSpace=color_type)
         self.window.flip(clearBuffer=True)
 
         self._createStim()

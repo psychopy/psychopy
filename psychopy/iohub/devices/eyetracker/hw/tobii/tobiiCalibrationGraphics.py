@@ -8,7 +8,7 @@ from psychopy import visual
 import gevent
 import numpy as np
 from collections import OrderedDict
-from .....util import convertCamelToSnake
+from .....util import convertCamelToSnake, updateDict
 from .... import DeviceEvent, Computer
 from .....constants import EventConstants
 from .....errors import print2err, printExceptionDetailsToStdErr
@@ -17,10 +17,7 @@ currentTime = Computer.getTime
 
 
 class TobiiPsychopyCalibrationGraphics(object):
-    IOHUB_HEARTBEAT_INTERVAL = 0.050  # seconds between forced run through of
-    # micro threads, since one is blocking
-    # on camera setup.
-    WINDOW_BACKGROUND_COLOR = None
+    IOHUB_HEARTBEAT_INTERVAL = 0.050  # seconds between forced run through of micro threads, since one is blocking on camera setup.
     CALIBRATION_POINT_LIST = [(0.5, 0.5), (0.1, 0.1), (0.9, 0.1), (0.9, 0.9), (0.1, 0.9), (0.5, 0.5)]
 
     TEXT_POS = [0, 0]
@@ -32,20 +29,27 @@ class TobiiPsychopyCalibrationGraphics(object):
     def __init__(self, eyetrackerInterface, calibration_args={}):
         self._eyetrackerinterface = eyetrackerInterface
         self._tobii = eyetrackerInterface._tobii
-
         self.screenSize = eyetrackerInterface._display_device.getPixelResolution()
         self.width = self.screenSize[0]
         self.height = self.screenSize[1]
         self._ioKeyboard = None
         self._msg_queue = []
-
         self._lastCalibrationOK = False
+        display = self._eyetrackerinterface._display_device
 
         self._device_config = self._eyetrackerinterface.getConfiguration()
+        updateDict(calibration_args, self._device_config.get('calibration'))
         self._calibration_args = calibration_args
-
-        screenColor = self.getCalibSetting('screen_background_color')
-        TobiiPsychopyCalibrationGraphics.WINDOW_BACKGROUND_COLOR = screenColor
+        unit_type = self.getCalibSetting('unit_type')
+        if unit_type is None:
+            unit_type = display.getCoordinateType()
+            self._calibration_args['unit_type'] = unit_type
+            print2err("EyeLink: Using Window unit type: ", unit_type)
+        color_type = self.getCalibSetting('color_type')
+        if color_type is None:
+            color_type = display.getColorSpace()
+            self._calibration_args['color_type'] = color_type
+            print2err("EyeLink: Using Window color_type: ", color_type)
 
         calibration_methods = dict(THREE_POINTS=3,
                                    FIVE_POINTS=5,
@@ -99,18 +103,16 @@ class TobiiPsychopyCalibrationGraphics(object):
                                                                                (0.75, 0.75),
                                                                                (0.75, 0.25)
                                                                                ]
-        display = self._eyetrackerinterface._display_device
 
         self.window = visual.Window(
             self.screenSize,
             monitor=display.getPsychopyMonitorName(),
-            units=display.getCoordinateType(),
+            units=unit_type,
             fullscr=True,
             allowGUI=False,
             screen=display.getIndex(),
-            color=self.WINDOW_BACKGROUND_COLOR[
-                  0:3],
-            colorSpace=display.getColorSpace())
+            color=self.getCalibSetting(['screen_background_color']),
+            colorSpace=color_type)
         self.window.flip(clearBuffer=True)
 
         self._createStim()
@@ -123,18 +125,10 @@ class TobiiPsychopyCalibrationGraphics(object):
         if isinstance(setting, str):
             setting = [setting, ]
         calibration_args = self._calibration_args
-        device_calib_config = self._device_config.get('calibration')
         if setting:
             for s in setting[:-1]:
-                if calibration_args:
-                    calibration_args = calibration_args.get(s)
-                device_calib_config = device_calib_config.get(s)
-            v = None
-            if calibration_args:
-                v = calibration_args.get(setting[-1])
-            if v is None:
-                v = device_calib_config[setting[-1]]
-            return v
+                calibration_args = calibration_args.get(s)
+            return calibration_args.get(setting[-1])
 
     def clearAllEventBuffers(self):
         self._eyetrackerinterface._iohub_server.eventBuffer.clear()

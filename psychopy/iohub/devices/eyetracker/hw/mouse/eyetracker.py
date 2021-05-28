@@ -418,13 +418,13 @@ class EyeTracker(EyeTrackerDevice):
         return self._latest_sample
 
     def _eyeTrackerToDisplayCoords(self, eyetracker_point=()):
-        """Converts GP3 gaze positions to the Display device coordinate space.
+        """Converts MouseGaze positions to the Display device coordinate space.
         """
 
         return eyetracker_point[0], eyetracker_point[1]
 
     def _displayToEyeTrackerCoords(self, display_x, display_y):
-        """Converts a Display device point to GP3 gaze position coordinate
+        """Converts a Display device point to MouseGaze position coordinate
         space.
         """
         return display_x, display_y

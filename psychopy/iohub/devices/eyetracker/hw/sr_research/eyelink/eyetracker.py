@@ -400,7 +400,6 @@ class EyeTracker(EyeTrackerDevice):
             # reply is returning:
             # {'message': 'calibration_result: 0', 'result': 1000}
             # on a successful calibration.
-            # TODO: Parse into more meaningful message if possible.
 
             genv._unregisterEventMonitors()
             genv.clearAllEventBuffers()

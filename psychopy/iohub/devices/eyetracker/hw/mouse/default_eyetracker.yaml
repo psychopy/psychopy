@@ -36,10 +36,10 @@ eyetracker.hw.mouse.EyeTracker:
         type: NINE_POINTS
 
         # color_type: rgb, rgb255, named, hex, etc. Leave blank to use window's color space.
-        color_type: rgb255
+        color_type:
 
         # unit_type: norm, pix, height, deg, etc. Leave blank to use window's unit type.
-        unit_type: pix
+        unit_type:
 
         # Should the target positions be randomized?
         randomize: True
