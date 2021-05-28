@@ -1,9 +1,9 @@
-from .polygon import Polygon
+from .shape import ShapeStim
 from ..event import Mouse
 from ..core import Clock
 
 
-class ROI(Polygon):
+class ROI(ShapeStim):
     """
     A class to handle regions of interest for eyetracking, is essentially a :class:`~psychopy.visual.polygon` but
     with some extra methods and properties for interacting with eyetracking.
@@ -24,7 +24,7 @@ class ROI(Polygon):
         If True, then the ROI becomes visible as a red shape on screen. This is intended purely for
         debugging purposes, so that you can see where on screen the ROI is when building an expriment.
     shape : str
-        The shape of this ROI
+        The shape of this ROI, will accept an array of vertices
     pos : array_like
         Initial position (`x`, `y`) of the ROI on-screen relative to the
         origin located at the center of the window or buffer in `units`.
@@ -57,15 +57,16 @@ class ROI(Polygon):
 
     def __init__(self, win, name=None, tracker=None,
                  debug=False,
-                 shape="rectangle", vertices=None,
+                 shape="rectangle",
                  units='', pos=(0, 0), size=(1, 1), ori=0.0,
                  autoLog=None):
 
         # Create red polygon which doesn't draw if `debug == False`
-        Polygon.__init__(self, win, name=name, edges=4,
-                         units=units, pos=pos, size=size, ori=0.0,
+        ShapeStim.__init__(self, win, name=name,
+                         units=units, pos=pos, size=size, ori=ori,
+                         vertices=shape,
                          fillColor='red', opacity=int(debug),
-                         autoLog=None, autoDraw=debug)
+                         autoLog=autoLog)
         self.opacity = int(debug)
         if tracker is None:
             self.tracker = Mouse(win=win)
