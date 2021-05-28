@@ -99,3 +99,12 @@ class ROI(ShapeStim):
         # Check contains
         return bool(self.contains(pos[0], pos[1], self.win.units))
 
+    @property
+    def currentLookTime(self):
+        if self.isLookedIn:
+            # If looked at, subtract most recent time from last time on
+            return self.timesOff[-1] - self.timesOn[-1]
+        else:
+            # If not looked at, look time is 0
+            return 0
+
