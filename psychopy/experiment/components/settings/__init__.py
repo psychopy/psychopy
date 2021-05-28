@@ -802,8 +802,6 @@ class SettingsComponent(object):
                     "\n").format(version=versionStr)
             buff.writeIndentedLines(code)
 
-        # Write window code
-        self.writeWindowCodeJS(buff)
         code = ("\n// store info about the experiment session:\n"
                 "let expName = '%s';  // from the Builder filename that created this script\n"
                 "let expInfo = %s;\n"
