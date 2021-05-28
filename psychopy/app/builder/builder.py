@@ -2000,16 +2000,22 @@ class RoutineCanvas(wx.ScrolledWindow):
                 # Grey bar if comp is disabled
                 dc.SetBrush(wx.Brush(ThemeMixin.appColors['rt_comp_disabled']))
                 dc.DrawBitmap(thisIcon.ConvertToDisabled(), self.iconXpos, yPos + iconYOffset, True)
-            elif 'forceEndRoutine' in component.params \
-                    or 'forceEndRoutineOnPress' in component.params:
-                if any(component.params[key].val
-                       for key in ['forceEndRoutine', 'forceEndRoutineOnPress']
-                       if key in component.params):
-                    # Orange bar if component has forceEndRoutine or forceEndRoutineOnPress and either are true
-                    dc.SetBrush(wx.Brush(ThemeMixin.appColors['rt_comp_force']))
-                else:
-                    # Blue bar if component has forceEndRoutine or forceEndRoutineOnPress but none are true
-                    dc.SetBrush(wx.Brush(ThemeMixin.appColors['rt_comp']))
+            elif any(key in component.params for key in ['forceEndRoutine', 'forceEndRoutineOnPress', 'endRoutineOn']):
+                # if component has force end params, check them and set bar as orange or blue accordingly
+                col = ThemeMixin.appColors['rt_comp']
+                # check True/False on ForceEndRoutine
+                if 'forceEndRoutine' in component.params:
+                    if component.params['forceEndRoutine'].val:
+                        col = ThemeMixin.appColors['rt_comp_force']
+                # check True/False on ForceEndRoutineOnPress
+                if 'forceEndRoutineOnPress' in component.params:
+                    if component.params['forceEndRoutineOnPress'].val:
+                        col = ThemeMixin.appColors['rt_comp_force']
+                # check True aliases on EndRoutineOn
+                if 'endRoutineOn' in component.params:
+                    if component.params['endRoutineOn'].val in ['look at', 'look away']:
+                        col = ThemeMixin.appColors['rt_comp_force']
+                dc.SetBrush(wx.Brush(col))
                 dc.DrawBitmap(thisIcon, self.iconXpos, yPos + iconYOffset, True)
             else:
                 # Blue bar otherwise
@@ -2095,10 +2101,9 @@ class RoutineCanvas(wx.ScrolledWindow):
                    experiment=self.frame.exp, editing=True)
         if dlg.OK:
             # Redraw if force end routine has changed
-            if 'forceEndRoutine' in component.params \
-                    or 'forceEndRoutineOnPress' in component.params:
+            if any(key in component.params for key in ['forceEndRoutine', 'forceEndRoutineOnPress', 'endRoutineOn']):
                 newForce = [component.params[key].val
-                            for key in ['forceEndRoutine', 'forceEndRoutineOnPress']
+                            for key in ['forceEndRoutine', 'forceEndRoutineOnPress', 'endRoutineOn']
                             if key in component.params]
                 if initialForce != newForce:
                     self.redrawRoutine()  # need to refresh timings section
