@@ -16,11 +16,11 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
 
     def __init__(self, exp, name='validation',
                  showCursor=True, cursorFillColor="red",
-                 innerFillColor="red", innerBorderColor="", innerBorderWidth="", outerRadius=0.025,
-                 fillColor="", borderColor="white", borderWidth=2, innerRadius=0.005,
+                 innerFillColor='green', innerBorderColor='white', innerBorderWidth="", innerRadius=0.0033,
+                 fillColor='', borderColor="black", borderWidth=2, outerRadius=0.1,
                  colorSpace="rgb", units='from exp settings',
                  randomisePos=True, targetLayout="NINE_POINTS", targetPositions="NINE_POINTS",
-                 progressMode="space key", targetDur=1, expandDur=1, expandScale=3,
+                 progressMode="time", targetDur=1.5, expandDur=1, expandScale=1.5,
                  movementAnimation=True, movementDur=1.25, targetDelay=1.25,
                  saveAsImg=False, showResults=True,
                  disabled=False
