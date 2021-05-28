@@ -1,8 +1,0 @@
-eyetracker.hw.mouse.EyeTracker:
-    enable: True
-    name: tracker
-    controls:
-        move: RIGHT_BUTTON
-        blink: [LEFT_BUTTON, RIGHT_BUTTON]
-        saccade_threshold: 0.5
-    monitor_event_types: [ MonocularEyeSampleEvent, FixationStartEvent, FixationEndEvent, SaccadeStartEvent, SaccadeEndEvent, BlinkStartEvent, BlinkEndEvent]

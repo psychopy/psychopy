@@ -10,7 +10,10 @@ from builtins import super  # provides Py3-style super() using python-future
 
 from os import path
 from pathlib import Path
+
+from psychopy.alerts import alert
 from psychopy.experiment.components import Param, getInitVals, _translate, BaseVisualComponent
+from psychopy.experiment.components.eyetracker_record import EyetrackerRecordComponent
 from psychopy.experiment.components.polygon import PolygonComponent
 from psychopy.localization import _localized as __localized
 _localized = __localized.copy()
@@ -93,6 +96,13 @@ class RegionOfInterestComponent(PolygonComponent):
         pass
 
     def writeInitCode(self, buff):
+        # Alert user if there's no eyetracker record component in this routine
+        recorded = False
+        for sibling in self.exp.routines[self.parentName]:
+            if isinstance(sibling, EyetrackerRecordComponent):
+                recorded = True
+        if not recorded:
+            alert(code=4550, strFields={"name": self.params['name']})
         # do we need units code?
         if self.params['units'].val == 'from exp settings':
             unitsStr = ""
@@ -100,6 +110,11 @@ class RegionOfInterestComponent(PolygonComponent):
             unitsStr = "units=%(units)s, " % self.params
         # do writing of init
         inits = getInitVals(self.params, 'PsychoPy')
+        if self.params['shape'] == 'regular polygon...':
+            inits['shape'] = self.params['nVertices']
+        elif self.params['shape'] == 'custom polygon...':
+            inits['shape'] = self.params['vertices']
+
         code = (
             "%(name)s = visual.ROI(win, name='%(name)s', tracker=eyetracker,\n"
         )

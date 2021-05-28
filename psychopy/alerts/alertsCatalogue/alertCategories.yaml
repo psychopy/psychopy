@@ -55,6 +55,9 @@
     4510: Eyetracker not calibrated
     4520: Animation params not used
     4530: Auto pace param not used
+    4540: Eyetracking requires window to be fullscreen
+    4545: Eyetracking requires a monitor config
+    4550: ROI component with no record component
 
 5000:
   cat: Online studies
