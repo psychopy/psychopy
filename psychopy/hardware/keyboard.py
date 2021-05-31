@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""To handle input from keyboard (supercedes event.getKeys)
+"""To handle input from keyboard (supersedes event.getKeys)
 
 
 The Keyboard class was new in PsychoPy 3.1 and replaces the older
@@ -109,9 +109,9 @@ class Keyboard:
     systems.
 
     """
-
-    def __init__(self, device=-1, bufferSize=10000, waitForStart=False,
-                 clock=None):
+    iohubKeyboard = None
+    backend = ''  # Set at runtime to one of 'ptb', 'iohub', or 'event'
+    def __init__(self, device=-1, bufferSize=10000, waitForStart=False, clock=None):
         """Create the device (default keyboard or select one)
 
         Parameters
@@ -145,7 +145,14 @@ class Keyboard:
         else:
             self.clock = psychopy.clock.Clock()
 
-        if havePTB:
+        if Keyboard.backend == '':
+            from psychopy.iohub.client import ioHubConnection
+            Keyboard.iohubKeyboard = ioHubConnection.getActiveConnection().getDevice('keyboard')
+            if Keyboard.iohubKeyboard:
+                Keyboard.backend = 'iohub'
+
+        if Keyboard.backend == '' and havePTB:
+            Keyboard.backend = 'ptb'
             # get the necessary keyboard buffer(s)
             if sys.platform=='win32':
                 self._ids = [-1]  # no indexing possible so get the combo keyboard
@@ -167,10 +174,13 @@ class Keyboard:
                     self._buffers[devId] = buffer
                     self._devs[devId] = buffer.dev
 
-            
             # Is this right, waiting if waitForStart=False??
             if not waitForStart:
                 self.start()
+        elif Keyboard.backend == '':
+            Keyboard.backend = 'event'
+
+        print('keyboard.Keyboard using %s backend.' % Keyboard.backend)
 
     def start(self):
         """Start recording from this keyboard """
@@ -212,14 +222,32 @@ class Keyboard:
 
         """
         keys = []
-        if havePTB:
+        if Keyboard.backend == 'ptb':
             for buffer in self._buffers.values():
                 for origKey in buffer.getKeys(keyList, waitRelease, clear):
                     # calculate rt from time and self.timer
                     thisKey = copy.copy(origKey)  # don't alter the original
                     thisKey.rt = thisKey.tDown - self.clock.getLastResetTime()
                     keys.append(thisKey)
-        else:
+        elif Keyboard.backend == 'iohub':
+            if waitRelease:
+                key_releases = Keyboard.iohubKeyboard.getReleases(keys=keyList, clear=clear)
+                for k in key_releases:
+                    kname = k.key
+                    if kname == ' ':
+                        kname = 'space'
+                    kp = KeyPress(code=None, tDown=k.time, name=kname)
+                    kp.duration = k.duration
+                    keys.append(KeyPress(code=None, tDown=k.time, name=k.key))
+            else:
+                key_presses = Keyboard.iohubKeyboard.getPresses(keys=keyList, clear=clear)
+                for k in key_presses:
+                    kname = k.key
+                    if kname == ' ':
+                        kname = 'space'
+                    keys.append(KeyPress(code=None, tDown=k.time, name=kname))
+
+        else: # Keyboard.backend == 'event'
             name = event.getKeys(keyList, modifiers=False, timeStamped=False)
             rt = self.clock.getTime()
             if len(name):
@@ -280,12 +308,14 @@ class Keyboard:
     
     def clearEvents(self, eventType=None):
         """"""
-        if havePTB:
+        if Keyboard.backend == 'ptb':
             for buffer in self._buffers.values():
                 buffer.flush()  # flush the device events to the soft buffer
                 buffer._evts.clear()
                 buffer._keys.clear()
                 buffer._keysStillDown.clear()
+        elif Keyboard.backend == 'iohub':
+            Keyboard.iohubKeyboard.clearEvents()
         else:
             event.clearEvents(eventType)
 

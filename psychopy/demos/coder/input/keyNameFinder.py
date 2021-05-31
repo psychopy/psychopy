@@ -1,8 +1,14 @@
 from psychopy import visual
 from psychopy.hardware import keyboard
+from psychopy.iohub import launchHubServer
+
+use_iohub = True
 
 # Make window
 win = visual.Window(units="height")
+
+if use_iohub:
+    launchHubServer(window=win)
 
 # Make instructions textbox
 instr = visual.TextBox2(win,
