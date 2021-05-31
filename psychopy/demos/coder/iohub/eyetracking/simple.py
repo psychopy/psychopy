@@ -8,7 +8,7 @@ Select which tracker to use by setting the TRACKER variable below.
 from __future__ import absolute_import, division, print_function
 from psychopy import core, visual
 from psychopy.iohub import launchHubServer
-  
+
 # Eye tracker to use ('mouse', 'eyelink', 'gazepoint', or 'tobii')
 TRACKER = 'mouse'
 
@@ -50,14 +50,12 @@ text_stim = visual.TextStim(win, text="Start of Experiment",
 text_stim.draw()
 win.flip()
 
-io = launchHubServer(window=win, experiment_code="et_test", **devices_config)
-
+io = launchHubServer(window=win, **devices_config)
 
 # Get some iohub devices for future access.
 keyboard = io.getDevice('keyboard')
 tracker = io.getDevice('tracker')
 
-win.winHandle.set_fullscreen(False)
 win.winHandle.minimize()  # minimize the PsychoPy window
 win.winHandle.set_fullscreen(False)
 

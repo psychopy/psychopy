@@ -11,14 +11,34 @@ from psychopy import iohub
 from psychopy.iohub.client.eyetracker.validation import TargetStim
 
 # Eye tracker to use ('mouse', 'eyelink', 'gazepoint', or 'tobii')
-TRACKER = 'gazepoint'
+TRACKER = 'mouse'
 
 use_unit_type = 'height'
 use_color_type = 'rgb'
 
 eyetracker_config = dict(name='tracker')
 devices_config = {}
-if TRACKER == 'eyelink':
+if TRACKER == 'mouse':
+    devices_config['eyetracker.hw.mouse.EyeTracker'] = eyetracker_config
+    eyetracker_config['calibration'] = dict(auto_pace=True,
+                                            target_duration=1.5,
+                                            target_delay=1.0,
+                                            screen_background_color=(0, 0, 0),
+                                            type='NINE_POINTS',
+                                            unit_type=None,
+                                            color_type=None,
+                                            target_attributes=dict(outer_diameter=0.05,
+                                                                   inner_diameter=0.025,
+                                                                   outer_fill_color=[-0.5, -0.5, -0.5],
+                                                                   inner_fill_color=[-1, 1, -1],
+                                                                   outer_line_color=[1, 1, 1],
+                                                                   inner_line_color=[-1, -1, -1],
+                                                                   animate=dict(enable=True,
+                                                                                expansion_ratio=1.5,
+                                                                                contract_only=False)
+                                                                   )
+                                            )
+elif TRACKER == 'eyelink':
     eyetracker_config['model_name'] = 'EYELINK 1000 DESKTOP'
     eyetracker_config['simulation_mode'] = False
     eyetracker_config['runtime_settings'] = dict(sampling_rate=1000, track_eyes='RIGHT')
@@ -79,27 +99,6 @@ elif TRACKER == 'tobii':
                                                                    )
                                             )
     devices_config['eyetracker.hw.tobii.EyeTracker'] = eyetracker_config
-elif TRACKER == 'mouse':
-    eyetracker_config['calibration'] = dict(auto_pace=True, target_attributes=dict(animate=dict(enable=True, expansion_ratio=1.25, contract_only=False)))
-    devices_config['eyetracker.hw.mouse.EyeTracker'] = eyetracker_config
-    eyetracker_config['calibration'] = dict(auto_pace=True,
-                                            target_duration=1.5,
-                                            target_delay=1.0,
-                                            screen_background_color=(0, 0, 0),
-                                            type='NINE_POINTS',
-                                            unit_type=None,
-                                            color_type=None,
-                                            target_attributes=dict(outer_diameter=0.05,
-                                                                   inner_diameter=0.025,
-                                                                   outer_fill_color=[-0.5, -0.5, -0.5],
-                                                                   inner_fill_color=[-1, 1, -1],
-                                                                   outer_line_color=[1, 1, 1],
-                                                                   inner_line_color=[-1, -1, -1],
-                                                                   animate=dict(enable=True,
-                                                                                expansion_ratio=1.5,
-                                                                                contract_only=False)
-                                                                   )
-                                            )
 else:
     print("{} is not a valid TRACKER name; please use 'mouse', 'eyelink', 'gazepoint', or 'tobii'.".format(TRACKER))
     core.quit()
@@ -126,16 +125,14 @@ text_stim = visual.TextStim(win, text="Start of Experiment",
 text_stim.draw()
 win.flip()
 
-# Since no experiment or session code is given, no iohub hdf5 file
+# Since no experiment_code or session_code is given, no iohub hdf5 file
 # will be saved, but device events are still available at runtime.
 io = iohub.launchHubServer(window=win, **devices_config)
-
 
 # Get some iohub devices for future access.
 keyboard = io.getDevice('keyboard')
 tracker = io.getDevice('tracker')
 
-win.winHandle.set_fullscreen(False)
 win.winHandle.minimize()  # minimize the PsychoPy window
 win.winHandle.set_fullscreen(False)
 
