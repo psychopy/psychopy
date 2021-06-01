@@ -8,6 +8,8 @@ Overview
 
 .. autosummary::
     AudioClip
+    load
+    save
 
 Details
 =======
@@ -16,3 +18,6 @@ Details
     :members:
     :undoc-members:
     :inherited-members:
+
+.. autofunction:: load
+.. autofunction:: save
