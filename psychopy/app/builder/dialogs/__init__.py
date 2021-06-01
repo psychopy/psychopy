@@ -533,6 +533,7 @@ class ParamNotebook(wx.Notebook, ThemeMixin):
             self.sizer.SetEmptyCellSize((0, 0))
             self.sizer.Layout()
             self.Fit()
+            self.dlg.Fit()
             self.Refresh()
 
         def doValidate(self, event=None):
