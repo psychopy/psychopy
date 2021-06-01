@@ -65,7 +65,6 @@ from __future__ import absolute_import, division, print_function
 from collections import deque
 import sys
 import copy
-
 import psychopy.core
 import psychopy.clock
 from psychopy import logging
@@ -74,15 +73,15 @@ from psychopy.constants import NOT_STARTED
 try:
     import psychtoolbox as ptb
     from psychtoolbox import hid
-
     havePTB = True
 except ImportError as err:
     logging.warning(("Import Error: "
                      + err.args[0]
                      + ". Using event module for keyboard component."))
     from psychopy import event
-
     havePTB = False
+
+macPrefsBad = False
 
 defaultBufferSize = 10000
 
@@ -139,6 +138,7 @@ class Keyboard:
             setting this to True
 
         """
+        global havePTB, macPrefsBad
         self.status = NOT_STARTED
         # Initiate containers for storing responses
         self.keys = []  # the key(s) pressed
@@ -186,6 +186,16 @@ class Keyboard:
             # Is this right, waiting if waitForStart=False??
             if not waitForStart:
                 self.start()
+
+            # check if mac prefs are working; if not default
+            # to using event.getKeys()
+            if sys.platform == 'darwin':
+                try:
+                    Keyboard()
+                except OSError:
+                    macPrefsBad = True
+                    havePTB = False
+                    Keyboard.backend = 'event'
         elif Keyboard.backend == '':
             Keyboard.backend = 'event'
 
@@ -608,12 +618,3 @@ elif sys.platform == 'win32':
     keyNames = keyNamesWin
 else:
     keyNames = keyNamesLinux
-
-# check if mac prefs are working
-macPrefsBad = False
-if sys.platform == 'darwin' and havePTB:
-    try:
-        Keyboard()
-    except OSError:
-        macPrefsBad = True
-        havePTB = False
