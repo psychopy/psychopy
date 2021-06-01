@@ -14,12 +14,17 @@ Display:
     #
     name: display
     
-    # The coordinate , or unit, type that the Display's surface area should
-    # be represented in. Valid values are pix, deg, norm, or cm.
+    # The coordinate , or unit, type the associated PsychoPy Window will use.
+    # None indicates this will be provided from the PsychoPy Window that is
+    # provided to lauchHubServer().
     #
-    reporting_unit_type: pix
+    reporting_unit_type:
 
-    color_space: rgb255
+    # The color space that the associated PsychoPy Window will use.
+    # None indicates this will be provided from the PsychoPy Window that is
+    # provided to lauchHubServer().
+    #
+    color_space:
 
     # The Display index to assign to the device. On a single Display
     # computer this must always be 0. On a computer with multiple displays, 
@@ -28,10 +33,9 @@ Display:
     device_number: 0
     
     # This section of parameters defines the actual size of the Display's 
-    # 2D stimulus surface. Both width and height values are the total length of each dimension.
-    # The unit_type field must currently be in mm, and therefore so must 
-    # the specified width and height.
-    #
+    # 2D stimulus surface. As of 2021.2, this information is updated based
+    # on the Monitor configuration provided to the PsychoPy Window that is
+    # passed to lauchHubServer().
     physical_dimensions:
         width: 500
         height: 281
@@ -40,27 +44,30 @@ Display:
     # Enter the expected, average, distance that the participants eye(s) will
     # be from the display's stimulus surface. Currently the only supported 
     # distance reference type is surface_center, and the distance must be specified in 
-    # the unit_type of mm.
+    # the unit_type of mm. As of 2021.2, this information is updated based
+    # on the Monitor configuration provided to the PsychoPy Window that is
+    # passed to lauchHubServer().
     #   
     default_eye_distance:
         surface_center: 550
         unit_type: mm
     
     # If the Display device should open a PsychoPy Monitor Configuration
-    # file, provide the name of it here.
-    #
+    # file, provide the name of it here. As of 2021.2, this information is updated based
+    # on the Monitor configuration provided to the PsychoPy Window that is
+    # passed to lauchHubServer().
     psychopy_monitor_name: default
     
     # If a valid PsychoPy Monitor Configuration file 
     # has been provided, specify if the physical parameters
     # stored in it should override any duplicate parameter types
-    # defined in this Display device configuartion.
+    # defined in this Display device configuration.
     # True == Use the PsychoPy settings and update the Display config with them.
     # False == Use the measurements provided in this file and update the
     # the PsychoPy Monitor Configuration with the values specified
     # in the ioHub Device configuration.
     #
-    override_using_psycho_settings: False
+    override_using_psycho_settings: True
 
     # event_buffer_length: Specify the maximum number of events (for each
     #   event type the device produces) that can be stored by the ioHub Server

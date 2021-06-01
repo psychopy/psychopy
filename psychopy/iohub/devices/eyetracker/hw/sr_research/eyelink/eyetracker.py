@@ -370,7 +370,6 @@ class EyeTracker(EyeTrackerDevice):
             from . import eyeLinkCoreGraphicsIOHubPsychopy
             EyeLinkCoreGraphicsIOHubPsychopy = eyeLinkCoreGraphicsIOHubPsychopy.EyeLinkCoreGraphicsIOHubPsychopy
 
-            print2err("TODO: test using updated eyelink calibration_args:", calibration_args)
             if calibration_args:
                 self.sendCalibrationSettingsCommands(self._eyelink, calibration_args)
 
