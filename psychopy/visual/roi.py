@@ -108,3 +108,8 @@ class ROI(ShapeStim):
             # If not looked at, look time is 0
             return 0
 
+    def reset(self):
+        """Clear stored data"""
+        self.timesOn = []
+        self.timesOff = []
+        self.wasLookedIn = False
