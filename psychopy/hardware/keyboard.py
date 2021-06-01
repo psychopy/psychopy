@@ -58,8 +58,6 @@ Example usage
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-# 01/2011 modified by Dave Britton to get mouse event timing
-
 from __future__ import absolute_import, division, print_function
 
 from collections import deque
@@ -68,7 +66,9 @@ import copy
 import psychopy.core
 import psychopy.clock
 from psychopy import logging
+from psychopy.iohub.util import win32MessagePump
 from psychopy.constants import NOT_STARTED
+import time
 
 try:
     import psychtoolbox as ptb
@@ -252,7 +252,7 @@ class Keyboard:
             watchForKeys = keyList
             if watchForKeys:
                 watchForKeys = [' ' if k == 'space' else k for k in watchForKeys]
-
+            win32MessagePump()
             if waitRelease:
                 key_events = Keyboard._iohubKeyboard.getReleases(keys=watchForKeys, clear=clear)
             else:
@@ -309,20 +309,11 @@ class Keyboard:
         if clear:
             self.clearEvents()
 
-        windows_list = psychopy.core.openWindows
         while timer.getTime() < maxWait:
-            keys = self.getKeys(keyList=keyList, waitRelease=waitRelease,
-                                clear=clear)
+            keys = self.getKeys(keyList=keyList, waitRelease=waitRelease, clear=clear)
             if keys:
                 return keys
-
-            # pump pyglet events of window will become unresponsive
-            # on windows
-            for winWeakRef in windows_list:
-                win = winWeakRef()
-                if (win.winType == "pyglet" and hasattr(win.winHandle,
-                                                        "dispatch_events")):
-                    win.winHandle.dispatch_events()  # pump events
+            time.sleep(0.00001)
 
         logging.data('No keypress (maxWait exceeded)')
         return None
@@ -456,7 +447,7 @@ class _KeyBuffer(object):
         self._processEvts()
 
     def _flushEvts(self):
-        ptb.WaitSecs('YieldSecs', 0.00001)
+        win32MessagePump()
         while self.dev.flush():
             evt, remaining = self.dev.queue_get_event()
             key = {}
@@ -464,6 +455,7 @@ class _KeyBuffer(object):
             key['down'] = bool(evt['Pressed'])
             key['time'] = evt['Time']
             self._evts.append(key)
+            win32MessagePump()
 
     def getKeys(self, keyList=[], waitRelease=True, clear=True):
         """Return the KeyPress objects from the software buffer
