@@ -1,7 +1,7 @@
 .. _api:
 
 Reference Manual (API)
-==================================
+======================
 
 Contents:
 
@@ -10,8 +10,9 @@ Contents:
     :glob:
 
     core
-    visual/index
     clock
+    visual/index
+    sound/index
     hardware/index
     iohub/index
     tools/index
@@ -20,7 +21,7 @@ Contents:
 .. only:: html
 
     Indices and tables
-    ~~~~~~~~~~~~~~~~~~~~~~
+    ~~~~~~~~~~~~~~~~~~
 
     * :ref:`genindex`
     * :ref:`modindex`
