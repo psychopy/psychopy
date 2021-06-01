@@ -22,6 +22,7 @@ import numpy as np
 from psychopy import logging, event, prefs, core
 from psychopy.tools.attributetools import attributeSetter
 from psychopy.visual import window
+import psychopy.event as event
 from .gamma import createLinearRamp
 import psychopy.hardware.mouse as mouse
 from .. import globalVars
@@ -700,6 +701,7 @@ class GLFWBackend(BaseBackend):
         # don't process mouse events until ready
         mouseEventHandler = mouse.Mouse.getInstance()
         if mouseEventHandler is None:
+            event._onGLFWMouseButton(*args, **kwargs)
             return
 
         _, _, action, _ = args
@@ -715,6 +717,7 @@ class GLFWBackend(BaseBackend):
         # don't process mouse events until ready
         mouseEventHandler = mouse.Mouse.getInstance()
         if mouseEventHandler is None:
+            event._onGLFWMouseButton(*args, **kwargs)
             return
 
         win_handle, button, _, _ = args
@@ -729,6 +732,7 @@ class GLFWBackend(BaseBackend):
         # don't process mouse events until ready
         mouseEventHandler = mouse.Mouse.getInstance()
         if mouseEventHandler is None:
+            event._onGLFWMouseButton(*args, **kwargs)
             return
 
         win_handle, button, _, _ = args
@@ -738,11 +742,12 @@ class GLFWBackend(BaseBackend):
         mouseEventHandler.setMouseButtonState(
             _GLFW_MOUSE_BUTTONS_[button], False, absPos, absTime)
 
-    def onMouseScroll(self, *args):
+    def onMouseScroll(self, *args, **kwargs):
         """Event handler for mouse scroll events."""
         # don't process mouse events until ready
         mouseEventHandler = mouse.Mouse.getInstance()
         if mouseEventHandler is None:
+            event._onGLFWMouseScroll(*args, **kwargs)
             return
 
         _, xoffset, yoffset = args
@@ -752,7 +757,7 @@ class GLFWBackend(BaseBackend):
         mouseEventHandler.win = self.win
         mouseEventHandler.setMouseScrollState(absPos, relOffset, absTime)
 
-    def onMouseMove(self, *args):
+    def onMouseMove(self, *args, **kwargs):
         """Event handler for mouse move events."""
         # don't process mouse events until ready
         mouseEventHandler = mouse.Mouse.getInstance()
@@ -765,7 +770,7 @@ class GLFWBackend(BaseBackend):
         mouseEventHandler.win = self.win
         mouseEventHandler.setMouseMotionState(absPos, absTime)
 
-    def onMouseEnter(self, *args):
+    def onMouseEnter(self, *args, **kwargs):
         """Event called when the mouse enters the window."""
         win_handle, entered = args
 
@@ -781,7 +786,7 @@ class GLFWBackend(BaseBackend):
             else:
                 mouseEventHandler.win = None
 
-    def onMouseLeave(self, *args):
+    def onMouseLeave(self, *args, **kwargs):
         """Event called when the mouse leaves the window. This does nothing
         since `onMouseEnter` handles both enter and leave events. This is
         implemented for completeness.
