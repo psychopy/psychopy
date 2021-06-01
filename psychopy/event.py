@@ -657,6 +657,8 @@ class Mouse(object):
             self.lastPos = self._pix2windowUnits(lastPosPix)
         elif useGLFW:
             lastPosPix[:] = self.win.backend.getMousePos()
+            if self.win.useRetina:
+                lastPosPix *= 2.0
         else:  # for pyglet bottom left is 0,0
             # use default window if we don't have one
             if self.win:
