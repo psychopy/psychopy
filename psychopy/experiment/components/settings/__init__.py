@@ -789,13 +789,11 @@ class SettingsComponent(object):
 
         # Write imports if modular
         if modular:
-            code = ("import {{ PsychoJS }} from './lib/core{version}.js';\n"
-                    "import * as core from './lib/core{version}.js';\n"
-                    "import {{ TrialHandler }} from './lib/data{version}.js';\n"
-                    "import {{ Scheduler }} from './lib/util{version}.js';\n"
-                    "import * as visual from './lib/visual{version}.js';\n"
-                    "import * as sound from './lib/sound{version}.js';\n"
-                    "import * as util from './lib/util{version}.js';\n"
+            code = (
+                    "import {{ core, data, sound, util, visual }} from './psycho-2021.2.0.js';\n"
+                    "const {{ PsychoJS }} = core;"
+                    "const {{ TrialHandler }} = data;\n"
+                    "const {{ Scheduler }} = util;\n"
                     "//some handy aliases as in the psychopy scripts;\n"
                     "const {{ abs, sin, cos, PI: pi, sqrt }} = Math;\n"
                     "const {{ round }} = util;\n"
