@@ -230,17 +230,21 @@ class Keyboard:
                     thisKey.rt = thisKey.tDown - self.clock.getLastResetTime()
                     keys.append(thisKey)
         elif Keyboard.backend == 'iohub':
+            watchForKeys = keyList
+            if watchForKeys:
+               watchForKeys = [' ' if k == 'space' else k for k in watchForKeys]
             if waitRelease:
-                key_releases = Keyboard.iohubKeyboard.getReleases(keys=keyList, clear=clear)
+                key_releases = Keyboard.iohubKeyboard.getReleases(keys=watchForKeys, clear=clear)
                 for k in key_releases:
                     kname = k.key
+                    print("kname: ", kname, kname == ' ')
                     if kname == ' ':
                         kname = 'space'
                     kp = KeyPress(code=None, tDown=k.time, name=kname)
                     kp.duration = k.duration
-                    keys.append(KeyPress(code=None, tDown=k.time, name=k.key))
+                    keys.append(kp)
             else:
-                key_presses = Keyboard.iohubKeyboard.getPresses(keys=keyList, clear=clear)
+                key_presses = Keyboard.iohubKeyboard.getPresses(keys=watchForKeys, clear=clear)
                 for k in key_presses:
                     kname = k.key
                     if kname == ' ':
