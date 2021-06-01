@@ -262,6 +262,8 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
         code = (
             ")\n"
             "# run calibration\n"
-            "%(name)s.run()"
+            "%(name)s.run()\n"
+            "# clear any keypresses from during %(name)s so they don't interfere with the experiment\n"
+            "defaultKeyboard.clearEvents()\n"
         )
         buff.writeIndentedLines(code % inits)
