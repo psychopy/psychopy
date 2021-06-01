@@ -101,7 +101,7 @@ class ROI(ShapeStim):
 
     @property
     def currentLookTime(self):
-        if self.isLookedIn:
+        if self.isLookedIn and self.timesOn and self.timesOff:
             # If looked at, subtract most recent time from last time on
             return self.timesOff[-1] - self.timesOn[-1]
         else:
