@@ -2124,10 +2124,10 @@ class RoutineCanvas(wx.ScrolledWindow):
         return self.getMaxTime() / pixels
 
 
-class StandaloneRoutineCanvas(wx.Panel, ThemeMixin):
+class StandaloneRoutineCanvas(scrolledpanel.ScrolledPanel, ThemeMixin):
     def __init__(self, parent, routine=None):
         # Init super
-        wx.Panel.__init__(
+        scrolledpanel.ScrolledPanel.__init__(
             self, parent,
             style=wx.BORDER_NONE)
         # Store basics
@@ -2152,6 +2152,7 @@ class StandaloneRoutineCanvas(wx.Panel, ThemeMixin):
         self.sizer.Add(self.btnsSizer, border=6, proportion=0, flag=wx.ALIGN_RIGHT | wx.ALL)
         # Style
         self._applyAppTheme()
+        self.SetupScrolling(scroll_y=True)
 
     def updateExperiment(self, evt=None):
         """Update this routine's saved parameters to what is currently entered"""
