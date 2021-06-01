@@ -16,16 +16,17 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
 
     def __init__(self, exp, name='validation',
                  showCursor=True, cursorFillColor="red",
-                 innerFillColor="red", innerBorderColor="", innerBorderWidth="", outerRadius=0.025,
-                 fillColor="", borderColor="white", borderWidth=2, innerRadius=0.005,
+                 innerFillColor='green', innerBorderColor='white', innerBorderWidth="", innerRadius=0.0033,
+                 fillColor='', borderColor="black", borderWidth=2, outerRadius=0.1,
                  colorSpace="rgb", units='from exp settings',
                  randomisePos=True, targetLayout="NINE_POINTS", targetPositions="NINE_POINTS",
-                 progressMode="space key", targetDur=1, expandDur=1, expandScale=3,
+                 progressMode="time", targetDur=1.5, expandDur=1, expandScale=1.5,
                  movementAnimation=True, movementDur=1.25, targetDelay=1.25,
-                 saveAsImg=False, showResults=True
+                 saveAsImg=False, showResults=True,
+                 disabled=False
                  ):
         # Initialise base routine
-        BaseStandaloneRoutine.__init__(self, exp, name=name)
+        BaseStandaloneRoutine.__init__(self, exp, name=name, disabled=disabled)
 
         self.exp.requirePsychopyLibs(['iohub', 'hardware'])
 
@@ -147,8 +148,7 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
 
         self.params['units'] = Param(units,
                                      valType='str', inputType="choice", categ='Target',
-                                     allowedVals=['from exp settings', 'deg', 'cm', 'pix', 'norm',
-                                                  'height', 'degFlatPos', 'degFlat'],
+                                     allowedVals=['from exp settings'],
                                      hint=_translate("Units of dimensions for this stimulus"),
                                      label=_translate("Spatial Units"))
 
@@ -337,6 +337,8 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
         # Run
         code = (
             "# run %(name)s\n"
-            "%(name)s.run()"
+            "%(name)s.run()\n"
+            "# clear any keypresses from during %(name)s so they don't interfere with the experiment\n"
+            "defaultKeyboard.clearEvents()\n"
         )
         buff.writeIndentedLines(code % inits)

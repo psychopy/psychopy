@@ -23,6 +23,7 @@ from psychopy.constants import PY3
 from . import urls
 from . import frametracker
 from . import themes
+from . import console
 
 import io
 
@@ -198,7 +199,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
             self._lastRunLog = open(os.path.join(
                     self.prefs.paths['userPrefsDir'], 'last_app_load.log'),
                     'w')
-            sys.stderr = sys.stdout = lastLoadErrs = self._lastRunLog
+            #sys.stderr = sys.stdout = lastLoadErrs = self._lastRunLog
             logging.console.setLevel(logging.DEBUG)
 
         # indicates whether we're running for testing purposes
@@ -351,6 +352,11 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
                 view.coder = True
                 view.runner = True
 
+        # set the dispatcher for standard output
+        self.stdStreamDispatcher = console.StdStreamDispatcher(self)
+        sys.stderr = self.stdStreamDispatcher
+        sys.stdout = self.stdStreamDispatcher
+
         # Create windows
         if view.runner:
             self.showRunner(fileList=runlist)
@@ -403,7 +409,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         # wx-windows on some platforms (Mac 10.9.4) with wx-3.0:
         v = parse_version
         if sys.platform == 'darwin':
-            if v('3.0') <= v(wx.version()) <v('4.0'):
+            if v('3.0') <= v(wx.version()) < v('4.0'):
                 _Showgui_Hack()  # returns ~immediately, no display
                 # focus stays in never-land, so bring back to the app:
                 if prefs.app['defaultView'] in ['all', 'builder', 'coder', 'runner']:
@@ -423,6 +429,11 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
             logging.console.setLevel(logging.INFO)
 
         return True
+
+    @property
+    def appLoaded(self):
+        """`True` if the app has been fully loaded (`bool`)."""
+        return self._appLoaded
 
     def _wizard(self, selector, arg=''):
         from psychopy import core
@@ -584,9 +595,8 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
             self.runner.Raise()
             self.SetTopWindow(self.runner)
         # Runner captures standard streams until program closed
-        if self.runner and not self.testMode:
-            sys.stdout = self.runner.stdOut
-            sys.stderr = self.runner.stdOut
+        # if self.runner and not self.testMode:
+        #     sys.stderr = sys.stdout = self.stdStreamDispatcher
 
     def newRunnerFrame(self, event=None):
         # have to reimport because it is only local to __init__ so far

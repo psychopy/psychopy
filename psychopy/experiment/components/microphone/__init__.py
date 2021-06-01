@@ -153,16 +153,15 @@ class MicrophoneComponent(BaseComponent):
 
         self.params['transcribeBackend'] = Param(
             transcribeBackend, valType='code', inputType='choice', categ='Transcription',
-            allowedVals=["GOOGLE"],
+            allowedVals=["GOOGLE", "AZURE"],
             hint=_translate("What transcription service to use to transcribe audio? Only applies online - local "
                             "transcription uses Python Sphinx."),
             label=_translate("Online Transcription Backend")
         )
 
         self.params['transcribeLang'] = Param(
-            transcribeLang, valType='str', inputType='choice', categ='Transcription',
-            allowedVals=['en-GB'],
-            hint=_translate("What transcription service to use to listen for words"),
+            transcribeLang, valType='str', inputType='single', categ='Transcription',
+            hint=_translate("What language you expect the recording to be spoken in, e.g. en-GB for English"),
             label=_translate("Transcription Language")
         )
 
@@ -222,7 +221,6 @@ class MicrophoneComponent(BaseComponent):
         buff.setIndentLevel(-1, relative=True)
         code = (
             ")\n"
-            "%(name)sClips = {}\n"
         )
         buff.writeIndentedLines(code % inits)
 
@@ -234,8 +232,7 @@ class MicrophoneComponent(BaseComponent):
             alert(5055, strFields={'name': inits['name'].val})
         # Write code
         code = (
-            "%(name)sClips = {}\n"
-            "%(name)s = new audio.Microphone({\n"
+            "%(name)s = new sound.Microphone({\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(1, relative=True)
@@ -309,26 +306,64 @@ class MicrophoneComponent(BaseComponent):
             "}"
         )
         buff.writeIndentedLines(code % inits)
-        # Stop the recording
-        self.writeStopTestCodeJS(buff)
-        code = (
-                "%(name)s.pause();\n"
-        )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(-1, relative=True)
-        code = (
-            "}"
-        )
-        buff.writeIndentedLines(code % inits)
+        if self.params['stopVal'].val not in ['', None, -1, 'None']:
+            # Stop the recording
+            self.writeStopTestCodeJS(buff)
+            code = (
+                    "%(name)s.pause();\n"
+            )
+            buff.writeIndentedLines(code % inits)
+            buff.setIndentLevel(-1, relative=True)
+            code = (
+                "}"
+            )
+            buff.writeIndentedLines(code % inits)
 
     def writeRoutineEndCode(self, buff):
         inits = getInitVals(self.params)
-        inits['routine'] = self.parentName
+        # Alter inits
+        if len(self.exp.flow._loopList):
+            currLoop = self.exp.flow._loopList[-1]  # last (outer-most) loop
+        else:
+            currLoop = self.exp._expHandler
+        inits['loop'] = currLoop.params['name']
+        transcribe = inits['transcribe'].val
+        if inits['transcribe'].val == False:
+            inits['transcribeBackend'].val = None
+        if inits['outputType'].val == 'default':
+            inits['outputType'].val = 'wav'
         # Store recordings from this routine
         code = (
-            "%(name)sClips['%(routine)s'] = %(name)s.getRecording()\n"
+            "# tell mic to keep hold of current recording in %(name)s.clips and transcript (if applicable) in %(name)s.scripts\n"
+            "# this will also update %(name)s.lastClip and %(name)s.lastScript\n"
+            "%(name)sClip, %(name)sScript = %(name)s.bank(\n"
         )
         buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(1, relative=True)
+        code = (
+            "tag='%(loop)s', transcribe='sphinx',\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        if transcribe:
+            code = (
+                "config={'languageCode': %(transcribeLang)s, 'wordList': %(transcribeWords)s}\n"
+            )
+        else:
+            code = (
+                "config=None\n"
+            )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(-1, relative=True)
+        code = (
+            ")\n"
+            "%(loop)s.addData('%(name)s.clip', os.path.join(%(name)sRecFolder, 'recording_%(name)s_%(loop)s_%%s.%(outputType)s' %% %(loop)s.thisTrialN))\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        if transcribe:
+            code = (
+                "%(loop)s.addData('%(name)s.script', %(name)sScript)\n"
+            )
+            buff.writeIndentedLines(code % inits)
         # Write base end routine code
         BaseComponent.writeRoutineEndCode(self, buff)
 
@@ -339,62 +374,73 @@ class MicrophoneComponent(BaseComponent):
         BaseComponent.writeRoutineEndCodeJS(self, buff)
         # Store recordings from this routine
         code = (
-            "// flush the microphone (make the audio data ready for upload)\n"
-            "await %(name)s.flush();\n"
+            "// stop the microphone (make the audio data ready for upload)\n"
+            "await %(name)s.stop();\n"
             "// get the recording\n"
-            "const %(name)sClip = await %(name)s.getRecording({\n"
+            "%(name)s.lastClip = await %(name)s.getRecording({\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(1, relative=True)
         code = (
-                "tag: 'word_' + trials.thisN + '_' + text,\n"
+                "tag: 'recording_%(name)s' + trials.thisN,\n"
                 "flush: false\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
         code = (
             "});\n"
+            "psychoJS.experiment.addData('%(name)s.clip', 'recording_%(name)s' + trials.thisN);\n"
             "// start the asynchronous upload to the server\n"
-            "%(name)sClip.upload();\n"
-            "// transcribe the recording\n"
-            "const [transcript, confidence] = await audioClip.transcribe({\n"
+            "%(name)s.lastClip.upload();\n"
         )
         buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(1, relative=True)
-        code = (
-                "languageCode: %(transcribeLang)s\n"
-                "engine: sound.AudioClip.Engine.%(transcribeBackend)s\n"
-        )
-        buff.writeIndentedLines(code % inits)
-        buff.setIndentLevel(-1, relative=True)
-        code = (
-            "});\n"
-            "// stop the microphone\n"
-            "%(name)s.stop();\n"
-        )
-        buff.writeIndentedLines(code % inits)
+        if self.params['transcribe'].val:
+            code = (
+                "// transcribe the recording\n"
+                "[%(name)s.lastScript, %(name)s.lastConf] = await audioClip.transcribe({\n"
+            )
+            buff.writeIndentedLines(code % inits)
+            buff.setIndentLevel(1, relative=True)
+            code = (
+                    "languageCode: %(transcribeLang)s,\n"
+                    "engine: sound.AudioClip.Engine.%(transcribeBackend)s,\n"
+                    "wordList: %(transcribeWords)s\n"
+            )
+            buff.writeIndentedLines(code % inits)
+            buff.setIndentLevel(-1, relative=True)
+            code = (
+                "});\n"
+                "psychoJS.experiment.addData('%(name)s.transcript', %(name)s.lastScript);\n"
+                "psychoJS.experiment.addData('%(name)s.confidence', %(name)s.lastConf);\n"
+            )
+            buff.writeIndentedLines(code % inits)
 
     def writeExperimentEndCode(self, buff):
         """Write the code that will be called at the end of
         an experiment (e.g. save log files or reset hardware)
         """
         inits = getInitVals(self.params)
+        if len(self.exp.flow._loopList):
+            currLoop = self.exp.flow._loopList[-1]  # last (outer-most) loop
+        else:
+            currLoop = self.exp._expHandler
+        inits['loop'] = currLoop.params['name']
+        if inits['outputType'].val == 'default':
+            inits['outputType'].val = 'wav'
         # Save recording
         code = (
-            "# Save %(name)s recordings\n"
-            "%(name)sClips = %(name)s.flush()\n"
-            "for rt in %(name)sClips:\n"
+            "# save %(name)s recordings\n"
+            "for tag in mic.clips:"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(1, relative=True)
         code = (
-                "for i, clip in enumerate(%(name)sClips[rt]):\n"
+                "for i, clip in enumerate(%(name)s.clips[tag]):\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(1, relative=True)
         code = (
-                    "clipName = os.path.join(%(name)sRecFolder, f'recording_{rt}_{i}.%(outputType)s')\n"
-                    "clip.save(clipName)\n"
+                    "clip.save(os.path.join(%(name)sRecFolder, 'recording_%(name)s_%%s_%%s.%(outputType)s' %% (tag, i)))\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-2, relative=True)

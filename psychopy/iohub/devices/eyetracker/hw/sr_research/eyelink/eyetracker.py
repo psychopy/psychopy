@@ -3,7 +3,6 @@
 # Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 import os
-import numpy as np
 import pylink
 
 try:
@@ -11,11 +10,10 @@ try:
 except ImportError:
     ProgressBarDialog = None
 
-from ......constants import EventConstants, EyeTrackerConstants
+from ......constants import EyeTrackerConstants
 from ...... import EXP_SCRIPT_DIRECTORY
 from ......errors import print2err, printExceptionDetailsToStdErr
 from ..... import Computer, Device
-from .... import EyeTrackerDevice
 from ....eye_events import *
 
 try:
@@ -105,8 +103,6 @@ class EyeTracker(EyeTrackerDevice):
         'BlinkEndEvent']
     __slots__ = []
 
-    # <<<
-
     def __init__(self, *args, **kwargs):
         """"""
 
@@ -119,10 +115,9 @@ class EyeTracker(EyeTrackerDevice):
             # Connect to the eye tracker; setting the EyeTracker._eyelink class
             # attribute to a pylink.EYELINK device class if EyeTracker._eyelink
             # is None.
-            if self.setConnectionState(
-                    True) != EyeTrackerConstants.EYETRACKER_OK:
-                print2err(
-                    " ** EyeLink Error: Could not connect to EyeLink Eye Tracker. EyeLink Eye tracker device will run in 'dummy' mode.")
+            if self.setConnectionState(True) != EyeTrackerConstants.EYETRACKER_OK:
+                print2err(" ** EyeLink Error: Could not connect to EyeLink Eye Tracker. "
+                          "EyeLink Eye tracker device will run in 'dummy' mode.")
                 tracker_config['enable_interface_without_connection'] = True
                 self.setConnectionState(True)
 
@@ -142,8 +137,7 @@ class EyeTracker(EyeTrackerDevice):
             # set that the EyeLink connected button box, button 5
             # (the big button on most of supported gamepads), will initiate
             # an accept fixation command.
-            self._eyelink.sendCommand(
-                "button_function 5 'accept_target_fixation'")
+            self._eyelink.sendCommand("button_function 5 'accept_target_fixation'")
 
             # Sets up the file names / paths to be used for the native EyeLink
             # EDF file.
@@ -159,10 +153,16 @@ class EyeTracker(EyeTrackerDevice):
             self.sendCalibrationSettingsCommands(eyelink, tracker_config.get('calibration'))
 
             # native data recording file
-            default_native_data_file_name = tracker_config.get(
-                'default_native_data_file_name', None)
-            if default_native_data_file_name:
-                if isinstance(default_native_data_file_name, str):
+            default_native_data_file_name = tracker_config.get('default_native_data_file_name', None)
+            if isinstance(default_native_data_file_name, str):
+                if default_native_data_file_name == "EXPFILE":
+                    # If edf file name has been set to EXPFILE, use the datastore file name as the local
+                    # edf file name, getting around the 8 char host name limit.
+                    EyeTracker._local_edf_dir = os.path.join(EyeTracker._local_edf_dir, "data")
+                    local_file_name = self._iohub_server.dsfile.fileName[:-5]
+                    EyeTracker._full_edf_name = local_file_name
+                    EyeTracker._host_edf_name = default_native_data_file_name
+                else:
                     r = default_native_data_file_name.rfind('.')
                     if r > 0:
                         if default_native_data_file_name[r:] == 'edf'.lower():
@@ -175,9 +175,8 @@ class EyeTracker(EyeTrackerDevice):
                     else:
                         EyeTracker._full_edf_name = default_native_data_file_name
                         EyeTracker._host_edf_name = default_native_data_file_name
-                else:
-                    print2err(
-                        'ERROR: default_native_data_file_name must be a string value')
+            else:
+                print2err('ERROR: default_native_data_file_name must be a string value')
 
             if self._local_edf_dir and self._full_edf_name:
                 EyeTracker._active_edf_file = self._full_edf_name + '.EDF'
@@ -239,7 +238,6 @@ class EyeTracker(EyeTrackerDevice):
                         self._eyelink.dummy_open()
                     else:
                         self._eyelink.open(host_pc_ip_address)
-
                         pylink.flushGetkeyQueue()
                         self._eyelink.setOfflineMode()
                     return EyeTrackerConstants.EYETRACKER_OK
@@ -248,8 +246,9 @@ class EyeTracker(EyeTrackerDevice):
 
                     if self._active_edf_file:
                         self._eyelink.closeDataFile()
-                        self._eyelink.receiveDataFile(self._host_edf_name + '.EDF', os.path.join(self._local_edf_dir,
-                                                                                                 self._active_edf_file))
+                        # Note: local_file_path directory must exist or file will not be saved locally.
+                        local_file_path = os.path.join(self._local_edf_dir, self._active_edf_file)
+                        self._eyelink.receiveDataFile(self._host_edf_name + '.EDF', local_file_path)
                     self._eyelink.close()
                     EyeTracker._active_edf_file = None
                     return EyeTrackerConstants.EYETRACKER_OK
@@ -268,9 +267,6 @@ class EyeTracker(EyeTrackerDevice):
         The ioHub must be connected to the eye tracker device for it to be able to receive
         events from the eye tracking system. Eye tracking events are received when
         isConnected() == True and when isRecordingEnabled() == True.
-
-        Args:
-            None
 
         Return:
             bool:  True = the eye tracking hardware is connected. False otherwise.
@@ -350,10 +346,9 @@ class EyeTracker(EyeTrackerDevice):
                     elif cal_val is False:
                         eyelink.disableAutoCalibration()
                 elif cal_key == 'pacing_speed' and cal_val:  # in seconds.msec
-                        eyelink.setAutoCalibrationPacing(int(cal_val * 1000))
+                    eyelink.setAutoCalibrationPacing(int(cal_val * 1000))
                 elif cal_key == 'target_delay' and cal_val:  # in seconds.msec
-                        print2err("Setting eyelink setAutoCalibrationPacing using 'target_delay' of ", cal_val)
-                        eyelink.setAutoCalibrationPacing(int(cal_val * 1000))
+                    eyelink.setAutoCalibrationPacing(int(cal_val * 1000))
                 elif cal_key == 'type':
                     VALID_CALIBRATION_TYPES = dict(THREE_POINTS='HV3', FIVE_POINTS='HV5', NINE_POINTS='HV9',
                                                    THIRTEEN_POINTS='HV13')
@@ -375,7 +370,6 @@ class EyeTracker(EyeTrackerDevice):
             from . import eyeLinkCoreGraphicsIOHubPsychopy
             EyeLinkCoreGraphicsIOHubPsychopy = eyeLinkCoreGraphicsIOHubPsychopy.EyeLinkCoreGraphicsIOHubPsychopy
 
-            print2err("TODO: test using updated eyelink calibration_args:", calibration_args)
             if calibration_args:
                 self.sendCalibrationSettingsCommands(self._eyelink, calibration_args)
 
@@ -405,7 +399,6 @@ class EyeTracker(EyeTrackerDevice):
             # reply is returning:
             # {'message': 'calibration_result: 0', 'result': 1000}
             # on a successful calibration.
-            # TODO: Parse into more meaningful message if possible.
 
             genv._unregisterEventMonitors()
             genv.clearAllEventBuffers()
@@ -424,9 +417,6 @@ class EyeTracker(EyeTrackerDevice):
         currently connected and sending eye event data to the ioHub server. If
         the eye tracker is not recording, or is not connected to the ioHub
         server, False will be returned.
-
-        Args:
-           None
 
         Return:
             bool: True == the device is recording data; False == Recording is not occurring
@@ -490,15 +480,14 @@ class EyeTracker(EyeTrackerDevice):
         space. If the eye tracker is not recording or is not connected, then
         None is returned.
 
-        Args:
-            None
-
         Returns:
             None: If the eye tracker is not currently recording data.
 
-            EyeSample: If the eye tracker is recording in a monocular tracking mode, the latest sample event of this event type is returned.
+            EyeSample: If the eye tracker is recording in a monocular tracking mode, the latest sample event of this
+                       event type is returned.
 
-            BinocularEyeSample:  If the eye tracker is recording in a binocular tracking mode, the latest sample event of this event type is returned.
+            BinocularEyeSample:  If the eye tracker is recording in a binocular tracking mode, the latest sample event
+                                 of this event type is returned.
 
         """
         try:
@@ -523,9 +512,6 @@ class EyeTracker(EyeTrackerDevice):
 
         If no samples have been received from the eye tracker, or the
         eye tracker is not currently recording data, None is returned.
-
-        Args:
-            None
 
         Returns:
             None: If the eye tracker is not currently recording data or no eye samples have been received.
@@ -1300,10 +1286,10 @@ class EyeTracker(EyeTrackerDevice):
                                 rts.append(x)
                             if srate in rts:
                                 self._eyelink.sendCommand(
-                                    'sample_rate = %d' % (srate))
+                                    'sample_rate = %d' % srate)
                     else:
                         if srate <= 1000:
-                            self.sendCommand('sample_rate = %d' % (srate))
+                            self.sendCommand('sample_rate = %d' % srate)
                 return self._getSamplingRate()
             return EyeTrackerConstants.EYETRACKER_ERROR
         except Exception:

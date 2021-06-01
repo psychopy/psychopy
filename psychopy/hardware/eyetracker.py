@@ -33,6 +33,13 @@ class EyetrackerControl:
         if new in (NOT_STARTED, PAUSED, STOPPED, FINISHED):
             self.tracker.setRecordingState(False)
 
+    @property
+    def pos(self):
+        return self.tracker.getPosition()
+
+    def getPos(self):
+        return self.pos
+
 
 class EyetrackerCalibration:
     def __init__(self, win,
@@ -59,12 +66,9 @@ class EyetrackerCalibration:
         # Attribute to store data from last run
         self.last = None
 
-    def run(self):
+    def __iter__(self):
+        """Overload dict() method to return in ioHub format"""
         tracker = self.eyetracker.getIOHubDeviceClass(full=True)
-
-        # Minimise PsychoPy window
-        self.win.winHandle.set_fullscreen(False)
-        self.win.winHandle.minimize()
 
         # Make sure that target will use the same color space and units as calibration
         if self.target.colorSpace == self.colorSpace and self.target.units == self.units:
@@ -73,22 +77,19 @@ class EyetrackerCalibration:
             target = copy(self.target)
             target.colorSpace = self.colorSpace
             target.units = self.units
-
-        # Run calibration
+        # Get self as dict
+        asDict = {}
         if tracker == 'eyetracker.hw.sr_research.eyelink.EyeTracker':
-            if self.movementAnimation:
-                # Alert user that their animation params aren't used
-                alert(code=4520, strFields={"brand": "EyeLink"})
-            # Run as eyelink
-            self.last = self.eyetracker.runSetupProcedure({
+            # As EyeLink
+            asDict = {
                 'target_attributes': dict(target),
                 'type': self.targetLayout,
                 'auto_pace': self.progressMode == "time",
                 'pacing_speed': self.targetDelay,
                 'screen_background_color': getattr(self.win._color, self.colorSpace)
-            })
-
+            }
         elif tracker == 'eyetracker.hw.tobii.EyeTracker':
+            # As Tobii
             targetAttrs = dict(target)
             targetAttrs['animate'] = {
                 'enable': self.movementAnimation,
@@ -96,9 +97,7 @@ class EyetrackerCalibration:
                 'expansion_speed': self.targetDur,
                 'contract_only': self.expandScale == 1
             }
-
-            # Run as tobii
-            self.last = self.eyetracker.runSetupProcedure({
+            asDict = {
                 'target_attributes': targetAttrs,
                 'type': self.targetLayout,
                 'randomize': self.randomisePos,
@@ -107,21 +106,16 @@ class EyetrackerCalibration:
                 'unit_type': self.units,
                 'color_type': self.colorSpace,
                 'screen_background_color': getattr(self.win._color, self.colorSpace),
-            })
-
+            }
         elif tracker == 'eyetracker.hw.gazepoint.gp3.EyeTracker':
-            if not self.progressMode == "time":
-                # As GazePoint doesn't use auto-pace, alert user
-                alert(4530, strFields={"brand": "GazePoint"})
-
+            # As GazePoint
             targetAttrs = dict(target)
             targetAttrs['animate'] = {
                 'enable': self.movementAnimation,
                 'expansion_ratio': self.expandScale,
                 'contract_only': self.expandScale == 1
             }
-            # Run as GazePoint
-            self.last = self.eyetracker.runSetupProcedure({
+            asDict = {
                 'use_builtin': False,
                 'target_delay': self.targetDelay,
                 'target_duration': self.targetDur,
@@ -131,10 +125,10 @@ class EyetrackerCalibration:
                 'unit_type': self.units,
                 'color_type': self.colorSpace,
                 'screen_background_color': getattr(self.win._color, self.colorSpace),
-            })
+            }
 
         elif tracker == 'eyetracker.hw.mouse.EyeTracker':
-
+            # As MouseGaze
             targetAttrs = dict(target)
             targetAttrs['animate'] = {
                 'enable': self.movementAnimation,
@@ -142,7 +136,7 @@ class EyetrackerCalibration:
                 'contract_only': self.expandScale == 1
             }
             # Run as MouseGaze
-            self.last = self.eyetracker.runSetupProcedure({
+            asDict = {
                 'target_attributes': targetAttrs,
                 'type': self.targetLayout,
                 'randomize': self.randomisePos,
@@ -151,10 +145,31 @@ class EyetrackerCalibration:
                 'unit_type': self.units,
                 'color_type': self.colorSpace,
                 'screen_background_color': getattr(self.win._color, self.colorSpace),
-            })
+            }
+        # Return
+        for key, value in asDict.items():
+            yield key, value
 
-        else:
-            self.last = self.eyetracker.runSetupProcedure({})
+    def run(self):
+        tracker = self.eyetracker.getIOHubDeviceClass(full=True)
+
+        # Minimise PsychoPy window
+        self.win.winHandle.set_fullscreen(False)
+        self.win.winHandle.minimize()
+
+        # Deliver any alerts as needed
+        if tracker == 'eyetracker.hw.sr_research.eyelink.EyeTracker':
+            if self.movementAnimation:
+                # Alert user that their animation params aren't used
+                alert(code=4520, strFields={"brand": "EyeLink"})
+
+        elif tracker == 'eyetracker.hw.gazepoint.gp3.EyeTracker':
+            if not self.progressMode == "time":
+                # As GazePoint doesn't use auto-pace, alert user
+                alert(4530, strFields={"brand": "GazePoint"})
+
+        # Run
+        self.last = self.eyetracker.runSetupProcedure(dict(self))
 
         # Bring back PsychoPy window
         self.win.winHandle.set_fullscreen(True)

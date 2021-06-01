@@ -197,7 +197,8 @@ class Experiment(object):
             if isinstance(routine, BaseStandaloneRoutine):
                 if routine.params['disabled'].val:
                     for node in self_copy.flow:
-                        self_copy.flow.removeComponent(node)
+                        if node == routine:
+                            self_copy.flow.removeComponent(node)
             else:
                 for component in routine:
                     try:
@@ -236,7 +237,7 @@ class Experiment(object):
         elif target == "PsychoJS":
             script.oneIndent = "  "  # use 2 spaces rather than python 4
 
-            self_copy.settings.writeInitCodeJS(script,self_copy.psychopyVersion,
+            self_copy.settings.writeInitCodeJS(script, self_copy.psychopyVersion,
                                                localDateTime, modular)
 
             script.writeIndentedLines("// Start code blocks for 'Before Experiment'")
@@ -246,12 +247,15 @@ class Experiment(object):
                 if hasattr(entry, 'writePreCodeJS'):
                     entry.writePreCodeJS(script)
 
+            # Write window code
+            self_copy.settings.writeWindowCodeJS(script)
+
             self_copy.flow.writeFlowSchedulerJS(script)
             self_copy.settings.writeExpSetupCodeJS(script,
                                                    self_copy.psychopyVersion)
 
             # initialise the components for all Routines in a single function
-            script.writeIndentedLines("\nfunction experimentInit() {")
+            script.writeIndentedLines("\nasync function experimentInit() {")
             script.setIndentLevel(1, relative=True)
 
             # routine init sections
@@ -501,7 +505,7 @@ class Experiment(object):
                     # we found an unknown parameter (probably from the future)
                     params[name] = Param(
                         val, valType=paramNode.get('valType'),
-                        allowedTypes=[],
+                        allowedTypes=[], label=_translate(name),
                         hint=_translate(
                             "This parameter is not known by this version "
                             "of PsychoPy. It might be worth upgrading"))

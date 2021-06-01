@@ -789,21 +789,17 @@ class SettingsComponent(object):
 
         # Write imports if modular
         if modular:
-            code = ("import {{ PsychoJS }} from './lib/core{version}.js';\n"
-                    "import * as core from './lib/core{version}.js';\n"
-                    "import {{ TrialHandler }} from './lib/data{version}.js';\n"
-                    "import {{ Scheduler }} from './lib/util{version}.js';\n"
-                    "import * as visual from './lib/visual{version}.js';\n"
-                    "import * as sound from './lib/sound{version}.js';\n"
-                    "import * as util from './lib/util{version}.js';\n"
+            code = (
+                    "import {{ core, data, sound, util, visual }} from './psycho-2021.2.0.js';\n"
+                    "const {{ PsychoJS }} = core;"
+                    "const {{ TrialHandler }} = data;\n"
+                    "const {{ Scheduler }} = util;\n"
                     "//some handy aliases as in the psychopy scripts;\n"
                     "const {{ abs, sin, cos, PI: pi, sqrt }} = Math;\n"
                     "const {{ round }} = util;\n"
                     "\n").format(version=versionStr)
             buff.writeIndentedLines(code)
 
-        # Write window code
-        self.writeWindowCodeJS(buff)
         code = ("\n// store info about the experiment session:\n"
                 "let expName = '%s';  // from the Builder filename that created this script\n"
                 "let expInfo = %s;\n"
@@ -952,6 +948,12 @@ class SettingsComponent(object):
             )
             buff.writeIndentedLines(code % self.params)
         else:
+            # Alert user if window is not fullscreen
+            if not self.params['Full-screen window'].val:
+                alert(code=4540)
+            # Alert user if no monitor config
+            if self.params['Monitor'].val in ["", None, "None"]:
+                alert(code=4545)
             # Alert user if they need calibration and don't have it
             if self.params['eyetracker'].val != "MouseGaze":
                 if not any(isinstance(rt, EyetrackerCalibrationRoutine)
@@ -1047,7 +1049,7 @@ class SettingsComponent(object):
                     "'model_name': %(elModel)s,\n"
                     "'simulation_mode': %(elSimMode)s,\n"
                     "'network_settings': %(elAddress)s,\n"
-                    "'default_native_data_file_name': 'eyedata.edf',\n"
+                    "'default_native_data_file_name': 'EXPFILE',\n"
                     "'runtime_settings': {\n"
                 )
                 buff.writeIndentedLines(code % self.params)
@@ -1242,7 +1244,7 @@ class SettingsComponent(object):
     def writeEndCodeJS(self, buff):
         endLoopInteration = ("\nfunction endLoopIteration(scheduler, snapshot) {\n"
                     "  // ------Prepare for next entry------\n"
-                    "  return function () {\n"
+                    "  return async function () {\n"
                     "    if (typeof snapshot !== 'undefined') {\n"
                     "      // ------Check if user ended loop early------\n"
                     "      if (snapshot.finished) {\n"

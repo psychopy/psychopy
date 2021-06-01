@@ -11,7 +11,7 @@ import os
 from ..... import DeviceEvent, Computer
 from ......constants import EventConstants
 from ......errors import print2err, printExceptionDetailsToStdErr
-from ......util import convertCamelToSnake, win32MessagePump
+from ......util import convertCamelToSnake, win32MessagePump, updateDict
 import pylink
 
 
@@ -19,6 +19,7 @@ class FixationTarget(object):
     def __init__(self, psychopy_eyelink_graphics):
         win = psychopy_eyelink_graphics.window
         color_type = psychopy_eyelink_graphics.getCalibSetting(['color_type'])
+        unit_type = psychopy_eyelink_graphics.getCalibSetting(['unit_type'])
 
         outer_fill_color = outer_line_color = psychopy_eyelink_graphics.getCalibSetting(['target_attributes', 'outer_color'])
         inner_fill_color = inner_line_color = psychopy_eyelink_graphics.getCalibSetting(['target_attributes', 'inner_color'])
@@ -41,7 +42,7 @@ class FixationTarget(object):
             opacity=1.0,
             interpolate=False,
             edges=64,
-            units='pix', colorSpace=color_type)
+            units=unit_type, colorSpace=color_type)
 
         self.calibrationPointInner = visual.Circle(
             win,
@@ -54,7 +55,7 @@ class FixationTarget(object):
             opacity=1.0,
             interpolate=False,
             edges=64,
-            units='pix', colorSpace=color_type)
+            units=unit_type, colorSpace=color_type)
 
     def draw(self, pos=None):
         if pos:
@@ -350,14 +351,30 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
     # on camera setup.
     IOHUB_HEARTBEAT_INTERVAL = 0.050
 
-    def __init__(self, eyetrackerInterface, cal_config):
+    def __init__(self, eyetrackerInterface, calibration_args):
         pylink.EyeLinkCustomDisplay.__init__(self)
-        self._calibration_args = cal_config
         self._eyetrackerinterface = eyetrackerInterface
+        display = eyetrackerInterface._display_device
+        self._device_config = self._eyetrackerinterface.getConfiguration()
+        updateDict(calibration_args, self._device_config.get('calibration'))
+        self._calibration_args = calibration_args
+        unit_type = self.getCalibSetting('unit_type')
+        if unit_type is None:
+            unit_type = display.getCoordinateType()
+            self._calibration_args['unit_type'] = unit_type
+        color_type = self.getCalibSetting('color_type')
+        if color_type is None:
+            color_type = display.getColorSpace()
+            self._calibration_args['color_type'] = color_type
+
+        if display.getCoordinateType() != unit_type:
+            raise RuntimeWarning("EyeLink Calibration requires same unit type"
+                                 " as window {} vs {}.".format(display.getCoordinateType(),
+                                                               unit_type))
+
         self.tracker = eyetrackerInterface._eyelink
         self._ioKeyboard = None
         self._ioMouse = None
-        display = eyetrackerInterface._display_device
 
         self.imgstim_size = None
         self.rgb_index_array = None
@@ -388,9 +405,9 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
 
         self.window = visual.Window(display.getPixelResolution(),
                                     monitor=display.getPsychopyMonitorName(),
-                                    units='pix', #eyelink calibration must always be in 'pix'
+                                    units=unit_type,
                                     color=self.getCalibSetting(['screen_background_color']),
-                                    colorSpace=display.getColorSpace(),
+                                    colorSpace=color_type,
                                     fullscr=True,
                                     allowGUI=False,
                                     screen=display.getIndex()
@@ -409,22 +426,14 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
         self._lastMsgPumpTime = Computer.getTime()
         self.clearAllEventBuffers()
 
-
     def getCalibSetting(self, setting):
         if isinstance(setting, str):
             setting = [setting, ]
         calibration_args = self._calibration_args
-        device_calib_config = self._eyetrackerinterface.getConfiguration().get('calibration')
         if setting:
             for s in setting[:-1]:
                 calibration_args = calibration_args.get(s)
-                device_calib_config = device_calib_config.get(s)
-            v = None
-            if calibration_args:
-                v = calibration_args.get(setting[-1])
-            if v is None:
-                v = device_calib_config[setting[-1]]
-            return v
+            return calibration_args.get(setting[-1])
 
     def clearAllEventBuffers(self):
         pylink.flushGetkeyQueue()

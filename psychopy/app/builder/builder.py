@@ -113,12 +113,13 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         self.appPrefs = self.app.prefs.app
         self.paths = self.app.prefs.paths
         self.frameType = 'builder'
-        self.filename = fileName
+        self._filename = fileName
         self.htmlPath = None
         self.project = None  # type: pavlovia.PavloviaProject
         self.btnHandles = {}  # stores toolbar buttons so they can be altered
         self.scriptProcess = None
         self.stdoutBuffer = None
+        self.readmeFrame = None
         self.generateScript = generateScript
 
         if fileName in self.appData['frames']:
@@ -185,7 +186,6 @@ class BuilderFrame(wx.Frame, ThemeMixin):
             # don't try to close before opening
             self.fileNew(closeCurrent=False)
 
-        self.readmeFrame = None
         self.updateReadme()  # check/create frame as needed
 
         # control the panes using aui manager
@@ -595,6 +595,29 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         self.componentButtons.Refresh()
         self.flowPanel.Refresh()
         event.Skip()
+
+    @property
+    def filename(self):
+        """Name of the currently open file"""
+        return self._filename
+
+    @filename.setter
+    def filename(self, value):
+        self._filename = value
+        # Skip if there's no toolbar
+        if not hasattr(self, "toolbar"):
+            return
+        # Enable/disable compile buttons
+        if 'compile_py' in self.toolbar.buttons:
+            self.toolbar.EnableTool(
+                self.toolbar.buttons['compile_py'].GetId(),
+                Path(value).is_file()
+            )
+        if 'compile_js' in self.toolbar.buttons:
+            self.toolbar.EnableTool(
+                self.toolbar.buttons['compile_js'].GetId(),
+                Path(value).is_file()
+            )
 
     def fileNew(self, event=None, closeCurrent=True):
         """Create a default experiment (maybe an empty one instead)
@@ -1977,16 +2000,22 @@ class RoutineCanvas(wx.ScrolledWindow):
                 # Grey bar if comp is disabled
                 dc.SetBrush(wx.Brush(ThemeMixin.appColors['rt_comp_disabled']))
                 dc.DrawBitmap(thisIcon.ConvertToDisabled(), self.iconXpos, yPos + iconYOffset, True)
-            elif 'forceEndRoutine' in component.params \
-                    or 'forceEndRoutineOnPress' in component.params:
-                if any(component.params[key].val
-                       for key in ['forceEndRoutine', 'forceEndRoutineOnPress']
-                       if key in component.params):
-                    # Orange bar if component has forceEndRoutine or forceEndRoutineOnPress and either are true
-                    dc.SetBrush(wx.Brush(ThemeMixin.appColors['rt_comp_force']))
-                else:
-                    # Blue bar if component has forceEndRoutine or forceEndRoutineOnPress but none are true
-                    dc.SetBrush(wx.Brush(ThemeMixin.appColors['rt_comp']))
+            elif any(key in component.params for key in ['forceEndRoutine', 'forceEndRoutineOnPress', 'endRoutineOn']):
+                # if component has force end params, check them and set bar as orange or blue accordingly
+                col = ThemeMixin.appColors['rt_comp']
+                # check True/False on ForceEndRoutine
+                if 'forceEndRoutine' in component.params:
+                    if component.params['forceEndRoutine'].val:
+                        col = ThemeMixin.appColors['rt_comp_force']
+                # check True/False on ForceEndRoutineOnPress
+                if 'forceEndRoutineOnPress' in component.params:
+                    if component.params['forceEndRoutineOnPress'].val:
+                        col = ThemeMixin.appColors['rt_comp_force']
+                # check True aliases on EndRoutineOn
+                if 'endRoutineOn' in component.params:
+                    if component.params['endRoutineOn'].val in ['look at', 'look away']:
+                        col = ThemeMixin.appColors['rt_comp_force']
+                dc.SetBrush(wx.Brush(col))
                 dc.DrawBitmap(thisIcon, self.iconXpos, yPos + iconYOffset, True)
             else:
                 # Blue bar otherwise
@@ -2072,10 +2101,9 @@ class RoutineCanvas(wx.ScrolledWindow):
                    experiment=self.frame.exp, editing=True)
         if dlg.OK:
             # Redraw if force end routine has changed
-            if 'forceEndRoutine' in component.params \
-                    or 'forceEndRoutineOnPress' in component.params:
+            if any(key in component.params for key in ['forceEndRoutine', 'forceEndRoutineOnPress', 'endRoutineOn']):
                 newForce = [component.params[key].val
-                            for key in ['forceEndRoutine', 'forceEndRoutineOnPress']
+                            for key in ['forceEndRoutine', 'forceEndRoutineOnPress', 'endRoutineOn']
                             if key in component.params]
                 if initialForce != newForce:
                     self.redrawRoutine()  # need to refresh timings section
@@ -2101,10 +2129,10 @@ class RoutineCanvas(wx.ScrolledWindow):
         return self.getMaxTime() / pixels
 
 
-class StandaloneRoutineCanvas(wx.Panel, ThemeMixin):
+class StandaloneRoutineCanvas(scrolledpanel.ScrolledPanel, ThemeMixin):
     def __init__(self, parent, routine=None):
         # Init super
-        wx.Panel.__init__(
+        scrolledpanel.ScrolledPanel.__init__(
             self, parent,
             style=wx.BORDER_NONE)
         # Store basics
@@ -2122,19 +2150,16 @@ class StandaloneRoutineCanvas(wx.Panel, ThemeMixin):
         self.sizer.Add(self.ctrls, border=12, proportion=1, flag=wx.ALIGN_CENTER | wx.ALL)
         # Make buttons
         self.btnsSizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.updateBtn = wx.Button(self, label=_translate("Update"))
-        self.updateBtn.Bind(wx.EVT_BUTTON, self.update)
-        self.btnsSizer.Add(self.updateBtn, border=6, flag=wx.ALL)
         # Add validator stuff
-        self.warnings = WarningManager(self, self.updateBtn)
+        self.warnings = WarningManager(self)
         self.sizer.Add(self.warnings.output, border=3, flag=wx.EXPAND | wx.ALL)
         # Add buttons to sizer
         self.sizer.Add(self.btnsSizer, border=6, proportion=0, flag=wx.ALIGN_RIGHT | wx.ALL)
-
         # Style
         self._applyAppTheme()
+        self.SetupScrolling(scroll_y=True)
 
-    def update(self, evt=None):
+    def updateExperiment(self, evt=None):
         """Update this routine's saved parameters to what is currently entered"""
         # Get params in correct formats
         self.routine.params = self.ctrls.getParams()
@@ -2157,10 +2182,14 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
     class CategoryButton(wx.ToggleButton):
         """Button to show/hide a category of components"""
         def __init__(self, parent, name, cat):
+            if sys.platform == 'darwin':
+                label = name  # on macOS the wx.BU_LEFT flag has no effect
+            else:
+                label = "   "+name
             # Initialise button
             wx.ToggleButton.__init__(self, parent,
-                                     label="   "+name, size=(-1, 24),
-                                     style=wx.BORDER_NONE | wx.BU_LEFT)
+                                     label=label, size=(-1, 24),
+                                     style= wx.BORDER_NONE | wx.BU_LEFT)
             self.parent = parent
             # Link to category of buttons
             self.menu = self.parent.catSizers[cat]
@@ -2205,7 +2234,9 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
                     elif self.parent.filter in ['PsychoPy', 'PsychoJS']:
                         cond = self.parent.filter in comp.targets
                     # Always hide if hidden by prefs
-                    if comp.__name__ in prefs.builder['hiddenComponents'] + ['SettingsComponent', 'UnknownComponent']:
+                    if comp.__name__ in prefs.builder['hiddenComponents'] + [
+                        'SettingsComponent', 'UnknownComponent', 'UnknownRoutine'
+                    ]:
                         cond = False
                     btn.Show(cond)
                 # # Update icon
@@ -2242,7 +2273,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
                 # Otherwise, use regular colours
                 self.SetForegroundColour(ThemeMixin.appColors['text'])
                 # self.icon.SetForegroundColour(ThemeMixin.appColors['text'])
-                self.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
+                self.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
 
     class ComponentButton(wx.Button):
         """Button to open component parameters dialog"""
@@ -2573,6 +2604,13 @@ class ReadmeFrame(wx.Frame):
                           size=(600, 500), pos=pos, style=_style)
         self.Bind(wx.EVT_CLOSE, self.onClose)
         self.Hide()
+        # create icon
+        if sys.platform == 'darwin':
+            pass  # doesn't work and not necessary - handled by app bundle
+        else:
+            iconFile = os.path.join(parent.paths['resources'], 'coder.ico')
+            if os.path.isfile(iconFile):
+                self.SetIcon(wx.Icon(iconFile, wx.BITMAP_TYPE_ICO))
         self.makeMenus()
         self.rawText = ""
         self.ctrl = HtmlWindow(self, wx.ID_ANY)

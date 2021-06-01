@@ -97,7 +97,36 @@ class _FileMixin:
         return outList
 
 
-class SingleLineCtrl(wx.TextCtrl, _ValidatorMixin):
+class _HideMixin:
+    def ShowAll(self, visible):
+        # Get sizer, if present
+        if hasattr(self, "_szr"):
+            sizer = self._szr
+        elif isinstance(self, DictCtrl):
+            sizer = self
+        else:
+            sizer = self.GetSizer()
+        # If there is a sizer, recursively hide children
+        if sizer is not None:
+            self.tunnelShow(sizer, visible)
+        else:
+            self.Show(visible)
+
+    def HideAll(self):
+        self.Show(True)
+
+    def tunnelShow(self, sizer, visible):
+        if sizer is not None:
+            # Show/hide everything in the sizer
+            for child in sizer.Children:
+                if child.Window is not None:
+                    child.Window.Show(visible)
+                if child.Sizer is not None:
+                    # If child is a sizer, recur
+                    self.tunnelShow(child.Sizer, visible)
+
+
+class SingleLineCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
     def __init__(self, parent, valType,
                  val="", fieldName="",
                  size=wx.Size(-1, 24), style=wx.DEFAULT):
@@ -124,7 +153,7 @@ class SingleLineCtrl(wx.TextCtrl, _ValidatorMixin):
             self.dollarLbl.Show(value)
 
 
-class MultiLineCtrl(SingleLineCtrl, _ValidatorMixin):
+class MultiLineCtrl(SingleLineCtrl, _ValidatorMixin, _HideMixin):
     def __init__(self, parent, valType,
                  val="", fieldName="",
                  size=wx.Size(-1, 144)):
@@ -133,7 +162,7 @@ class MultiLineCtrl(SingleLineCtrl, _ValidatorMixin):
                                 size=size, style=wx.TE_MULTILINE)
 
 
-class IntCtrl(wx.SpinCtrl, _ValidatorMixin):
+class IntCtrl(wx.SpinCtrl, _ValidatorMixin, _HideMixin):
     def __init__(self, parent, valType,
                  val="", fieldName="",
                  size=wx.Size(-1, 24), limits=None):
@@ -155,7 +184,7 @@ class IntCtrl(wx.SpinCtrl, _ValidatorMixin):
 BoolCtrl = wx.CheckBox
 
 
-class ChoiceCtrl(wx.Choice, _ValidatorMixin):
+class ChoiceCtrl(wx.Choice, _ValidatorMixin, _HideMixin):
     def __init__(self, parent, valType,
                  val="", choices=[], fieldName="",
                  size=wx.Size(-1, 24)):
@@ -182,7 +211,7 @@ class ChoiceCtrl(wx.Choice, _ValidatorMixin):
         wx.Choice.SetSelection(self, self._choices.index(string))
 
 
-class MultiChoiceCtrl(wx.CheckListBox, _ValidatorMixin):
+class MultiChoiceCtrl(wx.CheckListBox, _ValidatorMixin, _HideMixin):
     def __init__(self, parent, valType,
                  vals="", choices=[], fieldName="",
                  size=wx.Size(-1, -1)):
@@ -210,7 +239,7 @@ class MultiChoiceCtrl(wx.CheckListBox, _ValidatorMixin):
         return self.GetCheckedStrings()
 
 
-class FileCtrl(wx.TextCtrl, _ValidatorMixin, _FileMixin):
+class FileCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
     def __init__(self, parent, valType,
                  val="", fieldName="",
                  size=wx.Size(-1, 24)):
@@ -238,7 +267,7 @@ class FileCtrl(wx.TextCtrl, _ValidatorMixin, _FileMixin):
             self.validate(evt)
 
 
-class FileListCtrl(wx.ListBox, _ValidatorMixin, _FileMixin):
+class FileListCtrl(wx.ListBox, _ValidatorMixin, _HideMixin, _FileMixin):
     def __init__(self, parent, valType,
                  choices=[], size=None, pathtype="rel"):
         wx.ListBox.__init__(self)
@@ -285,7 +314,7 @@ class FileListCtrl(wx.ListBox, _ValidatorMixin, _FileMixin):
         return self.Items
 
 
-class TableCtrl(wx.TextCtrl, _ValidatorMixin, _FileMixin):
+class TableCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin, _FileMixin):
     def __init__(self, parent, valType,
                  val="", fieldName="",
                  size=wx.Size(-1, 24)):
@@ -319,9 +348,7 @@ class TableCtrl(wx.TextCtrl, _ValidatorMixin, _FileMixin):
             'QuestHandler': Path(expRoot) / "loopTemplate.xltx",
             'None': Path(expRoot) / 'blankTemplate.xltx',
         }
-        # Configure validation
-        self.Bind(wx.EVT_TEXT, self.validate)
-        self.validate()
+        # Specify valid extensions
         self.validExt = [".csv",".tsv",".txt",
                          ".xl",".xlsx",".xlsm",".xlsb",".xlam",".xltx",".xltm",".xls",".xlt",
                          ".htm",".html",".mht",".mhtml",
@@ -331,6 +358,9 @@ class TableCtrl(wx.TextCtrl, _ValidatorMixin, _FileMixin):
                          ".iqy",".dqy",".rqy",".oqy",
                          ".cub",".atom",".atomsvc",
                          ".prn",".slk",".dif"]
+        # Configure validation
+        self.Bind(wx.EVT_TEXT, self.validate)
+        self.validate()
 
     def validate(self, evt=None):
         """Redirect validate calls to global validate method, assigning appropriate valType"""
@@ -338,7 +368,7 @@ class TableCtrl(wx.TextCtrl, _ValidatorMixin, _FileMixin):
         # Enable Excel button if valid
         self.xlBtn.Enable(self.valid)
         # Is component type available?
-        if hasattr(self.GetTopLevelParent(), 'type'):
+        if self.GetValue() in [None, ""] + self.validExt and hasattr(self.GetTopLevelParent(), 'type'):
             # Does this component have a default template?
             if self.GetTopLevelParent().type in self.templates:
                 self.xlBtn.Enable(True)
@@ -372,7 +402,7 @@ class TableCtrl(wx.TextCtrl, _ValidatorMixin, _FileMixin):
             self.validate(event)
 
 
-class ColorCtrl(wx.TextCtrl, _ValidatorMixin):
+class ColorCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
     def __init__(self, parent, valType,
                  val="", fieldName="",
                  size=wx.Size(-1, 24)):
@@ -465,12 +495,17 @@ def validate(obj, valType):
             # If object creation fails, input is invalid
             valid = False
     if valType == "file":
-        if not os.path.isfile(os.path.abspath(val)):
+        val = Path(str(val))
+        if not val.is_absolute():
+            frame = obj.GetTopLevelParent().frame
+            # If not an absolute path, append to current directory
+            val = Path(frame.filename).parent / val
+        if not val.is_file():
             # Is value a valid filepath?
             valid = False
         if hasattr(obj, "validExt"):
-            if not val.endswith(tuple(obj.validExt)):
-                # If control has specified list of ext, does value end in correct ext?
+            # If control has specified list of ext, does value end in correct ext?
+            if val.suffix not in obj.validExt:
                 valid = False
     # If additional allowed values are defined, override validation
     if hasattr(obj, "allowedVals"):
@@ -485,7 +520,8 @@ def validate(obj, valType):
     # Update code font
     obj.updateCodeFont(valType)
 
-class DictCtrl(ListWidget, _ValidatorMixin):
+
+class DictCtrl(ListWidget, _ValidatorMixin, _HideMixin):
     def __init__(self, parent,
                  val={}, valType='dict',
                  fieldName=""):

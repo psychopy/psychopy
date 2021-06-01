@@ -242,9 +242,12 @@ class HookManager(threading.Thread):
         self._running = False
         self.local_dpy.record_disable_context(self.ctx)
         self.local_dpy.flush()
-        self._xlib.XCloseDisplay(self._xdisplay)
-        self._xlib = None
-
+        try:
+            self._xlib.XCloseDisplay(self._xdisplay)
+            self._xlib = None
+        except AttributeError:
+            pass
+        
     def printevent(self, event):
         print2err(event)
 

@@ -10,7 +10,10 @@ from builtins import super  # provides Py3-style super() using python-future
 
 from os import path
 from pathlib import Path
+
+from psychopy.alerts import alert
 from psychopy.experiment.components import Param, getInitVals, _translate, BaseVisualComponent
+from psychopy.experiment.components.eyetracker_record import EyetrackerRecordComponent
 from psychopy.experiment.components.polygon import PolygonComponent
 from psychopy.localization import _localized as __localized
 _localized = __localized.copy()
@@ -53,11 +56,23 @@ class RegionOfInterestComponent(PolygonComponent):
             if self.params[param].categ in ["Appearance", "Texture"]:
                 del self.params[param]
 
+        # Fix units as default
+        self.params['units'].allowedVals = ['from exp settings']
+
         self.params['endRoutineOn'] = Param(endRoutineOn,
             valType='str', inputType='choice', categ='Basic',
             allowedVals=["look at", "look away", "none"],
             hint=_translate("Under what condition should this ROI end the routine?"),
             label=_translate("End Routine On...")
+        )
+
+        self.depends.append(
+            {"dependsOn": "endRoutineOn",  # must be param name
+             "condition": "=='none'",  # val to check for
+             "param": "lookDur",  # param property to alter
+             "true": "hide",  # what to do with param if condition is True
+             "false": "show",  # permitted: hide, show, enable, disable
+             }
         )
 
         self.params['lookDur'] = Param(lookDur,
@@ -93,6 +108,13 @@ class RegionOfInterestComponent(PolygonComponent):
         pass
 
     def writeInitCode(self, buff):
+        # Alert user if there's no eyetracker record component in this routine
+        recorded = False
+        for sibling in self.exp.routines[self.parentName]:
+            if isinstance(sibling, EyetrackerRecordComponent):
+                recorded = True
+        if not recorded:
+            alert(code=4550, strFields={"name": self.params['name']})
         # do we need units code?
         if self.params['units'].val == 'from exp settings':
             unitsStr = ""
@@ -100,6 +122,11 @@ class RegionOfInterestComponent(PolygonComponent):
             unitsStr = "units=%(units)s, " % self.params
         # do writing of init
         inits = getInitVals(self.params, 'PsychoPy')
+        if self.params['shape'] == 'regular polygon...':
+            inits['shape'] = self.params['nVertices']
+        elif self.params['shape'] == 'custom polygon...':
+            inits['shape'] = self.params['vertices']
+
         code = (
             "%(name)s = visual.ROI(win, name='%(name)s', tracker=eyetracker,\n"
         )
@@ -112,6 +139,15 @@ class RegionOfInterestComponent(PolygonComponent):
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
+
+    def writeRoutineStartCode(self, buff):
+        inits = getInitVals(self.params, 'PsychoPy')
+        BaseVisualComponent.writeRoutineStartCode(self, buff)
+        code = (
+            "# clear any previous roi data\n"
+            "%(name)s.reset()\n"
+        )
+        buff.writeIndentedLines(code % inits)
 
     def writeFrameCode(self, buff):
         """Write the code that will be called every frame
@@ -157,11 +193,6 @@ class RegionOfInterestComponent(PolygonComponent):
             f"%(name)s.timesOff.append({timing}) # store time looked until\n"
         )
         buff.writeIndentedLines(code % inits)
-        if self.params['endRoutineOn'].val == "look at":
-            code = (
-                "continueRoutine = False # end routine on look at\n"
-            )
-            buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
         code = (
             f"else:\n"
@@ -172,6 +203,17 @@ class RegionOfInterestComponent(PolygonComponent):
             f"%(name)s.timesOff[-1] = {timing} # update time looked until\n"
         )
         buff.writeIndentedLines(code % inits)
+        if self.params['endRoutineOn'].val == "look at":
+            code = (
+                "if %(name)s.currentLookTime > %(lookDur)s/1000: # check if they've been looking long enough\n"
+            )
+            buff.writeIndentedLines(code % inits)
+            buff.setIndentLevel(1, relative=True)
+            code = (
+                    "continueRoutine = False # end routine on sufficiently long look\n"
+            )
+            buff.writeIndentedLines(code % inits)
+            buff.setIndentLevel(-1, relative=True)
         buff.setIndentLevel(-1, relative=True)
         code = (
             f"%(name)s.wasLookedIn = True  # if %(name)s is still looked at next frame, it is not a new look\n"
@@ -194,9 +236,15 @@ class RegionOfInterestComponent(PolygonComponent):
         buff.writeIndentedLines(code % inits)
         if self.params['endRoutineOn'].val == "look away":
             code = (
-                f"continueRoutine = False # end routine on look away\n"
+                "if %(name)s.currentLookTime > %(lookDur)s/1000: # check if last look was long enough\n"
             )
             buff.writeIndentedLines(code % inits)
+            buff.setIndentLevel(1, relative=True)
+            code = (
+                    "continueRoutine = False # end routine after sufficiently long look\n"
+            )
+            buff.writeIndentedLines(code % inits)
+            buff.setIndentLevel(-1, relative=True)
         buff.setIndentLevel(-1, relative=True)
         code = (
             f"%(name)s.wasLookedIn = False  # if %(name)s is looked at next frame, it is a new look\n"

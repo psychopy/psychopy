@@ -16,29 +16,32 @@ currentTime = Computer.getTime
 
 class MouseGazePsychopyCalibrationGraphics(object):
     IOHUB_HEARTBEAT_INTERVAL = 0.050
-    WINDOW_BACKGROUND_COLOR = None
     CALIBRATION_POINT_LIST = [(0.5, 0.5), (0.1, 0.1), (0.9, 0.1), (0.9, 0.9), (0.1, 0.9)]
 
     _keyboard_key_index = EC.getClass(EC.KEYBOARD_RELEASE).CLASS_ATTRIBUTE_NAMES.index('key')
 
     def __init__(self, eyetrackerInterface, calibration_args):
         self._eyetracker = eyetrackerInterface
-
         self.screenSize = eyetrackerInterface._display_device.getPixelResolution()
         self.width = self.screenSize[0]
         self.height = self.screenSize[1]
         self._ioKeyboard = None
         self._msg_queue = []
-
         self._lastCalibrationOK = False
         self._device_config = self._eyetracker.getConfiguration()
+        display = self._eyetracker._display_device
 
         updateDict(calibration_args, self._device_config.get('calibration'))
         self._calibration_args = calibration_args
 
-        screenColor = self.getCalibSetting('screen_background_color')
-        print2err('screenColor:', screenColor)
-        MouseGazePsychopyCalibrationGraphics.WINDOW_BACKGROUND_COLOR = screenColor
+        unit_type = self.getCalibSetting('unit_type')
+        if unit_type is None:
+            unit_type = display.getCoordinateType()
+            self._calibration_args['unit_type'] = unit_type
+        color_type = self.getCalibSetting('color_type')
+        if color_type is None:
+            color_type = display.getColorSpace()
+            self._calibration_args['color_type'] = color_type
 
         calibration_methods = dict(THREE_POINTS=3,
                                    FIVE_POINTS=5,
@@ -85,17 +88,16 @@ class MouseGazePsychopyCalibrationGraphics(object):
                                                                                (0.75, 0.75),
                                                                                (0.75, 0.25)
                                                                                ]
-            display = self._eyetracker._display_device
 
         self.window = visual.Window(
             self.screenSize,
             monitor=display.getPsychopyMonitorName(),
-            units=display.getCoordinateType(),
+            units=unit_type,
             fullscr=True,
             allowGUI=False,
             screen=display.getIndex(),
-            color=self.WINDOW_BACKGROUND_COLOR,
-            colorSpace=display.getColorSpace())
+            color=self.getCalibSetting(['screen_background_color']),
+            colorSpace=color_type)
         self.window.flip(clearBuffer=True)
 
         self._createStim()
@@ -219,7 +221,7 @@ class MouseGazePsychopyCalibrationGraphics(object):
 
         target_delay = self.getCalibSetting('target_delay')
         target_duration = self.getCalibSetting('target_duration')
-
+        auto_pace = self.getCalibSetting('auto_pace')
         cal_target_list = self.CALIBRATION_POINT_LIST
         randomize_points = self.getCalibSetting('randomize')
         if randomize_points is True:
@@ -235,10 +237,9 @@ class MouseGazePsychopyCalibrationGraphics(object):
 
         self.clearCalibrationWindow()
 
-        # seems like gps expects animation at state of every target pos.
         i = 0
         for pt in cal_target_list:
-            # Convert GazePoint normalized positions to psychopy window unit positions
+            # Convert normalized positions to psychopy window unit positions
             # by using iohub display/window getCoordBounds.
             x, y = left + w * pt[0], bottom + h * (1.0 - pt[1])
             start_time = currentTime()
@@ -264,9 +265,9 @@ class MouseGazePsychopyCalibrationGraphics(object):
                 self.getNextMsg()
                 self.MsgPump()
 
+            # Target expand / contract phase
             self.drawCalibrationTarget((x, y))
             start_time = currentTime()
-
             outer_diameter = self.getCalibSetting(['target_attributes', 'outer_diameter'])
             inner_diameter = self.getCalibSetting(['target_attributes', 'inner_diameter'])
             while currentTime()-start_time <= target_duration:
@@ -299,9 +300,19 @@ class MouseGazePsychopyCalibrationGraphics(object):
                 self.MsgPump()
                 gevent.sleep(0.001)
 
+            if auto_pace is False:
+                while 1:
+                    msg = self.getNextMsg()
+                    self.MsgPump()
+                    gevent.sleep(0.001)
+                    if msg == 'SPACE_KEY_ACTION':
+                        break
+
+
             self.clearCalibrationWindow()
             self.clearAllEventBuffers()
             i += 1
+
         instuction_text = "Calibration Complete. Press 'SPACE' key to continue."
         self.showSystemSetupMessageScreen(instuction_text)
 

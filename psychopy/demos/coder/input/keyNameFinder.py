@@ -4,6 +4,11 @@ from psychopy.hardware import keyboard
 # Make window
 win = visual.Window(units="height")
 
+# To have keyboard.Keyboard() use iohub backend, start the iohub server
+# prior to creating a Keyboard() instance.
+# from psychopy.iohub import launchHubServer
+# launchHubServer(window=win)
+
 # Make instructions textbox
 instr = visual.TextBox2(win,
     text="Press any key...",
@@ -28,5 +33,7 @@ while 'escape' not in keys:
     if keys:
         # If a key was pressed, display it
         output.text = f"That key was `{keys[-1].name}`. Press another key."
+        for k in keys:
+            print(k.name, k.code, k.tDown, k.rt, k.duration)
 # End the demo
 win.close()

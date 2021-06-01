@@ -47,6 +47,8 @@ class StdOutRich(wx.richtext.RichTextCtrl, _BaseErrorHandler):
 
         if type(inStr) == AlertEntry:
             alert = inStr
+            # sanitize message
+            alert.msg = sanitize(alert.msg)
             # Write Code
             self.BeginBold()
             self.BeginTextColour(wx.BLUE)
@@ -86,6 +88,9 @@ class StdOutRich(wx.richtext.RichTextCtrl, _BaseErrorHandler):
                 inStr = inStr.decode('utf-8')
             except UnicodeDecodeError:
                 inStr = inStr.decode(_prefEncoding)
+
+        # sanitize message
+        inStr = sanitize(inStr)
 
         for thisLine in inStr.splitlines(True):
             try:
@@ -127,3 +132,16 @@ class StdOutRich(wx.richtext.RichTextCtrl, _BaseErrorHandler):
 
         self.errors = []
         self.alerts = []
+
+
+def sanitize(inStr):
+    """Hide any sensitive info from the alert"""
+    # Key-value pairs of patterns with what to replace them with
+    patterns = {
+        "https\:\/\/oauth2\:[\d\w]{64}@gitlab\.pavlovia\.org\/.*\.git": "[[OAUTH key hidden]]" # Remove any oauth keys
+    }
+    # Replace each pattern
+    for pattern, repl in patterns.items():
+        inStr = re.sub(pattern, repl, inStr)
+
+    return inStr

@@ -33,8 +33,9 @@ _knownFields = {
     'itemWidth': 0.8,  # fraction of the form
     'type': _REQUIRED,  # type of response box (see below)
     'options': ('Yes', 'No'),  # for choice box
-    'ticks': (1, 2, 3, 4, 5, 6, 7),
+    'ticks': None,#(1, 2, 3, 4, 5, 6, 7),
     'tickLabels': None,
+    'font': None,
     # for rating/slider
     'responseWidth': 0.8,  # fraction of the form
     'responseColor': None,
@@ -418,8 +419,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 borderColor=None,  # add borderColor to help debug
                 editable=False,
                 bold=bold,
-                font=self.font)
-        print(item['itemColor'] or self.itemColor)
+                font=item['font'] or self.font)
 
         questionHeight = question.size[1]
         questionWidth = question.size[0]
@@ -492,7 +492,10 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
         # what are the ticks for the scale/slider?
         if item['type'].lower() in ['radio', 'choice']:
-            ticks = None
+            if item['ticks']:
+                ticks = item['ticks']
+            else:
+                ticks = None
             tickLabels = item['tickLabels'] or item['options'] or item['ticks']
             granularity = 1
             style = 'radio'
@@ -552,7 +555,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 flip=True,
                 style=style,
                 autoLog=False,
-                font=self.font,
+                font=item['font'] or self.font,
                 color=item['responseColor'] or self.responseColor,
                 fillColor=item['markerColor'] or self.markerColor,
                 borderColor=item['responseColor'] or self.responseColor,
@@ -609,7 +612,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 anchor='top-right',
                 color=item['responseColor'] or self.responseColor,
                 colorSpace=self.colorSpace,
-                font=self.font,
+                font=item['font'] or self.font,
                 editable=True,
                 borderColor=item['responseColor'] or self.responseColor,
                 borderWidth=2,

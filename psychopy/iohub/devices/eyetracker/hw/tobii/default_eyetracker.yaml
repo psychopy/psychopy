@@ -22,7 +22,7 @@ eyetracker.hw.tobii.EyeTracker:
 
     # The Tobii implementation of the common eye tracker interface supports the
     # BinocularEyeSampleEvent event type.
-    monitor_event_types: BinocularEyeSampleEvent
+    monitor_event_types: [BinocularEyeSampleEvent,]
 
     # The model name of the Tobii device that you wish to connect to can be specified here,
     # and only Tobii systems matching that model name will be considered as possible candidates for connection.
@@ -36,17 +36,17 @@ eyetracker.hw.tobii.EyeTracker:
     serial_number:
 
     calibration:
-        # The Tobii ioHub Common Eye Tracker Interface currently support 
-        # a 3, 5 and 9 point calibration mode.
-        # THREE_POINTS,FIVE_POINTS,NINE_POINTS
+        # The Tobii ioHub Common Eye Tracker Interface currently supports
+        # 3, 5, 9, and 13 point calibration modes.
+        # THREE_POINTS, FIVE_POINTS, NINE_POINTS,THIRTEEN_POINTS
         #
         type: NINE_POINTS
 
         # color_type: rgb, rgb255, named, hex, etc. Leave blank to use window's color space.
-        color_type: rgb255
+        color_type:
 
         # unit_type: norm, pix, height, deg, etc. Leave blank to use window's unit type.
-        unit_type: pix
+        unit_type:
 
         # Should the target positions be randomized?
         #

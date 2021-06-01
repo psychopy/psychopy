@@ -182,8 +182,8 @@ class TestTrialHandler2(object):
         t.origin = ''
 
         t_loaded = json_tricks.loads(dump)
-        t_loaded._rng = np.random.RandomState()
-        t_loaded._rng.set_state(t_loaded._rng_state)
+        t_loaded._rng = np.random.default_rng()
+        t_loaded._rng.bit_generator.state = t_loaded._rng_state
         del t_loaded._rng_state
 
         assert t == t_loaded
@@ -196,8 +196,8 @@ class TestTrialHandler2(object):
         t.origin = ''
 
         t_loaded = json_tricks.loads(dump)
-        t_loaded._rng = np.random.RandomState()
-        t_loaded._rng.set_state(t_loaded._rng_state)
+        t_loaded._rng = np.random.default_rng()
+        t_loaded._rng.bit_generator.state = t_loaded._rng_state
         del t_loaded._rng_state
 
         assert t == t_loaded
@@ -210,8 +210,8 @@ class TestTrialHandler2(object):
         t.origin = ''
 
         t_loaded = json_tricks.loads(dump)
-        t_loaded._rng = np.random.RandomState()
-        t_loaded._rng.set_state(t_loaded._rng_state)
+        t_loaded._rng = np.random.default_rng()
+        t_loaded._rng.bit_generator.state = t_loaded._rng_state
         del t_loaded._rng_state
 
         assert t == t_loaded
@@ -225,8 +225,8 @@ class TestTrialHandler2(object):
         t.origin = ''
 
         t_loaded = json_tricks.loads(dump)
-        t_loaded._rng = np.random.RandomState()
-        t_loaded._rng.set_state(t_loaded._rng_state)
+        t_loaded._rng = np.random.default_rng()
+        t_loaded._rng.bit_generator.state = t_loaded._rng_state
         del t_loaded._rng_state
 
         assert t == t_loaded
