@@ -237,7 +237,6 @@ class Keyboard:
                 key_releases = Keyboard.iohubKeyboard.getReleases(keys=watchForKeys, clear=clear)
                 for k in key_releases:
                     kname = k.key
-                    print("kname: ", kname, kname == ' ')
                     if kname == ' ':
                         kname = 'space'
                     kp = KeyPress(code=None, tDown=k.time, name=kname)
