@@ -276,7 +276,7 @@ class pythonTransformer(ast.NodeTransformer):
             )
 
         # substitutable operations, e.g. a = sum(b,c) => a = [b,c].reduce( function(x,y) { return x+y: })
-        elif attribute in self.subtitutableOperations:
+        elif attribute in self.substitutableOperations:
             # a = sum(b,c) => a = [b,c].reduce( function(x,y) { return x+y: })
             pass  # removed for now in preference for creating the func in utils
 
