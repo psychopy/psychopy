@@ -75,8 +75,8 @@ def fromFile(filename, encoding='utf-8-sig'):
         # was saved with it.
         from psychopy.data import TrialHandler2
         if isinstance(contents, TrialHandler2):
-            contents._rng = np.random.RandomState(seed=contents.seed)
-            contents._rng.set_state(contents._rng_state)
+            contents._rng = np.random.default_rng()
+            contents._rng.bit_generator.state = contents._rng_state
             del contents._rng_state
             return contents
 
