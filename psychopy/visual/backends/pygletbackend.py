@@ -703,6 +703,7 @@ class PygletBackend(BaseBackend):
         # don't process mouse events until ready
         mouseEventHandler = mouse.Mouse.getInstance()
         if mouseEventHandler is None:
+            event._onPygletMousePress(*args, **kwargs)
             return
 
         x, y, button, _ = args
@@ -717,6 +718,7 @@ class PygletBackend(BaseBackend):
         # don't process mouse events until ready
         mouseEventHandler = mouse.Mouse.getInstance()
         if mouseEventHandler is None:
+            event._onPygletMouseRelease(*args, **kwargs)
             return
 
         x, y, button, _ = args
@@ -731,6 +733,7 @@ class PygletBackend(BaseBackend):
         # don't process mouse events until ready
         mouseEventHandler = mouse.Mouse.getInstance()
         if mouseEventHandler is None:
+            event._onPygletMouseWheel(*args, **kwargs)
             return
 
         # register mouse position associated with event
@@ -745,6 +748,7 @@ class PygletBackend(BaseBackend):
         # don't process mouse events until ready
         mouseEventHandler = mouse.Mouse.getInstance()
         if mouseEventHandler is None:
+            event._onPygletMouseMotion(*args, **kwargs)
             return
 
         x, y, _, _ = args
