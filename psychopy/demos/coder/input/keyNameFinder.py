@@ -1,14 +1,13 @@
 from psychopy import visual
 from psychopy.hardware import keyboard
 
-use_iohub = True
-
 # Make window
 win = visual.Window(units="height")
 
-if use_iohub:
-    from psychopy.iohub import launchHubServer
-    launchHubServer(window=win)
+# To have keyboard.Keyboard() use iohub backend, start the iohub server
+# prior to creating a Keyboard() instance.
+# from psychopy.iohub import launchHubServer
+# launchHubServer(window=win)
 
 # Make instructions textbox
 instr = visual.TextBox2(win,
