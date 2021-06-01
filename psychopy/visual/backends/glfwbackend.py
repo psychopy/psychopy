@@ -781,6 +781,13 @@ class GLFWBackend(BaseBackend):
             else:
                 mouseEventHandler.win = None
 
+    def onMouseLeave(self, *args):
+        """Event called when the mouse leaves the window. This does nothing
+        since `onMouseEnter` handles both enter and leave events. This is
+        implemented for completeness.
+        """
+        pass
+
     def setMouseExclusive(self, exclusive):
         """Set mouse exclusivity.
 
