@@ -870,6 +870,7 @@ class IconCache:
             combined.SetData(combinedData)
             combined.SetAlpha(combinedAlpha)
             # Replace icon
+            identifier += "_beta"
             IconCache._bitmaps[identifier] = combined.ConvertToBitmap()
 
         return IconCache._bitmaps[identifier]
