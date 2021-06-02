@@ -363,6 +363,12 @@ class TrialHandler(_BaseTrialHandler):
 
     next = __next__  # allows user to call without a loop `val = trials.next()`
 
+    def getCurrentTrial(self):
+        """Returns the condition for the current trial, without
+        advancing the trials.
+        """
+        return self.trialList[self.thisIndex]
+
     def getFutureTrial(self, n=1):
         """Returns the condition for n trials into the future,
         without advancing the trials. A negative n returns a previous (past)

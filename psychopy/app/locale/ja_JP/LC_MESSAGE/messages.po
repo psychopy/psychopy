@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PsychoPy 2020.1.3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-03-08 20:02+0900\n"
-"PO-Revision-Date: 2021-03-08 20:02+0900\n"
+"POT-Creation-Date: 2021-05-18 15:39+0900\n"
+"PO-Revision-Date: 2021-05-18 15:40+0900\n"
 "Last-Translator: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language-Team: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language: ja\n"
@@ -132,7 +132,7 @@ msgstr "PsychoPy"
 msgid "Psychology software in Python"
 msgstr "Pythonベースの心理学実験ソフトウェア"
 
-#: psychopy/app/_psychopyApp.py:104 psychopy/app/builder/builder.py:341
+#: psychopy/app/_psychopyApp.py:104 psychopy/app/builder/builder.py:347
 #: psychopy/app/coder/coder.py:1619
 msgid "&View"
 msgstr "ビュー(&V)"
@@ -155,14 +155,14 @@ msgstr "Coderを開く(&O)\t%s"
 msgid "Open a new Coder view"
 msgstr "Coderのウィンドウを開きます"
 
-#: psychopy/app/_psychopyApp.py:117 psychopy/app/builder/builder.py:318
+#: psychopy/app/_psychopyApp.py:117 psychopy/app/builder/builder.py:324
 #: psychopy/app/coder/coder.py:399 psychopy/app/coder/coder.py:1492
 #: psychopy/app/pavlovia_ui/_base.py:38 psychopy/app/runner/runner.py:140
 #, python-format
 msgid "&Quit\t%s"
 msgstr "終了(&Q)\t%s"
 
-#: psychopy/app/_psychopyApp.py:119 psychopy/app/builder/builder.py:319
+#: psychopy/app/_psychopyApp.py:119 psychopy/app/builder/builder.py:325
 #: psychopy/app/coder/coder.py:1493 psychopy/app/pavlovia_ui/_base.py:39
 msgid "Terminate the program"
 msgstr "アプリケーションを終了します"
@@ -187,7 +187,7 @@ msgstr "tips_ja_JP.txt"
 msgid "Select .psydat file(s) to extract"
 msgstr "変換する.psydatファイルを選択してください"
 
-#: psychopy/app/_psychopyApp.py:766
+#: psychopy/app/_psychopyApp.py:770
 msgid ""
 "For stimulus generation and experimental control in Python.\n"
 "PsychoPy depends on your feedback. If something doesn't work\n"
@@ -197,547 +197,547 @@ msgstr ""
 "PsychoPyはあなたからのフィードバックを求めています. 不具合を見つけたら\n"
 "psychopy-users@googlegroups.com に御連絡ください"
 
-#: psychopy/app/builder/builder.py:69
+#: psychopy/app/builder/builder.py:73
 #: psychopy/app/builder/localizedStrings.py:84
 msgid "Field"
 msgstr "フィールド"
 
-#: psychopy/app/builder/builder.py:70
+#: psychopy/app/builder/builder.py:74
 #: psychopy/app/builder/localizedStrings.py:85
 msgid "Default"
 msgstr "初期値"
 
-#: psychopy/app/builder/builder.py:71
+#: psychopy/app/builder/builder.py:75
 msgid "Favorites"
 msgstr "お気に入り"
 
-#: psychopy/app/builder/builder.py:72
+#: psychopy/app/builder/builder.py:76
 msgid "Stimuli"
 msgstr "刺激"
 
-#: psychopy/app/builder/builder.py:73
+#: psychopy/app/builder/builder.py:77
 msgid "Responses"
 msgstr "反応"
 
-#: psychopy/app/builder/builder.py:74
+#: psychopy/app/builder/builder.py:78
 #: psychopy/app/builder/dialogs/__init__.py:472
 msgid "Custom"
 msgstr "カスタム"
 
-#: psychopy/app/builder/builder.py:75
+#: psychopy/app/builder/builder.py:79
 msgid "I/O"
 msgstr "I/O"
 
-#: psychopy/app/builder/builder.py:76
+#: psychopy/app/builder/builder.py:80
 msgid "Add to favorites"
 msgstr "お気に入りに追加"
 
-#: psychopy/app/builder/builder.py:77
+#: psychopy/app/builder/builder.py:81
 msgid "Remove from favorites"
 msgstr "お気に入りから削除"
 
-#: psychopy/app/builder/builder.py:79
+#: psychopy/app/builder/builder.py:83
 msgid "edit"
 msgstr "編集"
 
-#: psychopy/app/builder/builder.py:80 psychopy/app/builder/builder.py:2714
+#: psychopy/app/builder/builder.py:84 psychopy/app/builder/builder.py:2638
 msgid "remove"
 msgstr "削除"
 
-#: psychopy/app/builder/builder.py:81 psychopy/app/preferencesDlg.py:95
+#: psychopy/app/builder/builder.py:85 psychopy/app/preferencesDlg.py:95
 msgid "copy"
 msgstr "コピー"
 
-#: psychopy/app/builder/builder.py:82
+#: psychopy/app/builder/builder.py:86
 msgid "move to top"
 msgstr "一番上へ"
 
-#: psychopy/app/builder/builder.py:83
+#: psychopy/app/builder/builder.py:87
 msgid "move up"
 msgstr "ひとつ上へ"
 
-#: psychopy/app/builder/builder.py:84
+#: psychopy/app/builder/builder.py:88
 msgid "move down"
 msgstr "ひとつ下へ"
 
-#: psychopy/app/builder/builder.py:85
+#: psychopy/app/builder/builder.py:89
 msgid "move to bottom"
 msgstr "一番下へ"
 
-#: psychopy/app/builder/builder.py:255 psychopy/app/builder/builder.py:2525
+#: psychopy/app/builder/builder.py:261 psychopy/app/builder/builder.py:2445
 #: psychopy/app/coder/coder.py:1434 psychopy/app/pavlovia_ui/_base.py:23
 #: psychopy/monitors/MonitorCenter.py:235
 msgid "&File"
 msgstr "ファイル(&F)"
 
-#: psychopy/app/builder/builder.py:271 psychopy/app/coder/coder.py:1448
+#: psychopy/app/builder/builder.py:277 psychopy/app/coder/coder.py:1448
 #, python-format
 msgid "&New\t%s"
 msgstr "新規(&N)\t%s"
 
-#: psychopy/app/builder/builder.py:274 psychopy/app/coder/coder.py:1449
+#: psychopy/app/builder/builder.py:280 psychopy/app/coder/coder.py:1449
 #, python-format
 msgid "&Open...\t%s"
 msgstr "開く...(&O)\t%s"
 
-#: psychopy/app/builder/builder.py:277 psychopy/app/coder/coder.py:1450
+#: psychopy/app/builder/builder.py:283 psychopy/app/coder/coder.py:1450
 msgid "Open &Recent"
 msgstr "最近開いたファイル(&R)"
 
-#: psychopy/app/builder/builder.py:280 psychopy/app/coder/coder.py:1452
+#: psychopy/app/builder/builder.py:286 psychopy/app/coder/coder.py:1452
 #, python-format
 msgid "&Save\t%s"
 msgstr "保存(&S)\t%s"
 
-#: psychopy/app/builder/builder.py:281 psychopy/app/utils.py:177
+#: psychopy/app/builder/builder.py:287 psychopy/app/utils.py:177
 #: psychopy/app/utils.py:246
 msgid "Save current experiment file"
 msgstr "現在の実験を実験ファイルに保存します"
 
-#: psychopy/app/builder/builder.py:284 psychopy/app/coder/coder.py:1455
+#: psychopy/app/builder/builder.py:290 psychopy/app/coder/coder.py:1455
 #, python-format
 msgid "Save &as...\t%s"
 msgstr "名前を付けて保存(&a)...\t%s"
 
-#: psychopy/app/builder/builder.py:285 psychopy/app/utils.py:183
+#: psychopy/app/builder/builder.py:291 psychopy/app/utils.py:183
 #: psychopy/app/utils.py:249
 msgid "Save current experiment file as..."
 msgstr "現在の実験をファイル名を指定して保存します."
 
-#: psychopy/app/builder/builder.py:288
+#: psychopy/app/builder/builder.py:294
 #, python-format
 msgid "Export HTML...\t%s"
 msgstr "HTML形式でエクスポート...\t%s"
 
-#: psychopy/app/builder/builder.py:289
+#: psychopy/app/builder/builder.py:295
 msgid "Export experiment to html/javascript file"
 msgstr "実験をhtml/java形式のファイルとしてエクスポートします"
 
-#: psychopy/app/builder/builder.py:292 psychopy/app/coder/coder.py:1458
+#: psychopy/app/builder/builder.py:298 psychopy/app/coder/coder.py:1458
 #, python-format
 msgid "&Close file\t%s"
 msgstr "閉じる(&C)\t%s"
 
-#: psychopy/app/builder/builder.py:293
+#: psychopy/app/builder/builder.py:299
 msgid "Close current experiment"
 msgstr "現在の実験を閉じます"
 
-#: psychopy/app/builder/builder.py:304 psychopy/app/coder/coder.py:1474
+#: psychopy/app/builder/builder.py:310 psychopy/app/coder/coder.py:1474
 #, python-format
 msgid "&Preferences\t%s"
 msgstr "設定(&P)\t%s"
 
-#: psychopy/app/builder/builder.py:307 psychopy/app/coder/coder.py:1479
+#: psychopy/app/builder/builder.py:313 psychopy/app/coder/coder.py:1479
 msgid "Reset preferences..."
 msgstr "設定の初期化..."
 
-#: psychopy/app/builder/builder.py:313
+#: psychopy/app/builder/builder.py:319
 msgid "Close PsychoPy Builder"
 msgstr "Builderを閉じる"
 
-#: psychopy/app/builder/builder.py:324 psychopy/app/coder/coder.py:1499
+#: psychopy/app/builder/builder.py:330 psychopy/app/coder/coder.py:1499
 #: psychopy/monitors/MonitorCenter.py:243
 msgid "&Edit"
 msgstr "編集(&E)"
 
-#: psychopy/app/builder/builder.py:327 psychopy/app/builder/builder.py:1078
+#: psychopy/app/builder/builder.py:333 psychopy/app/builder/builder.py:1077
 #: psychopy/app/coder/coder.py:1565
 #, python-format
 msgid "Undo\t%s"
 msgstr "元に戻す\t%s"
 
-#: psychopy/app/builder/builder.py:328 psychopy/app/coder/coder.py:1566
+#: psychopy/app/builder/builder.py:334 psychopy/app/coder/coder.py:1566
 #: psychopy/app/utils.py:189 psychopy/app/utils.py:253
 msgid "Undo last action"
 msgstr "直前の操作を元に戻します"
 
-#: psychopy/app/builder/builder.py:332 psychopy/app/builder/builder.py:1093
+#: psychopy/app/builder/builder.py:338 psychopy/app/builder/builder.py:1092
 #: psychopy/app/coder/coder.py:1570
 #, python-format
 msgid "Redo\t%s"
 msgstr "繰り返す\t%s"
 
-#: psychopy/app/builder/builder.py:333 psychopy/app/coder/coder.py:1571
+#: psychopy/app/builder/builder.py:339 psychopy/app/coder/coder.py:1571
 #: psychopy/app/utils.py:195 psychopy/app/utils.py:257
 msgid "Redo last action"
 msgstr "直前の操作を繰り返します"
 
-#: psychopy/app/builder/builder.py:336 psychopy/app/coder/coder.py:1504
+#: psychopy/app/builder/builder.py:342 psychopy/app/coder/coder.py:1504
 #, python-format
 msgid "&Paste\t%s"
 msgstr "貼り付け(&P)\t%s"
 
-#: psychopy/app/builder/builder.py:356 psychopy/app/builder/builder.py:2534
+#: psychopy/app/builder/builder.py:362 psychopy/app/builder/builder.py:2454
 #, python-format
 msgid "&Toggle readme\t%s"
 msgstr "Readme表示ON/OFF(&T)\t%s"
 
-#: psychopy/app/builder/builder.py:358 psychopy/app/builder/builder.py:2536
+#: psychopy/app/builder/builder.py:364 psychopy/app/builder/builder.py:2456
 msgid "Toggle Readme"
 msgstr "Readmeファイルの表示ON/OFFを切り替えます"
 
-#: psychopy/app/builder/builder.py:361
+#: psychopy/app/builder/builder.py:367
 #, python-format
 msgid "&Flow Larger\t%s"
 msgstr "&Flowを大きく\t%s"
 
-#: psychopy/app/builder/builder.py:363
+#: psychopy/app/builder/builder.py:369
 msgid "Larger flow items"
 msgstr "Flowのアイテムを大きく表示します"
 
-#: psychopy/app/builder/builder.py:366
+#: psychopy/app/builder/builder.py:372
 #, python-format
 msgid "&Flow Smaller\t%s"
 msgstr "&Flowを小さく\t%s"
 
-#: psychopy/app/builder/builder.py:368
+#: psychopy/app/builder/builder.py:374
 msgid "Smaller flow items"
 msgstr "Flowのアイテムを小さく表示します"
 
-#: psychopy/app/builder/builder.py:371
+#: psychopy/app/builder/builder.py:377
 #, python-format
 msgid "&Routine Larger\t%s"
 msgstr "&Routineを大きく\t%s"
 
-#: psychopy/app/builder/builder.py:373
+#: psychopy/app/builder/builder.py:379
 msgid "Larger routine items"
 msgstr "Routineのアイテムを大きく表示します"
 
-#: psychopy/app/builder/builder.py:376
+#: psychopy/app/builder/builder.py:382
 #, python-format
 msgid "&Routine Smaller\t%s"
 msgstr "&Routineを小さく\t%s"
 
-#: psychopy/app/builder/builder.py:378
+#: psychopy/app/builder/builder.py:384
 msgid "Smaller routine items"
 msgstr "Routineのアイテムを小さく表示します"
 
-#: psychopy/app/builder/builder.py:384 psychopy/app/coder/coder.py:1691
+#: psychopy/app/builder/builder.py:390 psychopy/app/coder/coder.py:1691
 #: psychopy/app/runner/runner.py:195
 msgid "Themes"
 msgstr "テーマ"
 
-#: psychopy/app/builder/builder.py:388 psychopy/app/coder/coder.py:1699
+#: psychopy/app/builder/builder.py:394 psychopy/app/coder/coder.py:1699
 msgid "&Tools"
 msgstr "ツール(&T)"
 
-#: psychopy/app/builder/builder.py:391 psychopy/app/coder/coder.py:1701
+#: psychopy/app/builder/builder.py:397 psychopy/app/coder/coder.py:1701
 #: psychopy/app/utils.py:200 psychopy/app/utils.py:260
 msgid "Monitor Center"
 msgstr "モニターセンター"
 
-#: psychopy/app/builder/builder.py:392 psychopy/app/coder/coder.py:1702
+#: psychopy/app/builder/builder.py:398 psychopy/app/coder/coder.py:1702
 msgid "To set information about your monitor"
 msgstr "モニターの設定を行います"
 
-#: psychopy/app/builder/builder.py:396
+#: psychopy/app/builder/builder.py:402
 #, python-format
 msgid "Compile\t%s"
 msgstr "コンパイル\t%s"
 
-#: psychopy/app/builder/builder.py:397
+#: psychopy/app/builder/builder.py:403
 msgid "Compile the exp to a script"
 msgstr "実験をコンパイルしてスクリプトを作成します"
 
-#: psychopy/app/builder/builder.py:400 psychopy/app/coder/coder.py:1716
+#: psychopy/app/builder/builder.py:406 psychopy/app/coder/coder.py:1716
 #: psychopy/app/runner/runner.py:154
 #, python-format
 msgid "Run\t%s"
 msgstr "実験の実行\t%s"
 
-#: psychopy/app/builder/builder.py:401 psychopy/app/coder/coder.py:1717
+#: psychopy/app/builder/builder.py:407 psychopy/app/coder/coder.py:1717
 msgid "Run the current script"
 msgstr "現在のスクリプトを実行します"
 
-#: psychopy/app/builder/builder.py:404 psychopy/app/coder/coder.py:1720
+#: psychopy/app/builder/builder.py:410 psychopy/app/coder/coder.py:1720
 #, python-format
 msgid "Send to runner\t%s"
 msgstr "Runnerに送る\t%s"
 
-#: psychopy/app/builder/builder.py:405 psychopy/app/coder/coder.py:1721
+#: psychopy/app/builder/builder.py:411 psychopy/app/coder/coder.py:1721
 msgid "Send current script to runner"
 msgstr "現在のスクリプトをRunnerに送る"
 
-#: psychopy/app/builder/builder.py:409 psychopy/app/coder/coder.py:1726
+#: psychopy/app/builder/builder.py:415 psychopy/app/coder/coder.py:1726
 msgid "PsychoPy updates..."
 msgstr "PsychoPyの更新..."
 
-#: psychopy/app/builder/builder.py:410 psychopy/app/coder/coder.py:1727
+#: psychopy/app/builder/builder.py:416 psychopy/app/coder/coder.py:1727
 msgid "Update PsychoPy to the latest, or a specific, version"
 msgstr "PsychoPyを最新の, または特定のバージョンに更新します"
 
-#: psychopy/app/builder/builder.py:415 psychopy/app/coder/coder.py:1730
+#: psychopy/app/builder/builder.py:421 psychopy/app/coder/coder.py:1730
 msgid "Benchmark wizard"
 msgstr "ベンチマークウィザード"
 
-#: psychopy/app/builder/builder.py:416 psychopy/app/coder/coder.py:1731
+#: psychopy/app/builder/builder.py:422 psychopy/app/coder/coder.py:1731
 msgid "Check software & hardware, generate report"
 msgstr "ソフトウェアとハードウェアをテストし, レポートを作成します"
 
-#: psychopy/app/builder/builder.py:422
+#: psychopy/app/builder/builder.py:428
 msgid "&Experiment"
 msgstr "実験(&E)"
 
-#: psychopy/app/builder/builder.py:425
+#: psychopy/app/builder/builder.py:431
 #, python-format
 msgid "&New Routine\t%s"
 msgstr "新しいRoutineの作成(&N)\t%s"
 
-#: psychopy/app/builder/builder.py:426
+#: psychopy/app/builder/builder.py:432
 msgid "Create a new routine (e.g. the trial definition)"
 msgstr "新しいRoutineを作成します"
 
-#: psychopy/app/builder/builder.py:430
+#: psychopy/app/builder/builder.py:436
 #, python-format
 msgid "&Copy Routine\t%s"
 msgstr "Routineのコピー(&C)\t%s"
 
-#: psychopy/app/builder/builder.py:432
+#: psychopy/app/builder/builder.py:438
 msgid "Copy the current routine so it can be used in another exp"
 msgstr "現在のRoutineをコピーして新しいRoutineを作成します"
 
-#: psychopy/app/builder/builder.py:437
+#: psychopy/app/builder/builder.py:443
 #, python-format
 msgid "&Paste Routine\t%s"
 msgstr "Routineの貼り付け(&P)\t%s"
 
-#: psychopy/app/builder/builder.py:439
+#: psychopy/app/builder/builder.py:445
 msgid "Paste the Routine into the current experiment"
 msgstr "コピーしたRoutineを実験に貼りつけます"
 
-#: psychopy/app/builder/builder.py:444
+#: psychopy/app/builder/builder.py:450
 #, python-format
 msgid "&Rename Routine\t%s"
 msgstr "Routineの名前を変更(&R)\t%s"
 
-#: psychopy/app/builder/builder.py:446
+#: psychopy/app/builder/builder.py:452
 msgid "Change the name of this routine"
 msgstr "このRoutineの名前を変更します"
 
-#: psychopy/app/builder/builder.py:449
+#: psychopy/app/builder/builder.py:455
 #, python-format
 msgid "Paste Component\t%s"
 msgstr "Componentの貼り付け\t%s"
 
-#: psychopy/app/builder/builder.py:452
+#: psychopy/app/builder/builder.py:458
 msgid "Paste the Component at bottom of the current Routine"
 msgstr "Componentを現在のRoutineの一番下に貼り付けます"
 
-#: psychopy/app/builder/builder.py:459
+#: psychopy/app/builder/builder.py:465
 msgid "Insert Routine in Flow"
 msgstr "RoutineをFlowに挿入"
 
-#: psychopy/app/builder/builder.py:461
+#: psychopy/app/builder/builder.py:467
 msgid "Select one of your routines to be inserted into the experiment flow"
 msgstr "Routineをひとつ選んでFlowに挿入します"
 
-#: psychopy/app/builder/builder.py:465
+#: psychopy/app/builder/builder.py:471
 msgid "Insert Loop in Flow"
 msgstr "FlowにLoopを挿入"
 
-#: psychopy/app/builder/builder.py:466
+#: psychopy/app/builder/builder.py:472
 msgid "Create a new loop in your flow window"
 msgstr "Flowに新たなLoopを作成します"
 
-#: psychopy/app/builder/builder.py:471
+#: psychopy/app/builder/builder.py:477
 msgid "README..."
 msgstr "README..."
 
-#: psychopy/app/builder/builder.py:472
+#: psychopy/app/builder/builder.py:478
 msgid "Add or edit the text shown when your experiment is opened"
 msgstr "実験を開いた時に表示するテキストを追加または編集します"
 
-#: psychopy/app/builder/builder.py:483
+#: psychopy/app/builder/builder.py:489
 msgid "&Unpack Demos..."
 msgstr "デモの展開...(&U)"
 
-#: psychopy/app/builder/builder.py:485
+#: psychopy/app/builder/builder.py:491
 msgid "Unpack demos to a writable location (so that they can be run)"
 msgstr "デモを(実行可能なように)書き込み可能な場所へ展開します"
 
-#: psychopy/app/builder/builder.py:489
+#: psychopy/app/builder/builder.py:495
 msgid "Browse on Pavlovia"
 msgstr "Pavlovia上でブラウズ"
 
-#: psychopy/app/builder/builder.py:490
+#: psychopy/app/builder/builder.py:496
 msgid "Get more demos from the online demos repository on Pavlovia"
 msgstr "Pavloviaレポジトリ上のオンラインデモを閲覧します"
 
-#: psychopy/app/builder/builder.py:495
+#: psychopy/app/builder/builder.py:501
 msgid "Open demos folder"
 msgstr "デモフォルダを開く"
 
-#: psychopy/app/builder/builder.py:496
+#: psychopy/app/builder/builder.py:502
 msgid "Open the local folder where demos are stored"
 msgstr "デモが保存され散るローカルフォルダを開きます"
 
-#: psychopy/app/builder/builder.py:502 psychopy/app/coder/coder.py:1746
+#: psychopy/app/builder/builder.py:508 psychopy/app/coder/coder.py:1746
 msgid "&Demos"
 msgstr "デモ(&D)"
 
-#: psychopy/app/builder/builder.py:506 psychopy/app/coder/coder.py:1774
+#: psychopy/app/builder/builder.py:512 psychopy/app/coder/coder.py:1774
 msgid "Pavlovia.org"
 msgstr "Pavlovia.org"
 
-#: psychopy/app/builder/builder.py:511 psychopy/app/coder/coder.py:1779
+#: psychopy/app/builder/builder.py:517 psychopy/app/coder/coder.py:1779
 #: psychopy/app/runner/runner.py:204
 msgid "Window"
 msgstr "ウィンドウ"
 
-#: psychopy/app/builder/builder.py:515 psychopy/app/coder/coder.py:1783
+#: psychopy/app/builder/builder.py:521 psychopy/app/coder/coder.py:1783
 msgid "&Help"
 msgstr "ヘルプ(&H)"
 
-#: psychopy/app/builder/builder.py:519 psychopy/app/coder/coder.py:1785
+#: psychopy/app/builder/builder.py:525 psychopy/app/coder/coder.py:1785
 msgid "&PsychoPy Homepage"
 msgstr "&PsychoPyホームページ"
 
-#: psychopy/app/builder/builder.py:520 psychopy/app/coder/coder.py:1786
+#: psychopy/app/builder/builder.py:526 psychopy/app/coder/coder.py:1786
 msgid "Go to the PsychoPy homepage"
 msgstr "PsychoPyのホームページを開きます"
 
-#: psychopy/app/builder/builder.py:524
+#: psychopy/app/builder/builder.py:530
 msgid "&PsychoPy Builder Help"
 msgstr "PsychoPy Builderのヘルプ(&P)"
 
-#: psychopy/app/builder/builder.py:526
+#: psychopy/app/builder/builder.py:532
 msgid "Go to the online documentation for PsychoPy Builder"
 msgstr "PsychoPyのオンラインドキュメントを開きます"
 
-#: psychopy/app/builder/builder.py:533 psychopy/app/coder/coder.py:1801
+#: psychopy/app/builder/builder.py:539 psychopy/app/coder/coder.py:1801
 msgid "&System Info..."
 msgstr "システム情報...(&S)"
 
-#: psychopy/app/builder/builder.py:534 psychopy/app/coder/coder.py:1802
+#: psychopy/app/builder/builder.py:540 psychopy/app/coder/coder.py:1802
 msgid "Get system information."
 msgstr "システム情報を表示します."
 
-#: psychopy/app/builder/builder.py:539 psychopy/app/coder/coder.py:1807
+#: psychopy/app/builder/builder.py:545 psychopy/app/coder/coder.py:1807
 msgid "&About..."
 msgstr "このアプリケーションについて...(&A)"
 
-#: psychopy/app/builder/builder.py:539 psychopy/app/coder/coder.py:1808
+#: psychopy/app/builder/builder.py:545 psychopy/app/coder/coder.py:1808
 msgid "About PsychoPy"
 msgstr "PsychoPyについて"
 
-#: psychopy/app/builder/builder.py:542 psychopy/app/coder/coder.py:1812
+#: psychopy/app/builder/builder.py:548 psychopy/app/coder/coder.py:1812
 msgid "&News..."
 msgstr "お知らせ...(&N)"
 
-#: psychopy/app/builder/builder.py:543 psychopy/app/coder/coder.py:1813
+#: psychopy/app/builder/builder.py:549 psychopy/app/coder/coder.py:1813
 msgid "News"
 msgstr "お知らせ"
 
-#: psychopy/app/builder/builder.py:626 psychopy/app/builder/builder.py:709
+#: psychopy/app/builder/builder.py:632 psychopy/app/builder/builder.py:715
 msgid "PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*.*"
 msgstr "PsychoPy実験ファイル (*.psyexp)|*.psyexp|すべてのファイル (*.*)|*.*"
 
-#: psychopy/app/builder/builder.py:628 psychopy/app/builder/builder.py:711
+#: psychopy/app/builder/builder.py:634 psychopy/app/builder/builder.py:717
 msgid "PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*"
 msgstr "PsychoPy実験ファイル (*.psyexp)|*.psyexp|すべてのファイル (*.*)|*"
 
-#: psychopy/app/builder/builder.py:629
+#: psychopy/app/builder/builder.py:635
 #: psychopy/app/builder/dialogs/__init__.py:1520
 #: psychopy/app/coder/coder.py:2363
 msgid "Open file ..."
 msgstr "ファイルを開く..."
 
-#: psychopy/app/builder/builder.py:714 psychopy/app/coder/coder.py:2504
+#: psychopy/app/builder/builder.py:720 psychopy/app/coder/coder.py:2504
 msgid "Save file as ..."
 msgstr "名前を付けて保存..."
 
-#: psychopy/app/builder/builder.py:745
+#: psychopy/app/builder/builder.py:751
 msgid "Export HTML file"
 msgstr "HTML形式でエクスポート"
 
-#: psychopy/app/builder/builder.py:853
+#: psychopy/app/builder/builder.py:776
+msgid "Please save experiment before editing the README file"
+msgstr "READMEファイルを編集する前に実験を保存してください"
+
+#: psychopy/app/builder/builder.py:777
+msgid "No readme file"
+msgstr "READMEファイルがありません"
+
+#: psychopy/app/builder/builder.py:852
 #, python-format
 msgid "Experiment %s has changed. Save before quitting?"
 msgstr "実験 %s は変更されています 終了する前に保存しますか？"
 
-#: psychopy/app/builder/builder.py:953 psychopy/app/coder/coder.py:2831
+#: psychopy/app/builder/builder.py:952 psychopy/app/coder/coder.py:2831
 msgid "Are you sure you want to reset your preferences? This cannot be undone."
 msgstr "設定をすべて削除しますか？(元に戻せません)"
 
-#: psychopy/app/builder/builder.py:956 psychopy/app/coder/coder.py:2835
+#: psychopy/app/builder/builder.py:955 psychopy/app/coder/coder.py:2835
 msgid "I'm sure"
 msgstr "間違いありません"
 
-#: psychopy/app/builder/builder.py:957 psychopy/app/coder/coder.py:2836
+#: psychopy/app/builder/builder.py:956 psychopy/app/coder/coder.py:2836
 msgid "Wait, go back!"
 msgstr "ちょっと待って！"
 
-#: psychopy/app/builder/builder.py:963 psychopy/app/coder/coder.py:2845
+#: psychopy/app/builder/builder.py:962 psychopy/app/coder/coder.py:2845
 msgid ""
 "Done! Your preferences have been reset. Changes will be applied when you "
 "next open PsychoPy."
 msgstr "設定が初期化されました！設定の変更は再起動後に有効になります."
 
-#: psychopy/app/builder/builder.py:1082
+#: psychopy/app/builder/builder.py:1081
 #, python-format
 msgid "Undo %(action)s\t%(key)s"
 msgstr "元に戻す %(action)s\t%(key)s"
 
-#: psychopy/app/builder/builder.py:1097
+#: psychopy/app/builder/builder.py:1096
 #, python-format
 msgid "Redo %(action)s\t%(key)s"
 msgstr "繰り返す %(action)s\t%(key)s"
 
-#: psychopy/app/builder/builder.py:1110
+#: psychopy/app/builder/builder.py:1109
 msgid "Location to unpack demos"
 msgstr "デモを展開する場所を選択してください"
 
-#: psychopy/app/builder/builder.py:1185 psychopy/app/builder/builder.py:2009
+#: psychopy/app/builder/builder.py:1184 psychopy/app/builder/builder.py:2008
 #, python-format
 msgid "New name for copy of \"%(copied)s\"?  [%(default)s]"
 msgstr "%(copied)sのコピーの名前は？ [%(default)s]"
 
-#: psychopy/app/builder/builder.py:1189
+#: psychopy/app/builder/builder.py:1188
 msgid "Paste Routine"
 msgstr "Routineの貼り付け"
 
-#: psychopy/app/builder/builder.py:1257
+#: psychopy/app/builder/builder.py:1256
 msgid "What is the new name for the Routine?"
 msgstr "Routineの新しい名前を入力してください"
 
-#: psychopy/app/builder/builder.py:1259 psychopy/app/coder/fileBrowser.py:228
+#: psychopy/app/builder/builder.py:1258 psychopy/app/coder/fileBrowser.py:228
 msgid "Rename"
 msgstr "名前の変更"
 
-#: psychopy/app/builder/builder.py:1487
+#: psychopy/app/builder/builder.py:1486
 msgid "What is the name for the new Routine? (e.g. instr, trial, feedback)"
 msgstr "新しいRoutineの名前(instr, trial, feedbackなど)を入力してください"
 
-#: psychopy/app/builder/builder.py:1490
+#: psychopy/app/builder/builder.py:1489
 msgid "New Routine"
 msgstr "新しいRoutine"
 
-#: psychopy/app/builder/builder.py:2013
+#: psychopy/app/builder/builder.py:2012
 msgid "Paste Component"
 msgstr "Componentの貼り付け"
 
-#: psychopy/app/builder/builder.py:2339
-msgid "Create a routine (Experiment menu) before adding components"
-msgstr "コンポーネントを追加する前にRoutineを作成してください"
-
-#: psychopy/app/builder/builder.py:2342 psychopy/app/preferencesDlg.py:821
-msgid "Error"
-msgstr "エラー"
-
-#: psychopy/app/builder/builder.py:2528
+#: psychopy/app/builder/builder.py:2448
 msgid "Edit"
 msgstr "編集"
 
-#: psychopy/app/builder/builder.py:2531
+#: psychopy/app/builder/builder.py:2451
 #, python-format
 msgid "&Close readme\t%s"
 msgstr "Readmeを閉じる(&C)\t%s"
 
-#: psychopy/app/builder/builder.py:2622
+#: psychopy/app/builder/builder.py:2546
 msgid "Filepath:"
 msgstr "HTMLファイルのパス："
 
-#: psychopy/app/builder/builder.py:2634
+#: psychopy/app/builder/builder.py:2558
 msgid ""
 "Select 'manually' to receive this alert when exporting HTML.\n"
 "Click 'OK' to export HTML, or click 'Cancel' to return."
@@ -745,51 +745,51 @@ msgstr ""
 "HTML出力時にこのダイアログを表示する場合はmanuallyを選択してください\n"
 "HTMLに出力するならOK, 出力しないならキャンセルをクリックしてください."
 
-#: psychopy/app/builder/builder.py:2715
+#: psychopy/app/builder/builder.py:2639
 msgid "rename"
 msgstr "名前の変更"
 
-#: psychopy/app/builder/builder.py:2727
+#: psychopy/app/builder/builder.py:2651
 msgid "Insert Routine "
 msgstr "Routineを挿入 "
 
-#: psychopy/app/builder/builder.py:2728
+#: psychopy/app/builder/builder.py:2652
 msgid "Insert Loop     "
 msgstr "Loopを挿入    "
 
-#: psychopy/app/builder/builder.py:2792
+#: psychopy/app/builder/builder.py:2716
 msgid "Insert Routine"
 msgstr "Routineを挿入"
 
-#: psychopy/app/builder/builder.py:2794
+#: psychopy/app/builder/builder.py:2718
 msgid "Insert Loop"
 msgstr "Loopを挿入"
 
-#: psychopy/app/builder/builder.py:2823
+#: psychopy/app/builder/builder.py:2747
 msgid "Select a Routine to insert (Esc to exit)"
 msgstr "挿入するRoutineを選んでください(Escで中止)"
 
-#: psychopy/app/builder/builder.py:2858
+#: psychopy/app/builder/builder.py:2782
 msgid "CANCEL Insert"
 msgstr "挿入を中止"
 
-#: psychopy/app/builder/builder.py:2860
+#: psychopy/app/builder/builder.py:2784
 msgid "Click where you want to insert the Routine, or CANCEL insert."
 msgstr "Routineを挿入する位置をクリックするか, 挿入を中止してください."
 
-#: psychopy/app/builder/builder.py:2889
+#: psychopy/app/builder/builder.py:2813
 msgid "CANCEL insert"
 msgstr "挿入を中止"
 
-#: psychopy/app/builder/builder.py:2892
+#: psychopy/app/builder/builder.py:2816
 msgid "Click where you want the loop to start/end, or CANCEL insert."
 msgstr "挿入するLoopの始点または終点をクリックするか, 挿入を中止してください."
 
-#: psychopy/app/builder/builder.py:2901
+#: psychopy/app/builder/builder.py:2825
 msgid "Click the other end for the loop"
 msgstr "挿入するLoopのもう一端をクリックしてください"
 
-#: psychopy/app/builder/builder.py:3130
+#: psychopy/app/builder/builder.py:3054
 #, python-format
 msgid ""
 "The \"%s\" Loop is about to be deleted as well (by collapsing). OK to "
@@ -798,7 +798,7 @@ msgstr ""
 "「%s」というLoopの内容が空になるため削除されようとしています. よろしいです"
 "か？"
 
-#: psychopy/app/builder/builder.py:3132
+#: psychopy/app/builder/builder.py:3056
 msgid "Impending Loop collapse"
 msgstr "Loopが空になろうとしています"
 
@@ -817,7 +817,7 @@ msgid "Basic"
 msgstr "基本"
 
 #: psychopy/app/builder/dialogs/__init__.py:465
-#: psychopy/experiment/components/settings/__init__.py:51
+#: psychopy/experiment/components/settings/__init__.py:52
 msgid "Color"
 msgstr "色"
 
@@ -830,7 +830,7 @@ msgid "Data"
 msgstr "データ"
 
 #: psychopy/app/builder/dialogs/__init__.py:468
-#: psychopy/experiment/components/settings/__init__.py:49
+#: psychopy/experiment/components/settings/__init__.py:50
 msgid "Screen"
 msgstr "スクリーン"
 
@@ -884,7 +884,7 @@ msgid "Formatting"
 msgstr "フォーマット"
 
 #: psychopy/app/builder/dialogs/__init__.py:482
-#: psychopy/experiment/components/grating/__init__.py:23
+#: psychopy/experiment/components/grating/__init__.py:18
 msgid "Texture"
 msgstr "テクスチャ"
 
@@ -1287,7 +1287,7 @@ msgid "add"
 msgstr "加算"
 
 #: psychopy/app/builder/localizedStrings.py:71
-#: psychopy/app/builder/localizedStrings.py:112
+#: psychopy/app/builder/localizedStrings.py:113
 msgid "average"
 msgstr "平均"
 
@@ -1391,48 +1391,52 @@ msgstr "星"
 msgid "regular polygon..."
 msgstr "正多角形..."
 
-#: psychopy/app/builder/localizedStrings.py:106
+#: psychopy/app/builder/localizedStrings.py:105
+msgid "custom polygon..."
+msgstr "カスタムポリゴン..."
+
+#: psychopy/app/builder/localizedStrings.py:107
 msgid "rows"
 msgstr "行"
 
-#: psychopy/app/builder/localizedStrings.py:107
+#: psychopy/app/builder/localizedStrings.py:108
 msgid "columns"
 msgstr "列"
 
-#: psychopy/app/builder/localizedStrings.py:109
+#: psychopy/app/builder/localizedStrings.py:110
 msgid "first"
 msgstr "最初"
 
-#: psychopy/app/builder/localizedStrings.py:110
+#: psychopy/app/builder/localizedStrings.py:111
 msgid "last"
 msgstr "最後"
 
-#: psychopy/app/builder/localizedStrings.py:111
+#: psychopy/app/builder/localizedStrings.py:112
 msgid "all"
 msgstr "すべて"
 
-#: psychopy/app/builder/localizedStrings.py:115
+#: psychopy/app/builder/localizedStrings.py:116
 msgid "one of your Components, Routines, or condition parameters"
 msgstr "他のコンポーネントやルーチン，パラメータ"
 
-#: psychopy/app/builder/localizedStrings.py:117
+#: psychopy/app/builder/localizedStrings.py:118
 msgid " Avoid `this`, `these`, `continue`, `Clock`, or `component` in name"
 msgstr ""
 " this, these, continue, Clock, componentを名前に含まないようにしてください"
 
-#: psychopy/app/builder/localizedStrings.py:118
+#: psychopy/app/builder/localizedStrings.py:119
 msgid "Builder variable"
 msgstr "Builderの変数"
 
-#: psychopy/app/builder/localizedStrings.py:119
+#: psychopy/app/builder/localizedStrings.py:120
 msgid "Psychopy module"
 msgstr "PsychoPyのモジュール名"
 
-#: psychopy/app/builder/localizedStrings.py:120
+#: psychopy/app/builder/localizedStrings.py:121
 msgid "numpy function"
 msgstr "numpyの関数"
 
-#: psychopy/app/builder/localizedStrings.py:121
+#: psychopy/app/builder/localizedStrings.py:122
 msgid "python keyword"
 msgstr "Pythonのキーワード"
 
@@ -2110,41 +2114,41 @@ msgstr "`{}`は権限がないのでアクセスできません."
 msgid "Cannot access directory `{}`, not a directory."
 msgstr "'{}'はフォルダではないのでアクセスできません."
 
-#: psychopy/app/colorpicker/__init__.py:35 psychopy/app/utils.py:263
+#: psychopy/app/colorpicker/__init__.py:36 psychopy/app/utils.py:263
 msgid "Color Picker"
 msgstr "カラーピッカー"
 
-#: psychopy/app/colorpicker/__init__.py:125
+#: psychopy/app/colorpicker/__init__.py:120
 msgid "RGB"
 msgstr "RGB"
 
-#: psychopy/app/colorpicker/__init__.py:126
-msgid "HSV/HSB"
-msgstr "HSV/HSB"
+#: psychopy/app/colorpicker/__init__.py:121
+msgid "HSV"
+msgstr "HSV"
 
-#: psychopy/app/colorpicker/__init__.py:200
+#: psychopy/app/colorpicker/__init__.py:195
 msgid "Output Space:"
 msgstr "出力空間:"
 
-#: psychopy/app/colorpicker/__init__.py:223
-msgid "Copy as &Object"
-msgstr "オブジェクトとしてコピー(&O)"
+#: psychopy/app/colorpicker/__init__.py:218
+msgid "&Insert"
+msgstr "挿入(&I)"
 
-#: psychopy/app/colorpicker/__init__.py:226
-msgid "Copy as &Value"
-msgstr "値としてコピー(&V)"
+#: psychopy/app/colorpicker/__init__.py:221 psychopy/app/errorDlg.py:78
+msgid "&Copy"
+msgstr "コピー(&C)"
+
+#: psychopy/app/colorpicker/__init__.py:224
+msgid "Canc&el"
+msgstr "キャンセル(&e)"
+
+#: psychopy/app/colorpicker/__init__.py:227
+msgid "Insert color value."
+msgstr "色コードを挿入します."
 
 #: psychopy/app/colorpicker/__init__.py:229
-msgid "&Cancel"
-msgstr "挿入を中止"
-
-#: psychopy/app/colorpicker/__init__.py:232
-msgid "Copy as a `psychopy.colors.Color` object."
-msgstr "psychopy.colors.Colorオブジェクトとしてコピー"
-
-#: psychopy/app/colorpicker/__init__.py:234
-msgid "Copy as a value (tuple)."
-msgstr "値(タプル)としてコピー"
+msgid "Copy color value to clipboard."
+msgstr "色コードをクリップボードにコピーします."
 
 #: psychopy/app/connections/updates.py:102
 msgid "Couldn't connect to psychopy.org to check for updates. \n"
@@ -2282,7 +2286,7 @@ msgstr "インストール"
 msgid "Close"
 msgstr "閉じる"
 
-#: psychopy/app/connections/updates.py:336
+#: psychopy/app/connections/updates.py:337
 #, python-format
 msgid ""
 "You are running PsychoPy v%s.\n"
@@ -2291,7 +2295,7 @@ msgstr ""
 "PsychoPy v%sを利用中です\n"
 " "
 
-#: psychopy/app/connections/updates.py:337
+#: psychopy/app/connections/updates.py:338
 msgid ""
 "PsychoPy could not connect to the \n"
 " internet to check for more recent versions.\n"
@@ -2299,11 +2303,11 @@ msgstr ""
 "PsychoPyはより新しいバージョンの確認のための\n"
 "インターネット接続に失敗しました\n"
 
-#: psychopy/app/connections/updates.py:339
+#: psychopy/app/connections/updates.py:340
 msgid "Check proxy settings in preferences."
 msgstr "「設定」のプロキシの設定を確認してください."
 
-#: psychopy/app/connections/updates.py:343
+#: psychopy/app/connections/updates.py:346
 #, python-format
 msgid ""
 "You are running PsychoPy (%(running)s), which is ahead of the latest "
@@ -2312,7 +2316,7 @@ msgstr ""
 "PsychoPy %(running)s を実行中です 公式の最新バージョン(%(latest)s)より新しい"
 "バージョンです"
 
-#: psychopy/app/connections/updates.py:348
+#: psychopy/app/connections/updates.py:351
 #, python-format
 msgid ""
 "You are running the latest version of PsychoPy (%s)\n"
@@ -2321,7 +2325,7 @@ msgstr ""
 "最新バージョンのPsychoPy (%s)を利用中です\n"
 " "
 
-#: psychopy/app/connections/updates.py:349
+#: psychopy/app/connections/updates.py:352
 msgid ""
 "You can revert to a previous version by selecting a specific .zip source "
 "installation file"
@@ -2329,7 +2333,7 @@ msgstr ""
 "特定のバージョンの.zip形式のソースファイルを選択して以前のバージョンへ戻すこ"
 "とができます"
 
-#: psychopy/app/connections/updates.py:353
+#: psychopy/app/connections/updates.py:356
 #, python-format
 msgid ""
 "PsychoPy v%(latest)s is available\n"
@@ -2338,7 +2342,7 @@ msgstr ""
 "PsychoPy v%(latest)sが利用できます\n"
 "v%(running)sを利用中"
 
-#: psychopy/app/connections/updates.py:358
+#: psychopy/app/connections/updates.py:361
 msgid ""
 "\n"
 "You can update to the latest version automatically"
@@ -2346,7 +2350,7 @@ msgstr ""
 "\n"
 "自動的に最新バージョンに更新できます"
 
-#: psychopy/app/connections/updates.py:360
+#: psychopy/app/connections/updates.py:363
 msgid ""
 "\n"
 "You cannot update to the latest version automatically.\n"
@@ -2356,22 +2360,22 @@ msgstr ""
 "最新バージョンに自動的に更新できません\n"
 "www.psychopy.org から最新のStandaloneパッケージを取得してください"
 
-#: psychopy/app/connections/updates.py:411
+#: psychopy/app/connections/updates.py:414
 #, python-format
 msgid "Attempting to fetch PsychoPy %s..."
 msgstr "PsychoPy %sを取得しようとしています..."
 
-#: psychopy/app/connections/updates.py:432
+#: psychopy/app/connections/updates.py:435
 #, python-format
 msgid "Fetched %(done)i of %(total)i kb of PsychoPy-%(version)s.zip"
 msgstr "%(total)i kb中 %(done)i kb取得済み (PsychoPy-%(version)s.zip)"
 
-#: psychopy/app/connections/updates.py:437
+#: psychopy/app/connections/updates.py:440
 #, python-format
 msgid "Successfully downloaded PsychoPy-%s.zip"
 msgstr "PsychoPy-%s.zipのダウンロードに成功しました"
 
-#: psychopy/app/connections/updates.py:487
+#: psychopy/app/connections/updates.py:490
 msgid ""
 "To upgrade you need to restart the app as admin (Right-click the app and "
 "'Run as admin')"
@@ -2379,11 +2383,11 @@ msgstr ""
 "PsychoPyを更新するためには管理者として実行する必要があります(アイコンを右ク"
 "リックして'管理者として実行')"
 
-#: psychopy/app/connections/updates.py:491
+#: psychopy/app/connections/updates.py:494
 msgid "Could not move existing PsychoPy installation (permissions error?)"
 msgstr "インストール済みのPsychoPyを移動できません (パーミッションエラー？)"
 
-#: psychopy/app/connections/updates.py:520
+#: psychopy/app/connections/updates.py:523
 #, python-format
 msgid ""
 "Right-click the app and 'Run as admin'):\n"
@@ -2392,7 +2396,7 @@ msgstr ""
 "アイコンを右クリックして'管理者として実行'):\n"
 "%s"
 
-#: psychopy/app/connections/updates.py:522
+#: psychopy/app/connections/updates.py:525
 #, python-format
 msgid ""
 "Failed to create directory for new version (permissions error?):\n"
@@ -2401,7 +2405,7 @@ msgstr ""
 "新バージョン用のディレクトリの作成に失敗しました (パーミッションエラー？):\n"
 "%s"
 
-#: psychopy/app/connections/updates.py:547
+#: psychopy/app/connections/updates.py:550
 msgid ""
 "Success. \n"
 "Changes to PsychoPy will be completed when the application is next run"
@@ -2409,12 +2413,12 @@ msgstr ""
 "成功しました\n"
 "PsychoPyの更新は次回PsychoPyを実行したときに完了します"
 
-#: psychopy/app/connections/updates.py:556
+#: psychopy/app/connections/updates.py:559
 #, python-format
 msgid "Downloading PsychoPy v%s"
 msgstr "PsychoPy v%sをダウンロード中です"
 
-#: psychopy/app/connections/updates.py:561
+#: psychopy/app/connections/updates.py:564
 msgid ""
 "Failed to fetch PsychoPy release.\n"
 "Check proxy setting in preferences"
@@ -2468,10 +2472,6 @@ msgstr "PsychoPyを終了(&E)"
 #: psychopy/app/errorDlg.py:66
 msgid "&Details"
 msgstr "詳細(&D)"
-
-#: psychopy/app/errorDlg.py:78
-msgid "&Copy"
-msgstr "コピー(&C)"
 
 #: psychopy/app/errorDlg.py:82
 msgid "&Save"
@@ -3264,27 +3264,27 @@ msgid "use Runner"
 msgstr "Runnerを利用"
 
 #: psychopy/app/preferencesDlg.py:178
-#: psychopy/experiment/components/settings/__init__.py:228
+#: psychopy/experiment/components/settings/__init__.py:233
 msgid "Latency not important"
 msgstr "遅延にはこだわらない"
 
 #: psychopy/app/preferencesDlg.py:179
-#: psychopy/experiment/components/settings/__init__.py:229
+#: psychopy/experiment/components/settings/__init__.py:234
 msgid "Share low-latency driver"
 msgstr "共有可能な範囲で遅延が短いデバイスを選択"
 
 #: psychopy/app/preferencesDlg.py:180
-#: psychopy/experiment/components/settings/__init__.py:230
+#: psychopy/experiment/components/settings/__init__.py:235
 msgid "Exclusive low-latency"
 msgstr "遅延が短いデバイスを排他利用する"
 
 #: psychopy/app/preferencesDlg.py:181
-#: psychopy/experiment/components/settings/__init__.py:231
+#: psychopy/experiment/components/settings/__init__.py:236
 msgid "Aggressive low-latency"
 msgstr "2.に加えて遅延を最も短くする設定を要求"
 
 #: psychopy/app/preferencesDlg.py:182
-#: psychopy/experiment/components/settings/__init__.py:232
+#: psychopy/experiment/components/settings/__init__.py:237
 msgid "Latency critical"
 msgstr "3.で厳密に要求が満たされない場合はエラー"
 
@@ -3300,6 +3300,10 @@ msgstr "システムの言語設定"
 #, python-format
 msgid "Invalid value in \"%(pref)s\" (\"%(section)s\" Tab)"
 msgstr "「%(pref)s」の値が不正です (「%(section)s」タブ)"
+
+#: psychopy/app/preferencesDlg.py:821
+msgid "Error"
+msgstr "エラー"
 
 #: psychopy/app/runner/runner.py:121
 msgid "Add task"
@@ -3574,51 +3578,51 @@ msgstr ""
 "イルに含まれています(新バージョンのPsychoPyで作成, 保存された実験かもしれませ"
 "ん). この実験は現在のバージョンでは正常に動作しない可能性があります."
 
-#: psychopy/experiment/components/_base.py:55
-#: psychopy/experiment/components/unknown/__init__.py:36
+#: psychopy/experiment/components/_base.py:59
+#: psychopy/experiment/components/unknown/__init__.py:37
 msgid "Name of this component (alpha-numeric or _, no spaces)"
 msgstr ""
 "このコンポーネントの名前を指定します (英数字と_のみ;スペースを含まない)"
 
-#: psychopy/experiment/components/_base.py:61
+#: psychopy/experiment/components/_base.py:65
 msgid "How do you want to define your start point?"
 msgstr "開始時刻の指定方法を選択します"
 
-#: psychopy/experiment/components/_base.py:68
+#: psychopy/experiment/components/_base.py:72
 msgid "How do you want to define your end point?"
 msgstr "終了時刻の指定方法を選択します"
 
-#: psychopy/experiment/components/_base.py:78
+#: psychopy/experiment/components/_base.py:82
 msgid "When does the component start?"
 msgstr "開始時刻を指定します"
 
-#: psychopy/experiment/components/_base.py:84
+#: psychopy/experiment/components/_base.py:88
 msgid "When does the component end? (blank is endless)"
 msgstr "終了時刻を指定します (空白の場合はRoutine終了まで)"
 
-#: psychopy/experiment/components/_base.py:87
+#: psychopy/experiment/components/_base.py:91
 msgid "(Optional) expected start (s), purely for representing in the timeline"
 msgstr ""
 "(オプション) 予想開始時刻; 開始時刻が不確定の場合などのタイムライン表示専用で"
 "す"
 
-#: psychopy/experiment/components/_base.py:94
+#: psychopy/experiment/components/_base.py:98
 msgid ""
 "(Optional) expected duration (s), purely for representing in the timeline"
 msgstr ""
 "(オプション) 予想実行時間; 実行時間が不確定の場合などのタイムライン表示専用で"
 "す"
 
-#: psychopy/experiment/components/_base.py:101
+#: psychopy/experiment/components/_base.py:105
 msgid ""
 "Store the onset/offset times in the data file (as well as in the log file)."
 msgstr "開始・終了時刻を(ログファイルと同様に)データファイルに出力します."
 
-#: psychopy/experiment/components/_base.py:106
+#: psychopy/experiment/components/_base.py:110
 msgid "Save onset/offset times"
 msgstr "開始・終了時刻を保存"
 
-#: psychopy/experiment/components/_base.py:108
+#: psychopy/experiment/components/_base.py:112
 msgid ""
 "Synchronize times with screen refresh (good for visual stimuli and responses "
 "based on them)"
@@ -3626,41 +3630,41 @@ msgstr ""
 "時刻をスクリーンの描画に同期します(視覚刺激および視覚刺激への反応の記録に有効"
 "です)"
 
-#: psychopy/experiment/components/_base.py:113
+#: psychopy/experiment/components/_base.py:117
 msgid "Sync timing with screen refresh"
 msgstr "時間計測をスクリーンに同期"
 
-#: psychopy/experiment/components/_base.py:115
+#: psychopy/experiment/components/_base.py:119
 msgid "Disable this component"
 msgstr "このコンポーネントを無効にします"
 
-#: psychopy/experiment/components/_base.py:119
+#: psychopy/experiment/components/_base.py:123
 msgid "Disable component"
 msgstr "コンポーネントの無効化"
 
-#: psychopy/experiment/components/_base.py:612
+#: psychopy/experiment/components/_base.py:619
 msgid "Units of dimensions for this stimulus"
 msgstr "この刺激に適用する単位を指定します"
 
-#: psychopy/experiment/components/_base.py:620
+#: psychopy/experiment/components/_base.py:627
 msgid "Foreground color of this stimulus (e.g. $[1,1,0], red )"
 msgstr "前景色($[1.0,1.0,0.0],redなど)を指定します"
 
-#: psychopy/experiment/components/_base.py:629
+#: psychopy/experiment/components/_base.py:636
 msgid ""
 "In what format (color space) have you specified the colors? (rgb, dkl, lms, "
 "hsv)"
 msgstr "色指定に用いる色空間は？ (rgb, dkl, lms, hsv)"
 
-#: psychopy/experiment/components/_base.py:638
+#: psychopy/experiment/components/_base.py:645
 msgid "Fill color of this stimulus (e.g. $[1,1,0], red )"
 msgstr "塗りつぶし色($[1.0,1.0,0.0],redなど)を指定します"
 
-#: psychopy/experiment/components/_base.py:646
+#: psychopy/experiment/components/_base.py:653
 msgid "Color of this stimulus (e.g. $[1,1,0], red )"
 msgstr "色($[1.0,1.0,0.0],redなど)を指定します"
 
-#: psychopy/experiment/components/_base.py:654
+#: psychopy/experiment/components/_base.py:661
 msgid ""
 "Opacity of the stimulus (1=opaque, 0=fully transparent, 0.5=translucent). "
 "Leave blank for each color to have its own opacity (recommended if any color "
@@ -3670,7 +3674,7 @@ msgstr ""
 "が独自の不透明度を持つ場合は空白のままにしてください(いずれかの色がNoneの場合"
 "に推奨)."
 
-#: psychopy/experiment/components/_base.py:663
+#: psychopy/experiment/components/_base.py:670
 msgid ""
 "Contrast of the stimulus (1.0=unchanged contrast, 0.5=decrease contrast, "
 "0.0=uniform/no contrast, -0.5=slightly inverted, -1.0=totally inverted)"
@@ -3678,179 +3682,179 @@ msgstr ""
 "刺激のコントラスト (1.0=変更なし, 0.5=コントラスト減少, 0.0=コントラスト無"
 "し, -0.5=やや反転, -1.0=完全に反転)"
 
-#: psychopy/experiment/components/_base.py:673
-#: psychopy/experiment/components/ratingScale/__init__.py:211
+#: psychopy/experiment/components/_base.py:680
+#: psychopy/experiment/components/ratingScale/__init__.py:210
 msgid "Position of this stimulus (e.g. [1,2] )"
 msgstr "刺激の位置を指定します (例:[1,2])"
 
-#: psychopy/experiment/components/_base.py:681
-#: psychopy/experiment/components/ratingScale/__init__.py:203
+#: psychopy/experiment/components/_base.py:688
+#: psychopy/experiment/components/ratingScale/__init__.py:202
 msgid ""
 "Size of this stimulus (either a single value or x,y pair, e.g. 2.5, [1,2] "
 msgstr ""
 "刺激の大きさを指定します (単一の値または縦横の値のペア, 例: 2.5, [1,2]) "
 
-#: psychopy/experiment/components/_base.py:694
+#: psychopy/experiment/components/_base.py:701
 msgid "Orientation of this stimulus (in deg)"
 msgstr "刺激の回転方向を指定します (単位は度)"
 
-#: psychopy/experiment/components/aperture/__init__.py:23
+#: psychopy/experiment/components/aperture/__init__.py:29
 msgid "Aperture: restrict the drawing of stimuli to a given region"
 msgstr "Aperture: 刺激の描画範囲を指定した領域に制限します"
 
-#: psychopy/experiment/components/aperture/__init__.py:51
+#: psychopy/experiment/components/aperture/__init__.py:50
 msgid "How big is the aperture? (a single number for diameter)"
 msgstr "窓の直径を指定します"
 
-#: psychopy/experiment/components/aperture/__init__.py:54
-#: psychopy/experiment/components/ratingScale/__init__.py:36
+#: psychopy/experiment/components/aperture/__init__.py:53
+#: psychopy/experiment/components/ratingScale/__init__.py:31
 msgid "Size"
 msgstr "サイズ"
 
-#: psychopy/experiment/components/aperture/__init__.py:55
+#: psychopy/experiment/components/aperture/__init__.py:54
 msgid "Where is the aperture centred?"
 msgstr "窓の中心位置を指定します"
 
-#: psychopy/experiment/components/brush/__init__.py:20
-msgid "Brush: a drawing tool"
-msgstr "Brush: 描画ツール"
-
-#: psychopy/experiment/components/brush/__init__.py:23
+#: psychopy/experiment/components/brush/__init__.py:19
 msgid "Brush Size"
 msgstr "ブラシの幅"
 
-#: psychopy/experiment/components/brush/__init__.py:24
+#: psychopy/experiment/components/brush/__init__.py:20
 msgid "Brush Color"
 msgstr "ブラシの色"
 
-#: psychopy/experiment/components/brush/__init__.py:25
+#: psychopy/experiment/components/brush/__init__.py:21
 msgid "Brush Color Space"
 msgstr "ブラシの色空間"
 
-#: psychopy/experiment/components/brush/__init__.py:26
+#: psychopy/experiment/components/brush/__init__.py:22
 msgid "Press Button"
 msgstr "ボタン操作"
 
-#: psychopy/experiment/components/brush/__init__.py:56
+#: psychopy/experiment/components/brush/__init__.py:30
+msgid "Brush: a drawing tool"
+msgstr "Brush: 描画ツール"
+
+#: psychopy/experiment/components/brush/__init__.py:54
 msgid "Fill color of this brush"
 msgstr "ブラシの塗りつぶし色"
 
-#: psychopy/experiment/components/brush/__init__.py:64
+#: psychopy/experiment/components/brush/__init__.py:62
 msgid ""
 "Width of the brush's line (always in pixels and limited to 10px max width)"
 msgstr "ブラシの幅を指定します (単位の設定に関わらずpixで指定, 上限は10px)"
 
-#: psychopy/experiment/components/brush/__init__.py:75
+#: psychopy/experiment/components/brush/__init__.py:73
 msgid "The line opacity"
 msgstr "線の不透明度"
 
-#: psychopy/experiment/components/brush/__init__.py:78
+#: psychopy/experiment/components/brush/__init__.py:76
 msgid "Whether a button needs to be pressed to draw (True/False)"
 msgstr "Trueならボタンを押している時にのみ描画, Falseなら常に描画"
 
-#: psychopy/experiment/components/button/__init__.py:18
-msgid "Button: A clickable textbox"
-msgstr "Button: クリック可能なテキストボックス"
-
-#: psychopy/experiment/components/button/__init__.py:21
+#: psychopy/experiment/components/button/__init__.py:17
 msgid "Callback Function"
 msgstr "コールバック関数"
 
-#: psychopy/experiment/components/button/__init__.py:22
-#: psychopy/experiment/components/joyButtons/__init__.py:29
-#: psychopy/experiment/components/keyboard/__init__.py:36
-#: psychopy/experiment/components/movie/__init__.py:24
-#: psychopy/experiment/components/ratingScale/__init__.py:40
-#: psychopy/experiment/components/slider/__init__.py:33
+#: psychopy/experiment/components/button/__init__.py:18
+#: psychopy/experiment/components/joyButtons/__init__.py:25
+#: psychopy/experiment/components/keyboard/__init__.py:32
+#: psychopy/experiment/components/movie/__init__.py:20
+#: psychopy/experiment/components/ratingScale/__init__.py:35
+#: psychopy/experiment/components/slider/__init__.py:29
 msgid "Force end of Routine"
 msgstr "Routineを終了"
 
-#: psychopy/experiment/components/button/__init__.py:23
+#: psychopy/experiment/components/button/__init__.py:19
 msgid "Button text"
 msgstr "ボタンのテキスト"
 
-#: psychopy/experiment/components/button/__init__.py:24
+#: psychopy/experiment/components/button/__init__.py:20
 #: psychopy/experiment/components/slider/__init__.py:160
-#: psychopy/experiment/components/text/__init__.py:24
-#: psychopy/experiment/components/textbox/__init__.py:24
+#: psychopy/experiment/components/text/__init__.py:20
+#: psychopy/experiment/components/textbox/__init__.py:20
 msgid "Font"
 msgstr "フォント"
 
-#: psychopy/experiment/components/button/__init__.py:25
+#: psychopy/experiment/components/button/__init__.py:21
 #: psychopy/experiment/components/slider/__init__.py:168
-#: psychopy/experiment/components/text/__init__.py:25
-#: psychopy/experiment/components/textbox/__init__.py:25
+#: psychopy/experiment/components/text/__init__.py:21
+#: psychopy/experiment/components/textbox/__init__.py:21
 msgid "Letter height"
 msgstr "文字の高さ"
 
-#: psychopy/experiment/components/button/__init__.py:26
-#: psychopy/experiment/components/textbox/__init__.py:29
+#: psychopy/experiment/components/button/__init__.py:22
+#: psychopy/experiment/components/textbox/__init__.py:25
 msgid "Bold"
 msgstr "ボールド"
 
-#: psychopy/experiment/components/button/__init__.py:27
-#: psychopy/experiment/components/textbox/__init__.py:30
+#: psychopy/experiment/components/button/__init__.py:23
+#: psychopy/experiment/components/textbox/__init__.py:26
 msgid "Italic"
 msgstr "イタリック"
 
-#: psychopy/experiment/components/button/__init__.py:28
-#: psychopy/experiment/components/textbox/__init__.py:32
+#: psychopy/experiment/components/button/__init__.py:24
+#: psychopy/experiment/components/textbox/__init__.py:28
 msgid "Padding"
 msgstr "枠内の余白"
 
-#: psychopy/experiment/components/button/__init__.py:29
-#: psychopy/experiment/components/textbox/__init__.py:33
+#: psychopy/experiment/components/button/__init__.py:25
+#: psychopy/experiment/components/textbox/__init__.py:29
 msgid "Anchor"
 msgstr "文字揃え"
 
-#: psychopy/experiment/components/button/__init__.py:30
-#: psychopy/experiment/components/textbox/__init__.py:34
+#: psychopy/experiment/components/button/__init__.py:26
+#: psychopy/experiment/components/textbox/__init__.py:30
 msgid "Fill Colour"
 msgstr "塗りつぶしの色"
 
-#: psychopy/experiment/components/button/__init__.py:31
-#: psychopy/experiment/components/textbox/__init__.py:35
+#: psychopy/experiment/components/button/__init__.py:27
+#: psychopy/experiment/components/textbox/__init__.py:31
 msgid "Border Colour"
 msgstr "枠線の色"
 
-#: psychopy/experiment/components/button/__init__.py:32
-#: psychopy/experiment/components/textbox/__init__.py:36
+#: psychopy/experiment/components/button/__init__.py:28
+#: psychopy/experiment/components/textbox/__init__.py:32
 msgid "Border Width"
 msgstr "枠線の幅"
 
-#: psychopy/experiment/components/button/__init__.py:33
+#: psychopy/experiment/components/button/__init__.py:29
 msgid "Run once per click"
 msgstr "クリック毎に1回実行"
 
-#: psychopy/experiment/components/button/__init__.py:34
+#: psychopy/experiment/components/button/__init__.py:30
 msgid "Record clicks"
 msgstr "クリックを記録"
 
-#: psychopy/experiment/components/button/__init__.py:35
-#: psychopy/experiment/components/joystick/__init__.py:27
-#: psychopy/experiment/components/mouse/__init__.py:25
+#: psychopy/experiment/components/button/__init__.py:31
+#: psychopy/experiment/components/joystick/__init__.py:23
+#: psychopy/experiment/components/mouse/__init__.py:21
 msgid "Time relative to"
 msgstr "時刻の基準"
 
-#: psychopy/experiment/components/button/__init__.py:50
+#: psychopy/experiment/components/button/__init__.py:42
+msgid "Button: A clickable textbox"
+msgstr "Button: クリック可能なテキストボックス"
+
+#: psychopy/experiment/components/button/__init__.py:48
 msgid "Click here"
 msgstr "Click here"
 
-#: psychopy/experiment/components/button/__init__.py:77
-#: psychopy/experiment/components/form/__init__.py:118
-#: psychopy/experiment/components/textbox/__init__.py:85
+#: psychopy/experiment/components/button/__init__.py:75
+#: psychopy/experiment/components/form/__init__.py:117
+#: psychopy/experiment/components/textbox/__init__.py:84
 msgid "Text Color"
 msgstr "文字色"
 
-#: psychopy/experiment/components/button/__init__.py:82
-#: psychopy/experiment/components/joyButtons/__init__.py:85
-#: psychopy/experiment/components/keyboard/__init__.py:103
+#: psychopy/experiment/components/button/__init__.py:80
+#: psychopy/experiment/components/joyButtons/__init__.py:83
+#: psychopy/experiment/components/keyboard/__init__.py:101
 msgid "Should a response force the end of the Routine (e.g end the trial)?"
 msgstr ""
 "キー押しを検出すると強制的にRoutineを終了します(「有効なクリック」なら「ク"
 "リック可能な視覚刺激」をクリック時のみ終了)"
 
-#: psychopy/experiment/components/button/__init__.py:88
+#: psychopy/experiment/components/button/__init__.py:86
 msgid ""
 "Should the callback run once per click (True), or each frame until click is "
 "released (False)"
@@ -3858,64 +3862,74 @@ msgstr ""
 "コールバック関数をクリック毎に1回実行する(True)か, クリックが終わるまで毎フ"
 "レーム実行する(False)かを設定します"
 
-#: psychopy/experiment/components/button/__init__.py:94
+#: psychopy/experiment/components/button/__init__.py:92
 msgid "Code to run when button is clicked"
 msgstr "ボタンがクリックされた時に実行するコード"
 
-#: psychopy/experiment/components/button/__init__.py:99
+#: psychopy/experiment/components/button/__init__.py:97
 #: psychopy/experiment/components/text/__init__.py:66
-#: psychopy/experiment/components/textbox/__init__.py:90
+#: psychopy/experiment/components/textbox/__init__.py:89
 msgid "The text to be displayed"
 msgstr "描画する文字列を指定します"
 
-#: psychopy/experiment/components/button/__init__.py:104
+#: psychopy/experiment/components/button/__init__.py:102
 #: psychopy/experiment/components/text/__init__.py:71
-#: psychopy/experiment/components/textbox/__init__.py:95
+#: psychopy/experiment/components/textbox/__init__.py:94
 msgid "The font name (e.g. Comic Sans)"
 msgstr "フォント名を指定します (例: Comic Sans)"
 
-#: psychopy/experiment/components/button/__init__.py:109
+#: psychopy/experiment/components/button/__init__.py:107
 #: psychopy/experiment/components/text/__init__.py:77
-#: psychopy/experiment/components/textbox/__init__.py:100
+#: psychopy/experiment/components/textbox/__init__.py:99
 msgid ""
 "Specifies the height of the letter (the width is then determined by the font)"
 msgstr "文字列の高さを指定します (幅は高さとフォントの種類から決定)"
 
-#: psychopy/experiment/components/button/__init__.py:115
-#: psychopy/experiment/components/textbox/__init__.py:123
+#: psychopy/experiment/components/button/__init__.py:113
+#: psychopy/experiment/components/textbox/__init__.py:122
 msgid "Should text be italic?"
 msgstr "イタリック体のフォントを使用します"
 
-#: psychopy/experiment/components/button/__init__.py:120
-#: psychopy/experiment/components/textbox/__init__.py:128
+#: psychopy/experiment/components/button/__init__.py:118
+#: psychopy/experiment/components/textbox/__init__.py:127
 msgid "Should text be bold?"
 msgstr "ボールド体のフォントを使用します"
 
-#: psychopy/experiment/components/button/__init__.py:125
-#: psychopy/experiment/components/textbox/__init__.py:138
+#: psychopy/experiment/components/button/__init__.py:123
+#: psychopy/experiment/components/textbox/__init__.py:137
 msgid "Defines the space between text and the textbox border"
 msgstr "テキストボックスの枠線と文字との間隔を指定します"
 
-#: psychopy/experiment/components/button/__init__.py:140
-#: psychopy/experiment/components/textbox/__init__.py:153
+#: psychopy/experiment/components/button/__init__.py:138
+#: psychopy/experiment/components/textbox/__init__.py:152
 msgid "Should text anchor to the top, center or bottom of the box?"
 msgstr "テキストをどのように揃えますか？"
 
-#: psychopy/experiment/components/button/__init__.py:145
-#: psychopy/experiment/components/textbox/__init__.py:158
+#: psychopy/experiment/components/button/__init__.py:143
+#: psychopy/experiment/components/textbox/__init__.py:157
 msgid "Textbox border width"
 msgstr "テキストボックスの枠線の幅"
 
-#: psychopy/experiment/components/button/__init__.py:151
+#: psychopy/experiment/components/button/__init__.py:149
 msgid "What clicks on this button should be saved to the data output?"
 msgstr "このボタンに対するどのクリックを記録しますか？"
 
-#: psychopy/experiment/components/button/__init__.py:158
-#: psychopy/experiment/components/mouse/__init__.py:84
+#: psychopy/experiment/components/button/__init__.py:156
+#: psychopy/experiment/components/mouse/__init__.py:81
 msgid "What should the values of mouse.time should be relative to?"
 msgstr "時計の開始時刻を実験開始時にするかRoutine開始時にするか指定します"
 
+#: psychopy/experiment/components/cedrusBox/__init__.py:24
+#: psychopy/experiment/components/joyButtons/__init__.py:28
+#: psychopy/experiment/components/joystick/__init__.py:26
+msgid "Device number"
+msgstr "デバイス番号"
+
 #: psychopy/experiment/components/cedrusBox/__init__.py:25
+msgid "Use box timer"
+msgstr "キーボックスのタイマーを使用"
+
+#: psychopy/experiment/components/cedrusBox/__init__.py:42
 msgid ""
 "Cedrus Button Box: Cedrus response boxes, using the pyxid library provided "
 "by Cedrus"
@@ -3923,17 +3937,7 @@ msgstr ""
 "Cedrus Button Box: Cedrus社から提供されるpyxidライブラリを用いてCedrus "
 "response boxを使用します"
 
-#: psychopy/experiment/components/cedrusBox/__init__.py:29
-#: psychopy/experiment/components/joyButtons/__init__.py:32
-#: psychopy/experiment/components/joystick/__init__.py:30
-msgid "Device number"
-msgstr "デバイス番号"
-
-#: psychopy/experiment/components/cedrusBox/__init__.py:30
-msgid "Use box timer"
-msgstr "キーボックスのタイマーを使用"
-
-#: psychopy/experiment/components/cedrusBox/__init__.py:73
+#: psychopy/experiment/components/cedrusBox/__init__.py:71
 msgid ""
 "What is the 'correct' response? NB, buttons are labelled 0 to 6 on a 7-"
 "button box. Enter 'None' (no quotes) if withholding a response is correct. "
@@ -3941,13 +3945,13 @@ msgid ""
 "to the key press."
 msgstr "正答のボタンを指定します 押さないのが正答であればNoneを指定します."
 
-#: psychopy/experiment/components/cedrusBox/__init__.py:81
+#: psychopy/experiment/components/cedrusBox/__init__.py:79
 msgid "Keys to be read (blank for any) or key numbers separated by commas"
 msgstr "読み取るキーの番号をカンマ区切りで並べます (空白ならすべてのキー)"
 
-#: psychopy/experiment/components/cedrusBox/__init__.py:84
-#: psychopy/experiment/components/joyButtons/__init__.py:121
-#: psychopy/experiment/components/joystick/__init__.py:115
+#: psychopy/experiment/components/cedrusBox/__init__.py:82
+#: psychopy/experiment/components/joyButtons/__init__.py:119
+#: psychopy/experiment/components/joystick/__init__.py:114
 msgid ""
 "Device number, if you have multiple devices which one do you want (0, 1, "
 "2...)"
@@ -3955,92 +3959,92 @@ msgstr ""
 "複数のデバイスをコンピュータに接続している場合は使用するデバイスの番号(0, 1, "
 "2...)を指定します"
 
-#: psychopy/experiment/components/cedrusBox/__init__.py:99
+#: psychopy/experiment/components/cedrusBox/__init__.py:97
 msgid ""
 "According to Cedrus the response box timer has a drift - use with caution!"
 msgstr ""
 "キーボックスのタイマーを使用します (Cedrusによるとドリフトがあるので注意！)"
 
-#: psychopy/experiment/components/code/__init__.py:20
-msgid "Code: insert python commands into an experiment"
-msgstr "Code: Pythonのコードを実験に挿入します"
-
-#: psychopy/experiment/components/code/__init__.py:21
+#: psychopy/experiment/components/code/__init__.py:18
 msgid "Code Type"
 msgstr "コードタイプ"
 
-#: psychopy/experiment/components/code/__init__.py:22
+#: psychopy/experiment/components/code/__init__.py:19
 msgid "Before Experiment"
 msgstr "実験初期化中"
 
-#: psychopy/experiment/components/code/__init__.py:23
+#: psychopy/experiment/components/code/__init__.py:20
 msgid "Begin Experiment"
 msgstr "実験開始時"
 
-#: psychopy/experiment/components/code/__init__.py:24
+#: psychopy/experiment/components/code/__init__.py:21
 msgid "Begin Routine"
 msgstr "Routine開始時"
 
-#: psychopy/experiment/components/code/__init__.py:25
+#: psychopy/experiment/components/code/__init__.py:22
 msgid "Each Frame"
 msgstr "フレーム毎"
 
-#: psychopy/experiment/components/code/__init__.py:26
+#: psychopy/experiment/components/code/__init__.py:23
 msgid "End Routine"
 msgstr "Routine終了時"
 
-#: psychopy/experiment/components/code/__init__.py:27
+#: psychopy/experiment/components/code/__init__.py:24
 msgid "End Experiment"
 msgstr "実験終了時"
 
-#: psychopy/experiment/components/code/__init__.py:28
+#: psychopy/experiment/components/code/__init__.py:25
 msgid "Before JS Experiment"
 msgstr "実験初期化前 (JS)"
 
-#: psychopy/experiment/components/code/__init__.py:29
+#: psychopy/experiment/components/code/__init__.py:26
 msgid "Begin JS Experiment"
 msgstr "実験開始時 (JS)"
 
-#: psychopy/experiment/components/code/__init__.py:30
+#: psychopy/experiment/components/code/__init__.py:27
 msgid "Begin JS Routine"
 msgstr "Routine開始時 (JS)"
 
-#: psychopy/experiment/components/code/__init__.py:31
+#: psychopy/experiment/components/code/__init__.py:28
 msgid "Each JS Frame"
 msgstr "フレーム毎 (JS)"
 
-#: psychopy/experiment/components/code/__init__.py:32
+#: psychopy/experiment/components/code/__init__.py:29
 msgid "End JS Routine"
 msgstr "Routine終了時 (JS)"
 
-#: psychopy/experiment/components/code/__init__.py:33
+#: psychopy/experiment/components/code/__init__.py:30
 msgid "End JS Experiment"
 msgstr "実験終了時 (JS)"
 
-#: psychopy/experiment/components/code/__init__.py:65
+#: psychopy/experiment/components/code/__init__.py:40
+msgid "Code: insert python commands into an experiment"
+msgstr "Code: Pythonのコードを実験に挿入します"
+
+#: psychopy/experiment/components/code/__init__.py:64
 msgid "Display Python or JS Code"
 msgstr "PythonとJavaScriptのコード表示を切り替えます"
 
-#: psychopy/experiment/components/code/__init__.py:72
+#: psychopy/experiment/components/code/__init__.py:71
 msgid ""
 "Code to run before the experiment starts (initialization); right-click "
 "checks syntax"
 msgstr "実験初期化処理の前に実行されるコード; 右クリックで文法をチェック"
 
-#: psychopy/experiment/components/code/__init__.py:80
+#: psychopy/experiment/components/code/__init__.py:79
 msgid "Code at the start of the experiment ; right-click checks syntax"
 msgstr "実験開始時に実行されるコード; 右クリックで文法をチェック"
 
-#: psychopy/experiment/components/code/__init__.py:88
-#: psychopy/experiment/components/code/__init__.py:139
+#: psychopy/experiment/components/code/__init__.py:87
+#: psychopy/experiment/components/code/__init__.py:138
 msgid ""
 "Code to be run at the start of each repeat of the Routine (e.g. each trial); "
 "right-click checks syntax"
 msgstr ""
 "Routineが繰り返し開始される度に実行されるコード; 右クリックで文法をチェック"
 
-#: psychopy/experiment/components/code/__init__.py:97
-#: psychopy/experiment/components/code/__init__.py:148
+#: psychopy/experiment/components/code/__init__.py:96
+#: psychopy/experiment/components/code/__init__.py:147
 msgid ""
 "Code to be run on every video frame during for the duration of this Routine; "
 "right-click checks syntax"
@@ -4048,8 +4052,8 @@ msgstr ""
 "このRoutineの実行中, フレームが描画される度に実行されるコード; 右クリックで文"
 "法をチェック"
 
-#: psychopy/experiment/components/code/__init__.py:106
-#: psychopy/experiment/components/code/__init__.py:157
+#: psychopy/experiment/components/code/__init__.py:105
+#: psychopy/experiment/components/code/__init__.py:156
 msgid ""
 "Code at the end of this repeat of the Routine (e.g. getting/storing "
 "responses); right-click checks syntax"
@@ -4057,8 +4061,8 @@ msgstr ""
 "Routineが終了する度に実行されるコード (反応の取得や記録など); 右クリックで文"
 "法をチェック"
 
-#: psychopy/experiment/components/code/__init__.py:115
-#: psychopy/experiment/components/code/__init__.py:166
+#: psychopy/experiment/components/code/__init__.py:114
+#: psychopy/experiment/components/code/__init__.py:165
 msgid ""
 "Code at the end of the entire experiment (e.g. saving files, resetting "
 "computer); right-click checks syntax"
@@ -4066,13 +4070,13 @@ msgstr ""
 "実験全体の終了時に実験されるコード (ファイルの保存など); 右クリックで文法を"
 "チェック"
 
-#: psychopy/experiment/components/code/__init__.py:124
+#: psychopy/experiment/components/code/__init__.py:123
 msgid ""
 "Code before the start of the experiment (initialization); right-click checks "
 "syntax"
 msgstr "実験初期化処理の前に実行されるコード; 右クリックで文法をチェック"
 
-#: psychopy/experiment/components/code/__init__.py:131
+#: psychopy/experiment/components/code/__init__.py:130
 msgid ""
 "Code at the start of the experiment (initialization); right-click checks "
 "syntax"
@@ -4080,57 +4084,57 @@ msgstr ""
 "実験開始時に実行されるコード (実験の初期化処理など); 右クリックで文法をチェッ"
 "ク"
 
-#: psychopy/experiment/components/dots/__init__.py:18
-msgid "Dots: Random Dot Kinematogram"
-msgstr "Dots: ランダムドットキネマとグラムを描画します"
-
-#: psychopy/experiment/components/dots/__init__.py:20
+#: psychopy/experiment/components/dots/__init__.py:17
 msgid "Number of dots"
 msgstr "ドット数"
 
-#: psychopy/experiment/components/dots/__init__.py:21
+#: psychopy/experiment/components/dots/__init__.py:18
 msgid "Direction"
 msgstr "方向"
 
-#: psychopy/experiment/components/dots/__init__.py:22
+#: psychopy/experiment/components/dots/__init__.py:19
 msgid "Speed"
 msgstr "速度"
 
-#: psychopy/experiment/components/dots/__init__.py:23
+#: psychopy/experiment/components/dots/__init__.py:20
 msgid "Coherence"
 msgstr "コヒーレンス"
 
-#: psychopy/experiment/components/dots/__init__.py:24
+#: psychopy/experiment/components/dots/__init__.py:21
 msgid "Dot size"
 msgstr "ドットの大きさ"
 
-#: psychopy/experiment/components/dots/__init__.py:25
+#: psychopy/experiment/components/dots/__init__.py:22
 msgid "Dot life-time"
 msgstr "ドットの寿命"
 
-#: psychopy/experiment/components/dots/__init__.py:26
+#: psychopy/experiment/components/dots/__init__.py:23
 msgid "Signal dots"
 msgstr "シグナルドット"
 
-#: psychopy/experiment/components/dots/__init__.py:27
+#: psychopy/experiment/components/dots/__init__.py:24
 msgid "Noise dots"
 msgstr "ノイズドット"
 
-#: psychopy/experiment/components/dots/__init__.py:28
+#: psychopy/experiment/components/dots/__init__.py:25
 msgid "Field shape"
 msgstr "フィールドの形状"
 
-#: psychopy/experiment/components/dots/__init__.py:29
+#: psychopy/experiment/components/dots/__init__.py:26
 msgid "Field size"
 msgstr "フィールドの大きさ"
 
-#: psychopy/experiment/components/dots/__init__.py:30
+#: psychopy/experiment/components/dots/__init__.py:27
 msgid "Field position"
 msgstr "フィールドの位置"
 
-#: psychopy/experiment/components/dots/__init__.py:31
+#: psychopy/experiment/components/dots/__init__.py:28
 msgid "Dot refresh rule"
 msgstr "ドットの更新ルール"
+
+#: psychopy/experiment/components/dots/__init__.py:37
+msgid "Dots: Random Dot Kinematogram"
+msgstr "Dots: ランダムドットキネマとグラムを描画します"
 
 #: psychopy/experiment/components/dots/__init__.py:69
 msgid ""
@@ -4207,40 +4211,119 @@ msgid "Dot Color Space"
 msgstr "ドットの色空間"
 
 #: psychopy/experiment/components/emotiv_marking/__init__.py:20
-msgid "Mark a period of EEG"
-msgstr "EEGにマークを挿入します"
-
-#: psychopy/experiment/components/emotiv_marking/__init__.py:22
 msgid "Marker Label"
 msgstr "マーカーのラベル"
 
-#: psychopy/experiment/components/emotiv_marking/__init__.py:23
+#: psychopy/experiment/components/emotiv_marking/__init__.py:21
 msgid "Marker Value"
 msgstr "マーカーの値"
 
-#: psychopy/experiment/components/emotiv_marking/__init__.py:24
+#: psychopy/experiment/components/emotiv_marking/__init__.py:22
 msgid "Stop Marker"
 msgstr "ストップマーカー"
 
-#: psychopy/experiment/components/emotiv_marking/__init__.py:46
+#: psychopy/experiment/components/emotiv_marking/__init__.py:30
+msgid "Mark a period of EEG"
+msgstr "EEGにマークを挿入します"
+
+#: psychopy/experiment/components/emotiv_marking/__init__.py:47
 msgid "Label of the marker to be inserted (interpreted as a string)"
 msgstr "挿入するマーカーのラベル(文字列として解釈されます)"
 
-#: psychopy/experiment/components/emotiv_marking/__init__.py:54
+#: psychopy/experiment/components/emotiv_marking/__init__.py:55
 msgid "Value of the marker to be inserted (interpreted as a string)"
 msgstr "挿入するマーカーの値(文字列として解釈されます)"
 
-#: psychopy/experiment/components/emotiv_marking/__init__.py:61
+#: psychopy/experiment/components/emotiv_marking/__init__.py:62
 msgid "Check this box to include a stop marker"
 msgstr ""
 "このコンポーネントの終了時もマークする場合(つまりインターバルマーカーにしたい"
 "場合)はチェックしてください"
 
-#: psychopy/experiment/components/emotiv_record/__init__.py:16
+#: psychopy/experiment/components/emotiv_record/__init__.py:24
 msgid "Initialize EMOTIV hardware connection"
 msgstr "EMOTIVと接続します"
 
+#: psychopy/experiment/components/envelopegrating/__init__.py:18
+msgid "Carrier texture"
+msgstr "キャリアのテクスチャ"
+
 #: psychopy/experiment/components/envelopegrating/__init__.py:19
+msgid "Carrier Orientation"
+msgstr "キャリアの回転角度"
+
+#: psychopy/experiment/components/envelopegrating/__init__.py:20
+#: psychopy/experiment/components/grating/__init__.py:19
+#: psychopy/experiment/components/image/__init__.py:18
+#: psychopy/experiment/components/noise/__init__.py:19
+#: psychopy/experiment/components/patch/__init__.py:18
+msgid "Mask"
+msgstr "マスク"
+
+#: psychopy/experiment/components/envelopegrating/__init__.py:21
+msgid "Carrier spatial frequency"
+msgstr "キャリアの空間周波数"
+
+#: psychopy/experiment/components/envelopegrating/__init__.py:22
+msgid "Carrier phase (in cycles)"
+msgstr "キャリアの位相(周期に対する比)"
+
+#: psychopy/experiment/components/envelopegrating/__init__.py:23
+msgid "Carrier contrast"
+msgstr "キャリアのコントラスト"
+
+#: psychopy/experiment/components/envelopegrating/__init__.py:24
+#: psychopy/experiment/components/grating/__init__.py:22
+#: psychopy/experiment/components/image/__init__.py:19
+#: psychopy/experiment/components/noise/__init__.py:23
+#: psychopy/experiment/components/patch/__init__.py:21
+msgid "Texture resolution"
+msgstr "テクスチャの解像度"
+
+#: psychopy/experiment/components/envelopegrating/__init__.py:25
+#: psychopy/experiment/components/grating/__init__.py:24
+#: psychopy/experiment/components/image/__init__.py:22
+#: psychopy/experiment/components/noise/__init__.py:24
+#: psychopy/experiment/components/patch/__init__.py:22
+#: psychopy/experiment/components/polygon/__init__.py:26
+msgid "Interpolate"
+msgstr "補間"
+
+#: psychopy/experiment/components/envelopegrating/__init__.py:26
+msgid "Envelope texture"
+msgstr "エンベロープのテクスチャ"
+
+#: psychopy/experiment/components/envelopegrating/__init__.py:27
+msgid "Envelope spatial frequency"
+msgstr "エンベロープの空間周波数"
+
+#: psychopy/experiment/components/envelopegrating/__init__.py:28
+msgid "Envelope orientation"
+msgstr "エンベロープの回転角度"
+
+#: psychopy/experiment/components/envelopegrating/__init__.py:29
+msgid "Envelope phase"
+msgstr "エンベロープの位相"
+
+#: psychopy/experiment/components/envelopegrating/__init__.py:30
+msgid "Envelope modulation depth"
+msgstr "エンベロープの変調幅"
+
+#: psychopy/experiment/components/envelopegrating/__init__.py:31
+msgid "Power to which envelope is raised"
+msgstr "エンベロープ"
+
+#: psychopy/experiment/components/envelopegrating/__init__.py:32
+msgid "Is modulation a beat"
+msgstr "ビートモード"
+
+#: psychopy/experiment/components/envelopegrating/__init__.py:33
+#: psychopy/experiment/components/grating/__init__.py:23
+#: psychopy/experiment/components/noise/__init__.py:40
+msgid "OpenGL blend mode"
+msgstr "OpenGLのブレンドモード"
+
+#: psychopy/experiment/components/envelopegrating/__init__.py:42
 msgid ""
 "Envelope Grating: present cyclic textures including 2nd order envelope "
 "stimuli, prebuilt or from a file"
@@ -4248,96 +4331,17 @@ msgstr ""
 "Envelope Grating: 二次のエンベロープ刺激を含む周期的なテクスチャ刺激を描画し"
 "ます"
 
-#: psychopy/experiment/components/envelopegrating/__init__.py:23
-msgid "Carrier texture"
-msgstr "キャリアのテクスチャ"
-
-#: psychopy/experiment/components/envelopegrating/__init__.py:24
-msgid "Carrier Orientation"
-msgstr "キャリアの回転角度"
-
-#: psychopy/experiment/components/envelopegrating/__init__.py:25
-#: psychopy/experiment/components/grating/__init__.py:24
-#: psychopy/experiment/components/image/__init__.py:22
-#: psychopy/experiment/components/noise/__init__.py:23
-#: psychopy/experiment/components/patch/__init__.py:23
-msgid "Mask"
-msgstr "マスク"
-
-#: psychopy/experiment/components/envelopegrating/__init__.py:26
-msgid "Carrier spatial frequency"
-msgstr "キャリアの空間周波数"
-
-#: psychopy/experiment/components/envelopegrating/__init__.py:27
-msgid "Carrier phase (in cycles)"
-msgstr "キャリアの位相(周期に対する比)"
-
-#: psychopy/experiment/components/envelopegrating/__init__.py:28
-msgid "Carrier contrast"
-msgstr "キャリアのコントラスト"
-
-#: psychopy/experiment/components/envelopegrating/__init__.py:29
-#: psychopy/experiment/components/grating/__init__.py:27
-#: psychopy/experiment/components/image/__init__.py:23
-#: psychopy/experiment/components/noise/__init__.py:27
-#: psychopy/experiment/components/patch/__init__.py:26
-msgid "Texture resolution"
-msgstr "テクスチャの解像度"
-
-#: psychopy/experiment/components/envelopegrating/__init__.py:30
-#: psychopy/experiment/components/grating/__init__.py:29
-#: psychopy/experiment/components/image/__init__.py:26
-#: psychopy/experiment/components/noise/__init__.py:28
-#: psychopy/experiment/components/patch/__init__.py:27
-#: psychopy/experiment/components/polygon/__init__.py:30
-msgid "Interpolate"
-msgstr "補間"
-
-#: psychopy/experiment/components/envelopegrating/__init__.py:31
-msgid "Envelope texture"
-msgstr "エンベロープのテクスチャ"
-
-#: psychopy/experiment/components/envelopegrating/__init__.py:32
-msgid "Envelope spatial frequency"
-msgstr "エンベロープの空間周波数"
-
-#: psychopy/experiment/components/envelopegrating/__init__.py:33
-msgid "Envelope orientation"
-msgstr "エンベロープの回転角度"
-
-#: psychopy/experiment/components/envelopegrating/__init__.py:34
-msgid "Envelope phase"
-msgstr "エンベロープの位相"
-
-#: psychopy/experiment/components/envelopegrating/__init__.py:35
-msgid "Envelope modulation depth"
-msgstr "エンベロープの変調幅"
-
-#: psychopy/experiment/components/envelopegrating/__init__.py:36
-msgid "Power to which envelope is raised"
-msgstr "エンベロープ"
-
-#: psychopy/experiment/components/envelopegrating/__init__.py:37
-msgid "Is modulation a beat"
-msgstr "ビートモード"
-
-#: psychopy/experiment/components/envelopegrating/__init__.py:38
-#: psychopy/experiment/components/grating/__init__.py:28
-#: psychopy/experiment/components/noise/__init__.py:44
-msgid "OpenGL blend mode"
-msgstr "OpenGLのブレンドモード"
-
-#: psychopy/experiment/components/envelopegrating/__init__.py:72
+#: psychopy/experiment/components/envelopegrating/__init__.py:71
 msgid ""
 "The (2D) texture of the background - can be sin, sqr, sinXsin... or a "
 "filename (including path)"
 msgstr ""
 "背景となる(2D)テクスチャ (sin, sqr, sinXsin, ファイル名など)を指定します."
 
-#: psychopy/experiment/components/envelopegrating/__init__.py:81
-#: psychopy/experiment/components/grating/__init__.py:68
-#: psychopy/experiment/components/noise/__init__.py:94
-#: psychopy/experiment/components/patch/__init__.py:61
+#: psychopy/experiment/components/envelopegrating/__init__.py:80
+#: psychopy/experiment/components/grating/__init__.py:67
+#: psychopy/experiment/components/noise/__init__.py:95
+#: psychopy/experiment/components/patch/__init__.py:62
 msgid ""
 "An image to define the alpha mask (ie shape)- gauss, circle... or a filename "
 "(including path)"
@@ -4345,11 +4349,11 @@ msgstr ""
 "αマスクを指定して形状を変更します(gauss, circle, ... パスを含むファイル名な"
 "ど)."
 
-#: psychopy/experiment/components/envelopegrating/__init__.py:90
+#: psychopy/experiment/components/envelopegrating/__init__.py:89
 msgid "Contrast of background carrier"
 msgstr "背景となるキャリアのコントラストを指定します"
 
-#: psychopy/experiment/components/envelopegrating/__init__.py:98
+#: psychopy/experiment/components/envelopegrating/__init__.py:97
 msgid ""
 "Spatial frequency of background carrier repeats across the grating in 1 or 2 "
 "dimensions, e.g. 4 or [2,3]"
@@ -4357,30 +4361,30 @@ msgstr ""
 "背景となるキャリアの空間周波数を１次元または２次元(例えば4 や[2,3])で指定ま"
 "す."
 
-#: psychopy/experiment/components/envelopegrating/__init__.py:107
+#: psychopy/experiment/components/envelopegrating/__init__.py:106
 msgid "Spatial positioning of the background carrier (wraps in range 0-1.0)"
 msgstr "背景となるキャリアの位相を指定します(0.0から1.0の範囲に丸められます)."
 
-#: psychopy/experiment/components/envelopegrating/__init__.py:117
-#: psychopy/experiment/components/grating/__init__.py:96
-#: psychopy/experiment/components/noise/__init__.py:134
-#: psychopy/experiment/components/patch/__init__.py:89
+#: psychopy/experiment/components/envelopegrating/__init__.py:116
+#: psychopy/experiment/components/grating/__init__.py:95
+#: psychopy/experiment/components/noise/__init__.py:135
+#: psychopy/experiment/components/patch/__init__.py:90
 msgid ""
 "Resolution of the texture for standard ones such as sin, sqr etc. For most "
 "cases a value of 256 pixels will suffice"
 msgstr ""
 "Sin, sqrといったテクスチャの解像度を指定します 多くの場合256pixで十分です"
 
-#: psychopy/experiment/components/envelopegrating/__init__.py:126
-#: psychopy/experiment/components/grating/__init__.py:105
-#: psychopy/experiment/components/image/__init__.py:85
-#: psychopy/experiment/components/noise/__init__.py:143
-#: psychopy/experiment/components/patch/__init__.py:99
-#: psychopy/experiment/components/polygon/__init__.py:104
+#: psychopy/experiment/components/envelopegrating/__init__.py:125
+#: psychopy/experiment/components/grating/__init__.py:104
+#: psychopy/experiment/components/image/__init__.py:84
+#: psychopy/experiment/components/noise/__init__.py:144
+#: psychopy/experiment/components/patch/__init__.py:100
+#: psychopy/experiment/components/polygon/__init__.py:115
 msgid "How should the image be interpolated if/when rescaled"
 msgstr "画像がリサイズされた時の補間方法を指定します"
 
-#: psychopy/experiment/components/envelopegrating/__init__.py:134
+#: psychopy/experiment/components/envelopegrating/__init__.py:133
 msgid ""
 "The (2D) texture of the envelope - can be sin, sqr, sinXsin... or a filename "
 "(including path)"
@@ -4388,26 +4392,26 @@ msgstr ""
 "エンベロープとなる(2D)テクスチャ(sin, sqr, sinXsin, ファイル名など)を指定しま"
 "す."
 
-#: psychopy/experiment/components/envelopegrating/__init__.py:143
+#: psychopy/experiment/components/envelopegrating/__init__.py:142
 msgid ""
 "Spatial frequency of the modulation envelope repeats across the grating in 1 "
 "or 2 dimensions, e.g. 4 or [2,3]"
 msgstr ""
 "変調エンベロープの空間周波数を1次元または2次元(例えば4や[2,3])で指定します."
 
-#: psychopy/experiment/components/envelopegrating/__init__.py:152
+#: psychopy/experiment/components/envelopegrating/__init__.py:151
 msgid "Spatial positioning of the modulation envelope(wraps in range 0-1.0)"
 msgstr "変調エンベロープの位相を指定します(0.0から1.0の範囲に丸められます)."
 
-#: psychopy/experiment/components/envelopegrating/__init__.py:161
+#: psychopy/experiment/components/envelopegrating/__init__.py:160
 msgid "Orientation of the modulation envelope(wraps in range 0-360)"
 msgstr "変調エンベロープの回転角度を指定します(0から360の範囲に丸められます)."
 
-#: psychopy/experiment/components/envelopegrating/__init__.py:170
+#: psychopy/experiment/components/envelopegrating/__init__.py:169
 msgid "Modulation depth of modulation envelope"
 msgstr "変調エンベロープによる変調幅を指定します"
 
-#: psychopy/experiment/components/envelopegrating/__init__.py:178
+#: psychopy/experiment/components/envelopegrating/__init__.py:177
 msgid ""
 "Power of modulation envelope. The modulator will be raised to this power "
 "according to the equation S=cC*(1+mM)^power, where C is the carrier and M is "
@@ -4431,7 +4435,7 @@ msgstr ""
 "せんがよく似ています. 全体的なコントラスト(見た目上のキャリアのコントラスト)"
 "は変化しないことに注意してください."
 
-#: psychopy/experiment/components/envelopegrating/__init__.py:200
+#: psychopy/experiment/components/envelopegrating/__init__.py:199
 msgid ""
 "Do you want a 'beat'? [beat = carrier*envelope, no beat = "
 "carrier*(1+envelope), True/False, Y/N]"
@@ -4439,7 +4443,7 @@ msgstr ""
 "ビートを使用しますか？(ビート=carrier*envelope, ビート無し"
 "=carrier*(1+envelope)　True/FalseまたはY/Nで指定)"
 
-#: psychopy/experiment/components/envelopegrating/__init__.py:209
+#: psychopy/experiment/components/envelopegrating/__init__.py:208
 msgid ""
 "OpenGL Blendmode. Avg is most common mode in PsychoPy, add is useful if "
 "combining a beat with the carrier image or numpy array at point of display"
@@ -4447,100 +4451,100 @@ msgstr ""
 "OpenGLのブレンドモードを指定します avgはPsychoPyの標準モードです addはビート"
 "をキャリア画像やNumpyの行列とディスプレイ上で結合したい場合に便利です"
 
-#: psychopy/experiment/components/eyetracker/__init__.py:19
+#: psychopy/experiment/components/eyetracker/__init__.py:23
 msgid "Eyetracker: use one of several eyetrackers to follow gaze"
 msgstr "Eyetracker: サポートするアイトラッカーを利用して視線位置を取得します"
 
-#: psychopy/experiment/components/eyetracker/__init__.py:45
+#: psychopy/experiment/components/eyetracker/__init__.py:43
 msgid "Config file for eyetracker parameters"
 msgstr "アイトラッカーの設定ファイル"
 
-#: psychopy/experiment/components/eyetracker/__init__.py:48
+#: psychopy/experiment/components/eyetracker/__init__.py:46
 msgid ""
 "How often should the eyetracker state (x,y,pupilsize...) be stored? On every "
 "video frame, every click or just at the end of the Routine?"
 msgstr ""
 "アイトラッカーの状態(x, y, 瞳孔サイズ...)を保存するタイミングを指定します"
 
-#: psychopy/experiment/components/form/__init__.py:21
-msgid "Form: a Psychopy survey tool"
-msgstr "Form: PsychoPyの調査ツール"
-
-#: psychopy/experiment/components/form/__init__.py:24
+#: psychopy/experiment/components/form/__init__.py:20
 msgid "Items"
 msgstr "項目"
 
-#: psychopy/experiment/components/form/__init__.py:25
+#: psychopy/experiment/components/form/__init__.py:21
 msgid "Text Height"
 msgstr "テキストの高さ"
 
-#: psychopy/experiment/components/form/__init__.py:26
+#: psychopy/experiment/components/form/__init__.py:22
 #: psychopy/experiment/components/slider/__init__.py:175
 msgid "Styles"
 msgstr "スタイル"
 
-#: psychopy/experiment/components/form/__init__.py:27
+#: psychopy/experiment/components/form/__init__.py:23
 msgid "Item Padding"
 msgstr "項目間の余白"
 
-#: psychopy/experiment/components/form/__init__.py:28
+#: psychopy/experiment/components/form/__init__.py:24
 msgid "Data Format"
 msgstr "データフォーマット"
 
-#: psychopy/experiment/components/form/__init__.py:29
+#: psychopy/experiment/components/form/__init__.py:25
 msgid "Randomize"
 msgstr "無作為化"
 
-#: psychopy/experiment/components/form/__init__.py:83
+#: psychopy/experiment/components/form/__init__.py:36
+msgid "Form: a Psychopy survey tool"
+msgstr "Form: PsychoPyの調査ツール"
+
+#: psychopy/experiment/components/form/__init__.py:82
 msgid "The csv filename containing the items for your survey."
 msgstr "調査項目を定義したcsvまたはxlsxファイル."
 
-#: psychopy/experiment/components/form/__init__.py:89
+#: psychopy/experiment/components/form/__init__.py:88
 msgid "The size of the item text for Form"
 msgstr "項目のテキストの大きさ"
 
-#: psychopy/experiment/components/form/__init__.py:95
+#: psychopy/experiment/components/form/__init__.py:94
 msgid "Do you want to randomize the order of your questions?"
 msgstr "項目の順序を無作為化しますか？"
 
-#: psychopy/experiment/components/form/__init__.py:101
+#: psychopy/experiment/components/form/__init__.py:100
 msgid "The padding or space between items."
 msgstr "項目間の余白."
 
-#: psychopy/experiment/components/form/__init__.py:108
+#: psychopy/experiment/components/form/__init__.py:107
 msgid "Store item data by columns, or rows"
 msgstr "項目データが行方向か列方向かを指定"
 
-#: psychopy/experiment/components/form/__init__.py:115
+#: psychopy/experiment/components/form/__init__.py:114
 msgid "Styles determine the appearance of the form"
 msgstr "フォームの見た目を調整します"
 
-#: psychopy/experiment/components/form/__init__.py:120
+#: psychopy/experiment/components/form/__init__.py:119
 msgid "Marker Colors"
 msgstr "マーカーの色"
 
-#: psychopy/experiment/components/form/__init__.py:122
+#: psychopy/experiment/components/form/__init__.py:121
 msgid "Lines Color"
 msgstr "枠線の色"
 
-#: psychopy/experiment/components/grating/__init__.py:19
+#: psychopy/experiment/components/grating/__init__.py:20
+#: psychopy/experiment/components/patch/__init__.py:19
+msgid "Spatial frequency"
+msgstr "空間周波数"
+
+#: psychopy/experiment/components/grating/__init__.py:21
+#: psychopy/experiment/components/noise/__init__.py:21
+#: psychopy/experiment/components/patch/__init__.py:20
+msgid "Phase (in cycles)"
+msgstr "位相 (周期に対する比)"
+
+#: psychopy/experiment/components/grating/__init__.py:33
 msgid "Grating: present cyclic textures, prebuilt or from a file"
 msgstr ""
 "Grating: 組み込みの, またはファイルから読み込んだテクスチャを周期的に描画しま"
 "す"
 
-#: psychopy/experiment/components/grating/__init__.py:25
-#: psychopy/experiment/components/patch/__init__.py:24
-msgid "Spatial frequency"
-msgstr "空間周波数"
-
-#: psychopy/experiment/components/grating/__init__.py:26
-#: psychopy/experiment/components/noise/__init__.py:25
-#: psychopy/experiment/components/patch/__init__.py:25
-msgid "Phase (in cycles)"
-msgstr "位相 (周期に対する比)"
-
-#: psychopy/experiment/components/grating/__init__.py:59
+#: psychopy/experiment/components/grating/__init__.py:58
 msgid ""
 "The (2D) texture of the grating - can be sin, sqr, sinXsin... or a filename "
 "(including path)"
@@ -4548,7 +4552,7 @@ msgstr ""
 "グレーティングのテクスチャを指定します(sin, sqr, sinXsin, ... ファイル名な"
 "ど)."
 
-#: psychopy/experiment/components/grating/__init__.py:77
+#: psychopy/experiment/components/grating/__init__.py:76
 msgid ""
 "Spatial frequency of image repeats across the grating in 1 or 2 dimensions, "
 "e.g. 4 or [2,3]"
@@ -4556,37 +4560,37 @@ msgstr ""
 "グレーティングの空間周波数(テクスチャが繰り返される回数)を指定します. 1次元ま"
 "たは2次元の値を指定できます."
 
-#: psychopy/experiment/components/grating/__init__.py:86
+#: psychopy/experiment/components/grating/__init__.py:85
 msgid "Spatial positioning of the image on the grating (wraps in range 0-1.0)"
 msgstr "グレーティングの位相を指定します (0.0から1.0の範囲に丸められます)"
 
-#: psychopy/experiment/components/grating/__init__.py:113
+#: psychopy/experiment/components/grating/__init__.py:112
 msgid ""
 "OpenGL Blendmode: avg gives traditional transparency, add is important to "
 "combine gratings)]"
 msgstr "OpenGLのブレンドモードを指定します."
 
-#: psychopy/experiment/components/image/__init__.py:18
-msgid "Image: present images (bmp, jpg, tif...)"
-msgstr "Image: 画像(bmp, jpg, tif...)を描画します"
-
-#: psychopy/experiment/components/image/__init__.py:21
+#: psychopy/experiment/components/image/__init__.py:17
 msgid "Image"
 msgstr "画像"
 
-#: psychopy/experiment/components/image/__init__.py:24
+#: psychopy/experiment/components/image/__init__.py:20
 msgid "Flip vertically"
 msgstr "垂直に反転"
 
-#: psychopy/experiment/components/image/__init__.py:25
+#: psychopy/experiment/components/image/__init__.py:21
 msgid "Flip horizontally"
 msgstr "水平に反転"
 
-#: psychopy/experiment/components/image/__init__.py:58
+#: psychopy/experiment/components/image/__init__.py:31
+msgid "Image: present images (bmp, jpg, tif...)"
+msgstr "Image: 画像(bmp, jpg, tif...)を描画します"
+
+#: psychopy/experiment/components/image/__init__.py:57
 msgid "The image to be displayed - a filename, including path"
 msgstr "描画する画像ファイルをパスも含めて指定します"
 
-#: psychopy/experiment/components/image/__init__.py:67
+#: psychopy/experiment/components/image/__init__.py:66
 msgid ""
 "An image to define the alpha mask through which the image is seen - gauss, "
 "circle, None or a filename (including path)"
@@ -4594,19 +4598,31 @@ msgstr ""
 "αマスクを指定して形状を変更します(gauss, circle, ... パスを含むファイル名な"
 "ど)"
 
-#: psychopy/experiment/components/image/__init__.py:76
+#: psychopy/experiment/components/image/__init__.py:75
 msgid "Resolution of the mask if one is used."
 msgstr "マスクを使用する場合のマスクの解像度を指定します."
 
-#: psychopy/experiment/components/image/__init__.py:93
+#: psychopy/experiment/components/image/__init__.py:92
 msgid "Should the image be flipped vertically (top to bottom)?"
 msgstr "画像を上下に反転します"
 
-#: psychopy/experiment/components/image/__init__.py:101
+#: psychopy/experiment/components/image/__init__.py:100
 msgid "Should the image be flipped horizontally (left to right)?"
 msgstr "画像を左右に反転します"
 
+#: psychopy/experiment/components/ioLabs/__init__.py:22
+msgid "Active buttons"
+msgstr "使用するボタン"
+
 #: psychopy/experiment/components/ioLabs/__init__.py:23
+msgid "Lights"
+msgstr "ライト"
+
+#: psychopy/experiment/components/ioLabs/__init__.py:24
+msgid "Lights off"
+msgstr "ライトOFF"
+
+#: psychopy/experiment/components/ioLabs/__init__.py:40
 msgid ""
 "ioLabs ButtonBox: check and record response buttons on ioLab Systems "
 "ButtonBox"
@@ -4614,19 +4630,7 @@ msgstr ""
 "ioLabs ButtonBox: ioLab Systems製ボタンボックスを使ってボタン押し反応を記録し"
 "ます"
 
-#: psychopy/experiment/components/ioLabs/__init__.py:27
-msgid "Active buttons"
-msgstr "使用するボタン"
-
-#: psychopy/experiment/components/ioLabs/__init__.py:28
-msgid "Lights"
-msgstr "ライト"
-
-#: psychopy/experiment/components/ioLabs/__init__.py:29
-msgid "Lights off"
-msgstr "ライトOFF"
-
-#: psychopy/experiment/components/ioLabs/__init__.py:74
+#: psychopy/experiment/components/ioLabs/__init__.py:72
 msgid ""
 "What is the 'correct' response? NB, buttons are labelled 0 to 7 on a 8-"
 "button box. Enter 'None' (no quotes) if withholding a response is correct. "
@@ -4634,66 +4638,66 @@ msgid ""
 "to the key press."
 msgstr "正答のボタンを指定します 押さないのが正答であればNoneを指定します."
 
-#: psychopy/experiment/components/ioLabs/__init__.py:84
+#: psychopy/experiment/components/ioLabs/__init__.py:82
 msgid "Choose which (if any) responses to store at end of a trial"
 msgstr "記録するキー押し反応を選択します"
 
-#: psychopy/experiment/components/ioLabs/__init__.py:87
+#: psychopy/experiment/components/ioLabs/__init__.py:85
 msgid "Active buttons, such as '1,6', '(1,2,5,6)' or '0' (without quotes)"
 msgstr "使用するボタンをカンマ区切りの数値で指定します (例: 1,6, (1,2,5,6), 0)"
 
-#: psychopy/experiment/components/ioLabs/__init__.py:99
+#: psychopy/experiment/components/ioLabs/__init__.py:97
 msgid "Turn ON the lights for the active buttons?"
 msgstr "使用するボタンのライトを点灯させます"
 
-#: psychopy/experiment/components/ioLabs/__init__.py:105
+#: psychopy/experiment/components/ioLabs/__init__.py:103
 msgid "Turn OFF all lights at the end of each routine?"
 msgstr "ボタンのライトをRoutine終了時にオフにします"
 
+#: psychopy/experiment/components/joyButtons/__init__.py:23
+msgid "Allowed buttons"
+msgstr "検出するボタン"
+
 #: psychopy/experiment/components/joyButtons/__init__.py:24
+#: psychopy/experiment/components/keyboard/__init__.py:31
+msgid "Store"
+msgstr "記録"
+
+#: psychopy/experiment/components/joyButtons/__init__.py:26
+#: psychopy/experiment/components/keyboard/__init__.py:33
+msgid "Store correct"
+msgstr "正答を記録"
+
+#: psychopy/experiment/components/joyButtons/__init__.py:27
+#: psychopy/experiment/components/keyboard/__init__.py:34
+msgid "Correct answer"
+msgstr "正答"
+
+#: psychopy/experiment/components/joyButtons/__init__.py:29
+msgid "sync RT with screen"
+msgstr "時間計測をスクリーンに同期"
+
+#: psychopy/experiment/components/joyButtons/__init__.py:38
 msgid "JoyButtons: check and record joystick/gamepad button presses"
 msgstr ""
 "JoyButtons: ジョイスティック/ゲームパッドのボタン押しをチェックし記録します"
 
-#: psychopy/experiment/components/joyButtons/__init__.py:27
-msgid "Allowed buttons"
-msgstr "検出するボタン"
-
-#: psychopy/experiment/components/joyButtons/__init__.py:28
-#: psychopy/experiment/components/keyboard/__init__.py:35
-msgid "Store"
-msgstr "記録"
-
-#: psychopy/experiment/components/joyButtons/__init__.py:30
-#: psychopy/experiment/components/keyboard/__init__.py:37
-msgid "Store correct"
-msgstr "正答を記録"
-
-#: psychopy/experiment/components/joyButtons/__init__.py:31
-#: psychopy/experiment/components/keyboard/__init__.py:38
-msgid "Correct answer"
-msgstr "正答"
-
-#: psychopy/experiment/components/joyButtons/__init__.py:33
-msgid "sync RT with screen"
-msgstr "時間計測をスクリーンに同期"
-
-#: psychopy/experiment/components/joyButtons/__init__.py:67
+#: psychopy/experiment/components/joyButtons/__init__.py:65
 msgid "A comma-separated list of button numbers, such as 0,1,2,3,4"
 msgstr "カンマ区切りのボタン番号のリスト, 例: 0,1,2,3,4"
 
-#: psychopy/experiment/components/joyButtons/__init__.py:76
-#: psychopy/experiment/components/keyboard/__init__.py:94
+#: psychopy/experiment/components/joyButtons/__init__.py:74
+#: psychopy/experiment/components/keyboard/__init__.py:92
 msgid "Choose which (if any) responses to store at the end of a trial"
 msgstr "記録するキーを指定します"
 
-#: psychopy/experiment/components/joyButtons/__init__.py:93
-#: psychopy/experiment/components/keyboard/__init__.py:111
+#: psychopy/experiment/components/joyButtons/__init__.py:91
+#: psychopy/experiment/components/keyboard/__init__.py:109
 msgid "Do you want to save the response as correct/incorrect?"
 msgstr "反応の正誤を記録します"
 
-#: psychopy/experiment/components/joyButtons/__init__.py:102
-#: psychopy/experiment/components/keyboard/__init__.py:120
+#: psychopy/experiment/components/joyButtons/__init__.py:100
+#: psychopy/experiment/components/keyboard/__init__.py:118
 msgid ""
 "What is the 'correct' key? Might be helpful to add a correctAns column and "
 "use $correctAns to compare to the key press."
@@ -4701,59 +4705,59 @@ msgstr ""
 "正答とするキーを指定します 条件ファイルにcorrectAnsという列を追加して"
 "$thisTrial.correctAnsとすると条件ファイルで正答を指定できます."
 
-#: psychopy/experiment/components/joyButtons/__init__.py:112
-#: psychopy/experiment/components/keyboard/__init__.py:130
+#: psychopy/experiment/components/joyButtons/__init__.py:110
+#: psychopy/experiment/components/keyboard/__init__.py:128
 msgid ""
 "A reaction time to a visual stimulus should be based on when the screen "
 "flipped"
 msgstr "視覚刺激に対する反応時間計測をスクリーンのフリップに合わせて開始します"
 
-#: psychopy/experiment/components/joystick/__init__.py:22
-msgid "Joystick: query joystick position and buttons"
-msgstr "Joystick: ジョイスティックのレバーとボタンの状態を取得します"
-
-#: psychopy/experiment/components/joystick/__init__.py:25
+#: psychopy/experiment/components/joystick/__init__.py:21
 msgid "Save joystick state"
 msgstr "ジョイスティックの状態を保存"
 
-#: psychopy/experiment/components/joystick/__init__.py:26
-#: psychopy/experiment/components/mouse/__init__.py:24
+#: psychopy/experiment/components/joystick/__init__.py:22
+#: psychopy/experiment/components/mouse/__init__.py:20
 msgid "End Routine on press"
 msgstr "ボタン押しでRoutineを終了"
 
-#: psychopy/experiment/components/joystick/__init__.py:28
-#: psychopy/experiment/components/mouse/__init__.py:26
+#: psychopy/experiment/components/joystick/__init__.py:24
+#: psychopy/experiment/components/mouse/__init__.py:22
 msgid "Clickable stimuli"
 msgstr "クリック可能な視覚刺激"
 
-#: psychopy/experiment/components/joystick/__init__.py:29
-#: psychopy/experiment/components/mouse/__init__.py:27
+#: psychopy/experiment/components/joystick/__init__.py:25
+#: psychopy/experiment/components/mouse/__init__.py:23
 msgid "Store params for clicked"
 msgstr "クリック時に保存するパラメータ"
 
-#: psychopy/experiment/components/joystick/__init__.py:31
+#: psychopy/experiment/components/joystick/__init__.py:27
 msgid "Allowed Buttons"
 msgstr "検出するボタン"
 
-#: psychopy/experiment/components/joystick/__init__.py:63
+#: psychopy/experiment/components/joystick/__init__.py:37
+msgid "Joystick: query joystick position and buttons"
+msgstr "Joystick: ジョイスティックのレバーとボタンの状態を取得します"
+
+#: psychopy/experiment/components/joystick/__init__.py:62
 msgid ""
 "How often should the joystick state (x,y,buttons) be stored? On every video "
 "frame, every click or just at the end of the Routine?"
 msgstr "ジョイスティックの状態を保存するタイミングを指定します"
 
-#: psychopy/experiment/components/joystick/__init__.py:72
-#: psychopy/experiment/components/mouse/__init__.py:71
+#: psychopy/experiment/components/joystick/__init__.py:71
+#: psychopy/experiment/components/mouse/__init__.py:68
 msgid "Should a button press force the end of the routine (e.g end the trial)?"
 msgstr "ボタン押しを検出すると強制的にRoutineを終了します"
 
-#: psychopy/experiment/components/joystick/__init__.py:85
+#: psychopy/experiment/components/joystick/__init__.py:84
 msgid "What should the values of joystick.time should be relative to?"
 msgstr ""
 "ジョイスティックの時計の開始時刻を実験開始時にするかRoutine開始時にするか指定"
 "します"
 
-#: psychopy/experiment/components/joystick/__init__.py:94
-#: psychopy/experiment/components/mouse/__init__.py:103
+#: psychopy/experiment/components/joystick/__init__.py:93
+#: psychopy/experiment/components/mouse/__init__.py:100
 msgid ""
 "A comma-separated list of your stimulus names that can be \"clicked\" by the "
 "participant. e.g. target, foil"
@@ -4761,7 +4765,7 @@ msgstr ""
 "クリックの判定対象となる刺激名(例: target, foil)をカンマ区切りのリストで指定"
 "します"
 
-#: psychopy/experiment/components/joystick/__init__.py:104
+#: psychopy/experiment/components/joystick/__init__.py:103
 msgid ""
 "The params (e.g. name, text), for which you want to store the current value, "
 "for the stimulus that was\"clicked\" by the joystick. Make sure that all the "
@@ -4771,91 +4775,145 @@ msgstr ""
 "値を保存したいものの名前を指定します すべてのクリック可能な刺激がここに挙げた"
 "パラメータを全て持っていなければいけません."
 
-#: psychopy/experiment/components/joystick/__init__.py:124
+#: psychopy/experiment/components/joystick/__init__.py:123
 msgid "Buttons to be read (blank for any) numbers separated by commas"
 msgstr "読み取るボタンの番号をカンマ区切りで並べます (空白ならすべてのキー)"
 
-#: psychopy/experiment/components/keyboard/__init__.py:30
-msgid "Keyboard: check and record keypresses"
-msgstr "Keyboard: キーボードのキー押しをチェックし記録します"
-
-#: psychopy/experiment/components/keyboard/__init__.py:33
+#: psychopy/experiment/components/keyboard/__init__.py:29
 msgid "Allowed keys"
 msgstr "検出するキー"
 
-#: psychopy/experiment/components/keyboard/__init__.py:34
+#: psychopy/experiment/components/keyboard/__init__.py:30
 msgid "Discard previous"
 msgstr "開始前のキー押しを破棄"
 
-#: psychopy/experiment/components/keyboard/__init__.py:39
+#: psychopy/experiment/components/keyboard/__init__.py:35
 msgid "Sync timing with screen"
 msgstr "時間計測をスクリーンに同期"
 
-#: psychopy/experiment/components/keyboard/__init__.py:74
+#: psychopy/experiment/components/keyboard/__init__.py:44
+msgid "Keyboard: check and record keypresses"
+msgstr "Keyboard: キーボードのキー押しをチェックし記録します"
+
+#: psychopy/experiment/components/keyboard/__init__.py:72
 msgid ""
 "A comma-separated list of keys (with quotes), such as "
 "'q','right','space','left'"
 msgstr ""
 "カンマ区切りのキー名のリスト(引用符が必要), 例: 'q','right','space','left'"
 
-#: psychopy/experiment/components/keyboard/__init__.py:86
+#: psychopy/experiment/components/keyboard/__init__.py:84
 msgid ""
 "Do you want to discard all responses occuring before the onset of this "
 "component?"
 msgstr "計測開始前のすべてのキー押しを破棄します"
 
-#: psychopy/experiment/components/microphone/__init__.py:21
+#: psychopy/experiment/components/microphone/__init__.py:22
+msgid "Stereo"
+msgstr "ステレオ"
+
+#: psychopy/experiment/components/microphone/__init__.py:23
+msgid "Channel"
+msgstr "チャネル"
+
+#: psychopy/experiment/components/microphone/__init__.py:38
 msgid ""
 "Microphone: basic sound capture (fixed onset & duration), okay for spoken "
 "words"
 msgstr "Microphone: 録音を行います(開始時刻と録音時間は固定)"
 
-#: psychopy/experiment/components/microphone/__init__.py:24
-msgid "Stereo"
-msgstr "ステレオ"
-
-#: psychopy/experiment/components/microphone/__init__.py:25
-msgid "Channel"
-msgstr "チャネル"
-
-#: psychopy/experiment/components/microphone/__init__.py:51
-msgid "Record two channels (stereo) or one (mono, smaller file)"
-msgstr ""
-"チェックするとステレオ録音, チェックを外すとモノラル録音(ファイルサイズ小)を"
-"します"
-
-#: psychopy/experiment/components/microphone/__init__.py:60
+#: psychopy/experiment/components/microphone/__init__.py:64
 msgid "The duration of the recording in seconds; blank = 0 sec"
 msgstr "録音時間を秒で指定します(空白は0秒)"
 
-#: psychopy/experiment/components/microphone/__init__.py:63
+#: psychopy/experiment/components/microphone/__init__.py:68
 msgid ""
-"Enter a channel number. Default value is 0. If unsure, run 'sound.backend."
-"get_input_devices()' to locate the system's selected device/channel."
+"What microphone device would you like the use to record? This will only "
+"affect local experiments - online experiments ask the participant which mic "
+"to use."
 msgstr ""
-"チャネル番号を指定します. 初期値は0です. わからない場合はsound.backend."
-"get_input_devices()を実行して選択されているデバイスとチャネルを確認してくださ"
-"い."
+"録音に使用するマイクデバイスを選択します. この設定はローカルPCで時効する実験"
+"にのみ有効です. オンライン実験では参加者がどのマイクを使うか選択します."
 
-#: psychopy/experiment/components/mouse/__init__.py:20
-msgid "Mouse: query mouse position and buttons"
-msgstr "Mouse: マウスの位置とボタンの状態を取得します"
+#: psychopy/experiment/components/microphone/__init__.py:74
+msgid "Device"
+msgstr "デバイス"
 
-#: psychopy/experiment/components/mouse/__init__.py:23
+#: psychopy/experiment/components/microphone/__init__.py:78
+msgid ""
+"Record two channels (stereo) or one (mono, smaller file). Select 'auto' to "
+"use as many channels as the selected device allows."
+msgstr ""
+"ステレオ録音(2チャネル)かモノラル録音(1チャネル)かを指定します. 選択したデバ"
+"イスでサポートされる最大のチャネル数で録音する場合はautoを指定します."
+
+#: psychopy/experiment/components/microphone/__init__.py:87
+msgid "Channels"
+msgstr "チャネル"
+
+#: psychopy/experiment/components/microphone/__init__.py:90
+msgid "How many samples per second (Hz) to record at"
+msgstr "録音のサンプリングレート(Hz)を指定します"
+
+#: psychopy/experiment/components/microphone/__init__.py:95
+msgid "Sample Rate (Hz)"
+msgstr "サンプリングレート(Hz)"
+
+#: psychopy/experiment/components/microphone/__init__.py:98
+msgid ""
+"To avoid excessively large output files, what is the biggest file size you "
+"are likely to expect?"
+msgstr ""
+"過度に大きなファイルが作成されないように、録音ファイルサイズの上限を指定して"
+"ください"
+
+#: psychopy/experiment/components/microphone/__init__.py:102
+msgid "Max Recording Size (kb)"
+msgstr "最大録音データサイズ(kb)"
+
+#: psychopy/experiment/components/microphone/__init__.py:105
+msgid "What file type should output audio files be saved as?"
+msgstr "録音ファイルの保存形式を指定してください"
+
+#: psychopy/experiment/components/microphone/__init__.py:110
+msgid "Output File Type"
+msgstr "出力ファイル形式"
+
+#: psychopy/experiment/components/microphone/__init__.py:114
+msgid "Tick this to save times when the participant starts and stops speaking"
+msgstr "参加者の発話開始と発話終了の時刻を記録する場合はチェックします"
+
+#: psychopy/experiment/components/microphone/__init__.py:118
+msgid "Speaking Start / Stop Times"
+msgstr "発話開始/終了時刻の記録"
+
+#: psychopy/experiment/components/microphone/__init__.py:122
+msgid "Trim periods of silence from the output file"
+msgstr "出力ファイルから無音の期間をトリムします"
+
+#: psychopy/experiment/components/microphone/__init__.py:126
+msgid "Trim Silent"
+msgstr "無音期間のトリム"
+
+#: psychopy/experiment/components/mouse/__init__.py:19
 msgid "Save mouse state"
 msgstr "マウスの状態を保存"
 
-#: psychopy/experiment/components/mouse/__init__.py:28
+#: psychopy/experiment/components/mouse/__init__.py:24
 msgid "New clicks only"
 msgstr "新たなクリックのみ検出"
 
-#: psychopy/experiment/components/mouse/__init__.py:62
+#: psychopy/experiment/components/mouse/__init__.py:34
+msgid "Mouse: query mouse position and buttons"
+msgstr "Mouse: マウスの位置とボタンの状態を取得します"
+
+#: psychopy/experiment/components/mouse/__init__.py:59
 msgid ""
 "How often should the mouse state (x,y,buttons) be stored? On every video "
 "frame, every click or just at the end of the Routine?"
 msgstr "マウスの状態を保存するタイミングを指定します"
 
-#: psychopy/experiment/components/mouse/__init__.py:94
+#: psychopy/experiment/components/mouse/__init__.py:91
 msgid ""
 "If the mouse button is already down when we start checking then wait for it "
 "to be released before recording as a new click."
@@ -4863,7 +4921,7 @@ msgstr ""
 "ボタン押し検出開始時にすでにボタンが押されていた場合, ボタンがいったん離され"
 "てからボタン押しのチェックを開始します."
 
-#: psychopy/experiment/components/mouse/__init__.py:113
+#: psychopy/experiment/components/mouse/__init__.py:110
 msgid ""
 "The params (e.g. name, text), for which you want to store the current value, "
 "for the stimulus that was\"clicked\" by the mouse. Make sure that all the "
@@ -4873,24 +4931,24 @@ msgstr ""
 "値を保存したいものの名前を指定します すべてのクリック可能な刺激がここに挙げた"
 "パラメータを全て持っていなければいけません."
 
-#: psychopy/experiment/components/movie/__init__.py:20
-msgid "Movie: play movie files"
-msgstr "Movie: 動画ファイルを再生します"
-
-#: psychopy/experiment/components/movie/__init__.py:23
+#: psychopy/experiment/components/movie/__init__.py:19
 msgid "Movie file"
 msgstr "動画ファイル"
 
-#: psychopy/experiment/components/movie/__init__.py:25
+#: psychopy/experiment/components/movie/__init__.py:21
 msgid "backend"
 msgstr "バックエンド"
 
-#: psychopy/experiment/components/movie/__init__.py:26
+#: psychopy/experiment/components/movie/__init__.py:22
 msgid "No audio"
 msgstr "音声無し"
 
+#: psychopy/experiment/components/movie/__init__.py:33
+msgid "Movie: play movie files"
+msgstr "Movie: 動画ファイルを再生します"
+
 #: psychopy/experiment/components/movie/__init__.py:60
-#: psychopy/experiment/components/sound/__init__.py:55
+#: psychopy/experiment/components/sound/__init__.py:54
 msgid "When does the component end? (blank to use the duration of the media)"
 msgstr "終了時刻を指定します (空白の場合はメディアの終了まで)"
 
@@ -4922,95 +4980,95 @@ msgstr "動画が終了した時に最初に戻って再生するか否かを指
 msgid "Loop playback"
 msgstr "ループ再生"
 
-#: psychopy/experiment/components/noise/__init__.py:19
-msgid ""
-"Noise stimuli: generates a range of different types of random visual patterns"
-msgstr "Noise stimuli: 様々な異なる種類のランダムパターンの刺激を生成します"
-
-#: psychopy/experiment/components/noise/__init__.py:22
+#: psychopy/experiment/components/noise/__init__.py:18
 msgid "Image from which to derive noise spectrum"
 msgstr "スペクトルを取得する画像"
 
-#: psychopy/experiment/components/noise/__init__.py:24
+#: psychopy/experiment/components/noise/__init__.py:20
 msgid "Final spatial frequency"
 msgstr "最終的な空間周波数"
 
-#: psychopy/experiment/components/noise/__init__.py:26
+#: psychopy/experiment/components/noise/__init__.py:22
 #: psychopy/localization/__init__.py:174
 msgid "Contrast"
 msgstr "コントラスト"
 
-#: psychopy/experiment/components/noise/__init__.py:29
+#: psychopy/experiment/components/noise/__init__.py:25
 msgid "Type of noise"
 msgstr "ノイズの種類"
 
-#: psychopy/experiment/components/noise/__init__.py:30
+#: psychopy/experiment/components/noise/__init__.py:26
 msgid "Noise element size"
 msgstr "ノイズ要素の大きさ"
 
-#: psychopy/experiment/components/noise/__init__.py:31
+#: psychopy/experiment/components/noise/__init__.py:27
 msgid "Skew in frequency spectrum"
 msgstr "周波数スペクトルの歪度"
 
-#: psychopy/experiment/components/noise/__init__.py:32
+#: psychopy/experiment/components/noise/__init__.py:28
 msgid "Base spatial frequency"
 msgstr "ベースの空間周波数"
 
-#: psychopy/experiment/components/noise/__init__.py:33
+#: psychopy/experiment/components/noise/__init__.py:29
 msgid "Spatial frequency bandwidth"
 msgstr "空間周波数の帯域幅"
 
-#: psychopy/experiment/components/noise/__init__.py:34
+#: psychopy/experiment/components/noise/__init__.py:30
 msgid "Orientation bandwidth for Gabor noise"
 msgstr "Gaborノイズの方位帯域"
 
-#: psychopy/experiment/components/noise/__init__.py:35
+#: psychopy/experiment/components/noise/__init__.py:31
 msgid "Orientation for Gabor filter"
 msgstr "Gaborフィルタの方向"
 
-#: psychopy/experiment/components/noise/__init__.py:36
+#: psychopy/experiment/components/noise/__init__.py:32
 msgid "Order of filter"
 msgstr "フィルタの次元"
 
-#: psychopy/experiment/components/noise/__init__.py:37
+#: psychopy/experiment/components/noise/__init__.py:33
 msgid "Upper cut off frequency"
 msgstr "遮断周波数(高周波数側)"
 
-#: psychopy/experiment/components/noise/__init__.py:38
+#: psychopy/experiment/components/noise/__init__.py:34
 msgid "Lower cut off frequency"
 msgstr "遮断周波数"
 
-#: psychopy/experiment/components/noise/__init__.py:39
+#: psychopy/experiment/components/noise/__init__.py:35
 msgid "Number of standard deviations at which to clip noise"
 msgstr "ノイズクリッピングのための標準偏差"
 
-#: psychopy/experiment/components/noise/__init__.py:40
+#: psychopy/experiment/components/noise/__init__.py:36
 msgid "Apply filter to noise sample"
 msgstr "ノイズサンプルへ適用するフィルタ"
 
-#: psychopy/experiment/components/noise/__init__.py:41
+#: psychopy/experiment/components/noise/__init__.py:37
 msgid "Radomize image component"
 msgstr "画像のランダム化"
 
-#: psychopy/experiment/components/noise/__init__.py:42
+#: psychopy/experiment/components/noise/__init__.py:38
 msgid "How to update noise sample"
 msgstr "ノイズサンプルの更新方法"
 
-#: psychopy/experiment/components/noise/__init__.py:43
+#: psychopy/experiment/components/noise/__init__.py:39
 msgid "When to update noise sample"
 msgstr "ノイズサンプルの更新タイミング"
 
-#: psychopy/experiment/components/noise/__init__.py:86
+#: psychopy/experiment/components/noise/__init__.py:49
+msgid ""
+"Noise stimuli: generates a range of different types of random visual patterns"
+msgstr "Noise stimuli: 様々な異なる種類のランダムパターンの刺激を生成します"
+
+#: psychopy/experiment/components/noise/__init__.py:87
 msgid ""
 "An image from which to derive the frequency spectrum for the noise. Give "
 "filename (including path)"
 msgstr "周波数スペクトルを得るために使用する画像のファイル名を指定します"
 
-#: psychopy/experiment/components/noise/__init__.py:103
+#: psychopy/experiment/components/noise/__init__.py:104
 msgid "Michaelson contrast of the image"
 msgstr "画像のマイケルソンコントラスト"
 
-#: psychopy/experiment/components/noise/__init__.py:111
+#: psychopy/experiment/components/noise/__init__.py:112
 msgid ""
 "Final spatial frequency of image in 1 or 2 dimensions, e.g. 4 or [2,3]. Use "
 "None to set to 1 copy of noise per unit length of image or 1 copy of noise "
@@ -5023,12 +5081,12 @@ msgstr ""
 "Noneに設定します. sizeを刺激のサイズに等しい値として, 1/size(または[1/size, "
 "1/size])に設定すると, 刺激の単位に関わらず1回の繰り返しのノイズが得られます."
 
-#: psychopy/experiment/components/noise/__init__.py:124
+#: psychopy/experiment/components/noise/__init__.py:125
 msgid ""
 "Spatial positioning of the noise within the stimulus (wraps in range 0-1.0)"
 msgstr "ノイズの位相を指定します (0.0から1.0の範囲に丸められます)"
 
-#: psychopy/experiment/components/noise/__init__.py:151
+#: psychopy/experiment/components/noise/__init__.py:152
 msgid ""
 "Type of noise (Binary, Normal, Gabor, Isotropic, White, Coloured, Filtered, "
 "Image)"
@@ -5036,7 +5094,7 @@ msgstr ""
 "ノイズの種類 (Binary, Normal, Gabor, Isotropic, White, Coloured, Filtered, "
 "Image)"
 
-#: psychopy/experiment/components/noise/__init__.py:160
+#: psychopy/experiment/components/noise/__init__.py:161
 msgid ""
 "Apply filter to noise sample? [Butterworth, Gabor, Isoptopic]. A filter with "
 "parameters taken from the either the Filtered (Butterworth) or Gabor/"
@@ -5049,7 +5107,7 @@ msgstr ""
 "ズの種類とフィルタの種類として同じものが指定されると, ホワイトノイズに対して"
 "一回だけフィルタが適用されます)."
 
-#: psychopy/experiment/components/noise/__init__.py:173
+#: psychopy/experiment/components/noise/__init__.py:174
 msgid ""
 "Which image component should be randomised? [Amplitude,Phase]. Randomizing "
 "amplitude will keep the phase spectrum of the image but set the amplitude "
@@ -5064,7 +5122,7 @@ msgstr ""
 "トルを保ったまま位相スペクトルをラジアンで[-pi...pi]の範囲でランダム化しま"
 "す. 明瞭な構造がないノイズ画像となります."
 
-#: psychopy/experiment/components/noise/__init__.py:186
+#: psychopy/experiment/components/noise/__init__.py:187
 msgid ""
 "(Binary, Normal and Uniform only) Size of noise elements in the stimulus "
 "units, for pixelated noise."
@@ -5072,7 +5130,7 @@ msgstr ""
 "ノイズ要素のサイズを刺激の単位で指定 (ノイズの種類がBinary, Normal an Uniform"
 "の場合のみ)"
 
-#: psychopy/experiment/components/noise/__init__.py:194
+#: psychopy/experiment/components/noise/__init__.py:195
 msgid ""
 "Base spatial frequency in cycles per unit length If units = pix this value "
 "should be < 0.5."
@@ -5080,15 +5138,15 @@ msgstr ""
 "ベース空間周波数を単位幅(単位がdegなら1deg)におけるサイクル数で指定します. 単"
 "位がpixの場合はこの値は0.5未満にすべきです."
 
-#: psychopy/experiment/components/noise/__init__.py:203
+#: psychopy/experiment/components/noise/__init__.py:204
 msgid "Spatial frequency bandwidth in octaves - Full width half height"
 msgstr "空間周波数帯域をオクターブで指定します (半値幅)"
 
-#: psychopy/experiment/components/noise/__init__.py:211
+#: psychopy/experiment/components/noise/__init__.py:212
 msgid "Orientation bandwidth in degrees (Gabor only) - Full width half height"
 msgstr "方位の帯域幅を角度で指定します (半値幅, Gaborのみ)"
 
-#: psychopy/experiment/components/noise/__init__.py:219
+#: psychopy/experiment/components/noise/__init__.py:220
 msgid ""
 "Orientation of Gabor filter in degrees. Used to set the orienation of a "
 "Gabor filter to be applied to another noise sample with a different overall "
@@ -5105,7 +5163,7 @@ msgstr ""
 "なるのを避けるために「高度」タブの「補完」を「一次」にすることを強く推奨しま"
 "す."
 
-#: psychopy/experiment/components/noise/__init__.py:234
+#: psychopy/experiment/components/noise/__init__.py:235
 msgid ""
 "Exponent for the slope of the filter's amplitude spectrum (A=f^Exponent). 0 "
 "= flat, -1 = slope of 1/f. When used on its own the 'filtered' noise type "
@@ -5122,11 +5180,11 @@ msgstr ""
 "合, この項目は元のスペクトルにフィルタの曲線を周波数空間上で乗算します. スペ"
 "クトルを強制的に特定の曲線にしてしまうことはありません."
 
-#: psychopy/experiment/components/noise/__init__.py:247
+#: psychopy/experiment/components/noise/__init__.py:248
 msgid "Order of filter - higher = steeper fall off, zero = no filter"
 msgstr "フィルタの次数 高次元なほど急峻となり,ゼロならフィルタなしとなります"
 
-#: psychopy/experiment/components/noise/__init__.py:255
+#: psychopy/experiment/components/noise/__init__.py:256
 msgid ""
 "Upper cutoff frequency in cycles per unit length. Set very high to avoid an "
 "upper cutoff and make a high pass filter."
@@ -5134,7 +5192,7 @@ msgstr ""
 "高周波数側の遮断周波数を単位幅におけるサイクル数で指定します. ハイパスフィル"
 "タにするには0を設定します."
 
-#: psychopy/experiment/components/noise/__init__.py:264
+#: psychopy/experiment/components/noise/__init__.py:265
 msgid ""
 "Lower cutoff frequency in cycles per unit length. Set to zero to avoid a "
 "lower cuttoff and make a low pass filter."
@@ -5142,7 +5200,7 @@ msgstr ""
 "低周波数側の遮断周波数を単位幅におけるサイクル数で指定します. ローパスフィル"
 "タにするには0を設定します."
 
-#: psychopy/experiment/components/noise/__init__.py:273
+#: psychopy/experiment/components/noise/__init__.py:274
 msgid ""
 "Truncate high and low values beyond stated standard deviations from mean and "
 "rescale greyscale range. This is not used at all for 'binary' or 'uniform' "
@@ -5156,13 +5214,13 @@ msgstr ""
 "ケーリングされます) この値を高くするほど最終的なRMSコントラストは低下します "
 "値を低くするとbinaryノイズのような見た目になります."
 
-#: psychopy/experiment/components/noise/__init__.py:284
+#: psychopy/experiment/components/noise/__init__.py:285
 msgid ""
 "How to update noise if not otherwise required by other changes (none, "
 "repeat, N-frames, Seconds)"
 msgstr "自動的なノイズ更新の方法(None, repeat, N-frames, Seconds)"
 
-#: psychopy/experiment/components/noise/__init__.py:292
+#: psychopy/experiment/components/noise/__init__.py:293
 msgid ""
 "How often to update noise (in frames or seconds) - can be a variable, "
 "ignored if any noise characteristic is updating on every frame"
@@ -5170,7 +5228,7 @@ msgstr ""
 "ノイズ更新の頻度(フレーム数または秒) フレーム毎にノイズ特性が更新される場合は"
 "無視されます"
 
-#: psychopy/experiment/components/noise/__init__.py:300
+#: psychopy/experiment/components/noise/__init__.py:301
 msgid ""
 "OpenGL Blendmode [avg, add (avg is most common mode in PsychoPy, add is used "
 "if you want to generate the sum of two components)]"
@@ -5178,118 +5236,132 @@ msgstr ""
 "OpenGLのブレンドモードを指定します. avgはPsychoPyの標準モードです. addは複数"
 "の成分を合成したい場合に便利です."
 
-#: psychopy/experiment/components/parallelOut/__init__.py:20
-msgid "Parallel out: send signals from the parallel port"
-msgstr "Parallel out: パラレルポートからシグナルを送信します"
-
-#: psychopy/experiment/components/parallelOut/__init__.py:23
+#: psychopy/experiment/components/parallelOut/__init__.py:19
 msgid "Port address"
 msgstr "ポートアドレス"
 
-#: psychopy/experiment/components/parallelOut/__init__.py:24
+#: psychopy/experiment/components/parallelOut/__init__.py:20
 msgid "Start data"
 msgstr "開始時データ"
 
-#: psychopy/experiment/components/parallelOut/__init__.py:25
+#: psychopy/experiment/components/parallelOut/__init__.py:21
 msgid "Stop data"
 msgstr "終了時データ"
 
-#: psychopy/experiment/components/parallelOut/__init__.py:26
-#: psychopy/experiment/components/pump/__init__.py:29
+#: psychopy/experiment/components/parallelOut/__init__.py:22
+#: psychopy/experiment/components/pump/__init__.py:24
 msgid "Sync to screen"
 msgstr "スクリーンに同期"
 
-#: psychopy/experiment/components/parallelOut/__init__.py:61
+#: psychopy/experiment/components/parallelOut/__init__.py:31
+msgid "Parallel out: send signals from the parallel port"
+msgstr "Parallel out: パラレルポートからシグナルを送信します"
+
+#: psychopy/experiment/components/parallelOut/__init__.py:60
 msgid ""
 "Parallel port to be used (you can change these options in "
 "preferences>general)"
 msgstr "使用するパラレルポート (選択肢はPsychoPyの設定の「一般」から変更可能)"
 
-#: psychopy/experiment/components/parallelOut/__init__.py:70
+#: psychopy/experiment/components/parallelOut/__init__.py:69
 msgid "Data to be sent at 'start'"
 msgstr "開始時に送信するデータを指定します"
 
-#: psychopy/experiment/components/parallelOut/__init__.py:75
+#: psychopy/experiment/components/parallelOut/__init__.py:74
 msgid "Data to be sent at 'end'"
 msgstr "終了時に送信するデータを指定します"
 
-#: psychopy/experiment/components/parallelOut/__init__.py:78
+#: psychopy/experiment/components/parallelOut/__init__.py:77
 msgid ""
 "If the parallel port data relates to visual stimuli then sync its pulse to "
 "the screen refresh"
 msgstr "パラレルポートのシグナルをスクリーンの描画と同期させます"
 
-#: psychopy/experiment/components/patch/__init__.py:18
+#: psychopy/experiment/components/patch/__init__.py:17
+msgid "Image/tex"
+msgstr "画像/テクスチャ"
+
+#: psychopy/experiment/components/patch/__init__.py:31
 msgid "Patch: present images (bmp, jpg, tif...) or textures like gratings"
 msgstr ""
 "Patch: 画像ファイル(bmp, jpg, tif...)やグレーティング等のテクスチャを描画しま"
 "す"
 
-#: psychopy/experiment/components/patch/__init__.py:22
-msgid "Image/tex"
-msgstr "画像/テクスチャ"
-
-#: psychopy/experiment/components/patch/__init__.py:52
+#: psychopy/experiment/components/patch/__init__.py:53
 msgid ""
 "The image to be displayed - 'sin','sqr'... or a filename (including path)"
 msgstr ""
 "グレーティングのテクスチャを指定します(sin, sqr, ... パスを含むファイル名な"
 "ど)."
 
-#: psychopy/experiment/components/patch/__init__.py:70
+#: psychopy/experiment/components/patch/__init__.py:71
 msgid "Spatial frequency of image repeats across the patch, e.g. 4 or [2,3]"
 msgstr ""
 "グレーティングの空間周波数(テクスチャが繰り返される回数)を指定します. 1次元ま"
 "たは2次元の値を指定できます."
 
-#: psychopy/experiment/components/patch/__init__.py:80
+#: psychopy/experiment/components/patch/__init__.py:81
 msgid "Spatial positioning of the image on the patch (in range 0-1.0)"
 msgstr "パッチの位相を指定します (0.0から1.0の範囲に丸められます)"
 
-#: psychopy/experiment/components/polygon/__init__.py:21
-msgid "Polygon: any regular polygon (line, triangle, square...circle)"
-msgstr "Polygon: 正多角形を描画します(直線, 三角形, 正方形,...円)"
-
-#: psychopy/experiment/components/polygon/__init__.py:26
+#: psychopy/experiment/components/polygon/__init__.py:22
 msgid "Num. vertices"
 msgstr "頂点数"
 
-#: psychopy/experiment/components/polygon/__init__.py:27
+#: psychopy/experiment/components/polygon/__init__.py:23
 msgid "Fill color"
 msgstr "塗りつぶしの色"
 
-#: psychopy/experiment/components/polygon/__init__.py:28
+#: psychopy/experiment/components/polygon/__init__.py:24
 msgid "Line color"
 msgstr "枠線の色"
 
-#: psychopy/experiment/components/polygon/__init__.py:29
+#: psychopy/experiment/components/polygon/__init__.py:25
 msgid "Line width"
 msgstr "枠線の幅"
 
-#: psychopy/experiment/components/polygon/__init__.py:31
+#: psychopy/experiment/components/polygon/__init__.py:27
 #: psychopy/localization/__init__.py:178
 msgid "Size [w,h]"
 msgstr "サイズ [w,h]"
 
-#: psychopy/experiment/components/polygon/__init__.py:32
+#: psychopy/experiment/components/polygon/__init__.py:28
 msgid "Shape"
 msgstr "形状"
 
-#: psychopy/experiment/components/polygon/__init__.py:72
+#: psychopy/experiment/components/polygon/__init__.py:37
+msgid "Polygon: any regular polygon (line, triangle, square...circle)"
+msgstr "Polygon: 正多角形を描画します(直線, 三角形, 正方形,...円)"
+
+#: psychopy/experiment/components/polygon/__init__.py:73
 msgid "How many vertices in your regular polygon?"
 msgstr "正多角形の頂点数を指定します"
 
-#: psychopy/experiment/components/polygon/__init__.py:80
+#: psychopy/experiment/components/polygon/__init__.py:81
 msgid ""
-"What shape is this? With 'regular polygon...' you can set number of vertices"
-msgstr "形状を選択します regular polygonを選んだ場合は頂点数を指定できます"
+"What are the vertices of your polygon? Should be an nx2 array or a list of "
+"[x, y] lists"
+msgstr ""
+"ポリゴンの頂点をn行2列のarrayオブジェクトまたは[x, y]座標のリストで指定します"
 
-#: psychopy/experiment/components/polygon/__init__.py:94
+#: psychopy/experiment/components/polygon/__init__.py:87
+msgid "Vertices"
+msgstr "頂点"
+
+#: psychopy/experiment/components/polygon/__init__.py:90
+msgid ""
+"What shape is this? With 'regular polygon...' you can set number of vertices "
+"and with 'custom polygon...' you can set vertices"
+msgstr ""
+"形状を選択します 「正多角形...」を選んだ場合は頂点数を指定できます. 「カスタ"
+"ムポリゴン...」を選んだ場合は頂点を指定できます"
+
+#: psychopy/experiment/components/polygon/__init__.py:105
 msgid ""
 "Width of the shape's line (always in pixels - this does NOT use 'units')"
 msgstr "枠線の幅を指定します (単位の設定に関わらずpixで指定)"
 
-#: psychopy/experiment/components/polygon/__init__.py:113
+#: psychopy/experiment/components/polygon/__init__.py:124
 msgid ""
 "Size of this stimulus [w,h]. Note that for a line only the first value is "
 "used, for triangle and rect the [w,h] is as expected,\n"
@@ -5300,133 +5372,133 @@ msgstr ""
 "三角形と正方形の場合は刺激の幅と高さに, 五角形以上の多角形の場合は多角形に外"
 "接する楕円の幅と高さに対応します "
 
-#: psychopy/experiment/components/pump/__init__.py:21
-msgid "Pump: deliver liquid stimuli via a Cetoni neMESYS syringe pump"
-msgstr "Pump: Cetoni neMESYSシリンジポンプで液体刺激を使用します"
-
-#: psychopy/experiment/components/pump/__init__.py:23
+#: psychopy/experiment/components/pump/__init__.py:18
 msgid "Pump index"
 msgstr "ポンプのインデックス"
 
-#: psychopy/experiment/components/pump/__init__.py:24
+#: psychopy/experiment/components/pump/__init__.py:19
 msgid "Syringe type"
 msgstr "シリンジの種類"
 
-#: psychopy/experiment/components/pump/__init__.py:25
+#: psychopy/experiment/components/pump/__init__.py:20
 msgid "Pump action"
 msgstr "ポンプの動作"
 
-#: psychopy/experiment/components/pump/__init__.py:26
+#: psychopy/experiment/components/pump/__init__.py:21
 msgid "Flow rate"
 msgstr "流量"
 
-#: psychopy/experiment/components/pump/__init__.py:27
+#: psychopy/experiment/components/pump/__init__.py:22
 msgid "Flow rate unit"
 msgstr "流量の単位"
 
-#: psychopy/experiment/components/pump/__init__.py:28
+#: psychopy/experiment/components/pump/__init__.py:23
 msgid "Switch valve after dosing"
 msgstr "投与後のバルブ切り替え"
 
-#: psychopy/experiment/components/pump/__init__.py:70
+#: psychopy/experiment/components/pump/__init__.py:32
+msgid "Pump: deliver liquid stimuli via a Cetoni neMESYS syringe pump"
+msgstr "Pump: Cetoni neMESYSシリンジポンプで液体刺激を使用します"
+
+#: psychopy/experiment/components/pump/__init__.py:67
 msgid "The index of the pump(s) (first pump is 0)."
 msgstr "ポンプのインデックス(最初のものが0)"
 
-#: psychopy/experiment/components/pump/__init__.py:77
+#: psychopy/experiment/components/pump/__init__.py:74
 msgid "Syringe type and dimensions"
 msgstr "シリンジのタイプと寸法"
 
-#: psychopy/experiment/components/pump/__init__.py:84
+#: psychopy/experiment/components/pump/__init__.py:81
 msgid "Whether the syringe should be filled (aspirate) or emptied (dispense"
 msgstr "シリンジで吸引(aspirate)するか吐出(dispense)するかを指定します"
 
-#: psychopy/experiment/components/pump/__init__.py:104
+#: psychopy/experiment/components/pump/__init__.py:101
 msgid "Switch the valve after pump operation"
 msgstr "ポンプの操作後にバルブを切り替える"
 
-#: psychopy/experiment/components/pump/__init__.py:110
+#: psychopy/experiment/components/pump/__init__.py:107
 msgid "Sync pump onset to the screen refresh"
 msgstr "ポンプの動作開始をスクリーンに同期"
 
-#: psychopy/experiment/components/ratingScale/__init__.py:24
-msgid "Rating scale: obtain numerical or categorical responses"
-msgstr "Rating scale: 量的あるいはカテゴリカルな反応を計測します"
-
-#: psychopy/experiment/components/ratingScale/__init__.py:28
+#: psychopy/experiment/components/ratingScale/__init__.py:23
 msgid "Visual analog scale"
 msgstr "アナログ尺度"
 
-#: psychopy/experiment/components/ratingScale/__init__.py:29
-#: psychopy/experiment/components/slider/__init__.py:30
+#: psychopy/experiment/components/ratingScale/__init__.py:24
+#: psychopy/experiment/components/slider/__init__.py:26
 msgid "Category choices"
 msgstr "カテゴリカル尺度"
 
-#: psychopy/experiment/components/ratingScale/__init__.py:30
+#: psychopy/experiment/components/ratingScale/__init__.py:25
 msgid "Scale description"
 msgstr "尺度の説明"
 
-#: psychopy/experiment/components/ratingScale/__init__.py:31
+#: psychopy/experiment/components/ratingScale/__init__.py:26
 msgid "Lowest value"
 msgstr "最小値"
 
-#: psychopy/experiment/components/ratingScale/__init__.py:32
+#: psychopy/experiment/components/ratingScale/__init__.py:27
 msgid "Highest value"
 msgstr "最大値"
 
-#: psychopy/experiment/components/ratingScale/__init__.py:33
-#: psychopy/experiment/components/slider/__init__.py:31
+#: psychopy/experiment/components/ratingScale/__init__.py:28
+#: psychopy/experiment/components/slider/__init__.py:27
 msgid "Labels"
 msgstr "ラベル"
 
-#: psychopy/experiment/components/ratingScale/__init__.py:34
+#: psychopy/experiment/components/ratingScale/__init__.py:29
 msgid "Marker type"
 msgstr "マーカーの種類"
 
-#: psychopy/experiment/components/ratingScale/__init__.py:35
+#: psychopy/experiment/components/ratingScale/__init__.py:30
 msgid "Marker start"
 msgstr "マーカーの初期位置"
 
-#: psychopy/experiment/components/ratingScale/__init__.py:37
+#: psychopy/experiment/components/ratingScale/__init__.py:32
 #: psychopy/localization/__init__.py:176
 msgid "Position [x,y]"
 msgstr "位置 [x,y]"
 
-#: psychopy/experiment/components/ratingScale/__init__.py:38
+#: psychopy/experiment/components/ratingScale/__init__.py:33
 msgid "Tick height"
 msgstr "目盛の高さ"
 
-#: psychopy/experiment/components/ratingScale/__init__.py:39
+#: psychopy/experiment/components/ratingScale/__init__.py:34
 msgid "Disappear"
 msgstr "消去"
 
-#: psychopy/experiment/components/ratingScale/__init__.py:41
+#: psychopy/experiment/components/ratingScale/__init__.py:36
 msgid "Show accept"
 msgstr "acceptボタンを表示"
 
-#: psychopy/experiment/components/ratingScale/__init__.py:42
+#: psychopy/experiment/components/ratingScale/__init__.py:37
 msgid "Single click"
 msgstr "直ちに確定"
 
-#: psychopy/experiment/components/ratingScale/__init__.py:43
-#: psychopy/experiment/components/slider/__init__.py:34
+#: psychopy/experiment/components/ratingScale/__init__.py:38
+#: psychopy/experiment/components/slider/__init__.py:30
 msgid "Store history"
 msgstr "履歴を記録"
 
-#: psychopy/experiment/components/ratingScale/__init__.py:44
-#: psychopy/experiment/components/slider/__init__.py:35
+#: psychopy/experiment/components/ratingScale/__init__.py:39
+#: psychopy/experiment/components/slider/__init__.py:31
 msgid "Store rating"
 msgstr "評定を記録"
 
-#: psychopy/experiment/components/ratingScale/__init__.py:45
-#: psychopy/experiment/components/slider/__init__.py:36
+#: psychopy/experiment/components/ratingScale/__init__.py:40
+#: psychopy/experiment/components/slider/__init__.py:32
 msgid "Store rating time"
 msgstr "反応時間を記録"
 
-#: psychopy/experiment/components/ratingScale/__init__.py:46
+#: psychopy/experiment/components/ratingScale/__init__.py:41
 msgid "Customize everything :"
 msgstr "全てをカスタマイズ:"
 
-#: psychopy/experiment/components/ratingScale/__init__.py:94
+#: psychopy/experiment/components/ratingScale/__init__.py:50
+msgid "Rating scale: obtain numerical or categorical responses"
+msgstr "Rating scale: 量的あるいはカテゴリカルな反応を計測します"
+
+#: psychopy/experiment/components/ratingScale/__init__.py:93
 msgid ""
 "Show a continuous visual analog scale; returns 0.00 to 1.00; takes "
 "precedence over numeric scale or categorical choices"
@@ -5434,7 +5506,7 @@ msgstr ""
 "0.0から1.0の値を返す連続的なアナログ尺度を表示しますl 数値やカテゴリー尺度の"
 "設定より優先されます"
 
-#: psychopy/experiment/components/ratingScale/__init__.py:101
+#: psychopy/experiment/components/ratingScale/__init__.py:100
 msgid ""
 "A list of categories (non-numeric alternatives) to present, space or comma-"
 "separated; these take precedence over a numeric scale"
@@ -5442,71 +5514,71 @@ msgstr ""
 "カテゴリカルな反応の選択肢のリストをスペースまたはカンマ区切りで指定します 数"
 "値尺度の設定より優先されます"
 
-#: psychopy/experiment/components/ratingScale/__init__.py:108
+#: psychopy/experiment/components/ratingScale/__init__.py:107
 msgid ""
 "Brief instructions, such as a description of the scale numbers as seen by "
 "the subject."
 msgstr "尺度番号のような短い教示を表示します."
 
-#: psychopy/experiment/components/ratingScale/__init__.py:114
+#: psychopy/experiment/components/ratingScale/__init__.py:113
 msgid "Lowest rating (low end of the scale); not used for categories."
 msgstr "尺度の最小値を指定します; カテゴリー尺度では無視されます."
 
-#: psychopy/experiment/components/ratingScale/__init__.py:120
+#: psychopy/experiment/components/ratingScale/__init__.py:119
 msgid "Highest rating (top end of the scale); not used for categories."
 msgstr "尺度の最大値を指定します; カテゴリー尺度では無視されます."
 
-#: psychopy/experiment/components/ratingScale/__init__.py:126
+#: psychopy/experiment/components/ratingScale/__init__.py:125
 msgid "Labels for the ends of the scale, separated by commas"
 msgstr "尺度の両端のラベルをカンマ区切りで指定します"
 
-#: psychopy/experiment/components/ratingScale/__init__.py:133
+#: psychopy/experiment/components/ratingScale/__init__.py:132
 msgid "Style for the marker: triangle, circle, glow, slider, hover"
 msgstr "マーカーの形状を指定します (triangle, circle, glow, slider, hover)"
 
-#: psychopy/experiment/components/ratingScale/__init__.py:139
+#: psychopy/experiment/components/ratingScale/__init__.py:138
 msgid "initial position for the marker"
 msgstr "マーカーの初期位置を指定します"
 
-#: psychopy/experiment/components/ratingScale/__init__.py:146
+#: psychopy/experiment/components/ratingScale/__init__.py:145
 msgid ""
 "Should clicking the line accept that rating (without needing to confirm via "
 "'accept')?"
 msgstr ""
 "尺度上を一度クリックすると反応を確定します(accept?を押す必要がありません)"
 
-#: psychopy/experiment/components/ratingScale/__init__.py:152
+#: psychopy/experiment/components/ratingScale/__init__.py:151
 msgid ""
 "Hide the scale when a rating has been accepted; False to remain on-screen"
 msgstr "反応が確定したらスクリーン上から隠します"
 
-#: psychopy/experiment/components/ratingScale/__init__.py:158
+#: psychopy/experiment/components/ratingScale/__init__.py:157
 msgid "Should the accept button by visible?"
 msgstr "acceptのボタンを表示します"
 
-#: psychopy/experiment/components/ratingScale/__init__.py:163
+#: psychopy/experiment/components/ratingScale/__init__.py:162
 #: psychopy/experiment/components/slider/__init__.py:188
 msgid "store the rating"
 msgstr "反応を記録ファイルに出力します"
 
-#: psychopy/experiment/components/ratingScale/__init__.py:168
+#: psychopy/experiment/components/ratingScale/__init__.py:167
 msgid "store the time taken to make the choice (in seconds)"
 msgstr "選択に要した時間を記録します(単位は秒)"
 
-#: psychopy/experiment/components/ratingScale/__init__.py:174
+#: psychopy/experiment/components/ratingScale/__init__.py:173
 #: psychopy/experiment/components/slider/__init__.py:199
 msgid "store the history of (selection, time)"
 msgstr "選択の履歴を保存します(選択肢と時刻)"
 
-#: psychopy/experiment/components/ratingScale/__init__.py:179
+#: psychopy/experiment/components/ratingScale/__init__.py:178
 msgid "Should accepting a rating cause the end of the routine (e.g. trial)?"
 msgstr "選択を確定したらRoutineを終了させます"
 
-#: psychopy/experiment/components/ratingScale/__init__.py:185
+#: psychopy/experiment/components/ratingScale/__init__.py:184
 msgid "height of tick marks (1 is upward, 0 is hidden, -1 is downward)"
 msgstr "目盛の高さ (1は上向き, 0は目盛なし, -1は下向き)"
 
-#: psychopy/experiment/components/ratingScale/__init__.py:193
+#: psychopy/experiment/components/ratingScale/__init__.py:192
 msgid ""
 "Use this text to create the rating scale as you would in a code component; "
 "overrides all dialog settings except time parameters, forceEndRoutine, "
@@ -5516,133 +5588,137 @@ msgstr ""
 "ラメータとforceEndRoutine, storeRatingTime, storeRating以外の全ての設定を上書"
 "きします"
 
-#: psychopy/experiment/components/settings/__init__.py:41
+#: psychopy/experiment/components/settings/__init__.py:42
 msgid "Experiment name"
 msgstr "実験の名前"
 
-#: psychopy/experiment/components/settings/__init__.py:42
+#: psychopy/experiment/components/settings/__init__.py:43
 msgid "Show info dialog"
 msgstr "実験情報ダイアログを表示"
 
-#: psychopy/experiment/components/settings/__init__.py:43
+#: psychopy/experiment/components/settings/__init__.py:44
 msgid "Enable Escape key"
 msgstr "ESCキーによる中断"
 
-#: psychopy/experiment/components/settings/__init__.py:44
+#: psychopy/experiment/components/settings/__init__.py:45
 msgid "Experiment info"
 msgstr "実験情報ダイアログ"
 
-#: psychopy/experiment/components/settings/__init__.py:45
+#: psychopy/experiment/components/settings/__init__.py:46
 msgid "Data filename"
 msgstr "データファイル名"
 
-#: psychopy/experiment/components/settings/__init__.py:46
-#: psychopy/experiment/components/settings/__init__.py:251
+#: psychopy/experiment/components/settings/__init__.py:47
+#: psychopy/experiment/components/settings/__init__.py:256
 msgid "Data file delimiter"
 msgstr "データファイルの区切り文字"
 
-#: psychopy/experiment/components/settings/__init__.py:47
+#: psychopy/experiment/components/settings/__init__.py:48
 msgid "Full-screen window"
 msgstr "フルスクリーンウィンドウ"
 
-#: psychopy/experiment/components/settings/__init__.py:48
+#: psychopy/experiment/components/settings/__init__.py:49
 msgid "Window size (pixels)"
 msgstr "ウィンドウの大きさ(pix)"
 
-#: psychopy/experiment/components/settings/__init__.py:50
+#: psychopy/experiment/components/settings/__init__.py:51
 msgid "Monitor"
 msgstr "モニター"
 
-#: psychopy/experiment/components/settings/__init__.py:52
+#: psychopy/experiment/components/settings/__init__.py:53
 msgid "Color space"
 msgstr "色空間"
 
-#: psychopy/experiment/components/settings/__init__.py:53
+#: psychopy/experiment/components/settings/__init__.py:54
 msgid "Units"
 msgstr "単位"
 
-#: psychopy/experiment/components/settings/__init__.py:54
+#: psychopy/experiment/components/settings/__init__.py:55
 msgid "Blend mode"
 msgstr "ブレンドモード"
 
-#: psychopy/experiment/components/settings/__init__.py:55
+#: psychopy/experiment/components/settings/__init__.py:56
 msgid "Show mouse"
 msgstr "マウスカーソルを表示"
 
-#: psychopy/experiment/components/settings/__init__.py:56
+#: psychopy/experiment/components/settings/__init__.py:57
 msgid "Save log file"
 msgstr "ログの保存"
 
-#: psychopy/experiment/components/settings/__init__.py:58
+#: psychopy/experiment/components/settings/__init__.py:59
 msgid "Save csv file (trial-by-trial)"
 msgstr "CSV形式のデータを保存(trial-by-trial)"
 
-#: psychopy/experiment/components/settings/__init__.py:59
+#: psychopy/experiment/components/settings/__init__.py:60
 msgid "Save csv file (summaries)"
 msgstr "CSV形式のデータを保存(summaries)"
 
-#: psychopy/experiment/components/settings/__init__.py:60
+#: psychopy/experiment/components/settings/__init__.py:61
 msgid "Save excel file"
 msgstr "xlsx形式のデータを保存"
 
-#: psychopy/experiment/components/settings/__init__.py:61
+#: psychopy/experiment/components/settings/__init__.py:62
 msgid "Save psydat file"
 msgstr "psydat形式のデータを保存"
 
-#: psychopy/experiment/components/settings/__init__.py:62
+#: psychopy/experiment/components/settings/__init__.py:63
 msgid "Logging level"
 msgstr "ログレベル"
 
-#: psychopy/experiment/components/settings/__init__.py:63
+#: psychopy/experiment/components/settings/__init__.py:64
 msgid "Use PsychoPy version"
 msgstr "使用するPsychoPyのバージョン"
 
-#: psychopy/experiment/components/settings/__init__.py:64
+#: psychopy/experiment/components/settings/__init__.py:65
 msgid "Completed URL"
 msgstr "正常終了時のURL"
 
-#: psychopy/experiment/components/settings/__init__.py:65
+#: psychopy/experiment/components/settings/__init__.py:66
 msgid "Incomplete URL"
 msgstr "中断時のURL"
 
-#: psychopy/experiment/components/settings/__init__.py:66
+#: psychopy/experiment/components/settings/__init__.py:67
 msgid "Output path"
 msgstr "出力パス"
 
-#: psychopy/experiment/components/settings/__init__.py:67
+#: psychopy/experiment/components/settings/__init__.py:68
 msgid "Additional Resources"
 msgstr "追加リソース"
 
-#: psychopy/experiment/components/settings/__init__.py:68
+#: psychopy/experiment/components/settings/__init__.py:69
 msgid "JS libs"
 msgstr "JSライブラリ"
 
-#: psychopy/experiment/components/settings/__init__.py:69
+#: psychopy/experiment/components/settings/__init__.py:70
 msgid "Force stereo"
 msgstr "ステレオを強制"
 
-#: psychopy/experiment/components/settings/__init__.py:70
+#: psychopy/experiment/components/settings/__init__.py:71
 msgid "Export HTML"
 msgstr "HTML形式でエクスポート"
 
-#: psychopy/experiment/components/settings/__init__.py:138
+#: psychopy/experiment/components/settings/__init__.py:100
+msgid "Edit settings for this experiment"
+msgstr "現在編集中の実験の設定を変更します"
+
+#: psychopy/experiment/components/settings/__init__.py:143
 msgid ""
 "Name of the entire experiment (taken by default from the filename on save)"
 msgstr "この実験の名前を指定します(初期値はこの実験を保存したファイル名です)"
 
-#: psychopy/experiment/components/settings/__init__.py:143
+#: psychopy/experiment/components/settings/__init__.py:148
 msgid ""
 "Start the experiment with a dialog to set info (e.g.participant or condition)"
 msgstr ""
 "実験開始時に実験情報(参加者名や条件名など)を入力するためのダイアログを表示し"
 "ます"
 
-#: psychopy/experiment/components/settings/__init__.py:148
+#: psychopy/experiment/components/settings/__init__.py:153
 msgid ""
 "Enable the <esc> key, to allow subjects to quit / break out of the experiment"
 msgstr "Escapeキーによる実験の中断/終了を許可します"
 
-#: psychopy/experiment/components/settings/__init__.py:153
+#: psychopy/experiment/components/settings/__init__.py:158
 msgid ""
 "The info to present in a dialog box. Right-click to check syntax and preview "
 "the dialog box."
@@ -5650,26 +5726,26 @@ msgstr ""
 "実験情報ダイアログに表示する情報を指定します 右クリックすると文法の確認とダイ"
 "アログのプレビューを行います."
 
-#: psychopy/experiment/components/settings/__init__.py:162
+#: psychopy/experiment/components/settings/__init__.py:167
 msgid "The version of PsychoPy to use when running the experiment."
 msgstr "実験の実行に使用するPsychoPyのバージョン."
 
-#: psychopy/experiment/components/settings/__init__.py:169
+#: psychopy/experiment/components/settings/__init__.py:174
 msgid "Run the experiment full-screen (recommended)"
 msgstr "実験をフルスクリーンモードで実行します(推奨)"
 
-#: psychopy/experiment/components/settings/__init__.py:173
+#: psychopy/experiment/components/settings/__init__.py:178
 msgid "Size of window (if not fullscreen)"
 msgstr ""
 "フルスクリーンモードを使用しない時の刺激描画ウィンドウのサイズを指定します"
 
-#: psychopy/experiment/components/settings/__init__.py:177
+#: psychopy/experiment/components/settings/__init__.py:182
 msgid "Which physical screen to run on (1 or 2)"
 msgstr ""
 "2台のモニターが接続されている時にどちらのモニターを使用するかを指定します(1ま"
 "たは2)"
 
-#: psychopy/experiment/components/settings/__init__.py:181
+#: psychopy/experiment/components/settings/__init__.py:186
 msgid ""
 "Name of the monitor (from Monitor Center). Right-click to go there, then "
 "copy & paste a monitor name here."
@@ -5677,7 +5753,7 @@ msgstr ""
 "モニターセンターで定義されたモニター名を指定します; 右クリックでモニターセン"
 "ターを開きます."
 
-#: psychopy/experiment/components/settings/__init__.py:187
+#: psychopy/experiment/components/settings/__init__.py:192
 msgid ""
 "Color of the screen (e.g. black, $[1.0,1.0,1.0], $variable. Right-click to "
 "bring up a color-picker.)"
@@ -5685,45 +5761,45 @@ msgstr ""
 "スクリーンを塗りつぶす色($[1.0,1.0,1.0],$variable,blackなど)を指定します; 右"
 "クリックで色選択ダイアログを表示します"
 
-#: psychopy/experiment/components/settings/__init__.py:193
+#: psychopy/experiment/components/settings/__init__.py:198
 msgid ""
 "Needed if color is defined numerically (see PsychoPy documentation on color "
 "spaces)"
 msgstr "スクリーンの色を数値で指定する場合の色空間を選択します"
 
-#: psychopy/experiment/components/settings/__init__.py:201
+#: psychopy/experiment/components/settings/__init__.py:206
 msgid "Units to use for window/stimulus coordinates (e.g. cm, pix, deg)"
 msgstr ""
 "この実験においてウィンドウや刺激の描画に用いられる標準の単位(cm, pix, degな"
 "ど)を指定します"
 
-#: psychopy/experiment/components/settings/__init__.py:207
+#: psychopy/experiment/components/settings/__init__.py:212
 msgid ""
 "Should new stimuli be added or averaged with the stimuli that have been "
 "drawn already"
 msgstr "描画済みの刺激に新しい刺激をブレンドする時の方法を指定します"
 
-#: psychopy/experiment/components/settings/__init__.py:212
+#: psychopy/experiment/components/settings/__init__.py:217
 msgid "Should the mouse be visible on screen?"
 msgstr "マウスカーソルを描画するか否かを指定します"
 
-#: psychopy/experiment/components/settings/__init__.py:218
+#: psychopy/experiment/components/settings/__init__.py:223
 msgid "Force audio to stereo (2-channel) output"
 msgstr "強制的に音声をステレオ(2ch)出力します"
 
-#: psychopy/experiment/components/settings/__init__.py:223
+#: psychopy/experiment/components/settings/__init__.py:228
 msgid "Which Python sound engine do you want to play your sounds?"
 msgstr "どのPythonサウンドエンジンを音声の再生に使用しますか？"
 
-#: psychopy/experiment/components/settings/__init__.py:224
+#: psychopy/experiment/components/settings/__init__.py:229
 msgid "Audio library"
 msgstr "オーディオライブラリ"
 
-#: psychopy/experiment/components/settings/__init__.py:227
+#: psychopy/experiment/components/settings/__init__.py:232
 msgid "use prefs"
 msgstr "PsychoPyの設定を用いる"
 
-#: psychopy/experiment/components/settings/__init__.py:238
+#: psychopy/experiment/components/settings/__init__.py:243
 msgid ""
 "How important is audio latency for you? If essential then you may need to "
 "get all your sounds in correct formats."
@@ -5731,11 +5807,11 @@ msgstr ""
 "オーディオ遅延の短さを重視しますか？遅延の短さが必須ならすべてのサウンドデー"
 "タを適切なフォーマットにする必要があるでしょう."
 
-#: psychopy/experiment/components/settings/__init__.py:239
+#: psychopy/experiment/components/settings/__init__.py:244
 msgid "Audio latency priority"
 msgstr "オーディオ遅延の優先度"
 
-#: psychopy/experiment/components/settings/__init__.py:244
+#: psychopy/experiment/components/settings/__init__.py:249
 msgid ""
 "Code to create your custom file name base. Don't give a file extension - "
 "this will be added."
@@ -5743,7 +5819,7 @@ msgstr ""
 "実験記録ファイルの名前をカスタマイズするためのコードを入力します - 拡張子は自"
 "動的に付加されるので指定しないでください."
 
-#: psychopy/experiment/components/settings/__init__.py:250
+#: psychopy/experiment/components/settings/__init__.py:255
 msgid ""
 "What symbol should the data file use to separate columns? Auto will select a "
 "delimiter automatically from the filename."
@@ -5751,14 +5827,14 @@ msgstr ""
 "データファイルで列を区切る文字を指定します Autoにするとファイル名から自動的に"
 "区切り文字を判別します."
 
-#: psychopy/experiment/components/settings/__init__.py:255
+#: psychopy/experiment/components/settings/__init__.py:260
 msgid ""
 "Save a detailed log (more detailed than the excel/csv files) of the entire "
 "experiment"
 msgstr "(CSV/Excelファイルに出力されるよりも)詳細な実験のログを出力します"
 
-#: psychopy/experiment/components/settings/__init__.py:260
 #: psychopy/experiment/components/settings/__init__.py:265
+#: psychopy/experiment/components/settings/__init__.py:270
 msgid ""
 "Save data from loops in comma-separated-value (.csv) format for maximum "
 "portability"
@@ -5766,11 +5842,11 @@ msgstr ""
 "実験データをカンマ区切りのテキストファイル(.csv)で保存します; さまざまな環境"
 "やソフトウェアから利用できます"
 
-#: psychopy/experiment/components/settings/__init__.py:270
+#: psychopy/experiment/components/settings/__init__.py:275
 msgid "Save data from loops in Excel (.xlsx) format"
 msgstr "実験で得られたデータをExcel形式(.xlsx)で保存します"
 
-#: psychopy/experiment/components/settings/__init__.py:274
+#: psychopy/experiment/components/settings/__init__.py:279
 msgid ""
 "Save data from loops in psydat format. This is useful for python programmers "
 "to generate analysis scripts."
@@ -5778,49 +5854,49 @@ msgstr ""
 "実験で得られたデータをpydat形式で保存します; Pythonで独自の解析スクリプトを書"
 "く時に便利です."
 
-#: psychopy/experiment/components/settings/__init__.py:281
+#: psychopy/experiment/components/settings/__init__.py:286
 msgid ""
 "How much output do you want in the log files? ('error' is fewest messages, "
 "'debug' is most)"
 msgstr ""
 "実験ログの出力レベルを指定します('error'が最も簡潔で'debug'が最も詳細です)"
 
-#: psychopy/experiment/components/settings/__init__.py:292
+#: psychopy/experiment/components/settings/__init__.py:297
 msgid "Place the HTML files will be saved locally "
 msgstr "HTMLファイルがローカルに保存される場所 "
 
-#: psychopy/experiment/components/settings/__init__.py:296
+#: psychopy/experiment/components/settings/__init__.py:301
 msgid "Any additional resources needed"
 msgstr "追加で必要なリソース"
 
-#: psychopy/experiment/components/settings/__init__.py:300
+#: psychopy/experiment/components/settings/__init__.py:305
 msgid ""
 "Where should participants be redirected after the experiment on completion\n"
 " INSERT COMPLETION URL E.G.?"
 msgstr "実験終了時にリダイレクトされるページのURLを入力してください"
 
-#: psychopy/experiment/components/settings/__init__.py:305
+#: psychopy/experiment/components/settings/__init__.py:310
 msgid ""
 "Where participants are redirected if they do not complete the task\n"
 " INSERT INCOMPLETION URL E.G.?"
 msgstr ""
 "実験が途中で中断された時にリダイレクトされるページのURLを入力してください"
 
-#: psychopy/experiment/components/settings/__init__.py:311
+#: psychopy/experiment/components/settings/__init__.py:316
 msgid "When to export experiment to the HTML folder."
 msgstr "実験がHTMLにエクスポートされるタイミングを指定します."
 
-#: psychopy/experiment/components/slider/__init__.py:27
-msgid "Slider: A simple, flexible object for getting ratings"
-msgstr "Slider: シンプルかつ柔軟な評定尺度"
-
-#: psychopy/experiment/components/slider/__init__.py:32
+#: psychopy/experiment/components/slider/__init__.py:28
 msgid "Ticks"
 msgstr "目盛"
 
-#: psychopy/experiment/components/slider/__init__.py:37
+#: psychopy/experiment/components/slider/__init__.py:33
 msgid "readOnly"
 msgstr "読み込み専用"
+
+#: psychopy/experiment/components/slider/__init__.py:61
+msgid "Slider: A simple, flexible object for getting ratings"
+msgstr "Slider: シンプルかつ柔軟な評定尺度"
 
 #: psychopy/experiment/components/slider/__init__.py:108
 msgid "Tick positions (numerical) on the scale, separated by commas"
@@ -5919,44 +5995,44 @@ msgstr "スタイルの微調整"
 msgid "Store the time taken to make the choice (in seconds)"
 msgstr "選択に要した時間を記録します(単位は秒)"
 
-#: psychopy/experiment/components/sound/__init__.py:22
-msgid "Sound: play recorded files or generated sounds"
-msgstr "Sound: 音声ファイルの再生と音刺激の生成をおこないます"
-
-#: psychopy/experiment/components/sound/__init__.py:25
+#: psychopy/experiment/components/sound/__init__.py:21
 msgid "Sound"
 msgstr "音"
 
-#: psychopy/experiment/components/sound/__init__.py:26
+#: psychopy/experiment/components/sound/__init__.py:22
 msgid "Volume"
 msgstr "ボリューム"
 
-#: psychopy/experiment/components/sound/__init__.py:27
+#: psychopy/experiment/components/sound/__init__.py:23
 msgid "Sync Start With Screen"
 msgstr "開始をスクリーンに同期"
 
-#: psychopy/experiment/components/sound/__init__.py:53
+#: psychopy/experiment/components/sound/__init__.py:31
+msgid "Sound: play recorded files or generated sounds"
+msgstr "Sound: 音声ファイルの再生と音刺激の生成をおこないます"
+
+#: psychopy/experiment/components/sound/__init__.py:52
 msgid "The maximum duration of a sound in seconds"
 msgstr "音声の最大再生時間(秒)を指定します"
 
-#: psychopy/experiment/components/sound/__init__.py:59
+#: psychopy/experiment/components/sound/__init__.py:58
 msgid ""
 "A sound can be a note name (e.g. A or Bf), a number to specify Hz (e.g. 440) "
 "or a filename"
 msgstr ""
 "音を指定します 音名(例: A, Bf), 周波数(例: 440), ファイル名を指定できます"
 
-#: psychopy/experiment/components/sound/__init__.py:70
+#: psychopy/experiment/components/sound/__init__.py:69
 msgid "The volume (in range 0 to 1)"
 msgstr "ボリュームを指定します (0.0から1.0)"
 
-#: psychopy/experiment/components/sound/__init__.py:73
+#: psychopy/experiment/components/sound/__init__.py:72
 msgid ""
 "A reaction time to a sound stimulus should be based on when the screen "
 "flipped"
 msgstr "視覚刺激に対する反応時間計測をスクリーンのフリップに合わせて開始します"
 
-#: psychopy/experiment/components/sound/__init__.py:83
+#: psychopy/experiment/components/sound/__init__.py:82
 msgid ""
 "For tones we can apply a Hamming window to prevent 'clicks' that are caused "
 "by a sudden onset. This delays onset by roughly 1ms."
@@ -5964,49 +6040,49 @@ msgstr ""
 "トーンの突然のオンセットによる「クリック」音を防ぐためにハミング窓を適用しま"
 "す 適用するとおよそ1msの遅延が生じます."
 
-#: psychopy/experiment/components/sound/__init__.py:85
+#: psychopy/experiment/components/sound/__init__.py:84
 msgid "Hamming window"
 msgstr "ハミング窓"
 
-#: psychopy/experiment/components/static/__init__.py:23
+#: psychopy/experiment/components/static/__init__.py:22
+msgid "Custom code"
+msgstr "カスタムコード"
+
+#: psychopy/experiment/components/static/__init__.py:35
 msgid ""
 "Static: Static screen period (e.g. an ISI). Useful for pre-loading stimuli."
 msgstr ""
 "Static: 刺激の更新を行わない時間帯(ISIなど)を確保します 刺激データの読み込み"
 "に便利です."
 
-#: psychopy/experiment/components/static/__init__.py:25
-msgid "Custom code"
-msgstr "カスタムコード"
-
 #: psychopy/experiment/components/static/__init__.py:47
 msgid "Custom code to be run during the static period (after updates)"
 msgstr "刺激を更新しない期間に実行するコードを指定します"
 
-#: psychopy/experiment/components/text/__init__.py:20
-msgid "Text: present text stimuli"
-msgstr "Text: 文字列を描画します"
-
-#: psychopy/experiment/components/text/__init__.py:23
-#: psychopy/experiment/components/textbox/__init__.py:23
+#: psychopy/experiment/components/text/__init__.py:19
+#: psychopy/experiment/components/textbox/__init__.py:19
 msgid "Text"
 msgstr "文字列"
 
-#: psychopy/experiment/components/text/__init__.py:26
+#: psychopy/experiment/components/text/__init__.py:22
 msgid "Wrap width"
 msgstr "折り返し幅"
 
-#: psychopy/experiment/components/text/__init__.py:27
+#: psychopy/experiment/components/text/__init__.py:23
 msgid "Flip (mirror)"
 msgstr "反転"
 
-#: psychopy/experiment/components/text/__init__.py:28
-#: psychopy/experiment/components/textbox/__init__.py:28
+#: psychopy/experiment/components/text/__init__.py:24
+#: psychopy/experiment/components/textbox/__init__.py:24
 msgid "Language style"
 msgstr "言語スタイル"
 
+#: psychopy/experiment/components/text/__init__.py:34
+msgid "Text: present text stimuli"
+msgstr "Text: 文字列を描画します"
+
 #: psychopy/experiment/components/text/__init__.py:38
-#: psychopy/experiment/components/textbox/__init__.py:49
+#: psychopy/experiment/components/textbox/__init__.py:48
 msgid ""
 "Any text\n"
 "\n"
@@ -6021,53 +6097,59 @@ msgid "How wide should the text get when it wraps? (in the specified units)"
 msgstr "テキストを折り返す幅を指定します (Unitsの設定に従う)"
 
 #: psychopy/experiment/components/text/__init__.py:90
-#: psychopy/experiment/components/textbox/__init__.py:106
-#: psychopy/experiment/components/textbox/__init__.py:112
+#: psychopy/experiment/components/textbox/__init__.py:105
+#: psychopy/experiment/components/textbox/__init__.py:111
 msgid "horiz = left-right reversed; vert = up-down reversed; $var = variable"
 msgstr "左右反転するにはhoriz, 上下反転するにはvertと入力します"
 
 #: psychopy/experiment/components/text/__init__.py:96
-#: psychopy/experiment/components/textbox/__init__.py:118
+#: psychopy/experiment/components/textbox/__init__.py:117
 msgid "Handle right-to-left (RTL) languages and Arabic reshaping"
 msgstr "右から左へ書く(right-to-left:RTL)言語やアラビア文字の変形に対応します"
 
-#: psychopy/experiment/components/textbox/__init__.py:20
-msgid "Textbox: present text stimuli but cooler"
-msgstr "Textbox: 文字列を描画します(Textより多機能です)"
-
-#: psychopy/experiment/components/textbox/__init__.py:26
+#: psychopy/experiment/components/textbox/__init__.py:22
 msgid "Flip horizontal"
 msgstr "水平に反転"
 
-#: psychopy/experiment/components/textbox/__init__.py:27
+#: psychopy/experiment/components/textbox/__init__.py:23
 msgid "Flip vertical"
 msgstr "垂直に反転"
 
-#: psychopy/experiment/components/textbox/__init__.py:31
+#: psychopy/experiment/components/textbox/__init__.py:27
 msgid "Line Spacing"
 msgstr "行の間隔"
 
-#: psychopy/experiment/components/textbox/__init__.py:37
+#: psychopy/experiment/components/textbox/__init__.py:33
 msgid "Editable?"
 msgstr "編集可能"
 
-#: psychopy/experiment/components/textbox/__init__.py:38
+#: psychopy/experiment/components/textbox/__init__.py:34
 msgid "Auto Log"
 msgstr "変更を自動記録"
 
-#: psychopy/experiment/components/textbox/__init__.py:133
+#: psychopy/experiment/components/textbox/__init__.py:44
+msgid "Textbox: present text stimuli but cooler"
+msgstr "Textbox: 文字列を描画します(Textより多機能です)"
+
+#: psychopy/experiment/components/textbox/__init__.py:132
 msgid "Defines the space between lines"
 msgstr "行間の間隔を指定します"
 
-#: psychopy/experiment/components/textbox/__init__.py:163
+#: psychopy/experiment/components/textbox/__init__.py:162
 msgid "Should textbox be editable?"
 msgstr "テキストボックスを編集可能にしますか？"
 
-#: psychopy/experiment/components/textbox/__init__.py:169
+#: psychopy/experiment/components/textbox/__init__.py:168
 msgid "Automatically record all changes to this in the log file"
 msgstr "このコンポーネントへの変更を全て自動的にログファイルに記録します"
 
-#: psychopy/experiment/components/unknown/__init__.py:13
+#: psychopy/experiment/components/unknown/__init__.py:12
+#: psychopy/experiment/components/variable/__init__.py:21
+#: psychopy/localization/__init__.py:158 psychopy/localization/__init__.py:181
+msgid "Name"
+msgstr "名前"
+
+#: psychopy/experiment/components/unknown/__init__.py:27
 msgid ""
 "Unknown: A component that is not known by the current installed version of "
 "PsychoPy\n"
@@ -6076,77 +6158,71 @@ msgstr ""
 "Unknown: 現在インストールされているPsychoPyで認識できないコンポーネント\n"
 "(将来のバージョンで作成された実験を読みこんだ時などに使用されます)"
 
-#: psychopy/experiment/components/unknown/__init__.py:18
-#: psychopy/experiment/components/variable/__init__.py:25
-#: psychopy/localization/__init__.py:158 psychopy/localization/__init__.py:181
-msgid "Name"
-msgstr "名前"
-
 #: psychopy/experiment/components/variable/__init__.py:22
-msgid "Variable: create a new variable"
-msgstr "Variable: 新しい変数を作成します"
-
-#: psychopy/experiment/components/variable/__init__.py:26
 msgid "Experiment start value"
 msgstr "実験開始時の値"
 
-#: psychopy/experiment/components/variable/__init__.py:27
+#: psychopy/experiment/components/variable/__init__.py:23
 msgid "Routine start value"
 msgstr "Routine開始時の値"
 
-#: psychopy/experiment/components/variable/__init__.py:28
+#: psychopy/experiment/components/variable/__init__.py:24
 msgid "Frame start value"
 msgstr "フレーム更新開始時の値"
 
-#: psychopy/experiment/components/variable/__init__.py:29
+#: psychopy/experiment/components/variable/__init__.py:25
 msgid "Save exp start value"
 msgstr "実験開始時の値を保存"
 
-#: psychopy/experiment/components/variable/__init__.py:30
+#: psychopy/experiment/components/variable/__init__.py:26
 msgid "Save routine start value"
 msgstr "Routine開始時の値を保存"
 
-#: psychopy/experiment/components/variable/__init__.py:31
+#: psychopy/experiment/components/variable/__init__.py:27
 msgid "Save frame value"
 msgstr "フレーム更新時の値を保存"
 
-#: psychopy/experiment/components/variable/__init__.py:32
+#: psychopy/experiment/components/variable/__init__.py:28
 msgid "Save routine end value"
 msgstr "Routine終了時の値を保存"
 
-#: psychopy/experiment/components/variable/__init__.py:33
+#: psychopy/experiment/components/variable/__init__.py:29
 msgid "Save exp end value"
 msgstr "実験終了時の値を保存"
 
-#: psychopy/experiment/components/variable/__init__.py:54
+#: psychopy/experiment/components/variable/__init__.py:38
+msgid "Variable: create a new variable"
+msgstr "Variable: 新しい変数を作成します"
+
+#: psychopy/experiment/components/variable/__init__.py:55
 msgid "The start value. A variable can be set to any value."
 msgstr "実験開始時の値. 自由に値を設定できます."
 
-#: psychopy/experiment/components/variable/__init__.py:59
+#: psychopy/experiment/components/variable/__init__.py:60
 msgid "Set the value for the beginning of each routine."
 msgstr "各Routineの開始時の値を設定します."
 
-#: psychopy/experiment/components/variable/__init__.py:64
+#: psychopy/experiment/components/variable/__init__.py:65
 msgid "Set the value for the beginning of every screen refresh."
 msgstr "各フレームの更新開始時の値を設定します."
 
-#: psychopy/experiment/components/variable/__init__.py:70
+#: psychopy/experiment/components/variable/__init__.py:71
 msgid "Save the experiment start value in data file."
 msgstr "実験開始時の値をデータファイルに保存します."
 
-#: psychopy/experiment/components/variable/__init__.py:76
+#: psychopy/experiment/components/variable/__init__.py:77
 msgid "Save the experiment end value in data file."
 msgstr "実験終了時の値をデータファイルに保存します."
 
-#: psychopy/experiment/components/variable/__init__.py:82
+#: psychopy/experiment/components/variable/__init__.py:83
 msgid "Save the routine start value in data file."
 msgstr "Routine開始時の値をデータファイルに保存します."
 
-#: psychopy/experiment/components/variable/__init__.py:88
+#: psychopy/experiment/components/variable/__init__.py:89
 msgid "Save the routine end value in data file."
 msgstr "Routine終了時の値をデータファイルに保存します."
 
-#: psychopy/experiment/components/variable/__init__.py:94
+#: psychopy/experiment/components/variable/__init__.py:95
 msgid "Save choice of frame value in data file."
 msgstr "フレーム毎の値をどのように保存するか選択します."
 
@@ -7691,6 +7767,32 @@ msgstr "ベンチマークテストの全結果を確認するにはOKをクリ�
 msgid "Click Cancel to stay in PsychoPy."
 msgstr "PsychoPyに戻るにはキャンセルをクリックします."
 
+#~ msgid "Create a routine (Experiment menu) before adding components"
+#~ msgstr "コンポーネントを追加する前にRoutineを作成してください"
+
+#~ msgid "Copy as &Object"
+#~ msgstr "オブジェクトとしてコピー(&O)"
+
+#~ msgid "Copy as &Value"
+#~ msgstr "値としてコピー(&V)"
+
+#~ msgid "&Cancel"
+#~ msgstr "挿入を中止"
+
+#~ msgid "Copy as a `psychopy.colors.Color` object."
+#~ msgstr "psychopy.colors.Colorオブジェクトとしてコピー"
+
+#~ msgid "Copy as a value (tuple)."
+#~ msgstr "値(タプル)としてコピー"
+
+#~ msgid ""
+#~ "Enter a channel number. Default value is 0. If unsure, run 'sound.backend."
+#~ "get_input_devices()' to locate the system's selected device/channel."
+#~ msgstr ""
+#~ "チャネル番号を指定します. 初期値は0です. わからない場合はsound.backend."
+#~ "get_input_devices()を実行して選択されているデバイスとチャネルを確認してく"
+#~ "ださい."
+
 #~ msgid "horiz"
 #~ msgstr "水平"
 
@@ -8027,9 +8129,6 @@ msgstr "PsychoPyに戻るにはキャンセルをクリックします."
 
 #~ msgid "Preferences"
 #~ msgstr "設定"
-
-#~ msgid "Settings for this exp"
-#~ msgstr "現在編集中の実験の設定を変更します"
 
 #~ msgid ""
 #~ "Final spatial frequency of image in 1 or 2 dimensions, e.g. 4 or [2,3] "

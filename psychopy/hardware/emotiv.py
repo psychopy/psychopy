@@ -337,6 +337,8 @@ class Cortex(object):
             if "no access rights" in msg:
                 raise CortexApiException("Please open the EmotivApp and grant "
                                          "permission to your applicationId")
+            else:
+                raise CortexApiException(msg)
         logger.debug(f"{__name__} resp:\n{resp}")
         self.auth_token = resp['result']['cortexToken']
 
