@@ -21,7 +21,7 @@ class UnknownComponent(BaseComponent):
     """
     targets = ['PsychoPy']
 
-    categories = ['Custom']
+    categories = ['Other']
     targets = ['PsychoPy']
     iconFile = Path(__file__).parent / 'unknown.png'
     tooltip = _translate('Unknown: A component that is not known by the current '

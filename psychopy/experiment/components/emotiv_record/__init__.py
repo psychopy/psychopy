@@ -18,7 +18,7 @@ CORTEX_OBJ = 'cortex_obj'
 
 class EmotivRecordingComponent(BaseComponent):  # or (VisualComponent)
 
-    categories = ['Custom']
+    categories = ['EEG']
     targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'emotiv_record.png'
     tooltip = _translate('Initialize EMOTIV hardware connection')
