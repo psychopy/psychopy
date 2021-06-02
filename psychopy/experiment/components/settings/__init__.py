@@ -797,8 +797,6 @@ class SettingsComponent(object):
                     "import * as sound from './lib/sound{version}.js';\n"
                     "import * as util from './lib/util{version}.js';\n"
                     "//some handy aliases as in the psychopy scripts;\n"
-                    "const {{ abs, sin, cos, PI: pi, sqrt }} = Math;\n"
-                    "const {{ round }} = util;\n"
                     "\n").format(version=versionStr)
             buff.writeIndentedLines(code)
 
@@ -1267,7 +1265,7 @@ class SettingsComponent(object):
                     "}\n")
         buff.writeIndentedLines(endLoopInteration)
 
-        recordLoopIterationFunc = ("\nfunction importConditions(currentLoop) {\n"
+        recordLoopIterationFunc = ("\nasync function importConditions(currentLoop) {\n"
                     "  return function () {\n"
                     "    psychoJS.importAttributes(currentLoop.getCurrentTrial());\n"
                     "    return Scheduler.Event.NEXT;\n"
@@ -1275,7 +1273,7 @@ class SettingsComponent(object):
                     "}\n")
         buff.writeIndentedLines(recordLoopIterationFunc)
 
-        code = ("\nfunction quitPsychoJS(message, isCompleted) {\n")
+        code = ("\nasync function quitPsychoJS(message, isCompleted) {\n")
         buff.writeIndented(code)
         buff.setIndentLevel(1, relative=True)
         code = ("// Check for and save orphaned data\n"
