@@ -5,6 +5,7 @@ import sys
 import wx
 import wx.lib.agw.aui as aui
 import wx.stc as stc
+import wx.richtext
 from psychopy.localization import _translate
 from wx import py
 import keyword
