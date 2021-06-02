@@ -23,8 +23,9 @@ from psychopy.localization import _localized as __localized
 _localized = __localized.copy()
 _localized.update({'stereo': _translate('Stereo'),
                    'channel': _translate('Channel')})
+from psychopy.tests import _vmTesting
 
-if _hasPTB:
+if _hasPTB and not _vmTesting:
     devices = {d.deviceName: d for d in Microphone.getDevices()}
 else:
     devices = {}
