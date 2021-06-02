@@ -2490,7 +2490,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
                 self.favorites.append(thisDef)
         # Make a sizer and label for each category
         self.catSizers = {cat: wx.WrapSizer(orient=wx.HORIZONTAL) for cat in self.categories}
-        self.catLabels = {cat: self.CategoryButton(self, name=str(cat), cat=str(cat)) for cat in self.categories}
+        self.catLabels = {cat: self.CategoryButton(self, name=_translate(str(cat)), cat=str(cat)) for cat in self.categories}
         for cat in self.categories:
             self.sizer.Add(self.catLabels[cat], border=3, flag=wx.BOTTOM | wx.EXPAND)
             self.sizer.Add(self.catSizers[cat], border=6, flag=wx.ALL | wx.ALIGN_CENTER)
