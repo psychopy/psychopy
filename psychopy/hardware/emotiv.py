@@ -42,10 +42,6 @@ MS_SEC_THRESHOLD = 1E+10  # if timestamp is greater than this it is in ms
 EEG_ON = os.environ.get('CORTEX_DATA', False)
 
 
-if platform == "linux" or platform == "linux2":
-    raise NotImplementedError('Linux not yet supported')
-
-
 class CortexApiException(Exception):
     pass
 
@@ -65,6 +61,10 @@ class Cortex(object):
         CORTEX_URL = "wss://localhost:6868"
 
     def __init__(self, client_id_file=None, subject=None):
+        
+        if platform == "linux" or platform == "linux2":
+            raise NotImplementedError('Linux not yet supported')
+
         self.client_id = None
         self.client_secret = None
         client_id, client_secret = self.parse_client_id_file()

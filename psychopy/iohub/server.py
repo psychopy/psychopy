@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-# Part of the psychopy.iohub library.
-# Copyright (C) 2012-2016 iSolver Software Solutions
+# Part of the PsychoPy library
+# Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 from __future__ import division, absolute_import
 
@@ -619,14 +619,15 @@ class ioServer(object):
             print2err('Error PubSub Device listener association ....')
             printExceptionDetailsToStdErr()
 
-    def processDeviceConfigDictionary(self, dev_mod_path, dev_cls_name,
-                                      dev_conf, def_dev_conf):
+    def processDeviceConfigDictionary(self, dev_mod_path, dev_cls_name, dev_conf, def_dev_conf):
         for dparam, dvalue in def_dev_conf.items():
-            if dparam not in dev_conf:
+            if dparam in dev_conf:
+                if isinstance(dvalue, (dict, OrderedDict)):
+                    self.processDeviceConfigDictionary(None, None, dev_conf.get(dparam), dvalue)
+            elif dparam not in dev_conf:
                 if isinstance(dvalue, (dict, OrderedDict)):
                     sub_param = dict()
-                    self.processDeviceConfigDictionary(None, None, sub_param,
-                                                       dvalue)
+                    self.processDeviceConfigDictionary(None, None, sub_param, dvalue)
                     dev_conf[dparam] = sub_param
                 else:
                     dev_conf[dparam] = dvalue

@@ -36,12 +36,7 @@ eyetracker.hw.tobii.EyeTracker:
     serial_number:
 
     calibration:
-        # Should the PsychoPy Window created by the PsychoPy Process be minimized
-        # before displaying the Calibration Window created by the ioHub Process.
-        #
-        minimize_psychopy_win: False
-
-        # The Tobii ioHub Common Eye Tracker Interface currently support 
+        # The Tobii ioHub Common Eye Tracker Interface currently support
         # a 3, 5 and 9 point calibration mode.
         # THREE_POINTS,FIVE_POINTS,NINE_POINTS
         #
@@ -150,7 +145,7 @@ eyetracker.hw.tobii.EyeTracker:
     
     runtime_settings:
         # The supported sampling rates for Tobii are model dependent. 
-        # Using a defualt of 60 Hz, with the assumption it is the most common.
+        # Using a defualt of 60 Hz.
         sampling_rate: 60
 
         # Tobii implementation supports BINOCULAR tracking mode only.

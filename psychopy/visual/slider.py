@@ -510,6 +510,25 @@ class Slider(MinimalStim, ColorMixin):
         """
         return self.rt
 
+    def getMarkerPos(self):
+        """Get the current marker position (or None if no response yet)
+        """
+        return self.markerPos
+
+    def setMarkerPos(self, rating):
+        """Set the current marker position (or None if no response yet)
+
+        Parameters
+        ----------
+        rating : int or float
+            The rating on the scale where we want to set the marker
+        """
+        if self._updateMarkerPos:
+            self.marker.pos = self._ratingToPos(rating)
+            self.markerPos = rating
+            self._updateMarkerPos = False
+        self.marker.draw()
+
     def draw(self):
         """Draw the Slider, with all its constituent elements on this frame
         """

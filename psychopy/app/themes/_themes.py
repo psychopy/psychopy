@@ -155,7 +155,8 @@ class ThemeMixin:
             tabIcons = {
                 "Structure": "coderclass16.png",
                 "FileBrowser": "folder-open16.png",
-                "PythonShell": "coderpython16.png"
+                "PythonShell": "coderpython16.png",
+                "ConsoleOutput": "stdout.png",
             }
             target.SetArtProvider(PsychopyTabArt())
             target.GetAuiManager().SetArtProvider(PsychopyDockArt())

@@ -17,15 +17,13 @@ except Exception:
 import pytest
 import copy
 import threading
-import os
 import numpy as np
+from psychopy.tests import skip_under_vm
 
 """test with both pyglet and pygame:
     cd psychopy/psychopy/
     py.test -k event --cov-report term-missing --cov event.py
 """
-
-travis = bool(str(os.environ.get('TRAVIS')).lower() == 'true')
 
 
 class DelayedFakeKeys(threading.Thread):
@@ -148,9 +146,8 @@ class _baseTest(object):
         event.clearEvents('joystick')
         assert event._keyBuffer
 
+    @skip_under_vm
     def test_keys(self):
-        if travis:
-            pytest.skip()  # failing on travis-ci
         if self.win.winType == 'pygame':
             pytest.skip()
         event.clearEvents()
@@ -196,12 +193,14 @@ class _baseTest(object):
             assert result[0][0] == k
             assert result[0][1] - delay < .01  # should be ~0 except for execution time
 
+    @skip_under_vm
     def test_waitKeys_clearEvents_True(self):
         key = 'x'
         DelayedAddFakeKeysToBuffer(key).start()
         key_events = event.waitKeys(clearEvents=True)
         assert key_events == [key]
 
+    @skip_under_vm
     def test_waitKeys_clearEvents_False(self):
         keys = ['x', 'y', 'z']
         [event._onPygletKey(symbol=key, modifiers=0, emulated=True)
@@ -212,6 +211,7 @@ class _baseTest(object):
         assert 'y' in key_events
         assert 'z' in key_events
 
+    @skip_under_vm
     def test_waitKeys_keyList_clearEvents_True(self):
         keys = ['x', 'y', 'z']
         DelayedAddFakeKeysToBuffer(keys).start()
@@ -225,10 +225,8 @@ class _baseTest(object):
     def test_xydist(self):
         assert event.xydist([0,0], [1,1]) == np.sqrt(2)
 
+    @skip_under_vm
     def test_mouseMoved(self):
-        if travis:
-            pytest.skip()  # failing on travis-ci
-
         m = event.Mouse()
         m.prevPos = [0, 0]
         m.lastPos = [0, 1]

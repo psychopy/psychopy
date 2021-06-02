@@ -5,8 +5,11 @@
 
 (Available as of version 1.74.00; Advanced features available as of 1.77.00)
 
+**Deprecated** Use :class:`~psychopy.sound.Microphone` for new projects.
+
 Overview
 --------
+
 **AudioCapture()** allows easy audio recording and saving of arbitrary sounds to a file (wav format).
 AudioCapture will likely be replaced entirely by AdvAudioCapture in the near future.
 

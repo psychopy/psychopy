@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-# Part of the psychopy.iohub library.
-# Copyright (C) 2012-2016 iSolver Software Solutions
+# Part of the PsychoPy library
+# Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 from __future__ import division, absolute_import, print_function
 
@@ -197,7 +197,7 @@ class Wintab(ioHubDeviceView):
                    ENTER: PenEnterRegionEvent,
                    LEAVE: PenLeaveRegionEvent}
     def __init__(self, ioclient, dev_cls_name, dev_config):
-        super(Wintab, self).__init__(ioclient, dev_cls_name, dev_config)
+        super(Wintab, self).__init__(ioclient, 'client.Wintab', dev_cls_name, dev_config)
 
         self._prev_sample = None
         self._events = dict()

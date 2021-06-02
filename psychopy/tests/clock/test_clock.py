@@ -8,7 +8,6 @@ from psychopy.clock import wait, StaticPeriod, CountdownTimer
 from psychopy.visual import Window
 
 
-@pytest.mark.staticperiod
 def test_StaticPeriod_finish_on_time():
     """Test successful completion (finishing "on time")
     """
@@ -17,7 +16,7 @@ def test_StaticPeriod_finish_on_time():
     wait(0.01)
     assert static.complete() == 1
 
-@pytest.mark.staticperiod
+
 def test_StaticPeriod_overrun():
     """Test unsuccessful completion (period "overran")
     """
@@ -26,7 +25,7 @@ def test_StaticPeriod_overrun():
     wait(0.11)
     assert static.complete() == 0
 
-@pytest.mark.staticperiod
+
 def test_StaticPeriod_recordFrameIntervals():
     win = Window(autoLog=False)
     static = StaticPeriod(screenHz=60, win=win)
@@ -36,7 +35,7 @@ def test_StaticPeriod_recordFrameIntervals():
     assert static._winWasRecordingIntervals == win.recordFrameIntervals
     win.close()
 
-@pytest.mark.staticperiod
+
 def test_StaticPeriod_screenHz():
     """Test if screenHz parameter is respected, i.e., if after completion of the
     StaticPeriod, 1/screenHz seconds are still remaining, so the period will

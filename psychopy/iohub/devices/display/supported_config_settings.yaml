@@ -11,13 +11,13 @@ Display:
             max: 7
     reporting_unit_type:
         IOHUB_LIST:
-            valid_values: [pix, norm, cm, deg, degFlat, degFlatPos]
-            min_length: 1
+            valid_values: [pix, norm, height, cm, deg, degFlat, degFlatPos]
+            min_length: 0
             max_length: 1
     color_space:
         IOHUB_LIST:
             valid_values: [rgb, rgb255, named , hex, hsv, dkl, lms]
-            min_length: 1
+            min_length: 0
             max_length: 1
     origin: center
     physical_dimensions:

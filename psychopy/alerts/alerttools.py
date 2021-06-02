@@ -260,7 +260,7 @@ def testDisabled(component):
         return
 
     if component.params['disabled'].val:
-        alert(4305, component)
+        alert(4305, component, strFields={'name': component.params['name']})
 
 def testFont(component):
     """

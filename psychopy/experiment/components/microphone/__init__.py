@@ -12,6 +12,8 @@ from builtins import super  # provides Py3-style super() using python-future
 
 from os import path
 from pathlib import Path
+
+from psychopy.alerts import alert
 from psychopy.experiment.components import BaseComponent, Param, getInitVals, _translate
 from psychopy.sound.microphone import Microphone, _hasPTB
 from psychopy.sound.audiodevice import sampleRateQualityLevels
@@ -33,7 +35,7 @@ devices['default'] = None
 class MicrophoneComponent(BaseComponent):
     """An event class for capturing short sound stimuli"""
     categories = ['Responses']
-    targets = ['PsychoPy']
+    targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'microphone.png'
     tooltip = _translate('Microphone: basic sound capture (fixed onset & '
                          'duration), okay for spoken words')
@@ -44,7 +46,8 @@ class MicrophoneComponent(BaseComponent):
                  startEstim='', durationEstim='',
                  channels='stereo', device="default",
                  sampleRate='DVD Audio (48kHz)', maxSize=24000,
-                 outputType='wav', speakTimes=True, trimSilent=False,
+                 outputType='default', speakTimes=True, trimSilent=False,
+                 transcribe=True, transcribeBackend="GOOGLE", transcribeLang="en-GB", transcribeWords="",
                  #legacy
                  stereo=None, channel=None):
         super(MicrophoneComponent, self).__init__(
@@ -105,7 +108,7 @@ class MicrophoneComponent(BaseComponent):
             "What file type should output audio files be saved as?")
         self.params['outputType'] = Param(
             outputType, valType='code', inputType='choice', categ='Data',
-            allowedVals=AUDIO_SUPPORTED_CODECS,
+            allowedVals=["default"] + AUDIO_SUPPORTED_CODECS,
             hint=msg,
             label=_translate("Output File Type")
         )
@@ -126,6 +129,48 @@ class MicrophoneComponent(BaseComponent):
             label=_translate("Trim Silent")
         )
 
+        # Transcription params
+        self.order += [
+            'transcribe',
+            'transcribeBackend',
+            'transcribeLang',
+            'transcribeWords',
+        ]
+        self.params['transcribe'] = Param(
+            transcribe, valType='bool', inputType='bool', categ='Transcription',
+            hint=_translate("Whether to transcribe the audio recording and store the transcription"),
+            label=_translate("Transcribe Audio")
+        )
+
+        for depParam in ['transcribeBackend', 'transcribeLang', 'transcribeWords']:
+            self.depends.append({
+                "dependsOn": "transcribe",
+                "condition": "==True",
+                "param": depParam,
+                "true": "enable",  # what to do with param if condition is True
+                "false": "disable",  # permitted: hide, show, enable, disable
+            })
+
+        self.params['transcribeBackend'] = Param(
+            transcribeBackend, valType='code', inputType='choice', categ='Transcription',
+            allowedVals=["GOOGLE", "AZURE"],
+            hint=_translate("What transcription service to use to transcribe audio? Only applies online - local "
+                            "transcription uses Python Sphinx."),
+            label=_translate("Online Transcription Backend")
+        )
+
+        self.params['transcribeLang'] = Param(
+            transcribeLang, valType='str', inputType='single', categ='Transcription',
+            hint=_translate("What language you expect the recording to be spoken in, e.g. en-GB for English"),
+            label=_translate("Transcription Language")
+        )
+
+        self.params['transcribeWords'] = Param(
+            transcribeWords, valType='list', inputType='single', categ='Transcription',
+            hint=_translate("Set list of words to listen for - if blank will listen for all words in chosen language"),
+            label=_translate("Expected Words")
+        )
+
     def writeStartCode(self, buff):
         inits = getInitVals(self.params)
         # Use filename with a suffix to store recordings
@@ -141,6 +186,14 @@ class MicrophoneComponent(BaseComponent):
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
+
+    def writeStartCodeJS(self, buff):
+        inits = getInitVals(self.params)
+        code = (
+            "// Define folder to store recordings from %(name)s"
+            "%(name)sRecFolder = filename + '_%(name)s_recorded"
+        )
+        buff.writeIndentedLines(code % inits)
 
     def writeInitCode(self, buff):
         inits = getInitVals(self.params)
@@ -168,7 +221,34 @@ class MicrophoneComponent(BaseComponent):
         buff.setIndentLevel(-1, relative=True)
         code = (
             ")\n"
-            "%(name)sClips = {}\n"
+        )
+        buff.writeIndentedLines(code % inits)
+
+    def writeInitCodeJS(self, buff):
+        inits = getInitVals(self.params)
+        inits['sampleRate'] = sampleRates[inits['sampleRate'].val]
+        # Alert user if non-default value is selected for device
+        if inits['device'].val != 'default':
+            alert(5055, strFields={'name': inits['name'].val})
+        # Write code
+        code = (
+            "%(name)s = new sound.Microphone({\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(1, relative=True)
+        code = (
+                "win : psychoJS.window, \n"
+                "name:'%(name)s',\n"
+                "sampleRateHz : %(sampleRate)s,\n"
+                "channels : %(channels)s,\n"
+                "maxRecordingSize : %(maxSize)s,\n"
+                "loopback : true,\n"
+                "policyWhenFull : 'ignore',\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(-1, relative=True)
+        code = (
+            "});\n"
         )
         buff.writeIndentedLines(code % inits)
 
@@ -212,38 +292,155 @@ class MicrophoneComponent(BaseComponent):
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-2, relative=True)
 
-    def writeRoutineEndCode(self, buff):
+    def writeFrameCodeJS(self, buff):
         inits = getInitVals(self.params)
         inits['routine'] = self.parentName
-        # Store recordings from this routine
+        # Start the recording
+        self.writeStartTestCodeJS(buff)
         code = (
-            "%(name)s.bank('%(routine)s')\n"
+                "await %(name)s.start();\n"
         )
         buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(-1, relative=True)
+        code = (
+            "}"
+        )
+        buff.writeIndentedLines(code % inits)
+        if self.params['stopVal'].val not in ['', None, -1, 'None']:
+            # Stop the recording
+            self.writeStopTestCodeJS(buff)
+            code = (
+                    "%(name)s.pause();\n"
+            )
+            buff.writeIndentedLines(code % inits)
+            buff.setIndentLevel(-1, relative=True)
+            code = (
+                "}"
+            )
+            buff.writeIndentedLines(code % inits)
+
+    def writeRoutineEndCode(self, buff):
+        inits = getInitVals(self.params)
+        # Alter inits
+        if len(self.exp.flow._loopList):
+            currLoop = self.exp.flow._loopList[-1]  # last (outer-most) loop
+        else:
+            currLoop = self.exp._expHandler
+        inits['loop'] = currLoop.params['name']
+        transcribe = inits['transcribe'].val
+        if inits['transcribe'].val == False:
+            inits['transcribeBackend'].val = None
+        if inits['outputType'].val == 'default':
+            inits['outputType'].val = 'wav'
+        # Store recordings from this routine
+        code = (
+            "# tell mic to keep hold of current recording in %(name)s.clips and transcript (if applicable) in %(name)s.scripts\n"
+            "# this will also update %(name)s.lastClip and %(name)s.lastScript\n"
+            "%(name)sClip, %(name)sScript = %(name)s.bank(\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(1, relative=True)
+        code = (
+            "tag='%(loop)s', transcribe='sphinx',\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        if transcribe:
+            code = (
+                "config={'languageCode': %(transcribeLang)s, 'wordList': %(transcribeWords)s}\n"
+            )
+        else:
+            code = (
+                "config=None\n"
+            )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(-1, relative=True)
+        code = (
+            ")\n"
+            "%(loop)s.addData('%(name)s.clip', os.path.join(%(name)sRecFolder, 'recording_%(name)s_%(loop)s_%%s.%(outputType)s' %% %(loop)s.thisTrialN))\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        if transcribe:
+            code = (
+                "%(loop)s.addData('%(name)s.script', %(name)sScript)\n"
+            )
+            buff.writeIndentedLines(code % inits)
         # Write base end routine code
         BaseComponent.writeRoutineEndCode(self, buff)
+
+    def writeRoutineEndCodeJS(self, buff):
+        inits = getInitVals(self.params)
+        inits['routine'] = self.parentName
+        # Write base end routine code
+        BaseComponent.writeRoutineEndCodeJS(self, buff)
+        # Store recordings from this routine
+        code = (
+            "// stop the microphone (make the audio data ready for upload)\n"
+            "await %(name)s.stop();\n"
+            "// get the recording\n"
+            "%(name)s.lastClip = await %(name)s.getRecording({\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(1, relative=True)
+        code = (
+                "tag: 'recording_%(name)s' + trials.thisN,\n"
+                "flush: false\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        buff.setIndentLevel(-1, relative=True)
+        code = (
+            "});\n"
+            "psychoJS.experiment.addData('%(name)s.clip', 'recording_%(name)s' + trials.thisN);\n"
+            "// start the asynchronous upload to the server\n"
+            "%(name)s.lastClip.upload();\n"
+        )
+        buff.writeIndentedLines(code % inits)
+        if self.params['transcribe'].val:
+            code = (
+                "// transcribe the recording\n"
+                "[%(name)s.lastScript, %(name)s.lastConf] = await audioClip.transcribe({\n"
+            )
+            buff.writeIndentedLines(code % inits)
+            buff.setIndentLevel(1, relative=True)
+            code = (
+                    "languageCode: %(transcribeLang)s,\n"
+                    "engine: sound.AudioClip.Engine.%(transcribeBackend)s,\n"
+                    "wordList: %(transcribeWords)s\n"
+            )
+            buff.writeIndentedLines(code % inits)
+            buff.setIndentLevel(-1, relative=True)
+            code = (
+                "});\n"
+                "psychoJS.experiment.addData('%(name)s.transcript', %(name)s.lastScript);\n"
+                "psychoJS.experiment.addData('%(name)s.confidence', %(name)s.lastConf);\n"
+            )
+            buff.writeIndentedLines(code % inits)
 
     def writeExperimentEndCode(self, buff):
         """Write the code that will be called at the end of
         an experiment (e.g. save log files or reset hardware)
         """
         inits = getInitVals(self.params)
+        if len(self.exp.flow._loopList):
+            currLoop = self.exp.flow._loopList[-1]  # last (outer-most) loop
+        else:
+            currLoop = self.exp._expHandler
+        inits['loop'] = currLoop.params['name']
+        if inits['outputType'].val == 'default':
+            inits['outputType'].val = 'wav'
         # Save recording
         code = (
-            "# Save %(name)s recordings\n"
-            "%(name)sClips = %(name)s.flush()\n"
-            "for rt in %(name)sClips:\n"
+            "# save %(name)s recordings\n"
+            "for tag in mic.clips:"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(1, relative=True)
         code = (
-                "for i, clip in enumerate(%(name)sClips[rt]):\n"
+                "for i, clip in enumerate(%(name)s.clips[tag]):\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(1, relative=True)
         code = (
-                    "clipName = os.path.join(%(name)sRecFolder, f'recording_{rt}_{i}.%(outputType)s')\n"
-                    "clip.save(clipName)\n"
+                    "clip.save(os.path.join(%(name)sRecFolder, 'recording_%(name)s_%%s_%%s.%(outputType)s' %% (tag, i)))\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-2, relative=True)

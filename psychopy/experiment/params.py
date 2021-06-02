@@ -18,10 +18,13 @@ The code that writes out a *_lastrun.py experiment file is (in order):
 
 from __future__ import absolute_import, print_function
 # from future import standard_library
+from xml.etree.ElementTree import Element
+
 from past.builtins import basestring
 from builtins import object
 
 import re
+from pathlib import Path
 
 from psychopy import logging
 from . import utils
@@ -204,8 +207,8 @@ class Param(object):
                             # but for other targets that will raise an annoying error
                             val = val[1:]
                     if self.valType in ['file', 'table']:
-                        # If param is a file of any kind, escape any \
-                        val = re.sub(r"\\", r"\\\\", val)
+                        # If param is a file of any kind, use Path to make sure it's valid
+                        val = str(Path(val))
                     val=re.sub("\n", "\\n", val) # Replace line breaks with escaped line break character
                     return repr(val)
             return repr(self.val)
@@ -271,6 +274,20 @@ class Param(object):
         """Return a bool, so we can do `if thisParam`
         rather than `if thisParam.val`"""
         return bool(self.val)
+
+    @property
+    def xml(self):
+        # Make root element
+        element = Element('Param')
+        # Assign values
+        if hasattr(self, 'val'):
+            element.set('val', u"{}".format(self.val).replace("\n", "&#10;"))
+        if hasattr(self, 'valType'):
+            element.set('valType', self.valType)
+        if hasattr(self, 'updates'):
+            element.set('updates', "{}".format(self.updates))
+
+        return element
 
     def dollarSyntax(self):
         """

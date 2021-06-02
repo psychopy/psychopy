@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-# Part of the psychopy.iohub library.
-# Copyright (C) 2012-2016 iSolver Software Solutions
+# Part of the PsychoPy library
+# Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 from __future__ import division, absolute_import, print_function
 import os
@@ -270,7 +270,7 @@ def launchHubServer(**kwargs):
     # Create an ioHub configuration dictionary.
     iohub_config['monitor_devices'] = device_list
 
-    if _DATA_STORE_AVAILABLE and experiment_code and session_code:
+    if _DATA_STORE_AVAILABLE and (datastore_name or session_code):
         # If datastore_name kwarg or experiment code has been provided,
         # then enable saving of device events to the iohub datastore hdf5 file.
         # If datastore_name kwarg was provided, it is used for the hdf5 file
@@ -279,8 +279,12 @@ def launchHubServer(**kwargs):
         # the same hdf5 file name.
         if datastore_name is None:
             datastore_name = session_code
+        parent_dir, datastore_name = os.path.split(datastore_name)
         iohub_config['data_store'] = dict(enable=True,
                                           filename=datastore_name,
                                           experiment_info=experiment_info,
                                           session_info=session_info)
+        if parent_dir:
+            iohub_config['data_store']['parent_dir'] = parent_dir
+
     return ioHubConnection(iohub_config)

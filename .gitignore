@@ -108,3 +108,4 @@ gource_psychopy.mkv
 #################################
 .coverage
 nonSphinx
+/venv/

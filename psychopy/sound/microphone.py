@@ -13,6 +13,7 @@ __all__ = ['Microphone']
 import sys
 import psychopy.logging as logging
 from psychopy.constants import NOT_STARTED, STARTED
+from psychopy.preferences import prefs
 from .audioclip import *
 from .audiodevice import *
 from .exceptions import *
@@ -24,8 +25,9 @@ try:
 except (ImportError, ModuleNotFoundError):
     logging.warning(
         "The 'psychtoolbox' library cannot be loaded but is required for audio "
-        "capture. Microphone recording is unavailable this session. Note that "
-        "opening a microphone stream will raise an error.")
+        "capture (use `pip install psychtoolbox` to get it). Microphone "
+        "recording will be unavailable this session. Note that opening a "
+        "microphone stream will raise an error.")
     _hasPTB = False
 
 
@@ -48,18 +50,22 @@ class RecordingBuffer(object):
     channels : int
         Number of channels to record samples to `1=Mono` and `2=Stereo`.
     maxRecordingSize : int
-        Maximum size of the recording in kilobytes. This specifies how much
-        memory is available to store samples.
-    loopback : bool
-        Allow for continuous recording. Usually if the recording buffer is full
-        no more samples can be saved to the buffer. If `loopback=True`, samples
-        wil be written to the beginning of the track once there is no more
-        space. Default is `False`.
+        Maximum recording size in kilobytes (Kb). Since audio recordings tend to
+        consume a large amount of system memory, one might want to limit the
+        size of the recording buffer to ensure that the application does not run
+        out of memory. By default, the recording buffer is set to 24000 KB (or
+        24 MB). At a sample rate of 48kHz, this will result in 62.5 seconds of
+        continuous audio being recorded before the buffer is full.
+    policyWhenFull : str
+        What to do when the recording buffer is full and cannot accept any more
+        samples. If 'ignore', samples will be silently dropped and the `isFull`
+        property will be set to `True`. If 'warn', a warning will be logged and
+        the `isFull` flag will be set. Finally, if 'error' the application will
+        raise an exception.
 
     """
     def __init__(self, sampleRateHz=SAMPLE_RATE_48kHz, channels=2,
-                 maxRecordingSize=24000, loopback=True,
-                 policyWhenFull='ignore'):
+                 maxRecordingSize=24000, policyWhenFull='ignore'):
         self._channels = channels
         self._sampleRateHz = sampleRateHz
         self._maxRecordingSize = maxRecordingSize
@@ -69,7 +75,10 @@ class RecordingBuffer(object):
         self._spaceRemaining = None  # set in `_allocRecBuffer`
         self._totalSamples = None  # set in `_allocRecBuffer`
 
-        self._loopback = loopback
+        # check if the value is valid
+        if policyWhenFull not in ['ignore', 'warn', 'error']:
+            raise ValueError("Invalid value for `policyWhenFull`.")
+
         self._policyWhenFull = policyWhenFull
         self._warnedRecBufferFull = False
         self._loops = 0
@@ -155,10 +164,10 @@ class RecordingBuffer(object):
 
         Since audio recordings tend to consume a large amount of system memory,
         one might want to limit the size of the recording buffer to ensure that
-        the application does not run out. By default, the recording buffer is
-        set to 64000 KB (or 64 MB). At a sample rate of 48kHz, this will result
-        in about. Using stereo audio (``nChannels == 2``) requires twice the
-        buffer over mono (``nChannels == 2``) for the same length clip.
+        the application does not run out of memory. By default, the recording
+        buffer is set to 24000 KB (or 24 MB). At a sample rate of 48kHz, this
+        will result in 62.5 seconds of continuous audio being recorded before
+        the buffer is full.
 
         Setting this value will allocate another recording buffer of appropriate
         size. Avoid doing this in any time sensitive parts of your application.
@@ -328,11 +337,20 @@ class Microphone(object):
         out of memory. By default, the recording buffer is set to 24000 KB (or
         24 MB). At a sample rate of 48kHz, this will result in 62.5 seconds of
         continuous audio being recorded before the buffer is full.
-    volume : float
-        Input volume (or gain). Specified as a value between 0 and 1.
-    warmUp : bool
-        Warm-up the stream after opening it. This helps prevent additional
-        latency the first time `start` is called on some systems.
+    audioLatencyMode : int or None
+        Audio latency mode to use, values range between 0-4. If `None`, the
+        setting from preferences will be used. Using `2` (exclusive mode) is
+        adequate for most applications and required if using WASAPI on Windows
+        for other settings (such audio quality) to take effect. Symbolic
+        constants `psychopy.sound.audiodevice.AUDIO_PTB_LATENCY_CLASS_` can also
+        be used.
+    audioRunMode : int
+        Run mode for the recording device. Default is standby-mode (`0`) which
+        allows the system to put the device to sleep. However when the device is
+        needed, waking the device results in some latency. Using a run mode of
+        `1` will keep the microphone running (or 'hot') with reduces latency
+        when th recording is started. Cannot be set when after initialization at
+        this time.
 
     Examples
     --------
@@ -376,8 +394,9 @@ class Microphone(object):
                  channels=2,
                  streamBufferSecs=2.0,
                  maxRecordingSize=24000,
-                 volume=0.5,
-                 warmUp=True):
+                 policyWhenFull='warn',
+                 audioLatencyMode=None,
+                 audioRunMode=0):
 
         if not _hasPTB:  # fail if PTB is not installed
             raise ModuleNotFoundError(
@@ -405,6 +424,9 @@ class Microphone(object):
 
             self._device = devices[0]  # use first
 
+        logging.info('Using audio device #{} ({}) for audio capture'.format(
+            self._device.deviceIndex, self._device.deviceName))
+
         # error if specified device is not suitable for capture
         if not self._device.isCapture:
             raise AudioInvalidCaptureDeviceError(
@@ -416,9 +438,26 @@ class Microphone(object):
             self._device.defaultSampleRate if sampleRateHz is None else int(
                 sampleRateHz)
 
+        logging.debug('Set stream sample rate to {} Hz'.format(
+            self._sampleRateHz))
+
+        # set the audio latency mode
+        if audioLatencyMode is None:
+            self._audioLatencyMode = int(prefs.hardware["audioLatencyMode"])
+        else:
+            self._audioLatencyMode = audioLatencyMode
+
+        logging.debug('Set audio latency mode to {}'.format(
+            self._audioLatencyMode))
+
+        assert 0 <= self._audioLatencyMode <= 4  # sanity check for pref
+
         # set the number of recording channels
         self._channels = \
             self._device.inputChannels if channels is None else int(channels)
+
+        logging.debug('Set recording channels to {} ({})'.format(
+            self._channels, 'stereo' if self._channels > 1 else 'mono'))
 
         if self._channels > self._device.inputChannels:
             raise AudioInvalidDeviceError(
@@ -433,21 +472,38 @@ class Microphone(object):
 
         # Handle for the recording stream, should only be opened once per
         # session
+        logging.debug('Opening audio stream for device #{}'.format(
+            self._device.deviceIndex))
+
         self._stream = audio.Stream(
             device_id=self._device.deviceIndex,
+            latency_class=self._audioLatencyMode,
             mode=self._mode,
             freq=self._sampleRateHz,
             channels=self._channels)
 
+        logging.debug('Stream opened')
+
+        assert isinstance(audioRunMode, (float, int)) and \
+               (audioRunMode == 0 or audioRunMode == 1)
+        self._audioRunMode = int(audioRunMode)
+        self._stream.run_mode = self._audioRunMode
+
+        logging.debug('Set run mode to `{}`'.format(
+            self._audioRunMode))
+
         # set latency bias
         self._stream.latency_bias = 0.0
 
-        # set the volume
-        assert 0. <= volume <= 1.
-        #self._stream.volume = float(volume)
+        logging.debug('Set stream latency bias to {} ms'.format(
+            self._stream.latency_bias))
 
         # pre-allocate recording buffer, called once
         self._stream.get_audio_data(self._streamBufferSecs)
+
+        logging.debug(
+            'Allocated stream buffer to hold {} seconds of data'.format(
+                self._streamBufferSecs))
 
         # status flag
         self._statusFlag = NOT_STARTED
@@ -456,14 +512,18 @@ class Microphone(object):
         self._recording = RecordingBuffer(
             sampleRateHz=self._sampleRateHz,
             channels=self._channels,
-            maxRecordingSize=maxRecordingSize)
+            maxRecordingSize=maxRecordingSize,
+            policyWhenFull=policyWhenFull
+        )
 
-        # setup clips dict
+        # setup clips and transcripts dicts
         self.clips = {}
+        self.lastClip = None
+        self.scripts = {}
+        self.lastScript = None
 
-        # do the warm-up
-        if warmUp:
-            self.warmUp()
+        logging.debug('Audio capture device #{} ready'.format(
+            self._device.deviceIndex))
 
     @staticmethod
     def getDevices():
@@ -477,6 +537,11 @@ class Microphone(object):
             empty, no capture devices have been found.
 
         """
+        try:
+            Microphone.enforceWASAPI = bool(prefs.hardware["audioForceWASAPI"])
+        except KeyError:
+            pass  # use default if option not present in settings
+
         # query PTB for devices
         if Microphone.enforceWASAPI and sys.platform == 'win32':
             allDevs = audio.get_devices(device_type=13)
@@ -493,20 +558,20 @@ class Microphone(object):
 
         return inputDevices
 
-    def warmUp(self):
-        """Warm-/wake-up the audio stream.
-
-        On some systems the first time `start` is called incurs additional
-        latency, whereas successive calls do not. To deal with this, it is
-        recommended that you run this warm-up routine prior to capturing audio
-        samples. By default, this routine is called when instancing a new
-        microphone object.
-
-        """
-        # We should put an actual test here to see if timing stabilizes after
-        # multiple invocations of this function.
-        self._stream.start()
-        self._stream.stop()
+    # def warmUp(self):
+    #     """Warm-/wake-up the audio stream.
+    #
+    #     On some systems the first time `start` is called incurs additional
+    #     latency, whereas successive calls do not. To deal with this, it is
+    #     recommended that you run this warm-up routine prior to capturing audio
+    #     samples. By default, this routine is called when instancing a new
+    #     microphone object.
+    #
+    #     """
+    #     # We should put an actual test here to see if timing stabilizes after
+    #     # multiple invocations of this function.
+    #     self._stream.start()
+    #     self._stream.stop()
 
     @property
     def recording(self):
@@ -550,15 +615,12 @@ class Microphone(object):
         self._stream.latency_bias = float(value)
 
     @property
-    def volume(self):
-        """The recording volume (`float`). Specified as a value between 0 and 1
-        and applied to all channels.
-        """
-        return self._stream.volume
+    def audioLatencyMode(self):
+        """Audio latency mode in use (`int`). Cannot be set after
+        initialization.
 
-    @volume.setter
-    def volume(self, value):
-        self._stream.volume = float(value)
+        """
+        return self._audioLatencyMode
 
     @property
     def streamBufferSecs(self):
@@ -678,7 +740,41 @@ class Microphone(object):
         # recording has begun or is scheduled to do so
         self._statusFlag = STARTED
 
+        logging.debug(
+            'Scheduled start of audio capture for device #{} at t={}.'.format(
+                self._device.deviceIndex, startTime))
+
         return startTime
+
+    def record(self, when=None, waitForStart=0, stopTime=None):
+        """Start an audio recording (alias of `.start()`).
+
+        Calling this method will begin capturing samples from the microphone and
+        writing them to the buffer.
+
+        Parameters
+        ----------
+        when : float, int or None
+            When to start the stream. If the time specified is a floating point
+            (absolute) system time, the device will attempt to begin recording
+            at that time. If `None` or zero, the system will try to start
+            recording as soon as possible.
+        waitForStart : bool
+            Wait for sound onset if `True`.
+        stopTime : float, int or None
+            Number of seconds to record. If `None` or `-1`, recording will
+            continue forever until `stop` is called.
+
+        Returns
+        -------
+        float
+            Absolute time the stream was started.
+
+        """
+        return self.start(
+            when=when,
+            waitForStart=waitForStart,
+            stopTime=stopTime)
 
     def stop(self, blockUntilStopped=True, stopTime=None):
         """Stop recording audio.
@@ -715,7 +811,36 @@ class Microphone(object):
             stopTime=stopTime)
         self._statusFlag = NOT_STARTED
 
+        logging.debug(
+            ('Device #{} stopped capturing audio samples at estimated time '
+             't={}. Total overruns: {} Total recording time: {}').format(
+                self._device.deviceIndex, estStopTime, xruns, endPositionSecs))
+
         return startTime, endPositionSecs, xruns, estStopTime
+
+    def pause(self, blockUntilStopped=True, stopTime=None):
+        """Pause a recording (alias of `.stop`).
+
+        Call this method to end an audio recording if in progress. This will
+        simply halt recording and not close the stream. Any remaining samples
+        will be polled automatically and added to the recording buffer.
+
+        Parameters
+        ----------
+        blockUntilStopped : bool
+            Halt script execution until the stream has fully stopped.
+        stopTime : float or None
+            Scheduled stop time for the stream in system time. If `None`, the
+            stream will stop as soon as possible.
+
+        Returns
+        -------
+        tuple
+            Tuple containing `startTime`, `endPositionSecs`, `xruns` and
+            `estStopTime`.
+
+        """
+        return self.stop(blockUntilStopped=blockUntilStopped, stopTime=stopTime)
 
     def close(self):
         """Close the stream.
@@ -726,6 +851,7 @@ class Microphone(object):
 
         """
         self._stream.close()
+        logging.debug('Stream closed')
 
     def poll(self):
         """Poll audio samples.
@@ -764,18 +890,48 @@ class Microphone(object):
 
         return overruns
 
-    def bank(self, tag=None):
-        """Store current buffer as a clip within the mic object
+    def bank(self, tag=None, transcribe=False, config=None):
+        """Store current buffer as a clip within the microphone object.
+
+        Parameters
+        ----------
+        tag : str or None
+            Label for the clip.
+        transcribe : bool or str
+            Set to the name of a transcription engine (e.g. "GOOGLE") to transcribe using that engine, or set as False
+            to not transcribe.
+        config : dict
+            A dict of values defining the configuration for transcribing, if applicable.
+
         """
-        # append current recording to clip list according to tag
+        # make sure the tag exists in both clips and transcripts dicts
         if tag not in self.clips:
             self.clips[tag] = []
-        self.clips[tag].append(self._recording.getSegment())
+        if tag not in self.scripts:
+            self.scripts[tag] = []
+        # append current recording to clip list according to tag
+        self.lastClip = self._recording.getSegment()
+        self.clips[tag].append(self.lastClip)
+        # append current clip's transcription according to tag
+        if transcribe:
+            if transcribe == True:
+                engine = "sphinx"
+            else:
+                engine = transcribe
+            self.lastScript = self.lastClip.transcribe(engine=engine, config=config)
+        else:
+            self.lastScript = "Transcription disabled."
+        self.scripts[tag].append(self.lastScript)
         # clear recording buffer
         self._recording.clear()
+        # return banked items
+        if transcribe:
+            return self.lastClip, self.lastScript
+        else:
+            return self.lastClip
 
     def clear(self):
-        """Wipe all clips
+        """Wipe all clips.
         """
         # clear clips
         self.clips = {}

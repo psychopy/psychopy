@@ -1,9 +1,5 @@
 eyetracker.hw.sr_research.eyelink.EyeTracker:
-    name: 
-        IOHUB_STRING:
-            min_length: 1
-            max_length: 32
-            first_char_alpha: True
+    name: tracker
     enable: IOHUB_BOOL
     save_events: IOHUB_BOOL
     stream_events: IOHUB_BOOL
@@ -28,7 +24,26 @@ eyetracker.hw.sr_research.eyelink.EyeTracker:
                 valid_values: [THREE_POINTS, FIVE_POINTS, NINE_POINTS, THIRTEEN_POINTS]
                 min_length: 1
                 max_length: 1
+        unit_type:
+            IOHUB_LIST:
+                valid_values: [norm, pix, cm, height, deg, degFlatPos, degFlat]
+                min_length: 0
+                max_length: 1
+        color_type:
+            IOHUB_LIST:
+                valid_values: [rgb, dkl, lms, hsv, hex, named, rgb255]
+                min_length: 0
+                max_length: 1
         auto_pace: IOHUB_BOOL
+        target_duration:
+            IOHUB_FLOAT:
+                min: 0.5
+                max: 2.5
+        target_delay:
+            IOHUB_FLOAT:
+                min: 0.5
+                max: 2.5
+        # pacing_speed is deprecated. Please use 'target_delay' instead.
         pacing_speed:
             IOHUB_FLOAT:
                 min: 0.5
@@ -40,11 +55,25 @@ eyetracker.hw.sr_research.eyelink.EyeTracker:
                 IOHUB_FLOAT:
                     min: 0.01
                     max: 250.0
-            inner_diameter: 
+            outer_stroke_width:
+                IOHUB_FLOAT:
+                    min: 0.01
+                    max: 1000.0
+            outer_fill_color: IOHUB_COLOR
+            outer_line_color: IOHUB_COLOR
+            inner_diameter:
                 IOHUB_FLOAT:
                     min: 0.01
                     max: 250.0
+            inner_stroke_width:
+                IOHUB_FLOAT:
+                    min: 0.01
+                    max: 1000.0
+            inner_fill_color: IOHUB_COLOR
+            inner_line_color: IOHUB_COLOR
+            # Deprecated. Use 'outer_fill_color' and 'outer_line_color'
             outer_color: IOHUB_COLOR
+            # Deprecated. Use 'outer_fill_color' and 'outer_line_color'
             inner_color: IOHUB_COLOR
     simulation_mode: IOHUB_BOOL
     enable_interface_without_connection: IOHUB_BOOL
@@ -105,6 +134,3 @@ eyetracker.hw.sr_research.eyelink.EyeTracker:
     # manufacturer_name:    Used by Builder as the displayed name in the eye tracker selection dropdown.
     #
     manufacturer_name: SR Research Ltd
-    builder_hides: ['builder_hides', 'enable', 'name', 'device_number', 'device_timer', 'auto_report_events']
-
-

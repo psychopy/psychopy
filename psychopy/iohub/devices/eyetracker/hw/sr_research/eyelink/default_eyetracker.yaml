@@ -82,21 +82,31 @@ eyetracker.hw.sr_research.eyelink.EyeTracker:
         #   THREE_POINTS, FIVE_POINTS, NINE_POINTS, THIRTEEN_POINTS
         type: NINE_POINTS
 
+        # color_type: rgb, rgb255, named, hex, etc. Leave blank to use window's color space.
+        color_type:
+
+        # unit_type: norm, pix, height, deg, etc. Leave blank to use window's unit type.
+        unit_type:
+
         # auto_pace: If True, the eye tracker will automatically progress from
         # one calibration point to the next. If False, a manual key or button press
         # is needed to progress to the next point.
         # 
         auto_pace: True
 
-        # pacing_speed: The number of sec.msec that a calibration point should
-        # be displayed before moving onto the next point when auto_pace is set to true.
-        # If auto_pace is False, pacing_speed is ignored.
-        #
-        pacing_speed: 1.5
+
+        # target_duration is the number of sec that a calibration point should
+        # be displayed before moving onto the next point.
+        target_duration: 1.5
+
+        # target_delay specifies the time between target position presentations.
+        target_delay: 0.75
+
+        # **pacing_speed is deprecated. Please use 'target_delay' instead.**
+        pacing_speed:
         
-        # screen_background_color: Specifies the r,g,b,a background color to 
-        #   set the calibration, validation, etc, screens to. Each element of the color
-        #   should be a value between 0 and 255. 0 == black, 255 == white.
+        # screen_background_color: Specifies the background color to
+        #   set the calibration, validation, etc, screens to.
         screen_background_color: [128,128,128]
         
         # target_type: Defines what form of calibration graphic should be used
@@ -111,11 +121,17 @@ eyetracker.hw.sr_research.eyelink.EyeTracker:
         #   target_type value they will simple be ignored.
         #
         target_attributes:
-            # outer_diameter and inner_diameter are specified in pixels
             outer_diameter: 33.0
             inner_diameter: 6.0
-            outer_color: [255,255,255]
-            inner_color: [0,0,0]
+            outer_stroke_width: 2.0
+            outer_fill_color: [64,64,64]
+            outer_line_color: [255,255,255]
+            inner_stroke_width: 1.0
+            inner_fill_color: [255,0,0]
+            inner_line_color: [0,0,0]
+            # outer_color and inner_color are deprecated
+            outer_color:
+            inner_color:
 
     # network_settings: Specify the Host computer IP address. Normally
     #   leaving it set to the default value is fine.
@@ -219,4 +235,3 @@ eyetracker.hw.sr_research.eyelink.EyeTracker:
     #   device_number is not used by this device type.
     #
     device_number: 0
-    builder_hides: ['builder_hides', 'enable', 'name', 'device_number', 'device_timer', 'auto_report_events']

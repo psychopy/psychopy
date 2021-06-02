@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
-# Part of the psychopy.iohub library.
-# Copyright (C) 2012-2016 iSolver Software Solutions
+# Part of the PsychoPy library
+# Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 from psychopy.iohub.errors import print2err, printExceptionDetailsToStdErr
 from psychopy.iohub.constants import EyeTrackerConstants, EventConstants
 from psychopy.iohub.devices import Computer, Device
 from psychopy.iohub.devices.eyetracker import EyeTrackerDevice
+from psychopy.iohub.devices.eyetracker.hw.mouse.mousegazeCalibrationGraphics import MouseGazePsychopyCalibrationGraphics
 import math
 ET_UNDEFINED = EyeTrackerConstants.UNDEFINED
 getTime = Computer.getTime
@@ -76,7 +77,7 @@ class EyeTracker(EyeTrackerDevice):
     _last_event_start = 0.0
     _last_start_event_pos = None
     _sacc_end_time = 0.0
-    _sacc_amplitude = 0.0
+    _sacc_amplitude = 0.0, 0.0
     _button_ix = dict(LEFT_BUTTON=0, MIDDLE_BUTTON=1, RIGHT_BUTTON=2)
 
     def __init__(self, *args, **kwargs):
@@ -394,12 +395,18 @@ class EyeTracker(EyeTrackerDevice):
         """
         return self._recording
 
-    def runSetupProcedure(self):
+    def runSetupProcedure(self, calibration_args={}):
         """
-        runSetupProcedure does nothing in the Mouse Simulated eye tracker, as calibration is automatic. ;)
+        runSetupProcedure displays a mock calibration procedure. No calibration is actually done.
         """
-        print2err("Mouse Simulated eye tracker runSetupProcedure called.")
-        return True
+        calibration = MouseGazePsychopyCalibrationGraphics(self, calibration_args)
+        calibration.runCalibration()
+        calibration.window.close()
+
+        calibration._unregisterEventMonitors()
+        calibration.clearAllEventBuffers()
+
+        return {"RESULT": "ALWAYS_OK"}
 
     def _getIOHubEventObject(self, native_event_data):
         """The _getIOHubEventObject method is called by the ioHub Process to
@@ -409,13 +416,13 @@ class EyeTracker(EyeTrackerDevice):
         return self._latest_sample
 
     def _eyeTrackerToDisplayCoords(self, eyetracker_point=()):
-        """Converts GP3 gaze positions to the Display device coordinate space.
+        """Converts MouseGaze positions to the Display device coordinate space.
         """
 
         return eyetracker_point[0], eyetracker_point[1]
 
     def _displayToEyeTrackerCoords(self, display_x, display_y):
-        """Converts a Display device point to GP3 gaze position coordinate
+        """Converts a Display device point to MouseGaze position coordinate
         space.
         """
         return display_x, display_y

@@ -1,4 +1,4 @@
-"""ioHub Common Eye Tracker Interface for EyeLink(C) Systems"""
- # Part of the psychopy.iohub library.
- # Copyright (C) 2012-2016 iSolver Software Solutions
- # Distributed under the terms of the GNU General Public License (GPL).
+# -*- coding: utf-8 -*-
+# Part of the PsychoPy library
+# Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
+# Distributed under the terms of the GNU General Public License (GPL).

@@ -71,7 +71,8 @@ includes = ['Tkinter', 'tkFileDialog',
             ]
 packages = ['wx', 'psychopy',
             'pyglet', 'pytz', 'OpenGL', 'glfw',
-            'scipy', 'matplotlib', 'lxml', 'xml', 'openpyxl',
+            'scipy', 'matplotlib', 'openpyxl',
+            'xml', 'xmlschema', 'elementpath',
             'moviepy', 'imageio', 'imageio_ffmpeg',
             '_sounddevice_data', '_soundfile_data',
             'cffi', 'pycparser',
@@ -81,7 +82,6 @@ packages = ['wx', 'psychopy',
             'pkg_resources',  # needed for objc
             'pyolib', 'pyo',
             'requests', 'certifi', 'cryptography',
-            'pyosf',
             # for unit testing
             'coverage',
             # handy external science libs

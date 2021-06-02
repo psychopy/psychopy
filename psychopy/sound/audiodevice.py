@@ -14,6 +14,8 @@ __all__ = [
     'NULL_AUDIO_DEVICE',
     'NULL_AUDIO_DEVICE_STATUS',
     'sampleRateQualityLevels',
+    'latencyClassLevels',
+    'runModeLevels',
     'SAMPLE_RATE_8kHz',
     'SAMPLE_RATE_TELCOM_QUALITY',
     'SAMPLE_RATE_16kHz',
@@ -25,10 +27,27 @@ __all__ = [
     'SAMPLE_RATE_DVD_QUALITY',
     'SAMPLE_RATE_96kHz',
     'SAMPLE_RATE_192kHz',
+    'AUDIO_PTB_LATENCY_CLASS0',
+    'AUDIO_PTB_LATENCY_CLASS1',
+    'AUDIO_PTB_LATENCY_CLASS2',
+    'AUDIO_PTB_LATENCY_CLASS3',
+    'AUDIO_PTB_LATENCY_CLASS4',
+    'AUDIO_PTB_LATENCY_CLASS_DONT_CARE',
+    'AUDIO_PTB_LATENCY_CLASS_SHARE',
+    'AUDIO_PTB_LATENCY_CLASS_EXCLUSIVE',
+    'AUDIO_PTB_LATENCY_CLASS_AGGRESSIVE',
+    'AUDIO_PTB_LATENCY_CLASS_CRITICAL',
+    'AUDIO_PTB_RUN_MODE0',
+    'AUDIO_PTB_RUN_MODE1',
+    'AUDIO_PTB_RUN_MODE_STANDBY',
+    'AUDIO_PTB_RUN_MODE_KEEP_HOT',
     'AUDIO_LIBRARY_PTB'
 ]
 
 from psychopy.tools.audiotools import *
+
+# audio library identifiers
+AUDIO_LIBRARY_PTB = 'ptb'  # PsychPortAudio from Psychtoolbox
 
 # Quality levels as strings and values. Used internally by the PsychoPy UI for
 # dropdowns and preferences. Persons using PsychoPy as a library would typically
@@ -40,15 +59,41 @@ from psychopy.tools.audiotools import *
 #
 sampleRateQualityLevels = {
     0: (SAMPLE_RATE_8kHz, 'Telephone/Two-way radio (8kHz)'),
-    1: (SAMPLE_RATE_16kHz, 'Voice (16kHz)'),  # <<< recommended
+    1: (SAMPLE_RATE_16kHz, 'Voice (16kHz)'),  # <<< recommended for voice
     2: (SAMPLE_RATE_44p1kHz, 'CD Audio (44.1kHz)'),
-    3: (SAMPLE_RATE_48kHz, 'DVD Audio (48kHz)'),
+    3: (SAMPLE_RATE_48kHz, 'DVD Audio (48kHz)'),  # <<< usually system default
     4: (SAMPLE_RATE_96kHz, 'High-Def (96kHz)'),
     5: (SAMPLE_RATE_192kHz, 'Ultra High-Def (192kHz)')
 }
 
-# audio library identifiers
-AUDIO_LIBRARY_PTB = 'ptb'  # PsychPortAudio from Psychtoolbox
+# Latency classes for the PsychPortAudio backend. These are used to set how
+# aggressive PsychPortAudio should be at minimizing sound latency and getting
+# precise timing. Exclusive mode `AUDIO_PTB_LATENCY_CLASS2` is usually used
+# for the best timing and maximum compatibility.
+#
+AUDIO_PTB_LATENCY_CLASS0 = AUDIO_PTB_LATENCY_CLASS_DONT_CARE = 0
+AUDIO_PTB_LATENCY_CLASS1 = AUDIO_PTB_LATENCY_CLASS_SHARE = 1
+AUDIO_PTB_LATENCY_CLASS2 = AUDIO_PTB_LATENCY_CLASS_EXCLUSIVE = 2
+AUDIO_PTB_LATENCY_CLASS3 = AUDIO_PTB_LATENCY_CLASS_AGGRESSIVE = 3
+AUDIO_PTB_LATENCY_CLASS4 = AUDIO_PTB_LATENCY_CLASS_CRITICAL = 4
+
+# used for GUI dropdowns
+latencyClassLevels = {
+    0: (AUDIO_PTB_LATENCY_CLASS0, 'Latency not important'),
+    1: (AUDIO_PTB_LATENCY_CLASS1, 'Share low-latency driver'),
+    2: (AUDIO_PTB_LATENCY_CLASS2, 'Exclusive low-latency'),  # <<< default
+    3: (AUDIO_PTB_LATENCY_CLASS3, 'Aggressive low-latency'),
+    4: (AUDIO_PTB_LATENCY_CLASS4, 'Latency critical'),
+}
+
+# Run modes for the PsychPortAudio backend.
+AUDIO_PTB_RUN_MODE0 = AUDIO_PTB_RUN_MODE_STANDBY = 0
+AUDIO_PTB_RUN_MODE1 = AUDIO_PTB_RUN_MODE_KEEP_HOT = 1
+
+runModeLevels = {
+    0: (AUDIO_PTB_RUN_MODE0, 'Standby (low resource use, higher latency)'),
+    1: (AUDIO_PTB_RUN_MODE1, 'Keep hot (higher resource use, low latency)')
+}
 
 
 class AudioDeviceInfo(object):

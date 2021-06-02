@@ -1,6 +1,6 @@
-"""ioHub Common Eye Tracker Interface"""
-# Part of the psychopy.iohub library.
-# Copyright (C) 2012-2016 iSolver Software Solutions
+# -*- coding: utf-8 -*-
+# Part of the PsychoPy library
+# Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 from .. import Device, ioDeviceError
 from ...constants import DeviceConstants, EyeTrackerConstants
@@ -232,10 +232,11 @@ class EyeTrackerDevice(Device):
 
         return EyeTrackerConstants.FUNCTIONALITY_NOT_SUPPORTED
 
-    def runSetupProcedure(self):
+    def runSetupProcedure(self, calibration_args={}):
         """
         The runSetupProcedure method starts the eye tracker calibration
-        routine.
+        routine. If calibration_args are provided, they should be used to
+        update calibration related settings prior to starting the calibration.
         
         The details of this method are implementation-specific.
 
@@ -337,19 +338,20 @@ class EyeTrackerDevice(Device):
             None: If the eye tracker is not currently recording data or no eye samples have been received.
 
             tuple: Latest (gaze_x,gaze_y) position of the eye(s)
-
         """
         return self._latest_gaze_position
 
     def getPosition(self):
-        """The getPosition method is the same as the getLastGazePosition
-        method, provided as a consistent cross device method to access the
-        current screen position reported by a device.
-
-        See getLastGazePosition for further details.
-
         """
-        return self._latest_gaze_position
+        See getLastGazePosition().
+        """
+        return self.getLastGazePosition()
+
+    def getPos(self):
+        """
+        See getLastGazePosition().
+        """
+        return self.getLastGazePosition()
 
     def _eyeTrackerToDisplayCoords(self, eyetracker_point):
         """The _eyeTrackerToDisplayCoords method is required for implementation

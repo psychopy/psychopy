@@ -1,0 +1,25 @@
+
+code: 5055
+cat: Parameters not used online
+msg: Device parameter of microphone component "{name}" will not be used online.
+
+# The following are typically used for online help pages, and support reStructured Text.
+label: Microphone device not applicable online
+
+synopsis: |
+  A non-default value was given for the "device" parameter of a microphone component, this will not be used when running
+  online.
+
+details: |
+  When running experiments locally, it is useful to define a specific device for a Microphone component. For example,
+  you may want to plug in a microphone to your laptop and tell PsychoPy to use that microphone rather than the one
+  built into your laptop. For this reason, you can specify a device for a Microphone component.
+
+  However, when running online, we cannot be sure what microphone devices the participant will have conencted. As such,
+  the device parameter does not apply to online experiments and will not be used online.
+
+solutions: |
+  No action needed. To silence this alert, set the device parameter of the Microphone component to be "default".
+
+versions: |
+  > 2021.2.0

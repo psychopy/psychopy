@@ -1,0 +1,25 @@
+
+code: 4510
+cat: Eyetracking
+msg: A {eyetracker} eye tracker has been configured, but no calibration routine is present.
+
+# The following are typically used for online help pages, and support reStructured Text.
+label: Eyetracker not calibrated
+
+synopsis: |
+  The experiment is set up to use an eye tracker, but there is no calibration routine in the experiment flow.
+
+details: |
+  In order to get accurate readings, an eye tracker needs to know what points on the screen correspond to what eye
+  movements. It learns this during a "calibration" routine - in which the participant looks at different points on the
+  screen whose positions are known to the eye tracker. While an eyetracker can sometimes guess, readings will be much
+  more accurate if the eyetracker has been calibrated.
+
+solutions: |
+  Either set the `Eyetracker` setting in `Experiment Settings` to be `None` (no eye tracking) or `MouseGaze` (use the
+  mouse as if it were an eye tracker) so that no calibration is needed, or add a calibration routine to the experiment
+  flow. You can find the button to create a calibration routine in the Eyetracking section of the Components panel and
+  can add it to the flow via the Add Routine button.
+
+versions: |
+  >2021.2

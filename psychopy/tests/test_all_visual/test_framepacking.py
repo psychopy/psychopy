@@ -15,7 +15,6 @@ from psychopy.visual.windowframepack import ProjectorFramePacker
 """
 
 
-@pytest.mark.projectorframepacker
 class Test_class_ProjectorFramePacker(object):
     """
     """

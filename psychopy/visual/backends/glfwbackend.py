@@ -15,16 +15,20 @@ and initialize an instance using the attributes of the Window.
 
 from __future__ import absolute_import, print_function
 import atexit
-import sys, os
+import sys
+import os
 import glob
 import numpy as np
-from psychopy import logging, event, prefs
+from psychopy import logging, event, prefs, core
 from psychopy.tools.attributetools import attributeSetter
 from psychopy.visual import window
+import psychopy.event as event
 from .gamma import createLinearRamp
+import psychopy.hardware.mouse as mouse
 from .. import globalVars
 from ._base import BaseBackend
 from PIL import Image
+import pyglet
 
 # on mac Standalone app check for packaged libglfw dylib
 if prefs.paths['libs']:
@@ -40,23 +44,45 @@ if not glfw.init():
                        "different backend. Exiting.")
 
 atexit.register(glfw.terminate)
-import pyglet
 pyglet.options['debug_gl'] = False
 GL = pyglet.gl
 
 retinaContext = None  # it will be set to an actual context if needed
 
 # generate and cache standard cursors
-_CURSORS_ = {
+_GLFW_CURSORS_ = {
     'arrow': glfw.create_standard_cursor(glfw.ARROW_CURSOR),
+    'default': glfw.create_standard_cursor(glfw.ARROW_CURSOR),
     'ibeam': glfw.create_standard_cursor(glfw.IBEAM_CURSOR),
+    'text': glfw.create_standard_cursor(glfw.IBEAM_CURSOR),
     'crosshair': glfw.create_standard_cursor(glfw.CROSSHAIR_CURSOR),
     'hand': glfw.create_standard_cursor(glfw.HAND_CURSOR),
     'hresize': glfw.create_standard_cursor(glfw.HRESIZE_CURSOR),
-    'vresize': glfw.create_standard_cursor(glfw.VRESIZE_CURSOR)}
+    'vresize': glfw.create_standard_cursor(glfw.VRESIZE_CURSOR),
+    # not supported, raises warning or error
+    'help': None,
+    'no': None,
+    'size': None,
+    'downleft': None,
+    'downright': None,
+    'lresize': None,
+    'rresize': None,
+    'uresize': None,
+    'upleft': None,
+    'upright': None,
+    'wait': None,
+    'waitarrow': None
+}
+
 # load window icon
 _WINDOW_ICON_ = Image.open(
     os.path.join(prefs.paths['resources'], 'psychopy.png'))
+
+_GLFW_MOUSE_BUTTONS_ = {
+    glfw.MOUSE_BUTTON_LEFT: mouse.MOUSE_BUTTON_LEFT,
+    glfw.MOUSE_BUTTON_MIDDLE: mouse.MOUSE_BUTTON_MIDDLE,
+    glfw.MOUSE_BUTTON_RIGHT: mouse.MOUSE_BUTTON_RIGHT
+}
 
 
 class GLFWBackend(BaseBackend):
@@ -248,7 +274,7 @@ class GLFWBackend(BaseBackend):
                         win.refreshHz,
                         nativeVidmode.refresh_rate)))
 
-                win.clientSize = np.array((actualWidth, actualHeight), np.int)
+                win.clientSize = np.array((actualWidth, actualHeight), int)
             else:
                 logging.warning(
                     ("Overriding user video settings: bpc {} -> "
@@ -370,8 +396,10 @@ class GLFWBackend(BaseBackend):
 
         # Assign event callbacks, these are dispatched when 'poll_events' is
         # called.
-        glfw.set_mouse_button_callback(self.winHandle, event._onGLFWMouseButton)
-        glfw.set_scroll_callback(self.winHandle, event._onGLFWMouseScroll)
+        glfw.set_mouse_button_callback(self.winHandle, self.onMouseButton)
+        glfw.set_cursor_pos_callback(self.winHandle, self.onMouseMove)
+        glfw.set_cursor_enter_callback(self.winHandle, self.onMouseEnter)
+        glfw.set_scroll_callback(self.winHandle, self.onMouseScroll)
         glfw.set_key_callback(self.winHandle, event._onGLFWKey)
         glfw.set_char_mods_callback(self.winHandle, event._onGLFWText)
 
@@ -439,20 +467,7 @@ class GLFWBackend(BaseBackend):
         """Change the appearance of the cursor for this window. Cursor types
         provide contextual hints about how to interact with on-screen objects.
 
-        The graphics used 'standard cursors' provided by the operating system.
-        They may vary in appearance and hot spot location across platforms. The
-        following names are valid on most platforms:
-
-        * ``arrow`` : Default pointer
-        * ``ibeam`` : Indicates text can be edited
-        * ``crosshair`` : Crosshair with hot-spot at center
-        * ``hand`` : A pointing hand
-        * ``hresize`` : Double arrows pointing horizontally
-        * ``vresize`` : Double arrows pointing vertically
-
-        Requires the GLFW backend, otherwise this function does nothing! Note,
-        on Windows the ``crosshair`` option is negated with the background
-        color. It will not be visible when placed over 50% grey fields.
+        **Deprecated!** Use `setMouseCursor` instead.
 
         Parameters
         ----------
@@ -460,12 +475,47 @@ class GLFWBackend(BaseBackend):
             Type of standard cursor to use.
 
         """
+        self.setMouseCursor(name)
+
+    def setMouseCursor(self, cursorType='arrow'):
+        """Change the appearance of the cursor for this window. Cursor types
+        provide contextual hints about how to interact with on-screen objects.
+
+        The graphics used 'standard cursors' provided by the operating system.
+        They may vary in appearance and hot spot location across platforms. The
+        following names are valid on most platforms:
+
+        * ``arrow`` or ``default`` : Default system pointer.
+        * ``ibeam`` or ``text`` : Indicates text can be edited.
+        * ``crosshair`` : Crosshair with hot-spot at center.
+        * ``hand`` : A pointing hand.
+        * ``hresize`` : Double arrows pointing horizontally.
+        * ``vresize`` : Double arrows pointing vertically.
+
+        Parameters
+        ----------
+        cursorType : str
+            Type of standard cursor to use.
+
+        """
         try:
-            glfw.set_cursor(self.winHandle, _CURSORS_[name])
+            cursor = _GLFW_CURSORS_[cursorType]  # get cursor
+
+            if cursor is None:  # check supported by backend
+                logging.warn(
+                    "Cursor type name '{}', is not supported by this backend. "
+                    "Setting cursor to system default.".format(cursorType))
+
+                cursor = _GLFW_CURSORS_['default']  # all backends define this
+
         except KeyError:
             logging.warn(
-                "Invalid cursor type name '{}', using default.".format(type))
-            glfw.set_cursor(self.winHandle, _CURSORS_['arrow'])
+                "Invalid cursor type name '{}', using system default.".format(
+                    cursorType))
+
+            cursor = _GLFW_CURSORS_['default']
+
+        glfw.set_cursor(self.winHandle, cursor)
 
     def setCurrent(self):
         """Sets this window to be the current rendering target.
@@ -638,8 +688,154 @@ class GLFWBackend(BaseBackend):
 
     def setFullScr(self, value):
         """Sets the window to/from full-screen mode"""
-        raise NotImplementedError("Toggling fullscreen mode is not currently "
-                             "supported on GFLW windows")
+        raise NotImplementedError(
+            "Toggling fullscreen mode is not currently supported on GFLW "
+            "windows")
+
+    # --------------------------------------------------------------------------
+    # Mouse button event handlers
+    #
+
+    def onMouseButton(self, *args, **kwargs):
+        """Event handler for any mouse button event (pressed and released)."""
+        # don't process mouse events until ready
+        mouseEventHandler = mouse.Mouse.getInstance()
+        if mouseEventHandler is None:
+            event._onGLFWMouseButton(*args, **kwargs)
+            return
+
+        _, _, action, _ = args
+
+        # process actions
+        if action == glfw.PRESS:
+            self.onMouseButtonPress(*args)
+        elif action == glfw.RELEASE:
+            self.onMouseButtonRelease(*args)
+
+    def onMouseButtonPress(self, *args, **kwargs):
+        """Event handler for mouse press events."""
+        # don't process mouse events until ready
+        mouseEventHandler = mouse.Mouse.getInstance()
+        if mouseEventHandler is None:
+            event._onGLFWMouseButton(*args, **kwargs)
+            return
+
+        win_handle, button, _, _ = args
+        absTime = core.getTime()
+        mouseEventHandler.win = self.win
+        absPos = self.getMousePos()
+        mouseEventHandler.setMouseButtonState(
+            _GLFW_MOUSE_BUTTONS_[button], True, absPos, absTime)
+
+    def onMouseButtonRelease(self, *args, **kwargs):
+        """Event handler for mouse press events."""
+        # don't process mouse events until ready
+        mouseEventHandler = mouse.Mouse.getInstance()
+        if mouseEventHandler is None:
+            event._onGLFWMouseButton(*args, **kwargs)
+            return
+
+        win_handle, button, _, _ = args
+        absTime = core.getTime()
+        mouseEventHandler.win = self.win
+        absPos = self.getMousePos()
+        mouseEventHandler.setMouseButtonState(
+            _GLFW_MOUSE_BUTTONS_[button], False, absPos, absTime)
+
+    def onMouseScroll(self, *args, **kwargs):
+        """Event handler for mouse scroll events."""
+        # don't process mouse events until ready
+        mouseEventHandler = mouse.Mouse.getInstance()
+        if mouseEventHandler is None:
+            event._onGLFWMouseScroll(*args, **kwargs)
+            return
+
+        _, xoffset, yoffset = args
+        absPos = self.getMousePos()
+        absTime = core.getTime()
+        relOffset = self._windowCoordsToPix((xoffset, yoffset))
+        mouseEventHandler.win = self.win
+        mouseEventHandler.setMouseScrollState(absPos, relOffset, absTime)
+
+    def onMouseMove(self, *args, **kwargs):
+        """Event handler for mouse move events."""
+        # don't process mouse events until ready
+        mouseEventHandler = mouse.Mouse.getInstance()
+        if mouseEventHandler is None:
+            return
+
+        _, xpos, ypos = args
+        absTime = core.getTime()
+        absPos = self._windowCoordsToPix((xpos, ypos))
+        mouseEventHandler.win = self.win
+        mouseEventHandler.setMouseMotionState(absPos, absTime)
+
+    def onMouseEnter(self, *args, **kwargs):
+        """Event called when the mouse enters the window."""
+        win_handle, entered = args
+
+        # don't process mouse events until ready
+        mouseEventHandler = mouse.Mouse.getInstance()
+        if mouseEventHandler is None:
+            return
+
+        # check if auto focus is enabled
+        if mouseEventHandler.autoFocus:
+            if bool(entered):
+                mouseEventHandler.win = self.win
+            else:
+                mouseEventHandler.win = None
+
+    def onMouseLeave(self, *args, **kwargs):
+        """Event called when the mouse leaves the window. This does nothing
+        since `onMouseEnter` handles both enter and leave events. This is
+        implemented for completeness.
+        """
+        pass
+
+    def setMouseExclusive(self, exclusive):
+        """Set mouse exclusivity.
+
+        Parameters
+        ----------
+        exclusive : bool
+            Mouse exclusivity mode.
+
+        """
+        if exclusive:
+            glfw.set_input_mode(
+                self.winHandle, glfw.CURSOR, glfw.CURSOR_DISABLED)
+            glfw.set_input_mode(
+                self.winHandle, glfw.RAW_MOUSE_MOTION, glfw.TRUE)
+        else:
+            glfw.set_input_mode(
+                self.winHandle, glfw.CURSOR, glfw.CURSOR_NORMAL)
+            glfw.set_input_mode(
+                self.winHandle, glfw.RAW_MOUSE_MOTION, glfw.FALSE)
+
+    def getMousePos(self):
+        """Get the position of the mouse on the current window.
+
+        Returns
+        -------
+        ndarray
+            Position `(x, y)` in window coordinates.
+
+        """
+        winX, winY = glfw.get_cursor_pos(self.winHandle)
+        return self._windowCoordsToPix((winX, winY))
+
+    def setMousePos(self, pos):
+        """Set/move the position of the mouse on the current window.
+
+        Parameters
+        ----------
+        pos : ArrayLike
+            Position `(x, y)` in window coordinates.
+
+        """
+        wcs = self._pixToWindowCoords(pos)
+        glfw.set_cursor_pos(self.winHandle, int(wcs[0]), int(wcs[1]))
 
 
 def _onResize(width, height):
