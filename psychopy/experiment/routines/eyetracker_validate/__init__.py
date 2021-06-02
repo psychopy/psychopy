@@ -337,6 +337,8 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
         # Run
         code = (
             "# run %(name)s\n"
-            "%(name)s.run()"
+            "%(name)s.run()\n"
+            "# clear any keypresses from during %(name)s so they don't interfere with the experiment\n"
+            "defaultKeyboard.clearEvents()\n"
         )
         buff.writeIndentedLines(code % inits)
