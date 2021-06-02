@@ -262,12 +262,18 @@ class Keyboard:
                 kname = k.key
                 if kname == ' ':
                     kname = 'space'
-                kp = KeyPress(code=None, tDown=k.time, name=kname)
-                kp.rt = kp.tDown - self.clock.getLastResetTime() + Keyboard._iohubOffset
-                if waitRelease:
-                    kp.duration = k.duration
-                keys.append(kp)
 
+                if waitRelease:
+                    tDown = k.time-k.duration
+                else:
+                    tDown = k.time
+
+                kpress = KeyPress(code=None, tDown=tDown, name=kname)
+                kpress.rt = kpress.tDown - self.clock.getLastResetTime() + Keyboard._iohubOffset
+                if waitRelease:
+                    kpress.duration = k.duration
+
+                keys.append(kpress)
         else:  # Keyboard.backend == 'event'
             name = event.getKeys(keyList, modifiers=False, timeStamped=False)
             rt = self.clock.getTime()
