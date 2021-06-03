@@ -597,7 +597,9 @@ class ThemeMixin:
         if "italic" in base:
             italic = [base.pop(base.index("italic"))]
         # Append base and default fonts
-        fontList.extend(base+["JetBrains Mono", "Consolas", "Monaco", "Lucida Console"])
+        fontList.extend(base+["JetBrains Mono"])
+        if "" in fontList:
+            del fontList[fontList.index("")]
         # Set starting font in case none are found
         if sys.platform == 'win32':
             finalFont = [wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT).GetFaceName()]
