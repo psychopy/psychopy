@@ -94,6 +94,11 @@ _localized = {
 
 cs = ThemeMixin.appColors
 
+# Components which are always hidden
+alwaysHidden = [
+    'SettingsComponent', 'UnknownComponent', 'UnknownRoutine', 'UnknownStandaloneRoutine'
+]
+
 class BuilderFrame(wx.Frame, ThemeMixin):
     """Defines construction of the Psychopy Builder Frame"""
 
@@ -2234,9 +2239,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
                     elif self.parent.filter in ['PsychoPy', 'PsychoJS']:
                         cond = self.parent.filter in comp.targets
                     # Always hide if hidden by prefs
-                    if comp.__name__ in prefs.builder['hiddenComponents'] + [
-                        'SettingsComponent', 'UnknownComponent', 'UnknownRoutine'
-                    ]:
+                    if comp.__name__ in prefs.builder['hiddenComponents'] + alwaysHidden:
                         cond = False
                     btn.Show(cond)
                 # # Update icon
@@ -2528,6 +2531,18 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
                 btn.ToggleMenu(True)
             else:
                 btn.ToggleMenu(False)
+            # If every button in a category is hidden, hide the category
+            empty = True
+            for child in self.catSizers[cat].Children:
+                if isinstance(child.Window, self.ComponentButton):
+                    name = child.Window.component.__name__
+                elif isinstance(child.Window, self.RoutineButton):
+                    name = child.Window.routine.__name__
+                else:
+                    name = ""
+                if name not in prefs.builder['hiddenComponents'] + alwaysHidden:
+                    empty = False
+            btn.Show(not empty)
         # Do sizing
         self.Layout()
         self.Fit()

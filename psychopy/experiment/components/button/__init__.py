@@ -42,7 +42,7 @@ class ButtonComponent(BaseVisualComponent):
     tooltip = _translate('Button: A clickable textbox')
 
     def __init__(self, exp, parentName, name="button",
-                 startType='time (s)', startVal=0.1,
+                 startType='time (s)', startVal=0,
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim='',
                  text=_translate("Click here"), font='Arvo',

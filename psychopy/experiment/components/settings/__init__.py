@@ -790,8 +790,8 @@ class SettingsComponent(object):
         # Write imports if modular
         if modular:
             code = (
-                    "import {{ core, data, sound, util, visual }} from './psycho-2021.2.0.js';\n"
-                    "const {{ PsychoJS }} = core;"
+                    "import {{ core, data, sound, util, visual }} from './lib/psychojs-2021.2.0.js';\n"
+                    "const {{ PsychoJS }} = core;\n"
                     "const {{ TrialHandler }} = data;\n"
                     "const {{ Scheduler }} = util;\n"
                     "//some handy aliases as in the psychopy scripts;\n"
@@ -1265,7 +1265,7 @@ class SettingsComponent(object):
                     "}\n")
         buff.writeIndentedLines(endLoopInteration)
 
-        recordLoopIterationFunc = ("\nfunction importConditions(currentLoop) {\n"
+        recordLoopIterationFunc = ("\nasync function importConditions(currentLoop) {\n"
                     "  return function () {\n"
                     "    psychoJS.importAttributes(currentLoop.getCurrentTrial());\n"
                     "    return Scheduler.Event.NEXT;\n"
@@ -1273,7 +1273,7 @@ class SettingsComponent(object):
                     "}\n")
         buff.writeIndentedLines(recordLoopIterationFunc)
 
-        code = ("\nfunction quitPsychoJS(message, isCompleted) {\n")
+        code = ("\nasync function quitPsychoJS(message, isCompleted) {\n")
         buff.writeIndented(code)
         buff.setIndentLevel(1, relative=True)
         code = ("// Check for and save orphaned data\n"

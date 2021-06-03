@@ -204,7 +204,7 @@ class TrialHandler(object):
         elif isinstance(nReps, str):
             nReps = nReps.strip("$")
 
-        code = ("\nfunction {loopName}LoopBegin({loopName}LoopScheduler) {{\n"
+        code = ("\nasync function {loopName}LoopBegin({loopName}LoopScheduler) {{\n"
                 "  // set up handler to look after randomisation of conditions etc\n"
                 "  {loopName} = new TrialHandler({{\n"
                 "    psychoJS: psychoJS,\n"
@@ -305,7 +305,7 @@ class TrialHandler(object):
 
     def writeLoopEndCodeJS(self, buff):
         # Just within the loop advance data line if loop is whole trials
-        code = ("\nfunction {funName}LoopEnd() {{\n"
+        code = ("\nasync function {funName}LoopEnd() {{\n"
                 "  psychoJS.experiment.removeLoop({name});\n\n".format(funName=self.params['name'].val,
                                                                        name=self.params['name']))
         code += ("  return Scheduler.Event.NEXT;\n"

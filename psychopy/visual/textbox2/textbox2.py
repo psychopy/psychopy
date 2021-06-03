@@ -137,9 +137,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         ColorMixin.foreColor.fset(self, color)  # Have to call the superclass directly on init as text has not been set
         self.onTextCallback = onTextCallback
 
-        if units=='norm':
-            raise NotImplementedError("TextBox2 doesn't support 'norm' units "
-                                 "at the moment. Use 'height' units instead")
         # first set params needed to create font (letter sizes etc)
         if letterHeight is None:
             self.letterHeight = defaultLetterHeight[self.units]
@@ -509,6 +506,13 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                     xBotR = xBotL + glyph.size[0] * alphaCorrection + fakeBold
                     xTopR = xTopL + glyph.size[0] * alphaCorrection + fakeBold
                     yBot = yTop - glyph.size[1]
+                    # Adjust for norm
+                    if self.units == 'norm':
+                        ratio = self.win.size[1]/self.win.size[0]
+                        xBotL *= ratio
+                        xTopL *= ratio
+                        xBotR *= ratio
+                        xTopR *= ratio
                     u0 = glyph.texcoords[0]
                     v0 = glyph.texcoords[1]
                     u1 = glyph.texcoords[2]
