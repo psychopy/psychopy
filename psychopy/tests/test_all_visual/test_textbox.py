@@ -153,7 +153,7 @@ class Test_textbox(object):
                 "text": "i need a word which will go off the page, antidisestablishmentarianism is a very long word",
                 "font": "Open Sans",
                 "screenshot": "textbox_typing_longWord.png"
-            },  # Check that lines wrap correctly when there's a very long word, rather than
+            },  # Check that lines wrap correctly when there's a very long word, rather than as described in https://github.com/psychopy/psychopy/issues/3892
         ]
         for case in exemplars + tykes:
             self.textbox.font = case['font']
