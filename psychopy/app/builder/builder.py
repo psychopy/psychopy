@@ -796,8 +796,8 @@ class BuilderFrame(wx.Frame, ThemeMixin):
                             target="PsychoJS")
         # Open exported files
         self.app.showCoder()
-        self.app.coder.fileOpen(filename=exportPath)
-        self.app.coder.fileOpen(filename=htmlPath)
+        self.app.coder.fileNew(filepath=exportPath)
+        self.app.coder.fileReload(event=None, filename=exportPath)
 
     def editREADME(self, event):
         folder = Path(self.filename).parent
