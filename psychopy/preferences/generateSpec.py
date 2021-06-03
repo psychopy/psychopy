@@ -73,7 +73,7 @@ winSpec = winSpec.replace("list('portaudio')",
 winSpec = winSpec.replace("default='Helvetica'",
                           "default='Lucida Console'")
 winSpec = winSpec.replace('integer(6,24, default=14)',
-                          'integer(6,24, default=9)')
+                          'integer(6,24, default=10)')
 winSpec = winSpec.replace('Ctrl+Q',
                           'Alt+F4')
 with open('Windows.spec', write_mode) as f:

@@ -77,9 +77,9 @@
     # a list of font names; the first one found on the system will be used
     codeFont = string(default='From Theme...')
     # Font size (in pts) takes an integer between 6 and 24
-    codeFontSize = integer(6,24, default=9)
+    codeFontSize = integer(6,24, default=10)
     # Font size (in pts) takes an integer between 6 and 24
-    outputFontSize = integer(6,24, default=9)
+    outputFontSize = integer(6,24, default=10)
     # Spacing between lines
     lineSpacing = integer(0, 64, default=4)
     # Long line edge guide, specify zero to disable
@@ -125,6 +125,8 @@
     audioLib = list(default=list('sounddevice','PTB', 'pyo', 'pygame'))
     # latency mode for PsychToolbox audio (3 is good for most applications. See
     audioLatencyMode = option(0, 1, 2, 3, 4, default=3)
+    # use only WASAPI for audio input on Windows
+    audioForceWASAPI = boolean(default=True)
     # audio driver to use
     audioDriver = list(default=list('Primary Sound','ASIO','Audigy'))
     # audio device to use (if audioLib allows control)
