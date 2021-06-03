@@ -1265,8 +1265,8 @@ class SettingsComponent(object):
                     "}\n")
         buff.writeIndentedLines(endLoopInteration)
 
-        recordLoopIterationFunc = ("\nasync function importConditions(currentLoop) {\n"
-                    "  return function () {\n"
+        recordLoopIterationFunc = ("\nfunction importConditions(currentLoop) {\n"
+                    "  return async function () {\n"
                     "    psychoJS.importAttributes(currentLoop.getCurrentTrial());\n"
                     "    return Scheduler.Event.NEXT;\n"
                     "    };\n"
