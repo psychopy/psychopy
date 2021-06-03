@@ -657,14 +657,14 @@
       <Param name="innerBorderColor" updates="None" val="black" valType="color"/>
       <Param name="innerBorderWidth" updates="None" val="2" valType="num"/>
       <Param name="innerFillColor" updates="None" val="green" valType="color"/>
-      <Param name="innerRadius" updates="None" val="0.0033" valType="num"/>
+      <Param name="innerRadius" updates="None" val="0.0035" valType="num"/>
       <Param name="movementAnimation" updates="None" val="True" valType="bool"/>
       <Param name="movementDur" updates="None" val="1.0" valType="num"/>
       <Param name="name" updates="None" val="calibration" valType="code"/>
       <Param name="outerRadius" updates="None" val="0.01" valType="num"/>
       <Param name="progressMode" updates="None" val="time" valType="str"/>
       <Param name="randomisePos" updates="None" val="True" valType="bool"/>
-      <Param name="targetDelay" updates="None" val="1.25" valType="num"/>
+      <Param name="targetDelay" updates="None" val="1.0" valType="num"/>
       <Param name="targetDur" updates="None" val="1.5" valType="num"/>
       <Param name="targetLayout" updates="None" val="NINE_POINTS" valType="str"/>
       <Param name="units" updates="None" val="from exp settings" valType="str"/>
