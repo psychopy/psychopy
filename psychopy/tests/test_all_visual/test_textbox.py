@@ -129,6 +129,11 @@ class Test_textbox(object):
 
     def test_typing(self):
         """Check that continuous typing doesn't break anything"""
+        # Make sure the textbox has the right colours
+        self.textbox.color = "white"
+        self.textbox.fillColor = None
+        self.textbox.borderColor = None
+        # Define some cases
         exemplars = [
             {"text": "A PsychoPy zealot knows a smidge of wx, but JavaScript is the question.",
              "font": "Noto Sans",
