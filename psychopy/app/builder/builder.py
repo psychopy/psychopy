@@ -118,7 +118,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         self.appPrefs = self.app.prefs.app
         self.paths = self.app.prefs.paths
         self.frameType = 'builder'
-        self._filename = fileName
+        self.filename = fileName
         self.htmlPath = None
         self.project = None  # type: pavlovia.PavloviaProject
         self.btnHandles = {}  # stores toolbar buttons so they can be altered
@@ -796,8 +796,8 @@ class BuilderFrame(wx.Frame, ThemeMixin):
                             target="PsychoJS")
         # Open exported files
         self.app.showCoder()
-        self.app.coder.fileOpen(filename=exportPath)
-        self.app.coder.fileOpen(filename=htmlPath)
+        self.app.coder.fileNew(filepath=exportPath)
+        self.app.coder.fileReload(event=None, filename=exportPath)
 
     def editREADME(self, event):
         folder = Path(self.filename).parent
