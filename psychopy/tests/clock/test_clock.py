@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-import pytest
 
 from psychopy.clock import wait, StaticPeriod, CountdownTimer
 from psychopy.visual import Window
+from psychopy.tests import _vmTesting
 
 
 def test_StaticPeriod_finish_on_time():
@@ -51,7 +51,11 @@ def test_StaticPeriod_screenHz():
     timer.reset(period_duration )
     static.complete()
 
+    if _vmTesting:
+        tolerance = 0.005  # without a proper screen timing might not eb sub-ms
+    else:
+        tolerance = 0.001
     assert np.allclose(timer.getTime(),
                        1.0/refresh_rate,
-                       atol=0.001)
+                       atol=tolerance)
     win.close()
