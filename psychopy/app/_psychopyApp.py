@@ -354,8 +354,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
 
         # set the dispatcher for standard output
         self.stdStreamDispatcher = console.StdStreamDispatcher(self)
-        sys.stderr = self.stdStreamDispatcher
-        sys.stdout = self.stdStreamDispatcher
+        self.stdStreamDispatcher.redirect()
 
         # Create windows
         if view.runner:
