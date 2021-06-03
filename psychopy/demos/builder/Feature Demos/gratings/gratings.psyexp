@@ -1,303 +1,342 @@
-<?xml version="1.0" ?>
-<PsychoPy2experiment encoding="utf-8" version="3.0.1">
+﻿<?xml version="1.0" ?>
+<PsychoPy2experiment encoding="utf-8" version="2021.2.0">
   <Settings>
-    <Param name="Completed URL" updates="None" val="" valType="str"/>
-    <Param name="Data filename" updates="None" val="u'data/%s_%s_%s' % (expInfo['participant'], expName, expInfo['date'])" valType="code"/>
-    <Param name="Enable Escape" updates="None" val="True" valType="bool"/>
-    <Param name="Experiment info" updates="None" val="{'participant':'', 'session':'001'}" valType="code"/>
-    <Param name="Force stereo" updates="None" val="True" valType="bool"/>
-    <Param name="Full-screen window" updates="None" val="True" valType="bool"/>
-    <Param name="HTML path" updates="None" val="html" valType="str"/>
-    <Param name="Incomplete URL" updates="None" val="" valType="str"/>
-    <Param name="JS libs" updates="None" val="packaged" valType="str"/>
-    <Param name="Monitor" updates="None" val="testMonitor" valType="str"/>
-    <Param name="Save csv file" updates="None" val="False" valType="bool"/>
-    <Param name="Save excel file" updates="None" val="False" valType="bool"/>
-    <Param name="Save log file" updates="None" val="True" valType="bool"/>
-    <Param name="Save psydat file" updates="None" val="True" valType="bool"/>
-    <Param name="Save wide csv file" updates="None" val="True" valType="bool"/>
-    <Param name="Screen" updates="None" val="1" valType="num"/>
-    <Param name="Show info dlg" updates="None" val="True" valType="bool"/>
-    <Param name="Show mouse" updates="None" val="False" valType="bool"/>
-    <Param name="Units" updates="None" val="use prefs" valType="str"/>
-    <Param name="Use version" updates="None" val="" valType="str"/>
-    <Param name="Window size (pixels)" updates="None" val="(1024, 768)" valType="code"/>
-    <Param name="blendMode" updates="None" val="avg" valType="str"/>
-    <Param name="color" updates="None" val="$[0,0,0]" valType="str"/>
-    <Param name="colorSpace" updates="None" val="rgb" valType="str"/>
-    <Param name="expName" updates="None" val="EnvelopeGratingExample" valType="str"/>
-    <Param name="exportHTML" updates="None" val="on Sync" valType="str"/>
-    <Param name="logging level" updates="None" val="exp" valType="code"/>
+    <Param val="use prefs" valType="str" updates="None" name="Audio latency priority"/>
+    <Param val="use prefs" valType="str" updates="None" name="Audio lib"/>
+    <Param val="" valType="str" updates="None" name="Completed URL"/>
+    <Param val="auto" valType="str" updates="None" name="Data file delimiter"/>
+    <Param val="u'data/%s_%s_%s' % (expInfo['participant'], expName, expInfo['date'])" valType="code" updates="None" name="Data filename"/>
+    <Param val="True" valType="bool" updates="None" name="Enable Escape"/>
+    <Param val="{'participant':'', 'session':'001'}" valType="code" updates="None" name="Experiment info"/>
+    <Param val="True" valType="bool" updates="None" name="Force stereo"/>
+    <Param val="True" valType="bool" updates="None" name="Full-screen window"/>
+    <Param val="html" valType="str" updates="None" name="HTML path"/>
+    <Param val="" valType="str" updates="None" name="Incomplete URL"/>
+    <Param val="packaged" valType="str" updates="None" name="JS libs"/>
+    <Param val="testMonitor" valType="str" updates="None" name="Monitor"/>
+    <Param val="[]" valType="list" updates="None" name="Resources"/>
+    <Param val="False" valType="bool" updates="None" name="Save csv file"/>
+    <Param val="False" valType="bool" updates="None" name="Save excel file"/>
+    <Param val="False" valType="bool" updates="None" name="Save hdf5 file"/>
+    <Param val="True" valType="bool" updates="None" name="Save log file"/>
+    <Param val="True" valType="bool" updates="None" name="Save psydat file"/>
+    <Param val="True" valType="bool" updates="None" name="Save wide csv file"/>
+    <Param val="1" valType="num" updates="None" name="Screen"/>
+    <Param val="True" valType="bool" updates="None" name="Show info dlg"/>
+    <Param val="False" valType="bool" updates="None" name="Show mouse"/>
+    <Param val="use prefs" valType="str" updates="None" name="Units"/>
+    <Param val="" valType="str" updates="None" name="Use version"/>
+    <Param val="(1024, 768)" valType="code" updates="None" name="Window size (pixels)"/>
+    <Param val="avg" valType="str" updates="None" name="blendMode"/>
+    <Param val="$[0,0,0]" valType="str" updates="None" name="color"/>
+    <Param val="rgb" valType="str" updates="None" name="colorSpace"/>
+    <Param val="100.1.1.1" valType="str" updates="None" name="elAddress"/>
+    <Param val="FILTER_LEVEL_OFF" valType="str" updates="None" name="elDataFiltering"/>
+    <Param val="FILTER_LEVEL_2" valType="str" updates="None" name="elLiveFiltering"/>
+    <Param val="EYELINK 1000 DESKTOP" valType="str" updates="None" name="elModel"/>
+    <Param val="ELLIPSE_FIT" valType="str" updates="None" name="elPupilAlgorithm"/>
+    <Param val="PUPIL_AREA" valType="str" updates="None" name="elPupilMeasure"/>
+    <Param val="1000" valType="num" updates="None" name="elSampleRate"/>
+    <Param val="False" valType="bool" updates="None" name="elSimMode"/>
+    <Param val="RIGHT_EYE" valType="str" updates="None" name="elTrackEyes"/>
+    <Param val="PUPIL_CR_TRACKING" valType="str" updates="None" name="elTrackingMode"/>
+    <Param val="EnvelopeGratingExample" valType="str" updates="None" name="expName"/>
+    <Param val="on Sync" valType="str" updates="None" name="exportHTML"/>
+    <Param val="None" valType="str" updates="None" name="eyetracker"/>
+    <Param val="127.0.0.1" valType="str" updates="None" name="gpAddress"/>
+    <Param val="4242" valType="num" updates="None" name="gpPort"/>
+    <Param val="exp" valType="code" updates="None" name="logging level"/>
+    <Param val="MIDDLE_BUTTON" valType="list" updates="None" name="mgBlink"/>
+    <Param val="RIGHT_BUTTON" valType="list" updates="None" name="mgMove"/>
+    <Param val="0.5" valType="num" updates="None" name="mgSaccade"/>
+    <Param val="" valType="str" updates="None" name="tbLicenseFile"/>
+    <Param val="" valType="str" updates="None" name="tbModel"/>
+    <Param val="60" valType="num" updates="None" name="tbSampleRate"/>
+    <Param val="" valType="str" updates="None" name="tbSerialNo"/>
   </Settings>
   <Routines>
     <Routine name="trial">
       <NoiseStimComponent name="noise">
-        <Param name="blendmode" updates="constant" val="avg" valType="str"/>
-        <Param name="color" updates="constant" val="$[1,1,1]" valType="str"/>
-        <Param name="colorSpace" updates="constant" val="rgb" valType="str"/>
-        <Param name="contrast" updates="constant" val="1.0" valType="code"/>
-        <Param name="durationEstim" updates="None" val="" valType="code"/>
-        <Param name="interpolate" updates="constant" val="nearest" valType="str"/>
-        <Param name="mask" updates="constant" val="raisedCos" valType="str"/>
-        <Param name="name" updates="None" val="noise" valType="code"/>
-        <Param name="noiseBW" updates="constant" val="1" valType="code"/>
-        <Param name="noiseBWO" updates="constant" val="1" valType="code"/>
-        <Param name="noiseBaseSf" updates="constant" val="4.0" valType="code"/>
-        <Param name="noiseClip" updates="constant" val="3.0" valType="code"/>
-        <Param name="noiseElementSize" updates="constant" val="0.0625" valType="code"/>
-        <Param name="noiseFilterLower" updates="constant" val="1.0" valType="code"/>
-        <Param name="noiseFilterOrder" updates="constant" val="0.0" valType="code"/>
-        <Param name="noiseFilterUpper" updates="constant" val="8.0" valType="code"/>
-        <Param name="noiseFractalPower" updates="constant" val="0.0" valType="code"/>
-        <Param name="noiseImage" updates="constant" val="None" valType="str"/>
-        <Param name="noiseNewSample" updates="constant" val="None" valType="str"/>
-        <Param name="noiseNewSampleWhen" updates="constant" val="1" valType="str"/>
-        <Param name="noiseType" updates="constant" val="Isotropic" valType="str"/>
-        <Param name="opacity" updates="constant" val="0.5" valType="code"/>
-        <Param name="ori" updates="constant" val="0" valType="code"/>
-        <Param name="phase" updates="constant" val="0.0" valType="code"/>
-        <Param name="pos" updates="constant" val="(5, -5)" valType="code"/>
-        <Param name="sf" updates="constant" val="1/10" valType="code"/>
-        <Param name="size" updates="constant" val="(10, 10)" valType="code"/>
-        <Param name="startEstim" updates="None" val="" valType="code"/>
-        <Param name="startType" updates="None" val="time (s)" valType="str"/>
-        <Param name="startVal" updates="None" val="0.0" valType="code"/>
-        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
-        <Param name="stopVal" updates="constant" val="10" valType="code"/>
-        <Param name="texture resolution" updates="constant" val="512" valType="code"/>
-        <Param name="units" updates="None" val="deg" valType="str"/>
+        <Param val="avg" valType="str" updates="constant" name="blendmode"/>
+        <Param val="$[1,1,1]" valType="str" updates="constant" name="color"/>
+        <Param val="rgb" valType="str" updates="constant" name="colorSpace"/>
+        <Param val="1.0" valType="code" updates="constant" name="contrast"/>
+        <Param val="False" valType="bool" updates="None" name="disabled"/>
+        <Param val="" valType="code" updates="None" name="durationEstim"/>
+        <Param val="None" valType="str" updates="constant" name="filter"/>
+        <Param val="Phase" valType="str" updates="constant" name="imageComponent"/>
+        <Param val="nearest" valType="str" updates="constant" name="interpolate"/>
+        <Param val="raisedCos" valType="str" updates="constant" name="mask"/>
+        <Param val="noise" valType="code" updates="None" name="name"/>
+        <Param val="1" valType="code" updates="constant" name="noiseBW"/>
+        <Param val="1" valType="code" updates="constant" name="noiseBWO"/>
+        <Param val="4.0" valType="code" updates="constant" name="noiseBaseSf"/>
+        <Param val="3.0" valType="code" updates="constant" name="noiseClip"/>
+        <Param val="0.0625" valType="code" updates="constant" name="noiseElementSize"/>
+        <Param val="1.0" valType="code" updates="constant" name="noiseFilterLower"/>
+        <Param val="0.0" valType="code" updates="constant" name="noiseFilterOrder"/>
+        <Param val="8.0" valType="code" updates="constant" name="noiseFilterUpper"/>
+        <Param val="0.0" valType="code" updates="constant" name="noiseFractalPower"/>
+        <Param val="None" valType="str" updates="constant" name="noiseImage"/>
+        <Param val="None" valType="str" updates="constant" name="noiseNewSample"/>
+        <Param val="1" valType="str" updates="constant" name="noiseNewSampleWhen"/>
+        <Param val="0.0" valType="num" updates="constant" name="noiseOri"/>
+        <Param val="Isotropic" valType="str" updates="constant" name="noiseType"/>
+        <Param val="0.5" valType="code" updates="constant" name="opacity"/>
+        <Param val="0" valType="code" updates="constant" name="ori"/>
+        <Param val="0.0" valType="code" updates="constant" name="phase"/>
+        <Param val="(5, -5)" valType="code" updates="constant" name="pos"/>
+        <Param val="True" valType="bool" updates="None" name="saveStartStop"/>
+        <Param val="1/10" valType="code" updates="constant" name="sf"/>
+        <Param val="(10, 10)" valType="code" updates="constant" name="size"/>
+        <Param val="" valType="code" updates="None" name="startEstim"/>
+        <Param val="time (s)" valType="str" updates="None" name="startType"/>
+        <Param val="0.0" valType="code" updates="None" name="startVal"/>
+        <Param val="duration (s)" valType="str" updates="None" name="stopType"/>
+        <Param val="10" valType="code" updates="constant" name="stopVal"/>
+        <Param val="True" valType="bool" updates="None" name="syncScreenRefresh"/>
+        <Param val="512" valType="code" updates="constant" name="texture resolution"/>
+        <Param val="deg" valType="str" updates="None" name="units"/>
       </NoiseStimComponent>
       <EnvGratingComponent name="ModNoise">
-        <Param name="beat" updates="constant" val="False" valType="str"/>
-        <Param name="blendmode" updates="constant" val="add" valType="str"/>
-        <Param name="carrier" updates="set every repeat" val="$noise.tex" valType="str"/>
-        <Param name="color" updates="constant" val="$[1,1,1]" valType="str"/>
-        <Param name="colorSpace" updates="constant" val="rgb" valType="str"/>
-        <Param name="contrast" updates="constant" val="0.2" valType="code"/>
-        <Param name="durationEstim" updates="None" val="" valType="code"/>
-        <Param name="envelope" updates="constant" val="sin" valType="str"/>
-        <Param name="envori" updates="constant" val="0.0" valType="code"/>
-        <Param name="envphase" updates="set every frame" val="sin(t)" valType="code"/>
-        <Param name="envsf" updates="constant" val="1.0" valType="code"/>
-        <Param name="interpolate" updates="constant" val="linear" valType="str"/>
-        <Param name="mask" updates="constant" val="raisedCos" valType="str"/>
-        <Param name="moddepth" updates="constant" val="1" valType="code"/>
-        <Param name="name" updates="None" val="ModNoise" valType="code"/>
-        <Param name="opacity" updates="constant" val="1" valType="code"/>
-        <Param name="ori" updates="constant" val="0" valType="code"/>
-        <Param name="phase" updates="constant" val="0.0" valType="code"/>
-        <Param name="pos" updates="constant" val="(-5, 5)" valType="code"/>
-        <Param name="sf" updates="constant" val="1/10" valType="code"/>
-        <Param name="size" updates="constant" val="(10, 10)" valType="code"/>
-        <Param name="startEstim" updates="None" val="" valType="code"/>
-        <Param name="startType" updates="None" val="time (s)" valType="str"/>
-        <Param name="startVal" updates="None" val="0.0" valType="code"/>
-        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
-        <Param name="stopVal" updates="constant" val="10.0" valType="code"/>
-        <Param name="texture resolution" updates="constant" val="512" valType="code"/>
-        <Param name="units" updates="None" val="deg" valType="str"/>
+        <Param val="False" valType="str" updates="constant" name="beat"/>
+        <Param val="add" valType="str" updates="constant" name="blendmode"/>
+        <Param val="$noise.tex" valType="str" updates="set every repeat" name="carrier"/>
+        <Param val="$[1,1,1]" valType="str" updates="constant" name="color"/>
+        <Param val="rgb" valType="str" updates="constant" name="colorSpace"/>
+        <Param val="0.2" valType="code" updates="constant" name="contrast"/>
+        <Param val="False" valType="bool" updates="None" name="disabled"/>
+        <Param val="" valType="code" updates="None" name="durationEstim"/>
+        <Param val="sin" valType="str" updates="constant" name="envelope"/>
+        <Param val="0.0" valType="code" updates="constant" name="envori"/>
+        <Param val="sin(t)" valType="code" updates="set every frame" name="envphase"/>
+        <Param val="1.0" valType="code" updates="constant" name="envsf"/>
+        <Param val="linear" valType="str" updates="constant" name="interpolate"/>
+        <Param val="raisedCos" valType="str" updates="constant" name="mask"/>
+        <Param val="1" valType="code" updates="constant" name="moddepth"/>
+        <Param val="ModNoise" valType="code" updates="None" name="name"/>
+        <Param val="1" valType="code" updates="constant" name="opacity"/>
+        <Param val="0" valType="code" updates="constant" name="ori"/>
+        <Param val="0.0" valType="code" updates="constant" name="phase"/>
+        <Param val="(-5, 5)" valType="code" updates="constant" name="pos"/>
+        <Param val="1.0" valType="num" updates="constant" name="power"/>
+        <Param val="True" valType="bool" updates="None" name="saveStartStop"/>
+        <Param val="1/10" valType="code" updates="constant" name="sf"/>
+        <Param val="(10, 10)" valType="code" updates="constant" name="size"/>
+        <Param val="" valType="code" updates="None" name="startEstim"/>
+        <Param val="time (s)" valType="str" updates="None" name="startType"/>
+        <Param val="0.0" valType="code" updates="None" name="startVal"/>
+        <Param val="duration (s)" valType="str" updates="None" name="stopType"/>
+        <Param val="10.0" valType="code" updates="constant" name="stopVal"/>
+        <Param val="True" valType="bool" updates="None" name="syncScreenRefresh"/>
+        <Param val="512" valType="code" updates="constant" name="texture resolution"/>
+        <Param val="deg" valType="str" updates="None" name="units"/>
       </EnvGratingComponent>
       <EnvGratingComponent name="ModSin">
-        <Param name="beat" updates="constant" val="False" valType="str"/>
-        <Param name="blendmode" updates="constant" val="add" valType="str"/>
-        <Param name="carrier" updates="constant" val="sin" valType="str"/>
-        <Param name="color" updates="constant" val="$[1,1,1]" valType="str"/>
-        <Param name="colorSpace" updates="constant" val="rgb" valType="str"/>
-        <Param name="contrast" updates="constant" val="0.5" valType="code"/>
-        <Param name="durationEstim" updates="None" val="" valType="code"/>
-        <Param name="envelope" updates="constant" val="sin" valType="str"/>
-        <Param name="envori" updates="set every frame" val="-t*5" valType="code"/>
-        <Param name="envphase" updates="constant" val="0.0" valType="code"/>
-        <Param name="envsf" updates="constant" val="1.0" valType="code"/>
-        <Param name="interpolate" updates="constant" val="linear" valType="str"/>
-        <Param name="mask" updates="constant" val="raisedCos" valType="str"/>
-        <Param name="moddepth" updates="constant" val="1.0" valType="code"/>
-        <Param name="name" updates="None" val="ModSin" valType="code"/>
-        <Param name="opacity" updates="constant" val="1" valType="code"/>
-        <Param name="ori" updates="set every frame" val="t*5" valType="code"/>
-        <Param name="phase" updates="constant" val="0.0" valType="code"/>
-        <Param name="pos" updates="constant" val="(5, 5)" valType="code"/>
-        <Param name="sf" updates="constant" val="8.0" valType="code"/>
-        <Param name="size" updates="constant" val="(10, 10)" valType="code"/>
-        <Param name="startEstim" updates="None" val="" valType="code"/>
-        <Param name="startType" updates="None" val="time (s)" valType="str"/>
-        <Param name="startVal" updates="None" val="0.0" valType="code"/>
-        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
-        <Param name="stopVal" updates="constant" val="10.0" valType="code"/>
-        <Param name="texture resolution" updates="constant" val="512" valType="code"/>
-        <Param name="units" updates="None" val="deg" valType="str"/>
+        <Param val="False" valType="str" updates="constant" name="beat"/>
+        <Param val="add" valType="str" updates="constant" name="blendmode"/>
+        <Param val="sin" valType="str" updates="constant" name="carrier"/>
+        <Param val="$[1,1,1]" valType="str" updates="constant" name="color"/>
+        <Param val="rgb" valType="str" updates="constant" name="colorSpace"/>
+        <Param val="0.5" valType="code" updates="constant" name="contrast"/>
+        <Param val="False" valType="bool" updates="None" name="disabled"/>
+        <Param val="" valType="code" updates="None" name="durationEstim"/>
+        <Param val="sin" valType="str" updates="constant" name="envelope"/>
+        <Param val="-t*5" valType="code" updates="set every frame" name="envori"/>
+        <Param val="0.0" valType="code" updates="constant" name="envphase"/>
+        <Param val="1.0" valType="code" updates="constant" name="envsf"/>
+        <Param val="linear" valType="str" updates="constant" name="interpolate"/>
+        <Param val="raisedCos" valType="str" updates="constant" name="mask"/>
+        <Param val="1.0" valType="code" updates="constant" name="moddepth"/>
+        <Param val="ModSin" valType="code" updates="None" name="name"/>
+        <Param val="1" valType="code" updates="constant" name="opacity"/>
+        <Param val="t*5" valType="code" updates="set every frame" name="ori"/>
+        <Param val="0.0" valType="code" updates="constant" name="phase"/>
+        <Param val="(5, 5)" valType="code" updates="constant" name="pos"/>
+        <Param val="1.0" valType="num" updates="constant" name="power"/>
+        <Param val="True" valType="bool" updates="None" name="saveStartStop"/>
+        <Param val="8.0" valType="code" updates="constant" name="sf"/>
+        <Param val="(10, 10)" valType="code" updates="constant" name="size"/>
+        <Param val="" valType="code" updates="None" name="startEstim"/>
+        <Param val="time (s)" valType="str" updates="None" name="startType"/>
+        <Param val="0.0" valType="code" updates="None" name="startVal"/>
+        <Param val="duration (s)" valType="str" updates="None" name="stopType"/>
+        <Param val="10.0" valType="code" updates="constant" name="stopVal"/>
+        <Param val="True" valType="bool" updates="None" name="syncScreenRefresh"/>
+        <Param val="512" valType="code" updates="constant" name="texture resolution"/>
+        <Param val="deg" valType="str" updates="None" name="units"/>
       </EnvGratingComponent>
       <EnvGratingComponent name="Beat">
-        <Param name="beat" updates="constant" val="True" valType="str"/>
-        <Param name="blendmode" updates="constant" val="add" valType="str"/>
-        <Param name="carrier" updates="constant" val="sin" valType="str"/>
-        <Param name="color" updates="constant" val="$[1,1,1]" valType="str"/>
-        <Param name="colorSpace" updates="constant" val="rgb" valType="str"/>
-        <Param name="contrast" updates="constant" val="1" valType="code"/>
-        <Param name="durationEstim" updates="None" val="" valType="code"/>
-        <Param name="envelope" updates="constant" val="sin" valType="str"/>
-        <Param name="envori" updates="constant" val="0.0" valType="code"/>
-        <Param name="envphase" updates="constant" val="0" valType="code"/>
-        <Param name="envsf" updates="constant" val="1.0" valType="code"/>
-        <Param name="interpolate" updates="constant" val="linear" valType="str"/>
-        <Param name="mask" updates="constant" val="raisedCos" valType="str"/>
-        <Param name="moddepth" updates="constant" val="1.0" valType="code"/>
-        <Param name="name" updates="None" val="Beat" valType="code"/>
-        <Param name="opacity" updates="constant" val="1" valType="code"/>
-        <Param name="ori" updates="constant" val="90" valType="code"/>
-        <Param name="phase" updates="constant" val="0.0" valType="code"/>
-        <Param name="pos" updates="constant" val="(-5, -5)" valType="code"/>
-        <Param name="sf" updates="constant" val="8" valType="code"/>
-        <Param name="size" updates="constant" val="(10, 10)" valType="code"/>
-        <Param name="startEstim" updates="None" val="" valType="code"/>
-        <Param name="startType" updates="None" val="time (s)" valType="str"/>
-        <Param name="startVal" updates="None" val="0.0" valType="code"/>
-        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
-        <Param name="stopVal" updates="constant" val="10.0" valType="code"/>
-        <Param name="texture resolution" updates="constant" val="512" valType="code"/>
-        <Param name="units" updates="None" val="deg" valType="str"/>
+        <Param val="True" valType="str" updates="constant" name="beat"/>
+        <Param val="add" valType="str" updates="constant" name="blendmode"/>
+        <Param val="sin" valType="str" updates="constant" name="carrier"/>
+        <Param val="$[1,1,1]" valType="str" updates="constant" name="color"/>
+        <Param val="rgb" valType="str" updates="constant" name="colorSpace"/>
+        <Param val="1" valType="code" updates="constant" name="contrast"/>
+        <Param val="False" valType="bool" updates="None" name="disabled"/>
+        <Param val="" valType="code" updates="None" name="durationEstim"/>
+        <Param val="sin" valType="str" updates="constant" name="envelope"/>
+        <Param val="0.0" valType="code" updates="constant" name="envori"/>
+        <Param val="0" valType="code" updates="constant" name="envphase"/>
+        <Param val="1.0" valType="code" updates="constant" name="envsf"/>
+        <Param val="linear" valType="str" updates="constant" name="interpolate"/>
+        <Param val="raisedCos" valType="str" updates="constant" name="mask"/>
+        <Param val="1.0" valType="code" updates="constant" name="moddepth"/>
+        <Param val="Beat" valType="code" updates="None" name="name"/>
+        <Param val="1" valType="code" updates="constant" name="opacity"/>
+        <Param val="90" valType="code" updates="constant" name="ori"/>
+        <Param val="0.0" valType="code" updates="constant" name="phase"/>
+        <Param val="(-5, -5)" valType="code" updates="constant" name="pos"/>
+        <Param val="1.0" valType="num" updates="constant" name="power"/>
+        <Param val="True" valType="bool" updates="None" name="saveStartStop"/>
+        <Param val="8" valType="code" updates="constant" name="sf"/>
+        <Param val="(10, 10)" valType="code" updates="constant" name="size"/>
+        <Param val="" valType="code" updates="None" name="startEstim"/>
+        <Param val="time (s)" valType="str" updates="None" name="startType"/>
+        <Param val="0.0" valType="code" updates="None" name="startVal"/>
+        <Param val="duration (s)" valType="str" updates="None" name="stopType"/>
+        <Param val="10.0" valType="code" updates="constant" name="stopVal"/>
+        <Param val="True" valType="bool" updates="None" name="syncScreenRefresh"/>
+        <Param val="512" valType="code" updates="constant" name="texture resolution"/>
+        <Param val="deg" valType="str" updates="None" name="units"/>
       </EnvGratingComponent>
       <EnvGratingComponent name="NoiseAddBeat">
-        <Param name="beat" updates="constant" val="True" valType="str"/>
-        <Param name="blendmode" updates="constant" val="add" valType="str"/>
-        <Param name="carrier" updates="set every repeat" val="$noise.tex" valType="str"/>
-        <Param name="color" updates="constant" val="$[1,1,1]" valType="str"/>
-        <Param name="colorSpace" updates="constant" val="rgb" valType="str"/>
-        <Param name="contrast" updates="constant" val="0.5" valType="code"/>
-        <Param name="durationEstim" updates="None" val="" valType="code"/>
-        <Param name="envelope" updates="constant" val="sin" valType="str"/>
-        <Param name="envori" updates="constant" val="0.0" valType="code"/>
-        <Param name="envphase" updates="constant" val="0.0" valType="code"/>
-        <Param name="envsf" updates="constant" val="1.0" valType="code"/>
-        <Param name="interpolate" updates="constant" val="linear" valType="str"/>
-        <Param name="mask" updates="constant" val="raisedCos" valType="str"/>
-        <Param name="moddepth" updates="constant" val="1.0" valType="code"/>
-        <Param name="name" updates="None" val="NoiseAddBeat" valType="code"/>
-        <Param name="opacity" updates="constant" val="1" valType="code"/>
-        <Param name="ori" updates="constant" val="0" valType="code"/>
-        <Param name="phase" updates="constant" val="0.0" valType="code"/>
-        <Param name="pos" updates="constant" val="(5, -5)" valType="code"/>
-        <Param name="sf" updates="constant" val="1.0/10" valType="code"/>
-        <Param name="size" updates="constant" val="(10, 10)" valType="code"/>
-        <Param name="startEstim" updates="None" val="" valType="code"/>
-        <Param name="startType" updates="None" val="time (s)" valType="str"/>
-        <Param name="startVal" updates="None" val="0.0" valType="code"/>
-        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
-        <Param name="stopVal" updates="constant" val="10" valType="code"/>
-        <Param name="texture resolution" updates="constant" val="128" valType="code"/>
-        <Param name="units" updates="None" val="deg" valType="str"/>
+        <Param val="True" valType="str" updates="constant" name="beat"/>
+        <Param val="add" valType="str" updates="constant" name="blendmode"/>
+        <Param val="$noise.tex" valType="str" updates="set every repeat" name="carrier"/>
+        <Param val="$[1,1,1]" valType="str" updates="constant" name="color"/>
+        <Param val="rgb" valType="str" updates="constant" name="colorSpace"/>
+        <Param val="0.5" valType="code" updates="constant" name="contrast"/>
+        <Param val="False" valType="bool" updates="None" name="disabled"/>
+        <Param val="" valType="code" updates="None" name="durationEstim"/>
+        <Param val="sin" valType="str" updates="constant" name="envelope"/>
+        <Param val="0.0" valType="code" updates="constant" name="envori"/>
+        <Param val="0.0" valType="code" updates="constant" name="envphase"/>
+        <Param val="1.0" valType="code" updates="constant" name="envsf"/>
+        <Param val="linear" valType="str" updates="constant" name="interpolate"/>
+        <Param val="raisedCos" valType="str" updates="constant" name="mask"/>
+        <Param val="1.0" valType="code" updates="constant" name="moddepth"/>
+        <Param val="NoiseAddBeat" valType="code" updates="None" name="name"/>
+        <Param val="1" valType="code" updates="constant" name="opacity"/>
+        <Param val="0" valType="code" updates="constant" name="ori"/>
+        <Param val="0.0" valType="code" updates="constant" name="phase"/>
+        <Param val="(5, -5)" valType="code" updates="constant" name="pos"/>
+        <Param val="1.0" valType="num" updates="constant" name="power"/>
+        <Param val="True" valType="bool" updates="None" name="saveStartStop"/>
+        <Param val="1.0/10" valType="code" updates="constant" name="sf"/>
+        <Param val="(10, 10)" valType="code" updates="constant" name="size"/>
+        <Param val="" valType="code" updates="None" name="startEstim"/>
+        <Param val="time (s)" valType="str" updates="None" name="startType"/>
+        <Param val="0.0" valType="code" updates="None" name="startVal"/>
+        <Param val="duration (s)" valType="str" updates="None" name="stopType"/>
+        <Param val="10" valType="code" updates="constant" name="stopVal"/>
+        <Param val="True" valType="bool" updates="None" name="syncScreenRefresh"/>
+        <Param val="128" valType="code" updates="constant" name="texture resolution"/>
+        <Param val="deg" valType="str" updates="None" name="units"/>
       </EnvGratingComponent>
       <TextComponent name="ModNoiseText">
-        <Param name="color" updates="constant" val="white" valType="str"/>
-        <Param name="colorSpace" updates="constant" val="rgb" valType="str"/>
-        <Param name="durationEstim" updates="None" val="" valType="code"/>
-        <Param name="flip" updates="constant" val="" valType="str"/>
-        <Param name="font" updates="constant" val="Arial" valType="str"/>
-        <Param name="languageStyle" updates="None" val="LTR" valType="str"/>
-        <Param name="letterHeight" updates="constant" val="0.5" valType="code"/>
-        <Param name="name" updates="None" val="ModNoiseText" valType="code"/>
-        <Param name="opacity" updates="constant" val="1" valType="code"/>
-        <Param name="ori" updates="constant" val="0" valType="code"/>
-        <Param name="pos" updates="constant" val="(-5, 10)" valType="code"/>
-        <Param name="startEstim" updates="None" val="" valType="code"/>
-        <Param name="startType" updates="None" val="time (s)" valType="str"/>
-        <Param name="startVal" updates="None" val="0.0" valType="code"/>
-        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
-        <Param name="stopVal" updates="constant" val="10" valType="code"/>
-        <Param name="text" updates="constant" val="Contrast modulated noise" valType="str"/>
-        <Param name="units" updates="None" val="deg" valType="str"/>
-        <Param name="wrapWidth" updates="constant" val="" valType="code"/>
+        <Param val="white" valType="str" updates="constant" name="color"/>
+        <Param val="rgb" valType="str" updates="constant" name="colorSpace"/>
+        <Param val="1" valType="num" updates="constant" name="contrast"/>
+        <Param val="False" valType="bool" updates="None" name="disabled"/>
+        <Param val="" valType="code" updates="None" name="durationEstim"/>
+        <Param val="" valType="str" updates="constant" name="flip"/>
+        <Param val="Arial" valType="str" updates="constant" name="font"/>
+        <Param val="LTR" valType="str" updates="None" name="languageStyle"/>
+        <Param val="0.5" valType="code" updates="constant" name="letterHeight"/>
+        <Param val="ModNoiseText" valType="code" updates="None" name="name"/>
+        <Param val="1" valType="code" updates="constant" name="opacity"/>
+        <Param val="0" valType="code" updates="constant" name="ori"/>
+        <Param val="(-5, 10)" valType="code" updates="constant" name="pos"/>
+        <Param val="True" valType="bool" updates="None" name="saveStartStop"/>
+        <Param val="" valType="code" updates="None" name="startEstim"/>
+        <Param val="time (s)" valType="str" updates="None" name="startType"/>
+        <Param val="0.0" valType="code" updates="None" name="startVal"/>
+        <Param val="duration (s)" valType="str" updates="None" name="stopType"/>
+        <Param val="10" valType="code" updates="constant" name="stopVal"/>
+        <Param val="True" valType="bool" updates="None" name="syncScreenRefresh"/>
+        <Param val="Contrast modulated noise" valType="str" updates="constant" name="text"/>
+        <Param val="deg" valType="str" updates="None" name="units"/>
+        <Param val="" valType="code" updates="constant" name="wrapWidth"/>
       </TextComponent>
       <TextComponent name="MosSinText">
-        <Param name="color" updates="constant" val="white" valType="str"/>
-        <Param name="colorSpace" updates="constant" val="rgb" valType="str"/>
-        <Param name="durationEstim" updates="None" val="" valType="code"/>
-        <Param name="flip" updates="constant" val="" valType="str"/>
-        <Param name="font" updates="constant" val="Arial" valType="str"/>
-        <Param name="languageStyle" updates="None" val="LTR" valType="str"/>
-        <Param name="letterHeight" updates="constant" val="0.5" valType="code"/>
-        <Param name="name" updates="None" val="MosSinText" valType="code"/>
-        <Param name="opacity" updates="constant" val="1" valType="code"/>
-        <Param name="ori" updates="constant" val="0" valType="code"/>
-        <Param name="pos" updates="constant" val="(5, 10)" valType="code"/>
-        <Param name="startEstim" updates="None" val="" valType="code"/>
-        <Param name="startType" updates="None" val="time (s)" valType="str"/>
-        <Param name="startVal" updates="None" val="0.0" valType="code"/>
-        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
-        <Param name="stopVal" updates="constant" val="10" valType="code"/>
-        <Param name="text" updates="constant" val="Contrast modulated sinewave" valType="str"/>
-        <Param name="units" updates="None" val="deg" valType="str"/>
-        <Param name="wrapWidth" updates="constant" val="" valType="code"/>
+        <Param val="white" valType="str" updates="constant" name="color"/>
+        <Param val="rgb" valType="str" updates="constant" name="colorSpace"/>
+        <Param val="1" valType="num" updates="constant" name="contrast"/>
+        <Param val="False" valType="bool" updates="None" name="disabled"/>
+        <Param val="" valType="code" updates="None" name="durationEstim"/>
+        <Param val="" valType="str" updates="constant" name="flip"/>
+        <Param val="Arial" valType="str" updates="constant" name="font"/>
+        <Param val="LTR" valType="str" updates="None" name="languageStyle"/>
+        <Param val="0.5" valType="code" updates="constant" name="letterHeight"/>
+        <Param val="MosSinText" valType="code" updates="None" name="name"/>
+        <Param val="1" valType="code" updates="constant" name="opacity"/>
+        <Param val="0" valType="code" updates="constant" name="ori"/>
+        <Param val="(5, 10)" valType="code" updates="constant" name="pos"/>
+        <Param val="True" valType="bool" updates="None" name="saveStartStop"/>
+        <Param val="" valType="code" updates="None" name="startEstim"/>
+        <Param val="time (s)" valType="str" updates="None" name="startType"/>
+        <Param val="0.0" valType="code" updates="None" name="startVal"/>
+        <Param val="duration (s)" valType="str" updates="None" name="stopType"/>
+        <Param val="10" valType="code" updates="constant" name="stopVal"/>
+        <Param val="True" valType="bool" updates="None" name="syncScreenRefresh"/>
+        <Param val="Contrast modulated sinewave" valType="str" updates="constant" name="text"/>
+        <Param val="deg" valType="str" updates="None" name="units"/>
+        <Param val="" valType="code" updates="constant" name="wrapWidth"/>
       </TextComponent>
       <TextComponent name="BeatText">
-        <Param name="color" updates="constant" val="white" valType="str"/>
-        <Param name="colorSpace" updates="constant" val="rgb" valType="str"/>
-        <Param name="durationEstim" updates="None" val="" valType="code"/>
-        <Param name="flip" updates="constant" val="" valType="str"/>
-        <Param name="font" updates="constant" val="Arial" valType="str"/>
-        <Param name="languageStyle" updates="None" val="LTR" valType="str"/>
-        <Param name="letterHeight" updates="constant" val="0.5" valType="code"/>
-        <Param name="name" updates="None" val="BeatText" valType="code"/>
-        <Param name="opacity" updates="constant" val="1" valType="code"/>
-        <Param name="ori" updates="constant" val="0" valType="code"/>
-        <Param name="pos" updates="constant" val="(-5, -10)" valType="code"/>
-        <Param name="startEstim" updates="None" val="" valType="code"/>
-        <Param name="startType" updates="None" val="time (s)" valType="str"/>
-        <Param name="startVal" updates="None" val="0.0" valType="code"/>
-        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
-        <Param name="stopVal" updates="constant" val="10" valType="code"/>
-        <Param name="text" updates="constant" val="Sine wave beat" valType="str"/>
-        <Param name="units" updates="None" val="deg" valType="str"/>
-        <Param name="wrapWidth" updates="constant" val="" valType="code"/>
+        <Param val="white" valType="str" updates="constant" name="color"/>
+        <Param val="rgb" valType="str" updates="constant" name="colorSpace"/>
+        <Param val="1" valType="num" updates="constant" name="contrast"/>
+        <Param val="False" valType="bool" updates="None" name="disabled"/>
+        <Param val="" valType="code" updates="None" name="durationEstim"/>
+        <Param val="" valType="str" updates="constant" name="flip"/>
+        <Param val="Arial" valType="str" updates="constant" name="font"/>
+        <Param val="LTR" valType="str" updates="None" name="languageStyle"/>
+        <Param val="0.5" valType="code" updates="constant" name="letterHeight"/>
+        <Param val="BeatText" valType="code" updates="None" name="name"/>
+        <Param val="1" valType="code" updates="constant" name="opacity"/>
+        <Param val="0" valType="code" updates="constant" name="ori"/>
+        <Param val="(-5, -10)" valType="code" updates="constant" name="pos"/>
+        <Param val="True" valType="bool" updates="None" name="saveStartStop"/>
+        <Param val="" valType="code" updates="None" name="startEstim"/>
+        <Param val="time (s)" valType="str" updates="None" name="startType"/>
+        <Param val="0.0" valType="code" updates="None" name="startVal"/>
+        <Param val="duration (s)" valType="str" updates="None" name="stopType"/>
+        <Param val="10" valType="code" updates="constant" name="stopVal"/>
+        <Param val="True" valType="bool" updates="None" name="syncScreenRefresh"/>
+        <Param val="Sine wave beat" valType="str" updates="constant" name="text"/>
+        <Param val="deg" valType="str" updates="None" name="units"/>
+        <Param val="" valType="code" updates="constant" name="wrapWidth"/>
       </TextComponent>
       <TextComponent name="BeatNoiseText">
-        <Param name="color" updates="constant" val="white" valType="str"/>
-        <Param name="colorSpace" updates="constant" val="rgb" valType="str"/>
-        <Param name="durationEstim" updates="None" val="" valType="code"/>
-        <Param name="flip" updates="constant" val="" valType="str"/>
-        <Param name="font" updates="constant" val="Arial" valType="str"/>
-        <Param name="languageStyle" updates="None" val="LTR" valType="str"/>
-        <Param name="letterHeight" updates="constant" val="0.5" valType="code"/>
-        <Param name="name" updates="None" val="BeatNoiseText" valType="code"/>
-        <Param name="opacity" updates="constant" val="1" valType="code"/>
-        <Param name="ori" updates="constant" val="0" valType="code"/>
-        <Param name="pos" updates="constant" val="(5, -10)" valType="code"/>
-        <Param name="startEstim" updates="None" val="" valType="code"/>
-        <Param name="startType" updates="None" val="time (s)" valType="str"/>
-        <Param name="startVal" updates="None" val="0.0" valType="code"/>
-        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
-        <Param name="stopVal" updates="constant" val="10" valType="code"/>
-        <Param name="text" updates="constant" val="Beat of noise added to same noise to make contrast modulated noise" valType="str"/>
-        <Param name="units" updates="None" val="deg" valType="str"/>
-        <Param name="wrapWidth" updates="constant" val="10" valType="code"/>
-      </TextComponent>
-    </Routine>
-    <Routine name="Intro_text">
-      <TextComponent name="text">
-        <Param name="color" updates="constant" val="white" valType="str"/>
-        <Param name="colorSpace" updates="constant" val="rgb" valType="str"/>
-        <Param name="durationEstim" updates="None" val="" valType="code"/>
-        <Param name="flip" updates="constant" val="" valType="str"/>
-        <Param name="font" updates="constant" val="Arial" valType="str"/>
-        <Param name="languageStyle" updates="None" val="LTR" valType="str"/>
-        <Param name="letterHeight" updates="constant" val="0.5" valType="code"/>
-        <Param name="name" updates="None" val="text" valType="code"/>
-        <Param name="opacity" updates="constant" val="1" valType="code"/>
-        <Param name="ori" updates="constant" val="0" valType="code"/>
-        <Param name="pos" updates="constant" val="(0, 0)" valType="code"/>
-        <Param name="startEstim" updates="None" val="" valType="code"/>
-        <Param name="startType" updates="None" val="time (s)" valType="str"/>
-        <Param name="startVal" updates="None" val="0.0" valType="code"/>
-        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
-        <Param name="stopVal" updates="constant" val="10" valType="code"/>
-        <Param name="text" updates="constant" val="This demo makes various types of contrast modulated stimulus. Including examples of contrast modulates sine waves, sine wave beat stimuli, contrast modulated noise using a noise stimulus component as the carrier texture and adding a beat based on a noise carrier back to the noise sample to create contrast modulated noise." valType="str"/>
-        <Param name="units" updates="None" val="deg" valType="str"/>
-        <Param name="wrapWidth" updates="constant" val="10" valType="code"/>
+        <Param val="white" valType="str" updates="constant" name="color"/>
+        <Param val="rgb" valType="str" updates="constant" name="colorSpace"/>
+        <Param val="1" valType="num" updates="constant" name="contrast"/>
+        <Param val="False" valType="bool" updates="None" name="disabled"/>
+        <Param val="" valType="code" updates="None" name="durationEstim"/>
+        <Param val="" valType="str" updates="constant" name="flip"/>
+        <Param val="Arial" valType="str" updates="constant" name="font"/>
+        <Param val="LTR" valType="str" updates="None" name="languageStyle"/>
+        <Param val="0.5" valType="code" updates="constant" name="letterHeight"/>
+        <Param val="BeatNoiseText" valType="code" updates="None" name="name"/>
+        <Param val="1" valType="code" updates="constant" name="opacity"/>
+        <Param val="0" valType="code" updates="constant" name="ori"/>
+        <Param val="(5, -10)" valType="code" updates="constant" name="pos"/>
+        <Param val="True" valType="bool" updates="None" name="saveStartStop"/>
+        <Param val="" valType="code" updates="None" name="startEstim"/>
+        <Param val="time (s)" valType="str" updates="None" name="startType"/>
+        <Param val="0.0" valType="code" updates="None" name="startVal"/>
+        <Param val="duration (s)" valType="str" updates="None" name="stopType"/>
+        <Param val="10" valType="code" updates="constant" name="stopVal"/>
+        <Param val="True" valType="bool" updates="None" name="syncScreenRefresh"/>
+        <Param val="Beat of noise added to same noise to make contrast modulated noise" valType="str" updates="constant" name="text"/>
+        <Param val="deg" valType="str" updates="None" name="units"/>
+        <Param val="10" valType="code" updates="constant" name="wrapWidth"/>
       </TextComponent>
     </Routine>
   </Routines>
   <Flow>
-    <Routine name="Intro_text"/>
     <Routine name="trial"/>
   </Flow>
 </PsychoPy2experiment>

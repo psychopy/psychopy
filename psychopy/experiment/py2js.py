@@ -94,7 +94,6 @@ def expression2js(expr):
             logging.error(err)
             return
 
-
     for node in ast.walk(syntaxTree):
         TupleTransformer().visit(node)  # Transform tuples to list
         # for py2 using 'unicode_literals' we don't want
@@ -116,6 +115,7 @@ def expression2js(expr):
             # If translation fails, just use old translation
             pass
     return jsStr
+
 
 def snippet2js(expr):
     """Convert several lines (e.g. a Code Component) Python to JS"""

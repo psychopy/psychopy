@@ -38,12 +38,10 @@ class MouseGazePsychopyCalibrationGraphics(object):
         if unit_type is None:
             unit_type = display.getCoordinateType()
             self._calibration_args['unit_type'] = unit_type
-            print2err("MouseGaze: Using Window unit type: ", unit_type)
         color_type = self.getCalibSetting('color_type')
         if color_type is None:
             color_type = display.getColorSpace()
             self._calibration_args['color_type'] = color_type
-            print2err("MouseGaze: Using Window color_type: ", color_type)
 
         calibration_methods = dict(THREE_POINTS=3,
                                    FIVE_POINTS=5,

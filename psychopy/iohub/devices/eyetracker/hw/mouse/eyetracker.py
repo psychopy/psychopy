@@ -400,9 +400,7 @@ class EyeTracker(EyeTrackerDevice):
         runSetupProcedure displays a mock calibration procedure. No calibration is actually done.
         """
         calibration = MouseGazePsychopyCalibrationGraphics(self, calibration_args)
-        print2err("Created MouseGazePsychopyCalibrationGraphics")
         calibration.runCalibration()
-        print2err("Done calibration.runCalibration()")
         calibration.window.close()
 
         calibration._unregisterEventMonitors()

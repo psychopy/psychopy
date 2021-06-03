@@ -362,12 +362,10 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
         if unit_type is None:
             unit_type = display.getCoordinateType()
             self._calibration_args['unit_type'] = unit_type
-            print2err("EyeLink: Using Window unit type: ", unit_type)
         color_type = self.getCalibSetting('color_type')
         if color_type is None:
             color_type = display.getColorSpace()
             self._calibration_args['color_type'] = color_type
-            print2err("EyeLink: Using Window color_type: ", color_type)
 
         if display.getCoordinateType() != unit_type:
             raise RuntimeWarning("EyeLink Calibration requires same unit type"

@@ -497,10 +497,12 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
                 # handle printable characters
                 if printable:
+                    glyph = font[charcode]
                     if showWhiteSpace and charcode == " ":
                         glyph = font[u"·"]
-                    else:
-                        glyph = font[charcode]
+                    elif charcode == " ":
+                        # glyph size of space is smaller than actual size, so use size of dot instead
+                        glyph.size = font[u"·"].size
                     xBotL = current[0] + glyph.offset[0] - fakeItalic - fakeBold / 2
                     xTopL = current[0] + glyph.offset[0] - fakeBold / 2
                     yTop = current[1] + glyph.offset[1]
