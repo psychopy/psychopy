@@ -2325,7 +2325,8 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
                 # Add to the actual routine
                 routine.addComponent(comp)
                 namespace = self.parent.frame.exp.namespace
-                name = comp.params['name'].val = namespace.makeValid(name)
+                desiredName = comp.params['name'].val
+                name = comp.params['name'].val = namespace.makeValid(desiredName)
                 namespace.add(name)
                 # update the routine's view with the new component too
                 page.redrawRoutine()
