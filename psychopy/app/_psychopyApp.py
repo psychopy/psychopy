@@ -199,7 +199,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
             self._lastRunLog = open(os.path.join(
                     self.prefs.paths['userPrefsDir'], 'last_app_load.log'),
                     'w')
-            #sys.stderr = sys.stdout = lastLoadErrs = self._lastRunLog
+            sys.stderr = sys.stdout = lastLoadErrs = self._lastRunLog
             logging.console.setLevel(logging.DEBUG)
 
         # indicates whether we're running for testing purposes
