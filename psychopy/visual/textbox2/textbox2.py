@@ -557,7 +557,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                     charsThisLine += 1
 
                 # end line with auto-wrap on space
-                if current[0] >= lineMax and wordLen > 0 and wordsThisLine:
+                if current[0] >= lineMax and wordLen > 0 and wordsThisLine > 1:
                     # move the current word to next line
                     lineBreakPt = vertices[(i - wordLen + 1) * 4, 0]
                     wordWidth = current[0] - lineBreakPt
@@ -573,6 +573,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                     current[0] = wordWidth
                     current[1] -= self._lineHeight
                     charsThisLine = wordLen
+                    wordsThisLine = 1
 
                 # have we stored the top/bottom of this line yet
                 if lineN + 1 > len(self._lineTops):
