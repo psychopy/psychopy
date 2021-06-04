@@ -49,6 +49,10 @@
     4315: Invalid dollar sign syntax
     4320: Non-local font
     4325: Font not available
+  4400:
+    cat: Conflicts
+    4405: Textbox and keyboard conflict
+
   4500:
     cat: Eyetracking
     4505: Eyetracking not configured
