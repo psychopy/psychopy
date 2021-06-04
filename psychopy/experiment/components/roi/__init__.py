@@ -140,6 +140,9 @@ class RegionOfInterestComponent(PolygonComponent):
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
 
+    def writeInitCodeJS(self, buff):
+        pass
+
     def writeRoutineStartCode(self, buff):
         inits = getInitVals(self.params, 'PsychoPy')
         BaseVisualComponent.writeRoutineStartCode(self, buff)
