@@ -226,7 +226,7 @@ class Experiment(object):
             # writes any components with a writeStartCode()
             self_copy.flow.writeStartCode(script)
             self_copy.settings.writeWindowCode(script)  # create our visual.Window()
-            self_copy.settings.writeEyetrackerCode(script)
+            self_copy.settings.writeIohubCode(script)
             # for JS the routine begin/frame/end code are funcs so write here
 
             # write the rest of the code for the components
