@@ -34,7 +34,7 @@ class SoundComponent(BaseComponent):
                  startType='time (s)', startVal='0.0',
                  stopType='duration (s)', stopVal='1.0',
                  startEstim='', durationEstim='',
-                 syncScreenRefresh=True):
+                 syncScreenRefresh=True, sampleRate=None):
         super(SoundComponent, self).__init__(
             exp, parentName, name,
             startType=startType, startVal=startVal,
@@ -82,6 +82,12 @@ class SoundComponent(BaseComponent):
                   "For tones we can apply a Hamming window to prevent 'clicks' that "
                   "are caused by a sudden onset. This delays onset by roughly 1ms."),
             label=_translate('Hamming window'))
+        self.params['sampleRate'] = Param(
+            sampleRate, valType='num', inputType="single", updates='constant', categ='Playback',
+            hint=_translate(
+                "What sample rate is this sound at? Leave blank for PsychoPy to guess based on the sound, "
+                "but if sound is set on repeat this may cause errors."),
+            label=_translate('Sample rate'))
 
     def writeInitCode(self, buff):
         # replaces variable params with sensible defaults
@@ -93,11 +99,11 @@ class SoundComponent(BaseComponent):
                 inits['stopVal'].val = -1
             elif float(inits['stopVal'].val) > 2:
                 inits['stopVal'].val = -1
-        buff.writeIndented("%s = sound.Sound(%s, secs=%s, stereo=%s, hamming=%s,\n"
+        buff.writeIndented("%s = sound.Sound(%s, secs=%s, stereo=%s, hamming=%s, sampleRate=%s,\n"
                            "    name='%s')\n" %
                            (inits['name'], inits['sound'], inits['stopVal'],
                             self.exp.settings.params['Force stereo'],
-                            inits['hamming'], inits['name']))
+                            inits['hamming'], inits['sampleRate'], inits['name']))
         buff.writeIndented("%(name)s.setVolume(%(volume)s)\n" % (inits))
 
     def writeRoutineStartCode(self, buff):
