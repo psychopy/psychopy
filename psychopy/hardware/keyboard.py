@@ -159,7 +159,7 @@ class Keyboard:
                 if Keyboard._iohubKeyboard:
                     Keyboard.backend = 'iohub'
 
-        if Keyboard.backend == '' and havePTB:
+        if Keyboard.backend in ['', 'ptb'] and havePTB:
             Keyboard.backend = 'ptb'
             # get the necessary keyboard buffer(s)
             if sys.platform == 'win32':
@@ -202,15 +202,17 @@ class Keyboard:
 
     def start(self):
         """Start recording from this keyboard """
-        for buffer in self._buffers.values():
-            buffer.start()
+        if Keyboard.backend == 'ptb':
+            for buffer in self._buffers.values():
+                buffer.start()
 
     def stop(self):
         """Start recording from this keyboard"""
-        logging.warning("Stopping key buffers but this could be dangerous if"
-                        "other keyboards rely on the same.")
-        for buffer in self._buffers.values():
-            buffer.stop()
+        if Keyboard.backend == 'ptb':
+            logging.warning("Stopping key buffers but this could be dangerous if"
+                            "other keyboards rely on the same.")
+            for buffer in self._buffers.values():
+                buffer.stop()
 
     def getKeys(self, keyList=None, waitRelease=True, clear=True):
         """
