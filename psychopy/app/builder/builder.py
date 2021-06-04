@@ -2305,7 +2305,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             routine = self.parent.frame.routinePanel.getCurrentRoutine()
             page = self.parent.frame.routinePanel.getCurrentPage()
             comp = self.component(parentName=routine.name, exp=self.parent.frame.exp)
-            name = comp.params['name'].val
+            
             # does this component have a help page?
             if hasattr(comp, 'url'):
                 helpUrl = comp.url
