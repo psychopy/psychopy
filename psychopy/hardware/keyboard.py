@@ -66,7 +66,6 @@ import copy
 import psychopy.core
 import psychopy.clock
 from psychopy import logging
-from psychopy.iohub.util import win32MessagePump
 from psychopy.constants import NOT_STARTED
 import time
 
