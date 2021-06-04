@@ -252,7 +252,6 @@ class Keyboard:
             watchForKeys = keyList
             if watchForKeys:
                 watchForKeys = [' ' if k == 'space' else k for k in watchForKeys]
-            win32MessagePump()
             if waitRelease:
                 key_events = Keyboard._iohubKeyboard.getReleases(keys=watchForKeys, clear=clear)
             else:
@@ -453,7 +452,10 @@ class _KeyBuffer(object):
         self._processEvts()
 
     def _flushEvts(self):
-        win32MessagePump()
+        # SS: sleep is only needed on Windows, but test further before
+        # committing to this.
+        #if sys.platform == 'win32':
+        ptb.WaitSecs('YieldSecs', 0.00001)
         while self.dev.flush():
             evt, remaining = self.dev.queue_get_event()
             key = {}
@@ -461,7 +463,6 @@ class _KeyBuffer(object):
             key['down'] = bool(evt['Pressed'])
             key['time'] = evt['Time']
             self._evts.append(key)
-            win32MessagePump()
 
     def getKeys(self, keyList=[], waitRelease=True, clear=True):
         """Return the KeyPress objects from the software buffer
