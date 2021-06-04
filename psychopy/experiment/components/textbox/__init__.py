@@ -239,12 +239,11 @@ class TextboxComponent(BaseVisualComponent):
         depth = -self.getPosInRoutine()
 
     def writeRoutineStartCode(self, buff):
-        BaseVisualComponent.writeRoutineStartCode(self, buff)
-
         code = (
             "%(name)s.reset()"
         )
         buff.writeIndentedLines(code % self.params)
+        BaseVisualComponent.writeRoutineStartCode(self, buff)
 
     def writeRoutineStartCodeJS(self, buff):
         BaseVisualComponent.writeRoutineStartCode(self, buff)
