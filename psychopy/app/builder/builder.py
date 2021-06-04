@@ -2368,7 +2368,10 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             self.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
             # Set bitmap
             iconCache = self.parent.app.iconCache
-            icon = iconCache.getBitmap(self.component.iconFile, size=48)
+            if hasattr(self.component, "beta"):
+                icon = iconCache.getBitmap(self.component.iconFile, beta=self.component.beta, size=48)
+            else:
+                icon = iconCache.getBitmap(self.component.iconFile, beta=False, size=48)
             self.SetBitmap(icon)
             self.SetBitmapCurrent(icon)
             self.SetBitmapPressed(icon)
@@ -2436,7 +2439,10 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             self.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
             # Set bitmap
             iconCache = self.parent.app.iconCache
-            icon = iconCache.getBitmap(self.routine.iconFile, size=48)
+            if hasattr(self.routine, "beta"):
+                icon = iconCache.getBitmap(self.routine.iconFile, beta=self.routine.beta, size=48)
+            else:
+                icon = iconCache.getBitmap(self.routine.iconFile, beta=False, size=48)
             self.SetBitmap(icon)
             self.SetBitmapCurrent(icon)
             self.SetBitmapPressed(icon)

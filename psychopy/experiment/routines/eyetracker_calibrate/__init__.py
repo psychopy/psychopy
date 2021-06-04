@@ -11,6 +11,7 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
     iconFile = Path(__file__).parent / "eyetracker_calib.png"
     tooltip = _translate("Calibration routine for eyetrackers")
     limit = 1
+    beta = True
 
     def __init__(self, exp, name='calibration',
                  progressMode="time", targetDur=1.5, expandDur=1, expandScale=1.5,
