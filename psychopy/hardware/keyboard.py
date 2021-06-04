@@ -66,7 +66,6 @@ import copy
 import psychopy.core
 import psychopy.clock
 from psychopy import logging
-from psychopy.iohub.util import win32MessagePump
 from psychopy.constants import NOT_STARTED
 import time
 
@@ -160,7 +159,7 @@ class Keyboard:
                 if Keyboard._iohubKeyboard:
                     Keyboard.backend = 'iohub'
 
-        if Keyboard.backend == '' and havePTB:
+        if Keyboard.backend in ['', 'ptb'] and havePTB:
             Keyboard.backend = 'ptb'
             # get the necessary keyboard buffer(s)
             if sys.platform == 'win32':
@@ -203,15 +202,17 @@ class Keyboard:
 
     def start(self):
         """Start recording from this keyboard """
-        for buffer in self._buffers.values():
-            buffer.start()
+        if Keyboard.backend == 'ptb':
+            for buffer in self._buffers.values():
+                buffer.start()
 
     def stop(self):
         """Start recording from this keyboard"""
-        logging.warning("Stopping key buffers but this could be dangerous if"
-                        "other keyboards rely on the same.")
-        for buffer in self._buffers.values():
-            buffer.stop()
+        if Keyboard.backend == 'ptb':
+            logging.warning("Stopping key buffers but this could be dangerous if"
+                            "other keyboards rely on the same.")
+            for buffer in self._buffers.values():
+                buffer.stop()
 
     def getKeys(self, keyList=None, waitRelease=True, clear=True):
         """
@@ -252,7 +253,6 @@ class Keyboard:
             watchForKeys = keyList
             if watchForKeys:
                 watchForKeys = [' ' if k == 'space' else k for k in watchForKeys]
-            win32MessagePump()
             if waitRelease:
                 key_events = Keyboard._iohubKeyboard.getReleases(keys=watchForKeys, clear=clear)
             else:
@@ -453,7 +453,10 @@ class _KeyBuffer(object):
         self._processEvts()
 
     def _flushEvts(self):
-        win32MessagePump()
+        # SS: sleep is only needed on Windows, but test further before
+        # committing to this.
+        #if sys.platform == 'win32':
+        ptb.WaitSecs('YieldSecs', 0.00001)
         while self.dev.flush():
             evt, remaining = self.dev.queue_get_event()
             key = {}
@@ -461,7 +464,6 @@ class _KeyBuffer(object):
             key['down'] = bool(evt['Pressed'])
             key['time'] = evt['Time']
             self._evts.append(key)
-            win32MessagePump()
 
     def getKeys(self, keyList=[], waitRelease=True, clear=True):
         """Return the KeyPress objects from the software buffer
