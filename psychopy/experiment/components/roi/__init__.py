@@ -236,7 +236,7 @@ class RegionOfInterestComponent(PolygonComponent):
         buff.writeIndentedLines(code % inits)
         if self.params['endRoutineOn'].val == "look away":
             code = (
-                "if %(name)s.currentLookTime > %(lookDur)s/1000: # check if last look was long enough\n"
+                "if %(name)s.lastLookTime > %(lookDur)s/1000: # check if last look was long enough\n"
             )
             buff.writeIndentedLines(code % inits)
             buff.setIndentLevel(1, relative=True)
