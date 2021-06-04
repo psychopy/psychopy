@@ -9,7 +9,6 @@ import json
 from pathlib import Path
 from psychopy.experiment.components import BaseComponent, getInitVals
 from psychopy.localization import _translate, _localized as __localized
-from psychopy.hardware.emotiv import Cortex
 
 _localized = __localized.copy()
 
