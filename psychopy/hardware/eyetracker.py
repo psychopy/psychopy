@@ -45,9 +45,9 @@ class EyetrackerCalibration:
     def __init__(self, win,
                  eyetracker, target,
                  units="height", colorSpace="rgb",
-                 progressMode="time", targetDur=0.5, expandScale=3,
+                 progressMode="time", targetDur=1.5, expandScale=1.5,
                  targetLayout="NINE_POINTS", randomisePos=True,
-                 movementAnimation=False, targetDelay=1.25
+                 movementAnimation=False, targetDelay=1.0
                  ):
         # Store params
         self.win = win
@@ -174,4 +174,7 @@ class EyetrackerCalibration:
         # Bring back PsychoPy window
         self.win.winHandle.set_fullscreen(True)
         self.win.winHandle.maximize()
+        # Not 100% sure activate is necessary, but does not seem to hurt.
         self.win.winHandle.activate()
+        # SS: Flip otherwise black screen has been seen, not sure why this just started....
+        self.win.flip()

@@ -42,8 +42,8 @@ for filename in pycFiles:
 def getAllCategories(folderList=()):
     allComps = getAllComponents(folderList)
     # Hardcode some categories to always appear first/last
-    firstCats = ['Favorites', 'Stimuli', 'Responses']
-    lastCats = ['Custom', 'I/O']
+    firstCats = ['Favorites', 'Stimuli', 'Responses', 'Custom']
+    lastCats = ['I/O', 'Other']
     # Start getting categories
     allCats = firstCats
     for name, thisComp in list(allComps.items()):

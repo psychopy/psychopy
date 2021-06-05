@@ -790,8 +790,8 @@ class SettingsComponent(object):
         # Write imports if modular
         if modular:
             code = (
-                    "import {{ core, data, sound, util, visual }} from './psycho-2021.2.0.js';\n"
-                    "const {{ PsychoJS }} = core;"
+                    "import {{ core, data, sound, util, visual }} from './lib/psychojs-2021.2.0.js';\n"
+                    "const {{ PsychoJS }} = core;\n"
                     "const {{ TrialHandler }} = data;\n"
                     "const {{ Scheduler }} = util;\n"
                     "//some handy aliases as in the psychopy scripts;\n"
@@ -935,7 +935,7 @@ class SettingsComponent(object):
 
         buff.writeIndented("frameTolerance = 0.001  # how close to onset before 'same' frame\n")
 
-    def writeEyetrackerCode(self, buff):
+    def writeIohubCode(self, buff):
         # Make ioConfig dict
         code = (
             "\n"
@@ -1123,6 +1123,13 @@ class SettingsComponent(object):
                 f"eyetracker = ioServer.getDevice('tracker')\n"
             )
             buff.writeIndentedLines(code % self.params)
+            # Make default keyboard
+            code = (
+                "\n"
+                "# create a default keyboard (e.g. to check for escape)\n"
+                "defaultKeyboard = keyboard.Keyboard()\n"
+            )
+            buff.writeIndentedLines(code % self.params)
 
     def writeWindowCode(self, buff):
         """Setup the window code.
@@ -1190,9 +1197,7 @@ class SettingsComponent(object):
                 "if expInfo['frameRate'] != None:\n"
                 "    frameDur = 1.0 / round(expInfo['frameRate'])\n"
                 "else:\n"
-                "    frameDur = 1.0 / 60.0  # could not measure, so guess\n"
-                "\n# create a default keyboard (e.g. to check for escape)\n"
-                "defaultKeyboard = keyboard.Keyboard()")
+                "    frameDur = 1.0 / 60.0  # could not measure, so guess\n")
         buff.writeIndentedLines(code)
 
     def writeWindowCodeJS(self, buff):
@@ -1266,14 +1271,14 @@ class SettingsComponent(object):
         buff.writeIndentedLines(endLoopInteration)
 
         recordLoopIterationFunc = ("\nfunction importConditions(currentLoop) {\n"
-                    "  return function () {\n"
+                    "  return async function () {\n"
                     "    psychoJS.importAttributes(currentLoop.getCurrentTrial());\n"
                     "    return Scheduler.Event.NEXT;\n"
                     "    };\n"
                     "}\n")
         buff.writeIndentedLines(recordLoopIterationFunc)
 
-        code = ("\nfunction quitPsychoJS(message, isCompleted) {\n")
+        code = ("\nasync function quitPsychoJS(message, isCompleted) {\n")
         buff.writeIndented(code)
         buff.setIndentLevel(1, relative=True)
         code = ("// Check for and save orphaned data\n"

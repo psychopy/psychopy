@@ -30,11 +30,13 @@ import time
 from pathlib import Path
 import logging  # NB this is the Python built-in logging not PsychoPy's
 import pandas as pd
+from psychopy import prefs
+
 # Set up logging for websockets library
 
 logger = logging.getLogger('test_logger')
 logger.setLevel(logging.INFO)
-fh = logging.FileHandler('cortex.log')
+fh = logging.FileHandler(Path(prefs.paths['userPrefsDir'])/'cortex.log')
 logger.addHandler(fh)
 
 

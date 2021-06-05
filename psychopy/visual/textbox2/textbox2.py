@@ -137,9 +137,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         ColorMixin.foreColor.fset(self, color)  # Have to call the superclass directly on init as text has not been set
         self.onTextCallback = onTextCallback
 
-        if units=='norm':
-            raise NotImplementedError("TextBox2 doesn't support 'norm' units "
-                                 "at the moment. Use 'height' units instead")
         # first set params needed to create font (letter sizes etc)
         if letterHeight is None:
             self.letterHeight = defaultLetterHeight[self.units]
@@ -509,6 +506,13 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                     xBotR = xBotL + glyph.size[0] * alphaCorrection + fakeBold
                     xTopR = xTopL + glyph.size[0] * alphaCorrection + fakeBold
                     yBot = yTop - glyph.size[1]
+                    # Adjust for norm
+                    if self.units == 'norm':
+                        ratio = self.win.size[1]/self.win.size[0]
+                        xBotL *= ratio
+                        xTopL *= ratio
+                        xBotR *= ratio
+                        xTopR *= ratio
                     u0 = glyph.texcoords[0]
                     v0 = glyph.texcoords[1]
                     u1 = glyph.texcoords[2]
@@ -559,7 +563,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                     charsThisLine += 1
 
                 # end line with auto-wrap on space
-                if current[0] >= lineMax and wordLen > 0 and wordsThisLine:
+                if current[0] >= lineMax and wordLen > 0 and wordsThisLine > 1:
                     # move the current word to next line
                     lineBreakPt = vertices[(i - wordLen + 1) * 4, 0]
                     wordWidth = current[0] - lineBreakPt
@@ -575,6 +579,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                     current[0] = wordWidth
                     current[1] -= self._lineHeight
                     charsThisLine = wordLen
+                    wordsThisLine = 1
 
                 # have we stored the top/bottom of this line yet
                 if lineN + 1 > len(self._lineTops):
