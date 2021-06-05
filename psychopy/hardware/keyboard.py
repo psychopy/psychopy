@@ -73,14 +73,13 @@ try:
     import psychtoolbox as ptb
     from psychtoolbox import hid
     havePTB = True
+
 except ImportError as err:
     logging.warning(("Import Error: "
                      + err.args[0]
                      + ". Using event module for keyboard component."))
     from psychopy import event
     havePTB = False
-
-macPrefsBad = False
 
 defaultBufferSize = 10000
 
@@ -137,7 +136,7 @@ class Keyboard:
             setting this to True
 
         """
-        global havePTB, macPrefsBad
+        global havePTB
         self.status = NOT_STARTED
         # Initiate containers for storing responses
         self.keys = []  # the key(s) pressed
@@ -186,15 +185,6 @@ class Keyboard:
             if not waitForStart:
                 self.start()
 
-            # check if mac prefs are working; if not default
-            # to using event.getKeys()
-            if sys.platform == 'darwin':
-                try:
-                    Keyboard()
-                except OSError:
-                    macPrefsBad = True
-                    havePTB = False
-                    Keyboard.backend = 'event'
         elif Keyboard.backend == '':
             Keyboard.backend = 'event'
 
