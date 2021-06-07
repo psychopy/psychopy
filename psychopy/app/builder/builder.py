@@ -2157,7 +2157,7 @@ class StandaloneRoutineCanvas(scrolledpanel.ScrolledPanel, ThemeMixin):
         self.btnsSizer = wx.BoxSizer(wx.HORIZONTAL)
         # Add validator stuff
         self.warnings = WarningManager(self)
-        # self.sizer.Add(self.warnings.output, border=3, flag=wx.EXPAND | wx.ALL)
+        self.sizer.Add(self.warnings.output, border=3, flag=wx.EXPAND | wx.ALL)
         # Add buttons to sizer
         self.sizer.Add(self.btnsSizer, border=6, proportion=0, flag=wx.ALIGN_RIGHT | wx.ALL)
         # Style

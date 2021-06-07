@@ -33,7 +33,8 @@ else:
 VALIDATOR_WARNING_NONE = 0
 VALIDATOR_WARNING_NAME = 1
 VALIDATOR_WARNING_SYNTAX = 2
-VALIDATOR_WARNING_COUNT = 3  # increment when adding more
+VALIDATOR_WARNING_FONT_MISSING = 3
+VALIDATOR_WARNING_COUNT = 4  # increment when adding more
 
 
 class ValidatorWarning(object):
@@ -52,8 +53,8 @@ class ValidatorWarning(object):
         Message text associated with the warning to be displayed.
     kind : int
         Symbolic constant representing the type of warning. Values can be one of
-        `VALIDATOR_WARNING_NONE`, `VALIDATOR_WARNING_NAME` or
-        `VALIDATOR_WARNING_SYNTAX`.
+        `VALIDATOR_WARNING_NONE`, `VALIDATOR_WARNING_NAME`,
+        `VALIDATOR_WARNING_SYNTAX` or `VALIDATOR_WARNING_FONT_MISSING`.
 
     """
     __slots__ = [
@@ -101,8 +102,8 @@ class ValidatorWarning(object):
     @property
     def kind(self):
         """Symbolic constant representing the type of warning (`int`). Values
-        can be one of `VALIDATOR_WARNING_NONE`, `VALIDATOR_WARNING_NAME` or
-        `VALIDATOR_WARNING_SYNTAX`.
+        can be one of `VALIDATOR_WARNING_NONE`, `VALIDATOR_WARNING_NAME`,
+        `VALIDATOR_WARNING_SYNTAX` or `VALIDATOR_WARNING_FONT_MISSING`.
         """
         return self._kind
 
@@ -112,14 +113,31 @@ class ValidatorWarning(object):
         assert VALIDATOR_WARNING_NONE <= value < VALIDATOR_WARNING_COUNT
         self._kind = value
 
+    @property
+    def isSyntaxWarning(self):
+        """`True` if this is a syntax warning (`bool`)."""
+        return self._kind == VALIDATOR_WARNING_SYNTAX
+
+    @property
+    def isNameWarning(self):
+        """`True` if this is a namespace warning (`bool`)."""
+        return self._kind == VALIDATOR_WARNING_NAME
+
 
 class WarningManager(object):
-    """Manager for warnings produced by validators associate with controls
+    """Manager for warnings produced by validators associated with controls
     within the component properties dialog. Assumes that the `parent` dialog
     uses a standardized convention for attribute names for all components.
 
     Each control can only have a single warning at a time in the current
     implementation of this class.
+
+    Warnings
+    --------
+    Do not make strong references to instances of this class outside of the
+    `parent` dialog. This class must be destroyed along with the `parent` object
+    when the `parent` is deleted. This also goes for any `ValidatorWarning`
+    objects referenced by this class.
 
     Parameters
     ----------
@@ -133,6 +151,16 @@ class WarningManager(object):
         # produced them. In the future we should use wx object names to
         # reference these objects instead of IDs.
         self._warnings = {}
+
+        # create an output label box for the parent
+        self.output = wx.StaticText(
+            self._parent, label="", style=wx.ALIGN_CENTRE_HORIZONTAL)
+        self.output.SetForegroundColour(wx.RED)
+
+    @property
+    def OK(self):
+        """`True` if there are no warnings (`bool`)."""
+        return len(self._warnings) == 0
 
     @property
     def parent(self):
@@ -160,7 +188,8 @@ class WarningManager(object):
 
     def getControlsWithWarnings(self):
         """Get a list of controls which have active warnings (`list`). You can
-        use this to re-validate any controls which have warnings still.
+        use this to process controls which still have warnings registered to
+        them.
         """
         if not self._warnings:  # no active warnings
             return []
@@ -228,6 +257,18 @@ class WarningManager(object):
 
         return wasCleared
 
+    def validate(self, control=None):
+        """Validate one or many controls.
+
+        Calling this will re-run validation on all controls which have active
+        warnings presently registered to them. If the specified control(s) no
+        longer generate warnings, it will be removed from the manager.
+
+        This can be called make sure that all warnings have been addressed.
+
+        """
+        pass
+
     def _lockout(self, enable=True):
         """Lockout the dialog, preventing user changes from being applied.
 
@@ -241,36 +282,32 @@ class WarningManager(object):
         """
         if hasattr(self.parent, 'ok'):
             okButton = self.parent.ok
-        elif hasattr(self.parent, 'OKbtn'):  # other option ...
+        elif hasattr(self.parent, 'OKbtn'):  # another option ...
             okButton = self.parent.OKbtn
         else:
-            raise AttributeError("Parent object does not have an Okay button.")
+            # raise AttributeError("Parent object does not have an OK button.")
+            return  # nop better here?
 
         if isinstance(okButton, wx.Button):
             okButton.Enable(enable)
 
-    def showWarning(self, control):
-        """Show the active warning for the control in the dialog warning text
-        area.
-
-        Parameters
-        ----------
-        control : wx.Window or wx.Panel
-            Control to show show any active warnings for.
-
+    def showWarning(self):
+        """Show the active warnings. Disables the OK button if present.
         """
-        # Enable / disable ok button
-        if not self._warnings:
-            print("No warnings.")
+        self._lockout(self.OK)  # enable / disable ok button
 
         # If there's any errors to show, show them
         messages = self.messages
-        print(messages)
-        # self.output.SetLabel("\n".join(messages))
-        # # Update sizer
-        # sizer = self.output.GetContainingSizer()
-        # if sizer:
-        #     sizer.Layout()
+
+        if messages:
+            self.output.SetLabel("\n".join(messages))
+        else:
+            self.output.SetLabel("")
+
+        # Update sizer
+        sizer = self.output.GetContainingSizer()
+        if sizer:
+            sizer.Layout()
 
 
 # class WarningManager(dict):
@@ -360,7 +397,7 @@ class BaseValidator(_ValidatorBase):
             except Exception:
                 raise AttributeError("Could not find warnings manager")
         self.check(parent)
-        #return parent.warnings.valid
+
         return True
 
     def TransferFromWindow(self):
@@ -376,43 +413,52 @@ class BaseValidator(_ValidatorBase):
 class NameValidator(BaseValidator):
     """Validation checks if the value in Name field is a valid Python
     identifier and if it does not clash with existing names.
-    """
 
+    """
     def __init__(self):
         super(NameValidator, self).__init__()
 
     def check(self, parent):
-        """checks namespace, return error-msg (str), enable (bool)
+        """Checks namespace.
+
+        Parameters
+        ----------
+        parent : object
+            Component properties dialog or similar.
+
         """
         control = self.GetWindow()
         newName = control.GetValue()
-        print(newName)
+        msg, OK = '', True  # until we find otherwise
+        if newName == '':
+            msg = _translate("Missing name")
+            OK = False
+        else:
+            namespace = parent.frame.exp.namespace
+            used = namespace.exists(newName)
+            sameAsOldName = bool(newName == parent.params['name'].val)
+            if used and not sameAsOldName:
+                # NOTE: formatted string literal doesn't work with _translate().
+                # So, we have to call format() after _translate() is applied.
+                msg = _translate(
+                    "That name is in use (by {used}). Try another name."
+                    ).format(used=_translate(used))
+                OK = False
+            elif not namespace.isValid(newName):  # valid as a var name
+                msg = _translate("Name must be alpha-numeric or _, no spaces")
+                OK = False
+            # warn but allow, chances are good that its actually ok
+            elif namespace.isPossiblyDerivable(newName):
+                msg = _translate(namespace.isPossiblyDerivable(newName))
+                OK = True
 
-        # msg, OK = '', True  # until we find otherwise
-        # if newName == '':
-        #     msg = _translate("Missing name")
-        #     OK = False
-        # else:
-        #     namespace = parent.frame.exp.namespace
-        #     used = namespace.exists(newName)
-        #     sameAsOldName = bool(newName == parent.params['name'].val)
-        #     if used and not sameAsOldName:
-        #         msg = _translate("That name is in use (by %s). Try another name.") % _translate(used)
-        #         # NOTE: formatted string literal doesn't work with _translate().
-        #         # So, we have to call format() after _translate() is applied.
-        #         msg = _translate("That name is in use (by {used}). Try another name."
-        #             ).format(used = _translate(used))
-        #         OK = False
-        #     elif not namespace.isValid(newName):  # valid as a var name
-        #         msg = _translate("Name must be alpha-numeric or _, no spaces")
-        #         OK = False
-        #     # warn but allow, chances are good that its actually ok
-        #     elif namespace.isPossiblyDerivable(newName):
-        #         msg = _translate(namespace.isPossiblyDerivable(newName))
-        #         OK = True
-        #
-        # parent.warnings['name'] = msg
-        # parent.warnings._valid['name'] = OK
+        if not OK:
+            parent.warnings.setWarning(
+                control, msg=msg, kind=VALIDATOR_WARNING_NAME)
+        else:
+            parent.warnings.clearWarning(control)
+
+        parent.warnings.showWarning()
 
 
 class CodeSnippetValidator(BaseValidator):
@@ -436,216 +482,155 @@ class CodeSnippetValidator(BaseValidator):
     def Clone(self):
         return self.__class__(self.fieldName)
 
-    def notifyError(self, parent, msg=''):
-        """Sets the field to invalid and passes an error string to the parent.
-
-        Call `clearError` to reset the field state if valid.
-
-        Parameters
-        ----------
-        parent : object
-            Component properties dialog or similar.
-        msg : str
-            Error string.
-
-        """
-        if hasattr(parent, 'warnings'):
-            parent.warnings[self.fieldName] = msg
-            parent.warnings._valid[self.fieldName] = False
-
-    def clearError(self, parent):
-        """Clear error message prior to validation.
-
-        Parameters
-        ----------
-        parent : object
-            Component properties dialog or similar.
-
-        """
-        if hasattr(parent, 'warnings'):
-            parent.warnings[self.fieldName] = ''
-            parent.warnings._valid[self.fieldName] = True
-
-    def _validateAsCode(self):
-        """Validate the text in the input box as code.
-
-        Returns
-        -------
-        bool
-            `True` if validation was successful. This means that code in the box
-            is valid by having the correct syntax and raises no type errors.
-
-        """
-        pass
-
     def check(self, parent):
-        """Check Python syntax code snippets."""
-        control = self.GetWindow()  # control associated with this validator
+        """Checks python syntax of code snippets, and for self-reference.
 
-        if hasattr(control, "GetValue"):
-            code = control.GetValue()
-        else:
-            return
+        Note: code snippets simply use existing names in the namespace, like
+        from condition-file headers. They do not add to the namespace (unlike
+        Name fields). Code snippets in param fields will often be user-defined
+        vars, especially condition names. Can also be expressions like
+        random(1,100). Hard to know what will be problematic. But its always the
+        case that self-reference is wrong.
 
-        # If we're a code component, check for syntax errors by compiling the
-        # code.
-        try:
-            names = compile(code, '', 'exec').co_names
-        except (SyntaxError, TypeError) as e:
-            # empty '' compiles to a syntax error, ignore
-            if not code.strip() == '':
-                msg = _translate('Python syntax error in field `{}`:  {}')
+        Parameters
+        ----------
+        parent : object
+            Component properties dialog or similar.
+
+        """
+        # first check if there's anything to validate (and return if not)
+        def _checkParamUpdates(parent):
+            """Checks whether param allows updates. Returns bool."""
+            if parent.params[self.fieldName].allowedUpdates is not None:
+                # Check for new set with elements common to lists compared -
+                # True if any elements are common
+                return bool(
+                    set(parent.params[self.fieldName].allowedUpdates) &
+                    set(allowedUpdates))
+
+        def _highlightParamVal(parent, error=False):
+            """Highlights text containing error - defaults to black"""
+            try:
+                if error:
+                    parent.paramCtrls[
+                        self.fieldName].valueCtrl.SetForegroundColour("Red")
+                else:
+                    parent.paramCtrls[
+                        self.fieldName].valueCtrl.SetForegroundColour("Black")
+            except KeyError:
+                pass
+
+        # Get attributes of value control
+        control = self.GetWindow()
+        if not hasattr(control, 'GetValue'):
+            return '', True  # mdc - why return anything here?
+
+        val = control.GetValue()  # same as parent.params[self.fieldName].val
+        if not isinstance(val, basestring):
+            return '', True
+
+        field = self.fieldName
+        allowedUpdates = ['set every repeat', 'set every frame']
+        # Set initials
+        msg, OK = '', True  # until we find otherwise
+        _highlightParamVal(parent)
+        # What valType should code be treated as?
+        codeWanted = psychopy.experiment.utils.unescapedDollarSign_re.search(val)
+        isCodeField = bool(parent.params[self.fieldName].valType == 'code')
+
+        # Validate as list
+        # allKeyBoardKeys = list(key._key_names.values()) + [str(num) for num in range(10)]
+        # allKeyBoardKeys = [key.lower() for key in allKeyBoardKeys]
+
+        # Check if it is a Google font
+        if self.fieldName == 'font' and not val.startswith('$'):
+            fontInfo = fontMGR.getFontNamesSimilar(val)
+            if not fontInfo:
+                msg = _translate(
+                    "Font `{val}` not found locally, will attempt to retrieve "
+                    "from Google Fonts when this experiment next runs"
+                ).format(val=val)
                 parent.warnings.setWarning(
-                    control, msg=msg, kind=VALIDATOR_WARNING_SYNTAX)
-                print('has warning')
+                    control, msg=msg, kind=VALIDATOR_WARNING_FONT_MISSING)
 
-            return
-        else:
-            hasCodeWarning = parent.warnings.getWarning(control)
-            if hasCodeWarning is not None:
+        # Validate as code
+        if codeWanted or isCodeField:
+            # get var names from val, check against namespace:
+            code = experiment.getCodeFromParamStr(val)
+            try:
+                names = compile(code, '', 'exec').co_names
                 parent.warnings.clearWarning(control)
-                print('warning cleared')
+            except (SyntaxError, TypeError) as e:
+                # empty '' compiles to a syntax error, ignore
+                if not code.strip() == '':
+                    _highlightParamVal(parent, True)
+                    msg = _translate('Python syntax error in field `{}`:  {}')
+                    msg = msg.format(self.displayName, code)
+                    parent.warnings.setWarning(
+                        control, msg=msg, kind=VALIDATOR_WARNING_SYNTAX)
+            else:
+                # Check whether variable param entered as a constant
+                if isCodeField and _checkParamUpdates(parent):
+                    if parent.paramCtrls[self.fieldName].getUpdates() not in allowedUpdates:
+                        try:
+                            eval(code)  # security risk here?
+                        except NameError as e:
+                            _highlightParamVal(parent, True)
+                            # NOTE: formatted string literal doesn't work with _translate().
+                            # So, we have to call format() after _translate() is applied.
+                            msg = _translate(
+                                "Looks like your variable '{code}' in "
+                                "'{displayName}' should be set to update."
+                                ).format(code=code, displayName=self.displayName)
+                            parent.warnings.setWarning(
+                                control, msg=msg, kind=VALIDATOR_WARNING_NAME)
+                        except SyntaxError as e:
+                            parent.warnings.setWarning(
+                                control, msg=msg, kind=VALIDATOR_WARNING_SYNTAX)
 
-            print('no warnings now')
+                # namespace = parent.frame.exp.namespace
+                # parent.params['name'].val is not in namespace for new params
+                # and is not fixed as .val until dialog closes. Use getvalue()
+                # to handle dynamic changes to Name field:
+                if 'name' in parent.paramCtrls:  # some components don't have names
+                    parentName = parent.paramCtrls['name'].getValue()
+                    for name in names:
+                        # `name` means a var name within a compiled code snippet
+                        if name == parentName:
+                            _highlightParamVal(parent, True)
+                            msg = _translate(
+                                'Python var `{}` in `{}` is same as Name')
+                            msg = msg.format(name, self.displayName)
+                            parent.warnings.setWarning(
+                                control, msg=msg, kind=VALIDATOR_WARNING_NAME)
+                    else:
+                        parent.warnings.clearWarning(control)
 
-    # def check(self, parent):
-    #     """Checks python syntax of code snippets, and for self-reference.
-    #
-    #     Note: code snippets simply use existing names in the namespace,
-    #     like from condition-file headers. They do not add to the
-    #     namespace (unlike Name fields).
-    #
-    #     Code snippets in param fields will often be user-defined
-    #     vars, especially condition names. Can also be expressions like
-    #     random(1,100). Hard to know what will be problematic.
-    #     But its always the case that self-reference is wrong.
-    #     """
-    #     # first check if there's anything to validate (and return if not)
-    #
-    #     def _checkParamUpdates(parent):
-    #         """Checks whether param allows updates. Returns bool."""
-    #         if parent.params[self.fieldName].allowedUpdates is not None:
-    #             # Check for new set with elements common to lists compared -
-    #             # True if any elements are common
-    #             return bool(
-    #                 set(parent.params[self.fieldName].allowedUpdates) &
-    #                 set(allowedUpdates))
-    #
-    #     def _highlightParamVal(parent, error=False):
-    #         """Highlights text containing error - defaults to black"""
-    #         try:
-    #             if error:
-    #                 parent.paramCtrls[
-    #                     self.fieldName].valueCtrl.SetForegroundColour("Red")
-    #             else:
-    #                 parent.paramCtrls[
-    #                     self.fieldName].valueCtrl.SetForegroundColour("Black")
-    #         except KeyError:
-    #             pass
-    #
-    #     # clear previous error if present
-    #     self.clearError(parent)
-    #
-    #     OK = True
-    #
-    #     # Get attributes of value control
-    #     control = self.GetWindow()
-    #     if not hasattr(control, 'GetValue'):
-    #         return '', True
-    #     val = control.GetValue()  # same as parent.params[self.fieldName].val
-    #     if not isinstance(val, basestring):
-    #         return '', True
-    #     field = self.fieldName
-    #     allowedUpdates = ['set every repeat', 'set every frame']
-    #
-    #     _highlightParamVal(parent)
-    #     # What valType should code be treated as?
-    #     codeWanted = psychopy.experiment.utils.unescapedDollarSign_re.search(val)
-    #     isCodeField = bool(parent.params[self.fieldName].valType == 'code')
-    #
-    #     # Validate as list
-    #     # allKeyBoardKeys = list(key._key_names.values()) + [str(num) for num in range(10)]
-    #     # allKeyBoardKeys = [key.lower() for key in allKeyBoardKeys]
-    #
-    #     # Check if it is a Google font
-    #     if self.fieldName == 'font' and not val.startswith('$'):
-    #         fontInfo = fontMGR.getFontNamesSimilar(val)
-    #         if not fontInfo:
-    #             msg = _translate(
-    #                 "Font `{val}` not found locally, will attempt to retrieve "
-    #                 "from Google Fonts when this experiment next runs"
-    #             ).format(val=val)
-    #
-    #     names = []
-    #
-    #     # Validate as code
-    #     if codeWanted or isCodeField:
-    #         # get var names from val, check against namespace:
-    #         code = experiment.getCodeFromParamStr(val)
-    #         try:
-    #             names = compile(code, '', 'exec').co_names
-    #         except (SyntaxError, TypeError) as e:
-    #             # empty '' compiles to a syntax error, ignore
-    #             if not code.strip() == '':
-    #                 _highlightParamVal(parent, True)
-    #                 msg = _translate('Python syntax error in field `{}`:  {}')
-    #                 self.notifyError(parent, msg.format(self.displayName, code))
-    #
-    #             return
-    #
-    #         self.clearError(parent)
-    #
-    #         if isCodeField and _checkParamUpdates(parent):
-    #             # Check whether variable param entered as a constant
-    #             if parent.paramCtrls[self.fieldName].getUpdates() not in allowedUpdates:
-    #                 try:
-    #                     eval(code)
-    #                 except NameError as e:
-    #                     _highlightParamVal(parent, True)
-    #                     # NOTE: formatted string literal doesn't work with _translate().
-    #                     # So, we have to call format() after _translate() is applied.
-    #                     msg = _translate(
-    #                         "Looks like your variable '{code}' in "
-    #                         "'{displayName}' should be set to update."
-    #                         ).format(code=code, displayName=self.displayName)
-    #                 except SyntaxError as e:
-    #                     msg = ''
-    #
-    #         # namespace = parent.frame.exp.namespace
-    #         # parent.params['name'].val is not in namespace for new params
-    #         # and is not fixed as .val until dialog closes. Use getvalue()
-    #         # to handle dynamic changes to Name field:
-    #         if 'name' in parent.paramCtrls:  # some components don't have names
-    #             parentName = parent.paramCtrls['name'].getValue()
-    #             for name in names:
-    #                 # `name` means a var name within a compiled code snippet
-    #                 if name == parentName:
-    #                     _highlightParamVal(parent, True)
-    #                     msg = _translate(
-    #                         'Python var `{}` in `{}` is same as Name')
-    #                     msg = msg.format(name, self.displayName)
-    #                     OK = True
-    #
-    #             for newName in names:
-    #                 namespace = parent.frame.exp.namespace
-    #                 if newName in [*namespace.user, *namespace.builder, *namespace.constants]:
-    #                     # Continue if name is a variable
-    #                     continue
-    #                 if newName in [*namespace.nonUserBuilder, *namespace.numpy] and not re.search(newName+r"(?!\(\))", val):
-    #                     # Continue if name is an external function being called correctly
-    #                     continue
-    #                 used = namespace.exists(newName)
-    #                 sameAsOldName = bool(newName == parent.params['name'].val)
-    #                 if used and not sameAsOldName:
-    #                     # NOTE: formatted string literal doesn't work with _translate().
-    #                     # So, we have to call format() after _translate() is applied.
-    #                     msg = _translate("Variable name ${newName} is in use (by {used}). Try another name."
-    #                         ).format(newName=newName, used=_translate(used))
-    #                     # let the user continue if this is what they intended
-    #                     OK = True
-    #
-    #     if not OK:
-    #         self.notifyError(parent, msg)
+                    for newName in names:
+                        namespace = parent.frame.exp.namespace
+                        if newName in [*namespace.user, *namespace.builder,
+                                       *namespace.constants]:
+                            # Continue if name is a variable
+                            continue
+                        if newName in [*namespace.nonUserBuilder, *namespace.numpy] \
+                                and not re.search(newName+r"(?!\(\))", val):
+                            # Continue if name is an external function being called correctly
+                            continue
+                        used = namespace.exists(newName)
+                        sameAsOldName = bool(newName == parent.params['name'].val)
+                        if used and not sameAsOldName:
+                            # NOTE: formatted string literal doesn't work with _translate().
+                            # So, we have to call format() after _translate() is applied.
+                            msg = _translate(
+                                "Variable name ${newName} is in use (by "
+                                "{used}). Try another name."
+                                ).format(newName=newName, used=_translate(used))
+                            parent.warnings.setWarning(
+                                control, msg=msg, kind=VALIDATOR_WARNING_NAME)
+                        else:
+                            parent.warnings.clearWarning(control)
+
+        parent.warnings.showWarning()  # show most recent warnings
 
 
 if __name__ == "__main__":

@@ -762,7 +762,7 @@ class _BaseParamsDlg(wx.Dialog):
 
         # Add validator stuff
         self.warnings = WarningManager(self)
-        #self.mainSizer.Add(self.warnings.output, border=3, flag=wx.EXPAND | wx.ALL)
+        self.mainSizer.Add(self.warnings.output, border=3, flag=wx.EXPAND | wx.ALL)
         self.Validate()  # disables OKbtn if bad name, syntax error, etc
 
         buttons.AddStretchSpacer()
