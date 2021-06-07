@@ -116,7 +116,7 @@ class SettingsComponent(object):
                  savedDataFolder='', savedDataDelim='auto',
                  useVersion='',
                  eyetracker="None",
-                 mgMove='RIGHT_BUTTON', mgBlink='MIDDLE_BUTTON', mgSaccade=0.5,
+                 mgMove='CONTINUOUS', mgBlink='MIDDLE_BUTTON', mgSaccade=0.5,
                  gpAddress='127.0.0.1', gpPort=4242,
                  elModel='EYELINK 1000 DESKTOP', elSimMode=False, elSampleRate=1000, elTrackEyes="RIGHT_EYE",
                  elLiveFiltering="FILTER_LEVEL_2", elDataFiltering="FILTER_LEVEL_OFF",
@@ -379,8 +379,8 @@ class SettingsComponent(object):
 
         #mousegaze
         self.params['mgMove'] = Param(
-            mgMove, valType='list', inputType="multiChoice",
-            allowedVals=['LEFT_BUTTON', 'MIDDLE_BUTTON', 'RIGHT_BUTTON'],
+            mgMove, valType='list', inputType="choice",
+            allowedVals=['CONTINUOUS', 'LEFT_BUTTON', 'MIDDLE_BUTTON', 'RIGHT_BUTTON'],
             hint=_translate("Mouse button to press for eye movement."),
             label=_translate("Move Button"), categ="Eyetracking"
         )
