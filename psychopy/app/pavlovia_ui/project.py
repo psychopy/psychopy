@@ -98,7 +98,7 @@ class ProjectEditor(wx.Dialog):
         cancelBtn = wx.Button(panel, -1, _translate("Cancel"))
         cancelBtn.Bind(wx.EVT_BUTTON, self.onCancel)
         btnSizer = wx.BoxSizer(wx.HORIZONTAL)
-        btnSizer.AddMany([updateBtn, cancelBtn])
+        btnSizer.AddMany([cancelBtn, updateBtn])
 
         # do layout
         fieldsSizer = wx.FlexGridSizer(cols=2, rows=6, vgap=5, hgap=5)

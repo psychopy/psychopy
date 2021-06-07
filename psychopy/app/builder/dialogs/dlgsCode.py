@@ -431,18 +431,10 @@ class DlgCodeComponentProperties(wx.Dialog):
         buttonSizer.Add(self.helpButton, 0,
                         wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, 10)
         buttonSizer.AddStretchSpacer()
-        if sys.platform == 'darwin':
-            buttonSizer.Add(self.cancelButton, 0,
-                            wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
-                            border=3)
-            buttonSizer.Add(self.okButton, 0,
-                            wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
-                            border=3)
-        else:
-            buttonSizer.Add(self.okButton, 0,
-                            wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, border=3)
-            buttonSizer.Add(self.cancelButton, 0,
-                            wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, border=3)
+        buttonSizer.Add(self.cancelButton, 0,
+                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, border=3)
+        buttonSizer.Add(self.okButton, 0,
+                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, border=3)
 
         mainSizer.Add(buttonSizer, 0, wx.ALL | wx.RIGHT | wx.EXPAND, 5)
         self.SetSizer(mainSizer)
@@ -595,15 +587,15 @@ class CodeOverwriteDialog(wx.Dialog):
         # Set buttons
         btnsizer = wx.StdDialogButtonSizer()
 
-        btn = wx.Button(self, wx.ID_OK)
-        btn.SetHelpText("The OK button completes the dialog")
-        btn.SetDefault()
-        btnsizer.AddButton(btn)
-
         btn = wx.Button(self, wx.ID_CANCEL)
         btn.SetHelpText("The Cancel button cancels the dialog. (Crazy, huh?)")
         btnsizer.AddButton(btn)
         btnsizer.Realize()
+
+        btn = wx.Button(self, wx.ID_OK)
+        btn.SetHelpText("The OK button completes the dialog")
+        btn.SetDefault()
+        btnsizer.AddButton(btn)
 
         sizer.Add(btnsizer, 0, wx.ALIGN_RIGHT | wx.ALL, 5)
 

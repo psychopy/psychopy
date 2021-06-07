@@ -228,9 +228,9 @@ class PsychoColorPicker(wx.Dialog):
         self.cmdCopy.SetToolTip(
             _translate(u"Copy color value to clipboard."))
 
-        szrDlgCtrls.Add(self.cmdInsertColor, 0, wx.EXPAND, 5)
-        szrDlgCtrls.Add(self.cmdCopy, 0, wx.EXPAND, 5)
         szrDlgCtrls.Add(self.cmdClose, 0, wx.EXPAND, 5)
+        szrDlgCtrls.Add(self.cmdCopy, 0, wx.EXPAND, 5)
+        szrDlgCtrls.Add(self.cmdInsertColor, 0, wx.EXPAND, 5)
 
         szrDlgButtonArea.Add(szrDlgCtrls, 1, wx.ALL | wx.EXPAND, 5)
 

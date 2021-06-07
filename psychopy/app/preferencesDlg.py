@@ -499,17 +499,16 @@ class PreferencesDlg(wx.Dialog):
                         wx.LEFT | wx.ALL | wx.ALIGN_CENTER_VERTICAL,
                         border=3)
         sdbControls.AddStretchSpacer()
-
+        self.sdbControlsCancel = wx.Button(self.pnlMain, wx.ID_CANCEL)
+        sdbControls.Add(self.sdbControlsCancel, 0,
+                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
+                        border=3)
         self.sdbControlsApply = wx.Button(self.pnlMain, wx.ID_APPLY)
         sdbControls.Add(self.sdbControlsApply, 0,
                         wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
                         border=3)
         self.sdbControlsOK = wx.Button(self.pnlMain, wx.ID_OK)
         sdbControls.Add(self.sdbControlsOK, 0,
-                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
-                        border=3)
-        self.sdbControlsCancel = wx.Button(self.pnlMain, wx.ID_CANCEL)
-        sdbControls.Add(self.sdbControlsCancel, 0,
                         wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
                         border=3)
 

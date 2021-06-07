@@ -2788,13 +2788,13 @@ class ExportFileDialog(wx.Dialog):
 
         btnsizer = wx.StdDialogButtonSizer()
 
+        btn = wx.Button(self, wx.ID_CANCEL)
+        btn.SetHelpText("The Cancel button cancels the dialog. (Crazy, huh?)")
+        btnsizer.AddButton(btn)
+
         btn = wx.Button(self, wx.ID_OK)
         btn.SetHelpText("The OK button completes the dialog")
         btn.SetDefault()
-        btnsizer.AddButton(btn)
-
-        btn = wx.Button(self, wx.ID_CANCEL)
-        btn.SetHelpText("The Cancel button cancels the dialog. (Crazy, huh?)")
         btnsizer.AddButton(btn)
 
         sizer.Add(btnsizer, 0, wx.ALL, 5)

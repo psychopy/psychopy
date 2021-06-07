@@ -766,20 +766,12 @@ class _BaseParamsDlg(wx.Dialog):
         self.Validate()  # disables OKbtn if bad name, syntax error, etc
 
         buttons.AddStretchSpacer()
-        if sys.platform == 'darwin':
-            buttons.Add(CANCEL, 0,
-                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
-                        border=3)
-            buttons.Add(self.OKbtn, 0,
-                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
-                        border=3)
-        else:
-            buttons.Add(self.OKbtn, 0,
-                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
-                        border=3)
-            buttons.Add(CANCEL, 0,
-                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
-                        border=3)
+        buttons.Add(CANCEL, 0,
+                    wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
+                    border=3)
+        buttons.Add(self.OKbtn, 0,
+                    wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
+                    border=3)
 
         # buttons.Realize()
         # add to sizer

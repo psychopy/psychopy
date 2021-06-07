@@ -34,16 +34,16 @@ class SystemInfoDialog(wx.Dialog):
 
         gszControls = wx.GridSizer(0, 3, 0, 0)
 
+        self.cmdClose = wx.Button(
+            self, wx.ID_ANY, u"&Close", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.cmdClose.SetDefault()
+        gszControls.Add(self.cmdClose, 0, wx.ALL, 5)
         self.cmdCopy = wx.Button(
             self, wx.ID_ANY, u"C&opy", wx.DefaultPosition, wx.DefaultSize, 0)
         gszControls.Add(self.cmdCopy, 0, wx.ALL, 5)
         self.cmdSave = wx.Button(
             self, wx.ID_ANY, u"&Save", wx.DefaultPosition, wx.DefaultSize, 0)
         gszControls.Add(self.cmdSave, 0, wx.ALL, 5)
-        self.cmdClose = wx.Button(
-            self, wx.ID_ANY, u"&Close", wx.DefaultPosition, wx.DefaultSize, 0)
-        self.cmdClose.SetDefault()
-        gszControls.Add(self.cmdClose, 0, wx.ALL, 5)
 
         bszMain.Add(gszControls, 0, wx.ALIGN_RIGHT, 5)
 
