@@ -761,8 +761,8 @@ class _BaseParamsDlg(wx.Dialog):
         CANCEL = wx.Button(self, wx.ID_CANCEL, _translate(" Cancel "))
 
         # Add validator stuff
-        self.warnings = WarningManager(self, self.OKbtn)
-        self.mainSizer.Add(self.warnings.output, border=3, flag=wx.EXPAND | wx.ALL)
+        self.warnings = WarningManager(self)
+        #self.mainSizer.Add(self.warnings.output, border=3, flag=wx.EXPAND | wx.ALL)
         self.Validate()  # disables OKbtn if bad name, syntax error, etc
 
         buttons.AddStretchSpacer()

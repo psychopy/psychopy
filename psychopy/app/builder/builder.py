@@ -2157,7 +2157,7 @@ class StandaloneRoutineCanvas(scrolledpanel.ScrolledPanel, ThemeMixin):
         self.btnsSizer = wx.BoxSizer(wx.HORIZONTAL)
         # Add validator stuff
         self.warnings = WarningManager(self)
-        self.sizer.Add(self.warnings.output, border=3, flag=wx.EXPAND | wx.ALL)
+        # self.sizer.Add(self.warnings.output, border=3, flag=wx.EXPAND | wx.ALL)
         # Add buttons to sizer
         self.sizer.Add(self.btnsSizer, border=6, proportion=0, flag=wx.ALIGN_RIGHT | wx.ALL)
         # Style
@@ -2293,7 +2293,8 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             # Make button
             wx.Button.__init__(self, parent, wx.ID_ANY,
                                label=label, name=name,
-                               size=(68, 68+12*label.count("\n")), style=wx.NO_BORDER)
+                               size=(68, 68+12*label.count("\n")),
+                               style=wx.NO_BORDER)
             self.SetToolTip(wx.ToolTip(comp.tooltip or name))
             # Style
             self._applyAppTheme()
@@ -2304,8 +2305,10 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         def onClick(self, evt=None, timeout=None):
             routine = self.parent.frame.routinePanel.getCurrentRoutine()
             page = self.parent.frame.routinePanel.getCurrentPage()
-            comp = self.component(parentName=routine.name, exp=self.parent.frame.exp)
-            
+            comp = self.component(
+                parentName=routine.name,
+                exp=self.parent.frame.exp)
+
             # does this component have a help page?
             if hasattr(comp, 'url'):
                 helpUrl = comp.url
@@ -2392,7 +2395,8 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             # Make button
             wx.Button.__init__(self, parent, wx.ID_ANY,
                                label=label, name=name,
-                               size=(68, 68+12*label.count("\n")), style=wx.NO_BORDER)
+                               size=(68, 68+12*label.count("\n")),
+                               style=wx.NO_BORDER)
             self.SetToolTip(wx.ToolTip(rt.tooltip or name))
             # Style
             self._applyAppTheme()
@@ -2406,7 +2410,8 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             # Add to the actual routine
             exp = self.parent.frame.exp
             namespace = exp.namespace
-            name = comp.params['name'].val = namespace.makeValid(comp.params['name'].val)
+            name = comp.params['name'].val = namespace.makeValid(
+                comp.params['name'].val)
             namespace.add(name)
             exp.addStandaloneRoutine(name, comp)
             # update the routine's view with the new routine too
