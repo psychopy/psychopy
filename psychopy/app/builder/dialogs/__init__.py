@@ -396,7 +396,7 @@ class StartStopCtrls(wx.GridBagSizer):
                 self.Add(self.ctrls[name], (0, 1), border=6, flag=wx.EXPAND | wx.TOP)
             if name in ['startType', 'stopType']:
                 self.ctrls[name] = wx.Choice(parent,
-                                             choices=param.allowedVals,
+                                             choices=param.allowedVals or [param.val],
                                              size=wx.Size(96, 24))
                 self.ctrls[name].SetStringSelection(str(param.val))
                 self.Add(self.ctrls[name], (0, 0), border=6, flag=wx.EXPAND | wx.TOP)
