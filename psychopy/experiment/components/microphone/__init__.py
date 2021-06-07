@@ -32,6 +32,10 @@ else:
 sampleRates = {r[1]: r[0] for r in sampleRateQualityLevels.values()}
 devices['default'] = None
 
+onlineTranscribers = ["AZURE", "GOOGLE"]
+localTranscribers = ["BUILT-IN", "GOOGLE"]
+allTranscribers = list({key: None for key in onlineTranscribers + localTranscribers})
+
 
 class MicrophoneComponent(BaseComponent):
     """An event class for capturing short sound stimuli"""
@@ -48,7 +52,7 @@ class MicrophoneComponent(BaseComponent):
                  channels='stereo', device="default",
                  sampleRate='DVD Audio (48kHz)', maxSize=24000,
                  outputType='default', speakTimes=True, trimSilent=False,
-                 transcribe=True, transcribeBackend="GOOGLE", transcribeLang="en-GB", transcribeWords="",
+                 transcribe=True, transcribeBackend="BUILT-IN", transcribeLang="en-GB", transcribeWords="",
                  #legacy
                  stereo=None, channel=None):
         super(MicrophoneComponent, self).__init__(
@@ -154,7 +158,7 @@ class MicrophoneComponent(BaseComponent):
 
         self.params['transcribeBackend'] = Param(
             transcribeBackend, valType='code', inputType='choice', categ='Transcription',
-            allowedVals=["GOOGLE", "AZURE"],
+            allowedVals=allTranscribers,
             hint=_translate("What transcription service to use to transcribe audio? Only applies online - local "
                             "transcription uses Python Sphinx."),
             label=_translate("Online Transcription Backend")
