@@ -493,19 +493,27 @@ class PreferencesDlg(wx.Dialog):
         sbPrefs.Add(self.stlMain, 0, wx.EXPAND | wx.ALL, 5)
 
         # dialog controls, have builtin localization
-        sdbControls = wx.StdDialogButtonSizer()
+        sdbControls = wx.BoxSizer(wx.HORIZONTAL)
         self.sdbControlsHelp = wx.Button(self.pnlMain, wx.ID_HELP)
-        sdbControls.AddButton(self.sdbControlsHelp)
+        sdbControls.Add(self.sdbControlsHelp, 0,
+                        wx.LEFT | wx.ALL | wx.ALIGN_CENTER_VERTICAL,
+                        border=3)
+        sdbControls.AddStretchSpacer()
+
         self.sdbControlsApply = wx.Button(self.pnlMain, wx.ID_APPLY)
-        sdbControls.AddButton(self.sdbControlsApply)
+        sdbControls.Add(self.sdbControlsApply, 0,
+                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
+                        border=3)
         self.sdbControlsOK = wx.Button(self.pnlMain, wx.ID_OK)
-        sdbControls.AddButton(self.sdbControlsOK)
+        sdbControls.Add(self.sdbControlsOK, 0,
+                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
+                        border=3)
         self.sdbControlsCancel = wx.Button(self.pnlMain, wx.ID_CANCEL)
-        sdbControls.AddButton(self.sdbControlsCancel)
+        sdbControls.Add(self.sdbControlsCancel, 0,
+                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
+                        border=3)
 
-        sdbControls.Realize()
-
-        sbPrefs.Add(sdbControls, 0, wx.ALL | wx.ALIGN_RIGHT, 0)
+        sbPrefs.Add(sdbControls, flag=wx.ALL | wx.EXPAND, border=3)
 
         self.pnlMain.SetSizer(sbPrefs)
         self.pnlMain.Layout()
