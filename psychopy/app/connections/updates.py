@@ -317,8 +317,12 @@ class InstallUpdateDialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.onCancel, self.cancelBtn)
         btnSizer = wx.BoxSizer(wx.HORIZONTAL)
         btnSizer.AddStretchSpacer()
-        btnSizer.Add(self.cancelBtn, 0, flag=wx.LEFT, border=5)
-        btnSizer.Add(self.installBtn, 0, flag=wx.LEFT, border=5)
+        if sys.platform == "win32":
+            btns = [self.installBtn, self.cancelBtn]
+        else:
+            btns = [self.cancelBtn, self.installBtn]
+        btnSizer.Add(btns[0], 0, flag=wx.LEFT, border=5)
+        btnSizer.Add(btns[1], 0, flag=wx.LEFT, border=5)
         mainSizer.Add(btnSizer, flag=wx.ALL | wx.EXPAND, border=5)
 
         self.SetSizerAndFit(mainSizer)

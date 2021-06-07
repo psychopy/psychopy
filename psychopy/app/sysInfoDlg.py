@@ -34,16 +34,21 @@ class SystemInfoDialog(wx.Dialog):
 
         gszControls = wx.GridSizer(0, 3, 0, 0)
 
+        self.cmdCopy = wx.Button(
+            self, wx.ID_ANY, u"C&opy", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.cmdSave = wx.Button(
+            self, wx.ID_ANY, u"&Save", wx.DefaultPosition, wx.DefaultSize, 0)
         self.cmdClose = wx.Button(
             self, wx.ID_ANY, u"&Close", wx.DefaultPosition, wx.DefaultSize, 0)
         self.cmdClose.SetDefault()
-        gszControls.Add(self.cmdClose, 0, wx.ALL, 5)
-        self.cmdCopy = wx.Button(
-            self, wx.ID_ANY, u"C&opy", wx.DefaultPosition, wx.DefaultSize, 0)
-        gszControls.Add(self.cmdCopy, 0, wx.ALL, 5)
-        self.cmdSave = wx.Button(
-            self, wx.ID_ANY, u"&Save", wx.DefaultPosition, wx.DefaultSize, 0)
-        gszControls.Add(self.cmdSave, 0, wx.ALL, 5)
+
+        if sys.platform == "win32":
+            btns = [self.cmdCopy, self.cmdSave, self.cmdClose]
+        else:
+            btns = [self.cmdClose, self.cmdCopy, self.cmdSave]
+        gszControls.Add(btns[0], 0, wx.ALL, 5)
+        gszControls.Add(btns[1], 0, wx.ALL, 5)
+        gszControls.Add(btns[2], 0, wx.ALL, 5)
 
         bszMain.Add(gszControls, 0, wx.ALIGN_RIGHT, 5)
 

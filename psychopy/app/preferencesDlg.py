@@ -4,6 +4,7 @@
 from __future__ import absolute_import, print_function
 
 import json
+import sys
 from builtins import str
 import wx
 import wx.propgrid as pg
@@ -499,19 +500,23 @@ class PreferencesDlg(wx.Dialog):
                         wx.LEFT | wx.ALL | wx.ALIGN_CENTER_VERTICAL,
                         border=3)
         sdbControls.AddStretchSpacer()
-        self.sdbControlsCancel = wx.Button(self.pnlMain, wx.ID_CANCEL)
-        sdbControls.Add(self.sdbControlsCancel, 0,
-                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
-                        border=3)
+        # Add Okay and Cancel buttons
         self.sdbControlsApply = wx.Button(self.pnlMain, wx.ID_APPLY)
-        sdbControls.Add(self.sdbControlsApply, 0,
-                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
-                        border=3)
         self.sdbControlsOK = wx.Button(self.pnlMain, wx.ID_OK)
-        sdbControls.Add(self.sdbControlsOK, 0,
+        self.sdbControlsCancel = wx.Button(self.pnlMain, wx.ID_CANCEL)
+        if sys.platform == "win32":
+            btns = [self.sdbControlsOK, self.sdbControlsApply, self.sdbControlsCancel]
+        else:
+            btns = [self.sdbControlsCancel, self.sdbControlsApply, self.sdbControlsOK]
+        sdbControls.Add(btns[0], 0,
                         wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
                         border=3)
-
+        sdbControls.Add(btns[1], 0,
+                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
+                        border=3)
+        sdbControls.Add(btns[2], 0,
+                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
+                        border=3)
         sbPrefs.Add(sdbControls, flag=wx.ALL | wx.EXPAND, border=3)
 
         self.pnlMain.SetSizer(sbPrefs)

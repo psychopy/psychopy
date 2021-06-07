@@ -4,6 +4,7 @@
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
+import sys
 import time
 import os
 import traceback
@@ -98,7 +99,11 @@ class ProjectEditor(wx.Dialog):
         cancelBtn = wx.Button(panel, -1, _translate("Cancel"))
         cancelBtn.Bind(wx.EVT_BUTTON, self.onCancel)
         btnSizer = wx.BoxSizer(wx.HORIZONTAL)
-        btnSizer.AddMany([cancelBtn, updateBtn])
+        if sys.platform == "win32":
+            btns = [updateBtn, cancelBtn]
+        else:
+            btns = [cancelBtn, updateBtn]
+        btnSizer.AddMany(btns)
 
         # do layout
         fieldsSizer = wx.FlexGridSizer(cols=2, rows=6, vgap=5, hgap=5)

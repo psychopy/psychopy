@@ -519,18 +519,30 @@ class DlgConditions(wx.Dialog):
             helpBtn.Bind(wx.EVT_BUTTON, self.onHelp)
             buttons.Add(helpBtn, wx.ALIGN_CENTER | wx.ALL)
             buttons.AddSpacer(12)
+        # Add Okay and Cancel buttons
+        self.OKbtn = wx.Button(self, wx.ID_OK, _translate(" OK "))
+        if not self.fixed:
+            self.OKbtn.SetToolTip(wx.ToolTip(_translate('Save and exit')))
+        self.OKbtn.Bind(wx.EVT_BUTTON, self.onOK)
+        self.OKbtn.SetDefault()
         if not self.fixed:
             buttons.AddSpacer(4)
             CANCEL = wx.Button(self, wx.ID_CANCEL, _translate(" Cancel "))
             CANCEL.SetToolTip(wx.ToolTip(
                 _translate('Exit, discard any edits')))
             buttons.Add(CANCEL)
-        self.OKbtn = wx.Button(self, wx.ID_OK, _translate(" OK "))
+        else:
+            CANCEL = None
+
+        if sys.platform == "win32":
+            btns = [self.OKbtn, CANCEL]
+        else:
+            btns = [CANCEL, self.OKbtn]
+
         if not self.fixed:
-            self.OKbtn.SetToolTip(wx.ToolTip(_translate('Save and exit')))
-        self.OKbtn.Bind(wx.EVT_BUTTON, self.onOK)
-        self.OKbtn.SetDefault()
-        buttons.Add(self.OKbtn)
+            btns.remove(btns.index(CANCEL))
+
+        buttons.AddMany(btns)
         buttons.AddSpacer(8)
         buttons.Realize()
         self.border.Add(buttons, 1, flag=wx.BOTTOM | wx.ALIGN_RIGHT, border=8)
