@@ -44,6 +44,14 @@ class VariableComponent(BaseComponent):
 
         super().__init__(exp, parentName, name)
 
+        # Remove start/stop params
+        del self.params['startType']
+        del self.params['stopType']
+        del self.params['startVal']
+        del self.params['stopVal']
+        del self.params['startEstim']
+        del self.params['durationEstim']
+
         categories = ['Custom']
         self.type = 'Variable'
         self.url = "https://www.psychopy.org/builder/components/variable.html"
