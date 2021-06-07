@@ -316,9 +316,10 @@ class InstallUpdateDialog(wx.Dialog):
         self.cancelBtn = wx.Button(self, -1, _translate('Close'))
         self.Bind(wx.EVT_BUTTON, self.onCancel, self.cancelBtn)
         btnSizer = wx.BoxSizer(wx.HORIZONTAL)
-        btnSizer.Add(self.installBtn)
-        btnSizer.Add(self.cancelBtn, flag= wx.LEFT, border=5)
-        mainSizer.Add(btnSizer, flag= wx.ALL, border=5)
+        btnSizer.AddStretchSpacer()
+        btnSizer.Add(self.installBtn, 0, flag=wx.LEFT, border=5)
+        btnSizer.Add(self.cancelBtn, 0, flag=wx.LEFT, border=5)
+        mainSizer.Add(btnSizer, flag=wx.ALL | wx.EXPAND, border=5)
 
         self.SetSizerAndFit(mainSizer)
         self.SetAutoLayout(True)
