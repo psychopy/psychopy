@@ -18,8 +18,6 @@ from . import experiment
 from .localizedStrings import _localized
 from pkg_resources import parse_version
 from ...visual.textbox2.fontmanager import FontManager
-from ...data.utils import listFromString
-from pyglet.window import key
 
 fontMGR = FontManager()
 
