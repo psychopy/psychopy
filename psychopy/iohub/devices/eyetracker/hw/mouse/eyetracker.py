@@ -145,7 +145,7 @@ class EyeTracker(EyeTrackerDevice):
                         self._latest_gaze_position = self._ioMouse.getPosition()
                         self._addBlinkEvent(False)
 
-                    if button_states== self._move_eye_buttons:
+                    if button_states == self._move_eye_buttons:
                         if self._eye_state == "FIX":
                             display = self._display_device
                             sacc_end_pos = self._ioMouse.getPosition()

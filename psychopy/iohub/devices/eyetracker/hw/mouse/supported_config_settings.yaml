@@ -23,12 +23,12 @@ eyetracker.hw.mouse.EyeTracker:
         move:
             IOHUB_LIST:
                 valid_values: [LEFT_BUTTON, MIDDLE_BUTTON, RIGHT_BUTTON]
-                min_length: 1
+                min_length: 0
                 max_length: 1
         blink:
             IOHUB_LIST:
                 valid_values: [LEFT_BUTTON, MIDDLE_BUTTON, RIGHT_BUTTON]
-                min_length: 1
+                min_length: 0
                 max_length: 3
         saccade_threshold:
             IOHUB_FLOAT:
