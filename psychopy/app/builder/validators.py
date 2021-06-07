@@ -310,65 +310,6 @@ class WarningManager(object):
             sizer.Layout()
 
 
-# class WarningManager(dict):
-#     class ValidManager(dict):
-#         def __init__(self, parent):
-#             dict.__init__(self)
-#             self.parent = parent
-#
-#         def __bool__(self):
-#             if self.values():
-#                 return all(bool(val) for val in self.values())
-#             else:
-#                 return True
-#
-#         def __setitem__(self, key, value):
-#             dict.__setitem__(self, key, value)
-#             self.parent.check()
-#
-#         def __delitem__(self, key):
-#             dict.__delitem__(self, key)
-#             self.parent.check()
-#
-#     def __init__(self, parent, ok=None):
-#         dict.__init__(self)
-#         self.parent = parent
-#         self.ok = ok
-#         self.output = wx.StaticText(parent, label="", style=wx.ALIGN_CENTRE_HORIZONTAL)
-#         self.output.SetForegroundColour(wx.RED)
-#         self._valid = self.ValidManager(self)
-#
-#     @property
-#     def valid(self):
-#         return bool(self._valid)
-#
-#     def __setitem__(self, key, value):
-#         dict.__setitem__(self, key, value)
-#         # if given a blank value, delete the key
-#         if not value:
-#             del self[key]
-#             return
-#         # update
-#         self.check()
-#
-#     def __delitem__(self, key):
-#         dict.__delitem__(self, key)
-#         # update
-#         self.check()
-#
-#     def check(self):
-#         # Enable / disable ok button
-#         if isinstance(self.ok, wx.Button):
-#             self.ok.Enable(self.valid)
-#         # If there's any errors to show, show them
-#         messages = list(self.values())
-#         self.output.SetLabel("\n".join(messages))
-#         # Update sizer
-#         sizer = self.output.GetContainingSizer()
-#         if sizer:
-#             sizer.Layout()
-
-
 class BaseValidator(_ValidatorBase):
     """Component name validator for _BaseParamsDlg class. It depends on access
     to an experiment namespace.
