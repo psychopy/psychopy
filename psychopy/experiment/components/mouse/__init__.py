@@ -87,22 +87,22 @@ class MouseComponent(BaseComponent):
             hint=msg,
             label=_localized['timeRelativeTo'])
 
-
         msg = _translate('If the mouse button is already down when we start '
                          'checking then wait for it to be released before '
                          'recording as a new click.'
                          )
         self.params['newClicksOnly'] = Param(
-            True, valType='bool', inputType="bool", categ='Data',
+            True, valType='bool', inputType="bool", categ='Basic',
             updates='constant',
             hint=msg,
             label=_localized['New clicks only'])
+
         msg = _translate('A comma-separated list of your stimulus names that '
                          'can be "clicked" by the participant. '
                          'e.g. target, foil'
                          )
         self.params['clickable'] = Param(
-            '', valType='list', inputType="single", categ='Data',
+            '', valType='list', inputType="single", categ='Basic',
             updates='constant',
             hint=msg,
             label=_localized['Clickable stimuli'])
@@ -117,7 +117,6 @@ class MouseComponent(BaseComponent):
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized['Store params for clicked'])
-
 
     @property
     def _clickableParamsList(self):
