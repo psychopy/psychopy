@@ -10,9 +10,10 @@ from __future__ import absolute_import, print_function
 from os import path
 from pathlib import Path
 
-from psychopy.alerts import alerttools
+from psychopy.alerts import alerttools, alert
 from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals, _translate
 from psychopy.localization import _localized as __localized
+from ..keyboard import KeyboardComponent
 _localized = __localized.copy()
 
 # only use _localized values for label values, nothing functional:
@@ -42,6 +43,7 @@ class TextboxComponent(BaseVisualComponent):
     targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'textbox.png'
     tooltip = _translate('Textbox: present text stimuli but cooler')
+    beta = True
 
     def __init__(self, exp, parentName, name='textbox',
                  # effectively just a display-value
@@ -239,6 +241,15 @@ class TextboxComponent(BaseVisualComponent):
         depth = -self.getPosInRoutine()
 
     def writeRoutineStartCode(self, buff):
+        BaseVisualComponent.writeRoutineStartCode(self, buff)
+
+        # Give alert if in the same routine as a Keyboard component
+        if self.params['editable'].val:
+            routine = self.exp.routines[self.parentName]
+            for sibling in routine:
+                if isinstance(sibling, KeyboardComponent):
+                    alert(4405, strFields={'textbox': self.params['name'], 'keyboard': sibling.params['name']})
+
         code = (
             "%(name)s.reset()"
         )

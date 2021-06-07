@@ -34,6 +34,7 @@ class FormComponent(BaseVisualComponent):
     targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'form.png'
     tooltip = _translate('Form: a Psychopy survey tool')
+    beta = True
 
     def __init__(self, exp, parentName,
                  name='form',

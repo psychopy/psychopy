@@ -40,6 +40,7 @@ class ButtonComponent(BaseVisualComponent):
     targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'button.png'
     tooltip = _translate('Button: A clickable textbox')
+    beta = False
 
     def __init__(self, exp, parentName, name="button",
                  startType='time (s)', startVal=0,

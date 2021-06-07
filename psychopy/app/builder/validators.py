@@ -243,14 +243,17 @@ class CodeSnippetValidator(BaseValidator):
         isCodeField = bool(parent.params[self.fieldName].valType == 'code')
 
         # Validate as list
-        allKeyBoardKeys = list(key._key_names.values()) + [str(num) for num in range(10)]
-        allKeyBoardKeys = [key.lower() for key in allKeyBoardKeys]
+        # allKeyBoardKeys = list(key._key_names.values()) + [str(num) for num in range(10)]
+        # allKeyBoardKeys = [key.lower() for key in allKeyBoardKeys]
 
         # Check if it is a Google font
         if self.fieldName == 'font' and not val.startswith('$'):
             fontInfo = fontMGR.getFontNamesSimilar(val)
             if not fontInfo:
-                msg = _translate("Font `{val}` not found locally, will attempt to retrieve from Google Fonts when this experiment next runs").format(val=val)
+                msg = _translate(
+                    "Font `{val}` not found locally, will attempt to retrieve "
+                    "from Google Fonts when this experiment next runs"
+                ).format(val=val)
 
         # Validate as code
         if codeWanted or isCodeField:
@@ -315,3 +318,7 @@ class CodeSnippetValidator(BaseValidator):
 
         parent.warnings[field] = msg
         parent.warnings._valid[field] = OK
+
+
+if __name__ == "__main__":
+    pass

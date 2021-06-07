@@ -1,0 +1,24 @@
+
+code: 4405
+cat: Conflicts
+msg: Editable textbox component {textbox} and keyboard component {keyboard} in the same routine may compete for keypresses
+
+# The following are typically used for online help pages, and support reStructured Text.
+label: Textbox and keyboard conflict
+
+synopsis: |
+  As editable Textbox components and Keyboard components both listen for key presses, the two can often come into
+  conflict and cause problems.
+
+details: |
+  As editable Textbox components and Keyboard components both listen for key presses, the two can often come into
+  conflict and cause problems. For example, if a Keyboard component is listening for `Enter` to end the routine, what
+  happens when the participant presses `Enter` to start a new line?
+
+solutions: |
+  In general, we recommend ending routines containing editable textboxes using a Button, Mouse or ROI component rather than
+  Keyboard. If you are trying to gather keyboard responses as well as text input, consider splitting the two into
+  seperate routines to avoid conflicts.
+
+versions: |
+  > 2020.1.0

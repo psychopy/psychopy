@@ -478,7 +478,7 @@ class BaseComponent(object):
         # then write the line
         if updateType == 'set every frame' and target == 'PsychoPy':
             loggingStr = ', log=False'
-        if updateType == 'set every frame' and target == 'PsychoJS':
+        elif updateType == 'set every frame' and target == 'PsychoJS':
             loggingStr = ', false'  # don't give the keyword 'log' in JS
         else:
             loggingStr = ''

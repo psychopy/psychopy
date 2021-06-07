@@ -118,7 +118,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         self.appPrefs = self.app.prefs.app
         self.paths = self.app.prefs.paths
         self.frameType = 'builder'
-        self._filename = fileName
+        self.filename = fileName
         self.htmlPath = None
         self.project = None  # type: pavlovia.PavloviaProject
         self.btnHandles = {}  # stores toolbar buttons so they can be altered
@@ -796,8 +796,8 @@ class BuilderFrame(wx.Frame, ThemeMixin):
                             target="PsychoJS")
         # Open exported files
         self.app.showCoder()
-        self.app.coder.fileOpen(filename=exportPath)
-        self.app.coder.fileOpen(filename=htmlPath)
+        self.app.coder.fileNew(filepath=exportPath)
+        self.app.coder.fileReload(event=None, filename=exportPath)
 
     def editREADME(self, event):
         folder = Path(self.filename).parent
@@ -2305,7 +2305,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             routine = self.parent.frame.routinePanel.getCurrentRoutine()
             page = self.parent.frame.routinePanel.getCurrentPage()
             comp = self.component(parentName=routine.name, exp=self.parent.frame.exp)
-            name = comp.params['name'].val
+            
             # does this component have a help page?
             if hasattr(comp, 'url'):
                 helpUrl = comp.url
@@ -2325,7 +2325,8 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
                 # Add to the actual routine
                 routine.addComponent(comp)
                 namespace = self.parent.frame.exp.namespace
-                name = comp.params['name'].val = namespace.makeValid(name)
+                desiredName = comp.params['name'].val
+                name = comp.params['name'].val = namespace.makeValid(desiredName)
                 namespace.add(name)
                 # update the routine's view with the new component too
                 page.redrawRoutine()
@@ -2367,7 +2368,10 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             self.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
             # Set bitmap
             iconCache = self.parent.app.iconCache
-            icon = iconCache.getBitmap(self.component.iconFile, size=48)
+            if hasattr(self.component, "beta"):
+                icon = iconCache.getBitmap(self.component.iconFile, beta=self.component.beta, size=48)
+            else:
+                icon = iconCache.getBitmap(self.component.iconFile, beta=False, size=48)
             self.SetBitmap(icon)
             self.SetBitmapCurrent(icon)
             self.SetBitmapPressed(icon)
@@ -2435,7 +2439,10 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             self.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
             # Set bitmap
             iconCache = self.parent.app.iconCache
-            icon = iconCache.getBitmap(self.routine.iconFile, size=48)
+            if hasattr(self.routine, "beta"):
+                icon = iconCache.getBitmap(self.routine.iconFile, beta=self.routine.beta, size=48)
+            else:
+                icon = iconCache.getBitmap(self.routine.iconFile, beta=False, size=48)
             self.SetBitmap(icon)
             self.SetBitmapCurrent(icon)
             self.SetBitmapPressed(icon)

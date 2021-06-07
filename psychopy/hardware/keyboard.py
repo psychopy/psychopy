@@ -66,7 +66,6 @@ import copy
 import psychopy.core
 import psychopy.clock
 from psychopy import logging
-from psychopy.iohub.util import win32MessagePump
 from psychopy.constants import NOT_STARTED
 import time
 
@@ -74,14 +73,13 @@ try:
     import psychtoolbox as ptb
     from psychtoolbox import hid
     havePTB = True
+
 except ImportError as err:
     logging.warning(("Import Error: "
                      + err.args[0]
                      + ". Using event module for keyboard component."))
     from psychopy import event
     havePTB = False
-
-macPrefsBad = False
 
 defaultBufferSize = 10000
 
@@ -138,7 +136,7 @@ class Keyboard:
             setting this to True
 
         """
-        global havePTB, macPrefsBad
+        global havePTB
         self.status = NOT_STARTED
         # Initiate containers for storing responses
         self.keys = []  # the key(s) pressed
@@ -160,7 +158,7 @@ class Keyboard:
                 if Keyboard._iohubKeyboard:
                     Keyboard.backend = 'iohub'
 
-        if Keyboard.backend == '' and havePTB:
+        if Keyboard.backend in ['', 'ptb'] and havePTB:
             Keyboard.backend = 'ptb'
             # get the necessary keyboard buffer(s)
             if sys.platform == 'win32':
@@ -187,15 +185,6 @@ class Keyboard:
             if not waitForStart:
                 self.start()
 
-            # check if mac prefs are working; if not default
-            # to using event.getKeys()
-            if sys.platform == 'darwin':
-                try:
-                    Keyboard()
-                except OSError:
-                    macPrefsBad = True
-                    havePTB = False
-                    Keyboard.backend = 'event'
         elif Keyboard.backend == '':
             Keyboard.backend = 'event'
 
@@ -203,15 +192,17 @@ class Keyboard:
 
     def start(self):
         """Start recording from this keyboard """
-        for buffer in self._buffers.values():
-            buffer.start()
+        if Keyboard.backend == 'ptb':
+            for buffer in self._buffers.values():
+                buffer.start()
 
     def stop(self):
         """Start recording from this keyboard"""
-        logging.warning("Stopping key buffers but this could be dangerous if"
-                        "other keyboards rely on the same.")
-        for buffer in self._buffers.values():
-            buffer.stop()
+        if Keyboard.backend == 'ptb':
+            logging.warning("Stopping key buffers but this could be dangerous if"
+                            "other keyboards rely on the same.")
+            for buffer in self._buffers.values():
+                buffer.stop()
 
     def getKeys(self, keyList=None, waitRelease=True, clear=True):
         """
@@ -252,7 +243,6 @@ class Keyboard:
             watchForKeys = keyList
             if watchForKeys:
                 watchForKeys = [' ' if k == 'space' else k for k in watchForKeys]
-            win32MessagePump()
             if waitRelease:
                 key_events = Keyboard._iohubKeyboard.getReleases(keys=watchForKeys, clear=clear)
             else:
@@ -453,7 +443,10 @@ class _KeyBuffer(object):
         self._processEvts()
 
     def _flushEvts(self):
-        win32MessagePump()
+        # SS: sleep is only needed on Windows, but test further before
+        # committing to this.
+        #if sys.platform == 'win32':
+        ptb.WaitSecs('YieldSecs', 0.00001)
         while self.dev.flush():
             evt, remaining = self.dev.queue_get_event()
             key = {}
@@ -461,7 +454,6 @@ class _KeyBuffer(object):
             key['down'] = bool(evt['Pressed'])
             key['time'] = evt['Time']
             self._evts.append(key)
-            win32MessagePump()
 
     def getKeys(self, keyList=[], waitRelease=True, clear=True):
         """Return the KeyPress objects from the software buffer

@@ -935,7 +935,7 @@ class SettingsComponent(object):
 
         buff.writeIndented("frameTolerance = 0.001  # how close to onset before 'same' frame\n")
 
-    def writeEyetrackerCode(self, buff):
+    def writeIohubCode(self, buff):
         # Make ioConfig dict
         code = (
             "\n"
@@ -1123,6 +1123,13 @@ class SettingsComponent(object):
                 f"eyetracker = ioServer.getDevice('tracker')\n"
             )
             buff.writeIndentedLines(code % self.params)
+            # Make default keyboard
+            code = (
+                "\n"
+                "# create a default keyboard (e.g. to check for escape)\n"
+                "defaultKeyboard = keyboard.Keyboard()\n"
+            )
+            buff.writeIndentedLines(code % self.params)
 
     def writeWindowCode(self, buff):
         """Setup the window code.
@@ -1190,9 +1197,7 @@ class SettingsComponent(object):
                 "if expInfo['frameRate'] != None:\n"
                 "    frameDur = 1.0 / round(expInfo['frameRate'])\n"
                 "else:\n"
-                "    frameDur = 1.0 / 60.0  # could not measure, so guess\n"
-                "\n# create a default keyboard (e.g. to check for escape)\n"
-                "defaultKeyboard = keyboard.Keyboard()")
+                "    frameDur = 1.0 / 60.0  # could not measure, so guess\n")
         buff.writeIndentedLines(code)
 
     def writeWindowCodeJS(self, buff):
@@ -1265,8 +1270,8 @@ class SettingsComponent(object):
                     "}\n")
         buff.writeIndentedLines(endLoopInteration)
 
-        recordLoopIterationFunc = ("\nasync function importConditions(currentLoop) {\n"
-                    "  return function () {\n"
+        recordLoopIterationFunc = ("\nfunction importConditions(currentLoop) {\n"
+                    "  return async function () {\n"
                     "    psychoJS.importAttributes(currentLoop.getCurrentTrial());\n"
                     "    return Scheduler.Event.NEXT;\n"
                     "    };\n"

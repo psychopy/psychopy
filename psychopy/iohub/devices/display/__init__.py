@@ -562,10 +562,13 @@ class Display(Device):
         coord_type = self.getCoordinateType()
         if coord_type in Display._coord_type_mappings:
             coord_type = Display._coord_type_mappings[coord_type]
-        else:
-            print2err(
-                ' *** Display device error: Unknown coordinate type: {0}'.format(coord_type))
+        elif coord_type is None:
+            print2err(' *** iohub warning: Display / Monitor unit type has not been set.')
             return
+        else:
+            print2err(' *** iohub error: Unknown Display / Monitor coordinate type: {0}'.format(coord_type))
+            return
+        
         self._pix2coord = None
 
         # For now, use psychopy unit conversions so that drawing positions match
