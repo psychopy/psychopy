@@ -459,7 +459,7 @@ def validate(obj, valType):
         # For now, ignore
         pass
     # Validate num
-    if valType == "num":
+    if valType in ["num", "int"]:
         try:
             # Try to convert value to a float
             float(val)
