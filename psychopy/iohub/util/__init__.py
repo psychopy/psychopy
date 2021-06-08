@@ -316,7 +316,7 @@ def showWindow(win, force=False):
     """
     if force or sys.platform == 'win32':
         win.winHandle.set_fullscreen(True)
-        win.winHandle.maximize()  # minimize the PsychoPy window
+        win.winHandle.maximize()  # maximize the PsychoPy window
     elif sys.platform == 'darwin':
         pass
     elif sys.platform == 'linux':
