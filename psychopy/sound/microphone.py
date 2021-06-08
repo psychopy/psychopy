@@ -932,7 +932,7 @@ class Microphone(object):
             return self.lastClip
 
     def clear(self):
-        """Wipe all clips.
+        """Wipe all clips. Deletes previously banked audio clips.
         """
         # clear clips
         self.clips = {}
@@ -940,6 +940,7 @@ class Microphone(object):
         self._recording.clear()
 
     def flush(self):
+        """Get a copy of all banked clips, then clear the clips from storage."""
         # get copy of clips dict
         clips = self.clips.copy()
         # clear
