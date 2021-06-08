@@ -609,13 +609,9 @@ class ThemeMixin:
         # Cycle through font names, stop at first valid font
         if sys.platform == 'win32':
             for font in fontList:
-                try:
-                    fm.findfont(font, fallback_to_default=False)
+                if font in wx.FontEnumerator().GetFacenames():
                     finalFont = [font] + bold + italic
                     break
-                except ValueError:
-                    pass
-
         return ','.join(finalFont)
 
     def _setCodeColors(self, spec):
