@@ -609,9 +609,12 @@ class ThemeMixin:
         # Cycle through font names, stop at first valid font
         if sys.platform == 'win32':
             for font in fontList:
-                if fm.findfont(font) not in fm.defaultFont.values():
+                try:
+                    fm.findfont(font, fallback_to_default=False)
                     finalFont = [font] + bold + italic
                     break
+                except ValueError:
+                    pass
 
         return ','.join(finalFont)
 
