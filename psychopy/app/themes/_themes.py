@@ -602,10 +602,10 @@ class ThemeMixin:
         if "" in fontList:
             del fontList[fontList.index("")]
         # Set starting font in case none are found
-        if sys.platform == 'win32':
-            finalFont = [wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT).GetFaceName()]
-        else:
+        try:
             finalFont = [wx.SystemSettings.GetFont(wx.SYS_ANSI_FIXED_FONT).GetFaceName()]
+        except wx._core.wxAssertionError:
+            finalFont = [wx.Font(10, wx.FONTFAMILY_TELETYPE, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL).GetFaceName()]
         # Cycle through font names, stop at first valid font
         if sys.platform == 'win32':
             for font in fontList:
