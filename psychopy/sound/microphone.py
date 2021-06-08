@@ -898,10 +898,11 @@ class Microphone(object):
         tag : str or None
             Label for the clip.
         transcribe : bool or str
-            Set to the name of a transcription engine (e.g. "GOOGLE") to transcribe using that engine, or set as False
-            to not transcribe.
+            Set to the name of a transcription engine (e.g. "GOOGLE") to
+            transcribe using that engine, or set as `False` to not transcribe.
         config : dict
-            A dict of values defining the configuration for transcribing, if applicable.
+            A dict of values defining the configuration for transcribing, if
+            applicable.
 
         """
         # make sure the tag exists in both clips and transcripts dicts
