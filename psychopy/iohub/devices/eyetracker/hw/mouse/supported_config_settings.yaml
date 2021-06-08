@@ -22,7 +22,7 @@ eyetracker.hw.mouse.EyeTracker:
     controls:
         move:
             IOHUB_LIST:
-                valid_values: [LEFT_BUTTON, MIDDLE_BUTTON, RIGHT_BUTTON]
+                valid_values: [LEFT_BUTTON, MIDDLE_BUTTON, RIGHT_BUTTON, CONTINUOUS]
                 min_length: 0
                 max_length: 1
         blink:

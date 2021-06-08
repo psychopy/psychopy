@@ -92,6 +92,10 @@ class EyeTracker(EyeTrackerDevice):
         mb_list = config.get('controls').get('move')
         if isinstance(mb_list, str):
             mb_list = (mb_list,)
+        if "CONTINUOUS" in mb_list:
+            # CONTINUOUS == no buttons required to move == []
+            mb_list = []
+
         bb_list = config.get('controls').get('blink')
         if isinstance(bb_list, str):
             bb_list = (bb_list,)
