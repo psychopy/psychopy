@@ -92,6 +92,10 @@ class EyeTracker(EyeTrackerDevice):
         mb_list = config.get('controls').get('move')
         if isinstance(mb_list, str):
             mb_list = (mb_list,)
+        if "CONTINUOUS" in mb_list:
+            # CONTINUOUS == no buttons required to move == []
+            mb_list = []
+
         bb_list = config.get('controls').get('blink')
         if isinstance(bb_list, str):
             bb_list = (bb_list,)
@@ -145,7 +149,7 @@ class EyeTracker(EyeTrackerDevice):
                         self._latest_gaze_position = self._ioMouse.getPosition()
                         self._addBlinkEvent(False)
 
-                    if button_states== self._move_eye_buttons:
+                    if button_states == self._move_eye_buttons:
                         if self._eye_state == "FIX":
                             display = self._display_device
                             sacc_end_pos = self._ioMouse.getPosition()
@@ -400,13 +404,16 @@ class EyeTracker(EyeTrackerDevice):
         runSetupProcedure displays a mock calibration procedure. No calibration is actually done.
         """
         calibration = MouseGazePsychopyCalibrationGraphics(self, calibration_args)
-        calibration.runCalibration()
+        cal_run = calibration.runCalibration()
         calibration.window.close()
 
         calibration._unregisterEventMonitors()
         calibration.clearAllEventBuffers()
 
-        return {"RESULT": "ALWAYS_OK"}
+        if cal_run:
+            return {"RESULT": "CALIBRATION_OK"}
+        else:
+            return {"RESULT": "CALIBRATION_ABORTED"}
 
     def _getIOHubEventObject(self, native_event_data):
         """The _getIOHubEventObject method is called by the ioHub Process to
