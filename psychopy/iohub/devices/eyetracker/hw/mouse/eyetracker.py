@@ -400,13 +400,16 @@ class EyeTracker(EyeTrackerDevice):
         runSetupProcedure displays a mock calibration procedure. No calibration is actually done.
         """
         calibration = MouseGazePsychopyCalibrationGraphics(self, calibration_args)
-        calibration.runCalibration()
+        cal_run = calibration.runCalibration()
         calibration.window.close()
 
         calibration._unregisterEventMonitors()
         calibration.clearAllEventBuffers()
 
-        return {"RESULT": "ALWAYS_OK"}
+        if cal_run:
+            return {"RESULT": "CALIBRATION_OK"}
+        else:
+            return {"RESULT": "CALIBRATION_ABORTED"}
 
     def _getIOHubEventObject(self, native_event_data):
         """The _getIOHubEventObject method is called by the ioHub Process to
