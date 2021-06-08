@@ -339,7 +339,7 @@ class Microphone(object):
         continuous audio being recorded before the buffer is full.
     audioLatencyMode : int or None
         Audio latency mode to use, values range between 0-4. If `None`, the
-        setting from preferences will be used. Using `2` (exclusive mode) is
+        setting from preferences will be used. Using `3` (exclusive mode) is
         adequate for most applications and required if using WASAPI on Windows
         for other settings (such audio quality) to take effect. Symbolic
         constants `psychopy.sound.audiodevice.AUDIO_PTB_LATENCY_CLASS_` can also
