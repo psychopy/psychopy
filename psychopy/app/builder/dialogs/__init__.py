@@ -396,7 +396,7 @@ class StartStopCtrls(wx.GridBagSizer):
                 self.Add(self.ctrls[name], (0, 1), border=6, flag=wx.EXPAND | wx.TOP)
             if name in ['startType', 'stopType']:
                 self.ctrls[name] = wx.Choice(parent,
-                                             choices=param.allowedVals,
+                                             choices=param.allowedVals or [param.val],
                                              size=wx.Size(96, 24))
                 self.ctrls[name].SetStringSelection(str(param.val))
                 self.Add(self.ctrls[name], (0, 0), border=6, flag=wx.EXPAND | wx.TOP)
@@ -761,25 +761,23 @@ class _BaseParamsDlg(wx.Dialog):
         CANCEL = wx.Button(self, wx.ID_CANCEL, _translate(" Cancel "))
 
         # Add validator stuff
-        self.warnings = WarningManager(self, self.OKbtn)
+        self.warnings = WarningManager(self)
         self.mainSizer.Add(self.warnings.output, border=3, flag=wx.EXPAND | wx.ALL)
         self.Validate()  # disables OKbtn if bad name, syntax error, etc
 
         buttons.AddStretchSpacer()
-        if sys.platform == 'darwin':
-            buttons.Add(CANCEL, 0,
-                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
-                        border=3)
-            buttons.Add(self.OKbtn, 0,
-                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
-                        border=3)
+
+        # Add Okay and Cancel buttons
+        if sys.platform == "win32":
+            btns = [self.OKbtn, CANCEL]
         else:
-            buttons.Add(self.OKbtn, 0,
-                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
-                        border=3)
-            buttons.Add(CANCEL, 0,
-                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
-                        border=3)
+            btns = [CANCEL, self.OKbtn]
+        buttons.Add(btns[0], 0,
+                    wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
+                    border=3)
+        buttons.Add(btns[1], 0,
+                    wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
+                    border=3)
 
         # buttons.Realize()
         # add to sizer

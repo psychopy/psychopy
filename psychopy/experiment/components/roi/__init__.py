@@ -25,6 +25,7 @@ class RegionOfInterestComponent(PolygonComponent):
     targets = ['PsychoPy']
     iconFile = Path(__file__).parent / 'eyetracker_roi.png'
     tooltip = _translate('Region Of Interest: Define a region of interest for use with eyetrackers')
+    beta = True
 
     def __init__(self, exp, parentName, name='roi',
                  units='from exp settings',
@@ -140,6 +141,9 @@ class RegionOfInterestComponent(PolygonComponent):
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
 
+    def writeInitCodeJS(self, buff):
+        pass
+
     def writeRoutineStartCode(self, buff):
         inits = getInitVals(self.params, 'PsychoPy')
         BaseVisualComponent.writeRoutineStartCode(self, buff)
@@ -236,7 +240,7 @@ class RegionOfInterestComponent(PolygonComponent):
         buff.writeIndentedLines(code % inits)
         if self.params['endRoutineOn'].val == "look away":
             code = (
-                "if %(name)s.currentLookTime > %(lookDur)s/1000: # check if last look was long enough\n"
+                "if %(name)s.lastLookTime > %(lookDur)s/1000: # check if last look was long enough\n"
             )
             buff.writeIndentedLines(code % inits)
             buff.setIndentLevel(1, relative=True)

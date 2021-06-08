@@ -5,8 +5,10 @@ import sys
 import wx
 import wx.lib.agw.aui as aui
 import wx.stc as stc
+import wx.richtext
 from psychopy.localization import _translate
 from wx import py
+import numpy
 import keyword
 import builtins
 from pathlib import Path
@@ -596,7 +598,9 @@ class ThemeMixin:
         if "italic" in base:
             italic = [base.pop(base.index("italic"))]
         # Append base and default fonts
-        fontList.extend(base+["Consolas", "Monaco", "Lucida Console"])
+        fontList.extend(base+["JetBrains Mono"])
+        if "" in fontList:
+            del fontList[fontList.index("")]
         # Set starting font in case none are found
         if sys.platform == 'win32':
             finalFont = [wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT).GetFaceName()]
@@ -827,7 +831,7 @@ class IconCache:
             nameSmall = _getIdentifier(name, theme, emblem, pix//2)
             self._bitmaps[nameSmall] = wx.Bitmap(im.Scale(pix//2, pix//2))
 
-    def getBitmap(self, name, theme=None, size=None, emblem=None):
+    def getBitmap(self, name, theme=None, size=None, emblem=None, beta=False):
         """Retrieves an icon based on its name, theme, size and emblem
         either from the cache or loading from file as needed"""
         if theme is None:
@@ -839,6 +843,40 @@ class IconCache:
         if identifier not in IconCache._bitmaps:
             # load all size icons for this name
             self._loadBitmap(name, theme, emblem=emblem, size=size)
+
+        if beta:
+            # If needed, append beta tag
+            betaID = _getIdentifier("beta", theme=theme, emblem=emblem, size=size)
+            if betaID not in IconCache._bitmaps:
+                self._loadBitmap("beta", theme, emblem=emblem, size=size)
+            # Get base icon and beta overlay
+            betaImg = IconCache._bitmaps[betaID].ConvertToImage()
+            baseImg = IconCache._bitmaps[identifier].ConvertToImage()
+            # Get color data and alphas
+            betaData = numpy.array(betaImg.GetData())
+            betaAlpha = numpy.array(betaImg.GetAlpha(), dtype=int)
+            baseData = numpy.array(baseImg.GetData())
+            baseAlpha = numpy.array(baseImg.GetAlpha(), dtype=int)
+            # Overlay colors
+            combinedData = baseData
+            r = numpy.where(betaAlpha > 0)[0] * 3
+            g = numpy.where(betaAlpha > 0)[0] * 3 + 1
+            b = numpy.where(betaAlpha > 0)[0] * 3 + 2
+            combinedData[r] = betaData[r]
+            combinedData[g] = betaData[g]
+            combinedData[b] = betaData[b]
+            # Combine alphas
+            combinedAlpha = numpy.add(baseAlpha, betaAlpha)
+            combinedAlpha[combinedAlpha > 255] = 255
+            combinedAlpha = numpy.uint8(combinedAlpha)
+            # Set these back to the base image
+            combined = betaImg
+            combined.SetData(combinedData)
+            combined.SetAlpha(combinedAlpha)
+            # Replace icon
+            identifier += "_beta"
+            IconCache._bitmaps[identifier] = combined.ConvertToBitmap()
+
         return IconCache._bitmaps[identifier]
 
     def makeBitmapButton(self, parent, filename,

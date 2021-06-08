@@ -94,6 +94,11 @@ _localized = {
 
 cs = ThemeMixin.appColors
 
+# Components which are always hidden
+alwaysHidden = [
+    'SettingsComponent', 'UnknownComponent', 'UnknownRoutine', 'UnknownStandaloneRoutine'
+]
+
 class BuilderFrame(wx.Frame, ThemeMixin):
     """Defines construction of the Psychopy Builder Frame"""
 
@@ -113,7 +118,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         self.appPrefs = self.app.prefs.app
         self.paths = self.app.prefs.paths
         self.frameType = 'builder'
-        self._filename = fileName
+        self.filename = fileName
         self.htmlPath = None
         self.project = None  # type: pavlovia.PavloviaProject
         self.btnHandles = {}  # stores toolbar buttons so they can be altered
@@ -791,8 +796,8 @@ class BuilderFrame(wx.Frame, ThemeMixin):
                             target="PsychoJS")
         # Open exported files
         self.app.showCoder()
-        self.app.coder.fileOpen(filename=exportPath)
-        self.app.coder.fileOpen(filename=htmlPath)
+        self.app.coder.fileNew(filepath=exportPath)
+        self.app.coder.fileReload(event=None, filename=exportPath)
 
     def editREADME(self, event):
         folder = Path(self.filename).parent
@@ -2234,9 +2239,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
                     elif self.parent.filter in ['PsychoPy', 'PsychoJS']:
                         cond = self.parent.filter in comp.targets
                     # Always hide if hidden by prefs
-                    if comp.__name__ in prefs.builder['hiddenComponents'] + [
-                        'SettingsComponent', 'UnknownComponent', 'UnknownRoutine'
-                    ]:
+                    if comp.__name__ in prefs.builder['hiddenComponents'] + alwaysHidden:
                         cond = False
                     btn.Show(cond)
                 # # Update icon
@@ -2290,7 +2293,8 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             # Make button
             wx.Button.__init__(self, parent, wx.ID_ANY,
                                label=label, name=name,
-                               size=(68, 68+12*label.count("\n")), style=wx.NO_BORDER)
+                               size=(68, 68+12*label.count("\n")),
+                               style=wx.NO_BORDER)
             self.SetToolTip(wx.ToolTip(comp.tooltip or name))
             # Style
             self._applyAppTheme()
@@ -2301,8 +2305,10 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         def onClick(self, evt=None, timeout=None):
             routine = self.parent.frame.routinePanel.getCurrentRoutine()
             page = self.parent.frame.routinePanel.getCurrentPage()
-            comp = self.component(parentName=routine.name, exp=self.parent.frame.exp)
-            name = comp.params['name'].val
+            comp = self.component(
+                parentName=routine.name,
+                exp=self.parent.frame.exp)
+
             # does this component have a help page?
             if hasattr(comp, 'url'):
                 helpUrl = comp.url
@@ -2322,7 +2328,8 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
                 # Add to the actual routine
                 routine.addComponent(comp)
                 namespace = self.parent.frame.exp.namespace
-                name = comp.params['name'].val = namespace.makeValid(name)
+                desiredName = comp.params['name'].val
+                name = comp.params['name'].val = namespace.makeValid(desiredName)
                 namespace.add(name)
                 # update the routine's view with the new component too
                 page.redrawRoutine()
@@ -2364,7 +2371,10 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             self.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
             # Set bitmap
             iconCache = self.parent.app.iconCache
-            icon = iconCache.getBitmap(self.component.iconFile, size=48)
+            if hasattr(self.component, "beta"):
+                icon = iconCache.getBitmap(self.component.iconFile, beta=self.component.beta, size=48)
+            else:
+                icon = iconCache.getBitmap(self.component.iconFile, beta=False, size=48)
             self.SetBitmap(icon)
             self.SetBitmapCurrent(icon)
             self.SetBitmapPressed(icon)
@@ -2388,7 +2398,8 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             # Make button
             wx.Button.__init__(self, parent, wx.ID_ANY,
                                label=label, name=name,
-                               size=(68, 68+12*label.count("\n")), style=wx.NO_BORDER)
+                               size=(68, 68+12*label.count("\n")),
+                               style=wx.NO_BORDER)
             self.SetToolTip(wx.ToolTip(rt.tooltip or name))
             # Style
             self._applyAppTheme()
@@ -2402,7 +2413,8 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             # Add to the actual routine
             exp = self.parent.frame.exp
             namespace = exp.namespace
-            name = comp.params['name'].val = namespace.makeValid(comp.params['name'].val)
+            name = comp.params['name'].val = namespace.makeValid(
+                comp.params['name'].val)
             namespace.add(name)
             exp.addStandaloneRoutine(name, comp)
             # update the routine's view with the new routine too
@@ -2432,7 +2444,10 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             self.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
             # Set bitmap
             iconCache = self.parent.app.iconCache
-            icon = iconCache.getBitmap(self.routine.iconFile, size=48)
+            if hasattr(self.routine, "beta"):
+                icon = iconCache.getBitmap(self.routine.iconFile, beta=self.routine.beta, size=48)
+            else:
+                icon = iconCache.getBitmap(self.routine.iconFile, beta=False, size=48)
             self.SetBitmap(icon)
             self.SetBitmapCurrent(icon)
             self.SetBitmapPressed(icon)
@@ -2490,7 +2505,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
                 self.favorites.append(thisDef)
         # Make a sizer and label for each category
         self.catSizers = {cat: wx.WrapSizer(orient=wx.HORIZONTAL) for cat in self.categories}
-        self.catLabels = {cat: self.CategoryButton(self, name=str(cat), cat=str(cat)) for cat in self.categories}
+        self.catLabels = {cat: self.CategoryButton(self, name=_translate(str(cat)), cat=str(cat)) for cat in self.categories}
         for cat in self.categories:
             self.sizer.Add(self.catLabels[cat], border=3, flag=wx.BOTTOM | wx.EXPAND)
             self.sizer.Add(self.catSizers[cat], border=6, flag=wx.ALL | wx.ALIGN_CENTER)
@@ -2528,6 +2543,18 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
                 btn.ToggleMenu(True)
             else:
                 btn.ToggleMenu(False)
+            # If every button in a category is hidden, hide the category
+            empty = True
+            for child in self.catSizers[cat].Children:
+                if isinstance(child.Window, self.ComponentButton):
+                    name = child.Window.component.__name__
+                elif isinstance(child.Window, self.RoutineButton):
+                    name = child.Window.routine.__name__
+                else:
+                    name = ""
+                if name not in prefs.builder['hiddenComponents'] + alwaysHidden:
+                    empty = False
+            btn.Show(not empty)
         # Do sizing
         self.Layout()
         self.Fit()
@@ -2766,14 +2793,20 @@ class ExportFileDialog(wx.Dialog):
 
         btnsizer = wx.StdDialogButtonSizer()
 
-        btn = wx.Button(self, wx.ID_OK)
-        btn.SetHelpText("The OK button completes the dialog")
-        btn.SetDefault()
-        btnsizer.AddButton(btn)
+        okBtn = wx.Button(self, wx.ID_OK)
+        okBtn.SetHelpText("The OK button completes the dialog")
+        okBtn.SetDefault()
 
-        btn = wx.Button(self, wx.ID_CANCEL)
-        btn.SetHelpText("The Cancel button cancels the dialog. (Crazy, huh?)")
-        btnsizer.AddButton(btn)
+        cancelBtn = wx.Button(self, wx.ID_CANCEL)
+        cancelBtn.SetHelpText("The Cancel button cancels the dialog. (Crazy, huh?)")
+
+        if sys.platform == "win32":
+            btns = [okBtn, cancelBtn]
+        else:
+            btns = [cancelBtn, okBtn]
+
+        btnsizer.AddButton(btns[0])
+        btnsizer.AddButton(btns[1])
 
         sizer.Add(btnsizer, 0, wx.ALL, 5)
 

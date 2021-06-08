@@ -13,11 +13,12 @@ import wx
 import wx.richtext
 from psychopy.localization import _translate
 from psychopy.alerts._alerts import AlertEntry
+from psychopy.app.themes import ThemeMixin
 
 _prefEncoding = locale.getpreferredencoding()
 
 
-class ScriptOutputPanel(wx.richtext.RichTextCtrl):
+class ScriptOutputPanel(wx.richtext.RichTextCtrl, ThemeMixin):
     """Class for the script output window in Coder.
 
     Parameters
@@ -101,6 +102,8 @@ class ScriptOutputPanel(wx.richtext.RichTextCtrl):
             self.Newline()
             self.ShowPosition(self.GetLastPosition())
 
+            self._applyAppTheme()
+
             return
 
         # convert to unicode if needed
@@ -139,12 +142,9 @@ class ScriptOutputPanel(wx.richtext.RichTextCtrl):
             else:
                 # line to write as simple text
                 self.WriteText(thisLine)
-
+        self._applyAppTheme()
         self.MoveEnd()  # go to end of stdout so user can see updated text
         self.ShowPosition(self.GetLastPosition())
-
-    def _applyAppTheme(self):
-        pass
 
 
 if __name__ == "__main__":

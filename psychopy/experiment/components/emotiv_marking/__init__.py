@@ -24,7 +24,7 @@ _localized.update({'marker_label': _translate('Marker Label'),
 
 class EmotivMarkingComponent(BaseComponent):  # or (VisualComponent)
 
-    categories = ['Custom']
+    categories = ['EEG']
     targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'emotiv_marking.png'
     tooltip = _translate('Mark a period of EEG')

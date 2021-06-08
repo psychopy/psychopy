@@ -9,7 +9,6 @@ import json
 from pathlib import Path
 from psychopy.experiment.components import BaseComponent, getInitVals
 from psychopy.localization import _translate, _localized as __localized
-from psychopy.hardware.emotiv import Cortex
 
 _localized = __localized.copy()
 
@@ -18,7 +17,7 @@ CORTEX_OBJ = 'cortex_obj'
 
 class EmotivRecordingComponent(BaseComponent):  # or (VisualComponent)
 
-    categories = ['Custom']
+    categories = ['EEG']
     targets = ['PsychoPy', 'PsychoJS']
     iconFile = Path(__file__).parent / 'emotiv_record.png'
     tooltip = _translate('Initialize EMOTIV hardware connection')

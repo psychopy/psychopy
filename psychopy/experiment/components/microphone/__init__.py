@@ -23,13 +23,18 @@ from psychopy.localization import _localized as __localized
 _localized = __localized.copy()
 _localized.update({'stereo': _translate('Stereo'),
                    'channel': _translate('Channel')})
+from psychopy.tests import _vmTesting
 
-if _hasPTB:
+if _hasPTB and not _vmTesting:
     devices = {d.deviceName: d for d in Microphone.getDevices()}
 else:
     devices = {}
 sampleRates = {r[1]: r[0] for r in sampleRateQualityLevels.values()}
 devices['default'] = None
+
+onlineTranscribers = ["AZURE", "GOOGLE"]
+localTranscribers = ["BUILT-IN", "GOOGLE"]
+allTranscribers = list({key: None for key in onlineTranscribers + localTranscribers})
 
 
 class MicrophoneComponent(BaseComponent):
@@ -47,7 +52,7 @@ class MicrophoneComponent(BaseComponent):
                  channels='stereo', device="default",
                  sampleRate='DVD Audio (48kHz)', maxSize=24000,
                  outputType='default', speakTimes=True, trimSilent=False,
-                 transcribe=True, transcribeBackend="GOOGLE", transcribeLang="en-GB", transcribeWords="",
+                 transcribe=True, transcribeBackend="BUILT-IN", transcribeLang="en-GB", transcribeWords="",
                  #legacy
                  stereo=None, channel=None):
         super(MicrophoneComponent, self).__init__(
@@ -153,7 +158,7 @@ class MicrophoneComponent(BaseComponent):
 
         self.params['transcribeBackend'] = Param(
             transcribeBackend, valType='code', inputType='choice', categ='Transcription',
-            allowedVals=["GOOGLE", "AZURE"],
+            allowedVals=allTranscribers,
             hint=_translate("What transcription service to use to transcribe audio? Only applies online - local "
                             "transcription uses Python Sphinx."),
             label=_translate("Online Transcription Backend")
@@ -323,10 +328,11 @@ class MicrophoneComponent(BaseComponent):
         inits = getInitVals(self.params)
         # Alter inits
         if len(self.exp.flow._loopList):
-            currLoop = self.exp.flow._loopList[-1]  # last (outer-most) loop
+            inits['loop'] = self.exp.flow._loopList[-1].params['name']
+            inits['filename'] = f"'recording_{inits['name']}_{inits['loop']}_%s.{inits['outputType']}' % {inits['loop']}.thisTrialN)"
         else:
-            currLoop = self.exp._expHandler
-        inits['loop'] = currLoop.params['name']
+            inits['loop'] = ""
+            inits['filename'] = f"'recording_{inits['name']}'"
         transcribe = inits['transcribe'].val
         if inits['transcribe'].val == False:
             inits['transcribeBackend'].val = None
@@ -356,7 +362,7 @@ class MicrophoneComponent(BaseComponent):
         buff.setIndentLevel(-1, relative=True)
         code = (
             ")\n"
-            "%(loop)s.addData('%(name)s.clip', os.path.join(%(name)sRecFolder, 'recording_%(name)s_%(loop)s_%%s.%(outputType)s' %% %(loop)s.thisTrialN))\n"
+            "%(loop)s.addData('%(name)s.clip', os.path.join(%(name)sRecFolder, %(filename)s)\n"
         )
         buff.writeIndentedLines(code % inits)
         if transcribe:
@@ -370,6 +376,13 @@ class MicrophoneComponent(BaseComponent):
     def writeRoutineEndCodeJS(self, buff):
         inits = getInitVals(self.params)
         inits['routine'] = self.parentName
+        if len(self.exp.flow._loopList):
+            inits['loop'] = self.exp.flow._loopList[-1].params['name']
+            inits['filename'] = f"'recording_{inits['name']}_{inits['loop']}_' + {inits['loop']}.thisN"
+        else:
+            inits['loop'] = ""
+            inits['filename'] = f"'recording_{inits['name']}'"
+
         # Write base end routine code
         BaseComponent.writeRoutineEndCodeJS(self, buff)
         # Store recordings from this routine
@@ -389,7 +402,7 @@ class MicrophoneComponent(BaseComponent):
         buff.setIndentLevel(-1, relative=True)
         code = (
             "});\n"
-            "psychoJS.experiment.addData('%(name)s.clip', 'recording_%(name)s' + trials.thisN);\n"
+            "psychoJS.experiment.addData('%(name)s.clip', %(filename)s);\n"
             "// start the asynchronous upload to the server\n"
             "%(name)s.lastClip.upload();\n"
         )

@@ -30,11 +30,13 @@ import time
 from pathlib import Path
 import logging  # NB this is the Python built-in logging not PsychoPy's
 import pandas as pd
+from psychopy import prefs
+
 # Set up logging for websockets library
 
 logger = logging.getLogger('test_logger')
 logger.setLevel(logging.INFO)
-fh = logging.FileHandler('cortex.log')
+fh = logging.FileHandler(Path(prefs.paths['userPrefsDir'])/'cortex.log')
 logger.addHandler(fh)
 
 
@@ -337,6 +339,8 @@ class Cortex(object):
             if "no access rights" in msg:
                 raise CortexApiException("Please open the EmotivApp and grant "
                                          "permission to your applicationId")
+            else:
+                raise CortexApiException(msg)
         logger.debug(f"{__name__} resp:\n{resp}")
         self.auth_token = resp['result']['cortexToken']
 

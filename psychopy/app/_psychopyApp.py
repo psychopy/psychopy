@@ -9,6 +9,7 @@ from __future__ import absolute_import, division, print_function
 
 from builtins import str
 from builtins import object
+from pathlib import Path
 
 from psychopy.app.colorpicker import PsychoColorPicker
 
@@ -199,7 +200,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
             self._lastRunLog = open(os.path.join(
                     self.prefs.paths['userPrefsDir'], 'last_app_load.log'),
                     'w')
-            #sys.stderr = sys.stdout = lastLoadErrs = self._lastRunLog
+            sys.stderr = sys.stdout = lastLoadErrs = self._lastRunLog
             logging.console.setLevel(logging.DEBUG)
 
         # indicates whether we're running for testing purposes
@@ -294,6 +295,11 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
                        float(wx.GetDisplaySizeMM()[0]) * 25.4)
         if not (50 < self.dpi < 120):
             self.dpi = 80  # dpi was unreasonable, make one up
+
+        # Load fonts
+        for fontFile in (Path(__file__).parent / "Resources" / "fonts").glob("*"):
+            if fontFile.suffix in ['.ttf', '.truetype']:
+                wx.Font.AddPrivateFont(str(fontFile))
 
         if sys.platform == 'win32':
             # wx.SYS_DEFAULT_GUI_FONT is default GUI font in Win32

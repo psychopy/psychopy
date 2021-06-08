@@ -69,7 +69,7 @@ class DotsComponent(BaseVisualComponent):
         msg = _translate("Number of dots in the field (for circular fields"
                          " this will be average number of dots)")
         self.params['nDots'] = Param(
-            nDots, valType='num', inputType="spin", categ='Dots',
+            nDots, valType='int', inputType="spin", categ='Dots',
             updates='constant',
             hint=msg,
             label=_localized['nDots'])
