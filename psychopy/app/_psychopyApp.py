@@ -297,7 +297,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
             self.dpi = 80  # dpi was unreasonable, make one up
 
         # Manage fonts
-        if hasattr(wx.Font, "AddPrivateFont") and False:
+        if hasattr(wx.Font, "AddPrivateFont"):
             # Load packaged fonts if possible
             for fontFile in (Path(__file__).parent / "Resources" / "fonts").glob("*"):
                 if fontFile.suffix in ['.ttf', '.truetype']:
