@@ -890,7 +890,7 @@ class Microphone(object):
 
         return overruns
 
-    def bank(self, tag=None, transcribe=False, config=None):
+    def bank(self, tag=None, transcribe=False, **kwargs):
         """Store current buffer as a clip within the microphone object.
 
         Parameters
@@ -900,9 +900,9 @@ class Microphone(object):
         transcribe : bool or str
             Set to the name of a transcription engine (e.g. "GOOGLE") to
             transcribe using that engine, or set as `False` to not transcribe.
-        config : dict
-            A dict of values defining the configuration for transcribing, if
-            applicable.
+        kwargs : dict
+            Additional keyword arguments to pass to
+            :class:`~psychopy.sound.AudioClip.transcribe()`.
 
         """
         # make sure the tag exists in both clips and transcripts dicts
@@ -915,11 +915,12 @@ class Microphone(object):
         self.clips[tag].append(self.lastClip)
         # append current clip's transcription according to tag
         if transcribe:
-            if transcribe == True:
+            if transcribe:
                 engine = "sphinx"
             else:
                 engine = transcribe
-            self.lastScript = self.lastClip.transcribe(engine=engine, config=config)
+            self.lastScript = self.lastClip.transcribe(
+                engine=engine, **kwargs)
         else:
             self.lastScript = "Transcription disabled."
         self.scripts[tag].append(self.lastScript)
