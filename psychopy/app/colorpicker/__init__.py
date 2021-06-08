@@ -4,6 +4,7 @@
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
+import sys
 
 import wx
 import wx.stc as stc
@@ -228,9 +229,13 @@ class PsychoColorPicker(wx.Dialog):
         self.cmdCopy.SetToolTip(
             _translate(u"Copy color value to clipboard."))
 
-        szrDlgCtrls.Add(self.cmdInsertColor, 0, wx.EXPAND, 5)
-        szrDlgCtrls.Add(self.cmdCopy, 0, wx.EXPAND, 5)
-        szrDlgCtrls.Add(self.cmdClose, 0, wx.EXPAND, 5)
+        if sys.platform == "win32":
+            btns = [self.cmdCopy, self.cmdInsertColor, self.cmdClose]
+        else:
+            btns = [self.cmdClose, self.cmdCopy, self.cmdInsertColor]
+        szrDlgCtrls.Add(btns[0], 0, wx.EXPAND, 5)
+        szrDlgCtrls.Add(btns[1], 0, wx.EXPAND, 5)
+        szrDlgCtrls.Add(btns[2], 0, wx.EXPAND, 5)
 
         szrDlgButtonArea.Add(szrDlgCtrls, 1, wx.ALL | wx.EXPAND, 5)
 

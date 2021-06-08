@@ -83,6 +83,16 @@ except ImportError as err:
 
 defaultBufferSize = 10000
 
+# monkey-patch bug in PTB keyboard where winHandle=0 is documented but crashes
+if havePTB and sys.platform == 'win32':
+    from psychtoolbox import PsychHID
+    # make a new function where we set default win_handle to be None instead of 0
+    def _replacement_create_queue(self, num_slots=10000, flags=0, win_handle=None):
+        PsychHID('KbQueueCreate', self.device_number,
+                 None, 0, num_slots, flags, win_handle)
+    # replace the broken function with ours
+    hid.Keyboard._create_queue = _replacement_create_queue
+
 
 def getKeyboards():
     """Get info about the available keyboards.

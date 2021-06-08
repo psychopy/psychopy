@@ -1123,13 +1123,14 @@ class SettingsComponent(object):
                 f"eyetracker = ioServer.getDevice('tracker')\n"
             )
             buff.writeIndentedLines(code % self.params)
-            # Make default keyboard
-            code = (
-                "\n"
-                "# create a default keyboard (e.g. to check for escape)\n"
-                "defaultKeyboard = keyboard.Keyboard()\n"
-            )
-            buff.writeIndentedLines(code % self.params)
+
+        # Make default keyboard
+        code = (
+            "\n"
+            "# create a default keyboard (e.g. to check for escape)\n"
+            "defaultKeyboard = keyboard.Keyboard()\n"
+        )
+        buff.writeIndentedLines(code % self.params)
 
     def writeWindowCode(self, buff):
         """Setup the window code.

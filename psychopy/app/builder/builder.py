@@ -2293,7 +2293,8 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             # Make button
             wx.Button.__init__(self, parent, wx.ID_ANY,
                                label=label, name=name,
-                               size=(68, 68+12*label.count("\n")), style=wx.NO_BORDER)
+                               size=(68, 68+12*label.count("\n")),
+                               style=wx.NO_BORDER)
             self.SetToolTip(wx.ToolTip(comp.tooltip or name))
             # Style
             self._applyAppTheme()
@@ -2304,8 +2305,10 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         def onClick(self, evt=None, timeout=None):
             routine = self.parent.frame.routinePanel.getCurrentRoutine()
             page = self.parent.frame.routinePanel.getCurrentPage()
-            comp = self.component(parentName=routine.name, exp=self.parent.frame.exp)
-            
+            comp = self.component(
+                parentName=routine.name,
+                exp=self.parent.frame.exp)
+
             # does this component have a help page?
             if hasattr(comp, 'url'):
                 helpUrl = comp.url
@@ -2395,7 +2398,8 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             # Make button
             wx.Button.__init__(self, parent, wx.ID_ANY,
                                label=label, name=name,
-                               size=(68, 68+12*label.count("\n")), style=wx.NO_BORDER)
+                               size=(68, 68+12*label.count("\n")),
+                               style=wx.NO_BORDER)
             self.SetToolTip(wx.ToolTip(rt.tooltip or name))
             # Style
             self._applyAppTheme()
@@ -2409,7 +2413,8 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             # Add to the actual routine
             exp = self.parent.frame.exp
             namespace = exp.namespace
-            name = comp.params['name'].val = namespace.makeValid(comp.params['name'].val)
+            name = comp.params['name'].val = namespace.makeValid(
+                comp.params['name'].val)
             namespace.add(name)
             exp.addStandaloneRoutine(name, comp)
             # update the routine's view with the new routine too
@@ -2788,14 +2793,20 @@ class ExportFileDialog(wx.Dialog):
 
         btnsizer = wx.StdDialogButtonSizer()
 
-        btn = wx.Button(self, wx.ID_OK)
-        btn.SetHelpText("The OK button completes the dialog")
-        btn.SetDefault()
-        btnsizer.AddButton(btn)
+        okBtn = wx.Button(self, wx.ID_OK)
+        okBtn.SetHelpText("The OK button completes the dialog")
+        okBtn.SetDefault()
 
-        btn = wx.Button(self, wx.ID_CANCEL)
-        btn.SetHelpText("The Cancel button cancels the dialog. (Crazy, huh?)")
-        btnsizer.AddButton(btn)
+        cancelBtn = wx.Button(self, wx.ID_CANCEL)
+        cancelBtn.SetHelpText("The Cancel button cancels the dialog. (Crazy, huh?)")
+
+        if sys.platform == "win32":
+            btns = [okBtn, cancelBtn]
+        else:
+            btns = [cancelBtn, okBtn]
+
+        btnsizer.AddButton(btns[0])
+        btnsizer.AddButton(btns[1])
 
         sizer.Add(btnsizer, 0, wx.ALL, 5)
 

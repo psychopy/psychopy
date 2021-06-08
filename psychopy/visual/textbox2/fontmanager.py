@@ -606,7 +606,7 @@ def findFontFiles(folders=(), recursive=True):
         fontPaths = font_manager.findSystemFonts()
 
     # search resources folder and user's own fonts folder
-    for thisFolder in [Path(prefs.paths['fonts']), Path(prefs.paths['resources'])]:
+    for thisFolder in [Path(prefs.paths['fonts']), Path(prefs.paths['resources']) / "fonts"]:
         for thisExt in supportedExtensions:
             if recursive:
                 fontPaths.extend(thisFolder.rglob("*.{}".format(thisExt)))
