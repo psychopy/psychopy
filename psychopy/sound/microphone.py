@@ -952,11 +952,13 @@ class Microphone(object):
         """Get audio data from the last microphone recording.
 
         Call this after `stop` to get the recording as an `AudioClip` object.
+        Raises an error if a recording is in progress.
 
         Returns
         -------
         AudioClip
-            Recorded data between the last calls to
+            Recorded data between the last calls to `start` (or `record`) and
+            `stop`.
 
         """
         if self.isStarted:
