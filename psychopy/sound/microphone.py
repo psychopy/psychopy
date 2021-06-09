@@ -339,7 +339,7 @@ class Microphone(object):
         continuous audio being recorded before the buffer is full.
     audioLatencyMode : int or None
         Audio latency mode to use, values range between 0-4. If `None`, the
-        setting from preferences will be used. Using `2` (exclusive mode) is
+        setting from preferences will be used. Using `3` (exclusive mode) is
         adequate for most applications and required if using WASAPI on Windows
         for other settings (such audio quality) to take effect. Symbolic
         constants `psychopy.sound.audiodevice.AUDIO_PTB_LATENCY_CLASS_` can also
@@ -890,7 +890,7 @@ class Microphone(object):
 
         return overruns
 
-    def bank(self, tag=None, transcribe=False, config=None):
+    def bank(self, tag=None, transcribe=False, **kwargs):
         """Store current buffer as a clip within the microphone object.
 
         Parameters
@@ -898,10 +898,11 @@ class Microphone(object):
         tag : str or None
             Label for the clip.
         transcribe : bool or str
-            Set to the name of a transcription engine (e.g. "GOOGLE") to transcribe using that engine, or set as False
-            to not transcribe.
-        config : dict
-            A dict of values defining the configuration for transcribing, if applicable.
+            Set to the name of a transcription engine (e.g. "GOOGLE") to
+            transcribe using that engine, or set as `False` to not transcribe.
+        kwargs : dict
+            Additional keyword arguments to pass to
+            :class:`~psychopy.sound.AudioClip.transcribe()`.
 
         """
         # make sure the tag exists in both clips and transcripts dicts
@@ -914,11 +915,12 @@ class Microphone(object):
         self.clips[tag].append(self.lastClip)
         # append current clip's transcription according to tag
         if transcribe:
-            if transcribe == True:
+            if transcribe:
                 engine = "sphinx"
             else:
                 engine = transcribe
-            self.lastScript = self.lastClip.transcribe(engine=engine, config=config)
+            self.lastScript = self.lastClip.transcribe(
+                engine=engine, **kwargs)
         else:
             self.lastScript = "Transcription disabled."
         self.scripts[tag].append(self.lastScript)
@@ -931,7 +933,7 @@ class Microphone(object):
             return self.lastClip
 
     def clear(self):
-        """Wipe all clips.
+        """Wipe all clips. Deletes previously banked audio clips.
         """
         # clear clips
         self.clips = {}
@@ -939,6 +941,7 @@ class Microphone(object):
         self._recording.clear()
 
     def flush(self):
+        """Get a copy of all banked clips, then clear the clips from storage."""
         # get copy of clips dict
         clips = self.clips.copy()
         # clear
@@ -950,11 +953,13 @@ class Microphone(object):
         """Get audio data from the last microphone recording.
 
         Call this after `stop` to get the recording as an `AudioClip` object.
+        Raises an error if a recording is in progress.
 
         Returns
         -------
         AudioClip
-            Recorded data between the last calls to
+            Recorded data between the last calls to `start` (or `record`) and
+            `stop`.
 
         """
         if self.isStarted:

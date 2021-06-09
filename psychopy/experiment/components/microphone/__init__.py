@@ -356,7 +356,7 @@ class MicrophoneComponent(BaseComponent):
         buff.writeIndentedLines(code % inits)
         if transcribe:
             code = (
-                "config={'languageCode': %(transcribeLang)s, 'wordList': %(transcribeWords)s}\n"
+                "language=%(transcribeLang)s, expectedWords=%(transcribeWords)s\n"
             )
         else:
             code = (
