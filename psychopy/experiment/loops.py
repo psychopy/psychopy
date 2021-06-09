@@ -204,17 +204,26 @@ class TrialHandler(object):
         elif isinstance(nReps, str):
             nReps = nReps.strip("$")
 
-        code = ("\nasync function {loopName}LoopBegin({loopName}LoopScheduler) {{\n"
-                "  // set up handler to look after randomisation of conditions etc\n"
-                "  {loopName} = new TrialHandler({{\n"
-                "    psychoJS: psychoJS,\n"
-                "    nReps: {nReps}, method: TrialHandler.Method.{loopType},\n"
-                "    extraInfo: expInfo, originPath: undefined,\n"
-                "    trialList: {trialList},\n"
-                "    seed: {seed}, name: '{loopName}'\n"
-                "  }});\n"
-                "  psychoJS.experiment.addLoop({loopName}); // add the loop to the experiment\n"
-                "  currentLoop = {loopName};  // we're now the current loop\n"
+        code = ("\nfunction {loopName}LoopBegin({loopName}LoopScheduler, snapshot) {{\n"
+                "  return async function() {{\n"
+                .format(loopName=self.params['name'],
+                        loopType=(self.params['loopType'].val).upper(),
+                        nReps=nReps,
+                        trialList=trialList,
+                        seed=seed))
+        buff.writeIndentedLines(code)
+        buff.setIndentLevel(2, relative=True)
+        code = ("TrialHandler.fromSnapshot(snapshot);\n\n"
+                "// set up handler to look after randomisation of conditions etc\n"
+                "{loopName} = new TrialHandler({{\n"
+                "  psychoJS: psychoJS,\n"
+                "  nReps: {nReps}, method: TrialHandler.Method.{loopType},\n"
+                "  extraInfo: expInfo, originPath: undefined,\n"
+                "  trialList: {trialList},\n"
+                "  seed: {seed}, name: '{loopName}'\n"
+                "}});\n"
+                "psychoJS.experiment.addLoop({loopName}); // add the loop to the experiment\n"
+                "currentLoop = {loopName};  // we're now the current loop\n"
                 .format(loopName=self.params['name'],
                         loopType=(self.params['loopType'].val).upper(),
                         nReps=nReps,
@@ -224,15 +233,15 @@ class TrialHandler(object):
         
         # for the scheduler
         if modular:
-            code = ("\n  // Schedule all the trials in the trialList:\n"
-                    "  for (const {thisName} of {loopName}) {{\n"
-                    "    const snapshot = {loopName}.getSnapshot();\n"
-                    "    {loopName}LoopScheduler.add(importConditions(snapshot));\n")
+            code = ("\n// Schedule all the trials in the trialList:\n"
+                    "for (const {thisName} of {loopName}) {{\n"
+                    "  const snapshot = {loopName}.getSnapshot();\n"
+                    "  {loopName}LoopScheduler.add(importConditions(snapshot));\n")
         else:
-            code = ("\n  // Schedule all the trials in the trialList:\n"
-                    "  {loopName}.forEach(function() {{\n"
-                    "    const snapshot = {loopName}.getSnapshot();\n\n"
-                    "    {loopName}LoopScheduler.add(importConditions(snapshot));\n")
+            code = ("\n// Schedule all the trials in the trialList:\n"
+                    "{loopName}.forEach(function() {{\n"
+                    "  const snapshot = {loopName}.getSnapshot();\n\n"
+                    "  {loopName}LoopScheduler.add(importConditions(snapshot));\n")
         buff.writeIndentedLines(code.format(loopName=self.params['name'],
                                             thisName=self.thisName))
         # then we need to include begin, eachFrame and end code for each entry within that loop
@@ -242,28 +251,32 @@ class TrialHandler(object):
         for thisChild in thisLoop:
             if thisChild.getType() == 'Routine':
                 code += (
-                    "    {loopName}LoopScheduler.add({childName}RoutineBegin(snapshot));\n"
-                    "    {loopName}LoopScheduler.add({childName}RoutineEachFrame(snapshot));\n"
-                    "    {loopName}LoopScheduler.add({childName}RoutineEnd(snapshot));\n"
+                    "  {loopName}LoopScheduler.add({childName}RoutineBegin(snapshot));\n"
+                    "  {loopName}LoopScheduler.add({childName}RoutineEachFrame(snapshot));\n"
+                    "  {loopName}LoopScheduler.add({childName}RoutineEnd(snapshot));\n"
                     .format(childName=thisChild.params['name'],
                             loopName=self.params['name'])
                     )
             else:  # for a LoopInitiator
                 code += (
-                    "    const {childName}LoopScheduler = new Scheduler(psychoJS);\n"
-                    "    {loopName}LoopScheduler.add({childName}LoopBegin, {childName}LoopScheduler);\n"
-                    "    {loopName}LoopScheduler.add({childName}LoopScheduler);\n"
-                    "    {loopName}LoopScheduler.add({childName}LoopEnd);\n"
+                    "  const {childName}LoopScheduler = new Scheduler(psychoJS);\n"
+                    "  {loopName}LoopScheduler.add({childName}LoopBegin({childName}LoopScheduler, snapshot));\n"
+                    "  {loopName}LoopScheduler.add({childName}LoopScheduler);\n"
+                    "  {loopName}LoopScheduler.add({childName}LoopEnd);\n"
                     .format(childName=thisChild.params['name'],
                             loopName=self.params['name'])
                     )
 
-        code += "    {loopName}LoopScheduler.add(endLoopIteration({loopName}LoopScheduler, snapshot));\n"
-        code += "  }}%s\n" % ([');', ''][modular])
+        code += "  {loopName}LoopScheduler.add(endLoopIteration({loopName}LoopScheduler, snapshot));\n"
+        code += "}}%s\n" % ([');', ''][modular])
         code += ("\n"
-                 "  return Scheduler.Event.NEXT;\n"
-                 "}}\n")
+                 "return Scheduler.Event.NEXT;\n")
         buff.writeIndentedLines(code.format(loopName=self.params['name']))
+        buff.setIndentLevel(-2, relative=True)
+        buff.writeIndentedLines(
+                 "  }\n"
+                 "}\n"
+        )
 
     def writeLoopEndCode(self, buff):
         # Just within the loop advance data line if loop is whole trials

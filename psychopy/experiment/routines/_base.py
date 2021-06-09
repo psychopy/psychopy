@@ -458,7 +458,8 @@ class Routine(list):
         buff.writeIndentedLines("return async function () {\n")
         buff.setIndentLevel(1, relative=True)
 
-        code = ("//------Prepare to start Routine '%(name)s'-------\n"
+        code = ("TrialHandler.fromSnapshot(snapshot);\n\n"
+                "//------Prepare to start Routine '%(name)s'-------\n"
                 "t = 0;\n"
                 "%(name)sClock.reset(); // clock\n"
                 "frameN = -1;\n"
