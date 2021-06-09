@@ -669,6 +669,11 @@ class AudioClip(object):
         If the audio clip has multiple channels, they will be combined prior to
         being passed to the transcription service.
 
+        Speech-to-text conversion blocks the main application thread when used
+        on Python. Don't transcribe audio during time-sensitive parts of your
+        experiment! This issue is known to the developers and will be fixed in
+        a later release.
+
         Parameters
         ----------
         engine : str
