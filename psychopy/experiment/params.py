@@ -205,6 +205,7 @@ class Param(object):
                         # If param is a file of any kind, escape any \
                         val = re.sub(r"\\", r"\\\\", val)
                     val=re.sub("\n", "\\n", val) # Replace line breaks with escaped line break character
+                    val=re.sub("\\\\", "/", val) # Replace any backslashes by slashes
                     return repr(val)
             return repr(self.val)
         elif self.valType in ['code', 'extendedCode']:
