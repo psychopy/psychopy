@@ -150,7 +150,7 @@ class DlgCodeComponentProperties(wx.Dialog):
         self.okButton.SetDefault()
         self.cancelButton = wx.Button(self, wx.ID_CANCEL,
                                       _translate(" Cancel "))
-        self.warnings = WarningManager(self, self.okButton)  # to store warnings for all fields
+        self.warnings = WarningManager(self)  # to store warnings for all fields
         self.__do_layout()
         if openToPage is None:
             openToPage = 1
