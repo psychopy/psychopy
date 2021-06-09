@@ -737,7 +737,9 @@ class AudioClip(object):
 
         """
         if not _hasSpeechRecognition:  # don't have speech recognition
-            return []
+            raise ModuleNotFoundError(
+                "Cannot use `.transcribe()`, missing required module "
+                "`speech_recognition` from package `SpeechRecognition`.")
 
         # engine configuration
         config = {} if config is None else config
