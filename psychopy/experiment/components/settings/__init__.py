@@ -116,7 +116,7 @@ class SettingsComponent(object):
                  savedDataFolder='', savedDataDelim='auto',
                  useVersion='',
                  eyetracker="None",
-                 mgMove='RIGHT_BUTTON', mgBlink='MIDDLE_BUTTON', mgSaccade=0.5,
+                 mgMove='CONTINUOUS', mgBlink='MIDDLE_BUTTON', mgSaccade=0.5,
                  gpAddress='127.0.0.1', gpPort=4242,
                  elModel='EYELINK 1000 DESKTOP', elSimMode=False, elSampleRate=1000, elTrackEyes="RIGHT_EYE",
                  elLiveFiltering="FILTER_LEVEL_2", elDataFiltering="FILTER_LEVEL_OFF",
@@ -379,8 +379,8 @@ class SettingsComponent(object):
 
         #mousegaze
         self.params['mgMove'] = Param(
-            mgMove, valType='list', inputType="multiChoice",
-            allowedVals=['LEFT_BUTTON', 'MIDDLE_BUTTON', 'RIGHT_BUTTON'],
+            mgMove, valType='str', inputType="choice",
+            allowedVals=['CONTINUOUS', 'LEFT_BUTTON', 'MIDDLE_BUTTON', 'RIGHT_BUTTON'],
             hint=_translate("Mouse button to press for eye movement."),
             label=_translate("Move Button"), categ="Eyetracking"
         )
@@ -936,17 +936,22 @@ class SettingsComponent(object):
         buff.writeIndented("frameTolerance = 0.001  # how close to onset before 'same' frame\n")
 
     def writeIohubCode(self, buff):
+        # Substitute inits
+        inits = self.params.copy()
+        if inits['mgMove'].val == "CONTINUOUS":
+            inits['mgMove'].val = "$"
+
         # Make ioConfig dict
         code = (
             "\n"
             "# Setup eyetracking\n"
         )
-        buff.writeIndentedLines(code % self.params)
+        buff.writeIndentedLines(code % inits)
         if self.params['eyetracker'] == "None":
             code = (
                 "ioDevice = ioConfig = ioSession = ioServer = eyetracker = None\n"
             )
-            buff.writeIndentedLines(code % self.params)
+            buff.writeIndentedLines(code % inits)
         else:
             # Alert user if window is not fullscreen
             if not self.params['Full-screen window'].val:
@@ -964,62 +969,62 @@ class SettingsComponent(object):
                 "ioDevice = '" + ioDeviceMap[self.params['eyetracker'].val] + "'\n"
                 "ioConfig = {\n"
             )
-            buff.writeIndentedLines(code % self.params)
+            buff.writeIndentedLines(code % inits)
             buff.setIndentLevel(1, relative=True)
             code = (
                 "ioDevice: {\n"
             )
-            buff.writeIndentedLines(code % self.params)
+            buff.writeIndentedLines(code % inits)
             buff.setIndentLevel(1, relative=True)
             code = (
                     "'name': 'tracker',\n"
             )
-            buff.writeIndentedLines(code % self.params)
+            buff.writeIndentedLines(code % inits)
             # Initialise for MouseGaze
             if self.params['eyetracker'] == "MouseGaze":
                 code = (
                         "'controls': {\n"
                 )
-                buff.writeIndentedLines(code % self.params)
+                buff.writeIndentedLines(code % inits)
                 buff.setIndentLevel(1, relative=True)
                 code = (
-                            "'move': %(mgMove)s,\n"
+                            "'move': [%(mgMove)s],\n"
                             "'blink':%(mgBlink)s,\n"
                             "'saccade_threshold': %(mgSaccade)s,\n"
                 )
-                buff.writeIndentedLines(code % self.params)
+                buff.writeIndentedLines(code % inits)
                 buff.setIndentLevel(-1, relative=True)
                 code = (
                         "}\n"
                 )
-                buff.writeIndentedLines(code % self.params)
+                buff.writeIndentedLines(code % inits)
                 buff.setIndentLevel(-1, relative=True)
                 code = (
                     "}\n"
                 )
-                buff.writeIndentedLines(code % self.params)
+                buff.writeIndentedLines(code % inits)
 
             elif self.params['eyetracker'] == "GazePoint":
                 code = (
                         "'network_settings': {\n"
                 )
-                buff.writeIndentedLines(code % self.params)
+                buff.writeIndentedLines(code % inits)
                 buff.setIndentLevel(1, relative=True)
                 code = (
                             "'ip_address': %(gpAddress)s,\n"
                             "'port': %(gpPort)s\n"
                 )
-                buff.writeIndentedLines(code % self.params)
+                buff.writeIndentedLines(code % inits)
                 buff.setIndentLevel(-1, relative=True)
                 code = (
                         "}\n"
                 )
-                buff.writeIndentedLines(code % self.params)
+                buff.writeIndentedLines(code % inits)
                 buff.setIndentLevel(-1, relative=True)
                 code = (
                     "}\n"
                 )
-                buff.writeIndentedLines(code % self.params)
+                buff.writeIndentedLines(code % inits)
 
             elif self.params['eyetracker'] == "Tobii Technology":
                 code = (
@@ -1027,22 +1032,22 @@ class SettingsComponent(object):
                         "'serial_number': %(tbSerialNo)s,\n"
                         "'runtime_settings': {\n"
                 )
-                buff.writeIndentedLines(code % self.params)
+                buff.writeIndentedLines(code % inits)
                 buff.setIndentLevel(1, relative=True)
                 code = (
                             "'sampling_rate': %(tbSampleRate)s,\n"
                 )
-                buff.writeIndentedLines(code % self.params)
+                buff.writeIndentedLines(code % inits)
                 buff.setIndentLevel(-1, relative=True)
                 code = (
                         "}\n"
                 )
-                buff.writeIndentedLines(code % self.params)
+                buff.writeIndentedLines(code % inits)
                 buff.setIndentLevel(-1, relative=True)
                 code = (
                     "}\n"
                 )
-                buff.writeIndentedLines(code % self.params)
+                buff.writeIndentedLines(code % inits)
 
             elif self.params['eyetracker'] == "SR Research Ltd":
                 code = (
@@ -1052,67 +1057,67 @@ class SettingsComponent(object):
                     "'default_native_data_file_name': 'EXPFILE',\n"
                     "'runtime_settings': {\n"
                 )
-                buff.writeIndentedLines(code % self.params)
+                buff.writeIndentedLines(code % inits)
                 buff.setIndentLevel(1, relative=True)
                 code = (
                         "'sampling_rate': %(elSampleRate)s,\n"
                         "'track_eyes': %(elTrackEyes)s,\n"
                         "'sample_filtering': {\n"
                 )
-                buff.writeIndentedLines(code % self.params)
+                buff.writeIndentedLines(code % inits)
                 buff.setIndentLevel(1, relative=True)
                 code = (
                             "'sample_filtering': %(elDataFiltering)s,\n"
                             "'elLiveFiltering': %(elLiveFiltering)s,\n"
                 )
-                buff.writeIndentedLines(code % self.params)
+                buff.writeIndentedLines(code % inits)
                 buff.setIndentLevel(-1, relative=True)
                 code = (
                         "},\n"
                         "'vog_settings': {\n"
                 )
-                buff.writeIndentedLines(code % self.params)
+                buff.writeIndentedLines(code % inits)
                 buff.setIndentLevel(1, relative=True)
                 code = (
                             "'pupil_measure_types': %(elPupilMeasure)s,\n"
                             "'tracking_mode': %(elTrackingMode)s,\n"
                             "'pupil_center_algorithm': %(elPupilAlgorithm)s,\n"
                 )
-                buff.writeIndentedLines(code % self.params)
+                buff.writeIndentedLines(code % inits)
                 buff.setIndentLevel(-1, relative=True)
                 code = (
                         "}\n"
                 )
-                buff.writeIndentedLines(code % self.params)
+                buff.writeIndentedLines(code % inits)
                 buff.setIndentLevel(-1, relative=True)
                 code = (
                     "}\n"
                 )
-                buff.writeIndentedLines(code % self.params)
+                buff.writeIndentedLines(code % inits)
                 buff.setIndentLevel(-1, relative=True)
                 code = (
                     "}\n"
                 )
-                buff.writeIndentedLines(code % self.params)
+                buff.writeIndentedLines(code % inits)
 
             # Close ioConfig dict
             buff.setIndentLevel(-1, relative=True)
             code = (
                 "}\n"
             )
-            buff.writeIndentedLines(code % self.params)
+            buff.writeIndentedLines(code % inits)
 
             # Start iohub server
             code = (
                 "ioSession = '1'\n"
                 "if 'session' in expInfo:\n"
             )
-            buff.writeIndentedLines(code % self.params)
+            buff.writeIndentedLines(code % inits)
             buff.setIndentLevel(1, relative=True)
             code = (
                     "ioSession = str(expInfo['session'])\n"
             )
-            buff.writeIndentedLines(code % self.params)
+            buff.writeIndentedLines(code % inits)
             buff.setIndentLevel(-1, relative=True)
             if self.params['Save hdf5 file'].val:
                 saveStr = " experiment_code=%(expName)s, session_code=ioSession, datastore_name=filename,"
@@ -1122,7 +1127,7 @@ class SettingsComponent(object):
                 f"ioServer = io.launchHubServer(window=win,{saveStr} **ioConfig)\n"
                 f"eyetracker = ioServer.getDevice('tracker')\n"
             )
-            buff.writeIndentedLines(code % self.params)
+            buff.writeIndentedLines(code % inits)
 
         # Make default keyboard
         code = (
