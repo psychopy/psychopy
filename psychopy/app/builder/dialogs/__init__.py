@@ -1096,7 +1096,7 @@ class DlgLoopProperties(_BaseParamsDlg):
             checker = ctrl.valueCtrl.GetValidator()
             if checker:
                 checker.Validate(self)
-        return bool(self.warnings._valid)
+        return self.warnings.OK
 
     def makeGlobalCtrls(self):
         panel = wx.Panel(parent=self)
