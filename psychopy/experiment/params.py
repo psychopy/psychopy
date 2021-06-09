@@ -202,10 +202,10 @@ class Param(object):
                             # but for other targets that will raise an annoying error
                             val = val[1:]
                     if self.valType in ['file', 'table']:
-                        # If param is a file of any kind, escape any \
-                        val = re.sub(r"\\", r"\\\\", val)
+                        # If param is a file of any kind, replace \ by /
+                        val = re.sub(r"\\", r"/", val)
                     val=re.sub("\n", "\\n", val) # Replace line breaks with escaped line break character
-                    val=re.sub("\\\\", "/", val) # Replace any backslashes by slashes
+                    val=re.sub("\\\\", "/", val) # handle older exps where files were valType=str not file
                     return repr(val)
             return repr(self.val)
         elif self.valType in ['code', 'extendedCode']:
