@@ -3030,6 +3030,8 @@ class FlowPanel(wx.ScrolledWindow):
         self.frame.addToUndoStack("ADD Routine `%s`" % rtn.name)
         # reset flow drawing (remove entry point)
         self.clearMode()
+        # enable/disable add loop button
+        self.btnInsertLoop.Enable(bool(len(self.frame.exp.flow)))
 
     def setLoopPoint1(self, evt=None):
         """Someone pushed the insert loop button.
@@ -3316,6 +3318,8 @@ class FlowPanel(wx.ScrolledWindow):
         # perform the actual removal
         flow.removeComponent(component, id=compID)
         self.draw()
+        # enable/disable add loop button
+        self.btnInsertLoop.Enable(bool(len(flow)))
 
     def OnPaint(self, event):
         # Create a buffered paint DC.  It will create the real
