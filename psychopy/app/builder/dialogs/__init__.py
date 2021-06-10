@@ -150,7 +150,7 @@ class ParamCtrls(object):
         elif param.inputType == 'bool':
             self.valueCtrl = paramCtrls.BoolCtrl(parent,
                                          name=fieldName,size=wx.Size(self.valueWidth, 24))
-            self.valueCtrl.SetValue(bool(param.val))
+            self.valueCtrl.SetValue(bool(param))
         elif param.inputType == 'file' or browse:
             self.valueCtrl = paramCtrls.FileCtrl(parent,
                                                  val=str(param.val), valType=param.valType,
