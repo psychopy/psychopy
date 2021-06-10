@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """Demo using the new (beta) VlcMovieStim to play a video file. Path of video
-needs to updated to point to a video you have. 
+needs to updated to point to a video you have. The demo closes automatically at
+the end of the stream.
 
 This requires:
 
@@ -32,7 +33,7 @@ keystext += "'s': Stop and restart\n"
 keystext += "'p': Pause/unpause\n"
 keystext += "'>': Seek forward 1 second\n"
 keystext += "'<': Seek backward 1 second\n"
-keystext += "'-': Decrease volume.\n"
+keystext += "'-': Decrease volume\n"
 keystext += "'+': Increase volume"
 
 text = visual.TextStim(win, keystext, pos=(0, -250), units='pix')
@@ -45,6 +46,7 @@ mov = visual.VlcMovieStim(win, videopath,
     flipVert=False, flipHoriz=False,
     loop=False, autoStart=True)
 
+# main loop, will exit automatically when the movie is finished
 while not mov.isFinished:
     # Check for action keys.....
     for key in event.getKeys():
@@ -66,10 +68,10 @@ while not mov.isFinished:
             # To skip back 1 second in movie ...
             mov.rewind(1.0)
         elif key == 'minus':
-            # To decrease movie sound a bit ...
+            # To decrease movie sound a bit (5%) ...
             mov.decreaseVolume(5)
         elif key == 'equal':
-            # To increase movie sound a bit ...
+            # To increase movie sound a bit (5%) ...
             mov.increaseVolume(5)
 
     mov.draw()
