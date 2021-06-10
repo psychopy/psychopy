@@ -303,8 +303,8 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
                 if fontFile.suffix in ['.ttf', '.truetype']:
                     wx.Font.AddPrivateFont(str(fontFile))
             # Set fonts as those loaded
-            self._mainFont = wx.Font(wx.FontInfo(10).FaceName("Open Sans"))
-            self._codeFont = wx.Font(wx.FontInfo(10).FaceName("JetBrains Mono").Light())
+            self._mainFont = wx.Font(wx.FontInfo(9).FaceName("Open Sans"))
+            self._codeFont = wx.Font(wx.FontInfo(9).FaceName("JetBrains Mono"))
         else:
             # Get system defaults if can't load fonts
             if sys.platform == 'win32':
