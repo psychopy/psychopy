@@ -1185,9 +1185,11 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
 @vlc.CallbackDecorators.VideoLockCb
 def vlcLockCallback(user_data, planes):
     """Callback invoked when VLC has new texture data."""
-
-    cls = ctypes.cast(
-        user_data, ctypes.POINTER(ctypes.py_object)).contents.value
+    try:
+        cls = ctypes.cast(
+            user_data, ctypes.POINTER(ctypes.py_object)).contents.value
+    except TypeError:
+        return
 
     cls._pixelLock.acquire()
 
@@ -1198,8 +1200,11 @@ def vlcLockCallback(user_data, planes):
 @vlc.CallbackDecorators.VideoUnlockCb
 def vlcUnlockCallback(user_data, picture, planes):
     """Called when VLC releases the frame draw buffer."""
-    cls = ctypes.cast(
-        user_data, ctypes.POINTER(ctypes.py_object)).contents.value
+    try:
+        cls = ctypes.cast(
+            user_data, ctypes.POINTER(ctypes.py_object)).contents.value
+    except TypeError:
+        return
 
     cls._pixelLock.release()
 
@@ -1208,8 +1213,11 @@ def vlcUnlockCallback(user_data, picture, planes):
 def vlcDisplayCallback(user_data, picture):
     """Callback used by VLC when its ready to display a new frame.
     """
-    cls = ctypes.cast(
-        user_data, ctypes.POINTER(ctypes.py_object)).contents.value
+    try:
+        cls = ctypes.cast(
+            user_data, ctypes.POINTER(ctypes.py_object)).contents.value
+    except TypeError:
+        return
 
     cls._frameCounter += 1
 
