@@ -279,7 +279,7 @@ class Flow(list):
             if not loopStack:  # if not currently in a loop
                 if thisEntry.getType() == 'LoopInitiator':
                     code = ("const {name}LoopScheduler = new Scheduler(psychoJS);\n"
-                            "flowScheduler.add({name}LoopBegin, {name}LoopScheduler);\n"
+                            "flowScheduler.add({name}LoopBegin({name}LoopScheduler));\n"
                             "flowScheduler.add({name}LoopScheduler);\n"
                             "flowScheduler.add({name}LoopEnd);\n"
                             .format(name=thisEntry.loop.params['name'].val))
