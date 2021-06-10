@@ -238,6 +238,7 @@ class MouseGazePsychopyCalibrationGraphics(object):
         self.clearCalibrationWindow()
 
         i = 0
+        abort_calibration = False
         for pt in cal_target_list:
             # Convert normalized positions to psychopy window unit positions
             # by using iohub display/window getCoordBounds.
@@ -262,8 +263,12 @@ class MouseGazePsychopyCalibrationGraphics(object):
                 else:
                     self.drawCalibrationTarget((x, y), False)
 
-                self.getNextMsg()
-                self.MsgPump()
+            gevent.sleep(0.001)
+            self.MsgPump()
+            msg = self.getNextMsg()
+            if msg == 'QUIT':
+                abort_calibration = True
+                break
 
             # Target expand / contract phase
             self.drawCalibrationTarget((x, y))
@@ -296,26 +301,33 @@ class MouseGazePsychopyCalibrationGraphics(object):
                     self.calibrationPointINNER.draw()
                     self.window.flip(clearBuffer=True)
 
-                self.getNextMsg()
-                self.MsgPump()
-                gevent.sleep(0.001)
+            gevent.sleep(0.001)
+            self.MsgPump()
+            msg = self.getNextMsg()
+            if msg == 'QUIT':
+                abort_calibration = True
+                break
 
             if auto_pace is False:
                 while 1:
-                    msg = self.getNextMsg()
-                    self.MsgPump()
                     gevent.sleep(0.001)
+                    self.MsgPump()
+                    msg = self.getNextMsg()
                     if msg == 'SPACE_KEY_ACTION':
                         break
-
+                    elif msg == 'QUIT':
+                        abort_calibration = True
+                        break
 
             self.clearCalibrationWindow()
             self.clearAllEventBuffers()
             i += 1
 
-        instuction_text = "Calibration Complete. Press 'SPACE' key to continue."
-        self.showSystemSetupMessageScreen(instuction_text)
-
+        if abort_calibration is False:
+            instuction_text = "Calibration Complete. Press 'SPACE' key to continue."
+            self.showSystemSetupMessageScreen(instuction_text)
+            return True
+        return False
 
     def clearCalibrationWindow(self):
         self.window.flip(clearBuffer=True)

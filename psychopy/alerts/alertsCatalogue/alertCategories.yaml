@@ -49,6 +49,10 @@
     4315: Invalid dollar sign syntax
     4320: Non-local font
     4325: Font not available
+  4400:
+    cat: Conflicts
+    4405: Textbox and keyboard conflict
+
   4500:
     cat: Eyetracking
     4505: Eyetracking not configured
@@ -58,6 +62,11 @@
     4540: Eyetracking requires window to be fullscreen
     4545: Eyetracking requires a monitor config
     4550: ROI component with no record component
+
+  4600:
+    cat: Audio Transcription
+    4605: Transcription service not compatible online
+    4610: Transcription service not compatible locally
 
 5000:
   cat: Online studies

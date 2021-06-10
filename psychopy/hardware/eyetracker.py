@@ -45,9 +45,9 @@ class EyetrackerCalibration:
     def __init__(self, win,
                  eyetracker, target,
                  units="height", colorSpace="rgb",
-                 progressMode="time", targetDur=0.5, expandScale=3,
+                 progressMode="time", targetDur=1.5, expandScale=1.5,
                  targetLayout="NINE_POINTS", randomisePos=True,
-                 movementAnimation=False, targetDelay=1.25
+                 movementAnimation=False, targetDelay=1.0
                  ):
         # Store params
         self.win = win
@@ -151,11 +151,11 @@ class EyetrackerCalibration:
             yield key, value
 
     def run(self):
+        from psychopy.iohub.util import hideWindow, showWindow
         tracker = self.eyetracker.getIOHubDeviceClass(full=True)
 
         # Minimise PsychoPy window
-        self.win.winHandle.set_fullscreen(False)
-        self.win.winHandle.minimize()
+        hideWindow(self.win)
 
         # Deliver any alerts as needed
         if tracker == 'eyetracker.hw.sr_research.eyelink.EyeTracker':
@@ -172,6 +172,7 @@ class EyetrackerCalibration:
         self.last = self.eyetracker.runSetupProcedure(dict(self))
 
         # Bring back PsychoPy window
-        self.win.winHandle.set_fullscreen(True)
-        self.win.winHandle.maximize()
-        self.win.winHandle.activate()
+        showWindow(self.win)
+
+        # SS: Flip otherwise black screen has been seen, not sure why this just started....
+        self.win.flip()

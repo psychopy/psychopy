@@ -11,12 +11,13 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
     iconFile = Path(__file__).parent / "eyetracker_calib.png"
     tooltip = _translate("Calibration routine for eyetrackers")
     limit = 1
+    beta = True
 
     def __init__(self, exp, name='calibration',
                  progressMode="time", targetDur=1.5, expandDur=1, expandScale=1.5,
-                 movementAnimation=True, movementDur=1.25, targetDelay=1.25,
-                 innerFillColor='green', innerBorderColor='white', innerBorderWidth="", innerRadius=0.0033,
-                 fillColor='', borderColor="black", borderWidth=2, outerRadius=0.1,
+                 movementAnimation=True, movementDur=1.0, targetDelay=1.0,
+                 innerFillColor='green', innerBorderColor='black', innerBorderWidth=2, innerRadius=0.0035,
+                 fillColor='', borderColor="black", borderWidth=2, outerRadius=0.01,
                  colorSpace="rgb", units='from exp settings',
                  targetLayout="NINE_POINTS", randomisePos=True,
                  disabled=False

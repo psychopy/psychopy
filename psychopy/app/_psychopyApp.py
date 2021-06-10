@@ -9,6 +9,7 @@ from __future__ import absolute_import, division, print_function
 
 from builtins import str
 from builtins import object
+from pathlib import Path
 
 from psychopy.app.colorpicker import PsychoColorPicker
 
@@ -199,7 +200,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
             self._lastRunLog = open(os.path.join(
                     self.prefs.paths['userPrefsDir'], 'last_app_load.log'),
                     'w')
-            #sys.stderr = sys.stdout = lastLoadErrs = self._lastRunLog
+            sys.stderr = sys.stdout = lastLoadErrs = self._lastRunLog
             logging.console.setLevel(logging.DEBUG)
 
         # indicates whether we're running for testing purposes
@@ -295,20 +296,31 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         if not (50 < self.dpi < 120):
             self.dpi = 80  # dpi was unreasonable, make one up
 
-        if sys.platform == 'win32':
-            # wx.SYS_DEFAULT_GUI_FONT is default GUI font in Win32
-            self._mainFont = wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT)
+        # Manage fonts
+        if hasattr(wx.Font, "AddPrivateFont") and sys.platform != "darwin":
+            # Load packaged fonts if possible
+            for fontFile in (Path(__file__).parent / "Resources" / "fonts").glob("*"):
+                if fontFile.suffix in ['.ttf', '.truetype']:
+                    wx.Font.AddPrivateFont(str(fontFile))
+            # Set fonts as those loaded
+            self._mainFont = wx.Font(wx.FontInfo(10).FaceName("Open Sans"))
+            self._codeFont = wx.Font(wx.FontInfo(10).FaceName("JetBrains Mono").Light())
         else:
-            self._mainFont = wx.SystemSettings.GetFont(wx.SYS_ANSI_FIXED_FONT)
+            # Get system defaults if can't load fonts
+            if sys.platform == 'win32':
+                # wx.SYS_DEFAULT_GUI_FONT is default GUI font in Win32
+                self._mainFont = wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT)
+            else:
+                self._mainFont = wx.SystemSettings.GetFont(wx.SYS_ANSI_FIXED_FONT)
 
-        try:
-            self._codeFont = wx.SystemSettings.GetFont(wx.SYS_ANSI_FIXED_FONT)
-        except wx._core.wxAssertionError:
-            # if no SYS_ANSI_FIXED_FONT then try generic FONTFAMILY_MODERN
-            self._codeFont = wx.Font(self._mainFont.GetPointSize(),
-                                     wx.FONTFAMILY_MODERN,
-                                     wx.FONTSTYLE_NORMAL,
-                                     wx.FONTWEIGHT_NORMAL)
+            try:
+                self._codeFont = wx.SystemSettings.GetFont(wx.SYS_ANSI_FIXED_FONT)
+            except wx._core.wxAssertionError:
+                # if no SYS_ANSI_FIXED_FONT then try generic FONTFAMILY_MODERN
+                self._codeFont = wx.Font(self._mainFont.GetPointSize(),
+                                         wx.FONTFAMILY_TELETYPE,
+                                         wx.FONTSTYLE_NORMAL,
+                                         wx.FONTWEIGHT_NORMAL)
         # that gets most of the properties of _codeFont but the FaceName
         # FaceName is set in the setting of the theme:
         self.theme = self.prefs.app['theme']

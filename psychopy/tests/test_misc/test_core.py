@@ -32,7 +32,7 @@ from psychopy.visual import Window
 from psychopy.core import (getTime, MonotonicClock, Clock, CountdownTimer, wait,
                            StaticPeriod, shellCall)
 from psychopy.clock import monotonicClock
-from psychopy.constants import PY3
+from psychopy.tests import _vmTesting
 
 
 def test_EmptyFunction():
@@ -382,9 +382,13 @@ def test_StaticPeriod():
     timer.reset(period_duration )
     static.complete()
 
+    if _vmTesting:
+        tolerance = 0.005  # without a proper screen timing might not eb sub-ms
+    else:
+        tolerance = 0.001
     assert np.allclose(timer.getTime(),
                        1.0/refresh_rate,
-                       atol=0.001)
+                       atol=tolerance)
     win.close()
 
 

@@ -287,6 +287,44 @@ else:
     def win32MessagePump():
         pass
 
+# PsychoPy Window Hide / Show functions.
+# Windows 10 and macOS have different code that needs to be called
+# to show a second full screen window on top of an existing one, like
+# is done by most eye tracker calibration routines.
+def hideWindow(win, force=False):
+    """
+    If needed, hide / minimize the in.
+    :param win: PsychoPy window instance
+    :return: None
+    """
+    if force or sys.platform == 'win32':
+        win.winHandle.minimize()  # minimize the PsychoPy window
+        win.winHandle.set_fullscreen(False)
+    elif sys.platform == 'darwin':
+        pass
+    elif sys.platform == 'linux':
+        # TODO: test on Linux, assuming same as macOS right now
+        pass
+    else:
+        print("Warning: Unhandled sys.platform: ", sys.platform)
+
+def showWindow(win, force=False):
+    """
+    If needed, hide / minimize the in.
+    :param win: PsychoPy window instance
+    :return: None
+    """
+    if force or sys.platform == 'win32':
+        win.winHandle.set_fullscreen(True)
+        win.winHandle.maximize()  # maximize the PsychoPy window
+    elif sys.platform == 'darwin':
+        pass
+    elif sys.platform == 'linux':
+        # TODO: test on Linux, assuming same as macOS right now
+        pass
+    else:
+        print("Warning: Unhandled sys.platform: ", sys.platform)
+
 # Recursive updating of values from one dict into another if the key does not key exist.
 # Supported nested dicts and uses deep copy when setting values in the
 # target dict.

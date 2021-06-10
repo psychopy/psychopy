@@ -150,7 +150,7 @@ class ParamCtrls(object):
         elif param.inputType == 'bool':
             self.valueCtrl = paramCtrls.BoolCtrl(parent,
                                          name=fieldName,size=wx.Size(self.valueWidth, 24))
-            self.valueCtrl.SetValue(bool(param.val))
+            self.valueCtrl.SetValue(bool(param))
         elif param.inputType == 'file' or browse:
             self.valueCtrl = paramCtrls.FileCtrl(parent,
                                                  val=str(param.val), valType=param.valType,
@@ -323,6 +323,7 @@ class ParamCtrls(object):
             return self._getCtrlValue(self.updateCtrl)
 
     def setVisible(self, newVal=True):
+        self._visible = newVal
         if hasattr(self.valueCtrl, "ShowAll"):
             self.valueCtrl.ShowAll(newVal)
         else:
@@ -332,6 +333,12 @@ class ParamCtrls(object):
             self.updateCtrl.Show(newVal)
         if self.typeCtrl:
             self.typeCtrl.Show(newVal)
+
+    def getVisible(self):
+        if hasattr(self, "_visible"):
+            return self._visible
+        else:
+            return self.valueCtrl.IsShown()
 
     def expInfoToListWidget(self, expInfoStr):
         """Takes a string describing a dictionary and turns it into a format
@@ -396,7 +403,7 @@ class StartStopCtrls(wx.GridBagSizer):
                 self.Add(self.ctrls[name], (0, 1), border=6, flag=wx.EXPAND | wx.TOP)
             if name in ['startType', 'stopType']:
                 self.ctrls[name] = wx.Choice(parent,
-                                             choices=param.allowedVals,
+                                             choices=param.allowedVals or [param.val],
                                              size=wx.Size(96, 24))
                 self.ctrls[name].SetStringSelection(str(param.val))
                 self.Add(self.ctrls[name], (0, 0), border=6, flag=wx.EXPAND | wx.TOP)
@@ -504,6 +511,7 @@ class ParamNotebook(wx.Notebook, ThemeMixin):
              "true": "Enable",  # what to do with param if condition is True
              "false": "Disable",  # permitted: hide, show, enable, disable
             }"""
+            isChanged = False
             for thisDep in self.parent.element.depends:
                 if not (
                         thisDep['param'] in self.ctrls
@@ -518,8 +526,15 @@ class ParamNotebook(wx.Notebook, ThemeMixin):
                 else:
                     action = thisDep['false']
                 if action == "hide":
+                    # Track change if changed
+                    if dependentCtrls.getVisible():
+                        isChanged = True
+                    # Apply visibiliy
                     dependentCtrls.setVisible(False)
                 elif action == "show":
+                    # Track change if changed
+                    if not dependentCtrls.getVisible():
+                        isChanged = True
                     dependentCtrls.setVisible(True)
                 else:
                     # if action is "enable" then do ctrl.Enable() etc
@@ -530,11 +545,12 @@ class ParamNotebook(wx.Notebook, ThemeMixin):
                                        .format(ctrlName, action.title()))
                             eval(evalStr)
             # Update sizer
-            self.sizer.SetEmptyCellSize((0, 0))
-            self.sizer.Layout()
-            self.Fit()
-            self.dlg.Fit()
-            self.Refresh()
+            if isChanged:
+                self.sizer.SetEmptyCellSize((0, 0))
+                self.sizer.Layout()
+                self.Fit()
+                self.dlg.Fit()
+                self.Refresh()
 
         def doValidate(self, event=None):
             self.Validate()
@@ -761,25 +777,23 @@ class _BaseParamsDlg(wx.Dialog):
         CANCEL = wx.Button(self, wx.ID_CANCEL, _translate(" Cancel "))
 
         # Add validator stuff
-        self.warnings = WarningManager(self, self.OKbtn)
+        self.warnings = WarningManager(self)
         self.mainSizer.Add(self.warnings.output, border=3, flag=wx.EXPAND | wx.ALL)
         self.Validate()  # disables OKbtn if bad name, syntax error, etc
 
         buttons.AddStretchSpacer()
-        if sys.platform == 'darwin':
-            buttons.Add(CANCEL, 0,
-                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
-                        border=3)
-            buttons.Add(self.OKbtn, 0,
-                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
-                        border=3)
+
+        # Add Okay and Cancel buttons
+        if sys.platform == "win32":
+            btns = [self.OKbtn, CANCEL]
         else:
-            buttons.Add(self.OKbtn, 0,
-                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
-                        border=3)
-            buttons.Add(CANCEL, 0,
-                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
-                        border=3)
+            btns = [CANCEL, self.OKbtn]
+        buttons.Add(btns[0], 0,
+                    wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
+                    border=3)
+        buttons.Add(btns[1], 0,
+                    wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
+                    border=3)
 
         # buttons.Realize()
         # add to sizer
@@ -1098,7 +1112,7 @@ class DlgLoopProperties(_BaseParamsDlg):
             checker = ctrl.valueCtrl.GetValidator()
             if checker:
                 checker.Validate(self)
-        return bool(self.warnings._valid)
+        return self.warnings.OK
 
     def makeGlobalCtrls(self):
         panel = wx.Panel(parent=self)
@@ -1596,31 +1610,12 @@ class DlgComponentProperties(_BaseParamsDlg):
         self.app = frame.app
         self.dpi = self.app.dpi
 
-        # for input devices:
-        if 'storeCorrect' in self.params:
-            # do this just to set the initial values to be
-            self.onStoreCorrectChange(event=None)
-            self.Bind(wx.EVT_CHECKBOX, self.onStoreCorrectChange,
-                      self.paramCtrls['storeCorrect'].valueCtrl)
-
         # for all components
         self.show(testing)
         if not testing:
             if self.OK:
                 self.params = self.getParams()  # get new vals from dlg
             self.Destroy()
-
-    def onStoreCorrectChange(self, event=None):
-        """store correct has been checked/unchecked. Show or hide the
-        correctAns field accordingly
-        """
-        if self.paramCtrls['storeCorrect'].valueCtrl.GetValue():
-            self.paramCtrls['correctAns'].valueCtrl.Enable()
-        else:
-            self.paramCtrls['correctAns'].valueCtrl.Disable()
-        self.mainSizer.Layout()
-        self.Fit()
-        self.Refresh()
 
 
 class DlgExperimentProperties(_BaseParamsDlg):

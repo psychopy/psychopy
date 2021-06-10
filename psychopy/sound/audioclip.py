@@ -39,7 +39,7 @@ except (ImportError, ModuleNotFoundError):
     logging.warning(
         "Speech-to-text recognition module not available (use command `pip "
         "install SpeechRecognition` to get it. Transcription will be"
-        " unavailable (i.e. `AudioClip.toText()`).")
+        " unavailable (i.e. `AudioClip.transcribe()`).")
     _hasSpeechRecognition = False
 
 # supported formats for loading and saving audio samples to file

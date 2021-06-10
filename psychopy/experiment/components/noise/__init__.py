@@ -136,7 +136,7 @@ class NoiseStimComponent(BaseVisualComponent):
             "etc. For most cases a value of 256 pixels will suffice")
         self.params['texture resolution'] = Param(
             texRes, categ='Texture',
-            valType='num', inputType="single", allowedVals=['32', '64', '128', '256', '512','1024'],
+            valType='int', inputType="single", allowedVals=['32', '64', '128', '256', '512','1024'],
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized['texture resolution'])

@@ -150,7 +150,7 @@ class DlgCodeComponentProperties(wx.Dialog):
         self.okButton.SetDefault()
         self.cancelButton = wx.Button(self, wx.ID_CANCEL,
                                       _translate(" Cancel "))
-        self.warnings = WarningManager(self, self.okButton)  # to store warnings for all fields
+        self.warnings = WarningManager(self)  # to store warnings for all fields
         self.__do_layout()
         if openToPage is None:
             openToPage = 1
@@ -431,18 +431,17 @@ class DlgCodeComponentProperties(wx.Dialog):
         buttonSizer.Add(self.helpButton, 0,
                         wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, 10)
         buttonSizer.AddStretchSpacer()
-        if sys.platform == 'darwin':
-            buttonSizer.Add(self.cancelButton, 0,
-                            wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
-                            border=3)
-            buttonSizer.Add(self.okButton, 0,
-                            wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
-                            border=3)
+        # Add Okay and Cancel buttons
+        if sys.platform == "win32":
+            btns = [self.okButton, self.cancelButton]
         else:
-            buttonSizer.Add(self.okButton, 0,
-                            wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, border=3)
-            buttonSizer.Add(self.cancelButton, 0,
-                            wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, border=3)
+            btns = [self.cancelButton, self.okButton]
+        buttonSizer.Add(btns[0], 0,
+                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
+                        border=3)
+        buttonSizer.Add(btns[1], 0,
+                        wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
+                        border=3)
 
         mainSizer.Add(buttonSizer, 0, wx.ALL | wx.RIGHT | wx.EXPAND, 5)
         self.SetSizer(mainSizer)
