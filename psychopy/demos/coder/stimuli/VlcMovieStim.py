@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-"""
-Demo using the new (beta) VlcMovieStim to play a video file. Path of video
+"""Demo using the new (beta) VlcMovieStim to play a video file. Path of video
 needs to updated to point to a video you have. 
 
 This requires:
@@ -16,17 +14,19 @@ This requires:
 """
 
 from __future__ import division
+import os
+from psychopy import visual, core, event
 
-from psychopy import visual, core, event, constants
-import time, os
-
+# get the video from the demo resources directory
 videopath = r'./jwpIntro.mov'
 videopath = os.path.join(os.getcwd(), videopath)
 if not os.path.exists(videopath):
     raise RuntimeError("Video File could not be found:" + videopath)
 
+# open a window to display the video
 win = visual.Window([800, 800], fullscr=False)
 
+# create text for instructions
 keystext = "PRESS 'q' or 'escape' to Quit.\n"
 keystext += "'s': Stop and restart\n"
 keystext += "'p': Pause/unpause\n"
@@ -37,14 +37,13 @@ keystext += "'+': Increase volume"
 
 text = visual.TextStim(win, keystext, pos=(0, -250), units='pix')
 
-# Create your movie stim.
+# Create your movie stim
 mov = visual.VlcMovieStim(win, videopath,
     size=600,
     # pos specifies the /center/ of the movie stim location
     pos=[0, 0],
     flipVert=False, flipHoriz=False,
     loop=False, autoStart=True)
-
 
 while not mov.isFinished:
     # Check for action keys.....
@@ -55,31 +54,27 @@ while not mov.isFinished:
         elif key in ['s', ]:
             mov.replay()
         elif key in ['p', ]:
-            # To pause the movie while it is playing....
+            # To pause the movie while it is playing ...
             if mov.isNotStarted or mov.isPaused:
                 mov.play()
             elif mov.isPlaying:
                 mov.pause()
         elif key == 'period':
-            # To skip ahead 1 second in movie.
+            # To skip ahead 1 second in movie ...
             mov.fastForward(1.0)
         elif key == 'comma':
-            # To skip back 1 second in movie ....
+            # To skip back 1 second in movie ...
             mov.rewind(1.0)
         elif key == 'minus':
-            # To decrease movie sound a bit ....
+            # To decrease movie sound a bit ...
             mov.decreaseVolume(5)
         elif key == 'equal':
-            # To increase movie sound a bit ....
+            # To increase movie sound a bit ...
             mov.increaseVolume(5)
 
-    # Only flip when a new frame should be displayed. Can significantly reduce
-    # CPU usage. This only makes sense if the movie is the only /dynamic/ stim
-    # displayed.
     mov.draw()
     text.draw()
     win.flip()
-
 
 win.close()
 core.quit()
