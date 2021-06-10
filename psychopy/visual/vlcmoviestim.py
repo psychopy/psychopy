@@ -1194,13 +1194,22 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
 # WARNING: Due to a limitation of libvlc, you cannot call the API from within
 # the callbacks below. Doing so will result in a deadlock that stalls the
 # application. This applies to any method in the `VloMovieStim` class being
-# called wihtin a callback too. They cannot have any libvlc calls in their
-# routines.
+# called wihtin a callback too. They cannot have any libvlc calls anywhere in
+# the call stack.
 #
 
 @vlc.CallbackDecorators.VideoLockCb
 def vlcLockCallback(user_data, planes):
-    """Callback invoked when VLC has new texture data."""
+    """Callback invoked when VLC has new texture data.
+    """
+    # Need to catch errors caused if a NULL object is passed. Not sure why this
+    # happens but it might be due to the callback being invoked before the
+    # movie stim class is fully realized. This may happen since the VLC library
+    # operates in its own thread and may be processing frames before we are
+    # ready to use them. This `try-except` structure is present in all callback
+    # functions here that pass `user_data` which is a C pointer to the stim
+    # object. Right now, these functions just return when we get a NULL object.
+    #
     try:
         cls = ctypes.cast(
             user_data, ctypes.POINTER(ctypes.py_object)).contents.value
@@ -1215,7 +1224,8 @@ def vlcLockCallback(user_data, planes):
 
 @vlc.CallbackDecorators.VideoUnlockCb
 def vlcUnlockCallback(user_data, picture, planes):
-    """Called when VLC releases the frame draw buffer."""
+    """Called when VLC releases the frame draw buffer.
+    """
     try:
         cls = ctypes.cast(
             user_data, ctypes.POINTER(ctypes.py_object)).contents.value

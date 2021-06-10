@@ -27,7 +27,7 @@ if not os.path.exists(videopath):
 # open a window to display the video
 win = visual.Window([800, 800], fullscr=False)
 
-# create text for instructions
+# create text stim for instructions
 keystext = "PRESS 'q' or 'escape' to Quit.\n"
 keystext += "'s': Stop and restart\n"
 keystext += "'p': Pause/unpause\n"
@@ -35,16 +35,16 @@ keystext += "'>': Seek forward 1 second\n"
 keystext += "'<': Seek backward 1 second\n"
 keystext += "'-': Decrease volume\n"
 keystext += "'+': Increase volume"
-
 text = visual.TextStim(win, keystext, pos=(0, -250), units='pix')
 
 # Create your movie stim
 mov = visual.VlcMovieStim(win, videopath,
     size=600,  # set as `None` to use the native video size
-    # pos specifies the /center/ of the movie stim location
-    pos=[0, 0],
-    flipVert=False, flipHoriz=False,
-    loop=False, autoStart=True)
+    pos=[0, 0],  # pos specifies the /center/ of the movie stim location
+    flipVert=False,  # flip the video picture vertically
+    flipHoriz=False,  # flip the video picture horizontally
+    loop=False,  # replay the video when it reaches the end
+    autoStart=True)  # start the video automatically when first drawn
 
 # main loop, will exit automatically when the movie is finished
 while not mov.isFinished:
@@ -74,9 +74,10 @@ while not mov.isFinished:
             # To increase movie sound a bit (5%) ...
             mov.increaseVolume(5)
 
-    mov.draw()
-    text.draw()
-    win.flip()
+    # draw elements
+    mov.draw()  # movie frame
+    text.draw()  # instruction text overlay
+    win.flip()  # flip buffers to draw the content to the window
 
 win.close()
 core.quit()
