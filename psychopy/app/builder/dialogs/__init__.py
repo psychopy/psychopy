@@ -323,6 +323,7 @@ class ParamCtrls(object):
             return self._getCtrlValue(self.updateCtrl)
 
     def setVisible(self, newVal=True):
+        self._visible = newVal
         if hasattr(self.valueCtrl, "ShowAll"):
             self.valueCtrl.ShowAll(newVal)
         else:
@@ -332,6 +333,12 @@ class ParamCtrls(object):
             self.updateCtrl.Show(newVal)
         if self.typeCtrl:
             self.typeCtrl.Show(newVal)
+
+    def getVisible(self):
+        if hasattr(self, "_visible"):
+            return self._visible
+        else:
+            return self.valueCtrl.IsShown()
 
     def expInfoToListWidget(self, expInfoStr):
         """Takes a string describing a dictionary and turns it into a format
@@ -504,6 +511,7 @@ class ParamNotebook(wx.Notebook, ThemeMixin):
              "true": "Enable",  # what to do with param if condition is True
              "false": "Disable",  # permitted: hide, show, enable, disable
             }"""
+            isChanged = False
             for thisDep in self.parent.element.depends:
                 if not (
                         thisDep['param'] in self.ctrls
@@ -518,8 +526,15 @@ class ParamNotebook(wx.Notebook, ThemeMixin):
                 else:
                     action = thisDep['false']
                 if action == "hide":
+                    # Track change if changed
+                    if dependentCtrls.getVisible():
+                        isChanged = True
+                    # Apply visibiliy
                     dependentCtrls.setVisible(False)
                 elif action == "show":
+                    # Track change if changed
+                    if not dependentCtrls.getVisible():
+                        isChanged = True
                     dependentCtrls.setVisible(True)
                 else:
                     # if action is "enable" then do ctrl.Enable() etc
@@ -530,11 +545,12 @@ class ParamNotebook(wx.Notebook, ThemeMixin):
                                        .format(ctrlName, action.title()))
                             eval(evalStr)
             # Update sizer
-            self.sizer.SetEmptyCellSize((0, 0))
-            self.sizer.Layout()
-            self.Fit()
-            self.dlg.Fit()
-            self.Refresh()
+            if isChanged:
+                self.sizer.SetEmptyCellSize((0, 0))
+                self.sizer.Layout()
+                self.Fit()
+                self.dlg.Fit()
+                self.Refresh()
 
         def doValidate(self, event=None):
             self.Validate()
