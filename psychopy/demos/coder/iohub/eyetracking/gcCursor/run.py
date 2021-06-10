@@ -12,7 +12,7 @@ configuration dict for the eye tracker being used to modify it's settings.
 from psychopy import core, visual
 from psychopy.data import TrialHandler, importConditions
 from psychopy.iohub import launchHubServer
-from psychopy.iohub.util import getCurrentDateTimeString
+from psychopy.iohub.util import getCurrentDateTimeString, hideWindow, showWindow
 import os
 
 # Eye tracker to use ('mouse', 'eyelink', 'gazepoint', or 'tobii')
@@ -156,17 +156,13 @@ if __name__ == "__main__":
     display = io_hub.devices.display
     kb = io_hub.devices.keyboard
 
-    # Start by running the eye tracker default setup / calibration.
-    #
-    window.winHandle.minimize()  # minimize the PsychoPy window
-    window.winHandle.set_fullscreen(False)
-
-    # run eyetracker calibration
-    cal_result = tracker.runSetupProcedure()
-    print("Calibration returned: ", cal_result)
-
-    window.winHandle.set_fullscreen(True)
-    window.winHandle.maximize()  # maximize the PsychoPy window
+    # Minimize the PsychoPy window if needed
+    hideWindow(window)
+    # Display calibration gfx window and run calibration.
+    result = tracker.runSetupProcedure()
+    print("Calibration returned: ", result)
+    # Maximize the PsychoPy window if needed
+    showWindow(window)
 
     flip_time = window.flip()
     io_hub.sendMessageEvent(text="EXPERIMENT_START", sec_time=flip_time)

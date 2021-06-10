@@ -1096,7 +1096,7 @@ class DlgLoopProperties(_BaseParamsDlg):
             checker = ctrl.valueCtrl.GetValidator()
             if checker:
                 checker.Validate(self)
-        return bool(self.warnings._valid)
+        return self.warnings.OK
 
     def makeGlobalCtrls(self):
         panel = wx.Panel(parent=self)
@@ -1594,31 +1594,12 @@ class DlgComponentProperties(_BaseParamsDlg):
         self.app = frame.app
         self.dpi = self.app.dpi
 
-        # for input devices:
-        if 'storeCorrect' in self.params:
-            # do this just to set the initial values to be
-            self.onStoreCorrectChange(event=None)
-            self.Bind(wx.EVT_CHECKBOX, self.onStoreCorrectChange,
-                      self.paramCtrls['storeCorrect'].valueCtrl)
-
         # for all components
         self.show(testing)
         if not testing:
             if self.OK:
                 self.params = self.getParams()  # get new vals from dlg
             self.Destroy()
-
-    def onStoreCorrectChange(self, event=None):
-        """store correct has been checked/unchecked. Show or hide the
-        correctAns field accordingly
-        """
-        if self.paramCtrls['storeCorrect'].valueCtrl.GetValue():
-            self.paramCtrls['correctAns'].valueCtrl.Enable()
-        else:
-            self.paramCtrls['correctAns'].valueCtrl.Disable()
-        self.mainSizer.Layout()
-        self.Fit()
-        self.Refresh()
 
 
 class DlgExperimentProperties(_BaseParamsDlg):
