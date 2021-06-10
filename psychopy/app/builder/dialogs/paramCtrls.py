@@ -46,7 +46,7 @@ class _ValidatorMixin():
         if not hasattr(self, "SetFont") or self.GetName() == "name":
             # Skip if font not applicable to object type
             return
-        if valType == "code":
+        if valType == "code" or hasattr(self, "dollarLbl"):
             # Set font
             self.SetFont(self.GetTopLevelParent().app._codeFont)
         else:
