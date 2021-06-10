@@ -130,7 +130,16 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         self.flipVert = flipVert
         self.flipHoriz = flipHoriz
         self.pos = numpy.asarray(pos, float)
-        self.size = numpy.asarray(size, float)
+
+        # original size to keep BaseVisualStim happy
+        self._origSize = numpy.asarray((128, 128,), float)
+
+        # Defer setting size until after the video is loaded to use it's native
+        # size instead of the one set by the user.
+        self._useFrameSizeFromVideo = size is None
+        if not self._useFrameSizeFromVideo:
+            self.size = numpy.asarray(size, float)
+
         self.depth = depth
         self.opacity = float(opacity)
 
@@ -359,6 +368,12 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         videoWidth, videoHeight = self._player.video_get_size()
         self._videoWidth = videoWidth
         self._videoHeight = videoHeight
+
+        # set the video size
+        if self._useFrameSizeFromVideo:
+            self.size = self._origSize = numpy.array(
+                (self._videoWidth, self._videoHeight), float)
+
         self._frameRate = self._player.get_fps()
         self._frameCounter = self._loopCount = 0
         self._streamEnded = False
@@ -401,6 +416,7 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
 
         self._stream.release()
         self._stream = self._player = None
+        self._useFrameSizeFromVideo = True
 
         # unregister callbacks before freeing buffers
         self._freeBuffers()

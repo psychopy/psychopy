@@ -40,7 +40,7 @@ text = visual.TextStim(win, keystext, pos=(0, -250), units='pix')
 
 # Create your movie stim
 mov = visual.VlcMovieStim(win, videopath,
-    size=600,
+    size=600,  # set as `None` to use the native video size
     # pos specifies the /center/ of the movie stim location
     pos=[0, 0],
     flipVert=False, flipHoriz=False,
