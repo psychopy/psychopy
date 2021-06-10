@@ -208,9 +208,10 @@ class Param(object):
                             val = val[1:]
                     if self.valType in ['file', 'table']:
                         # If param is a file of any kind, use Path to make sure it's valid
-                        val = str(Path(val))
-                    val=re.sub("\n", "\\n", val) # Replace line breaks with escaped line break character
-                    return repr(val)
+                        val = Path(val).as_posix()  # Convert to a valid path with / not \
+                    val=re.sub("\n", "\\n", val)  # Replace line breaks with escaped line break character
+                    val=re.sub("\\\\", "/", val)  # handle older exps where files were valType=str not file
+                    return repr(val)                              
             return repr(self.val)
         elif self.valType in ['code', 'extendedCode']:
             isStr = isinstance(self.val, basestring)
