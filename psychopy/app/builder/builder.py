@@ -2176,6 +2176,8 @@ class StandaloneRoutineCanvas(scrolledpanel.ScrolledPanel, ThemeMixin):
                 self.frame.exp.routines[self.routine.params['name'].val] = self.frame.exp.routines.pop(name)
         # Redraw the flow panel
         self.frame.flowPanel.draw()
+        # Update save button
+        self.frame.setIsModified(True)
 
     def Validate(self, *args, **kwargs):
         return self.ctrls.Validate()
