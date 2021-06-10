@@ -213,7 +213,7 @@ class TrialHandler(object):
                         seed=seed))
         buff.writeIndentedLines(code)
         buff.setIndentLevel(2, relative=True)
-        code = ("TrialHandler.fromSnapshot(snapshot); // ensure that thisN vals are up to date\n\n"
+        code = ("TrialHandler.fromSnapshot(snapshot); // update internal variables (.thisN etc) of the loop\n\n"
                 "// set up handler to look after randomisation of conditions etc\n"
                 "{loopName} = new TrialHandler({{\n"
                 "  psychoJS: psychoJS,\n"
