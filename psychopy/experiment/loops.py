@@ -213,7 +213,7 @@ class TrialHandler(object):
                         seed=seed))
         buff.writeIndentedLines(code)
         buff.setIndentLevel(2, relative=True)
-        code = ("TrialHandler.fromSnapshot(snapshot);\n\n"
+        code = ("TrialHandler.fromSnapshot(snapshot); // ensure that thisN vals are up to date\n\n"
                 "// set up handler to look after randomisation of conditions etc\n"
                 "{loopName} = new TrialHandler({{\n"
                 "  psychoJS: psychoJS,\n"
@@ -252,8 +252,8 @@ class TrialHandler(object):
             if thisChild.getType() == 'Routine':
                 code += (
                     "  {loopName}LoopScheduler.add({childName}RoutineBegin(snapshot));\n"
-                    "  {loopName}LoopScheduler.add({childName}RoutineEachFrame(snapshot));\n"
-                    "  {loopName}LoopScheduler.add({childName}RoutineEnd(snapshot));\n"
+                    "  {loopName}LoopScheduler.add({childName}RoutineEachFrame());\n"
+                    "  {loopName}LoopScheduler.add({childName}RoutineEnd());\n"
                     .format(childName=thisChild.params['name'],
                             loopName=self.params['name'])
                     )

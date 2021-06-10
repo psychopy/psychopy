@@ -458,7 +458,7 @@ class Routine(list):
         buff.writeIndentedLines("return async function () {\n")
         buff.setIndentLevel(1, relative=True)
 
-        code = ("TrialHandler.fromSnapshot(snapshot);\n\n"
+        code = ("TrialHandler.fromSnapshot(snapshot); // ensure that .thisN vals are up to date\n\n"
                 "//------Prepare to start Routine '%(name)s'-------\n"
                 "t = 0;\n"
                 "%(name)sClock.reset(); // clock\n"
@@ -512,7 +512,7 @@ class Routine(list):
 
         # write code for each frame
 
-        code = ("\nfunction %(name)sRoutineEachFrame(snapshot) {\n" % self.params)
+        code = ("\nfunction %(name)sRoutineEachFrame() {\n" % self.params)
         buff.writeIndentedLines(code)
         buff.setIndentLevel(1, relative=True)
         buff.writeIndentedLines("return async function () {\n")
@@ -586,7 +586,7 @@ class Routine(list):
         # can we use non-slip timing?
         maxTime, useNonSlip = self.getMaxTime()
 
-        code = ("\nfunction %(name)sRoutineEnd(snapshot) {\n" % self.params)
+        code = ("\nfunction %(name)sRoutineEnd() {\n" % self.params)
         buff.writeIndentedLines(code)
         buff.setIndentLevel(1, relative=True)
         buff.writeIndentedLines("return async function () {\n")
