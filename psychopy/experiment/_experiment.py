@@ -195,7 +195,7 @@ class Experiment(object):
         self_copy = deepcopy(self)
         for key, routine in list(self_copy.routines.items()):  # PY2/3 compat
             if isinstance(routine, BaseStandaloneRoutine):
-                if routine.params['disabled'].val:
+                if routine.params['disabled']:
                     for node in self_copy.flow:
                         if node == routine:
                             self_copy.flow.removeComponent(node)
