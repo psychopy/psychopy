@@ -496,11 +496,11 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
         # the buffer bound for setting the texture.
         GL.glUnmapBuffer(GL.GL_PIXEL_UNPACK_BUFFER)
 
-        # bind the texture in openGL
-        GL.glEnable(GL.GL_TEXTURE_2D)
 
+        # bind the texture in openGL
         # copy the PBO to the texture
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
+        GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glTexSubImage2D(
             GL.GL_TEXTURE_2D, 0, 0, 0,
             self._numpyFrame.shape[1],
@@ -570,11 +570,12 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
         vertsPix = self.verticesPix
 
         # bind textures
-        GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glActiveTexture(GL.GL_TEXTURE1)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+        GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
+        GL.glEnable(GL.GL_TEXTURE_2D)
 
         # sets opacity (1,1,1 = RGB placeholder)
         GL.glColor4f(1, 1, 1, self.opacity)

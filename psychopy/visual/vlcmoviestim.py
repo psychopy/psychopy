@@ -491,6 +491,7 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         # buffer. Only one texture needs to be allocated.
         GL.glGenTextures(1, ctypes.byref(self._textureId))
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._textureId)
+        GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glTexImage2D(
             GL.GL_TEXTURE_2D,
             0,
@@ -573,10 +574,9 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         GL.glUnmapBuffer(GL.GL_PIXEL_UNPACK_BUFFER)
 
         # bind the texture in OpenGL
-        GL.glEnable(GL.GL_TEXTURE_2D)
-
-        # copy the PBO to the texture
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._textureId)
+        GL.glEnable(GL.GL_TEXTURE_2D)
+        # copy the PBO to the texture
         GL.glTexSubImage2D(
             GL.GL_TEXTURE_2D, 0, 0, 0,
             self._videoWidth,
@@ -1099,8 +1099,8 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
             vertsPix[3, 0], vertsPix[3, 1], 0.,
         )
         GL.glPushAttrib(GL.GL_ENABLE_BIT)
-        GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._textureId)
+        GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glPushClientAttrib(GL.GL_CLIENT_VERTEX_ARRAY_BIT)
         # 2D texture array, 3D vertex array
         GL.glInterleavedArrays(GL.GL_T2F_V3F, 0, array)
