@@ -51,6 +51,7 @@ class VariableComponent(BaseComponent):
         del self.params['stopVal']
         del self.params['startEstim']
         del self.params['durationEstim']
+        del self.params['saveStartStop']
 
         categories = ['Custom']
         self.type = 'Variable'
@@ -130,55 +131,58 @@ class VariableComponent(BaseComponent):
     def writeFrameCode(self, buff):
         """Write the code that will be called at the start of the frame."""
         if not self.params['startFrameValue'] == '':
-            basestring = (str, bytes)
-            # Create dict for hold start and end types and converting them from types to variables
-            timeTypeDict = {'time (s)': 't', 'frame N': 'frameN', 'condition': self.params['startVal'].val,
-                            'duration (s)': 't','duration (frames)': 'frameN'}
-            # Useful values for string creation
-            startType = timeTypeDict[self.params['startType'].val]
-            endType = timeTypeDict[self.params['stopType'].val]
-            code = ''
-            # Create default string
-            frameCode = ("%(name)s = %(startFrameValue)s  # Set frame start values for %(name)s\n" % self.params)
-            if not self.params['saveFrameValue'] == 'Never':
-                frameCode += ("%(name)sContainer.append(%(name)s)  # Save frame values\n" % self.params)
-            # Check for start or end values, and commence conditional timing string creation
-            if self.params['startVal'].val or self.params['stopVal'].val:
-                if self.params['startType'].val == 'time (s)':
-                    # if startVal is an empty string then set to be 0.0
-                    if (isinstance(self.params['startVal'].val, basestring) and
-                            not self.params['startVal'].val.strip()):
-                        self.params['startVal'].val = '0.0'
-
-                # Begin string construction for start values
-                if startType == 't':
-                    code = (('if ' + startType + ' >= %(startVal)s') % self.params)
-                elif startType == 'frameN':
-                    code = (('if ' + startType + ' >= %(startVal)s') % self.params)
-                elif self.params['startType'].val == 'condition':
-                    code = ('if bool(%(startVal)s)' % self.params)
-
-                # Begin string construction for end values
-                if not self.params['stopVal'].val:
-                    code += (':\n' % self.params)
-                # Duration types must be calculated
-                elif u'duration' in self.params['stopType'].val:
-                    if 'frame' in self.params['startType'].val and 'frame' in self.params['stopType'].val \
-                            or '(s)' in self.params['startType'].val and '(s)' in self.params['stopType'].val:
-                        endTime = str((float(self.params['startVal'].val) + float(self.params['stopVal'].val)))
-                    else:  # do not add mismatching value types
-                        endTime = self.params['stopVal'].val
-                    code += (' and ' + endType + ' <= ' + endTime + ':\n' % (self.params))
-                elif endType == 't' :
-                    code += (' and ' + endType + ' <= %(stopVal)s:\n' % (self.params))
-                elif endType == 'frameN' :
-                    code += (' and ' + endType + ' <= %(stopVal)s:\n' % (self.params))
-                elif self.params['stopType'].val == 'condition':
-                    code += (' and bool(%(stopVal)s):\n' % self.params)
-                code += ''.join(['    ' + lines + '\n' for lines in frameCode.splitlines()])
-            else:
-                code = frameCode
-            buff.writeIndentedLines(code)
+            # basestring = (str, bytes)
+            # # Create dict for hold start and end types and converting them from types to variables
+            # timeTypeDict = {'time (s)': 't', 'frame N': 'frameN', 'condition': self.params['startVal'].val,
+            #                 'duration (s)': 't','duration (frames)': 'frameN'}
+            # # Useful values for string creation
+            # startType = timeTypeDict[self.params['startType'].val]
+            # endType = timeTypeDict[self.params['stopType'].val]
+            # code = ''
+            # # Create default string
+            # frameCode = ("%(name)s = %(startFrameValue)s  # Set frame start values for %(name)s\n" % self.params)
+            # if not self.params['saveFrameValue'] == 'Never':
+            #     frameCode += ("%(name)sContainer.append(%(name)s)  # Save frame values\n" % self.params)
+            # # Check for start or end values, and commence conditional timing string creation
+            # if self.params['startVal'].val or self.params['stopVal'].val:
+            #     if self.params['startType'].val == 'time (s)':
+            #         # if startVal is an empty string then set to be 0.0
+            #         if (isinstance(self.params['startVal'].val, basestring) and
+            #                 not self.params['startVal'].val.strip()):
+            #             self.params['startVal'].val = '0.0'
+            #
+            #     # Begin string construction for start values
+            #     if startType == 't':
+            #         code = (('if ' + startType + ' >= %(startVal)s') % self.params)
+            #     elif startType == 'frameN':
+            #         code = (('if ' + startType + ' >= %(startVal)s') % self.params)
+            #     elif self.params['startType'].val == 'condition':
+            #         code = ('if bool(%(startVal)s)' % self.params)
+            #
+            #     # Begin string construction for end values
+            #     if not self.params['stopVal'].val:
+            #         code += (':\n' % self.params)
+            #     # Duration types must be calculated
+            #     elif u'duration' in self.params['stopType'].val:
+            #         if 'frame' in self.params['startType'].val and 'frame' in self.params['stopType'].val \
+            #                 or '(s)' in self.params['startType'].val and '(s)' in self.params['stopType'].val:
+            #             endTime = str((float(self.params['startVal'].val) + float(self.params['stopVal'].val)))
+            #         else:  # do not add mismatching value types
+            #             endTime = self.params['stopVal'].val
+            #         code += (' and ' + endType + ' <= ' + endTime + ':\n' % (self.params))
+            #     elif endType == 't' :
+            #         code += (' and ' + endType + ' <= %(stopVal)s:\n' % (self.params))
+            #     elif endType == 'frameN' :
+            #         code += (' and ' + endType + ' <= %(stopVal)s:\n' % (self.params))
+            #     elif self.params['stopType'].val == 'condition':
+            #         code += (' and bool(%(stopVal)s):\n' % self.params)
+            #     code += ''.join(['    ' + lines + '\n' for lines in frameCode.splitlines()])
+            # else:
+            #     code = frameCode
+            code = (
+                "%(name)s = %(startFrameValue)s  # Set frame start values for %(name)s\n"
+            )
+            buff.writeIndentedLines(code % self.params)
 
     def writeRoutineEndCode(self, buff):
         """Write the code that will be called at the end of the routine."""
