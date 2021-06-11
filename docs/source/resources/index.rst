@@ -77,7 +77,6 @@ Previous events
 --------------------
 
 - ECEM, August 2013 : Python for eye-tracking workshop with (Sol Simpson, Michael MacAskill and Jon Peirce). `Download Python-for-eye-tracking materials <ECEM_Python_materials.zip>`_
-- :ref:`VSS`
 
 
 .. _School of Psychology, University of Nottingham: http://www.nottingham.ac.uk/psychology
