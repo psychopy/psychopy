@@ -202,7 +202,7 @@ class Experiment(object):
             else:
                 for component in routine:
                     try:
-                        if component.params['disabled'].val:
+                        if component.params['disabled']:
                             routine.removeComponent(component)
                     except KeyError:
                         pass
