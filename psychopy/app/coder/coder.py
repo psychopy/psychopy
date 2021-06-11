@@ -2365,9 +2365,10 @@ class CoderFrame(wx.Frame, ThemeMixin):
         if not filename:
             # get path of current file (empty if current file is '')
             if hasattr(self.currentDoc, 'filename'):
-                initPath = os.path.split(self.currentDoc.filename)[0]
+                initPath = str(Path(self.currentDoc.filename).parent)
             else:
-                initPath = ''
+                initPath = None
+            # Open dlg
             dlg = wx.FileDialog(
                 self, message=_translate("Open file ..."),
                 defaultDir=initPath, style=wx.FD_OPEN

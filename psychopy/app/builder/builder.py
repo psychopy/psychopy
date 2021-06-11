@@ -659,12 +659,20 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         """Open a FileDialog, then load the file if possible.
         """
         if filename is None:
+            # Set wildcard
             if sys.platform != 'darwin':
                 wildcard = _translate("PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*.*")
             else:
                 wildcard = _translate("PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*")
+            # get path of current file (empty if current file is '')
+            if self.filename:
+                initPath = str(Path(self.filename).parent)
+            else:
+                initPath = None
+            # Open dlg
             dlg = wx.FileDialog(self, message=_translate("Open file ..."),
-                                style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST,
+                                defaultDir=initPath,
+                                style=wx.FD_OPEN,
                                 wildcard=wildcard)
             if dlg.ShowModal() != wx.ID_OK:
                 return 0
