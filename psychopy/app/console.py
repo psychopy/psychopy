@@ -86,6 +86,10 @@ class StdStreamDispatcher(object):
         """
         return cls._initialized
 
+    def redirect(self):
+        """Redirect `stdout` and `stderr` to listeners."""
+        sys.stdout = sys.stderr = self
+
     def write(self, text):
         """Send text standard output to all listeners (legacy). This method is
         used for compatibility for older code. This makes it so an instance of
