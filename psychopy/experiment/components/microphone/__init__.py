@@ -331,7 +331,7 @@ class MicrophoneComponent(BaseComponent):
             inits['loop'] = self.exp.flow._loopList[-1].params['name']
             inits['filename'] = f"'recording_{inits['name']}_{inits['loop']}_%s.{inits['outputType']}' % {inits['loop']}.thisTrialN)"
         else:
-            inits['loop'] = ""
+            inits['loop'] = "thisExp"
             inits['filename'] = f"'recording_{inits['name']}'"
         transcribe = inits['transcribe'].val
         if inits['transcribe'].val == False:
