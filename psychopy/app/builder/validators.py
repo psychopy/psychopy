@@ -121,6 +121,10 @@ class ValidatorWarning(object):
         """`True` if this is a namespace warning (`bool`)."""
         return self._kind == VALIDATOR_WARNING_NAME
 
+    @property
+    def allowed(self):
+        """`True` if this is a non-critical message which doesn't disable the OK button"""
+        return self.kind in [VALIDATOR_WARNING_FONT_MISSING]
 
 class WarningManager(object):
     """Manager for warnings produced by validators associated with controls
@@ -158,7 +162,10 @@ class WarningManager(object):
     @property
     def OK(self):
         """`True` if there are no warnings (`bool`)."""
-        return len(self._warnings) == 0
+        if len(self._warnings) == 0:
+            return True
+        else:
+            return all(warning.allowed for warning in self._warnings.values())
 
     @property
     def parent(self):
@@ -491,6 +498,8 @@ class CodeSnippetValidator(BaseValidator):
                 ).format(val=val)
                 parent.warnings.setWarning(
                     control, msg=msg, kind=VALIDATOR_WARNING_FONT_MISSING)
+            else:
+                parent.warnings.clearWarning(control)
 
         # Validate as code
         if codeWanted or isCodeField:
