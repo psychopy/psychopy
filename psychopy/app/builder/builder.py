@@ -2644,6 +2644,8 @@ class ReadmeFrame(wx.Frame):
         self.rawText = ""
         self.ctrl = HtmlWindow(self, wx.ID_ANY)
         self.ctrl.Bind(wx.html.EVT_HTML_LINK_CLICKED, self.onUrl)
+        # Style
+        self.ctrl.SetFonts(normal_face="Open Sans", fixed_face="JetBrains Mono", sizes=[8, 10, 12, 14, 16, 18, 20])
 
     def onUrl(self, evt=None):
         webbrowser.open(evt.LinkInfo.Href)
