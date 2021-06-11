@@ -451,7 +451,7 @@ class MicrophoneComponent(BaseComponent):
         # Save recording
         code = (
             "# save %(name)s recordings\n"
-            "for tag in mic.clips:"
+            "for tag in %(name)s.clips:"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(1, relative=True)
