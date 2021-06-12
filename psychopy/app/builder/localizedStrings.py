@@ -18,6 +18,31 @@ import glob
 from psychopy.localization import _localized as _localizedBase
 from psychopy.localization import _translate
 
+_localizedCategories = {
+    'Basic': _translate('Basic'),
+    'Color': _translate('Color'),
+    'Layout': _translate('Layout'),
+    'Data': _translate('Data'),
+    'Screen': _translate('Screen'),
+    'Dots': _translate('Dots'),
+    'Grating': _translate('Grating'),
+    'Advanced': _translate('Advanced'),
+    'Custom': _translate('Custom'),
+    'Carrier': _translate('Carrier'),
+    'Envelope': _translate('Envelope'),
+    'Appearance': _translate('Appearance'),
+    'Save': _translate('Save'),
+    'Online':_translate('Online'),
+    'Testing':_translate('Testing'),
+    'Audio':_translate('Audio'),
+    'Format':_translate('Format'),
+    'Formatting':_translate('Formatting'),
+    'Eyetracking':_translate('Eyetracking'),
+    'Target':_translate('Target'),
+    'Animation':_translate('Animation'),
+    'Transcription':_translate('Transcription')
+}
+
 _localizedDialogs = {
     # strings for all allowedVals (from all components) go here:
     # interpolation
@@ -123,6 +148,7 @@ _localizedDialogs = {
 
 
 _localized = copy.copy(_localizedBase)
+_localized.update(_localizedCategories)
 _localized.update(_localizedDialogs)
 
 thisDir = os.path.dirname(os.path.abspath(__file__))
