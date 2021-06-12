@@ -144,7 +144,15 @@ _localizedDialogs = {
     'Builder variable': _translate('Builder variable'),
     'Psychopy module': _translate('Psychopy module'),
     'numpy function': _translate('numpy function'),
-    'python keyword': _translate('python keyword')}
+    'python keyword': _translate('python keyword'),
+    # Eyetracker - ROI
+    'look at': _translate('look at'),
+    'look away': _translate('look away'),
+    'every look': _translate('every look'),
+    'first look': _translate('first look'),
+    'last look': _translate('last look'),
+    'roi onset': _translate('roi onset')
+}
 
 
 _localized = copy.copy(_localizedBase)
