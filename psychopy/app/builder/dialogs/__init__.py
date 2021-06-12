@@ -395,10 +395,12 @@ class StartStopCtrls(wx.GridBagSizer):
                 self.label = wx.StaticText(parent, label=param.label)
                 self.Add(self.ctrls[name], (0, 1), border=6, flag=wx.EXPAND | wx.TOP)
             if name in ['startType', 'stopType']:
+                localizedChoices = list(map(_translate, param.allowedVals))
                 self.ctrls[name] = wx.Choice(parent,
-                                             choices=param.allowedVals,
+                                             choices=localizedChoices,
                                              size=wx.Size(96, 24))
-                self.ctrls[name].SetStringSelection(str(param.val))
+                self.ctrls[name]._choices = copy.copy(param.allowedVals)
+                self.ctrls[name].SetSelection(param.allowedVals.index(str(param.val)))
                 self.Add(self.ctrls[name], (0, 0), border=6, flag=wx.EXPAND | wx.TOP)
             if name in ['startEstim', 'durationEstim']:
                 self.ctrls[name] = wx.TextCtrl(parent,
@@ -591,6 +593,11 @@ class ParamNotebook(wx.Notebook, ThemeMixin):
 
         The new data from the dlg get inserted back into the original params
         used in __init__ and are also returned from this method.
+        
+        .. note::
+            Don't use GetStringSelection() here to avoid that translated value
+            is returned. Instead, use GetSelection() to get index of selection
+            and get untranslated value from _choices attribute.
         """
         # get data from input fields
         for fieldName in self.params:
@@ -601,17 +608,22 @@ class ParamNotebook(wx.Notebook, ThemeMixin):
             if hasattr(ctrl, "getValue"):
                 param.val = ctrl.getValue()
             elif isinstance(ctrl, wx.Choice):
-                param.val = ctrl.GetStringSelection()
+                if hasattr(ctrl, "_choices"):
+                    param.val = ctrl._choices[ctrl.GetSelection()]
+                else:
+                    # use GetStringSelection()
+                    # only if this control doesn't has _choices
+                    param.val = ctrl.GetStringSelection()
             elif hasattr(ctrl, "GetValue"):
                 param.val = ctrl.GetValue()
             # Get type
             if hasattr(ctrl, "typeCtrl"):
                 if ctrl.typeCtrl:
-                    param.valType = ctrl.typeCtrl.GetStringSelection()
+                    param.valType = ctrl.typeCtrl._choices[ctrl.typeCtrl.GetSelection()]
             # Get update type
             if hasattr(ctrl, "updateCtrl"):
                 if ctrl.updateCtrl:
-                    updates = ctrl.updateCtrl.GetStringSelection()
+                    updates = ctrl.updateCtrl._choices[ctrl.updateCtrl.GetSelection()]
                     # may also need to update a static
                     if param.updates != updates:
                         self._updateStaticUpdates(fieldName,
