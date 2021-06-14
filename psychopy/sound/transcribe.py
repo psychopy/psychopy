@@ -236,11 +236,17 @@ def transcribe(samples, sampleRate, engine='sphinx', language='en-US',
         BCP-47 language code (eg., 'en-US'). Note that supported languages
         vary between transcription engines.
     expectedWords : list or tuple
-        List of strings representing expected words. This will constrain the
-        possible output words to the ones specified. Note not all engines
-        support this feature (only Sphinx and Google Cloud do at this time).
-        A warning will be logged if the engine selected does not support
-        this feature.
+        List of strings representing expected words or phrases. This will
+        constrain the possible output words to the ones specified. Note not all
+        engines support this feature (only Sphinx and Google Cloud do at this
+        time). A warning will be logged if the engine selected does not support
+        this feature. CMU PocketSphinx has an additional feature where the
+        sensitivity can be specified for each expected word. You can indicate
+        the sensitivity level to use by putting a ``:`` after each word in the
+        list (see the Example below). Sensitivity levels range between 50 and
+        100. A higher number results in the engine being more conservative,
+        resulting in a higher likelihood of false rejections. The default
+        sensitivity is 80% for words/phrases without one specified.
     key : str or None
         API key or credentials, format depends on the API in use. If `None`,
         the values will be obtained elsewhere (See Notes).
@@ -275,6 +281,9 @@ def transcribe(samples, sampleRate, engine='sphinx', language='en-US',
       file path, if so, the key data will be loaded from the file. System
       administrators can specify keys this way to use them across a site
       installation without needing the user manage the keys directly.
+    * Use `expectedWords` if provided by the API. This will greatly speed up
+      recognition. CMU Pocket Sphinx gives the option for sensitivity levels per
+      phrase. Higher levels
 
     Examples
     --------
@@ -288,6 +297,20 @@ def transcribe(samples, sampleRate, engine='sphinx', language='en-US',
             words = transcribeResults.words
             if 'hello' in words:
                 print('You said hello.')
+
+    Specifying expected words with sensitivity levels when using CMU Pocket
+    Sphinx:
+
+        # expected words 90% confidence on the first two, default for the rest
+        expectedWords = ['right:90', 'left:90', 'up', 'down']
+
+        transcribeResults = transcribe(
+            resp.samples,
+            resp.sampleRateHz,
+            expectedWords=expectedWords)
+
+        if transcribeResults.success:  # successful transcription
+            # process results ...
 
     """
     # Bunch of checks to make sure the parameters specified are correct.
@@ -319,7 +342,20 @@ def transcribe(samples, sampleRate, engine='sphinx', language='en-US',
     # API specific config
     expectedWordsNotSupported = requiresKey = False
     if engine == 'sphinx':
-        config['keyword_entries'] = expectedWords
+        # sensitivity specified as `word:80`
+        expectedWordsTemp = []
+        for word in expectedWords:
+            wordAndSense= word.split(':')
+            if len(wordAndSense) == 2:  # specified as `word:80`
+                word, confidence = wordAndSense
+                sensitivity = int(confidence) / 100.
+            else:
+                word = wordAndSense[0]
+                sensitivity = 0.8  # default is 80% confidence
+
+            expectedWordsTemp.append((word, sensitivity))
+
+        config['keyword_entries'] = expectedWordsTemp
     elif engine == 'googleCloud':
         config['preferred_phrases'] = expectedWords
         requiresKey = True
