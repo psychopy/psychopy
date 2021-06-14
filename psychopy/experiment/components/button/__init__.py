@@ -306,7 +306,7 @@ class ButtonComponent(BaseVisualComponent):
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(1, relative=True)
         code = (
-            f"%(name)s.buttonClock.reset() # keep clock at 0 if button hasn't started / has finished\n"
+            f"%(name)s.buttonClock.reset() # keep clock at 0 if %(name)s hasn't started / has finished\n"
             f"%(name)s.wasClicked = False  # if %(name)s is clicked next frame, it is a new click\n"
         )
         buff.writeIndentedLines(code % inits)
@@ -388,8 +388,8 @@ class ButtonComponent(BaseVisualComponent):
 
         # Store current button press as last
         code = (
-                    "// if button is still clicked next frame, it is not a new click\n"
-                    "button.wasClicked = true;\n"
+                    "// if %(name)s is still clicked next frame, it is not a new click\n"
+                    "%(name)s.wasClicked = true;\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
@@ -417,7 +417,7 @@ class ButtonComponent(BaseVisualComponent):
         code = (
                 "// keep clock at 0 if %(name)s hasn't started / has finished\n"
                 "%(name)s.clock.reset();\n"
-                "// if button is clicked next frame, it is a new click\n"
+                "// if %(name)s is clicked next frame, it is a new click\n"
                 "%(name)s.wasClicked = false;\n"
         )
         buff.writeIndentedLines(code % inits)
