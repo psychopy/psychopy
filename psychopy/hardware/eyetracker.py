@@ -1,7 +1,7 @@
 from psychopy.constants import STARTED, NOT_STARTED, PAUSED, STOPPED, FINISHED
 from psychopy.alerts import alert
 from copy import copy
-
+import sys
 
 class EyetrackerControl:
     def __init__(self, server, tracker=None):
@@ -151,11 +151,7 @@ class EyetrackerCalibration:
             yield key, value
 
     def run(self):
-        from psychopy.iohub.util import hideWindow, showWindow
         tracker = self.eyetracker.getIOHubDeviceClass(full=True)
-
-        # Minimise PsychoPy window
-        hideWindow(self.win)
 
         # Deliver any alerts as needed
         if tracker == 'eyetracker.hw.sr_research.eyelink.EyeTracker':
@@ -168,11 +164,20 @@ class EyetrackerCalibration:
                 # As GazePoint doesn't use auto-pace, alert user
                 alert(4530, strFields={"brand": "GazePoint"})
 
+        # Minimise PsychoPy window
+        if sys.platform == 'win32':
+            self.win.winHandle.set_fullscreen(False)
+            self.win.winHandle.minimize()
+
         # Run
         self.last = self.eyetracker.runSetupProcedure(dict(self))
 
         # Bring back PsychoPy window
-        showWindow(self.win)
+        if sys.platform == 'win32':
+            self.win.winHandle.set_fullscreen(True)
+            self.win.winHandle.maximize()
+            # Not 100% sure activate is necessary, but does not seem to hurt.
+            self.win.winHandle.activate()
 
         # SS: Flip otherwise black screen has been seen, not sure why this just started....
         self.win.flip()

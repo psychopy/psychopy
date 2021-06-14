@@ -88,7 +88,7 @@ class PolygonComponent(BaseVisualComponent):
         self.params['vertices'] = Param(
             vertices, valType='list', inputType='single', categ='Basic',
             updates='constant',
-            allowedUpdates=['constant'],
+            allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
             label=_translate("Vertices")
         )
