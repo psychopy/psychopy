@@ -34,18 +34,6 @@ except (ImportError, ModuleNotFoundError):
         "unavailable.")
     _hasSpeechRecognition = False
 
-
-# Get references to recognizers for various supported speech-to-text engines
-# available through the `SpeechRecognition` package.
-_recognizers = {}
-_apiKey = ''  # API key loaded by _getAPIKey()
-if _hasSpeechRecognition:
-    _recognizers['sphinx'] = sr.Recognizer().recognize_sphinx
-    _recognizers['google'] = sr.Recognizer().recognize_google
-    _recognizers['googleCloud'] = sr.Recognizer().recognize_google_cloud
-    _recognizers['bing'] = sr.Recognizer().recognize_bing
-    _recognizers['azure'] = _recognizers['bing']
-
 # Constants related to the transcription system.
 TRANSCRIPTION_LANG_DEFAULT = 'en-US'
 
@@ -55,8 +43,35 @@ transcriberEngineValues = {
     0: ('sphinx', "CMU Pocket Sphinx", "Offline, Built-in"),
     1: ('google', "Google Speech Recognition", "Online"),
     2: ('googleCloud', "Google Cloud Speech API", "Online, Key Required"),
-    3: ('bing', "Microsoft Bing Voice Recognition", "Online, Key Required")
+    3: ('azure', "Microsoft Azure/Bing Voice Recognition",
+        "Online, Key Required")
 }
+
+# Names of environment variables which API keys may be stored. These cover
+# online services only. These are only used by the `_
+apiKeyNames = {
+    'google': ('PSYCHOPY_TRANSCR_KEY_GOOGLE', 'transcrKeyGoogle'),
+    'googleCloud':
+        ('PSYCHOPY_TRANSCR_KEY_GOOGLE_CLOUD', 'transcrKeyGoogleCloud'),
+    'bing': ('PSYCHOPY_TRANSCR_KEY_AZURE', 'transcrKeyAzure')  # alias Azure
+}
+
+# Get references to recognizers for various supported speech-to-text engines
+# available through the `SpeechRecognition` package.
+_recognizers = {}
+_apiKeys = {}  # API key loaded
+if _hasSpeechRecognition:
+    _recognizers['sphinx'] = sr.Recognizer().recognize_sphinx
+    _recognizers['google'] = sr.Recognizer().recognize_google
+    _recognizers['googleCloud'] = sr.Recognizer().recognize_google_cloud
+    _recognizers['bing'] = sr.Recognizer().recognize_bing
+    _recognizers['azure'] = _recognizers['bing']
+
+    # Get API keys for each engine here. Calling `refreshTranscKeys()`
+    # finalizes these values. If any of these are not defined as environment
+    # variables, they will be obtained from preferences.
+    _apiKeys['google'] = _apiKeys['googleCloud'] = _apiKeys['bing'] = None
+    _apiKeys['azure'] = _apiKeys['bing']
 
 
 # ------------------------------------------------------------------------------
@@ -319,13 +334,16 @@ def transcribe(samples, sampleRate, engine='sphinx', language='en-US',
 
     # API requires a key
     if requiresKey:
-        config['key'] = _getAPIKey() if key is None else key
-        if config['key'] is None:  # could not load a key
-            logging.warning(
-                "Selected speech-to-text engine '{}' requires a key but "
-                "`None` is specified.")
+        try:
+            config['key'] = _apiKeys[engine] if key is None else key
+        except KeyError:
+            raise ValueError(
+                "Selected speech-to-text engine '{}' requires a key but one"
+                "cannot be found. Try specifying `key` directly.".format(
+                    engine))
 
     # combine channels if needed
+    samples = np.atleast_2d(samples)  # enforce 2D
     if samples.shape[1] > 1:
         samplesMixed = \
             np.sum(samples, axis=1, dtype=np.float32) / np.float32(2.)
@@ -369,60 +387,44 @@ def transcribe(samples, sampleRate, engine='sphinx', language='en-US',
     return toReturn
 
 
-def _getAPIKey(refresh=False):
-    """Get the API key for the transcriber.
-
-    The API key is used to access web-based transcription services. Usually the
-    key is a string which is passed along to the API along with the audio data.
-    The key can be specified in multiple ways, either as a string or within a
-    plain-text file, given as an environment variable or preference. If an
-    environment variable is present, it will be used over the value specified in
-    preferences.
-
-    PsychPy looks for an environment variable called ``PSYCHOPY_TRANSCRIBE_KEY``
-    first. If not found, the preference `General -> transcribeKey` is used.
-
-    Parameters
-    ----------
-    refresh : bool
-        Refresh the API key. If `False`, the key will only be updated when this
-        module is first loaded. This function will always return that value. If
-        `True`, the value will be refreshed.
-
-    Returns
-    -------
-    str
-        API key data.
-
+def refreshTranscKeys():
+    """Refresh transcription engine API keys.
     """
-    global _apiKey
-    if _apiKey is not None and not refresh:  # hasn't been loaded yet
-        return _apiKey
+    global _apiKeys
+    global apiKeyNames
 
-    # check if we have an environment variable set
-    keyEnv = os.environ.get('PSYCHOPY_TRANSCRIBE_KEY', None)
+    # go over each supported engine and load the key
+    for engineName, keyVal in _apiKeys.items():
+        if engineName == 'azure':  # skip MS Azure for now, alias of Bing
+            continue
 
-    # no environment variable? get the key from preferences
-    if keyEnv is None:
-        keyValue = prefs.general['transcribeKey']
-    else:
-        keyValue = keyEnv
+        envVarName, prefName = apiKeyNames[engineName]
 
-    # check if the user specified a file name
-    if not os.path.isfile(keyValue):
-        _apiKey = keyValue
-        return _apiKey
+        # check if the engine key is provided as an environment variable
+        envVal = os.environ.get(envVarName, None)
 
-    with open(keyValue, 'r') as keyFile:
-        keyData = keyFile.read()
+        # if an environment variable is not defined, look into prefs
+        if envVal is None:
+            keyVal = prefs.general[prefName]
+        else:
+            keyVal = envVal
 
-    _apiKey = keyData
+        # Check if we are dealing with a file path, if so load the data as the
+        # key value.
+        if os.path.isfile(keyVal):
+            with open(keyVal, 'r') as keyFile:
+                keyVal = keyFile.read()
 
-    return _apiKey
+        _apiKeys[engineName] = keyVal
+
+    # hack to get 'bing' and 'azure' recognized as the same
+    if 'bing' in _apiKeys.keys():
+        _apiKeys['azure'] = _apiKeys['bing']
 
 
-# initial loading of the key when this module is imported
-_getAPIKey()
+# initial call to populate the API key values
+refreshTranscKeys()
+
 
 if __name__ == "__main__":
     pass
