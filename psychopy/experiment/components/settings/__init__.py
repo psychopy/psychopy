@@ -119,7 +119,7 @@ class SettingsComponent(object):
                  mgMove='CONTINUOUS', mgBlink='MIDDLE_BUTTON', mgSaccade=0.5,
                  gpAddress='127.0.0.1', gpPort=4242,
                  elModel='EYELINK 1000 DESKTOP', elSimMode=False, elSampleRate=1000, elTrackEyes="RIGHT_EYE",
-                 elLiveFiltering="FILTER_LEVEL_2", elDataFiltering="FILTER_LEVEL_OFF",
+                 elLiveFiltering="FILTER_LEVEL_OFF", elDataFiltering="FILTER_LEVEL_2",
                  elTrackingMode='PUPIL_CR_TRACKING', elPupilMeasure='PUPIL_AREA', elPupilAlgorithm='ELLIPSE_FIT',
                  elAddress='100.1.1.1',
                  tbModel="", tbLicenseFile="", tbSerialNo="", tbSampleRate=60,
