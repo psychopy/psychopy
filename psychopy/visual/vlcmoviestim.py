@@ -476,6 +476,8 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         self._videoFrameBufferSize = \
             self._videoWidth * self._videoHeight * 4 * ctypes.sizeof(GL.GLubyte)
 
+        self._framePixelBuffer = (ctypes.c_ubyte * self._videoWidth * self._videoHeight * 4)()
+
         # Create the pixel buffer object which will serve as the texture memory
         # store. Pixel data will be copied to this buffer each frame.
         GL.glGenBuffers(1, ctypes.byref(self._pixbuffId))
@@ -559,14 +561,14 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
             GL.GL_WRITE_ONLY)
 
         # comment to disable direct VLC -> GPU frame write
-        self._framePixelBuffer = bufferPtr
+        # self._framePixelBuffer = bufferPtr
 
         # uncomment if not using direct GPU write, might provide better thread
         # safety ...
-        # ctypes.memmove(
-        #     bufferPtr,
-        #     ctypes.byref(self._framePixelBuffer),
-        #     ctypes.sizeof(self._framePixelBuffer))
+        ctypes.memmove(
+            bufferPtr,
+            ctypes.byref(self._framePixelBuffer),
+            ctypes.sizeof(self._framePixelBuffer))
 
         # Very important that we unmap the buffer data after copying, but
         # keep the buffer bound for setting the texture.
