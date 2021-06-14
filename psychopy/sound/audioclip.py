@@ -29,18 +29,7 @@ import soundfile as sf
 import psychopy.logging as logging
 from psychopy.tools.audiotools import *
 from .exceptions import AudioUnsupportedCodecError
-
-_recognizer = None
-_hasSpeechRecognition = True
-try:
-    import speech_recognition as sr
-    _recognizer = sr.Recognizer()
-except (ImportError, ModuleNotFoundError):
-    logging.warning(
-        "Speech-to-text recognition module not available (use command `pip "
-        "install SpeechRecognition` to get it. Transcription will be"
-        " unavailable (i.e. `AudioClip.transcribe()`).")
-    _hasSpeechRecognition = False
+from .transcribe import transcribe
 
 # supported formats for loading and saving audio samples to file
 AUDIO_SUPPORTED_CODECS = [s.lower() for s in sf.available_formats().keys()]
@@ -727,118 +716,31 @@ class AudioClip(object):
         --------
         Use a voice command as a response to a task::
 
+            # after doing  microphone recording
             resp = mic.getRecording()
-            respText = resp.transcribe(expectedWords=('left', 'right'))
 
-            if respText:
-                if 'right' in resp:
-                    print("You responded right is bigger.")
-                elif 'left' in resp:
-                    print("You responded left is bigger.")
-                else:
-                    print("Please indicate 'left' or 'right'.")
+            transcribeResults = transcribe(resp.samples, resp.sampleRateHz)
+            if transcribeResults.success:  # successful transcription
+                words = transcribeResults.words
+                if words:
+                    if 'right' in resp:
+                        print("You responded right is bigger.")
+                    elif 'left' in resp:
+                        print("You responded left is bigger.")
+                    else:
+                        print("Please indicate 'left' or 'right'.")
             else:
                 print("Sorry I don't understand what you said.")
 
         """
-        if not _hasSpeechRecognition:  # don't have speech recognition
-            raise ModuleNotFoundError(
-                "Cannot use `.transcribe()`, missing required module "
-                "`speech_recognition` from package `SpeechRecognition`.")
-
-        # engine configuration
-        config = {} if config is None else config
-        if not isinstance(config, dict):
-            raise TypeError(
-                "Invalid type for parameter `config` specified, must be `dict` "
-                "or `None`.")
-
-        if not isinstance(language, str):
-            raise TypeError(
-                "Invalid type for parameter `language`, must be type `str`.")
-
-        # common engine configuration options
-        config['language'] = language  # set language code
-        config['show_all'] = bool(rawResp)
-
-        # API specific config
-        expectedWordsNotSupported = requiresKey = False
-        if engine == 'sphinx':
-            config['keyword_entries'] = expectedWords
-        elif engine == 'googleCloud':
-            config['preferred_phrases'] = expectedWords
-            requiresKey = True
-        elif engine == 'google':
-            expectedWordsNotSupported = True
-        elif engine in ('bing', 'azure'):
-            expectedWordsNotSupported = True
-            requiresKey = True
-
-        if expectedWordsNotSupported:
-            logging.warning(
-                "Engine '{engine}' does not allow for expected phrases to "
-                "be specified.".format(engine=engine))
-
-        # API requires a key
-        if requiresKey:
-            # read the key from a file
-            if key is not None:
-                if not isinstance(key, str):
-                    raise TypeError(
-                        "Value for parameter `key` must be either `str` or "
-                        "`None`.")
-
-                # Load the key from a file if a path was given. Not sure how
-                # much this will affect performance since the disk read
-                # operation will happen everytime `transcribe` is invoked. Even
-                # if just to check if a what is provided is a file.
-                if os.path.isfile(key):
-                    with open(key, 'r') as keyFile:
-                        config['key'] = keyFile.read()
-                else:
-                    config['key'] = key
-            else:
-                logging.warning(
-                    "Selected speech-to-text engine '{}' requires a key but "
-                    "`None` is specified.")
-
-        # combine channels if needed
-        if self.channels > 1:
-            samplesMixed = \
-                np.sum(self._samples, axis=1, dtype=np.float32) / np.float32(2.)
-        else:
-            samplesMixed = self._samples
-
-        # convert samples to WAV PCM format
-        clipDataInt16 = np.asarray(
-            samplesMixed * ((1 << 15) - 1), dtype=np.int16).tobytes()
-
-        sampleWidth = 2  # two bytes per sample
-        audio = sr.AudioData(clipDataInt16,
-                             sample_rate=self._sampleRateHz,
-                             sample_width=sampleWidth)
-
-        config = {} if config is None else config
-        assert isinstance(config, dict)
-
-        # submit audio samples to the API
-        respAPI = ''
-        try:
-            if engine.lower() == 'sphinx':
-                respAPI = _recognizer.recognize_sphinx(audio, **config)
-            elif engine.lower() == 'google':
-                respAPI = _recognizer.recognize_google(audio, **config)
-            elif engine.lower() == 'googleCloud':
-                respAPI = _recognizer.recognize_google_cloud(audio, **config)
-            elif engine.lower() in ['bing', 'azure']:
-                respAPI = _recognizer.recognize_bing(audio, **config)
-            else:
-                ValueError("Invalid value for `engine` specified.")
-        except sr.UnknownValueError:
-            pass
-
-        # split only if the user does not want the raw API data
-        return respAPI.split(' ') if not rawResp else respAPI
+        return transcribe(
+            self._samples,
+            self._sampleRateHz,
+            engine=engine,
+            language=language,
+            expectedWords=expectedWords,
+            key=key,
+            config=config)
 
 
 def load(filename, codec=None):

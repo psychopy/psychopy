@@ -44,6 +44,8 @@
     gammaErrorPolicy = option('abort', 'warn', default='abort')
     # Add plugin names here to load when a PsychoPy session starts.
     startUpPlugins = list(default=list())
+    # Key for the the audio transcription API.
+    transcribeKey = string(default='')
 
 # Application settings, applied to coder, builder, & prefs windows
 [app]
