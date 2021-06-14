@@ -280,9 +280,9 @@ class PsychopyToolbar(wx.ToolBar, ThemeMixin):
         self.Realize()
         # Disable compile buttons until an experiment is present
         if 'compile_py' in self.buttons:
-            self.EnableTool(self.buttons['compile_py'].GetId(), False)
+            self.EnableTool(self.buttons['compile_py'].GetId(), Path(self.frame.filename).is_file())
         if 'compile_js' in self.buttons:
-            self.EnableTool(self.buttons['compile_js'].GetId(), False)
+            self.EnableTool(self.buttons['compile_js'].GetId(), Path(self.frame.filename).is_file())
 
     def addPsychopyTool(self, name, label, shortcut, tooltip, func,
                         emblem=None):

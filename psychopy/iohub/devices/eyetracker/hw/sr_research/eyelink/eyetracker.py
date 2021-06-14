@@ -159,9 +159,10 @@ class EyeTracker(EyeTrackerDevice):
                     # If edf file name has been set to EXPFILE, use the datastore file name as the local
                     # edf file name, getting around the 8 char host name limit.
                     EyeTracker._local_edf_dir = os.path.join(EyeTracker._local_edf_dir, "data")
-                    local_file_name = self._iohub_server.dsfile.fileName[:-5]
-                    EyeTracker._full_edf_name = local_file_name
-                    EyeTracker._host_edf_name = default_native_data_file_name
+                    if self._iohub_server.dsfile: 
+                        local_file_name = self._iohub_server.dsfile.fileName[:-5]
+                        EyeTracker._full_edf_name = local_file_name
+                        EyeTracker._host_edf_name = default_native_data_file_name
                 else:
                     r = default_native_data_file_name.rfind('.')
                     if r > 0:
@@ -178,9 +179,9 @@ class EyeTracker(EyeTrackerDevice):
             else:
                 print2err('ERROR: default_native_data_file_name must be a string value')
 
-            if self._local_edf_dir and self._full_edf_name:
+            if self._host_edf_name and self._local_edf_dir and self._full_edf_name:
                 EyeTracker._active_edf_file = self._full_edf_name + '.EDF'
-            self._eyelink.openDataFile(self._host_edf_name + '.EDF')
+                self._eyelink.openDataFile(self._host_edf_name + '.EDF')
 
             # Creates a fileTransferDialog class that will be used when a connection is closed and
             # a native EDF file needs to be transferred from Host to Experiment
