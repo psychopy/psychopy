@@ -257,12 +257,11 @@ class TextboxComponent(BaseVisualComponent):
         BaseVisualComponent.writeRoutineStartCode(self, buff)
 
     def writeRoutineStartCodeJS(self, buff):
-        BaseVisualComponent.writeRoutineStartCode(self, buff)
-
         code = (
-            "%(name)s.reset()"
+            "%(name)s.reset();"
         )
         buff.writeIndentedLines(code % self.params)
+        BaseVisualComponent.writeRoutineStartCode(self, buff)
 
     def writeRoutineEndCode(self, buff):
         name = self.params['name']
