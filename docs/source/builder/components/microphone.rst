@@ -3,7 +3,7 @@
 Microphone Component
 -------------------------------
 
-Please note: That features of this component are new and may be subject to change.
+Please note: This is a new component, and is subject to change.
 
 The microphone component provides a way to record sound during an experiment. To do so, specify the
 starting time relative to the start of the routine (see `start` below) and a stop time (= duration in seconds).
@@ -24,9 +24,6 @@ For example, if `mic` is the name of your microphone component, then in the code
 
 Parameters
 ~~~~~~~~~~~~
-
-Appearance
-==========
 
 name : string
     Everything in a PsychoPy experiment needs a unique name. The name should contain only letters, numbers and underscores (no punctuation marks or spaces).
