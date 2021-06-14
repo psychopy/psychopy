@@ -269,12 +269,12 @@ def transcribe(samples, sampleRate, engine='sphinx', language='en-US',
       information.
     * If `key` is not specified (i.e. is `None`) then PsychoPy will look for the
       API key at other locations. By default, PsychoPy will look for an
-      environment variable called `PSYCHOPY_TRANSCRIBE_KEY` first. If that is
-      not defined, then the preference *General -> transcribeKey* is used. Keys
-      can be specified as a file path, if so, the key data will be loaded from
-      the file. System administrators can specify keys this way to use them
-      across a site installation without needing the user manage the keys
-      directly.
+      environment variables starting with `PSYCHOPY_TRANSCR_KEY_` first. If
+      there is no appropriate API key for the given `engine`, then the
+      preference *General -> transcrKeyXXX* is used. Keys can be specified as a
+      file path, if so, the key data will be loaded from the file. System
+      administrators can specify keys this way to use them across a site
+      installation without needing the user manage the keys directly.
 
     Examples
     --------
