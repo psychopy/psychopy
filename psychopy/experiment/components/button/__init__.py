@@ -82,6 +82,18 @@ class ButtonComponent(BaseVisualComponent):
             hint=_translate("Should a response force the end of the Routine "
                             "(e.g end the trial)?"),
             label=_localized['forceEndRoutine'])
+
+        # If force end routine, then once per click doesn't make sense
+        self.depends += [
+            {
+                "dependsOn": "forceEndRoutine",
+                "condition": "==True",
+                "param": "oncePerClick",
+                "true": "disable",  # what to do with param if condition is True
+                "false": "enable",  # permitted: hide, show, enable, disable
+            }
+        ]
+
         self.params['oncePerClick'] = Param(
             oncePerClick, valType='bool', inputType="bool", allowedTypes=[], categ='Basic',
             updates='constant',
