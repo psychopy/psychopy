@@ -14,7 +14,7 @@ __all__ = [
     'TRANSCR_LANG_DEFAULT',
     'transcriberEngineValues',
     'apiKeyNames',
-    'refreshTranscKeys'
+    'refreshTranscrKeys'
 ]
 
 import os
@@ -50,7 +50,7 @@ transcriberEngineValues = {
 }
 
 # Names of environment variables which API keys may be stored. These cover
-# online services only. These are only used by the `_
+# online services only.
 apiKeyNames = {
     'google': ('PSYCHOPY_TRANSCR_KEY_GOOGLE', 'transcrKeyGoogle'),
     'googleCloud':
@@ -69,7 +69,7 @@ if _hasSpeechRecognition:
     _recognizers['bing'] = sr.Recognizer().recognize_bing
     _recognizers['azure'] = _recognizers['bing']
 
-    # Get API keys for each engine here. Calling `refreshTranscKeys()`
+    # Get API keys for each engine here. Calling `refreshTranscrKeys()`
     # finalizes these values. If any of these are not defined as environment
     # variables, they will be obtained from preferences.
     _apiKeys['google'] = _apiKeys['googleCloud'] = _apiKeys['bing'] = None
@@ -389,7 +389,7 @@ def transcribe(samples, sampleRate, engine='sphinx', language='en-US',
     return toReturn
 
 
-def refreshTranscKeys():
+def refreshTranscrKeys():
     """Refresh transcription engine API keys. Call this if any of the keys have
     been updated since starting the PsychoPy session.
     """
@@ -426,7 +426,7 @@ def refreshTranscKeys():
 
 
 # initial call to populate the API key values
-refreshTranscKeys()
+refreshTranscrKeys()
 
 
 if __name__ == "__main__":
