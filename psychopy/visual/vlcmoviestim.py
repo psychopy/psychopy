@@ -1215,7 +1215,7 @@ def vlcLockCallback(user_data, planes):
     try:
         cls = ctypes.cast(
             user_data, ctypes.POINTER(ctypes.py_object)).contents.value
-    except TypeError:
+    except (ValueError, TypeError):
         return
 
     cls._pixelLock.acquire()
@@ -1231,7 +1231,7 @@ def vlcUnlockCallback(user_data, picture, planes):
     try:
         cls = ctypes.cast(
             user_data, ctypes.POINTER(ctypes.py_object)).contents.value
-    except TypeError:
+    except (ValueError, TypeError):
         return
 
     cls._pixelLock.release()
@@ -1244,7 +1244,7 @@ def vlcDisplayCallback(user_data, picture):
     try:
         cls = ctypes.cast(
             user_data, ctypes.POINTER(ctypes.py_object)).contents.value
-    except TypeError:
+    except (ValueError, TypeError):
         return
 
     cls._frameCounter += 1
