@@ -23,10 +23,8 @@ __all__ = [
     'AUDIO_EAR_COUNT'
 ]
 
-import os
 import numpy as np
 import soundfile as sf
-import psychopy.logging as logging
 from psychopy.tools.audiotools import *
 from .exceptions import AudioUnsupportedCodecError
 from .transcribe import transcribe
@@ -60,12 +58,26 @@ class AudioClip(object):
         sndCombined = sndClip1 + sndClip2
 
     Note that audio clips must have the same sample rates in order to be joined
-    using the addition operator.
+    using the addition operator. For online compatibility, use the `append()`
+    method instead.
 
     There are also numerous static methods available to generate various tones
     (e.g., sine-, saw-, and square-waves). Audio samples can also be loaded and
-    saved to files in various formats (e.g., WAV, MP3, FLAC, OGG, etc.)
+    saved to files in various formats (e.g., WAV, FLAC, OGG, etc.)
 
+    You can play `AudioClip` by directly passing instances of this object to
+    the :class:`~psychopy.sound.Sound` class::
+
+        inport psychopy.core as core
+        import psyhcopy.sound as sound
+
+        myTone = AudioClip.sine(duration=5.0)  # generate a tone
+
+        mySound = sound.Sound(myTone)
+        mySound.play()
+        core.wait(5.0)  # wait for sound to finish playing
+        core.quit()
+        
     Parameters
     ----------
     samples : ArrayLike
@@ -209,6 +221,8 @@ class AudioClip(object):
     @staticmethod
     def whiteNoise(duration=1.0, sampleRateHz=SAMPLE_RATE_48kHz, channels=2):
         """Generate gaussian white noise.
+
+        **New feature, use with caution.**
 
         Parameters
         ----------
@@ -642,8 +656,8 @@ class AudioClip(object):
         return np.asarray(
             self._samples * ((1 << 15) - 1), dtype=np.int16).tobytes()
 
-    def transcribe(self, engine='sphinx', language='en-US', expectedWords=(),
-                   rawResp=False, key=None, config=None):
+    def transcribe(self, engine='sphinx', language='en-US', expectedWords=None,
+                   key=None, config=None):
         """Convert speech in audio to text.
 
         This feature passes the audio clip samples to a text-to-speech engine
@@ -677,11 +691,6 @@ class AudioClip(object):
             support this feature (only Sphinx and Google Cloud do at this time).
             A warning will be logged if the engine selected does not support
             this feature.
-        rawResp : bool
-            Return the raw API response if `True`. Instead of a list of most
-            likely words, the raw response from the API will be returned. The
-            raw response may contain additional information about the
-            transcription, such as confidence.
         key : str or None
             API key or credentials, format depends on the API in use. If a file
             path is provided, the key data will be loaded from it.
