@@ -10,6 +10,7 @@ from pathlib import Path
 
 from psychopy.alerts import alerttools
 from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals, _translate
+from psychopy.experiment.py2js_transpiler import translatePythonToJavaScript
 from psychopy.localization import _localized as __localized
 _localized = __localized.copy()
 
@@ -88,7 +89,7 @@ class ButtonComponent(BaseVisualComponent):
             label=_localized['oncePerClick']
         )
         self.params['callback'] = Param(
-            callback, valType='code', inputType="multi", allowedTypes=[], categ='Basic',
+            callback, valType='extendedCode', inputType="multi", allowedTypes=[], categ='Basic',
             updates='constant',
             hint=_translate("Code to run when button is clicked"),
             label=_localized['callback'])
@@ -315,6 +316,12 @@ class ButtonComponent(BaseVisualComponent):
         BaseVisualComponent.writeFrameCodeJS(self, buff)
         # do writing of init
         inits = getInitVals(self.params, 'PsychoJS')
+        # Get callback from params
+        callback = inits['callback']
+        if inits['callback'].val:
+            callback = translatePythonToJavaScript(str(callback))
+        else:
+            callback = ""
 
         # Check for current and last button press
         code = (
@@ -369,6 +376,7 @@ class ButtonComponent(BaseVisualComponent):
                         "continueRoutine = false;\n"
             )
             buff.writeIndentedLines(code % inits)
+            buff.writeIndentedLines(callback % inits)
             buff.setIndentLevel(-1, relative=True)
             code = (
                     "}\n"
