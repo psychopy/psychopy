@@ -390,7 +390,8 @@ def transcribe(samples, sampleRate, engine='sphinx', language='en-US',
 
 
 def refreshTranscKeys():
-    """Refresh transcription engine API keys.
+    """Refresh transcription engine API keys. Call this if any of the keys have
+    been updated since starting the PsychoPy session.
     """
     global _apiKeys
     global apiKeyNames
