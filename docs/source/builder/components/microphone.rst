@@ -87,6 +87,5 @@ Max Recording Size (kb):
     Max recording size to avoid excessively large output files.
 
 .. seealso::
-	
-	API reference for :class:`~psychopy.microphone.AdvAudioCapture`
+    API reference for :class:`~psychopy.microphone.AdvAudioCapture`
     API reference for :class:`~psychopy.sound.transcribe`
