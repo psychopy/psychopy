@@ -391,7 +391,7 @@ class NameValidator(BaseValidator):
                     ).format(used=_translate(used))
                 OK = False
             elif not namespace.isValid(newName):  # valid as a var name
-                msg = _translate("Name must be alpha-numeric or _, no spaces")
+                msg = _translate("Name can only contain letters, numbers and underscores (_), no spaces or other symbols")
                 OK = False
             # warn but allow, chances are good that its actually ok
             elif namespace.isPossiblyDerivable(newName):
