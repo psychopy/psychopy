@@ -90,4 +90,3 @@ Max Recording Size (kb):
 	
 	API reference for :class:`~psychopy.microphone.AdvAudioCapture`
     API reference for :class:`~psychopy.sound.transcribe`
-    API reference for :class:`~psychopy.sound.AudioClip.transcribe`
