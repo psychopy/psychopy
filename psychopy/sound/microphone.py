@@ -862,8 +862,8 @@ class Microphone(object):
         `bufferSecs`. You do not need to call this if you call `stop` before
         the time specified by `bufferSecs` elapses since the `start` call.
 
-        Can only be called between called of `start` and `stop` (i.e.
-        ``Microphone.status == STARTED``.
+        Can only be called between called of `start` (or `record`) and `stop`
+        (or `pause`).
 
         Returns
         -------

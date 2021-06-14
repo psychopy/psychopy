@@ -11,6 +11,7 @@ import re
 import locale
 import wx
 import wx.richtext
+import webbrowser
 from psychopy.localization import _translate
 from psychopy.alerts._alerts import AlertEntry
 from psychopy.app.themes import ThemeMixin
@@ -57,6 +58,7 @@ class ScriptOutputPanel(wx.richtext.RichTextCtrl, ThemeMixin):
         self.parent = parent
         self._font = font
         self._fontSize = fontSize
+        self.Bind(wx.EVT_TEXT_URL, self.onURL)
 
     def write(self, inStr):
         """Write (append) text to the control.
@@ -145,6 +147,23 @@ class ScriptOutputPanel(wx.richtext.RichTextCtrl, ThemeMixin):
         self._applyAppTheme()
         self.MoveEnd()  # go to end of stdout so user can see updated text
         self.ShowPosition(self.GetLastPosition())
+
+    def onURL(self, evt):
+        """Open link in default browser."""
+        wx.BeginBusyCursor()
+        try:
+            if evt.String.startswith("http"):
+                webbrowser.open(evt.String)
+            else:
+                # decompose the URL of a file and line number"""
+                # "C:\Program Files\wxPython...\samples\hangman\hangman.py"
+                filename = evt.GetString().split('"')[1]
+                lineNumber = int(evt.GetString().split(',')[1][5:])
+                self.GetTopLevelParent().gotoLine(filename, lineNumber)
+        except Exception as e:
+            print("##### Could not open URL: {} #####\n".format(evt.String))
+            print(e)
+        wx.EndBusyCursor()
 
 
 if __name__ == "__main__":

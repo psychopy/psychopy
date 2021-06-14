@@ -32,7 +32,7 @@ else:
 sampleRates = {r[1]: r[0] for r in sampleRateQualityLevels.values()}
 devices['default'] = None
 
-onlineTranscribers = ["AZURE", "GOOGLE"]
+onlineTranscribers = ["GOOGLE", "AZURE"]
 localTranscribers = ["BUILT-IN", "GOOGLE"]
 allTranscribers = list({key: None for key in onlineTranscribers + localTranscribers})
 
@@ -331,13 +331,17 @@ class MicrophoneComponent(BaseComponent):
             inits['loop'] = self.exp.flow._loopList[-1].params['name']
             inits['filename'] = f"'recording_{inits['name']}_{inits['loop']}_%s.{inits['outputType']}' % {inits['loop']}.thisTrialN)"
         else:
-            inits['loop'] = ""
+            inits['loop'] = "thisExp"
             inits['filename'] = f"'recording_{inits['name']}'"
         transcribe = inits['transcribe'].val
         if inits['transcribe'].val == False:
             inits['transcribeBackend'].val = None
         if inits['outputType'].val == 'default':
             inits['outputType'].val = 'wav'
+        # Warn user if their transcriber won't work locally
+        if inits['transcribe'].val and inits['transcribeBackend'].val not in localTranscribers:
+            alert(4605, strFields={"transcriber": inits['transcribeBackend'].val})
+            inits['transcribe'].val = localTranscribers[0]
         # Store recordings from this routine
         code = (
             "# tell mic to keep hold of current recording in %(name)s.clips and transcript (if applicable) in %(name)s.scripts\n"
@@ -382,6 +386,10 @@ class MicrophoneComponent(BaseComponent):
         else:
             inits['loop'] = ""
             inits['filename'] = f"'recording_{inits['name']}'"
+        # Warn user if their transcriber won't work online
+        if inits['transcribe'].val and inits['transcribeBackend'].val not in onlineTranscribers:
+            alert(4610, strFields={"transcriber": inits['transcribeBackend'].val})
+            inits['transcribe'].val = onlineTranscribers[0]
 
         # Write base end routine code
         BaseComponent.writeRoutineEndCodeJS(self, buff)
@@ -443,7 +451,7 @@ class MicrophoneComponent(BaseComponent):
         # Save recording
         code = (
             "# save %(name)s recordings\n"
-            "for tag in mic.clips:"
+            "for tag in %(name)s.clips:"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(1, relative=True)

@@ -2400,14 +2400,12 @@ class CoderFrame(wx.Frame, ThemeMixin):
         if doc is None:
             return True  # we have no file loaded
         # files that don't exist DO have the expected mod-time
-        filename = doc.filename
-        if not os.path.exists(filename):
-            return True
-        if not os.path.isabs(filename):
+        filename = Path(doc.filename)
+        if not filename.is_file():
             return True
         actualModTime = os.path.getmtime(filename)
         expectedModTime = doc.fileModTime
-        if actualModTime != expectedModTime:
+        if abs(actualModTime - expectedModTime) > 1:
             msg = 'File %s modified outside of the Coder (IDE).' % filename
             print(msg)
             return False

@@ -208,9 +208,10 @@ class Param(object):
                             val = val[1:]
                     if self.valType in ['file', 'table']:
                         # If param is a file of any kind, use Path to make sure it's valid
-                        val = str(Path(val))
-                    val=re.sub("\n", "\\n", val) # Replace line breaks with escaped line break character
-                    return repr(val)
+                        val = Path(val).as_posix()  # Convert to a valid path with / not \
+                    val=re.sub("\n", "\\n", val)  # Replace line breaks with escaped line break character
+                    val=re.sub("\\\\", "/", val)  # handle older exps where files were valType=str not file
+                    return repr(val)                              
             return repr(self.val)
         elif self.valType in ['code', 'extendedCode']:
             isStr = isinstance(self.val, basestring)
@@ -273,6 +274,13 @@ class Param(object):
     def __bool__(self):
         """Return a bool, so we can do `if thisParam`
         rather than `if thisParam.val`"""
+        if self.val in ['True', 'true', 'TRUE', True, 1, 1.0]:
+            # Return True for aliases of True
+            return True
+        if self.val in ['False', 'false', 'FALSE', False, 0, 0.0]:
+            # Return False for aliases of False
+            return False
+        # If not a clear alias, use bool method of value
         return bool(self.val)
 
     @property

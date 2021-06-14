@@ -16,6 +16,7 @@ from psychopy.constants import (STARTED, PLAYING, PAUSED, FINISHED, STOPPED,
                                 NOT_STARTED, FOREVER)
 from psychopy.tools.filetools import pathToString
 from sys import platform
+from .audioclip import AudioClip
 
 
 if platform == 'win32':
@@ -141,13 +142,14 @@ class _SoundBase(object):
 
         Parameters
         ----------
-        value : ArrayLike, int or str
+        value : ArrayLike, AudioClip, int or str
             If it's a number between 37 and 32767 then a tone will be generated
             at that frequency in Hz. It could be a string for a note ('A',
             'Bfl', 'B', 'C', 'Csh'. ...). Then you may want to specify which
             octave.O r a string could represent a filename in the current
             location, or media location, or a full path combo. Or by giving an
-            Nx2 numpy array of floats (-1:1).
+            Nx2 numpy array of floats (-1:1) or
+            :class:`~psychopy.sound.AudioClip` instance.
         secs : float
             Duration of a tone if a note name is to `value`.
         octave : int
@@ -199,9 +201,13 @@ class _SoundBase(object):
                     raise ValueError(msg + value)
                 else:
                     self._setSndFromFile(p)
-        elif type(value) in [list, numpy.ndarray]:
+        elif isinstance(value, (list, numpy.ndarray,)):
             # create a sound from the input array/list
             self._setSndFromArray(numpy.array(value))
+        elif isinstance(value, AudioClip):
+            # from an audio clip object
+            self._setSndFromArray(value.samples)
+            self.sampleRate = value.sampleRateHz
         # did we succeed?
         if self._snd is None:
             pass  # raise ValueError, "Could not make a "+value+" sound"

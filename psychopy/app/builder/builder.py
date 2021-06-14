@@ -2176,6 +2176,8 @@ class StandaloneRoutineCanvas(scrolledpanel.ScrolledPanel, ThemeMixin):
                 self.frame.exp.routines[self.routine.params['name'].val] = self.frame.exp.routines.pop(name)
         # Redraw the flow panel
         self.frame.flowPanel.draw()
+        # Update save button
+        self.frame.setIsModified(True)
 
     def Validate(self, *args, **kwargs):
         return self.ctrls.Validate()
@@ -2642,6 +2644,8 @@ class ReadmeFrame(wx.Frame):
         self.rawText = ""
         self.ctrl = HtmlWindow(self, wx.ID_ANY)
         self.ctrl.Bind(wx.html.EVT_HTML_LINK_CLICKED, self.onUrl)
+        # Style
+        self.ctrl.SetFonts(normal_face="Open Sans", fixed_face="JetBrains Mono", sizes=[8, 10, 12, 14, 16, 18, 20])
 
     def onUrl(self, evt=None):
         webbrowser.open(evt.LinkInfo.Href)
@@ -3030,6 +3034,8 @@ class FlowPanel(wx.ScrolledWindow):
         self.frame.addToUndoStack("ADD Routine `%s`" % rtn.name)
         # reset flow drawing (remove entry point)
         self.clearMode()
+        # enable/disable add loop button
+        self.btnInsertLoop.Enable(bool(len(self.frame.exp.flow)))
 
     def setLoopPoint1(self, evt=None):
         """Someone pushed the insert loop button.
@@ -3316,6 +3322,8 @@ class FlowPanel(wx.ScrolledWindow):
         # perform the actual removal
         flow.removeComponent(component, id=compID)
         self.draw()
+        # enable/disable add loop button
+        self.btnInsertLoop.Enable(bool(len(flow)))
 
     def OnPaint(self, event):
         # Create a buffered paint DC.  It will create the real

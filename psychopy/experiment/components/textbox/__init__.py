@@ -50,8 +50,8 @@ class TextboxComponent(BaseVisualComponent):
                  text=_translate('Any text\n\nincluding line breaks'),
                  font='Open Sans', units='from exp settings', bold=False, italic=False,
                  color='white', colorSpace='rgb', opacity="",
-                 pos=(0, 0), size='', letterHeight=0.05, ori=0,
-                 lineSpacing=1.0, padding="",  # gap between box and text
+                 pos=(0, 0), size=(None, None), letterHeight=0.05, ori=0,
+                 lineSpacing=1.0, padding=0,  # gap between box and text
                  startType='time (s)', startVal=0.0, anchor='center',
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim='',
@@ -241,8 +241,6 @@ class TextboxComponent(BaseVisualComponent):
         depth = -self.getPosInRoutine()
 
     def writeRoutineStartCode(self, buff):
-        BaseVisualComponent.writeRoutineStartCode(self, buff)
-
         # Give alert if in the same routine as a Keyboard component
         if self.params['editable'].val:
             routine = self.exp.routines[self.parentName]
@@ -257,12 +255,11 @@ class TextboxComponent(BaseVisualComponent):
         BaseVisualComponent.writeRoutineStartCode(self, buff)
 
     def writeRoutineStartCodeJS(self, buff):
-        BaseVisualComponent.writeRoutineStartCode(self, buff)
-
         code = (
-            "%(name)s.reset()"
+            "%(name)s.reset();"
         )
         buff.writeIndentedLines(code % self.params)
+        BaseVisualComponent.writeRoutineStartCode(self, buff)
 
     def writeRoutineEndCode(self, buff):
         name = self.params['name']
