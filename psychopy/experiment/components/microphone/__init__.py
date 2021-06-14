@@ -366,7 +366,7 @@ class MicrophoneComponent(BaseComponent):
         buff.setIndentLevel(-1, relative=True)
         code = (
             ")\n"
-            "%(loop)s.addData('%(name)s.clip', os.path.join(%(name)sRecFolder, %(filename)s)\n"
+            "%(loop)s.addData('%(name)s.clip', os.path.join(%(name)sRecFolder, %(filename)s))\n"
         )
         buff.writeIndentedLines(code % inits)
         if transcribe:

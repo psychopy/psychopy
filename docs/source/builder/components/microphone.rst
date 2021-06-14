@@ -3,7 +3,7 @@
 Microphone Component
 -------------------------------
 
-Please note: This is a new component, and is subject to change.
+Please note: That features of this component are new and may be subject to change.
 
 The microphone component provides a way to record sound during an experiment. To do so, specify the
 starting time relative to the start of the routine (see `start` below) and a stop time (= duration in seconds).
@@ -25,6 +25,9 @@ For example, if `mic` is the name of your microphone component, then in the code
 Parameters
 ~~~~~~~~~~~~
 
+Basic
+====================
+
 name : string
     Everything in a PsychoPy experiment needs a unique name. The name should contain only letters, numbers and underscores (no punctuation marks or spaces).
     
@@ -35,6 +38,22 @@ stop (duration):
     The length of time (sec) to record for. An `expected duration` can be given for 
     visualisation purposes. See :ref:`startStop` for details; note that only seconds are allowed.
 
+Device:
+    Which microphone device to use
+
+Transcription
+====================
+
+Transcribe Audio: bool
+    Whether to transcribe audio recordings and store the data
+
+Online Transcription Backend: (relevant to online use only)
+    What transcription service to use to transcribe audio `Azure <https://azure.microsoft.com/en-us/services/cognitive-services/speech-to-text>`_ or `Google <https://cloud.google.com/speech-to-text>`_
+
+Transcription Language: string
+    The language code for your chosen transcription language e.g. English (United Kingdom) is "en-GB" see `list of codes here <https://cloud.google.com/speech-to-text/docs/languages>`_
+
+Expected Words: list
 channel : int
     What audio channel is mic connected through?
 
