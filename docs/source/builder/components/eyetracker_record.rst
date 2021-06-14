@@ -1,4 +1,4 @@
-.. _eyetrackerComponent:
+.. _eyetrackerRecordComponent:
 
 Eye Tracker Record Component
 -------------------------------
@@ -47,6 +47,7 @@ Save onset/offset times: bool
 
 Sync timing with screen refresh: bool
     Whether to sync the start time of the component with the window refresh.
+
 
 .. seealso::
 	
