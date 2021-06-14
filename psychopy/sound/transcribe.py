@@ -11,8 +11,10 @@
 __all__ = [
     'TranscriptionResult',
     'transcribe',
-    'TRANSCRIPTION_LANG_DEFAULT',
-    'transcriberEngineValues'
+    'TRANSCR_LANG_DEFAULT',
+    'transcriberEngineValues',
+    'apiKeyNames',
+    'refreshTranscKeys'
 ]
 
 import os
@@ -35,7 +37,7 @@ except (ImportError, ModuleNotFoundError):
     _hasSpeechRecognition = False
 
 # Constants related to the transcription system.
-TRANSCRIPTION_LANG_DEFAULT = 'en-US'
+TRANSCR_LANG_DEFAULT = 'en-US'
 
 # Values for specifying transcriber engine. This dictionary is used by Builder
 # to populate the component property dropdown.
