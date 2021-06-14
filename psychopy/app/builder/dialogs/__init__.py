@@ -395,10 +395,13 @@ class StartStopCtrls(wx.GridBagSizer):
         wx.GridBagSizer.__init__(self, 0, 0)
         # Make ctrls
         self.ctrls = {}
+        self.parent = parent
         for name, param in params.items():
             if name in ['startVal', 'stopVal']:
                 self.ctrls[name] = wx.TextCtrl(parent,
                                                value=str(param.val), size=wx.Size(-1, 24))
+                self.ctrls[name].Bind(wx.EVT_TEXT, self.updateCodeFont)
+                self.updateCodeFont(self.ctrls[name])
                 self.label = wx.StaticText(parent, label=param.label)
                 self.Add(self.ctrls[name], (0, 1), border=6, flag=wx.EXPAND | wx.TOP)
             if name in ['startType', 'stopType']:
@@ -410,12 +413,27 @@ class StartStopCtrls(wx.GridBagSizer):
             if name in ['startEstim', 'durationEstim']:
                 self.ctrls[name] = wx.TextCtrl(parent,
                                                value=str(param.val), size=wx.Size(-1, 24))
+                self.ctrls[name].Bind(wx.EVT_TEXT, self.updateCodeFont)
+                self.updateCodeFont(self.ctrls[name])
                 self.estimLabel = wx.StaticText(parent,
                                                 label=param.label, size=wx.Size(-1, 24))
                 self.estimLabel.SetForegroundColour("grey")
                 self.Add(self.estimLabel, (1, 0), border=6, flag=wx.EXPAND | wx.ALL)
                 self.Add(self.ctrls[name], (1, 1), border=6, flag=wx.EXPAND | wx.TOP | wx.BOTTOM)
         self.AddGrowableCol(1)
+
+    def updateCodeFont(self, evt=None):
+        """Style input box according to code wanted"""
+        if isinstance(evt, wx.TextCtrl):
+            obj = evt
+        else:
+            obj = evt.EventObject
+        if psychopy.experiment.utils.unescapedDollarSign_re.fullmatch(obj.GetLineText(0)):
+            # Set font if code
+            obj.SetFont(self.parent.GetTopLevelParent().app._codeFont)
+        else:
+            # Set font if not
+            obj.SetFont(self.parent.GetTopLevelParent().app._mainFont)
 
 
 class ParamNotebook(wx.Notebook, ThemeMixin):

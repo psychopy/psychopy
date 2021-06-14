@@ -297,22 +297,21 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
             self.dpi = 80  # dpi was unreasonable, make one up
 
         # Manage fonts
+        if sys.platform == 'win32':
+            # wx.SYS_DEFAULT_GUI_FONT is default GUI font in Win32
+            self._mainFont = wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT)
+        else:
+            self._mainFont = wx.SystemSettings.GetFont(wx.SYS_ANSI_FIXED_FONT)
+
         if hasattr(wx.Font, "AddPrivateFont") and sys.platform != "darwin":
             # Load packaged fonts if possible
             for fontFile in (Path(__file__).parent / "Resources" / "fonts").glob("*"):
                 if fontFile.suffix in ['.ttf', '.truetype']:
                     wx.Font.AddPrivateFont(str(fontFile))
             # Set fonts as those loaded
-            self._mainFont = wx.Font(wx.FontInfo(10).FaceName("Open Sans"))
-            self._codeFont = wx.Font(wx.FontInfo(10).FaceName("JetBrains Mono").Light())
+            self._codeFont = wx.Font(wx.FontInfo(9).FaceName("JetBrains Mono"))
         else:
             # Get system defaults if can't load fonts
-            if sys.platform == 'win32':
-                # wx.SYS_DEFAULT_GUI_FONT is default GUI font in Win32
-                self._mainFont = wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT)
-            else:
-                self._mainFont = wx.SystemSettings.GetFont(wx.SYS_ANSI_FIXED_FONT)
-
             try:
                 self._codeFont = wx.SystemSettings.GetFont(wx.SYS_ANSI_FIXED_FONT)
             except wx._core.wxAssertionError:
