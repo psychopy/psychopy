@@ -786,17 +786,6 @@ class BuilderFrame(wx.Frame, ThemeMixin):
             htmlPath = self._getHtmlPath(self.filename)
         if not htmlPath:
             return
-        dlg = ExportFileDialog(self, wx.ID_ANY,
-                               title=_translate("Export HTML file"),
-                               filePath=htmlPath,
-                               exp=self.exp)
-
-        export = dlg.exportOnSave
-        if self.exp.settings.params['exportHTML'].val == 'manually':
-            retVal = dlg.ShowModal()
-            self.exp.settings.params['exportHTML'].val = export.GetString(export.GetCurrentSelection())
-            if retVal != wx.ID_OK:  # User cancelled export
-                return False
 
         exportPath = os.path.join(htmlPath, expName.replace('.psyexp', '.js'))
         self.generateScript(experimentPath=exportPath,
@@ -2759,70 +2748,6 @@ class ReadmeFrame(wx.Frame):
             self.Hide()
         else:
             self.Show()
-
-
-class ExportFileDialog(wx.Dialog):
-    def __init__(self, parent, ID, title, size=wx.DefaultSize,
-                 pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE,
-                 filePath=None, exp=None):
-        wx.Dialog.__init__(self, parent, ID, title,
-                           size=size, pos=pos, style=style)
-        # Now continue with the normal construction of the dialog
-        # contents
-        self.exp = exp
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        box = wx.BoxSizer(wx.HORIZONTAL)
-
-        label = wx.StaticText(self, wx.ID_ANY, _translate("Filepath:"))
-        box.Add(label, 0, wx.ALIGN_CENTRE | wx.ALL, 5)
-        if len(filePath) > 70:
-            filePath = filePath[:20] + "....." + filePath[-40:]
-        self.filePath = wx.StaticText(self, wx.ID_ANY, filePath, size=(500, -1))
-        box.Add(self.filePath, 1, wx.ALIGN_CENTRE | wx.ALL, 5)
-
-        sizer.Add(box, 0, wx.GROW | wx.ALL, 5)
-
-        # Set save on export HTML choice
-        box = wx.BoxSizer(wx.HORIZONTAL)
-        choices = ['on Save', 'on Sync', 'manually']
-        exportLabel = _translate("Select 'manually' to receive this alert when exporting HTML.\n"
-                                 "Click 'OK' to export HTML, or click 'Cancel' to return.")
-        self.exportOnSave = wx.Choice(self, wx.ID_ANY,
-                                      size=wx.DefaultSize,
-                                      choices=choices)
-        self.exportOnSave.SetSelection(choices.index(self.exp.settings.params['exportHTML']))
-        self.exportText = wx.StaticText(self, wx.ID_ANY, exportLabel)
-        self.exportOnSave.SetHelpText(exportLabel)
-        box.Add(self.exportOnSave, .5, wx.ALIGN_CENTRE | wx.ALL, 5)
-        box.Add(self.exportText, 1, wx.ALIGN_CENTRE | wx.ALL, 5)
-
-        sizer.Add(box, 0, wx.GROW | wx.ALL, 5)
-
-        line = wx.StaticLine(self, wx.ID_ANY, size=(20, -1),
-                             style=wx.LI_HORIZONTAL)
-        sizer.Add(line, 0,
-                  wx.GROW | wx.RIGHT | wx.TOP, 5)
-
-        btnsizer = wx.StdDialogButtonSizer()
-
-        okBtn = wx.Button(self, wx.ID_OK)
-        okBtn.SetHelpText("The OK button completes the dialog")
-        okBtn.SetDefault()
-
-        cancelBtn = wx.Button(self, wx.ID_CANCEL)
-        cancelBtn.SetHelpText("The Cancel button cancels the dialog. (Crazy, huh?)")
-
-        if sys.platform == "win32":
-            btns = [okBtn, cancelBtn]
-        else:
-            btns = [cancelBtn, okBtn]
-
-        btnsizer.AddButton(btns[0])
-        btnsizer.AddButton(btns[1])
-
-        sizer.Add(btnsizer, 0, wx.ALL, 5)
-
-        self.SetSizerAndFit(sizer)
 
 
 class FlowPanel(wx.ScrolledWindow):
