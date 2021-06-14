@@ -77,7 +77,7 @@ class AudioClip(object):
         mySound.play()
         core.wait(5.0)  # wait for sound to finish playing
         core.quit()
-        
+
     Parameters
     ----------
     samples : ArrayLike
@@ -701,11 +701,8 @@ class AudioClip(object):
 
         Returns
         -------
-        list or str
-            List of transcribed words as strings. If `rawResp` is `True`, then
-            the raw API response as a string will be returned. You will need to
-            parse that for the information you need. An empty list is always
-            returned in the speech recognition module is not installed.
+        :class:`~psychopy.sound.transcribe.TranscriptionResult`
+            Transcription result.
 
         Notes
         -----
@@ -720,6 +717,14 @@ class AudioClip(object):
         * Some errors may be emitted by the `SpeechRecognition` API, check that
           project's documentation if you encounter such an error for more
           information.
+        * If `key` is not specified (i.e. is `None`) then PsychoPy will look for the
+          API key at other locations. By default, PsychoPy will look for an
+          environment variable called `PSYCHOPY_TRANSCRIBE_KEY` first. If that is
+          not defined, then the preference *General -> transcribeKey* is used. Keys
+          can be specified as a file path, if so, the key data will be loaded from
+          the file. System administrators can specify keys this way to use them
+          across a site installation without needing the user manage the keys
+          directly.
 
         Examples
         --------

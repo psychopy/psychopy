@@ -234,11 +234,8 @@ def transcribe(samples, sampleRate, engine='sphinx', language='en-US',
 
     Returns
     -------
-    list or str
-        List of transcribed words as strings. If `rawResp` is `True`, then
-        the raw API response as a string will be returned. You will need to
-        parse that for the information you need. An empty list is always
-        returned in the speech recognition module is not installed.
+    :class:`~psychopy.sound.transcribe.TranscriptionResult`
+        Transcription result.
 
     Notes
     -----
