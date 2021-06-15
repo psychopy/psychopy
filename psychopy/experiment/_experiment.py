@@ -241,11 +241,13 @@ class Experiment(object):
                                                localDateTime, modular)
 
             script.writeIndentedLines("// Start code blocks for 'Before Experiment'")
+            routinesToWrite = list(self_copy.routines)
             for entry in self_copy.flow:
                 # NB each entry is a routine or LoopInitiator/Terminator
                 self_copy._currentRoutine = entry
-                if hasattr(entry, 'writePreCodeJS'):
+                if entry.name in routinesToWrite and hasattr(entry, 'writePreCodeJS'):
                     entry.writePreCodeJS(script)
+                    routinesToWrite.remove(entry.name)  # this one's done
 
             # Write window code
             self_copy.settings.writeWindowCodeJS(script)
@@ -259,11 +261,13 @@ class Experiment(object):
             script.setIndentLevel(1, relative=True)
 
             # routine init sections
+            routinesToWrite = list(self_copy.routines)
             for entry in self_copy.flow:
                 # NB each entry is a routine or LoopInitiator/Terminator
                 self_copy._currentRoutine = entry
-                if hasattr(entry, 'writeInitCodeJS'):
+                if entry.name in routinesToWrite and hasattr(entry, 'writeInitCodeJS'):
                     entry.writeInitCodeJS(script)
+                    routinesToWrite.remove(entry.name)  # this one's done
 
             # create globalClock etc
             code = ("// Create some handy timers\n"
