@@ -379,8 +379,8 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         self._streamEnded = False
 
         # uncomment if not using direct GPU write, might be more thread-safe
-        # self._framePixelBuffer = \
-        #    (ctypes.c_ubyte * self.videoWidth * self.videoHeight * 4)()
+        self._framePixelBuffer = (
+                ctypes.c_ubyte * self._videoWidth * self._videoHeight * 4)()
 
         # duration unavailable until started
         duration = self._player.get_length()
@@ -476,9 +476,6 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         self._videoFrameBufferSize = \
             self._videoWidth * self._videoHeight * 4 * ctypes.sizeof(GL.GLubyte)
 
-        self._framePixelBuffer = (
-                ctypes.c_ubyte * self._videoWidth * self._videoHeight * 4)()
-
         # Create the pixel buffer object which will serve as the texture memory
         # store. Pixel data will be copied to this buffer each frame.
         GL.glGenBuffers(1, ctypes.byref(self._pixbuffId))
@@ -497,10 +494,10 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         GL.glTexImage2D(
             GL.GL_TEXTURE_2D,
             0,
-            GL.GL_RGB8,
+            GL.GL_RGBA8,
             self._videoWidth, self._videoHeight,  # frame dims in pixels
             0,
-            GL.GL_RGB,
+            GL.GL_RGBA,
             GL.GL_UNSIGNED_BYTE,
             None)
         GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1)  # needs to be 1
