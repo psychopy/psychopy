@@ -286,7 +286,7 @@ class SliderComponent(BaseVisualComponent):
                    "  size: {size}, pos: {pos}, units: {units},\n"
                    "  labels: {labels}, ticks: {ticks},\n"
                    "  granularity: {granularity}, style: {styles},\n"
-                   "  color: new util.Color({color}), \n"
+                   "  color: new util.Color({color}), markerColor: new util.Color({fillColor}), lineColor: new util.Color({borderColor}), \n"
                    "  fontFamily: {font}, bold: true, italic: false, depth: {depth}, \n"
                    ).format(**inits)
         initStr += ("  flip: {flip},\n"

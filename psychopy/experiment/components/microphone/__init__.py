@@ -412,7 +412,7 @@ class MicrophoneComponent(BaseComponent):
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(1, relative=True)
         code = (
-                "tag: 'recording_%(name)s' + trials.thisN,\n"
+                "tag: '%(filename)s,\n"
                 "flush: false\n"
         )
         buff.writeIndentedLines(code % inits)
