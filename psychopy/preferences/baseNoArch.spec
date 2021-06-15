@@ -234,7 +234,7 @@
     # Coder: show / hide the output panel
     toggleOutputPanel = string(default='Ctrl+Shift+O')
     #Builder: rename an existing routine
-    renameRoutine = string(default='Ctrl+Shift+R')
+    renameRoutine = string(default='Ctrl+Shift+M')
     # switch between windows
     cycleWindows = string(default='Ctrl+L')
     # increase display size in Flow
