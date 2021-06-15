@@ -355,7 +355,7 @@ def transcribe(samples, sampleRate, engine='sphinx', language='en-US',
                     sensitivity = int(confidence) / 100.
                 else:
                     word = wordAndSense[0]
-                    sensitivity = 0.95  # default is 80% confidence
+                    sensitivity = 0.8  # default is 80% confidence
 
                 expectedWordsTemp.append((word, sensitivity))
 
