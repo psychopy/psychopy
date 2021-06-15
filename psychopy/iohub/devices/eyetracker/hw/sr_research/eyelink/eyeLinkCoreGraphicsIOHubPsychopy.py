@@ -11,7 +11,7 @@ import os
 from ..... import DeviceEvent, Computer
 from ......constants import EventConstants
 from ......errors import print2err, printExceptionDetailsToStdErr
-from ......util import convertCamelToSnake, win32MessagePump, updateDict
+from ......util import convertCamelToSnake, win32MessagePump, updateSettings
 import pylink
 
 
@@ -356,8 +356,9 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
         self._eyetrackerinterface = eyetrackerInterface
         display = eyetrackerInterface._display_device
         self._device_config = self._eyetrackerinterface.getConfiguration()
-        updateDict(calibration_args, self._device_config.get('calibration'))
-        self._calibration_args = calibration_args
+        updateSettings(self._device_config.get('calibration'), calibration_args)
+        self._calibration_args = self._device_config.get('calibration')
+        print2err("self._calibration_args:", self._calibration_args)
         unit_type = self.getCalibSetting('unit_type')
         if unit_type is None:
             unit_type = display.getCoordinateType()

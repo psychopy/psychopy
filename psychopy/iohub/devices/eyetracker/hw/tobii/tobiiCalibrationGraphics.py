@@ -8,7 +8,7 @@ from psychopy import visual
 import gevent
 import numpy as np
 from collections import OrderedDict
-from .....util import convertCamelToSnake, updateDict
+from .....util import convertCamelToSnake, updateSettings
 from .... import DeviceEvent, Computer
 from .....constants import EventConstants
 from .....errors import print2err, printExceptionDetailsToStdErr
@@ -38,8 +38,10 @@ class TobiiPsychopyCalibrationGraphics(object):
         display = self._eyetrackerinterface._display_device
 
         self._device_config = self._eyetrackerinterface.getConfiguration()
-        updateDict(calibration_args, self._device_config.get('calibration'))
-        self._calibration_args = calibration_args
+        updateSettings(self._device_config.get('calibration'), calibration_args)
+        self._calibration_args = self._device_config.get('calibration')
+        print2err("self._calibration_args:", self._calibration_args)
+        
         unit_type = self.getCalibSetting('unit_type')
         if unit_type is None:
             unit_type = display.getCoordinateType()

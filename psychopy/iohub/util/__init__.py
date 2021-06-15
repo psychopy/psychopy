@@ -15,6 +15,7 @@ import numbers  # numbers.Integral is like (int, long) but supports Py3
 import datetime
 from ..errors import print2err
 import re
+import collections.abc
 
 ########################
 #
@@ -339,6 +340,13 @@ def updateDict(add_to, add_from):
         elif isinstance(value, dict) and isinstance(add_to[key], dict):
             updateDict(add_to[key], value)
 
+def updateSettings(d, u):
+    for k, v in u.items():
+        if isinstance(v, collections.abc.Mapping):
+            d[k] = updateSettings(d.get(k, {}), v)
+        else:
+            d[k] = v
+    return d
 
 # Convert Camel to Snake variable name format
 first_cap_re = re.compile('(.)([A-Z][a-z]+)')
