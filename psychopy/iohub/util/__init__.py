@@ -298,8 +298,9 @@ def hideWindow(win, force=False):
     :return: None
     """
     if force or sys.platform == 'win32':
-        win.winHandle.minimize()  # minimize the PsychoPy window
-        win.winHandle.set_fullscreen(False)
+        if win._isFullScr:
+            win.winHandle.minimize()  # minimize the PsychoPy window
+            win.winHandle.set_fullscreen(False)
     elif sys.platform == 'darwin':
         pass
     elif sys.platform == 'linux':
@@ -315,8 +316,9 @@ def showWindow(win, force=False):
     :return: None
     """
     if force or sys.platform == 'win32':
-        win.winHandle.set_fullscreen(True)
-        win.winHandle.maximize()  # maximize the PsychoPy window
+        if win._isFullScr:
+            win.winHandle.set_fullscreen(True)
+            win.winHandle.maximize()  # maximize the PsychoPy window
     elif sys.platform == 'darwin':
         pass
     elif sys.platform == 'linux':
