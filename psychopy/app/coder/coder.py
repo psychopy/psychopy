@@ -2365,9 +2365,10 @@ class CoderFrame(wx.Frame, ThemeMixin):
         if not filename:
             # get path of current file (empty if current file is '')
             if hasattr(self.currentDoc, 'filename'):
-                initPath = os.path.split(self.currentDoc.filename)[0]
+                initPath = str(Path(self.currentDoc.filename).parent)
             else:
-                initPath = ''
+                initPath = None
+            # Open dlg
             dlg = wx.FileDialog(
                 self, message=_translate("Open file ..."),
                 defaultDir=initPath, style=wx.FD_OPEN
@@ -2400,14 +2401,12 @@ class CoderFrame(wx.Frame, ThemeMixin):
         if doc is None:
             return True  # we have no file loaded
         # files that don't exist DO have the expected mod-time
-        filename = doc.filename
-        if not os.path.exists(filename):
-            return True
-        if not os.path.isabs(filename):
+        filename = Path(doc.filename)
+        if not filename.is_file():
             return True
         actualModTime = os.path.getmtime(filename)
         expectedModTime = doc.fileModTime
-        if actualModTime != expectedModTime:
+        if abs(actualModTime - expectedModTime) > 1:
             msg = 'File %s modified outside of the Coder (IDE).' % filename
             print(msg)
             return False

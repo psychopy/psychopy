@@ -63,6 +63,11 @@
     4545: Eyetracking requires a monitor config
     4550: ROI component with no record component
 
+  4600:
+    cat: Audio Transcription
+    4605: Transcription service not compatible online
+    4610: Transcription service not compatible locally
+
 5000:
   cat: Online studies
   5050:

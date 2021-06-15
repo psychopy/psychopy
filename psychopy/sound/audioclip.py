@@ -39,7 +39,7 @@ except (ImportError, ModuleNotFoundError):
     logging.warning(
         "Speech-to-text recognition module not available (use command `pip "
         "install SpeechRecognition` to get it. Transcription will be"
-        " unavailable (i.e. `AudioClip.toText()`).")
+        " unavailable (i.e. `AudioClip.transcribe()`).")
     _hasSpeechRecognition = False
 
 # supported formats for loading and saving audio samples to file
@@ -653,7 +653,7 @@ class AudioClip(object):
         return np.asarray(
             self._samples * ((1 << 15) - 1), dtype=np.int16).tobytes()
 
-    def transcribe(self, engine='sphinx', language='en-US', expectedWords=(),
+    def transcribe(self, engine='sphinx', language='en-US', expectedWords=None,
                    rawResp=False, key=None, config=None):
         """Convert speech in audio to text.
 
@@ -668,6 +668,10 @@ class AudioClip(object):
 
         If the audio clip has multiple channels, they will be combined prior to
         being passed to the transcription service.
+
+        **This is an experimental beta feature, the use and function of this
+        may change in future releases without notice. Use this feature at your
+        discretion.**
 
         Parameters
         ----------
@@ -698,11 +702,12 @@ class AudioClip(object):
 
         Returns
         -------
-        list or str
-            List of transcribed words as strings. If `rawResp` is `True`, then
-            the raw API response as a string will be returned. You will need to
-            parse that for the information you need. An empty list is always
-            returned in the speech recognition module is not installed.
+        tuple
+            Returns a tuple with transcription related data. The first value is
+            a `bool` indicating whether the transcription was intelligible and
+            the engine was successfully able to extract a word. The second is
+            a list of words as strings which have been decoded from the audio
+            data.
 
         Notes
         -----
@@ -816,6 +821,7 @@ class AudioClip(object):
 
         # submit audio samples to the API
         respAPI = ''
+        transcriptionFailed = requestError = False
         try:
             if engine.lower() == 'sphinx':
                 respAPI = _recognizer.recognize_sphinx(audio, **config)
@@ -828,10 +834,17 @@ class AudioClip(object):
             else:
                 ValueError("Invalid value for `engine` specified.")
         except sr.UnknownValueError:
-            pass
+            transcriptionFailed = True
+        except sr.RequestError:
+            requestError = True
+
+        result = (
+            transcriptionFailed,
+            requestError,
+            respAPI.split(' ') if not rawResp else respAPI)
 
         # split only if the user does not want the raw API data
-        return respAPI.split(' ') if not rawResp else respAPI
+        return result
 
 
 def load(filename, codec=None):

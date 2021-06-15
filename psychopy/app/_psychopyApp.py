@@ -296,25 +296,30 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         if not (50 < self.dpi < 120):
             self.dpi = 80  # dpi was unreasonable, make one up
 
-        # Load fonts
-        for fontFile in (Path(__file__).parent / "Resources" / "fonts").glob("*"):
-            if fontFile.suffix in ['.ttf', '.truetype']:
-                wx.Font.AddPrivateFont(str(fontFile))
-
+        # Manage fonts
         if sys.platform == 'win32':
             # wx.SYS_DEFAULT_GUI_FONT is default GUI font in Win32
             self._mainFont = wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT)
         else:
             self._mainFont = wx.SystemSettings.GetFont(wx.SYS_ANSI_FIXED_FONT)
 
-        try:
-            self._codeFont = wx.SystemSettings.GetFont(wx.SYS_ANSI_FIXED_FONT)
-        except wx._core.wxAssertionError:
-            # if no SYS_ANSI_FIXED_FONT then try generic FONTFAMILY_MODERN
-            self._codeFont = wx.Font(self._mainFont.GetPointSize(),
-                                     wx.FONTFAMILY_MODERN,
-                                     wx.FONTSTYLE_NORMAL,
-                                     wx.FONTWEIGHT_NORMAL)
+        if hasattr(wx.Font, "AddPrivateFont") and sys.platform != "darwin":
+            # Load packaged fonts if possible
+            for fontFile in (Path(__file__).parent / "Resources" / "fonts").glob("*"):
+                if fontFile.suffix in ['.ttf', '.truetype']:
+                    wx.Font.AddPrivateFont(str(fontFile))
+            # Set fonts as those loaded
+            self._codeFont = wx.Font(wx.FontInfo(9).FaceName("JetBrains Mono"))
+        else:
+            # Get system defaults if can't load fonts
+            try:
+                self._codeFont = wx.SystemSettings.GetFont(wx.SYS_ANSI_FIXED_FONT)
+            except wx._core.wxAssertionError:
+                # if no SYS_ANSI_FIXED_FONT then try generic FONTFAMILY_MODERN
+                self._codeFont = wx.Font(self._mainFont.GetPointSize(),
+                                         wx.FONTFAMILY_TELETYPE,
+                                         wx.FONTSTYLE_NORMAL,
+                                         wx.FONTWEIGHT_NORMAL)
         # that gets most of the properties of _codeFont but the FaceName
         # FaceName is set in the setting of the theme:
         self.theme = self.prefs.app['theme']
@@ -360,8 +365,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
 
         # set the dispatcher for standard output
         self.stdStreamDispatcher = console.StdStreamDispatcher(self)
-        sys.stderr = self.stdStreamDispatcher
-        sys.stdout = self.stdStreamDispatcher
+        self.stdStreamDispatcher.redirect()
 
         # Create windows
         if view.runner:
