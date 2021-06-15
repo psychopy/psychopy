@@ -260,6 +260,7 @@ class TextboxComponent(BaseVisualComponent):
         )
         buff.writeIndentedLines(code % self.params)
         BaseVisualComponent.writeRoutineStartCode(self, buff)
+        BaseVisualComponent.writeRoutineStartCodeJS(self, buff)
 
     def writeRoutineEndCode(self, buff):
         name = self.params['name']
