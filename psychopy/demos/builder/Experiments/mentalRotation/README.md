@@ -14,3 +14,5 @@ pandas), display results in a plot (using `matplotlib`).
 > Copyright (c) 2013 MICHIGAN STATE UNIVERSITY BOARD OF TRUSTEES
 > All rights reserved.
 > Released under a licence quite compatible with GPL. See "license" (it's in a routine).
+
+> Updated by Rebecca J. Hirst 15.06.2021
