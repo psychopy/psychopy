@@ -566,8 +566,8 @@ class ParamNotebook(wx.Notebook, ThemeMixin):
             if isChanged:
                 self.sizer.SetEmptyCellSize((0, 0))
                 self.sizer.Layout()
-                self.Fit()
-                self.dlg.Fit()
+                if isinstance(self.dlg, wx.Dialog):
+                    self.dlg.Fit()
                 self.Refresh()
 
         def doValidate(self, event=None):
