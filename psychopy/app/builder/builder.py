@@ -668,7 +668,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
             if self.filename:
                 initPath = str(Path(self.filename).parent)
             else:
-                initPath = None
+                initPath = ""
             # Open dlg
             dlg = wx.FileDialog(self, message=_translate("Open file ..."),
                                 defaultDir=initPath,
