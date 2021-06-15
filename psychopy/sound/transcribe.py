@@ -360,7 +360,6 @@ def transcribe(samples, sampleRate, engine='sphinx', language='en-US',
                 expectedWordsTemp.append((word, sensitivity))
 
         config['keyword_entries'] = expectedWordsTemp
-        print(config['keyword_entries'])
 
     elif engine == 'googleCloud':
         config['preferred_phrases'] = expectedWords
