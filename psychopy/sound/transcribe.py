@@ -349,10 +349,10 @@ def transcribe(samples, sampleRate, engine='sphinx', language='en-US',
             # sensitivity specified as `word:80`
             expectedWordsTemp = []
             for word in expectedWords:
-                wordAndSense= word.split(':')
+                wordAndSense = word.split(':')
                 if len(wordAndSense) == 2:  # specified as `word:80`
-                    word, confidence = wordAndSense
-                    sensitivity = int(confidence) / 100.
+                    word, sensitivity = wordAndSense
+                    sensitivity = int(sensitivity) / 100.
                 else:
                     word = wordAndSense[0]
                     sensitivity = 0.8  # default is 80% confidence
