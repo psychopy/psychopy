@@ -190,7 +190,7 @@ class RemoteControlServer(object):
         t0 = time.time()
         while time.time() - t0 < self._timeout and not OK:
             for reply in self._listener.messages:
-                if reply.endswith(endswith) and reply.contains(containing):
+                if reply.endswith(endswith) and containing in reply:
                     logging.debug("RCS received {}".format(repr(reply)))
                     self._listener.messages.remove(reply)
                     return reply
