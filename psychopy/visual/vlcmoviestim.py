@@ -476,7 +476,8 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         self._videoFrameBufferSize = \
             self._videoWidth * self._videoHeight * 4 * ctypes.sizeof(GL.GLubyte)
 
-        self._framePixelBuffer = (ctypes.c_ubyte * self._videoWidth * self._videoHeight * 4)()
+        self._framePixelBuffer = (
+                ctypes.c_ubyte * self._videoWidth * self._videoHeight * 4)()
 
         # Create the pixel buffer object which will serve as the texture memory
         # store. Pixel data will be copied to this buffer each frame.
