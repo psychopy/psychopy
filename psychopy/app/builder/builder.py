@@ -2174,6 +2174,9 @@ class StandaloneRoutineCanvas(scrolledpanel.ScrolledPanel, ThemeMixin):
                 self.frame.exp.routines[self.routine.params['name'].val] = self.frame.exp.routines.pop(name)
         # Redraw the flow panel
         self.frame.flowPanel.draw()
+        # Rename this page
+        page = self.frame.routinePanel.GetPageIndex(self)
+        self.frame.routinePanel.SetPageText(page, self.routine.params['name'].val)
         # Update save button
         self.frame.setIsModified(True)
 
