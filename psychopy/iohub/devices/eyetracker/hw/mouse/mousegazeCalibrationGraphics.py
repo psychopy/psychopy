@@ -6,7 +6,7 @@
 
 from psychopy import visual
 import gevent
-from psychopy.iohub.util import convertCamelToSnake, updateDict
+from psychopy.iohub.util import convertCamelToSnake, updateSettings
 from psychopy.iohub.devices import DeviceEvent, Computer
 from psychopy.iohub.constants import EventConstants as EC
 from psychopy.iohub.errors import print2err
@@ -31,9 +31,9 @@ class MouseGazePsychopyCalibrationGraphics(object):
         self._device_config = self._eyetracker.getConfiguration()
         display = self._eyetracker._display_device
 
-        updateDict(calibration_args, self._device_config.get('calibration'))
-        self._calibration_args = calibration_args
-
+        updateSettings(self._device_config.get('calibration'), calibration_args)
+        self._calibration_args = self._device_config.get('calibration')
+        print2err("self._calibration_args:", self._calibration_args)
         unit_type = self.getCalibSetting('unit_type')
         if unit_type is None:
             unit_type = display.getCoordinateType()
@@ -224,6 +224,7 @@ class MouseGazePsychopyCalibrationGraphics(object):
         auto_pace = self.getCalibSetting('auto_pace')
         cal_target_list = self.CALIBRATION_POINT_LIST
         randomize_points = self.getCalibSetting('randomize')
+        print2err('randomize:', randomize_points)
         if randomize_points is True:
             # Randomize all but first target position.
             cal_target_list = self.CALIBRATION_POINT_LIST[1:]
