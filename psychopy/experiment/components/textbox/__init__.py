@@ -241,8 +241,6 @@ class TextboxComponent(BaseVisualComponent):
         depth = -self.getPosInRoutine()
 
     def writeRoutineStartCode(self, buff):
-        BaseVisualComponent.writeRoutineStartCode(self, buff)
-
         # Give alert if in the same routine as a Keyboard component
         if self.params['editable'].val:
             routine = self.exp.routines[self.parentName]
@@ -257,12 +255,11 @@ class TextboxComponent(BaseVisualComponent):
         BaseVisualComponent.writeRoutineStartCode(self, buff)
 
     def writeRoutineStartCodeJS(self, buff):
-        BaseVisualComponent.writeRoutineStartCode(self, buff)
-
         code = (
-            "%(name)s.reset()"
+            "%(name)s.reset();"
         )
         buff.writeIndentedLines(code % self.params)
+        BaseVisualComponent.writeRoutineStartCode(self, buff)
 
     def writeRoutineEndCode(self, buff):
         name = self.params['name']

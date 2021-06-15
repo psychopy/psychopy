@@ -329,9 +329,9 @@ class MicrophoneComponent(BaseComponent):
         # Alter inits
         if len(self.exp.flow._loopList):
             inits['loop'] = self.exp.flow._loopList[-1].params['name']
-            inits['filename'] = f"'recording_{inits['name']}_{inits['loop']}_%s.{inits['outputType']}' % {inits['loop']}.thisTrialN)"
+            inits['filename'] = f"'recording_{inits['name']}_{inits['loop']}_%s.{inits['outputType']}' % {inits['loop']}.thisTrialN"
         else:
-            inits['loop'] = ""
+            inits['loop'] = "thisExp"
             inits['filename'] = f"'recording_{inits['name']}'"
         transcribe = inits['transcribe'].val
         if inits['transcribe'].val == False:
@@ -366,7 +366,7 @@ class MicrophoneComponent(BaseComponent):
         buff.setIndentLevel(-1, relative=True)
         code = (
             ")\n"
-            "%(loop)s.addData('%(name)s.clip', os.path.join(%(name)sRecFolder, %(filename)s)\n"
+            "%(loop)s.addData('%(name)s.clip', os.path.join(%(name)sRecFolder, %(filename)s))\n"
         )
         buff.writeIndentedLines(code % inits)
         if transcribe:
@@ -451,7 +451,7 @@ class MicrophoneComponent(BaseComponent):
         # Save recording
         code = (
             "# save %(name)s recordings\n"
-            "for tag in mic.clips:"
+            "for tag in %(name)s.clips:"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(1, relative=True)
