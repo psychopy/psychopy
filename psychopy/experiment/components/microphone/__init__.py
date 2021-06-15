@@ -348,7 +348,7 @@ class MicrophoneComponent(BaseComponent):
         # Warn user if their transcriber won't work locally
         if inits['transcribe'].val and inits['transcribeBackend'].val not in localTranscribers.values():
             alert(4605, strFields={"transcriber": inits['transcribeBackend'].val})
-            inits['transcribe'].val = list(localTranscribers.values())[0]
+            inits['transcribeBackend'].val = list(localTranscribers.values())[0]
         # Store recordings from this routine
         code = (
             "# tell mic to keep hold of current recording in %(name)s.clips and transcript (if applicable) in %(name)s.scripts\n"
@@ -397,8 +397,8 @@ class MicrophoneComponent(BaseComponent):
             inits['transcribeBackend'].val = allTranscribers[self.params['transcribeBackend'].val]
         # Warn user if their transcriber won't work online
         if inits['transcribe'].val and inits['transcribeBackend'].val not in onlineTranscribers.values():
-            alert(4610, strFields={"transcriber": inits['transcribeBackend'].val})
-            inits['transcribe'].val = list(onlineTranscribers.values())[0]
+            alert(4605, strFields={"transcriber": inits['transcribeBackend'].val})
+            inits['transcribeBackend'].val = list(onlineTranscribers.values())[0]
 
         # Write base end routine code
         BaseComponent.writeRoutineEndCodeJS(self, buff)
