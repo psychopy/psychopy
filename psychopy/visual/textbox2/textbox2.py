@@ -826,6 +826,10 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         # Reset contents
         self.text = self.startText
 
+    def clear(self):
+        # Clear contents
+        self.text = ""
+
 
     def contains(self, x, y=None, units=None, tight=False):
         """Returns True if a point x,y is inside the stimulus' border.
