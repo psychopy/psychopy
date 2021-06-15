@@ -45,6 +45,7 @@ from psychopy import logging, prefs, exceptions, constants
 from .audiodevice import *
 from .audioclip import *  # import objects related to AudioClip
 from .microphone import *  # import objects related to the microphone class
+from .transcribe import *  # import transcription engine stuff
 
 pyoSndServer = None
 Sound = None
