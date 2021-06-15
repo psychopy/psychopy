@@ -117,10 +117,10 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
         self.pos = numpy.asarray(pos, float)
         self.depth = depth
         self.opacity = opacity
+        self.interpolate = interpolate
         self.noAudio = noAudio
         self._audioStream = None
-        self._videoFrameBufferSize = None  # size of the video buffer in bytes
-        self._audioTrack = None
+        self.useTexSubImage2D = True
 
         if noAudio:  # to avoid dependency problems in silent movies
             self.sound = None
@@ -128,22 +128,12 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
             from psychopy import sound
             self.sound = sound
 
-        # interpolation
-        self._interpolate = None  # defined here, set in property
-        self._texFilterNeedsUpdate = None
-        self.interpolate = interpolate
-
         # set autoLog (now that params have been initialised)
         self.autoLog = autoLog
         if autoLog:
             logging.exp("Created %s = %s" % (self.name, str(self)))
 
         self._videoClock = Clock()
-        self._pixBuffId = GL.GLuint(0)
-        self._texID = GL.GLuint(0)
-        self._mov = None
-        self._numpyFrame = None
-        self._nextFrameT = None
         self.loadMovie(self.filename)
         self.setVolume(volume)
         self.nDroppedFrames = 0
@@ -155,7 +145,6 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
         else:
             self.size = val2array(size)
         self.ori = ori
-        self._setupTextureBuffers()
         self._updateVertices()
 
     @property
@@ -195,8 +184,7 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
     def reset(self):
         self._numpyFrame = None
         self._nextFrameT = None
-        self._pixBuffId = GL.GLuint(0)
-        self._texID = GL.GLuint(0)
+        self._texID = None
         self.status = NOT_STARTED
 
     def setMovie(self, filename, log=True):
@@ -234,18 +222,14 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
 
         # Create Video Stream stuff
         if os.path.isfile(filename):
-            self._mov = VideoFileClip(
-                filename,
-                audio=(not self.noAudio),
-                fps_source='fps')  # actual FPS from file metadata
-
+            self._mov = VideoFileClip(filename, audio=(1 - self.noAudio))
             if (not self.noAudio) and (self._mov.audio is not None):
                 sound = self.sound
                 try:
                     self._audioStream = sound.Sound(
                         self._mov.audio.to_soundarray(),
                         sampleRate=self._mov.audio.fps)
-                except BaseException:
+                except:
                     # JWE added this as a patch for a moviepy oddity where the
                     # duration is inflated in the saved file causes the
                     # audioclip to be the wrong length, so round down and it
@@ -254,7 +238,7 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
                     self._audioStream = sound.Sound(
                         jwe_tmp.audio.to_soundarray(),
                         sampleRate=self._mov.audio.fps)
-                    del jwe_tmp
+                    del(jwe_tmp)
             else:  # make sure we set to None (in case prev clip had audio)
                 self._audioStream = None
         else:
@@ -263,9 +247,9 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
             # size, duration, fps
         # mov.audio has attributes
             # duration, fps (aka sampleRate), to_soundarray()
+        self._frameInterval = 1.0 / self._mov.fps
+        # self.duration = self._mov.duration
         self.filename = filename
-
-        self._setupTextureBuffers()  # create appropriate buffers
         self._updateFrameTexture()
         logAttrib(self, log, 'movie', filename)
 
@@ -285,7 +269,7 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
                     self._audioSeek(self.getCurrentFrameTime())
             self._videoClock.reset(-self.getCurrentFrameTime())
             if log and self.autoLog:
-                self.win.logOnFlip("Set %s playing" % self.name,
+                self.win.logOnFlip("Set %s playing" % (self.name),
                                    level=logging.EXP, obj=self)
             self._updateFrameTexture()
 
@@ -303,11 +287,11 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
                     self._audioStream.stop()
             if log and self.autoLog:
                 self.win.logOnFlip("Set %s paused" %
-                                   self.name, level=logging.EXP, obj=self)
+                                   (self.name), level=logging.EXP, obj=self)
             return True
         if log and self.autoLog:
             self.win.logOnFlip("Failed Set %s paused" %
-                               self.name, level=logging.EXP, obj=self)
+                               (self.name), level=logging.EXP, obj=self)
         return False
 
     def stop(self, log=True):
@@ -321,7 +305,7 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
             self.reset()
             self.status = STOPPED  # set status to STOPPED after _unload
             if log and self.autoLog:
-                self.win.logOnFlip("Set %s stopped" % self.name,
+                self.win.logOnFlip("Set %s stopped" % (self.name),
                                    level=logging.EXP, obj=self)
 
     def setVolume(self, volume):
@@ -362,73 +346,6 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
         """
         return self._nextFrameT - self.frameInterval
 
-    def _setupTextureBuffers(self):
-        """Setup texture buffers which hold frame data. This creates a 2D
-        RGB texture and pixel buffer. The pixel buffer serves as the store for
-        texture color data. Each frame, the pixel buffer memory is mapped and
-        frame data is copied over to the GPU from the decoder.
-
-        This is called everytime a video file is loaded, destroying any pixel
-        buffers or textures previously in use.
-
-        """
-        # delete buffers and textures if previously created
-        if self._pixBuffId.value > 0:
-            GL.glDeleteBuffers(1, self._pixBuffId)
-
-        # Calculate the total size of the pixel store in bytes needed to hold a
-        # single video frame. This value is reused during the pixel upload
-        # process. Assumes RGB color format.
-        self._videoFrameBufferSize = \
-            self._mov.w * self._mov.h * 3 * ctypes.sizeof(GL.GLubyte)
-
-        # Create the pixel buffer object which will serve as the texture memory
-        # store. Pixel data will be copied to this buffer each frame.
-        GL.glGenBuffers(1, ctypes.byref(self._pixBuffId))
-        GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, self._pixBuffId)
-        GL.glBufferData(
-            GL.GL_PIXEL_UNPACK_BUFFER,
-            self._videoFrameBufferSize,
-            None,
-            GL.GL_STREAM_DRAW)  # one-way app -> GL
-        GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, 0)
-
-        # delete the old texture if present
-        if self._texID.value > 0:
-            GL.glDeleteTextures(1, self._texID)
-
-        # Create a texture which will hold the data streamed to the pixel
-        # buffer. Only one texture needs to be allocated.
-        GL.glGenTextures(1, ctypes.byref(self._texID))
-        GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
-        GL.glTexImage2D(
-            GL.GL_TEXTURE_2D,
-            0,
-            GL.GL_RGB8,
-            self._mov.w, self._mov.h,  # frame width and height in pixels
-            0,
-            GL.GL_RGB,
-            GL.GL_UNSIGNED_BYTE,
-            None)
-        GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1)
-
-        if self.interpolate:
-            texFilter = GL.GL_LINEAR
-        else:
-            texFilter = GL.GL_NEAREST
-
-        GL.glTexParameteri(
-            GL.GL_TEXTURE_2D,
-            GL.GL_TEXTURE_MAG_FILTER,
-            texFilter)
-        GL.glTexParameteri(
-            GL.GL_TEXTURE_2D,
-            GL.GL_TEXTURE_MIN_FILTER,
-            texFilter)
-        GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP)
-        GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP)
-        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-
     def _updateFrameTexture(self):
         """Update texture pixel store to contain the present frame. Decoded
         frame image samples are streamed to the texture buffer.
@@ -453,87 +370,68 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
             self._numpyFrame = self._mov.get_frame(self._nextFrameT)
         except OSError:
             if self.autoLog:
-                logging.warning(
-                    "Frame {} not found, moving one frame and trying "
-                    "again".format(self._nextFrameT), obj=self)
-            self._nextFrameT += self.frameInterval
+                logging.warning("Frame {} not found, moving one frame and trying again"
+                    .format(self._nextFrameT), obj=self)
+            self._nextFrameT += self._frameInterval
             self._updateFrameTexture()
-
-        if self._texID is None:  # no nothing until we have a texture
-            return
-
-        # Copy frame pixel data retrieved from the video decoder this frame.
-        # Here we use "texture streaming" which permits the efficient transfer
-        # of video data to the GPU by mapping the texture memory store to client
-        # (CPU) memory space.
-
-        # bind pixel unpack buffer
-        GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, self._pixBuffId)
-
-        # Free last storage buffer before mapping and writing new frame data.
-        # This allows the GPU to process the extant buffer in VRAM uploaded last
-        # cycle without being stalled by the CPU accessing it.
-        GL.glBufferData(
-            GL.GL_PIXEL_UNPACK_BUFFER,
-            self._videoFrameBufferSize,
-            None,
-            GL.GL_STREAM_DRAW)
-
-        # Map the buffer to client memory, `GL_WRITE_ONLY` to tell the driver to
-        # optimize for a one-way copy operation. This returns a pointer which
-        # we can encapsulate with a numpy array for easy access.
-        bufferPtr = GL.glMapBuffer(GL.GL_PIXEL_UNPACK_BUFFER, GL.GL_WRITE_ONLY)
-
-        # upload pixel data by copying
-        numpy.copyto(
-            numpy.ctypeslib.as_array(
-                ctypes.cast(bufferPtr, ctypes.POINTER(GL.GLubyte)),
-                shape=self._numpyFrame.shape),
-            self._numpyFrame,
-            casting='no')
-
-        # Very important that we unmap the buffer data after copying, but keep
-        # the buffer bound for setting the texture.
-        GL.glUnmapBuffer(GL.GL_PIXEL_UNPACK_BUFFER)
+        useSubTex = self.useTexSubImage2D
+        if self._texID is None:
+            self._texID = GL.GLuint()
+            GL.glGenTextures(1, ctypes.byref(self._texID))
+            useSubTex = False
 
         # bind the texture in openGL
         GL.glEnable(GL.GL_TEXTURE_2D)
-
-        # copy the PBO to the texture
+        # bind that name to the target
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
-        GL.glTexSubImage2D(
-            GL.GL_TEXTURE_2D, 0, 0, 0,
-            self._numpyFrame.shape[1],
-            self._numpyFrame.shape[0],
-            GL.GL_RGB,
-            GL.GL_UNSIGNED_BYTE,
-            0)  # point to the presently bound buffer
-
-        # update texture filtering if needed
-        if self._texFilterNeedsUpdate:
-            if self.interpolate:
-                texFilter = GL.GL_LINEAR
+        # makes the texture map wrap (this is actually default anyway)
+        GL.glTexParameteri(
+            GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP)
+        GL.glTexParameteri(
+            GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP)
+        # data from PIL/numpy is packed, but default for GL is 4 bytes
+        GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1)
+        # important if using bits++ because GL_LINEAR
+        # sometimes extrapolates to pixel vals outside range
+        if self.interpolate:
+            GL.glTexParameteri(
+                GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR)
+            GL.glTexParameteri(
+                GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)
+            if useSubTex is False:
+                GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGB8,
+                                self._numpyFrame.shape[1],
+                                self._numpyFrame.shape[0], 0,
+                                GL.GL_RGB, GL.GL_UNSIGNED_BYTE,
+                                self._numpyFrame.ctypes)
             else:
-                texFilter = GL.GL_NEAREST
-
+                GL.glTexSubImage2D(GL.GL_TEXTURE_2D, 0, 0, 0,
+                                   self._numpyFrame.shape[1],
+                                   self._numpyFrame.shape[0],
+                                   GL.GL_RGB, GL.GL_UNSIGNED_BYTE,
+                                   self._numpyFrame.ctypes)
+        else:
             GL.glTexParameteri(
-                GL.GL_TEXTURE_2D,
-                GL.GL_TEXTURE_MAG_FILTER,
-                texFilter)
+                GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST)
             GL.glTexParameteri(
-                GL.GL_TEXTURE_2D,
-                GL.GL_TEXTURE_MIN_FILTER,
-                texFilter)
-
-            self._texFilterNeedsUpdate = False
-
-        # important to unbind the PBO
-        GL.glBindBuffer(GL.GL_PIXEL_UNPACK_BUFFER, 0)
-        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-        GL.glDisable(GL.GL_TEXTURE_2D)
+                GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST)
+            if useSubTex is False:
+                GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGB8,
+                                self._numpyFrame.shape[1],
+                                self._numpyFrame.shape[0], 0,
+                                GL.GL_BGR, GL.GL_UNSIGNED_BYTE,
+                                self._numpyFrame.ctypes)
+            else:
+                GL.glTexSubImage2D(GL.GL_TEXTURE_2D, 0, 0, 0,
+                                   self._numpyFrame.shape[1],
+                                   self._numpyFrame.shape[0],
+                                   GL.GL_BGR, GL.GL_UNSIGNED_BYTE,
+                                   self._numpyFrame.ctypes)
+        GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE,
+                     GL.GL_MODULATE)  # ?? do we need this - think not!
 
         if self.status == PLAYING:
-            self._nextFrameT += self.frameInterval
+            self._nextFrameT += self._frameInterval
 
     def draw(self, win=None):
         """Draw the current frame to a particular visual.Window (or to the
@@ -570,16 +468,16 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
         vertsPix = self.verticesPix
 
         # bind textures
-        GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glActiveTexture(GL.GL_TEXTURE1)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+        GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
+        GL.glEnable(GL.GL_TEXTURE_2D)
 
         # sets opacity (1,1,1 = RGB placeholder)
         GL.glColor4f(1, 1, 1, self.opacity)
 
-        # Why do this every frame? Only when `verticesPix` is updated :/
         array = (GL.GLfloat * 32)(
             1, 1,  # texture coords
             vertsPix[0, 0], vertsPix[0, 1], 0.,  # vertex
@@ -613,8 +511,8 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
         sound = self.sound
         if self._audioStream is None:
             return  # do nothing
-        # Check if sounddevice  is being used. If so we can use seek. If not we
-        # have to reload the audio stream and begin at the new loc.
+        # check if sounddevice  is being used. If so we can use seek. If not we
+        # have to reload the audio stream and begin at the new loc
         if prefs.hardware['audioLib'] == ['sounddevice']:
             self._audioStream.seek(t)
         else:
@@ -626,8 +524,8 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
             if self.status != PAUSED:  # Allows for seeking while paused - JK
                 self._audioStream.play()
 
-    # def _getAudioStreamTime(self):
-    #     return self._audio_stream_clock.getTime()
+    def _getAudioStreamTime(self):
+        return self._audio_stream_clock.getTime()
 
     def _unload(self):
         # remove textures from graphics card to prevent crash
@@ -660,11 +558,13 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
 
     def setAutoDraw(self, val, log=None):
         """Add or remove a stimulus from the list of stimuli that will be
-        automatically drawn on each flip
+        automatically drawn on each flip.
 
-        :parameters:
-            - val: True/False
-                True to add the stimulus to the draw list, False to remove it
+        Parameters
+        ----------
+        val : bool
+            True to add the stimulus to the draw list, False to remove it.
+
         """
         if val:
             self.play(log=False)  # set to play in case stopped
