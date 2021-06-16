@@ -19,6 +19,7 @@ __all__ = [
 
 import os
 import psychopy.logging as logging
+from psychopy.alerts import alert
 import numpy as np
 from psychopy.preferences import prefs
 
@@ -325,6 +326,11 @@ def transcribe(samples, sampleRate, engine='sphinx', language='en-US',
     if engine not in _recognizers.keys():
         raise ValueError(
             'Parameter `engine` for `transcribe()` is not a valid value.')
+
+    # check if we have necessary keys
+    if engine in _apiKeys:
+        if not _apiKeys[engine]:
+            alert(4615, strFields={'engine': engine})
 
     # engine configuration
     config = {} if config is None else config
