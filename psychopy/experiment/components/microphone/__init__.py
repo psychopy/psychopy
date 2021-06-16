@@ -55,10 +55,10 @@ class MicrophoneComponent(BaseComponent):
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=2.0,
                  startEstim='', durationEstim='',
-                 channels='stereo', device="default",
-                 sampleRate='DVD Audio (48kHz)', maxSize=24000,
+                 channels='auto', device="default",
+                 sampleRate='Voice (16kHz)', maxSize=24000,
                  outputType='default', speakTimes=True, trimSilent=False,
-                 transcribe=True, transcribeBackend="BUILT-IN", transcribeLang="en-GB", transcribeWords="",
+                 transcribe=True, transcribeBackend="BUILT-IN", transcribeLang="en-us", transcribeWords="",
                  #legacy
                  stereo=None, channel=None):
         super(MicrophoneComponent, self).__init__(
@@ -427,7 +427,7 @@ class MicrophoneComponent(BaseComponent):
         if self.params['transcribe'].val:
             code = (
                 "// transcribe the recording\n"
-                "[%(name)s.lastScript, %(name)s.lastConf] = await %(name)s.lastClip.transcribe({\n"
+                "const transcription = await (name)s.lastClip.transcribe({\n"
             )
             buff.writeIndentedLines(code % inits)
             buff.setIndentLevel(1, relative=True)
@@ -440,6 +440,8 @@ class MicrophoneComponent(BaseComponent):
             buff.setIndentLevel(-1, relative=True)
             code = (
                 "});\n"
+                "%(name)s.lastScript = transcription.transcript;\n"
+                "%(name)s.lastConf = transcription.confidence;\n"
                 "psychoJS.experiment.addData('%(name)s.transcript', %(name)s.lastScript);\n"
                 "psychoJS.experiment.addData('%(name)s.confidence', %(name)s.lastConf);\n"
             )
