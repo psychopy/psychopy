@@ -336,10 +336,10 @@ def transcribe(samples, sampleRate, engine='sphinx', language='en-US',
             "`speech_recognition` from package `SpeechRecognition`.")
 
     # check if the engine parameter is valid
-    engine = engine.lower()
     if engine not in _recognizers.keys():
         raise ValueError(
-            'Parameter `engine` for `transcribe()` is not a valid value.')
+            f'transcribe() `engine` should be one of {list(_recognizers.keys())} not '
+            f'{engine}')
 
     # check if we have necessary keys
     if engine in _apiKeys:
@@ -436,11 +436,11 @@ def transcribe(samples, sampleRate, engine='sphinx', language='en-US',
     # submit audio samples to the API
     respAPI = ''
     unknownValueError = requestError = False
-    engine = engine.lower()
     try:
-        respAPI = _recognizers[engine.lower()](audio, **config)
+        respAPI = _recognizers[engine](audio, **config)
     except KeyError:
-        raise ValueError("Invalid transcriber `engine` specified.")
+        raise ValueError(f"`{engine}` is not a valid transcribe() engine. "
+                         f"Please use one of {list(_recognizers.keys())}")
     except sr.UnknownValueError:
         unknownValueError = True
     except sr.RequestError:
