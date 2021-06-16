@@ -9,7 +9,7 @@ from __future__ import absolute_import, print_function
 
 from os import path
 from pathlib import Path
-
+import copy
 from psychopy.alerts import alerttools, alert
 from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals, _translate
 from psychopy.localization import _localized as __localized
