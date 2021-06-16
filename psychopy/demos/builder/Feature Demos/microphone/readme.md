@@ -1,3 +1,3 @@
-# Pronunciation Checker
+# Microphone
 
-This demo will run through some common phrases in French, your task is to pronounce them as accurately as possible. The Microphone component will then transcribe what you said and will show you how close you were.
+This demo shows off the recording and transcription capabilities of the microphone component. The first block will present some phrases to read out, then will display what the Microphone component heard. 
