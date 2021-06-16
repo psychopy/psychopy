@@ -339,17 +339,18 @@ class MicrophoneComponent(BaseComponent):
         else:
             inits['loop'] = "thisExp"
             inits['filename'] = f"'recording_{inits['name']}'"
-        if inits['transcribeBackend'].val in allTranscribers:
-            inits['transcribeBackend'].val = allTranscribers[self.params['transcribeBackend'].val]
         transcribe = inits['transcribe'].val
         if inits['transcribe'].val == False:
             inits['transcribeBackend'].val = None
         if inits['outputType'].val == 'default':
             inits['outputType'].val = 'wav'
         # Warn user if their transcriber won't work locally
-        if inits['transcribe'].val and inits['transcribeBackend'].val not in localTranscribers.values():
-            alert(4605, strFields={"transcriber": inits['transcribeBackend'].val})
-            inits['transcribeBackend'].val = list(localTranscribers.values())[0]
+        if inits['transcribe'].val:
+            if  inits['transcribeBackend'].val in localTranscribers:
+                inits['transcribeBackend'].val = localTranscribers[self.params['transcribeBackend'].val]
+            else:
+                alert(4605, strFields={"transcriber": inits['transcribeBackend'].val})
+                inits['transcribeBackend'].val = list(localTranscribers.values())[0]
         # Store recordings from this routine
         code = (
             "# tell mic to keep hold of current recording in %(name)s.clips and transcript (if applicable) in %(name)s.scripts\n"
