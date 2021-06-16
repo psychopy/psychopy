@@ -427,7 +427,7 @@ class MicrophoneComponent(BaseComponent):
         if self.params['transcribe'].val:
             code = (
                 "// transcribe the recording\n"
-                "const transcription = await (name)s.lastClip.transcribe({\n"
+                "const transcription = await %(name)s.lastClip.transcribe({\n"
             )
             buff.writeIndentedLines(code % inits)
             buff.setIndentLevel(1, relative=True)
