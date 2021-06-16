@@ -322,6 +322,8 @@ def transcribe(samples, sampleRate, engine='sphinx', language='en-US',
 
     # check if the engine parameter is valid
     engine = engine.lower()
+    if engine == "google":
+        engine = "googleCloud"  # for now, alias Google and Google Cloud to sync with online
     if engine not in _recognizers.keys():
         raise ValueError(
             'Parameter `engine` for `transcribe()` is not a valid value.')
