@@ -382,7 +382,8 @@ def transcribe(samples, sampleRate, engine='sphinx', language='en-US',
             if engine != 'googleCloud':
                 config['key'] = _apiKeys[engine] if key is None else key
             else:
-                config['credentials_json'] = _apiKeys[engine] if key is None else key
+                config['credentials_json'] = \
+                    _apiKeys[engine] if key is None else key
         except KeyError:
             logging.warning(
                 "Selected speech-to-text engine '{}' requires a key but one"
