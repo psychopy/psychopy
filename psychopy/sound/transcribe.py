@@ -64,6 +64,7 @@ _recognizers = {}
 _apiKeys = {}  # API key loaded
 if _hasSpeechRecognition:
     _recognizers['sphinx'] = sr.Recognizer().recognize_sphinx
+    _recognizers['built-in'] = _recognizers['sphinx']  # aliased
     _recognizers['google'] = sr.Recognizer().recognize_google
     _recognizers['googleCloud'] = sr.Recognizer().recognize_google_cloud
     _recognizers['bing'] = sr.Recognizer().recognize_bing
@@ -320,6 +321,7 @@ def transcribe(samples, sampleRate, engine='sphinx', language='en-US',
             "`speech_recognition` from package `SpeechRecognition`.")
 
     # check if the engine parameter is valid
+    engine = engine.lower()
     if engine not in _recognizers.keys():
         raise ValueError(
             'Parameter `engine` for `transcribe()` is not a valid value.')
@@ -341,21 +343,24 @@ def transcribe(samples, sampleRate, engine='sphinx', language='en-US',
 
     # API specific config
     expectedWordsNotSupported = requiresKey = False
-    if engine == 'sphinx':
-        # sensitivity specified as `word:80`
-        expectedWordsTemp = []
-        for word in expectedWords:
-            wordAndSense= word.split(':')
-            if len(wordAndSense) == 2:  # specified as `word:80`
-                word, confidence = wordAndSense
-                sensitivity = int(confidence) / 100.
-            else:
-                word = wordAndSense[0]
-                sensitivity = 0.8  # default is 80% confidence
+    if engine == 'sphinx' or engine == 'built-in':
+        expectedWordsTemp = None
+        if expectedWords is not None:
+            # sensitivity specified as `word:80`
+            expectedWordsTemp = []
+            for word in expectedWords:
+                wordAndSense = word.split(':')
+                if len(wordAndSense) == 2:  # specified as `word:80`
+                    word, sensitivity = wordAndSense
+                    sensitivity = int(sensitivity) / 100.
+                else:
+                    word = wordAndSense[0]
+                    sensitivity = 0.8  # default is 80% confidence
 
-            expectedWordsTemp.append((word, sensitivity))
+                expectedWordsTemp.append((word, sensitivity))
 
         config['keyword_entries'] = expectedWordsTemp
+
     elif engine == 'googleCloud':
         config['preferred_phrases'] = expectedWords
         requiresKey = True
@@ -413,9 +418,12 @@ def transcribe(samples, sampleRate, engine='sphinx', language='en-US',
     except sr.RequestError:
         requestError = True
 
+    # remove empty words
+    result = [word for word in respAPI.split(' ') if word != '']
+
     # object to return containing transcription data
     toReturn = TranscriptionResult(
-        words=respAPI.split(' '),
+        words=result,
         unknownValue=unknownValueError,
         requestFailed=requestError,
         engine=engine,

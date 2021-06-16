@@ -35,12 +35,11 @@ reportNDroppedFrames = 10
 
 import os
 
-from psychopy import logging, prefs #adding prefs to be able to check sound lib -JK
+from psychopy import logging, prefs  # adding prefs to be able to check sound lib -JK
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.attributetools import logAttrib, setAttribute
 from psychopy.tools.filetools import pathToString
 from psychopy.visual.basevisual import BaseVisualStim, ContainerMixin, TextureMixin
-
 from moviepy.video.io.VideoFileClip import VideoFileClip
 
 import ctypes
@@ -52,16 +51,30 @@ import pyglet.gl as GL
 
 
 class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
-    """A stimulus class for playing movies (mpeg, avi, etc...) in PsychoPy
-    that does not require avbin. Instead it requires the cv2 python package
-    for OpenCV. The VLC media player also needs to be installed on the
-    psychopy computer.
+    """A stimulus class for playing movies.
 
-    **Example**::
+    This class uses MoviePy and FFMPEG as a backend for loading and decoding
+    video data from files.
 
-        See Movie2Stim.py for demo.
+    Parameters
+    ----------
+    filename : str
+        A string giving the relative or absolute path to the movie.
+    flipVert : True or *False*
+        If True then the movie will be top-bottom flipped
+    flipHoriz : True or *False*
+        If True then the movie will be right-left flipped
+    volume :
+        The nominal level is 100, and 0 is silence.
+    loop : bool, optional
+        Whether to start the movie over from the beginning if draw is called and
+        the movie is done.
+
+    Examples
+    --------
+    See Movie2Stim.py for demo.
+
     """
-
     def __init__(self, win,
                  filename="",
                  units='pix',
@@ -82,22 +95,6 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
                  vframe_callback=None,
                  fps=None,
                  interpolate=True):
-        """
-        :Parameters:
-
-            filename :
-                a string giving the relative or absolute path to the movie.
-            flipVert : True or *False*
-                If True then the movie will be top-bottom flipped
-            flipHoriz : True or *False*
-                If True then the movie will be right-left flipped
-            volume :
-                The nominal level is 100, and 0 is silence.
-            loop : bool, optional
-                Whether to start the movie over from the beginning if draw is
-                called and the movie is done.
-
-        """
         # what local vars are defined (these are the init params) for use
         # by __repr__
         self._initParams = dir()
@@ -150,6 +147,40 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
         self.ori = ori
         self._updateVertices()
 
+    @property
+    def interpolate(self):
+        """Enable linear interpolation (`bool').
+
+        If `True` linear filtering will be applied to the video making the image
+        less pixelated if scaled.
+        """
+        return self._interpolate
+
+    @interpolate.setter
+    def interpolate(self, value):
+        self._interpolate = value
+        self._texFilterNeedsUpdate = True
+
+    @property
+    def duration(self):
+        """Duration of the video clip in seconds (`float`). Only valid after
+        loading a clip, always returning `0.0` if not.
+        """
+        if self._mov is None:
+            return 0.0
+
+        return self._mov.duration
+
+    @property
+    def frameInterval(self):
+        """Time in seconds each frame is to be presented on screen (`float`).
+        Value is `0.0` if no movie is loaded.
+        """
+        if self._mov is None:
+            return 0.0
+
+        return 1. / self._mov.fps
+
     def reset(self):
         self._numpyFrame = None
         self._nextFrameT = None
@@ -161,19 +192,30 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
 
         This form is provided for syntactic consistency with other visual
         stimuli.
+
+        Parameters
+        ----------
+        filename : str
+            The name of the file, including path if necessary.
+        log : bool
+            Log this event.
+
         """
         self.loadMovie(filename, log=log)
 
     def loadMovie(self, filename, log=True):
-        """Load a movie from file
+        """Load a movie from file.
 
-        :Parameters:
-
-            filename: string
-                The name of the file, including path if necessary
-
-        After the file is loaded MovieStim.duration is updated with the movie
+        After the file is loaded `MovieStim.duration` is updated with the movie
         duration (in seconds).
+
+        Parameters
+        ----------
+        filename : str
+            The name of the file, including path if necessary.
+        log : bool
+            Log this event.
+
         """
         filename = pathToString(filename)
         self.reset()  # set status and timestamps etc
@@ -205,8 +247,8 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
             # size, duration, fps
         # mov.audio has attributes
             # duration, fps (aka sampleRate), to_soundarray()
-        self._frameInterval = 1.0/self._mov.fps
-        self.duration = self._mov.duration
+        self._frameInterval = 1.0 / self._mov.fps
+        # self.duration = self._mov.duration
         self.filename = filename
         self._updateFrameTexture()
         logAttrib(self, log, 'movie', filename)
@@ -216,12 +258,12 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
         """
         status = self.status
         if status != PLAYING:
-            self.status = PLAYING #moved this to get better audio behavior - JK
-            #Added extra check to prevent audio doubling - JK
-            if self._audioStream is not None and self._audioStream.status is not PLAYING: 
+            self.status = PLAYING  # moved this to get better audio behavior - JK
+            # Added extra check to prevent audio doubling - JK
+            if self._audioStream is not None and self._audioStream.status is not PLAYING:
                 self._audioStream.play()
             if status == PAUSED:
-                if self.getCurrentFrameTime() < 0: #Check for valid timestamp, correct if needed -JK
+                if self.getCurrentFrameTime() < 0:  # Check for valid timestamp, correct if needed -JK
                     self._audioSeek(0)
                 else:
                     self._audioSeek(self.getCurrentFrameTime())
@@ -240,7 +282,7 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
             self.status = PAUSED
             if self._audioStream:
                 if prefs.hardware['audioLib'] == ['sounddevice']:
-                    self._audioStream.pause() #sounddevice has a "pause" function -JK
+                    self._audioStream.pause()  # sounddevice has a "pause" function -JK
                 else:
                     self._audioStream.stop()
             if log and self.autoLog:
@@ -261,11 +303,10 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
         if self.status != STOPPED:
             self._unload()
             self.reset()
-            self.status = STOPPED # set status to STOPPED after _unload
+            self.status = STOPPED  # set status to STOPPED after _unload
             if log and self.autoLog:
                 self.win.logOnFlip("Set %s stopped" % (self.name),
                                    level=logging.EXP, obj=self)
-
 
     def setVolume(self, volume):
         pass  # to do
@@ -289,22 +330,31 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
         self._needVertexUpdate = True
 
     def getFPS(self):
+        """Get the movie frames per second.
+
+        Returns
+        -------
+        float
+            Frames per second.
+
         """
-        Returns the movie frames per second playback speed.
-        """
-        return self._mov.fps
+        return float(self._mov.fps)
 
     def getCurrentFrameTime(self):
         """Get the time that the movie file specified the current
         video frame as having.
         """
-        return self._nextFrameT - self._frameInterval
+        return self._nextFrameT - self.frameInterval
 
     def _updateFrameTexture(self):
+        """Update texture pixel store to contain the present frame. Decoded
+        frame image samples are streamed to the texture buffer.
+
+        """
         if self._nextFrameT is None or self._nextFrameT < 0:
-            # movie has no current position (or invalid position -JK), 
-            # need to reset the clock to zero in order to have the 
-            # timing logic work otherwise the video stream would skip 
+            # movie has no current position (or invalid position -JK),
+            # need to reset the clock to zero in order to have the
+            # timing logic work otherwise the video stream would skip
             # frames until the time since creating the movie object has passed
             self._videoClock.reset()
             self._nextFrameT = 0.0
@@ -317,10 +367,10 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
                                    self._retraceInterval/2.0):
                 return None
         try:
-            self._numpyFrame = self._mov.get_frame(self._nextFrameT) 
+            self._numpyFrame = self._mov.get_frame(self._nextFrameT)
         except OSError:
             if self.autoLog:
-                logging.warning("Frame {} not found, moving one frame and trying again" 
+                logging.warning("Frame {} not found, moving one frame and trying again"
                     .format(self._nextFrameT), obj=self)
             self._nextFrameT += self._frameInterval
             self._updateFrameTexture()
@@ -385,13 +435,19 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
 
     def draw(self, win=None):
         """Draw the current frame to a particular visual.Window (or to the
-        default win for this object if not specified). The current
-        position in the movie will be determined automatically.
+        default win for this object if not specified). The current position in
+        the movie will be determined automatically.
 
-        This method should be called on every frame that the movie is
-        meant to appear.
+        This method should be called on every frame that the movie is meant to
+        appear.
+
+        Parameters
+        ----------
+        win : :class:`~psychopy.visual.Window` or None
+            Window the video is being drawn to. If `None`, the window specified
+            by property `win` will be used. Default is `None`.
+
         """
-
         if (self.status == NOT_STARTED or
                 (self.status == FINISHED and self.loop)):
             self.play()
@@ -455,8 +511,8 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
         sound = self.sound
         if self._audioStream is None:
             return  # do nothing
-        #check if sounddevice  is being used. If so we can use seek. If not we have to 
-        #reload the audio stream and begin at the new loc
+        # check if sounddevice  is being used. If so we can use seek. If not we
+        # have to reload the audio stream and begin at the new loc
         if prefs.hardware['audioLib'] == ['sounddevice']:
             self._audioStream.seek(t)
         else:
@@ -465,7 +521,7 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
             startIndex = int(t * self._mov.audio.fps)
             self._audioStream = sound.Sound(
                 sndArray[startIndex:, :], sampleRate=self._mov.audio.fps)
-            if self.status != PAUSED: #Allows for seeking while paused - JK
+            if self.status != PAUSED:  # Allows for seeking while paused - JK
                 self._audioStream.play()
 
     def _getAudioStreamTime(self):
@@ -502,11 +558,13 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
 
     def setAutoDraw(self, val, log=None):
         """Add or remove a stimulus from the list of stimuli that will be
-        automatically drawn on each flip
+        automatically drawn on each flip.
 
-        :parameters:
-            - val: True/False
-                True to add the stimulus to the draw list, False to remove it
+        Parameters
+        ----------
+        val : bool
+            True to add the stimulus to the draw list, False to remove it.
+
         """
         if val:
             self.play(log=False)  # set to play in case stopped
@@ -514,3 +572,7 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
             self.pause(log=False)
         # add to drawing list and update status
         setAttribute(self, 'autoDraw', val, log)
+
+
+if __name__ == "__main__":
+    pass
