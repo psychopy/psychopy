@@ -129,7 +129,7 @@
         <Param val="" valType="code" updates="constant" name="stopVal"/>
         <Param val="False" valType="bool" updates="None" name="syncScreenRefresh"/>
         <Param val="True" valType="bool" updates="None" name="transcribe"/>
-        <Param val="GOOGLE" valType="code" updates="None" name="transcribeBackend"/>
+        <Param val="Google" valType="code" updates="None" name="transcribeBackend"/>
         <Param val="fr" valType="str" updates="None" name="transcribeLang"/>
         <Param val="" valType="list" updates="None" name="transcribeWords"/>
         <Param val="False" valType="bool" updates="None" name="trimSilent"/>

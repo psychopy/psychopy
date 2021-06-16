@@ -577,6 +577,8 @@ class CodeSnippetValidator(BaseValidator):
                                 control, msg=msg, kind=VALIDATOR_WARNING_NAME)
                         else:
                             parent.warnings.clearWarning(control)
+        else:
+            parent.warnings.clearWarning(control)
 
         parent.warnings.showWarning()  # show most recent warnings
 

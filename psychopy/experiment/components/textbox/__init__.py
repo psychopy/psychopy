@@ -9,7 +9,7 @@ from __future__ import absolute_import, print_function
 
 from os import path
 from pathlib import Path
-
+import copy
 from psychopy.alerts import alerttools, alert
 from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals, _translate
 from psychopy.localization import _localized as __localized
@@ -255,11 +255,21 @@ class TextboxComponent(BaseVisualComponent):
         BaseVisualComponent.writeRoutineStartCode(self, buff)
 
     def writeRoutineStartCodeJS(self, buff):
-        code = (
-            "%(name)s.reset();"
-        )
-        buff.writeIndentedLines(code % self.params)
-        BaseVisualComponent.writeRoutineStartCode(self, buff)
+        if self.params['editable']:
+            # replaces variable params with sensible defaults
+            inits = getInitVals(self.params, 'PsychoJS')
+            # check for NoneTypes
+            for param in inits:
+                if inits[param] in [None, 'None', '']:
+                    inits[param].val = 'undefined'
+                    if param == 'text':
+                        inits[param].val = ""
+
+            code = (
+                "%(name)s.setText(%(text)s);"
+            )
+            buff.writeIndentedLines(code % inits)
+        BaseVisualComponent.writeRoutineStartCodeJS(self, buff)
 
     def writeRoutineEndCode(self, buff):
         name = self.params['name']

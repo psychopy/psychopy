@@ -293,6 +293,13 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
 
         self.dpi = int(wx.GetDisplaySize()[0] /
                        float(wx.GetDisplaySizeMM()[0]) * 25.4)
+        # detect retina displays
+        self.isRetina = self.dpi>80 and wx.Platform == '__WXMAC__'
+        if self.isRetina:
+            fontScale = 1.2  # fonts are looking tiny on macos (only retina?) right now
+        else:
+            fontScale = 1
+        # adjust dpi to something reasonable
         if not (50 < self.dpi < 120):
             self.dpi = 80  # dpi was unreasonable, make one up
 
@@ -302,6 +309,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
             self._mainFont = wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT)
         else:
             self._mainFont = wx.SystemSettings.GetFont(wx.SYS_ANSI_FIXED_FONT)
+            # rescale for tiny retina fonts
 
         if hasattr(wx.Font, "AddPrivateFont") and sys.platform != "darwin":
             # Load packaged fonts if possible
@@ -309,7 +317,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
                 if fontFile.suffix in ['.ttf', '.truetype']:
                     wx.Font.AddPrivateFont(str(fontFile))
             # Set fonts as those loaded
-            self._codeFont = wx.Font(wx.FontInfo(9).FaceName("JetBrains Mono"))
+            self._codeFont = wx.Font(wx.FontInfo(self._mainFont.GetPointSize()).FaceName("JetBrains Mono"))
         else:
             # Get system defaults if can't load fonts
             try:
@@ -320,6 +328,11 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
                                          wx.FONTFAMILY_TELETYPE,
                                          wx.FONTSTYLE_NORMAL,
                                          wx.FONTWEIGHT_NORMAL)
+
+        if self.isRetina:
+            self._codeFont.SetPointSize(int(self._codeFont.GetPointSize()*fontScale))
+            self._mainFont.SetPointSize(int(self._mainFont.GetPointSize()*fontScale))
+
         # that gets most of the properties of _codeFont but the FaceName
         # FaceName is set in the setting of the theme:
         self.theme = self.prefs.app['theme']
@@ -605,8 +618,8 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
             self.runner.Raise()
             self.SetTopWindow(self.runner)
         # Runner captures standard streams until program closed
-        # if self.runner and not self.testMode:
-        #     sys.stderr = sys.stdout = self.stdStreamDispatcher
+        if self.runner and not self.testMode:
+            sys.stderr = sys.stdout = self.stdStreamDispatcher
 
     def newRunnerFrame(self, event=None):
         # have to reimport because it is only local to __init__ so far

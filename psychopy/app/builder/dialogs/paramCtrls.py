@@ -51,7 +51,7 @@ class _ValidatorMixin():
             valType = "str"
         if valType == "code" or hasattr(self, "dollarLbl"):
             # Set font
-            self.SetFont(self.GetTopLevelParent().app._codeFont)
+            self.SetFont(self.GetTopLevelParent().app._codeFont.Bold())
         else:
             self.SetFont(self.GetTopLevelParent().app._mainFont)
 
