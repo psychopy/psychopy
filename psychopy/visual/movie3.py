@@ -366,6 +366,13 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
             if self._nextFrameT > (self._videoClock.getTime() -
                                    self._retraceInterval/2.0):
                 return None
+
+        while self._nextFrameT <= (self._videoClock.getTime() - self._frameInterval*2):
+            logging.warning("{}: Video catchup needed, advancing self._nextFrameT from"
+                            " {} to {}".format(self._videoClock.getTime(), self._nextFrameT,
+                                               self._nextFrameT+self._frameInterval))
+            self._nextFrameT += self._frameInterval
+
         try:
             self._numpyFrame = self._mov.get_frame(self._nextFrameT)
         except OSError:
