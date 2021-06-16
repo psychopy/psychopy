@@ -37,8 +37,8 @@ onlineTranscribers = {
     "Microsoft Azure": "AZURE",
 }
 localTranscribers = {
-    "Built-In": "BUILT_IN",
     "Google": "GOOGLE",
+    "Microsoft Azure": "AZURE",
 }
 allTranscribers = {**localTranscribers, **onlineTranscribers}
 
