@@ -427,7 +427,7 @@ class MicrophoneComponent(BaseComponent):
         if self.params['transcribe'].val:
             code = (
                 "// transcribe the recording\n"
-                "[%(name)s.lastScript, %(name)s.lastConf] = await %(name)s.lastClip.transcribe({\n"
+                "const transcription = await (name)s.lastClip.transcribe({\n"
             )
             buff.writeIndentedLines(code % inits)
             buff.setIndentLevel(1, relative=True)
@@ -440,6 +440,8 @@ class MicrophoneComponent(BaseComponent):
             buff.setIndentLevel(-1, relative=True)
             code = (
                 "});\n"
+                "%(name)s.lastScript = transcription.transcript;\n"
+                "%(name)s.lastConf = transcription.confidence;\n"
                 "psychoJS.experiment.addData('%(name)s.transcript', %(name)s.lastScript);\n"
                 "psychoJS.experiment.addData('%(name)s.confidence', %(name)s.lastConf);\n"
             )
