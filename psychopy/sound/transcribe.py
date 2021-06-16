@@ -19,7 +19,9 @@ __all__ = [
 
 import os
 import psychopy.logging as logging
+from psychopy.alerts import alert
 import numpy as np
+from pathlib import Path
 from psychopy.preferences import prefs
 
 # ------------------------------------------------------------------------------
@@ -35,6 +37,15 @@ except (ImportError, ModuleNotFoundError):
         "install SpeechRecognition` to get it. Transcription will be "
         "unavailable.")
     _hasSpeechRecognition = False
+
+try:
+    import pocketsphinx
+    sphinxLangs = [folder.stem for folder
+                   in Path(pocketsphinx.get_model_path()).glob('??-??')]
+    haveSphinx = True
+except ModuleNotFoundError:
+    haveSphinx = False
+    sphinxLangs = None
 
 # Constants related to the transcription system.
 TRANSCR_LANG_DEFAULT = 'en-US'
@@ -188,6 +199,10 @@ class TranscriptionResult(object):
 
     @engine.setter
     def engine(self, value):
+        if value == 'sphinx':
+            if not haveSphinx:
+                raise ModuleNotFoundError("To perform built-in (local) transcription you need"
+                                          "to have pocketsphinx installed (pip install pocketsphinx)")
         self._engine = str(value)
 
     @property
@@ -321,10 +336,15 @@ def transcribe(samples, sampleRate, engine='sphinx', language='en-US',
             "`speech_recognition` from package `SpeechRecognition`.")
 
     # check if the engine parameter is valid
-    engine = engine.lower()
     if engine not in _recognizers.keys():
         raise ValueError(
-            'Parameter `engine` for `transcribe()` is not a valid value.')
+            f'transcribe() `engine` should be one of {list(_recognizers.keys())} not '
+            f'{engine}')
+
+    # check if we have necessary keys
+    if engine in _apiKeys:
+        if not _apiKeys[engine]:
+            alert(4615, strFields={'engine': engine})
 
     # engine configuration
     config = {} if config is None else config
@@ -343,8 +363,16 @@ def transcribe(samples, sampleRate, engine='sphinx', language='en-US',
 
     # API specific config
     expectedWordsNotSupported = requiresKey = False
-    if engine == 'sphinx' or engine == 'built-in':
+    if engine in ('sphinx', 'built-in'):
         expectedWordsTemp = None
+        # check valid language
+        config['language'] = language.lower()  # sphinx users en-us not en-US
+        if config['language'] not in sphinxLangs:
+            url = "https://sourceforge.net/projects/cmusphinx/files/Acoustic%20and%20Language%20Models/"
+            raise ValueError(f"Language `{config['language']}` is not installed for pocketsphinx. "
+                             f"You can download languages here: {url}"
+                             f"Install them here: {pocketsphinx.get_model_path()}")
+        # check expected words
         if expectedWords is not None:
             # sensitivity specified as `word:80`
             expectedWordsTemp = []
@@ -366,24 +394,29 @@ def transcribe(samples, sampleRate, engine='sphinx', language='en-US',
         requiresKey = True
     elif engine == 'google':
         expectedWordsNotSupported = True
+        requiresKey = True
     elif engine in ('bing', 'azure'):
         expectedWordsNotSupported = True
         requiresKey = True
 
     if expectedWordsNotSupported:
         logging.warning(
-            "Engine '{engine}' does not allow for expected phrases to "
-            "be specified.".format(engine=engine))
+            f"Transcription engine '{engine}' does not allow for expected phrases to "
+            "be specified.")
 
     # API requires a key
     if requiresKey:
         try:
-            config['key'] = _apiKeys[engine] if key is None else key
+            if engine != 'googleCloud':
+                config['key'] = _apiKeys[engine] if key is None else key
+            else:
+                config['credentials_json'] = \
+                    _apiKeys[engine] if key is None else key
         except KeyError:
             raise ValueError(
-                "Selected speech-to-text engine '{}' requires a key but one"
-                "cannot be found. Try specifying `key` directly.".format(
-                    engine))
+                f"Selected speech-to-text engine '{engine}' requires an API key but one"
+                "cannot be found. Add key to PsychoPy prefs or try specifying "
+                "`key` directly.")
 
     # combine channels if needed
     samples = np.atleast_2d(samples)  # enforce 2D
@@ -408,11 +441,11 @@ def transcribe(samples, sampleRate, engine='sphinx', language='en-US',
     # submit audio samples to the API
     respAPI = ''
     unknownValueError = requestError = False
-    engine = engine.lower()
     try:
-        respAPI = _recognizers[engine.lower()](audio, **config)
+        respAPI = _recognizers[engine](audio, **config)
     except KeyError:
-        raise ValueError("Invalid transcriber `engine` specified.")
+        raise ValueError(f"`{engine}` is not a valid transcribe() engine. "
+                         f"Please use one of {list(_recognizers.keys())}")
     except sr.UnknownValueError:
         unknownValueError = True
     except sr.RequestError:

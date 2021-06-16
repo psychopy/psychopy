@@ -255,15 +255,20 @@ class TextboxComponent(BaseVisualComponent):
         BaseVisualComponent.writeRoutineStartCode(self, buff)
 
     def writeRoutineStartCodeJS(self, buff):
-        if self.params['text'].updates != 'constant':
+        if self.params['editable']:
             # replaces variable params with sensible defaults
-            resetText = copy.copy(self.params['text'])
-            if resetText.val in [None, 'None']:
-                resetText.val = ""
+            inits = getInitVals(self.params, 'PsychoJS')
+            # check for NoneTypes
+            for param in inits:
+                if inits[param] in [None, 'None', '']:
+                    inits[param].val = 'undefined'
+                    if param == 'text':
+                        inits[param].val = ""
+
             code = (
                 "%(name)s.setText(%(text)s);"
             )
-            buff.writeIndentedLines(code % self.params)
+            buff.writeIndentedLines(code % inits)
         BaseVisualComponent.writeRoutineStartCodeJS(self, buff)
 
     def writeRoutineEndCode(self, buff):
