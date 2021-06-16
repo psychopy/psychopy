@@ -916,7 +916,7 @@ class Microphone(object):
         # append current clip's transcription according to tag
 
         if transcribe:
-            if transcribe in ['BUILT_IN', 'BUILT-IN', 'BUILTIN', 'Built-In', 'built-in', True]:
+            if transcribe in ['Built-in', True, 'BUILT_IN', 'BUILT-IN', 'Built-In', 'built-in']:
                 engine = "sphinx"
             elif type(transcribe) == str:
                 engine = transcribe
