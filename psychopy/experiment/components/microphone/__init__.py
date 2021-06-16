@@ -37,8 +37,9 @@ onlineTranscribers = {
     "Microsoft Azure": "AZURE",
 }
 localTranscribers = {
-    "Google": "GOOGLE",
-    "Microsoft Azure": "AZURE",
+    "Google": "googleCloud",
+    "Microsoft Azure": "azure",
+    "Built-in": "sphinx",
 }
 allTranscribers = {**localTranscribers, **onlineTranscribers}
 
@@ -58,7 +59,7 @@ class MicrophoneComponent(BaseComponent):
                  channels='auto', device="default",
                  sampleRate='Voice (16kHz)', maxSize=24000,
                  outputType='default', speakTimes=True, trimSilent=False,
-                 transcribe=True, transcribeBackend="BUILT-IN", transcribeLang="en-US", transcribeWords="",
+                 transcribe=True, transcribeBackend="Built-in", transcribeLang="en-US", transcribeWords="",
                  #legacy
                  stereo=None, channel=None):
         super(MicrophoneComponent, self).__init__(
