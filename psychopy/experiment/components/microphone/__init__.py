@@ -32,6 +32,17 @@ else:
 sampleRates = {r[1]: r[0] for r in sampleRateQualityLevels.values()}
 devices['default'] = None
 
+onlineTranscribers = {
+    "Google": "GOOGLE",
+    "Microsoft Azure": "AZURE",
+}
+localTranscribers = {
+    "Google": "googleCloud",
+    "Microsoft Azure": "azure",
+    "Built-in": "sphinx",
+}
+allTranscribers = {**localTranscribers, **onlineTranscribers}
+
 
 class MicrophoneComponent(BaseComponent):
     """An event class for capturing short sound stimuli"""
@@ -45,10 +56,10 @@ class MicrophoneComponent(BaseComponent):
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=2.0,
                  startEstim='', durationEstim='',
-                 channels='stereo', device="default",
-                 sampleRate='DVD Audio (48kHz)', maxSize=24000,
+                 channels='auto', device="default",
+                 sampleRate='Voice (16kHz)', maxSize=24000,
                  outputType='default', speakTimes=True, trimSilent=False,
-                 transcribe=True, transcribeBackend="GOOGLE", transcribeLang="en-GB", transcribeWords="",
+                 transcribe=True, transcribeBackend="Built-in", transcribeLang="en-US", transcribeWords="",
                  #legacy
                  stereo=None, channel=None):
         super(MicrophoneComponent, self).__init__(
@@ -154,10 +165,9 @@ class MicrophoneComponent(BaseComponent):
 
         self.params['transcribeBackend'] = Param(
             transcribeBackend, valType='code', inputType='choice', categ='Transcription',
-            allowedVals=["GOOGLE", "AZURE"],
-            hint=_translate("What transcription service to use to transcribe audio? Only applies online - local "
-                            "transcription uses Python Sphinx."),
-            label=_translate("Online Transcription Backend")
+            allowedVals=list(allTranscribers),
+            hint=_translate("What transcription service to use to transcribe audio?"),
+            label=_translate("Transcription Backend")
         )
 
         self.params['transcribeLang'] = Param(
@@ -325,15 +335,22 @@ class MicrophoneComponent(BaseComponent):
         # Alter inits
         if len(self.exp.flow._loopList):
             inits['loop'] = self.exp.flow._loopList[-1].params['name']
-            inits['filename'] = f"'recording_{inits['name']}_{inits['loop']}_%s.{inits['outputType']}' % {inits['loop']}.thisTrialN)"
+            inits['filename'] = f"'recording_{inits['name']}_{inits['loop']}_%s.{inits['outputType']}' % {inits['loop']}.thisTrialN"
         else:
-            inits['loop'] = ""
+            inits['loop'] = "thisExp"
             inits['filename'] = f"'recording_{inits['name']}'"
         transcribe = inits['transcribe'].val
         if inits['transcribe'].val == False:
             inits['transcribeBackend'].val = None
         if inits['outputType'].val == 'default':
             inits['outputType'].val = 'wav'
+        # Warn user if their transcriber won't work locally
+        if inits['transcribe'].val:
+            if  inits['transcribeBackend'].val in localTranscribers:
+                inits['transcribeBackend'].val = localTranscribers[self.params['transcribeBackend'].val]
+            else:
+                alert(4605, strFields={"transcriber": inits['transcribeBackend'].val})
+                inits['transcribeBackend'].val = list(localTranscribers.values())[0]
         # Store recordings from this routine
         code = (
             "# tell mic to keep hold of current recording in %(name)s.clips and transcript (if applicable) in %(name)s.scripts\n"
@@ -343,12 +360,12 @@ class MicrophoneComponent(BaseComponent):
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(1, relative=True)
         code = (
-            "tag='%(loop)s', transcribe='sphinx',\n"
+            "tag='%(loop)s', transcribe='%(transcribeBackend)s',\n"
         )
         buff.writeIndentedLines(code % inits)
         if transcribe:
             code = (
-                "config={'languageCode': %(transcribeLang)s, 'wordList': %(transcribeWords)s}\n"
+                "language=%(transcribeLang)s, expectedWords=%(transcribeWords)s\n"
             )
         else:
             code = (
@@ -358,7 +375,7 @@ class MicrophoneComponent(BaseComponent):
         buff.setIndentLevel(-1, relative=True)
         code = (
             ")\n"
-            "%(loop)s.addData('%(name)s.clip', os.path.join(%(name)sRecFolder, %(filename)s)\n"
+            "%(loop)s.addData('%(name)s.clip', os.path.join(%(name)sRecFolder, %(filename)s))\n"
         )
         buff.writeIndentedLines(code % inits)
         if transcribe:
@@ -378,6 +395,12 @@ class MicrophoneComponent(BaseComponent):
         else:
             inits['loop'] = ""
             inits['filename'] = f"'recording_{inits['name']}'"
+        if inits['transcribeBackend'].val in allTranscribers:
+            inits['transcribeBackend'].val = allTranscribers[self.params['transcribeBackend'].val]
+        # Warn user if their transcriber won't work online
+        if inits['transcribe'].val and inits['transcribeBackend'].val not in onlineTranscribers.values():
+            alert(4605, strFields={"transcriber": inits['transcribeBackend'].val})
+            inits['transcribeBackend'].val = list(onlineTranscribers.values())[0]
 
         # Write base end routine code
         BaseComponent.writeRoutineEndCodeJS(self, buff)
@@ -391,7 +414,7 @@ class MicrophoneComponent(BaseComponent):
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(1, relative=True)
         code = (
-                "tag: 'recording_%(name)s' + trials.thisN,\n"
+                "tag: %(filename)s,\n"
                 "flush: false\n"
         )
         buff.writeIndentedLines(code % inits)
@@ -406,7 +429,7 @@ class MicrophoneComponent(BaseComponent):
         if self.params['transcribe'].val:
             code = (
                 "// transcribe the recording\n"
-                "[%(name)s.lastScript, %(name)s.lastConf] = await audioClip.transcribe({\n"
+                "const transcription = await %(name)s.lastClip.transcribe({\n"
             )
             buff.writeIndentedLines(code % inits)
             buff.setIndentLevel(1, relative=True)
@@ -419,6 +442,8 @@ class MicrophoneComponent(BaseComponent):
             buff.setIndentLevel(-1, relative=True)
             code = (
                 "});\n"
+                "%(name)s.lastScript = transcription.transcript;\n"
+                "%(name)s.lastConf = transcription.confidence;\n"
                 "psychoJS.experiment.addData('%(name)s.transcript', %(name)s.lastScript);\n"
                 "psychoJS.experiment.addData('%(name)s.confidence', %(name)s.lastConf);\n"
             )
@@ -439,7 +464,7 @@ class MicrophoneComponent(BaseComponent):
         # Save recording
         code = (
             "# save %(name)s recordings\n"
-            "for tag in mic.clips:"
+            "for tag in %(name)s.clips:"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(1, relative=True)

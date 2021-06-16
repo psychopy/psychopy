@@ -46,7 +46,7 @@
     <Param val="4242" valType="num" updates="None" name="gpPort"/>
     <Param val="exp" valType="code" updates="None" name="logging level"/>
     <Param val="('MIDDLE_BUTTON',)" valType="list" updates="None" name="mgBlink"/>
-    <Param val="('RIGHT_BUTTON',)" valType="list" updates="None" name="mgMove"/>
+    <Param val="CONTINUOUS" valType="str" updates="None" name="mgMove"/>
     <Param val="0.5" valType="num" updates="None" name="mgSaccade"/>
     <Param val="" valType="str" updates="None" name="tbLicenseFile"/>
     <Param val="" valType="str" updates="None" name="tbModel"/>
@@ -86,7 +86,7 @@
         <Param val="False" valType="bool" updates="None" name="disabled"/>
         <Param val="" valType="code" updates="None" name="durationEstim"/>
         <Param val="look at" valType="str" updates="None" name="endRoutineOn"/>
-        <Param val="1000" valType="num" updates="None" name="lookDur"/>
+        <Param val="1" valType="num" updates="None" name="lookDur"/>
         <Param val="4" valType="int" updates="constant" name="nVertices"/>
         <Param val="target_roi" valType="code" updates="None" name="name"/>
         <Param val="0" valType="num" updates="constant" name="ori"/>

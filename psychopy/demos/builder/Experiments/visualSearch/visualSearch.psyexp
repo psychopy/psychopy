@@ -46,7 +46,7 @@
     <Param name="gpPort" updates="None" val="4242" valType="num"/>
     <Param name="logging level" updates="None" val="exp" valType="code"/>
     <Param name="mgBlink" updates="None" val="('MIDDLE_BUTTON',)" valType="list"/>
-    <Param name="mgMove" updates="None" val="('RIGHT_BUTTON',)" valType="list"/>
+    <Param name="mgMove" updates="None" val="CONTINUOUS" valType="str"/>
     <Param name="mgSaccade" updates="None" val="0.5" valType="num"/>
     <Param name="tbLicenseFile" updates="None" val="" valType="str"/>
     <Param name="tbModel" updates="None" val="" valType="str"/>
@@ -144,7 +144,7 @@
         <Param name="disabled" updates="None" val="False" valType="bool"/>
         <Param name="durationEstim" updates="None" val="" valType="code"/>
         <Param name="endRoutineOn" updates="None" val="look at" valType="str"/>
-        <Param name="lookDur" updates="None" val="500" valType="num"/>
+        <Param name="lookDur" updates="None" val="0.5" valType="num"/>
         <Param name="nVertices" updates="constant" val="4" valType="int"/>
         <Param name="name" updates="None" val="progress_roi" valType="code"/>
         <Param name="ori" updates="constant" val="0" valType="num"/>
@@ -208,7 +208,7 @@
         <Param name="disabled" updates="None" val="False" valType="bool"/>
         <Param name="durationEstim" updates="None" val="" valType="code"/>
         <Param name="endRoutineOn" updates="None" val="look at" valType="str"/>
-        <Param name="lookDur" updates="None" val="1000" valType="num"/>
+        <Param name="lookDur" updates="None" val="1" valType="num"/>
         <Param name="nVertices" updates="constant" val="4" valType="int"/>
         <Param name="name" updates="None" val="fix_roi" valType="code"/>
         <Param name="ori" updates="constant" val="0" valType="num"/>
@@ -324,7 +324,7 @@
         <Param name="disabled" updates="None" val="False" valType="bool"/>
         <Param name="durationEstim" updates="None" val="" valType="code"/>
         <Param name="endRoutineOn" updates="None" val="look at" valType="str"/>
-        <Param name="lookDur" updates="None" val="300" valType="num"/>
+        <Param name="lookDur" updates="None" val="0.3" valType="num"/>
         <Param name="nVertices" updates="constant" val="6" valType="int"/>
         <Param name="name" updates="None" val="target_roi" valType="code"/>
         <Param name="ori" updates="constant" val="0" valType="num"/>

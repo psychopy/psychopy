@@ -5,7 +5,7 @@
   "base": {
     "fg": "#F2F2F2",
     "bg": "#000000",
-    "font": ["Consolas", "Monaco", "Lucida Console"]
+    "font": "JetBrains Mono"
   },
   "margin": {
     "fg": "#F2F2F2",

@@ -36,7 +36,7 @@ class RegionOfInterestComponent(PolygonComponent):
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim='',
                  timeRelativeTo='roi onset',
-                 lookDur=100, debug=False,
+                 lookDur=0.1, debug=False,
                  save='every look'):
 
         PolygonComponent.__init__(self, exp, parentName, name=name,
@@ -78,7 +78,7 @@ class RegionOfInterestComponent(PolygonComponent):
 
         self.params['lookDur'] = Param(lookDur,
             valType='num', inputType='single', categ='Basic',
-            hint=_translate("How long (ms) does the participant need to look at the ROI to count as a look?"),
+            hint=_translate("How long (s) does the participant need to look at the ROI to count as a look?"),
             label=_translate("Min. Look Time")
         )
 
@@ -140,6 +140,9 @@ class RegionOfInterestComponent(PolygonComponent):
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
+
+    def writeInitCodeJS(self, buff):
+        pass
 
     def writeRoutineStartCode(self, buff):
         inits = getInitVals(self.params, 'PsychoPy')
@@ -206,7 +209,7 @@ class RegionOfInterestComponent(PolygonComponent):
         buff.writeIndentedLines(code % inits)
         if self.params['endRoutineOn'].val == "look at":
             code = (
-                "if %(name)s.currentLookTime > %(lookDur)s/1000: # check if they've been looking long enough\n"
+                "if %(name)s.currentLookTime > %(lookDur)s: # check if they've been looking long enough\n"
             )
             buff.writeIndentedLines(code % inits)
             buff.setIndentLevel(1, relative=True)
@@ -237,7 +240,7 @@ class RegionOfInterestComponent(PolygonComponent):
         buff.writeIndentedLines(code % inits)
         if self.params['endRoutineOn'].val == "look away":
             code = (
-                "if %(name)s.currentLookTime > %(lookDur)s/1000: # check if last look was long enough\n"
+                "if %(name)s.lastLookTime > %(lookDur)s: # check if last look was long enough\n"
             )
             buff.writeIndentedLines(code % inits)
             buff.setIndentLevel(1, relative=True)

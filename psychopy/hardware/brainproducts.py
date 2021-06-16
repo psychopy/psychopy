@@ -162,11 +162,11 @@ class RemoteControlServer(object):
         if not checkOutput:
             return
         # wait for message with expected output (means OK)
-        OK = bool(self.waitForMessage(endswith=checkOutput))
-        if not OK:
+        reply = self.waitForMessage(endswith=checkOutput)
+        if not reply:
             logging.warning(
                 "RCS Didn't receive expected response from RCS to "
-                "the message {}. Reply was '{}'."
+                "the message {}. Current stack of recent responses:{}."
                 .format(message, self._listener.messages))
         else:
             return True
@@ -180,16 +180,20 @@ class RemoteControlServer(object):
             A string the message must contain
         endswith : str
             A string the message must end with (ignoring newline characters)
+
+        Returns
+        -------
+        The (complete) message string if one was received or None if not
         """
         # check output
         OK = False
         t0 = time.time()
         while time.time() - t0 < self._timeout and not OK:
             for reply in self._listener.messages:
-                if reply.endswith(endswith) and reply.contains(containing):
+                if reply.endswith(endswith) and containing in reply:
                     logging.debug("RCS received {}".format(repr(reply)))
                     self._listener.messages.remove(reply)
-                    OK = True
+                    return reply
 
     def waitForState(self, stateName, permitted):
         """Helper function to wait for a particular state (or any attribute, for that matter)
@@ -358,7 +362,7 @@ class RemoteControlServer(object):
 
         replyOK = self.sendRaw(msg, checkOutput=msg + ':OK')
         if not replyOK:
-            raise IOError
+            raise IOError(f"Failed to set RCS into mode {mode}. RCS did not reply 'OK'")
 
         # now wait for appropriate state changes to match our target mode
         if mode in ['impedance', 'imp']:

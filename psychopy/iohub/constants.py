@@ -160,6 +160,9 @@ class EventConstants(Constants):
     #: Constant for a Basic Eye Tracker Sample Event.
     EYE_SAMPLE = 59
 
+    #: Constant for a GazePoint specific Sample Event.
+    GAZEPOINT_SAMPLE = 60
+
     #: Constant for a Gamepad Event.
     GAMEPAD_STATE_CHANGE = 81
     GAMEPAD_DISCONNECT = 82

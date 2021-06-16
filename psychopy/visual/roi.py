@@ -108,6 +108,21 @@ class ROI(ShapeStim):
             # If not looked at, look time is 0
             return 0
 
+    @property
+    def lastLookTime(self):
+        if self.timesOn and self.timesOff and not self.isLookedIn:
+            # If not looked at, subtract most recent time from last time on
+            return self.timesOff[-1] - self.timesOn[-1]
+        elif len(self.timesOn) > 1 and len(self.timesOff) > 1:
+            # If looked at, return previous look time
+            return self.timesOff[-2] - self.timesOn[-2]
+        else:
+            # Otherwise, assume 0
+            return 0
+
+
+
+
     def reset(self):
         """Clear stored data"""
         self.timesOn = []

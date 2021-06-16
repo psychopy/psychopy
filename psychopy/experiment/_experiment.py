@@ -107,7 +107,6 @@ class Experiment(object):
         # in writeRoutineEndCode
         self._expHandler = TrialHandler(exp=self, name='thisExp')
         self._expHandler.type = 'ExperimentHandler'  # true at run-time
-        self._expHandler.name = self._expHandler.params['name'].val  # thisExp
 
     def requirePsychopyLibs(self, libs=()):
         """Add a list of top-level psychopy libs that the experiment
@@ -195,14 +194,14 @@ class Experiment(object):
         self_copy = deepcopy(self)
         for key, routine in list(self_copy.routines.items()):  # PY2/3 compat
             if isinstance(routine, BaseStandaloneRoutine):
-                if routine.params['disabled'].val:
+                if routine.params['disabled']:
                     for node in self_copy.flow:
                         if node == routine:
                             self_copy.flow.removeComponent(node)
             else:
                 for component in routine:
                     try:
-                        if component.params['disabled'].val:
+                        if component.params['disabled']:
                             routine.removeComponent(component)
                     except KeyError:
                         pass
@@ -241,11 +240,13 @@ class Experiment(object):
                                                localDateTime, modular)
 
             script.writeIndentedLines("// Start code blocks for 'Before Experiment'")
+            routinesToWrite = list(self_copy.routines)
             for entry in self_copy.flow:
                 # NB each entry is a routine or LoopInitiator/Terminator
                 self_copy._currentRoutine = entry
-                if hasattr(entry, 'writePreCodeJS'):
+                if hasattr(entry, 'writePreCodeJS') and entry.name in routinesToWrite:
                     entry.writePreCodeJS(script)
+                    routinesToWrite.remove(entry.name)  # this one's done
 
             # Write window code
             self_copy.settings.writeWindowCodeJS(script)
@@ -259,11 +260,13 @@ class Experiment(object):
             script.setIndentLevel(1, relative=True)
 
             # routine init sections
+            routinesToWrite = list(self_copy.routines)
             for entry in self_copy.flow:
                 # NB each entry is a routine or LoopInitiator/Terminator
                 self_copy._currentRoutine = entry
-                if hasattr(entry, 'writeInitCodeJS'):
+                if hasattr(entry, 'writeInitCodeJS') and entry.name in routinesToWrite:
                     entry.writeInitCodeJS(script)
+                    routinesToWrite.remove(entry.name)  # this one's done
 
             # create globalClock etc
             code = ("// Create some handy timers\n"

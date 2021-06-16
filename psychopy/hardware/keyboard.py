@@ -73,6 +73,7 @@ try:
     import psychtoolbox as ptb
     from psychtoolbox import hid
     havePTB = True
+
 except ImportError as err:
     logging.warning(("Import Error: "
                      + err.args[0]
@@ -80,9 +81,17 @@ except ImportError as err:
     from psychopy import event
     havePTB = False
 
-macPrefsBad = False
-
 defaultBufferSize = 10000
+
+# monkey-patch bug in PTB keyboard where winHandle=0 is documented but crashes
+if havePTB and sys.platform == 'win32':
+    from psychtoolbox import PsychHID
+    # make a new function where we set default win_handle to be None instead of 0
+    def _replacement_create_queue(self, num_slots=10000, flags=0, win_handle=None):
+        PsychHID('KbQueueCreate', self.device_number,
+                 None, 0, num_slots, flags, win_handle)
+    # replace the broken function with ours
+    hid.Keyboard._create_queue = _replacement_create_queue
 
 
 def getKeyboards():
@@ -137,7 +146,7 @@ class Keyboard:
             setting this to True
 
         """
-        global havePTB, macPrefsBad
+        global havePTB
         self.status = NOT_STARTED
         # Initiate containers for storing responses
         self.keys = []  # the key(s) pressed
@@ -186,15 +195,6 @@ class Keyboard:
             if not waitForStart:
                 self.start()
 
-            # check if mac prefs are working; if not default
-            # to using event.getKeys()
-            if sys.platform == 'darwin':
-                try:
-                    Keyboard()
-                except OSError:
-                    macPrefsBad = True
-                    havePTB = False
-                    Keyboard.backend = 'event'
         elif Keyboard.backend == '':
             Keyboard.backend = 'event'
 

@@ -598,19 +598,20 @@ class ThemeMixin:
         if "italic" in base:
             italic = [base.pop(base.index("italic"))]
         # Append base and default fonts
-        fontList.extend(base+["Consolas", "Monaco", "Lucida Console"])
+        fontList.extend(base+["JetBrains Mono"])
+        if "" in fontList:
+            del fontList[fontList.index("")]
         # Set starting font in case none are found
-        if sys.platform == 'win32':
-            finalFont = [wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT).GetFaceName()]
-        else:
+        try:
             finalFont = [wx.SystemSettings.GetFont(wx.SYS_ANSI_FIXED_FONT).GetFaceName()]
+        except wx._core.wxAssertionError:
+            finalFont = [wx.Font(10, wx.FONTFAMILY_TELETYPE, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL).GetFaceName()]
         # Cycle through font names, stop at first valid font
         if sys.platform == 'win32':
             for font in fontList:
-                if fm.findfont(font) not in fm.defaultFont.values():
+                if font in wx.FontEnumerator().GetFacenames():
                     finalFont = [font] + bold + italic
                     break
-
         return ','.join(finalFont)
 
     def _setCodeColors(self, spec):

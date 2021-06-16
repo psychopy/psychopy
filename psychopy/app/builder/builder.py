@@ -659,12 +659,20 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         """Open a FileDialog, then load the file if possible.
         """
         if filename is None:
+            # Set wildcard
             if sys.platform != 'darwin':
                 wildcard = _translate("PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*.*")
             else:
                 wildcard = _translate("PsychoPy experiments (*.psyexp)|*.psyexp|Any file (*.*)|*")
+            # get path of current file (empty if current file is '')
+            if self.filename:
+                initPath = str(Path(self.filename).parent)
+            else:
+                initPath = ""
+            # Open dlg
             dlg = wx.FileDialog(self, message=_translate("Open file ..."),
-                                style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST,
+                                defaultDir=initPath,
+                                style=wx.FD_OPEN,
                                 wildcard=wildcard)
             if dlg.ShowModal() != wx.ID_OK:
                 return 0
@@ -778,17 +786,6 @@ class BuilderFrame(wx.Frame, ThemeMixin):
             htmlPath = self._getHtmlPath(self.filename)
         if not htmlPath:
             return
-        dlg = ExportFileDialog(self, wx.ID_ANY,
-                               title=_translate("Export HTML file"),
-                               filePath=htmlPath,
-                               exp=self.exp)
-
-        export = dlg.exportOnSave
-        if self.exp.settings.params['exportHTML'].val == 'manually':
-            retVal = dlg.ShowModal()
-            self.exp.settings.params['exportHTML'].val = export.GetString(export.GetCurrentSelection())
-            if retVal != wx.ID_OK:  # User cancelled export
-                return False
 
         exportPath = os.path.join(htmlPath, expName.replace('.psyexp', '.js'))
         self.generateScript(experimentPath=exportPath,
@@ -1460,7 +1457,8 @@ class RoutinesNotebook(aui.AuiNotebook, ThemeMixin):
         self.app = frame.app
         self.routineMaxSize = 2
         self.appData = self.app.prefs.appData
-        aui.AuiNotebook.__init__(self, frame, id)
+        aui.AuiNotebook.__init__(self, frame, id,
+            agwStyle=aui.AUI_NB_TAB_MOVE | aui.AUI_NB_CLOSE_ON_ACTIVE_TAB)
         self.Bind(aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.onClosePane)
 
         # double buffered better rendering except if retina
@@ -2176,6 +2174,11 @@ class StandaloneRoutineCanvas(scrolledpanel.ScrolledPanel, ThemeMixin):
                 self.frame.exp.routines[self.routine.params['name'].val] = self.frame.exp.routines.pop(name)
         # Redraw the flow panel
         self.frame.flowPanel.draw()
+        # Rename this page
+        page = self.frame.routinePanel.GetPageIndex(self)
+        self.frame.routinePanel.SetPageText(page, self.routine.params['name'].val)
+        # Update save button
+        self.frame.setIsModified(True)
 
     def Validate(self, *args, **kwargs):
         return self.ctrls.Validate()
@@ -2293,7 +2296,8 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             # Make button
             wx.Button.__init__(self, parent, wx.ID_ANY,
                                label=label, name=name,
-                               size=(68, 68+12*label.count("\n")), style=wx.NO_BORDER)
+                               size=(68, 68+12*label.count("\n")),
+                               style=wx.NO_BORDER)
             self.SetToolTip(wx.ToolTip(comp.tooltip or name))
             # Style
             self._applyAppTheme()
@@ -2304,8 +2308,10 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         def onClick(self, evt=None, timeout=None):
             routine = self.parent.frame.routinePanel.getCurrentRoutine()
             page = self.parent.frame.routinePanel.getCurrentPage()
-            comp = self.component(parentName=routine.name, exp=self.parent.frame.exp)
-            
+            comp = self.component(
+                parentName=routine.name,
+                exp=self.parent.frame.exp)
+
             # does this component have a help page?
             if hasattr(comp, 'url'):
                 helpUrl = comp.url
@@ -2395,7 +2401,8 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             # Make button
             wx.Button.__init__(self, parent, wx.ID_ANY,
                                label=label, name=name,
-                               size=(68, 68+12*label.count("\n")), style=wx.NO_BORDER)
+                               size=(68, 68+12*label.count("\n")),
+                               style=wx.NO_BORDER)
             self.SetToolTip(wx.ToolTip(rt.tooltip or name))
             # Style
             self._applyAppTheme()
@@ -2409,7 +2416,8 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             # Add to the actual routine
             exp = self.parent.frame.exp
             namespace = exp.namespace
-            name = comp.params['name'].val = namespace.makeValid(comp.params['name'].val)
+            name = comp.params['name'].val = namespace.makeValid(
+                comp.params['name'].val)
             namespace.add(name)
             exp.addStandaloneRoutine(name, comp)
             # update the routine's view with the new routine too
@@ -2637,6 +2645,8 @@ class ReadmeFrame(wx.Frame):
         self.rawText = ""
         self.ctrl = HtmlWindow(self, wx.ID_ANY)
         self.ctrl.Bind(wx.html.EVT_HTML_LINK_CLICKED, self.onUrl)
+        # Style
+        self.ctrl.SetFonts(normal_face="Open Sans", fixed_face="JetBrains Mono", sizes=[8, 10, 12, 14, 16, 18, 20])
 
     def onUrl(self, evt=None):
         webbrowser.open(evt.LinkInfo.Href)
@@ -2742,64 +2752,6 @@ class ReadmeFrame(wx.Frame):
             self.Hide()
         else:
             self.Show()
-
-
-class ExportFileDialog(wx.Dialog):
-    def __init__(self, parent, ID, title, size=wx.DefaultSize,
-                 pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE,
-                 filePath=None, exp=None):
-        wx.Dialog.__init__(self, parent, ID, title,
-                           size=size, pos=pos, style=style)
-        # Now continue with the normal construction of the dialog
-        # contents
-        self.exp = exp
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        box = wx.BoxSizer(wx.HORIZONTAL)
-
-        label = wx.StaticText(self, wx.ID_ANY, _translate("Filepath:"))
-        box.Add(label, 0, wx.ALIGN_CENTRE | wx.ALL, 5)
-        if len(filePath) > 70:
-            filePath = filePath[:20] + "....." + filePath[-40:]
-        self.filePath = wx.StaticText(self, wx.ID_ANY, filePath, size=(500, -1))
-        box.Add(self.filePath, 1, wx.ALIGN_CENTRE | wx.ALL, 5)
-
-        sizer.Add(box, 0, wx.GROW | wx.ALL, 5)
-
-        # Set save on export HTML choice
-        box = wx.BoxSizer(wx.HORIZONTAL)
-        choices = ['on Save', 'on Sync', 'manually']
-        exportLabel = _translate("Select 'manually' to receive this alert when exporting HTML.\n"
-                                 "Click 'OK' to export HTML, or click 'Cancel' to return.")
-        self.exportOnSave = wx.Choice(self, wx.ID_ANY,
-                                      size=wx.DefaultSize,
-                                      choices=choices)
-        self.exportOnSave.SetSelection(choices.index(self.exp.settings.params['exportHTML']))
-        self.exportText = wx.StaticText(self, wx.ID_ANY, exportLabel)
-        self.exportOnSave.SetHelpText(exportLabel)
-        box.Add(self.exportOnSave, .5, wx.ALIGN_CENTRE | wx.ALL, 5)
-        box.Add(self.exportText, 1, wx.ALIGN_CENTRE | wx.ALL, 5)
-
-        sizer.Add(box, 0, wx.GROW | wx.ALL, 5)
-
-        line = wx.StaticLine(self, wx.ID_ANY, size=(20, -1),
-                             style=wx.LI_HORIZONTAL)
-        sizer.Add(line, 0,
-                  wx.GROW | wx.RIGHT | wx.TOP, 5)
-
-        btnsizer = wx.StdDialogButtonSizer()
-
-        btn = wx.Button(self, wx.ID_OK)
-        btn.SetHelpText("The OK button completes the dialog")
-        btn.SetDefault()
-        btnsizer.AddButton(btn)
-
-        btn = wx.Button(self, wx.ID_CANCEL)
-        btn.SetHelpText("The Cancel button cancels the dialog. (Crazy, huh?)")
-        btnsizer.AddButton(btn)
-
-        sizer.Add(btnsizer, 0, wx.ALL, 5)
-
-        self.SetSizerAndFit(sizer)
 
 
 class FlowPanel(wx.ScrolledWindow):
@@ -3019,6 +2971,8 @@ class FlowPanel(wx.ScrolledWindow):
         self.frame.addToUndoStack("ADD Routine `%s`" % rtn.name)
         # reset flow drawing (remove entry point)
         self.clearMode()
+        # enable/disable add loop button
+        self.btnInsertLoop.Enable(bool(len(self.frame.exp.flow)))
 
     def setLoopPoint1(self, evt=None):
         """Someone pushed the insert loop button.
@@ -3305,6 +3259,8 @@ class FlowPanel(wx.ScrolledWindow):
         # perform the actual removal
         flow.removeComponent(component, id=compID)
         self.draw()
+        # enable/disable add loop button
+        self.btnInsertLoop.Enable(bool(len(flow)))
 
     def OnPaint(self, event):
         # Create a buffered paint DC.  It will create the real
