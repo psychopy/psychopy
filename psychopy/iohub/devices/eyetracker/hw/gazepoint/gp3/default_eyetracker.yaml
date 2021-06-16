@@ -22,7 +22,7 @@ eyetracker.hw.gazepoint.gp3.EyeTracker:
 
     # The GP3 implementation of the common eye tracker interface supports the
     # BinocularEyeSampleEvent event type.
-    monitor_event_types: [ BinocularEyeSampleEvent, FixationStartEvent, FixationEndEvent]
+    monitor_event_types: [ GazepointSampleEvent, FixationStartEvent, FixationEndEvent]
 
     runtime_settings:
         sampling_rate: Auto
