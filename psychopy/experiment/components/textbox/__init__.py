@@ -9,7 +9,7 @@ from __future__ import absolute_import, print_function
 
 from os import path
 from pathlib import Path
-
+import copy
 from psychopy.alerts import alerttools, alert
 from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals, _translate
 from psychopy.localization import _localized as __localized
@@ -50,8 +50,8 @@ class TextboxComponent(BaseVisualComponent):
                  text=_translate('Any text\n\nincluding line breaks'),
                  font='Open Sans', units='from exp settings', bold=False, italic=False,
                  color='white', colorSpace='rgb', opacity="",
-                 pos=(0, 0), size='', letterHeight=0.05, ori=0,
-                 lineSpacing=1.0, padding="",  # gap between box and text
+                 pos=(0, 0), size=(None, None), letterHeight=0.05, ori=0,
+                 lineSpacing=1.0, padding=0,  # gap between box and text
                  startType='time (s)', startVal=0.0, anchor='center',
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim='',
@@ -241,8 +241,6 @@ class TextboxComponent(BaseVisualComponent):
         depth = -self.getPosInRoutine()
 
     def writeRoutineStartCode(self, buff):
-        BaseVisualComponent.writeRoutineStartCode(self, buff)
-
         # Give alert if in the same routine as a Keyboard component
         if self.params['editable'].val:
             routine = self.exp.routines[self.parentName]
@@ -257,12 +255,21 @@ class TextboxComponent(BaseVisualComponent):
         BaseVisualComponent.writeRoutineStartCode(self, buff)
 
     def writeRoutineStartCodeJS(self, buff):
-        BaseVisualComponent.writeRoutineStartCode(self, buff)
+        if self.params['editable']:
+            # replaces variable params with sensible defaults
+            inits = getInitVals(self.params, 'PsychoJS')
+            # check for NoneTypes
+            for param in inits:
+                if inits[param] in [None, 'None', '']:
+                    inits[param].val = 'undefined'
+                    if param == 'text':
+                        inits[param].val = ""
 
-        code = (
-            "%(name)s.reset()"
-        )
-        buff.writeIndentedLines(code % self.params)
+            code = (
+                "%(name)s.setText(%(text)s);"
+            )
+            buff.writeIndentedLines(code % inits)
+        BaseVisualComponent.writeRoutineStartCodeJS(self, buff)
 
     def writeRoutineEndCode(self, buff):
         name = self.params['name']

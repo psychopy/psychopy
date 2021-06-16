@@ -862,8 +862,8 @@ class Microphone(object):
         `bufferSecs`. You do not need to call this if you call `stop` before
         the time specified by `bufferSecs` elapses since the `start` call.
 
-        Can only be called between called of `start` and `stop` (i.e.
-        ``Microphone.status == STARTED``.
+        Can only be called between called of `start` (or `record`) and `stop`
+        (or `pause`).
 
         Returns
         -------
@@ -914,10 +914,11 @@ class Microphone(object):
         self.lastClip = self._recording.getSegment()
         self.clips[tag].append(self.lastClip)
         # append current clip's transcription according to tag
+
         if transcribe:
-            if transcribe:
+            if transcribe in ['Built-in', True, 'BUILT_IN', 'BUILT-IN', 'Built-In', 'built-in']:
                 engine = "sphinx"
-            else:
+            elif type(transcribe) == str:
                 engine = transcribe
             self.lastScript = self.lastClip.transcribe(
                 engine=engine, **kwargs)

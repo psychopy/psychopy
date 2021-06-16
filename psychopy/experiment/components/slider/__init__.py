@@ -157,6 +157,9 @@ class SliderComponent(BaseVisualComponent):
         self.params['borderColor'].label = _translate("Line Color")
         self.params['borderColor'].hint = _translate("Color of all lines on this slider (might be overridden by the style setting)")
 
+        # Disable units
+        self.params['units'].allowedVals = ['from exp settings']
+
         self.params['font'] = Param(
                 font, valType='str', inputType="single", categ='Formatting',
                 updates='constant',
@@ -283,7 +286,7 @@ class SliderComponent(BaseVisualComponent):
                    "  size: {size}, pos: {pos}, units: {units},\n"
                    "  labels: {labels}, ticks: {ticks},\n"
                    "  granularity: {granularity}, style: {styles},\n"
-                   "  color: new util.Color({color}), \n"
+                   "  color: new util.Color({color}), markerColor: new util.Color({fillColor}), lineColor: new util.Color({borderColor}), \n"
                    "  fontFamily: {font}, bold: true, italic: false, depth: {depth}, \n"
                    ).format(**inits)
         initStr += ("  flip: {flip},\n"

@@ -293,26 +293,33 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
 
         self.dpi = int(wx.GetDisplaySize()[0] /
                        float(wx.GetDisplaySizeMM()[0]) * 25.4)
+        # detect retina displays
+        self.isRetina = self.dpi>80 and wx.Platform == '__WXMAC__'
+        if self.isRetina:
+            fontScale = 1.2  # fonts are looking tiny on macos (only retina?) right now
+        else:
+            fontScale = 1
+        # adjust dpi to something reasonable
         if not (50 < self.dpi < 120):
             self.dpi = 80  # dpi was unreasonable, make one up
 
         # Manage fonts
+        if sys.platform == 'win32':
+            # wx.SYS_DEFAULT_GUI_FONT is default GUI font in Win32
+            self._mainFont = wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT)
+        else:
+            self._mainFont = wx.SystemSettings.GetFont(wx.SYS_ANSI_FIXED_FONT)
+            # rescale for tiny retina fonts
+
         if hasattr(wx.Font, "AddPrivateFont") and sys.platform != "darwin":
             # Load packaged fonts if possible
             for fontFile in (Path(__file__).parent / "Resources" / "fonts").glob("*"):
                 if fontFile.suffix in ['.ttf', '.truetype']:
                     wx.Font.AddPrivateFont(str(fontFile))
             # Set fonts as those loaded
-            self._mainFont = wx.Font(wx.FontInfo(10).FaceName("Open Sans"))
-            self._codeFont = wx.Font(wx.FontInfo(10).FaceName("JetBrains Mono").Light())
+            self._codeFont = wx.Font(wx.FontInfo(self._mainFont.GetPointSize()).FaceName("JetBrains Mono"))
         else:
             # Get system defaults if can't load fonts
-            if sys.platform == 'win32':
-                # wx.SYS_DEFAULT_GUI_FONT is default GUI font in Win32
-                self._mainFont = wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT)
-            else:
-                self._mainFont = wx.SystemSettings.GetFont(wx.SYS_ANSI_FIXED_FONT)
-
             try:
                 self._codeFont = wx.SystemSettings.GetFont(wx.SYS_ANSI_FIXED_FONT)
             except wx._core.wxAssertionError:
@@ -321,6 +328,11 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
                                          wx.FONTFAMILY_TELETYPE,
                                          wx.FONTSTYLE_NORMAL,
                                          wx.FONTWEIGHT_NORMAL)
+
+        if self.isRetina:
+            self._codeFont.SetPointSize(int(self._codeFont.GetPointSize()*fontScale))
+            self._mainFont.SetPointSize(int(self._mainFont.GetPointSize()*fontScale))
+
         # that gets most of the properties of _codeFont but the FaceName
         # FaceName is set in the setting of the theme:
         self.theme = self.prefs.app['theme']
@@ -366,8 +378,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
 
         # set the dispatcher for standard output
         self.stdStreamDispatcher = console.StdStreamDispatcher(self)
-        sys.stderr = self.stdStreamDispatcher
-        sys.stdout = self.stdStreamDispatcher
+        self.stdStreamDispatcher.redirect()
 
         # Create windows
         if view.runner:
@@ -607,8 +618,8 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
             self.runner.Raise()
             self.SetTopWindow(self.runner)
         # Runner captures standard streams until program closed
-        # if self.runner and not self.testMode:
-        #     sys.stderr = sys.stdout = self.stdStreamDispatcher
+        if self.runner and not self.testMode:
+            sys.stderr = sys.stdout = self.stdStreamDispatcher
 
     def newRunnerFrame(self, event=None):
         # have to reimport because it is only local to __init__ so far

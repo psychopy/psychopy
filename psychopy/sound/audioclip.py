@@ -23,24 +23,11 @@ __all__ = [
     'AUDIO_EAR_COUNT'
 ]
 
-import os
 import numpy as np
 import soundfile as sf
-import psychopy.logging as logging
 from psychopy.tools.audiotools import *
 from .exceptions import AudioUnsupportedCodecError
-
-_recognizer = None
-_hasSpeechRecognition = True
-try:
-    import speech_recognition as sr
-    _recognizer = sr.Recognizer()
-except (ImportError, ModuleNotFoundError):
-    logging.warning(
-        "Speech-to-text recognition module not available (use command `pip "
-        "install SpeechRecognition` to get it. Transcription will be"
-        " unavailable (i.e. `AudioClip.transcribe()`).")
-    _hasSpeechRecognition = False
+from .transcribe import transcribe
 
 # supported formats for loading and saving audio samples to file
 AUDIO_SUPPORTED_CODECS = [s.lower() for s in sf.available_formats().keys()]
@@ -71,11 +58,25 @@ class AudioClip(object):
         sndCombined = sndClip1 + sndClip2
 
     Note that audio clips must have the same sample rates in order to be joined
-    using the addition operator.
+    using the addition operator. For online compatibility, use the `append()`
+    method instead.
 
     There are also numerous static methods available to generate various tones
     (e.g., sine-, saw-, and square-waves). Audio samples can also be loaded and
-    saved to files in various formats (e.g., WAV, MP3, FLAC, OGG, etc.)
+    saved to files in various formats (e.g., WAV, FLAC, OGG, etc.)
+
+    You can play `AudioClip` by directly passing instances of this object to
+    the :class:`~psychopy.sound.Sound` class::
+
+        inport psychopy.core as core
+        import psyhcopy.sound as sound
+
+        myTone = AudioClip.sine(duration=5.0)  # generate a tone
+
+        mySound = sound.Sound(myTone)
+        mySound.play()
+        core.wait(5.0)  # wait for sound to finish playing
+        core.quit()
 
     Parameters
     ----------
@@ -220,6 +221,8 @@ class AudioClip(object):
     @staticmethod
     def whiteNoise(duration=1.0, sampleRateHz=SAMPLE_RATE_48kHz, channels=2):
         """Generate gaussian white noise.
+
+        **New feature, use with caution.**
 
         Parameters
         ----------
@@ -653,8 +656,8 @@ class AudioClip(object):
         return np.asarray(
             self._samples * ((1 << 15) - 1), dtype=np.int16).tobytes()
 
-    def transcribe(self, engine='sphinx', language='en-US', expectedWords=(),
-                   rawResp=False, key=None, config=None):
+    def transcribe(self, engine='sphinx', language='en-US', expectedWords=None,
+                   key=None, config=None):
         """Convert speech in audio to text.
 
         This feature passes the audio clip samples to a text-to-speech engine
@@ -669,6 +672,11 @@ class AudioClip(object):
         If the audio clip has multiple channels, they will be combined prior to
         being passed to the transcription service.
 
+        Speech-to-text conversion blocks the main application thread when used
+        on Python. Don't transcribe audio during time-sensitive parts of your
+        experiment! This issue is known to the developers and will be fixed in
+        a later release.
+
         Parameters
         ----------
         engine : str
@@ -678,16 +686,18 @@ class AudioClip(object):
             BCP-47 language code (eg., 'en-US'). Note that supported languages
             vary between transcription engines.
         expectedWords : list or tuple
-            List of strings representing expected words. This will constrain the
-            possible output words to the ones specified. Note not all engines
-            support this feature (only Sphinx and Google Cloud do at this time).
-            A warning will be logged if the engine selected does not support
-            this feature.
-        rawResp : bool
-            Return the raw API response if `True`. Instead of a list of most
-            likely words, the raw response from the API will be returned. The
-            raw response may contain additional information about the
-            transcription, such as confidence.
+            List of strings representing expected words or phrases. This will
+            constrain the possible output words to the ones specified. Note not
+            all engines support this feature (only Sphinx and Google Cloud do at
+            this time). A warning will be logged if the engine selected does not
+            support this feature. CMU PocketSphinx has an additional feature
+            where the sensitivity can be specified for each expected word. You
+            can indicate the sensitivity level to use by putting a ``:`` after
+            each word in the list (see the Example below). Sensitivity levels
+            range between 50 and 100. A higher number results in the engine
+            being more conservative, resulting in a higher likelihood of false
+            rejections. The default sensitivity is 80% for words/phrases without
+            one specified.
         key : str or None
             API key or credentials, format depends on the API in use. If a file
             path is provided, the key data will be loaded from it.
@@ -698,11 +708,8 @@ class AudioClip(object):
 
         Returns
         -------
-        list or str
-            List of transcribed words as strings. If `rawResp` is `True`, then
-            the raw API response as a string will be returned. You will need to
-            parse that for the information you need. An empty list is always
-            returned in the speech recognition module is not installed.
+        :class:`~psychopy.sound.transcribe.TranscriptionResult`
+            Transcription result.
 
         Notes
         -----
@@ -717,121 +724,56 @@ class AudioClip(object):
         * Some errors may be emitted by the `SpeechRecognition` API, check that
           project's documentation if you encounter such an error for more
           information.
+        * If `key` is not specified (i.e. is `None`) then PsychoPy will look for
+          the API key at other locations. By default, PsychoPy will look for an
+          environment variables starting with `PSYCHOPY_TRANSCR_KEY_` first. If
+          there is no appropriate API key for the given `engine`, then the
+          preference *General -> transcrKeyXXX* is used. Keys can be specified
+          as a file path, if so, the key data will be loaded from the file.
+          System administrators can specify keys this way to use them across a
+          site installation without needing the user manage the keys directly.
 
         Examples
         --------
         Use a voice command as a response to a task::
 
+            # after doing  microphone recording
             resp = mic.getRecording()
-            respText = resp.transcribe(expectedWords=('left', 'right'))
 
-            if respText:
-                if 'right' in resp:
-                    print("You responded right is bigger.")
-                elif 'left' in resp:
-                    print("You responded left is bigger.")
-                else:
-                    print("Please indicate 'left' or 'right'.")
+            transcribeResults = transcribe(resp.samples, resp.sampleRateHz)
+            if transcribeResults.success:  # successful transcription
+                words = transcribeResults.words
+                if words:
+                    if 'right' in resp:
+                        print("You responded right is bigger.")
+                    elif 'left' in resp:
+                        print("You responded left is bigger.")
+                    else:
+                        print("Please indicate 'left' or 'right'.")
             else:
                 print("Sorry I don't understand what you said.")
 
+        Specifying expected words with sensitivity levels when using CMU Pocket
+        Sphinx:
+
+            # expected words 90% confidence on the first two, default for others
+            expectedWords = ['right:90', 'left:90', 'up', 'down']
+
+            transcribeResults = resp.transcribe(
+                expectedWords=expectedWords)
+
+            if transcribeResults.success:  # successful transcription
+                # process results ...
+
         """
-        if not _hasSpeechRecognition:  # don't have speech recognition
-            return []
-
-        # engine configuration
-        config = {} if config is None else config
-        if not isinstance(config, dict):
-            raise TypeError(
-                "Invalid type for parameter `config` specified, must be `dict` "
-                "or `None`.")
-
-        if not isinstance(language, str):
-            raise TypeError(
-                "Invalid type for parameter `language`, must be type `str`.")
-
-        # common engine configuration options
-        config['language'] = language  # set language code
-        config['show_all'] = bool(rawResp)
-
-        # API specific config
-        expectedWordsNotSupported = requiresKey = False
-        if engine == 'sphinx':
-            config['keyword_entries'] = expectedWords
-        elif engine == 'googleCloud':
-            config['preferred_phrases'] = expectedWords
-            requiresKey = True
-        elif engine == 'google':
-            expectedWordsNotSupported = True
-        elif engine in ('bing', 'azure'):
-            expectedWordsNotSupported = True
-            requiresKey = True
-
-        if expectedWordsNotSupported:
-            logging.warning(
-                "Engine '{engine}' does not allow for expected phrases to "
-                "be specified.".format(engine=engine))
-
-        # API requires a key
-        if requiresKey:
-            # read the key from a file
-            if key is not None:
-                if not isinstance(key, str):
-                    raise TypeError(
-                        "Value for parameter `key` must be either `str` or "
-                        "`None`.")
-
-                # Load the key from a file if a path was given. Not sure how
-                # much this will affect performance since the disk read
-                # operation will happen everytime `transcribe` is invoked. Even
-                # if just to check if a what is provided is a file.
-                if os.path.isfile(key):
-                    with open(key, 'r') as keyFile:
-                        config['key'] = keyFile.read()
-                else:
-                    config['key'] = key
-            else:
-                logging.warning(
-                    "Selected speech-to-text engine '{}' requires a key but "
-                    "`None` is specified.")
-
-        # combine channels if needed
-        if self.channels > 1:
-            samplesMixed = \
-                np.sum(self._samples, axis=1, dtype=np.float32) / np.float32(2.)
-        else:
-            samplesMixed = self._samples
-
-        # convert samples to WAV PCM format
-        clipDataInt16 = np.asarray(
-            samplesMixed * ((1 << 15) - 1), dtype=np.int16).tobytes()
-
-        sampleWidth = 2  # two bytes per sample
-        audio = sr.AudioData(clipDataInt16,
-                             sample_rate=self._sampleRateHz,
-                             sample_width=sampleWidth)
-
-        config = {} if config is None else config
-        assert isinstance(config, dict)
-
-        # submit audio samples to the API
-        respAPI = ''
-        try:
-            if engine.lower() == 'sphinx':
-                respAPI = _recognizer.recognize_sphinx(audio, **config)
-            elif engine.lower() == 'google':
-                respAPI = _recognizer.recognize_google(audio, **config)
-            elif engine.lower() == 'googleCloud':
-                respAPI = _recognizer.recognize_google_cloud(audio, **config)
-            elif engine.lower() in ['bing', 'azure']:
-                respAPI = _recognizer.recognize_bing(audio, **config)
-            else:
-                ValueError("Invalid value for `engine` specified.")
-        except sr.UnknownValueError:
-            pass
-
-        # split only if the user does not want the raw API data
-        return respAPI.split(' ') if not rawResp else respAPI
+        return transcribe(
+            self._samples,
+            self._sampleRateHz,
+            engine=engine,
+            language=language,
+            expectedWords=expectedWords,
+            key=key,
+            config=config)
 
 
 def load(filename, codec=None):

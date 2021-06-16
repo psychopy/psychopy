@@ -150,7 +150,7 @@ class ParamCtrls(object):
         elif param.inputType == 'bool':
             self.valueCtrl = paramCtrls.BoolCtrl(parent,
                                          name=fieldName,size=wx.Size(self.valueWidth, 24))
-            self.valueCtrl.SetValue(bool(param.val))
+            self.valueCtrl.SetValue(bool(param))
         elif param.inputType == 'file' or browse:
             self.valueCtrl = paramCtrls.FileCtrl(parent,
                                                  val=str(param.val), valType=param.valType,
@@ -323,6 +323,7 @@ class ParamCtrls(object):
             return self._getCtrlValue(self.updateCtrl)
 
     def setVisible(self, newVal=True):
+        self._visible = newVal
         if hasattr(self.valueCtrl, "ShowAll"):
             self.valueCtrl.ShowAll(newVal)
         else:
@@ -332,6 +333,12 @@ class ParamCtrls(object):
             self.updateCtrl.Show(newVal)
         if self.typeCtrl:
             self.typeCtrl.Show(newVal)
+
+    def getVisible(self):
+        if hasattr(self, "_visible"):
+            return self._visible
+        else:
+            return self.valueCtrl.IsShown()
 
     def expInfoToListWidget(self, expInfoStr):
         """Takes a string describing a dictionary and turns it into a format
@@ -388,10 +395,13 @@ class StartStopCtrls(wx.GridBagSizer):
         wx.GridBagSizer.__init__(self, 0, 0)
         # Make ctrls
         self.ctrls = {}
+        self.parent = parent
         for name, param in params.items():
             if name in ['startVal', 'stopVal']:
                 self.ctrls[name] = wx.TextCtrl(parent,
                                                value=str(param.val), size=wx.Size(-1, 24))
+                self.ctrls[name].Bind(wx.EVT_TEXT, self.updateCodeFont)
+                self.updateCodeFont(self.ctrls[name])
                 self.label = wx.StaticText(parent, label=param.label)
                 self.Add(self.ctrls[name], (0, 1), border=6, flag=wx.EXPAND | wx.TOP)
             if name in ['startType', 'stopType']:
@@ -405,12 +415,27 @@ class StartStopCtrls(wx.GridBagSizer):
             if name in ['startEstim', 'durationEstim']:
                 self.ctrls[name] = wx.TextCtrl(parent,
                                                value=str(param.val), size=wx.Size(-1, 24))
+                self.ctrls[name].Bind(wx.EVT_TEXT, self.updateCodeFont)
+                self.updateCodeFont(self.ctrls[name])
                 self.estimLabel = wx.StaticText(parent,
                                                 label=param.label, size=wx.Size(-1, 24))
                 self.estimLabel.SetForegroundColour("grey")
                 self.Add(self.estimLabel, (1, 0), border=6, flag=wx.EXPAND | wx.ALL)
                 self.Add(self.ctrls[name], (1, 1), border=6, flag=wx.EXPAND | wx.TOP | wx.BOTTOM)
         self.AddGrowableCol(1)
+
+    def updateCodeFont(self, evt=None):
+        """Style input box according to code wanted"""
+        if isinstance(evt, wx.TextCtrl):
+            obj = evt
+        else:
+            obj = evt.EventObject
+        if psychopy.experiment.utils.unescapedDollarSign_re.fullmatch(obj.GetLineText(0)):
+            # Set font if code
+            obj.SetFont(self.parent.GetTopLevelParent().app._codeFont)
+        else:
+            # Set font if not
+            obj.SetFont(self.parent.GetTopLevelParent().app._mainFont)
 
 
 class ParamNotebook(wx.Notebook, ThemeMixin):
@@ -506,6 +531,7 @@ class ParamNotebook(wx.Notebook, ThemeMixin):
              "true": "Enable",  # what to do with param if condition is True
              "false": "Disable",  # permitted: hide, show, enable, disable
             }"""
+            isChanged = False
             for thisDep in self.parent.element.depends:
                 if not (
                         thisDep['param'] in self.ctrls
@@ -520,8 +546,15 @@ class ParamNotebook(wx.Notebook, ThemeMixin):
                 else:
                     action = thisDep['false']
                 if action == "hide":
+                    # Track change if changed
+                    if dependentCtrls.getVisible():
+                        isChanged = True
+                    # Apply visibiliy
                     dependentCtrls.setVisible(False)
                 elif action == "show":
+                    # Track change if changed
+                    if not dependentCtrls.getVisible():
+                        isChanged = True
                     dependentCtrls.setVisible(True)
                 else:
                     # if action is "enable" then do ctrl.Enable() etc
@@ -532,11 +565,12 @@ class ParamNotebook(wx.Notebook, ThemeMixin):
                                        .format(ctrlName, action.title()))
                             eval(evalStr)
             # Update sizer
-            self.sizer.SetEmptyCellSize((0, 0))
-            self.sizer.Layout()
-            self.Fit()
-            self.dlg.Fit()
-            self.Refresh()
+            if isChanged:
+                self.sizer.SetEmptyCellSize((0, 0))
+                self.sizer.Layout()
+                if isinstance(self.dlg, wx.Dialog):
+                    self.dlg.Fit()
+                self.Refresh()
 
         def doValidate(self, event=None):
             self.Validate()
