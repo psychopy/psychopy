@@ -25,7 +25,7 @@
     <Param val="False" valType="bool" updates="None" name="Show mouse"/>
     <Param val="height" valType="str" updates="None" name="Units"/>
     <Param val="" valType="str" updates="None" name="Use version"/>
-    <Param val="(1024, 768)" valType="list" updates="None" name="Window size (pixels)"/>
+    <Param val="[1920, 1080]" valType="list" updates="None" name="Window size (pixels)"/>
     <Param val="avg" valType="str" updates="None" name="blendMode"/>
     <Param val="$[0,0,0]" valType="color" updates="None" name="color"/>
     <Param val="rgb" valType="str" updates="None" name="colorSpace"/>
@@ -71,7 +71,7 @@
         <Param val="(0, 0)" valType="list" updates="constant" name="pos"/>
         <Param val="True" valType="bool" updates="None" name="saveStartStop"/>
         <Param val="custom polygon..." valType="str" updates="constant" name="shape"/>
-        <Param val="(0.4, 0.8)" valType="list" updates="constant" name="size"/>
+        <Param val="(0.05, 0.8)" valType="list" updates="constant" name="size"/>
         <Param val="" valType="num" updates="None" name="startEstim"/>
         <Param val="time (s)" valType="str" updates="None" name="startType"/>
         <Param val="0.0" valType="num" updates="None" name="startVal"/>
@@ -97,7 +97,7 @@
         <Param val="(0, 0)" valType="list" updates="constant" name="pos"/>
         <Param val="True" valType="bool" updates="None" name="saveStartStop"/>
         <Param val="custom polygon..." valType="str" updates="constant" name="shape"/>
-        <Param val="(0.2, 1)" valType="list" updates="constant" name="size"/>
+        <Param val="(0.03, 1)" valType="list" updates="constant" name="size"/>
         <Param val="" valType="num" updates="None" name="startEstim"/>
         <Param val="time (s)" valType="str" updates="None" name="startType"/>
         <Param val="0.0" valType="num" updates="None" name="startVal"/>
@@ -123,7 +123,7 @@
         <Param val="(0, 0)" valType="list" updates="constant" name="pos"/>
         <Param val="True" valType="bool" updates="None" name="saveStartStop"/>
         <Param val="custom polygon..." valType="str" updates="constant" name="shape"/>
-        <Param val="(0.1, 1)" valType="list" updates="constant" name="size"/>
+        <Param val="(0.01, 1)" valType="list" updates="constant" name="size"/>
         <Param val="" valType="num" updates="None" name="startEstim"/>
         <Param val="time (s)" valType="str" updates="None" name="startType"/>
         <Param val="0.0" valType="num" updates="None" name="startVal"/>

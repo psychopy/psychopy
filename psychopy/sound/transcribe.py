@@ -363,7 +363,7 @@ def transcribe(samples, sampleRate, engine='sphinx', language='en-US',
 
     # API specific config
     expectedWordsNotSupported = requiresKey = False
-    if engine == 'sphinx' or engine == 'built-in':
+    if engine in ('sphinx', 'built-in'):
         expectedWordsTemp = None
         # check valid language
         config['language'] = language.lower()  # sphinx users en-us not en-US
@@ -394,6 +394,7 @@ def transcribe(samples, sampleRate, engine='sphinx', language='en-US',
         requiresKey = True
     elif engine == 'google':
         expectedWordsNotSupported = True
+        requiresKey = True
     elif engine in ('bing', 'azure'):
         expectedWordsNotSupported = True
         requiresKey = True
@@ -406,7 +407,11 @@ def transcribe(samples, sampleRate, engine='sphinx', language='en-US',
     # API requires a key
     if requiresKey:
         try:
-            config['key'] = _apiKeys[engine] if key is None else key
+            if engine != 'googleCloud':
+                config['key'] = _apiKeys[engine] if key is None else key
+            else:
+                config['credentials_json'] = \
+                    _apiKeys[engine] if key is None else key
         except KeyError:
             raise ValueError(
                 f"Selected speech-to-text engine '{engine}' requires an API key but one"
