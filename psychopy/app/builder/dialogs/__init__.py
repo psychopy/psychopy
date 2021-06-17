@@ -432,7 +432,7 @@ class StartStopCtrls(wx.GridBagSizer):
             obj = evt.EventObject
         if psychopy.experiment.utils.unescapedDollarSign_re.match(obj.GetLineText(0)):
             # Set font if code
-            obj.SetFont(self.parent.GetTopLevelParent().app._codeFont)
+            obj.SetFont(self.parent.GetTopLevelParent().app._codeFont.Bold())
         else:
             # Set font if not
             obj.SetFont(self.parent.GetTopLevelParent().app._mainFont)
