@@ -39,7 +39,6 @@ onlineTranscribers = {
 localTranscribers = {
     "Google": "googleCloud",
     "Microsoft Azure": "azure",
-    "Built-in": "sphinx",
 }
 allTranscribers = {**localTranscribers, **onlineTranscribers}
 
@@ -59,7 +58,7 @@ class MicrophoneComponent(BaseComponent):
                  channels='auto', device="default",
                  sampleRate='Voice (16kHz)', maxSize=24000,
                  outputType='default', speakTimes=True, trimSilent=False,
-                 transcribe=True, transcribeBackend="Built-in", transcribeLang="en-US", transcribeWords="",
+                 transcribe=True, transcribeBackend="Google", transcribeLang="en-US", transcribeWords="",
                  #legacy
                  stereo=None, channel=None):
         super(MicrophoneComponent, self).__init__(
@@ -349,8 +348,9 @@ class MicrophoneComponent(BaseComponent):
             if  inits['transcribeBackend'].val in localTranscribers:
                 inits['transcribeBackend'].val = localTranscribers[self.params['transcribeBackend'].val]
             else:
-                alert(4605, strFields={"transcriber": inits['transcribeBackend'].val})
-                inits['transcribeBackend'].val = list(localTranscribers.values())[0]
+                default = list(localTranscribers.values())[0]
+                alert(4610, strFields={"transcriber": inits['transcribeBackend'].val, "default": default})
+                inits['transcribeBackend'].val = default
         # Store recordings from this routine
         code = (
             "# tell mic to keep hold of current recording in %(name)s.clips and transcript (if applicable) in %(name)s.scripts\n"
@@ -399,8 +399,9 @@ class MicrophoneComponent(BaseComponent):
             inits['transcribeBackend'].val = allTranscribers[self.params['transcribeBackend'].val]
         # Warn user if their transcriber won't work online
         if inits['transcribe'].val and inits['transcribeBackend'].val not in onlineTranscribers.values():
-            alert(4605, strFields={"transcriber": inits['transcribeBackend'].val})
-            inits['transcribeBackend'].val = list(onlineTranscribers.values())[0]
+            default = list(onlineTranscribers.values())[0]
+            alert(4605, strFields={"transcriber": inits['transcribeBackend'].val, "default": default})
+            inits['transcribeBackend'].val = default
 
         # Write base end routine code
         BaseComponent.writeRoutineEndCodeJS(self, buff)
