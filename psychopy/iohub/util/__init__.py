@@ -342,9 +342,13 @@ def updateDict(add_to, add_from):
 
 def updateSettings(d, u):
     for k, v in u.items():
+        if type(k) == bytes:
+            k = k.decode('UTF-8')
         if isinstance(v, collections.abc.Mapping):
             d[k] = updateSettings(d.get(k, {}), v)
         else:
+            if type(v) == bytes:
+                v = v.decode('UTF-8')
             d[k] = v
     return d
 
