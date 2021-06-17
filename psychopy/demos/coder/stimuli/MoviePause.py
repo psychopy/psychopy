@@ -19,7 +19,7 @@ from builtins import range
 from psychopy import visual, core
 
 win = visual.Window((800, 600))
-mov = visual.MovieStim3(win, 'jwpIntro.mov', size=(320, 240),
+mov = visual.MovieStim3(win, 'jwpIntro.mp4', size=(320, 240),
     flipVert=False, flipHoriz=False)
 
 print('orig movie size=' + str(mov.size))

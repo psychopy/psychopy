@@ -24,7 +24,7 @@ from __future__ import print_function
 #   Test Config.
 
 # Relative path (from this scripts folder) for the video clip to be played .
-video_name = r'./jwpIntro.mov'
+video_name = r'./jwpIntro.mp4'
 
 # If False, no audio tracks will be played.
 INCLUDE_AUDIO_TRACK = True
@@ -74,7 +74,7 @@ Example Results File Output
 
  ** Video Info **
 Video File:
-    Name: 	./jwpIntro.mov
+    Name: 	./jwpIntro.mp4
     Frame Count: 	145.0
     Width: 	320.0
     Height: 	240.0
