@@ -1444,7 +1444,10 @@ class DlgLoopProperties(_BaseParamsDlg):
             else:
                 isSameFilePathAndName = False
 
-            newPath = str(Path(newFullPath).relative_to(expFolder))
+            try:
+                newPath = str(Path(newFullPath).relative_to(expFolder))
+            except ValueError:
+                newPath = str(Path(newFullPath).absolute())
             self.conditionsFile = newPath
             needUpdate = False
             try:
