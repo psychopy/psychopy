@@ -104,10 +104,11 @@ packages = ['wx', 'psychopy',
             'badapted', 'darc_toolbox',  # adaptive methods from Ben Vincent
             'questplus',
             'metapensiero.pj', 'dukpy', 'macropy',
-            'jedi','parso',
+            'jedi', 'parso',
             'psychtoolbox',
             'freetype', 'h5py',
             'markdown_it',
+            'speech_recognition', 'googleapiclient', 'pocketsphinx',
             ]
 
 if sys.version_info.major >= 3:
