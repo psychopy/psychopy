@@ -1,7 +1,7 @@
 
 code: 4605
 cat: Audio Transcription
-msg: Audio transcription service "{transcriber}" is local-only and will not work online, default service (Google) will
+msg: Audio transcription service "{transcriber}" is local-only and will not work online, default service ({default}) will
   be used instead.
 
 # The following are typically used for online help pages, and support reStructured Text.

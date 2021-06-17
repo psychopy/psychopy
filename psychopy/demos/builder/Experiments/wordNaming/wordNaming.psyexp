@@ -148,7 +148,7 @@
         <Param val="2.5" valType="code" updates="constant" name="stopVal"/>
         <Param val="False" valType="bool" updates="None" name="syncScreenRefresh"/>
         <Param val="True" valType="bool" updates="None" name="transcribe"/>
-        <Param val="Built-in" valType="code" updates="None" name="transcribeBackend"/>
+        <Param val="Google" valType="code" updates="None" name="transcribeBackend"/>
         <Param val="en-us" valType="str" updates="None" name="transcribeLang"/>
         <Param val="[entry['word'] for entry in trials.trialList]" valType="list" updates="None" name="transcribeWords"/>
         <Param val="False" valType="bool" updates="None" name="trimSilent"/>
