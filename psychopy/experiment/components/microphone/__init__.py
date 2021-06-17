@@ -349,7 +349,7 @@ class MicrophoneComponent(BaseComponent):
             if  inits['transcribeBackend'].val in localTranscribers:
                 inits['transcribeBackend'].val = localTranscribers[self.params['transcribeBackend'].val]
             else:
-                alert(4605, strFields={"transcriber": inits['transcribeBackend'].val})
+                alert(4610, strFields={"transcriber": inits['transcribeBackend'].val})
                 inits['transcribeBackend'].val = list(localTranscribers.values())[0]
         # Store recordings from this routine
         code = (
