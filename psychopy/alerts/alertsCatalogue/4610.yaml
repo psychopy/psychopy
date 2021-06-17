@@ -1,8 +1,8 @@
 
 code: 4610
 cat: Audio Transcription
-msg: Audio transcription service "{transcriber}" is online-only and will not work offline, built-in transcriber will
-  be used instead.
+msg: Audio transcription service "{transcriber}" is online-only and will not work offline, default transcriber
+  ({default}) will be used instead.
 
 # The following are typically used for online help pages, and support reStructured Text.
 label: Transcription service not compatible locally
