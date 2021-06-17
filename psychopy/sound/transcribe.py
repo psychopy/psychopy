@@ -74,11 +74,12 @@ apiKeyNames = {
 _recognizers = {}
 _apiKeys = {}  # API key loaded
 if _hasSpeechRecognition:
-    _recognizers['sphinx'] = sr.Recognizer().recognize_sphinx
+    _recogBase = sr.Recognizer()
+    _recognizers['sphinx'] = _recogBase.recognize_sphinx
     _recognizers['built-in'] = _recognizers['sphinx']  # aliased
-    _recognizers['google'] = sr.Recognizer().recognize_google
-    _recognizers['googleCloud'] = sr.Recognizer().recognize_google_cloud
-    _recognizers['bing'] = sr.Recognizer().recognize_bing
+    _recognizers['google'] = _recogBase.recognize_google
+    _recognizers['googleCloud'] = _recogBase.recognize_google_cloud
+    _recognizers['bing'] = _recogBase.recognize_bing
     _recognizers['azure'] = _recognizers['bing']
 
     # Get API keys for each engine here. Calling `refreshTranscrKeys()`
