@@ -668,7 +668,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
             if self.filename:
                 initPath = str(Path(self.filename).parent)
             else:
-                initPath = None
+                initPath = ""
             # Open dlg
             dlg = wx.FileDialog(self, message=_translate("Open file ..."),
                                 defaultDir=initPath,
@@ -1457,7 +1457,8 @@ class RoutinesNotebook(aui.AuiNotebook, ThemeMixin):
         self.app = frame.app
         self.routineMaxSize = 2
         self.appData = self.app.prefs.appData
-        aui.AuiNotebook.__init__(self, frame, id)
+        aui.AuiNotebook.__init__(self, frame, id,
+            agwStyle=aui.AUI_NB_TAB_MOVE | aui.AUI_NB_CLOSE_ON_ACTIVE_TAB)
         self.Bind(aui.EVT_AUINOTEBOOK_PAGE_CLOSE, self.onClosePane)
 
         # double buffered better rendering except if retina
@@ -2173,6 +2174,9 @@ class StandaloneRoutineCanvas(scrolledpanel.ScrolledPanel, ThemeMixin):
                 self.frame.exp.routines[self.routine.params['name'].val] = self.frame.exp.routines.pop(name)
         # Redraw the flow panel
         self.frame.flowPanel.draw()
+        # Rename this page
+        page = self.frame.routinePanel.GetPageIndex(self)
+        self.frame.routinePanel.SetPageText(page, self.routine.params['name'].val)
         # Update save button
         self.frame.setIsModified(True)
 

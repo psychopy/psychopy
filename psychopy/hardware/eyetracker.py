@@ -199,7 +199,7 @@ class EyetrackerCalibration:
                 alert(4530, strFields={"brand": "GazePoint"})
 
         # Minimise PsychoPy window
-        if sys.platform == 'win32':
+        if self.win._isFullScr and sys.platform == 'win32':
             self.win.winHandle.set_fullscreen(False)
             self.win.winHandle.minimize()
 
@@ -207,7 +207,7 @@ class EyetrackerCalibration:
         self.last = self.eyetracker.runSetupProcedure(dict(self))
 
         # Bring back PsychoPy window
-        if sys.platform == 'win32':
+        if self.win._isFullScr and sys.platform == 'win32':
             self.win.winHandle.set_fullscreen(True)
             self.win.winHandle.maximize()
             # Not 100% sure activate is necessary, but does not seem to hurt.

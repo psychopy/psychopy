@@ -186,7 +186,8 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
         self._nextFrameT = None
         self._texID = None
         self.status = NOT_STARTED
-
+        self.nDroppedFrames = 0
+        
     def setMovie(self, filename, log=True):
         """See `~MovieStim.loadMovie` (the functions are identical).
 
@@ -366,6 +367,18 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
             if self._nextFrameT > (self._videoClock.getTime() -
                                    self._retraceInterval/2.0):
                 return None
+
+        while self._nextFrameT <= (self._videoClock.getTime() - self._frameInterval*2):
+            self.nDroppedFrames += 1
+            if self.nDroppedFrames <= reportNDroppedFrames:
+                logging.warning("{}: Video catchup needed, advancing self._nextFrameT from"
+                                " {} to {}".format(self._videoClock.getTime(), self._nextFrameT,
+                                                   self._nextFrameT+self._frameInterval))
+            if self.nDroppedFrames == reportNDroppedFrames:
+                logging.warning("Max reportNDroppedFrames reached, will not log any more dropped frames")
+
+            self._nextFrameT += self._frameInterval
+
         try:
             self._numpyFrame = self._mov.get_frame(self._nextFrameT)
         except OSError:

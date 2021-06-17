@@ -128,7 +128,7 @@ class EyeTracker(EyeTrackerDevice):
     #
     DEVICE_TIMEBASE_TO_SEC = 1.0
     EVENT_CLASS_NAMES = [
-        'MonocularEyeSampleEvent',
+        'GazepointSampleEvent',
         'BinocularEyeSampleEvent',
         'FixationStartEvent',
         'FixationEndEvent',
@@ -296,6 +296,10 @@ class EyeTracker(EyeTrackerDevice):
                 init_connection_str += '<SET ID="ENABLE_SEND_EYE_LEFT" STATE="1" />\r\n'
                 init_connection_str += '<SET ID="ENABLE_SEND_EYE_RIGHT" STATE="1" />\r\n'
                 init_connection_str += '<SET ID="ENABLE_SEND_COUNTER" STATE="1" />\r\n'
+                init_connection_str += '<SET ID="ENABLE_SEND_DIAL" STATE="1" />\r\n'
+                init_connection_str += '<SET ID="ENABLE_SEND_GSR" STATE="1" />\r\n'
+                init_connection_str += '<SET ID="ENABLE_SEND_HR" STATE="1" />\r\n'
+                init_connection_str += '<SET ID="ENABLE_SEND_HR_PULSE" STATE="1" />\r\n'
                 init_connection_str += '<SET ID="ENABLE_SEND_TIME" STATE="1" />\r\n'
                 init_connection_str += '<SET ID="ENABLE_SEND_TIME_TICK" STATE="1" />\r\n'
                 init_connection_str += '<SET ID="ENABLE_SEND_DATA" STATE="0" />\r\n'
@@ -703,8 +707,8 @@ class EyeTracker(EyeTrackerDevice):
         return [eel, eer]
 
     def _parseSampleFromMsg(self, m, logged_time, tracker_time):
-        # Always tracks binoc, so always use BINOCULAR_EYE_SAMPLE
-        event_type = EventConstants.BINOCULAR_EYE_SAMPLE
+        # Always use GAZEPOINT_SAMPLE
+        event_type = EventConstants.GAZEPOINT_SAMPLE
 
         # in seconds, take from the REC TIME field
         event_timestamp = m.get('TIME', ET_UNDEFINED)
@@ -748,6 +752,14 @@ class EyeTracker(EyeTrackerDevice):
         left_eye_status = m.get('LPOGV', ET_UNDEFINED)
         right_eye_status = m.get('RPOGV', ET_UNDEFINED)
 
+        dial = m.get('DIAL', ET_UNDEFINED)
+        dialv = m.get('DIALV', ET_UNDEFINED)
+        gsr = m.get('GSR', ET_UNDEFINED)
+        gsrv = m.get('GSRV', ET_UNDEFINED)
+        hr = m.get('HR', ET_UNDEFINED)
+        hrv = m.get('HRV', ET_UNDEFINED)
+        hrp = m.get('HRP', ET_UNDEFINED)
+
         # 0 = both eyes OK
         status = 0
         if left_eye_status == right_eye_status and right_eye_status == 0:
@@ -774,42 +786,27 @@ class EyeTracker(EyeTrackerDevice):
             0,
             left_gaze_x,
             left_gaze_y,
-            ET_UNDEFINED,
-            ET_UNDEFINED,
-            ET_UNDEFINED,
-            ET_UNDEFINED,
-            ET_UNDEFINED,
-            ET_UNDEFINED,
             left_raw_x,
             left_raw_y,
             left_pupil_size,
             EyeTrackerConstants.PUPIL_DIAMETER,
             left_pupil_size_2 * 1000,  # converting to MM
             EyeTrackerConstants.PUPIL_DIAMETER_MM,
-            ET_UNDEFINED,
-            ET_UNDEFINED,
-            ET_UNDEFINED,
-            ET_UNDEFINED,
-            ET_UNDEFINED,
             right_gaze_x,
             right_gaze_y,
-            ET_UNDEFINED,
-            ET_UNDEFINED,
-            ET_UNDEFINED,
-            ET_UNDEFINED,
-            ET_UNDEFINED,
-            ET_UNDEFINED,
             right_raw_x,
             right_raw_y,
             right_pupil_size,
             EyeTrackerConstants.PUPIL_DIAMETER,
             right_pupil_size_2 * 1000,  # converting to MM
             EyeTrackerConstants.PUPIL_DIAMETER_MM,
-            ET_UNDEFINED,
-            ET_UNDEFINED,
-            ET_UNDEFINED,
-            ET_UNDEFINED,
-            ET_UNDEFINED,
+            dial,
+            dialv,
+            gsr,
+            gsrv,
+            hr,
+            hrv,
+            hrp,
             status
         ]
 

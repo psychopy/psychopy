@@ -14,7 +14,7 @@ import psychopy
 from psychopy import logging
 from psychopy.experiment.components import Param, _translate
 from psychopy.experiment.routines.eyetracker_calibrate import EyetrackerCalibrationRoutine
-from psychopy.tools.versionchooser import versionOptions, availableVersions, _versionFilter, latestVersion
+import psychopy.tools.versionchooser as versions
 from psychopy.constants import PY3
 from psychopy.monitors import Monitor
 from psychopy.iohub import util as ioUtil
@@ -176,9 +176,9 @@ class SettingsComponent(object):
         self.params['Use version'] = Param(
             useVersion, valType='str', inputType="choice",
             # search for options locally only by default, otherwise sluggish
-            allowedVals=_versionFilter(versionOptions(), wx.__version__)
+            allowedVals=versions._versionFilter(versions.versionOptions(), wx.__version__)
                         + ['']
-                        + _versionFilter(availableVersions(), wx.__version__),
+                        + versions._versionFilter(versions.availableVersions(), wx.__version__),
             hint=_translate("The version of PsychoPy to use when running "
                             "the experiment."),
             label=_localized["Use version"], categ='Basic')
@@ -751,7 +751,9 @@ class SettingsComponent(object):
         if useVer == '':
             useVer = version
         elif useVer == 'latest':
-            useVer = latestVersion()
+            useVer = versions.latestVersion()
+        else:
+            version = versions.fullVersion(useVer)
 
         # do we shorten minor versions ('3.4.2' to '3.4')?
         # only from 3.2 onwards

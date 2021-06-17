@@ -19,7 +19,7 @@ import os
 from psychopy import visual, core, event
 
 # get the video from the demo resources directory
-videopath = r'./jwpIntro.mov'
+videopath = r'./jwpIntro.mp4'
 videopath = os.path.join(os.getcwd(), videopath)
 if not os.path.exists(videopath):
     raise RuntimeError("Video File could not be found:" + videopath)
