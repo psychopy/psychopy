@@ -492,8 +492,9 @@ def refreshTranscrKeys():
         # Check if we are dealing with a file path, if so load the data as the
         # key value.
         if os.path.isfile(keyVal):
-            with open(keyVal, 'r') as keyFile:
-                keyVal = keyFile.read()
+            if engineName != 'googleCloud':
+                with open(keyVal, 'r') as keyFile:
+                    keyVal = keyFile.read()
 
         _apiKeys[engineName] = keyVal
 
