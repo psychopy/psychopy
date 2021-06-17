@@ -171,7 +171,7 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         self._streamEnded = False
 
         # spawn a VLC instance for this class instance
-        self._createVLCInstance()
+        # self._createVLCInstance()
 
         # load a movie if provided
         if self._filename:
@@ -231,9 +231,6 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         """
         self._filename = pathToString(filename)
 
-        if self._instance is None:
-            self._createVLCInstance()
-
         # open the media using a new player
         self._openMedia()
 
@@ -254,11 +251,12 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         # stability of the system.
 
         if self._instance is not None:
-            errmsg = ("Attempted to create another VLC instance without "
-                      "releasing the previous one first!")
-            logging.fatal(errmsg, obj=self)
-            logging.flush()
-            raise RuntimeError(errmsg)
+            self._releaseVLCInstance()
+            # errmsg = ("Attempted to create another VLC instance without "
+            #           "releasing the previous one first!")
+            # logging.fatal(errmsg, obj=self)
+            # logging.flush()
+            # raise RuntimeError(errmsg)
 
         # Using "--quiet" here is just sweeping anything VLC pukes out under the
         # rug. Most of the time the errors only look scary but can be ignored.
@@ -330,6 +328,9 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         """
         # if None, use `filename`
         uri = self.filename if uri is None else uri
+
+        # create a fresh VLC instance
+        self._createVLCInstance()
 
         # raise error if there is no VLC instance
         if self._instance is None:
@@ -417,6 +418,8 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
         self._stream.release()
         self._stream = self._player = None
         self._useFrameSizeFromVideo = True
+
+        self._releaseVLCInstance()
 
         # unregister callbacks before freeing buffers
         self._freeBuffers()
@@ -1020,11 +1023,6 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
 
         return self._player.get_time() / 1000.0
 
-    @property
-    def percentageComplete(self):
-        """Percentage of the video completed (`float`)."""
-        return self.getPercentageComplete()
-
     def getPercentageComplete(self):
         """Provides a value between 0.0 and 100.0, indicating the amount of the
         movie that has been already played.
@@ -1137,6 +1135,7 @@ class VlcMovieStim(BaseVisualStim, ContainerMixin):
             self._streamEnded = False
             self.replay()
         elif self.isFinished:
+            self.stop()
             return False
 
         self._selectWindow(self.win if win is None else win)
