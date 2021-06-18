@@ -184,7 +184,8 @@ class TranscriptionResult(object):
     @property
     def requestFailed(self):
         """`True` if there was an error with the transcriber itself (`bool`).
-        For instance, network error or improper formatting of the audio data.
+        For instance, network error or improper formatting of the audio data,
+        invalid key, or if there was network connection error.
         """
         return self._requestFailed
 
