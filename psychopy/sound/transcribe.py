@@ -261,7 +261,7 @@ def transcribe(samples, sampleRate, engine='sphinx', language='en-US',
         this feature. CMU PocketSphinx has an additional feature where the
         sensitivity can be specified for each expected word. You can indicate
         the sensitivity level to use by putting a ``:`` after each word in the
-        list (see the Example below). Sensitivity levels range between 50 and
+        list (see the Example below). Sensitivity levels range between 0 and
         100. A higher number results in the engine being more conservative,
         resulting in a higher likelihood of false rejections. The default
         sensitivity is 80% for words/phrases without one specified.
@@ -301,7 +301,7 @@ def transcribe(samples, sampleRate, engine='sphinx', language='en-US',
       installation without needing the user manage the keys directly.
     * Use `expectedWords` if provided by the API. This will greatly speed up
       recognition. CMU Pocket Sphinx gives the option for sensitivity levels per
-      phrase. Higher levels
+      phrase.
 
     Examples
     --------
@@ -319,7 +319,7 @@ def transcribe(samples, sampleRate, engine='sphinx', language='en-US',
     Specifying expected words with sensitivity levels when using CMU Pocket
     Sphinx:
 
-        # expected words 90% confidence on the first two, default for the rest
+        # expected words 90% sensitivity on the first two, default for the rest
         expectedWords = ['right:90', 'left:90', 'up', 'down']
 
         transcribeResults = transcribe(
