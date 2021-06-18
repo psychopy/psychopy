@@ -267,7 +267,8 @@ def transcribe(samples, sampleRate, engine='sphinx', language='en-US',
         sensitivity is 80% for words/phrases without one specified.
     key : str or None
         API key or credentials, format depends on the API in use. If `None`,
-        the values will be obtained elsewhere (See Notes).
+        the values will be obtained elsewhere (See Notes). An alert will be
+        raised if the `engine` requested requires a key but is not specified.
     config : dict or None
         Additional configuration options for the specified engine. These
         are specified using a dictionary (ex. `config={'pfilter': 1}` will

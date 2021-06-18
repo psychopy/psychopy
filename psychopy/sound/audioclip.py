@@ -700,7 +700,9 @@ class AudioClip(object):
             one specified.
         key : str or None
             API key or credentials, format depends on the API in use. If `None`,
-            the values will be obtained elsewhere (See Notes).
+            the values will be obtained elsewhere (See Notes). An alert will be
+            raised if the `engine` requested requires a key but is not
+            specified.
         config : dict or None
             Additional configuration options for the specified engine. These
             are specified using a dictionary (ex. `config={'pfilter': 1}` will
@@ -764,7 +766,8 @@ class AudioClip(object):
         Specifying expected words with sensitivity levels when using CMU Pocket
         Sphinx:
 
-            # expected words 90% confidence on the first two, default for others
+            # expected words 90% sensitivity on the first two, default for
+            # others
             expectedWords = ['right:90', 'left:90', 'up', 'down']
 
             transcribeResults = resp.transcribe(
