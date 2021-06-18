@@ -202,8 +202,9 @@ class TranscriptionResult(object):
     def engine(self, value):
         if value == 'sphinx':
             if not haveSphinx:
-                raise ModuleNotFoundError("To perform built-in (local) transcription you need"
-                                          "to have pocketsphinx installed (pip install pocketsphinx)")
+                raise ModuleNotFoundError(
+                    "To perform built-in (local) transcription you need to "
+                    "have pocketsphinx installed (pip install pocketsphinx)")
         self._engine = str(value)
 
     @property
@@ -219,7 +220,7 @@ class TranscriptionResult(object):
 
 
 def transcribe(samples, sampleRate, engine='sphinx', language='en-US',
-               expectedWords=(), key=None, config=None):
+               expectedWords=None, key=None, config=None):
     """Convert speech in audio to text.
 
     This feature passes the audio clip samples to a text-to-speech engine which
@@ -339,8 +340,8 @@ def transcribe(samples, sampleRate, engine='sphinx', language='en-US',
     # check if the engine parameter is valid
     if engine not in _recognizers.keys():
         raise ValueError(
-            f'transcribe() `engine` should be one of {list(_recognizers.keys())} not '
-            f'{engine}')
+            f'transcribe() `engine` should be one of '
+            f'{list(_recognizers.keys())} not {engine}')
 
     # check if we have necessary keys
     if engine in _apiKeys:
@@ -370,9 +371,10 @@ def transcribe(samples, sampleRate, engine='sphinx', language='en-US',
         config['language'] = language.lower()  # sphinx users en-us not en-US
         if config['language'] not in sphinxLangs:
             url = "https://sourceforge.net/projects/cmusphinx/files/Acoustic%20and%20Language%20Models/"
-            raise ValueError(f"Language `{config['language']}` is not installed for pocketsphinx. "
-                             f"You can download languages here: {url}"
-                             f"Install them here: {pocketsphinx.get_model_path()}")
+            raise ValueError(
+                f"Language `{config['language']}` is not installed for "
+                f"pocketsphinx. You can download languages here: {url}. "
+                f"Install them here: {pocketsphinx.get_model_path()}")
         # check expected words
         if expectedWords is not None:
             # sensitivity specified as `word:80`
@@ -402,8 +404,8 @@ def transcribe(samples, sampleRate, engine='sphinx', language='en-US',
 
     if expectedWordsNotSupported:
         logging.warning(
-            f"Transcription engine '{engine}' does not allow for expected phrases to "
-            "be specified.")
+            f"Transcription engine '{engine}' does not allow for expected "
+            f"phrases to be specified.")
 
     # API requires a key
     if requiresKey:
@@ -415,9 +417,9 @@ def transcribe(samples, sampleRate, engine='sphinx', language='en-US',
                     _apiKeys[engine] if key is None else key
         except KeyError:
             raise ValueError(
-                f"Selected speech-to-text engine '{engine}' requires an API key but one"
-                "cannot be found. Add key to PsychoPy prefs or try specifying "
-                "`key` directly.")
+                f"Selected speech-to-text engine '{engine}' requires an API "
+                f"key but one cannot be found. Add key to PsychoPy prefs or "
+                f"try specifying `key` directly.")
 
     # combine channels if needed
     samples = np.atleast_2d(samples)  # enforce 2D
@@ -445,8 +447,9 @@ def transcribe(samples, sampleRate, engine='sphinx', language='en-US',
     try:
         respAPI = _recognizers[engine](audio, **config)
     except KeyError:
-        raise ValueError(f"`{engine}` is not a valid transcribe() engine. "
-                         f"Please use one of {list(_recognizers.keys())}")
+        raise ValueError(
+            f"`{engine}` is not a valid transcribe() engine. Please use one of "
+            f"{list(_recognizers.keys())}")
     except sr.UnknownValueError:
         unknownValueError = True
     except sr.RequestError:

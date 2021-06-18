@@ -893,6 +893,10 @@ class Microphone(object):
     def bank(self, tag=None, transcribe=False, **kwargs):
         """Store current buffer as a clip within the microphone object.
 
+        This method is used internally by the Microphone component in Builder,
+        don't use it for other applications. Either `stop()` or `pause()` must
+        be called before calling this method.
+
         Parameters
         ----------
         tag : str or None
@@ -911,12 +915,13 @@ class Microphone(object):
         if tag not in self.scripts:
             self.scripts[tag] = []
         # append current recording to clip list according to tag
-        self.lastClip = self._recording.getSegment()
+        self.lastClip = self.getRecording()
         self.clips[tag].append(self.lastClip)
         # append current clip's transcription according to tag
 
         if transcribe:
-            if transcribe in ['Built-in', True, 'BUILT_IN', 'BUILT-IN', 'Built-In', 'built-in']:
+            if transcribe in ('Built-in', True, 'BUILT_IN', 'BUILT-IN',
+                              'Built-In', 'built-in'):
                 engine = "sphinx"
             elif type(transcribe) == str:
                 engine = transcribe
