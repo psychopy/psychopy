@@ -37,7 +37,8 @@ onlineTranscribers = {
     "Microsoft Azure": "AZURE",
 }
 localTranscribers = {
-    "Google": "googleCloud",
+    "Google": "google",
+    "Google Cloud": "googleCloud",
     "Microsoft Azure": "azure",
     "Built-in": "sphinx",
 }

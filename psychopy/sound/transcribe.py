@@ -491,15 +491,18 @@ def refreshTranscrKeys():
         # if an environment variable is not defined, look into prefs
         if envVal is None:
             keyVal = prefs.general[prefName]
+            if keyVal == '':  # empty string means None
+                keyVal = None
         else:
             keyVal = envVal
 
         # Check if we are dealing with a file path, if so load the data as the
         # key value.
-        if os.path.isfile(keyVal):
-            if engineName != 'googleCloud':
-                with open(keyVal, 'r') as keyFile:
-                    keyVal = keyFile.read()
+        if keyVal is not None:
+            if os.path.isfile(keyVal):
+                if engineName != 'googleCloud':
+                    with open(keyVal, 'r') as keyFile:
+                        keyVal = keyFile.read()
 
         _apiKeys[engineName] = keyVal
 
