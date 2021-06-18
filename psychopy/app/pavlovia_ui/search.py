@@ -237,6 +237,8 @@ class ProjectListCtrl(wx.ListCtrl, listmixin.ListCtrlAutoWidthMixin):
                         thisProj['Description'])
                 self.Append(data)  # append to the wx table
         self.resizeCols(finalOnly=False)
+        #print(self.projList)
+        print(len(self.projList))
         self.Update()
 
     def resizeCols(self, finalOnly):
@@ -253,8 +255,10 @@ class ProjectListCtrl(wx.ListCtrl, listmixin.ListCtrlAutoWidthMixin):
 
     def onColumnClick(self, event=None):
         col = event.Column
+        print(self._currentSortCol)
         if col == self._currentSortCol:  # toggle direction
             self._currentSortRev = not(self._currentSortRev)
+        print(self._currentSortCol)
         self._currentSortCol = col
         projs = sortProjects(self.projList, self.columnNames[col],
                              reverse=self._currentSortRev)
