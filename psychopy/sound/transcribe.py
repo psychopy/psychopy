@@ -12,13 +12,12 @@ __all__ = [
     'TranscriptionResult',
     'transcribe',
     'TRANSCR_LANG_DEFAULT',
-    'transcriberEngineValues',
-    'apiKeyNames'
+    'recognizerEngineValues'
 ]
 
 import os
 import psychopy.logging as logging
-# from psychopy.alerts import alert
+from psychopy.alerts import alert
 from pathlib import Path
 from psychopy.preferences import prefs
 from .audioclip import *
@@ -59,31 +58,18 @@ except ModuleNotFoundError:
 # Constants related to the transcription system.
 TRANSCR_LANG_DEFAULT = 'en-US'
 
-# Values for specifying transcriber engine. This dictionary is used by Builder
+# Values for specifying recognizer engines. This dictionary is used by Builder
 # to populate the component property dropdown.
-transcriberEngineValues = {
+recognizerEngineValues = {
     0: ('sphinx', "CMU Pocket Sphinx", "Offline, Built-in"),
-    1: ('googleCloud', "Google Cloud Speech API", "Online, Key Required"),
-}
-
-# Names of environment variables which API keys may be stored. These cover
-# online services only.
-apiKeyNames = {
-    'google': ('PSYCHOPY_TRANSCR_KEY_GOOGLE', 'transcrKeyGoogle')
+    1: ('google', "Google Cloud Speech API", "Online, Key Required"),
 }
 
 # Get references to recognizers for various supported speech-to-text engines
 # available through the `SpeechRecognition` package.
-_recognizers = {}
 _apiKeys = {}  # API key loaded
 if _hasSpeechRecognition:
     _recogBase = sr.Recognizer()
-    _recognizers['sphinx'] = _recogBase.recognize_sphinx
-
-    # Get API keys for each engine here. Calling `refreshTranscrKeys()`
-    # finalizes these values. If any of these are not defined as environment
-    # variables, they will be obtained from preferences.
-    _apiKeys['google'] = None
 
 
 # ------------------------------------------------------------------------------
@@ -339,9 +325,8 @@ def transcribe(audioClip, engine='sphinx', language='en-US', expectedWords=None,
     engine = engine.lower()  # make lower case
 
     # check if we have necessary keys
-    # if engine in _apiKeys:
-    #     if not _apiKeys[engine]:
-    #         alert(4615, strFields={'engine': engine})
+    if engine in ('google',):
+        alert(4615, strFields={'engine': engine})
 
     # if we got a tuple, convert to audio clip object
     if isinstance(audioClip, (tuple, list,)):
@@ -472,14 +457,6 @@ def recognizeSphinx(audioClip, language='en-US', expectedWords=None,
     if not haveSphinx:  # does not have Sphinx
         raise RecognizerEngineNotFoundError()
 
-    if language not in sphinxLangs:  # missing a language pack error
-        url = "https://sourceforge.net/projects/cmusphinx/files/" \
-              "Acoustic%20and%20Language%20Models/"
-        msg = (f"Language `{config['language']}` is not installed for "
-               f"`pocketsphinx`. You can download languages here: {url}. "
-               f"Install them here: {pocketsphinx.get_model_path()}")
-        raise RecognizerLanguageNotSupportedError(msg)
-
     # check if we have a valid audio clip
     if not isinstance(audioClip, AudioClip):
         raise TypeError(
@@ -497,8 +474,17 @@ def recognizeSphinx(audioClip, language='en-US', expectedWords=None,
         raise TypeError(
             "Invalid type for parameter `language`, must be type `str`.")
 
+    language = language.lower()
+    if language not in sphinxLangs:  # missing a language pack error
+        url = "https://sourceforge.net/projects/cmusphinx/files/" \
+              "Acoustic%20and%20Language%20Models/"
+        msg = (f"Language `{config['language']}` is not installed for "
+               f"`pocketsphinx`. You can download languages here: {url}. "
+               f"Install them here: {pocketsphinx.get_model_path()}")
+        raise RecognizerLanguageNotSupportedError(msg)
+
     # configure the recognizer
-    config['language'] = language.lower()  # sphinx users en-us not en-US
+    config['language'] = language  # sphinx users en-us not en-US
     config['show_all'] = False
     if expectedWords is not None:
         config['keyword_entries'] = zip(_parseExpectedWords(expectedWords))

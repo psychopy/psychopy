@@ -33,14 +33,11 @@ sampleRates = {r[1]: r[0] for r in sampleRateQualityLevels.values()}
 devices['default'] = None
 
 onlineTranscribers = {
-    "Google": "GOOGLE",
-    "Microsoft Azure": "AZURE",
+    "Google": "GOOGLE"
 }
 localTranscribers = {
     "Google": "google",
-    "Google Cloud": "googleCloud",
-    "Microsoft Azure": "azure",
-    "Built-in": "sphinx",
+    "Built-in": "sphinx"
 }
 allTranscribers = {**localTranscribers, **onlineTranscribers}
 
