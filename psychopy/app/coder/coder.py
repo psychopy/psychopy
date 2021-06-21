@@ -2406,7 +2406,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
             return True
         actualModTime = os.path.getmtime(filename)
         expectedModTime = doc.fileModTime
-        if abs(actualModTime - expectedModTime) > 1:
+        if abs(float(actualModTime) - float(expectedModTime)) > 1:
             msg = 'File %s modified outside of the Coder (IDE).' % filename
             print(msg)
             return False
