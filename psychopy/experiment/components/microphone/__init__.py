@@ -37,7 +37,8 @@ onlineTranscribers = {
     "Microsoft Azure": "AZURE",
 }
 localTranscribers = {
-    "Google": "googleCloud",
+    "Google": "google",
+    "Google Cloud": "googleCloud",
     "Microsoft Azure": "azure",
 }
 allTranscribers = {**localTranscribers, **onlineTranscribers}
@@ -355,6 +356,7 @@ class MicrophoneComponent(BaseComponent):
         code = (
             "# tell mic to keep hold of current recording in %(name)s.clips and transcript (if applicable) in %(name)s.scripts\n"
             "# this will also update %(name)s.lastClip and %(name)s.lastScript\n"
+            "%(name)s.stop()\n"
             "%(name)sClip, %(name)sScript = %(name)s.bank(\n"
         )
         buff.writeIndentedLines(code % inits)

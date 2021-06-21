@@ -662,20 +662,20 @@ class AudioClip(object):
 
         This feature passes the audio clip samples to a text-to-speech engine
         which will attempt to transcribe any speech within. The efficacy of the
-        transcription depends on the engine selected, recording hardware
-        and audio quality, and quality of the language support. By default,
-        `PocketSphinx` is used which provides decent transcription capabilities
-        offline for English and a few other languages. For more robust
-        transcription capabilities with a greater range of language support,
-        online providers such as Google may be used.
+        transcription depends on the engine selected, recording hardware and
+        audio quality, and quality of the language support. By default, Pocket
+        Sphinx is used which provides decent transcription capabilities offline
+        for English and a few other languages. For more robust transcription
+        capabilities with s greater range of language support, online providers
+        such as Google may be used.
 
         If the audio clip has multiple channels, they will be combined prior to
         being passed to the transcription service.
 
         Speech-to-text conversion blocks the main application thread when used
         on Python. Don't transcribe audio during time-sensitive parts of your
-        experiment! This issue is known to the developers and will be fixed in
-        a later release.
+        experiment! This issue is known to the developers and will be fixed in a
+        later release.
 
         Parameters
         ----------
@@ -694,13 +694,15 @@ class AudioClip(object):
             where the sensitivity can be specified for each expected word. You
             can indicate the sensitivity level to use by putting a ``:`` after
             each word in the list (see the Example below). Sensitivity levels
-            range between 50 and 100. A higher number results in the engine
-            being more conservative, resulting in a higher likelihood of false
+            range between 0 and 100. A higher number results in the engine being
+            more conservative, resulting in a higher likelihood of false
             rejections. The default sensitivity is 80% for words/phrases without
             one specified.
         key : str or None
-            API key or credentials, format depends on the API in use. If a file
-            path is provided, the key data will be loaded from it.
+            API key or credentials, format depends on the API in use. If `None`,
+            the values will be obtained elsewhere (See Notes). An alert will be
+            raised if the `engine` requested requires a key but is not
+            specified.
         config : dict or None
             Additional configuration options for the specified engine. These
             are specified using a dictionary (ex. `config={'pfilter': 1}` will
@@ -721,9 +723,14 @@ class AudioClip(object):
           are being sent to a third-party. Also consider that a track of audio
           data being sent over the network can be large, users on metered
           connections may incur additional costs to run your experiment.
-        * Some errors may be emitted by the `SpeechRecognition` API, check that
-          project's documentation if you encounter such an error for more
-          information.
+        * Online transcription services (eg., Google, Bing, etc.) provide robust
+          and accurate speech recognition capabilities with broader language
+          support than offline solutions. However, these services may require a
+          paid subscription to use, reliable broadband internet connections, and
+          may not respect the privacy of your participants as their responses
+          are being sent to a third-party. Also consider that a track of audio
+          data being sent over the network can be large, users on metered
+          connections may incur additional costs to run your experiment.
         * If `key` is not specified (i.e. is `None`) then PsychoPy will look for
           the API key at other locations. By default, PsychoPy will look for an
           environment variables starting with `PSYCHOPY_TRANSCR_KEY_` first. If
@@ -732,6 +739,9 @@ class AudioClip(object):
           as a file path, if so, the key data will be loaded from the file.
           System administrators can specify keys this way to use them across a
           site installation without needing the user manage the keys directly.
+        * Use `expectedWords` if provided by the API. This will greatly speed up
+          recognition. CMU Pocket Sphinx gives the option for sensitivity levels
+          per phrase.
 
         Examples
         --------
@@ -756,7 +766,8 @@ class AudioClip(object):
         Specifying expected words with sensitivity levels when using CMU Pocket
         Sphinx:
 
-            # expected words 90% confidence on the first two, default for others
+            # expected words 90% sensitivity on the first two, default for
+            # others
             expectedWords = ['right:90', 'left:90', 'up', 'down']
 
             transcribeResults = resp.transcribe(
