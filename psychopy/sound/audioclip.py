@@ -656,6 +656,35 @@ class AudioClip(object):
         return np.asarray(
             self._samples * ((1 << 15) - 1), dtype=np.int16).tobytes()
 
+    def asMono(self, copy=True):
+        """Convert the audio clip to mono (single channel audio).
+
+        Parameters
+        ----------
+        copy : bool
+            If `True` an :class:`~psychopy.sound.AudioClip` containing a copy
+            of the samples will be returned. If `False`, channels will be
+            mixed inplace resulting a the same object being returned. User data
+            is not copied.
+
+        Returns
+        -------
+        :class:`~psychopy.sound.AudioClip`
+            Mono version of this object.
+
+        """
+        samples = np.atleast_2d(self._samples)  # enforce 2D
+        if samples.shape[1] > 1:
+            samplesMixed = \
+                np.sum(samples, axis=1, dtype=np.float32) / np.float32(2.)
+        else:
+            samplesMixed = samples
+
+        if copy:
+            return AudioClip(samplesMixed, self.sampleRateHz)
+
+        self._samples = samplesMixed  # overwrite
+
     def transcribe(self, engine='sphinx', language='en-US', expectedWords=None,
                    key=None, config=None):
         """Convert speech in audio to text.
