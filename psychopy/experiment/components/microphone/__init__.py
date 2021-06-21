@@ -39,6 +39,7 @@ onlineTranscribers = {
 localTranscribers = {
     "Google": "google",
     "Google Cloud": "googleCloud",
+    "Built-in": "sphinx",
     # "Microsoft Azure": "azure",
 }
 allTranscribers = {**localTranscribers, **onlineTranscribers}
