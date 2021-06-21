@@ -179,7 +179,9 @@ class MicrophoneComponent(BaseComponent):
 
         self.params['transcribeWords'] = Param(
             transcribeWords, valType='list', inputType='single', categ='Transcription',
-            hint=_translate("Set list of words to listen for - if blank will listen for all words in chosen language"),
+            hint=_translate("Set list of words to listen for - if blank will listen for all words in chosen language. \n\n"
+                            "If using the built-in transcriber, you can set a minimum % confidence level using a colon "
+                            "after the word, e.g. 'red:100', 'green:80'. Otherwise, default confidence level is 80%."),
             label=_translate("Expected Words")
         )
 
