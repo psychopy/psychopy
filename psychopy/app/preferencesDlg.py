@@ -326,8 +326,9 @@ class PrefPropGrid(wx.Panel):
         if section not in self.sections.keys():
             self.sections[section] = []
 
-        self.sections[section].update(
-            {name: wx.propgrid.FileProperty(label, name, value)})
+        prop = wx.propgrid.FileProperty(label, name, value)
+        self.sections[section].update({name: prop})
+        prop.SetAttribute(wx.propgrid.PG_FILE_SHOW_FULL_PATH, True)
 
         self.helpText[name] = helpText
 
@@ -664,7 +665,7 @@ class PreferencesDlg(wx.Dialog):
                         sectionName, pLabel, prefName, thisPref,
                         helpText=helpText)
                 # single file
-                elif prefName in ('flac',):
+                elif prefName in ('flac', 'appKeyGoogleCloud',):
                     self.proPrefs.addFileItem(
                         sectionName, pLabel, prefName, thisPref,
                         helpText=helpText)

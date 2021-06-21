@@ -18,7 +18,7 @@ __all__ = [
 
 import os
 import psychopy.logging as logging
-from psychopy.alerts import alert
+# from psychopy.alerts import alert
 from pathlib import Path
 from psychopy.preferences import prefs
 from .audioclip import *
@@ -339,9 +339,9 @@ def transcribe(audioClip, engine='sphinx', language='en-US', expectedWords=None,
     engine = engine.lower()  # make lower case
 
     # check if we have necessary keys
-    if engine in _apiKeys:
-        if not _apiKeys[engine]:
-            alert(4615, strFields={'engine': engine})
+    # if engine in _apiKeys:
+    #     if not _apiKeys[engine]:
+    #         alert(4615, strFields={'engine': engine})
 
     # if we got a tuple, convert to audio clip object
     if isinstance(audioClip, (tuple, list,)):
