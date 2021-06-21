@@ -266,14 +266,6 @@ def transcribe(audioClip, engine='sphinx', language='en-US', expectedWords=None,
       Also consider that a track of audio data being sent over the network can
       be large, users on metered connections may incur additional costs to run
       your experiment.
-    * If `key` is not specified (i.e. is `None`) then PsychoPy will look for the
-      API key at other locations. By default, PsychoPy will look for an
-      environment variables starting with `PSYCHOPY_TRANSCR_KEY_` first. If
-      there is no appropriate API key for the given `engine`, then the
-      preference *General -> transcrKeyXXX* is used. Keys can be specified as a
-      file path, if so, the key data will be loaded from the file. System
-      administrators can specify keys this way to use them across a site
-      installation without needing the user manage the keys directly.
     * If the audio clip has multiple channels, they will be combined prior to
       being passed to the transcription service if needed.
 
