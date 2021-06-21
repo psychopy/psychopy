@@ -26,8 +26,7 @@ __all__ = [
 import numpy as np
 import soundfile as sf
 from psychopy.tools.audiotools import *
-from .exceptions import AudioUnsupportedCodecError
-from .transcribe import transcribe
+from .exceptions import *
 
 # supported formats for loading and saving audio samples to file
 AUDIO_SUPPORTED_CODECS = [s.lower() for s in sf.available_formats().keys()]
@@ -806,13 +805,13 @@ class AudioClip(object):
                 # process results ...
 
         """
+        # avoid circular import
+        from psychopy.sound.transcribe import transcribe
         return transcribe(
-            self._samples,
-            self._sampleRateHz,
+            self,
             engine=engine,
             language=language,
             expectedWords=expectedWords,
-            key=key,
             config=config)
 
 
