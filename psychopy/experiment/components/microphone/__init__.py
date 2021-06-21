@@ -352,7 +352,6 @@ class MicrophoneComponent(BaseComponent):
             else:
                 default = list(localTranscribers.values())[0]
                 alert(4610, strFields={"transcriber": inits['transcribeBackend'].val, "default": default})
-                inits['transcribeBackend'].val = default
         # Store recordings from this routine
         code = (
             "# tell mic to keep hold of current recording in %(name)s.clips and transcript (if applicable) in %(name)s.scripts\n"
@@ -404,7 +403,6 @@ class MicrophoneComponent(BaseComponent):
         if inits['transcribe'].val and inits['transcribeBackend'].val not in onlineTranscribers.values():
             default = list(onlineTranscribers.values())[0]
             alert(4605, strFields={"transcriber": inits['transcribeBackend'].val, "default": default})
-            inits['transcribeBackend'].val = default
 
         # Write base end routine code
         BaseComponent.writeRoutineEndCodeJS(self, buff)
