@@ -49,6 +49,9 @@ _localized = {
     'shutdownKeyModifiers': _translate("shutdown key modifier keys"),
     'gammaErrorPolicy': _translate("gammaErrorPolicy"),
     'startUpPlugins': _translate("start up plugins"),
+    'transcrKeyGoogle':_translate('transcrKeyGoogle'),
+    'transcrKeyGoogleCloud':_translate('transcrKeyGoogleCloud'),
+    'transcrKeyAzure':_translate('transcrKeyAzure'),
     # pref labels in App section
     'showStartupTips': _translate("show start-up tips"),
     'defaultView': _translate("default view"),
@@ -63,6 +66,7 @@ _localized = {
     'codeComponentLanguage': _translate('Code component language'),
     'unclutteredNamespace': _translate('uncluttered namespace'),
     'componentsFolders': _translate('components folders'),
+    'componentFilter':_translate('componentFilter'),
     'hiddenComponents': _translate('hidden components'),
     'unpackedDemosDir': _translate('unpacked demos dir'),
     'savedDataFolder': _translate('saved data folder'),
@@ -326,8 +330,9 @@ class PrefPropGrid(wx.Panel):
         if section not in self.sections.keys():
             self.sections[section] = []
 
-        self.sections[section].update(
-            {name: wx.propgrid.FileProperty(label, name, value)})
+        prop = wx.propgrid.FileProperty(label, name, value)
+        self.sections[section].update({name: prop})
+        prop.SetAttribute(wx.propgrid.PG_FILE_SHOW_FULL_PATH, True)
 
         self.helpText[name] = helpText
 
@@ -664,7 +669,7 @@ class PreferencesDlg(wx.Dialog):
                         sectionName, pLabel, prefName, thisPref,
                         helpText=helpText)
                 # single file
-                elif prefName in ('flac',):
+                elif prefName in ('flac', 'appKeyGoogleCloud',):
                     self.proPrefs.addFileItem(
                         sectionName, pLabel, prefName, thisPref,
                         helpText=helpText)

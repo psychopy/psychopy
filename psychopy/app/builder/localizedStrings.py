@@ -40,7 +40,9 @@ _localizedCategories = {
     'Eyetracking':_translate('Eyetracking'),
     'Target':_translate('Target'),
     'Animation':_translate('Animation'),
-    'Transcription':_translate('Transcription')
+    'Transcription':_translate('Transcription'),
+    'Timing':_translate('Timing'),
+    'Playback':_translate('Playback')
 }
 
 _localizedDialogs = {
