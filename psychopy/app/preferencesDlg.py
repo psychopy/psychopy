@@ -49,8 +49,7 @@ _localized = {
     'shutdownKeyModifiers': _translate("shutdown key modifier keys"),
     'gammaErrorPolicy': _translate("gammaErrorPolicy"),
     'startUpPlugins': _translate("start up plugins"),
-    'transcrKeyGoogle':_translate('transcrKeyGoogle'),
-    'transcrKeyGoogleCloud':_translate('transcrKeyGoogleCloud'),
+    'appKeyGoogleCloud':_translate('transcrKeyGoogleCloud'),
     'transcrKeyAzure':_translate('transcrKeyAzure'),
     # pref labels in App section
     'showStartupTips': _translate("show start-up tips"),
