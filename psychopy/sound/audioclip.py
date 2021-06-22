@@ -26,8 +26,7 @@ __all__ = [
 import numpy as np
 import soundfile as sf
 from psychopy.tools.audiotools import *
-from .exceptions import AudioUnsupportedCodecError
-from .transcribe import transcribe
+from .exceptions import *
 
 # supported formats for loading and saving audio samples to file
 AUDIO_SUPPORTED_CODECS = [s.lower() for s in sf.available_formats().keys()]
@@ -656,21 +655,46 @@ class AudioClip(object):
         return np.asarray(
             self._samples * ((1 << 15) - 1), dtype=np.int16).tobytes()
 
+    def asMono(self, copy=True):
+        """Convert the audio clip to mono (single channel audio).
+
+        Parameters
+        ----------
+        copy : bool
+            If `True` an :class:`~psychopy.sound.AudioClip` containing a copy
+            of the samples will be returned. If `False`, channels will be
+            mixed inplace resulting a the same object being returned. User data
+            is not copied.
+
+        Returns
+        -------
+        :class:`~psychopy.sound.AudioClip`
+            Mono version of this object.
+
+        """
+        samples = np.atleast_2d(self._samples)  # enforce 2D
+        if samples.shape[1] > 1:
+            samplesMixed = \
+                np.sum(samples, axis=1, dtype=np.float32) / np.float32(2.)
+        else:
+            samplesMixed = samples
+
+        if copy:
+            return AudioClip(samplesMixed, self.sampleRateHz)
+
+        self._samples = samplesMixed  # overwrite
+
     def transcribe(self, engine='sphinx', language='en-US', expectedWords=None,
-                   key=None, config=None):
+                   config=None):
         """Convert speech in audio to text.
 
-        This feature passes the audio clip samples to a text-to-speech engine
-        which will attempt to transcribe any speech within. The efficacy of the
-        transcription depends on the engine selected, recording hardware and
-        audio quality, and quality of the language support. By default, Pocket
-        Sphinx is used which provides decent transcription capabilities offline
-        for English and a few other languages. For more robust transcription
-        capabilities with s greater range of language support, online providers
-        such as Google may be used.
-
-        If the audio clip has multiple channels, they will be combined prior to
-        being passed to the transcription service.
+        This feature passes the audio clip samples to a specified text-to-speech
+        engine which will attempt to transcribe any speech within. The efficacy
+        of the transcription depends on the engine selected, audio quality, and
+        language support. By default, Pocket Sphinx is used which provides
+        decent transcription capabilities offline for English and a few other
+        languages. For more robust transcription capabilities with a greater
+        range of language support, online providers such as Google may be used.
 
         Speech-to-text conversion blocks the main application thread when used
         on Python. Don't transcribe audio during time-sensitive parts of your
@@ -680,8 +704,8 @@ class AudioClip(object):
         Parameters
         ----------
         engine : str
-            Speech-to-text engine to use. Can be one of 'sphinx', 'google',
-            'googleCloud', or 'bing'.
+            Speech-to-text engine to use. Can be one of 'sphinx' for CMU Pocket
+            Sphinx or 'google' for Google Cloud.
         language : str
             BCP-47 language code (eg., 'en-US'). Note that supported languages
             vary between transcription engines.
@@ -692,17 +716,12 @@ class AudioClip(object):
             this time). A warning will be logged if the engine selected does not
             support this feature. CMU PocketSphinx has an additional feature
             where the sensitivity can be specified for each expected word. You
-            can indicate the sensitivity level to use by putting a ``:`` after
-            each word in the list (see the Example below). Sensitivity levels
-            range between 0 and 100. A higher number results in the engine being
-            more conservative, resulting in a higher likelihood of false
-            rejections. The default sensitivity is 80% for words/phrases without
-            one specified.
-        key : str or None
-            API key or credentials, format depends on the API in use. If `None`,
-            the values will be obtained elsewhere (See Notes). An alert will be
-            raised if the `engine` requested requires a key but is not
-            specified.
+            can indicate the sensitivity level to use by putting a ``:`` (colon)
+            after each word in the list (see the Example below). Sensitivity
+            levels range between 0 and 100. A higher number results in the
+            engine being more conservative, resulting in a higher likelihood of
+            false rejections. The default sensitivity is 80% for words/phrases
+            without one specified.
         config : dict or None
             Additional configuration options for the specified engine. These
             are specified using a dictionary (ex. `config={'pfilter': 1}` will
@@ -715,75 +734,25 @@ class AudioClip(object):
 
         Notes
         -----
-        * Online transcription services (eg., Google, Bing, etc.) provide robust
-          and accurate speech recognition capabilities with broader language
-          support than offline solutions. However, these services may require a
-          paid subscription to use, reliable broadband internet connections, and
-          may not respect the privacy of your participants as their responses
-          are being sent to a third-party. Also consider that a track of audio
-          data being sent over the network can be large, users on metered
-          connections may incur additional costs to run your experiment.
-        * Online transcription services (eg., Google, Bing, etc.) provide robust
-          and accurate speech recognition capabilities with broader language
-          support than offline solutions. However, these services may require a
-          paid subscription to use, reliable broadband internet connections, and
-          may not respect the privacy of your participants as their responses
-          are being sent to a third-party. Also consider that a track of audio
-          data being sent over the network can be large, users on metered
-          connections may incur additional costs to run your experiment.
-        * If `key` is not specified (i.e. is `None`) then PsychoPy will look for
-          the API key at other locations. By default, PsychoPy will look for an
-          environment variables starting with `PSYCHOPY_TRANSCR_KEY_` first. If
-          there is no appropriate API key for the given `engine`, then the
-          preference *General -> transcrKeyXXX* is used. Keys can be specified
-          as a file path, if so, the key data will be loaded from the file.
-          System administrators can specify keys this way to use them across a
-          site installation without needing the user manage the keys directly.
-        * Use `expectedWords` if provided by the API. This will greatly speed up
-          recognition. CMU Pocket Sphinx gives the option for sensitivity levels
-          per phrase.
-
-        Examples
-        --------
-        Use a voice command as a response to a task::
-
-            # after doing  microphone recording
-            resp = mic.getRecording()
-
-            transcribeResults = transcribe(resp.samples, resp.sampleRateHz)
-            if transcribeResults.success:  # successful transcription
-                words = transcribeResults.words
-                if words:
-                    if 'right' in resp:
-                        print("You responded right is bigger.")
-                    elif 'left' in resp:
-                        print("You responded left is bigger.")
-                    else:
-                        print("Please indicate 'left' or 'right'.")
-            else:
-                print("Sorry I don't understand what you said.")
-
-        Specifying expected words with sensitivity levels when using CMU Pocket
-        Sphinx:
-
-            # expected words 90% sensitivity on the first two, default for
-            # others
-            expectedWords = ['right:90', 'left:90', 'up', 'down']
-
-            transcribeResults = resp.transcribe(
-                expectedWords=expectedWords)
-
-            if transcribeResults.success:  # successful transcription
-                # process results ...
+        * Online transcription services (eg., Google) provide robust and
+          accurate speech recognition capabilities with broader language support
+          than offline solutions. However, these services may require a paid
+          subscription to use, reliable broadband internet connections, and may
+          not respect the privacy of your participants as their responses are
+          being sent to a third-party. Also consider that a track of audio data
+          being sent over the network can be large, users on metered connections
+          may incur additional costs to run your experiment.
+        * If the audio clip has multiple channels, they will be combined prior
+          to being passed to the transcription service if needed.
 
         """
+        # avoid circular import
+        from psychopy.sound.transcribe import transcribe
         return transcribe(
-            self._samples,
-            self._sampleRateHz,
+            self,
             engine=engine,
             language=language,
             expectedWords=expectedWords,
-            key=key,
             config=config)
 
 
