@@ -418,7 +418,8 @@ def transcribe(samples, sampleRate, engine='sphinx', language='en-US',
                 config['credentials_json'] = \
                     _apiKeys[engine] if key is None else key
                 # load credentials from file if necessary
-                if Path(config['credentials_json']).is_file() and Path(config['credentials_json']).suffix == ".json":
+                credPath = Path(str(config['credentials_json']))
+                if credPath.is_file() and credPath.suffix == ".json":
                     with open(config['credentials_json'], "r") as f:
                         config['credentials_json'] = f.read()
         except KeyError:
