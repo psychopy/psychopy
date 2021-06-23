@@ -12,7 +12,9 @@ __all__ = [
     'TranscriptionResult',
     'transcribe',
     'TRANSCR_LANG_DEFAULT',
-    'recognizerEngineValues'
+    'recognizerEngineValues',
+    'recognizeSphinx',
+    'recognizeGoogle'
 ]
 
 import os
@@ -67,7 +69,6 @@ recognizerEngineValues = {
 
 # Get references to recognizers for various supported speech-to-text engines
 # available through the `SpeechRecognition` package.
-_apiKeys = {}  # API key loaded
 if _hasSpeechRecognition:
     _recogBase = sr.Recognizer()
 
@@ -201,6 +202,16 @@ class TranscriptionResult(object):
     @language.setter
     def language(self, value):
         self._language = str(value)
+
+
+# empty result returned when a transcriber is given no data
+NULL_TRANSCRIPTION_RESULT = TranscriptionResult(
+    words=[''],
+    unknownValue=False,
+    requestFailed=False,
+    engine='null',
+    language=TRANSCR_LANG_DEFAULT
+)
 
 
 def transcribe(audioClip, engine='sphinx', language='en-US', expectedWords=None,
@@ -414,16 +425,18 @@ def _parseExpectedWords(wordList, defaultSensitivity=80):
 # time critical parts of your program.
 #
 
-def recognizeSphinx(audioClip, language='en-US', expectedWords=None,
+def recognizeSphinx(audioClip=None, language='en-US', expectedWords=None,
                     config=None):
     """Perform speech-to-text conversion on the provided audio samples using
     CMU Pocket Sphinx.
 
     Parameters
     ----------
-    audioClip : :class:`~psychopy.sound.AudioClip`
+    audioClip : :class:`~psychopy.sound.AudioClip` or None
         Audio clip containing speech to transcribe (e.g., recorded from a
-        microphone).
+        microphone). Specify `None` to open a client without performing a
+        transcription, this will reduce latency when the transcriber is invoked
+        in successive calls.
     language : str
         BCP-47 language code (eg., 'en-US'). Should match the language which the
         speaker is using. Pocket Sphinx requires language packs to be installed
@@ -448,6 +461,10 @@ def recognizeSphinx(audioClip, language='en-US', expectedWords=None,
     """
     if not haveSphinx:  # does not have Sphinx
         raise RecognizerEngineNotFoundError()
+
+    # warmup the engine, not used here but needed for compatibility
+    if audioClip is None:
+        return NULL_TRANSCRIPTION_RESULT
 
     # check if we have a valid audio clip
     if not isinstance(audioClip, AudioClip):
@@ -513,7 +530,7 @@ def recognizeSphinx(audioClip, language='en-US', expectedWords=None,
     return toReturn
 
 
-def recognizeGoogle(audioClip, language='en-US', expectedWords=None,
+def recognizeGoogle(audioClip=None, language='en-US', expectedWords=None,
                     config=None):
     """Perform speech-to-text conversion on the provided audio clip using
     the Google Cloud API.
@@ -525,9 +542,11 @@ def recognizeGoogle(audioClip, language='en-US', expectedWords=None,
 
     Parameters
     ----------
-    audioClip : :class:`~psychopy.sound.AudioClip`
+    audioClip : :class:`~psychopy.sound.AudioClip` or None
         Audio clip containing speech to transcribe (e.g., recorded from a
-        microphone).
+        microphone). Specify `None` to open a client without performing a
+        transcription, this will reduce latency when the transcriber is invoked
+        in successive calls.
     language : str
         BCP-47 language code (eg., 'en-US'). Should match the language which the
         speaker is using.
@@ -579,6 +598,10 @@ def recognizeGoogle(audioClip, language='en-US', expectedWords=None,
             raise RecognizerAPICredentialsError(
                 'Invalid key specified for Google Cloud Services, check if the '
                 'key file is valid and readable.')
+
+    # if None, return a null transcription result and just open a client
+    if audioClip is None:
+        return NULL_TRANSCRIPTION_RESULT
 
     # check if we have a valid audio clip
     if not isinstance(audioClip, AudioClip):
