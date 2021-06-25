@@ -53,9 +53,9 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
         self.Layout()
 
         # set font
-        font1 = wx.Font(10, wx.MODERN, wx.NORMAL, wx.NORMAL, False, u'Consolas')
-        self.txtTerm.SetFont(font1)
-        self.txtTerm.SetMargins(8)
+        # font1 = wx.Font(10, wx.MODERN, wx.NORMAL, wx.NORMAL, False, u'Consolas')
+        # self.txtTerm.SetFont(font1)
+        # self.txtTerm.SetMargins(8)
 
         # capture keypresses
         self.txtTerm.Bind(wx.EVT_CHAR, self.onChar)
