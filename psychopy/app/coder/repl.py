@@ -129,9 +129,7 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
         # get data from standard streams
         stdin_text = self._inputStream.read()
         stderr_text = self._errorStream.read()
-
-        print(stdin_text, stderr_text)
-
+        
         # we have new characters
         newChars = False
 
