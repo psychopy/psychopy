@@ -12,6 +12,18 @@ from collections import deque
 from psychopy.app.themes import ThemeMixin
 
 
+class ConsoleTextCtrl(wx.TextCtrl, ThemeMixin):
+    """Class for the console text control. This is needed to allow for theming.
+    """
+    def __init__(self, parent, id_=wx.ID_ANY, value="", pos=wx.DefaultPosition,
+                 size=wx.DefaultSize, style=0,
+                 name=wx.TextCtrlNameStr):
+
+        wx.TextCtrl.__init__(
+            self, parent, id=id_, value=value, pos=pos, size=size, style=style,
+            validator=wx.DefaultValidator, name=name)
+
+
 class PythonREPLCtrl(wx.Panel, ThemeMixin):
     """Class for a Python REPL control.
 
@@ -41,7 +53,7 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
         # TextCtrl used to display the text from the terminal
         styleFlags = (wx.HSCROLL | wx.TE_MULTILINE | wx.TE_PROCESS_ENTER |
                       wx.TE_PROCESS_TAB | wx.NO_BORDER)
-        self.txtTerm = wx.TextCtrl(
+        self.txtTerm = ConsoleTextCtrl(
             self,
             wx.ID_ANY,
             wx.EmptyString,
@@ -129,7 +141,7 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
         # get data from standard streams
         stdin_text = self._inputStream.read()
         stderr_text = self._errorStream.read()
-        
+
         # we have new characters
         newChars = False
 
