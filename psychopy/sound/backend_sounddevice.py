@@ -207,7 +207,7 @@ class _SoundStream(object):
             elif self.channels == 1 and len(dat.shape) == 2:
                 toSpk[:len(dat), :] += dat  # add to out stream
             else:
-                toSpk[:len(dat), 0] += dat  # add to out stream
+                toSpk[:len(dat), 0:self.channels] += dat  # add to out stream
             # check if that was a short block (sound is finished)
             if len(dat) < len(toSpk[:, :]):
                 self.remove(thisSound)
@@ -255,7 +255,8 @@ class SoundDeviceSound(_SoundBase):
                  preBuffer=-1,
                  hamming=True,
                  startTime=0, stopTime=-1,
-                 name='', autoLog=True):
+                 name='', autoLog=True,
+                 channels=None):
         """
         :param value: note name ("C","Bfl"), filename or frequency (Hz)
         :param secs: duration (for synthesised tones)
@@ -302,8 +303,9 @@ class SoundDeviceSound(_SoundBase):
             for streamLabel in streams:  # then look to see if we have an open stream and use that
                 rate = streams[streamLabel].sampleRate
             self.sampleRate = rate
-        self.channels = None  # let this be set by stereo
         self.stereo = stereo
+        self.channels = channels  # let this be set by stereo
+        self.multichannel = False
         self.duplex = None
         self.autoLog = autoLog
         self.streamLabel = ""
@@ -445,7 +447,7 @@ class SoundDeviceSound(_SoundBase):
             pass
         else:
             try:
-                self.sndArr.shape = [len(thisArray), 2]
+                self.sndArr.shape = [len(thisArray), self.channels]
             except ValueError:
                 raise ValueError("Failed to format sound with shape {} "
                                  "into sound with channels={}"
@@ -457,9 +459,10 @@ class SoundDeviceSound(_SoundBase):
                 self.stereo = 0
             elif self.sndArr.shape[1] == 2:
                 self.stereo = 1
-            else:
-                raise IOError("Couldn't determine whether array is "
-                              "stereo. Shape={}".format(self.sndArr.shape))
+            elif self.sndArr.shape[1] >= 2:
+                self.multichannel = True
+                # raise IOError("Couldn't determine whether array is "
+                #               "stereo. Shape={}".format(self.sndArr.shape))
         self._nSamples = thisArray.shape[0]
         if self.stopTime == -1:
             self.duration = self._nSamples/float(self.sampleRate)
@@ -518,7 +521,7 @@ class SoundDeviceSound(_SoundBase):
                 or self.sourceType == 'array':
             # An array, or a file entirely loaded into an array
             ii = int(round(self.t * self.sampleRate))
-            if self.stereo == 1:  # don't treat as boolean. Might be -1
+            if self.stereo == 1 or self.multichannel:  # don't treat as boolean. Might be -1
                 block = self.sndArr[ii:ii + nSamples, :]
             elif self.stereo == 0:
                 block = self.sndArr[ii:ii + nSamples]
