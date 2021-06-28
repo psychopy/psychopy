@@ -317,7 +317,7 @@ def test_audioclip_rms():
     # make it mono, do it again
     audioClipMono = audioClipStereo.asMono()
     rmsResultMono = audioClipMono.rms()  # should be float for one channel
-    assert isinstance(rmsResultMono, float)
+    assert isinstance(rmsResultMono, np.float32)
 
 
 if __name__ == "__main__":

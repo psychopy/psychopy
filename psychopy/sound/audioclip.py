@@ -676,7 +676,6 @@ class AudioClip(object):
         if samples.shape[1] > 1:
             samplesMixed = np.atleast_2d(
                 np.sum(samples, axis=1, dtype=np.float32) / np.float32(2.)).T
-
         else:
             samplesMixed = samples.copy()
 
@@ -684,6 +683,7 @@ class AudioClip(object):
             return AudioClip(samplesMixed, self.sampleRateHz)
 
         self._samples = samplesMixed  # overwrite
+        
         return self
 
     def transcribe(self, engine='sphinx', language='en-US', expectedWords=None,
