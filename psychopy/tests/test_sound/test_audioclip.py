@@ -288,6 +288,7 @@ def test_audioclip_file():
             assert loadedAudioClip2.channels == nChannels
 
 
+@pytest.mark.audioclip
 def test_audioclip_rms():
     """Test the RMS method of `AudioClip`. Just check if the function give back
     values that are correctly formatted given the input data.
