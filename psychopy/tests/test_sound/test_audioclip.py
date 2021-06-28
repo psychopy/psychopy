@@ -164,12 +164,12 @@ def test_audioclip_concat():
     """Test combining audio clips together.
     """
     # durations to use for each segment
-    dur1, dur2, dur3 = 0.2, 0.1, 0.8
+    dur1, dur2, dur3 = 0.2, 0.1, 0.7
     totalDur = sum([dur1, dur2, dur3])
 
     # create a bunch of clips to join
-    clip1 = AudioClip.whiteNoise(duration=dur1, sampleRateHz=SAMPLE_RATE_48kHz)
-    clip2 = AudioClip.silence(duration=dur2, sampleRateHz=SAMPLE_RATE_48kHz)
+    clip1 = AudioClip.silence(duration=dur2, sampleRateHz=SAMPLE_RATE_48kHz)
+    clip2 = AudioClip.whiteNoise(duration=dur1, sampleRateHz=SAMPLE_RATE_48kHz)
     clip3 = AudioClip.sine(duration=dur3, sampleRateHz=SAMPLE_RATE_48kHz)
 
     # concatenate clips using the `+` operator
@@ -177,14 +177,31 @@ def test_audioclip_concat():
 
     # check the new duration
     assert np.isclose(newClip1.duration, totalDur)
+    assert np.isclose(newClip1.samples.shape[0], SAMPLE_RATE_48kHz)
 
     # do the same using the append() method
-    newClip2 = clip1.append(clip2).append(clip3)
+    newClip2 = (clip1.copy()).append(clip2).append(clip3)
 
     assert np.isclose(newClip2.duration, totalDur)
+    assert np.isclose(newClip2.samples.shape[0], SAMPLE_RATE_48kHz)
 
     # assert that these two methods do the same thing
     assert np.allclose(newClip1.samples, newClip2.samples)
+
+    # test copy
+    newClip3 = clip1.copy()
+    assert np.allclose(newClip3.samples, clip1.samples)
+
+    # test inplace
+    originalObjectId = id(newClip3)
+    newClip3 += clip2
+    newClip3 += clip3
+
+    # make sure the object is the same in this case
+    assert id(newClip3) == originalObjectId
+    # check if samples are the same as above
+    assert np.allclose(newClip3.samples, newClip2.samples)
+    assert np.isclose(newClip3.samples.shape[0], SAMPLE_RATE_48kHz)
 
     # ensure that concatenation fails when sample rates are heterogeneous
     clipBad = AudioClip.whiteNoise(
