@@ -38,6 +38,9 @@ def test_audioclip_create():
             # check boolean properties for channels
             if audioClip.channels == AUDIO_CHANNELS_MONO:
                 assert audioClip.isMono
+                # should be the same if mono already
+                monoClip = audioClip.asMono()
+                assert np.allclose(monoClip.samples, audioClip.samples)
             elif audioClip.channels == AUDIO_CHANNELS_STEREO:
                 assert audioClip.isStereo
                 # set converting to mono
@@ -159,6 +162,17 @@ def test_audioclip_attrib():
     assert np.max(audioClip.samples) <= 1.0 and \
            np.min(audioClip.samples) >= -1.0
 
+    # give bad value to gain for the channel
+    caughtChannelValueError = False
+    try:
+        audioClip.gain(1.0, channel=2)
+    except ValueError:
+        caughtChannelValueError = True
+
+    assert caughtChannelValueError, \
+        "Failed to catch error be specifying wrong number to `channel` param " \
+        "in `.gain()`."
+
 
 @pytest.mark.audioclip
 def test_audioclip_concat():
@@ -218,6 +232,18 @@ def test_audioclip_concat():
     assert caughtSampleRateError, \
         "Did not catch expected error when combining `AudioClip` objects " \
         "with heterogeneous sample rates."
+
+    # check what happens when clips are empty when combined
+    emptyClip = AudioClip(np.zeros((0, 0)), sampleRateHz=SAMPLE_RATE_48kHz)
+
+    # check if the empty clip contains the data from the other
+    clipData = clip1.copy()
+    newClip4 = emptyClip.append(clipData)
+    assert np.allclose(clipData.samples, newClip4.samples)
+
+    # other direction
+    newClip4 = (clipData.copy()).append(emptyClip)
+    assert np.allclose(clipData.samples, newClip4.samples)
 
 
 @pytest.mark.audioclip
