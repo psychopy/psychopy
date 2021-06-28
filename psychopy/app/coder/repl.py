@@ -83,14 +83,10 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
         self.Bind(wx.EVT_IDLE, self.onIdle)
 
         # hooks for the process we're communicating with
-        self.process = None
-        self._proc = None
-        self._pid = None
-        self._inputStream = self._errorStream = self._outputStream = None
+        self._process = self._pid = None
 
         # interpreter state information
-        self._isBusy = False
-        self._suppress = False  # suppress writing results to the terminal
+        self._isBusy = self._suppress = False
         self._stdin_buffer = []
         self._lastTextPos = 0
 
@@ -100,12 +96,20 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
         self._lastTextPos = self.txtTerm.GetLastPosition()
 
     def onTerminate(self, event):
+        # hooks for the process we're communicating with
+        self._process = self._pid = None
+
+        # interpreter state information
+        self._isBusy = self._suppress = False
+        self._stdin_buffer = []
+        self._lastTextPos = 0
+
         self.start()
 
     @property
     def isStarted(self):
         """`True` if the interpreter process has been started."""
-        return self._proc is not None
+        return self._process is not None
 
     @property
     def isBusy(self):
@@ -113,13 +117,22 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
         return self._isBusy
 
     @property
-    def supressed(self):
+    def suppressed(self):
         """`True` if the interpreter output is suppressed."""
         return self._suppress
 
     @property
+    def process(self):
+        """Process object for the interpreter (`wx.Process`)."""
+        return self._process
+
+    @property
     def pid(self):
         """Process ID for the interpreter (`int`)."""
+        return self._pid
+
+    def getPid(self):
+        """Get the process ID for the active interpreter (`int`)."""
         return self._pid
 
     def getPwd(self):
@@ -135,18 +148,22 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
         self.push('dir()')  # get namespace values
 
     def onIdle(self, event):
+        """Idle event.
+
+        This is hooked into the main application even loop. When idle, the
+        input streams are checked and any data is writen to the text box.
+
+        """
+        # don't do anything unless we have an active process
         if not self.isStarted:
             return
-
-        # get data from standard streams
-        stdin_text = self._inputStream.read()
-        stderr_text = self._errorStream.read()
 
         # we have new characters
         newChars = False
 
-        # if we have input write the text
-        if stdin_text:
+        # check if we have input text to process
+        if self._process.IsInputAvailable():
+            stdin_text = self._process.InputStream.read()
             txt = stdin_text.decode('utf-8')
             self.txtTerm.WriteText(txt)
             if txt == '\r':
@@ -154,18 +171,22 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
 
             # hack to get the interactive help working
             try:
-                if self.txtTerm.Value[-6:] == 'help> ':
+                if self.txtTerm.GetValue()[-6:] == 'help> ':
                     self._isBusy = False
             except IndexError:
                 pass
 
             newChars = True
 
-        if stderr_text:
+        # check if the input stream has bytes to process
+        if self._process.IsErrorAvailable():
+            stderr_text = self._process.ErrorStream.read()
             self.txtTerm.WriteText(stderr_text.decode('utf-8'))
             self._isBusy = False
             newChars = True
 
+        # If we have received new character from either stream, advance the
+        # boundary of the editable area.
         if newChars:
             self._lastTextPos = self.txtTerm.GetLastPosition()
 
@@ -185,40 +206,45 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
             Statement to push to the terminal.
 
         """
+        if not self.isStarted:
+            return
+
         # convert to bytes
         line = str.encode(line if not submit else line + '\n')
 
         if submit:
             self._isBusy = True  # flag that something has been sent
-            self._outputStream.write(line)
-            self._outputStream.flush()
+            self._process.OutputStream.write(line)
+            self._process.OutputStream.flush()
 
     def start(self):
         """Start a new interpreter process."""
+        # inform the user that we're starting the console
+        self.txtTerm.Clear()
+        self.txtTerm.WriteText(
+            "Starting Python interpreter session, please wait ...\n")
+
         # setup the sub-process
-        self.process = wx.Process(self)
-        self.process.Redirect()
-        # start a node.js interpreter
-        # self._proc = wx.Execute(r'C:\Program Files\nodejs\node.exe -i', wx.EXEC_ASYNC, self.process)
-        self._proc = wx.Execute('python -i', wx.EXEC_ASYNC, self.process)
-        self._pid = self.process.GetPid()
+        wx.BeginBusyCursor()
+        self._process = wx.Process(self)
+        self._process.Redirect()
+        self._pid = wx.Execute('python -i', wx.EXEC_ASYNC, self._process)
 
-        self._inputStream = self.process.GetInputStream()
-        self._errorStream = self.process.GetErrorStream()
-        self._outputStream = self.process.GetOutputStream()
+        # bind the event called when the process ends
+        self._process.Bind(wx.EVT_END_PROCESS, self.onTerminate)
 
-        self.process.Bind(wx.EVT_END_PROCESS, self.onTerminate)
-
-        # clear all text in the widget
+        # clear all text in the widget and display the welcome message
         self.txtTerm.Clear()
         self.txtTerm.WriteText(
             "Python REPL in PsychoPy (pid:{}) - type some commands!\n\n".format(
                 self._pid))
         self._lastTextPos = self.txtTerm.GetLastPosition()
+        wx.EndBusyCursor()
 
     def close(self):
         """Close an open interpreter."""
-        pass
+        if self.isStarted:
+            wx.Process.Kill(self._pid, wx.SIGKILL)
 
     def restart(self):
         """Close the running interpreter (if running) and spawn a new one."""
@@ -243,6 +269,20 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
     def __del__(self):
         pass
 
+    def _clearAndReplaceTyped(self, replaceWith=''):
+        """Clear any text that has been typed."""
+        self.txtTerm.Remove(self._lastTextPos, self.txtTerm.GetLastPosition())
+        if replaceWith:
+            self.txtTerm.WriteText(replaceWith)
+
+        self.txtTerm.SetInsertionPoint(self.txtTerm.GetLastPosition())
+
+    def _getTyped(self):
+        """Get the text that was typed or is editable (`str`)."""
+        return self.txtTerm.GetRange(
+            self._lastTextPos,
+            self.txtTerm.GetLastPosition())
+
     # Virtual event handlers, overide them in your derived class
     def onChar(self, event):
         self.resetCaret()
@@ -258,9 +298,7 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
 
         if event.GetKeyCode() == wx.WXK_RETURN:
             self.txtTerm.SetInsertionPointEnd()
-            entry = self.txtTerm.GetRange(
-                self._lastTextPos,
-                self.txtTerm.GetLastPosition())
+            entry = self._getTyped()
             if entry:
                 self._history.appendleft(entry)
             self.push(entry)
@@ -272,15 +310,16 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
         elif event.GetKeyCode() == wx.WXK_UP:
             if self._history:
                 self._historyIdx = max(0, self._historyIdx + 1)
-                self.txtTerm.Remove(self._lastTextPos, self.txtTerm.GetLastPosition())
-                self.txtTerm.WriteText(self._history[self._historyIdx])
+                self._clearAndReplaceTyped(self._history[self._historyIdx])
             return
         elif event.GetKeyCode() == wx.WXK_DOWN:
             if self._history:
                 self._historyIdx = min(len(self._history), self._historyIdx - 1)
-                self.txtTerm.Remove(self._lastTextPos, self.txtTerm.GetLastPosition())
-                self.txtTerm.WriteText(self._history[self._historyIdx])
+                self._clearAndReplaceTyped(self._history[self._historyIdx])
             return
+        else:
+            if self._history:
+                self._historyIdx = 0
 
         event.Skip()
 
