@@ -1,8 +1,7 @@
-from psychopy import prefs
-prefs.general['audioLib'] = ['sounddevice']
-from psychopy import sound
+from psychopy import sound, prefs
 import numpy as np
 from psychopy import core  # import some libraries from PsychoPy
+prefs.general['audioLib'] = ['sounddevice']
 
 fs = 44100
 my_asio_device = 'ASIO Fireface USB'
@@ -19,7 +18,7 @@ else:
     sound.backend.sd.mapping = None
     extra_settings = sound.backend.sd.AsioSettings(channel_selectors=sound_device_channels)
     sound.backend.sd.default.extra_settings = extra_settings
-    y = np.sin(2 * np.pi * 500 * np.arange(0, 1, 1/fs))
+    y = np.sin(2 * np.pi * 500 * np.arange(0, 1, 1 / fs))
     y = np.vstack((y, y, y, y))
     a = sound.Sound(value=y.T, sampleRate=fs)
     a.play()
