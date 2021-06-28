@@ -240,13 +240,15 @@ class TrialHandler(_BaseTrialHandler):
         from the user.
 
         The returned sequence has form indices[stimN][repN]
-        Example: sequential with 6 trialtypes (rows), 5 reps (cols), returns:
-            [[0 0 0 0 0]
-             [1 1 1 1 1]
-             [2 2 2 2 2]
-             [3 3 3 3 3]
-             [4 4 4 4 4]
-             [5 5 5 5 5]]
+        Example: sequential with 6 trialtypes (rows), 5 reps (cols), returns::
+
+        [[0 0 0 0 0]
+        [1 1 1 1 1]
+        [2 2 2 2 2]
+        [3 3 3 3 3]
+        [4 4 4 4 4]
+        [5 5 5 5 5]]
+
         These 30 trials will be returned by .next() in the order:
             0, 1, 2, 3, 4, 5,   0, 1, 2, ...  ... 3, 4, 5
 
@@ -1380,25 +1382,28 @@ class TrialHandlerExt(TrialHandler):
         from the user.
 
         The returned sequence has form indices[stimN][repN]
-        Example: sequential with 6 trialtypes (rows), 5 reps (cols), returns:
-            [[0 0 0 0 0]
-             [1 1 1 1 1]
-             [2 2 2 2 2]
-             [3 3 3 3 3]
-             [4 4 4 4 4]
-             [5 5 5 5 5]]
+        Example: sequential with 6 trialtypes (rows), 5 reps (cols), returns::
+
+        [[0 0 0 0 0]
+        [1 1 1 1 1]
+        [2 2 2 2 2]
+        [3 3 3 3 3]
+        [4 4 4 4 4]
+        [5 5 5 5 5]]
+
         These 30 trials will be returned by .next() in the order:
             0, 1, 2, 3, 4, 5,   0, 1, 2, ...  ... 3, 4, 5
 
         Example: random, with 3 trialtypes, where the weights of
         conditions 0,1, and 2 are 3,2, and 1 respectively,
-        and a rep value of 5, might return:
-            [[0 1 2 0 1]
-             [1 0 1 1 1]
-             [0 2 0 0 0]
-             [0 0 0 1 0]
-             [2 0 1 0 2]
-             [1 1 0 2 0]]
+        and a rep value of 5, might return::
+
+        [[0 1 2 0 1]
+        [1 0 1 1 1]
+        [0 2 0 0 0]
+        [0 0 0 1 0]
+        [2 0 1 0 2]
+        [1 1 0 2 0]]
 
         These 30 trials will be returned by .next() in the order:
             0, 1, 0, 0, 2, 1,   1, 0, 2, 0, 0, 1, ...
