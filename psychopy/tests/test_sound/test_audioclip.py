@@ -288,6 +288,38 @@ def test_audioclip_file():
             assert loadedAudioClip2.channels == nChannels
 
 
+def test_audioclip_rms():
+    """Test the RMS method of `AudioClip`. Just check if the function give back
+    values that are correctly formatted given the input data.
+    """
+    # test clip
+    audioClipStereo = AudioClip.sine(
+        duration=1.0,
+        sampleRateHz=SAMPLE_RATE_48kHz,
+        channels=AUDIO_CHANNELS_STEREO)
+
+    # check error when channels are specified incorrectly
+    caughtChannelParamError = False
+    try:
+        audioClipStereo.rms(-1)
+    except AssertionError:
+        caughtChannelParamError = True
+
+    assert caughtChannelParamError, \
+        "Did not catch expected error related to specifying the wrong value " \
+        "when specifying `channel` to RMS."
+
+    # should get back 2 values
+    rmsResultStereo = audioClipStereo.rms()
+    assert isinstance(rmsResultStereo, np.ndarray) and \
+           len(rmsResultStereo) == audioClipStereo.channels
+
+    # make it mono, do it again
+    audioClipMono = audioClipStereo.asMono()
+    rmsResultMono = audioClipMono.rms()  # should be float for one channel
+    assert isinstance(rmsResultMono, float)
+
+
 if __name__ == "__main__":
     # runs if this script is directly executed
     test_audioclip_create()
@@ -295,5 +327,5 @@ if __name__ == "__main__":
     test_audioclip_attrib()
     test_audioclip_concat()
     test_audioclip_file()
-
+    test_audioclip_rms()
 
