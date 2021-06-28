@@ -1,6 +1,5 @@
 """Tests for the `AudioClip` class.
 """
-from __future__ import division
 import os
 from tempfile import mkdtemp
 import pytest
@@ -228,28 +227,39 @@ def test_audioclip_file():
     """
     # generate samples
     np.random.seed(123456)
-    audioClip = AudioClip.whiteNoise(
-        duration=1.0, sampleRateHz=SAMPLE_RATE_48kHz, channels=2)
 
-    # create temporary folder for data
-    testDir = mkdtemp(prefix='psychopy-tests-test_audioclip')
+    rates = (SAMPLE_RATE_16kHz, SAMPLE_RATE_48kHz, SAMPLE_RATE_96kHz)
+    for sampleRateHz in rates:
+        for nChannels in (AUDIO_CHANNELS_MONO, AUDIO_CHANNELS_STEREO):
+            audioClip = AudioClip.whiteNoise(
+                duration=1.0, sampleRateHz=sampleRateHz, channels=nChannels)
 
-    # save as WAV file
-    fname = os.path.join(testDir, 'test_audioclip_file.wav')
-    audioClip.save(fname)
+            # create temporary folder for data
+            testDir = mkdtemp(prefix='psychopy-tests-test_audioclip')
 
-    # load it
-    loadedAudioClip = AudioClip.load(fname)
+            # save as WAV file
+            fname = os.path.join(testDir, 'test_audioclip_file.wav')
+            audioClip.save(fname)
 
-    # check if they are the same, there is some error from quantization
-    assert np.allclose(loadedAudioClip.samples, audioClip.samples, atol=1e-4)
+            # load it
+            loadedAudioClip = AudioClip.load(fname)
 
-    # save and load again
-    loadedAudioClip.save(fname)
-    loadedAudioClip2 = AudioClip.load(fname)
+            # check if they are the same, there is some error from quantization
+            assert np.allclose(
+                loadedAudioClip.samples,
+                audioClip.samples,
+                atol=1e-4)
+            assert loadedAudioClip.channels == nChannels
 
-    # quantization applied, lossy but should be stable when saved and loaded
-    assert np.allclose(loadedAudioClip.samples, loadedAudioClip2.samples)
+            # save and load again
+            loadedAudioClip.save(fname)
+            loadedAudioClip2 = AudioClip.load(fname)
+
+            # quantization applied, lossy but should be stable here
+            assert np.allclose(
+                loadedAudioClip.samples,
+                loadedAudioClip2.samples)
+            assert loadedAudioClip2.channels == nChannels
 
 
 if __name__ == "__main__":
