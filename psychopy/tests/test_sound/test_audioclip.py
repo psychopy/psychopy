@@ -1,6 +1,8 @@
 """Tests for the `AudioClip` class.
 """
 from __future__ import division
+import os
+from tempfile import mkdtemp
 import pytest
 import numpy as np
 import psychopy
@@ -219,11 +221,43 @@ def test_audioclip_concat():
         "with heterogeneous sample rates."
 
 
+@pytest.mark.audioclip
+def test_audioclip_file():
+    """Test saving and loading audio samples from files. Checks the integrity
+    of loaded data to ensure things are similar to the original.
+    """
+    # generate samples
+    np.random.seed(123456)
+    audioClip = AudioClip.whiteNoise(
+        duration=1.0, sampleRateHz=SAMPLE_RATE_48kHz, channels=2)
+
+    # create temporary folder for data
+    testDir = mkdtemp(prefix='psychopy-tests-test_audioclip')
+
+    # save as WAV file
+    fname = os.path.join(testDir, 'test_audioclip_file.wav')
+    audioClip.save(fname)
+
+    # load it
+    loadedAudioClip = AudioClip.load(fname)
+
+    # check if they are the same, there is some error from quantization
+    assert np.allclose(loadedAudioClip.samples, audioClip.samples, atol=1e-4)
+
+    # save and load again
+    loadedAudioClip.save(fname)
+    loadedAudioClip2 = AudioClip.load(fname)
+
+    # quantization applied, lossy but should be stable when saved and loaded
+    assert np.allclose(loadedAudioClip.samples, loadedAudioClip2.samples)
+
+
 if __name__ == "__main__":
     # runs if this script is directly executed
     test_audioclip_create()
     test_audioclip_synth()
     test_audioclip_attrib()
     test_audioclip_concat()
+    test_audioclip_file()
 
 
