@@ -683,6 +683,7 @@ class AudioClip(object):
             return AudioClip(samplesMixed, self.sampleRateHz)
 
         self._samples = samplesMixed  # overwrite
+        return self
 
     def transcribe(self, engine='sphinx', language='en-US', expectedWords=None,
                    config=None):
