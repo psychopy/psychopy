@@ -255,8 +255,7 @@ class SoundDeviceSound(_SoundBase):
                  preBuffer=-1,
                  hamming=True,
                  startTime=0, stopTime=-1,
-                 name='', autoLog=True,
-                 channels=None):
+                 name='', autoLog=True):
         """
         :param value: note name ("C","Bfl"), filename or frequency (Hz)
         :param secs: duration (for synthesised tones)
@@ -304,7 +303,8 @@ class SoundDeviceSound(_SoundBase):
                 rate = streams[streamLabel].sampleRate
             self.sampleRate = rate
         self.stereo = stereo
-        self.channels = channels  # let this be set by stereo
+        if isinstance(value, np.ndarray):
+            self.channels = value.shape[1]  # let this be set by stereo
         self.multichannel = False
         self.duplex = None
         self.autoLog = autoLog
