@@ -88,8 +88,8 @@ class TestComponentCompilerPython(object):
                 # Get paths for each theme
                 files = [
                     icon.parent.parent / "light" / icon.name,
-                    icon.parent.parent / "light" / icon.name,
-                    icon.parent.parent / "light" / icon.name,
+                    icon.parent.parent / "dark" / icon.name,
+                    icon.parent.parent / "classic" / icon.name,
                 ]
                 # Check that each path is a file
                 for file in files:
