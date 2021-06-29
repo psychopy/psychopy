@@ -9,6 +9,21 @@ class TestStandaloneRoutines(object):
     @classmethod
     def setup_class(cls):
         cls.routines = experiment.getAllStandaloneRoutines()
+        # Make basic experiments with one of each standalone routine
+        cls.expPy = experiment.Experiment()
+        cls.expJS = experiment.Experiment()
+        # Change eyetracking settings
+        cls.expPy.settings.params['eyetracker'].val = "MouseGaze"
+        for name, routine in cls.routines.items():
+            # Add each routine only to exp which it is valid for
+            if "PsychoPy" in routine.targets:
+                rt = routine(cls.expPy)
+                cls.expPy.addStandaloneRoutine("my" + name, rt)
+                cls.expPy.flow.addRoutine(rt, 0)
+            if "PsychoJS" in routine.targets:
+                rt = routine(cls.expJS)
+                cls.expJS.addStandaloneRoutine("my" + name, rt)
+                cls.expJS.flow.addRoutine(rt, 0)
 
     def setup(self):
         """This setup is done for each test individually
@@ -35,16 +50,28 @@ class TestStandaloneRoutines(object):
                 assert file.is_file()
 
     def test_writing(self):
-        # Make basic experiments with one of each standalone routine
-        expPy = experiment.Experiment()
-        expJS = experiment.Experiment()
-        for name, routine in self.routines.items():
-            # Add each routine only to exp which it is valid for
-            if "PsychoPy" in routine.targets:
-                expPy.addStandaloneRoutine("my" + name, routine(expPy))
-            if "PsychoJS" in routine.targets:
-                expJS.addStandaloneRoutine("my" + name, routine(expJS))
         # Compile to Python
-        expPy.writeScript(target="PsychoPy")
+        self.expPy.writeScript(target="PsychoPy")
         # Compile to JS
-        expJS.writeScript(target="PsychoJS")
+        self.expJS.writeScript(target="PsychoJS")
+
+    def test_params_used(self):
+        # Test both python and JS
+        for target, exp in {"PsychoPy": self.expPy, "PsychoJS": self.expJS}.items():
+            # Get every param
+            params = []
+            for routine in exp.flow:
+                for param in routine.params.values():
+                    params.append(param)
+            # Compile script
+            script = exp.writeScript(target=target)
+            # Check that the string value of each param is present in the script
+            experiment.utils.scriptTarget = target
+            for param in params:
+                # Conditions to skip...
+                if param.val in [
+                    "from exp settings"  # from exp settings gets relaced with setting from exp settings
+                ]:
+                    continue
+                # Check that param is used
+                assert str(param) in script, "<psychopy.experiment.params.Param: val=%(val)s, valType=%(valType)s>" % param.__dict__
