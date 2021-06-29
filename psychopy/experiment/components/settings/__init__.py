@@ -769,18 +769,19 @@ class SettingsComponent(object):
         versionStr = '-{}'.format(useVer)
 
         # html header
-        template = readTextFile("JS_htmlHeader.tmpl")
-        header = template.format(
-            name=jsFilename,
-            version=versionStr,
-            params=self.params)
-        jsFile = self.exp.expPath
-        folder = os.path.dirname(jsFile)
-        if not os.path.isdir(folder):
-            os.makedirs(folder)
-        with open(os.path.join(folder, "index.html"), 'wb') as html:
-            html.write(header.encode())
-        html.close()
+        if self.exp.expPath:
+            template = readTextFile("JS_htmlHeader.tmpl")
+            header = template.format(
+                name=jsFilename,
+                version=versionStr,
+                params=self.params)
+            jsFile = self.exp.expPath
+            folder = os.path.dirname(jsFile)
+            if not os.path.isdir(folder):
+                os.makedirs(folder)
+            with open(os.path.join(folder, "index.html"), 'wb') as html:
+                html.write(header.encode())
+            html.close()
 
         # Write header comment
         starLen = "*"*(len(jsFilename) + 9)
