@@ -218,7 +218,12 @@ class ButtonComponent(BaseVisualComponent):
                 "win: psychoJS.window,\n"
                 "name: '%(name)s',\n"
                 "text: %(text)s,\n"
-                "pos: %(pos)s, letterHeight: %(letterHeight)s,\n"
+                "fillColor: %(fillColor)s,\n"
+                "borderColor: %(borderColor)s,\n"
+                "color: %(color)s,\n"
+                "colorSpace: %(colorSpace)s,\n"
+                "pos: %(pos)s,\n"
+                "letterHeight: %(letterHeight)s,\n"
                 "size: %(size)s\n"
         )
         buff.writeIndentedLines(code % inits)
