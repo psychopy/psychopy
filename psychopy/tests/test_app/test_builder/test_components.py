@@ -186,7 +186,7 @@ class TestComponents(object):
                 assert file.is_file()
 
     def test_params_used(self):
-         # Change eyetracking settings
+        # Change eyetracking settings
         self.expPy.settings.params['eyetracker'].val = "MouseGaze"
         # Test both python and JS
         for target, exp in {"PsychoPy": self.expPy, "PsychoJS": self.expJS}.items():
