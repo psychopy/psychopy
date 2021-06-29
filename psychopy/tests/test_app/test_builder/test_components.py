@@ -39,7 +39,8 @@ ignoreParallelOutAddresses = True
 class TestComponents(object):
     @classmethod
     def setup_class(cls):
-        cls.exp = experiment.Experiment() # create once, not every test
+        cls.expPy = experiment.Experiment() # create once, not every test
+        cls.expJS = experiment.Experiment()
         cls.here = os.path.abspath(os.path.dirname(__file__))
         cls.baselineProfile = os.path.join(cls.here, profile)
 
@@ -100,7 +101,7 @@ class TestComponents(object):
 
         mismatched = []
         for compName in sorted(self.allComp):
-            comp = self.allComp[compName](parentName='x', exp=self.exp)
+            comp = self.allComp[compName](parentName='x', exp=self.expPy)
             order = '%s.order:%s' % (compName, eval("comp.order"))
 
             if order+'\n' not in target:
@@ -183,6 +184,67 @@ class TestComponents(object):
             # Check that each path is a file
             for file in files:
                 assert file.is_file()
+
+    def test_params_used(self):
+        # Add each component only to exp which it is valid for
+        rt = self.expPy.addRoutine("onlyRoutine")
+        self.expPy.flow.addRoutine(rt, 0)
+        rt = self.expJS.addRoutine("onlyRoutine")
+        self.expJS.flow.addRoutine(rt, 0)
+        for name, component in self.allComp.items():
+            if name == "SettingsComponent":
+                continue
+            if "PsychoPy" in component.targets:
+                comp = component(parentName="onlyRoutine", exp=self.expPy)
+                self.expPy.routines["onlyRoutine"].append(comp)
+            if "PsychoJS" in component.targets:
+                comp = component(parentName="onlyRoutine", exp=self.expJS)
+                self.expJS.routines["onlyRoutine"].append(comp)
+        # Change eyetracking settings
+        self.expPy.settings.params['eyetracker'].val = "MouseGaze"
+        # Test both python and JS
+        for target, exp in {"PsychoPy": self.expPy, "PsychoJS": self.expJS}.items():
+            # todo: add JS exceptions
+            if target == "PsychoJS":
+                continue
+            # Compile script
+            script = exp.writeScript(target=target)
+            # Check that the string value of each param is present in the script
+            experiment.utils.scriptTarget = target
+            # Iterate through every param
+            for routine in exp.flow:
+                for comp in routine:
+                    for name, param in experiment.getInitVals(comp.params, target).items():
+                        # Conditions to skip...
+                        if param.val in [
+                            "from exp settings",  # units and color space, aliased
+                            'first click', 'last click', 'every click',  # PsychoPy.ButtonComponent.save, indirect
+                            'last key', 'first key', 'all keys', 'nothing',  # PsychoPy.KeyboardComponent.store, indirect
+                            'last button', 'first button', 'all buttons', 'nothing',  # PsychoPy.ioLabsButtonBoxComponent.store, indirect
+                            'first look', 'last look', 'every look',  # PsychoPy.RegionOfInterestComponent.save, indirect
+                            'default',  # PsychoPy.MicrophoneComponent.device, aliased
+                        ]:
+                            continue
+                        if name in [
+                            "startType", "stopType", "durationEstim",  # indirect
+                            "timeRelativeTo",  # indirect
+                            "Code Type",  # interface-only
+                            "refreshDots",  # indirect
+                            "interpolate",  # indirect
+                            "correctAns",  # conditional
+                            "saveJoystickState", "forceEndRoutineOnPress", "saveParamsClickable",  # indirect
+                            "sampleRate", "transcribeBackend",  # aliased
+                            "saveMouseState",  # indirect
+                            "backend",  # aliased
+                            "pumpAction",  # indirect
+                            "saveFrameValue",  # indirect
+                        ]:
+                            continue
+                        if type(comp).__name__ in ['RatingScaleComponent']:
+                            # Deprecated components
+                            continue
+                        # Check that param is used
+                        assert str(param) in script, f"{target}.{type(comp).__name__}.{name}: <psychopy.experiment.params.Param: val={param.val}, valType={param.valType}>"
 
 
 @pytest.mark.components
