@@ -1,5 +1,6 @@
 import os
 import shutil
+from pathlib import Path
 from tempfile import mkdtemp
 from psychopy.experiment import getAllComponents, Experiment
 from psychopy.tests.utils import compareTextFiles, TESTS_DATA_PATH
@@ -76,3 +77,20 @@ class TestComponentCompilerPython(object):
                 # Check component in exp
                 component = compName.split('Component')[0]
                 assert self.exp.getComponentFromType(component)
+
+    def test_icons(self):
+        """Check that all components have icons for each app theme"""
+        # Iterate through component classes
+        for comp in self.allComp.values():
+            if hasattr(comp, "icon"):
+                # If icon path specified, pathify it
+                icon = Path(comp.icon)
+                # Get paths for each theme
+                files = [
+                    icon.parent.parent / "light" / icon.name,
+                    icon.parent.parent / "light" / icon.name,
+                    icon.parent.parent / "light" / icon.name,
+                ]
+                # Check that each path is a file
+                for file in files:
+                    assert file.is_file()
