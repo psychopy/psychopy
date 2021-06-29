@@ -172,18 +172,17 @@ class TestComponents(object):
         """Check that all components have icons for each app theme"""
         # Iterate through component classes
         for comp in self.allComp.values():
-            if hasattr(comp, "icon"):
-                # If icon path specified, pathify it
-                icon = Path(comp.icon)
-                # Get paths for each theme
-                files = [
-                    icon.parent.parent / "light" / icon.name,
-                    icon.parent.parent / "dark" / icon.name,
-                    icon.parent.parent / "classic" / icon.name,
-                ]
-                # Check that each path is a file
-                for file in files:
-                    assert file.is_file()
+            # Pathify icon file path
+            icon = Path(comp.iconFile)
+            # Get paths for each theme
+            files = [
+                icon.parent / "light" / icon.name,
+                icon.parent / "dark" / icon.name,
+                icon.parent / "classic" / icon.name,
+            ]
+            # Check that each path is a file
+            for file in files:
+                assert file.is_file()
 
 
 @pytest.mark.components

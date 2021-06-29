@@ -22,18 +22,17 @@ class TestStandaloneRoutines(object):
         """Check that all components have icons for each app theme"""
         # Iterate through component classes
         for rt in self.routines.values():
-            if hasattr(rt, "icon"):
-                # If icon path specified, pathify it
-                icon = Path(rt.icon)
-                # Get paths for each theme
-                files = [
-                    icon.parent.parent / "light" / icon.name,
-                    icon.parent.parent / "dark" / icon.name,
-                    icon.parent.parent / "classic" / icon.name,
-                ]
-                # Check that each path is a file
-                for file in files:
-                    assert file.is_file()
+            # Pathify icon file path
+            icon = Path(rt.iconFile)
+            # Get paths for each theme
+            files = [
+                icon.parent / "light" / icon.name,
+                icon.parent / "dark" / icon.name,
+                icon.parent / "classic" / icon.name,
+            ]
+            # Check that each path is a file
+            for file in files:
+                assert file.is_file()
 
     def test_writing(self):
         # Make basic experiments with one of each standalone routine
