@@ -58,20 +58,22 @@ class TestStandaloneRoutines(object):
     def test_params_used(self):
         # Test both python and JS
         for target, exp in {"PsychoPy": self.expPy, "PsychoJS": self.expJS}.items():
-            # Get every param
-            params = []
-            for routine in exp.flow:
-                for param in routine.params.values():
-                    params.append(param)
             # Compile script
             script = exp.writeScript(target=target)
             # Check that the string value of each param is present in the script
             experiment.utils.scriptTarget = target
-            for param in params:
-                # Conditions to skip...
-                if param.val in [
-                    "from exp settings"  # from exp settings gets relaced with setting from exp settings
-                ]:
-                    continue
-                # Check that param is used
-                assert str(param) in script, "<psychopy.experiment.params.Param: val=%(val)s, valType=%(valType)s>" % param.__dict__
+            # Iterate through every param
+            for routine in exp.flow:
+                for name, param in experiment.getInitVals(routine.params, target).items():
+                    # Conditions to skip...
+                    if param.val in [
+                        "from exp settings"  # from exp settings gets relaced with setting from exp settings
+                    ]:
+                        continue
+                    if name in [
+                        "startType",
+                        "stopType"
+                    ]:
+                        continue
+                    # Check that param is used
+                    assert str(param) in script, f"{target}.{type(routine).__name__}.{name}: <psychopy.experiment.params.Param: val={param.val}, valType={param.valType}>"
