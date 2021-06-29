@@ -8,7 +8,7 @@ import pytest
 import warnings
 
 from psychopy import constants
-from psychopy.experiment import getAllComponents
+from psychopy.experiment import getAllComponents, Param, utils
 from psychopy import experiment
 from pkg_resources import parse_version
 
@@ -164,6 +164,68 @@ class TestComponents(object):
 
         for mismatch in mismatched:
             warnings.warn("Non-identical Builder Param: {}".format(mismatch))
+
+
+def test_param_str():
+    exemplars = [
+        # Regular string
+        {"obj": Param("Hello there", "str"),
+         "py": "'Hello there'",
+         "js": "'Hello there'"},
+        # Dollar string
+        {"obj": Param("$win.color", "str"),
+         "py": "win.color",
+         "js": "psychoJS.window.color"},
+        # Integer
+        {"obj": Param("1", "int"),
+         "py": "1",
+         "js": "1"},
+        # Float
+        {"obj": Param("1", "num"),
+         "py": "1.0",
+         "js": "1.0"},
+        # File path
+        {"obj": Param("C://Downloads//file.ext", "file"),
+         "py": "'C:/Downloads/file.ext'",
+         "js": "'C:/Downloads/file.ext'"},
+        # Table path
+        {"obj": Param("C://Downloads//file.csv", "table"),
+         "py": "'C:/Downloads/file.csv'",
+         "js": "'C:/Downloads/file.csv'"},
+        # Color
+        {"obj": Param("red", "color"),
+         "py": "'red'",
+         "js": "'red'"},
+        # Code
+        {"obj": Param("win.color", "code"),
+         "py": "win.color",
+         "js": "psychoJS.window.color"},
+        # Extended code
+        {"obj": Param("for x in y:\n\tprint(y)", "extendedCode"),
+         "py": "for x in y:\n\tprint(y)",
+         "js": "for x in y:\n\tprint(y)"}, # this will change when snipped2js is fully working
+        # List
+        {"obj": Param("1, 2, 3", "list"),
+         "py": "[1, 2, 3]",
+         "js": "[1, 2, 3]"},
+    ]
+    tykes = [
+    ]
+
+    # Take note of what the script target started as
+    initTarget = utils.scriptTarget
+    # Try each case
+    for case in exemplars + tykes:
+        # Check Python compiles as expected
+        if "py" in case:
+            utils.scriptTarget = "PsychoPy"
+            assert str(case['obj']) == case['py']
+        # Check JS compiles as expected
+        if "js" in case:
+            utils.scriptTarget = "PsychoJS"
+            assert str(case['obj']) == case['js']
+    # Set script target back to init
+    utils.scriptTarget = initTarget
 
 
 @pytest.mark.components
