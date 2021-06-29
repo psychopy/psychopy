@@ -241,17 +241,7 @@ class KeyboardComponent(BaseComponent):
         if allowedKeys in [None, "none", "None", "", "[]", "()"]:
             keyListStr = ""
         elif not allowedKeysIsVar:
-            try:
-                keyList = eval(allowedKeys)
-            except Exception:
-                raise CodeGenerationException(
-                    self.params["name"], "Allowed keys list is invalid.")
-            # this means the user typed "left","right" not ["left","right"]
-            if type(keyList) == tuple:
-                keyList = list(keyList)
-            elif isinstance(keyList, basestring):  # a single string/key
-                keyList = [keyList]
-            keyListStr = "%s" % repr(keyList)
+            keyListStr = self.params['allowedKeys']
 
         # check for keypresses
         code = ("theseKeys = {name}.getKeys(keyList={keyStr}, waitRelease=False)\n"
