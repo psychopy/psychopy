@@ -76,7 +76,7 @@ class JoyButtonsComponent(BaseComponent):
         self.params['store'] = Param(
             store, valType='str', inputType="choice", allowedTypes=[], categ='Data',
             allowedVals=['last key', 'first key', 'all keys', 'nothing'],
-            updates='constant',
+            updates='constant', direct=False,
             hint=msg,
             label=_localized['store'])
 

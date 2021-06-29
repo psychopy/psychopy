@@ -200,7 +200,7 @@ class TestComponents(object):
                     continue
                 if compName == "SettingsComponent":
                     continue
-                if compName in ['RatingScaleComponent']:
+                if compName in ['RatingScaleComponent', 'PatchComponent']:
                     continue
                 # Make a routine for this component
                 rt = exp.addRoutine(compName + "Routine")
@@ -214,30 +214,15 @@ class TestComponents(object):
                 # Iterate through every param
                 for paramName, param in experiment.getInitVals(comp.params, target).items():
                     # Conditions to skip...
+                    if not param.direct:
+                        # Marked as not direct
+                        continue
+                    if any(paramName in depend['param'] for depend in comp.depends):
+                        # Dependent on another param
+                        continue
                     if param.val in [
                         "from exp settings",  # units and color space, aliased
-                        'first click', 'last click', 'every click',  # PsychoPy.ButtonComponent.save, indirect
-                        'last key', 'first key', 'all keys', 'nothing',  # PsychoPy.KeyboardComponent.store, indirect
-                        'last button', 'first button', 'all buttons', 'nothing',  # PsychoPy.ioLabsButtonBoxComponent.store, indirect
-                        'first look', 'last look', 'every look',  # PsychoPy.RegionOfInterestComponent.save, indirect
-                        'default',  # PsychoPy.MicrophoneComponent.device, aliased
-                    ]:
-                        continue
-                    if paramName in [
-                        "startType", "stopType", "durationEstim",  # indirect
-                        "timeRelativeTo",  # indirect
-                        "Code Type",  # interface-only
-                        "refreshDots",  # indirect
-                        "interpolate",  # indirect
-                        "correctAns",  # conditional
-                        "saveJoystickState", "forceEndRoutineOnPress", "saveParamsClickable",  # indirect
-                        "sampleRate", "transcribeBackend",  # aliased
-                        "saveMouseState",  # indirect
-                        "backend",  # aliased
-                        "pumpAction",  # indirect
-                        "saveFrameValue",  # indirect
-                        "lookDur",  # conditional
-                        "languageStyle",  # pending
+                        'default',  # most of the time will be aliased
                     ]:
                         continue
                     # Check that param is used

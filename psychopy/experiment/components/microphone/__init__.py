@@ -104,7 +104,7 @@ class MicrophoneComponent(BaseComponent):
         self.params['sampleRate'] = Param(
             sampleRate, valType='num', inputType="choice", categ='Hardware',
             allowedVals=list(sampleRates),
-            hint=msg,
+            hint=msg, direct=False,
             label=_translate('Sample Rate (Hz)'))
 
         msg = _translate(
@@ -163,7 +163,7 @@ class MicrophoneComponent(BaseComponent):
 
         self.params['transcribeBackend'] = Param(
             transcribeBackend, valType='code', inputType='choice', categ='Transcription',
-            allowedVals=list(allTranscribers),
+            allowedVals=list(allTranscribers), direct=False,
             hint=_translate("What transcription service to use to transcribe audio?"),
             label=_translate("Transcription Backend")
         )

@@ -78,7 +78,7 @@ class ButtonComponent(BaseVisualComponent):
 
         self.params['forceEndRoutine'] = Param(
             forceEndRoutine, valType='bool', inputType="bool", categ='Basic',
-            updates='constant',
+            updates='constant', direct=False,
             hint=_translate("Should a response force the end of the Routine "
                             "(e.g end the trial)?"),
             label=_localized['forceEndRoutine'])
@@ -161,11 +161,13 @@ class ButtonComponent(BaseVisualComponent):
             allowedVals=['first click', 'last click', 'every click', 'none'],
             hint=_translate(
                 "What clicks on this button should be saved to the data output?"),
+            direct=False,
             label=_localized['save'])
         self.params['timeRelativeTo'] = Param(
             timeRelativeTo, valType='str', inputType="choice", categ='Data',
             allowedVals=['button onset', 'experiment', 'routine'],
             updates='constant',
+            direct=False,
             hint=_translate(
                 "What should the values of mouse.time should be "
                 "relative to?"),

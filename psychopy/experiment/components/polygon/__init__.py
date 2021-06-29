@@ -119,7 +119,7 @@ class PolygonComponent(BaseVisualComponent):
             "How should the image be interpolated if/when rescaled")
         self.params['interpolate'] = Param(
             interpolate, valType='str', inputType="choice", allowedVals=['linear', 'nearest'], categ='Texture',
-            updates='constant', allowedUpdates=[],
+            updates='constant', allowedUpdates=[], direct=False,
             hint=msg,
             label=_localized['interpolate'])
 

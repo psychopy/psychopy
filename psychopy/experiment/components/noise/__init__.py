@@ -145,7 +145,7 @@ class NoiseStimComponent(BaseVisualComponent):
                          "rescaled")
         self.params['interpolate'] = Param(
             interpolate, valType='str', inputType="choice", allowedVals=['linear', 'nearest'], categ='Texture',
-            updates='constant', allowedUpdates=[],
+            updates='constant', allowedUpdates=[], direct=False,
             hint=msg,
             label=_localized['interpolate'])
 

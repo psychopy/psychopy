@@ -71,7 +71,7 @@ class MovieComponent(BaseVisualComponent):
         self.params['backend'] = Param(
             backend, valType='str', inputType="choice", categ='Playback',
             allowedVals=['moviepy', 'avbin', 'opencv', 'vlc'],
-            hint=msg,
+            hint=msg, direct=False,
             label=_localized['backend'])
 
         msg = _translate("Prevent the audio stream from being loaded/processed "

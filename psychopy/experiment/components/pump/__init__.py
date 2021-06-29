@@ -78,6 +78,7 @@ class QmixPumpComponent(BaseComponent):
             pumpAction, categ='Hardware',
             valType='str', inputType="choice",
             allowedVals=['aspirate', 'dispense'],
+            direct=False,
             hint=_translate('Whether the syringe should be filled (aspirate) '
                             'or emptied (dispense'),
             label=_localized['pumpAction'])

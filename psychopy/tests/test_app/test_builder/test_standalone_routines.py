@@ -66,14 +66,11 @@ class TestStandaloneRoutines(object):
             for routine in exp.flow:
                 for name, param in experiment.getInitVals(routine.params, target).items():
                     # Conditions to skip...
-                    if param.val in [
-                        "from exp settings"  # from exp settings gets relaced with setting from exp settings
-                    ]:
+                    if not param.direct:
+                        # Marked as not direct
                         continue
-                    if name in [
-                        "startType",
-                        "stopType"
-                    ]:
+                    if any(name in depend['param'] for depend in routine.depends):
+                        # Dependent on another param
                         continue
                     # Check that param is used
                     assert str(param) in script, f"{target}.{type(routine).__name__}.{name}: <psychopy.experiment.params.Param: val={param.val}, valType={param.valType}>"
