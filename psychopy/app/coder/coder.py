@@ -49,6 +49,7 @@ from psychopy.app.coder.sourceTree import SourceTreePanel
 from psychopy.app.themes import ThemeMixin
 from psychopy.app.coder.folding import CodeEditorFoldingMixin
 from psychopy.app.coder.scriptOutput import ScriptOutputPanel
+from psychopy.app.coder.repl import PythonREPLCtrl
 # from ..plugin_manager import PluginManagerFrame
 
 try:
@@ -1325,7 +1326,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
                     logging.warn(msg)
             if useDefaultShell:
                 # Default to Pyshell if iPython fails
-                self.shell = PsychopyPyShell(self)
+                self.shell = PythonREPLCtrl(self)
                 self._useShell = 'pyshell'
             # Add shell to output pane
             self.shell.SetName("PythonShell")
