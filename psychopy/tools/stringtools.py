@@ -40,6 +40,6 @@ def prettyname(name, wrap=False):
         # Recombine name
         name = " ".join(sentence)
         # Remove spaces after line
-        name.replace(" \n ", "\n")
+        name = re.sub(r" *\n *", "\n", name)
 
     return name
