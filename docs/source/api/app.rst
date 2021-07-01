@@ -15,6 +15,7 @@ Overview
 
 .. autosummary::
     startApp
+    quitApp
     isAppStarted
     getAppInstance
     getAppFrame
@@ -23,6 +24,7 @@ Details
 =======
 
 .. autofunction:: startApp
+.. autofunction:: quitApp
 .. autofunction:: isAppStarted
 .. autofunction:: getAppInstance
 .. autofunction:: getAppFrame
