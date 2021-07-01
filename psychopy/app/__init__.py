@@ -46,7 +46,7 @@ def startApp(showSplash=True, testMode=False, safeMode=False):
     """
     global _psychopyApp
     if _psychopyApp is None:
-        PsychoPyApp._called_from_test = testMode
+        # PsychoPyApp._called_from_test = testMode
         _psychopyApp = PsychoPyApp(0, testMode=testMode, showSplash=showSplash)
 
         if not testMode:
@@ -66,6 +66,7 @@ def quitApp():
     if isinstance(_psychopyApp, PsychoPyApp):  # type check
         _psychopyApp.quit()
         PsychoPyApp._called_from_test = False  # reset
+        _psychopyApp = None
 
 
 def getAppInstance():
