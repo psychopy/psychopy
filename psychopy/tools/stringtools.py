@@ -34,7 +34,7 @@ def prettyname(name, wrap=False):
             if letter > wrap and n > 0:
                 # If this brings the current letters this line to more than the wrap limit, insert a line break
                 sentence.append("\n")
-                letter = 0
+                letter = len(word)
             # Insert word
             sentence.append(word)
         # Recombine name
