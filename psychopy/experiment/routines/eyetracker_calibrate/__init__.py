@@ -109,7 +109,7 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
 
         self.params['units'] = Param(units,
                                      valType='str', inputType="choice", categ='Target',
-                                     allowedVals=['from exp settings'],
+                                     allowedVals=['from exp settings'], direct=False,
                                      hint=_translate("Units of dimensions for this stimulus"),
                                      label=_translate("Spatial Units"))
 

@@ -6,9 +6,12 @@
 # python setup.py bdist_wininst --install-script=psychopy_post_inst.py
 
 # remove editable installation
-$pyPaths = @("C:\Python36\", "C:\Python36_64\")
-$names = @("PsychoPy3", "PsychoPy3")
-$archs = @("win32", "win64")
+# $pyPaths = @("C:\Python36\", "C:\Python36_64\")
+# $names = @("PsychoPy3", "PsychoPy3")
+# $archs = @("win32", "win64")
+$pyPaths = @("C:\Python36_64\")
+$names = @("PsychoPy")
+$archs = @("win64")
 
 # read from the version file
 $versionfile = Join-Path $pwd "version"
@@ -43,7 +46,7 @@ for ($i=0; $i -lt $pyPaths.Length; $i++) {
 
 }
 
-Move-Item -Force "StandalonePsychoPy*.exe" ..\dist\
-Move-Item -Force dist\* ..\dist\
+Move-Item -Force "StandalonePsychoPy*.exe" "..\dist"
+Move-Item -Force dist\* "..\dist"
 
 [console]::beep(880,300); [console]::beep(440,300)
