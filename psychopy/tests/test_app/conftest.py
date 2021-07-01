@@ -29,7 +29,8 @@ def get_app(request):
     app.startApp(showSplash=False, testMode=True)
 
     # yield, to let all tests within the scope run
-    yield app.getAppInstance()
+    _app = app.getAppInstance()
+    yield _app
 
     # teasr_down: then clear table at the end of the scope
     app.quitApp()
