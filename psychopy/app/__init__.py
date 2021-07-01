@@ -10,7 +10,12 @@
 
 from __future__ import absolute_import, print_function
 
-__all__ = ['startApp', 'getAppInstance', 'getAppFrame', 'isAppStarted']
+__all__ = [
+    'startApp',
+    'quitApp',
+    'getAppInstance',
+    'getAppFrame',
+    'isAppStarted']
 
 from psychopy.app._psychopyApp import PsychoPyApp
 from .frametracker import openFrames
@@ -20,7 +25,7 @@ from .frametracker import openFrames
 _psychopyApp = None
 
 
-def startApp(showSplash=True, safeMode=False):
+def startApp(showSplash=True, testMode=False, safeMode=False):
     """Start the PsychoPy GUI. This can be called only once per session.
     Additional calls after the app starts will have no effect.
 
@@ -31,6 +36,8 @@ def startApp(showSplash=True, safeMode=False):
     ----------
     showSplash : bool
         Show the splash screen on start.
+    testMode : bool
+        Must be `True` if creating an instance for unit testing.
     safeMode : bool
         Start PsychoPy in safe-mode. If `True`, the GUI application will launch
         with without plugins and will use a default a configuration (planned
@@ -39,8 +46,26 @@ def startApp(showSplash=True, safeMode=False):
     """
     global _psychopyApp
     if _psychopyApp is None:
-        _psychopyApp = PsychoPyApp(0, showSplash=showSplash)
-        _psychopyApp.MainLoop()
+        PsychoPyApp._called_from_test = testMode
+        _psychopyApp = PsychoPyApp(0, testMode=testMode, showSplash=showSplash)
+
+        if not testMode:
+            _psychopyApp.MainLoop()
+
+
+def quitApp():
+    """Quit the running PsychoPy application instance.
+
+    Will have no effect if `startApp()` has not been called previously.
+
+    """
+    if not isAppStarted():
+        return
+
+    global _psychopyApp
+    if isinstance(_psychopyApp, PsychoPyApp):  # type check
+        _psychopyApp.quit()
+        PsychoPyApp._called_from_test = False  # reset
 
 
 def getAppInstance():
