@@ -430,9 +430,9 @@ class StartStopCtrls(wx.GridBagSizer):
             obj = evt
         else:
             obj = evt.EventObject
-        if psychopy.experiment.utils.unescapedDollarSign_re.fullmatch(obj.GetLineText(0)):
+        if psychopy.experiment.utils.unescapedDollarSign_re.match(obj.GetLineText(0)):
             # Set font if code
-            obj.SetFont(self.parent.GetTopLevelParent().app._codeFont)
+            obj.SetFont(self.parent.GetTopLevelParent().app._codeFont.Bold())
         else:
             # Set font if not
             obj.SetFont(self.parent.GetTopLevelParent().app._mainFont)
@@ -1444,7 +1444,10 @@ class DlgLoopProperties(_BaseParamsDlg):
             else:
                 isSameFilePathAndName = False
 
-            newPath = str(Path(newFullPath).relative_to(expFolder))
+            try:
+                newPath = str(Path(newFullPath).relative_to(expFolder))
+            except ValueError:
+                newPath = str(Path(newFullPath).absolute())
             self.conditionsFile = newPath
             needUpdate = False
             try:

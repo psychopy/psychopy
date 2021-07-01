@@ -6,7 +6,7 @@
 
 from psychopy import visual
 import gevent
-from psychopy.iohub.util import convertCamelToSnake, updateSettings
+from psychopy.iohub.util import convertCamelToSnake
 from psychopy.iohub.devices import DeviceEvent, Computer
 from psychopy.iohub.constants import EventConstants as EC
 from psychopy.iohub.errors import print2err
@@ -31,9 +31,7 @@ class GazepointPsychopyCalibrationGraphics(object):
         display = self._eyetracker._display_device
 
         self._device_config = self._eyetracker.getConfiguration()
-        updateSettings(self._device_config.get('calibration'), calibration_args)
         self._calibration_args = self._device_config.get('calibration')
-        print2err("self._calibration_args:", self._calibration_args)
 
         unit_type = self.getCalibSetting('unit_type')
         if unit_type is None:

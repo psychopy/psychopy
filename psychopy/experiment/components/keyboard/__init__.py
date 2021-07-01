@@ -94,7 +94,7 @@ class KeyboardComponent(BaseComponent):
         self.params['store'] = Param(
             store, valType='str', inputType="choice", allowedTypes=[], categ='Data',
             allowedVals=['last key', 'first key', 'all keys', 'nothing'],
-            updates='constant',
+            updates='constant', direct=False,
             hint=msg,
             label=_localized['store'])
 
@@ -130,7 +130,7 @@ class KeyboardComponent(BaseComponent):
         self.params['correctAns'] = Param(
             correctAns, valType='str', inputType="single", allowedTypes=[], categ='Data',
             updates='constant',
-            hint=msg,
+            hint=msg, direct=False,
             label=_localized['correctAns'])
 
         msg = _translate(
@@ -241,17 +241,7 @@ class KeyboardComponent(BaseComponent):
         if allowedKeys in [None, "none", "None", "", "[]", "()"]:
             keyListStr = ""
         elif not allowedKeysIsVar:
-            try:
-                keyList = eval(allowedKeys)
-            except Exception:
-                raise CodeGenerationException(
-                    self.params["name"], "Allowed keys list is invalid.")
-            # this means the user typed "left","right" not ["left","right"]
-            if type(keyList) == tuple:
-                keyList = list(keyList)
-            elif isinstance(keyList, basestring):  # a single string/key
-                keyList = [keyList]
-            keyListStr = "%s" % repr(keyList)
+            keyListStr = self.params['allowedKeys']
 
         # check for keypresses
         code = ("theseKeys = {name}.getKeys(keyList={keyStr}, waitRelease=False)\n"

@@ -49,6 +49,8 @@ _localized = {
     'shutdownKeyModifiers': _translate("shutdown key modifier keys"),
     'gammaErrorPolicy': _translate("gammaErrorPolicy"),
     'startUpPlugins': _translate("start up plugins"),
+    'appKeyGoogleCloud':_translate('appKeyGoogleCloud'),
+    'transcrKeyAzure':_translate('transcrKeyAzure'),
     # pref labels in App section
     'showStartupTips': _translate("show start-up tips"),
     'defaultView': _translate("default view"),
@@ -63,6 +65,7 @@ _localized = {
     'codeComponentLanguage': _translate('Code component language'),
     'unclutteredNamespace': _translate('uncluttered namespace'),
     'componentsFolders': _translate('components folders'),
+    'componentFilter':_translate('componentFilter'),
     'hiddenComponents': _translate('hidden components'),
     'unpackedDemosDir': _translate('unpacked demos dir'),
     'savedDataFolder': _translate('saved data folder'),

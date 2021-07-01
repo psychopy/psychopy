@@ -460,7 +460,8 @@ class ValidationProcedure(object):
                                                                      *toPix(self.win, postdat['targ_pos_x'],
                                                                             postdat['targ_pos_y']))
 
-                if self.targetsequence.sample_type == EventConstants.BINOCULAR_EYE_SAMPLE:
+                binoc_sample_types = [EventConstants.BINOCULAR_EYE_SAMPLE, EventConstants.GAZEPOINT_SAMPLE]
+                if self.targetsequence.sample_type in binoc_sample_types:
                     postdat['left_eye_x'], postdat['left_eye_y'] = toDeg(self.win,
                                                                          *toPix(self.win, postdat['left_eye_x'],
                                                                                 postdat['left_eye_y']))
@@ -548,7 +549,8 @@ class ValidationProcedure(object):
                 target_x = good_samples_in_period[:]['targ_pos_x']
                 target_y = good_samples_in_period[:]['targ_pos_y']
 
-                if self.targetsequence.sample_type == EventConstants.BINOCULAR_EYE_SAMPLE:
+                binoc_sample_types = [EventConstants.BINOCULAR_EYE_SAMPLE, EventConstants.GAZEPOINT_SAMPLE]
+                if self.targetsequence.sample_type in binoc_sample_types:
                     left_x = good_samples_in_period[:]['left_eye_x']
                     left_y = good_samples_in_period[:]['left_eye_y']
                     left_error_x = target_x - left_x
@@ -670,7 +672,8 @@ class ValidationProcedure(object):
                 position_txt_color = "red"
             else:
                 samples = position_results['sample_from_filter_stages']['used_samples']
-                if self.targetsequence.sample_type == EventConstants.BINOCULAR_EYE_SAMPLE:
+                binoc_sample_types = [EventConstants.BINOCULAR_EYE_SAMPLE, EventConstants.GAZEPOINT_SAMPLE]
+                if self.targetsequence.sample_type in binoc_sample_types:
                     gaze_x = (samples[:]['left_eye_x'] + samples[:]['right_eye_x']) / 2.0
                     gaze_y = (samples[:]['left_eye_y'] + samples[:]['right_eye_y']) / 2.0
                 else:
@@ -1105,15 +1108,15 @@ class ValidationTargetRenderer(object):
             samples = devlabel_events.get('tracker', [])
             # remove any eyetracker events that are not samples
             samples = [s for s in samples if s.type in (EventConstants.BINOCULAR_EYE_SAMPLE,
-                                                        EventConstants.MONOCULAR_EYE_SAMPLE)]
+                                                        EventConstants.MONOCULAR_EYE_SAMPLE,
+                                                        EventConstants.GAZEPOINT_SAMPLE)]
             self.saved_pos_samples.append(samples)
 
             self.sample_type = self.saved_pos_samples[0][0].type
-            if self.sample_type == EventConstants.BINOCULAR_EYE_SAMPLE:
-                self.sample_msg_dtype = self.binocular_sample_message_element
-            else:
+            if self.sample_type == EventConstants.MONOCULAR_EYE_SAMPLE:
                 self.sample_msg_dtype = self.monocular_sample_message_element
-
+            else:
+                self.sample_msg_dtype = self.binocular_sample_message_element
             messages = devlabel_events.get('experiment', [])
             msg_lists = []
             for m in messages:
@@ -1157,7 +1160,8 @@ class ValidationTargetRenderer(object):
         # inline func to return sample field array based on sample namedtup
         def getSampleData(s):
             sampledata = [s.time, s.status]
-            if self.sample_type == EventConstants.BINOCULAR_EYE_SAMPLE:
+            binoc_sample_types = [EventConstants.BINOCULAR_EYE_SAMPLE, EventConstants.GAZEPOINT_SAMPLE]
+            if self.sample_type in binoc_sample_types:
                 sampledata.extend((s.left_gaze_x, s.left_gaze_y, s.left_pupil_measure1,
                                    s.right_gaze_x, s.right_gaze_y, s.right_pupil_measure1))
                 return sampledata
