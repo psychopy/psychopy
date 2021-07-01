@@ -1,7 +1,7 @@
 import pytest
 import re
 from psychopy import preferences
-from psychopy.app._psychopyApp import PsychoPyApp
+import psychopy.app as app
 
 @pytest.mark.prefs
 def testGenerateSpec():
@@ -23,5 +23,6 @@ def testGenerateSpec():
     prefs.resetPrefs()
     assert prefs.app['theme'] == "PsychopyDark"
     # Check that the app still loads
-    app = PsychoPyApp(0, testMode=True, showSplash=False)
-    app.quit()
+
+    app.startApp(testMode=True, showSplash=False)
+    app.quitApp()
