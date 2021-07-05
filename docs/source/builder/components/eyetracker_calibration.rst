@@ -54,7 +54,7 @@ Progress Mode :
     Should each target appear one after the other and progress based on time? Or should the next target be presented
     once the space key has been pressed.
 
-Expand/Contract Duration : int or float
+Target Duration : int or float
     The duration of the pulse of the outer circle (i.e. time or expand + contract)
 
 Expand Scale:
@@ -62,6 +62,9 @@ Expand Scale:
 
 Animate Position Changes: bool
     Should the target appear as though it is moving across the screen from one location to the next?
+
+Movement Duration: int or float
+    The duration of the movement from one point to the next. 
 
 .. seealso::
 	
