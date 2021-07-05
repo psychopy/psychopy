@@ -14,7 +14,7 @@ The :doc:`Routines </builder/routines>` that the Flow will use should be generat
 
 Loops
 ~~~~~~~~~~~~~~~
-Loops control the repetition of :ref:`routines` and the choice of stimulus parameters for each. PsychoPy can generate the next trial based on the :term:`method of constants` or using an :term:`adaptive staircase`. To insert a loop use the button on the left of the Flow panel, or the item in the Experiment menu of the Builder. The start and end of a loop is set in the same way as the location of a :doc:`Routine </builder/routines>` (see above). Loops can encompass one or more :doc:`Routines </builder/routines>` and other loops (i.e. they can be nested).
+Loops control the repetition of :ref:`routines` and the choice of stimulus parameters for each. To insert a loop use the button on the left of the Flow panel, or the item in the Experiment menu of the Builder. The start and end of a loop is set in the same way as the location of a :doc:`Routine </builder/routines>` (see above). Loops can encompass one or more :doc:`Routines </builder/routines>` and other loops (i.e. they can be nested).
 
 As with components in :ref:`routines`, the loop must be given a name, which must be unique and made up of only alpha-numeric characters (underscores are allowed). I would normally use a plural name, since the loop represents multiple repeats of something. For example, `trials`, `blocks` or `epochs` would be good names for your loops.
 
@@ -26,28 +26,23 @@ The parameter `Is trials` exists because some loops are not there to indicate tr
 
 .. _trialTypes:
 
-Method of Constants
+Loop types
 ^^^^^^^^^^^^^^^^^^^^^
-Selecting a loop type of `random`, `sequential`, or `fullRandom` will result in a :term:`method of constants` experiment, whereby the types of trials that can occur are predetermined. That is, the trials cannot vary depending on how the subject has responded on a previous trial. In this case, a file must be provided that describes the parameters for the repeats. This should be an Excel 2007 (:term:`xlsx`) file or a comma-separated-value (:term:`csv` ) file in which columns refer to parameters that are needed to describe stimuli etc. and rows one for each type of trial. These can easily be generated from a spreadsheet package like Excel. (Note that csv files can also be generated using most text editors, as long as they allow you to save the file as "plain text"; other output formats will *not* work, including "rich text".) The top row should be a row of headers: text labels describing the contents of the respective columns. (Headers must also not include spaces or other characters other than letters, numbers or underscores and must not be the same as any variable names used elsewhere in your experiment.) For example, a file containing the following table::
-
-  ori	text	corrAns
-  0	aaa	left
-  90	aaa	left
-  0	bbb	right
-  90	bbb	right
-
-would represent 4 different conditions (or trial types, one per line). The header line describes the parameters in the 3 columns: ori, text and corrAns. It's really useful to include a column called corrAns that shows what the correct key press is going to be for this trial (if there is one).
-
-If the loop type is `sequential` then, on each iteration through the :ref:`routines`, the next row will be selected in the order listed in the file. Under a `random` order, the next row will be selected at random (without replacement); it can only be selected again after all the other rows have also been selected. `nReps` determines how many repeats will be performed (for all conditions). The total number of trials will be the number of conditions (= number of rows in the file, not counting the header row) times the number of repetitions, `nReps`. With the `fullRandom` option, the entire list of trials including repetitions is used in random order, allowing the same item to appear potentially many times in a row, and to repeat without necessarily having done all of the other trials. For example, with 3 repetitions, a file of trial types like this::
+You can use a number of different "Loop Types" in PsychoPy, this controls the way in which the trials you have fed into the "Conditions" field are presented. Imagine you have a conditions file that looks like this::
 
   letter
   a
   b
   c
 
-could result in the following possible sequences. `sequential` could only ever give one sequence with this order: [a b c a b c a b c]. `random` will give one of 216 different orders (= 3! * 3! * 3! = nReps * (nTrials!) ), for example: [b a c a b c c a b]. Here the letters are effectively in sets of (abc) (abc) (abc), and randomization is only done within each set, ensuring (for example) that there are at least two a's before the subject sees a 3rd b. Finally, `fullRandom` will return one of 362,880 different orders (= 9! = (nReps * nTrials)! ), such as [b b c a a c c a b], which `random` never would. There are no longer mini-blocks or "sets of trials" within the longer run. This means that, by chance, it would also be possible to get a very un-random-looking sequence like [a a a b b b c c c].
+After saving this as a spreadsheet (.xlsx or .csv), we could then add this to the "Conditions" field of our loop. Let's imagine we want to present each letter twice, so we set `nReps` to 2.  We could then use the following Loop Types:
 
-It is possible to achieve any sequence you like, subject to any constraints that are logically possible. To do so, in the file you specify every trial in the desired order, and the for the loop select `sequential` order and nReps=1.
+*   **Random** - present a - b in a random order, because we have nReps at 2, this would be repeated twice e.g. :code:`[c, a, b, a, c, b]`
+*   **Full Random** - present a - b in a random order but also take into acount the numebr of nReps. Here, imagine that rather than haveing 3 items in the bag that we sample from, and repeat this twice, we instead have 6 items int he bag that are randomly sampled from. This would mean that with fullRandom, but not random, it would be possible to get the following order of trials e.g. :code:`[a, a, b, c, c, b]` - notice that a was sampled twice in the first 2 trials.
+*   **sequential** - present the rows in the order they are set i nt he spreadsheet. Currently PsychoPy does not have inbuilt support for specific randomisation constraints, so if you need a specific pseudorandom order, preset this in your spreadsheet file and use a "sequential" loopType.
+*   **staircase** - for use with adaptive procedures, create an output variable called :code:`level` that can then be used to set the parameter of a stimulus (e.g. it's opacity) in an adaptive fashion. This allows researchers to converge upon a participants threshold by adjusting the value of :code:`level` in accordance with performance.
+*   **interleaved staircases** - for use with multiple staircases that are inerleaved. This can also be used to implement other staircasing algorithms such as `QUEST (Watson and Pelli, 1983) <https://link.springer.com/content/pdf/10.3758/BF03202828.pdf>`_ via :class:`QuestHandler`.
+
 
 Selecting a subset of conditions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -56,10 +51,10 @@ In the standard :ref:`trialTypes` you would use all the rows/conditions within y
 
 The parameter `Select rows` allows this. You can specify which rows you want to use by inserting values here:
 
-    - `0,2,5` gives the 1st, 3rd and 6th entry of a list - Python starts with index zero)
-    - `$random(4)*10` gives 4 indices from 0 to 9 (so selects 4 out of 10 conditions)
-    - `5:10` selects the 6th to 10th rows
-    - `$myIndices` uses a variable that you've already created
+*   `0,2,5` gives the 1st, 3rd and 6th entry of a list - Python starts with index zero)
+*   `$random(4)*10` gives 4 indices from 0 to 9 (so selects 4 out of 10 conditions)
+*   `5:10` selects the 6th to 10th rows
+*   `$myIndices` uses a variable that you've already created
 
 Note in the last case that `5:8` isn't valid syntax for a variable so you cannot do::
 
@@ -80,27 +75,18 @@ Note that PsychoPy uses Python's built-in slicing syntax (where the first index 
 
 Check that the conditions you wanted to select are the ones you intended!
 
-.. _staircaseMethods:
-
-Staircase methods
-^^^^^^^^^^^^^^^^^^^
-The loop type `staircase` allows the implementation of adaptive methods. That is, aspects of a trial can depend on (or "adapt to") how a subject has responded earlier in the study. This could be, for example, simple up-down staircases where an intensity value is varied trial-by-trial according to certain parameters, or a stop-signal paradigm to assess impulsivity. For this type of loop a 'correct answer' must be provided from something like a :doc:`components/keyboard`. Various parameters for the staircase can be set to govern how many trials will be conducted and how many correct or incorrect answers make the staircase go up or down.
-
 .. _accessingParams:
 
-Accessing loop parameters from components
+Using loops to update stimuli trial-by-trial
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-The parameters from your loops are accessible to any component enclosed within that loop. The simplest (and default) way to address these variables is simply to call them by the name of the parameter, prepended with `$` to indicate that this is the name of a variable. For example, if your Flow contains a loop with the above table as its input trial types file then you could give one of your stimuli an orientation `$ori` which would depend on the current trial type being presented. Example scenarios:
+Once you have a loop arount the routine you want to repeat, you can use the variables created in your conditions file to update any parameter within your routine. For example, let's say that you have a conditions file that looks like this::
 
-#. You want to loop randomly over some conditions in a loop called `trials`. Your conditions are stored in a csv file with headings 'ori', 'text', 'corrAns' which you provide to this loop. You can then access these values from any component using `$ori`, `$text`, and `$corrAns`
-#. You create a random loop called `blocks` and give it an Excel file with a single column called `movieName` listing filenames to be played. On each repeat you can access this with `$movieName`
-#. You create a staircase loop called `stairs`. On each trial you can access the current value in the staircase with `$thisStair`
+  letter
+  a
+  b
+  c
+
+You could then add a Text component and in the *text* field type :code:`$letter` and then set the corresponding dropsown box to "set every repeat". This indicates that you want the value of this parameter to change on each iteration of your loop, and the value of that parameter on each loop will correspond to the value of "letter" drawn on each trial.
 
 .. note::
-    When you set a component to use a parameter that will change (e.g on each repeat through the loop) you should **remember to change the component parameter from `constant` to `set every repeat` or `set every frame`** or it won't have any effect!
-
-Reducing namespace clutter (advanced)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-The downside of the above approach is that the names of trial parameters must be different between every loop, as well as not matching any of the predefined names in python, numpy and PsychoPy. For example, the stimulus called `movie` cannot use a parameter also called `movie` (so you need to call it `movieName`). An alternative method can be used without these restrictions. If you set the Builder preference `unclutteredNamespace` to True you can then access the variables by referring to parameter as an attribute of the singular name of the loop prepended with `this`. For example, if you have a loop called `trials` which has the above file attached to it, then you can access the stimulus ori with `$thisTrial.ori`. If you have a loop called `blocks` you could use `$thisBlock.corrAns`.
-
-Now, although the name of the loop must still be valid and unique, the names of the parameters of the file do not have the same requirements (they must still not contain spaces or punctuation characters).
+    You only need to use the $ sign if that field name does not already contain a $ sign! You also don't need several dollar signs in a field e.g. you wouldn't set the position of a stimulys on each repeat using :code:`($myX, $myY)` instead you would just use :code:`$(myX, myY)` - this is because the dollar sign indicates that this field will now accept python code, rather than that this value corresponds to a variable.

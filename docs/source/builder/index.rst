@@ -3,20 +3,23 @@
 Builder
 ================================================
 
-*Building experiments in a GUI*
+Building experiments in a GUI
+------------------------------
+Making your experiments using the PsychoPy builder is the approach that we generally recommend. Why would we (a team of programmers) recommend using a GUI?:
 
-You can now see a `youtube PsychoPy tutorial <http://www.youtube.com/watch?v=VV6qhuQgsiI>`_ showing you how to build a simple experiment in the Builder interface
+*   It's much faster to make experiments
+*   Your experiment will be less likely to have bugs (experiments coded from scratch can very easily contain errors - even when made by the best of programmers!).
+*   You can easily make an experiment to run **online in a browser**. PsychoPy builder view is writing you a python script "under te hood" of your experiment, but if you want to run an experiment online it can also compile a javascript version of your task using PsychoPy's sister library `PsychoJS <https://github.com/psychopy/psychojs>`_. Remember that PsychoJS is younger than PsychoPy - so remember to check the `status of online options <https://www.psychopy.org/online/status.html>`_ *before* making an experiment you plan to run online! The easiest way to host a study online from PsychoPy is through the `pavlovia platform <https://pavlovia.org/>`_, and PsychoPy builder has inbuilt integration to interact with this platform.
 
-.. note::
-
-    The Builder view is now (at version 1.75) fairly well-developed and should be able to construct a wide variety of studies. But you should still check carefully that the stimuli and response collection are as expected.
+There are a number of tutorials on how to get started making experiments in builder on the `PsychoPy Youtube channel <https://www.youtube.com/user/peircej>`_ as well as several written tutorials and `Experiment Recipes <https://workshops.psychopy.org/tutorials/index.html>`_.
+You can also find a range of `materials for teaching <https://workshops.psychopy.org/teaching/index.html>`_ using builder view.
 
 .. image:: ../images/builder.png
     :width: 100%
     :alt: The Builder view
 
 
-Contents:
+**Contents:**
 
 .. toctree::
    :maxdepth: 2
@@ -34,7 +37,3 @@ Contents:
    compileScript
    *
 
-Future developments
------------------------
-
-The new big feature, which we're really excited about is that Builder experiments are going to web-enabled very soon! Make sure you watch for new posts in the `PsychoPy forum Announcements <https://discourse.psychopy.org/c/announce>`_ category so you get updates of when this is available.
