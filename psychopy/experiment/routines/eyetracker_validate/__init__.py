@@ -29,7 +29,7 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
         # Initialise base routine
         BaseStandaloneRoutine.__init__(self, exp, name=name, disabled=disabled)
 
-        self.exp.requirePsychopyLibs(['iohub', 'hardware'])
+        self.exp.requirePsychopyLibs(['iohub', 'eyetracking'])
 
         # Define relationships
         self.depends = [  # allows params to turn each other off/on

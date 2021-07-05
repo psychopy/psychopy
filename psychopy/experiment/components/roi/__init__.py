@@ -48,7 +48,7 @@ class RegionOfInterestComponent(PolygonComponent):
                  startEstim=startEstim, durationEstim=durationEstim)
         self.type = 'RegionOfInterest'
         self.url = "https://www.psychopy.org/builder/components/roi.html"
-        self.exp.requirePsychopyLibs(['iohub', 'hardware'])
+        self.exp.requirePsychopyLibs(['iohub', 'eyetracking'])
         # params
         self.order += ['config']  # first param after the name
 
@@ -130,7 +130,7 @@ class RegionOfInterestComponent(PolygonComponent):
             inits['shape'] = self.params['vertices']
 
         code = (
-            "%(name)s = visual.ROI(win, name='%(name)s', tracker=eyetracker,\n"
+            "%(name)s = eyetracking.ROI(win, name='%(name)s', tracker=eyetracker,\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(1, relative=True)

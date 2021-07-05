@@ -24,7 +24,7 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
         # Initialise base routine
         BaseStandaloneRoutine.__init__(self, exp, name=name, disabled=disabled)
 
-        self.exp.requirePsychopyLibs(['iohub', 'hardware'])
+        self.exp.requirePsychopyLibs(['iohub', 'eyetracking'])
 
         # Basic params
         self.order += [
@@ -246,7 +246,7 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
         # Make config object
         code = (
             "# define parameters for %(name)s\n"
-            "%(name)s = hardware.eyetracker.EyetrackerCalibration(win, \n"
+            "%(name)s = eyetracking.EyetrackerCalibration(win, \n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(1, relative=True)

@@ -1,4 +1,4 @@
-from .shape import ShapeStim
+from ..visual.shape import ShapeStim
 from ..event import Mouse
 from ..core import Clock
 
