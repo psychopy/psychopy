@@ -47,7 +47,7 @@ class SubExperimentRoutine(BaseStandaloneRoutine):
             "# Run experiment %(name)s from %(file)s\n"
             "%(name)s = data.SubexperimentHandler(thisExp)\n"
             "%(name)s.status = STARTED\n"
-            "%(name)s.tStart = t\n"
+            "%(name)s.tStart = globalClock.getTime()\n"
             "\n"
         )
         buff.writeIndentedLines(code % self.params)
@@ -57,6 +57,6 @@ class SubExperimentRoutine(BaseStandaloneRoutine):
         code = (
             "# End experiment %(name)s from %(file)s\n"
             "%(name)s.status = FINISHED\n"
-            "%(name)s.tStop = t\n"
+            "%(name)s.tStop = globalClock.getTime()\n"
         )
         buff.writeIndentedLines(code % self.params)
