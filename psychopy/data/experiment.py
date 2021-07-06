@@ -16,6 +16,7 @@ from psychopy.tools.filetools import (openOutputFile, genDelimiter,
                                       genFilenameFromDelimiter)
 from .utils import checkValidFilePath
 from .base import _ComparisonMixin
+from .. import constants
 
 
 class ExperimentHandler(_ComparisonMixin):
@@ -419,3 +420,10 @@ class ExperimentHandler(_ComparisonMixin):
         """
         self.savePickle = False
         self.saveWideText = False
+
+
+class SubexperimentHandler:
+    def __init__(self, exp):
+        assert isinstance(exp, ExperimentHandler), "Parent experiment of SubexperimentHandler must be an ExperimentHandler object"
+        self.exp = exp
+        self.status = constants.NOT_STARTED

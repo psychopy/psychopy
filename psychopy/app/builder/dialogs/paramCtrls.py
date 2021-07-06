@@ -60,7 +60,10 @@ class _FileMixin:
     def rootDir(self):
         if not hasattr(self, "_rootDir"):
             # Store location of root directory if not defined
-            self._rootDir = Path(self.GetTopLevelParent().frame.exp.filename)
+            frame = self.GetTopLevelParent()
+            if hasattr(frame, "frame"):
+                frame = frame.frame
+            self._rootDir = Path(frame.exp.filename)
             if self._rootDir.is_file():
                 # Move up a dir if root is a file
                 self._rootDir = self._rootDir.parent
@@ -500,7 +503,9 @@ def validate(obj, valType):
     if valType == "file":
         val = Path(str(val))
         if not val.is_absolute():
-            frame = obj.GetTopLevelParent().frame
+            frame = obj.GetTopLevelParent()
+            if hasattr(frame, "frame"):
+                frame = frame.frame
             # If not an absolute path, append to current directory
             val = Path(frame.filename).parent / val
         if not val.is_file():
