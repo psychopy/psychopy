@@ -9,7 +9,7 @@ from ...loops import LoopInitiator, LoopTerminator
 class SubExperimentRoutine(BaseStandaloneRoutine):
     categories = ['Custom']
     targets = ["PsychoPy"]
-    iconFile = Path(__file__).parent / "unknown.png"
+    iconFile = Path(__file__).parent / "subexp.png"
     tooltip = "Inject another experiment into this one"
 
     def __init__(self, exp, name='subexp', experiment=""):
