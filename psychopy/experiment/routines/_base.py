@@ -29,7 +29,6 @@ class BaseStandaloneRoutine:
                  stopType='duration (s)', stopVal='',
                  disabled=False):
         self.params = {}
-        self.name = name
         self.exp = exp
         self.type = 'StandaloneRoutine'
         self.depends = []  # allows params to turn each other off/on
@@ -61,6 +60,14 @@ class BaseStandaloneRoutine:
             valType='bool', inputType="bool", categ="Testing",
             hint=msg, allowedTypes=[], direct=False,
             label=_translate('Disable component'))
+
+    @property
+    def name(self):
+        return self.params['name'].val
+
+    @name.setter
+    def name(self, value):
+        self.params['name'].val = value
 
     def __repr__(self):
         _rep = "psychopy.experiment.%s(name='%s', exp=%s)"

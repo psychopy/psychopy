@@ -332,6 +332,10 @@ class TrialHandler(object):
     def name(self):
         return self.params['name'].val
 
+    @name.setter
+    def name(self, value):
+        self.params['name'].val = value
+
 
 class StairHandler(object):
     """A staircase experimental control object.
@@ -423,6 +427,10 @@ class StairHandler(object):
     @property
     def name(self):
         return self.params['name'].val
+
+    @name.setter
+    def name(self, value):
+        self.params['name'].val = value
 
     def writeInitCode(self, buff):
         # not needed - initialise the staircase only when needed
@@ -552,6 +560,10 @@ class MultiStairHandler(object):
     def name(self):
         return self.params['name'].val
 
+    @name.setter
+    def name(self, value):
+        self.params['name'].val = value
+
     def writeLoopStartCode(self, buff):
         # create a 'thisName' for use in "for thisTrial in trials:"
         makeLoopIndex = self.exp.namespace.makeLoopIndex
@@ -644,6 +656,10 @@ class LoopInitiator(object):
     def name(self):
         return self.loop.name
 
+    @name.setter
+    def name(self, value):
+        self.loop.name = value
+
     def getType(self):
         return 'LoopInitiator'
 
@@ -688,6 +704,10 @@ class LoopTerminator(object):
     @property
     def name(self):
         return self.loop.name
+
+    @name.setter
+    def name(self, value):
+        self.loop.name = value
 
     def getType(self):
         return 'LoopTerminator'
