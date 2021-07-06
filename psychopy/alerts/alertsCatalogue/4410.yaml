@@ -1,0 +1,19 @@
+
+code: 4410
+cat: Conflicts
+msg: "An item in the sub-experiment '{name}' clashes with this experiment's namespace: {clash}"
+
+# The following are typically used for online help pages, and support reStructured Text.
+label: Namespace conflict with sub-experiment
+
+synopsis: |
+  A component, routine or loop in your sub-experiment has the same name as something in your current experiment.
+
+details: |
+  Sub-Eexperiment routines allow you to insert entire experiments from a `.psyexp` file into your experiment as if they were a single routine - however, adding a new experiment means introducing new routines, components and loops with their own name. Just as you can't have two things with the same name in one experiment, you can't insert an experiment if its components, routines or loops clash with your own.
+
+solutions: |
+  The alert message you received should tell you which item is clashing, please rename this item.
+
+versions: |
+  > 2022.1

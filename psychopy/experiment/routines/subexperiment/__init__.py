@@ -1,3 +1,4 @@
+from psychopy.alerts import alert
 from psychopy.tools.versionchooser import _translate
 from .. import BaseStandaloneRoutine
 from pathlib import Path
@@ -31,24 +32,15 @@ class SubExperimentRoutine(BaseStandaloneRoutine):
         subexp = Experiment()
         absPath = Path(self.params['file'].val).absolute()
         subexp.loadFromXML(absPath)
-        # Rename all components and routines to preserve namespace
-        routineNames = list(subexp.routines)
-        for routine in routineNames:
-            # Rename routine
-            newRoutineName = self.params['name'].val + "_" + routine[0].upper() + routine[1:]
-            subexp.routines[routine].name = newRoutineName
-            subexp.routines[newRoutineName] = subexp.routines.pop(routine)
-            # Rename components in routine
-            if isinstance(subexp.routines[newRoutineName], list):
-                for comp in subexp.routines[newRoutineName]:
-                    name = str(comp.params['name'])
-                    comp.params['name'].val = self.params['name'].val + "_" + name[0].upper() + name[1:]
-                    # Rename routine references
-                    comp.parentName = newRoutineName
-        # Rename loops to preserve namespace
+        # Check element against namespace
         for item in subexp.flow:
-            if isinstance(item, LoopInitiator):
-                item.name = self.params['name'].val + "_" + item.name[0].upper() + item.name[1:]
+            if hasattr(item, "name"):
+                if self.exp.namespace.exists(item.name):
+                    alert(4410, strFields={'name': self.params['name'], 'clash': f"<{item.__class__.__name__}: {item.name}>"})
+            if isinstance(item, list):
+                for comp in item:
+                    if self.exp.namespace.exists(comp.params['name'].val):
+                        alert(4410, strFields={'name': self.params['name'], 'clash': f"<{comp.__class__.__name__}: {comp.params['name']}>"})
         # Make sub handler
         code = (
             "\n"
