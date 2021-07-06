@@ -11,6 +11,7 @@ class SubExperimentRoutine(BaseStandaloneRoutine):
     targets = ["PsychoPy"]
     iconFile = Path(__file__).parent / "subexp.png"
     tooltip = "Inject another experiment into this one"
+    beta = True
 
     def __init__(self, exp, name='subexp', experiment=""):
         BaseStandaloneRoutine.__init__(self, exp, name=name)
