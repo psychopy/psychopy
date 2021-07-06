@@ -6,7 +6,7 @@ from ... import Param, Experiment
 from ...loops import LoopInitiator, LoopTerminator
 
 
-class SubexperimentRoutine(BaseStandaloneRoutine):
+class SubExperimentRoutine(BaseStandaloneRoutine):
     categories = ['Custom']
     targets = ["PsychoPy"]
     iconFile = Path(__file__).parent / "unknown.png"
