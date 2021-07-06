@@ -7,7 +7,7 @@ import sys
 from pkg_resources import parse_version
 
 from .base import DataHandler
-from .experiment import ExperimentHandler
+from .experiment import ExperimentHandler, SubExperimentHandler
 from .trial import TrialHandler, TrialHandler2, TrialHandlerExt, TrialType
 from .staircase import (StairHandler, QuestHandler, PsiHandler,
                         MultiStairHandler)

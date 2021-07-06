@@ -422,7 +422,7 @@ class ExperimentHandler(_ComparisonMixin):
         self.saveWideText = False
 
 
-class SubexperimentHandler:
+class SubExperimentHandler:
     def __init__(self, exp):
         assert isinstance(exp, ExperimentHandler), "Parent experiment of SubexperimentHandler must be an ExperimentHandler object"
         self.exp = exp

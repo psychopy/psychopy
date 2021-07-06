@@ -45,7 +45,7 @@ class SubExperimentRoutine(BaseStandaloneRoutine):
         code = (
             "\n"
             "# Run experiment %(name)s from %(file)s\n"
-            "%(name)s = data.SubexperimentHandler(thisExp)\n"
+            "%(name)s = data.SubExperimentHandler(thisExp)\n"
             "%(name)s.status = STARTED\n"
             "%(name)s.tStart = globalClock.getTime()\n"
             "\n"
