@@ -6,6 +6,7 @@ tests in a setting where you can view the output if you have photosensitive
 epilepsy.
 
 """
+from psychopy.alerts._errorHandler import _BaseErrorHandler
 from psychopy.tests import utils
 from psychopy import visual, colors
 import numpy as np
@@ -42,6 +43,7 @@ class Test_Window(object):
     @classmethod
     def setup_class(self):
         self.win = visual.Window([128,128], pos=[50,50], allowGUI=False, autoLog=False)
+        self.error = _BaseErrorHandler()
 
     @classmethod
     def teardown_class(self):
@@ -151,6 +153,10 @@ class Test_Window(object):
                 if colorSet[space]:  # skip this comparison if color is None
                     utils.comparePixelColor(self.win, colors.Color(colorSet[space], space), coord=(50, 50))
                 utils.comparePixelColor(self.win, colors.Color('white'), coord=(1, 1))
+        # Check alerts
+        visual.helpers.setColor(obj, color="white", colorSpaceAttrib="fillColorSpace", rgbAttrib="fillRGB")
+        assert any(err.code == 8105 for err in self.error.alerts), "Alert 8105 not triggered"
+        assert any(err.code == 8110 for err in self.error.alerts), "Alert 8110 not triggered"
 
 
 def test_color_operators():
