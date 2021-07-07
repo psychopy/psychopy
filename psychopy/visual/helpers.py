@@ -226,10 +226,10 @@ def setColor(obj, color, colorSpace=None, operation='',
         setattr(obj, colorAttrib, color)
     elif operation == '+':
         # If +, add to old color
-        setattr(obj, getattr(obj, "_" + colorAttrib) + color)
+        setattr(obj, colorAttrib, getattr(obj, "_" + colorAttrib) + color)
     elif operation == '-':
         # If -, subtract from old color
-        setattr(obj, getattr(obj, "_" + colorAttrib) - color)
+        setattr(obj, colorAttrib, getattr(obj, "_" + colorAttrib) - color)
     else:
         # Any other operation is not supported
         msg = ('Unsupported value "%s" for operation when '
