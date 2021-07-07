@@ -153,6 +153,25 @@ class Test_Window(object):
                 if colorSet[space]:  # skip this comparison if color is None
                     utils.comparePixelColor(self.win, colors.Color(colorSet[space], space), coord=(50, 50))
                 utils.comparePixelColor(self.win, colors.Color('white'), coord=(1, 1))
+        # Check color addition
+        obj.fillColor = 'white'
+        visual.helpers.setColor(obj,
+                                color='black',
+                                colorAttrib='fillColor',
+                                operation='+')
+        self.win.flip()
+        obj.draw()
+        utils.comparePixelColor(self.win, colors.Color('white') + colors.Color('black'), coord=(50, 50))
+        # Check color subtraction
+        obj.fillColor = 'grey'
+        visual.helpers.setColor(obj,
+                                color='black',
+                                colorAttrib='fillColor',
+                                operation='-')
+        self.win.flip()
+        obj.draw()
+        utils.comparePixelColor(self.win, colors.Color('grey') - colors.Color('black'), coord=(50, 50))
+
         # Check alerts
         visual.helpers.setColor(obj, color="white", colorSpaceAttrib="fillColorSpace", rgbAttrib="fillRGB")
         assert any(err.code == 8105 for err in self.error.alerts), "Alert 8105 not triggered"
