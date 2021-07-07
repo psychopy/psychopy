@@ -177,6 +177,22 @@ class Test_Window(object):
         assert any(err.code == 8105 for err in self.error.alerts), "Alert 8105 not triggered"
         assert any(err.code == 8110 for err in self.error.alerts), "Alert 8110 not triggered"
 
+    def test_contrast(self):
+        # Create rectangle with chunky border
+        obj = visual.Rect(self.win, units="pix", pos=(0, 0), size=(128, 128), lineWidth=10)
+        # Set its colors to be rgb extremes
+        obj.fillColor = 'red'
+        obj.borderColor = 'blue'
+        obj.opacity = 1  # Fix opacity at full as this is not what we're testing
+        # Halve contrast
+        obj.contrast = 0.5
+        # Refresh
+        self.win.flip()
+        obj.draw()
+        # Check rendered color
+        utils.comparePixelColor(self.win, colors.Color(( 0.5, -0.5, -0.5), "rgb"), coord=(50, 50))
+        utils.comparePixelColor(self.win, colors.Color((-0.5, -0.5,  0.5), "rgb"), coord=(1, 1))
+
 
 def test_color_operators():
     """Test for operators used to compare colors."""
