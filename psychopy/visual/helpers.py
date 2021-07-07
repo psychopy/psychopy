@@ -20,6 +20,7 @@ from psychopy import logging, colors
 
 # tools must only be imported *after* event or MovieStim breaks on win32
 # (JWP has no idea why!)
+from psychopy.alerts import alert
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.attributetools import setAttribute
 from psychopy.tools.filetools import pathToString
@@ -210,12 +211,9 @@ def setColor(obj, color, colorSpace=None, operation='',
     """
 
     if colorSpaceAttrib is not None:
-        logging.warning("Argument colorSpaceAttrib to psychopy.visual.helpers.setColor is no longer used, supplied "
-                        "color space is now applied directly to the Color object") #todo: alert
+        alert(8105, strFields={'colorSpaceAttrib': colorSpaceAttrib})
     if rgbAttrib is not None:
-        logging.warning("Argument rgbAttrib to psychopy.visual.helpers.setColor is no longer used, as objects no "
-                        "longer have rgb attributes - instead the rgb value is accessed via the .rgb attribute of "
-                        "the Color object") #todo: alert
+        alert(8110, strFields={'rgbAttrib': rgbAttrib})
 
     # Make a Color object using supplied values
     raw = color

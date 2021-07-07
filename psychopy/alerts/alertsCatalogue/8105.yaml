@@ -1,0 +1,21 @@
+
+code: 8105
+cat: Colors
+msg: Color space attribute `.{colorSpaceAttrib}` is no longer in use, as colors are no longer tied to one space.
+
+# The following are typically used for online help pages, and support reStructured Text.
+label: Color space attributes no longer used
+
+synopsis: |
+  As colors are now handled by Color objects, there is no need for an individual color space attribute for each color attribute. While color space attributes can still be set, the value is not used for any color calculations.
+
+details: |
+  As of version 2021.1.0, colors are handled by a `psychopy.colors.Color` object, rather than being indiviual values. This means that when you set a color, for example `object.color = 'white'`, behind the scenes a `Color` object is made, which knows what color it is in any space. This object is stored in a private attribute of the object, usually with the same name as the color attribute but with a '_' in front (e.g. the object for `fillColor` is `_fillColor`). So if you wanted to get your object's color in `rgb255`, for example, you would call `object._color.rgb255` rather than doing the conversion manually based on the corresponding color space attribute. It also means that if the color space of the object changes (e.g. `object.colorSpace = 'hsv'`), its colors will automatically be returned in the same space without needing to be converted manually.
+  
+  As a result, attributes like `fillColorSpace` or `borderColorSpace` are no longer needed - as `fillColor` and `borderColor` are no longer limited to just one color space, so setting these attributes has no effect.
+
+solutions: |
+  No action needed, to silence this alert simply remove any reference to the color space attribute in question. As these are unused, doing so will not affect your experiment.
+
+versions: |
+  > 2021.1.0
