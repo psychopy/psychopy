@@ -36,7 +36,7 @@ size : integer
 pos : [X,Y]
     The position of the centre of the aperture, in the units specified by the stimulus or window.
 .. note::
-    Top tip: You can make an aperture (or anything!) track the position of your mouse by adding a mouse component, then setting the position of your aperture to be :code:`mouse.getPos` (and *set every frame*), where "mouse" corresponds to the name of your mouse component.
+    Top tip: You can make an aperture (or anything!) track the position of your mouse by adding a mouse component, then setting the position of your aperture to be :code:`mouse.getPos()` (and *set every frame*), where "mouse" corresponds to the name of your mouse component.
 
 spatial units :
     What units to use.
