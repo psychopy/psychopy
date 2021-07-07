@@ -341,7 +341,7 @@ class ColorMixin(object):
             stim.color = (0, 128, 255)
         """
         if hasattr(self, '_foreColor'):
-            return getattr(self._foreColor, self.colorSpace)
+            return self._foreColor.render(self.colorSpace)
 
     @foreColor.setter
     def foreColor(self, value):
@@ -350,7 +350,7 @@ class ColorMixin(object):
             self._foreColor = value
         else:
             # Otherwise, make a new Color object
-            self._foreColor = Color(value, self.colorSpace)
+            self._foreColor = Color(value, self.colorSpace, contrast=self.contrast)
         if not self._foreColor:
             self._foreColor = Color()
             logging.error(f"'{value}' is not a valid {self.colorSpace} color")
@@ -368,7 +368,7 @@ class ColorMixin(object):
     def fillColor(self):
         """Set the fill color for the shape."""
         if hasattr(self, '_fillColor'):
-            return getattr(self._fillColor, self.colorSpace)
+            return getattr(self._fillColor, self.colorSpace) #return self._fillColor.render(self.colorSpace)
 
     @fillColor.setter
     def fillColor(self, value):
@@ -377,7 +377,7 @@ class ColorMixin(object):
             self._fillColor = value
         else:
             # Otherwise, make a new Color object
-            self._fillColor = Color(value, self.colorSpace)
+            self._fillColor = Color(value, self.colorSpace, contrast=self.contrast)
         if not self._fillColor:
             # If given an invalid color, set as transparent and log error
             self._fillColor = Color()
@@ -395,7 +395,7 @@ class ColorMixin(object):
     @property
     def borderColor(self):
         if hasattr(self, '_borderColor'):
-            return getattr(self._borderColor, self.colorSpace)
+            return self._borderColor.render(self.colorSpace)
 
     @borderColor.setter
     def borderColor(self, value):
@@ -404,7 +404,7 @@ class ColorMixin(object):
             self._borderColor = value
         else:
             # If supplied with a valid color, use it to make a color object
-            self._borderColor = Color(value, self.colorSpace)
+            self._borderColor = Color(value, self.colorSpace, contrast=self.contrast)
         if not self._borderColor:
             # If given an invalid color, set as transparent and log error
             self._borderColor = Color()
@@ -488,10 +488,10 @@ class ColorMixin(object):
     def contrast(self, value):
         if hasattr(self, '_foreColor'):
             self._foreColor.contrast = value
-        elif hasattr(self, '_fillColor'):
+        if hasattr(self, '_fillColor'):
             self._fillColor.contrast = value
-        else:
-            logging.warning(f"Attempt to set contrast on object {self.name}, which has no color.")
+        if hasattr(self, '_borderColor'):
+            self._borderColor.contrast = value
 
     def setForeColor(self, color, colorSpace=None, operation='', log=None):
         """Hard setter for foreColor, allows suppression of the log message,
