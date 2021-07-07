@@ -497,16 +497,7 @@ class ColorMixin(object):
         """Hard setter for foreColor, allows suppression of the log message,
         simultaneous colorSpace setting and calls update methods.
         """
-        if colorSpace is not None:
-            self.colorSpace = colorSpace
-        if operation in ['', '=']:
-            self.foreColor = color
-        elif operation in ['+']:
-            self.foreColor += color
-        elif operation in ['-']:
-            self.foreColor -= color
-        else:
-            logging.error(f"Operation '{operation}' not recognised.")
+        setColor(obj=self, colorAttrib="foreColor", color=color, colorSpace=colorSpace, operation=operation)
         # Trigger color update for components like Textbox which have different behaviours for a hard setter
         self.updateColors()
 
@@ -517,16 +508,7 @@ class ColorMixin(object):
         """Hard setter for fillColor, allows suppression of the log message,
         simultaneous colorSpace setting and calls update methods.
         """
-        if colorSpace is not None:
-            self.colorSpace = colorSpace
-        if operation in ['', '=']:
-            self.fillColor = color
-        elif operation in ['+']:
-            self.fillColor += color
-        elif operation in ['-']:
-            self.fillColor -= color
-        else:
-            logging.error(f"Operation '{operation}' not recognised.")
+        setColor(obj=self, colorAttrib="fillColor", color=color, colorSpace=colorSpace, operation=operation)
         # Trigger color update for components like Textbox which have different behaviours for a hard setter
         self.updateColors()
 
@@ -537,16 +519,7 @@ class ColorMixin(object):
         """Hard setter for `fillColor`, allows suppression of the log message,
         simultaneous colorSpace setting and calls update methods.
         """
-        if colorSpace is not None:
-            self.colorSpace = colorSpace
-        if operation in ['', '=']:
-            self.borderColor = color
-        elif operation in ['+']:
-            self.borderColor += color
-        elif operation in ['-']:
-            self.borderColor -= color
-        else:
-            logging.error(f"Operation '{operation}' not recognised.")
+        setColor(obj=self, colorAttrib="borderColor", color=color, colorSpace=colorSpace, operation=operation)
         # Trigger color update for components like Textbox which have different behaviours for a hard setter
         self.updateColors()
 
