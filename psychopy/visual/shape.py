@@ -223,8 +223,10 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         """Set the color of the shape. Sets both `fillColor` and `lineColor`
         simultaneously if applicable.
         """
+        ColorMixin.foreColor.fset(self, color)
         self.fillColor = color
         self.lineColor = color
+        return ColorMixin.foreColor.fget(self)
 
     #---legacy functions---
 
@@ -278,6 +280,7 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
     def setColor(self, color, colorSpace=None, operation='', log=None):
         """Sets both the line and fill to be the same color.
         """
+        ColorMixin.setForeColor(self, color, colorSpace, operation, log)
         self.setLineColor(color, colorSpace, operation, log)
         self.setFillColor(color, colorSpace, operation, log)
 
