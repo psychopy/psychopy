@@ -1,5 +1,6 @@
 import os
 import shutil
+from pathlib import Path
 from tempfile import mkdtemp
 from psychopy.experiment import getAllComponents, Experiment
 from psychopy.tests.utils import compareTextFiles, TESTS_DATA_PATH

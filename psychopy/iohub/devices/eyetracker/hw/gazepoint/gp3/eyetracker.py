@@ -13,6 +13,7 @@ from ....eye_events import *
 from ..... import Computer, Device
 from ......constants import EyeTrackerConstants
 from ......errors import print2err, printExceptionDetailsToStdErr
+from ......util import updateSettings
 
 ET_UNDEFINED = EyeTrackerConstants.UNDEFINED
 getTime = Computer.getTime
@@ -425,19 +426,12 @@ class EyeTracker(EyeTrackerDevice):
         """
         Start the eye tracker calibration procedure.
         """
-        cal_config = self.getConfiguration().get('calibration')
+        cal_config = updateSettings(self.getConfiguration().get('calibration'), calibration_args)
+        print2err("gp3 cal_config:", cal_config)
 
-        use_builtin = calibration_args.get('use_builtin')
-        if use_builtin is None:
-            use_builtin = cal_config.get('use_builtin')
-
-        targ_timeout = calibration_args.get('target_duration')
-        if targ_timeout is None:
-            targ_timeout = cal_config.get('target_duration')
-
-        targ_delay = calibration_args.get('targ_delay')
-        if targ_delay is None:
-            targ_delay = cal_config.get('target_delay')
+        use_builtin = cal_config.get('use_builtin')
+        targ_timeout = cal_config.get('target_duration')
+        targ_delay = cal_config.get('target_delay')
 
         self._gp3set('CALIBRATE_TIMEOUT', VALUE=targ_timeout)
         self._gp3set('CALIBRATE_DELAY', VALUE=targ_delay)

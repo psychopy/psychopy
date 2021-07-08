@@ -92,6 +92,7 @@ class RegionOfInterestComponent(PolygonComponent):
         self.params['save'] = Param(
             save, valType='str', inputType="choice", categ='Data',
             allowedVals=['first look', 'last look', 'every look', 'none'],
+            direct=False,
             hint=_translate(
                 "What looks on this ROI should be saved to the data output?"),
             label=_translate('Save...'))
@@ -99,7 +100,7 @@ class RegionOfInterestComponent(PolygonComponent):
         self.params['timeRelativeTo'] = Param(
             timeRelativeTo, valType='str', inputType="choice", categ='Data',
             allowedVals=['roi onset', 'experiment', 'routine'],
-            updates='constant',
+            updates='constant', direct=False,
             hint=_translate(
                 "What should the values of mouse.time should be "
                 "relative to?"),
