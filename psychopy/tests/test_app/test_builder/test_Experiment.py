@@ -117,7 +117,7 @@ class TestExpt(object):
         schema = xmlschema.XMLSchema(schema_name)
 
         for psyexp_file in psyexp_files:
-            assert schema.is_valid(psyexp_file)
+            assert schema.is_valid(psyexp_file), f"Error in {psyexp_file}:\n" + "\n".join(err.reason for err in schema.iter_errors(psyexp_file))
 
     def test_missing_dotval(self):
         """search for a builder component gotcha:
