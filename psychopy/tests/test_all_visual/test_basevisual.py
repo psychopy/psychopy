@@ -71,6 +71,7 @@ class _TestColorMixin:
                 if self.fillUsed:
                     # Set fill
                     self.obj.fillColor = color
+                    self.obj.opacity = 1
                     self.win.flip()
                     self.obj.draw()
                     if color is not None:
@@ -89,6 +90,7 @@ class _TestColorMixin:
                 if self.borderUsed:
                     # Set border
                     self.obj.borderColor = color
+                    self.obj.opacity = 1
                     self.win.flip()
                     self.obj.draw()
                     if color is not None:
@@ -107,6 +109,7 @@ class _TestColorMixin:
                 if self.foreUsed:
                     # Set fore
                     self.obj.foreColor = color
+                    self.obj.opacity = 1
                     self.win.flip()
                     self.obj.draw()
                     if color is not None:

@@ -9,7 +9,7 @@ class TestShape(_TestColorMixin):
     def setup_class(self):
 
         self.win = visual.Window([128,128], pos=[50,50], allowGUI=False, autoLog=False)
-        self.obj = visual.Rect(self.win, units="pix", pos=(0,0), size=(128, 128), lineWidth=10)
+        self.obj = visual.Rect(self.win, units="pix", pos=(0, 0), size=(128, 128), lineWidth=10)
 
         # Pixel which is the border color
         self.borderPoint = (0, 0)
