@@ -417,7 +417,7 @@ class Color(object):
         # If target is a Color object, add together the rgba values
         if isinstance(other, Color):
             if len(self) == len(other):
-                buffer.rgba = self.rgba - other.rgba
+                buffer.rgb = self.rgb - other.rgb
         return buffer
 
     def copy(self):

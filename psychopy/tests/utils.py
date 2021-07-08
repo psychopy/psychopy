@@ -236,4 +236,4 @@ def comparePixelColor(screen, color, coord=(0,0)):
     closeEnough = True
     for i in range(min(pixCol.size, color.size)):
         closeEnough = closeEnough and abs(pixCol[i] - color[i]) <= 1 # Allow for 1/255 lenience due to rounding up/down in rgb255
-    assert all(c for c in color == pixCol) or closeEnough
+    assert all(c for c in color == pixCol) or closeEnough, f"Pixel color {pixCol} not equal to target color {color}, "
