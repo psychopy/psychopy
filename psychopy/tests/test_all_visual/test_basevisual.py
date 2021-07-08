@@ -126,3 +126,72 @@ class _TestColorMixin:
                     # Reset fore
                     self.obj.foreColor = 'white'
                     self.obj.opacity = 1
+
+    def test_legacy_setters(self):
+        # If this test object has no obj, skip
+        if not self.obj:
+            return
+        # Test each case
+        for case in self.colorTykes + self.colorExemplars:
+            for space, color in case.items():
+                if color is None:
+                    continue
+                # Make color to compare against
+                target = colors.Color(color, space)
+                # Prepare object
+                self.obj.colorSpace = space
+                self.obj.fillColor = 'white'
+                self.obj.foreColor = 'white'
+                self.obj.borderColor = 'white'
+                self.obj.opacity = 1
+                if hasattr(self.obj, "text"):
+                    self.obj.text = "A PsychoPy zealot knows a smidge of wx, but JavaScript is the question."
+
+                # Test property aliases:
+                # color == foreColor
+                self.obj.color = color
+                assert self.obj._foreColor == target
+                self.obj.color = colors.Color('white')
+                self.obj.opacity = 1
+                # backColor == fillColor
+                self.obj.backColor = color
+                assert self.obj._fillColor == target
+                self.obj.backColor = colors.Color('white')
+                self.obj.opacity = 1
+                # lineColor == borederColor
+                self.obj.lineColor = color
+                assert self.obj._borderColor == target
+                self.obj.lineColor = colors.Color('white')
+                self.obj.opacity = 1
+
+                # Test methods:
+                # setForeColor
+                self.obj.setForeColor(color)
+                assert self.obj._foreColor == target
+                self.obj.setForeColor('white')
+                self.obj.opacity = 1
+                # setColor
+                self.obj.setColor(color)
+                assert self.obj._foreColor == target
+                self.obj.setColor('white')
+                self.obj.opacity = 1
+                # setFillColor
+                self.obj.setFillColor(color)
+                assert self.obj._fillColor == target
+                self.obj.setFillColor('white')
+                self.obj.opacity = 1
+                # setBackColor
+                self.obj.setBackColor(color)
+                assert self.obj._fillColor == target
+                self.obj.setBackColor('white')
+                self.obj.opacity = 1
+                # setBorderColor
+                self.obj.setBorderColor(color)
+                assert self.obj._borderColor == target
+                self.obj.setBorderColor('white')
+                self.obj.opacity = 1
+                # setLineColor
+                self.obj.setLineColor(color)
+                assert self.obj._borderColor == target
+                self.obj.setLineColor('white')
+                self.obj.opacity = 1
