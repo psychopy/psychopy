@@ -22,11 +22,6 @@ class Test_Slider(_TestColorMixin):
     def setup_class(self):
         self.win = Window([128,128], pos=[50,50], allowGUI=False,
                           autoLog=False)
-
-    def teardown_class(self):
-        self.win.close()
-
-    def test_color(self):
         self.obj = Slider(self.win, units="height", size=(1, 0.1), pos=(0, 0.5), style='radio')
         self.obj.markerPos = 1
 
@@ -40,7 +35,8 @@ class Test_Slider(_TestColorMixin):
         self.forePoint = (0, 0)
         self.foreUsed = False
 
-        _TestColorMixin.test_colors(self)
+    def teardown_class(self):
+        self.win.close()
 
     def test_size(self):
         sizes = [(1, 0.1), (1.5, 0.5)]
