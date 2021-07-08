@@ -497,7 +497,7 @@ class ColorMixin(object):
         """Hard setter for foreColor, allows suppression of the log message,
         simultaneous colorSpace setting and calls update methods.
         """
-        setColor(obj=self, colorAttrib="foreColor", color=color, colorSpace=colorSpace, operation=operation)
+        setColor(obj=self, colorAttrib="foreColor", color=color, colorSpace=colorSpace or self.colorSpace, operation=operation)
         # Trigger color update for components like Textbox which have different behaviours for a hard setter
         self.updateColors()
 
@@ -508,7 +508,7 @@ class ColorMixin(object):
         """Hard setter for fillColor, allows suppression of the log message,
         simultaneous colorSpace setting and calls update methods.
         """
-        setColor(obj=self, colorAttrib="fillColor", color=color, colorSpace=colorSpace, operation=operation)
+        setColor(obj=self, colorAttrib="fillColor", color=color, colorSpace=colorSpace or self.colorSpace, operation=operation)
         # Trigger color update for components like Textbox which have different behaviours for a hard setter
         self.updateColors()
 
@@ -519,7 +519,7 @@ class ColorMixin(object):
         """Hard setter for `fillColor`, allows suppression of the log message,
         simultaneous colorSpace setting and calls update methods.
         """
-        setColor(obj=self, colorAttrib="borderColor", color=color, colorSpace=colorSpace, operation=operation)
+        setColor(obj=self, colorAttrib="borderColor", color=color, colorSpace=colorSpace or self.colorSpace, operation=operation)
         # Trigger color update for components like Textbox which have different behaviours for a hard setter
         self.updateColors()
 
