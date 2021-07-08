@@ -67,6 +67,8 @@ class _TestColorMixin:
                 self.obj.foreColor = 'white'
                 self.obj.borderColor = 'white'
                 self.obj.opacity = 1
+                if hasattr(self.obj, "text"):
+                    self.obj.text = "A PsychoPy zealot knows a smidge of wx, but JavaScript is the question."
                 # Test fill color
                 if self.fillUsed:
                     # Set fill
@@ -82,7 +84,7 @@ class _TestColorMixin:
                             utils.comparePixelColor(self.win, colors.Color('white'), coord=self.borderPoint)
                         # Make sure fore is not
                         if self.foreUsed:
-                            utils.comparePixelColor(self.win, colors.Color('white'), coord=self.forePoint)
+                            utils.comparePixelColor(self.win, colors.Color('white'), coord=self.forePoint, lenience=20)
                     # Reset fill
                     self.obj.fillColor = 'white'
                     self.obj.opacity = 1
@@ -101,7 +103,7 @@ class _TestColorMixin:
                             utils.comparePixelColor(self.win, colors.Color('white'), coord=self.fillPoint)
                         # Make sure fore is not
                         if self.foreUsed:
-                            utils.comparePixelColor(self.win, colors.Color('white'), coord=self.forePoint)
+                            utils.comparePixelColor(self.win, colors.Color('white'), coord=self.forePoint, lenience=20)
                     # Reset border
                     self.obj.borderColor = 'white'
                     self.obj.opacity = 1
@@ -114,7 +116,7 @@ class _TestColorMixin:
                     self.obj.draw()
                     if color is not None:
                         # Make sure fore is set
-                        utils.comparePixelColor(self.win, target, coord=self.forePoint)
+                        utils.comparePixelColor(self.win, target, coord=self.forePoint, lenience=20)
                         # Make sure fill is not
                         if self.fillUsed:
                             utils.comparePixelColor(self.win, colors.Color('white'), coord=self.fillPoint)
