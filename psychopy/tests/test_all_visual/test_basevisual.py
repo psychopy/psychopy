@@ -164,6 +164,66 @@ class _TestColorMixin:
                 self.obj.lineColor = colors.Color('white')
                 self.obj.opacity = 1
 
+                if space == 'rgb':
+                    # Test RGB properties
+                    # foreRGB
+                    self.obj.foreRGB = color
+                    assert self.obj._foreColor == target
+                    self.obj.foreRGB = colors.Color('white')
+                    self.obj.opacity = 1
+                    # RGB
+                    self.obj.RGB = color
+                    assert self.obj._foreColor == target
+                    self.obj.RGB = colors.Color('white')
+                    self.obj.opacity = 1
+                    # fillRGB
+                    self.obj.fillRGB = color
+                    assert self.obj._fillColor == target
+                    self.obj.fillRGB = colors.Color('white')
+                    self.obj.opacity = 1
+                    # backRGB
+                    self.obj.backRGB = color
+                    assert self.obj._fillColor == target
+                    self.obj.backRGB = colors.Color('white')
+                    self.obj.opacity = 1
+                    # borderRGB
+                    self.obj.borderRGB = color
+                    assert self.obj._borderColor == target
+                    self.obj.borderRGB = colors.Color('white')
+                    self.obj.opacity = 1
+                    # lineRGB
+                    self.obj.lineRGB = color
+                    assert self.obj._borderColor == target
+                    self.obj.lineRGB = colors.Color('white')
+                    self.obj.opacity = 1
+
+                    # Test RGB methods
+                    # setRGB
+                    self.obj.setRGB(color)
+                    assert self.obj._foreColor == target
+                    self.obj.setRGB('white')
+                    self.obj.opacity = 1
+                    # setFillRGB
+                    self.obj.setFillRGB(color)
+                    assert self.obj._fillColor == target
+                    self.obj.setFillRGB('white')
+                    self.obj.opacity = 1
+                    # setBackRGB
+                    self.obj.setBackRGB(color)
+                    assert self.obj._fillColor == target
+                    self.obj.setBackRGB('white')
+                    self.obj.opacity = 1
+                    # setBorderRGB
+                    self.obj.setBorderRGB(color)
+                    assert self.obj._borderColor == target
+                    self.obj.setBorderRGB('white')
+                    self.obj.opacity = 1
+                    # setLineRGB
+                    self.obj.setLineRGB(color)
+                    assert self.obj._borderColor == target
+                    self.obj.setLineRGB('white')
+                    self.obj.opacity = 1
+
                 # Test methods:
                 # setForeColor
                 self.obj.setForeColor(color)
@@ -195,3 +255,25 @@ class _TestColorMixin:
                 assert self.obj._borderColor == target
                 self.obj.setLineColor('white')
                 self.obj.opacity = 1
+
+                # Test old color space setters
+                # foreColorSpace
+                self.obj.foreColorSpace = space
+                assert self.obj.colorSpace == space
+                self.obj.foreColorSpace = 'named'
+                # fillColorSpace
+                self.obj.fillColorSpace = space
+                assert self.obj.colorSpace == space
+                self.obj.fillColorSpace = 'named'
+                # backColorSpace
+                self.obj.backColorSpace = space
+                assert self.obj.colorSpace == space
+                self.obj.backColorSpace = 'named'
+                # borderColorSpace
+                self.obj.borderColorSpace = space
+                assert self.obj.colorSpace == space
+                self.obj.borderColorSpace = 'named'
+                # lineColorSpace
+                self.obj.lineColorSpace = space
+                assert self.obj.colorSpace == space
+                self.obj.lineColorSpace = 'named'
