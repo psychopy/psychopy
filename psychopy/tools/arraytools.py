@@ -85,7 +85,7 @@ def makeRadialMatrix(matrixSize):
     """Generate a square matrix where each element val is
     its distance from the centre of the matrix
     """
-    oneStep = old_div(2.0, (matrixSize - 1))
+    oneStep = old_div(2.0, (matrixSize - 1) or -1)
     # NB need to add one step length because
     xx, yy = numpy.mgrid[0:2 + oneStep:oneStep, 0:2 + oneStep:oneStep] - 1.0
     rad = numpy.sqrt(xx**2 + yy**2)
