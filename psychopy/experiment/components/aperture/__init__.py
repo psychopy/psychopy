@@ -59,6 +59,7 @@ class ApertureComponent(BaseVisualComponent):
         del self.params['colorSpace']
         del self.params['fillColor']
         del self.params['borderColor']
+        del self.params['contrast']
         del self.params['opacity']
 
     def writeInitCode(self, buff):
