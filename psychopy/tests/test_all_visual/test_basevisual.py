@@ -84,7 +84,7 @@ class _TestColorMixin:
                             utils.comparePixelColor(self.win, colors.Color('white'), coord=self.borderPoint)
                         # Make sure fore is not
                         if self.foreUsed:
-                            utils.comparePixelColor(self.win, colors.Color('white'), coord=self.forePoint, lenience=20)
+                            utils.comparePixelColor(self.win, colors.Color('white'), coord=self.forePoint)
                     # Reset fill
                     self.obj.fillColor = 'white'
                     self.obj.opacity = 1
@@ -103,7 +103,7 @@ class _TestColorMixin:
                             utils.comparePixelColor(self.win, colors.Color('white'), coord=self.fillPoint)
                         # Make sure fore is not
                         if self.foreUsed:
-                            utils.comparePixelColor(self.win, colors.Color('white'), coord=self.forePoint, lenience=20)
+                            utils.comparePixelColor(self.win, colors.Color('white'), coord=self.forePoint)
                     # Reset border
                     self.obj.borderColor = 'white'
                     self.obj.opacity = 1
@@ -116,7 +116,7 @@ class _TestColorMixin:
                     self.obj.draw()
                     if color is not None:
                         # Make sure fore is set
-                        utils.comparePixelColor(self.win, target, coord=self.forePoint, lenience=20)
+                        utils.comparePixelColor(self.win, target, coord=self.forePoint)
                         # Make sure fill is not
                         if self.fillUsed:
                             utils.comparePixelColor(self.win, colors.Color('white'), coord=self.fillPoint)
