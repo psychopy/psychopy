@@ -47,7 +47,7 @@
     <Param val="4242" valType="num" updates="None" name="gpPort"/>
     <Param val="exp" valType="code" updates="None" name="logging level"/>
     <Param val="MIDDLE_BUTTON" valType="list" updates="None" name="mgBlink"/>
-    <Param val="RIGHT_BUTTON" valType="list" updates="None" name="mgMove"/>
+    <Param val="RIGHT_BUTTON" valType="str" updates="None" name="mgMove"/>
     <Param val="0.5" valType="num" updates="None" name="mgSaccade"/>
     <Param val="" valType="str" updates="None" name="tbLicenseFile"/>
     <Param val="" valType="str" updates="None" name="tbModel"/>
