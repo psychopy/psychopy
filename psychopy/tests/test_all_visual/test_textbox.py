@@ -36,6 +36,12 @@ class Test_textbox(_TestColorMixin):
         self.win.close()
 
     def test_glyph_rendering(self):
+        # Prepare textbox
+        self.textbox.colorSpace = 'rgb'
+        self.textbox.color = 'white'
+        self.textbox.fillColor = (0, 0, 0)
+        self.textbox.borderColor = None
+        self.textbox.opacity = 1
 
         # Add all Noto Sans fonts to cover widest possible base of handles characters
         for font in ["Noto Sans", "Noto Sans HK", "Noto Sans JP", "Noto Sans KR", "Noto Sans SC", "Noto Sans TC", "Niramit", "Indie Flower"]:
