@@ -182,14 +182,3 @@ class EmotivMarkingComponent(BaseComponent):  # or (VisualComponent)
             # to get out of the if statement
             buff.setIndentLevel(-1, relative=True)
             buff.writeIndented("}\n")
-
-        # set parameters that need updating every frame
-        # do any params need updating? (this method inherited from _base)
-        if self.checkNeedToUpdate('set every frame'):
-            code = ("\nif (%(name)s.status === PsychoJS.Status.STARTED){ "
-                    "// only update if being drawn\n")
-            buff.writeIndentedLines(code % self.params)
-            buff.setIndentLevel(+1, relative=True)  # to enter the if block
-            self.writeParamUpdatesJS(buff, 'set every frame')
-            buff.setIndentLevel(-1, relative=True)  # to exit the if block
-            buff.writeIndented("}\n")
