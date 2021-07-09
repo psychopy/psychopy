@@ -256,23 +256,23 @@ class LegacyVisualMixin(object):
              self._verticesRendered[:, 1] * cosOri)
         return numpy.column_stack((x, y)) + self._posRendered
 
-    def setDKL(self, newDKL, operation=''):
-        """DEPRECATED since v1.60.05: Please use the `color` attribute
-        """
-        self._set('dkl', val=newDKL, op=operation)
-        self.setRGB(dkl2rgb(self.dkl, self.win.dkl_rgb))
-
-    def setLMS(self, newLMS, operation=''):
-        """DEPRECATED since v1.60.05: Please use the `color` attribute
-        """
-        self._set('lms', value=newLMS, op=operation)
-        self.setRGB(lms2rgb(self.lms, self.win.lms_rgb))
-
     @attributeSetter
     def depth(self, value):
         """DEPRECATED, depth is now controlled simply by drawing order.
         """
         self.__dict__['depth'] = value
+
+
+class LegacyColorMixin(object):
+    def setDKL(self, color, operation=''):
+        """DEPRECATED since v1.60.05: Please use the `color` attribute
+        """
+        self.setForeColor(color, 'dkl', operation)
+
+    def setLMS(self, color, operation=''):
+        """DEPRECATED since v1.60.05: Please use the `color` attribute
+        """
+        self.setForeColor(color, 'lms', operation)
 
     @property
     def foreRGB(self):
@@ -440,7 +440,7 @@ class LegacyVisualMixin(object):
         self.colorSpace = value
 
 
-class ColorMixin(object):
+class ColorMixin(LegacyColorMixin):
     """Mixin class for visual stim that need color and or contrast.
     """
 
@@ -1465,7 +1465,7 @@ class WindowMixin(object):
             self._updateListNoShaders()
 
 
-class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
+class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin, LegacyColorMixin):
     """A template for a visual stimulus class.
 
     Actual visual stim like GratingStim, TextStim etc... are based on this.
