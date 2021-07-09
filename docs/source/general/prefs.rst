@@ -156,7 +156,7 @@ audioLib :
     We recommend `['PTB', 'sounddevice', 'pyo', 'pygame']` for lowest latency.
 
 audioLatencyMode : 0, 1, 2, 3, 4
-    Latency mode for PsychToolbox audio (3 is good for most applications. See :ref:`PTB_latency_mode`
+    Latency mode for PsychToolbox audio (3 is good for most applications. See :ref:`PTB_latency_modes`.
 
 audioDriver: 'portaudio'
     Some of PsychoPy's audio engines provide the option not to sue portaudio but go directly to another lib (e.g. to coreaudio) but some don't allow that
