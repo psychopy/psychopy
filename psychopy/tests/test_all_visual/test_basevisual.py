@@ -1,6 +1,10 @@
+from pathlib import Path
+
 import pytest
 from psychopy import visual
 from psychopy import colors
+from psychopy.monitors import Monitor
+from copy import copy
 from psychopy.tests import utils
 
 
@@ -277,3 +281,84 @@ class _TestColorMixin:
                 self.obj.lineColorSpace = space
                 assert self.obj.colorSpace == space
                 self.obj.lineColorSpace = 'named'
+
+
+class _TestUnitsMixin:
+    """
+    Base tests for all objects which use units
+    """
+    # Define exemplar positions (assumes win.pos = (256, 128) and 1cm = 64 pix)
+    posExemplars = [
+        {'suffix': "_center_center",
+         'norm': (0, 0), 'height': (0, 0), 'pix': (0, 0), 'cm': (0, 0)},
+        {'suffix': "_bottom_left",
+         'norm': (-1, -1), 'height': (-1, -0.5), 'pix': (-128, -64), 'cm': (-2, -1)},
+        {'suffix': "_top_left",
+         'norm': (-1, 1), 'height': (-1, 0.5), 'pix': (-128, 64), 'cm': (-2, 1)},
+        {'suffix': "_bottom_right",
+         'norm': (1, -1), 'height': (1, -0.5), 'pix': (128, -64), 'cm': (2, -1)},
+        {'suffix': "_top_right",
+         'norm': (1, 1), 'height': (1, 0.5), 'pix': (128, 64), 'cm': (2, 1)},
+    ]
+    posTykes = []
+
+    # Define exemplar sizes (assumes win.pos = (256, 128) and 1cm = 64 pix)
+    sizeExemplars = [
+        {'suffix': "_w128h128",
+         'norm': (0.5, 1), 'height': (1, 1), 'pix': (128, 128), 'cm': (2, 2)},
+        {'suffix': "_w128h64",
+         'norm': (0.5, 0.5), 'height': (1, 0.5), 'pix': (128, 64), 'cm': (2, 1)},
+        {'suffix': "_w64h128",
+         'norm': (0.25, 1), 'height': (0.5, 1), 'pix': (64, 128), 'cm': (1, 2)},
+        {'suffix': "_w64h64",
+         'norm': (0.25, 0.5), 'height': (0.5, 0.5), 'pix': (64, 64), 'cm': (1, 1)},
+    ]
+
+    # Placeholder for testing object and window
+    obj = None
+    win = None
+
+    def test_pos(self):
+        # If this test object has no obj, skip
+        if not self.obj:
+            return
+        # Setup window for this test
+        monitor = Monitor("testUnitsMonitor")
+        monitor.setSizePix((256, 128))
+        monitor.setWidth(4)
+        monitor.setDistance(50)
+        win = visual.Window(size=(256, 128), monitor=monitor)
+        win.useRetina = False
+        # Setup object for this test
+        obj = copy(self.obj)
+        obj.win = win
+        if hasattr(obj, "fillColor"):
+            obj.fillColor = 'red'
+        if hasattr(obj, "foreColor"):
+            obj.foreColor = 'blue'
+        if hasattr(obj, 'borderColor'):
+            obj.borderColor = 'green'
+        if hasattr(obj, 'opacity'):
+            obj.opacity = 1
+        # Run positions through each size exemplar
+        for size in self.sizeExemplars:
+            for pos in self.posExemplars + self.posTykes:
+                for units in pos:
+                    if units == 'suffix':
+                        continue
+                    # Set pos and size
+                    obj.units = units
+                    obj.size = size[units]
+                    obj.pos = pos[units]
+                    # Draw
+                    obj.draw()
+                    win.flip()
+                    obj.draw()
+                    # Compare screenshot
+                    filename = f"{self.__class__.__name__}_units_{units}_{size['suffix']}{pos['suffix']}.png"
+                    #win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / filename)
+                    utils.compareScreenshot(filename, win)
+        # Cleanup
+        win.close()
+        del obj
+        del win
