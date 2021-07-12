@@ -16,6 +16,9 @@ class TargetStim(ShapeStim):
                  pos=(0, 0),  units='height',
                  colorSpace="rgb",
                  autoLog=None, autoDraw=False):
+        # Make sure name is a string
+        if name is None:
+            name = "target"
         # Init super (creates outer circle)
         ShapeStim.__init__(self, win, name=name,
                            vertices="circle",
