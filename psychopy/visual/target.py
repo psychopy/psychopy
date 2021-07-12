@@ -109,10 +109,14 @@ class TargetStim(ShapeStim):
     @property
     def foreColor(self):
         # Return whichever inner color is not None
-        return self.inner.fillColor or self.inner.borderColor
+        if self.inner.fillColor is not None:
+            return self.inner.fillColor
+        if self.inner.borderColor is not None:
+            return self.inner.borderColor
 
     @foreColor.setter
     def foreColor(self, value):
+        ColorMixin.foreColor.fset(self, value)
         # Set whichever inner color is not None
         if self.inner.fillColor is not None:
             self.inner.fillColor = value
