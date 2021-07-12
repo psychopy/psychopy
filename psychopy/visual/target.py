@@ -67,6 +67,20 @@ class TargetStim(ShapeStim):
         if hasattr(self, "inner"):
             self.inner.pos = value
 
+    @property
+    def size(self):
+        if hasattr(self, "_size"):
+            return self._size
+
+    @size.setter
+    def size(self, value):
+        if hasattr(self, "inner"):
+            self.inner.size = (
+                value[0] / self.size[0] * self.inner.size[0],
+                value[1] / self.size[1] * self.inner.size[1]
+            )
+        self._size = value
+
     @scale.setter
     def scale(self, newScale):
         oldScale = self.scale
@@ -75,11 +89,11 @@ class TargetStim(ShapeStim):
 
     @property
     def radius(self):
-        return sum(self.size)/2
+        return sum(self._size)/2
 
     @radius.setter
     def radius(self, value):
-        self.size = (value*2, value*2)
+        self._size = (value*2, value*2)
 
     @property
     def innerRadius(self):
@@ -101,6 +115,28 @@ class TargetStim(ShapeStim):
             self.inner.fillColor = value
         if self.inner.borderColor is not None:
             self.inner.borderColor = value
+
+    @property
+    def win(self):
+        if hasattr(self, "_win"):
+            return self._win
+
+    @win.setter
+    def win(self, value):
+        self._win = value
+        if hasattr(self, "inner"):
+            self.inner.win = value
+
+    @property
+    def units(self):
+        if hasattr(self, "_units"):
+            return self._units
+
+    @units.setter
+    def units(self, value):
+        self._units = value
+        if hasattr(self, "inner"):
+            self.inner.units = value
 
     def draw(self, win=None, keepMatrix=False):
         ShapeStim.draw(self, win, keepMatrix)
