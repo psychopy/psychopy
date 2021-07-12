@@ -313,12 +313,13 @@ class _TestUnitsMixin:
         {'suffix': "_w64h64",
          'norm': (0.25, 0.5), 'height': (0.5, 0.5), 'pix': (64, 64), 'cm': (1, 1)},
     ]
+    sizeTykes = []
 
     # Placeholder for testing object and window
     obj = None
     win = None
 
-    def test_pos(self):
+    def test_pos_size(self):
         # If this test object has no obj, skip
         if not self.obj:
             return
@@ -341,9 +342,9 @@ class _TestUnitsMixin:
         if hasattr(obj, 'opacity'):
             obj.opacity = 1
         # Run positions through each size exemplar
-        for size in self.sizeExemplars:
+        for size in self.sizeExemplars + self.sizeTykes:
             for pos in self.posExemplars + self.posTykes:
-                for units in pos:
+                for units in set(list(pos) + list(size)):
                     if units == 'suffix':
                         continue
                     # Set pos and size
@@ -356,8 +357,8 @@ class _TestUnitsMixin:
                     obj.draw()
                     # Compare screenshot
                     filename = f"{self.__class__.__name__}_units_{units}_{size['suffix']}{pos['suffix']}.png"
-                    #win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / filename)
-                    utils.compareScreenshot(filename, win)
+                    win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / filename)
+                    #utils.compareScreenshot(filename, win)
         # Cleanup
         win.close()
         del obj
