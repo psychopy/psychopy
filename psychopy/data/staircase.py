@@ -969,7 +969,7 @@ class QuestHandler(StairHandler):
         if self.method == 'mean':
             self._questNextIntensity = self._quest.mean()
         elif self.method == 'mode':
-            self._questNextIntensity = self._quest.mode()
+            self._questNextIntensity = self._quest.mode()[0]
         elif self.method == 'quantile':
             self._questNextIntensity = self._quest.quantile()
         else:
