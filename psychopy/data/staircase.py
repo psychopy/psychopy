@@ -865,6 +865,7 @@ class QuestHandler(StairHandler):
 
         self.startVal = startVal
         self.startValSd = startValSd
+        self.pThreshold = pThreshold
         self.stopInterval = stopInterval
         self._questNextIntensity = startVal
         self._range = range
