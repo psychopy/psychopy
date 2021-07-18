@@ -532,9 +532,7 @@ class ShapeStim(BaseShapeStim):
         Enable auto drawing. When `True`, the stimulus will be drawn every
         frame without the need to explicitly call the
         :py:meth:`~psychopy.visual.ShapeStim.draw` method.
-    color : array_like, str, :class:`~psychopy.colors.Color` or None
-        Sets both the initial `lineColor` and `fillColor` of the shape.
-    lineRGB, fillRGB: array_like, :class:`~psychopy.colors.Color` or None
+    color, lineRGB, fillRGB: array_like, :class:`~psychopy.colors.Color` or None
         *Deprecated*. Please use `lineColor` and `fillColor`. These
         arguments may be removed in a future version.
     lineColorSpace, fillColorSpace : str
