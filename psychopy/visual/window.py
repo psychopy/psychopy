@@ -2651,6 +2651,12 @@ class Window(object):
             return getattr(self._color, self.colorSpace)
     @color.setter
     def color(self, value):
+        # Get old color for reference
+        if hasattr(self, "_color"):
+            oldColor = self._color
+        else:
+            oldColor = Color(None)
+
         if isinstance(value, Color):
             # If supplied with a color object, set as that
             self._color = value
@@ -2665,6 +2671,9 @@ class Window(object):
         if self.backend is not None:
             self.backend.setCurrent()  # make sure this window is active
             GL.glClearColor(*self._color.render('rgba1'))
+        # If setup is needed, setup
+        if self._color != oldColor and 'GL' in globals() and self.backend:
+            self._setupGL()
 
     def setColor(self, color, colorSpace=None, operation='', log=None):
         """Usually you can use ``stim.attribute = value`` syntax instead,
