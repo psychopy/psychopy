@@ -148,6 +148,38 @@ def test_quatToMatrix():
 
 
 @pytest.mark.mathtools
+def test_reflect():
+    exemplars = [
+        # 1d array float64
+        {'v': np.array([1, 2, 3, 4]),
+         'n': np.array([5, 6, 7, 8]),
+         'dtype': np.float64,
+         'ans': np.array([-699., -838., -977., -1116.]),
+         },
+        # 2d array float64
+        {'v': np.array([[1, 2], [3, 4]]),
+         'n': np.array([[5, 6], [7, 8]]),
+         'dtype': np.float64,
+         'ans': np.array([[-169., -202.], [-739., -844.]]),
+         },
+    ]
+    tykes = [
+        # no dtype
+        {'v': np.array([1, 2, 3, 4]),
+         'n': np.array([5, 6, 7, 8]),
+         'dtype': None,
+         'ans': np.array([-699., -838., -977., -1116.]),
+         },
+    ]
+
+    for case in exemplars + tykes:
+        assert np.array_equal(
+            case['ans'],
+            reflect(v=case['v'], n=case['n'], dtype=case['dtype'])
+        )
+
+
+@pytest.mark.mathtools
 def test_length():
     """Test function `length()`."""
     np.random.seed(123456)
