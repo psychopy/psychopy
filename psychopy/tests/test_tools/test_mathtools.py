@@ -369,6 +369,51 @@ def test_cross():
 
 
 @pytest.mark.mathtools
+def test_project():
+    exemplars = [
+        # 1d array float64
+        {'v0': np.array([1, 2, 3, 4]),
+         'v1': np.array([5, 6, 7, 8]),
+         'dtype': np.float64,
+         'ans': np.array([2.01149425, 2.4137931, 2.81609195, 3.2183908]),
+         },
+        # 2d array float64
+        {'v0': np.array([[1, 2], [3, 4]]),
+         'v1': np.array([[5, 6], [7, 8]]),
+         'dtype': np.float64,
+         'ans': np.array([[10.88313479, 13.05976175], [34.90074422, 39.88656482]]),
+         },
+    ]
+    tykes = [
+        # no dtype
+        {'v0': np.array([1, 2, 3, 4]),
+         'v1': np.array([5, 6, 7, 8]),
+         'dtype': None,
+         'ans': np.array([2.01149425, 2.4137931, 2.81609195, 3.2183908]),
+         },
+        # These should work, but don't
+        # # 2d on 1d
+        # {'v0': np.array([[1, 2], [3, 4]]),
+        #  'v1': np.array([5, 6, 7, 8]),
+        #  'dtype': np.float64,
+        #  'ans': np.array([[10.88313479, 13.05976175], [34.90074422, 39.88656482]]),
+        #  },
+        # #1d on 2d
+        # {'v0': np.array([1, 2, 3, 4]),
+        #  'v1': np.array([[5, 6], [7, 8]]),
+        #  'dtype': np.float64,
+        #  'ans': np.array([[10.88313479, 13.05976175], [34.90074422, 39.88656482]]),
+        #  },
+    ]
+
+    for case in exemplars + tykes:
+        assert np.allclose(
+            case['ans'],
+            project(v0=case['v0'], v1=case['v1'], dtype=case['dtype'])
+        )
+
+
+@pytest.mark.mathtools
 def test_orthogonalize():
     """Check the `orthogonalize()` function. This function nudges a vector to
     be perpendicular with another (usually a normal). All orthogonalized vectors
