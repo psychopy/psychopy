@@ -583,6 +583,33 @@ class MultiStairHandler(object):
                     "    exec(paramName + '= condition[paramName]')\n")
             buff.writeIndentedLines(code)
 
+    def writeLoopStartCodeJS(self, buff, modular):
+        code = (
+            "// setup a MultiStairTrialHandler\n"
+            "%(name)sConditions = new data.importConditions(%(conditionsFile)s)\n"
+            "%(name)s = new data.MultiStairHandler({stairType=%(stairType)s, \n"
+        )
+        buff.writeIndentedLines(code % self.params)
+
+        buff.setIndentLevel(1, relative=True)
+        code = (
+                "psychoJS: psychoJS,\n"
+                "name: '%(name)s',\n"
+                "varName: '%(name)sVal',\n"
+                "nTrials: %(nReps)s,\n"
+                "conditions: %(name)sConditions,\n"
+                "method: %(switchMethod)s\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+
+        buff.setIndentLevel(-1, relative=True)
+        code = (
+            "});\n"
+            "psychoJS.experiment.addLoop(%(name)s); // add the loop to the experiment\n"
+            "currentLoop = %(name)s;  // we're now the current loop"
+        )
+        buff.writeIndentedLines(code % self.params)
+
     def writeLoopEndCode(self, buff):
         # Just within the loop advance data line if loop is whole trials
         if self.params['isTrials'].val:
@@ -600,6 +627,13 @@ class MultiStairHandler(object):
                 code = ("%(name)s.saveAsText(filename + '%(name)s.csv', "
                         "delim=',')\n")
                 buff.writeIndented(code % self.params)
+
+    def writeLoopEndCodeJS(self, buff):
+        code = (
+            "// update the QUEST pdf\n"
+            "quest.addResponse(response);\n"
+        )
+        buff.writeIndentedLines(code % self.params)
 
     def getType(self):
         return 'MultiStairHandler'
