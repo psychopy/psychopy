@@ -3,18 +3,18 @@
 Flow
 ----------------
 
-In the Flow panel a number of :doc:`Routines </builder/routines>` can be combined to form an experiment. For instance, your study may have a :doc:`Routine </builder/routines>` that presented initial instructions and waited for a key to be pressed, followed by a :doc:`Routine </builder/routines>` that presented one trial which should be repeated 5 times with various different parameters set. All of this is achieved in the Flow panel. You can adjust the display size of the Flow panel (see View menu).
+In the Flow panel a number of :doc:`Routines <builder/routines>` can be combined to form an experiment. For instance, your study may have a :doc:`Routine <builder/routines>` that presented initial instructions and waited for a key to be pressed, followed by a :doc:`Routine <builder/routines>` that presented one trial which should be repeated 5 times with various different parameters set. All of this is achieved in the Flow panel. You can adjust the display size of the Flow panel (see View menu).
 
 Adding Routines
 ~~~~~~~~~~~~~~~~~
 
-The :doc:`Routines </builder/routines>` that the Flow will use should be generated first (although their contents can be added or altered at any time). To insert a :doc:`Routine </builder/routines>` into the Flow click the appropriate button in the left of the Flow panel or use the Experiment menu. A dialog box will appear asking which of your :doc:`Routines </builder/routines>` you wish to add. To select the location move the mouse to the section of the flow where you wish to add it and click on the black disk.
+The :doc:`Routines <builder/routines>` that the Flow will use should be generated first (although their contents can be added or altered at any time). To insert a :doc:`Routine <builder/routines>` into the Flow click the appropriate button in the left of the Flow panel or use the Experiment menu. A dialog box will appear asking which of your :doc:`Routines <builder/routines>` you wish to add. To select the location move the mouse to the section of the flow where you wish to add it and click on the black disk.
 
 .. _loops:
 
 Loops
 ~~~~~~~~~~~~~~~
-Loops control the repetition of :ref:`routines` and the choice of stimulus parameters for each. To insert a loop use the button on the left of the Flow panel, or the item in the Experiment menu of the Builder. The start and end of a loop is set in the same way as the location of a :doc:`Routine </builder/routines>` (see above). Loops can encompass one or more :doc:`Routines </builder/routines>` and other loops (i.e. they can be nested).
+Loops control the repetition of :ref:`routines` and the choice of stimulus parameters for each. To insert a loop use the button on the left of the Flow panel, or the item in the Experiment menu of the Builder. The start and end of a loop is set in the same way as the location of a :doc:`Routine <builder/routines>` (see above). Loops can encompass one or more :doc:`Routines <builder/routines>` and other loops (i.e. they can be nested).
 
 As with components in :ref:`routines`, the loop must be given a name, which must be unique and made up of only alpha-numeric characters (underscores are allowed). I would normally use a plural name, since the loop represents multiple repeats of something. For example, `trials`, `blocks` or `epochs` would be good names for your loops.
 
