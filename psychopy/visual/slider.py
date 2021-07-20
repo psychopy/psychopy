@@ -51,6 +51,7 @@ class Slider(MinimalStim, ColorMixin):
                  win,
                  ticks=(1, 2, 3, 4, 5),
                  labels=None,
+                 startValue=None,
                  pos=None,
                  size=None,
                  units=None,
@@ -169,8 +170,7 @@ class Slider(MinimalStim, ColorMixin):
         self.readOnly = readOnly
 
         self.categorical = False  # will become True if no ticks set only labels
-        self.rating = None  # current value (from a response)
-        self.markerPos = None  # current value (maybe not from a response)
+        self.startValue = self.rating =  self.markerPos = startValue
         self.rt = None
         self.history = []
         self.marker = None
@@ -292,9 +292,8 @@ class Slider(MinimalStim, ColorMixin):
         """Resets the slider to its starting state (so that it can be restarted
         on each trial with a new stimulus)
         """
-        self.markerPos = None
+        self.markerPos = self.rating = self.startValue
         self.history = []
-        self.rating = None
         self.rt = None
         self.responseClock.reset()
         self.status = NOT_STARTED

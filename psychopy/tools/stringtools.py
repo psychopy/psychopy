@@ -28,18 +28,18 @@ def prettyname(name, wrap=False):
         sentence = []
         letter = 0
         # Iterate through each word
-        for word in name.split(" "):
+        for n, word in enumerate(name.split(" ")):
             # Count its letters
             letter += len(word)
-            if letter > wrap >= len(word):
+            if letter > wrap and n > 0:
                 # If this brings the current letters this line to more than the wrap limit, insert a line break
                 sentence.append("\n")
-                letter = 0
+                letter = len(word)
             # Insert word
             sentence.append(word)
         # Recombine name
         name = " ".join(sentence)
         # Remove spaces after line
-        name.replace(" \n ", "\n")
+        name = re.sub(r" *\n *", "\n", name)
 
     return name
