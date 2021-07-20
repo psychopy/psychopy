@@ -431,9 +431,9 @@ class PavloviaSession:
                         "than expected length ({} not 64) for gitlab token"
                             .format(repr(token), len(token)))
             if parse_version(gitlab.__version__) > parse_version("1.4"):
-                self.gitlab = gitlab.Gitlab(rootURL, oauth_token=token, timeout=2, per_page=100)
+                self.gitlab = gitlab.Gitlab(rootURL, oauth_token=token, timeout=3, per_page=100)
             else:
-                self.gitlab = gitlab.Gitlab(rootURL, oauth_token=token, timeout=2)
+                self.gitlab = gitlab.Gitlab(rootURL, oauth_token=token, timeout=3)
             self.gitlab.auth()
             self.username = self.user.username
             self.userID = self.user.id  # populate when token property is set
@@ -441,9 +441,9 @@ class PavloviaSession:
             self.authenticated = True
         else:
             if parse_version(gitlab.__version__) > parse_version("1.4"):
-                self.gitlab = gitlab.Gitlab(rootURL, timeout=1, per_page=100)
+                self.gitlab = gitlab.Gitlab(rootURL, timeout=3, per_page=100)
             else:
-                self.gitlab = gitlab.Gitlab(rootURL, timeout=1)
+                self.gitlab = gitlab.Gitlab(rootURL, timeout=3)
 
     @property
     def user(self):
