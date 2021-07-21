@@ -28,7 +28,7 @@ __all__ = ['Rift']
 _HAS_PSYCHXR_ = True
 
 try:
-    import psychxr.libovr as libovr
+    import psychxr.drivers.libovr as libovr
 except ImportError:
     _HAS_PSYCHXR_ = False
 
