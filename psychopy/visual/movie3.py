@@ -282,8 +282,8 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
         if self.status == PLAYING:
             self.status = PAUSED
             if self._audioStream:
-                if prefs.hardware['audioLib'] == ['sounddevice']:
-                    self._audioStream.pause()  # sounddevice has a "pause" function -JK
+                if prefs.hardware['audioLib'] in ['sounddevice', 'PTB']:
+                    self._audioStream.pause()  # sounddevice and PTB have a "pause" function -JK
                 else:
                     self._audioStream.stop()
             if log and self.autoLog:
@@ -524,9 +524,9 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
         sound = self.sound
         if self._audioStream is None:
             return  # do nothing
-        # check if sounddevice  is being used. If so we can use seek. If not we
+        # check if sounddevice or PTB is being used. If so we can use seek. If not we
         # have to reload the audio stream and begin at the new loc
-        if prefs.hardware['audioLib'] == ['sounddevice']:
+        if prefs.hardware['audioLib'] in ['sounddevice', 'PTB']:
             self._audioStream.seek(t)
         else:
             self._audioStream.stop()
