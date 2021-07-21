@@ -414,6 +414,69 @@ def test_project():
 
 
 @pytest.mark.mathtools
+def test_lerp():
+    exemplars = [
+        # 1d array float64 t=1
+        {'v0': np.array([1, 2, 3, 4]),
+         'v1': np.array([5, 6, 7, 8]),
+         't': 1,
+         'dtype': np.float64,
+         'ans': np.array([5., 6., 7., 8.]),
+         },
+        # 2d array float64 t=1
+        {'v0': np.array([[1, 2], [3, 4]]),
+         'v1': np.array([[5, 6], [7, 8]]),
+         't': 1,
+         'dtype': np.float64,
+         'ans': np.array([[5., 6.], [7., 8.]]),
+         },
+        # 1d array float64 t=0.5
+        {'v0': np.array([1, 2, 3, 4]),
+         'v1': np.array([5, 6, 7, 8]),
+         't': 0.5,
+         'dtype': np.float64,
+         'ans': np.array([3., 4., 5., 6.]),
+         },
+        # 2d array float64 t=0.5
+        {'v0': np.array([[1, 2], [3, 4]]),
+         'v1': np.array([[5, 6], [7, 8]]),
+         't': 0.5,
+         'dtype': np.float64,
+         'ans': np.array([[3., 4.], [5., 6.]]),
+         },
+        # 1d array float64 t=0
+        {'v0': np.array([1, 2, 3, 4]),
+         'v1': np.array([5, 6, 7, 8]),
+         't': 0,
+         'dtype': np.float64,
+         'ans': np.array([1., 2., 3., 4.]),
+         },
+        # 2d array float64 t=0
+        {'v0': np.array([[1, 2], [3, 4]]),
+         'v1': np.array([[5, 6], [7, 8]]),
+         't': 0,
+         'dtype': np.float64,
+         'ans': np.array([[1., 2.], [3., 4.]]),
+         },
+    ]
+    tykes = [
+        # no dtype
+        {'v0': np.array([1, 2, 3, 4]),
+         'v1': np.array([5, 6, 7, 8]),
+         't': 1,
+         'dtype': None,
+         'ans': np.array([5., 6., 7., 8.]),
+         },
+    ]
+
+    for case in exemplars + tykes:
+        assert np.allclose(
+            case['ans'],
+            lerp(v0=case['v0'], v1=case['v1'], t=case['t'], dtype=case['dtype'])
+        )
+
+
+@pytest.mark.mathtools
 def test_orthogonalize():
     """Check the `orthogonalize()` function. This function nudges a vector to
     be perpendicular with another (usually a normal). All orthogonalized vectors
