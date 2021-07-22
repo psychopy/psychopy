@@ -243,7 +243,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
     @editable.setter
     def editable(self, editable):
         self._editable = editable
-        if editable is False and self.hasFocus:
+        if editable is False:
             if self.win:
                 self.win.removeEditable(self)
         if editable is True:
