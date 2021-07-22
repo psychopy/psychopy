@@ -230,7 +230,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.text = self.startText = text if text is not None else ""
 
         # caret
-        self._editable = editable
+        self.editable = editable
         self.caret = Caret(self, color=self.color, width=5)
 
 
