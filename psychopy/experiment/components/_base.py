@@ -68,7 +68,7 @@ class BaseComponent(object):
         self.params['startType'] = Param(startType,
             valType='str', inputType="choice", categ='Basic',
             allowedVals=['time (s)', 'frame N', 'condition'],
-            hint=msg,
+            hint=msg, direct=False,
             label=_localized['startType'])
 
         msg = _translate("How do you want to define your end point?")
@@ -76,7 +76,7 @@ class BaseComponent(object):
             valType='str', inputType="choice", categ='Basic',
             allowedVals=['duration (s)', 'duration (frames)', 'time (s)',
                          'frame N', 'condition'],
-            hint=msg,
+            hint=msg, direct=False,
             label=_localized['stopType'])
 
         self.params['startVal'] = Param(startVal,
@@ -94,14 +94,14 @@ class BaseComponent(object):
                          "representing in the timeline")
         self.params['startEstim'] = Param(startEstim,
             valType='code', inputType="single", categ='Basic',
-            hint=msg,allowedTypes=[],
+            hint=msg, allowedTypes=[], direct=False,
             label=_localized['startEstim'])
 
         msg = _translate("(Optional) expected duration (s), purely for "
                          "representing in the timeline")
         self.params['durationEstim'] = Param(durationEstim,
             valType='code', inputType="single", categ='Basic',
-            hint=msg, allowedTypes=[],
+            hint=msg, allowedTypes=[], direct=False,
             label=_localized['durationEstim'])
 
         msg = _translate("Store the onset/offset times in the data file "
@@ -121,7 +121,7 @@ class BaseComponent(object):
         msg = _translate("Disable this component")
         self.params['disabled'] = Param(disabled,
             valType='bool', inputType="bool", categ="Testing",
-            hint=msg, allowedTypes=[],
+            hint=msg, allowedTypes=[], direct=False,
             label=_translate('Disable component'))
 
     @property

@@ -116,6 +116,7 @@ class TextboxComponent(BaseVisualComponent):
         self.params['languageStyle'] = Param(
             languageStyle, valType='str', inputType="choice", categ='Formatting',
             allowedVals=['LTR', 'RTL', 'Arabic'],
+            direct=False, # todo: remove this when language style is implemented
             hint=_translate("Handle right-to-left (RTL) languages and Arabic reshaping"),
             label=_localized['languageStyle'])
         self.params['italic'] = Param(

@@ -53,7 +53,7 @@ class Test_BuilderFrame(object):
         expfile = path.join(prefs.paths['tests'],
                             'data', 'test001EntryImporting.psyexp')
         builderView.fileOpen(filename=expfile)
-        builderView.setExperimentSettings(timeout=500)
+        builderView.setExperimentSettings(timeout=2)
         builderView.isModified = False
         builderView.runFile()
         builderView.closeFrame()
@@ -125,9 +125,12 @@ class Test_BuilderFrame(object):
         ]
         for tyke in tykes:
             # For each tyke, create a dummy environment
+            # mdc - fix me!!!
             parent = DlgComponentProperties(
-                frame=builderView, title='Param Testing',
-                params={tyke['fieldName']: tyke['param']}, order=[],
+                frame=builderView,
+                title='Param Testing',
+                params={tyke['fieldName']: tyke['param']},
+                order=[],
                 testing=True)
             # Set validator and validate
             parent.SetValidator(CodeSnippetValidator(tyke['fieldName']))

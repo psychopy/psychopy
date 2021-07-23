@@ -62,7 +62,7 @@ class MouseComponent(BaseComponent):
         self.params['saveMouseState'] = Param(
             save, valType='str', inputType="choice", categ='Data',
             allowedVals=['final', 'on click', 'every frame', 'never'],
-            hint=msg,
+            hint=msg, direct=False,
             label=_localized['saveMouseState'])
 
         msg = _translate("Should a button press force the end of the routine"
@@ -74,7 +74,7 @@ class MouseComponent(BaseComponent):
         self.params['forceEndRoutineOnPress'] = Param(
             forceEndRoutineOnPress, valType='str', inputType="choice", categ='Basic',
             allowedVals=['never', 'any click', 'valid click'],
-            updates='constant',
+            updates='constant', direct=False,
             hint=msg,
             label=_localized['forceEndRoutineOnPress'])
 
@@ -84,7 +84,7 @@ class MouseComponent(BaseComponent):
             timeRelativeTo, valType='str', inputType="choice", categ='Data',
             allowedVals=['mouse onset', 'experiment', 'routine'],
             updates='constant',
-            hint=msg,
+            hint=msg, direct=False,
             label=_localized['timeRelativeTo'])
 
         msg = _translate('If the mouse button is already down when we start '
@@ -114,7 +114,7 @@ class MouseComponent(BaseComponent):
                          )
         self.params['saveParamsClickable'] = Param(
             'name,', valType='list', inputType="single", categ='Data',
-            updates='constant', allowedUpdates=[],
+            updates='constant', allowedUpdates=[], direct=False,
             hint=msg,
             label=_localized['Store params for clicked'])
 

@@ -65,7 +65,7 @@ class CodeComponent(BaseComponent):
         self.params['Code Type'] = Param(
             codeType, valType='str', inputType="choice", allowedTypes=[],
             allowedVals=['Py', 'JS', 'Both', 'Auto->JS'],
-            hint=msg,
+            hint=msg, direct=False,
             label=_localized['Code Type'])
 
         msg = _translate("Code to run before the experiment starts "

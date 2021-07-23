@@ -96,7 +96,7 @@ class VariableComponent(BaseComponent):
         self.params['saveFrameValue'] = Param(
             'never', valType='str', inputType="choice", categ='Data',
             allowedVals=['first', 'last', 'all', 'never'],
-            updates='constant',
+            updates='constant', direct=False,
             hint=hnt,
             label=_localized['saveFrameValue'])
 

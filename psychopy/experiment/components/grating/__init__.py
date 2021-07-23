@@ -106,7 +106,7 @@ class GratingComponent(BaseVisualComponent):
         self.params['interpolate'] = Param(
             interpolate, valType='str', inputType="choice", allowedVals=['linear', 'nearest'], categ='Texture',
             updates='constant', allowedUpdates=[],
-            hint=msg,
+            hint=msg, direct=False,
             label=_localized['interpolate'])
 
         msg = _translate("OpenGL Blendmode: avg gives traditional transparency,"

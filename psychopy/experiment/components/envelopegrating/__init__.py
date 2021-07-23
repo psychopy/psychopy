@@ -127,7 +127,7 @@ class EnvGratingComponent(BaseVisualComponent):
         self.params['interpolate'] = Param(
             interpolate, valType='str', inputType="choice", allowedVals=['linear', 'nearest'], categ="Carrier",
             updates='constant', allowedUpdates=[],
-            hint=msg,
+            hint=msg, direct=False,
             label=_localized['interpolate'])
 
         msg = _translate("The (2D) texture of the envelope - can be sin, sqr,"
