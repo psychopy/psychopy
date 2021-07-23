@@ -1006,9 +1006,6 @@ class Window(object):
             else:
                 logging.warning(f"Request to remove editable object {editable} could not be completed as weakref "
                                 f"to this object could not be found in window.")
-                # todo: adding this solely for the test suite so we can see if it crashes
-                raise AssertionError(f"Request to remove editable object {editable} could not be completed as weakref "
-                                     f"to this object could not be found in window.")
         # Clean editables list
         self._cleanEditables()
 
