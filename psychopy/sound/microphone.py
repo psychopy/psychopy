@@ -917,9 +917,11 @@ class Microphone(object):
         # append current recording to clip list according to tag
         self.lastClip = self.getRecording()
         self.clips[tag].append(self.lastClip)
+        # synonymise null values
+        if transcribe in ('undefined', 'NONE', 'None', 'none', 'False', 'false', 'FALSE'):
+            transcribe = False
         # append current clip's transcription according to tag
-
-        if transcribe and transcribe not in ('undefined', 'NONE', 'None', 'none', 'False', 'false', 'FALSE'):
+        if transcribe:
             if transcribe in ('Built-in', True, 'BUILT_IN', 'BUILT-IN',
                               'Built-In', 'built-in'):
                 engine = "sphinx"
