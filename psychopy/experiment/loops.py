@@ -618,7 +618,38 @@ class MultiStairHandler(object):
         code = (
                     "});\n"
                     "psychoJS.experiment.addLoop(%(name)s); // add the loop to the experiment\n"
-                    "currentLoop = %(name)s;  // we're now the current loop"
+                    "currentLoop = %(name)s;  // we're now the current loop\n"
+                    "for (const thisQuestLoop of questLoop) {\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+
+        buff.setIndentLevel(1, relative=True)
+        thisLoop = self.exp.flow.loopDict[self]
+        for thisChild in thisLoop:
+            if thisChild.getType() == 'Routine':
+                code += (
+                        "const snapshot = %(name)s.getSnapshot();\n"
+                        "{loopName}LoopScheduler.add({childName}RoutineBegin(snapshot));\n"
+                        "{loopName}LoopScheduler.add({childName}RoutineEachFrame());\n"
+                        "{loopName}LoopScheduler.add({childName}RoutineEnd());\n"
+                        .format(childName=thisChild.params['name'],
+                                loopName=self.params['name'])
+                    )
+            else:  # for a LoopInitiator
+                code += (
+                        "const snapshot = %(name)s.getSnapshot();\n"
+                        "const {childName}LoopScheduler = new Scheduler(psychoJS);\n"
+                        "{loopName}LoopScheduler.add({childName}LoopBegin({childName}LoopScheduler, snapshot));\n"
+                        "{loopName}LoopScheduler.add({childName}LoopScheduler);\n"
+                        "{loopName}LoopScheduler.add({childName}LoopEnd);\n"
+                        .format(childName=thisChild.params['name'],
+                                loopName=self.params['name'])
+                        )
+        buff.writeIndentedLines(code % self.params)
+
+        buff.setIndentLevel(-1, relative=True)
+        code = (
+                "}"
         )
         buff.writeIndentedLines(code % self.params)
 
