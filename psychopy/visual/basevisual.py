@@ -256,27 +256,6 @@ class LegacyVisualMixin(object):
              self._verticesRendered[:, 1] * cosOri)
         return numpy.column_stack((x, y)) + self._posRendered
 
-    def setDKL(self, newDKL, operation=''):
-        """DEPRECATED since v1.60.05: Please use the `color` attribute
-        """
-        self._set('dkl', val=newDKL, op=operation)
-        self.setRGB(dkl2rgb(self.dkl, self.win.dkl_rgb))
-
-    def setLMS(self, newLMS, operation=''):
-        """DEPRECATED since v1.60.05: Please use the `color` attribute
-        """
-        self._set('lms', value=newLMS, op=operation)
-        self.setRGB(lms2rgb(self.lms, self.win.lms_rgb))
-
-    def setRGB(self, newRGB, operation='', log=None):
-        """DEPRECATED since v1.60.05: Please use the `color` attribute
-        """
-        from psychopy.visual.helpers import setTexIfNoShaders
-        self._set('rgb', newRGB, operation)
-        setTexIfNoShaders(self)
-        if self.__class__.__name__ == 'TextStim' and not self.useShaders:
-            self._needSetText = True
-
     @attributeSetter
     def depth(self, value):
         """DEPRECATED, depth is now controlled simply by drawing order.
@@ -284,7 +263,184 @@ class LegacyVisualMixin(object):
         self.__dict__['depth'] = value
 
 
-class ColorMixin(object):
+class LegacyColorMixin(object):
+    def setDKL(self, color, operation=''):
+        """DEPRECATED since v1.60.05: Please use the `color` attribute
+        """
+        self.setForeColor(color, 'dkl', operation)
+
+    def setLMS(self, color, operation=''):
+        """DEPRECATED since v1.60.05: Please use the `color` attribute
+        """
+        self.setForeColor(color, 'lms', operation)
+
+    @property
+    def foreRGB(self):
+        """
+        DEPRECATED: Legacy property for setting the foreground color of a stimulus in RGB, instead use `obj._foreColor.rgb`
+        """
+        return self._foreColor.rgb
+
+    @foreRGB.setter
+    def foreRGB(self, value):
+        self.foreColor = Color(value, 'rgb')
+
+    @property
+    def RGB(self):
+        """
+        DEPRECATED: Legacy property for setting the foreground color of a stimulus in RGB, instead use `obj._foreColor.rgb`
+        """
+        return self.foreRGB
+
+    @RGB.setter
+    def RGB(self, value):
+        self.foreRGB = value
+
+    @property
+    def fillRGB(self):
+        """
+        DEPRECATED: Legacy property for setting the fill color of a stimulus in RGB, instead use `obj._fillColor.rgb`
+        """
+        return self._fillColor.rgb
+
+    @fillRGB.setter
+    def fillRGB(self, value):
+        self.fillColor = Color(value, 'rgb')
+
+    @property
+    def backRGB(self):
+        """
+        DEPRECATED: Legacy property for setting the fill color of a stimulus in RGB, instead use `obj._fillColor.rgb`
+        """
+        return self.borderRGB
+
+    @backRGB.setter
+    def backRGB(self, value):
+        self.fillRGB = value
+
+    @property
+    def borderRGB(self):
+        """
+        DEPRECATED: Legacy property for setting the border color of a stimulus in RGB, instead use `obj._borderColor.rgb`
+        """
+        return self._borderColor.rgb
+
+    @borderRGB.setter
+    def borderRGB(self, value):
+        self.borderColor = Color(value, 'rgb')
+
+    @property
+    def lineRGB(self):
+        """
+        DEPRECATED: Legacy property for setting the border color of a stimulus in RGB, instead use `obj._borderColor.rgb`
+        """
+        return self.borderRGB
+
+    @lineRGB.setter
+    def lineRGB(self, value):
+        self.borderRGB = value
+
+    def setFillRGB(self, color, operation='', log=None):
+        """
+        DEPRECATED: Legacy setter for fill RGB, instead set `obj._fillColor.rgb`
+        """
+        self.setFillColor(color, 'rgb', operation, log)
+
+    def setBackRGB(self, color, operation='', log=None):
+        """
+        DEPRECATED: Legacy setter for fill RGB, instead set `obj._fillColor.rgb`
+        """
+        self.setFillColor(color, 'rgb', operation, log)
+
+    def setRGB(self, color, operation='', log=None):
+        """
+        DEPRECATED: Legacy setter for foreground RGB, instead set `obj._foreColor.rgb`
+        """
+        self.setForeColor(color, 'rgb', operation, log)
+
+    def setForeRGB(self, color, operation='', log=None):
+        """
+        DEPRECATED: Legacy setter for foreground RGB, instead set `obj._foreColor.rgb`
+        """
+        self.setForeColor(color, 'rgb', operation, log)
+
+    def setBorderRGB(self, color, operation='', log=None):
+        """
+        DEPRECATED: Legacy setter for border RGB, instead set `obj._borderColor.rgb`
+        """
+        self.setBorderColor(color, 'rgb', operation, log)
+
+    def setLineRGB(self, color, operation='', log=None):
+        """
+        DEPRECATED: Legacy setter for border RGB, instead set `obj._borderColor.rgb`
+        """
+        self.setBorderColor(color, 'rgb', operation, log)
+
+    @property
+    def foreColorSpace(self):
+        """Deprecated, please use colorSpace to set color space for the entire
+        object.
+        """
+        return self.colorSpace
+
+    @foreColorSpace.setter
+    def foreColorSpace(self, value):
+        logging.warning(
+            "Setting color space by attribute rather than by object is deprecated. Value of foreColorSpace has been assigned to colorSpace.")
+        self.colorSpace = value
+
+    @property
+    def fillColorSpace(self):
+        """Deprecated, please use colorSpace to set color space for the entire
+        object.
+        """
+        return self.colorSpace
+
+    @fillColorSpace.setter
+    def fillColorSpace(self, value):
+        logging.warning("Setting color space by attribute rather than by object is deprecated. Value of fillColorSpace has been assigned to colorSpace.")
+        self.colorSpace = value
+
+    @property
+    def backColorSpace(self):
+        """Deprecated, please use colorSpace to set color space for the entire
+        object.
+        """
+        return self.colorSpace
+
+    @backColorSpace.setter
+    def backColorSpace(self, value):
+        logging.warning("Setting color space by attribute rather than by object is deprecated. Value of backColorSpace has been assigned to colorSpace.")
+        self.colorSpace = value
+
+    @property
+    def borderColorSpace(self):
+        """Deprecated, please use colorSpace to set color space for the entire
+        object
+        """
+        return self.colorSpace
+
+    @borderColorSpace.setter
+    def borderColorSpace(self, value):
+        logging.warning(
+            "Setting color space by attribute rather than by object is deprecated. Value of borderColorSpace has been assigned to colorSpace.")
+        self.colorSpace = value
+
+    @property
+    def lineColorSpace(self):
+        """Deprecated, please use colorSpace to set color space for the entire
+        object
+        """
+        return self.colorSpace
+
+    @lineColorSpace.setter
+    def lineColorSpace(self, value):
+        logging.warning(
+            "Setting color space by attribute rather than by object is deprecated. Value of lineColorSpace has been assigned to colorSpace.")
+        self.colorSpace = value
+
+
+class ColorMixin(LegacyColorMixin):
     """Mixin class for visual stim that need color and or contrast.
     """
 
@@ -497,7 +653,7 @@ class ColorMixin(object):
         """Hard setter for foreColor, allows suppression of the log message,
         simultaneous colorSpace setting and calls update methods.
         """
-        setColor(obj=self, colorAttrib="foreColor", color=color, colorSpace=colorSpace, operation=operation)
+        setColor(obj=self, colorAttrib="foreColor", color=color, colorSpace=colorSpace or self.colorSpace, operation=operation)
         # Trigger color update for components like Textbox which have different behaviours for a hard setter
         self.updateColors()
 
@@ -508,7 +664,7 @@ class ColorMixin(object):
         """Hard setter for fillColor, allows suppression of the log message,
         simultaneous colorSpace setting and calls update methods.
         """
-        setColor(obj=self, colorAttrib="fillColor", color=color, colorSpace=colorSpace, operation=operation)
+        setColor(obj=self, colorAttrib="fillColor", color=color, colorSpace=colorSpace or self.colorSpace, operation=operation)
         # Trigger color update for components like Textbox which have different behaviours for a hard setter
         self.updateColors()
 
@@ -519,7 +675,7 @@ class ColorMixin(object):
         """Hard setter for `fillColor`, allows suppression of the log message,
         simultaneous colorSpace setting and calls update methods.
         """
-        setColor(obj=self, colorAttrib="borderColor", color=color, colorSpace=colorSpace, operation=operation)
+        setColor(obj=self, colorAttrib="borderColor", color=color, colorSpace=colorSpace or self.colorSpace, operation=operation)
         # Trigger color update for components like Textbox which have different behaviours for a hard setter
         self.updateColors()
 
@@ -1309,7 +1465,7 @@ class WindowMixin(object):
             self._updateListNoShaders()
 
 
-class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin):
+class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin, LegacyColorMixin):
     """A template for a visual stimulus class.
 
     Actual visual stim like GratingStim, TextStim etc... are based on this.
