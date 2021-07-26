@@ -654,8 +654,24 @@ class MultiStairHandler(object):
 
     def writeLoopEndCodeJS(self, buff):
         code = (
-            "// update the QUEST pdf\n"
-            "quest.addResponse(response);\n"
+            "\n"
+            "async function %(name)sLoopEnd() {\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+
+        buff.setIndentLevel(1, relative=True)
+        code = (
+                "// terminate loop"
+                "psychoJS.experiment.removeLoop(%(name)s);\n"
+                "return Scheduler.Event.NEXT;\n"
+                "// update the QUEST pdf\n"
+                "quest.addResponse(response);\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+
+        buff.setIndentLevel(-1, relative=True)
+        code = (
+            "}"
         )
         buff.writeIndentedLines(code % self.params)
 
