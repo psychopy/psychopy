@@ -170,7 +170,7 @@ class MicrophoneComponent(BaseComponent):
 
         self.params['transcribeLang'] = Param(
             transcribeLang, valType='str', inputType='single', categ='Transcription',
-            hint=_translate("What language you expect the recording to be spoken in, e.g. en-GB for English"),
+            hint=_translate("What language you expect the recording to be spoken in, e.g. en-US for English"),
             label=_translate("Transcription Language")
         )
 

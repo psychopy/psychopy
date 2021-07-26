@@ -197,10 +197,10 @@ class SoundComponent(BaseComponent):
         else:
             # sounds with stop values
             self.writeStopTestCodeJS(buff)
-            code = ("if (%(stopVal)s > 0.5) {"
+            code = ("if (%(stopVal)s > 0.5) {\n"
                     "  %(name)s.stop();  // stop the sound (if longer than duration)\n"
-                    "  %(name)s.status = PsychoJS.Status.FINISHED;\n"
-                    "}\n")
+                    "}\n"
+                    "%(name)s.status = PsychoJS.Status.FINISHED;\n")
             buff.writeIndentedLines(code % self.params)
             # because of the 'if' statement of the time test
             buff.setIndentLevel(-1, relative=True)

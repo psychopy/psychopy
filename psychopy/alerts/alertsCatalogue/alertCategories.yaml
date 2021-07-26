@@ -81,8 +81,16 @@
     cat: File not found
     6105: Run nonexistant file
 
-7000: Python dependencies
-8000: None
+7000:
+  cat: Python dependencies
+
+8000:
+  cat: Legacy
+  8100:
+    cat: Colors
+    8105: Color space attributes no longer used
+    8110: RGB attributes no longer used
+
 9000: None
 
 9999: Test

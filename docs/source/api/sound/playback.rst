@@ -142,7 +142,9 @@ The modes are as follows:
 
 **0 : Latency not important**
     For when it really doesn't matter. Latency can easily be in the region of
-    300ms!
+    300ms! The advantage of this move is that it will always work and always play a sound,
+    whatever the format of the existing sounds that have been played (with 2, 3, 4 you can obtain low latency but the
+    sampling rate must be the same throughout the experiment).
 
 **1 : Share low-latency access**
     Tries to use a low-latency setup in combination
