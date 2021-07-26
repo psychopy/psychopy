@@ -585,28 +585,52 @@ class MultiStairHandler(object):
 
     def writeLoopStartCodeJS(self, buff, modular):
         code = (
-            "// setup a MultiStairTrialHandler\n"
-            "%(name)sConditions = new data.importConditions(%(conditionsFile)s)\n"
-            "%(name)s = new data.MultiStairHandler({stairType=%(stairType)s, \n"
+            "\nfunction %(name)sLoopBegin(%(name)sLoopScheduler, snapshot) {{\n"
         )
         buff.writeIndentedLines(code % self.params)
 
         buff.setIndentLevel(1, relative=True)
         code = (
-                "psychoJS: psychoJS,\n"
-                "name: '%(name)s',\n"
-                "varName: '%(name)sVal',\n"
-                "nTrials: %(nReps)s,\n"
-                "conditions: %(name)sConditions,\n"
-                "method: %(switchMethod)s\n"
+                "return async function() {{\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+
+        buff.setIndentLevel(1, relative=True)
+        code = (
+                    "// setup a MultiStairTrialHandler\n"
+                    "%(name)sConditions = new data.importConditions(%(conditionsFile)s)\n"
+                    "%(name)s = new data.MultiStairHandler({stairType=%(stairType)s, \n"
+        )
+        buff.writeIndentedLines(code % self.params)
+
+        buff.setIndentLevel(1, relative=True)
+        code = (
+                        "psychoJS: psychoJS,\n"
+                        "name: '%(name)s',\n"
+                        "varName: '%(name)sVal',\n"
+                        "nTrials: %(nReps)s,\n"
+                        "conditions: %(name)sConditions,\n"
+                        "method: %(switchMethod)s\n"
         )
         buff.writeIndentedLines(code % self.params)
 
         buff.setIndentLevel(-1, relative=True)
         code = (
-            "});\n"
-            "psychoJS.experiment.addLoop(%(name)s); // add the loop to the experiment\n"
-            "currentLoop = %(name)s;  // we're now the current loop"
+                    "});\n"
+                    "psychoJS.experiment.addLoop(%(name)s); // add the loop to the experiment\n"
+                    "currentLoop = %(name)s;  // we're now the current loop"
+        )
+        buff.writeIndentedLines(code % self.params)
+
+        buff.setIndentLevel(-1, relative=True)
+        code = (
+                "}"
+        )
+        buff.writeIndentedLines(code % self.params)
+
+        buff.setIndentLevel(-1, relative=True)
+        code = (
+            "}"
         )
         buff.writeIndentedLines(code % self.params)
 
