@@ -638,9 +638,11 @@ class MultiStairHandler(object):
             if thisChild.getType() == 'Routine':
                 code = (
                         "const snapshot = %(name)s.getSnapshot();\n"
+                        "{loopName}LoopScheduler.add(importConditions(snapshot));\n"
                         "{loopName}LoopScheduler.add({childName}RoutineBegin(snapshot));\n"
                         "{loopName}LoopScheduler.add({childName}RoutineEachFrame());\n"
                         "{loopName}LoopScheduler.add({childName}RoutineEnd());\n"
+                        "{loopName}LoopScheduler.add(endLoopIteration({loopName}LoopScheduler, snapshot));\n"
                         .format(childName=thisChild.params['name'],
                                 loopName=self.params['name'])
                     )
@@ -648,9 +650,11 @@ class MultiStairHandler(object):
                 code = (
                         "const snapshot = %(name)s.getSnapshot();\n"
                         "const {childName}LoopScheduler = new Scheduler(psychoJS);\n"
+                        "{loopName}LoopScheduler.add(importConditions(snapshot));\n"
                         "{loopName}LoopScheduler.add({childName}LoopBegin({childName}LoopScheduler, snapshot));\n"
                         "{loopName}LoopScheduler.add({childName}LoopScheduler);\n"
                         "{loopName}LoopScheduler.add({childName}LoopEnd);\n"
+                        "{loopName}LoopScheduler.add(endLoopIteration({loopName}LoopScheduler, snapshot));\n"
                         .format(childName=thisChild.params['name'],
                                 loopName=self.params['name'])
                         )
