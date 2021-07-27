@@ -509,7 +509,7 @@ class MultiStairHandler(object):
             hint=_translate("(Minimum) number of trials in *each* staircase"))
         self.params['stairType'] = Param(
             stairType, valType='str', inputType='choice',
-            allowedVals=['simple', 'QUEST', 'quest', 'questplus'],
+            allowedVals=['simple', 'QUEST'],
             label=_localized['stairType'],
             hint=_translate("How to select the next staircase to run"))
         self.params['switchMethod'] = Param(
