@@ -6,6 +6,7 @@ from __future__ import division
 import pytest
 
 from psychopy.colors import Color
+from psychopy.tests.test_all_visual.test_basevisual import _TestColorMixin
 from psychopy.visual.window import Window
 from psychopy.visual.slider import Slider
 from psychopy.visual.grating import GratingStim
@@ -17,29 +18,25 @@ from numpy import array_equal
 import random
 
 
-class Test_Slider(object):
+class Test_Slider(_TestColorMixin):
     def setup_class(self):
         self.win = Window([128,128], pos=[50,50], allowGUI=False,
                           autoLog=False)
+        self.obj = Slider(self.win, units="height", size=(1, 0.1), pos=(0, 0.5), style='radio')
+        self.obj.markerPos = 1
+
+        # Pixel which is the border color
+        self.borderPoint = (0, 127)
+        self.borderUsed = True
+        # Pixel which is the fill color
+        self.fillPoint = (0, 0)
+        self.fillUsed = True
+        # Pixel which is the fore color
+        self.forePoint = (0, 0)
+        self.foreUsed = False
 
     def teardown_class(self):
         self.win.close()
-
-    def test_color(self):
-        colors = [['red', 'blue', 'yellow'], ['blue', 'yellow', 'red'], ['yellow', 'red', 'blue']]
-
-        for color in colors:
-            s = Slider(self.win, color=color[0], fillColor=color[1], borderColor=color[2])
-
-            for l in s.labelObjs:
-                assert l._foreColor == Color(color[0], s.colorSpace)
-            assert s.marker._fillColor == Color(color[1], s.colorSpace)
-            assert s.line._foreColor == Color(color[2], s.colorSpace)
-            assert s.tickLines._colors == Color(color[2], s.colorSpace)
-
-    def test_change_color(self):
-        s = Slider(self.win, color='black')
-        s.color = 'blue'
 
     def test_size(self):
         sizes = [(1, 0.1), (1.5, 0.5)]
