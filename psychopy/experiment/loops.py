@@ -590,6 +590,7 @@ class MultiStairHandler(object):
         inits['stairType'].valType = "code"
 
         code = (
+            "var %(name)s"
             "\nfunction %(name)sLoopBegin(%(name)sLoopScheduler, snapshot) {{\n"
         )
         buff.writeIndentedLines(code % inits)
