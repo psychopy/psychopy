@@ -45,12 +45,7 @@ class StdStreamDispatcher(object):
         # only setup if previously not instanced
         if not self._initialized:
             self._app = app
-        else:
-            raise RuntimeError(
-                "Cannot create a new `psychopy.app.console.StdOutManager` "
-                "instance. Already initialized.")
-
-        self._initialized = True
+            self._initialized = True
 
     def __new__(cls, *args, **kwargs):
         if cls._instance is None:

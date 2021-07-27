@@ -1,13 +1,13 @@
-.. _eyetrackerCalibrationComponent:
+.. _eyetrackerValidationComponent:
 
-Eye Tracker Calibration Component (Standalone Routine)
+Eye Tracker Validation Component (Standalone Routine)
 -------------------------------------------------------
 
 Please note: This is a new component, and is subject to change.
 
-Note that the Eye tracking calibration component is a "standalone routine", this means that rather than generating a
+The Eye tracking validation component is also a "standalone routine", this means that rather than generating a
 component that is added to an existing routine, it is a routine in itself, that is then placed along your flow. The reason
-for this implementation is that calibration represents a series of events that will be relatively uniform across studies,
+for this implementation is that calibration/validation represent a series of events that will be relatively uniform across studies,
 and often we would not want to add any additional info to this phase of the study (i.e. images, text etc.)
 
 Parameters
@@ -24,9 +24,12 @@ Target Layout:
 Randomise Target Positions: bool
     If :code:`True` the point positions will be presented in a random order.
 
+Gaze Cursor Color: 
+	The color of the gaze cursor.
+
 Target
 ============
-Aesthetic features of the calibration target.
+Aesthetic features of the target.
 
 Outer Fill Color : string
     The color of the outer circle of the target. None/Blank will be transparent.
@@ -48,13 +51,13 @@ Outer Border Width : int
 
 Animation
 ============
-How should the animation of the calibration routine appear?
+How should the animation of the validation routine appear?
 
 Progress Mode :
     Should each target appear one after the other and progress based on time? Or should the next target be presented
     once the space key has been pressed.
 
-Target Duration : int or float
+Target Duration: int or float
     The duration of the pulse of the outer circle (i.e. time or expand + contract)
 
 Expand Scale:
@@ -65,6 +68,15 @@ Animate Position Changes: bool
 
 Movement Duration: int or float
     The duration of the movement from one point to the next. 
+
+Data
+============
+
+Save As Image
+	Save the results as an image
+
+Show Results Screen
+	Show a screen with the results after completion
 
 .. seealso::
 	

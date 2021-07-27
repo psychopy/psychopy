@@ -109,6 +109,7 @@ packages = ['wx', 'psychopy',
             'freetype', 'h5py',
             'markdown_it',
             'speech_recognition', 'googleapiclient', 'pocketsphinx',
+            'six',  # needed by configobj
             ]
 
 if sys.version_info.major >= 3:

@@ -13,7 +13,6 @@ import time
 import psychopy.experiment
 from psychopy import prefs
 from psychopy.app.builder.dialogs import DlgComponentProperties
-from psychopy.app.builder.validators import CodeSnippetValidator
 from psychopy.experiment import Param
 
 # Jeremy Gray March 2011
@@ -25,6 +24,7 @@ from psychopy.experiment import Param
 # - namespace.makeValid() can change var names from the orig demos,
 #   but should not do so from a load-save-load because only the first
 #   load should change things
+from psychopy.experiment.components.unknown import UnknownComponent
 
 allComponents = psychopy.experiment.getComponents(fetchIcons=False)
 import wx
@@ -53,7 +53,7 @@ class Test_BuilderFrame(object):
         expfile = path.join(prefs.paths['tests'],
                             'data', 'test001EntryImporting.psyexp')
         builderView.fileOpen(filename=expfile)
-        builderView.setExperimentSettings(timeout=500)
+        builderView.setExperimentSettings(timeout=2)
         builderView.isModified = False
         builderView.runFile()
         builderView.closeFrame()
@@ -118,23 +118,29 @@ class Test_BuilderFrame(object):
     def test_param_validator(self, get_app):
         """Test the code validator for component parameters"""
         builderView = get_app.newBuilderFrame()
+        # Make experiment with a component
+        exp = self._getCleanExp(get_app)
+        comp = UnknownComponent(exp, "testRoutine", "testComponent")
+        exp.routines['testRoutine'].append(comp)
+
         # Define 'tykes' - combinations of values likely to cause an error if certain features aren't working
         tykes = [
             {'fieldName': "brokenCode", 'param': Param(val="for + :", valType="code"), 'msg': "Python syntax error in field `{fieldName}`:  {param.val}"}, # Make sure it's picking up clearly broken code
             {'fieldName': "correctAns", 'param': Param(val="'space'", valType="code"), 'msg': ""}, # Single-element lists should not cause warning
         ]
-        for tyke in tykes:
-            # For each tyke, create a dummy environment
-            parent = DlgComponentProperties(
-                frame=builderView, title='Param Testing',
-                params={tyke['fieldName']: tyke['param']}, order=[],
-                testing=True)
-            # Set validator and validate
-            parent.SetValidator(CodeSnippetValidator(tyke['fieldName']))
-            parent.Validate()
-            # Does the message delivered by the validator match what is expected?
-            warnings = [w for w in list(parent.warningsDict.values()) if w] or ['']
-            msg = warnings[0]
-            assert msg == tyke['msg'].format(**tyke)
-            # Cleanup
-            parent.Destroy()
+        for case in tykes:
+            # Add each param to the component
+            comp.params[case['fieldName']] = case['param']
+
+        # Test component dlg
+        dlg = DlgComponentProperties(
+            frame=builderView,
+            element=comp,
+            experiment=exp,
+            timeout=0.5)
+        # Does the message delivered by the validator match what is expected?
+        for case in tykes:
+            if case['msg']:
+                assert case['msg'].format(**case) in dlg.warnings.messages
+        # Cleanup
+        dlg.Destroy()
