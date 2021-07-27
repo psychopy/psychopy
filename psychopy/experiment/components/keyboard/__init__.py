@@ -522,8 +522,11 @@ class KeyboardComponent(BaseComponent):
             buff.writeIndentedLines(code % self.params)
 
         if currLoop.type in ['StairHandler', 'MultiStairHandler']:
-            raise CodeGenerationException(
-                "StairHandlers not currently supported by PsychoJS")
+            code = (
+                f"// update the stair handler\n"
+                f"{currLoop.params['name']}.addResponse(%(name)s.keys);\n"
+            )
+            buff.writeIndentedLines(code % self.params)
         else:
             # always add keys
             buff.writeIndented("psychoJS.experiment.addData('%(name)s.keys', %(name)s.keys);\n" % self.params)

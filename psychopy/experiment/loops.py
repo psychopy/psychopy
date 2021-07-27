@@ -705,8 +705,6 @@ class MultiStairHandler(object):
 
         buff.setIndentLevel(1, relative=True)
         code = (
-                "// update the QUEST pdf\n"
-                "quest.addResponse(response);\n"
                 "// terminate loop\n"
                 "psychoJS.experiment.removeLoop(%(name)s);\n"
                 "return Scheduler.Event.NEXT;\n"
