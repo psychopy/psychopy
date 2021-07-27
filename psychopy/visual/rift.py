@@ -170,6 +170,7 @@ if _HAS_PSYCHXR_:
     # eye types
     RIFT_EYE_TYPE = {'left': libovr.EYE_LEFT, 'right': libovr.EYE_RIGHT}
 
+
 # ------------------------------------------------------------------------------
 # LibOVR Error Handler
 #
@@ -186,8 +187,10 @@ class Rift(window.Window):
     """Class provides a display and peripheral interface for the Oculus Rift
     (see: https://www.oculus.com/) head-mounted display.
 
-    """
+    Requires PsychXR 0.2.4 to be installed. Setting the `winType='glfw'` is
+    preferred for VR applications.
 
+    """
     def __init__(
             self,
             fovType='recommended',

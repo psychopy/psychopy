@@ -10,7 +10,7 @@ import pyglet.gl as GL
 
 # Create a VR session, treat the returned object just like a regular window.
 # Increase the number of samples for anti-aliasing, could be 2, 4, 6, 8, 16 or
-# 32 depending on your hardware.
+# 32 depending on your hardware. The GLFW backend is preferred when using VR.
 hmd = visual.Rift(samples=1, color=(0, 0, 0), colorSpace='rgb', winType='glfw')
 
 # Create a LibOVRPose object to represent the rigid body pose of the triangle in
