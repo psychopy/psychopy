@@ -604,7 +604,7 @@ class MultiStairHandler(object):
         code = (
                     "// setup a MultiStairTrialHandler\n"
                     "%(name)sConditions = new data.importConditions(%(conditionsFile)s)\n"
-                    "%(name)s = new data.MultiStairHandler({stairType=MultiStairHandler.StaircaseType.%(stairType)s, \n"
+                    "%(name)s = new data.MultiStairHandler({stairType:MultiStairHandler.StaircaseType.%(stairType)s, \n"
         )
         buff.writeIndentedLines(code % inits)
 
