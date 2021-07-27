@@ -529,7 +529,7 @@ class KeyboardComponent(BaseComponent):
 
         buff.setIndentLevel(1, relative=True)
         code = (
-                "currentLoop.addResponse(%(name)s.keys);\n"
+                "currentLoop.addResponse(%(name)s.corr);\n"
         )
         buff.writeIndentedLines(code % self.params)
 
