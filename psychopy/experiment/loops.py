@@ -590,13 +590,13 @@ class MultiStairHandler(object):
         inits['stairType'].valType = "code"
 
         code = (
-            "\nfunction %(name)sLoopBegin(%(name)sLoopScheduler, snapshot) {{\n"
+            "\nfunction %(name)sLoopBegin(%(name)sLoopScheduler, snapshot) {\n"
         )
         buff.writeIndentedLines(code % inits)
 
         buff.setIndentLevel(1, relative=True)
         code = (
-                "return async function() {{\n"
+                "return async function() {\n"
         )
         buff.writeIndentedLines(code % inits)
 
@@ -624,7 +624,8 @@ class MultiStairHandler(object):
                     "});\n"
                     "psychoJS.experiment.addLoop(%(name)s); // add the loop to the experiment\n"
                     "currentLoop = %(name)s;  // we're now the current loop\n"
-                    "for (const thisQuestLoop of questLoop) {\n"
+                    "// Schedule all the trials in the trialList:\n"
+                    "for (const thisQuestLoop of %(name)s) {\n"
         )
         buff.writeIndentedLines(code % inits)
 
@@ -632,7 +633,7 @@ class MultiStairHandler(object):
         thisLoop = self.exp.flow.loopDict[self]
         for thisChild in thisLoop:
             if thisChild.getType() == 'Routine':
-                code += (
+                code = (
                         "const snapshot = %(name)s.getSnapshot();\n"
                         "{loopName}LoopScheduler.add({childName}RoutineBegin(snapshot));\n"
                         "{loopName}LoopScheduler.add({childName}RoutineEachFrame());\n"
@@ -641,7 +642,7 @@ class MultiStairHandler(object):
                                 loopName=self.params['name'])
                     )
             else:  # for a LoopInitiator
-                code += (
+                code = (
                         "const snapshot = %(name)s.getSnapshot();\n"
                         "const {childName}LoopScheduler = new Scheduler(psychoJS);\n"
                         "{loopName}LoopScheduler.add({childName}LoopBegin({childName}LoopScheduler, snapshot));\n"
@@ -650,7 +651,7 @@ class MultiStairHandler(object):
                         .format(childName=thisChild.params['name'],
                                 loopName=self.params['name'])
                         )
-        buff.writeIndentedLines(code % inits)
+            buff.writeIndentedLines(code % inits)
 
         buff.setIndentLevel(-1, relative=True)
         code = (
