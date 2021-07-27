@@ -18,6 +18,7 @@ The code that writes out a *_lastrun.py experiment file is (in order):
 
 from __future__ import absolute_import, print_function
 from builtins import object
+from copy import deepcopy
 from xml.etree.ElementTree import Element
 
 # from future import standard_library
@@ -584,24 +585,28 @@ class MultiStairHandler(object):
             buff.writeIndentedLines(code)
 
     def writeLoopStartCodeJS(self, buff, modular):
+        inits = deepcopy(self.params)
+        # For JS, stairType needs to be code
+        inits['stairType'].valType = "code"
+
         code = (
             "\nfunction %(name)sLoopBegin(%(name)sLoopScheduler, snapshot) {{\n"
         )
-        buff.writeIndentedLines(code % self.params)
+        buff.writeIndentedLines(code % inits)
 
         buff.setIndentLevel(1, relative=True)
         code = (
                 "return async function() {{\n"
         )
-        buff.writeIndentedLines(code % self.params)
+        buff.writeIndentedLines(code % inits)
 
         buff.setIndentLevel(1, relative=True)
         code = (
                     "// setup a MultiStairTrialHandler\n"
                     "%(name)sConditions = new data.importConditions(%(conditionsFile)s)\n"
-                    "%(name)s = new data.MultiStairHandler({stairType=%(stairType)s, \n"
+                    "%(name)s = new data.MultiStairHandler({stairType=MultiStairHandler.StaircaseType.%(stairType)s, \n"
         )
-        buff.writeIndentedLines(code % self.params)
+        buff.writeIndentedLines(code % inits)
 
         buff.setIndentLevel(1, relative=True)
         code = (
@@ -612,7 +617,7 @@ class MultiStairHandler(object):
                         "conditions: %(name)sConditions,\n"
                         "method: %(switchMethod)s\n"
         )
-        buff.writeIndentedLines(code % self.params)
+        buff.writeIndentedLines(code % inits)
 
         buff.setIndentLevel(-1, relative=True)
         code = (
@@ -621,7 +626,7 @@ class MultiStairHandler(object):
                     "currentLoop = %(name)s;  // we're now the current loop\n"
                     "for (const thisQuestLoop of questLoop) {\n"
         )
-        buff.writeIndentedLines(code % self.params)
+        buff.writeIndentedLines(code % inits)
 
         buff.setIndentLevel(1, relative=True)
         thisLoop = self.exp.flow.loopDict[self]
@@ -645,25 +650,25 @@ class MultiStairHandler(object):
                         .format(childName=thisChild.params['name'],
                                 loopName=self.params['name'])
                         )
-        buff.writeIndentedLines(code % self.params)
+        buff.writeIndentedLines(code % inits)
 
         buff.setIndentLevel(-1, relative=True)
         code = (
                 "}"
         )
-        buff.writeIndentedLines(code % self.params)
+        buff.writeIndentedLines(code % inits)
 
         buff.setIndentLevel(-1, relative=True)
         code = (
                 "}"
         )
-        buff.writeIndentedLines(code % self.params)
+        buff.writeIndentedLines(code % inits)
 
         buff.setIndentLevel(-1, relative=True)
         code = (
             "}"
         )
-        buff.writeIndentedLines(code % self.params)
+        buff.writeIndentedLines(code % inits)
 
     def writeLoopEndCode(self, buff):
         # Just within the loop advance data line if loop is whole trials
