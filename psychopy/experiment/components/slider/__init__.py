@@ -222,13 +222,12 @@ class SliderComponent(BaseVisualComponent):
 
         # build up an initialization string for Slider():
         initStr = ("{name} = visual.Slider(win=win, name='{name}',\n"
-                   "    size={size}, pos={pos}, units={units},\n"
+                   "    startValue={initVal}, size={size}, pos={pos}, units={units},\n"
                    "    labels={labels}, ticks={ticks}, granularity={granularity},\n"
                    "    style={styles}, styleTweaks={styleTweaks}, opacity={opacity},\n"
                    "    color={color}, fillColor={fillColor}, borderColor={borderColor}, colorSpace={colorSpace},\n"
                    "    font={font}, labelHeight={letterHeight},\n"
                    "    flip={flip}, depth={depth}, readOnly={readOnly})\n"
-                   "{name}.markerPos = {initVal}\n"
                    .format(**inits))
         buff.writeIndented(initStr)
 
