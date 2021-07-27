@@ -792,7 +792,7 @@ class SettingsComponent(object):
             code = (
                     "import {{ core, data, sound, util, visual }} from './lib/psychojs-{version}.js';\n"
                     "const {{ PsychoJS }} = core;\n"
-                    "const {{ TrialHandler }} = data;\n"
+                    "const {{ TrialHandler, MultiStairHandler }} = data;\n"
                     "const {{ Scheduler }} = util;\n"
                     "//some handy aliases as in the psychopy scripts;\n"
                     "const {{ abs, sin, cos, PI: pi, sqrt }} = Math;\n"
