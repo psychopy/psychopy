@@ -753,7 +753,7 @@ class SettingsComponent(object):
         elif useVer == 'latest':
             useVer = versions.latestVersion()
         else:
-            version = versions.fullVersion(useVer)
+            useVer = versions.fullVersion(useVer)
 
         # do we shorten minor versions ('3.4.2' to '3.4')?
         # only from 3.2 onwards
@@ -765,15 +765,12 @@ class SettingsComponent(object):
             # e.g. 2021.1.0 not 2021.1.0.dev3
             useVer = '.'.join(useVer.split('.')[:3])
 
-        # prepend the hyphen
-        versionStr = '-{}'.format(useVer)
-
         # html header
         if self.exp.expPath:
             template = readTextFile("JS_htmlHeader.tmpl")
             header = template.format(
                 name=jsFilename,
-                version=versionStr,
+                version=useVer,
                 params=self.params)
             jsFile = self.exp.expPath
             folder = os.path.dirname(jsFile)
@@ -793,14 +790,14 @@ class SettingsComponent(object):
         # Write imports if modular
         if modular:
             code = (
-                    "import {{ core, data, sound, util, visual }} from './lib/psychojs-2021.2.0.js';\n"
+                    "import {{ core, data, sound, util, visual }} from './lib/psychojs-{version}.js';\n"
                     "const {{ PsychoJS }} = core;\n"
                     "const {{ TrialHandler }} = data;\n"
                     "const {{ Scheduler }} = util;\n"
                     "//some handy aliases as in the psychopy scripts;\n"
                     "const {{ abs, sin, cos, PI: pi, sqrt }} = Math;\n"
                     "const {{ round }} = util;\n"
-                    "\n").format(version=versionStr)
+                    "\n").format(version=useVer)
             buff.writeIndentedLines(code)
 
         code = ("\n// store info about the experiment session:\n"

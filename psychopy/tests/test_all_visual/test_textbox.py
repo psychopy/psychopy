@@ -3,6 +3,7 @@ from pathlib import Path
 
 from psychopy import visual, event
 from psychopy.alerts._errorHandler import _BaseErrorHandler
+from psychopy.tests.test_all_visual.test_basevisual import _TestColorMixin
 from psychopy.visual import Window
 from psychopy.visual import TextBox2
 from psychopy.visual.textbox2.fontmanager import FontManager
@@ -14,18 +15,33 @@ from psychopy.tests import utils
 
 
 @pytest.mark.textbox
-class Test_textbox(object):
+class Test_textbox(_TestColorMixin):
     def setup_class(self):
         self.win = Window([128,128], pos=[50,50], allowGUI=False, autoLog=False)
         self.error = _BaseErrorHandler()
         self.textbox = TextBox2(self.win, "", "Noto Sans",
                                 pos=(0, 0), size=(1, 1), units='height',
                                 letterHeight=0.1, colorSpace="rgb")
+        self.obj = self.textbox  # point to textbox for mixin tests
+        # Pixel which is the border color
+        self.borderPoint = (0, 0)
+        self.borderUsed = True
+        # Pixel which is the fill color
+        self.fillPoint = (2, 2)
+        self.fillUsed = True
+        # Textbox foreground is too unreliable due to fonts for pixel analysis
+        self.foreUsed = False
 
     def teardown_class(self):
         self.win.close()
 
     def test_glyph_rendering(self):
+        # Prepare textbox
+        self.textbox.colorSpace = 'rgb'
+        self.textbox.color = 'white'
+        self.textbox.fillColor = (0, 0, 0)
+        self.textbox.borderColor = None
+        self.textbox.opacity = 1
 
         # Add all Noto Sans fonts to cover widest possible base of handles characters
         for font in ["Noto Sans", "Noto Sans HK", "Noto Sans JP", "Noto Sans KR", "Noto Sans SC", "Noto Sans TC", "Niramit", "Indie Flower"]:
@@ -77,6 +93,9 @@ class Test_textbox(object):
                 utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / filename, self.win, crit=20)
 
     def test_colors(self):
+        # Do base tests
+        _TestColorMixin.test_colors(self)
+        # Do own custom tests
         self.textbox.text = "A PsychoPy zealot knows a smidge of wx, but JavaScript is the question."
         # Some exemplar text to test basic colors
         exemplars = [

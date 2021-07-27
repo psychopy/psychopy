@@ -223,99 +223,19 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         """Set the color of the shape. Sets both `fillColor` and `lineColor`
         simultaneously if applicable.
         """
+        ColorMixin.foreColor.fset(self, color)
         self.fillColor = color
         self.lineColor = color
+        return ColorMixin.foreColor.fget(self)
 
     #---legacy functions---
-
-    @property
-    def fillColorSpace(self):
-        """Deprecated, please use colorSpace to set color space for the entire
-        object.
-        """
-        return self.colorSpace
-    @fillColorSpace.setter
-    def fillColorSpace(self, value):
-        logging.warning("Setting color space by attribute rather than by object is deprecated. Value of fillColorSpace has been assigned to colorSpace.")
-        self.colorSpace = value
-
-    @property
-    def lineColorSpace(self):
-        """Deprecated, please use colorSpace to set color space for the entire
-        object
-        """
-        return self.colorSpace
-    @fillColorSpace.setter
-    def lineColorSpace(self, value):
-        logging.warning(
-            "Setting color space by attribute rather than by object is deprecated. Value of lineColorSpace has been assigned to colorSpace.")
-        self.colorSpace = value
-
-    def setLineRGB(self, value, operation=''):
-        """DEPRECATED since v1.60.05: Please use :meth:`~ShapeStim.lineColor`
-        """
-        if operation in ['', '=']:
-            self.lineColor = Color(value, 'rgb255')
-        elif operation in ['+']:
-            self._lineColor += Color(value, 'rgb255')
-        elif operation in ['-']:
-            self._lineColor -= Color(value, 'rgb255')
-        else:
-            logging.error(f"Operation '{operation}' not recognised.")
-
-    def setFillRGB(self, value, operation=''):
-        """DEPRECATED since v1.60.05: Please use :meth:`~ShapeStim.fillColor`
-        """
-        if operation in ['', '=']:
-            self.fillColor = Color(value, 'rgb255')
-        elif operation in ['+']:
-            self._fillColor += Color(value, 'rgb255')
-        elif operation in ['-']:
-            self._fillColor -= Color(value, 'rgb255')
-        else:
-            logging.error(f"Operation '{operation}' not recognised.")
 
     def setColor(self, color, colorSpace=None, operation='', log=None):
         """Sets both the line and fill to be the same color.
         """
+        ColorMixin.setForeColor(self, color, colorSpace, operation, log)
         self.setLineColor(color, colorSpace, operation, log)
         self.setFillColor(color, colorSpace, operation, log)
-
-    def setLineColor(self, color, colorSpace=None, operation='', log=None):
-        """Sets the color of the shape edge.
-
-        See :meth:`psychopy.visual.GratingStim.color` for further details.
-        """
-        if colorSpace is not None:
-            self.colorSpace = colorSpace
-        if operation in ['', '=']:
-            self.lineColor = color
-        elif operation in ['+']:
-            self.lineColor += color
-        elif operation in ['-']:
-            self.lineColor -= color
-        else:
-            logging.error(f"Operation '{operation}' not recognised.")
-
-    def setFillColor(self, color, colorSpace=None, operation='', log=None):
-        """Sets the color of the shape fill.
-
-        See :meth:`psychopy.visual.GratingStim.color` for further details.
-
-        Note that shapes where some vertices point inwards will usually not
-        'fill' correctly.
-        """
-        # run the original setColor, which creates color and
-        if colorSpace is not None:
-            self.colorSpace = colorSpace
-        if operation in ['', '=']:
-            self.fillColor = color
-        elif operation in ['+']:
-            self.fillColor += color
-        elif operation in ['-']:
-            self.fillColor -= color
-        else:
-            logging.error(f"Operation '{operation}' not recognised.")
 
     @attributeSetter
     def size(self, value):
