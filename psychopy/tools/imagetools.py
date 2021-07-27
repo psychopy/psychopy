@@ -28,7 +28,7 @@ def array2image(a):
     #
     if a.dtype.kind in ['u', 'I', 'B']:
         mode = "L"
-    elif a.dtype.kind == numpy.float32:
+    elif a.dtype.kind in [numpy.float32, 'f']:
         mode = "F"
     else:
         raise ValueError("unsupported image mode")
