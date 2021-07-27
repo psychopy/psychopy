@@ -707,7 +707,7 @@ class MultiStairHandler(object):
         code = (
                 "// update the QUEST pdf\n"
                 "quest.addResponse(response);\n"
-                "// terminate loop"
+                "// terminate loop\n"
                 "psychoJS.experiment.removeLoop(%(name)s);\n"
                 "return Scheduler.Event.NEXT;\n"
         )
