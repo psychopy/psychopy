@@ -53,7 +53,7 @@ class Test_BuilderFrame(object):
         expfile = path.join(prefs.paths['tests'],
                             'data', 'test001EntryImporting.psyexp')
         builderView.fileOpen(filename=expfile)
-        builderView.setExperimentSettings(timeout=2)
+        builderView.setExperimentSettings(timeout=2000)
         builderView.isModified = False
         builderView.runFile()
         builderView.closeFrame()
