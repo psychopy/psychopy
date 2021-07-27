@@ -535,11 +535,10 @@ class KeyboardComponent(BaseComponent):
 
         buff.setIndentLevel(-1, relative=True)
         code = (
-            "} else {\n"
+            "}\n"
         )
         buff.writeIndentedLines(code % self.params)
 
-        buff.setIndentLevel(1, relative=True)
         # always add keys
         buff.writeIndented("psychoJS.experiment.addData('%(name)s.keys', %(name)s.keys);\n" % self.params)
 
@@ -557,9 +556,3 @@ class KeyboardComponent(BaseComponent):
         buff.writeIndentedLines(code.format(loopName=currLoop.params['name'], name=name))
         # Stop keyboard
         buff.writeIndentedLines("%(name)s.stop();\n" % self.params)
-
-        buff.setIndentLevel(-1, relative=True)
-        code = (
-            "}"
-        )
-        buff.writeIndentedLines(code % self.params)
