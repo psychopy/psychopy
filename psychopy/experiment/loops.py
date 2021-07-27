@@ -588,6 +588,9 @@ class MultiStairHandler(object):
         inits = deepcopy(self.params)
         # For JS, stairType needs to be code
         inits['stairType'].valType = "code"
+        # Method needs to be code and upper
+        inits['switchMethod'].valType = "code"
+        inits['switchMethod'].val = inits['switchMethod'].val.upper()
 
         code = (
             "\nfunction %(name)sLoopBegin(%(name)sLoopScheduler, snapshot) {\n"
@@ -615,7 +618,7 @@ class MultiStairHandler(object):
                         "varName: '%(name)sVal',\n"
                         "nTrials: %(nReps)s,\n"
                         "conditions: %(name)sConditions,\n"
-                        "method: %(switchMethod)s\n"
+                        "method: TrialHandler.Method.%(switchMethod)s\n"
         )
         buff.writeIndentedLines(code % inits)
 
