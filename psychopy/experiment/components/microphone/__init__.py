@@ -170,7 +170,7 @@ class MicrophoneComponent(BaseComponent):
 
         self.params['transcribeLang'] = Param(
             transcribeLang, valType='str', inputType='single', categ='Transcription',
-            hint=_translate("What language you expect the recording to be spoken in, e.g. en-GB for English"),
+            hint=_translate("What language you expect the recording to be spoken in, e.g. en-US for English"),
             label=_translate("Transcription Language")
         )
 
@@ -356,8 +356,16 @@ class MicrophoneComponent(BaseComponent):
             "# tell mic to keep hold of current recording in %(name)s.clips and transcript (if applicable) in %(name)s.scripts\n"
             "# this will also update %(name)s.lastClip and %(name)s.lastScript\n"
             "%(name)s.stop()\n"
-            "%(name)sClip, %(name)sScript = %(name)s.bank(\n"
         )
+        buff.writeIndentedLines(code % inits)
+        if inits['transcribeBackend'].val:
+            code = (
+                "%(name)sClip, %(name)sScript = %(name)s.bank(\n"
+            )
+        else:
+            code = (
+                "%(name)sClip = %(name)s.bank(\n"
+            )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(1, relative=True)
         code = (

@@ -209,20 +209,20 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
 
     If `fileName` ends with:
 
-        - .csv:  import as a comma-separated-value file
+    - .csv:  import as a comma-separated-value file
             (header + row x col)
-        - .xlsx: import as Excel 2007 (xlsx) files.
+    - .xlsx: import as Excel 2007 (xlsx) files.
             No support for older (.xls) is planned.
-        - .pkl:  import from a pickle file as list of lists
+    - .pkl:  import from a pickle file as list of lists
             (header + row x col)
 
     The file should contain one row per type of trial needed and one column
     for each parameter that defines the trial type. The first row should give
     parameter names, which should:
 
-        - be unique
-        - begin with a letter (upper or lower case)
-        - contain no spaces or other punctuation (underscores are permitted)
+    - be unique
+    - begin with a letter (upper or lower case)
+    - contain no spaces or other punctuation (underscores are permitted)
 
 
     `selection` is used to select a subset of condition indices to be used
@@ -230,11 +230,11 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
     be parsed as either option.
     e.g.:
 
-        - "1,2,4" or [1,2,4] or (1,2,4) are the same
-        - "2:5"       # 2, 3, 4 (doesn't include last whole value)
-        - "-10:2:"    # tenth from last to the last in steps of 2
-        - slice(-10, 2, None)  # the same as above
-        - random(5) * 8  # five random vals 0-7
+    - "1,2,4" or [1,2,4] or (1,2,4) are the same
+    - "2:5"       # 2, 3, 4 (doesn't include last whole value)
+    - "-10:2:"    # tenth from last to the last in steps of 2
+    - slice(-10, 2, None)  # the same as above
+    - random(5) * 8  # five random vals 0-7
 
     """
 

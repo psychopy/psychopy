@@ -1,0 +1,21 @@
+
+code: 8110
+cat: Colors
+msg: RGB attribute `.{rgbAttrib}` is no longer in use, as non-RGB colors now handle their own conversion.
+
+# The following are typically used for online help pages, and support reStructured Text.
+label: RGB attributes no longer used
+
+synopsis: |
+  As colors are now handled by Color objects, there is no need for RGB attributes. Instead, color attributes have a corresponding object which knows its own RGB value.
+
+details: |
+  As of version 2021.1.0, colors are handled by a `psychopy.colors.Color` object, rather than being indiviual values. This means that when you set a color, for example `object.color = 'white'`, behind the scenes a `Color` object is made, which knows what color it is in any space. This object is stored in a private attribute of the object, usually with the same name as the color attribute but with a '_' in front (e.g. the object for `fillColor` is `_fillColor`). So if you wanted to get your object's color in `rgb255`, for example, you would call `object._color.rgb255` rather than doing the conversion manually based on the corresponding color space attribute. It also means that if the color space of the object changes (e.g. `object.colorSpace = 'hsv'`), its colors will automatically be returned in the same space without needing to be converted manually.
+
+  As a result, attributes like `fillRGB` and `borderRGB` are no longer needed - the same value can be accessed as `object._fillColor.rgb` and `object._borderColor.rgb` instead.
+
+solutions: |
+  No action needed, to silence this alert simply remove any reference to the RGB attribute in question and instead set rgb value of the color object.
+
+versions: |
+  > 2021.1.0
