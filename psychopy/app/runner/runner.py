@@ -759,7 +759,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
         """
         libPath = self.currentFile.parent / self.outputPath / 'lib'
         ver = '.'.join(self.app.version.split('.')[:3])
-        psychoJSLibs = ['core', 'data', 'util', 'visual', 'sound']
+        libFileExtensions = ['css', 'iife.js', 'iife.js.map', 'js', 'js.LEGAL.txt', 'js.map']
 
         try:  # ask-for-forgiveness rather than query-then-make
             os.makedirs(libPath)
@@ -767,11 +767,11 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
             if e.errno != errno.EEXIST:  # we only want to ignore "exists", not others like permissions
                 raise  # raises the error again
 
-        for lib in psychoJSLibs:
-            finalPath = libPath / ("{}-{}.js".format(lib, ver))
+        for ext in libFileExtensions:
+            finalPath = libPath / ("psychojs-{}.{}".format(ver, ext))
             if finalPath.exists():
                 continue
-            url = "https://lib.pavlovia.org/{}-{}.js".format(lib, ver)
+            url = "https://lib.pavlovia.org/psychojs-{}.{}".format(ver, ext)
             req = requests.get(url)
             with open(finalPath, 'wb') as f:
                 f.write(req.content)

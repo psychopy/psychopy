@@ -150,7 +150,7 @@ class EmotivMarkingComponent(BaseComponent):  # or (VisualComponent)
         buff.setIndentLevel(1, relative=True)
         buff.writeIndented('if (typeof emotiv != "undefined") {\n')
         buff.setIndentLevel(1, relative=True)
-        buff.writeIndented(f'emotiv.sendMarker({self.params["marker_value"]}, {self.params["marker_label"]}, {self.params["stop_marker"]})\n')
+        buff.writeIndented(f'emotiv.sendMarker({self.params["marker_value"]}.toString(), {self.params["marker_label"]}.toString(), {self.params["stop_marker"]})\n')
         buff.setIndentLevel(-1, relative=True);
         buff.writeIndented("}\n");
         buff.setIndentLevel(-1, relative=True);
@@ -166,30 +166,20 @@ class EmotivMarkingComponent(BaseComponent):  # or (VisualComponent)
         if self.params['stopVal'].val not in ('', None, -1, 'None'):
             # writes an if statement to determine whether to draw etc
             self.writeStopTestCodeJS(buff)
-            buff.writeIndented('psychoJS.window.callOnFlip(function() {\n')
-            buff.setIndentLevel(1, relative=True)
-            buff.writeIndented('if (typeof emotiv != "undefined") {\n')
-            buff.setIndentLevel(1, relative=True)
-            buff.writeIndented('emotiv.sendStopMarker()\n')
-            buff.setIndentLevel(-1, relative=True)
-            buff.writeIndented('}\n')
-            buff.setIndentLevel(-1, relative=True)
-            buff.writeIndented('});\n')
+            if self.params['stop_marker'].val:
+                buff.writeIndented('psychoJS.window.callOnFlip(function() {\n')
+                buff.setIndentLevel(1, relative=True)
+                buff.writeIndented('if (typeof emotiv != "undefined") {\n')
+                buff.setIndentLevel(1, relative=True)
+                buff.writeIndented('emotiv.sendStopMarker()\n')
+                buff.setIndentLevel(-1, relative=True)
+                buff.writeIndented('}\n')
+                buff.setIndentLevel(-1, relative=True)
+                buff.writeIndented('});\n')
             buff.writeIndented('{}.status = PsychoJS.Status.FINISHED;\n'
                                .format(self.params['name']))
 
         # buff.writeIndented("%(name)s.setAutoDraw(false);\n" % self.params)
             # to get out of the if statement
             buff.setIndentLevel(-1, relative=True)
-            buff.writeIndented("}\n")
-
-        # set parameters that need updating every frame
-        # do any params need updating? (this method inherited from _base)
-        if self.checkNeedToUpdate('set every frame'):
-            code = ("\nif (%(name)s.status === PsychoJS.Status.STARTED){ "
-                    "// only update if being drawn\n")
-            buff.writeIndentedLines(code % self.params)
-            buff.setIndentLevel(+1, relative=True)  # to enter the if block
-            self.writeParamUpdatesJS(buff, 'set every frame')
-            buff.setIndentLevel(-1, relative=True)  # to exit the if block
             buff.writeIndented("}\n")

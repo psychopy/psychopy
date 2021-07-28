@@ -23,7 +23,6 @@ import json
 import threading
 import datetime
 from sys import platform
-# from psychopy import logging
 import websocket
 import ssl
 import time
@@ -429,9 +428,10 @@ class Cortex(object):
         try:
             resp = self.send_wait_command('createSession', **params)
         except CortexApiException as e:
-            msg = json.loads(str(e))['error']['message'].lower()
-            if "headset is missing" in msg:
-                raise CortexApiException("Please connect the headset using "
+            # msg = json.loads(str(e))['error']['message'].lower()
+            code = json.loads(str(e))['error']['code']
+            if code == -32004:
+                raise CortexNoHeadsetException("Please connect the headset using "
                                          "EmotivApp or EmotivPro")
         self.session_id = resp['result']['id']
         logger.debug(f"{__name__} resp:\n{resp}")
@@ -528,4 +528,4 @@ if __name__ == "__main__":
     cortex = Cortex()
     cortex.inject_marker(label="test_marker", value=4, port="psychpy")
     time.sleep(10)
-    cortex.update_marker()
+    cortex.update_marker(label="test_marker")

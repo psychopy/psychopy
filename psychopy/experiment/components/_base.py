@@ -510,6 +510,11 @@ class BaseComponent(object):
                 if stopVal in ['', None, -1, 'None']:
                     stopVal = '-1'
                 buff.writeIndented(f"{compName}.setSound({params['sound']}, secs={stopVal}){endStr}\n")
+            elif compName == 'eeg_marker':
+                # This allows the eeg_marker to be updated by a code component or a conditions file
+                # There is no setMarker_label or setMarker_value function in the eeg_marker object
+                # The marker label and value are set by the variables set in the dialogue
+                pass
             else:
                 buff.writeIndented(f"{compName}.set{paramCaps}({val}{loggingStr}){endStr}\n")
 

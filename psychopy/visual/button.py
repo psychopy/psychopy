@@ -11,8 +11,9 @@ from __future__ import absolute_import, print_function
 
 import builtins
 
-from psychopy import event
+from psychopy import event, core
 from psychopy.visual import TextBox2
+from psychopy.constants import (NOT_STARTED, STARTED, PLAYING, PAUSED, STOPPED, FINISHED, PRESSED, RELEASED, FOREVER)
 
 __author__ = 'Anthony Haffey & Todd Parsons'
 
@@ -34,10 +35,12 @@ class ButtonStim(TextBox2):
                                  letterHeight=letterHeight, bold=bold, italic=italic,
                                  alignment='center', editable=False)
         self.listener = event.Mouse(win=win)
+        self.buttonClock = core.Clock()
         self.wasClicked = False # Attribute to save whether button was previously clicked
         # Arrays to store times of clicks on and off
         self.timesOn = []
         self.timesOff = []
+
     @property
     def numClicks(self):
         """How many times has this button been clicked on?"""
@@ -47,3 +50,15 @@ class ButtonStim(TextBox2):
     def isClicked(self):
         """Is this button currently being clicked on?"""
         return bool(self.listener.isPressedIn(self))
+
+    @property
+    def status(self):
+        if hasattr(self, "_status"):
+            return self._status
+
+    @status.setter
+    def status(self, value):
+        if value == STARTED and self._status not in [STARTED, PAUSED]:
+            self.buttonClock.reset()  # Reset clock
+        # Set status
+        self._status = value

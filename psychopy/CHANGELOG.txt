@@ -15,6 +15,54 @@ to run on the same PsychoPy version even where a different version is installed 
 That setting often even allows PsychoPy to run experiments from versions that have not yet
 been installed! If the dependencies haven't changed it will run.
 
+PsychoPy 2021.2
+---------------
+
+*Highlights:*
+
+- Unified Eyetracker support via ioHub is now integrated into Builder for easy-to-use eyetracking studies, with many fixes, improvements and a "MouseGaze" option to simulate eye movements while testing
+- Mic recordings for voice responses (Python and JS)
+- Transcription (speech-to-text) via Google Speech or using CMU Pocket Sphinx (free but currently on the Python lib only)
+- Improved JavaScript outputs from the Builder, providing more seamless migration to web-based studies
+
+*Compatibility Changes:*
+
+- CHANGED: In Python the random number generators for TrialHandlers etc use an improved algorithm (PCG64) and are now indendent of each other but seeded random sequences will differ from previous versions
+
+PsychoPy 2021.2.0
+~~~~~~~~~~~~~~~~~
+
+*New and improved:*
+
+- JS+Py: Record and transcribe (speech-to-text) audio responses in both Python and JavaScript engines using various local (CMU Pocket Sphinx) and web (Google and Bing) services.
+- Py: Eyetracking Components added to Builder for code-free eye-gaze monitoring
+    - Eyetracker Record: Starts an ioHub server to receive input from an eye tracker
+    - Eyetracker Calibration: Runs calibration procedure on connected eyetracker
+    - Eyetracker Validation: Runs validation procedure on connected eyetracker
+    - Region Of Interest: A PsychoPy polygon with methods to check whether it's being looked at, how long for, how many times, etc.
+    - also improved calibration and validation procedures
+- Py: Improved Movie playback performance for both the OpenCV (MovieStim3) and VLC backends. The VLC backend has added playback controls (fast-forward, rewind, etc)
+- Py: hardware.Keyboard class now supports ioHub as a backend and will use that in preference to Psychtoolbox keyboard (PsychHID) if ioHub has been started before the Keyboard is created. ioHub keyboard is similarly in performance but with fewer constraints (can handle a wider range of keyboards)
+- App: demos within the app got so busy they've been moved into categories
+- App: includes some basic fonts, so as not to rely on what is installed (except on macOS where these aren't permitted)
+- App: output is available again in the bottom of the Coder view
+- App: many improvements to the autotranslate of Py->JS in Code Components (fixing issues from the "Crib sheet")
+- JS: audio playback can fade in/out to avoid clicks
+- JS: Builder loops (TrialHandlers) support and update properties such as thisN as in Python Experiments
+- JS: Form supports `formComplete()` call to check if all required items have a response
+- JS: Form supports itesm types: SLIDER, RADIO (synonyms for RATING and CHOICE)
+- JS: Button Component now supported for text-based buttons (as in the Python Component already present)
+- JS: supports more options for color styles
+
+*Fixes:*
+
+- Py: TextBox better handling word boundaries for newlines
+- Py: Button was incorrectly treating a held-down button as a click (now supports new-clicks only option)
+- Py: ioHub better integration with PsychoPy units and color spaces
+- JS: bug in Form scrolling
+- JS: various fixes to TextBox and Form styling
+- JS: Data files output now include information about their character encoding (BOM) supporting more locales of Excel
+
 
 PsychoPy 2021.1
 ---------------
@@ -2912,7 +2960,7 @@ PsychoPy 0.65
 
 PsychoPy 0.64
 ~~~~~~~~~~~~~~~~~~~~~~
-* ChANGED monitor key dkl_rgb_matrix to dkl_rgb (also for lms)
+* CHANGED monitor key dkl_rgb_matrix to dkl_rgb (also for lms)
 * ADDED code for PR650 to get the monitor color calibration and calculate the color conversion matrices automatically. Will be implemented via the MonitorCenter application.
 * ADDED pyserial2.0 as a subpackage of psychopy so that it needn't be separately installed
 * Much improved MonitorCenter with DKL and LMS calibration buttons and matrix output

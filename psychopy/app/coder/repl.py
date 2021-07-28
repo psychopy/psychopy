@@ -8,18 +8,19 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import wx
+import wx.richtext
 from collections import deque
 from psychopy.app.themes import ThemeMixin
 
 
-class ConsoleTextCtrl(wx.TextCtrl, ThemeMixin):
+class ConsoleTextCtrl(wx.richtext.RichTextCtrl, ThemeMixin):
     """Class for the console text control. This is needed to allow for theming.
     """
     def __init__(self, parent, id_=wx.ID_ANY, value="", pos=wx.DefaultPosition,
                  size=wx.DefaultSize, style=0,
                  name=wx.TextCtrlNameStr):
 
-        wx.TextCtrl.__init__(
+        wx.richtext.RichTextCtrl.__init__(
             self, parent, id=id_, value=value, pos=pos, size=size, style=style,
             validator=wx.DefaultValidator, name=name)
 

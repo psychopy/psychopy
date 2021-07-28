@@ -466,6 +466,7 @@ class DlgFromDict(Dlg):
             self.dictionary = dictionary
 
         self._keys = list(self.dictionary.keys())
+        self._labels = labels
 
         if order:
             self._keys = list(order) + list(set(self._keys).difference(set(order)))
@@ -494,8 +495,12 @@ class DlgFromDict(Dlg):
         ok_data = self.exec_()
         if ok_data:
             for n, thisKey in enumerate(self._keys):
+                if thisKey in self._labels:
+                    labelKey = self._labels[thisKey]
+                else:
+                    labelKey = thisKey
                 try:
-                    self.dictionary[thisKey] = self.inputFieldTypes[thisKey](self.data[n])
+                    self.dictionary[thisKey] = self.inputFieldTypes[labelKey](self.data[n])
                 except ValueError:
                     self.dictionary[thisKey] = self.data[n]
 
@@ -694,6 +699,7 @@ if __name__ == '__main__':
     info = {'Observer': 'jwp', 'GratingOri': 45,
             'ExpVersion': 1.1, 'Group': ['Test', 'Control']}
     dictDlg = DlgFromDict(dictionary=info, title='TestExperiment',
+                          labels={'Group': 'Participant Group'},
                           fixed=['ExpVersion'])
     if dictDlg.OK:
         print(info)

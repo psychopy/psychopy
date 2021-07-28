@@ -244,6 +244,10 @@ class PolygonComponent(BaseVisualComponent):
             code = ("{name} = new visual.Rect ({{\n"
                     "  win: psychoJS.window, name: '{name}', {unitsStr}\n"
                     "  width: {size}[0], height: {size}[1],\n")
+        elif vertices in ['circle', '100']:
+            code = ("{name} = new visual.Polygon({{\n"
+                    "  win: psychoJS.window, name: '{name}', {unitsStr}\n"
+                    "  edges: 100, size:{size},\n")
         elif vertices in ['star']:
             code = ("{name} = new visual.ShapeStim ({{\n"
                     "  win: psychoJS.window, name: '{name}', {unitsStr}\n"
