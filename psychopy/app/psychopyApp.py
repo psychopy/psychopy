@@ -19,13 +19,13 @@ import psychopy.locale_setup  # noqa
 
 
 def start_app():
-    from psychopy.app._psychopyApp import PsychoPyApp
+    from psychopy.app import startApp
 
     showSplash = True
     if '--no-splash' in sys.argv:
         showSplash = False
         del sys.argv[sys.argv.index('--no-splash')]
-    app = PsychoPyApp(0, showSplash=showSplash)
+    app = startApp(showSplash=showSplash)
     app.MainLoop()
 
 

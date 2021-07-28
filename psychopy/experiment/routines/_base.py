@@ -52,14 +52,14 @@ class BaseStandaloneRoutine:
         self.params['stopType'] = Param(stopType,
             valType='str', inputType="choice", categ='Basic',
             allowedVals=['duration (s)', 'duration (frames)', 'condition'],
-            hint=msg,
+            hint=msg, direct=False,
             label=_translate('Stop Type...'))
 
         # Testing
         msg = _translate("Disable this component")
         self.params['disabled'] = Param(disabled,
             valType='bool', inputType="bool", categ="Testing",
-            hint=msg, allowedTypes=[],
+            hint=msg, allowedTypes=[], direct=False,
             label=_translate('Disable component'))
 
     def __repr__(self):

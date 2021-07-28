@@ -357,7 +357,7 @@ class Color(object):
         """If colour is printed, it will display its class and value"""
         if self.valid:
             if self.named:
-                return f"<{self.__class__.__module__}.{self.__class__.__name__}: {self.named}>"
+                return f"<{self.__class__.__module__}.{self.__class__.__name__}: {self.named}, alpha={self.alpha}>"
             else:
                 return f"<{self.__class__.__module__}.{self.__class__.__name__}: {tuple(np.round(self.rgba, 2))}>"
         else:

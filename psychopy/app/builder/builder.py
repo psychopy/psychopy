@@ -1259,7 +1259,9 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         else:
             helpUrl = None
         title = '%s Properties' % self.exp.getExpName()
-        dlg = DlgExperimentProperties(frame=self, element=component, experiment=self.exp)
+        dlg = DlgExperimentProperties(
+            frame=self, element=component, experiment=self.exp, timeout=timeout)
+
         if dlg.OK:
             self.addToUndoStack("EDIT experiment settings")
             self.setIsModified(True)

@@ -121,7 +121,7 @@ class Param(object):
 
     def __init__(self, val, valType, inputType=None, allowedVals=None, allowedTypes=None,
                  hint="", label="", updates=None, allowedUpdates=None,
-                 allowedLabels=None,
+                 allowedLabels=None, direct=True,
                  categ="Basic"):
         """
         @param val: the value for this parameter
@@ -146,6 +146,9 @@ class Param(object):
         @param categ: category for this parameter
             will populate tabs in Component Dlg
         @type allowedUpdates: string
+        @param direct: purely used in the test suite, marks whether this
+            param's value is expected to appear in the script
+        @type direct: bool
         """
         super(Param, self).__init__()
         self.label = label
@@ -161,6 +164,7 @@ class Param(object):
         self.categ = categ
         self.readOnly = False
         self.codeWanted = False
+        self.direct = direct
         if inputType:
             self.inputType = inputType
         elif valType in inputDefaults:

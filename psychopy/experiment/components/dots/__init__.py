@@ -127,7 +127,7 @@ class DotsComponent(BaseVisualComponent):
         self.params['refreshDots'] = Param(
             refreshDots, valType='str', inputType="choice", allowedVals=['none', 'repeat'], categ='Dots',
             allowedUpdates=[],
-            hint=msg,
+            hint=msg, direct=False,
             label=_localized['refreshDots'])
             
 

@@ -78,7 +78,7 @@ class ButtonComponent(BaseVisualComponent):
 
         self.params['forceEndRoutine'] = Param(
             forceEndRoutine, valType='bool', inputType="bool", categ='Basic',
-            updates='constant',
+            updates='constant', direct=False,
             hint=_translate("Should a response force the end of the Routine "
                             "(e.g end the trial)?"),
             label=_localized['forceEndRoutine'])
@@ -161,11 +161,13 @@ class ButtonComponent(BaseVisualComponent):
             allowedVals=['first click', 'last click', 'every click', 'none'],
             hint=_translate(
                 "What clicks on this button should be saved to the data output?"),
+            direct=False,
             label=_localized['save'])
         self.params['timeRelativeTo'] = Param(
             timeRelativeTo, valType='str', inputType="choice", categ='Data',
             allowedVals=['button onset', 'experiment', 'routine'],
             updates='constant',
+            direct=False,
             hint=_translate(
                 "What should the values of mouse.time should be "
                 "relative to?"),
@@ -218,7 +220,12 @@ class ButtonComponent(BaseVisualComponent):
                 "win: psychoJS.window,\n"
                 "name: '%(name)s',\n"
                 "text: %(text)s,\n"
-                "pos: %(pos)s, letterHeight: %(letterHeight)s,\n"
+                "fillColor: %(fillColor)s,\n"
+                "borderColor: %(borderColor)s,\n"
+                "color: %(color)s,\n"
+                "colorSpace: %(colorSpace)s,\n"
+                "pos: %(pos)s,\n"
+                "letterHeight: %(letterHeight)s,\n"
                 "size: %(size)s\n"
         )
         buff.writeIndentedLines(code % inits)
@@ -318,7 +325,6 @@ class ButtonComponent(BaseVisualComponent):
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(1, relative=True)
         code = (
-            f"%(name)s.buttonClock.reset() # keep clock at 0 if %(name)s hasn't started / has finished\n"
             f"%(name)s.wasClicked = False  # if %(name)s is clicked next frame, it is a new click\n"
         )
         buff.writeIndentedLines(code % inits)

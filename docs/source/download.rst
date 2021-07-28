@@ -15,7 +15,7 @@ For the easiest installation download and install the Standalone package.
 
     let filename;
     let url;
-    let version='2021.1.4'
+    let version='2021.2.1';
 
     let clientInfo = UAParser(navigator.userAgent);
     var osLabel;
@@ -25,11 +25,7 @@ For the easiest installation download and install the Standalone package.
     if (navigator.platform == 'Win32' && clientInfo.cpu.architecture == 'amd64') {
       osLabel = clientInfo.os.name+" "+clientInfo.cpu.architecture;
       filename = '  Standalone PsychoPy '+version+' for 64bit Windows (using Python3.6)';
-      url = 'https://github.com/psychopy/psychopy/releases/download/'+version+'/StandalonePsychoPy3-'+version+'-win64.exe';
-    }
-    else if (navigator.platform == 'Win32') {
-      filename = '  Standalone PsychoPy '+version+' for 32bit Windows (using Python3.6)';
-      url = 'https://github.com/psychopy/psychopy/releases/download/'+version+'/StandalonePsychoPy3-'+version+'-win32.exe';
+      url = 'https://github.com/psychopy/psychopy/releases/download/'+version+'/StandalonePsychoPy-'+version+'-win64.exe';
     }
     else if (navigator.platform == 'MacIntel') {
       osLabel = clientInfo.os.name+" "+clientInfo.os.version;
