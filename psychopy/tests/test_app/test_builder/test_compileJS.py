@@ -38,7 +38,7 @@ class Test_PsychoJS_from_Builder(object):
             self.temp_dir = Path.home() / "Desktop" / "tmp"
         else:
             self.temp_dir = Path(mkdtemp(prefix='psychopy-test_psychojs'))
-            
+
         self.builderView = getAppInstance().newBuilderFrame()  # self._app comes from requires_app
 
     def teardown_class(self):
