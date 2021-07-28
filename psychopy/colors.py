@@ -245,6 +245,9 @@ class Color(object):
         self.set(color=color, space=space)
 
     def validate(self, color, space=None):
+        """
+        Check that a color value is valid in the given space, or all spaces if space==None.
+        """
         # Treat None as a named color
         if color is None:
             color = "none"
@@ -317,7 +320,6 @@ class Color(object):
     def set(self, color=None, space=None):
         """Set the colour of this object - essentially the same as what happens
         on creation, but without having to initialise a new object.
-
         """
         # If input is a Color object, duplicate all settings
         if isinstance(color, Color):
@@ -341,6 +343,9 @@ class Color(object):
             raise ValueError("{} is not a valid color space.".format(space))
 
     def render(self, space='rgb'):
+        """
+        Apply contrast to the base color value and return the adjusted color value
+        """
         if space not in colorSpaces:
             raise ValueError(f"{space} is not a valid color space")
         adj = np.clip(self.rgb * self.contrast, -1, 1)
@@ -352,7 +357,7 @@ class Color(object):
         """If colour is printed, it will display its class and value"""
         if self.valid:
             if self.named:
-                return f"<{self.__class__.__module__}.{self.__class__.__name__}: {self.named}>"
+                return f"<{self.__class__.__module__}.{self.__class__.__name__}: {self.named}, alpha={self.alpha}>"
             else:
                 return f"<{self.__class__.__module__}.{self.__class__.__name__}: {tuple(np.round(self.rgba, 2))}>"
         else:
@@ -417,7 +422,7 @@ class Color(object):
         # If target is a Color object, add together the rgba values
         if isinstance(other, Color):
             if len(self) == len(other):
-                buffer.rgba = self.rgba - other.rgba
+                buffer.rgb = self.rgb - other.rgb
         return buffer
 
     def copy(self):
@@ -430,6 +435,9 @@ class Color(object):
 
     @property
     def alpha(self):
+        """
+        How opaque (0) or transparent (0) this color is. Synonymous with `opacity`.
+        """
         return self._alpha
 
     @alpha.setter
@@ -452,7 +460,11 @@ class Color(object):
 
     @property
     def opacity(self):
+        """
+        How opaque (0) or transparent (0) this color is. Synonymous with `alpha`.
+        """
         return self.alpha
+
     @opacity.setter
     def opacity(self, value):
         self.alpha = value
@@ -476,6 +488,9 @@ class Color(object):
     # Lingua franca is rgb
     @property
     def rgba(self):
+        """
+        Color value expressed as an RGB triplet from -1 to 1, with alpha values (0 to 1)
+        """
         return self._appendAlpha('rgb')
 
     @rgba.setter
@@ -484,6 +499,9 @@ class Color(object):
 
     @property
     def rgb(self):
+        """
+        Color value expressed as an RGB triplet from -1 to 1
+        """
         if not self.valid:
             return
         if hasattr(self, '_franca'):
@@ -506,6 +524,9 @@ class Color(object):
 
     @property
     def rgba255(self):
+        """
+        Color value expressed as an RGB triplet from 0 to 255, with alpha value (0 to 1)
+        """
         return self._appendAlpha('rgb255')
 
     @rgba255.setter
@@ -514,6 +535,9 @@ class Color(object):
 
     @property
     def rgb255(self):
+        """
+        Color value expressed as an RGB triplet from 0 to 255
+        """
         if not self.valid:
             return
         # Recalculate if not cached
@@ -535,6 +559,9 @@ class Color(object):
 
     @property
     def rgba1(self):
+        """
+        Color value expressed as an RGB triplet from 0 to 1, with alpha value (0 to 1)
+        """
         return self._appendAlpha('rgb1')
 
     @rgba1.setter
@@ -543,6 +570,9 @@ class Color(object):
 
     @property
     def rgb1(self):
+        """
+        Color value expressed as an RGB triplet from 0 to 1
+        """
         if not self.valid:
             return
         # Recalculate if not cached
@@ -564,6 +594,9 @@ class Color(object):
 
     @property
     def hex(self):
+        """
+        Color value expressed as a hex string - a # followed by 6 values from 0 to F, e.g. #F2545B
+        """
         if not self.valid:
             return
         if 'hex' not in self._cache:
@@ -632,6 +665,9 @@ class Color(object):
 
     @property
     def named(self):
+        """
+        The name of this color, if it has one.
+        """
         if 'named' not in self._cache:
             self._cache['named'] = None
             # If alpha is 0, then we know that the color is None
@@ -691,6 +727,9 @@ class Color(object):
 
     @property
     def hsva(self):
+        """
+        Color value expressed as an HSV triplet, with alpha value (0 to 1)
+        """
         return self._appendAlpha('hsv')
 
     @hsva.setter
@@ -699,6 +738,9 @@ class Color(object):
 
     @property
     def hsv(self):
+        """
+        Color value expressed as an HSV triplet
+        """
         if 'hsva' not in self._cache:
             self._cache['hsv'] = ct.rgb2hsv(self.rgb)
         return self._cache['hsv']
@@ -717,6 +759,9 @@ class Color(object):
 
     @property
     def lmsa(self):
+        """
+        Color value expressed as an LMS triplet, with alpha value (0 to 1)
+        """
         return self._appendAlpha('lms')
 
     @lmsa.setter
@@ -725,6 +770,9 @@ class Color(object):
 
     @property
     def lms(self):
+        """
+        Color value expressed as an LMS triplet
+        """
         if 'lms' not in self._cache:
             self._cache['lms'] = ct.rgb2lms(self.rgb)
         return self._cache['lms']
@@ -743,6 +791,9 @@ class Color(object):
 
     @property
     def dkla(self):
+        """
+        Color value expressed as a DKL triplet, with alpha value (0 to 1)
+        """
         return self._appendAlpha('dkl')
 
     @dkla.setter
@@ -751,6 +802,9 @@ class Color(object):
 
     @property
     def dkl(self):
+        """
+        Color value expressed as a DKL triplet
+        """
         if 'dkl' not in self._cache:
             raise NotImplementedError(
                 "Conversion from rgb to dkl is not yet implemented.")
@@ -770,6 +824,9 @@ class Color(object):
 
     @property
     def dklaCart(self):
+        """
+        Color value expressed as a cartesian DKL triplet, with alpha value (0 to 1)
+        """
         return self.dklCart
 
     @dklaCart.setter
@@ -778,6 +835,9 @@ class Color(object):
 
     @property
     def dklCart(self):
+        """
+        Color value expressed as a cartesian DKL triplet
+        """
         if 'dklCart' not in self._cache:
             self._cache['dklCart'] = ct.rgb2dklCart(self.rgb)
         return self._cache['dklCart']
@@ -796,6 +856,9 @@ class Color(object):
 
     @property
     def srgb(self):
+        """
+        Color value expressed as an sRGB triplet
+        """
         if 'srgb' not in self._cache:
             self._cache['srgb'] = ct.srgbTF(self.rgb)
         return self._cache['srgb']
@@ -843,7 +906,9 @@ colors = colorNames
 
 # Old conversion functions
 def hex2rgb255(hexColor):
-    """Convert a hex color string (e.g. "#05ff66") into an rgb triplet
+    """Depreciated as of 2021.0
+
+    Converts a hex color string (e.g. "#05ff66") into an rgb triplet
     ranging from 0:255
     """
     col = Color(hexColor, 'hex')

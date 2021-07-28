@@ -51,7 +51,7 @@ Online Transcription Backend: (relevant to online use only)
     What transcription service to use to transcribe audio `Azure <https://azure.microsoft.com/en-us/services/cognitive-services/speech-to-text>`_ or `Google <https://cloud.google.com/speech-to-text>`_
 
 Transcription Language: string
-    The language code for your chosen transcription language e.g. English (United Kingdom) is "en-GB" see `list of codes here <https://cloud.google.com/speech-to-text/docs/languages>`_
+    The language code for your chosen transcription language e.g. English (United States) is "en-US" see `list of codes here <https://cloud.google.com/speech-to-text/docs/languages>`_
 
 Expected Words: list of strings
     A list of key words that you want to listen for e.g. `["Hello", "World"]` if blank all words will be listened for.

@@ -521,24 +521,38 @@ class KeyboardComponent(BaseComponent):
 
             buff.writeIndentedLines(code % self.params)
 
-        if currLoop.type in ['StairHandler', 'MultiStairHandler']:
-            raise CodeGenerationException(
-                "StairHandlers not currently supported by PsychoJS")
+        code = (
+            "// update the trial handler\n"
+            "if (currentLoop instanceof MultiStairHandler) {\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+
+        buff.setIndentLevel(1, relative=True)
+        code = (
+                "currentLoop.addResponse(%(name)s.corr);\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+
+        buff.setIndentLevel(-1, relative=True)
+        code = (
+            "}\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+
+        # always add keys
+        buff.writeIndented("psychoJS.experiment.addData('%(name)s.keys', %(name)s.keys);\n" % self.params)
+
+        if self.params['storeCorrect'].val == True:
+            buff.writeIndented("psychoJS.experiment.addData('%(name)s.corr', %(name)s.corr);\n" % self.params)
+
+        # only add an RT if we had a response
+        code = ("if (typeof {name}.keys !== 'undefined') {{  // we had a response\n"
+                "    psychoJS.experiment.addData('{name}.rt', {name}.rt);\n")
+        if forceEnd:
+            code += ("    routineTimer.reset();\n"
+                     "    }}\n\n")
         else:
-            # always add keys
-            buff.writeIndented("psychoJS.experiment.addData('%(name)s.keys', %(name)s.keys);\n" % self.params)
-
-            if self.params['storeCorrect'].val == True:
-                buff.writeIndented("psychoJS.experiment.addData('%(name)s.corr', %(name)s.corr);\n" % self.params)
-
-            # only add an RT if we had a response
-            code = ("if (typeof {name}.keys !== 'undefined') {{  // we had a response\n"
-                    "    psychoJS.experiment.addData('{name}.rt', {name}.rt);\n")
-            if forceEnd:
-                code += ("    routineTimer.reset();\n"
-                         "    }}\n\n")
-            else:
-                code += "    }}\n\n"
-            buff.writeIndentedLines(code.format(loopName=currLoop.params['name'], name=name))
+            code += "    }}\n\n"
+        buff.writeIndentedLines(code.format(loopName=currLoop.params['name'], name=name))
         # Stop keyboard
         buff.writeIndentedLines("%(name)s.stop();\n" % self.params)

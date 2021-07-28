@@ -10,7 +10,7 @@ py.test fixtures to create an instance of PsychoPyApp for testing
 
 import pytest
 from packaging import version
-from psychopy.app._psychopyApp import PsychoPyApp
+import psychopy.app as app
 from PIL import Image
 Image.DEBUG = False
 
@@ -26,14 +26,14 @@ if version.parse(pytest.__version__) < version.parse('5'):
 def get_app(request):
 
     # set_up
-    PsychoPyApp._called_from_test = True  # NB class variable must be set
-    _app = PsychoPyApp(testMode=True, showSplash=False)
+    app.startApp(showSplash=False, testMode=True)
 
     # yield, to let all tests within the scope run
+    _app = app.getAppInstance()
     yield _app
 
     # teasr_down: then clear table at the end of the scope
-    _app.quit()
+    app.quitApp()
 
 
 

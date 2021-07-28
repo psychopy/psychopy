@@ -270,8 +270,8 @@ class StairHandler(_BaseTrialHandler):
         """Deprecated since 1.79.00: This function name was ambiguous.
         Please use one of these instead:
 
-            .addResponse(result, intensity)
-            .addOtherData('dataName', value')
+        *   .addResponse(result, intensity)
+        *   .addOtherData('dataName', value')
 
         """
         self.addResponse(result, intensity)
@@ -865,6 +865,7 @@ class QuestHandler(StairHandler):
 
         self.startVal = startVal
         self.startValSd = startValSd
+        self.pThreshold = pThreshold
         self.stopInterval = stopInterval
         self._questNextIntensity = startVal
         self._range = range
@@ -969,7 +970,7 @@ class QuestHandler(StairHandler):
         if self.method == 'mean':
             self._questNextIntensity = self._quest.mean()
         elif self.method == 'mode':
-            self._questNextIntensity = self._quest.mode()
+            self._questNextIntensity = self._quest.mode()[0]
         elif self.method == 'quantile':
             self._questNextIntensity = self._quest.quantile()
         else:
@@ -1350,10 +1351,9 @@ class QuestPlusHandler(StairHandler):
 
         The parameter estimates can be retrieved via the `.paramEstimate`
         attribute, which returns a dictionary whose keys correspond to the
-        names of the estimated parameters
-        (i.e., `QuestPlusHandler.paramEstimate['threshold']` will provide the
-         threshold estimate). Retrieval of the marginal posterior distributions
-         works similarly: they can be accessed via the `.posterior` dictionary.
+        names of the estimated parameters (i.e., `QuestPlusHandler.paramEstimate['threshold']`
+        will provide the threshold estimate). Retrieval of the marginal posterior distributions works
+        similarly: they can be accessed via the `.posterior` dictionary.
 
         Parameters
         ----------
@@ -2015,9 +2015,9 @@ class MultiStairHandler(_BaseTrialHandler):
         the response (0 or 1) or some other data concerning the trial so
         there is now a pair of explicit methods:
 
-            addResponse(corr,intensity) #some data that alters the next
+        *   addResponse(corr,intensity) #some data that alters the next
                 trial value
-            addOtherData('RT', reactionTime) #some other data that won't
+        *   addOtherData('RT', reactionTime) #some other data that won't
                 control staircase
 
         """

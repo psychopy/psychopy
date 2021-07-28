@@ -543,7 +543,7 @@ class AudioClip(object):
         arr = self._samples if channel is None else self._samples[:, channel]
         rms = np.sqrt(np.mean(np.square(arr), axis=0))
 
-        return rms if channel is None else rms[0]
+        return rms if len(rms) > 1 else rms[0]
 
     # --------------------------------------------------------------------------
     # Properties
@@ -674,15 +674,17 @@ class AudioClip(object):
         """
         samples = np.atleast_2d(self._samples)  # enforce 2D
         if samples.shape[1] > 1:
-            samplesMixed = \
-                np.sum(samples, axis=1, dtype=np.float32) / np.float32(2.)
+            samplesMixed = np.atleast_2d(
+                np.sum(samples, axis=1, dtype=np.float32) / np.float32(2.)).T
         else:
-            samplesMixed = samples
+            samplesMixed = samples.copy()
 
         if copy:
             return AudioClip(samplesMixed, self.sampleRateHz)
 
         self._samples = samplesMixed  # overwrite
+
+        return self
 
     def transcribe(self, engine='sphinx', language='en-US', expectedWords=None,
                    config=None):

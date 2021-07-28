@@ -124,7 +124,7 @@ class MouseDevice(Device):
             tuple: new (x,y) position of mouse in Display coordinate space.
         """
         try:
-            pos = int(pos[0]), int(pos[1])
+            pos = pos[0], pos[1]
         except Exception:
             print2err('Warning: Mouse.setPosition: pos must be a list of '
                       'two numbers, not: ', pos)
@@ -207,6 +207,9 @@ class MouseDevice(Device):
             self._initialMousePos()
             cpos = self._position
             lpos = self._lastPosition
+            if lpos is None:
+                lpos = cpos[0], cpos[1]
+
             change_x = cpos[0] - lpos[0]
             change_y = cpos[1] - lpos[1]
             if return_display_index is True:

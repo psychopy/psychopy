@@ -487,7 +487,7 @@ def recognizeSphinx(audioClip=None, language='en-US', expectedWords=None,
     if language not in sphinxLangs:  # missing a language pack error
         url = "https://sourceforge.net/projects/cmusphinx/files/" \
               "Acoustic%20and%20Language%20Models/"
-        msg = (f"Language `{config['language']}` is not installed for "
+        msg = (f"Language `{language}` is not installed for "
                f"`pocketsphinx`. You can download languages here: {url}. "
                f"Install them here: {pocketsphinx.get_model_path()}")
         raise RecognizerLanguageNotSupportedError(msg)

@@ -228,7 +228,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
         logging.flush()
 
         # set the exception hook to present unhandled errors in a dialog
-        if not PsychoPyApp._called_from_test:  #NB class variable not self
+        if not self.testMode:  # NB class variable not self
             from psychopy.app.errorDlg import exceptionCallback
             sys.excepthook = exceptionCallback
 
