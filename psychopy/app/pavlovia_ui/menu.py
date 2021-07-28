@@ -35,6 +35,7 @@ class PavloviaMenu(wx.Menu):
 
         # item = self.Append(wx.ID_ANY, _translate("Tell me more..."))
         # parent.Bind(wx.EVT_MENU, self.onAbout, id=item.GetId())
+        # parent.Bind(wx.EVT_MENU, self.onAbout, id=item.GetId())
 
         PavloviaMenu.knownUsers = pavlovia.knownUsers
 
@@ -46,8 +47,10 @@ class PavloviaMenu(wx.Menu):
             lastPavUser = None
         # if lastPavUser and not PavloviaMenu.currentUser:
         #     self.setUser(PavloviaMenu.appData['pavloviaUser'])
-        for name in self.knownUsers:
-            self.addToSubMenu(name, self.userMenu, self.onSetUser)
+        if self.knownUsers is not None:
+            for name in self.knownUsers:
+                self.addToSubMenu(name, self.userMenu, self.onSetUser)
+
         self.userMenu.AppendSeparator()
         self.loginBtn = self.userMenu.Append(wx.ID_ANY,
                                     _translate("Log in to Pavlovia...\t{}")

@@ -1673,10 +1673,14 @@ class DlgExperimentProperties(_BaseParamsDlg):
         self.Bind(wx.EVT_CHECKBOX, self.onFullScrChange,
                   self.paramCtrls['Full-screen window'].valueCtrl)
 
+        if timeout is not None:
+            wx.FutureCall(timeout, self.Destroy)
+
         # for all components
         self.show()
         if self.OK:
             self.params = self.getParams()  # get new vals from dlg
+
         self.Destroy()
 
     def onFullScrChange(self, event=None):

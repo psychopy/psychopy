@@ -3,18 +3,18 @@
 Flow
 ----------------
 
-In the Flow panel a number of :doc:`Routines </builder/routines>` can be combined to form an experiment. For instance, your study may have a :doc:`Routine </builder/routines>` that presented initial instructions and waited for a key to be pressed, followed by a :doc:`Routine </builder/routines>` that presented one trial which should be repeated 5 times with various different parameters set. All of this is achieved in the Flow panel. You can adjust the display size of the Flow panel (see View menu).
+In the Flow panel a number of :doc:`Routines <builder/routines>` can be combined to form an experiment. For instance, your study may have a :doc:`Routine <builder/routines>` that presented initial instructions and waited for a key to be pressed, followed by a :doc:`Routine <builder/routines>` that presented one trial which should be repeated 5 times with various different parameters set. All of this is achieved in the Flow panel. You can adjust the display size of the Flow panel (see View menu).
 
 Adding Routines
 ~~~~~~~~~~~~~~~~~
 
-The :doc:`Routines </builder/routines>` that the Flow will use should be generated first (although their contents can be added or altered at any time). To insert a :doc:`Routine </builder/routines>` into the Flow click the appropriate button in the left of the Flow panel or use the Experiment menu. A dialog box will appear asking which of your :doc:`Routines </builder/routines>` you wish to add. To select the location move the mouse to the section of the flow where you wish to add it and click on the black disk.
+The :doc:`Routines <builder/routines>` that the Flow will use should be generated first (although their contents can be added or altered at any time). To insert a :doc:`Routine <builder/routines>` into the Flow click the appropriate button in the left of the Flow panel or use the Experiment menu. A dialog box will appear asking which of your :doc:`Routines <builder/routines>` you wish to add. To select the location move the mouse to the section of the flow where you wish to add it and click on the black disk.
 
 .. _loops:
 
 Loops
 ~~~~~~~~~~~~~~~
-Loops control the repetition of :ref:`routines` and the choice of stimulus parameters for each. To insert a loop use the button on the left of the Flow panel, or the item in the Experiment menu of the Builder. The start and end of a loop is set in the same way as the location of a :doc:`Routine </builder/routines>` (see above). Loops can encompass one or more :doc:`Routines </builder/routines>` and other loops (i.e. they can be nested).
+Loops control the repetition of :ref:`routines` and the choice of stimulus parameters for each. To insert a loop use the button on the left of the Flow panel, or the item in the Experiment menu of the Builder. The start and end of a loop is set in the same way as the location of a :doc:`Routine <builder/routines>` (see above). Loops can encompass one or more :doc:`Routines <builder/routines>` and other loops (i.e. they can be nested).
 
 As with components in :ref:`routines`, the loop must be given a name, which must be unique and made up of only alpha-numeric characters (underscores are allowed). I would normally use a plural name, since the loop represents multiple repeats of something. For example, `trials`, `blocks` or `epochs` would be good names for your loops.
 
@@ -38,10 +38,10 @@ You can use a number of different "Loop Types" in PsychoPy, this controls the wa
 After saving this as a spreadsheet (.xlsx or .csv), we could then add this to the "Conditions" field of our loop. Let's imagine we want to present each letter twice, so we set `nReps` to 2.  We could then use the following Loop Types:
 
 *   **Random** - present a - b in a random order, because we have nReps at 2, this would be repeated twice e.g. :code:`[c, a, b, a, c, b]`
-*   **Full Random** - present a - b in a random order but also take into acount the numebr of nReps. Here, imagine that rather than haveing 3 items in the bag that we sample from, and repeat this twice, we instead have 6 items int he bag that are randomly sampled from. This would mean that with fullRandom, but not random, it would be possible to get the following order of trials e.g. :code:`[a, a, b, c, c, b]` - notice that a was sampled twice in the first 2 trials.
+*   **Full Random** - present a - b in a random order but also take into account the number of nReps. Here, imagine that rather than having 3 items in the bag that we sample from, and repeat this twice, we instead have 6 items int he bag that are randomly sampled from. This would mean that with fullRandom, but not random, it would be possible to get the following order of trials e.g. :code:`[a, a, b, c, c, b]` - notice that a was sampled twice in the first 2 trials.
 *   **sequential** - present the rows in the order they are set i nt he spreadsheet. Currently PsychoPy does not have inbuilt support for specific randomisation constraints, so if you need a specific pseudorandom order, preset this in your spreadsheet file and use a "sequential" loopType.
 *   **staircase** - for use with adaptive procedures, create an output variable called :code:`level` that can then be used to set the parameter of a stimulus (e.g. it's opacity) in an adaptive fashion. This allows researchers to converge upon a participants threshold by adjusting the value of :code:`level` in accordance with performance.
-*   **interleaved staircases** - for use with multiple staircases that are inerleaved. This can also be used to implement other staircasing algorithms such as `QUEST (Watson and Pelli, 1983) <https://link.springer.com/content/pdf/10.3758/BF03202828.pdf>`_ via :class:`QuestHandler`.
+*   **interleaved staircases** - for use with multiple staircases that are interleaved. This can also be used to implement other staircasing algorithms such as `QUEST (Watson and Pelli, 1983) <https://link.springer.com/content/pdf/10.3758/BF03202828.pdf>`_ via :class:`QuestHandler`.
 
 
 Selecting a subset of conditions

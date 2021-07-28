@@ -583,7 +583,7 @@ class Display(Device):
             return (x - w / 2), -y + h / 2
 
         def psychopy2displayPix(cx, cy):
-            return l + (cx + w / 2), t + (cy + h / 2)
+            return l + (cx + w / 2), b - (cy + h / 2)
 
         if coord_type == 'pix':
             def pix2coord(self, x, y, display_index=None):
