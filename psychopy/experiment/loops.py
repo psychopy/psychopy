@@ -663,6 +663,8 @@ class MultiStairHandler(object):
         buff.setIndentLevel(-1, relative=True)
         code = (
                 "}"
+                "\n\n"
+                "return Scheduler.Event.NEXT;\n"                
         )
         buff.writeIndentedLines(code % inits)
 
