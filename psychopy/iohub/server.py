@@ -34,7 +34,7 @@ from .devices import Computer
 from .devices.deviceConfigValidation import validateDeviceConfiguration
 getTime = Computer.getTime
 
-MAX_PACKET_SIZE = 64 * 1024
+print2err("MAX_PACKET_SIZE: ", MAX_PACKET_SIZE)
 
 # pylint: disable=protected-access
 # pylint: disable=broad-except
