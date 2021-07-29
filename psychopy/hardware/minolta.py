@@ -223,24 +223,24 @@ class LS100(object):
         timeout for a response.
         """
         if message[-2:] != '\r\n':
-            message += '\r\n'  # append a newline if necess
+            message += b'\r\n'  # append a newline if necess
 
         # flush the read buffer first
         # read as many chars as are in the buffer
-        self.com.read(self.com.inWaiting()).encode('utf-8')
+        self.com.read(self.com.inWaiting()).decode('utf-8')
         for attemptN in range(self.maxAttempts):
             # send the message
             time.sleep(0.1)
             if type(message)!=bytes:
-                message = message.decode('utf-8')
+                message = bytes(message, 'utf-8')
             self.com.write(message)
             self.com.flush()
             time.sleep(0.1)
             # get reply (within timeout limit)
             self.com.timeout = timeout
             # send complete message
-            logging.debug('Sent command:' + message[:-2])
-            retVal = self.com.readline().encode('utf-8')
+            logging.debug('Sent command:' + str(message[:-2]))
+            retVal = self.com.readline().decode('utf-8')
             if len(retVal) > 0:
                 break  # we got a reply so can stop trying
 
