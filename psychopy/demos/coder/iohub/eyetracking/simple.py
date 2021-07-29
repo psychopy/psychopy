@@ -57,6 +57,11 @@ io = launchHubServer(window=win, **devices_config)
 keyboard = io.getDevice('keyboard')
 tracker = io.getDevice('tracker')
 
+data = "123456789012345678901234567890"
+print("data len: ", len(data))
+rdata = tracker.echoTest(data)
+print("echo len: ", len(rdata))
+
 # Minimize the PsychoPy window if needed
 hideWindow(win)
 # Display calibration gfx window and run calibration.
