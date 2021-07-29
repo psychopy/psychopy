@@ -7,32 +7,139 @@
 """Utilities for extending PsychoPy with plugins."""
 
 from __future__ import absolute_import
-__all__ = ['loadPlugin', 'listPlugins', 'computeChecksum', 'startUpPlugins',
-           'pluginMetadata', 'pluginEntryPoints', 'scanPlugins',
-           'requirePlugin', 'isPluginLoaded', 'isStartUpPlugin']
 
+__all__ = [
+    'loadPlugin',
+    'listPlugins',
+    'computeChecksum',
+    'startUpPlugins',
+    'pluginMetadata',
+    'pluginEntryPoints',
+    'scanPlugins',
+    'requirePlugin',
+    'isPluginLoaded',
+    'isStartUpPlugin']
+
+# ------------------------------------------------------------------------------
+# Imports
+#
+
+import os
 import sys
 import inspect
 import collections
 import hashlib
 import importlib
 import pkg_resources
+import pluginbase
+import psychopy.app as app
+import zipfile
+import tempfile
 
 from psychopy import logging
 from psychopy.preferences import prefs
 import psychopy.experiment.components as components
 
+# ------------------------------------------------------------------------------
+# Module constants
+#
+
+# package dotted path which loaded plugins appear
+PLUGIN_PACKAGE = 'psychopy.plugins'
+# prefix for temporary directories for plugins extracted from Zip files
+PLUGIN_TEMP_FILE_PREFIX = 'psychopy_plugin_'
 # Keep track of plugins that have been loaded. Keys are plugin names and values
 # are their entry point mappings.
-_loaded_plugins_ = collections.OrderedDict()  # use OrderedDict for Py2 compatibility
-
+_loaded_plugins_ = collections.OrderedDict()
 # Entry points for all plugins installed on the system, this is populated by
 # calling `scanPlugins`. We are caching entry points to avoid having to rescan
 # packages for them.
-_installed_plugins_ = collections.OrderedDict()
-
+_installed_plugins_ = list()
 # Keep track of plugins that failed to load here
-_failed_plugins_ = []
+_failed_plugins_ = list()
+# Initialize the `PluginBase` plugin manager. Specify the dotted path where our
+# plugins will appear to the user as `package`.
+_plugin_base_ = pluginbase.PluginBase(package=PLUGIN_PACKAGE)
+# _plugin_paths_ = _plugin_source_ = None  # defined below
+
+
+# ------------------------------------------------------------------------------
+# Helper functions
+#
+
+def _getPluginSearchPaths():
+    """Get a list of search paths for plugins.
+
+    This function gets the value of 'Preferences > General > pluginPaths' and
+    checks if the specified paths are valid. If so, each directory is scanned
+    for sub-folders and zip files (only one level deep) and added to the list of
+    paths to be returned. Any zip files which are found will be extracted to
+    temporary directories automatically.
+
+    Returns
+    -------
+    list
+        List of strings representing paths to plugins.
+
+    """
+    # Specify the directories where the plugins are stored on the system.
+    pluginPaths = list()
+    try:
+        # load the plugin path from user prefs
+        pluginPaths = list(prefs.general['pluginPaths'])
+    except KeyError:
+        logging.error(
+            'Preferences does not have key `pluginPaths`! Plugins unavailable.')
+
+    # Check the preference value for empty strings and invalid paths, just flag
+    # either issue with `None` to avoid resizing the array during iteration
+    INVALID_PLUGIN_PATH = object()  # flag for invalid paths
+    for i, val in enumerate(pluginPaths):
+        # remove empty values, flag them if found
+        if val == '':
+            pluginPaths[i] = INVALID_PLUGIN_PATH
+            continue
+
+        # make sure directory exists, flag invalid is so
+        absPath = os.path.abspath(val)
+        if not os.path.isdir(absPath):
+            logging.error('Invalid plugin path specified. Ignoring.')
+            pluginPaths[i] = INVALID_PLUGIN_PATH
+            continue
+
+        pluginPaths[i] = absPath  # set full path
+
+    # remove invalid paths
+    pluginPaths = [p for p in pluginPaths if p is not INVALID_PLUGIN_PATH]
+
+    # scan for top-level folders in plugin directories
+    for _dir in pluginPaths:
+        items = os.listdir(_dir)
+        for item in items:
+            absPath = os.path.join(_dir, item)
+            # ZIP archives can be used as plugin packages, we extract them to a
+            # temp directory and load them.
+            if zipfile.is_zipfile(absPath):
+                fileName = item.split('.')[0]  # remove ext
+                tempPluginDir = tempfile.mkdtemp(
+                    suffix=None,
+                    prefix=fileName + '_')
+                with zipfile.ZipFile(absPath, 'r') as zipFile:
+                    zipFile.extractall(tempPluginDir)
+                absPath = tempPluginDir
+
+            # ignore if not a directory
+            if not os.path.isdir(absPath):
+                continue
+
+            pluginPaths.append(absPath)
+
+    return pluginPaths
+
+
+# Specify the directories where the plugins are stored on the system.
+_plugin_paths_ = _getPluginSearchPaths()
+_plugin_source_ = _plugin_base_.make_plugin_source(searchpath=_plugin_paths_)
 
 
 def resolveObjectFromName(name, basename=None, resolve=True, error=True):
@@ -209,30 +316,36 @@ def computeChecksum(fpath, method='sha256', writeOut=None):
     return checksumStr
 
 
+# ------------------------------------------------------------------------------
+# User classes and functions
+#
+
 def scanPlugins():
     """Scan the system for installed plugins.
 
     This function scans installed packages for the current Python environment
     and looks for ones that specify PsychoPy entry points in their metadata.
     Afterwards, you can call :func:`listPlugins()` to list them and
-    `loadPlugin()` to load them into the current session. This function is
-    called automatically when PsychoPy starts, so you do not need to call this
-    unless packages have been added since the session began.
+    :func:`loadPlugin()` to load them into the current session. This function is
+    called automatically when this module is imported, so you do not need to
+    call this unless packages have been added since the session began.
 
     """
+    global _plugin_paths_
+    global _plugin_source_
     global _installed_plugins_
-    _installed_plugins_ = {}  # clear installed plugins
+
+    _plugin_paths_ = _getPluginSearchPaths()  # get the paths
+
+    # check if there are plugin paths specified
+    if not _plugin_paths_:
+        logging.info('No plugin paths specified.')
+
+    _plugin_source_ = _plugin_base_.make_plugin_source(
+        searchpath=_plugin_paths_)
 
     # find all packages with entry points defined
-    pluginEnv = pkg_resources.Environment()  # supported by the platform
-    dists, _ = pkg_resources.working_set.find_plugins(pluginEnv)
-
-    for dist in dists:
-        entryMap = dist.get_entry_map()
-        if any([i.startswith('psychopy') for i in entryMap.keys()]):
-            logging.debug('Found plugin `{}` at location `{}`.'.format(
-                dist.project_name, dist.location))
-            _installed_plugins_[dist.project_name] = entryMap
+    _installed_plugins_ = _plugin_source_.list_plugins()
 
 
 def listPlugins(which='all'):
@@ -308,7 +421,7 @@ def listPlugins(which='all'):
     elif which == 'failed':
         return list(_failed_plugins_)  # copy
     else:
-        return list(_installed_plugins_.keys())
+        return _installed_plugins_
 
 
 def isPluginLoaded(plugin):
@@ -361,7 +474,7 @@ def isStartUpPlugin(plugin):
     return plugin in listPlugins(which='startup')
 
 
-def loadPlugin(plugin, *args, **kwargs):
+def loadPlugin(pluginName, *args, **kwargs):
     """Load a plugin to extend PsychoPy.
 
     Plugins are packages which extend upon PsychoPy's existing functionality by
@@ -372,36 +485,14 @@ def loadPlugin(plugin, *args, **kwargs):
     plugins will be registered for a particular function if they define entry
     points into specific modules.
 
-    Plugins are simply Python packages,`loadPlugin` will search for them in
-    directories specified in `sys.path`. Only packages which define entry points
-    in their metadata which pertain to PsychoPy can be loaded with this
-    function. This function also permits passing optional arguments to a
-    callable object in the plugin module to run any initialization routines
-    prior to loading entry points.
-
-    This function is robust, simply returning `True` or `False` whether a
-    plugin has been fully loaded or not. If a plugin fails to load, the reason
-    for it will be written to the log as a warning or error, and the application
-    will continue running. This may be undesirable in some cases, since features
-    the plugin provides may be needed at some point and would lead to undefined
-    behavior if not present. If you want to halt the application if a plugin
-    fails to load, consider using :func:`requirePlugin`.
-
-    It is advised that you use this function only when using PsychoPy as a
-    library. If using the builder or coder GUI, it is recommended that you use
-    the plugin dialog to enable plugins for PsychoPy sessions spawned by the
-    experiment runner. However, you can still use this function if you want to
-    load additional plugins for a given experiment, having their effects
-    isolated from the main application and other experiments.
-
     Parameters
     ----------
-    plugin : str
+    pluginName : str
         Name of the plugin package to load. This usually refers to the package
         or project name.
     *args, **kwargs
         Optional arguments and keyword arguments to pass to the plugin's
-        `__register__` function.
+        `setup_plugin()` function.
 
     Returns
     -------
@@ -441,189 +532,28 @@ def loadPlugin(plugin, *args, **kwargs):
             # initialize objects which require the plugin here ...
 
     """
-    global _loaded_plugins_, _failed_plugins_
+    global _plugin_source_
+    global _loaded_plugins_
 
-    if isPluginLoaded(plugin):
-        logging.info('Plugin `{}` already loaded. Skipping.'.format(plugin))
-        return True  # already loaded, return True
+    # check if the plugin was already loaded
+    if pluginName in _loaded_plugins_.keys():
+        raise NameError(
+            "Plugin with name '{}' already loaded.".format(pluginName))
 
-    try:
-        entryMap = _installed_plugins_[plugin]
-    except KeyError:
-        logging.warning(
-            'Package `{}` does not appear to be a valid plugin. '
-            'Skipping.'.format(plugin))
-        if plugin not in _failed_plugins_:
-            _failed_plugins_.append(plugin)
+    # load the plugin
+    plugin_obj = _plugin_source_.load_plugin(pluginName)
 
-        return False
+    # check if there is a `setup()` function in the loaded plugin, this is used
+    # to setup 'hooks' into PsychoPy.
+    result = True
+    if hasattr(plugin_obj, 'setup_plugin'):
+        app_instance = app.getAppInstance()
+        result = plugin_obj.setup(app_instance, *args, **kwargs)
 
-    if not any([i.startswith('psychopy') for i in entryMap.keys()]):
-        logging.warning(
-            'Specified package `{}` defines no entry points for PsychoPy. '
-            'Skipping.'.format(plugin))
+    if result:
+        _loaded_plugins_[pluginName] = plugin_obj
 
-        if plugin not in _failed_plugins_.keys():
-            _failed_plugins_.append(plugin)
-
-        return False  # can't do anything more here, so return
-
-    # go over entry points, looking for objects explicitly for psychopy
-    validEntryPoints = collections.OrderedDict()  # entry points to assign
-    for fqn, attrs in entryMap.items():
-        if not fqn.startswith('psychopy'):
-            continue
-
-        # forbid plugins from modifying this module
-        if fqn.startswith('psychopy.plugins') or \
-                (fqn == 'psychopy' and 'plugins' in attrs):
-            logging.error(
-                "Plugin `{}` declares entry points into the `psychopy.plugins` "
-                "which is forbidden. Skipping.")
-
-            if plugin not in _failed_plugins_:
-                _failed_plugins_.append(plugin)
-
-            return False
-
-        # Get the object the fully-qualified name points to the group which the
-        # plugin wants to modify.
-        targObj = resolveObjectFromName(fqn, error=False)
-        if targObj is None:
-            logging.error(
-                "Plugin `{}` specified entry point group `{}` that does not "
-                "exist or is unreachable.")
-
-            if plugin not in _failed_plugins_:
-                _failed_plugins_.append(plugin)
-
-            return False
-
-        validEntryPoints[fqn] = []
-
-        # Import modules assigned to entry points and load those entry points.
-        # We don't assign anything to PsychoPy's namespace until we are sure
-        # that the entry points are valid. This prevents plugins from being
-        # partially loaded which can cause all sorts of undefined behaviour.
-        for attr, ep in attrs.items():
-            # Load the module the entry point belongs to, this happens
-            # anyways when .load() is called, but we get to access it before
-            # we start binding. If the module has already been loaded, don't
-            # do this again.
-            if ep.module_name not in sys.modules:
-                # Do stuff before loading entry points here, any executable code
-                # in the module will run to configure it.
-                try:
-                    imp = importlib.import_module(ep.module_name)
-                except (ModuleNotFoundError, ImportError):
-                    logging.error(
-                        "Plugin `{}` entry point requires module `{}`, but it"
-                        "cannot be imported.".format(plugin, ep.module_name))
-
-                    if plugin not in _failed_plugins_:
-                        _failed_plugins_.append(plugin)
-
-                    return False
-
-                # call the register function, check if exists and valid
-                if hasattr(imp, '__register__') and imp.__register__ is not None:
-                    if isinstance(imp.__register__, str):
-                        if hasattr(imp, imp.__register__):  # local to module
-                            func = getattr(imp, imp.__register__)
-                        else:  # could be a FQN?
-                            func = resolveObjectFromName(
-                                imp.__register__, error=False)
-                        # check if the reference object is callable
-                        if not callable(func):
-                            logging.error(
-                                "Plugin `{}` module defines `__register__` but "
-                                "the specified object is not a callable type. "
-                                "Skipping.".format(plugin))
-
-                            if plugin not in _failed_plugins_:
-                                _failed_plugins_.append(plugin)
-
-                            return False
-
-                    elif callable(imp.__register__):  # a function was supplied
-                        func = imp.__register__
-                    else:
-                        logging.error(
-                            "Plugin `{}` module defines `__register__` but "
-                            "is not `str` or callable type. Skipping.".format(
-                                plugin))
-
-                        if plugin not in _failed_plugins_:
-                            _failed_plugins_.append(plugin)
-
-                        return False
-
-                    # call the register function with arguments
-                    func(*args, **kwargs)
-
-            # Ensure that we are not wholesale replacing an existing module.
-            # We want plugins to be explicit about what they are changing.
-            # This makes sure plugins play nice with each other, only
-            # making changes to existing code where needed. However, plugins
-            # are allowed to add new modules to the namespaces of existing
-            # ones.
-            if hasattr(targObj, attr):
-                # handle what to do if an attribute exists already here ...
-                if inspect.ismodule(getattr(targObj, attr)):
-                    logging.error(
-                        "Plugin `{}` attempted to override module `{}`.".format(
-                            plugin, fqn + '.' + attr))
-
-                    if plugin not in _failed_plugins_:
-                        _failed_plugins_.append(plugin)
-
-                    return False
-            try:
-                ep = ep.load()  # load the entry point
-            except ImportError:
-                logging.error(
-                    "Failed to load entry point `{}` of plugin `{}`. "
-                    " Skipping.".format(str(ep), plugin))
-
-                if plugin not in _failed_plugins_:
-                    _failed_plugins_.append(plugin)
-
-                return False
-
-            # If we get here, the entry point is valid and we can safely add it
-            # to PsychoPy's namespace.
-            validEntryPoints[fqn].append((targObj, attr, ep))
-
-    # Assign entry points that have been successfully loaded. We defer
-    # assignment until all entry points are deemed valid to prevent plugins
-    # from being partially loaded.
-    for fqn, vals in validEntryPoints.items():
-        for targObj, attr, ep in vals:
-            # add the object to the module or unbound class
-            setattr(targObj, attr, ep)
-            logging.debug(
-                "Assigning to entry point `{}` to `{}`.".format(
-                    ep.__name__, fqn + '.' + attr))
-
-            # --- handle special cases ---
-            if fqn == 'psychopy.visual.backends':  # if window backend
-                _registerWindowBackend(attr, ep)
-            elif fqn == 'psychopy.experiment.components':  # if component
-                _registerBuilderComponent(ep)
-
-    # Retain information about the plugin's entry points, we will use this for
-    # conflict resolution.
-    _loaded_plugins_[plugin] = entryMap
-
-    # If we made it here on a previously failed plugin, it was likely fixed and
-    # can be removed from the list.
-    if plugin not in _failed_plugins_:
-        try:
-            _failed_plugins_.remove(plugin)
-        except ValueError:
-            pass
-
-    return True
+    return result
 
 
 def requirePlugin(plugin):
@@ -982,3 +912,7 @@ def _registerBuilderComponent(ep):
         # assign the module categories to the Component
         if not hasattr(components.pluginComponents[attrib], 'categories'):
             components.pluginComponents[attrib].categories = ['Custom']
+
+
+if __name__ == '__main__':
+    pass

@@ -42,6 +42,8 @@
     shutdownKeyModifiers = list(default=list())
     # What to do if gamma-correction not possible
     gammaErrorPolicy = option('abort', 'warn', default='abort')
+    # Paths to plugin directories.
+    pluginPaths = list(default=list())
     # Add plugin names here to load when a PsychoPy session starts.
     startUpPlugins = list(default=list())
     # Google Cloud Platform key, required for the audio transcription using Google Speech Recognition. Specified as a path to a JSON file containing the key data.
