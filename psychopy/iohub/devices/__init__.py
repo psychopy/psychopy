@@ -254,9 +254,6 @@ class Device(ioObject):
         Device._next_event_id += 1
         return n
 
-    def echoTest(self, data):
-        return data*1000
-
     def getConfiguration(self):
         """Retrieve the configuration settings information used to create the
         device instance. This will the default settings for the device, found
