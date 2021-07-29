@@ -47,7 +47,7 @@ import psychopy.experiment.components as components
 # package dotted path which loaded plugins appear
 PLUGIN_PACKAGE = 'psychopy.plugins'
 # prefix for temporary directories for plugins extracted from Zip files
-PLUGIN_TEMP_FILE_PREFIX = 'psychopy_plugin_'
+PLUGIN_TEMP_FILE_PREFIX = 'psychopy_plugin'
 # Keep track of plugins that have been loaded. Keys are plugin names and values
 # are their entry point mappings.
 _loaded_plugins_ = collections.OrderedDict()
@@ -113,6 +113,7 @@ def _getPluginSearchPaths():
     pluginPaths = [p for p in pluginPaths if p is not INVALID_PLUGIN_PATH]
 
     # scan for top-level folders in plugin directories
+    pluginPathsDeep = []
     for _dir in pluginPaths:
         items = os.listdir(_dir)
         for item in items:
@@ -123,18 +124,29 @@ def _getPluginSearchPaths():
                 fileName = item.split('.')[0]  # remove ext
                 tempPluginDir = tempfile.mkdtemp(
                     suffix=None,
-                    prefix=fileName + '_')
+                    prefix=PLUGIN_TEMP_FILE_PREFIX + '-' + fileName + '-')
                 with zipfile.ZipFile(absPath, 'r') as zipFile:
                     zipFile.extractall(tempPluginDir)
+
+                # tell the user we extracted a zip file
+                msg = ("Found zip file in plugin directory, extracted contents "
+                       "to temporary directory `{}`".format(tempPluginDir))
+                logging.debug(msg)
+
+                # add temp dir to search path for plugins
                 absPath = tempPluginDir
 
             # ignore if not a directory
             if not os.path.isdir(absPath):
                 continue
 
-            pluginPaths.append(absPath)
+            # tell the user we extracted a zip file
+            msg = ("Added plugin search path `{}`".format(absPath))
+            logging.debug(msg)
 
-    return pluginPaths
+            pluginPathsDeep.append(absPath)
+
+    return pluginPaths + pluginPathsDeep
 
 
 # Specify the directories where the plugins are stored on the system.
