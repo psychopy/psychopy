@@ -12,7 +12,6 @@ import wx
 import wx.richtext
 from collections import deque
 from psychopy.app.themes import ThemeMixin
-import pathlib
 
 
 class ConsoleTextCtrl(wx.richtext.RichTextCtrl, ThemeMixin):
