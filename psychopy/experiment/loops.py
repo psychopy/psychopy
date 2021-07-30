@@ -606,7 +606,7 @@ class MultiStairHandler(object):
         buff.setIndentLevel(1, relative=True)
         code = (
                     "// setup a MultiStairTrialHandler\n"
-                    "%(name)sConditions = new data.importConditions(%(conditionsFile)s)\n"
+                    "%(name)sConditions = TrialHandler.importConditions(psychoJS.serverManager, %(conditionsFile)s);\n"
                     "%(name)s = new data.MultiStairHandler({stairType:MultiStairHandler.StaircaseType.%(stairType)s, \n"
         )
         buff.writeIndentedLines(code % inits)
@@ -663,6 +663,8 @@ class MultiStairHandler(object):
         buff.setIndentLevel(-1, relative=True)
         code = (
                 "}"
+                "\n\n"
+                "return Scheduler.Event.NEXT;\n"                
         )
         buff.writeIndentedLines(code % inits)
 
