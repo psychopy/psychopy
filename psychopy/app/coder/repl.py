@@ -7,10 +7,12 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
+import sys
 import wx
 import wx.richtext
 from collections import deque
 from psychopy.app.themes import ThemeMixin
+import pathlib
 
 
 class ConsoleTextCtrl(wx.richtext.RichTextCtrl, ThemeMixin):
@@ -103,9 +105,10 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
         # interpreter state information
         self._isBusy = self._suppress = False
         self._stdin_buffer = []
-        self._lastTextPos = 0
 
-        self.start()
+        self.txtTerm.Clear()
+        self.txtTerm.WriteText("Hit [Return] to start a Python REPL.")
+        self._lastTextPos = self.txtTerm.GetLastPosition()
 
     @property
     def isStarted(self):
@@ -229,7 +232,13 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
         wx.BeginBusyCursor()
         self._process = wx.Process(self)
         self._process.Redirect()
-        self._pid = wx.Execute('python -i', wx.EXEC_ASYNC, self._process)
+
+        # get the path to the interpreter
+        interpPath = '"' + sys.executable + '"'
+        self._pid = wx.Execute(
+            r' '.join([interpPath, r'-i']),
+            wx.EXEC_ASYNC,
+            self._process)
 
         # bind the event called when the process ends
         self._process.Bind(wx.EVT_END_PROCESS, self.onTerminate)
