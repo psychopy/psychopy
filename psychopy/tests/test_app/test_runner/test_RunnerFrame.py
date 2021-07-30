@@ -7,7 +7,7 @@ class Test_RunnerFrame(object):
     """
     This test opens Runner, and several processes.
     """
-    def setup(self, get_app):
+    def setup(self):
         self.tempFile = os.path.join(prefs.paths['tests'], 'data', 'test001EntryImporting.psyexp')
 
     def _getRunnerView(self, app):

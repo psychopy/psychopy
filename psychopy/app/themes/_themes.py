@@ -270,6 +270,7 @@ class ThemeMixin:
             for ln in range(target.GetNumberOfLines()):
                 i += target.GetLineLength(
                     ln) + 1  # +1 as \n is not included in character count
+            target.SetDefaultStyle(_style)
             target.SetStyle(0, i, _style)
 
         def applyToTextCtrl(target):
