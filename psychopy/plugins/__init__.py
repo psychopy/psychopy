@@ -560,7 +560,7 @@ def loadPlugin(pluginName, *args, **kwargs):
     result = True
     if hasattr(plugin_obj, 'setup_plugin'):
         app_instance = app.getAppInstance()
-        result = plugin_obj.setup(app_instance, *args, **kwargs)
+        result = plugin_obj.setup_plugin(app_instance, *args, **kwargs)
 
     if result:
         _loaded_plugins_[pluginName] = plugin_obj
