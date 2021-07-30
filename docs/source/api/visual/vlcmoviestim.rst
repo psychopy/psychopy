@@ -3,7 +3,7 @@
 ---------------------
 
 Attributes
-=============
+==========
 
 .. currentmodule:: psychopy.visual
 
@@ -58,7 +58,7 @@ Attributes
     
         
 Details
-=============
+=======
 
 .. autoclass:: VlcMovieStim
     :members:
