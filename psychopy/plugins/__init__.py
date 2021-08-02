@@ -18,7 +18,8 @@ __all__ = [
     'scanPlugins',
     'requirePlugin',
     'isPluginLoaded',
-    'isStartUpPlugin']
+    'isStartUpPlugin',
+    'registerAttribute']
 
 # ------------------------------------------------------------------------------
 # Imports
@@ -342,6 +343,17 @@ def scanPlugins():
     called automatically when this module is imported, so you do not need to
     call this unless packages have been added since the session began.
 
+    Returns
+    -------
+    tuple
+        Found plugin names.
+
+    Examples
+    --------
+    Scan for plugins and get the number found on the system::
+
+        num_plugins_found = len(scanPlugins())
+
     """
     global _plugin_paths_
     global _plugin_source_
@@ -358,6 +370,8 @@ def scanPlugins():
 
     # find all packages with entry points defined
     _installed_plugins_ = _plugin_source_.list_plugins()
+
+    return tuple(_installed_plugins_)  # prevents the user from modifying this
 
 
 def listPlugins(which='all'):
@@ -804,6 +818,25 @@ def pluginEntryPoints(plugin, parse=False):
                   " installed or reachable.")
 
     return None
+
+
+def registerAttribute(fqn, name, obj):
+    """Register a specified object to an attribute name somewhere in PsychoPy's
+    namespace.
+
+    Parameters
+    ----------
+    fqn : str
+        Fully-qualified name (e.g., `psychopy.visual.Window`) to a module or
+        class.
+    name : str
+        Attribute name to set.
+    obj : object
+        Reference to an object.
+
+    """
+    target = resolveObjectFromName(fqn, basename=None, resolve=True, error=True)
+    setattr(target, name, obj)
 
 
 def _registerWindowBackend(attr, ep):
