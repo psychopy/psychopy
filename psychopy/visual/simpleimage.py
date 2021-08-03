@@ -18,6 +18,9 @@ import os
 # up by the pyglet GL engine and have no effect.
 # Shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
 import pyglet
+
+from ..layout import Size
+
 pyglet.options['debug_gl'] = False
 GL = pyglet.gl
 
@@ -79,6 +82,7 @@ class SimpleImageStim(MinimalStim, WindowMixin):
         self.pos = pos  # call attributeSetter
         self.image = image  # call attributeSetter
         # check image size against window size
+        print(self.size)
         if (self.size[0] > self.win.size[0] or
                 self.size[1] > self.win.size[1]):
             msg = ("Image size (%s, %s)  was larger than window size "
@@ -185,11 +189,11 @@ class SimpleImageStim(MinimalStim, WindowMixin):
 
         # move to center of stimulus
         x, y = self._posRendered[:2]
-        GL.glRasterPos2f(self.win.size[0]/2 - self.size[0]/2 + x,
-                         self.win.size[1]/2 - self.size[1]/2 + y)
+        GL.glRasterPos2f(self.win.size[0]/2 - self._size.pix[0]/2 + x,
+                         self.win.size[1]/2 - self._size.pix[1]/2 + y)
 
         # GL.glDrawPixelsub(GL.GL_RGB, self.imArr)
-        GL.glDrawPixels(self.size[0], self.size[1],
+        GL.glDrawPixels(self._size.pix[0], self._size.pix[1],
                         self.internalFormat, self.dataType, self._imStr)
         # return to 3D mode (go and pop the projection matrix)
         GL.glMatrixMode(GL.GL_PROJECTION)
@@ -216,15 +220,19 @@ class SimpleImageStim(MinimalStim, WindowMixin):
 
         setAttribute(self, attrib, val, log, op)
 
-    @attributeSetter
-    def pos(self, value):
+    @property
+    def pos(self):
         """:ref:`x,y-pair <attrib-xy>` specifying the centre of the image
         relative to the window center. Stimuli can be positioned off-screen,
         beyond the window!
 
         :ref:`operations <attrib-operations>` are supported.
         """
-        self.__dict__['pos'] = val2array(value, withNone=False)
+        return WindowMixin.pos.fget(self)
+
+    @pos.setter
+    def pos(self, value):
+        WindowMixin.pos.fset(self, value)
         self._calcPosRendered()
 
     def setPos(self, newPos, operation='', log=None):
@@ -276,7 +284,7 @@ class SimpleImageStim(MinimalStim, WindowMixin):
                 core.quit()
             self.filename = repr(filename)  # '<Image.Image image ...>'
 
-        self.size = im.size
+        self._size = Size(im.size, units='pix', win=self.win)
         # set correct formats for bytes/floats
         if im.mode == 'RGBA':
             self.imArray = numpy.array(im).astype(numpy.ubyte)
