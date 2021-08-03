@@ -1385,8 +1385,8 @@ class WindowMixin(object):
 
     @property
     def size(self):
-        if hasattr(self, "_pos"):
-            return getattr(self._pos, self.units)
+        if hasattr(self, "_size"):
+            return getattr(self._size, self.units)
 
     @size.setter
     def size(self, value):
@@ -1562,7 +1562,7 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin, LegacyColorMix
         self._needUpdate = True
 
     @property
-    def size(self, value):
+    def size(self):
         """The size (width, height) of the stimulus in the stimulus
         :ref:`units <units>`
 
