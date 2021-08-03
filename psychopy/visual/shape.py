@@ -238,26 +238,6 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self.setFillColor(color, colorSpace, operation, log)
 
     @attributeSetter
-    def size(self, value):
-        """Sets the size of the shape.
-
-        Size is independent of the units of shape and will simply scale the
-        shape's vertices by the factor given. Use a tuple or list of two values
-        to scale asymmetrically.
-
-        :ref:`Operations <attrib-operations>` supported.
-        """
-        WindowMixin.size.fset(value)
-        self._needVertexUpdate = True
-
-    def setSize(self, value, operation='', log=None):
-        """Usually you can use 'stim.attribute = value' syntax instead,
-        but use this method if you need to suppress the log message
-        """
-        setAttribute(self, 'size', value, log,
-                     operation)  # calls attributeSetter
-
-    @attributeSetter
     def vertices(self, value):
         """A list of lists or a numpy array (Nx2) specifying xy positions of
         each vertex, relative to the center of the field.
