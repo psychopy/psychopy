@@ -4,9 +4,13 @@
 """Create geometric (vector) shapes by defining vertex locations."""
 
 # Part of the PsychoPy library
-# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2022 Open Science Tools Ltd.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL)
 
+from __future__ import absolute_import, print_function
+
+from builtins import str
+from past.builtins import basestring
 import copy
 import numpy
 
@@ -108,7 +112,6 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
                  closeShape=True,
                  pos=(0, 0),
                  size=1,
-                 anchor=None,
                  ori=0.0,
                  opacity=None,
                  contrast=1.0,
@@ -135,7 +138,7 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         super(BaseShapeStim, self).__init__(win, units=units,
                                             name=name, autoLog=False)
 
-        self.pos = pos
+        self.pos = numpy.array(pos, float)
         self.closeShape = closeShape
         self.lineWidth = lineWidth
         self.interpolate = interpolate
@@ -175,10 +178,9 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         # Other stuff
         self.depth = depth
         self.ori = numpy.array(ori, float)
-        self.size = size  # make sure that it's 2D
+        self.size = numpy.array([0.0, 0.0]) + size  # make sure that it's 2D
         if vertices != ():  # flag for when super-init'ing a ShapeStim
             self.vertices = vertices  # call attributeSetter
-        self.anchor = anchor
         self.autoDraw = autoDraw  # call attributeSetter
 
         # set autoLog now that params have been initialised
@@ -234,6 +236,44 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         ColorMixin.setForeColor(self, color, colorSpace, operation, log)
         self.setLineColor(color, colorSpace, operation, log)
         self.setFillColor(color, colorSpace, operation, log)
+
+    @attributeSetter
+    def size(self, value):
+        """Sets the size of the shape.
+
+        Size is independent of the units of shape and will simply scale the
+        shape's vertices by the factor given. Use a tuple or list of two values
+        to scale asymmetrically.
+
+        :ref:`Operations <attrib-operations>` supported.
+        """
+        WindowMixin.size.fset(value)
+        self._needVertexUpdate = True
+
+    def setSize(self, value, operation='', log=None):
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message
+        """
+        setAttribute(self, 'size', value, log,
+                     operation)  # calls attributeSetter
+
+    @attributeSetter
+    def vertices(self, value):
+        """A list of lists or a numpy array (Nx2) specifying xy positions of
+        each vertex, relative to the center of the field.
+
+        If you're using `Polygon`, `Circle` or `Rect`, this shouldn't be used.
+
+        :ref:`Operations <attrib-operations>` supported.
+        """
+        self.__dict__['vertices'] = numpy.array(value, float)
+
+        # Check shape
+        if not (self.vertices.shape == (2,) or
+                (len(self.vertices.shape) == 2 and
+                 self.vertices.shape[1] == 2)):
+            raise ValueError("New value for setXYs should be 2x1 or Nx2")
+        self._needVertexUpdate = True
 
     def setVertices(self, value=None, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
@@ -438,7 +478,6 @@ class ShapeStim(BaseShapeStim):
                  closeShape=True,  # False for a line
                  pos=(0, 0),
                  size=1,
-                 anchor=None,
                  ori=0.0,
                  opacity=1.0,
                  contrast=1.0,
@@ -471,7 +510,6 @@ class ShapeStim(BaseShapeStim):
                                         closeShape=self.closeShape,
                                         pos=pos,
                                         size=size,
-                                        anchor=anchor,
                                         ori=ori,
                                         opacity=opacity,
                                         contrast=contrast,
@@ -531,8 +569,8 @@ class ShapeStim(BaseShapeStim):
             initVertices = tessVertices
         self.__dict__['_tesselVertices'] = numpy.array(initVertices, float)
 
-    @property
-    def vertices(self):
+    @attributeSetter
+    def vertices(self, newVerts):
         """A list of lists or a numpy array (Nx2) specifying xy positions of
         each vertex, relative to the center of the field.
 
@@ -540,19 +578,28 @@ class ShapeStim(BaseShapeStim):
 
         :ref:`Operations <attrib-operations>` supported with `.setVertices()`.
         """
-        return WindowMixin.vertices.fget(self)
-
-    @vertices.setter
-    def vertices(self, value):
         # check if this is a name of one of our known shapes
-        if isinstance(value, str) and value in knownShapes:
-            value = knownShapes[value]
-        if isinstance(value, int):
-            value = self._calcEquilateralVertices(value)
+        if isinstance(newVerts, basestring) and newVerts in knownShapes:
+            newVerts = knownShapes[newVerts]
+        if isinstance(newVerts, int):
+            newVerts = self._calcEquilateralVertices(newVerts)
+
         # Check shape
-        WindowMixin.vertices.fset(self, value)
+        self.__dict__['vertices'] = val2array(newVerts, withNone=True,
+                                              withScalar=True, length=2)
         self._needVertexUpdate = True
         self._tesselate(self.vertices)
+
+    @property
+    def verticesPix(self):
+        """The coordinates of the vertices for the current stimulus in pixels,
+        accounting for `size`, `ori`, `pos` and `units`.
+        """
+        # because this is a property getter we can check /on-access/ if it
+        # needs updating :-)
+        if self._needVertexUpdate:
+            self._updateVertices()
+        return self.__dict__['verticesPix']
 
     def draw(self, win=None, keepMatrix=False):
         """Draw the stimulus in the relevant window.
