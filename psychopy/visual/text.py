@@ -180,7 +180,7 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self.__dict__['flipVert'] = flipVert
         self.__dict__['languageStyle'] = languageStyle
         self._pygletTextObj = None
-        self.__dict__['pos'] = numpy.array(pos, float)
+        self.pos = pos
         # deprecated attributes
         if alignVert:
             self.__dict__['alignVert'] = alignVert
@@ -774,10 +774,7 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
         # because this is a property getter we can check /on-access/ if it
         # needs updating :-)
         if self._needVertexUpdate:
-            self.__dict__['posPix'] = convertToPix(vertices=[0, 0],
-                                                   pos=self.pos,
-                                                   units=self.units,
-                                                   win=self.win)
+            self.__dict__['posPix'] = self._pos.pix
         self._needVertexUpdate = False
         return self.__dict__['posPix']
 
