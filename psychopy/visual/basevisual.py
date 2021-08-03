@@ -1583,7 +1583,7 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin, LegacyColorMix
         Tip: if you can see the actual pixel range this corresponds to by
         looking at `stim._sizeRendered`
         """
-        return WindowMixin.pos.fget(self)
+        return WindowMixin.size.fget(self)
 
     @size.setter
     def size(self, value):
