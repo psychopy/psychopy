@@ -165,26 +165,10 @@ class Vector(object):
 
     @property
     def dimensions(self):
-        if isinstance(self._requested, (list, tuple, numpy.ndarray)):
-            return len(self._requested)
-        elif isinstance(self._requested, (int, float, type(None))):
-            return 1
-
-    @dimensions.setter
-    def dimensions(self, value):
-        # Check that there aren't more dimensions than the window has (assume 3 if no window is set)
-        if hasattr(self, 'win'):
-            maxdim = len(self.win.size)
-        else:
-            maxdim = 3
-        if value > maxdim:
-            raise ValueError("Vector has more dimensions than are supported by the window")
-
-        # Adjust values to fit if dimensions is set manually
-        if value > len(self.pix):
-            self.pix = self.pix + (0,)*(value - self.pix)
-        if value < len(self.pix):
-            self.pix = self.pix[:value]
+        # Run _requested through validator to sanitise it
+        value, units = self.validate(self._requested, self._requestedUnits)
+        # Return its Y length
+        return value.shape[1]
 
     @property
     def magnitude(self):
