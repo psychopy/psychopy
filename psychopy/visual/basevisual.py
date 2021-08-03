@@ -15,6 +15,7 @@ from past.builtins import basestring
 from pathlib import Path
 from statistics import mean
 from psychopy.colors import Color, colorSpaces
+from psychopy.layout import Position, Size, unitTypes
 
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
 # other calls to pyglet or pyglet submodules, otherwise it may not get picked
@@ -1373,9 +1374,33 @@ class WindowMixin(object):
         """
         self.__dict__['win'] = value
 
-    @attributeSetter
+    @property
+    def pos(self):
+        if hasattr(self, "_pos"):
+            return getattr(self._pos, self.units)
+
+    @pos.setter
+    def pos(self, value):
+        self._pos = Position(value, units=self.units, win=self.win)
+
+    @property
+    def size(self):
+        if hasattr(self, "_pos"):
+            return getattr(self._pos, self.units)
+
+    @size.setter
+    def size(self, value):
+        self._size = Size(value, units=self.units, win=self.win)
+
+    @property
+    def units(self):
+        if hasattr(self, "_units"):
+            return self._units
+
+    @units.setter
     def units(self, value):
-        """Units to use when drawing.
+        """
+        Units to use when drawing.
 
         Possible options are: None, 'norm', 'cm', 'deg', 'degFlat',
         'degFlatPos', or 'pix'.
@@ -1396,22 +1421,10 @@ class WindowMixin(object):
             stim.units = 'deg'
 
         """
-        if value != None and len(value):
-            self.__dict__['units'] = value
+        if value in unitTypes:
+            self._units = value or self.win.units
         else:
-            self.__dict__['units'] = self.win.units
-
-        # Update size and position if they are defined (tested as numeric).
-        # If not, this is probably
-        # during some init and they will be defined later, given the new unit.
-        try:
-            # quick and dirty way to check that both are numeric. This avoids
-            # the heavier attributeSetter calls.
-            self.size * self.pos
-            self.size = self.size
-            self.pos = self.pos
-        except Exception:
-            pass
+            raise ValueError(f"Invalid unit type '{value}', must be one of: {unitTypes}")
 
     @attributeSetter
     def useShaders(self, value):
@@ -1548,7 +1561,7 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin, LegacyColorMix
         self._needVertexUpdate = True  # need to update update vertices
         self._needUpdate = True
 
-    @attributeSetter
+    @property
     def size(self, value):
         """The size (width, height) of the stimulus in the stimulus
         :ref:`units <units>`
@@ -1570,53 +1583,20 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin, LegacyColorMix
         Tip: if you can see the actual pixel range this corresponds to by
         looking at `stim._sizeRendered`
         """
-        array = numpy.array
-        value = val2array(value)  # Check correct user input
-        self._requestedSize = copy.copy(value)  # to track whether we're using a default
-        # None --> set to default
-        if value is None:
-            # Set the size to default (e.g. to the size of the loaded image
-            # calculate new size
-            if self._origSize is None:  # not an image from a file
-                # this was PsychoPy's original default
-                value = numpy.array([0.5, 0.5])
-            else:
-                # we have an image; calculate the size in `units` that matches
-                # original pixel size
-                # also scale for retina display (virtual pixels are bigger)
-                if self.win.useRetina:
-                    winSize = self.win.size / 2
-                else:
-                    winSize = self.win.size
-                # then handle main scale
-                if self.units == 'pix':
-                    value = numpy.array(self._origSize)
-                elif self.units in ('deg', 'degFlatPos', 'degFlat'):
-                    # NB when no size has been set (assume to use orig size
-                    # in pix) this should not be corrected for flat anyway,
-                    # so degFlat == degFlatPos
-                    value = pix2deg(array(self._origSize, float),
-                                    self.win.monitor)
-                elif self.units == 'norm':
-                    value = 2 * array(self._origSize, float) / winSize
-                elif self.units == 'height':
-                    value = array(self._origSize, float) / winSize[1]
-                elif self.units == 'cm':
-                    value = pix2cm(array(self._origSize, float),
-                                   self.win.monitor)
-                else:
-                    msg = ("Failed to create default size for ImageStim. "
-                           "Unsupported unit, %s")
-                    raise AttributeError(msg % repr(self.units))
-        self.__dict__['size'] = value
+        return WindowMixin.pos.fget(self)
+
+    @size.setter
+    def size(self, value):
+        WindowMixin.size.fset(self, value)
         self._needVertexUpdate = True
         self._needUpdate = True
         if hasattr(self, '_calcCyclesPerStim'):
             self._calcCyclesPerStim()
 
-    @attributeSetter
-    def pos(self, value):
-        """The position of the center of the stimulus in the stimulus
+    @property
+    def pos(self):
+        """
+        The position of the center of the stimulus in the stimulus
         :ref:`units <units>`
 
         `value` should be an :ref:`x,y-pair <attrib-xy>`.
@@ -1637,7 +1617,11 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin, LegacyColorMix
             posPix = posToPix(stim)
 
         """
-        self.__dict__['pos'] = val2array(value, False, False)
+        return WindowMixin.pos.fget(self)
+
+    @pos.setter
+    def pos(self, value):
+        WindowMixin.pos.fset(self, value)
         self._needVertexUpdate = True
         self._needUpdate = True
 
