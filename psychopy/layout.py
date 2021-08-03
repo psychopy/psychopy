@@ -58,9 +58,8 @@ class Vector(object):
         if units in (None, ''):
             units = self.win.units
         # Coerce value to a numpy array of floats
-        dtype = int if units in ('pix') else float
         try:
-            value = numpy.array(value, dtype=dtype)
+            value = numpy.array(value, dtype=float)
         except ValueError as err:
             self.valid = False
             raise err
