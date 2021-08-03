@@ -266,7 +266,7 @@ class Vector(object):
         # Otherwise, do conversion and cache
         buffer = numpy.ndarray(self.pix.shape, dtype=float)
         for i in range(self.dimensions):
-            buffer[:, i] /= self.win.size[i] / (self.win.useRetina + 1)
+            buffer[:, i] = self.pix[:, i] / (self.win.size[i] / (self.win.useRetina + 1))
         self._cache['norm'] = buffer
         # Return new cached value
         return self._cache['norm']
@@ -278,7 +278,7 @@ class Vector(object):
         # Convert and set
         buffer = numpy.ndarray(value.shape, dtype=float)
         for i in range(self.dimensions):
-            buffer[:, i] *= self.win.size[i] / (self.win.useRetina + 1)
+            buffer[:, i] = value[:, i] * (self.win.size[i] / (self.win.useRetina + 1))
         self.pix = buffer
 
     @property
