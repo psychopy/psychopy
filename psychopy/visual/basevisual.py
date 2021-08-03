@@ -1587,6 +1587,9 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin, LegacyColorMix
 
     @size.setter
     def size(self, value):
+        if isinstance(value, (float, int)):
+            value = (value, value)
+
         WindowMixin.size.fset(self, value)
         self._needVertexUpdate = True
         self._needUpdate = True
