@@ -1587,10 +1587,15 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin, LegacyColorMix
 
     @size.setter
     def size(self, value):
+        # Supply default for None
+        if value is None:
+            value = Size((1, 1), units="height", win=self.win)
+        # Duplicate single values
         if isinstance(value, (float, int)):
             value = (value, value)
-
+        # Do setting
         WindowMixin.size.fset(self, value)
+        # Mark any updates needed
         self._needVertexUpdate = True
         self._needUpdate = True
         if hasattr(self, '_calcCyclesPerStim'):
@@ -1624,7 +1629,12 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin, LegacyColorMix
 
     @pos.setter
     def pos(self, value):
+        # Supply defualt for None
+        if value is None:
+            value = Position((0, 0), units="height", win=self.win)
+        # Do setting
         WindowMixin.pos.fset(self, value)
+        # Mark any updates needed
         self._needVertexUpdate = True
         self._needUpdate = True
 
