@@ -303,10 +303,10 @@ class Vector(object):
 
 
 class Position(Vector):
-    def __init__(self, pos, units, win=None, correctFlat=False):
-        Vector.__init__(self, pos, units, win, correctFlat)
+    def __init__(self, value, units, win=None, correctFlat=False):
+        Vector.__init__(self, value, units, win, correctFlat)
 
 
 class Size(Vector):
-    def __init__(self, pos, units, win=None, correctFlat=False):
-        Vector.__init__(self, pos, units, win, correctFlat)
+    def __init__(self, value, units, win=None, correctFlat=False):
+        Vector.__init__(self, value, units, win, correctFlat)
