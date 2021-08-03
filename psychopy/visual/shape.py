@@ -31,7 +31,7 @@ from psychopy.tools.attributetools import (attributeSetter,  # logAttrib,
                                            setAttribute)
 from psychopy.tools.arraytools import val2array
 from psychopy.visual.basevisual import (BaseVisualStim, ColorMixin,
-                                        ContainerMixin)
+                                        ContainerMixin, WindowMixin)
 # from psychopy.visual.helpers import setColor
 import psychopy.visual
 from psychopy.contrib import tesselate
@@ -247,7 +247,7 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         :ref:`Operations <attrib-operations>` supported.
         """
-        self.__dict__['size'] = numpy.array(value, float)
+        WindowMixin.size.fset(value)
         self._needVertexUpdate = True
 
     def setSize(self, value, operation='', log=None):
