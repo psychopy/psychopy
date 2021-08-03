@@ -32,7 +32,7 @@ from psychopy.tools.monitorunittools import cm2pix, deg2pix, convertToPix
 from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.visual.shape import BaseShapeStim
 from psychopy.visual.image import ImageStim
-from psychopy.visual.basevisual import MinimalStim, ContainerMixin
+from psychopy.visual.basevisual import MinimalStim, ContainerMixin, WindowMixin
 
 import numpy
 from numpy import cos, sin, radians
@@ -179,8 +179,8 @@ class Aperture(MinimalStim, ContainerMixin):
 
             GL.glPopMatrix()
 
-    @attributeSetter
-    def size(self, size):
+    @property
+    def size(self):
         """Set the size (diameter) of the Aperture.
 
         This essentially controls a :class:`.ShapeStim` so see
@@ -191,8 +191,12 @@ class Aperture(MinimalStim, ContainerMixin):
 
         Use setSize() if you want to control logging and resetting.
         """
-        self.__dict__['size'] = size
-        self._shape.size = size  # _shape is a ShapeStim
+        return WindowMixin.size.fget(self)
+
+    @size.setter
+    def size(self, value):
+        WindowMixin.size.fset(self, value)
+        self._shape.size = value  # _shape is a ShapeStim
         self._reset()
 
     def setSize(self, size, needReset=True, log=None):
