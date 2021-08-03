@@ -190,13 +190,6 @@ class Vector(object):
         """Return magnitude of vector (i.e. length of the line from vector to (0,0) in pixels)"""
         return numpy.hypot3d(*self.pix)
 
-    @magnitude.setter
-    def magnitude(self, value):
-        """Extend Vector in current direction"""
-        # Divide by current magnitude
-        root = tuple(p/self.magnitude if self.magnitude else 0 for p in self.pix)
-        self.pix = tuple(r*value for r in root)
-
     @property
     def direction(self):
         """Return direction of vector (i.e. angle between vector and the horizontal plane"""
