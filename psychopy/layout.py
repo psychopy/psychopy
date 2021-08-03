@@ -82,9 +82,9 @@ class Vector(object):
     def __repr__(self):
         """If colour is printed, it will display its class and value"""
         if self:
-            return f"<psychopy.layout.{self.__class__.__name__}: " + str(self.pix) + "px>"
+            return f"<psychopy.layout.{self.__class__.__name__}: {numpy.round(self.pix, 3)}px>"
         else:
-            return "<" + self.__class__.__module__ + "." + self.__class__.__name__ + ": " + "Invalid" + ">"
+            return "<psychopy.layout.{self.__class__.__name__}: Invalid>"
 
     #--rich comparisons---
     def __eq__(self, target):
