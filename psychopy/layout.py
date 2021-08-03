@@ -5,6 +5,7 @@ from .tools import monitorunittools as tools
 # Dict of regexpressions for different formats
 unitTypes = [
     None,
+    '',
     'pix',
     'deg',
     'degFlat',
@@ -54,7 +55,7 @@ class Vector(object):
         if units not in unitTypes:
             raise ValueError(f"Unit type '{units}' not recognised, must be one of: {unitTypes}")
         # Get window units if units are None
-        if units is None:
+        if units in (None, ''):
             units = self.win.units
         # Coerce value to a numpy array of floats
         try:
@@ -62,14 +63,16 @@ class Vector(object):
         except ValueError as err:
             self.valid = False
             raise err
-        # Make sure it's the right array shape
+        # Make sure the array is 2D
         if len(value.shape) == 1:
-            self.valid = value.shape[0] <= 3
-        elif len(value.shape) == 2:
+            value = numpy.reshape(value, (1, value.shape[0]))
+        # Make sure each value is no more than 3D
+        if len(value.shape) == 2:
             self.valid = value.shape[1] <= 3
         else:
             self.valid = False
-        assert self.valid, "Array of position/size values must be either Nx1, Nx2 or Nx3"
+
+        assert self.valid, f"Array of position/size values must be either Nx1, Nx2 or Nx3, not {value.shape}"
 
         return value, units
 
@@ -162,7 +165,7 @@ class Vector(object):
 
     @property
     def dimensions(self):
-        if isinstance(self._requested, (list, tuple, np.ndarray)):
+        if isinstance(self._requested, (list, tuple, numpy.ndarray)):
             return len(self._requested)
         elif isinstance(self._requested, (int, float, type(None))):
             return 1
