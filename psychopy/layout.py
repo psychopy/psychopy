@@ -141,7 +141,6 @@ class Vector(object):
         if isinstance(other, Vector):
             return Vector(self.pix + other.pix, "pix")
 
-
     def __sub__(self, other):
         if isinstance(other, Vector):
             return Vector(self.pix - other.pix, "pix")
@@ -155,14 +154,17 @@ class Vector(object):
             return Vector(self.pix / other.pix, "pix")
 
     def copy(self):
+        """Create a copy of this object"""
         return self.__class__(self._requested, self._requestedUnits, self.win, self.correctFlat)
 
     @property
     def monitor(self):
+        """The monitor used for calculations within this object"""
         return self.win.monitor
 
     @property
     def dimensions(self):
+        """How many dimensions (x, y, z) are specified?"""
         # Run _requested through validator to sanitise it
         value, units = self.validate(self._requested, self._requestedUnits)
 
@@ -174,7 +176,7 @@ class Vector(object):
             return value.shape[1]
 
     def __len__(self):
-        """Will return number of values"""
+        """How many different values are specified?"""
         # Run _requested through validator to sanitise it
         value, units = self.validate(self._requested, self._requestedUnits)
 
@@ -187,12 +189,12 @@ class Vector(object):
 
     @property
     def magnitude(self):
-        """Return magnitude of vector (i.e. length of the line from vector to (0,0) in pixels)"""
+        """Return magnitude of vector (i.e. length of the line from vector to (0,0) in pixels) (WIP)"""
         return numpy.hypot3d(*self.pix)
 
     @property
     def direction(self):
-        """Return direction of vector (i.e. angle between vector and the horizontal plane"""
+        """Return direction of vector (i.e. angle between vector and the horizontal plane (WIP)"""
         deg = []
         if self.dimensions < 2:
             return 0 # With only 1 dimension, y is essentially zero, so angle is always 0
@@ -208,6 +210,9 @@ class Vector(object):
 
     @property
     def pix(self):
+        """
+
+        """
         # Check that object is valid
         assert self.valid, "Could not access pixel value of invalid position/size object"
         # Return cached value if present
