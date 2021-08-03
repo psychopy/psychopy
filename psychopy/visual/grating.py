@@ -149,7 +149,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         self.phase = val2array(phase, False)
         self._origSize = None  # updated if an image texture is loaded
         self._requestedSize = size
-        self.size = val2array(size)
+        self.size = size
         self.sf = val2array(sf)
         self.pos = val2array(pos, False, False)
         self.depth = depth
