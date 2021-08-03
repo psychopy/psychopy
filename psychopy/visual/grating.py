@@ -73,7 +73,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
                  win,
                  tex="sin",
                  mask="none",
-                 units="",
+                 units=None,
                  pos=(0.0, 0.0),
                  size=None,
                  sf=None,
