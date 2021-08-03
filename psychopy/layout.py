@@ -58,17 +58,20 @@ class Vector(object):
         if units in (None, ''):
             units = self.win.units
         # Coerce value to a numpy array of floats
+        dtype = int if units in ('pix') else float
         try:
-            value = numpy.array(value, dtype=float)
+            value = numpy.array(value, dtype=dtype)
         except ValueError as err:
             self.valid = False
             raise err
-        # Make sure the array is 2D
-        if len(value.shape) == 1:
-            value = numpy.reshape(value, (1, value.shape[0]))
         # Make sure each value is no more than 3D
-        if len(value.shape) == 2:
+        if len(value.shape) == 1:
+            self.valid = value.shape[0] <= 3
+        elif len(value.shape) == 2:
             self.valid = value.shape[1] <= 3
+            if value.shape[0] == 1:
+                # Remove extraneous layer if single value
+                value = value[0]
         else:
             self.valid = False
 
@@ -134,10 +137,6 @@ class Vector(object):
         else:
             return False
 
-    def __len__(self):
-        """Will return number of dimensions"""
-        return self.dimensions
-
     # ---operations---
     def __add__(self, other):
         if isinstance(other, Vector):
@@ -167,8 +166,25 @@ class Vector(object):
     def dimensions(self):
         # Run _requested through validator to sanitise it
         value, units = self.validate(self._requested, self._requestedUnits)
-        # Return its Y length
-        return value.shape[1]
+
+        if len(value.shape) == 1:
+            # If single value, return number of coords
+            return len(value)
+        else:
+            # If multi value, return number of columns
+            return value.shape[1]
+
+    def __len__(self):
+        """Will return number of values"""
+        # Run _requested through validator to sanitise it
+        value, units = self.validate(self._requested, self._requestedUnits)
+
+        if len(value.shape) == 1:
+            # If single value, return 1
+            return 1
+        else:
+            # If multi value, return number of rows
+            return value.shape[0]
 
     @property
     def magnitude(self):
@@ -266,7 +282,10 @@ class Vector(object):
         # Otherwise, do conversion and cache
         buffer = numpy.ndarray(self.pix.shape, dtype=float)
         for i in range(self.dimensions):
-            buffer[:, i] = self.pix[:, i] / (self.win.size[i] / (self.win.useRetina + 1))
+            if len(self) > 1:
+                buffer[:, i] = self.pix[:, i] / (self.win.size[i] / (self.win.useRetina + 1))
+            else:
+                buffer[i] = self.pix[i] / (self.win.size[i] / (self.win.useRetina + 1))
         self._cache['norm'] = buffer
         # Return new cached value
         return self._cache['norm']
@@ -278,7 +297,10 @@ class Vector(object):
         # Convert and set
         buffer = numpy.ndarray(value.shape, dtype=float)
         for i in range(self.dimensions):
-            buffer[:, i] = value[:, i] * (self.win.size[i] / (self.win.useRetina + 1))
+            if len(self) > 1:
+                buffer[:, i] = value[:, i] * (self.win.size[i] / (self.win.useRetina + 1))
+            else:
+                buffer[i] = value[i] * (self.win.size[i] / (self.win.useRetina + 1))
         self.pix = buffer
 
     @property
