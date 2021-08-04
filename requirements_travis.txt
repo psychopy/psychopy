@@ -35,3 +35,4 @@ esprima
 pathlib
 javascripthon
 xmlschema
+SpeechRecognition
