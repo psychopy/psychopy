@@ -295,12 +295,15 @@ class _BaseTrialHandler(_ComparisonMixin):
 
             appendFile: True or False
                 If False any existing file with this name will be
-                overwritten. If True then a new worksheet will be appended.
+                kept and a new file will be created with a slightly different
+                name. If you want to overwrite the old file, pass 'overwrite'
+                to ``fileCollisionMethod``.
+                If True then a new worksheet will be appended.
                 If a worksheet already exists with that name a number will
                 be added to make it unique.
 
             fileCollisionMethod: string
-                Collision method passed to
+                Collision method (``rename``,``overwrite``, ``fail``) passed to
                 :func:`~psychopy.tools.fileerrortools.handleFileCollision`
                 This is ignored if ``append`` is ``True``.
 
@@ -337,7 +340,9 @@ class _BaseTrialHandler(_ComparisonMixin):
             newWorkbook = False
         else:
             if not appendFile:
-                # the file exists but we're not appending, will be overwritten
+                # the file exists but we're not appending, a new file will
+                # be saved with a slightly different name, unless 
+                # fileCollisionMethod = ``overwrite``
                 fileName = handleFileCollision(fileName,
                                                fileCollisionMethod)
             wb = Workbook()  # create new workbook
