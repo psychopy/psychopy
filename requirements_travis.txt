@@ -34,3 +34,4 @@ astunparse
 esprima
 pathlib
 javascripthon
+xmlschema
