@@ -460,7 +460,6 @@ class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
         value = numpy.resize(value, (unifiedLen, 3))
         # Set
         self._colors.contrast = value
-        print(self._colors.contrast)
         # Store value and update
         self.__dict__['contrs'] = value
         self._needColorUpdate = True
