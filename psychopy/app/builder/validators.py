@@ -554,29 +554,6 @@ class CodeSnippetValidator(BaseValidator):
                     else:
                         parent.warnings.clearWarning(control)
 
-                    for newName in names:
-                        namespace = parent.frame.exp.namespace
-                        if newName in [*namespace.user, *namespace.builder,
-                                       *namespace.constants]:
-                            # Continue if name is a variable
-                            continue
-                        if newName in [*namespace.nonUserBuilder, *namespace.numpy] \
-                                and not re.search(newName+r"(?!\(\))", val):
-                            # Continue if name is an external function being called correctly
-                            continue
-                        used = namespace.exists(newName)
-                        sameAsOldName = bool(newName == parent.params['name'].val)
-                        if used and not sameAsOldName:
-                            # NOTE: formatted string literal doesn't work with _translate().
-                            # So, we have to call format() after _translate() is applied.
-                            msg = _translate(
-                                "Variable name ${newName} is in use (by "
-                                "{used}). Try another name."
-                                ).format(newName=newName, used=_translate(used))
-                            parent.warnings.setWarning(
-                                control, msg=msg, kind=VALIDATOR_WARNING_NAME)
-                        else:
-                            parent.warnings.clearWarning(control)
         else:
             parent.warnings.clearWarning(control)
 
