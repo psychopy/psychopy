@@ -9,6 +9,7 @@
 """
 from __future__ import absolute_import, print_function
 
+import ast
 import re
 from past.builtins import basestring
 import wx
@@ -506,7 +507,13 @@ class CodeSnippetValidator(BaseValidator):
             # get var names from val, check against namespace:
             code = experiment.getCodeFromParamStr(val)
             try:
-                names = compile(code, '', 'exec').co_names
+                tree = compile(code, '', 'exec', flags=ast.PyCF_ONLY_AST)
+                names = []
+                for line in tree.body:
+                    for target in line.targets:
+                        if target.id not in names:
+                            names.append(target.id)
+                names = [obj.id for obj in tree.body[0].targets]
                 parent.warnings.clearWarning(control)
             except (SyntaxError, TypeError) as e:
                 # empty '' compiles to a syntax error, ignore
