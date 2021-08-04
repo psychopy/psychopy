@@ -140,6 +140,13 @@ class BaseStandaloneRoutine:
     def writeEachFrameCodeJS(self, buff, modular):
         return
 
+    def writeRoutineEndCode(self, buff):
+        # reset routineTimer at the *very end* of all non-nonSlip routines
+        code = ('# the Routine "%s" was not non-slip safe, so reset '
+                'the non-slip timer\n'
+                'routineTimer.reset()\n')
+        buff.writeIndentedLines(code % self.name)
+
     def writeRoutineEndCodeJS(self, buff, modular):
         return
 
@@ -440,14 +447,6 @@ class Routine(list):
         for event in self:
             event.writeRoutineEndCode(buff)
 
-        # reset routineTimer at the *very end* of all non-nonSlip routines
-        if not useNonSlip:
-            code = ('# the Routine "%s" was not non-slip safe, so reset '
-                    'the non-slip timer\n'
-                    'routineTimer.reset()\n')
-            buff.writeIndentedLines(code % self.name)
-
-
     def writeRoutineBeginCodeJS(self, buff, modular):
 
         # create the frame loop for this routine
@@ -581,6 +580,17 @@ class Routine(list):
         buff.writeIndentedLines("};\n")
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndentedLines("}\n")
+
+    def writeRoutineEndCode(self, buff):
+        # can we use non-slip timing?
+        maxTime, useNonSlip = self.getMaxTime()
+
+        # reset routineTimer at the *very end* of all non-nonSlip routines
+        if not useNonSlip:
+            code = ('# the Routine "%s" was not non-slip safe, so reset '
+                    'the non-slip timer\n'
+                    'routineTimer.reset()\n')
+            buff.writeIndentedLines(code % self.name)
 
     def writeRoutineEndCodeJS(self, buff, modular):
         # can we use non-slip timing?
