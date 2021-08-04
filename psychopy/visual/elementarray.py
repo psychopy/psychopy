@@ -446,7 +446,23 @@ class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
 
         :ref:`Operations <attrib-operations>` are supported.
         """
-        self.__dict__['contrs'] = self._makeNx1(value)
+        # Convert to 2d numpy array
+        value = numpy.array(value)
+        if len(value.shape) <= 1:
+            value = numpy.reshape(value, (-1, 1))
+        # Get length of colors and contrast and find max
+        unifiedLen = max(len(value), len(self._colors))
+        # If colors is too short, extend it
+        self._colors.rgb = numpy.resize(self._colors.rgb, (unifiedLen, 3))
+        # If contr is too short, extend it
+        if value.shape[1] == 1:
+            value = numpy.hstack((value, value, value))
+        value = numpy.resize(value, (unifiedLen, 3))
+        # Set
+        self._colors.contrast = value
+        print(self._colors.contrast)
+        # Store value and update
+        self.__dict__['contrs'] = value
         self._needColorUpdate = True
 
     def setContrs(self, value, operation='', log=None):
