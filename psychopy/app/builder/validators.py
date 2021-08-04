@@ -510,10 +510,10 @@ class CodeSnippetValidator(BaseValidator):
                 tree = compile(code, '', 'exec', flags=ast.PyCF_ONLY_AST)
                 names = []
                 for line in tree.body:
-                    for target in line.targets:
-                        if target.id not in names:
-                            names.append(target.id)
-                names = [obj.id for obj in tree.body[0].targets]
+                    if hasattr(line, "targets"):
+                        for target in line.targets:
+                            if target.id not in names:
+                                names.append(target.id)
                 parent.warnings.clearWarning(control)
             except (SyntaxError, TypeError) as e:
                 # empty '' compiles to a syntax error, ignore
