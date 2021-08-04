@@ -19,7 +19,9 @@ __all__ = [
     'requirePlugin',
     'isPluginLoaded',
     'isStartUpPlugin',
-    'registerAttribute']
+    'registerAttribute',
+    'registerBuilderComponent'
+]
 
 # ------------------------------------------------------------------------------
 # Imports
@@ -46,7 +48,7 @@ import psychopy.experiment.components as components
 #
 
 # package dotted path which loaded plugins appear
-PLUGIN_PACKAGE = 'psychopy.plugins'
+PLUGIN_PACKAGE = 'psychopy._plugins_cache'
 # prefix for temporary directories for plugins extracted from Zip files
 PLUGIN_TEMP_FILE_PREFIX = 'psychopy_plugin'
 # Keep track of plugins that have been loaded. Keys are plugin names and values
@@ -572,9 +574,8 @@ def loadPlugin(pluginName, *args, **kwargs):
     # check if there is a `setup()` function in the loaded plugin, this is used
     # to setup 'hooks' into PsychoPy.
     result = True
-    if hasattr(plugin_obj, 'setup_plugin'):
-        app_instance = app.getAppInstance()
-        result = plugin_obj.setup_plugin(app_instance, *args, **kwargs)
+    if hasattr(plugin_obj, 'register'):
+        result = plugin_obj.register(*args, **kwargs)
 
     if result:
         _loaded_plugins_[pluginName] = plugin_obj
@@ -820,23 +821,107 @@ def pluginEntryPoints(plugin, parse=False):
     return None
 
 
-def registerAttribute(fqn, name, obj):
+def registerAttribute(obj, basename, attr):
     """Register a specified object to an attribute name somewhere in PsychoPy's
-    namespace.
+    namespace. This function is the 'polite' way for a plugin to augment the
+    namespace of a module within PsychoPy.
 
     Parameters
     ----------
-    fqn : str
-        Fully-qualified name (e.g., `psychopy.visual.Window`) to a module or
-        class.
-    name : str
-        Attribute name to set.
     obj : object
         Reference to an object.
+    basename : str
+        Fully-qualified name (e.g., `psychopy.visual`) to a module within
+        PsychoPy's namespace to install the attribute.
+    attr : str
+        Attribute name to set `obj` as.
+
+    Examples
+    --------
+    Register a new stimulus class called `PluginStimClass` in
+    `psychopy.visual` as `MyStim` by calling the following in the `register()`
+    function of the plugin::
+
+        psychopy.plugins.registerAttribute(
+            PluginClass,
+            'psychopy.visual',
+            'MyStim')
+
+    You can access `MyStim` by importing `psychopy.visual` after loading the
+    plugin::
+
+        import psychopy.visual as visual
+        myStim = visual.MyStim()
+
+    Above is the same as doing this from within the plugin by 'monkey patching'
+    (this is not recommended)::
+
+        import psychopy.visual as visual
+        visual.MyStim = PluginClass
 
     """
-    target = resolveObjectFromName(fqn, basename=None, resolve=True, error=True)
-    setattr(target, name, obj)
+    # get a reference to the base package the user wishes to register the object
+    target = resolveObjectFromName(
+        basename,
+        basename=None,
+        resolve=True,
+        error=True)
+
+    # make sure the FQN points to a module
+    if not inspect.ismodule(target):
+        raise NameError(
+            'Parameter `basename` of `registerAttribute` should reference a '
+            'module.')
+
+    setattr(target, attr, obj)  # set the attribute
+
+
+def registerBuilderComponent(pkg):
+    """Register a PsychoPy builder component module.
+
+    This function is registers a component module, creating an entry in the
+    component pallet in Builder.
+
+    Parameters
+    ----------
+    pkg : ModuleType
+        Module (package) containing the builder component to register.
+
+    """
+    if not inspect.ismodule(pkg):  # not a module
+        return
+
+    # give a default category
+    if not hasattr(pkg, 'categories'):
+        pkg.categories = ['Custom']
+
+    # check if module contains components
+    for attrib in dir(pkg):
+        # name and reference to component class
+        name = attrib
+        cls = getattr(pkg, attrib)
+
+        if not inspect.isclass(cls):
+            continue
+
+        if not issubclass(cls, components.BaseComponent):
+            continue
+
+        components.pluginComponents[attrib] = getattr(pkg, attrib)
+
+        # skip if this class was imported, not defined here
+        if pkg.__name__ != components.pluginComponents[attrib].__module__:
+            continue  # class was defined in different module
+
+        if hasattr(pkg, 'tooltip'):
+            components.tooltips[name] = pkg.tooltip
+
+        if hasattr(pkg, 'iconFile'):
+            components.iconFiles[name] = pkg.iconFile
+
+        # assign the module categories to the Component
+        if not hasattr(components.pluginComponents[attrib], 'categories'):
+            components.pluginComponents[attrib].categories = ['Custom']
 
 
 def _registerWindowBackend(attr, ep):
@@ -898,65 +983,6 @@ def _registerWindowBackend(attr, ep):
                 foundBackends[ep.winTypeName], ep.winTypeName))
 
     backend.winTypes.update(foundBackends)  # update installed backends
-
-
-def _registerBuilderComponent(ep):
-    """Register a PsychoPy builder component module.
-
-    This function is called by :func:`loadPlugin` when encountering an entry
-    point group for :mod:`psychopy.experiment.components`. It searches the
-    module at the entry point for sub-classes of `BaseComponent` and registers
-    it as a builder component. It will also search the module for any resources
-    associated with the component (eg. icons and tooltip text) and register them
-    for use.
-
-    Builder component modules in plugins should follow the conventions and
-    structure of a normal, stand-alone components. Any plugins that adds
-    components to PsychoPy must be registered to load on startup.
-
-    This function is called by :func:`loadPlugin`, it should not be used for any
-    other purpose.
-
-    Parameters
-    ----------
-    module : ModuleType
-        Module containing the builder component to register.
-
-    """
-    if not inspect.ismodule(ep):  # not a module
-        return
-
-    # give a default category
-    if not hasattr(ep, 'categories'):
-        ep.categories = ['Custom']
-
-    # check if module contains components
-    for attrib in dir(ep):
-        # name and reference to component class
-        name = attrib
-        cls = getattr(ep, attrib)
-
-        if not inspect.isclass(cls):
-            continue
-
-        if not issubclass(cls, components.BaseComponent):
-            continue
-
-        components.pluginComponents[attrib] = getattr(ep, attrib)
-
-        # skip if this class was imported, not defined here
-        if ep.__name__ != components.pluginComponents[attrib].__module__:
-            continue  # class was defined in different module
-
-        if hasattr(ep, 'tooltip'):
-            components.tooltips[name] = ep.tooltip
-
-        if hasattr(ep, 'iconFile'):
-            components.iconFiles[name] = ep.iconFile
-
-        # assign the module categories to the Component
-        if not hasattr(components.pluginComponents[attrib], 'categories'):
-            components.pluginComponents[attrib].categories = ['Custom']
 
 
 if __name__ == '__main__':
