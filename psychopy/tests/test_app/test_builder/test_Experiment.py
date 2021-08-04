@@ -317,13 +317,11 @@ class TestExpt(object):
 
         # save it
         with codecs.open(py_file, 'w', 'utf-8-sig') as f:
-            f.write(script.replace("core.quit()", "pass"))
-            f.write("del thisExp\n") #garbage collect the experiment so files are auto-saved
+            f.write(script)
 
-        #run the file (and make sure we return to this location afterwards)
-        wd = os.getcwd()
-        execfile(py_file)
-        os.chdir(wd)
+        stdout, stderr = core.shellCall([sys.executable, py_file], stderr=True)
+        assert not stderr
+
         #load the data
         print("searching..." +datafileBase)
         print(glob.glob(datafileBase+'*'))
