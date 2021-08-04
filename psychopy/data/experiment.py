@@ -263,7 +263,9 @@ class ExperimentHandler(_ComparisonMixin):
 
         If `appendFile=True` then the data will be added to the bottom of
         an existing file. Otherwise, if the file exists already it will
-        be overwritten
+        be kept and a new file will be created with a slightly different
+        name. If you want to overwrite the old file, pass 'overwrite'
+        to ``fileCollisionMethod``.
 
         If `matrixOnly=True` then the file will not contain a header row,
         which can be handy if you want to append data to an existing file
