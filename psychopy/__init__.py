@@ -19,7 +19,7 @@ __author_email__ = 'jon.peirce@gmail.com'
 __maintainer_email__ = 'jon.peirce@gmail.com'
 __url__ = 'https://www.psychopy.org/'
 __download_url__ = 'https://github.com/psychopy/psychopy/releases/'
-__git_sha__ = 'n/a'
+__git_sha__ = '963c661ab'
 __build_platform__ = 'n/a'
 
 __all__ = ["gui", "misc", "visual", "core",

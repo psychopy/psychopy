@@ -34,8 +34,6 @@ from .devices import Computer
 from .devices.deviceConfigValidation import validateDeviceConfiguration
 getTime = Computer.getTime
 
-MAX_PACKET_SIZE = 64 * 1024
-
 # pylint: disable=protected-access
 # pylint: disable=broad-except
 
@@ -361,9 +359,12 @@ class udpServer(DatagramServer):
                 pkt_cnt = int(reply_data_sz // max_pkt_sz) + 1
                 mpr_payload = ('IOHUB_MULTIPACKET_RESPONSE', pkt_cnt)
                 self.sendResponse(mpr_payload, address)
+                gevent.sleep(0.0001)
                 for p in xrange(pkt_cnt - 1):
                     si = p*max_pkt_sz
                     self.socket.sendto(reply_data[si:si+max_pkt_sz], address)
+                    # macOS hangs if we do not sleep gevent between each msg packet
+                    gevent.sleep(0.0001)
                 si = (p+1)*max_pkt_sz
                 self.socket.sendto(reply_data[si:reply_data_sz], address)
             else:
