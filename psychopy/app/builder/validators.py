@@ -13,6 +13,7 @@ import re
 from past.builtins import basestring
 import wx
 import psychopy.experiment.utils
+from psychopy.tools import stringtools
 from psychopy.localization import _translate
 from . import experiment
 from .localizedStrings import _localized
@@ -506,7 +507,7 @@ class CodeSnippetValidator(BaseValidator):
             # get var names from val, check against namespace:
             code = experiment.getCodeFromParamStr(val)
             try:
-                names = compile(code, '', 'exec').co_names
+                names = list(stringtools.getVariables(code))
                 parent.warnings.clearWarning(control)
             except (SyntaxError, TypeError) as e:
                 # empty '' compiles to a syntax error, ignore
