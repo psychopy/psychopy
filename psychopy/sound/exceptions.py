@@ -4,6 +4,8 @@
 """Errors and warnings associated with audio recording and playback.
 """
 
+from ..exceptions import SoundFormatError, DependencyError
+
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
@@ -19,7 +21,9 @@ __all__ = [
     'AudioRecordingBufferFullError',
     'RecognizerAPICredentialsError',
     'RecognizerLanguageNotSupportedError',
-    'RecognizerEngineNotFoundError'
+    'RecognizerEngineNotFoundError',
+    'SoundFormatError',
+    'DependencyError'
 ]
 
 

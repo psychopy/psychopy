@@ -14,7 +14,8 @@ import atexit
 import threading
 from itertools import chain
 from numpy import float64
-from psychopy import prefs, exceptions
+from psychopy import prefs
+from .exceptions import DependencyError
 from psychopy import core, logging
 from psychopy.constants import (STARTED, FINISHED, STOPPED, NOT_STARTED,
                                 FOREVER, PY3)
@@ -27,7 +28,7 @@ try:
 except ImportError as err:
     if not travisCI:
         # convert this import error to our own, pyo probably not installed
-        raise exceptions.DependencyError(repr(err))
+        raise DependencyError(repr(err))
 
 if PY3:
     from contextlib import redirect_stdout
