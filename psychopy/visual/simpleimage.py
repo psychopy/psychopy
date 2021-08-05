@@ -193,7 +193,7 @@ class SimpleImageStim(MinimalStim, WindowMixin):
                          self.win.size[1]/2 - self._size.pix[1]/2 + y)
 
         # GL.glDrawPixelsub(GL.GL_RGB, self.imArr)
-        GL.glDrawPixels(self._size.pix[0], self._size.pix[1],
+        GL.glDrawPixels(int(self._size.pix[0]), int(self._size.pix[1]),
                         self.internalFormat, self.dataType, self._imStr)
         # return to 3D mode (go and pop the projection matrix)
         GL.glMatrixMode(GL.GL_PROJECTION)
