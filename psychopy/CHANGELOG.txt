@@ -63,6 +63,29 @@ PsychoPy 2021.2.0
 - JS: various fixes to TextBox and Form styling
 - JS: Data files output now include information about their character encoding (BOM) supporting more locales of Excel
 
+PsychoPy 2021.2.1
+~~~~~~~~~~~~~~~~~
+
+Fixes:
+
+- macOS was crashing on launch (caused by missing files from psychtoolbox stripped by macOS GateKeeper)
+- added cryptography lib explicitly to requirements for pip install #267483d00
+- Runner local debug of PsychoJS experiments was failing with MIME-type errors (Runner didn't know about new psychojs packaging) #4153
+- extended timeout when querying Pavlovia from the app (e.g. searching for projects) #4148
+- corrected reset of clock for new Button Component
+- DlgFromDict was crashing if `labels` were used (in code) #4137
+- short (<0.5s) sounds were not labelled as finished in PsychoJS boilerplate #4117
+- contrast parameter was not being applied to ShapeStim #4111
+
+PsychoPy 2021.2.2
+~~~~~~~~~~~~~~~~~
+
+Fixes:
+
+- Builder outputs weren't fully honouring the `userVersion()` request, resulting in broken PsychoJS code #5f10b0a12 #017c18f2f31e
+- Better documentation of (high-performance) VLC movie backend
+- iohub.Mouse.setPosition was not handling units correctly when given a float
+- Builder boilerplate for Microphone was looking for a transcription even if none was requested #4163
 
 PsychoPy 2021.1
 ---------------
