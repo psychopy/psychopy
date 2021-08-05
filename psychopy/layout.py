@@ -64,7 +64,10 @@ class Vector(object):
             self.valid = False
             raise err
         # Make sure each value is no more than 3D
-        if len(value.shape) == 1:
+        if len(value.shape) == 0:
+            value = numpy.array([value, value])
+            self.valid = True
+        elif len(value.shape) == 1:
             self.valid = value.shape[0] <= 3
         elif len(value.shape) == 2:
             self.valid = value.shape[1] <= 3
