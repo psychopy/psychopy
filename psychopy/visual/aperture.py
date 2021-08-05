@@ -82,8 +82,6 @@ class Aperture(MinimalStim, ContainerMixin):
             logging.error('Aperture has no effect in a window created '
                           'without allowStencil=True')
             core.quit()
-        self.__dict__['size'] = size
-        self.__dict__['pos'] = pos
         self.__dict__['ori'] = ori
         self.__dict__['inverted'] = inverted
         self.__dict__['filename'] = False
@@ -133,6 +131,9 @@ class Aperture(MinimalStim, ContainerMixin):
         # implicitly runs a self.enabled = True. Also sets
         # self._needReset = True on every call
         self._reset()
+
+        self.size = size
+        self.pos = pos
 
         # set autoLog now that params have been initialised
         wantLog = autoLog is None and self.win.autoLog
