@@ -16,19 +16,19 @@ try:
 except ImportError:
     pass  # all that will happen is the stderr/stdout might get redirected
 
-from psychopy import logging, exceptions
+from psychopy import logging
 from psychopy.constants import (PLAYING, PAUSED, FINISHED, STOPPED,
                                 NOT_STARTED, PY3)
-from psychopy.exceptions import SoundFormatError, DependencyError
+from .exceptions import SoundFormatError, DependencyError
 from ._base import _SoundBase, HammingWindow
 
 try:
     import sounddevice as sd
-except Exception:
+except (ImportError, OSError):
     raise DependencyError("sounddevice not working")
 try:
     import soundfile as sf
-except Exception:
+except (ImportError, OSError):
     raise DependencyError("soundfile not working")
 
 import numpy as np
@@ -129,7 +129,7 @@ class _StreamsDict(dict):
             pass
         # on some systems more than one stream isn't supported so check
         elif sys.platform == 'win32' and len(self):
-            raise exceptions.SoundFormatError(
+            raise SoundFormatError(
                 "Tried to create audio stream {} but {} already exists "
                 "and {} doesn't support multiple portaudio streams"
                     .format(label, list(self.keys())[0], sys.platform)
