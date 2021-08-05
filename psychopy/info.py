@@ -393,63 +393,88 @@ class RunTimeInfo(dict):
         appIgnoreList = [  # always ignore these, exact match:
             'ps', 'login', '-tcsh', 'bash', 'iTunesHelper']
 
-        # assess concurrently active processes owner by the current user:
-        try:
-            # ps = process status, -c to avoid full path (potentially having
-            # spaces) & args, -U for user
-            if sys.platform not in ['win32']:
-                proc = shellCall("ps -c -U " + os.environ['USER'])
-            else:
-                # "tasklist /m" gives modules as well
-                proc, err = shellCall("tasklist", stderr=True)
-                if err:
-                    logging.error('tasklist error:', err)
-                    # raise
-            systemProcPsu = []
-            systemProcPsuFlagged = []
-            systemUserProcFlaggedPID = []
-            procLines = proc.splitlines()
-            headerLine = procLines.pop(0)  # column labels
-            if sys.platform not in ['win32']:
-                try:
-                    # columns and column labels can vary across platforms
-                    cmd = headerLine.upper().split().index('CMD')
-                except ValueError:
-                    cmd = headerLine.upper().split().index('COMMAND')
-                # process id's extracted in case you want to os.kill() them
-                # from psychopy
-                pid = headerLine.upper().split().index('PID')
-            else:  # this works for win XP, for output from 'tasklist'
-                procLines.pop(0)  # blank
-                procLines.pop(0)  # =====
-                pid = -5  # pid next after command, which can have
-                # command is first, but can have white space, so end up taking
-                # line[0:pid]
-                cmd = 0
-            for p in procLines:
-                pr = p.split()  # info fields for this process
-                if pr[cmd] in appIgnoreList:
-                    continue
-                if sys.platform in ['win32']:  # allow for spaces in app names
-                    # later just count these unless want details
-                    systemProcPsu.append([' '.join(pr[cmd:pid]), pr[pid]])
-                else:
-                    systemProcPsu.append([' '.join(pr[cmd:]), pr[pid]])
-                matchingApp = [
-                    a for a in appFlagList if a.lower() in p.lower()]
-                for app in matchingApp:
-                    systemProcPsuFlagged.append([app, pr[pid]])
-                    systemUserProcFlaggedPID.append(pr[pid])
-            self['systemUserProcCount'] = len(systemProcPsu)
-            self['systemUserProcFlagged'] = systemProcPsuFlagged
+        # new method of getting running processes
+        systemProcPsu = []             # found processes
+        systemProcPsuFlagged = []      # processes which are flagged
+        systemUserProcFlaggedPID = []  # PIDs of those processes
+        for proc in psutil.process_iter(attrs=None, ad_value=None):
+            try:
+                processName = proc.name()
+                for appFlag in appFlagList:
+                    # case-insensitive match from the start of string
+                    if processName.lower().startswith(appFlag.lower()):
+                        systemProcPsuFlagged.append(processName)
+                        systemUserProcFlaggedPID.append(proc.pid)
+                        break
 
-            if verbose and userProcsDetailed:
-                self['systemUserProcCmdPid'] = systemProcPsu
-                self['systemUserProcFlaggedPID'] = systemUserProcFlaggedPID
-        except Exception:
-            if verbose:
-                self['systemUserProcCmdPid'] = None
-                self['systemUserProcFlagged'] = None
+                systemProcPsu.append(processName)
+            except (psutil.AccessDenied, psutil.NoSuchProcess, psutil.ZombieProcess):
+                pass
+
+        self['systemUserProcCount'] = len(systemProcPsu)
+        self['systemUserProcFlagged'] = systemProcPsuFlagged
+
+        if verbose and userProcsDetailed:
+            self['systemUserProcCmdPid'] = systemProcPsu
+            self['systemUserProcFlaggedPID'] = systemUserProcFlaggedPID
+
+        # assess concurrently active processes owner by the current user:
+        # try:
+        #     # ps = process status, -c to avoid full path (potentially having
+        #     # spaces) & args, -U for user
+        #     if sys.platform not in ['win32']:
+        #         proc = shellCall("ps -c -U " + os.environ['USER'])
+        #     else:
+        #         # "tasklist /m" gives modules as well
+        #         proc, err = shellCall("tasklist", stderr=True)
+        #         if err:
+        #             logging.error('tasklist error:', err)
+        #             # raise
+        #     systemProcPsu = []
+        #     systemProcPsuFlagged = []
+        #     systemUserProcFlaggedPID = []
+        #     procLines = proc.splitlines()
+        #     headerLine = procLines.pop(0)  # column labels
+        #     if sys.platform not in ['win32']:
+        #         try:
+        #             # columns and column labels can vary across platforms
+        #             cmd = headerLine.upper().split().index('CMD')
+        #         except ValueError:
+        #             cmd = headerLine.upper().split().index('COMMAND')
+        #         # process id's extracted in case you want to os.kill() them
+        #         # from psychopy
+        #         pid = headerLine.upper().split().index('PID')
+        #     else:  # this works for win XP, for output from 'tasklist'
+        #         procLines.pop(0)  # blank
+        #         procLines.pop(0)  # =====
+        #         pid = -5  # pid next after command, which can have
+        #         # command is first, but can have white space, so end up taking
+        #         # line[0:pid]
+        #         cmd = 0
+        #     for p in procLines:
+        #         pr = p.split()  # info fields for this process
+        #         if pr[cmd] in appIgnoreList:
+        #             continue
+        #         if sys.platform in ['win32']:  # allow for spaces in app names
+        #             # later just count these unless want details
+        #             systemProcPsu.append([' '.join(pr[cmd:pid]), pr[pid]])
+        #         else:
+        #             systemProcPsu.append([' '.join(pr[cmd:]), pr[pid]])
+        #         matchingApp = [
+        #             a for a in appFlagList if a.lower() in p.lower()]
+        #         for app in matchingApp:
+        #             systemProcPsuFlagged.append([app, pr[pid]])
+        #             systemUserProcFlaggedPID.append(pr[pid])
+        #     self['systemUserProcCount'] = len(systemProcPsu)
+        #     self['systemUserProcFlagged'] = systemProcPsuFlagged
+        #
+        #     if verbose and userProcsDetailed:
+        #         self['systemUserProcCmdPid'] = systemProcPsu
+        #         self['systemUserProcFlaggedPID'] = systemUserProcFlaggedPID
+        # except Exception:
+        #     if verbose:
+        #         self['systemUserProcCmdPid'] = None
+        #         self['systemUserProcFlagged'] = None
 
         # CPU speed (will depend on system busy-ness)
         d = numpy.array(numpy.linspace(0., 1., 1000000))
@@ -601,10 +626,10 @@ class RunTimeInfo(dict):
                         len(selfk)):
                     prSet = []
                     for pr in self[k]:  # str -> list of lists
-                        if ' ' in pr[0]:  # add single quotes around file names that contain spaces
-                            pr[0] = "'" + pr[0] + "'"
+                        if ' ' in pr:  # add single quotes around file names that contain spaces
+                            pr = "'" + pr + "'"
                         # first item in sublist is proc name (CMD)
-                        prSet += [pr[0]]
+                        prSet += [pr]
                     selfk = ' '.join(list(set(prSet)))
                 # suppress display PID info -- useful at run-time, never useful
                 # in an archive
