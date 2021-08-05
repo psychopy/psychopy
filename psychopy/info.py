@@ -42,82 +42,74 @@ from psychopy.constants import PY3
 
 
 class RunTimeInfo(dict):
-    """Returns a snapshot of your configuration at run-time,
-    for immediate or archival use.
+    """Returns a snapshot of your configuration at run-time, for immediate or
+    archival use.
 
-    Returns a dict-like object with info about PsychoPy, your experiment
-    script, the system & OS, your window and monitor settings (if any),
-    python & packages, and openGL.
+    Returns a dict-like object with info about PsychoPy, your experiment script,
+    the system & OS, your window and monitor settings (if any), python &
+    packages, and openGL.
 
     If you want to skip testing the refresh rate, use 'refreshTest=None'
 
     Example usage: see runtimeInfo.py in coder demos.
 
-    :Author:
-        - 2010 written by Jeremy Gray, input from Jon Peirce and Alex Holcombe
-    """
+    Parameters
+    ----------
+    win : :class:`~psychopy.visual.Window`, False or None
+        What window to use for refresh rate testing (if any) and settings.
+        `None` -> temporary window using defaults; `False` -> no window created,
+        used, nor profiled; a `Window()` instance you have already created one.
+    author : str or None
+        `None` will try to autodetect first __author__ in sys.argv[0], whereas
+        a `str` being user-supplied author info (of an experiment).
+    version : str or None
+        `None` try to autodetect first __version__ in sys.argv[0] or `str` being
+        the user-supplied version info (of an experiment).
+    verbose : bool
+        Show additional information. Default is `False`.
+    refreshTest : str, bool or None
+        True or 'grating' = assess refresh average, median, and SD of 60
+        win.flip()s, using visual.getMsPerFrame() 'grating' = show a visual
+        during the assessment; `True` = assess without a visual. Default is
+        `'grating'`.
+    userProcsDetailed: bool
+        Get details about concurrent user's processes (command, process-ID).
+        Default is `False`.
 
+    Returns
+    -------
+    A flat dict (but with several groups based on key names):
+
+    psychopy : version, rush() availability
+        psychopyVersion, psychopyHaveExtRush, git branch and current
+        commit hash if available
+
+    experiment : author, version, directory, name, current time-stamp,
+        SHA1 digest, VCS info (if any, svn or hg only),
+        experimentAuthor, experimentVersion, ...
+
+    system : hostname, platform, user login, count of users,
+        user process info (count, cmd + pid), flagged processes
+        systemHostname, systemPlatform, ...
+
+    window : (see output; many details about the refresh rate, window,
+        and monitor; units are noted)
+        windowWinType, windowWaitBlanking, ...windowRefreshTimeSD_ms,
+        ... windowMonitor.<details>, ...
+
+    python : version of python, versions of key packages
+        (wx, numpy, scipy, matplotlib, pyglet, pygame)
+        pythonVersion, pythonScipyVersion, ...
+
+    openGL : version, vendor, rendering engine, plus info on whether
+        several extensions are present
+        openGLVersion, ..., openGLextGL_EXT_framebuffer_object, ...
+
+    """
+    # Author: 2010 written by Jeremy Gray, input from Jon Peirce and Alex Holcombe
     def __init__(self, author=None, version=None, win=None,
                  refreshTest='grating', userProcsDetailed=False,
                  verbose=False):
-        """
-        :Parameters:
-
-            win : *None*, False, :class:`~psychopy.visual.Window` instance
-                what window to use for refresh rate testing (if any) and
-                settings. None -> temporary window using
-                defaults; False -> no window created, used, nor profiled;
-                a Window() instance you have already created
-
-            author : *None*, string
-                None = try to autodetect first __author__ in sys.argv[0];
-                string = user-supplied author info (of an experiment)
-
-            version : *None*, string
-                None = try to autodetect first __version__ in sys.argv[0];
-                string = user-supplied version info (of an experiment)
-
-            verbose : *False*, True; how much detail to assess
-
-            refreshTest : None, False, True, *'grating'*
-                True or 'grating' = assess refresh average, median, and SD
-                of 60 win.flip()s, using visual.getMsPerFrame()
-                'grating' = show a visual during the assessment;
-                True = assess without a visual
-
-            userProcsDetailed: *False*, True
-                get details about concurrent user's processes
-                (command, process-ID)
-
-        :Returns:
-            a flat dict (but with several groups based on key names):
-
-            psychopy : version, rush() availability
-                psychopyVersion, psychopyHaveExtRush, git branch and current
-                commit hash if available
-
-            experiment : author, version, directory, name, current time-stamp,
-                SHA1 digest, VCS info (if any, svn or hg only),
-                experimentAuthor, experimentVersion, ...
-
-            system : hostname, platform, user login, count of users,
-                user process info (count, cmd + pid), flagged processes
-                systemHostname, systemPlatform, ...
-
-            window : (see output; many details about the refresh rate, window,
-                and monitor; units are noted)
-                windowWinType, windowWaitBlanking, ...windowRefreshTimeSD_ms,
-                ... windowMonitor.<details>, ...
-
-            python : version of python, versions of key packages
-                (wx, numpy, scipy, matplotlib, pyglet, pygame)
-                pythonVersion, pythonScipyVersion, ...
-
-            openGL : version, vendor, rendering engine, plus info on whether
-                several extensions are present
-                openGLVersion, ..., openGLextGL_EXT_framebuffer_object, ...
-        """
-
         # this will cause an object to be created with all the same methods as
         # a dict
         dict.__init__(self)
