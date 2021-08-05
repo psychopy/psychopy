@@ -12,6 +12,22 @@ an experiment was run.
 
 from __future__ import absolute_import, division, print_function
 
+__all__ = [
+    'RunTimeInfo',
+    'getMemoryUsage',
+    'getRAM',
+    'APP_FLAG_LIST',  # user might want to see these
+    'APP_IGNORE_LIST',
+    # These should be hidden, but I'm unsure if somewhere `import *` is being
+    # used so I'm adding them for now to prevent breakage. - mdc
+    '_getUserNameUID',
+    '_getHashGitHead',
+    '_getSha1hexDigest',
+    '_getHgVersion',
+    '_getSvnVersion',
+    '_thisProcess'
+]
+
 from builtins import str
 import sys
 import os
@@ -48,7 +64,7 @@ from psychopy.constants import PY3
 # Names that appear here are historically known to affect performance. The user
 # can check if these processes are running using `RunTimeInfo()` and shut them
 # down. App names are matched in a case insensitive way from the start of the
-# string obtained from `psutils`.
+# name string obtained from `psutils`.
 APP_FLAG_LIST = [
     # web browsers can burn CPU cycles
     'Firefox',
@@ -95,7 +111,8 @@ APP_IGNORE_LIST = [
     'bash',
     # helpers and updaters
     'iTunesHelper',
-    'DropboxUpdate'
+    'DropboxUpdate',
+    'OfficeClickToRun'
 ]
 
 
@@ -164,7 +181,8 @@ class RunTimeInfo(dict):
         openGLVersion, ..., openGLextGL_EXT_framebuffer_object, ...
 
     """
-    # Author: 2010 written by Jeremy Gray, input from Jon Peirce and Alex Holcombe
+    # Author: 2010 written by Jeremy Gray, input from Jon Peirce and
+    # Alex Holcombe
     def __init__(self, author=None, version=None, win=None,
                  refreshTest='grating', userProcsDetailed=False,
                  verbose=False):
@@ -432,25 +450,31 @@ class RunTimeInfo(dict):
         appFlagListLowerCase = [pn.lower() for pn in APP_FLAG_LIST]
         appIgnoreListLowerCase = [pn.lower() for pn in APP_IGNORE_LIST]
 
-        # iterate over processes
+        # iterate over processes retrieved by psutil
         for proc in psutil.process_iter(attrs=None, ad_value=None):
             try:
-                processName = proc.name()  # get process name
-                for appFlag in appFlagListLowerCase:
-                    # check if process is in ignore list, skip if so
-                    if appFlag in appIgnoreListLowerCase:
-                        break
-
-                    # case-insensitive match from the start of string
-                    if processName.lower().startswith(appFlag):
-                        systemProcPsuFlagged.append(processName)
-                        systemUserProcFlaggedPID.append(proc.pid)
-                        break
-
-                systemProcPsu.append(processName)
+                processFullName = proc.name()  # get process name
+                processPid = proc.pid
+                processName = processFullName.lower()  # use for matching only
             except (psutil.AccessDenied, psutil.NoSuchProcess,
                     psutil.ZombieProcess):
-                pass  # skip on exception
+                continue  # skip iteration on exception
+
+            # check if process is in ignore list, skip if so
+            for appIgnore in appIgnoreListLowerCase:
+                # case-insensitive match from the start of string
+                if processName.startswith(appIgnore):
+                    break
+            else:
+                # if we get here, the name isn't in the ignore list
+                for appFlag in appFlagListLowerCase:
+                    if processName.startswith(appFlag):
+                        # append actual name and PID to output lists
+                        systemProcPsuFlagged.append(processFullName)
+                        systemUserProcFlaggedPID.append(processPid)
+                        break
+
+            systemProcPsu.append(processName)
 
         # add items to dictionary
         self['systemUserProcCount'] = len(systemProcPsu)
@@ -458,7 +482,7 @@ class RunTimeInfo(dict):
 
         # if the user wants more ...
         if verbose and userProcsDetailed:
-            self['systemUserProcCmdPid'] = systemProcPsu
+            self['systemUserProcCmdPid'] = systemProcPsu  # is this right?
             self['systemUserProcFlaggedPID'] = systemUserProcFlaggedPID
 
         # CPU speed (will depend on system busy-ness)
@@ -611,7 +635,7 @@ class RunTimeInfo(dict):
                         len(selfk)):
                     prSet = []
                     for pr in self[k]:  # str -> list of lists
-                        if ' ' in pr:  # add single quotes around file names that contain spaces
+                        if ' ' in pr:  # add single quotes if file has spaces
                             pr = "'" + pr + "'"
                         # first item in sublist is proc name (CMD)
                         prSet += [pr]
@@ -786,6 +810,7 @@ def getRAM():
     """
     totalRAM, available = psutil.virtual_memory()[0:2]
     return totalRAM / 1048576., available / 1048576.
+
 
 # faster to get the current process only once:
 _thisProcess = psutil.Process()
