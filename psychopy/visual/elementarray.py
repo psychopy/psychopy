@@ -429,13 +429,13 @@ class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
     def opacity(self):
         if hasattr(self, "_opacity"):
             return self._opacity
+
     @opacity.setter
     def opacity(self, value):
         self._opacity = value
         if hasattr(self, "_colors"):
             # Set the alpha value of each color to be the desired opacity
             self._colors.alpha = value
-
 
     @attributeSetter
     def contrs(self, value):
@@ -448,9 +448,6 @@ class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
         """
         # Convert to an Nx1 numpy array
         value = self._makeNx1(value)
-        # Stack thrice for Color
-        value = numpy.reshape(value, (-1, 1))
-        value = numpy.hstack((value, value, value))
         # If colors is too short, extend it
         self._colors.rgb = numpy.resize(self._colors.rgb, (len(value), 3))
         # Set
