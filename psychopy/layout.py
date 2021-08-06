@@ -332,3 +332,26 @@ class Position(Vector):
 class Size(Vector):
     def __init__(self, value, units, win=None, correctFlat=False):
         Vector.__init__(self, value, units, win, correctFlat)
+
+
+class Vertices(numpy.ndarray):
+    def relativeToObject(self, obj, units):
+        # Make sure this object has a size and position
+        assert hasattr(obj, "_size")
+        assert hasattr(obj, "_pos")
+
+        # Pass to relative coords function with attributes from obj
+        return self.relativeToCoords(obj._size, obj._pos, units)
+
+    def relativeToCoords(self, size, pos, units):
+        # Make sure size and pos are vector objects
+        assert isinstance(size, Vector)
+        assert isinstance(pos, Vector)
+        # Make sure units are valid
+        assert units in unitTypes
+
+        # Get size and pos in desired units
+        sizeArr = getattr(size, units)
+        posArr = getattr(pos, units)
+        # Do calculation
+        return (self * sizeArr) + posArr
