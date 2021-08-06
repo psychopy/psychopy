@@ -15,7 +15,7 @@ from past.builtins import basestring
 from pathlib import Path
 from statistics import mean
 from psychopy.colors import Color, colorSpaces
-from psychopy.layout import Position, Size, unitTypes
+from psychopy.layout import Position, Size, Vertices, unitTypes
 
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
 # other calls to pyglet or pyglet submodules, otherwise it may not get picked
@@ -1391,6 +1391,30 @@ class WindowMixin(object):
     @size.setter
     def size(self, value):
         self._size = Size(value, units=self.units, win=self.win)
+
+    @property
+    def vertices(self):
+        if hasattr(self, "_vertices"):
+            return self._vertices
+        else:
+            # If not defined, assume vertices are just a square
+            return Vertices((4, 2), dtype=float,
+                            buffer=numpy.array([
+                                [0.5, -0.5],
+                                [-0.5, -0.5],
+                                [-0.5, 0.5],
+                                [0.5, 0.5],
+                            ]))
+
+    @vertices.setter
+    def vertices(self, value):
+        # Convert to numpy array
+        value = numpy.array(value)
+        # Make sure it's a Nx2 array
+        assert len(value.shape) == 2, "Vertices must be coercible to a Nx2 numpy array"
+        assert value.shape[1] == 2, "Vertices must be coercible to a Nx2 numpy array"
+        # Create Vertices object
+        self._vertices = Vertices(value.shape, dtype=value.dtype, buffer=value)
 
     @property
     def units(self):
