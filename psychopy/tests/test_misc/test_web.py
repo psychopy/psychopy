@@ -1,4 +1,3 @@
-from builtins import object
 from psychopy import web
 import pytest
 
@@ -6,7 +5,7 @@ import pytest
 
 
 @pytest.mark.web
-class TestWeb(object):
+class TestWeb():
     @classmethod
     def setup_class(self):
         try:

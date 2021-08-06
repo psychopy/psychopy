@@ -7,7 +7,6 @@
 
 from past.builtins import unicode
 
-from builtins import object
 import sys
 import re
 import glob
@@ -69,7 +68,7 @@ def getLatestVersionInfo(app=None):
     return latest
 
 
-class Updater(object):
+class Updater():
 
     def __init__(self, app=None, runningVersion=None):
         """The updater will check for updates and download/install as needed.

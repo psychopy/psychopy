@@ -1,4 +1,3 @@
-from builtins import str
 from builtins import range
 from os.path import abspath, basename, dirname, isfile, join as pjoin
 import os.path

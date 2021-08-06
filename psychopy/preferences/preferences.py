@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import errno
-from builtins import object
 import os
 import sys
 import platform

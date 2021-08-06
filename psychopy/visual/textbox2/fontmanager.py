@@ -615,7 +615,7 @@ def findFontFiles(folders=(), recursive=True):
     return fontPaths
 
 
-class FontManager(object):
+class FontManager():
     """FontManager provides a simple API for finding and loading font files
     (.ttf) via the FreeType lib
 
@@ -933,7 +933,7 @@ class FontManager(object):
             self._fontInfos = None
 
 
-class FontInfo(object):
+class FontInfo():
 
     def __init__(self, fp, face):
         self.path = fp

@@ -1,11 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# from future import standard_library
-# standard_library.install_aliases()
-from builtins import str
 from past.builtins import basestring
-from builtins import object
 import weakref
 import pickle
 import os
@@ -41,7 +37,7 @@ except ImportError:
 _experiments = weakref.WeakValueDictionary()
 
 
-class _ComparisonMixin(object):
+class _ComparisonMixin():
     def __eq__(self, other):
         # NoneType and booleans, for example, don't have a .__dict__ attribute.
         try:

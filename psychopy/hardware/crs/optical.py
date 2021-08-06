@@ -21,10 +21,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-from builtins import chr
-from builtins import str
 from builtins import range
-from builtins import object
 from past.utils import old_div
 """ Python interface to the CRS 'OptiCAL' photometer.
 

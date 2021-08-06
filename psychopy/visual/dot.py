@@ -22,7 +22,6 @@ determines how they change on every call to the .draw() method.
 
 
 
-from builtins import str
 from builtins import range
 
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any

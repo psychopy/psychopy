@@ -1,4 +1,3 @@
-from builtins import object
 from past.utils import old_div
 import pytest
 import shutil, os, glob
@@ -21,7 +20,7 @@ from psychopy.tests.utils import TESTS_PATH, TESTS_DATA_PATH
 @pytest.mark.microphone
 @pytest.mark.slow
 @skip_under_vm
-class TestMicrophone(object):
+class TestMicrophone():
     @classmethod
     def setup_class(self):
         global sound
@@ -103,7 +102,7 @@ class TestMicrophone(object):
 @pytest.mark.microphone
 @pytest.mark.speech
 @pytest.mark.mic_utils
-class TestMicrophoneNoSound(object):
+class TestMicrophoneNoSound():
     @classmethod
     def setup_class(self):
         try:

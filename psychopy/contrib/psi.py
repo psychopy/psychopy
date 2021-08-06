@@ -13,18 +13,12 @@
 #   Please see <http://www.gnu.org/licenses/> for a copy of the GNU General Public License.
 
 from builtins import range
-from builtins import object
 __all__ = ['PsiObject']
 
-import math
-import warnings
-import random
-import sys
-import time
 from numpy import *
 
 
-class PsiObject(object):
+class PsiObject():
 
     """Special class to handle internal array and functions of Psi adaptive psychophysical method (Kontsevich & Tyler, 1999)."""
     

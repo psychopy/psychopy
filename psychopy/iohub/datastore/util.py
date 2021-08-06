@@ -4,9 +4,7 @@
 # Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from builtins import next
 from past.builtins import basestring
-from builtins import object
 import numbers  # numbers.Integral is like (int, long) but supports Py3
 import os
 from collections import namedtuple
@@ -87,7 +85,7 @@ def displayEventTableSelectionDialog(
 ########### Experiment / Experiment Session Based Data Access #################
 
 
-class ExperimentDataAccessUtility(object):
+class ExperimentDataAccessUtility():
     """The ExperimentDataAccessUtility  provides a simple, high level, way to
     access data saved in an ioHub DataStore HDF5 file. Data access is done by
     providing information at an experiment and session level, as well as

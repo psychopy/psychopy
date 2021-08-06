@@ -14,7 +14,6 @@
 
 from builtins import bytes
 from builtins import range
-from builtins import object
 import sys
 try:
     import serial

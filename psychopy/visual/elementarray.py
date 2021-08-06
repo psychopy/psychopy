@@ -12,7 +12,6 @@ detailed random dot stimuli."""
 
 
 
-from builtins import str
 from past.utils import old_div
 
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any

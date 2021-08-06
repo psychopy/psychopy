@@ -4,7 +4,6 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from builtins import zip
-from builtins import object
 import collections
 import copy
 import os

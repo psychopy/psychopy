@@ -31,7 +31,6 @@ movie is long then audio will be huge and currently the whole thing gets
 
 
 
-from builtins import str
 reportNDroppedFrames = 10
 
 import os

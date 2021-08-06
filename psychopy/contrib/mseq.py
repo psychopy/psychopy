@@ -51,7 +51,6 @@ run tests with:
 
 '''
 
-from builtins import str
 from builtins import map
 from builtins import range
 import sys

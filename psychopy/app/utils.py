@@ -9,7 +9,6 @@
 """
 import glob
 import os
-from builtins import object
 from pathlib import Path
 
 from wx.lib.agw.aui.aui_constants import *
@@ -62,7 +61,7 @@ class FileDropTarget(wx.FileDropTarget):
         return True
 
 
-class WindowFrozen(object):
+class WindowFrozen():
     """
     Equivalent to wxWindowUpdateLocker.
 

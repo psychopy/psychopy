@@ -44,7 +44,6 @@
 #             - optimized keysym lookup by loading into a dict cache
 #             - started adding support for reporting unicode keys
 
-from builtins import str
 import threading
 import unicodedata
 import ctypes as ct

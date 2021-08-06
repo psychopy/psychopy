@@ -16,7 +16,6 @@ with this program. If not, see http://www.gnu.org/licenses/
 
 
 
-from builtins import object
 from past.utils import old_div
 import pyglet
 GL = pyglet.gl

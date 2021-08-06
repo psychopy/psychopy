@@ -1,4 +1,3 @@
-from builtins import object
 from psychopy.visual import Window, CustomMouse, TextStim
 import pytest
 import pyglet
@@ -7,7 +6,7 @@ import pyglet
 # checks for syntax errors not proper function: flip, opacity, pos, etc
 
 
-class Test_Custommouse(object):
+class Test_Custommouse():
     @classmethod
     def setup_class(self):
         self.win = Window([128,256])

@@ -1,7 +1,5 @@
 """Tests for psychopy.data.DataHandler"""
-from builtins import str
 from builtins import range
-from builtins import object
 import os, glob
 from os.path import join as pjoin
 import shutil
@@ -19,7 +17,7 @@ thisPath = os.path.split(__file__)[0]
 fixturesPath = os.path.join(thisPath,'..','data')
 
 
-class TestTrialHandler2(object):
+class TestTrialHandler2():
     def setup_class(self):
         self.temp_dir = mkdtemp(prefix='psychopy-tests-testdata')
         self.rootName = 'test_data_file'
@@ -248,7 +246,7 @@ class TestTrialHandler2(object):
         assert t == t_loaded
 
 
-class TestTrialHandler2Output(object):
+class TestTrialHandler2Output():
     def setup_class(self):
         self.temp_dir = mkdtemp(prefix='psychopy-tests-testdata')
         self.random_seed = 100

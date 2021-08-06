@@ -10,7 +10,7 @@ from .errors import print2err
 
 # pylint: disable=too-many-lines
 
-class Constants(object):
+class Constants():
     UNDEFINED = 0
     _keys = None
     _names = None

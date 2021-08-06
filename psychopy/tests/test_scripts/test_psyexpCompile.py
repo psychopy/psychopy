@@ -13,7 +13,7 @@ from psychopy.experiment.params import Param
 from psychopy import logging
 
 
-class TestComponents(object):
+class TestComponents():
     def setup(self):
         self.temp_dir = mkdtemp()
 

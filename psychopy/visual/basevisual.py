@@ -11,7 +11,6 @@
 
 
 
-from builtins import object
 from past.builtins import basestring
 from pathlib import Path
 from statistics import mean

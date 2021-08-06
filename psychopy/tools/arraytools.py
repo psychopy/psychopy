@@ -18,7 +18,6 @@ __all__ = ["createXYs",
            "val2array",
            "array2pointer"]
 
-from builtins import str
 from past.utils import old_div
 import numpy
 import ctypes

@@ -9,11 +9,7 @@
 
 # Author: Jeremy R. Gray, March 2012, March 2013
 
-# from future import standard_library
-# standard_library.install_aliases()
-from builtins import str
 from past.builtins import basestring
-from builtins import object
 import os
 import glob
 import threading
@@ -28,7 +24,7 @@ else:
     import urllib2
     # import urllib.request, urllib.error, urllib.parse
 
-    class FakeURLlib(object):
+    class FakeURLlib():
 
         def __init__(self, lib):
             self.request = lib
@@ -52,7 +48,7 @@ haveMic = False  # goes True in switchOn, if can import pyo
 FLAC_PATH = None  # set on first call to _getFlacPath()
 
 
-class AudioCapture(object):
+class AudioCapture():
     """Capture sound sample from the default sound input, and save to a file.
 
         Untested whether you can have two recordings going on simultaneously.
@@ -85,7 +81,7 @@ class AudioCapture(object):
         :Author: Jeremy R. Gray, March 2012
     """
 
-    class _Recorder(object):
+    class _Recorder():
         """Class for internal object to make an audio recording using pyo.
 
         Never needed by end-users; only used internally in __init__:
@@ -803,7 +799,7 @@ class _GSQueryThread(threading.Thread):
         self.running = False
 
 
-class Speech2Text(object):
+class Speech2Text():
     """Class for speech-recognition (voice to text), using Google's public API.
 
         Google's speech API is currently free to use, and seems to work well.

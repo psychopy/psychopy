@@ -60,7 +60,6 @@ from ..utils import (PsychopyToolbar, PsychopyPlateBtn, WindowFrozen,
                      FileDropTarget, FrameSwitcher, updateDemosMenu)
 
 from psychopy.experiment import components, getAllStandaloneRoutines
-from builtins import str
 from psychopy.app import pavlovia_ui
 from psychopy.projects import pavlovia
 

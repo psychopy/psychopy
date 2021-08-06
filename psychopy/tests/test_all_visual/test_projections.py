@@ -1,5 +1,4 @@
 from builtins import range
-from builtins import object
 from past.utils import old_div
 import sys
 import pyglet
@@ -21,7 +20,7 @@ foregroundColor = [-1, -1, -1]
 backgroundColor = [1, 1, 1]
 
 
-class ProjectionsLinesAndCircles(object):
+class ProjectionsLinesAndCircles():
     """
     Test jig for projection warping.
     Switch between warpings by pressing a key 'S'pherical, 'C'ylindrical, 'N'one, warp'F'ile.
@@ -160,7 +159,7 @@ class ProjectionsLinesAndCircles(object):
             self.updateInfo()
 
 
-class Test_class_WindowWarp(object):
+class Test_class_WindowWarp():
     def setup_class(self):
         self.win = Window(monitor='testMonitor', screen=1, fullscr=True, color='gray', useFBO = True, autoLog=False)
         self.warper = Warper(self.win, warp='spherical', warpfile="", warpGridsize=128, eyepoint=[0.5, 0.5],

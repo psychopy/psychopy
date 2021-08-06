@@ -7,7 +7,6 @@
 
 """Functions and classes related to file and directory error handling
 """
-from builtins import str
 import os
 import glob
 

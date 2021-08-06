@@ -12,7 +12,6 @@ import codecs
 import pytest
 
 from builtins import zip
-from builtins import object
 from tempfile import mkdtemp, mkstemp
 from psychopy.tools.filetools import (genDelimiter, genFilenameFromDelimiter,
                                       openOutputFile, fromFile)
@@ -41,7 +40,7 @@ def test_genFilenameFromDelimiter():
         assert extension == correct_extension
 
 
-class TestOpenOutputFile(object):
+class TestOpenOutputFile():
     def setup_class(self):
         self.temp_dir = mkdtemp(prefix='psychopy-tests-testdata')
         self.rootName = 'test_data_file'
@@ -70,7 +69,7 @@ class TestOpenOutputFile(object):
         assert f is sys.stdout
 
 
-class TestFromFile(object):
+class TestFromFile():
     def setup(self):
         self.tmp_dir = mkdtemp(prefix='psychopy-tests-%s' %
                                       type(self).__name__)

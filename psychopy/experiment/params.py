@@ -18,8 +18,6 @@ The code that writes out a *_lastrun.py experiment file is (in order):
 from xml.etree.ElementTree import Element
 
 from past.builtins import basestring
-from builtins import object
-
 import re
 from pathlib import Path
 
@@ -27,7 +25,6 @@ from psychopy import logging
 from . import utils
 from . import py2js
 
-# standard_library.install_aliases()
 from ..colors import Color
 from numpy import ndarray
 from ..alerts import alert
@@ -60,7 +57,7 @@ legacyParams = [
     'lineColorSpace', 'borderColorSpace', 'fillColorSpace', 'foreColorSpace',  # 2021.1, we standardised colorSpace to be object-wide rather than param-specific
 ]
 
-class Param(object):
+class Param():
     r"""Defines parameters for Experiment Components
     A string representation of the parameter will depend on the valType:
 

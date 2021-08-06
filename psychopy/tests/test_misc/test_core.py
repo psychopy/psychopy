@@ -397,7 +397,7 @@ def test_quit():
 
 
 @pytest.mark.shellCall
-class Test_shellCall(object):
+class Test_shellCall():
     def setup_class(self):
         if sys.platform == 'win32':
             self.cmd = 'findstr'

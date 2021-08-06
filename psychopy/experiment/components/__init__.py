@@ -8,7 +8,6 @@
 """Extensible set of components for the PsychoPy Builder view
 """
 
-from builtins import str
 from past.builtins import basestring
 import os
 import glob

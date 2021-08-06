@@ -1,6 +1,5 @@
 """Test PsychoPy sound.py using pygame backend; will fail if have already used pyo
 """
-from builtins import object
 from past.utils import old_div
 from psychopy import prefs, core
 prefs.hardware['audioLib'] = ['pygame']
@@ -19,7 +18,7 @@ import numpy
 from psychopy.tests.utils import TESTS_PATH, TESTS_DATA_PATH
 
 @pytest.mark.needs_sound
-class TestPygame(object):
+class TestPygame():
     @classmethod
     def setup_class(self):
         self.contextName='pyo'

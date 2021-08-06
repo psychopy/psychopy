@@ -9,9 +9,7 @@ Created on Thu Mar 21 18:38:35 2013
 
 
 
-from builtins import str
 from past.builtins import basestring
-from builtins import object
 import os
 import inspect
 import numbers

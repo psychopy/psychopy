@@ -522,7 +522,7 @@ class DeviceMonitor(Greenlet):
         self.device = None
 
 
-class ioServer(object):
+class ioServer():
     eventBuffer = None
     deviceDict = {}
     _logMessageBuffer = deque(maxlen=128)

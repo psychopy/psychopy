@@ -11,9 +11,7 @@ See http://www.photoresearch.com/
 --------
 """
 
-from builtins import str
 from builtins import range
-from builtins import object
 from psychopy import logging
 import struct
 import sys

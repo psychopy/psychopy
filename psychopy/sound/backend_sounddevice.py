@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from builtins import str
-from builtins import object
 import sys
 import os
 import time
@@ -142,7 +140,7 @@ class _StreamsDict(dict):
 streams = _StreamsDict()
 
 
-class _SoundStream(object):
+class _SoundStream():
     def __init__(self, sampleRate, channels, blockSize,
                  device=None, duplex=False):
         # initialise thread

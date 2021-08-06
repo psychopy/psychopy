@@ -18,7 +18,6 @@ with this program. If not, see http://www.gnu.org/licenses/
 
 from builtins import map
 from builtins import range
-from builtins import object
 import numpy as np
 from psychopy import logging
 from OpenGL.arrays import ArrayDatatype as ADT

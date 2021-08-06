@@ -21,7 +21,7 @@ from .util import NumPyRingBuffer as RingBuffer
 
 MAX_PACKET_SIZE = 64 * 1024
 
-class SocketConnection(object): # pylint: disable=too-many-instance-attributes
+class SocketConnection(): # pylint: disable=too-many-instance-attributes
     def __init__(
             self,
             local_host=None,
@@ -257,7 +257,7 @@ class ioHubTimeGreenSyncManager(Greenlet):
         self._close()
 
 
-class ioHubTimeSyncManager(object):
+class ioHubTimeSyncManager():
 
     def __init__(self, remote_address, sync_state_target):
         self.initial_sync_interval = 0.2
@@ -294,7 +294,7 @@ class ioHubTimeSyncManager(object):
         self.close()
 
 
-class TimeSyncState(object):
+class TimeSyncState():
     """Container class used by an ioHubSyncManager to hold the data necessary
     to calculate the current time base offset and drift between an ioHub Server
     and a ioHubRemoteEventSubscriber client."""

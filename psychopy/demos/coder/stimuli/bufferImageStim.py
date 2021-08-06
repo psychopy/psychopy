@@ -9,7 +9,6 @@ Demo of class psychopy.visual.BufferImageStim()
 - report speed of BufferImageStim to speed of drawing each item separately
 """
 
-from builtins import str
 from builtins import range
 from psychopy import visual, event, core
 

@@ -7,7 +7,6 @@
 
 """Dialog classes for the Builder Code component
 """
-from builtins import str
 import sys
 
 import keyword

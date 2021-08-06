@@ -33,7 +33,6 @@ Typical usage::
 """
 
 from builtins import range
-from builtins import object
 try:
     import pygame.joystick
     havePygame = True

@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """Tests for psychopy.compatibility"""
 
-from builtins import object
 import os
 from psychopy import constants, compatibility
 import pytest
@@ -12,7 +11,7 @@ pytestmark = pytest.mark.skipif(
 thisPath = os.path.split(__file__)[0]
 fixtures_path = os.path.join(thisPath, '..', 'data')
 
-class _baseCompatibilityTest(object):
+class _baseCompatibilityTest():
     def test_FromFile(self):
         dat = compatibility.fromFile(self.test_psydat)
 

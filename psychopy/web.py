@@ -7,15 +7,11 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-# from future import standard_library
-# standard_library.install_aliases()
-
-from builtins import object
 import sys
 import socket
 import re
 from psychopy import logging
-from psychopy.constants import PSYCHOPY_USERAGENT, PY3
+from psychopy.constants import PY3
 from psychopy import prefs
 
 
@@ -27,7 +23,7 @@ else:
     import urllib2
     # import urllib.request, urllib.error, urllib.parse
 
-    class FakeURLlib(object):
+    class FakeURLlib():
 
         def __init__(self, lib):
             self.request = lib

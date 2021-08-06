@@ -11,7 +11,6 @@ an ioHub data file, first run the demos/coder/iohub/delaytest/run.py script
 and use the events.hdf5 file that is saved by that demo. 
 """
 
-from builtins import str
 import sys, os
 import psychopy
 from psychopy.core import getTime

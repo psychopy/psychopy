@@ -2,7 +2,6 @@ from pathlib import Path
 
 from past.builtins import unicode
 
-from builtins import object
 import os
 import io
 import pytest
@@ -34,7 +33,7 @@ ignoreList = ['<built-in method __', "<method-wrapper '__", '__slotnames__:']
 ignoreParallelOutAddresses = True
 
 @pytest.mark.components
-class TestComponents(object):
+class TestComponents():
     @classmethod
     def setup_class(cls):
         cls.expPy = experiment.Experiment() # create once, not every test

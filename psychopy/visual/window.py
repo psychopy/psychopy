@@ -18,9 +18,7 @@ import atexit
 from itertools import product
 
 # from builtins import map
-from builtins import object
 from builtins import range
-from builtins import str
 from past.builtins import basestring
 from collections import deque
 
@@ -139,7 +137,7 @@ class OpenWinList(list):
 openWindows = core.openWindows = OpenWinList()  # core needs this for wait()
 
 
-class Window(object):
+class Window():
     """Used to set up a context in which to draw objects,
     using either `pyglet <http://www.pyglet.org>`_,
     `pygame <http://www.pygame.org>`_, or `glfw <https://www.glfw.org>`_.

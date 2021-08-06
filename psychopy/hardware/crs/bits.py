@@ -13,7 +13,6 @@
 #    (Kleiner) but does not actually use that code directly
 
 from builtins import range
-from builtins import object
 import os
 import sys
 import time

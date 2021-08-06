@@ -10,7 +10,6 @@ current Python process. Such info can be useful for understanding
 the context in which an experiment was run.
 """
 
-from builtins import str
 import sys
 import os
 import platform

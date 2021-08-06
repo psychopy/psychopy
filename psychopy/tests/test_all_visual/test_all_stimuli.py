@@ -1,5 +1,3 @@
-from builtins import object
-
 import sys, os, copy
 from pathlib import Path
 
@@ -22,7 +20,7 @@ To add a new stimulus test use _base so that it gets tested in all contexts
 from psychopy.tests import _travisTesting, skip_under_vm, _vmTesting
 
 
-class Test_Window(object):
+class Test_Window():
     """Some tests just for the window - we don't really care about what's drawn inside it
     """
     def setup_class(self):
@@ -58,7 +56,7 @@ class Test_Window(object):
         self.win.flip()
 
 
-class _baseVisualTest(object):
+class _baseVisualTest():
     #this class allows others to be created that inherit all the tests for
     #a different window config
     @classmethod

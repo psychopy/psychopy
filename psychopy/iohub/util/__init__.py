@@ -2,7 +2,6 @@
 # Part of the PsychoPy library
 # Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
-from builtins import object
 import sys
 import os
 import copy
@@ -368,7 +367,7 @@ getCurrentDateTime = datetime.datetime.now
 getCurrentDateTimeString = lambda: getCurrentDateTime().strftime("%Y-%m-%d %H:%M")
 
 
-class NumPyRingBuffer(object):
+class NumPyRingBuffer():
     """NumPyRingBuffer is a circular buffer implemented using a one dimensional
     numpy array on the backend. The algorithm used to implement the ring buffer
     behavior does not require any array copies to occur while the ring buffer

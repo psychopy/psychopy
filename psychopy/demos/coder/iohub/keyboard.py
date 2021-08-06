@@ -6,7 +6,6 @@ Example of how to access Keyboard events using iohub.
 Displays information from ioHub Keyboard Events vs. psychopy.event.geKeys().
 """
 
-from builtins import str
 from psychopy import core, visual, event
 from psychopy.iohub import launchHubServer
 

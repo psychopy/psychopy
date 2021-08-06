@@ -16,7 +16,6 @@ create multiple versions of an experiment.
 """
 
 from builtins import map
-from builtins import str
 import platform
 macVer = platform.mac_ver()[0]  # e.g., '10.9.5' or '' for non-Mac
 

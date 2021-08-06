@@ -1,6 +1,5 @@
 """Test PsychoPy sound.py using pyo backend
 """
-from builtins import object
 from past.utils import old_div
 
 import pytest
@@ -22,7 +21,7 @@ origSoundPref = prefs.hardware['audioLib']
 
 
 @pytest.mark.needs_sound
-class TestSoundDevice(object):
+class TestSoundDevice():
     @classmethod
     def setup_class(self):
         self.contextName='sounddevice'

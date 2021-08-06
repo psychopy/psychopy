@@ -1,4 +1,3 @@
-from builtins import object
 from pathlib import Path
 
 from psychopy import visual, event

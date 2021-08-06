@@ -20,18 +20,12 @@ import io
 import keyword
 import re
 
-from builtins import object
-from builtins import str
-# from future import standard_library
-
 import psychopy
 from psychopy import constants
 from psychopy.constants import PY3
 from psychopy.localization import _translate
 from .components.settings import _numpyImports, _numpyRandomImports
 from .utils import nonalphanumeric_re, valid_var_re
-
-# standard_library.install_aliases()
 
 # predefine some regex's; deepcopy complains if do in NameSpace.__init__()
 
@@ -104,7 +98,7 @@ class IndentingBuffer(io.StringIO):
 
 
 # noinspection PyUnresolvedReferences
-class NameSpace(object):
+class NameSpace():
     """class for managing variable names in builder-constructed experiments.
 
     The aim is to help detect and avoid name-space collisions from

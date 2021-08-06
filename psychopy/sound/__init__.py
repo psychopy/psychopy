@@ -35,7 +35,6 @@ After importing sound, the sound lib and driver being used will be stored as::
 
 __all__ = []
 
-from builtins import str
 from past.types import basestring
 import sys
 import os

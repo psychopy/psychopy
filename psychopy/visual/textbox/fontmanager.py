@@ -6,8 +6,6 @@ Created on Sun Nov 10 12:18:45 2013
 
 @author: Sol
 """
-from builtins import chr
-from builtins import object
 import os
 import sys
 from pathlib import Path

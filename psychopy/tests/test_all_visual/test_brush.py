@@ -7,7 +7,7 @@ from psychopy.visual.brush import Brush
 from psychopy.visual.shape import ShapeStim
 
 
-class Test_Brush(object):
+class Test_Brush():
     """Test suite for Brush component"""
     def setup_class(self):
         self.win = Window([128,128],

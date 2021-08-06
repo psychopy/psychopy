@@ -1,6 +1,5 @@
 from builtins import map
 from builtins import range
-from builtins import object
 from past.utils import old_div
 
 from psychopy.colors import Color
@@ -22,7 +21,7 @@ import pytest, copy
 
 
 @pytest.mark.ratingscale
-class Test_class_RatingScale(object):
+class Test_class_RatingScale():
     """RatingScale internal logic, no check that its drawn correctly
     """
     def setup_class(self):
@@ -130,7 +129,7 @@ class Test_class_RatingScale(object):
         r.markerPosFixed = False
         r.draw()
 
-        class bad_customMarker(object):
+        class bad_customMarker():
             def __init__(self): pass
         r = RatingScale(self.win, marker=bad_customMarker(), autoLog=False)
         assert type(r.marker) == shape.ShapeStim

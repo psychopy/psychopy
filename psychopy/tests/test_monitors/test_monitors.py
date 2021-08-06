@@ -9,7 +9,7 @@ import pytest
 
 
 @pytest.mark.monitors
-class TestMonitorCalibration(object):
+class TestMonitorCalibration():
     def setup_class(self):
         self.monitor_name = str(uuid.uuid4().hex)  # random monitor name
         if sys.platform == 'win32':

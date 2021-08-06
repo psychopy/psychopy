@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 import json
 import sys
-from builtins import str
 import wx
 import wx.propgrid as pg
 import wx.py

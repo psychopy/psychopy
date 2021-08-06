@@ -16,7 +16,7 @@ except Exception:
     printExceptionDetailsToStdErr()
 
 # Tobii Eye Tracker
-class TobiiTracker(object):
+class TobiiTracker():
     try:
         CALIBRATION_STATUS_SUCCESS = tobii_research.CALIBRATION_STATUS_SUCCESS
     except:

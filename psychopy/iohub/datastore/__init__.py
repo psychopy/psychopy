@@ -7,8 +7,6 @@
 import os
 import atexit
 import numpy as np
-from builtins import str
-from builtins import object
 from pkg_resources import parse_version
 from ..server import DeviceEvent
 from ..constants import EventConstants
@@ -51,7 +49,7 @@ SCHEMA_AUTHORS = 'Sol Simpson'
 SCHEMA_MODIFIED_DATE = 'March 19th, 2021'
 
 
-class DataStoreFile(object):
+class DataStoreFile():
     def __init__(self, fileName, folderPath, fmode='a', iohub_settings=None):
         self.fileName = fileName
         self.folderPath = folderPath

@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# from future import standard_library
-# standard_library.install_aliases()
-from builtins import str
 import sys
 import copy
 import pickle

@@ -66,7 +66,7 @@ _localized = {
 # can't just do the following, or messes up poedit autodiscovery:
 # _localized = {k: _translate(k) for k in _loKeys}
 
-class BaseWizard(object):
+class BaseWizard():
     """Base class of ConfigWizard and BenchmarkWizard.
     """
     def __init__(self):

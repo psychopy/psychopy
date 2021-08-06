@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from builtins import str
-from builtins import object
 from past.builtins import basestring
 from psychopy.visual import Window, ShapeStim
 from psychopy import event, core, monitors
@@ -57,7 +55,7 @@ class DelayedAddFakeKeysToBuffer(threading.Thread):
         fake_events = [(key, self.modifiers, -1) for key in self.keys]
         event._keyBuffer.extend(fake_events)
 
-class _baseTest(object):
+class _baseTest():
     #this class allows others to be created that inherit all the tests for
     #a different window config
     @classmethod

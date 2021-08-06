@@ -8,9 +8,7 @@
 """Base class for serial devices. Includes some convenience methods to open
 ports and check for the expected device
 """
-from builtins import str
 from builtins import range
-from builtins import object
 import sys
 import time
 

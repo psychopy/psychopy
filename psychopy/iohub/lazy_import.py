@@ -202,7 +202,7 @@ class ImportNameCollision(InternalBzrError):
         self.name = name
 
 
-class ScopeReplacer(object):
+class ScopeReplacer():
     """A lazy object that will replace itself in the appropriate scope.
 
     This object sits, ready to create the real object the first time it
@@ -385,7 +385,7 @@ class ImportReplacer(ScopeReplacer):
         return module
 
 
-class ImportProcessor(object):
+class ImportProcessor():
     """Convert text that users input into lazy import requests."""
 
     # TODO: jam 20060912 This class is probably not strict enough about

@@ -11,7 +11,6 @@ monitor"""
 
 
 
-from builtins import str
 from past.utils import old_div
 from psychopy import monitors
 from psychopy import logging

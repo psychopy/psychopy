@@ -33,7 +33,6 @@ messages, (which PsychoPy doesn't use) using the commands::
 # stack of log entries for later writing (don't want files written while
 # drawing)
 
-from builtins import object
 from past.builtins import basestring
 from os import path
 import atexit
@@ -119,7 +118,7 @@ def setDefaultClock(clock):
     defaultClock = clock
 
 
-class _LogEntry(object):
+class _LogEntry():
 
     def __init__(self, level, message, t=None, obj=None):
         super(_LogEntry, self).__init__()
@@ -135,7 +134,7 @@ class _LogEntry(object):
         self.obj = obj
 
 
-class LogFile(object):
+class LogFile():
     """A text stream to receive inputs from the logging system
     """
 
@@ -226,7 +225,7 @@ class LogFile(object):
             pass
 
 
-class _Logger(object):
+class _Logger():
     """Maintains a set of log targets (text streams such as files of stdout)
 
     self.targets is a list of dicts {'stream':stream, 'level':level}

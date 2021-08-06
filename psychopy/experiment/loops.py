@@ -16,21 +16,15 @@ The code that writes out a *_lastrun.py experiment file is (in order):
     settings.SettingsComponent.writeEndCode()
 """
 
-from builtins import object
 from copy import deepcopy
 from xml.etree.ElementTree import Element
-
-# from future import standard_library
 
 from psychopy.experiment import getInitVals
 from psychopy.localization import _localized, _translate
 from psychopy.experiment.params import Param
 from .components import getInitVals, getAllComponents
 
-# standard_library.install_aliases()
-
-
-class TrialHandler(object):
+class TrialHandler():
     """A looping experimental control object
             (e.g. generating a psychopy TrialHandler or StairHandler).
             """

@@ -5,12 +5,9 @@
 # Copyright (C) 2009 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-# from future import standard_library
-# standard_library.install_aliases()
 from pathlib import Path
 
 from past.builtins import unicode
-from builtins import chr
 from builtins import range
 import wx
 import wx.stc

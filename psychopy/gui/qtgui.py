@@ -9,7 +9,6 @@
 
 from .. import constants
 
-from builtins import str
 from past.builtins import unicode
 
 haveQt = False  # until we confirm otherwise

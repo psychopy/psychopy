@@ -17,7 +17,6 @@ The code that writes out a *_lastrun.py experiment file is (in order):
 """
 
 from past.builtins import basestring
-from builtins import object
 import os
 import codecs
 import xml.etree.ElementTree as xml
@@ -40,8 +39,6 @@ from .components import getComponents, getAllComponents
 
 from psychopy.localization import _translate
 import locale
-
-# standard_library.install_aliases()
 
 from collections import namedtuple, OrderedDict
 

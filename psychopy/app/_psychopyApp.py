@@ -5,8 +5,6 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from builtins import str
-from builtins import object
 from pathlib import Path
 
 from psychopy.app.colorpicker import PsychoColorPicker
@@ -129,7 +127,7 @@ class IDStore(dict):
         self[attr] = value
 
 
-class _Showgui_Hack(object):
+class _Showgui_Hack():
     """Class with side-effect of restoring wx window switching under wx-3.0
 
     - might only be needed on some platforms (Mac 10.9.4 needs it for me);

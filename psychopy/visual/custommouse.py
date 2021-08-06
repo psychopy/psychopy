@@ -11,7 +11,6 @@ including the pointer graphic and bounding box."""
 
 
 
-from builtins import str
 import os
 
 import psychopy  # so we can get the __path__

@@ -15,7 +15,6 @@ method. See SimpleThresholdVoiceKey or OnsetVoiceKey for examples.
 
 
 from builtins import range
-from builtins import object
 __version__ = 0.5
 
 import sys

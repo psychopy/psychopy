@@ -1,10 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# from future import standard_library
-# standard_library.install_aliases()
-from builtins import str
-from builtins import object
 import codecs
 import pickle
 import psychopy.data
@@ -12,7 +8,7 @@ import psychopy.data
 ######### Begin Compatibility Class Definitions #########
 
 
-class _oldStyleBaseTrialHandler(object):
+class _oldStyleBaseTrialHandler():
     """Please excuse these ugly kluges, but in order to unpickle
         psydat pickled trial handlers that were created using the old-style
         (pre python 2.2) class, original classes have to be defined.
@@ -20,22 +16,22 @@ class _oldStyleBaseTrialHandler(object):
     pass
 
 
-class _oldStyleBaseStairHandler(object):
+class _oldStyleBaseStairHandler():
     """Stubbed compapatibility class for StairHandler"""
     pass
 
 
-class _oldStyleTrialHandler(object):
+class _oldStyleTrialHandler():
     """Stubbed compapatibility class for TrialHandler"""
     pass
 
 
-class _oldStyleStairHandler(object):
+class _oldStyleStairHandler():
     """Stubbed compapatibility class for StairHandler"""
     pass
 
 
-class _oldStyleMultiStairHandler(object):
+class _oldStyleMultiStairHandler():
     """Stubbed compapatibility class for MultiStairHandler"""
     pass
 ######### End Compatibility Class Definitions #########

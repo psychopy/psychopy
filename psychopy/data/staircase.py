@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# from future import standard_library
-# standard_library.install_aliases()
 from builtins import zip
-from builtins import next
 from past.builtins import basestring
 from past.builtins import str
 from builtins import range

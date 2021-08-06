@@ -1,4 +1,3 @@
-from builtins import object
 from pathlib import Path
 
 import psychopy.experiment
@@ -58,7 +57,7 @@ def _diff_file(a, b):
     return list(diff)
 
 
-class TestExpt(object):
+class TestExpt():
     @classmethod
     def setup_class(cls):
         cls.exp = psychopy.experiment.Experiment() # create once, not every test
@@ -396,7 +395,7 @@ class TestExpt(object):
         assert namespace.makeLoopIndex('stimuli') == 'thisStimulus'
 
 
-class TestExpImports(object):
+class TestExpImports():
     def setup(self):
         self.exp = psychopy.experiment.Experiment()
         self.exp.requiredImports = []
@@ -482,7 +481,7 @@ class TestExpImports(object):
         assert 'import bar\n' in script
 
 
-class TestRunOnce(object):
+class TestRunOnce():
     def setup(self):
         from psychopy.experiment import exports
         self.buff = exports.IndentingBuffer()
@@ -518,7 +517,7 @@ class TestRunOnce(object):
         script = self.buff.getvalue()
         assert script.count(code) == 1
 
-class TestDisabledComponents(object):
+class TestDisabledComponents():
     def setup(self):
         self.exp = psychopy.experiment.Experiment()
         self.exp.addRoutine(routineName='Test Routine')

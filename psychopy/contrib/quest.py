@@ -31,11 +31,8 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 # DAMAGE.
 
-from past.builtins import raw_input
-
 from builtins import zip
 from builtins import range
-from builtins import object
 __all__ = ['QuestObject']
 
 import math
@@ -51,7 +48,7 @@ def getinf(x):
     return num.nonzero( num.isinf( num.atleast_1d(x) ) )
 
 
-class QuestObject(object):
+class QuestObject():
 
     """Measure threshold using a Weibull psychometric function.
 
@@ -428,8 +425,7 @@ def demo():
 
     tActual = None
     while tActual is None:
-        sys.stdout.write('Specify true threshold of simulated observer: ')
-        input = raw_input()
+        input = input('Specify true threshold of simulated observer: ')
         try:
             tActual = float(input)
         except Exception:
@@ -437,8 +433,7 @@ def demo():
 
     tGuess = None
     while tGuess is None:
-        sys.stdout.write('Estimate threshold: ')
-        input = raw_input()
+        input = input('Estimate threshold: ')
         try:
             tGuess = float(input)
         except Exception:

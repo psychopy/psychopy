@@ -8,7 +8,6 @@
 
 
 from past.builtins import basestring
-from builtins import object
 class PParallelInpOut(object):
     """This class provides read/write access to the parallel port on a PC
     using inpout32 or inpoutx64 (for instance for Windows 7 64-bit)

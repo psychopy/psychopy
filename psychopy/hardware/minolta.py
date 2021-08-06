@@ -12,7 +12,6 @@ See http://www.konicaminolta.com/instruments
 """
 
 from builtins import range
-from builtins import object
 from psychopy import logging
 import sys
 import time

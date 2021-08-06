@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 from builtins import range
-from builtins import object
 from past.utils import old_div
 import numpy as np
 import time
@@ -17,7 +16,7 @@ foregroundColor=[-1,-1,-1]
 backgroundColor=[1,1,1]
 
 
-class ProjectionsLinesAndCircles(object):
+class ProjectionsLinesAndCircles():
     """
     Test jig for projection warping.
     Switch between warpings by pressing a key 'S'pherical, 'C'ylindrical, 'N'one, warp'F'ile.

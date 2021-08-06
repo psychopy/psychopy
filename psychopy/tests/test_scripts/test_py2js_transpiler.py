@@ -4,7 +4,7 @@ from pkg_resources import parse_version
 import sys
 
 
-class TestTranspiler(object):
+class TestTranspiler():
 
     def setup(self):
         self.supported = PY3
