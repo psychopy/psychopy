@@ -446,18 +446,13 @@ class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
 
         :ref:`Operations <attrib-operations>` are supported.
         """
-        # Convert to 2d numpy array
-        value = numpy.array(value)
-        if len(value.shape) <= 1:
-            value = numpy.reshape(value, (-1, 1))
-        # Get length of colors and contrast and find max
-        unifiedLen = max(len(value), len(self._colors))
+        # Convert to an Nx1 numpy array
+        value = self._makeNx1(value)
+        # Stack thrice for Color
+        value = numpy.reshape(value, (-1, 1))
+        value = numpy.hstack((value, value, value))
         # If colors is too short, extend it
-        self._colors.rgb = numpy.resize(self._colors.rgb, (unifiedLen, 3))
-        # If contr is too short, extend it
-        if value.shape[1] == 1:
-            value = numpy.hstack((value, value, value))
-        value = numpy.resize(value, (unifiedLen, 3))
+        self._colors.rgb = numpy.resize(self._colors.rgb, (len(value), 3))
         # Set
         self._colors.contrast = value
         # Store value and update
