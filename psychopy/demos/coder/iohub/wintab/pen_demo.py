@@ -5,7 +5,6 @@ Example using the iohub Wintab Pen device. Demo remoquires a properly
 installed Wintab compatible device  running on Windows.
 (Wacom digital pen, MS Surface v1 or v2, ...)
 """
-from __future__ import division
 import time, os
 
 from psychopy import core, visual

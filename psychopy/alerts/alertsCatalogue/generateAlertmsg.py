@@ -17,7 +17,6 @@ try:
     fp.write('# Following strings are used to localize alerts.\n')
     fp.write('# Rebuild this file if alert messages in *.yaml files'
              ' are modified.\n\n')
-    fp.write('from __future__ import absolute_import, print_function\n')
     fp.write('from psychopy.localization import _translate\n\n')
 except Exception:
     # If hints.py could not be opend as a writable file, output to STDOUT.

@@ -16,7 +16,6 @@ The code that writes out a *_lastrun.py experiment file is (in order):
     settings.SettingsComponent.writeEndCode()
 """
 
-from __future__ import absolute_import, print_function
 from builtins import object
 from copy import deepcopy
 from xml.etree.ElementTree import Element

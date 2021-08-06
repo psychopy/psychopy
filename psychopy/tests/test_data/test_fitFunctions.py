@@ -1,5 +1,4 @@
 """Tests for psychopy.data.DataHandler"""
-from __future__ import division
 from past.utils import old_div
 import numpy
 from scipy import special

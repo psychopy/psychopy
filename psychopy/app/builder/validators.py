@@ -7,8 +7,6 @@
 
 """Module containing validators for various parameters.
 """
-from __future__ import absolute_import, print_function
-
 import re
 from past.builtins import basestring
 import wx

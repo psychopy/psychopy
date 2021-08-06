@@ -33,8 +33,6 @@ messages, (which PsychoPy doesn't use) using the commands::
 # stack of log entries for later writing (don't want files written while
 # drawing)
 
-from __future__ import absolute_import, print_function
-
 from builtins import object
 from past.builtins import basestring
 from os import path

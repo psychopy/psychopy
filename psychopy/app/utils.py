@@ -7,9 +7,6 @@
 
 """utility classes for the Builder
 """
-
-from __future__ import absolute_import, division, print_function
-
 import glob
 import os
 from builtins import object

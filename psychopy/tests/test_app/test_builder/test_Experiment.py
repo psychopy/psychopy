@@ -1,15 +1,12 @@
-from __future__ import print_function
-from past.builtins import execfile
 from builtins import object
 from pathlib import Path
-import xml.etree.ElementTree as xml
 
 import psychopy.experiment
 from psychopy.experiment.components.text import TextComponent
 from psychopy.experiment._experiment import RequiredImport
 from psychopy.tests.utils import TESTS_FONT
 from os import path
-import os, shutil, glob, sys
+import os, shutil, glob
 import py_compile
 import difflib
 from tempfile import mkdtemp

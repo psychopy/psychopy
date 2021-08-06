@@ -10,7 +10,8 @@
 
 # Author: Jeremy Gray, Oct 2012; localization 2014
 
-from __future__ import absolute_import, division, print_function
+
+
 
 from builtins import map, str, range, object
 from pyglet.gl import gl_info

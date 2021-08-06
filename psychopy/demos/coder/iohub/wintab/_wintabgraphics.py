@@ -5,7 +5,6 @@
 """iohub wintab util objects / functions for stylus, position traces,
 and validation process psychopy graphics.
 """
-from __future__ import division, absolute_import
 
 import math
 from collections import OrderedDict

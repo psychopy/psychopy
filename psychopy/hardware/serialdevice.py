@@ -8,8 +8,6 @@
 """Base class for serial devices. Includes some convenience methods to open
 ports and check for the expected device
 """
-from __future__ import absolute_import, print_function
-
 from builtins import str
 from builtins import range
 from builtins import object

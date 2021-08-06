@@ -8,7 +8,6 @@
 """This provides basic LabHackers (www.labhackers.com) device classes.
 """
 
-from __future__ import absolute_import, division, print_function
 import serial
 import os
 import json

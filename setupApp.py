@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 ################
 # see notes at bottom for requirements
-from __future__ import absolute_import, print_function
+
 import glob
 import os
 import sys

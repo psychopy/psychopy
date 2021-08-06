@@ -9,7 +9,8 @@ the resolution and color in the file (subject to gamma correction if set).
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import, division, print_function
+
+
 from past.builtins import basestring
 import os
 

@@ -11,8 +11,6 @@ you can emulate sync pulses and user responses.
 Limitations: pyglet only; keyboard events only.
 """
 
-from __future__ import absolute_import, print_function
-
 from builtins import range
 import threading
 

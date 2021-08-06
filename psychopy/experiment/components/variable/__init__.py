@@ -7,10 +7,6 @@ Copyright (C) 2015 Jonathan Peirce
 Distributed under the terms of the GNU General Public License (GPL).
 """
 
-from __future__ import absolute_import, print_function
-from builtins import super  # provides Py3-style super() using python-future
-
-from os import path
 from pathlib import Path
 from psychopy.experiment.components import BaseComponent, Param, _translate
 from psychopy.localization import _localized as __localized

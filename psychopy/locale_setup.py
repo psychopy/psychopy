@@ -15,8 +15,6 @@ their experiment vary by locale. If they do, it is easy enough for them to
 create multiple versions of an experiment.
 """
 
-from __future__ import absolute_import, print_function
-
 from builtins import map
 from builtins import str
 import platform

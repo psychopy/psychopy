@@ -7,8 +7,6 @@
 """PsychoPy Version Chooser to specify version within experiment scripts.
 """
 
-from __future__ import absolute_import, print_function
-
 import os
 import sys
 import subprocess  # for git commandline invocation

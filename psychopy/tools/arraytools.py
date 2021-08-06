@@ -7,7 +7,8 @@
 
 """Functions and classes related to array handling
 """
-from __future__ import absolute_import, division, print_function
+
+
 
 __all__ = ["createXYs",
            "extendArr",

@@ -5,8 +5,6 @@
 Demo: show a very basic program: hello world
 """
 
-from __future__ import absolute_import, division, print_function
-
 # Import key parts of the PsychoPy library:
 from psychopy import visual, core
 

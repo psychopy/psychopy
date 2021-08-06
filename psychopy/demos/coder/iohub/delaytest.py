@@ -16,8 +16,6 @@ histogram of the round trip event request delays as well as two figures
 representing the retrace onset detection stability of PsychoPy.
 """
 
-from __future__ import absolute_import, division, print_function
-
 from numpy import zeros
 from scipy.stats import norm
 from psychopy import visual

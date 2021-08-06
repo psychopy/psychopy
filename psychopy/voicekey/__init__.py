@@ -11,7 +11,8 @@ _BaseVoiceKey is the main abstract class. Subclass and override the detect()
 method. See SimpleThresholdVoiceKey or OnsetVoiceKey for examples.
 """
 
-from __future__ import absolute_import, division, print_function
+
+
 
 from builtins import range
 from builtins import object

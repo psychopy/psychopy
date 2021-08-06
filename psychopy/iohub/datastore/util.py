@@ -3,13 +3,11 @@
 # Part of the PsychoPy library
 # Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
-from __future__ import division, absolute_import, print_function
 
 from builtins import next
 from past.builtins import basestring
 from builtins import object
 import numbers  # numbers.Integral is like (int, long) but supports Py3
-from tables import *
 import os
 from collections import namedtuple
 import json

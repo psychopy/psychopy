@@ -8,8 +8,6 @@
 """To build simple dialogues etc. (requires wxPython)
 """
 
-from __future__ import absolute_import, print_function
-
 from builtins import str
 from builtins import super
 from builtins import range

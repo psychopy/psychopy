@@ -1,6 +1,4 @@
 """Tests for psychopy.data.DataHandler"""
-from __future__ import print_function
-
 from builtins import object
 import os, shutil
 import numpy as np

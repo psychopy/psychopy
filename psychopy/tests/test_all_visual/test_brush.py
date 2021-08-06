@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import division
-
 import pytest
 from psychopy.visual.window import Window
 from psychopy.visual.brush import Brush

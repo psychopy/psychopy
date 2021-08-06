@@ -16,8 +16,6 @@ E.g., use a Keyboard component, and typically listen for Allowed keys
 
 # Jeremy Gray and Dan Grupe developed the asKeys and baud parameters
 
-from __future__ import absolute_import, print_function
-
 from builtins import object
 from psychopy import logging, event
 import sys

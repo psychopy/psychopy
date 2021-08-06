@@ -4,7 +4,6 @@
 """Writes the current version, build platform etc.
 """
 
-from __future__ import absolute_import, print_function
 from setuptools.config import read_configuration
 import os
 import platform

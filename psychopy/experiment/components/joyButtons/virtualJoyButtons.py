@@ -9,7 +9,6 @@
 # if no 'real' joystick/gamepad is available use keyboard emulation
 # 'ctrl' + 'alt' + numberKey
 
-from __future__ import absolute_import, division, print_function
 from psychopy import event
 
 class VirtualJoyButtons(object):

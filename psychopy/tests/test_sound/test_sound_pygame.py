@@ -1,7 +1,5 @@
 """Test PsychoPy sound.py using pygame backend; will fail if have already used pyo
 """
-from __future__ import division
-
 from builtins import object
 from past.utils import old_div
 from psychopy import prefs, core

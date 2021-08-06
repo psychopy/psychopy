@@ -10,12 +10,10 @@ See http://www.konicaminolta.com/instruments
 
 ----------
 """
-from __future__ import absolute_import, print_function
 
 from builtins import range
 from builtins import object
 from psychopy import logging
-import struct
 import sys
 import time
 

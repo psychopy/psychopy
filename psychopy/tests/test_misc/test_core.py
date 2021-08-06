@@ -16,9 +16,6 @@ Tests the psychopy.core.getTime Function:
 Jan 2014, Jeremy Gray:
 - Coverage of .quit, .shellCall, and increased coverage of StaticPeriod()
 """
-from __future__ import print_function
-from __future__ import division
-
 from builtins import range
 import time
 import sys

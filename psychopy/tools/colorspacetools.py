@@ -15,7 +15,8 @@ inputs to convert multiple color values at once.
 :class:`~psychopy.colors.Color` class for working with color coordinate values.
 
 """
-from __future__ import absolute_import, division, print_function
+
+
 
 __all__ = ['srgbTF', 'rec709TF', 'cielab2rgb', 'cielch2rgb', 'dkl2rgb',
            'dklCart2rgb', 'rgb2dklCart', 'hsv2rgb', 'rgb2lms', 'lms2rgb',

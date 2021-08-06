@@ -6,8 +6,6 @@
 # directory to generate hints.py. If you don't have write-permission
 # to psychopy/preferences, the script outputs contents of hint.py to STDOUT.
 
-from __future__ import absolute_import, print_function
-
 from builtins import range
 import re
 import sys
@@ -82,7 +80,6 @@ try:
              'Preference Dialog of \n# the PsychoPy application.\n')
     fp.write('# Rebuild this file if comments in *.spec files '
              'are modified.\n\n')
-    fp.write('from __future__ import absolute_import, print_function\n')
     fp.write('from psychopy.localization import _translate\n\n')
 except Exception:
     # If hints.py could not be opend as a writable file, output to STDOUT.

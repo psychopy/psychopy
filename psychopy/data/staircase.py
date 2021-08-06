@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import absolute_import, division, print_function
-
 # from future import standard_library
 # standard_library.install_aliases()
 from builtins import zip
@@ -10,7 +8,7 @@ from builtins import next
 from past.builtins import basestring
 from past.builtins import str
 from builtins import range
-import string
+
 import sys
 import os
 import pickle

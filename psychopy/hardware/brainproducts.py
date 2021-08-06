@@ -5,8 +5,6 @@ Here we have implemented support for the Remote Control Server application,
 which allows you to control recordings, send annotations etc. all from Python.
 """
 
-from __future__ import division, unicode_literals
-
 import socket
 import time
 import threading

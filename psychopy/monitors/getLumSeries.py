@@ -6,8 +6,6 @@ The advantage of running as a script is that this won't interact with your
 existing namespace (e.g. avbin can load because scipy won't already have
 been loaded).
 """
-from __future__ import absolute_import, division, print_function
-
 from past.utils import old_div
 from psychopy import logging
 from .calibTools import DACrange

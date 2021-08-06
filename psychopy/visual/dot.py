@@ -19,7 +19,8 @@ determines how they change on every call to the .draw() method.
 # Provide a visible wrapper function to refresh all the dot locations so that 
 # the whole field can be more easily refreshed between trials.
 
-from __future__ import absolute_import, division, print_function
+
+
 
 from builtins import str
 from builtins import range

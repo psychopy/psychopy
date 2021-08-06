@@ -10,8 +10,6 @@ orientation, frequencyand phase. Also does beat stimuli. """
 # Additional code provided by Andrew Schofield
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import, print_function
-
 # Requires shaders if you don't have them it will just throw and error.
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
 # other calls to pyglet or pyglet submodules, otherwise it may not get picked

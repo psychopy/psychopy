@@ -23,8 +23,6 @@ There is also a legacy API which consists of the routines which are directly
 in this module. That API assumes you only ever want to use a single
 parallel port at once.
 """
-from __future__ import absolute_import, print_function
-
 from builtins import str
 from past.builtins import basestring
 from builtins import object

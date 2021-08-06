@@ -8,7 +8,6 @@
 """Describes the Flow of an experiment
 """
 
-from __future__ import absolute_import, print_function
 from past.builtins import basestring
 from xml.etree.ElementTree import Element
 

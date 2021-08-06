@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import absolute_import, print_function
-
 from builtins import str
 from builtins import object
 import os
@@ -610,8 +608,7 @@ class SettingsComponent(object):
             u'Kastman E, Lindeløv JK. (2019) \n'
             '        PsychoPy2: Experiments in behavior made easy Behav Res 51: 195. \n'
             '        https://doi.org/10.3758/s13428-018-01193-y\n'
-            '\n"""\n'
-            "\nfrom __future__ import absolute_import, division\n")
+            '\n"""\n')
 
         self.writeUseVersion(buff)
 

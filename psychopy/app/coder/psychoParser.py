@@ -8,9 +8,6 @@
 # python text parser
 # this is really just for the purpose of constructing code analysis in
 # python scripts
-
-from __future__ import absolute_import, print_function
-
 from builtins import next
 from builtins import object
 import tokenize

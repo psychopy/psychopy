@@ -4,7 +4,6 @@ So far, just copies tests for TrialHandler, no further test of weights etc.
 Maybe not worth doing if TrialHandler2 is going to have weights eventually.
 """
 
-from __future__ import print_function
 from builtins import str
 from builtins import range
 from builtins import object

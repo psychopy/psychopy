@@ -1,11 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""Migration helper script for Coder demos: Do the conversion
-
+"""This is a helper to keep demos in a reasonably consistent style
   For all demos/coder/subdir/*.py (there are ~70 or so total), write out a new file: coder_updated/subdir/*
 """
-from __future__ import absolute_import, print_function
 
 import sys
 import glob
@@ -17,30 +15,11 @@ import io
 valid_var_re = re.compile(r"^[a-zA-Z_][\w]*$")
 coding = '# -*- coding: utf-8 -*-\n'
 demo_license = '\n# The contents of this file are in the public domain.\n'
-division = 'from __future__ import division'
 
 
 def get_contents(f1):
     with io.open(f1, 'r', encoding='utf-8-sig') as f:
         return f.read()
-
-
-def reposition_division(f1):
-    lines = f1.splitlines()
-    if lines[2] == division:
-        lines.pop(2)
-    found = 0
-    for i, line in enumerate(lines):
-        if line.startswith('"""'):
-            found += 1
-            if found == 2:
-                if division in '\n'.join(lines):
-                    break  # already in the right place
-                lines.insert(i + 1, '')
-                lines.insert(i + 2, division)
-                break
-                
-    return '\n'.join(lines)
 
 
 def add_shebang_encoding_future(f1):
@@ -50,9 +29,7 @@ def add_shebang_encoding_future(f1):
     if '# -*- coding:' not in f1:
         f = f1.split('\n', 1)
         f1 = f[0] + '\n' + coding + f[1]
-    
-    if not division in f1:
-        f1 = f1.replace(coding, coding + division + '\n\n', 1)
+
     return f1
 
 
@@ -201,12 +178,9 @@ def demo_update_one(filename):
 
 
 def demo_update_two(filename):
-    """repostion division statement
-    """
     f = get_contents(filename)
     if not len(f.strip()):
         return ''  # eg __init__.py
-    #f = reposition_division(f)
     f = f + '\n'
     return f
 

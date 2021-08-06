@@ -1,7 +1,5 @@
 """Test StairHandler"""
 
-from __future__ import division, print_function
-
 from builtins import range
 from builtins import object
 import numpy as np

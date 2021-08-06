@@ -9,8 +9,8 @@
 # if no 'real' joystick/gamepad is available use keyboard emulation
 # 'ctrl' + 'alt' + numberKey
 
-from __future__ import absolute_import, division, print_function
 from psychopy import event
+
 
 class VirtualJoystick(object):
     def __init__(self, device_number):
@@ -21,7 +21,7 @@ class VirtualJoystick(object):
         event.Mouse(visible=False)
 
     def getNumButtons(self):
-        return(len(self.numberKeys))
+        return len(self.numberKeys)
 
     def getAllButtons(self):
         keys = event.getKeys(keyList=self.numberKeys, modifiers=True)
@@ -29,7 +29,7 @@ class VirtualJoystick(object):
         self.state = [key in values for key in self.numberKeys]
         mouseButtons = self.mouse.getPressed()
         self.state[:len(mouseButtons)] = [a or b != 0 for (a,b) in zip(self.state, mouseButtons)]
-        return(self.state)
+        return self.state
 
     def getX(self):
         (x, y) = self.mouse.getPos()

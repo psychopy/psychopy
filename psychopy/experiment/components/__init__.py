@@ -8,8 +8,6 @@
 """Extensible set of components for the PsychoPy Builder view
 """
 
-from __future__ import absolute_import, print_function
-
 from builtins import str
 from past.builtins import basestring
 import os

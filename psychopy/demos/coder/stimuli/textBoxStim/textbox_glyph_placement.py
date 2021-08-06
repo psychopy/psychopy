@@ -10,7 +10,6 @@ Created on Thu Mar 21 18:37:10 2013
 
 @author: Sol
 """
-from __future__ import print_function
 
 from psychopy import visual, core, event
 

@@ -13,7 +13,6 @@ used by backends.getBackend(winType) which will locate the appropriate class
 and initialize an instance using the attributes of the Window.
 """
 
-from __future__ import absolute_import, print_function
 import sys
 import os
 import numpy as np

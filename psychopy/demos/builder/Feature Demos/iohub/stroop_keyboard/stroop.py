@@ -11,8 +11,6 @@ If you publish work using this script the most relevant publication is:
 
 """
 
-from __future__ import absolute_import, division
-
 from psychopy import locale_setup
 from psychopy import prefs
 from psychopy import sound, gui, visual, core, data, event, logging, clock, colors

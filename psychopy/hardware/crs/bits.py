@@ -12,10 +12,6 @@
 #    Shader code for mono++ and color++ modes was based on code in Psychtoolbox
 #    (Kleiner) but does not actually use that code directly
 
-from __future__ import absolute_import, division, print_function
-
-# from future import standard_library
-# standard_library.install_aliases()
 from builtins import range
 from builtins import object
 import os

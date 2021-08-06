@@ -10,10 +10,6 @@
     It should be run from the root of the main git repository, which should be
     next to a clone of the psychopy/versions git repository
 """
-from __future__ import print_function
-from __future__ import division
-from __future__ import absolute_import
-
 from builtins import input
 import os, sys, shutil, subprocess
 from os.path import join

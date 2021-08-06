@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import absolute_import, division, print_function
-
 from builtins import object
 import numpy as np
 # from scipy import optimize  # DON'T. It's slow and crashes on some machines

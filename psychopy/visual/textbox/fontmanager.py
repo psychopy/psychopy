@@ -6,9 +6,6 @@ Created on Sun Nov 10 12:18:45 2013
 
 @author: Sol
 """
-
-from __future__ import absolute_import, division, print_function
-
 from builtins import chr
 from builtins import object
 import os
