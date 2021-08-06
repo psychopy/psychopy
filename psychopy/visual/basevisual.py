@@ -1394,20 +1394,30 @@ class WindowMixin(object):
 
     @property
     def vertices(self):
+        # Get or make Vertices object
         if hasattr(self, "_vertices"):
-            return self._vertices
+            verts = self._vertices
         else:
             # If not defined, assume vertices are just a square
-            return Vertices((4, 2), dtype=float,
+            verts = self._vertices = Vertices((4, 2), dtype=float,
                             buffer=numpy.array([
                                 [0.5, -0.5],
                                 [-0.5, -0.5],
                                 [-0.5, 0.5],
                                 [0.5, 0.5],
                             ]))
+        return verts
 
     @vertices.setter
     def vertices(self, value):
+        # If None, use defaut
+        if value is None:
+            value = [
+                [0.5, -0.5],
+                [-0.5, -0.5],
+                [-0.5, 0.5],
+                [0.5, 0.5],
+            ]
         # Convert to numpy array
         value = numpy.array(value)
         # Make sure it's a Nx2 array
