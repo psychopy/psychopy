@@ -1755,7 +1755,11 @@ class RoutineCanvas(wx.ScrolledWindow):
         else:
             # anywhere but a hotspot is clicked, show this menu
             if self.app.copiedCompon:
-                menu.Append(wx.ID_ANY, _translate('paste'))
+                itemLabel = " ".join(
+                    (_translate('paste'),
+                     "({})".format(
+                         self.app.copiedCompon.params['name'].val)))
+                menu.Append(wx.ID_ANY, itemLabel)
                 menu.Bind(wx.EVT_MENU, self.pasteCompon, id=wx.ID_ANY)
 
                 self.frame.PopupMenu(menu, xy)
