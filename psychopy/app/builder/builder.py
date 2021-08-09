@@ -1703,6 +1703,9 @@ class RoutineCanvas(wx.ScrolledWindow):
             if len(icons):
                 self._menuComponent = self.componentFromID[icons[0]]
                 self.showContextMenu(self._menuComponent, xy=menuPos)
+            else:  # no context
+                self.showContextMenu(None, xy=menuPos)
+
         elif event.Dragging() or event.LeftUp():
             if self.dragid != -1:
                 pass
@@ -1724,14 +1727,22 @@ class RoutineCanvas(wx.ScrolledWindow):
 
     def showContextMenu(self, component, xy):
         menu = wx.Menu()
-        for item in self.contextMenuItems:
-            # don't show paste option unless something is copied
-            if item.startswith('paste') and not self.app.copiedCompon:
-                continue
 
-            id = self.contextIDFromItem[item]
-            menu.Append(id, self.contextMenuLabels[item])
-            menu.Bind(wx.EVT_MENU, self.onContextSelect, id=id)
+        if component is not None:
+            for item in self.contextMenuItems:
+                # don't show paste option unless something is copied
+                if item.startswith('paste') and not self.app.copiedCompon:
+                    continue
+
+                id = self.contextIDFromItem[item]
+                menu.Append(id, self.contextMenuLabels[item])
+                menu.Bind(wx.EVT_MENU, self.onContextSelect, id=id)
+        else:
+            # anywhere but a hotspot is clicked, show this menu
+            id = wx.ID_ANY
+            menu.Append(id, 'paste')
+            menu.Bind(wx.EVT_MENU, self.pasteCompon, id=id)
+
         self.frame.PopupMenu(menu, xy)
         menu.Destroy()  # destroy to avoid mem leak
 
