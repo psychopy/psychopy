@@ -283,16 +283,7 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
         """Clear the contents of the console."""
         pass
 
-    def onText(self, event):
-        event.Skip()
-
-    def onEnter(self, event):
-        event.Skip()
-
     def onMaxLength(self, event):
-        event.Skip()
-
-    def onURL(self, event):
         event.Skip()
 
     def __del__(self):
