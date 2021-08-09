@@ -12,16 +12,17 @@ import wx
 import wx.richtext
 from collections import deque
 from psychopy.app.themes import ThemeMixin
+from psychopy.preferences import prefs
 
 
-class ConsoleTextCtrl(wx.richtext.RichTextCtrl, ThemeMixin):
+class ConsoleTextCtrl(wx.TextCtrl, ThemeMixin):
     """Class for the console text control. This is needed to allow for theming.
     """
     def __init__(self, parent, id_=wx.ID_ANY, value="", pos=wx.DefaultPosition,
                  size=wx.DefaultSize, style=0,
                  name=wx.TextCtrlNameStr):
 
-        wx.richtext.RichTextCtrl.__init__(
+        wx.TextCtrl.__init__(
             self, parent, id=id_, value=value, pos=pos, size=size, style=style,
             validator=wx.DefaultValidator, name=name)
 
@@ -67,9 +68,8 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
         self.Layout()
 
         # set font
-        # font1 = wx.Font(10, wx.MODERN, wx.NORMAL, wx.NORMAL, False, u'Consolas')
-        # self.txtTerm.SetFont(font1)
-        # self.txtTerm.SetMargins(8)
+        self.setFonts()
+        self.txtTerm.SetMargins(8)
 
         # capture keypresses
         self.txtTerm.Bind(wx.EVT_CHAR, self.onChar)
@@ -96,6 +96,26 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
 
         self.txtTerm.WriteText("Hit [Return] to start a Python REPL.")
         self._lastTextPos = self.txtTerm.GetLastPosition()
+
+    def setFonts(self):
+        """Set the font for the console."""
+        # select the font size, either from prefs or platform defaults
+        if not prefs.coder['codeFontSize']:
+            if wx.Platform == '__WXMSW__':
+                fontSize = 10
+            elif wx.Platform == '__WXMAC__':
+                fontSize = 14
+            else:
+                fontSize = 12
+        else:
+            fontSize = int(prefs.coder['codeFontSize'])
+
+        # get the font to use
+        fontName = prefs.coder['codeFont']
+
+        # apply the font
+        self.txtTerm.SetFont(
+            wx.Font(fontSize, wx.MODERN, wx.NORMAL, wx.NORMAL, False, fontName))
 
     def onTerminate(self, event):
         # hooks for the process we're communicating with
@@ -323,7 +343,7 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
             return
         elif event.GetKeyCode() == wx.WXK_DOWN:
             if self._history:
-                self._historyIdx = min(len(self._history), self._historyIdx - 1)
+                self._historyIdx = min(len(self._history), self._historyIdx)
                 self._clearAndReplaceTyped(self._history[self._historyIdx])
             return
         else:

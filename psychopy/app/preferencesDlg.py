@@ -876,6 +876,10 @@ class PreferencesDlg(wx.Dialog):
                     doc = frame.shelf.GetPage(ii)
                     doc.theme = prefs.app['theme']
 
+                # apply console font, not handled by theme system ATM
+                if hasattr(frame, 'shell'):
+                    frame.shell.setFonts()
+
     def OnApplyClicked(self, event):
         """Apply button clicked, this makes changes to the UI without leaving
         the preference dialog. This can be used to see the effects of setting
