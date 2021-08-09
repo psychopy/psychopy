@@ -1726,25 +1726,27 @@ class RoutineCanvas(wx.ScrolledWindow):
         self.Scroll(xy[0], xy[1] - event.WheelRotation*multiplier)
 
     def showContextMenu(self, component, xy):
+        """Show a context menu in the routine view."""
         menu = wx.Menu()
-
         if component is not None:
             for item in self.contextMenuItems:
                 # don't show paste option unless something is copied
                 if item.startswith('paste') and not self.app.copiedCompon:
                     continue
-
                 id = self.contextIDFromItem[item]
                 menu.Append(id, self.contextMenuLabels[item])
                 menu.Bind(wx.EVT_MENU, self.onContextSelect, id=id)
+
+            self.frame.PopupMenu(menu, xy)
+            menu.Destroy()  # destroy to avoid mem leak
         else:
             # anywhere but a hotspot is clicked, show this menu
-            id = wx.ID_ANY
-            menu.Append(id, 'paste')
-            menu.Bind(wx.EVT_MENU, self.pasteCompon, id=id)
+            if self.app.copiedCompon:
+                menu.Append(wx.ID_ANY, _translate('paste'))
+                menu.Bind(wx.EVT_MENU, self.pasteCompon, id=wx.ID_ANY)
 
-        self.frame.PopupMenu(menu, xy)
-        menu.Destroy()  # destroy to avoid mem leak
+                self.frame.PopupMenu(menu, xy)
+                menu.Destroy()
 
     def onContextSelect(self, event):
         """Perform a given action on the component chosen
