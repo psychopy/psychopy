@@ -1726,15 +1726,28 @@ class RoutineCanvas(wx.ScrolledWindow):
         self.Scroll(xy[0], xy[1] - event.WheelRotation*multiplier)
 
     def showContextMenu(self, component, xy):
-        """Show a context menu in the routine view."""
+        """Show a context menu in the routine view.
+        """
         menu = wx.Menu()
         if component is not None:
             for item in self.contextMenuItems:
-                # don't show paste option unless something is copied
-                if item.startswith('paste') and not self.app.copiedCompon:
-                    continue
                 id = self.contextIDFromItem[item]
-                menu.Append(id, self.contextMenuLabels[item])
+                # don't show paste option unless something is copied
+                if item.startswith('paste'):
+                    if not self.app.copiedCompon:  # skip paste options
+                        continue
+                    itemLabel = " ".join(
+                        (self.contextMenuLabels[item],
+                         "({})".format(
+                             self.app.copiedCompon.params['name'].val)))
+                elif any([item.startswith(op) for op in ('copy', 'remove', 'edit')]):
+                    itemLabel = " ".join(
+                        (self.contextMenuLabels[item],
+                         "({})".format(component.params['name'].val)))
+                else:
+                    itemLabel = self.contextMenuLabels[item]
+
+                menu.Append(id, itemLabel)
                 menu.Bind(wx.EVT_MENU, self.onContextSelect, id=id)
 
             self.frame.PopupMenu(menu, xy)
