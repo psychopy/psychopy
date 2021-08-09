@@ -73,12 +73,10 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
 
         # capture keypresses
         self.txtTerm.Bind(wx.EVT_CHAR, self.onChar)
-        self.txtTerm.Bind(wx.EVT_TEXT, self.onText)
-        self.txtTerm.Bind(wx.EVT_TEXT_ENTER, self.onEnter)
         self.txtTerm.Bind(wx.EVT_TEXT_MAXLEN, self.onMaxLength)
-        self.txtTerm.Bind(wx.EVT_TEXT_URL, self.onURL)
 
-        self._history = deque([])
+        # history
+        self._history = []
         self._historyIdx = 0
 
         # idle event
@@ -320,21 +318,21 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
             self.txtTerm.SetInsertionPointEnd()
             entry = self._getTyped()
             if entry:
-                self._history.appendleft(entry)
+                self._history.insert(0, entry)
             self.push(entry)
-            self._historyIdx = 0
-        elif event.GetKeyCode() == wx.WXK_BACK:
+            self._historyIdx = -1
+        elif event.GetKeyCode() == wx.WXK_BACK or event.GetKeyCode() == wx.WXK_LEFT:
             if self.txtTerm.GetInsertionPoint() <= self._lastTextPos:
                 self.txtTerm.SetInsertionPoint(self._lastTextPos)
                 return
         elif event.GetKeyCode() == wx.WXK_UP:
             if self._history:
-                self._historyIdx = max(0, self._historyIdx + 1)
+                self._historyIdx = min(max(0, self._historyIdx + 1), len(self._history)-1)
                 self._clearAndReplaceTyped(self._history[self._historyIdx])
             return
         elif event.GetKeyCode() == wx.WXK_DOWN:
             if self._history:
-                self._historyIdx = min(len(self._history), self._historyIdx)
+                self._historyIdx = max(self._historyIdx - 1, 0)
                 self._clearAndReplaceTyped(self._history[self._historyIdx])
             return
         else:
