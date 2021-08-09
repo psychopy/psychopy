@@ -9,8 +9,6 @@
 
 import sys
 import wx
-import wx.richtext
-from collections import deque
 from psychopy.app.themes import ThemeMixin
 from psychopy.preferences import prefs
 
