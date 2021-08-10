@@ -258,11 +258,7 @@ class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
                 # NB always circular - uses fieldSize in X only
                 normxy = old_div(xys, (old_div(fsz, 2.0)))
                 dotDist = numpy.sqrt((normxy[:, 0]**2.0 + normxy[:, 1]**2.0))
-                xys = numpy.vstack((
-                    xys[dotDist <= 1.0, :],  # not flipped
-                    xys[dotDist > 1.0, :] * -1  # flipped to other side
-                ))
-                self.__dict__['xys'] = xys[:, :][0:self.nElements]
+                self.__dict__['xys'] = xys[dotDist < 1.0, :][0:self.nElements]
         else:
             self.__dict__['xys'] = self._makeNx2(value, ['Nx2'])
         # to keep a record if we are to alter things later.
