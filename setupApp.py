@@ -132,7 +132,7 @@ setup(
                       'functools32',
                       ],  # anything we need to forcibly exclude?
             resources=resources,
-            argv_emulation=True,
+            argv_emulation=False,  # must be False or app bundle pauses (py2app 0.21 and 0.24 tested)
             site_packages=True,
             frameworks=frameworks,
             iconfile='psychopy/app/Resources/psychopy.icns',
