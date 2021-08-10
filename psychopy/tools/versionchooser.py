@@ -12,8 +12,7 @@ import sys
 import subprocess  # for git commandline invocation
 from subprocess import CalledProcessError
 import psychopy  # for currently loaded version
-from psychopy import prefs
-from psychopy import logging, tools, web, constants
+from psychopy import prefs, logging, tools, web, constants
 from pkg_resources import parse_version
 from packaging.version import parse as parse_version
 from importlib import reload
@@ -105,6 +104,8 @@ def useVersion(requestedVersion):
 
         # Reload!
         reload(psychopy)
+        reload(prefs)
+        reload(constants)
         reload(logging)
         reload(web)
         if _versionTuple(reqdMajorMinorPatch) >= (1, 80):
