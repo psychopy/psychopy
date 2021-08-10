@@ -8,11 +8,6 @@
 import sys, os, copy
 from os.path import abspath, join
 
-if sys.version_info.major >= 3:
-    PY3 = True
-else:
-    PY3 = False
-
 NOT_STARTED = 0
 PLAYING = 1
 STARTED = PLAYING

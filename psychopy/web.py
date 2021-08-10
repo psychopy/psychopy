@@ -11,25 +11,11 @@ import sys
 import socket
 import re
 from psychopy import logging
-from psychopy.constants import PY3
 from psychopy import prefs
 
-
-if PY3:
-    import urllib.request
-    import urllib.error
-    import urllib.parse
-else:
-    import urllib2
-    # import urllib.request, urllib.error, urllib.parse
-
-    class FakeURLlib():
-
-        def __init__(self, lib):
-            self.request = lib
-            self.error = lib
-            self.parse = lib
-    urllib = FakeURLlib(urllib2)
+import urllib.request
+import urllib.error
+import urllib.parse
 
 # default 20s from prefs, min 2s
 TIMEOUT = max(prefs.connections['timeout'], 2.0)

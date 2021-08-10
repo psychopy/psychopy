@@ -2613,18 +2613,8 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
                     event = 9
                 else:
                     event = ord(chr(msg[index*7]))
-            elif sys.version_info[0] == 2:
-                for i in range(index*7 +1 ,index*7 + 7):
-                    # i is ofset by index*7 so this is subtracted from 7 in line
-                    # below and then reinstated by adding index*7 back in.
-                    t = t + ord((msg[i])) * 256**(7-i + index*7 -1)
-                t=t / self.RTBoxTimeBase 
-                if msg[0] == 'Y': # Result of a clock request.
-                    event = 9
-                else:
-                    event = ord((msg[index*7]))
             else:
-                raise AssertionError("Bits# RTBox Only tested for PY2 and PY3")
+                raise AssertionError("Bits# RTBox Only tested for PY3")
             Direction = 'None'
             EV=99
             # Decode event bytes into a button number and a direction.

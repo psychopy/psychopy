@@ -35,7 +35,6 @@ from psychopy import visual, logging, core, data, web
 from psychopy.core import shellCall
 from psychopy.platform_specific import rush
 from psychopy import __version__ as psychopyVersion
-from psychopy.constants import PY3
 
 
 class RunTimeInfo(dict):
@@ -317,37 +316,9 @@ class RunTimeInfo(dict):
             self['systemSec.pythonSSL'] = False
 
         # pyo for sound:
-        if PY3:
-            import importlib.util
-            if importlib.util.find_spec('pyo') is not None:
-                self['systemPyoVersion'] = '-'
-        else:
-            import imp
-            try:
-                imp.find_module('pyo')
-                self['systemPyoVersion'] = '-'
-            except:
-                pass
-        # try:
-        #     travis = bool(str(os.environ.get('TRAVIS')).lower() == 'true')
-        #     assert not travis  # skip sound-related stuff on travis-ci
-        # 
-        #     import pyo
-        #     self['systemPyoVersion'] = '%i.%i.%i' % pyo.getVersion()
-        #     try:
-        #         # requires pyo svn r1024 or higher:
-        #         import psychopy.sound
-        #         inp, out = psychopy.sound.get_devices_infos()
-        #         for devList in [inp, out]:
-        #             for key in devList:
-        #                 if isinstance(devList[key]['name'], str):
-        #                     devList[key]['name'] = devList[key]['name']
-        #         self['systemPyo.InputDevices'] = inp
-        #         self['systemPyo.OutputDevices'] = out
-        #     except AttributeError:
-        #         pass
-        # except (AssertionError, ImportError):
-        #     pass
+        import importlib.util
+        if importlib.util.find_spec('pyo') is not None:
+            self['systemPyoVersion'] = '-'
 
         # flac (free lossless audio codec) for google-speech:
         flacv = ''

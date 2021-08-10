@@ -499,18 +499,11 @@ class PygletBackend(BaseBackend):
         """
         if sys.platform == 'win32':
             scrBytes = self.winHandle._dc
-            if constants.PY3:
-                try:
-                    _screenID = 0xFFFFFFFF & int.from_bytes(
-                        scrBytes, byteorder='little')
-                except TypeError:
-                    _screenID = 0xFFFFFFFF & scrBytes
-            else:
-                try:
-                    _screenID = 0xFFFFFFFF & scrBytes
-                except TypeError:
-                    _screenID = scrBytes
-
+            try:
+                _screenID = 0xFFFFFFFF & int.from_bytes(
+                    scrBytes, byteorder='little')
+            except TypeError:
+                _screenID = 0xFFFFFFFF & scrBytes
         elif sys.platform == 'darwin':
             try:
                 _screenID = self.winHandle._screen.id  # pyglet1.2alpha1

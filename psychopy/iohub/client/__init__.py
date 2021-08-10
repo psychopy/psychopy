@@ -1141,7 +1141,7 @@ class ioHubConnection():
             raise ioHubError(result)
         # Otherwise return the result
         
-        if constants.PY3 and result is not None:
+        if result is not None:
             # Use recursive conversion funcs                     
             if isinstance(result, list) or  isinstance(result, tuple):
                 result = self._convertList(result)

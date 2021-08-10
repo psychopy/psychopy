@@ -6,15 +6,11 @@ from past.builtins import basestring
 from past.utils import old_div
 import os
 import sys
-import string
 import copy
-import codecs
 import numpy as np
 import pandas as pd
 
 from psychopy import logging
-from psychopy.constants import PY3
-from psychopy.tools.arraytools import shuffleArray
 from psychopy.tools.filetools import (openOutputFile, genDelimiter,
                                       genFilenameFromDelimiter)
 from .utils import importConditions
@@ -202,10 +198,7 @@ class TrialHandler(_BaseTrialHandler):
             strRepres += str('\tdata=')
             strRepres += str(data) + '\n'
 
-        if PY3:
-            method_string = "<class 'method'>"
-        else:
-            method_string = 'instancemethod'
+        method_string = "<class 'method'>"
 
         for thisAttrib in attribs:
             # can handle each attribute differently
@@ -905,10 +898,7 @@ class TrialHandler2(_BaseTrialHandler):
             strRepres += str('\tdata=')
             strRepres += str(data) + '\n'
 
-        if PY3:
-            method_string = "<class 'method'>"
-        else:
-            method_string = 'instancemethod'
+        method_string = "<class 'method'>"
 
         for thisAttrib in attribs:
             # can handle each attribute differently

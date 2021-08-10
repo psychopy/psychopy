@@ -1,12 +1,8 @@
 from psychopy.alerts import catalog
-from psychopy.core import PY3
 from psychopy import core
 import sys
 
-if PY3:
-    write_mode = 'w'
-else:
-    write_mode = 'wb'
+write_mode = 'w'
 
 alertmsgFile = 'alertmsg.py'
 

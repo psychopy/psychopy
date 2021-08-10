@@ -5,14 +5,12 @@ import errno
 import os
 import sys
 import platform
-from psychopy.constants import PY3
 from pkg_resources import parse_version
 import shutil
-import json
 
 try:
     import configobj
-    if (PY3 and sys.version_info.minor >= 7 and
+    if (sys.version_info.minor >= 7 and
             parse_version(configobj.__version__) < parse_version('5.1.0')):
         raise ImportError('Installed configobj does not support Python 3.7+')
     _haveConfigobj = True

@@ -16,7 +16,7 @@ from psychopy import prefs
 from .exceptions import DependencyError
 from psychopy import core, logging
 from psychopy.constants import (STARTED, FINISHED, STOPPED, NOT_STARTED,
-                                FOREVER, PY3)
+                                FOREVER)
 from ._base import _SoundBase
 
 
@@ -27,20 +27,6 @@ except ImportError as err:
     if not travisCI:
         # convert this import error to our own, pyo probably not installed
         raise DependencyError(repr(err))
-
-if PY3:
-    from contextlib import redirect_stdout
-    from io import StringIO
-else:
-    from cStringIO import StringIO
-    from contextlib import contextmanager
-    @contextmanager
-    def redirect_stdout(target):
-        original = sys.stdout
-        sys.stdout = target
-        yield
-        sys.stdout = original
-
 
 pyoSndServer = None
 audioDriver = None

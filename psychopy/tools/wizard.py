@@ -321,10 +321,7 @@ class BaseWizard():
                 packages.append('pywin32')
                 packages.append('winioport')
 
-            if constants.PY3:
-                pkgError = ModuleNotFoundError
-            else:
-                pkgError = ImportError
+            pkgError = ModuleNotFoundError
             for pkg in packages:
                 try:
                     if pkg == 'PIL':

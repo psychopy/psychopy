@@ -10,13 +10,8 @@ from builtins import range
 import re
 import sys
 from psychopy import core
-from psychopy.core import PY3
 
-if PY3:
-    write_mode = 'w'
-else:
-    write_mode = 'wb'
-
+write_mode = 'w'
 
 hintsFile = 'hints.py'
 comments_all = []

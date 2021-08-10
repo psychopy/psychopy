@@ -12,10 +12,7 @@ from .. import constants
 from past.builtins import unicode
 
 haveQt = False  # until we confirm otherwise
-if constants.PY3:  # much more like to have PyQt5 on Python3
-    importOrder = ['PyQt5', 'PyQt4']
-else:  # more likely the other way on Py27
-    importOrder = ['PyQt4', 'PyQt5']
+importOrder = ['PyQt5', 'PyQt4']
 
 haveQt = False
 for libname in importOrder:

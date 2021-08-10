@@ -26,10 +26,7 @@ else:
 haveQt = False  # until we confirm otherwise
 if wxApp is None:  # i.e. don't try this if wx is already running
     # set order for attempts on PyQt4/PyQt5
-    if constants.PY3:  # much more like to have PyQt5 on Python3
-        importOrder = ['PyQt5', 'PyQt4']
-    else:  # more likely the other way on Py27
-        importOrder = ['PyQt4', 'PyQt5']
+    importOrder = ['PyQt5', 'PyQt4']
     # then check each in turn
     for libname in importOrder:
         try:

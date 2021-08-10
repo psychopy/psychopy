@@ -16,7 +16,6 @@ import argparse
 import psychopy
 from psychopy import prefs
 from pkg_resources import parse_version
-from psychopy.constants import PY3
 from . import urls
 from . import frametracker
 from . import themes
@@ -57,11 +56,6 @@ import weakref
 # knowing if the user has admin priv is generally a good idea for security.
 # not actually needed; psychopy should never need anything except normal user
 # see older versions for code to detect admin (e.g., v 1.80.00)
-
-if not PY3 and sys.platform == 'darwin':
-    blockTips = True
-else:
-    blockTips = False
 
 
 # Enable high-dpi support if on Windows. This fixes blurry text rendering.
@@ -405,8 +399,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
                                         title=title)
             dlg.ShowModal()
 
-        if (self.prefs.app['showStartupTips']
-                and not self.testMode and not blockTips):
+        if self.prefs.app['showStartupTips'] and not self.testMode:
             tipFile = os.path.join(
                 self.prefs.paths['resources'], _translate("tips.txt"))
             tipIndex = self.prefs.appData['tipIndex']

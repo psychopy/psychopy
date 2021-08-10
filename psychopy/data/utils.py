@@ -20,7 +20,6 @@ from collections import OrderedDict
 from pkg_resources import parse_version
 
 from psychopy import logging, exceptions
-from psychopy.constants import PY3
 from psychopy.tools.filetools import pathToString
 
 try:
@@ -419,23 +418,19 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
     elif fileName.endswith('.pkl'):
         f = open(fileName, 'rb')
         # Converting newline characters.
-        if PY3:
-            # 'b' is necessary in Python3 because byte object is 
-            # returned when file is opened in binary mode.
-            buffer = f.read().replace(b'\r\n',b'\n').replace(b'\r',b'\n')
-        else:
-            buffer = f.read().replace('\r\n','\n').replace('\r','\n')
+        # 'b' is necessary in Python3 because byte object is
+        # returned when file is opened in binary mode.
+        buffer = f.read().replace(b'\r\n',b'\n').replace(b'\r',b'\n')
         try:
             trialsArr = pickle.loads(buffer)
         except Exception:
             raise IOError('Could not open %s as conditions' % fileName)
         f.close()
         trialList = []
-        if PY3:
-            # In Python3, strings returned by pickle() is unhashable.
-            # So, we have to convert them to str.
-            trialsArr = [[str(item) if isinstance(item, str) else item
-                          for item in row] for row in trialsArr]
+        # In Python3, strings returned by pickle() are unhashable so we have to
+        # convert them to str.
+        trialsArr = [[str(item) if isinstance(item, str) else item
+                      for item in row] for row in trialsArr]
         fieldNames = trialsArr[0]  # header line first
         _assertValidVarNames(fieldNames, fileName)
         for row in trialsArr[1:]:
@@ -653,13 +648,4 @@ def getDateStr(format="%Y_%b_%d_%H%M"):
         data.getDateStr(format=locale.nl_langinfo(locale.D_T_FMT))
     """
     now = time.strftime(format, time.localtime())
-    if PY3:
-        return now
-    else:
-        try:
-            now_decoded = codecs.utf_8_decode(now)[0]
-        except UnicodeDecodeError:
-            # '2011_03_16_1307'
-            now_decoded = time.strftime("%Y_%m_%d_%H%M", time.localtime())
-
-        return now_decoded
+    return now

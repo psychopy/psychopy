@@ -10,10 +10,8 @@ import numpy as np
 from psychopy import prefs, core
 from psychopy.tests import utils
 from psychopy import sound
-from psychopy.constants import PY3
 
-if PY3:
-    from importlib import reload
+from importlib import reload
 
 origSoundPref = prefs.hardware['audioLib']
 

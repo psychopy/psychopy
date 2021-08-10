@@ -64,8 +64,6 @@ def unicodeToFloat(val):
     if val == 'None':
         val = None
     else:
-        if not constants.PY3 and type(val) == unicode:
-            val = val.encode('utf-8')
         try:
             val = locale.atof(val)
         except ValueError:

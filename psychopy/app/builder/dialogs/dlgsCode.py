@@ -17,12 +17,7 @@ from psychopy.experiment.components.code import CodeComponent
 from ..validators import WarningManager
 from ...themes import ThemeMixin
 
-from psychopy.constants import PY3
-
-if PY3:
-    from importlib.util import find_spec as loader
-else:
-    from pkgutil import find_loader as loader
+from importlib.util import find_spec as loader
 hasMetapensiero = loader("metapensiero") is not None
 
 from .. import validators

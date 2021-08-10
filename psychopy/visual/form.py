@@ -16,8 +16,6 @@ from psychopy import logging
 from random import shuffle
 from pathlib import Path
 
-from psychopy.constants import PY3
-
 __author__ = 'Jon Peirce, David Bridges, Anthony Haffey'
 
 from ..colors import Color

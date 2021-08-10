@@ -28,10 +28,7 @@ from psychopy.localization import _translate
 from psychopy import logging
 from psychopy import web
 from psychopy import constants
-if constants.PY3:
-    import io
-else:
-    import StringIO as io
+import io
 urllib = web.urllib
 
 versionURL = "https://www.psychopy.org/version.txt"
@@ -56,8 +53,7 @@ def getLatestVersionInfo(app=None):
     for line in page.readlines():
         # in some odd circumstances (wifi hotspots) you can fetch a
         # page that is not the correct URL but a redirect
-        if constants.PY3:
-            line = line.decode()  # convert from a byte to a str
+        line = line.decode()  # convert from a byte to a str
         if line.find(':') == -1:
             return -1
             # this will succeed if every line has a key
@@ -451,10 +447,7 @@ class InstallUpdateDialog(wx.Dialog):
         otherwise try and retrieve a version number from zip file name
         """
         info = ""  # return this at the end
-        if constants.PY3:
-            zfileIsName = type(zfile) == str
-        else:
-            zfileIsName = type(zfile) in (str, unicode)
+        zfileIsName = type(zfile) == str
         if os.path.isfile(zfile) and zfileIsName:
             # zfile is filename not an actual file
             if v is None:  # try and deduce it

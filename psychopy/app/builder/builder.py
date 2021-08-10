@@ -3650,7 +3650,4 @@ def extractText(stream):
     :param stream: stream from wx.Process or any byte stream from a file
     :return: text converted to unicode ready for appending to wx text view
     """
-    if constants.PY3:
-        return stream.read().decode('utf-8')
-    else:
-        return stream.read()
+    return stream.read().decode('utf-8')

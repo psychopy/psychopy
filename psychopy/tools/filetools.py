@@ -260,10 +260,7 @@ class DictStorage(dict):
         # save the file as json
         with open(filename, 'wb') as f:
             json_str = json.dumps(self, indent=2, sort_keys=True)
-            if constants.PY3:
-                f.write(bytes(json_str, 'UTF-8'))
-            else:
-                f.write(json_str)
+            f.write(bytes(json_str, 'UTF-8'))
 
     def __del__(self):
         if not self._deleted:

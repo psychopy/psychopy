@@ -40,7 +40,6 @@ import sys
 import codecs
 import locale
 from psychopy import clock
-from psychopy.constants import PY3
 
 _packagePath = path.split(__file__)[0]
 
@@ -198,10 +197,7 @@ class LogFile():
         """
         # find the current stdout if we're the console logger
         if self.stream == 'stdout':
-            if PY3:
-                stream = sys.stdout
-            else:
-                stream = codecs.getwriter(_prefEncoding)(sys.stdout)
+            stream = sys.stdout
         else:
             stream = self.stream
         # try to write

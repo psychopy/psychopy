@@ -184,7 +184,7 @@ class SerialDevice(object):
             retVal = [line.decode('utf-8') for line in retVal]
         else:  # was -1?
             retVal = self.com.read(self.com.inWaiting())
-        if constants.PY3 and type(retVal) is bytes:
+        if type(retVal) is bytes:
             retVal = retVal.decode('utf-8')
         return retVal
 

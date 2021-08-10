@@ -36,15 +36,8 @@ from uuid import uuid4
 
 from .gitignore import gitIgnoreText
 
-if constants.PY3:
-    from urllib import parse
-
-    urlencode = parse.quote
-else:
-    import urllib
-
-    urlencode = urllib.quote
-
+from urllib import parse
+urlencode = parse.quote
 
 # TODO: test what happens if we have a network initially but lose it
 # TODO: test what happens if we have a network but pavlovia times out

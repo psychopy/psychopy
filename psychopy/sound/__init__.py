@@ -105,7 +105,7 @@ if audioLib is None:
             "Check whether the necessary sound libs are installed"
             .format(prefs.hardware['audioLib']))
 elif audioLib.lower() != 'ptb':
-    if constants.PY3 and not bits32 and 'ptb' not in failed:  
+    if not bits32 and 'ptb' not in failed:
         # Could be running PTB, just aren't?
         logging.warning("We strongly recommend you activate the PTB sound "
                         "engine in PsychoPy prefs as the preferred audio "

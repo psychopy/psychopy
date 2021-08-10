@@ -6,10 +6,8 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from past.builtins import basestring
-from os import path
 from pathlib import Path
 
-from psychopy.constants import PY3
 from psychopy.experiment.components import Param, _translate
 from psychopy.experiment.components.keyboard import KeyboardComponent
 from psychopy.experiment import CodeGenerationException, valid_var_re
@@ -147,7 +145,7 @@ class cedrusButtonBoxComponent(KeyboardComponent):
         if allowedKeysIsVar:
             # only insert this code if we think allowed keys is a variable.
             # check at run-time that the var is suitable to eval
-            stringType = '{}'.format(['basestring', 'str'][PY3])
+            stringType = 'str'
             code = ("# AllowedKeys looks like a variable named `{0}`\n"
                     "if not '{0}' in locals():\n"
                     "    logging.error('AllowedKeys variable `{0}` "

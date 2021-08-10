@@ -13,11 +13,9 @@ See http://www.photoresearch.com/
 
 from builtins import range
 from psychopy import logging
-import struct
 import sys
 import time
 import numpy
-from psychopy.constants import PY3
 
 try:
     import serial
@@ -156,12 +154,9 @@ class PR650(object):
         if message in ('d5\n', 'D5\n'):
             # we need a spectrum which will have multiple lines
             reply = self.com.readlines()
-            if PY3:
-                reply = [thisLine.decode('utf-8') for thisLine in reply]
+            reply = [thisLine.decode('utf-8') for thisLine in reply]
         else:
-            reply = self.com.readline()
-            if PY3:
-                reply = reply.decode('utf-8')
+            reply = self.com.readline().decode('utf-8')
         return reply
 
     def measure(self, timeOut=30.0):

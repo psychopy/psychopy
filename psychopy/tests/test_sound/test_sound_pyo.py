@@ -12,10 +12,8 @@ from psychopy import prefs, core
 from psychopy import sound, microphone
 from psychopy.tests.utils import TESTS_DATA_PATH
 from psychopy.tests import skip_under_vm
-from psychopy.constants import PY3
 
-if PY3:
-    from importlib import reload
+from importlib import reload
 
 origSoundPref = prefs.hardware['audioLib']
 

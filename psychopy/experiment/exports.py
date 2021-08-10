@@ -22,7 +22,6 @@ import re
 
 import psychopy
 from psychopy import constants
-from psychopy.constants import PY3
 from psychopy.localization import _translate
 from .components.settings import _numpyImports, _numpyRandomImports
 from .utils import nonalphanumeric_re, valid_var_re
@@ -91,14 +90,11 @@ class IndentingBuffer(io.StringIO):
             self.indentLevel = newLevel
 
     def write(self, text):
-        if PY3:
-            io.StringIO.write(self, "{}".format(text))
-        else:
-            io.StringIO.write(self, u"{}".format(text))
+        io.StringIO.write(self, "{}".format(text))
 
 
 # noinspection PyUnresolvedReferences
-class NameSpace():
+class NameSpace:
     """class for managing variable names in builder-constructed experiments.
 
     The aim is to help detect and avoid name-space collisions from

@@ -15,7 +15,6 @@ from builtins import zip
 from tempfile import mkdtemp, mkstemp
 from psychopy.tools.filetools import (genDelimiter, genFilenameFromDelimiter,
                                       openOutputFile, fromFile)
-from psychopy.constants import PY3
 
 
 def test_genDelimiter():
@@ -85,16 +84,10 @@ class TestFromFile():
 
         test_data = 'Test'
 
-        if PY3:
-            with open(path_0, 'w', encoding=encoding_0) as f:
-                json.dump(test_data, f)
-            with open(path_1, 'w', encoding=encoding_1) as f:
-                json.dump(test_data, f)
-        else:
-            with codecs.open(path_0, 'w', encoding=encoding_0) as f:
-                json.dump(test_data, f)
-            with codecs.open(path_1, 'w', encoding=encoding_1) as f:
-                json.dump(test_data, f)
+        with open(path_0, 'w', encoding=encoding_0) as f:
+            json.dump(test_data, f)
+        with open(path_1, 'w', encoding=encoding_1) as f:
+            json.dump(test_data, f)
 
         assert test_data == fromFile(path_0, encoding=encoding_0)
         assert test_data == fromFile(path_1, encoding=encoding_1)
@@ -105,20 +98,6 @@ class TestFromFile():
         test_data = 'Test'
         with open(path, 'wb') as f:
             pickle.dump(test_data, f)
-
-        assert test_data == fromFile(path)
-
-    def test_cPickle(self):
-        if PY3:
-            pytest.skip('Skipping cPickle test on Python 3')
-        else:
-            import cPickle
-
-        _, path = mkstemp(dir=self.tmp_dir, suffix='.psydat')
-
-        test_data = 'Test'
-        with open(path, 'wb') as f:
-            cPickle.dump(test_data, f)
 
         assert test_data == fromFile(path)
 

@@ -427,36 +427,19 @@ class Monitor(object):
         """Fetches the calibrations for this monitor from disk, storing them
         as self.calibs
         """
-        if constants.PY3:
-            ext = ".json"
-        else:
-            ext = ".calib"
-
+        ext = ".json"
         # the name of the actual file:
         thisFileName = os.path.join(monitorFolder, self.name + ext)
         if not os.path.exists(thisFileName):
             self.calibNames = []
         else:
-            if ext == ".json":
-                with open(thisFileName, 'r') as thisFile:
-                    if constants.PY3:
-                        # Passing encoding parameter to json.loads has been
-                        # deprecated and removed in Python 3.9
-                        self.calibs = json_tricks.load(
-                            thisFile, ignore_comments=False,
-                            preserve_order=False)
-                    else:
-                        self.calibs = json_tricks.load(
-                            thisFile, ignore_comments=False, encoding='utf-8',
-                            preserve_order=False)
-            else:
-                with open(thisFileName, 'rb') as thisFile:
-                    self.calibs = pickle.load(thisFile)
+            with open(thisFileName, 'r') as thisFile:
+                # Passing encoding parameter to json.loads has been
+                # deprecated and removed in Python 3.9
+                self.calibs = json_tricks.load(
+                    thisFile, ignore_comments=False,
+                    preserve_order=False)
             self.calibNames = sorted(self.calibs)
-            
-            if not constants.PY3:  # saving for future (not needed if we are IN future!)
-                # save JSON copies of our calibrations
-                self._saveJSON()
 
     def newCalib(self, calibName=None, width=None,
                  distance=None, gamma=None, notes=None, useBits=False,
@@ -539,18 +522,7 @@ class Monitor(object):
         This will write a `json` file to the `monitors` subfolder of your
         PsychoPy configuration folder (typically `~/.psychopy3/monitors` on
         Linux and macOS, and `%APPDATA%\\psychopy3\\monitors` on Windows).
-
-        Additionally saves a pickle (`.calib`) file if you are running
-        Python 2.7.
-
         """
-        if not constants.PY3:  # don't ever save pickle files form PY3
-            thisFileName = os.path.join(monitorFolder, self.name + ".calib")
-            with open(thisFileName, 'wb') as thisFile:
-                pickle.dump(self.calibs, thisFile)
-
-        # also save as JSON (at the moment)
-        # (When we're sure this works we should ONLY save as JSON)
         self._saveJSON()
 
     def saveMon(self):
@@ -1162,9 +1134,7 @@ def DACrange(n):
 def getAllMonitors():
     """Find the names of all monitors for which calibration files exist
     """
-    monitorList = glob.glob(os.path.join(monitorFolder, '*.calib'))
-    if constants.PY3:
-        monitorList = glob.glob(os.path.join(monitorFolder, '*.json'))
+    monitorList = glob.glob(os.path.join(monitorFolder, '*.json'))
     split = os.path.split
     splitext = os.path.splitext
     # skip the folder and the extension for each file

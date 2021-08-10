@@ -14,7 +14,7 @@ except ImportError:
 
 from psychopy import logging
 from psychopy.constants import (PLAYING, PAUSED, FINISHED, STOPPED,
-                                NOT_STARTED, PY3)
+                                NOT_STARTED)
 from .exceptions import SoundFormatError, DependencyError
 from ._base import _SoundBase, HammingWindow
 
@@ -237,8 +237,7 @@ class _SoundStream():
             del self._sdStream
         if hasattr(sys, 'stdout'):
             sys.stdout.flush()
-        if PY3:
-            atexit.unregister(self.__del__)
+        atexit.unregister(self.__del__)
 
 
 class SoundDeviceSound(_SoundBase):

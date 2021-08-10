@@ -7,11 +7,7 @@
 import os
 import sys
 
-PY3 = sys.version_info.major >= 3
-if PY3:
-    write_mode = 'w'
-else:
-    write_mode = 'wb'
+write_mode = 'w'
 
 
 def generateSpec(baseSpec=None):

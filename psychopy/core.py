@@ -22,7 +22,7 @@ from psychopy.clock import (MonotonicClock, Clock, CountdownTimer,
 # particular OS
 from psychopy.platform_specific import rush  # pylint: disable=W0611
 from psychopy import logging
-from psychopy.constants import STARTED, NOT_STARTED, FINISHED, PY3
+from psychopy.constants import STARTED, NOT_STARTED, FINISHED
 
 try:
     import pyglet
@@ -141,20 +141,15 @@ def shellCall(shellCmd, stdin='', stderr=False, env=None, encoding=None):
         else:
             cmdObjects.append(obj.decode('utf-8'))
 
-    # Since Python 3.6, we can use the `encoding` parameter.
-    if PY3:
-        if sys.version_info.minor >= 6:
-            proc = subprocess.Popen(cmdObjects, stdin=subprocess.PIPE,
-                                    stdout=subprocess.PIPE,
-                                    stderr=subprocess.PIPE,
-                                    encoding=encoding, env=env)
-        else:
-            msg = 'shellCall() requires Python 2.7, or 3.6 and newer.'
-            raise RuntimeError(msg)
-    else:
+    # the `encoding` parameter results in unicode coming back
+    if sys.version_info.minor >= 6:
         proc = subprocess.Popen(cmdObjects, stdin=subprocess.PIPE,
                                 stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE, env=env)
+                                stderr=subprocess.PIPE,
+                                encoding=encoding, env=env)
+    else:
+        msg = 'shellCall() requires Python 2.7, or 3.6 and newer.'
+        raise RuntimeError(msg)
 
     stdoutData, stderrData = proc.communicate(stdin)
 

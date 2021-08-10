@@ -90,9 +90,6 @@ for compName in sorted(allComp):
         mismatches.append(err)
     for parName in sorted(comp.params):
         # default is what you get from param.__str__, which returns its value
-        if not constants.PY3:
-            if isinstance(comp.params[parName].val, unicode):
-                comp.params[parName].val = comp.params[parName].val.encode('utf8')
         default = '%s.%s.default:%s' % (compName, parName, comp.params[parName])
         out.append(default)
         lineFields = []

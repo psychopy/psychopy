@@ -24,7 +24,7 @@ try:
 except ImportError:
     pass  # pyglet is not installed
 
-from psychopy.constants import STARTED, NOT_STARTED, FINISHED, PY3
+from psychopy.constants import STARTED, NOT_STARTED, FINISHED
 import psychopy.logging  # Absolute import to work around circularity
 
 

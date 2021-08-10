@@ -21,17 +21,12 @@ import numpy as np
 import ctypes
 import freetype as ft
 from pyglet import gl  # import OpenGL.GL not compatible with Big Sur (2020)
-import glob
 from pathlib import Path
 import requests
 
 from psychopy import logging
 from psychopy import prefs
-from psychopy.constants import PY3
 from psychopy.exceptions import MissingFontError
-
-if PY3:
-    unichr = chr
 
 #  OS Font paths
 _X11FontDirectories = [
@@ -402,7 +397,7 @@ class GLFont:
         face = ft.Face(str(self.filename))  # ft.Face doesn't support Pathlib
 
         chrs = (list(face.get_chars()))[:nMax]
-        charcodes = [unichr(c[1]) for c in chrs]
+        charcodes = [chr(c[1]) for c in chrs]
         self.fetch(charcodes, face=face)
         logging.debug("Preloading of glyph set for Texture Font {} complete"
                       .format(self.name))

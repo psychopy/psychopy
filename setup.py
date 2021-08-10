@@ -18,7 +18,6 @@ from os.path import exists, join
 from sys import platform, argv, version_info
 
 
-PY3 = version_info >= (3, 0)
 with open('version') as f:
     version = f.read().strip()
 
@@ -38,7 +37,7 @@ if 'CONDA_PREFIX' in os.environ:
 # Naming conflict with PyPI package.
 # `pyqt` package should be installed via conda instead
 # cf. https://github.com/ContinuumIO/anaconda-issues/issues/1554
-if PY3 and 'CONDA_PREFIX' in os.environ:
+if 'CONDA_PREFIX' in os.environ:
     required.remove('pyqt5; python_version >= "3"')
 
 # compress psychojs to a zip file for packaging

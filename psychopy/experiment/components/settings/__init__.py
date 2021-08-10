@@ -6,12 +6,10 @@ from pathlib import Path
 from xml.etree.ElementTree import Element
 import re
 import wx.__version__
-import psychopy
 from psychopy import logging
 from psychopy.experiment.components import Param, _translate
 from psychopy.experiment.routines.eyetracker_calibrate import EyetrackerCalibrationRoutine
 import psychopy.tools.versionchooser as versions
-from psychopy.constants import PY3
 from psychopy.monitors import Monitor
 from psychopy.iohub import util as ioUtil
 from psychopy.alerts import alert
@@ -829,18 +827,12 @@ class SettingsComponent(object):
 
     def writeStartCode(self, buff, version):
 
-        if not PY3:
-            decodingInfo = ".decode(sys.getfilesystemencoding())"
-        else:
-            decodingInfo = ""
         code = ("# Ensure that relative paths start from the same directory "
                 "as this script\n"
                 "_thisDir = os.path.dirname(os.path.abspath(__file__))"
-                "{decoding}\n"
                 "os.chdir(_thisDir)\n\n"
                 "# Store info about the experiment session\n"
-                "psychopyVersion = '{version}'\n".format(decoding=decodingInfo,
-                                                         version=version))
+                "psychopyVersion = '{version}'\n".format(version=version))
         buff.writeIndentedLines(code)
 
         if self.params['expName'].val in [None, '']:
@@ -850,10 +842,7 @@ class SettingsComponent(object):
                     " this script\n")
             buff.writeIndented(code % self.params['expName'])
 
-        if PY3:  # in Py3 dicts are chrono-sorted
-            sorting = "False"
-        else:  # in Py2, with no natural order, at least be alphabetical
-            sorting = "True"
+        sorting = "False"  # in Py3 dicts are chrono-sorted so default no sort
         expInfoDict = self.getInfo()
         buff.writeIndented("expInfo = %s\n" % repr(expInfoDict))
         if self.params['Show info dlg'].val:

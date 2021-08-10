@@ -4,9 +4,8 @@
 import os
 from psychopy import constants, compatibility
 import pytest
-pytestmark = pytest.mark.skipif(
-    constants.PY3,
-    reason='Python3 cannot import the old-style pickle files')
+
+pytest.mark.skip()  # previously skipped only if on Py2: this doesn't run on Py3
 
 thisPath = os.path.split(__file__)[0]
 fixtures_path = os.path.join(thisPath, '..', 'data')

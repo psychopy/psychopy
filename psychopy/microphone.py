@@ -13,24 +13,10 @@ from past.builtins import basestring
 import os
 import glob
 import threading
-from psychopy.constants import PY3
 from psychopy.tools.filetools import pathToString
-
-if PY3:
-    import urllib.request
-    import urllib.error
-    import urllib.parse
-else:
-    import urllib2
-    # import urllib.request, urllib.error, urllib.parse
-
-    class FakeURLlib():
-
-        def __init__(self, lib):
-            self.request = lib
-            self.error = lib
-            self.parse = lib
-    urllib = FakeURLlib(urllib2)
+import urllib.request
+import urllib.error
+import urllib.parse
 
 import json
 import numpy as np
@@ -48,7 +34,7 @@ haveMic = False  # goes True in switchOn, if can import pyo
 FLAC_PATH = None  # set on first call to _getFlacPath()
 
 
-class AudioCapture():
+class AudioCapture:
     """Capture sound sample from the default sound input, and save to a file.
 
         Untested whether you can have two recordings going on simultaneously.
