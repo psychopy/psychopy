@@ -87,6 +87,17 @@ Fixes:
 - iohub.Mouse.setPosition was not handling units correctly when given a float
 - Builder boilerplate for Microphone was looking for a transcription even if none was requested #4163
 
+PsychoPy 2021.2.3
+~~~~~~~~~~~~~~~~~
+
+Fixes:
+
+- on macOS the long-standing issue of the app freezing in the dock has now been fixed #4214
+- smoother handling of trying to run an experiment on a computer with different mic hardware than where the experiment was created #4210
+- Minolta LS100/110 was not working due to broken bytes/unicode conversion #4186
+- ElementArray was not honouring the contrasts (contrs) parameter #4196
+- Code Components were giving unnecessary warning about namespace issues. Should only warn if a variable name is being _shadowed_ not if it's being _used_ #4193
+
 PsychoPy 2021.1
 ---------------
 
