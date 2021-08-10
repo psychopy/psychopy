@@ -1449,6 +1449,19 @@ class WindowMixin(object):
                             ]), obj=self)
         return verts.base
 
+    @vertices.setter
+    def vertices(self, value):
+        # If None, use defaut
+        if value is None:
+            value = [
+                [0.5, -0.5],
+                [-0.5, -0.5],
+                [-0.5, 0.5],
+                [0.5, 0.5],
+            ]
+        # Create Vertices object
+        self._vertices = Vertices(value, obj=self)
+
     @property
     def flip(self):
         """
@@ -1493,19 +1506,6 @@ class WindowMixin(object):
     @flipVert.setter
     def flipVert(self, value):
         self.flip = [self.flip[0, 0], value]
-
-    @vertices.setter
-    def vertices(self, value):
-        # If None, use defaut
-        if value is None:
-            value = [
-                [0.5, -0.5],
-                [-0.5, -0.5],
-                [-0.5, 0.5],
-                [0.5, 0.5],
-            ]
-        # Create Vertices object
-        self._vertices = Vertices(value, obj=self)
 
     @property
     def units(self):
