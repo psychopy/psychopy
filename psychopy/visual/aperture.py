@@ -230,8 +230,8 @@ class Aperture(MinimalStim, ContainerMixin):
         self._needReset = needReset
         setAttribute(self, 'ori', ori, log)
 
-    @attributeSetter
-    def pos(self, pos):
+    @property
+    def pos(self):
         """Set the pos (centre) of the Aperture.
         :ref:`Operations <attrib-operations>` supported.
 
@@ -243,8 +243,12 @@ class Aperture(MinimalStim, ContainerMixin):
 
         Use setPos() if you want to control logging and resetting.
         """
-        self.__dict__['pos'] = numpy.array(pos)
-        self._shape.pos = self.pos  # a ShapeStim
+        return WindowMixin.pos.fget(self)
+
+    @pos.setter
+    def pos(self, value):
+        WindowMixin.pos.fset(self, value)
+        self._shape.pos = value  # a ShapeStim
         self._reset()
 
     def setPos(self, pos, needReset=True, log=None):
@@ -274,13 +278,13 @@ class Aperture(MinimalStim, ContainerMixin):
     def posPix(self):
         """The position of the aperture in pixels
         """
-        return self._shape.posPix
+        return self._shape._pos.pix
 
     @property
     def sizePix(self):
         """The size of the aperture in pixels
         """
-        return self._shape.sizePix
+        return self._shape._size.pix
 
     @attributeSetter
     def enabled(self, value):
