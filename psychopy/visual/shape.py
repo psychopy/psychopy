@@ -531,8 +531,8 @@ class ShapeStim(BaseShapeStim):
             initVertices = tessVertices
         self.__dict__['_tesselVertices'] = numpy.array(initVertices, float)
 
-    @attributeSetter
-    def vertices(self, newVerts):
+    @property
+    def vertices(self):
         """A list of lists or a numpy array (Nx2) specifying xy positions of
         each vertex, relative to the center of the field.
 
@@ -540,14 +540,17 @@ class ShapeStim(BaseShapeStim):
 
         :ref:`Operations <attrib-operations>` supported with `.setVertices()`.
         """
-        # check if this is a name of one of our known shapes
-        if isinstance(newVerts, basestring) and newVerts in knownShapes:
-            newVerts = knownShapes[newVerts]
-        if isinstance(newVerts, int):
-            newVerts = self._calcEquilateralVertices(newVerts)
+        return WindowMixin.vertices.fget(self)
 
+    @vertices.setter
+    def vertices(self, value):
+        # check if this is a name of one of our known shapes
+        if isinstance(value, basestring) and value in knownShapes:
+            value = knownShapes[value]
+        if isinstance(value, int):
+            value = self._calcEquilateralVertices(value)
         # Check shape
-        WindowMixin.vertices.fset(self, newVerts)
+        WindowMixin.vertices.fset(self, value)
         self._needVertexUpdate = True
         self._tesselate(self.vertices)
 
