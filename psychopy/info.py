@@ -5,12 +5,28 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-"""This module has tools for fetching data about the system or the
-current Python process. Such info can be useful for understanding
-the context in which an experiment was run.
+"""This module has tools for fetching data about the system or the current
+Python process. Such info can be useful for understanding the context in which
+an experiment was run.
 """
 
 from __future__ import absolute_import, division, print_function
+
+__all__ = [
+    'RunTimeInfo',
+    'getMemoryUsage',
+    'getRAM',
+    'APP_FLAG_LIST',  # user might want to see these
+    'APP_IGNORE_LIST',
+    # These should be hidden, but I'm unsure if somewhere `import *` is being
+    # used so I'm adding them for now to prevent breakage. - mdc
+    '_getUserNameUID',
+    '_getHashGitHead',
+    '_getSha1hexDigest',
+    '_getHgVersion',
+    '_getSvnVersion',
+    '_thisProcess'
+]
 
 from builtins import str
 import sys
@@ -40,84 +56,136 @@ from psychopy.platform_specific import rush
 from psychopy import __version__ as psychopyVersion
 from psychopy.constants import PY3
 
+# List of applications to flag as problematic while running an experiment. These
+# apps running in the background consume resources (CPU, GPU and memory) which
+# may interfere with a PsychoPy experiment. If these apps are allowed to run, it
+# may result in poor timing, glitches, dropped frames, etc.
+#
+# Names that appear here are historically known to affect performance. The user
+# can check if these processes are running using `RunTimeInfo()` and shut them
+# down. App names are matched in a case insensitive way from the start of the
+# name string obtained from `psutils`.
+APP_FLAG_LIST = [
+    # web browsers can burn CPU cycles
+    'Firefox',
+    'Safari',
+    'Explorer',
+    'Netscape',
+    'Opera',
+    'Google Chrome',
+    'Dropbox',
+    'BitTorrent',
+    'iTunes',  # but also matches iTunesHelper (add to ignore-list)
+    'mdimport',
+    'mdworker',
+    'mds',  # can have high CPU
+    # productivity
+    'Office',
+    'KeyNote',
+    'Pages',
+    'LaunchCFMApp',  # on mac, MS Office (Word etc) can be launched by this
+    'Skype',
+    'VirtualBox',
+    'VBoxClient',  # virtual machine as host or client
+    'Parallels',
+    'Coherence',
+    'prl_client_app',
+    'prl_tools_service',
+    'VMware'  # just a guess
+    # gaming, may need to be started for VR support
+    'Steam'
+    'Oculus'
+]
+
+# Apps listed here will not be flagged if a partial match exist in
+# `APP_FLAG_LIST`. This list is checked first before `RunTimeInfo()` looks for a
+# name in `APP_FLAG_LIST`. You can also add names here to eliminate ambiguity,
+# for instance if 'Dropbox' is in `APP_FLAG_LIST`, then `DropboxUpdate` will
+# also be flagged. You can prevent this by adding 'DropboxUpdate' to
+# `APP_IGNORE_LIST`.
+APP_IGNORE_LIST = [
+    # shells
+    'ps',
+    'login',
+    '-tcsh',
+    'bash',
+    # helpers and updaters
+    'iTunesHelper',
+    'DropboxUpdate',
+    'OfficeClickToRun'
+]
+
 
 class RunTimeInfo(dict):
-    """Returns a snapshot of your configuration at run-time,
-    for immediate or archival use.
+    """Returns a snapshot of your configuration at run-time, for immediate or
+    archival use.
 
-    Returns a dict-like object with info about PsychoPy, your experiment
-    script, the system & OS, your window and monitor settings (if any),
-    python & packages, and openGL.
+    Returns a dict-like object with info about PsychoPy, your experiment script,
+    the system & OS, your window and monitor settings (if any), python &
+    packages, and openGL.
 
     If you want to skip testing the refresh rate, use 'refreshTest=None'
 
     Example usage: see runtimeInfo.py in coder demos.
 
-    :Author:
-        - 2010 written by Jeremy Gray, input from Jon Peirce and Alex Holcombe
-    """
+    Parameters
+    ----------
+    win : :class:`~psychopy.visual.Window`, False or None
+        What window to use for refresh rate testing (if any) and settings.
+        `None` -> temporary window using defaults; `False` -> no window created,
+        used, nor profiled; a `Window()` instance you have already created one.
+    author : str or None
+        `None` will try to autodetect first __author__ in sys.argv[0], whereas
+        a `str` being user-supplied author info (of an experiment).
+    version : str or None
+        `None` try to autodetect first __version__ in sys.argv[0] or `str` being
+        the user-supplied version info (of an experiment).
+    verbose : bool
+        Show additional information. Default is `False`.
+    refreshTest : str, bool or None
+        True or 'grating' = assess refresh average, median, and SD of 60
+        win.flip()s, using visual.getMsPerFrame() 'grating' = show a visual
+        during the assessment; `True` = assess without a visual. Default is
+        `'grating'`.
+    userProcsDetailed: bool
+        Get details about concurrent user's processes (command, process-ID).
+        Default is `False`.
 
+    Returns
+    -------
+    A flat dict (but with several groups based on key names):
+
+    psychopy : version, rush() availability
+        psychopyVersion, psychopyHaveExtRush, git branch and current commit hash
+        if available
+
+    experiment : author, version, directory, name, current time-stamp, SHA1
+        digest, VCS info (if any, svn or hg only),
+        experimentAuthor, experimentVersion, ...
+
+    system : hostname, platform, user login, count of users,
+        user process info (count, cmd + pid), flagged processes
+        systemHostname, systemPlatform, ...
+
+    window : (see output; many details about the refresh rate, window,
+        and monitor; units are noted)
+        windowWinType, windowWaitBlanking, ...windowRefreshTimeSD_ms,
+        ... windowMonitor.<details>, ...
+
+    python : version of python, versions of key packages
+        (wx, numpy, scipy, matplotlib, pyglet, pygame)
+        pythonVersion, pythonScipyVersion, ...
+
+    openGL : version, vendor, rendering engine, plus info on whether
+        several extensions are present
+        openGLVersion, ..., openGLextGL_EXT_framebuffer_object, ...
+
+    """
+    # Author: 2010 written by Jeremy Gray, input from Jon Peirce and
+    # Alex Holcombe
     def __init__(self, author=None, version=None, win=None,
                  refreshTest='grating', userProcsDetailed=False,
                  verbose=False):
-        """
-        :Parameters:
-
-            win : *None*, False, :class:`~psychopy.visual.Window` instance
-                what window to use for refresh rate testing (if any) and
-                settings. None -> temporary window using
-                defaults; False -> no window created, used, nor profiled;
-                a Window() instance you have already created
-
-            author : *None*, string
-                None = try to autodetect first __author__ in sys.argv[0];
-                string = user-supplied author info (of an experiment)
-
-            version : *None*, string
-                None = try to autodetect first __version__ in sys.argv[0];
-                string = user-supplied version info (of an experiment)
-
-            verbose : *False*, True; how much detail to assess
-
-            refreshTest : None, False, True, *'grating'*
-                True or 'grating' = assess refresh average, median, and SD
-                of 60 win.flip()s, using visual.getMsPerFrame()
-                'grating' = show a visual during the assessment;
-                True = assess without a visual
-
-            userProcsDetailed: *False*, True
-                get details about concurrent user's processes
-                (command, process-ID)
-
-        :Returns:
-            a flat dict (but with several groups based on key names):
-
-            psychopy : version, rush() availability
-                psychopyVersion, psychopyHaveExtRush, git branch and current
-                commit hash if available
-
-            experiment : author, version, directory, name, current time-stamp,
-                SHA1 digest, VCS info (if any, svn or hg only),
-                experimentAuthor, experimentVersion, ...
-
-            system : hostname, platform, user login, count of users,
-                user process info (count, cmd + pid), flagged processes
-                systemHostname, systemPlatform, ...
-
-            window : (see output; many details about the refresh rate, window,
-                and monitor; units are noted)
-                windowWinType, windowWaitBlanking, ...windowRefreshTimeSD_ms,
-                ... windowMonitor.<details>, ...
-
-            python : version of python, versions of key packages
-                (wx, numpy, scipy, matplotlib, pyglet, pygame)
-                pythonVersion, pythonScipyVersion, ...
-
-            openGL : version, vendor, rendering engine, plus info on whether
-                several extensions are present
-                openGLVersion, ..., openGLextGL_EXT_framebuffer_object, ...
-        """
-
         # this will cause an object to be created with all the same methods as
         # a dict
         dict.__init__(self)
@@ -375,81 +443,47 @@ class RunTimeInfo(dict):
     def _setCurrentProcessInfo(self, verbose=False, userProcsDetailed=False):
         """What other processes are currently active for this user?
         """
-        appFlagList = [
-            # flag these apps if active, case-insensitive match:
-            # web browsers can burn CPU cycles
-            'Firefox', 'Safari', 'Explorer', 'Netscape', 'Opera',
-            'Google Chrome',
-            # but also matches iTunesHelper (add to ignore-list)
-            'Dropbox', 'BitTorrent', 'iTunes',
-            'mdimport', 'mdworker', 'mds',  # can have high CPU
-            # productivity; on mac, MS Office (Word etc) can be launched by
-            # 'LaunchCFMApp'
-            'Office', 'KeyNote', 'Pages', 'LaunchCFMApp',
-            'Skype',
-            'VirtualBox', 'VBoxClient',  # virtual machine as host or client
-            'Parallels', 'Coherence', 'prl_client_app', 'prl_tools_service',
-            'VMware']  # just a guess
-        appIgnoreList = [  # always ignore these, exact match:
-            'ps', 'login', '-tcsh', 'bash', 'iTunesHelper']
+        systemProcPsu = []             # found processes
+        systemProcPsuFlagged = []      # processes which are flagged
+        systemUserProcFlaggedPID = []  # PIDs of those processes
+        # lower case these names for matching
+        appFlagListLowerCase = [pn.lower() for pn in APP_FLAG_LIST]
+        appIgnoreListLowerCase = [pn.lower() for pn in APP_IGNORE_LIST]
 
-        # assess concurrently active processes owner by the current user:
-        try:
-            # ps = process status, -c to avoid full path (potentially having
-            # spaces) & args, -U for user
-            if sys.platform not in ['win32']:
-                proc = shellCall("ps -c -U " + os.environ['USER'])
+        # iterate over processes retrieved by psutil
+        for proc in psutil.process_iter(attrs=None, ad_value=None):
+            try:
+                processFullName = proc.name()  # get process name
+                processPid = proc.pid
+                processName = processFullName.lower()  # use for matching only
+            except (psutil.AccessDenied, psutil.NoSuchProcess,
+                    psutil.ZombieProcess):
+                continue  # skip iteration on exception
+
+            # check if process is in ignore list, skip if so
+            for appIgnore in appIgnoreListLowerCase:
+                # case-insensitive match from the start of string
+                if processName.startswith(appIgnore):
+                    break
             else:
-                # "tasklist /m" gives modules as well
-                proc, err = shellCall("tasklist", stderr=True)
-                if err:
-                    logging.error('tasklist error:', err)
-                    # raise
-            systemProcPsu = []
-            systemProcPsuFlagged = []
-            systemUserProcFlaggedPID = []
-            procLines = proc.splitlines()
-            headerLine = procLines.pop(0)  # column labels
-            if sys.platform not in ['win32']:
-                try:
-                    # columns and column labels can vary across platforms
-                    cmd = headerLine.upper().split().index('CMD')
-                except ValueError:
-                    cmd = headerLine.upper().split().index('COMMAND')
-                # process id's extracted in case you want to os.kill() them
-                # from psychopy
-                pid = headerLine.upper().split().index('PID')
-            else:  # this works for win XP, for output from 'tasklist'
-                procLines.pop(0)  # blank
-                procLines.pop(0)  # =====
-                pid = -5  # pid next after command, which can have
-                # command is first, but can have white space, so end up taking
-                # line[0:pid]
-                cmd = 0
-            for p in procLines:
-                pr = p.split()  # info fields for this process
-                if pr[cmd] in appIgnoreList:
-                    continue
-                if sys.platform in ['win32']:  # allow for spaces in app names
-                    # later just count these unless want details
-                    systemProcPsu.append([' '.join(pr[cmd:pid]), pr[pid]])
-                else:
-                    systemProcPsu.append([' '.join(pr[cmd:]), pr[pid]])
-                matchingApp = [
-                    a for a in appFlagList if a.lower() in p.lower()]
-                for app in matchingApp:
-                    systemProcPsuFlagged.append([app, pr[pid]])
-                    systemUserProcFlaggedPID.append(pr[pid])
-            self['systemUserProcCount'] = len(systemProcPsu)
-            self['systemUserProcFlagged'] = systemProcPsuFlagged
+                # if we get here, the name isn't in the ignore list
+                for appFlag in appFlagListLowerCase:
+                    if processName.startswith(appFlag):
+                        # append actual name and PID to output lists
+                        systemProcPsuFlagged.append(processFullName)
+                        systemUserProcFlaggedPID.append(processPid)
+                        break
 
-            if verbose and userProcsDetailed:
-                self['systemUserProcCmdPid'] = systemProcPsu
-                self['systemUserProcFlaggedPID'] = systemUserProcFlaggedPID
-        except Exception:
-            if verbose:
-                self['systemUserProcCmdPid'] = None
-                self['systemUserProcFlagged'] = None
+            systemProcPsu.append(processName)
+
+        # add items to dictionary
+        self['systemUserProcCount'] = len(systemProcPsu)
+        self['systemUserProcFlagged'] = systemProcPsuFlagged
+
+        # if the user wants more ...
+        if verbose and userProcsDetailed:
+            self['systemUserProcCmdPid'] = systemProcPsu  # is this right?
+            self['systemUserProcFlaggedPID'] = systemUserProcFlaggedPID
 
         # CPU speed (will depend on system busy-ness)
         d = numpy.array(numpy.linspace(0., 1., 1000000))
@@ -601,10 +635,10 @@ class RunTimeInfo(dict):
                         len(selfk)):
                     prSet = []
                     for pr in self[k]:  # str -> list of lists
-                        if ' ' in pr[0]:  # add single quotes around file names that contain spaces
-                            pr[0] = "'" + pr[0] + "'"
+                        if ' ' in pr:  # add single quotes if file has spaces
+                            pr = "'" + pr + "'"
                         # first item in sublist is proc name (CMD)
-                        prSet += [pr[0]]
+                        prSet += [pr]
                     selfk = ' '.join(list(set(prSet)))
                 # suppress display PID info -- useful at run-time, never useful
                 # in an archive
@@ -776,6 +810,7 @@ def getRAM():
     """
     totalRAM, available = psutil.virtual_memory()[0:2]
     return totalRAM / 1048576., available / 1048576.
+
 
 # faster to get the current process only once:
 _thisProcess = psutil.Process()
