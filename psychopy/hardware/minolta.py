@@ -154,7 +154,7 @@ class LS100(object):
                 time.sleep(0.2)
                 for n in range(10):
                     # set to use absolute measurements
-                    reply = self.sendMessage(b'MDS,04')
+                    reply = self.sendMessage('MDS,04')
                     if reply[0:2] == 'OK':
                         self.OK = True
                         break
@@ -175,13 +175,13 @@ class LS100(object):
 
         See user manual for other modes
         """
-        reply = self.sendMessage(b'MDS,%s' % mode)
+        reply = self.sendMessage('MDS,%s' % mode)
         return self.checkOK(reply)
 
     def measure(self):
         """Measure the current luminance and set .lastLum to this value
         """
-        reply = self.sendMessage(b'MES')
+        reply = self.sendMessage('MES')
         if self.checkOK(reply):
             lum = float(reply.split()[-1])
             return lum
@@ -196,7 +196,7 @@ class LS100(object):
     def clearMemory(self):
         """Clear the memory of the device from previous measurements
         """
-        reply = self.sendMessage(b'CLE')
+        reply = self.sendMessage('CLE')
         ok = self.checkOK(reply)
         return ok
 
@@ -221,17 +221,26 @@ class LS100(object):
     def sendMessage(self, message, timeout=5.0):
         """Send a command to the photometer and wait an allotted
         timeout for a response.
+
+        The message can be in either bytes or unicode but the returned string
+        will always be utf-encoded.
         """
-        if message[-2:] != '\r\n':
-            message += b'\r\n'  # append a newline if necess
+        # append a newline if necessary (for either str or bytes)
+        if type(message) == str:
+            if message[-2:] != '\r\n':
+                message += '\r\n'
+        elif type(message) == bytes:
+            if message[-2:] != b'\r\n':
+                message += b'\r\n'
 
         # flush the read buffer first
         # read as many chars as are in the buffer
-        self.com.read(self.com.inWaiting()).decode('utf-8')
+        self.com.read(self.com.inWaiting())
+        # then send message and catch any returned chars
         for attemptN in range(self.maxAttempts):
             # send the message
             time.sleep(0.1)
-            if type(message)!=bytes:
+            if type(message) != bytes:
                 message = bytes(message, 'utf-8')
             self.com.write(message)
             self.com.flush()
