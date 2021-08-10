@@ -328,7 +328,7 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
                                                   wrapping=False)
         # if user requested size=None then update the size for new stim here
         if hasattr(self, '_requestedSize') and self._requestedSize is None:
-            self.size = Size(numpy.array(self._origSize)*2, units='pix', win=self.win)  # set size to default
+            self.size = Size(numpy.array(self._origSize), units='pix', win=self.win)  # set size to default
         # if we switched to/from lum image then need to update shader rule
         if wasLumImage != self.isLumImage:
             self._needUpdate = True
