@@ -210,11 +210,15 @@ class MicrophoneComponent(BaseComponent):
         inits['sampleRate'] = sampleRates[inits['sampleRate'].val]
         # Substitute channel value for numeric equivalent
         inits['channels'] = {'mono': 1, 'stereo': 2, 'auto': None}[self.params['channels'].val]
-        # Substitute device name for device index
-        device = devices[self.params['device'].val]
-        if hasattr(device, "deviceIndex"):
-            inits['device'] = device.deviceIndex
+        # Substitute device name for device index, or default if not found
+        if self.params['device'].val in devices:
+            device = devices[self.params['device'].val]
+            if hasattr(device, "deviceIndex"):
+                inits['device'] = device.deviceIndex
+            else:
+                inits['device'] = None
         else:
+            alert(4330, strFields={'device': self.params['device'].val})
             inits['device'] = None
         # Create Microphone object and clips dict
         code = (

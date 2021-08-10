@@ -232,6 +232,8 @@ class Flow(list):
         for entry in self:
             self._currentRoutine = entry
             entry.writeMainCode(script)
+            if hasattr(entry, "writeRoutineEndCode"):
+                entry.writeRoutineEndCode(script)
         # tear-down code (very few components need this)
         for entry in self:
             self._currentRoutine = entry
