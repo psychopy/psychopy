@@ -1393,6 +1393,48 @@ class WindowMixin(object):
         self._size = Size(value, units=self.units, win=self.win)
 
     @property
+    def width(self):
+        if len(self.size.shape) == 1:
+            # Return first value if a 1d array
+            return self.size[0]
+        elif len(self.size.shape) == 2:
+            # Return first column if a 2d array
+            return self.size[:, 0]
+
+    @width.setter
+    def width(self, value):
+        # Convert to a numpy array
+        value = numpy.array(value)
+        # Set size
+        if len(self.size.shape) == 1:
+            # Set first value if a 1d array
+            self.size[0] = value
+        elif len(self.size.shape) == 2:
+            # Set first column if a 2d array
+            self.size[:, 0] = value
+
+    @property
+    def height(self):
+        if len(self.size.shape) == 1:
+            # Return first value if a 1d array
+            return self.size[1]
+        elif len(self.size.shape) == 2:
+            # Return first column if a 2d array
+            return self.size[:, 1]
+
+    @height.setter
+    def height(self, value):
+        # Convert to a numpy array
+        value = numpy.array(value)
+        # Set size
+        if len(self.size.shape) == 1:
+            # Set first value if a 1d array
+            self.size[1] = value
+        elif len(self.size.shape) == 2:
+            # Set first column if a 2d array
+            self.size[:, 1] = value
+
+    @property
     def vertices(self):
         # Get or make Vertices object
         if hasattr(self, "_vertices"):
