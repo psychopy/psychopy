@@ -313,11 +313,11 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         """Float specified in pixels (overridden if `element` is specified).
         :ref:`operations <attrib-operations>` are supported."""
         if hasattr(self, "_dotSize"):
-            return getattr(self._dotSize, self.units)[0]
+            return getattr(self._dotSize, 'pix')[0]
 
     @dotSize.setter
     def dotSize(self, value):
-        self._dotSize = Size(value, units=self.units, win=self.win)
+        self._dotSize = Size(value, units='pix', win=self.win)
 
     @attributeSetter
     def dotLife(self, dotLife):
