@@ -753,37 +753,15 @@ class ContainerMixin(object):
         """Sets Stim.verticesPix and ._borderPix from pos, size, ori,
         flipVert, flipHoriz
         """
-        # check whether stimulus needs flipping in either direction
-        flip = numpy.array([1, 1])
-        if hasattr(self, 'flipHoriz') and self.flipHoriz:
-            flip[0] = -1 # True=(-1), False->(+1)
-        if hasattr(self, 'flipVert') and self.flipVert:
-            flip[1] = -1 # True=(-1), False->(+1)
-
         if hasattr(self, '_tesselVertices'):  # Shapes need to render from this
             verts = self._tesselVertices
-        elif hasattr(self, 'vertices'):
+        else:
             verts = self.vertices
-        else:
-            verts = self._verticesBase
 
-        # set size and orientation, combine with position and convert to pix:
-        if hasattr(self, 'fieldSize'):
-            # this is probably a DotStim and size is handled differently
-            verts = numpy.dot(verts, self._rotationMatrix)
-        else:
-            verts = numpy.dot(self.size * verts, self._rotationMatrix)
+        verts = numpy.dot(verts, self._rotationMatrix)
         # Convert to a vertices object if not already
-        verts = Vertices(verts, self).pix
-        self.__dict__['verticesPix'] = verts
-
-        if hasattr(self, 'border'):
-            #border = self.border
-            border = numpy.dot(self.size * self.border *
-                               flip, self._rotationMatrix)
-            border = convertToPix(
-                vertices=border, pos=self.pos, win=self.win, units=self.units)
-            self.__dict__['_borderPix'] = border
+        verts = Vertices(verts, obj=self).pix
+        self.__dict__['verticesPix'] = self.__dict__['_borderPix'] = verts
 
         self._needVertexUpdate = False
         self._needUpdate = True  # but we presumably need to update the list
