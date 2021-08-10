@@ -400,6 +400,23 @@ class Vertices(object):
             -1 if value[0, 0] else 1,
             -1 if value[0, 1] else 1,
         ]])
+        self._flipHoriz, self._flipVert = self._flip[0]
+
+    @property
+    def flipHoriz(self):
+        return self.flip[0][0]
+
+    @flipHoriz.setter
+    def flipHoriz(self, value):
+        self.flip = [value, self.flip[0, 1]]
+
+    @property
+    def flipVert(self):
+        return self.flip[0][1]
+
+    @flipVert.setter
+    def flipVert(self, value):
+        self.flip = [self.flip[0, 0], value]
 
     def getas(self, units):
         assert units in unitTypes, f"Unrecognised unit type '{units}'"

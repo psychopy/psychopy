@@ -1449,6 +1449,51 @@ class WindowMixin(object):
                             ]), obj=self)
         return verts.base
 
+    @property
+    def flip(self):
+        """
+        1x2 array for flipping vertices along each axis; set as True to flip or False to not flip. If set as a single value, will duplicate across both axes. Accessing the protected attribute (`._flip`) will give an array of 1s and -1s with which to multiply vertices.
+        """
+        # Get base value
+        if hasattr(self, "_flip"):
+            flip = self._flip
+        else:
+            flip = numpy.array([[False, False]])
+        # Convert from boolean
+        return flip == -1
+
+    @flip.setter
+    def flip(self, value):
+        if value is None:
+            value = False
+        # Convert to 1x2 numpy array
+        value = numpy.array(value)
+        value.resize((1, 2))
+        # Ensure values were bool
+        assert value.dtype == bool, "Flip values must be either a boolean (True/False) or an array of booleans"
+        # Set as multipliers rather than bool
+        self._flip = numpy.array([[
+            -1 if value[0, 0] else 1,
+            -1 if value[0, 1] else 1,
+        ]])
+        self._flipHoriz, self._flipVert = self._flip[0]
+
+    @property
+    def flipHoriz(self):
+        return self.flip[0][0]
+
+    @flipHoriz.setter
+    def flipHoriz(self, value):
+        self.flip = [value, self.flip[0, 1]]
+
+    @property
+    def flipVert(self):
+        return self.flip[0][1]
+
+    @flipVert.setter
+    def flipVert(self, value):
+        self.flip = [self.flip[0, 0], value]
+
     @vertices.setter
     def vertices(self, value):
         # If None, use defaut
