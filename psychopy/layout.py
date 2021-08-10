@@ -283,9 +283,9 @@ class Vector(object):
         buffer = numpy.ndarray(self.pix.shape, dtype=float)
         for i in range(self.dimensions):
             if len(self) > 1:
-                buffer[:, i] = self.pix[:, i] / (self.win.size[i] / (self.win.useRetina + 1))
+                buffer[:, i] = self.pix[:, i] / (self.win.size[i] / (self.win.useRetina + 1)) * 2
             else:
-                buffer[i] = self.pix[i] / (self.win.size[i] / (self.win.useRetina + 1))
+                buffer[i] = self.pix[i] / (self.win.size[i] / (self.win.useRetina + 1)) * 2
         self._cache['norm'] = buffer
         # Return new cached value
         return self._cache['norm']
@@ -298,9 +298,9 @@ class Vector(object):
         buffer = numpy.ndarray(value.shape, dtype=float)
         for i in range(self.dimensions):
             if len(self) > 1:
-                buffer[:, i] = value[:, i] * (self.win.size[i] / (self.win.useRetina + 1))
+                buffer[:, i] = value[:, i] * (self.win.size[i] / (self.win.useRetina + 1)) / 2
             else:
-                buffer[i] = value[i] * (self.win.size[i] / (self.win.useRetina + 1))
+                buffer[i] = value[i] * (self.win.size[i] / (self.win.useRetina + 1)) / 2
         self.pix = buffer
 
     @property
