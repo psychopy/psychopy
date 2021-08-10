@@ -770,11 +770,11 @@ class ContainerMixin(object):
         # set size and orientation, combine with position and convert to pix:
         if hasattr(self, 'fieldSize'):
             # this is probably a DotStim and size is handled differently
-            verts = numpy.dot(verts * flip, self._rotationMatrix)
+            verts = numpy.dot(verts, self._rotationMatrix)
         else:
-            verts = numpy.dot(self.size * verts * flip, self._rotationMatrix)
-        verts = convertToPix(vertices=verts, pos=self.pos,
-                             win=self.win, units=self.units)
+            verts = numpy.dot(self.size * verts, self._rotationMatrix)
+        # Convert to a vertices object if not already
+        verts = Vertices(verts, self).pix
         self.__dict__['verticesPix'] = verts
 
         if hasattr(self, 'border'):
@@ -1441,14 +1441,13 @@ class WindowMixin(object):
             verts = self._vertices
         else:
             # If not defined, assume vertices are just a square
-            verts = self._vertices = Vertices((4, 2), dtype=float,
-                            buffer=numpy.array([
+            verts = self._vertices = Vertices(numpy.array([
                                 [0.5, -0.5],
                                 [-0.5, -0.5],
                                 [-0.5, 0.5],
                                 [0.5, 0.5],
-                            ]))
-        return verts
+                            ]), obj=self)
+        return verts.base
 
     @vertices.setter
     def vertices(self, value):
@@ -1460,13 +1459,8 @@ class WindowMixin(object):
                 [-0.5, 0.5],
                 [0.5, 0.5],
             ]
-        # Convert to numpy array
-        value = numpy.array(value)
-        # Make sure it's a Nx2 array
-        assert len(value.shape) == 2, "Vertices must be coercible to a Nx2 numpy array"
-        assert value.shape[1] == 2, "Vertices must be coercible to a Nx2 numpy array"
         # Create Vertices object
-        self._vertices = Vertices(value.shape, dtype=value.dtype, buffer=value)
+        self._vertices = Vertices(value, obj=self)
 
     @property
     def units(self):

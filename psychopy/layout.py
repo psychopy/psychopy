@@ -334,24 +334,121 @@ class Size(Vector):
         Vector.__init__(self, value, units, win, correctFlat)
 
 
-class Vertices(numpy.ndarray):
-    def relativeToObject(self, obj, units):
-        # Make sure this object has a size and position
-        assert hasattr(obj, "_size")
-        assert hasattr(obj, "_pos")
+class Vertices(object):
+    def __init__(self, verts, obj=None, size=None, pos=None, flip=None):
+        if obj is None and pos is None and size is None:
+            raise ValueError("Vertices array needs either an object or values for pos and size.")
+        # Store object
+        self.obj = obj
+        # Store size and pos
+        self._size = size
+        self._pos = pos
+        # Store flip
+        self.flip = flip
+        # Convert to numpy array
+        verts = numpy.array(verts)
+        # Make sure it's coercible to a Nx2 numpy array
+        assert len(verts.shape) == 2, "Vertices must be coercible to a Nx2 numpy array"
+        assert verts.shape[1] == 2, "Vertices must be coercible to a Nx2 numpy array"
+        # Store base vertices
+        self.base = verts
 
-        # Pass to relative coords function with attributes from obj
-        return self.relativeToCoords(obj._size, obj._pos, units)
+    @property
+    def pos(self):
+        if isinstance(self._pos, Vector):
+            return self._pos
+        if hasattr(self.obj, "_pos"):
+            return self.obj._pos
+        else:
+            raise AttributeError(f"Could not derive position from object {self.obj} as object does not have a "
+                                 f"position attribute.")
 
-    def relativeToCoords(self, size, pos, units):
-        # Make sure size and pos are vector objects
-        assert isinstance(size, Vector)
-        assert isinstance(pos, Vector)
-        # Make sure units are valid
-        assert units in unitTypes
+    @property
+    def size(self):
+        if isinstance(self._size, Vector):
+            return self._size
+        if hasattr(self.obj, "_size"):
+            return self.obj._size
+        else:
+            raise AttributeError(f"Could not derive size from object {self.obj} as object does not have a "
+                                 f"size attribute.")
 
-        # Get size and pos in desired units
-        sizeArr = getattr(size, units)
-        posArr = getattr(pos, units)
-        # Do calculation
-        return (self * sizeArr) + posArr
+    @property
+    def flip(self):
+        """
+        1x2 array for flipping vertices along each axis; set as True to flip or False to not flip. If set as a single value, will duplicate across both axes. Accessing the protected attribute (`._flip`) will give an array of 1s and -1s with which to multiply vertices.
+        """
+        # Get base value
+        if hasattr(self, "_flip"):
+            flip = self._flip
+        else:
+            flip = numpy.array([[False, False]])
+        # Convert from boolean
+        return flip == -1
+
+    @flip.setter
+    def flip(self, value):
+        if value is None:
+            value = False
+        # Convert to 1x2 numpy array
+        value = numpy.array(value)
+        value.resize((1, 2))
+        # Ensure values were bool
+        assert value.dtype == bool, "Flip values must be either a boolean (True/False) or an array of booleans"
+        # Set as multipliers rather than bool
+        self._flip = numpy.array([[
+            -1 if value[0, 0] else 1,
+            -1 if value[0, 1] else 1,
+        ]])
+
+    def getas(self, units):
+        assert units in unitTypes, f"Unrecognised unit type '{units}'"
+        # Start with base values
+        verts = self.base
+        # Apply size
+        if self.size is None:
+            raise ValueError("Cannot not calculate absolute positions of vertices without a size attribute")
+        verts *= getattr(self.size, units)
+        # Apply pos
+        if self.pos is None:
+            raise ValueError("Cannot not calculate absolute positions of vertices without a pos attribute")
+        verts += getattr(self.pos, units)
+        # Apply flip
+        verts *= self._flip
+
+        return verts
+
+    @property
+    def pix(self):
+        """
+        Get absolute positions of vertices in pix units
+        """
+        return self.getas('pix')
+
+    @property
+    def deg(self):
+        """
+        Get absolute positions of vertices in deg units
+        """
+        return self.getas('deg')
+
+    @property
+    def cm(self):
+        """
+        Get absolute positions of vertices in cm units
+        """
+        return self.getas('cm')
+
+    @property
+    def norm(self):
+        """
+        Get absolute positions of vertices in norm units
+        """
+        return self.getas('norm')
+
+    @property
+    def height(self):
+        """
+        Get absolute positions of vertices in height units
+        """
+        return self.getas('height')
