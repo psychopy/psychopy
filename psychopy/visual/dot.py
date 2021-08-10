@@ -275,7 +275,7 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self.noiseDots = noiseDots
 
         # initialise a random array of X,Y
-        self._verticesBase = self._dotsXY = self._newDotsXY(self.nDots)
+        self.vertices = self._verticesBase = self._dotsXY = self._newDotsXY(self.nDots)
         # all dots have the same speed
         self._dotsSpeed = np.ones(self.nDots, dtype=float) * self.speed
         # abs() means we can ignore the -1 case (no life)
