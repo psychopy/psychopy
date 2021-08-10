@@ -42,6 +42,7 @@ from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.tools.arraytools import val2array
 from psychopy.visual.basevisual import (BaseVisualStim, ColorMixin,
                                         ContainerMixin)
+from psychopy.layout import Size
 
 import numpy as np
 
@@ -307,11 +308,16 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         """
         self.__dict__['fieldShape'] = fieldShape
 
-    @attributeSetter
-    def dotSize(self, dotSize):
+    @property
+    def dotSize(self):
         """Float specified in pixels (overridden if `element` is specified).
         :ref:`operations <attrib-operations>` are supported."""
-        self.__dict__['dotSize'] = dotSize
+        if hasattr(self, "_dotSize"):
+            return getattr(self._dotSize, self.units)[0]
+
+    @dotSize.setter
+    def dotSize(self, value):
+        self._dotSize = Size(value, units=self.units, win=self.win)
 
     @attributeSetter
     def dotLife(self, dotLife):
