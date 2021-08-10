@@ -19,7 +19,10 @@ from .devices import Computer
 from .errors import print2err, printExceptionDetailsToStdErr
 from .util import NumPyRingBuffer as RingBuffer
 
-MAX_PACKET_SIZE = 64 * 1024
+if Computer.platform == 'win32':
+    MAX_PACKET_SIZE = 64 * 1024
+else:
+    MAX_PACKET_SIZE = 16 * 1024
 
 class SocketConnection(): # pylint: disable=too-many-instance-attributes
     def __init__(
