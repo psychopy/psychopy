@@ -9,6 +9,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import re
+import ast
 
 __all__ = ["prettyname"]
 
@@ -43,3 +44,68 @@ def prettyname(name, wrap=False):
         name = re.sub(r" *\n *", "\n", name)
 
     return name
+
+
+def _actualizeAstValue(item):
+    """
+    Convert an AST value node to a useable Python object
+    """
+    if isinstance(item, ast.Str):
+        # Handle ast string
+        return item.s
+    elif hasattr(ast, 'Bytes') and isinstance(item, ast.Bytes):
+        # Handle ast bytes
+        return item.s
+    elif isinstance(item, ast.Num):
+        # Handle ast numbers
+        return item.n
+    elif isinstance(item, ast.Tuple):
+        # Handle ast array
+        return tuple(_actualizeAstValue(i) for i in item.elts)
+
+
+def getVariables(code):
+    """
+    Use AST tree parsing to convert a string of valid Python code to a dict containing each variable created and its
+    value.
+    """
+    assert isinstance(code, str), "First input to `getArgs()` must be a string"
+    # Make blank output dict
+    vars = {}
+    # Construct tree
+    tree = compile(code, '', 'exec', flags=ast.PyCF_ONLY_AST)
+    # Iterate through each line
+    for line in tree.body:
+        if hasattr(line, "targets") and hasattr(line, "value"):
+            # Append targets and values this line to arguments dict
+            for target in line.targets:
+                vars[target.id] = _actualizeAstValue(line.value)
+
+    return vars
+
+
+def getArgs(code):
+    """
+    Use AST tree parsing to convert a string of valid Python arguments to a dict containing each argument used and its
+    value.
+    """
+    assert isinstance(code, str), "First input to `getArgs()` must be a string"
+    # Make blank output dict
+    args = {}
+    # Add outer brackets if needed
+    if not (code.startswith("(") and code.endswith(")")):
+        code = "(" + code + ")"
+    # Move it all to one line
+    code = code.replace("\n", "")
+    # Append dict constructor
+    code = "dict" + code
+    # Construct tree
+    tree = compile(code, '', 'exec', flags=ast.PyCF_ONLY_AST)
+    # Get keywords
+    keywords = tree.body[0].value.keywords
+    for kw in keywords:
+        if hasattr(kw, "arg") and hasattr(kw, "value"):
+            # Append keyword and value to arguments dict
+            args[kw.arg] = _actualizeAstValue(kw.value)
+
+    return args

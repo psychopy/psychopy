@@ -258,7 +258,11 @@ class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
                 # NB always circular - uses fieldSize in X only
                 normxy = old_div(xys, (old_div(fsz, 2.0)))
                 dotDist = numpy.sqrt((normxy[:, 0]**2.0 + normxy[:, 1]**2.0))
-                self.__dict__['xys'] = xys[dotDist < 1.0, :][0:self.nElements]
+                xys = numpy.vstack((
+                    xys[dotDist <= 1.0, :],  # not flipped
+                    xys[dotDist > 1.0, :] * -1  # flipped to other side
+                ))
+                self.__dict__['xys'] = xys[:, :][0:self.nElements]
         else:
             self.__dict__['xys'] = self._makeNx2(value, ['Nx2'])
         # to keep a record if we are to alter things later.
@@ -429,13 +433,13 @@ class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
     def opacity(self):
         if hasattr(self, "_opacity"):
             return self._opacity
+
     @opacity.setter
     def opacity(self, value):
         self._opacity = value
         if hasattr(self, "_colors"):
             # Set the alpha value of each color to be the desired opacity
             self._colors.alpha = value
-
 
     @attributeSetter
     def contrs(self, value):
@@ -446,7 +450,14 @@ class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
 
         :ref:`Operations <attrib-operations>` are supported.
         """
-        self.__dict__['contrs'] = self._makeNx1(value)
+        # Convert to an Nx1 numpy array
+        value = self._makeNx1(value)
+        # If colors is too short, extend it
+        self._colors.rgb = numpy.resize(self._colors.rgb, (len(value), 3))
+        # Set
+        self._colors.contrast = value
+        # Store value and update
+        self.__dict__['contrs'] = value
         self._needColorUpdate = True
 
     def setContrs(self, value, operation='', log=None):
