@@ -576,7 +576,7 @@ class _baseVisualTest(object):
     def test_radial(self):
         win = self.win
         #using init
-        wedge = visual.RadialStim(win, tex='sqrXsqr', color=1,size=2*self.scaleFactor,
+        wedge = visual.RadialStim(win, tex='sqrXsqr', color=1, size=2,
             visibleWedge=[0, 45], radialCycles=2, angularCycles=2, interpolate=False)
         wedge.draw()
         thresh = 15  # there are often a slight interpolation differences
@@ -618,7 +618,7 @@ class _baseVisualTest(object):
     def test_dotsUnits(self):
         #to test this create a small dense circle of dots and check the circle
         #has correct dimensions
-        fieldSize = numpy.array([1.0,1.0])*self.scaleFactor
+        fieldSize = numpy.array([1.0,1.0])
         pos = numpy.array([0.5,0])*fieldSize
         dots = visual.DotStim(self.win, color=[-1.0,0.0,0.5], dotSize=5,
                               nDots=1000, fieldShape='circle', fieldPos=pos)
