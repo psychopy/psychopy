@@ -1468,6 +1468,8 @@ class WindowMixin(object):
             -1 if value[0, 1] else 1,
         ]])
         self._flipHoriz, self._flipVert = self._flip[0]
+        # Apply to vertices
+        self._vertices.flip = self.flip
 
     @property
     def flipHoriz(self):
