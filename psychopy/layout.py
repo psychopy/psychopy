@@ -421,7 +421,7 @@ class Vertices(object):
     def getas(self, units):
         assert units in unitTypes, f"Unrecognised unit type '{units}'"
         # Start with base values
-        verts = self.base
+        verts = self.base.copy()
         # Apply size
         if self.size is None:
             raise ValueError("Cannot not calculate absolute positions of vertices without a size attribute")
