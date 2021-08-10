@@ -237,24 +237,6 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self.setLineColor(color, colorSpace, operation, log)
         self.setFillColor(color, colorSpace, operation, log)
 
-    @attributeSetter
-    def vertices(self, value):
-        """A list of lists or a numpy array (Nx2) specifying xy positions of
-        each vertex, relative to the center of the field.
-
-        If you're using `Polygon`, `Circle` or `Rect`, this shouldn't be used.
-
-        :ref:`Operations <attrib-operations>` supported.
-        """
-        self.__dict__['vertices'] = numpy.array(value, float)
-
-        # Check shape
-        if not (self.vertices.shape == (2,) or
-                (len(self.vertices.shape) == 2 and
-                 self.vertices.shape[1] == 2)):
-            raise ValueError("New value for setXYs should be 2x1 or Nx2")
-        self._needVertexUpdate = True
-
     def setVertices(self, value=None, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
@@ -565,21 +547,9 @@ class ShapeStim(BaseShapeStim):
             newVerts = self._calcEquilateralVertices(newVerts)
 
         # Check shape
-        self.__dict__['vertices'] = val2array(newVerts, withNone=True,
-                                              withScalar=True, length=2)
+        WindowMixin.vertices.fset(self, newVerts)
         self._needVertexUpdate = True
         self._tesselate(self.vertices)
-
-    @property
-    def verticesPix(self):
-        """The coordinates of the vertices for the current stimulus in pixels,
-        accounting for `size`, `ori`, `pos` and `units`.
-        """
-        # because this is a property getter we can check /on-access/ if it
-        # needs updating :-)
-        if self._needVertexUpdate:
-            self._updateVertices()
-        return self.__dict__['verticesPix']
 
     def draw(self, win=None, keepMatrix=False):
         """Draw the stimulus in the relevant window.
