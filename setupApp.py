@@ -14,7 +14,7 @@ version = psychopy.__version__
 
 # regenerate __init__.py only if we're in the source repos (not in a zip file)
 try:
-    import createInitFile  # won't exist in a sdist.zip
+    from building import createInitFile  # won't exist in a sdist.zip
     writeNewInit=True
 except:
     writeNewInit=False
