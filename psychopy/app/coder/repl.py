@@ -92,7 +92,7 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
 
         # self.start()  # start an interpreter
 
-        self.txtTerm.WriteText("Hit [Return] to start a Python REPL.")
+        self.txtTerm.WriteText("Hit [Return] to start a Python session.")
         self._lastTextPos = self.txtTerm.GetLastPosition()
 
     def setFonts(self):
@@ -124,7 +124,7 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
         self._stdin_buffer = []
 
         self.txtTerm.Clear()
-        self.txtTerm.WriteText("Hit [Return] to start a Python REPL.")
+        self.txtTerm.WriteText("Hit [Return] to start a Python shell.")
         self._lastTextPos = self.txtTerm.GetLastPosition()
 
     @property
@@ -150,7 +150,7 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
     @property
     def pid(self):
         """Process ID for the interpreter (`int`)."""
-        return self._pid
+        return self.getPid()
 
     def getPid(self):
         """Get the process ID for the active interpreter (`int`)."""
@@ -225,7 +225,7 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
             self.txtTerm.SetInsertionPoint(self._lastTextPos)
             return
 
-    def push(self, lines, submit=True):
+    def push(self, lines):
         """Push a line to the interpreter.
 
         Parameter
@@ -239,14 +239,26 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
 
         # convert to bytes
         for line in lines.split('\n'):
-            line = str.encode(line + '\n')
-            self._process.OutputStream.write(line)
-            self._process.OutputStream.flush()
+            self.submit(line)
+
+    def submit(self, line):
+        """Submit the current line to the interpreter."""
+        if not self.isStarted:
+            return
+
+        if not line.endswith('\n'):
+            line += '\n'
+
+        self._process.OutputStream.write(line.encode())
+        self._process.OutputStream.flush()
 
         self._isBusy = True
 
     def start(self):
         """Start a new interpreter process."""
+        if self.isStarted:  # nop if started already
+            return
+
         # inform the user that we're starting the console
         self.txtTerm.Clear()
         self.txtTerm.WriteText(
@@ -272,7 +284,7 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
         # clear all text in the widget and display the welcome message
         self.txtTerm.Clear()
         self.txtTerm.WriteText(
-            "Python REPL in PsychoPy (pid:{}) - type some commands!\n\n".format(
+            "Python shell in PsychoPy (pid:{}) - type some commands!\n\n".format(
                 self._pid))  # show the subprocess PID for reference
         self._lastTextPos = self.txtTerm.GetLastPosition()
         wx.EndBusyCursor()
@@ -300,7 +312,7 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
     def __del__(self):
         pass
 
-    def _clearAndReplaceTyped(self, replaceWith=''):
+    def clearAndReplaceTyped(self, replaceWith=''):
         """Clear any text that has been typed."""
         self.txtTerm.Remove(self._lastTextPos, self.txtTerm.GetLastPosition())
         if replaceWith:
@@ -308,7 +320,7 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
 
         self.txtTerm.SetInsertionPoint(self.txtTerm.GetLastPosition())
 
-    def _getTyped(self):
+    def getTyped(self):
         """Get the text that was typed or is editable (`str`)."""
         return self.txtTerm.GetRange(
             self._lastTextPos,
@@ -328,7 +340,7 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
 
         if event.GetKeyCode() == wx.WXK_RETURN:
             self.txtTerm.SetInsertionPointEnd()
-            entry = self._getTyped()
+            entry = self.getTyped()
             if entry:
                 self._history.insert(0, entry)
             self.push(entry)
@@ -344,16 +356,16 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
                 self._historyIdx = min(
                     max(0, self._historyIdx + 1),
                     len(self._history) - 1)
-                self._clearAndReplaceTyped(self._history[self._historyIdx])
+                self.clearAndReplaceTyped(self._history[self._historyIdx])
             return
         elif event.GetKeyCode() == wx.WXK_DOWN:
             # get next item in history
             if self._history:
                 self._historyIdx = max(self._historyIdx - 1, -1)
                 if self._historyIdx >= 0:
-                    self._clearAndReplaceTyped(self._history[self._historyIdx])
+                    self.clearAndReplaceTyped(self._history[self._historyIdx])
                 else:
-                    self._clearAndReplaceTyped()
+                    self.clearAndReplaceTyped()
             return
         elif event.GetKeyCode() == wx.WXK_F8:  # close a misbehaving terminal
             self.close()

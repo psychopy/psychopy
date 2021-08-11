@@ -1685,6 +1685,25 @@ class CoderFrame(wx.Frame, ThemeMixin):
         menu.AppendSubMenu(self.themesMenu,
                            _translate("Themes"))
 
+        # ---_view---#000000#FFFFFF-------------------------------------------
+        self.shellMenu = wx.Menu()
+        menuBar.Append(self.shellMenu, _translate('&Shell'))
+
+        menu = self.shellMenu
+        item = menu.Append(
+            wx.ID_ANY,
+            _translate("Start Python Session"),
+            _translate("Start a new Python session in the shell."),
+            wx.ITEM_NORMAL)
+        self.Bind(wx.EVT_MENU, self.onStartShellSession, id=item.GetId())
+        menu.AppendSeparator()
+        item = menu.Append(
+            wx.ID_ANY,
+            _translate("Run Line\tF6"),
+            _translate("Push the line at the caret to the shell."),
+            wx.ITEM_NORMAL)
+        self.Bind(wx.EVT_MENU, self.onPushLineToShell, id=item.GetId())
+
         # menu.Append(ID_UNFOLDALL, "Unfold All\tF3",
         #   "Unfold all lines", wx.ITEM_NORMAL)
         # self.Bind(wx.EVT_MENU,  self.unfoldAll, id=ID_UNFOLDALL)
@@ -1877,6 +1896,25 @@ class CoderFrame(wx.Frame, ThemeMixin):
 
             if dlg.ShowModal() == wx.ID_YES:
                 self.fileBrowserWindow.gotoDir(cwdpath)
+
+    def onStartShellSession(self, event):
+        """Start a new Python session in the shell."""
+        if hasattr(self, 'shell'):
+            self.shell.start()
+            self.shell.SetFocus()
+
+    def onPushLineToShell(self, event):
+        """Push the currently selected line in the editor to the console and
+        run it.."""
+        if hasattr(self, 'shell'):
+            ed = self.currentDoc
+            if ed is None:  # no document selected
+                return
+
+            lineText, _ = ed.GetCurLine()
+            self.shell.clearAndReplaceTyped(lineText)
+            self.shell.submit(self.shell.getTyped())
+            ed.LineDown()
 
     def onSetCWDFromBrowserPane(self, event):
         """Set the current working directory by browsing for it."""
