@@ -102,6 +102,10 @@ class Aperture(MinimalStim, ContainerMixin):
             # (sin,cos):
             vertices = [(0.5 * sin(radians(theta)), 0.5 * cos(radians(theta)))
                         for theta in numpy.linspace(0, 360, nVert, False)]
+        elif isinstance(shape, int):
+            # if given a number, take it as a number of vertices and behave as if shape=='circle and nVerts==shape
+            vertices = [(0.5 * sin(radians(theta)), 0.5 * cos(radians(theta)))
+                        for theta in numpy.linspace(0, 360, shape, False)]
         elif shape == 'square':
             vertices = [[0.5, -0.5], [-0.5, -0.5], [-0.5, 0.5], [0.5, 0.5]]
         elif shape == 'triangle':
