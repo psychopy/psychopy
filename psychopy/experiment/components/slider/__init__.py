@@ -225,7 +225,7 @@ class SliderComponent(BaseVisualComponent):
                    "    startValue={initVal}, size={size}, pos={pos}, units={units},\n"
                    "    labels={labels}, ticks={ticks}, granularity={granularity},\n"
                    "    style={styles}, styleTweaks={styleTweaks}, opacity={opacity},\n"
-                   "    color={color}, fillColor={fillColor}, borderColor={borderColor}, colorSpace={colorSpace},\n"
+                   "    labelColor={color}, markerColor={fillColor}, lineColor={borderColor}, colorSpace={colorSpace},\n"
                    "    font={font}, labelHeight={letterHeight},\n"
                    "    flip={flip}, depth={depth}, readOnly={readOnly})\n"
                    .format(**inits))
