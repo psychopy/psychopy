@@ -1064,7 +1064,7 @@ class MainFrame(wx.Frame):
 
             lumsPost = self.currentMon.getLumsPost()
             levelsPost = self.currentMon.getLevelsPost()
-        if lumsPost != None:
+        if lumsPost.any() != None:
             for gun in range(4):  # includes lum,r,g,b
                 lums = lumsPost[gun, :]
                 gamma = gammaGrid[gun, 2]
