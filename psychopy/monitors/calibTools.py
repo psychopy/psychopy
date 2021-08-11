@@ -879,13 +879,13 @@ def makeXYZ2RGB(red_xy,
 
     """
     # convert CIE-xy chromaticity coordinates to xyY and put them into a matrix
-    mat_xyY_primaries = np.asmatrix((
+    mat_xyY_primaries = np.asarray((
         (red_xy[0], red_xy[1], 1.0 - red_xy[0] - red_xy[1]),
         (green_xy[0], green_xy[1], 1.0 - green_xy[0] - green_xy[1]),
         (blue_xy[0], blue_xy[1], 1.0 - blue_xy[0] - blue_xy[1])
     )).T
     # convert white point to CIE-XYZ
-    whtp_XYZ = np.asmatrix(
+    whtp_XYZ = np.asarray(
         np.dot(1.0 / whitePoint_xy[1],
             np.asarray((
                 whitePoint_xy[0],
