@@ -148,7 +148,7 @@ class SimpleImageStim(MinimalStim, WindowMixin):
         setAttribute(self, 'flipVert', newVal, log)
 
     def _updateImageStr(self):
-        self._imStr = self.imArray.tostring()
+        self._imStr = self.imArray.tobytes()
         self._needStrUpdate = False
 
     def draw(self, win=None):
