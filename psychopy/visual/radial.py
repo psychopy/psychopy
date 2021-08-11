@@ -221,7 +221,7 @@ class RadialStim(GratingStim):
             fromFile = 1
 
         data = intensity.astype(numpy.uint8)
-        mask = data.tostring()  # serialise
+        mask = data.tobytes()  # serialise
 
         # do the openGL binding
         if self.interpolate:
