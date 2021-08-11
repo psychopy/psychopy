@@ -12,7 +12,9 @@ import sys
 import subprocess  # for git commandline invocation
 from subprocess import CalledProcessError
 import psychopy  # for currently loaded version
-from psychopy import prefs, logging, tools, web, constants
+from psychopy import prefs
+# the following will all have been imported so import here and reload later
+from psychopy import logging, tools, web, constants, preferences
 from pkg_resources import parse_version
 from packaging.version import parse as parse_version
 from importlib import reload
@@ -104,7 +106,7 @@ def useVersion(requestedVersion):
 
         # Reload!
         reload(psychopy)
-        reload(prefs)
+        reload(preferences)
         reload(constants)
         reload(logging)
         reload(web)
