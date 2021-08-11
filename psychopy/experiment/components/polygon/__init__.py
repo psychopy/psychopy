@@ -100,7 +100,7 @@ class PolygonComponent(BaseVisualComponent):
             shape, valType='str', inputType="choice", categ='Basic',
             allowedVals=["line", "triangle", "rectangle", "circle", "cross", "star",
                          "regular polygon...", "custom polygon..."],
-            hint=msg,
+            hint=msg, direct=False,
             label=_localized['shape'])
 
         self.params['lineColor'] = self.params['borderColor']
