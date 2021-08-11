@@ -1,8 +1,8 @@
 Contributing to the PsychoPy Test Suite
-=====
+==========================================
 
-Why do we need a test suit?
------
+Why do we need a test suite?
+------------------------------------------
 
 With any bit of software, no matter how perfect the code seems as you're writing it, there will be bugs. We use a test suite to make sure that we find as many of those bugs as we can before users do, it's always better to catch them in development than to have them mess up someone's experiment once the software is out in the wild. Remember - when a user finds a bug, they react like this:
 
@@ -23,7 +23,7 @@ With any bit of software, no matter how perfect the code seems as you're writing
 The more bugs the test suite finds, the better!
 
 How does it work?
------
+------------------------------------------
 The test suite uses a Python module called [pytest](https://pypi.org/project/pytest/) to run tests on various parts of the PsychoPy code. These tests work by calling functions, initialising objects and generally trying to use as much of the code in the PsychoPy repo as possible - then, if an uncaught error is hit at any point, `pytest` will spit out some informative text on what went wrong. This means that, if the test suite can run without error, then the software can do everything done in the test suite without error.
 
 To mark something as a test, it needs three things:
@@ -48,7 +48,7 @@ So, for example, if you were to make a test for the `visual.Rect` class, you mig
         win.close()
 
 Using `assert`
------
+------------------------------------------
 
 Sometimes there's more to a bit of code than just running without error - we need to check not just that it doesn't crash, but that the output is as expected. The `assert` function allows us to do this. Essentially, `assert` will throw an `AssertionError` if the first input is `False`, with the text of this error determined by the second input. So, for example:
 
@@ -82,7 +82,7 @@ You could use `assert` within the `test_rect` example like so:
 Meaning that, if something was wrong with `visual.Rect` such that setting its `fillColor` attribute didn't set the rgb value of its fill color correctly, this test would raise an `AssertionError` and would print both the expected and actual values. This process of comparing actual outputs against expected outputs is known as "end-to-end" (e2e) testing, while simply supplying values to see if they cause an error is called "unit" testing.
 
 Using classes
------
+------------------------------------------
 
 In addition to individual methods, you can also create a `class` for tests. This approach is useful when you want to avoid making loads of objects for each test, as you can simple create an object once and then refer back to it. For example:
 
@@ -110,12 +110,12 @@ Of course, you could create a window and a rectangle for each function and it wo
 
 
 Exercise
-_____
+__________________________________________
 
 Practicing writing tests? Try extending the above class to test if a created rectangle has 4 vertices.
 
 Running tests in PyCharm
------
+------------------------------------------
 
 One of the really useful features on PyCharm is its ability to run tests with just a click. If you have `pytest` installed, then any valid test will have a green play button next to its name, in the line margins:
 
@@ -126,12 +126,12 @@ One of the really useful features on PyCharm is its ability to run tests with ju
 Clicking this button will start all the necessary processes to run this test, just like it would run in our test suite. This button also appears next to test classes, clicking the run button next to the class name will create an instance of that class, then run each of its methods which are valid tests.
 
 Test utils
------
+------------------------------------------
 
 The test suite comes with some handy functions and variables to make testing easier, all of which can be accessed by importing `psychopy.tests.utils`.
 
 Paths
---
+__________________________________________
 
 The test utils module includes the following paths:
 
@@ -139,7 +139,7 @@ The test utils module includes the following paths:
 - `TESTS_DATA_PATH` : A path to the data folder within the tests folder - here is where all screenshots, example conditions files, etc. for use by the test suite are stored
 
 Compare screenshot
---
+__________________________________________
 
 This function allows you to compare the appearance of a `visual.Window` to an image file, raising an `AssertionError` if they aren't sufficiently similar. This takes three arguments:
 
@@ -150,7 +150,7 @@ This function allows you to compare the appearance of a `visual.Window` to an im
 If `filename` points to a file which doesn't exist, then this function will instead save the window and assume true. Additionally, if the comparison fails, the window will be saved as the same path as `filename`, but with `_local` appended to the name.
 
 Compare pixel color
---
+__________________________________________
 
 Sometimes, comparing an entire image may be excessive for what you want to check. For example, if you just want to make sure that a fill color has applied, you could just compare the color of one pixel. This means there doesn't need to be a `.png` file in the PsychoPy repository, and the test suite also doesn't have to load a entire image just to compare one color. In these instances, it's better to use `utils.comparePixelColor`. This function takes three arguments:
 
@@ -161,7 +161,7 @@ Sometimes, comparing an entire image may be excessive for what you want to check
 Contained within this function is an `assert` call - so if the two colors are not the same, it will raise an `AssertionError` giving you information on both the target color and the pixel color.
 
 Exemplars and tykes
---
+__________________________________________
 
 While you're welcome to lay out your tests however makes the most sense for that test, a useful format in some cases it to define `list`s of "exemplars" and "tykes" - `dict`s of attributes for use in a `for` loop, to save yourself from manually writing the same code over and over, with "exemplars" being very typical use cases which should definitely work as a bare minimum, and "tykes" being edge cases which should work but are not necessarily likely to occur. Here's an example of this structure:
 
@@ -229,7 +229,7 @@ While you're welcome to lay out your tests however makes the most sense for that
 
 
 Cleanup
------
+------------------------------------------
 
 After opening any windows, initialising objects or opening any part of the app, it's important to do some cleanup afterwards - otherwise these won't close and the test suite will just keep running forever. This just means calling `.Close()` on any `wx.Frame`s, `.close()` on any `visual.Window`s, and using `del` to get rid of any objects.
 
@@ -259,12 +259,12 @@ For functions, you can just do this at the end of the function, before it termin
             del self.rect
 
 Exercise
-_____
+__________________________________________
 
 Add a `teardown_class` method to your TestRect class.
 
 CodeCov
------
+------------------------------------------
 
 CodeCov is a handy tool which runs the full test suite and keeps track of which lines of code are executed - giving each file in the PsychoPy repo a percentage score for "coverage". If more lines of code in that file are executed when the test suite runs, then it has a higher coverage score. You can view the full coverage report for the repo [here](https://app.codecov.io/gh/psychopy/psychopy/).
 
@@ -272,7 +272,7 @@ Some areas of the code are more important than others, so it's important not to 
 
 
 Solutions
-_____
+__________________________________________
 
 Testing if a created rectangle has 4 vertices:
 
