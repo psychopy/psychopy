@@ -348,7 +348,12 @@ class Color(object):
         """
         if space not in colorSpaces:
             raise ValueError(f"{space} is not a valid color space")
-        adj = np.clip(self.rgb * self.contrast, -1, 1)
+        # Transform contrast to match rgb
+        contrast = self.contrast
+        contrast = np.reshape(contrast, (-1, 1))
+        contrast = np.hstack((contrast, contrast, contrast))
+        # Multiply
+        adj = np.clip(self.rgb * contrast, -1, 1)
         buffer = self.copy()
         buffer.rgb = adj
         return getattr(buffer, space)
