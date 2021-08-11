@@ -32,10 +32,9 @@ def array2image(a):
         mode = "F"
     else:
         raise ValueError("unsupported image mode")
-    try:
-        im = Image.fromstring(mode, (a.shape[1], a.shape[0]), a.tostring())
-    except Exception:
-        im = Image.frombytes(mode, (a.shape[1], a.shape[0]), a.tostring())
+
+    im = Image.frombytes(mode, (a.shape[1], a.shape[0]), a.tobytes())
+    
     return im
 
 
