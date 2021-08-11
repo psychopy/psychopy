@@ -20,7 +20,7 @@ from psychopy.tools.typetools import float_uint8
 
 
 def array2image(a):
-    """Takes an array and returns an image object (PIL)"""
+    """Takes an array and returns an image object (PIL)."""
     # fredrik lundh, october 1998
     #
     # fredrik@pythonware.com
@@ -34,35 +34,34 @@ def array2image(a):
         raise ValueError("unsupported image mode")
 
     im = Image.frombytes(mode, (a.shape[1], a.shape[0]), a.tobytes())
-    
+
     return im
 
 
 def image2array(im):
-    """Takes an image object (PIL) and returns a numpy array
+    """Takes an image object (PIL) and returns a numpy array.
     """
-#     fredrik lundh, october 1998
-#
-#     fredrik@pythonware.com
-#     http://www.pythonware.com
-
+    #     fredrik lundh, october 1998
+    #
+    #     fredrik@pythonware.com
+    #     http://www.pythonware.com
+    #
     if im.mode not in ("L", "F"):
         raise ValueError("can only convert single-layer images")
-    try:
-        imdata = im.tostring()
-    except Exception:
-        imdata = im.tobytes()
+
+    imdata = im.tobytes()
+
     if im.mode == "L":
-        a = numpy.fromstring(imdata, numpy.uint8)
+        a = numpy.frombuffer(imdata, numpy.uint8)
     else:
-        a = numpy.fromstring(imdata, numpy.float32)
+        a = numpy.frombuffer(imdata, numpy.float32)
 
     a.shape = im.size[1], im.size[0]
     return a
 
 
 def makeImageAuto(inarray):
-    """Combines float_uint8 and image2array operations
-    ie. scales a numeric array from -1:1 to 0:255 and
-    converts to PIL image format"""
+    """Combines float_uint8 and image2array operations ie. scales a numeric
+    array from -1:1 to 0:255 and converts to PIL image format.
+    """
     return image2array(float_uint8(inarray))
