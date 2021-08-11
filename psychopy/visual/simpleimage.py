@@ -211,7 +211,7 @@ class SimpleImageStim(MinimalStim, WindowMixin):
         if op is None:
             op = ''
         # format the input value as float vectors
-        if type(val) in (tuple, list):
+        if isinstance(val, (tuple, list)):
             val = numpy.array(val, float)
 
         setAttribute(self, attrib, val, log, op)
