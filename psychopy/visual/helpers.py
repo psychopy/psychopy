@@ -239,8 +239,7 @@ def setColor(obj, color, colorSpace=None, operation='',
 
 
 # set for groupFlipVert:
-immutables = {int, float, str, tuple, int, bool,
-              np.float64, np.int}
+immutables = {int, float, str, tuple, int, bool, np.float32, np.float64}
 
 
 def findImageFile(filename):
