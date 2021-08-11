@@ -218,7 +218,6 @@ class RadialStim(GratingStim):
             res = im.size[0]
             im = im.convert("L")  # force to intensity (in case it was rgb)
             intensity = numpy.asarray(im)
-            fromFile = 1
 
         data = intensity.astype(numpy.uint8)
         mask = data.tobytes()  # serialise
