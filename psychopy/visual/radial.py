@@ -180,11 +180,11 @@ class RadialStim(GratingStim):
         res = self.texRes  # resolution of texture - 128 is bearable
         step = 1.0/res
         rad = numpy.arange(0, 1 + step, step)
-        if type(self.mask) == numpy.ndarray:
+        if isinstance(self.mask, numpy.ndarray):
             # handle a numpy array
             intensity = 255 * self.mask.astype(float)
             res = len(intensity)
-        elif type(self.mask) == list:
+        elif isinstance(self.mask, list):
             # handle a numpy array
             intensity = 255 * numpy.array(self.mask, float)
             res = len(intensity)
