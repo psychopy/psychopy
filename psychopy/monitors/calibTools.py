@@ -854,28 +854,55 @@ def makeXYZ2RGB(red_xy,
                 blue_xy,
                 whitePoint_xy=(0.3127, 0.329),
                 reverse=False):
-    """Create a linear sRGB conversion matrix.
+    """Create a linear RGB conversion matrix.
 
-    Returns a matrix to convert CIE-XYZ (1931) tristimulus values to linear sRGB
+    Returns a matrix to convert CIE-XYZ (1931) tristimulus values to linear RGB
     given CIE-xy (1931) primaries and white point. By default, the returned
-    matrix transforms CIE-XYZ to linear sRGB coordinates. Use 'reverse=True' to
+    matrix transforms CIE-XYZ to linear RGB coordinates. Use 'reverse=True' to
     get the inverse transformation. The chromaticity coordinates of the
     display's phosphor 'guns' are usually measured with a spectrophotometer.
 
     The routines here are based on methods found at:
-        http://www.ryanjuckett.com/programming/rgb-color-space-conversion/
+    http://www.ryanjuckett.com/programming/rgb-color-space-conversion/
 
-    :param red_xy: tuple, list or ndarray
+    Parameters
+    ----------
+    red_xy : tuple, list or ndarray
         Chromaticity coordinate (CIE-xy) of the 'red' gun.
-    :param green_xy: tuple, list or ndarray
+    green_xy:  tuple, list or ndarray
         Chromaticity coordinate (CIE-xy) of the 'green' gun.
-    :param blue_xy: tuple, list or ndarray
+    blue_xy : tuple, list or ndarray
         Chromaticity coordinate (CIE-xy) of the 'blue' gun.
-    :param whtp_xy: tuple, list or ndarray
+    whitePoint_xy : tuple, list or ndarray
         Chromaticity coordinate (CIE-xy) of the white point, default is D65.
-    :param reverse:
-        Return the inverse transform XYZ -> sRGB
-    :return: 3x3 conversion matrix
+    reverse : bool
+        Return the inverse transform sRGB -> XYZ. Default is `False`.
+
+    Returns
+    -------
+    ndarray
+        3x3 conversion matrix
+
+    Examples
+    --------
+    Construct a conversion matrix to transform CIE-XYZ coordinates to linear
+    (not gamma corrected) RGB values::
+
+        # nominal primaries for sRGB (or BT.709)
+        red = (0.6400, 0.3300)
+        green = (0.300, 0.6000)
+        blue = (0.1500, 0.0600)
+        whiteD65 = (0.3127, 0.329)
+
+        conversionMatrix = makeXYZ2RGB(red, green, blue, whiteD65)
+
+        # The value of `conversionMatrix` should have similar coefficients to
+        # that presented in the BT.709 standard.
+        #
+        # [[ 3.24096994 -1.53738318 -0.49861076]
+        #  [-0.96924364  1.8759675   0.04155506]
+        #  [ 0.05563008 -0.20397696  1.05697151]]
+        #
 
     """
     # convert CIE-xy chromaticity coordinates to xyY and put them into a matrix
@@ -884,6 +911,7 @@ def makeXYZ2RGB(red_xy,
         (green_xy[0], green_xy[1], 1.0 - green_xy[0] - green_xy[1]),
         (blue_xy[0], blue_xy[1], 1.0 - blue_xy[0] - blue_xy[1])
     )).T
+
     # convert white point to CIE-XYZ
     whtp_XYZ = np.asarray(
         np.dot(1.0 / whitePoint_xy[1],
@@ -893,15 +921,17 @@ def makeXYZ2RGB(red_xy,
                 1.0 - whitePoint_xy[0] - whitePoint_xy[1])
             )
         )
-    ).T
+    )
+
     # compute the final matrix (sRGB -> XYZ)
-    to_return = mat_xyY_primaries * np.diag(
-        (np.linalg.inv(mat_xyY_primaries) * whtp_XYZ).A1)
+    u = np.diag(np.dot(whtp_XYZ, np.linalg.inv(mat_xyY_primaries).T))
+    to_return = np.matmul(mat_xyY_primaries, u)
 
     if not reverse:  # for XYZ -> sRGB conversion matrix (we usually want this!)
         return np.linalg.inv(to_return)
 
     return to_return
+
 
 def getLumSeries(lumLevels=8,
                  winSize=(800, 600),

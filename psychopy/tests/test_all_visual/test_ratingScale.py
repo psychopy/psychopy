@@ -297,7 +297,7 @@ class Test_class_RatingScale(object):
         assert h[0] == (None, 0)
         assert h[-1][0] == 1
         if _vmTesting:
-            assert 0.001 < h[-1][1] < 0.05  # virtual machines not usually great
+            assert 0.001 < h[-1][1] < 0.1  # virtual machines not usually great
         else:
             assert 0.001 < h[-1][1] < 0.03
 
