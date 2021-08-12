@@ -854,11 +854,11 @@ def makeXYZ2RGB(red_xy,
                 blue_xy,
                 whitePoint_xy=(0.3127, 0.329),
                 reverse=False):
-    """Create a linear sRGB conversion matrix.
+    """Create a linear RGB conversion matrix.
 
-    Returns a matrix to convert CIE-XYZ (1931) tristimulus values to linear sRGB
+    Returns a matrix to convert CIE-XYZ (1931) tristimulus values to linear RGB
     given CIE-xy (1931) primaries and white point. By default, the returned
-    matrix transforms CIE-XYZ to linear sRGB coordinates. Use 'reverse=True' to
+    matrix transforms CIE-XYZ to linear RGB coordinates. Use 'reverse=True' to
     get the inverse transformation. The chromaticity coordinates of the
     display's phosphor 'guns' are usually measured with a spectrophotometer.
 
@@ -883,6 +883,27 @@ def makeXYZ2RGB(red_xy,
     ndarray
         3x3 conversion matrix
 
+    Examples
+    --------
+    Construct a conversion matrix to transform CIE-XYZ coordinates to linear
+    (not gamma corrected) RGB values::
+
+        # nominal primaries for sRGB (or BT.709)
+        red = (0.6400, 0.3300)
+        green = (0.300, 0.6000)
+        blue = (0.1500, 0.0600)
+        whiteD65 = (0.3127, 0.329)
+
+        conversionMatrix = makeXYZ2RGB(red, green, blue, whiteD65)
+
+        # The value of `conversionMatrix` should have similar coefficients to
+        # that presented in the BT.709 standard.
+        #
+        # [[ 3.24096994 -1.53738318 -0.49861076]
+        #  [-0.96924364  1.8759675   0.04155506]
+        #  [ 0.05563008 -0.20397696  1.05697151]]
+        #
+
     """
     # convert CIE-xy chromaticity coordinates to xyY and put them into a matrix
     mat_xyY_primaries = np.asarray((
@@ -906,7 +927,7 @@ def makeXYZ2RGB(red_xy,
     u = np.diag(np.dot(whtp_XYZ, np.linalg.inv(mat_xyY_primaries).T))
     to_return = np.matmul(mat_xyY_primaries, u)
 
-    if not reverse:  # for XYZ -> sRGB conversion trix (we usually want this!)
+    if not reverse:  # for XYZ -> sRGB conversion matrix (we usually want this!)
         return np.linalg.inv(to_return)
 
     return to_return
