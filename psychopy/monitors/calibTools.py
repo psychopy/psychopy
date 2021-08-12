@@ -863,19 +863,25 @@ def makeXYZ2RGB(red_xy,
     display's phosphor 'guns' are usually measured with a spectrophotometer.
 
     The routines here are based on methods found at:
-        http://www.ryanjuckett.com/programming/rgb-color-space-conversion/
+    http://www.ryanjuckett.com/programming/rgb-color-space-conversion/
 
-    :param red_xy: tuple, list or ndarray
+    Parameters
+    ----------
+    red_xy: tuple, list or ndarray
         Chromaticity coordinate (CIE-xy) of the 'red' gun.
-    :param green_xy: tuple, list or ndarray
+    green_xy: tuple, list or ndarray
         Chromaticity coordinate (CIE-xy) of the 'green' gun.
-    :param blue_xy: tuple, list or ndarray
+    blue_xy: tuple, list or ndarray
         Chromaticity coordinate (CIE-xy) of the 'blue' gun.
-    :param whtp_xy: tuple, list or ndarray
+    whtp_xy: tuple, list or ndarray
         Chromaticity coordinate (CIE-xy) of the white point, default is D65.
-    :param reverse:
+    reverse:
         Return the inverse transform XYZ -> sRGB
-    :return: 3x3 conversion matrix
+
+    Returns
+    -------
+    ndarray
+        3x3 conversion matrix
 
     """
     # convert CIE-xy chromaticity coordinates to xyY and put them into a matrix
@@ -884,6 +890,7 @@ def makeXYZ2RGB(red_xy,
         (green_xy[0], green_xy[1], 1.0 - green_xy[0] - green_xy[1]),
         (blue_xy[0], blue_xy[1], 1.0 - blue_xy[0] - blue_xy[1])
     )).T
+    
     # convert white point to CIE-XYZ
     whtp_XYZ = np.asarray(
         np.dot(1.0 / whitePoint_xy[1],
@@ -893,15 +900,17 @@ def makeXYZ2RGB(red_xy,
                 1.0 - whitePoint_xy[0] - whitePoint_xy[1])
             )
         )
-    ).T
-    # compute the final matrix (sRGB -> XYZ)
-    to_return = mat_xyY_primaries * np.diag(
-        (np.linalg.inv(mat_xyY_primaries) * whtp_XYZ).A1)
+    )
 
-    if not reverse:  # for XYZ -> sRGB conversion matrix (we usually want this!)
+    # compute the final matrix (sRGB -> XYZ)
+    u = np.diag(np.dot(whtp_XYZ, np.linalg.inv(mat_xyY_primaries).T))
+    to_return = np.matmul(mat_xyY_primaries, u)
+
+    if not reverse:  # for XYZ -> sRGB conversion trix (we usually want this!)
         return np.linalg.inv(to_return)
 
     return to_return
+
 
 def getLumSeries(lumLevels=8,
                  winSize=(800, 600),
