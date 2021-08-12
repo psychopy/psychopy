@@ -932,6 +932,15 @@ class Window(object):
                             "In this case it was called with obj={}"
                             .format(repr(obj)))
 
+    def _cleanEditables(self):
+        """
+        Make sure there are no dead refs in the editables list
+        """
+        for ref in self._editableChildren:
+            obj = ref()
+            if obj is None:
+                self._editableChildren.remove(ref)
+
     @property
     def currentEditable(self):
         """The editable (Text?) object that currently has key focus"""
@@ -982,7 +991,8 @@ class Window(object):
         # If this is the first editable obj then make it the current
         if len(self._editableChildren) == 1:
             self._currentEditableRef = eRef
-
+        # Clean editables list
+        self._cleanEditables()
 
     def removeEditable(self, editable):
         # If editable is present, remove it from editables list
@@ -993,10 +1003,19 @@ class Window(object):
                     self.nextEditable()
                 self._editableChildren.remove(ref)
                 return True
+            else:
+                logging.warning(f"Request to remove editable object {editable} could not be completed as weakref "
+                                f"to this object could not be found in window.")
+        # Clean editables list
+        self._cleanEditables()
+
         return False
     
     def nextEditable(self):
         """Moves focus of the cursor to the next editable window"""
+        # Clean editables list
+        self._cleanEditables()
+        # Progress
         if self.currentEditable is None:
             if len(self._editableChildren):
                 self._currentEditableRef = self._editableChildren[0]            
@@ -1084,6 +1103,8 @@ class Window(object):
                 if isinstance(thisObj, weakref.ref):
                     # Solidify weakref if necessary
                     thisObj = thisObj()
+                if thisObj is None:
+                    continue
                 if isinstance(thisObj.autoDraw, (bool, int, float)):
                     # Store whether this editable is on screen
                     editablesOnScreen.append(thisObj.autoDraw)

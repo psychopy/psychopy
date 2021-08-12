@@ -14,7 +14,7 @@ version = psychopy.__version__
 
 # regenerate __init__.py only if we're in the source repos (not in a zip file)
 try:
-    import createInitFile  # won't exist in a sdist.zip
+    from building import createInitFile  # won't exist in a sdist.zip
     writeNewInit=True
 except:
     writeNewInit=False
@@ -132,7 +132,7 @@ setup(
                       'functools32',
                       ],  # anything we need to forcibly exclude?
             resources=resources,
-            argv_emulation=True,
+            argv_emulation=False,  # must be False or app bundle pauses (py2app 0.21 and 0.24 tested)
             site_packages=True,
             frameworks=frameworks,
             iconfile='psychopy/app/Resources/psychopy.icns',

@@ -429,13 +429,13 @@ class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
     def opacity(self):
         if hasattr(self, "_opacity"):
             return self._opacity
+
     @opacity.setter
     def opacity(self, value):
         self._opacity = value
         if hasattr(self, "_colors"):
             # Set the alpha value of each color to be the desired opacity
             self._colors.alpha = value
-
 
     @attributeSetter
     def contrs(self, value):
@@ -446,7 +446,14 @@ class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
 
         :ref:`Operations <attrib-operations>` are supported.
         """
-        self.__dict__['contrs'] = self._makeNx1(value)
+        # Convert to an Nx1 numpy array
+        value = self._makeNx1(value)
+        # If colors is too short, extend it
+        self._colors.rgb = numpy.resize(self._colors.rgb, (len(value), 3))
+        # Set
+        self._colors.contrast = value
+        # Store value and update
+        self.__dict__['contrs'] = value
         self._needColorUpdate = True
 
     def setContrs(self, value, operation='', log=None):
