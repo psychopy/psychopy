@@ -867,16 +867,16 @@ def makeXYZ2RGB(red_xy,
 
     Parameters
     ----------
-    red_xy: tuple, list or ndarray
+    red_xy : tuple, list or ndarray
         Chromaticity coordinate (CIE-xy) of the 'red' gun.
-    green_xy: tuple, list or ndarray
+    green_xy:  tuple, list or ndarray
         Chromaticity coordinate (CIE-xy) of the 'green' gun.
-    blue_xy: tuple, list or ndarray
+    blue_xy : tuple, list or ndarray
         Chromaticity coordinate (CIE-xy) of the 'blue' gun.
-    whtp_xy: tuple, list or ndarray
+    whitePoint_xy : tuple, list or ndarray
         Chromaticity coordinate (CIE-xy) of the white point, default is D65.
-    reverse:
-        Return the inverse transform XYZ -> sRGB
+    reverse : bool
+        Return the inverse transform sRGB -> XYZ. Default is `False`.
 
     Returns
     -------
@@ -890,7 +890,7 @@ def makeXYZ2RGB(red_xy,
         (green_xy[0], green_xy[1], 1.0 - green_xy[0] - green_xy[1]),
         (blue_xy[0], blue_xy[1], 1.0 - blue_xy[0] - blue_xy[1])
     )).T
-    
+
     # convert white point to CIE-XYZ
     whtp_XYZ = np.asarray(
         np.dot(1.0 / whitePoint_xy[1],
