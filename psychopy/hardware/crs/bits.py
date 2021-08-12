@@ -1427,8 +1427,10 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
         """If the user discards this object then close the serial port
         so it is released.
         """
-        if hasattr(self, 'com'):
+        try:
             self.com.close()
+        except AttributeError:
+            pass
 
     def isAwake(self):
         """Test whether we have an active connection on the virtual serial
