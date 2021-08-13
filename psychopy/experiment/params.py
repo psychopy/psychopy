@@ -206,7 +206,11 @@ class Param(object):
                             # if target is python2.x then unicode will be u'something'
                             # but for other targets that will raise an annoying error
                             val = val[1:]
-                    if self.valType in ['file', 'table'] or Path(val).is_file():
+                    try:
+                        isFile = Path(val).is_file()
+                    except OSError:
+                        isFile = False
+                    if self.valType in ['file', 'table'] or isFile:
                         # If param is a file of any kind, use Path to make sure it's valid
                         val = Path(val).as_posix()  # Convert to a valid path with / not \
                     val = re.sub("\n", "\\n", val)  # Replace line breaks with escaped line break character
