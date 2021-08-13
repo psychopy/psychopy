@@ -648,8 +648,6 @@ class ParamNotebook(wx.Notebook, ThemeMixin):
                     # use GetStringSelection()
                     # only if this control doesn't has _choices
                     param.val = ctrl.GetStringSelection()
-            elif hasattr(ctrl, "GetValue"):
-                param.val = ctrl.GetValue()
             # Get type
             if hasattr(ctrl, "typeCtrl"):
                 if ctrl.typeCtrl:
