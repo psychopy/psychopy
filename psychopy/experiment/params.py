@@ -214,6 +214,8 @@ class Param(object):
                         # If param is a file of any kind, use Path to make sure it's valid
                         val = Path(val).as_posix()  # Convert to a valid path with / not \
                     val = re.sub("\n", "\\n", val)  # Replace line breaks with escaped line break character
+                    # Hide escape char on escaped $ (other escaped chars are handled by wx but $ is unique to us)
+                    val = re.sub(r"\\\$", "$", val)
                     return repr(val)
             return repr(self.val)
         elif self.valType in ['code', 'extendedCode']:
