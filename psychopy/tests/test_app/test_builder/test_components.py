@@ -215,10 +215,22 @@ def test_param_str():
         {"obj": Param(__file__, "str"),
          "py": f"'{__file__.replace(_slash, '/')}'",
          "js": f"'{__file__.replace(_slash, '/')}'"},
+        # Nonexistant file path marked as str
+        {"obj": Param("C:\\\\Downloads\\file.csv", "str"),
+         "py": "'C:/Downloads/file.csv'",
+         "js": "'C:/Downloads/file.csv'"},
+        # Underscored file path marked as str
+        {"obj": Param("C:\\\\Downloads\\_file.csv", "str"),
+         "py": "'C:/Downloads/_file.csv'",
+         "js": "'C:/Downloads/_file.csv'"},
         # Escaped $ in str
         {"obj": Param("This costs \\$4.20", "str"),
          "py": "'This costs $4.20'",
          "js": "'This costs $4.20'"},
+        # Unescaped \ in str
+        {"obj": Param("This \\ that", "str"),
+         "py": "'This \\\\ that'",
+         "js": "'This \\\\ that'"},
     ]
 
     # Take note of what the script target started as
