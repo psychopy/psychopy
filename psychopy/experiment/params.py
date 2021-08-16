@@ -121,7 +121,7 @@ class Param(object):
 
     def __init__(self, val, valType, inputType=None, allowedVals=None, allowedTypes=None,
                  hint="", label="", updates=None, allowedUpdates=None,
-                 allowedLabels=None,
+                 allowedLabels=None, neverPathlike=False,
                  categ="Basic"):
         """
         @param val: the value for this parameter
@@ -146,6 +146,9 @@ class Param(object):
         @param categ: category for this parameter
             will populate tabs in Component Dlg
         @type allowedUpdates: string
+        @type neverPathlike: bool
+        @param neverPathlike: if True, then this param will never be interpreted as a path
+            (e.g. the text param of a TextBox should never be a path)
         """
         super(Param, self).__init__()
         self.label = label
@@ -161,6 +164,7 @@ class Param(object):
         self.categ = categ
         self.readOnly = False
         self.codeWanted = False
+        self.neverPathlike = neverPathlike
         if inputType:
             self.inputType = inputType
         elif valType in inputDefaults:
@@ -208,7 +212,7 @@ class Param(object):
                             val = val[1:]
                     # If param is a path or path-like, use Path to make sure it's valid (with / not \)
                     isPathLike = bool(re.findall(r"[\\/](?!\W)", val))
-                    if self.valType in ['file', 'table'] or isPathLike:
+                    if self.valType in ['file', 'table'] or (isPathLike and not self.neverPathlike):
                         val = Path(val).as_posix()
                     # Replace line breaks with escaped line break character
                     val = re.sub("\n", "\\n", val)

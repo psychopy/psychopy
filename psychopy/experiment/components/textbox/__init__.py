@@ -88,6 +88,7 @@ class TextboxComponent(BaseVisualComponent):
         self.params['text'] = Param(
             text, valType='str', inputType="multi", allowedTypes=[], categ='Basic',
             updates='constant', allowedUpdates=_allow3[:],  # copy the list
+            neverPathlike=True,
             hint=_translate("The text to be displayed"),
             label=_localized['text'])
         self.params['font'] = Param(
