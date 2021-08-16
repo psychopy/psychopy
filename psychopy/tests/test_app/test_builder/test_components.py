@@ -172,6 +172,10 @@ def test_param_str():
         {"obj": Param("Hello there", "str"),
          "py": "'Hello there'",
          "js": "'Hello there'"},
+        # Enforced string
+        {"obj": Param("\\, | or /", "str", neverPathlike=True),
+         "py": "'\\\\, | or /'",
+         "js": "'\\\\, | or /'"},
         # Dollar string
         {"obj": Param("$win.color", "str"),
          "py": "win.color",
