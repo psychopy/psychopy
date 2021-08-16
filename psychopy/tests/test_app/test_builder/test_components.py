@@ -209,7 +209,16 @@ def test_param_str():
          "py": "[1, 2, 3]",
          "js": "[1, 2, 3]"},
     ]
+    _slash = "\\"
     tykes = [
+        # Extant file path marked as str
+        {"obj": Param(__file__, "str"),
+         "py": f"'{__file__.replace(_slash, '/')}'",
+         "js": f"'{__file__.replace(_slash, '/')}'"},
+        # Escaped $ in str
+        {"obj": Param("This costs \\$4.20", "str"),
+         "py": "'This costs $4.20'",
+         "js": "'This costs $4.20'"},
     ]
 
     # Take note of what the script target started as
