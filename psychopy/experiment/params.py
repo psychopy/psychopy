@@ -206,14 +206,12 @@ class Param(object):
                             # if target is python2.x then unicode will be u'something'
                             # but for other targets that will raise an annoying error
                             val = val[1:]
-                    try:
-                        isFile = Path(val).is_file()
-                    except OSError:
-                        isFile = False
-                    if self.valType in ['file', 'table'] or isFile:
-                        # If param is a file of any kind, use Path to make sure it's valid
-                        val = Path(val).as_posix()  # Convert to a valid path with / not \
-                    val = re.sub("\n", "\\n", val)  # Replace line breaks with escaped line break character
+                    # If param is a path or path-like, use Path to make sure it's valid (with / not \)
+                    isPathLike = bool(re.findall(r"[\\/](?!\W)", val))
+                    if self.valType in ['file', 'table'] or isPathLike:
+                        val = Path(val).as_posix()
+                    # Replace line breaks with escaped line break character
+                    val = re.sub("\n", "\\n", val)
                     # Hide escape char on escaped $ (other escaped chars are handled by wx but $ is unique to us)
                     val = re.sub(r"\\\$", "$", val)
                     return repr(val)
