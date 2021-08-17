@@ -158,6 +158,14 @@ class SettingsComponent(object):
             hint=_translate("Name of the entire experiment (taken by default"
                             " from the filename on save)"),
             label=_localized["expName"])
+        self.depends.append(
+            {"dependsOn": "Show info dlg",  # must be param name
+             "condition": "==True",  # val to check for
+             "param": "Experiment info",  # param property to alter
+             "true": "enable",  # what to do with param if condition is True
+             "false": "disable",  # permitted: hide, show, enable, disable
+             }
+        )
         self.params['Show info dlg'] = Param(
             showExpInfo, valType='bool', inputType="bool", allowedTypes=[],
             hint=_translate("Start the experiment with a dialog to set info"
