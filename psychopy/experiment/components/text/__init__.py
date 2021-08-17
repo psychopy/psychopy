@@ -64,6 +64,7 @@ class TextComponent(BaseVisualComponent):
             text, valType='str', inputType="multi", allowedTypes=[], categ='Basic',
             updates='constant', allowedUpdates=_allow3[:],  # copy the list
             hint=_translate("The text to be displayed"),
+            canBePath=False,
             label=_localized['text'])
         self.params['font'] = Param(
             font, valType='str', inputType="single", allowedTypes=[], categ='Formatting',
