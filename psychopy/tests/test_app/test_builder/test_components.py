@@ -173,7 +173,7 @@ def test_param_str():
          "py": "'Hello there'",
          "js": "'Hello there'"},
         # Enforced string
-        {"obj": Param("\\, | or /", "str", neverPathlike=True),
+        {"obj": Param("\\, | or /", "str", canBePath=False),
          "py": "'\\\\, | or /'",
          "js": "'\\\\, | or /'"},
         # Dollar string
