@@ -180,12 +180,8 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self.ori = numpy.array(ori, float)
         self.size = numpy.array([0.0, 0.0]) + size  # make sure that it's 2D
 
-        # check if the vertices are a tuple
-        if isinstance(vertices, (tuple, list)):
-            if len(vertices):
-                # flag for when super-init'ing a ShapeStim
-                self.vertices = vertices  # call attributeSetter
-
+        if vertices != ():  # flag for when super-init'ing a ShapeStim
+            self.vertices = vertices  # call attributeSetter
         self.autoDraw = autoDraw  # call attributeSetter
 
         # set autoLog now that params have been initialised
