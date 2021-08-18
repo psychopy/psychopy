@@ -2,7 +2,8 @@
 # Part of the PsychoPy library
 # Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
-
+from collections import defaultdict
+from datetime import time
 from psychopy.iohub.constants import EventConstants, EyeTrackerConstants
 from psychopy.iohub.devices import Computer, Device
 from psychopy.iohub.devices.eyetracker import EyeTrackerDevice, MonocularEyeSampleEvent, BinocularEyeSampleEvent
@@ -11,6 +12,7 @@ from psychopy.iohub.devices.eyetracker.eye_events import *
 
 from psychopy.iohub.devices.eyetracker.hw.pupil_labs.pupil_core.pupil_remote import PupilRemote
 from psychopy.iohub.devices.eyetracker.hw.pupil_labs.pupil_core.data_parse import eye_sample_from_gaze_3d, gaze_position_from_gaze_3d
+from psychopy.iohub.devices.eyetracker.hw.pupil_labs.pupil_core.bisector import MutableBisector
 
 
 class EyeTracker(EyeTrackerDevice):
@@ -70,18 +72,25 @@ class EyeTracker(EyeTrackerDevice):
         self._latest_gaze_position = None
         self._actively_recording = False
 
+        self._surface_name = self._runtime_settings["surface_name"]
+
         pupil_remote_settings = self._runtime_settings["pupil_remote"]
         self._pupil_remote_ip_address = pupil_remote_settings["ip_address"]
         self._pupil_remote_port = pupil_remote_settings["port"]
         self._pupil_remote_timeout_ms = pupil_remote_settings["timeout_ms"]
-        self._pupil_remote_subscriptions = pupil_remote_settings["subscriptions"]
+        self._pupil_remote_subscriptions = ["gaze.3d.", self.surface_topic]
 
         capture_recording_settings = self._runtime_settings["pupil_capture_recording"]
         self._capture_recording_enabled = capture_recording_settings["enabled"]
         self._capture_recording_location = capture_recording_settings["location"]
 
+        self._gaze_bisectors_by_topic = defaultdict(MutableBisector)
         self._pupil_remote = None
         self.setConnectionState(True)
+
+    @property
+    def surface_topic(self):
+        return f"surfaces.{self._surface_name}"
 
     def trackerTime(self):
         """trackerTime returns the current time reported by the eye tracker
@@ -277,11 +286,36 @@ class EyeTracker(EyeTrackerDevice):
 
         logged_time = Computer.getTime()
 
-        for topic, gaze_datum in self._pupil_remote.fetch():
+        for topic, payload in self._pupil_remote.fetch():
             if topic.startswith("gaze.3d."):
-                self._add_gaze_3d_sample(gaze_datum, logged_time)
+                gaze_bisector = self._gaze_bisectors_by_topic[topic]
+                gaze_bisector.insert(
+                    datum=payload,
+                    timestamp=payload["timestamp"]
+                )
+                # Remove gaze datums older than 3sec (200Hz)
+                if len(gaze_bisector) >= 200 * 3:
+                    gaze_bisector.delete(index=0)
+            if topic == self.surface_topic:
+                for gaze_on_surface in payload["gaze_on_surfaces"]:
+                    if gaze_on_surface["on_surf"] is not True:
+                        continue
+                    gaze_topic, gaze_timestamp = gaze_on_surface["base_data"]
+                    gaze_bisector = self._gaze_bisectors_by_topic[gaze_topic]
+                    try:
+                        gaze_datum = gaze_bisector.find_datum_by_timestamp(
+                            timestamp=gaze_timestamp
+                        )
+                    except ValueError:
+                        # Skip surface-mapped gaze if no gaze is avalable
+                        return
+                    self._add_gaze_sample(
+                        surface_gaze_datum=payload,
+                        gaze_datum=gaze_datum,
+                        logged_time=logged_time
+                    )
 
-    def _add_gaze_3d_sample(self, gaze_datum, logged_time):
+    def _add_gaze_sample(self, surface_gaze_datum, gaze_datum, logged_time):
 
         native_time = gaze_datum["timestamp"]
         iohub_time = self._trackerTimeInPsychopyTime(native_time)

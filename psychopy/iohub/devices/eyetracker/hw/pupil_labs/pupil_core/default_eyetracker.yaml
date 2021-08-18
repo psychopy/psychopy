@@ -51,15 +51,11 @@ psyeyetracker.hw.pupil_labs.pupil_core.EyeTracker:
     #####
 
     runtime_settings:
+        surface_name: psychopy_iohub_surface
         pupil_remote:
             ip_address: 127.0.0.1
             port: 50020
             timeout_ms: 1000
-            subscriptions:
-                # - pupil.
-                - pupil.0.3d
-                - pupil.1.3d
-                - gaze.3d.
         pupil_capture_recording:
             enabled: True
             location: Null # Use Pupil Capture default recording location
