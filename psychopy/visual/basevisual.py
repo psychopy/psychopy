@@ -1469,7 +1469,8 @@ class WindowMixin(object):
         ]])
         self._flipHoriz, self._flipVert = self._flip[0]
         # Apply to vertices
-        self._vertices.flip = self.flip
+        if hasattr(self, "_vertices"):
+            self._vertices.flip = self.flip
 
     @property
     def flipHoriz(self):

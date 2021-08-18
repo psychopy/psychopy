@@ -84,6 +84,7 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
         self._imName = image
         self.isLumImage = None
         self.interpolate = interpolate
+        self.vertices = None
         self.flipHoriz = flipHoriz
         self.flipVert = flipVert
         self._requestedSize = size
