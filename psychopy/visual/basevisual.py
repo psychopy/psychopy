@@ -760,7 +760,7 @@ class ContainerMixin(object):
 
         verts = numpy.dot(verts, self._rotationMatrix)
         # Convert to a vertices object if not already
-        verts = Vertices(verts, obj=self).pix
+        verts = Vertices(verts, obj=self, flip=self.flip).pix
         self.__dict__['verticesPix'] = self.__dict__['_borderPix'] = verts
 
         self._needVertexUpdate = False
@@ -1424,7 +1424,7 @@ class WindowMixin(object):
                                 [-0.5, -0.5],
                                 [-0.5, 0.5],
                                 [0.5, 0.5],
-                            ]), obj=self)
+                            ]), obj=self, flip=self.flip)
         return verts.base
 
     @vertices.setter
@@ -1438,7 +1438,7 @@ class WindowMixin(object):
                 [0.5, 0.5],
             ]
         # Create Vertices object
-        self._vertices = Vertices(value, obj=self)
+        self._vertices = Vertices(value, obj=self, flip=self.flip)
 
     @property
     def flip(self):
@@ -1469,8 +1469,9 @@ class WindowMixin(object):
         ]])
         self._flipHoriz, self._flipVert = self._flip[0]
         # Apply to vertices
-        if hasattr(self, "_vertices"):
-            self._vertices.flip = self.flip
+        if not hasattr(self, "_vertices"):
+            self.vertices = None
+        self._vertices.flip = self.flip
 
     @property
     def flipHoriz(self):
