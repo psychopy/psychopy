@@ -562,6 +562,21 @@ class PygletBackend(BaseBackend):
     def setFullScr(self, value):
         """Sets the window to/from full-screen mode"""
         self.winHandle.set_fullscreen(value)
+        self.win.clientSize = np.array(
+            (self.winHandle.width, self.winHandle.height), dtype=int)
+
+        # special handling for retina displays, if needed
+        global retinaContext
+        if retinaContext is not None:
+            view = retinaContext.view()
+            bounds = view.convertRectToBacking_(view.bounds()).size
+            backWidth, backHeight = (int(bounds.width), int(bounds.height))
+        else:
+            backWidth, backHeight = self.win.clientSize
+
+        self._frameBufferSize = np.array((backWidth, backHeight))
+        self.win.viewport = (0, 0, backWidth, backHeight)
+        self.win.scissor = (0, 0, backWidth, backHeight)
 
     def setMouseType(self, name='arrow'):
         """Change the appearance of the cursor for this window. Cursor types
