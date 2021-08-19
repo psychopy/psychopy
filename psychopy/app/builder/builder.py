@@ -1545,19 +1545,43 @@ class RoutinesNotebook(aui.AuiNotebook, ThemeMixin):
             return routineName
 
     def onClosePane(self, event=None):
-        """Close the pane and remove the routine from the exp
+        """Close the pane and remove the routine from the exp.
         """
-        routine = self.GetPage(event.GetSelection()).routine
+        currentPage = self.GetPage(event.GetSelection())
+        routine = currentPage.routine
         name = routine.name
-        # update experiment object, namespace, and flow window (if this is
-        # being used)
-        if name in self.frame.exp.routines:
-            # remove names of the routine and its components from namespace
-            _nsp = self.frame.exp.namespace
-            for c in self.frame.exp.routines[name]:
-                _nsp.remove(c.params['name'].val)
-            _nsp.remove(self.frame.exp.routines[name].name)
-            del self.frame.exp.routines[name]
+
+        # name is not valid for some reason
+        if name not in self.frame.exp.routines:
+            event.Skip()
+            return
+
+        # message to display
+        msg = _translate(
+            "Do you want to remove routine '{}' from the experiment?")
+
+        # dialog asking if the user wants to remove the routine
+        dlg = wx.MessageDialog(
+            self,
+            _translate(msg).format(name),
+            _translate('Close routine?'),
+            wx.YES_NO | wx.NO_DEFAULT | wx.CENTRE | wx.STAY_ON_TOP)
+
+        # show the dialog and get the response
+        dlgResult = dlg.ShowModal()
+        dlg.Destroy()
+
+        if dlgResult == wx.ID_NO:  # if NO, stop the tab from closing
+            event.Veto()
+            return
+
+        # remove names of the routine and its components from namespace
+        _nsp = self.frame.exp.namespace
+        for c in self.frame.exp.routines[name]:
+            _nsp.remove(c.params['name'].val)
+        _nsp.remove(self.frame.exp.routines[name].name)
+        del self.frame.exp.routines[name]
+
         if routine in self.frame.exp.flow:
             self.frame.exp.flow.removeComponent(routine)
             self.frame.flowPanel.draw()
