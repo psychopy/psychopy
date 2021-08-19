@@ -1368,6 +1368,8 @@ class WindowMixin(object):
 
     @size.setter
     def size(self, value):
+        if value is None:
+            value = (None, None)
         self._size = Size(value, units=self.units, win=self.win)
 
     @property

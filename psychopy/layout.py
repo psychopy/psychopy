@@ -77,6 +77,12 @@ class Vector(object):
         else:
             self.valid = False
 
+        # Replace None with the matching window dimension
+        if (value == None).any():
+            win = Vector((1, 1), units="norm", win=self.win, correctFlat=self.correctFlat)
+            value[value[:, 1] == None, 1] = getattr(win, units)[1]
+            value[value[:, 0] == None, 0] = getattr(win, units)[10]
+
         assert self.valid, f"Array of position/size values must be either Nx1, Nx2 or Nx3, not {value.shape}"
 
         return value, units
