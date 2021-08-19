@@ -258,6 +258,24 @@ class Aperture(MinimalStim, ContainerMixin):
         self._needReset = needReset
         setAttribute(self, 'pos', pos, log)
 
+    @property
+    def vertices(self):
+        return WindowMixin.vertices.fget(self)
+
+    @vertices.setter
+    def vertices(self, value):
+        WindowMixin.vertices.fset(self, value)
+        self._shape.vertices = value  # a ShapeStim
+
+    @property
+    def flip(self):
+        return WindowMixin.flip.fget(self)
+
+    @flip.setter
+    def flip(self, value):
+        WindowMixin.flip.fset(self, value)
+        self._shape.flip = value  # a ShapeStim
+
     @attributeSetter
     def inverted(self, value):
         """True / False. Set to true to invert the aperture.
