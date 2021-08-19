@@ -1,4 +1,4 @@
-psyeyetracker.hw.pupil_labs.pupil_core.EyeTracker:
+eyetracker.hw.pupil_labs.pupil_core.EyeTracker:
     # Indicates if the device should actually be loaded at experiment runtime.
     enable: True
 
