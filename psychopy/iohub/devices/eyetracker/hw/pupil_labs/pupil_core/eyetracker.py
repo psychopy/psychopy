@@ -310,12 +310,13 @@ class EyeTracker(EyeTrackerDevice):
                         # Skip surface-mapped gaze if no gaze is avalable
                         return
                     self._add_gaze_sample(
-                        surface_gaze_datum=payload,
+                        surface_datum=payload,
+                        gaze_on_surface_datum=gaze_on_surface,
                         gaze_datum=gaze_datum,
                         logged_time=logged_time
                     )
 
-    def _add_gaze_sample(self, surface_gaze_datum, gaze_datum, logged_time):
+    def _add_gaze_sample(self, surface_datum, gaze_on_surface_datum, gaze_datum, logged_time):
 
         native_time = gaze_datum["timestamp"]
         iohub_time = self._trackerTimeInPsychopyTime(native_time)
@@ -333,8 +334,10 @@ class EyeTracker(EyeTrackerDevice):
             'filter_id': False,
         }
 
-        sample = eye_sample_from_gaze_3d(surface_datum, gaze_datum, metadata)
-        position = gaze_position_from_gaze_3d(surface_datum, gaze_datum)
+        sample = eye_sample_from_gaze_3d(
+            surface_datum, gaze_on_surface_datum, gaze_datum, metadata)
+        position = gaze_position_from_gaze_3d(
+            surface_datum, gaze_on_surface_datum, gaze_datum)
 
         self._addNativeEventToBuffer(sample)
 
