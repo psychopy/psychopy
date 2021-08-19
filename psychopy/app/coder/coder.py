@@ -904,8 +904,8 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
                     calltipText = '\n    '.join(
                         textwrap.wrap(calltipText, 76))  # 80 cols after indent
                     y, x = foundRefs[0].bracket_start
-                    self.CallTipShow(
-                        self.XYToPosition(x + 1, y), calltipText)
+                    callTipPos = self.XYToPosition(x, y)
+                    self.CallTipShow(callTipPos, calltipText)
 
     def MacOpenFile(self, evt):
         logging.debug('PsychoPyCoder: got MacOpenFile event')
