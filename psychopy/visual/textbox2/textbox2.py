@@ -18,7 +18,7 @@ some more added:
 import numpy as np
 from pyglet import gl
 
-from ..basevisual import BaseVisualStim, ColorMixin, ContainerMixin
+from ..basevisual import BaseVisualStim, ColorMixin, ContainerMixin, WindowMixin
 from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.monitorunittools import convertToPix
@@ -137,6 +137,9 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         ColorMixin.foreColor.fset(self, color)  # Have to call the superclass directly on init as text has not been set
         self.onTextCallback = onTextCallback
 
+        self.size = size
+        self.pos = pos
+
         # first set params needed to create font (letter sizes etc)
         if letterHeight is None:
             self.letterHeight = defaultLetterHeight[self.units]
@@ -153,9 +156,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             # If pixLetterHeight is an array, take the Height value
             self._pixLetterHeight = self._pixLetterHeight[1]
         self._pixelScaling = self._pixLetterHeight / self.letterHeight
-        if size is None:
-            size = [defaultBoxWidth[self.units], None]
-        self.size = size  # but this will be updated later to actual size
         self.bold = bold
         self.italic = italic
         self.lineSpacing = lineSpacing
@@ -201,7 +201,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.alignment = alignment
 
         # box border and fill
-        w, h = self.size
         self.borderWidth = borderWidth
         self.borderColor = borderColor
         self.fillColor = fillColor
@@ -294,6 +293,19 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                     fontName,
                     size=int(round(self._pixLetterHeight)),
                     bold=self.bold, italic=self.italic)
+
+    @property
+    def size(self):
+        return WindowMixin.size.fget(self)
+
+    @size.setter
+    def size(self, value):
+        self._requestedSize = value
+        WindowMixin.size.fset(self, value)
+        if hasattr(self, "box"):
+            self.box.size = value
+        if hasattr(self, "boundingBox"):
+            self.boundingBox.size = value
 
     @property
     def fontMGR(self):
