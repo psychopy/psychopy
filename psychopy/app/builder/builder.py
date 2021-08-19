@@ -1556,24 +1556,27 @@ class RoutinesNotebook(aui.AuiNotebook, ThemeMixin):
             event.Skip()
             return
 
-        # message to display
-        msg = _translate(
-            "Do you want to remove routine '{}' from the experiment?")
+        # check if the user wants a prompt
+        showDlg = self.app.prefs.builder.get('confirmRoutineClose', False)
+        if showDlg:
+            # message to display
+            msg = _translate(
+                "Do you want to remove routine '{}' from the experiment?")
 
-        # dialog asking if the user wants to remove the routine
-        dlg = wx.MessageDialog(
-            self,
-            _translate(msg).format(name),
-            _translate('Close routine?'),
-            wx.YES_NO | wx.NO_DEFAULT | wx.CENTRE | wx.STAY_ON_TOP)
+            # dialog asking if the user wants to remove the routine
+            dlg = wx.MessageDialog(
+                self,
+                _translate(msg).format(name),
+                _translate('Remove routine?'),
+                wx.YES_NO | wx.NO_DEFAULT | wx.CENTRE | wx.STAY_ON_TOP)
 
-        # show the dialog and get the response
-        dlgResult = dlg.ShowModal()
-        dlg.Destroy()
+            # show the dialog and get the response
+            dlgResult = dlg.ShowModal()
+            dlg.Destroy()
 
-        if dlgResult == wx.ID_NO:  # if NO, stop the tab from closing
-            event.Veto()
-            return
+            if dlgResult == wx.ID_NO:  # if NO, stop the tab from closing
+                event.Veto()
+                return
 
         # remove names of the routine and its components from namespace
         _nsp = self.frame.exp.namespace
