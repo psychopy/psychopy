@@ -15,7 +15,7 @@ def gaze_position_from_gaze_3d(gaze_datum):
     return gaze_x, gaze_y
 
 
-def eye_sample_from_gaze_3d(gaze_datum, metadata):
+def eye_sample_from_gaze_3d(surface_datum, gaze_datum, metadata):
     pupil_datum_right, pupil_datum_left = None, None
 
     for p in gaze_datum['base_data']:
@@ -26,6 +26,7 @@ def eye_sample_from_gaze_3d(gaze_datum, metadata):
 
     if pupil_datum_right and pupil_datum_left:
         return _binocular_eye_sample_from_gaze_3d(
+            surface_datum=surface_datum,
             gaze_datum=gaze_datum,
             pupil_datum_right=pupil_datum_right,
             pupil_datum_left=pupil_datum_left,
@@ -33,12 +34,14 @@ def eye_sample_from_gaze_3d(gaze_datum, metadata):
         )
     elif pupil_datum_right:
         return _monocular_eye_sample_from_gaze_3d(
+            surface_datum=surface_datum,
             gaze_datum=gaze_datum,
             pupil_datum=pupil_datum_right,
             metadata=metadata
         )
     elif pupil_datum_left:
         return _monocular_eye_sample_from_gaze_3d(
+            surface_datum=surface_datum,
             gaze_datum=gaze_datum,
             pupil_datum=pupil_datum_left,
             metadata=metadata
@@ -48,9 +51,9 @@ def eye_sample_from_gaze_3d(gaze_datum, metadata):
         return None
 
 
-def _binocular_eye_sample_from_gaze_3d(gaze_datum, pupil_datum_right, pupil_datum_left, metadata):
+def _binocular_eye_sample_from_gaze_3d(surface_datum, gaze_datum, pupil_datum_right, pupil_datum_left, metadata):
 
-    gaze_x, gaze_y, gaze_z = gaze_datum['gaze_point_3d']
+    gaze_x, gaze_y, gaze_z = surface_datum['norm_pos'][0], surface_datum['norm_pos'][1], 0
 
     right_eye_cam_x, right_eye_cam_y, right_eye_cam_z = pupil_datum_right['sphere']['center']
     left_eye_cam_x, left_eye_cam_y, left_eye_cam_z = pupil_datum_left['sphere']['center']
@@ -125,9 +128,9 @@ def _binocular_eye_sample_from_gaze_3d(gaze_datum, pupil_datum_right, pupil_datu
     ]
 
 
-def _monocular_eye_sample_from_gaze_3d(gaze_datum, pupil_datum, metadata):
+def _monocular_eye_sample_from_gaze_3d(surface_datum, gaze_datum, pupil_datum, metadata):
 
-    gaze_x, gaze_y, gaze_z = gaze_datum['gaze_point_3d']
+    gaze_x, gaze_y, gaze_z = surface_datum['norm_pos'][0], surface_datum['norm_pos'][1], 0
 
     eye_cam_x, eye_cam_y, eye_cam_z = pupil_datum['sphere']['center']
 
@@ -148,7 +151,7 @@ def _monocular_eye_sample_from_gaze_3d(gaze_datum, pupil_datum, metadata):
         metadata['session_id'],
         metadata['device_id'],
         metadata['event_id'],
-        EventConstants.BINOCULAR_EYE_SAMPLE,  # type
+        EventConstants.MONOCULAR_EYE_SAMPLE,  # type
         metadata['device_time'],
         metadata['logged_time'],
         metadata['time'],

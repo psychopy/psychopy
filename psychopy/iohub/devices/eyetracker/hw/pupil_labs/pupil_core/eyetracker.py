@@ -333,8 +333,8 @@ class EyeTracker(EyeTrackerDevice):
             'filter_id': False,
         }
 
-        sample = eye_sample_from_gaze_3d(gaze_datum, metadata)
-        position = gaze_position_from_gaze_3d(gaze_datum)
+        sample = eye_sample_from_gaze_3d(surface_datum, gaze_datum, metadata)
+        position = gaze_position_from_gaze_3d(surface_datum, gaze_datum)
 
         self._addNativeEventToBuffer(sample)
 
