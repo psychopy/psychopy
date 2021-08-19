@@ -147,7 +147,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             scaleUnits = 'deg'  # scale units are just for font resolution
         else:
             scaleUnits = self.units
-        self._pixelScaling = self._pixLetterHeight / self.letterHeight
+        self._pixelScaling = self.letterHeightPix / self.letterHeight
         self.bold = bold
         self.italic = italic
         self.lineSpacing = lineSpacing
@@ -283,7 +283,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             self.__dict__['font'] = fontName
             self.glFont = allFonts.getFont(
                     fontName,
-                    size=int(round(self._pixLetterHeight)),
+                    size=self.letterHeightPix,
                     bold=self.bold, italic=self.italic)
 
     @property
@@ -307,7 +307,20 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
     @letterHeight.setter
     def letterHeight(self, value):
         self._letterHeight = layout.Vector(value, units=self.units, win=self.win)
-        self._pixLetterHeight = self._letterHeight.pix
+
+    @property
+    def letterHeightPix(self):
+        """
+        Convenience function to get self._letterHeight.pix and be guaranteed a return that is a single integer
+        """
+        value = self._letterHeight.pix
+        if isinstance(value, np.ndarray):
+            value = np.resize(value, 1)
+            return int(value)
+        elif isinstance(value, (list, tuple)):
+            return int(value[-1])
+        else:
+            return int(value)
 
     @property
     def fontMGR(self):
