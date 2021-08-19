@@ -25,7 +25,7 @@ from psychopy.tools.monitorunittools import convertToPix
 from .fontmanager import FontManager, GLFont
 from .. import shaders
 from ..rect import Rect
-from ... import core, alerts
+from ... import core, alerts, layout
 
 from psychopy.tools.linebreak import get_breakable_points, break_units
 
@@ -141,20 +141,12 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.pos = pos
 
         # first set params needed to create font (letter sizes etc)
-        if letterHeight is None:
-            self.letterHeight = defaultLetterHeight[self.units]
-        else:
-            self.letterHeight = letterHeight
+        self.letterHeight = letterHeight
         # self._pixLetterHeight helps get font size right but not final layout
         if 'deg' in self.units:  # treat deg, degFlat or degFlatPos the same
             scaleUnits = 'deg'  # scale units are just for font resolution
         else:
             scaleUnits = self.units
-        self._pixLetterHeight = convertToPix(
-                self.letterHeight, pos=0, units=scaleUnits, win=self.win)
-        if isinstance(self._pixLetterHeight, np.ndarray):
-            # If pixLetterHeight is an array, take the Height value
-            self._pixLetterHeight = self._pixLetterHeight[1]
         self._pixelScaling = self._pixLetterHeight / self.letterHeight
         self.bold = bold
         self.italic = italic
@@ -308,8 +300,19 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             self.boundingBox.size = value
 
     @property
+    def letterHeight(self):
+        if hasattr(self, "_letterHeight"):
+            return getattr(self._letterHeight, self.units)
+
+    @letterHeight.setter
+    def letterHeight(self, value):
+        self._letterHeight = layout.Vector(value, units=self.units, win=self.win)
+        self._pixLetterHeight = self._letterHeight.pix
+
+    @property
     def fontMGR(self):
             return allFonts
+
     @fontMGR.setter
     def fontMGR(self, mgr):
         global allFonts
