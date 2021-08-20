@@ -2308,7 +2308,25 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             self.Bind(wx.EVT_RIGHT_DOWN, self.onRightClick)
 
         def onClick(self, evt=None, timeout=None):
+            """Called when a component button is clicked on.
+            """
             routine = self.parent.frame.routinePanel.getCurrentRoutine()
+            if routine is None:
+                if timeout is not None:  # just return, we're testing the UI
+                    return
+                # Show a message telling the user there is no routine in the
+                # experiment, making adding a component pointless until they do
+                # so.
+                dlg = wx.MessageDialog(
+                    self,
+                    _translate(
+                        "Cannot add component, experiment has no routines."),
+                    _translate("Error"),
+                    wx.OK | wx.ICON_ERROR | wx.CENTRE)
+                dlg.ShowModal()
+                dlg.Destroy()
+                return
+
             page = self.parent.frame.routinePanel.getCurrentPage()
             comp = self.component(
                 parentName=routine.name,
