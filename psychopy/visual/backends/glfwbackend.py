@@ -687,10 +687,18 @@ class GLFWBackend(BaseBackend):
             pass
 
     def setFullScr(self, value):
-        """Sets the window to/from full-screen mode"""
+        """Sets the window to/from full-screen mode.
+
+        Parameters
+        ----------
+        value : bool or int
+            If `True`, resize the window to be fullscreen.
+
+        """
+        # convert value to correct type
+        value = bool(value)
         # get monitor handle for the window
         monitor = glfw.get_window_monitor(self.winHandle)
-
         # get the video mode for the monitor
         # get monitors, with GLFW the primary display is ALWAYS at index 0
         allScrs = glfw.get_monitors()
@@ -707,15 +715,16 @@ class GLFWBackend(BaseBackend):
         nativeVidmode = glfw.get_video_mode(thisScreen)
         refreshRateHz = nativeVidmode.refresh_rate
         scrWidth, scrHeight = nativeVidmode.size
-        winWidth, winHeight = nativeVidmode.size if value else self.win.clientSize
+        winWidth, winHeight = nativeVidmode.size if value else self.win.windowedSize
 
         # set the monitor
+        # glfw.window_hint(glfw.DECORATED, glfw.FALSE)
         glfw.set_window_monitor(
             self.winHandle,
             monitor if value else None,  # if `None` windowed, else fullscreen
             0, 0,  # position keep zero and set later
-            nativeVidmode.size[0] if value else self.win.clientSize[0],
-            nativeVidmode.size[1] if value else self.win.clientSize[1],
+            nativeVidmode.size[0] if value else self.win.windowedSize[0],
+            nativeVidmode.size[1] if value else self.win.windowedSize[1],
             refreshRateHz)
 
         if not value:  # extra stuff for non-fullscreen
@@ -733,15 +742,19 @@ class GLFWBackend(BaseBackend):
                 int(self.win.pos[0] + px),
                 int(self.win.pos[1] + py))
 
-        self.win.clientSize = np.array((winWidth, winHeight), dtype=int)
-        self._frameBufferSize = np.array(
-            glfw.get_framebuffer_size(self.winHandle))
+        # get the reported client size
+        self.win.clientSize[:] = glfw.get_window_size(self.winHandle)
+        self.frameBufferSize[:] = glfw.get_framebuffer_size(self.winHandle)
         self.win.viewport = (
             0, 0,
-            self._frameBufferSize[0], self._frameBufferSize[1])
+            self._frameBufferSize[0],
+            self._frameBufferSize[1])
         self.win.scissor = (
             0, 0,
-            self._frameBufferSize[0], self._frameBufferSize[1])
+            self._frameBufferSize[0],
+            self._frameBufferSize[1])
+
+        self.win.resetEyeTransform()
 
     # --------------------------------------------------------------------------
     # Mouse button event handlers

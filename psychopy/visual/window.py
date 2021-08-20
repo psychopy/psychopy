@@ -328,6 +328,9 @@ class Window(object):
         self.autoLog = False  # to suppress log msg during init
         self.name = name
         self.clientSize = numpy.array(size, int)  # size of window, not buffer
+        # size of the window when restored (not fullscreen)
+        self._windowedSize = self.clientSize.copy()
+
         self.pos = pos
         # this will get overridden once the window is created
         self.winHandle = None
@@ -1421,6 +1424,16 @@ class Window(object):
         """Size of the framebuffer in pixels (w, h)."""
         # Dimensions should match window size unless using a retina display
         return self.backend.frameBufferSize
+
+    @property
+    def windowedSize(self):
+        """Size of the window to use when not fullscreen (w, h)."""
+        return self._windowedSize
+
+    @windowedSize.setter
+    def windowedSize(self, value):
+        """Size of the window to use when not fullscreen (w, h)."""
+        self._windowedSize[:] = value
 
     def getContentScaleFactor(self):
         """Get the scaling factor required for scaling correctly on high-DPI
