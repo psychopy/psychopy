@@ -425,17 +425,17 @@ def demo():
 
     tActual = None
     while tActual is None:
-        input = input('Specify true threshold of simulated observer: ')
+        inputStr = input('Specify true threshold of simulated observer: ')
         try:
-            tActual = float(input)
+            tActual = float(inputStr)
         except Exception:
             pass
 
     tGuess = None
     while tGuess is None:
-        input = input('Estimate threshold: ')
+        inputStr = input('Estimate threshold: ')
         try:
-            tGuess = float(input)
+            tGuess = float(inputStr)
         except Exception:
             pass
 
