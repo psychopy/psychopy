@@ -159,7 +159,7 @@ def getComponents(folder=None, fetchIcons=True):
         except ImportError:
             logging.error(
                 'Failed to load component package `{}`. Does it have a '
-                '`__init__.py`.`'.format(cmpfile))
+                '`__init__.py`?'.format(cmpfile))
             continue  # not a valid module (no __init__.py?)
             
         # check for orphaned pyc files (__file__ is not a .py file)
