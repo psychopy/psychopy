@@ -51,12 +51,8 @@ def printf(*args):
 py_time = None
 py_timer_name = None
 
-if sys.platform == 'win32':
-    py_time=time.clock
-    py_timer_name = 'time.clock'
-else:
-    py_time=time.time
-    py_timer_name = 'time.time'
+py_time=time.time
+py_timer_name = 'time.time'
 
 
 def printExceptionDetails():

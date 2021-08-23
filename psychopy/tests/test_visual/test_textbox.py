@@ -3,7 +3,7 @@ from pathlib import Path
 
 from psychopy import visual, event
 from psychopy.alerts._errorHandler import _BaseErrorHandler
-from psychopy.tests.test_all_visual.test_basevisual import _TestColorMixin
+from psychopy.tests.test_visual.test_basevisual import _TestColorMixin
 from psychopy.visual import Window
 from psychopy.visual import TextBox2
 from psychopy.visual.textbox2.fontmanager import FontManager
