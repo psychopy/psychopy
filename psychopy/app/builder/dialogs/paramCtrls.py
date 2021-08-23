@@ -23,23 +23,22 @@ from pathlib import Path
 from ..localizedStrings import _localizedDialogs as _localized
 
 
-class _ValidatorMixin():
+class _ValidatorMixin:
     def validate(self, evt=None):
-        """Redirect validate calls to global validate method, assigning appropriate valType"""
+        """Redirect validate calls to global validate method, assigning
+        appropriate `valType`.
+        """
         validate(self, self.valType)
 
     def showValid(self, valid):
         """Style input box according to valid"""
         if not hasattr(self, "SetForegroundColour"):
             return
+
         if valid:
-            self.SetForegroundColour(wx.Colour(
-                0, 0, 0
-            ))
+            self.SetForegroundColour(wx.Colour(0, 0, 0))
         else:
-            self.SetForegroundColour(wx.Colour(
-                1, 0, 0
-            ))
+            self.SetForegroundColour(wx.Colour(1, 0, 0))
 
     def updateCodeFont(self, valType):
         """Style input box according to code wanted"""
@@ -49,11 +48,19 @@ class _ValidatorMixin():
         if self.GetName() == "name":
             # Name is never code
             valType = "str"
+
+        fontNormal = self.GetTopLevelParent().app._mainFont
         if valType == "code" or hasattr(self, "dollarLbl"):
             # Set font
-            self.SetFont(self.GetTopLevelParent().app._codeFont.Bold())
+            fontBold = self.GetTopLevelParent().app._codeFont.Bold()
+            if fontBold.IsOk():
+                self.SetFont(fontBold)
+            else:
+                # use normal font if the bold version is invalid on the system
+                self.SetFont(fontNormal)
         else:
-            self.SetFont(self.GetTopLevelParent().app._mainFont)
+            self.SetFont(fontNormal)
+
 
 class _FileMixin:
     @property
