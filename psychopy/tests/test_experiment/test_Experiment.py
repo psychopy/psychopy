@@ -71,7 +71,7 @@ class TestExpt(object):
         """This setup is done for each test individually
         """
         self.here = path.abspath(path.dirname(__file__))
-        self.known_diffs_file   = path.join(self.here, 'known_py_diffs.txt')
+        self.known_diffs_file   = path.join(self.here, '../test_app/test_builder/known_py_diffs.txt')
         self.tmp_diffs_file     = path.join(self.here, 'tmp_py_diffs.txt') # not deleted by mkdtemp cleanup
 
     @classmethod

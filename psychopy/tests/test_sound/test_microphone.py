@@ -154,8 +154,8 @@ class TestMicrophoneNoSound(object):
         newFile8 = microphone.wav2flac(testFile, keep=True, level=8)
         assert os.path.getsize(newFile0) >= os.path.getsize(newFile8)
 
-        microphone.wav2flac('.', keep=True)
-        microphone.flac2wav('.', keep=True)
+        microphone.wav2flac('../test_misc', keep=True)
+        microphone.flac2wav('../test_misc', keep=True)
         microphone.wav2flac('', keep=True)
         microphone.flac2wav('', keep=True)
 
