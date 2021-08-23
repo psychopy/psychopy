@@ -52,12 +52,13 @@ class _ValidatorMixin:
         fontNormal = self.GetTopLevelParent().app._mainFont
         if valType == "code" or hasattr(self, "dollarLbl"):
             # Set font
-            fontBold = self.GetTopLevelParent().app._codeFont.Bold()
-            if fontBold.IsOk():
-                self.SetFont(fontBold)
+            fontCode = self.GetTopLevelParent().app._codeFont
+            fontCodeBold = fontCode.Bold()
+            if fontCodeBold.IsOk():
+                self.SetFont(fontCodeBold)
             else:
                 # use normal font if the bold version is invalid on the system
-                self.SetFont(fontNormal)
+                self.SetFont(fontCode)
         else:
             self.SetFont(fontNormal)
 
