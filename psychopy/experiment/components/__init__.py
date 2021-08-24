@@ -22,6 +22,7 @@ from ._base import BaseVisualComponent, BaseComponent
 from ..params import Param
 from psychopy.localization import _translate
 from psychopy.experiment import py2js
+import psychopy.logging as logging
 
 excludeComponents = ['BaseComponent', 'BaseVisualComponent', 'BaseStandaloneRoutine'  # templates only
                      ]  # this one isn't ready yet
@@ -148,7 +149,6 @@ def getComponents(folder=None, fetchIcons=True):
         # module = imp.load_source(file[:-3], fullPath)
         # v1.83.00 used exec(implicit-relative), no go for python3:
         # exec('import %s as module' % file[:-3])
-
         # importlib.import_module eases 2.7 -> 3.x migration
         if cmpfile.endswith('.py'):
             explicit_rel_path = pkg + '.' + cmpfile[:-3]
@@ -157,7 +157,11 @@ def getComponents(folder=None, fetchIcons=True):
         try:
             module = import_module(explicit_rel_path, package=pkg)
         except ImportError:
+            logging.error(
+                'Failed to load component package `{}`. Does it have a '
+                '`__init__.py`?'.format(cmpfile))
             continue  # not a valid module (no __init__.py?)
+            
         # check for orphaned pyc files (__file__ is not a .py file)
         if hasattr(module, '__file__'):
             if not module.__file__:
