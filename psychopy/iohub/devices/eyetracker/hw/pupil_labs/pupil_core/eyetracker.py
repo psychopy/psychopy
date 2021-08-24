@@ -318,15 +318,12 @@ class EyeTracker(EyeTrackerDevice):
                         # Skip surface-mapped gaze if no gaze is avalable
                         return
                     self._add_gaze_sample(
-                        surface_datum=payload,
                         gaze_on_surface_datum=gaze_on_surface,
                         gaze_datum=gaze_datum,
                         logged_time=logged_time,
                     )
 
-    def _add_gaze_sample(
-        self, surface_datum, gaze_on_surface_datum, gaze_datum, logged_time
-    ):
+    def _add_gaze_sample(self, gaze_on_surface_datum, gaze_datum, logged_time):
 
         native_time = gaze_datum["timestamp"]
         iohub_time = self._trackerTimeInPsychopyTime(native_time)
@@ -344,17 +341,20 @@ class EyeTracker(EyeTrackerDevice):
             "filter_id": False,
         }
 
-        sample = eye_sample_from_gaze_3d(
-            surface_datum, gaze_on_surface_datum, gaze_datum, metadata
-        )
-        position = gaze_position_from_gaze_3d(
-            surface_datum, gaze_on_surface_datum, gaze_datum
-        )
+        position = self._gaze_in_display_coords(gaze_on_surface_datum)
+        sample = eye_sample_from_gaze_3d(position, gaze_datum, metadata)
 
         self._addNativeEventToBuffer(sample)
 
         self._latest_sample = sample
         self._latest_gaze_position = position
+
+    def _gaze_in_display_coords(self, gaze_on_surface_datum):
+        gaze_x, gaze_y = gaze_on_surface_datum["norm_pos"]
+        width, height = self._display_device.getPixelResolution()
+        # normalized to pixel coordinates:
+        gaze_in_display_coords = int(gaze_x * width), int((1.0 - gaze_y) * height)
+        return self._eyeTrackerToDisplayCoords(gaze_in_display_coords)
 
     def _psychopyTimeInTrackerTime(self, psychopy_time):
         return psychopy_time + self._pupil_remote.psychopy_pupil_clock_offset
