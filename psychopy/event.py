@@ -11,7 +11,6 @@ See demo_mouse.py and i{demo_joystick.py} for examples
 
 # 01/2011 modified by Dave Britton to get mouse event timing
 
-from past.builtins import basestring
 import sys
 import string
 import copy
@@ -1083,7 +1082,7 @@ class _GlobalEventKeys(MutableMapping):
         return iter(self._events.keys())
 
     def _gen_index_key(self, key):
-        if isinstance(key, basestring):  # Single key, passed as a string.
+        if isinstance(key, str):  # Single key, passed as a string.
             index_key = self._IndexKey(key, ())
         else:  # Convert modifiers into a hashable type.
             index_key = self._IndexKey(key[0], tuple(key[1]))

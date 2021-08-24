@@ -3,7 +3,6 @@
 
 from builtins import map
 from builtins import range
-from past.builtins import basestring
 import sys
 import glob
 from itertools import chain
@@ -139,13 +138,13 @@ def findPhotometer(ports=None, device=None):
             print(photom.getSpectrum())
 
     """
-    if isinstance(device, basestring):
+    if isinstance(device, str):
         photometers = [getPhotometerByName(device)]
     elif isinstance(device, Iterable):
         # if we find a string assume it is a name, otherwise treat it like a
         # photometer
         photometers = [getPhotometerByName(d)
-                       if isinstance(d, basestring) else d
+                       if isinstance(d, str) else d
                        for d in device]
     else:
         photometers = getAllPhotometers()
@@ -153,7 +152,7 @@ def findPhotometer(ports=None, device=None):
     # determine candidate ports
     if ports is None:
         ports = getSerialPorts()
-    elif type(ports) in (int, float) or isinstance(ports, basestring):
+    elif type(ports) in (int, float, str):
         ports = [ports]  # so that we can iterate
 
     # go through each port in turn

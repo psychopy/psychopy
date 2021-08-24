@@ -2,7 +2,6 @@
 # Part of the PsychoPy library
 # Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
-from past.builtins import basestring
 import gc
 import sys
 
@@ -481,7 +480,7 @@ class Computer():
     @staticmethod
     def getProcessFromName(pnames, id_only=False):
         procs = []
-        if isinstance(pnames, basestring):
+        if isinstance(pnames, str):
             pnames = [pnames, ]
         for p in psutil.process_iter():
             if p.name() in pnames:

@@ -2,7 +2,7 @@
 # Part of the PsychoPy library
 # Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
-from past.builtins import basestring
+
 import numpy as np
 from collections import deque
 
@@ -150,7 +150,7 @@ class MovingWindowFilter():
         length = kwargs.get('length')
         event_type = kwargs.get('event_type')
         event_field_name = kwargs.get('event_field_name')
-        if isinstance(knot_pos, basestring):
+        if isinstance(knot_pos, str):
             if knot_pos == 'center' and length % 2 == 0:
                 raise ValueError(
                     'MovingWindow length must be odd for a centered knot_pos.')

@@ -8,10 +8,6 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-
-
-
-from past.builtins import basestring
 from pathlib import Path
 from statistics import mean
 from psychopy.colors import Color, colorSpaces
@@ -1064,7 +1060,7 @@ class TextureMixin(object):
             intensity[artifactIdx] = 0
 
         else:
-            if isinstance(tex, (basestring, Path)):
+            if isinstance(tex, (str, Path)):
                 # maybe tex is the name of a file:
                 filename = findImageFile(tex)
                 if not filename:

@@ -8,9 +8,6 @@
 """Functions and classes related to attribute handling
 """
 
-
-
-from past.builtins import basestring
 from past.utils import old_div
 import numpy
 
@@ -91,10 +88,8 @@ def setAttribute(self, attrib, value, log,
 
         # Apply operation except for the case when new or old value
         # are None or string-like
-        if (value is not None and
-                not isinstance(value, basestring) and
-                oldValue is not None and
-                not isinstance(oldValue, basestring)):
+        if (value is not None and type(value)!=str
+                and oldValue is not None and type(oldValue)!=str):
             value = numpy.array(value, float)
 
             # Calculate new value using operation

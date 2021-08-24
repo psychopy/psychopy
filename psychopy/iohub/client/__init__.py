@@ -4,7 +4,6 @@
 # Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from past.builtins import unicode
 import os
 import sys
 import time
@@ -19,7 +18,6 @@ try:
     import psychopy.logging as psycho_logging
 except ImportError:
     psycho_logging = None
-from past.builtins import basestring
 from ..lazy_import import lazy_import
 from .. import IOHUB_DIRECTORY
 from ..util import yload, yLoader
@@ -611,7 +609,7 @@ class ioHubConnection():
 
         for cond_name in self._cv_order:
             cond_val = trial[cond_name]
-            if isinstance(cond_val, basestring):
+            if isinstance(cond_val, str):
                 numpy_dtype = (cond_name, 'S', 256)
             elif isinstance(cond_val, int):
                 numpy_dtype = (cond_name, 'i8')
@@ -646,7 +644,7 @@ class ioHubConnection():
             data = list(cv_row.values())
 
         for i, d in enumerate(data):
-            if isinstance(d, unicode):
+            if isinstance(d, str):
                 data[i] = d.encode('utf-8')
 
         cvt_rpc = ('RPC', 'extendConditionVariableTable',
@@ -1282,7 +1280,7 @@ class ioHubConnection():
             if isIterable(d0):
                 return False
             else:
-                if isinstance(d0, basestring) and d0.find('ERROR') >= 0:
+                if isinstance(d0, str) and d0.find('ERROR') >= 0:
                     return data
                 return False
         else:

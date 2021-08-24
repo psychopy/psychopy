@@ -6,7 +6,6 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from builtins import range
-from past.builtins import basestring
 import os
 import re
 import ast

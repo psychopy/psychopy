@@ -7,7 +7,6 @@
 
 from builtins import range
 from builtins import super  # provides Py3-style super() using python-future
-from past.builtins import basestring
 
 from pathlib import Path
 
@@ -309,7 +308,7 @@ class KeyboardComponent(BaseComponent):
             #        "    logging.error('AllowedKeys variable `%s` is not defined.')\n"
             #        "    core.quit()\n"
             #        "if not type(%s) in [list, tuple, np.ndarray]:\n"
-            #        "    if not isinstance(%s, basestring):\n"
+            #        "    if not isinstance(%s, str):\n"
             #        "        logging.error('AllowedKeys variable `%s` is "
             #        "not string- or list-like.')\n"
             #        "        core.quit()\n" %
@@ -372,7 +371,7 @@ class KeyboardComponent(BaseComponent):
             # this means the user typed "left","right" not ["left","right"]
             if type(keyList) == tuple:
                 keyList = list(keyList)
-            elif isinstance(keyList, basestring):  # a single string/key
+            elif isinstance(keyList, str):  # a single string/key
                 keyList = [keyList]
             keyListStr = "%s" % repr(keyList)
 

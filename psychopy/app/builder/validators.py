@@ -8,7 +8,6 @@
 """Module containing validators for various parameters.
 """
 import re
-from past.builtins import basestring
 import wx
 import psychopy.experiment.utils
 from psychopy.tools import stringtools
@@ -471,7 +470,7 @@ class CodeSnippetValidator(BaseValidator):
             return '', True  # mdc - why return anything here?
 
         val = control.GetValue()  # same as parent.params[self.fieldName].val
-        if not isinstance(val, basestring):
+        if not isinstance(val, str):
             return '', True
 
         field = self.fieldName

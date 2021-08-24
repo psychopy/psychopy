@@ -23,7 +23,6 @@ There is also a legacy API which consists of the routines which are directly
 in this module. That API assumes you only ever want to use a single
 parallel port at once.
 """
-from past.builtins import basestring
 import sys
 from psychopy import logging
 
@@ -144,7 +143,7 @@ def setPortAddress(address=0x0378):
 
     global PORT
     # convert u"0x0378" into 0x0378
-    if isinstance(address, basestring) and address.startswith('0x'):
+    if isinstance(address, str) and address.startswith('0x'):
         address = int(address, 16)
 
     # This is useful with the Linux-based driver where deleting

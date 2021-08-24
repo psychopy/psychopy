@@ -7,8 +7,6 @@ Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 Distributed under the terms of the GNU General Public License (GPL).
 """
 
-from builtins import str, object, super
-from past.builtins import basestring
 from pathlib import Path
 from xml.etree.ElementTree import Element
 
@@ -24,7 +22,7 @@ from psychopy.colors import nonAlphaSpaces
 from psychopy.localization import _translate, _localized
 
 
-class BaseComponent(object):
+class BaseComponent:
     """A template for components, defining the methods to be overridden"""
     # override the categories property below
     # an attribute of the class, determines the section in the components panel
@@ -160,7 +158,7 @@ class BaseComponent(object):
         for key in self.params:
             field = self.params[key]
             if (not hasattr(field, 'val') or
-                    not isinstance(field.val, basestring)):
+                    not isinstance(field.val, str)):
                 continue  # continue == no problem, no warning
             if not (field.allowedUpdates and
                     isinstance(field.allowedUpdates, list) and
@@ -273,7 +271,7 @@ class BaseComponent(object):
         t = tCompare
         if self.params['startType'].val == 'time (s)':
             # if startVal is an empty string then set to be 0.0
-            if (isinstance(self.params['startVal'].val, basestring) and
+            if (isinstance(self.params['startVal'].val, str) and
                     not self.params['startVal'].val.strip()):
                 self.params['startVal'].val = '0.0'
             code = (f"if {params['name']}.status == NOT_STARTED and "
@@ -307,7 +305,7 @@ class BaseComponent(object):
         params = self.params
         if self.params['startType'].val == 'time (s)':
             # if startVal is an empty string then set to be 0.0
-            if (isinstance(self.params['startVal'].val, basestring) and
+            if (isinstance(self.params['startVal'].val, str) and
                     not self.params['startVal'].val.strip()):
                 self.params['startVal'].val = '0.0'
             code = (f"if (t >= {params['startVal']} "

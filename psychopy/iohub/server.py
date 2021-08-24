@@ -21,7 +21,6 @@ try:
 except ImportError:
     pass
 
-from past.builtins import basestring, unicode
 from . import IOHUB_DIRECTORY, EXP_SCRIPT_DIRECTORY, _DATA_STORE_AVAILABLE
 from .errors import print2err, printExceptionDetailsToStdErr, ioHubError
 from .net import MAX_PACKET_SIZE
@@ -70,8 +69,8 @@ class udpServer(DatagramServer):
         request = self.unpack()
         # print2err(">> Rx Packet: {}, {}".format(request, replyTo))
         request_type = request.pop(0)
-        if not isinstance(request_type, unicode):
-            request_type = unicode(request_type, 'utf-8') # convert bytes to string for compatibility
+        if not isinstance(request_type, str):
+            request_type = str(request_type, 'utf-8') # convert bytes to string for compatibility
 
         if request_type == 'SYNC_REQ':
             self.sendResponse(['SYNC_REPLY', getTime()], replyTo)
@@ -220,8 +219,8 @@ class udpServer(DatagramServer):
 
     def handleExperimentDeviceRequest(self, request, replyTo):
         request_type = request.pop(0)
-        if not isinstance(request_type, unicode):
-            request_type = unicode(request_type, 'utf-8') # convert bytes to string for compatibility
+        if not isinstance(request_type, str):
+            request_type = str(request_type, 'utf-8') # convert bytes to string for compatibility
         io_dev_dict = ioServer.deviceDict
         if request_type == 'EVENT_TX':
             exp_events = request.pop(0)
@@ -232,11 +231,11 @@ class udpServer(DatagramServer):
             return True
         elif request_type == 'DEV_RPC':
             dclass = request.pop(0)
-            if not isinstance(dclass, unicode):
-                dclass = unicode(dclass, 'utf-8')
+            if not isinstance(dclass, str):
+                dclass = str(dclass, 'utf-8')
             dmethod = request.pop(0)
-            if not isinstance(dmethod, unicode):
-                dmethod = unicode(dmethod, 'utf-8')
+            if not isinstance(dmethod, str):
+                dmethod = str(dmethod, 'utf-8')
             args = None
             kwargs = None
             if len(request) == 1:
@@ -305,8 +304,8 @@ class udpServer(DatagramServer):
 
         elif request_type == 'GET_DEV_INTERFACE':
             dclass = request.pop(0)
-            if not isinstance(dclass, unicode):
-                dclass = unicode(dclass, 'utf-8')
+            if not isinstance(dclass, str):
+                dclass = str(dclass, 'utf-8')
             data = None
             if dclass in ['EyeTracker', 'DAQ']:
                 for dname, hdevice in ioServer.deviceDict.items():
@@ -427,7 +426,7 @@ class udpServer(DatagramServer):
         if dsfile:
             output = []
             for a in numpy_dtype:
-                if isinstance(a[1], basestring):
+                if isinstance(a[1], str):
                     output.append(tuple(a))
                 else:
                     temp = [a[0], []]

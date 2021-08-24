@@ -9,7 +9,6 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from builtins import range
-from past.builtins import basestring
 from past.utils import old_div
 from .calibData import wavelength_5nm, juddVosXYZ1976_5nm, cones_SmithPokorny
 from psychopy import __version__, logging, hardware, constants
@@ -492,7 +491,7 @@ class Monitor(object):
         """
         # find the appropriate file
         # get desired calibration name if necess
-        if (isinstance(calibration, basestring) and
+        if (isinstance(calibration, str) and
                 calibration in self.calibNames):
             self.currentCalibName = calibration
         elif type(calibration) == int and calibration <= len(self.calibNames):

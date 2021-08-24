@@ -2,8 +2,6 @@
 # -*- coding: utf-8 -*-
 
 from builtins import zip
-from past.builtins import basestring
-from past.builtins import str
 from builtins import range
 
 import sys
@@ -2017,7 +2015,7 @@ class MultiStairHandler(_BaseTrialHandler):
 
         """
         self.addResponse(result, intensity)
-        if isinstance(result, basestring):
+        if isinstance(result, str):
             raise TypeError("MultiStairHandler.addData should only receive "
                             "corr / incorr. Use .addOtherData('datName',val)")
 

@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from past.builtins import basestring
 import weakref
 import pickle
 import os
@@ -507,7 +506,7 @@ class DataHandler(_ComparisonMixin, dict):
         """
         if not shape:
             shape = self.dataShape
-        if not isinstance(names, basestring):
+        if not isinstance(names, str):
             # recursively call this function until we have a string
             for thisName in names:
                 self.addDataType(thisName)

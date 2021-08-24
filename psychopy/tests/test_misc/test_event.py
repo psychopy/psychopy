@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from past.builtins import basestring
 from psychopy.visual import Window, ShapeStim
 from psychopy import event, core, monitors
 from psychopy.constants import NOT_STARTED
@@ -27,7 +26,7 @@ from psychopy.tests import skip_under_vm
 class DelayedFakeKeys(threading.Thread):
     def __init__(self, keys, modifiers=0, delay=.01):
         threading.Thread.__init__(self, None, 'fake key', None)
-        if isinstance(keys, basestring):
+        if isinstance(keys, str):
             self.keys = [keys]
         else:
             self.keys = keys
@@ -43,7 +42,7 @@ class DelayedFakeKeys(threading.Thread):
 class DelayedAddFakeKeysToBuffer(threading.Thread):
     def __init__(self, keys, modifiers=0, delay=.01):
         threading.Thread.__init__(self, None, 'fake key', None)
-        if isinstance(keys, basestring):
+        if isinstance(keys, str):
             self.keys = [keys]
         else:
             self.keys = keys

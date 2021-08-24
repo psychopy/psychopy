@@ -17,9 +17,7 @@ import weakref
 import atexit
 from itertools import product
 
-# from builtins import map
 from builtins import range
-from past.builtins import basestring
 from collections import deque
 
 from psychopy.contrib.lazy_import import lazy_import
@@ -345,7 +343,7 @@ class Window():
         # convert to a Monitor object
         if not monitor:
             self.monitor = monitors.Monitor('__blank__', autoLog=autoLog)
-        elif isinstance(monitor, basestring):
+        elif isinstance(monitor, str):
             self.monitor = monitors.Monitor(monitor, autoLog=autoLog)
         elif hasattr(monitor, 'keys'):
             # convert into a monitor object

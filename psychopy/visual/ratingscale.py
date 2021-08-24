@@ -7,11 +7,7 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-
-
-
 from builtins import range
-from past.builtins import basestring
 import sys
 import numpy
 
@@ -477,7 +473,7 @@ class RatingScale(MinimalStim):
         try:
             self.markerStart = float(markerStart)
         except Exception:
-            if (isinstance(markerStart, basestring) and
+            if (isinstance(markerStart, str) and
                     type(self.choices) == list and
                     markerStart in self.choices):
                 self.markerStart = self.choices.index(markerStart)
@@ -762,7 +758,7 @@ class RatingScale(MinimalStim):
         """
         # preparatory stuff:
         self.markerOffsetVert = 0.
-        if isinstance(marker, basestring):
+        if isinstance(marker, str):
             self.markerStyle = marker
         elif not hasattr(marker, 'draw'):
             logging.error("RatingScale: custom marker has no draw() method")
@@ -776,7 +772,7 @@ class RatingScale(MinimalStim):
                     "RatingScale: custom marker has no pos attribute")
 
         self.markerSize = 8. * self.size
-        if isinstance(markerColor, basestring):
+        if isinstance(markerColor, str):
             markerColor = markerColor.replace(' ', '')
 
         # define or create self.marker:

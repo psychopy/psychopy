@@ -2,8 +2,6 @@
 # -*- coding: utf-8 -*-
 
 from builtins import range
-from past.builtins import basestring
-from past.utils import old_div
 import os
 import sys
 import copy
@@ -137,7 +135,7 @@ class TrialHandler(_BaseTrialHandler):
             # which corresponds to a list with a single empty entry
             self.trialList = [None]
         # user has hopefully specified a filename
-        elif isinstance(trialList, basestring) and os.path.isfile(trialList):
+        elif isinstance(trialList, str) and os.path.isfile(trialList):
             # import conditions from that file
             self.trialList = importConditions(trialList)
         else:
@@ -841,7 +839,7 @@ class TrialHandler2(_BaseTrialHandler):
             self.trialList = [None]
             self.columns = []
         # user has hopefully specified a filename
-        elif isinstance(trialList, basestring) and os.path.isfile(trialList):
+        elif isinstance(trialList, str) and os.path.isfile(trialList):
             # import conditions from that file
             self.trialList, self.columns = importConditions(
                 trialList,
@@ -1314,7 +1312,7 @@ class TrialHandlerExt(TrialHandler):
             # which corresponds to a list with a single empty entry
             self.trialList = [None]
         # user has hopefully specified a filename
-        elif isinstance(trialList, basestring) and os.path.isfile(trialList):
+        elif isinstance(trialList, str) and os.path.isfile(trialList):
             # import conditions from that file
             self.trialList = importConditions(trialList)
         else:
@@ -1551,7 +1549,7 @@ class TrialHandlerExt(TrialHandler):
 
             _tw = self.trialWeights[self.thisIndex]
             dataRowThisTrial = firstRowIndex + (nThisTrialPresented - 1) % _tw
-            dataColThisTrial = int(old_div((nThisTrialPresented - 1), _tw))
+            dataColThisTrial = int((nThisTrialPresented - 1) // _tw)
 
             position = [dataRowThisTrial, dataColThisTrial]
 
@@ -1582,7 +1580,7 @@ class TrialHandlerExt(TrialHandler):
 
             _tw = self.trialWeights[self.thisIndex]
             dataRowThisTrial = firstRowIndex + nThisTrialPresented % _tw
-            dataColThisTrial = int(old_div(nThisTrialPresented, _tw))
+            dataColThisTrial = int(nThisTrialPresented // _tw)
 
             position = [dataRowThisTrial, dataColThisTrial]
 
@@ -1868,7 +1866,7 @@ class TrialHandlerExt(TrialHandler):
                             firstRowIndex = sum(self.trialWeights[:tti])
                             _tw = self.trialWeights[tti]
                             row = firstRowIndex + rep % _tw
-                            col = int(old_div(rep, _tw))
+                            col = int(rep // _tw)
                             nextEntry[prmName] = self.data[prmName][row][col]
                     else:
                         # allow a null value if this parameter wasn't

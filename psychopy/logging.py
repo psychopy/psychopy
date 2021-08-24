@@ -33,7 +33,6 @@ messages, (which PsychoPy doesn't use) using the commands::
 # stack of log entries for later writing (don't want files written while
 # drawing)
 
-from past.builtins import basestring
 from os import path
 import atexit
 import sys
@@ -163,7 +162,7 @@ class LogFile():
             self.stream = 'stdout'
         elif hasattr(f, 'write'):
             self.stream = f
-        elif isinstance(f, basestring):
+        elif isinstance(f, str):
             self.stream = codecs.open(f, filemode, encoding)
         self.level = level
         if logger is None:

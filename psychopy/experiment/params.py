@@ -17,7 +17,6 @@ The code that writes out a *_lastrun.py experiment file is (in order):
 """
 from xml.etree.ElementTree import Element
 
-from past.builtins import basestring
 import re
 from pathlib import Path
 
@@ -186,7 +185,7 @@ class Param():
             # return repr if str wanted; this neatly handles "it's" and 'He
             # says "hello"'
             val = self.val
-            if isinstance(self.val, basestring):
+            if isinstance(self.val, str):
                 valid, val = self.dollarSyntax()
                 if self.codeWanted and valid:
                     # If code is wanted, return code (translated to JS if needed)
@@ -212,7 +211,7 @@ class Param():
                     return repr(val)                              
             return repr(self.val)
         elif self.valType in ['code', 'extendedCode']:
-            isStr = isinstance(self.val, basestring)
+            isStr = isinstance(self.val, str)
             if isStr and self.val.startswith("$"):
                 # a $ in a code parameter is unnecessary so remove it
                 val = "%s" % self.val[1:]

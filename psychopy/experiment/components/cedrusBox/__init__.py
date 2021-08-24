@@ -5,7 +5,6 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from past.builtins import basestring
 from pathlib import Path
 
 from psychopy.experiment.components import Param, _translate
@@ -152,7 +151,7 @@ class cedrusButtonBoxComponent(KeyboardComponent):
                     "is not defined.')\n"
                     "    core.quit()\n" +
                     "if not type({0}) in [list, tuple, np.ndarray]:\n"
-                    "    if not isinstance({0}, basestring):\n"
+                    "    if not isinstance({0}, str):\n"
                     "        logging.error('AllowedKeys variable `{0}`"
                     " is not string- or list-like.')\n"
                     "        core.quit()\n" +
@@ -175,7 +174,7 @@ class cedrusButtonBoxComponent(KeyboardComponent):
             # this means the user typed "left","right" not ["left","right"]
             if type(keyList) == tuple:
                 keyList = list(keyList)
-            elif isinstance(keyList, basestring):  # a single string/key
+            elif isinstance(keyList, str):  # a single string/key
                 keyList = [keyList]
             keyCheckStr = "%s" % (repr(keyList))
 

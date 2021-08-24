@@ -36,8 +36,7 @@
 #  IN THE SOFTWARE.
 
 
-from past.builtins import basestring
-class PParallelDLPortIO(object):
+class PParallelDLPortIO:
     """This class provides read/write access to the parallel port on a PC.
 
     This is a wrapper around Dincer Aydin's `winioport`_ for reading and
@@ -73,7 +72,7 @@ class PParallelDLPortIO(object):
                   "parallel Ports not available")
             raise e
 
-        if isinstance(address, basestring) and address.startswith('0x'):
+        if isinstance(address, str) and address.startswith('0x'):
             # convert u"0x0378" into 0x0378
             self.base = int(address, 16)
         else:

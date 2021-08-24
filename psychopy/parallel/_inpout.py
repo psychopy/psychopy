@@ -7,8 +7,7 @@
 # using the right one later
 
 
-from past.builtins import basestring
-class PParallelInpOut(object):
+class PParallelInpOut:
     """This class provides read/write access to the parallel port on a PC
     using inpout32 or inpoutx64 (for instance for Windows 7 64-bit)
     """
@@ -28,7 +27,7 @@ class PParallelInpOut(object):
         from ctypes import windll
         import platform
 
-        if isinstance(address, basestring) and address.startswith('0x'):
+        if isinstance(address, str) and address.startswith('0x'):
             # convert u"0x0378" into 0x0378
             self.base = int(address, 16)
         else:

@@ -9,7 +9,6 @@
 
 # Author: Jeremy R. Gray, March 2012, March 2013
 
-from past.builtins import basestring
 import os
 import glob
 import threading
@@ -665,7 +664,7 @@ def getRMS(data):
         if len(data.shape) > 1:
             return np.std(data, axis=1)  # np.sqrt(np.mean(data ** 2, axis=1))
         return np.std(data)  # np.sqrt(np.mean(data ** 2))
-    if isinstance(data, basestring):
+    if isinstance(data, str):
         if not os.path.isfile(data):
             raise ValueError('getRMS: could not find file %s' % data)
         _junk, data = wavfile.read(data)

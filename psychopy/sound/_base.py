@@ -5,10 +5,6 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-
-
-
-from past.builtins import basestring
 import numpy
 import copy
 from os import path
@@ -182,7 +178,7 @@ class _SoundBase():
                 msg = 'Sound: bad requested frequency %.0f'
                 raise ValueError(msg % value)
             self._setSndFromFreq(value, secs, hamming=hamming)
-        if isinstance(value, basestring):
+        if isinstance(value, str):
             if value.capitalize() in knownNoteNames:
                 self._setSndFromNote(value.capitalize(), secs, octave,
                                      hamming=hamming)
