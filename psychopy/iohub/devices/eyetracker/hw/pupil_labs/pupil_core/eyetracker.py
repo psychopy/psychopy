@@ -19,7 +19,6 @@ from psychopy.iohub.devices.eyetracker.hw.pupil_labs.pupil_core.pupil_remote imp
 )
 from psychopy.iohub.devices.eyetracker.hw.pupil_labs.pupil_core.data_parse import (
     eye_sample_from_gaze_3d,
-    gaze_position_from_gaze_3d,
 )
 from psychopy.iohub.devices.eyetracker.hw.pupil_labs.pupil_core.bisector import (
     MutableBisector,
