@@ -83,6 +83,7 @@ class EyeTracker(EyeTrackerDevice):
         self._actively_recording = False
 
         self._surface_name = self._runtime_settings["surface_name"]
+        self._gaze_confidence_threshold = self._runtime_settings["gaze_confidence_threshold"]
 
         pupil_remote_settings = self._runtime_settings["pupil_remote"]
         self._pupil_remote_ip_address = pupil_remote_settings["ip_address"]
@@ -306,6 +307,8 @@ class EyeTracker(EyeTrackerDevice):
             if topic == self.surface_topic:
                 for gaze_on_surface in payload["gaze_on_surfaces"]:
                     if gaze_on_surface["on_surf"] is not True:
+                        continue
+                    if gaze_on_surface["confidence"] < self._gaze_confidence_threshold:
                         continue
                     gaze_topic, gaze_timestamp = gaze_on_surface["base_data"]
                     gaze_bisector = self._gaze_bisectors_by_topic[gaze_topic]

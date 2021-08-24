@@ -52,6 +52,7 @@ eyetracker.hw.pupil_labs.pupil_core.EyeTracker:
 
     runtime_settings:
         surface_name: psychopy_iohub_surface
+        gaze_confidence_threshold: 0.6
         pupil_remote:
             ip_address: 127.0.0.1
             port: 50020
