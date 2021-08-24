@@ -35,7 +35,6 @@ After importing sound, the sound lib and driver being used will be stored as::
 
 __all__ = []
 
-from past.types import basestring
 import sys
 import os
 from psychopy import logging, prefs, constants
@@ -60,7 +59,7 @@ if travisCI:
     # for sounddevice we built in some TravisCI protection but not in pyo
     prefs.hardware['audioLib'] = ['sounddevice']
 
-if isinstance(prefs.hardware['audioLib'], basestring):
+if isinstance(prefs.hardware['audioLib'], str):
     prefs.hardware['audioLib'] = [prefs.hardware['audioLib']]
 for thisLibName in prefs.hardware['audioLib']:
     try:

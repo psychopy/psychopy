@@ -76,7 +76,7 @@ def isValidVariableName(name):
     """
     if not name:
         return False, "Variables cannot be missing, None, or ''"
-    if not isinstance(name, basestring):
+    if not isinstance(name, str):
         return False, "Variables must be string-like"
     try:
         name = str(name)  # convert from unicode if possible
@@ -316,7 +316,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
             for fieldN, fieldName in enumerate(fieldNames):
                 val = trialsArr[trialN][fieldN]
 
-                if isinstance(val, basestring):
+                if isinstance(val, str):
                     if val.startswith('[') and val.endswith(']'):
                         # val = eval('%s' %unicode(val.decode('utf8')))
                         val = eval(val)
@@ -396,7 +396,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
                     # From 2.0, cells are referenced with 1-indexing: A1 == cell(row=1, column=1)
                     val = ws.cell(row=rowN + 1, column=colN + 1).value
                 # if it looks like a list or tuple, convert it
-                if (isinstance(val, basestring) and
+                if (isinstance(val, str) and
                         (val.startswith('[') and val.endswith(']') or
                                  val.startswith('(') and val.endswith(')'))):
                     val = eval(val)
@@ -404,7 +404,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
                 if isinstance(val, str):
                     val = val.replace('\\n', '\n')
                 # Convert from eu style decimals: replace , with . and try to make it a float
-                if isinstance(val, basestring):
+                if isinstance(val, str):
                     tryVal = val.replace(",", ".")
                     try:
                         val = float(tryVal)
@@ -443,7 +443,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
                       'xlsx, csv, dlm, tsv or pkl file')
 
     # if we have a selection then try to parse it
-    if isinstance(selection, basestring) and len(selection) > 0:
+    if isinstance(selection, str) and len(selection) > 0:
         selection = indicesFromString(selection)
         if not isinstance(selection, slice):
             for n in selection:
