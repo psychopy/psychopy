@@ -46,7 +46,7 @@ eyetracker.hw.pupil_labs.pupil_core.EyeTracker:
     auto_report_events: False
 
     device_timer:
-        interval: 0.5 # TODO: set to 0.005
+        interval: 0.005
 
     #####
 
