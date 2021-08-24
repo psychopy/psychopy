@@ -6,13 +6,24 @@ from collections import defaultdict
 from datetime import time
 from psychopy.iohub.constants import EventConstants, EyeTrackerConstants
 from psychopy.iohub.devices import Computer, Device
-from psychopy.iohub.devices.eyetracker import EyeTrackerDevice, MonocularEyeSampleEvent, BinocularEyeSampleEvent
+from psychopy.iohub.devices.eyetracker import (
+    EyeTrackerDevice,
+    MonocularEyeSampleEvent,
+    BinocularEyeSampleEvent,
+)
 from psychopy.iohub.devices.eyetracker.eye_events import *
 
 
-from psychopy.iohub.devices.eyetracker.hw.pupil_labs.pupil_core.pupil_remote import PupilRemote
-from psychopy.iohub.devices.eyetracker.hw.pupil_labs.pupil_core.data_parse import eye_sample_from_gaze_3d, gaze_position_from_gaze_3d
-from psychopy.iohub.devices.eyetracker.hw.pupil_labs.pupil_core.bisector import MutableBisector
+from psychopy.iohub.devices.eyetracker.hw.pupil_labs.pupil_core.pupil_remote import (
+    PupilRemote,
+)
+from psychopy.iohub.devices.eyetracker.hw.pupil_labs.pupil_core.data_parse import (
+    eye_sample_from_gaze_3d,
+    gaze_position_from_gaze_3d,
+)
+from psychopy.iohub.devices.eyetracker.hw.pupil_labs.pupil_core.bisector import (
+    MutableBisector,
+)
 
 
 class EyeTracker(EyeTrackerDevice):
@@ -289,10 +300,7 @@ class EyeTracker(EyeTrackerDevice):
         for topic, payload in self._pupil_remote.fetch():
             if topic.startswith("gaze.3d."):
                 gaze_bisector = self._gaze_bisectors_by_topic[topic]
-                gaze_bisector.insert(
-                    datum=payload,
-                    timestamp=payload["timestamp"]
-                )
+                gaze_bisector.insert(datum=payload, timestamp=payload["timestamp"])
                 # Remove gaze datums older than 3sec (200Hz)
                 if len(gaze_bisector) >= 200 * 3:
                     gaze_bisector.delete(index=0)
@@ -313,31 +321,35 @@ class EyeTracker(EyeTrackerDevice):
                         surface_datum=payload,
                         gaze_on_surface_datum=gaze_on_surface,
                         gaze_datum=gaze_datum,
-                        logged_time=logged_time
+                        logged_time=logged_time,
                     )
 
-    def _add_gaze_sample(self, surface_datum, gaze_on_surface_datum, gaze_datum, logged_time):
+    def _add_gaze_sample(
+        self, surface_datum, gaze_on_surface_datum, gaze_datum, logged_time
+    ):
 
         native_time = gaze_datum["timestamp"]
         iohub_time = self._trackerTimeInPsychopyTime(native_time)
 
         metadata = {
-            'experiment_id': 0,  # experiment_id, iohub fills in automatically
-            'session_id': 0,  # session_id, iohub fills in automatically
-            'device_id': 0,  # device_id, keep at 0
-            'event_id': Device._getNextEventID(),  # iohub event unique ID
-            'device_time': native_time,
-            'logged_time': logged_time,
-            'time': iohub_time,
-            'confidence_interval': -1.0,
-            'delay': (logged_time - iohub_time),
-            'filter_id': False,
+            "experiment_id": 0,  # experiment_id, iohub fills in automatically
+            "session_id": 0,  # session_id, iohub fills in automatically
+            "device_id": 0,  # device_id, keep at 0
+            "event_id": Device._getNextEventID(),  # iohub event unique ID
+            "device_time": native_time,
+            "logged_time": logged_time,
+            "time": iohub_time,
+            "confidence_interval": -1.0,
+            "delay": (logged_time - iohub_time),
+            "filter_id": False,
         }
 
         sample = eye_sample_from_gaze_3d(
-            surface_datum, gaze_on_surface_datum, gaze_datum, metadata)
+            surface_datum, gaze_on_surface_datum, gaze_datum, metadata
+        )
         position = gaze_position_from_gaze_3d(
-            surface_datum, gaze_on_surface_datum, gaze_datum)
+            surface_datum, gaze_on_surface_datum, gaze_datum
+        )
 
         self._addNativeEventToBuffer(sample)
 
