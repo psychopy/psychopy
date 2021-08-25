@@ -829,8 +829,8 @@ class SettingsComponent(object):
 
         code = ("# Ensure that relative paths start from the same directory "
                 "as this script\n"
-                "_thisDir = os.path.dirname(os.path.abspath(__file__))"
-                "os.chdir(_thisDir)\n\n"
+                "_thisDir = os.path.dirname(os.path.abspath(__file__))\n"
+                "os.chdir(_thisDir)\n"
                 "# Store info about the experiment session\n"
                 "psychopyVersion = '{version}'\n".format(version=version))
         buff.writeIndentedLines(code)
