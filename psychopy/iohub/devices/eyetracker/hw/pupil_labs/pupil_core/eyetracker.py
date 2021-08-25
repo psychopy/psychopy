@@ -3,25 +3,16 @@
 # Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 from collections import defaultdict
-from datetime import time
-from psychopy.iohub.constants import EventConstants, EyeTrackerConstants
+
 from psychopy.iohub.devices import Computer, Device
-from psychopy.iohub.devices.eyetracker import (
-    EyeTrackerDevice,
-    MonocularEyeSampleEvent,
-    BinocularEyeSampleEvent,
-)
-from psychopy.iohub.devices.eyetracker.eye_events import *
-
-
-from psychopy.iohub.devices.eyetracker.hw.pupil_labs.pupil_core.pupil_remote import (
-    PupilRemote,
-)
-from psychopy.iohub.devices.eyetracker.hw.pupil_labs.pupil_core.data_parse import (
-    eye_sample_from_gaze_3d,
+from psychopy.iohub.devices.eyetracker import EyeTrackerDevice
+from psychopy.iohub.devices.eyetracker.hw.pupil_labs.pupil_core import (
+    data_parse,
+    pupil_remote,
 )
 from psychopy.iohub.devices.eyetracker.hw.pupil_labs.pupil_core.bisector import (
     MutableBisector,
+    DatumNotFoundError,
 )
 
 
@@ -83,7 +74,9 @@ class EyeTracker(EyeTrackerDevice):
         self._actively_recording = False
 
         self._surface_name = self._runtime_settings["surface_name"]
-        self._gaze_confidence_threshold = self._runtime_settings["gaze_confidence_threshold"]
+        self._gaze_confidence_threshold = self._runtime_settings[
+            "gaze_confidence_threshold"
+        ]
 
         pupil_remote_settings = self._runtime_settings["pupil_remote"]
         self._pupil_remote_ip_address = pupil_remote_settings["ip_address"]
@@ -154,7 +147,7 @@ class EyeTracker(EyeTrackerDevice):
 
         """
         if enable and self._pupil_remote is None:
-            self._pupil_remote = PupilRemote(
+            self._pupil_remote = pupil_remote.PupilRemote(
                 subscription_topics=self._pupil_remote_subscriptions,
                 ip_address=self._pupil_remote_ip_address,
                 port=self._pupil_remote_port,
@@ -299,31 +292,36 @@ class EyeTracker(EyeTrackerDevice):
 
         for topic, payload in self._pupil_remote.fetch():
             if topic.startswith("gaze.3d."):
-                gaze_bisector = self._gaze_bisectors_by_topic[topic]
-                gaze_bisector.insert(datum=payload, timestamp=payload["timestamp"])
-                # Remove gaze datums older than 3sec (200Hz)
-                if len(gaze_bisector) >= 200 * 3:
-                    gaze_bisector.delete(index=0)
+                self._cache_gaze_datum(topic, payload)
             if topic == self.surface_topic:
                 for gaze_on_surface in payload["gaze_on_surfaces"]:
                     if gaze_on_surface["on_surf"] is not True:
                         continue
                     if gaze_on_surface["confidence"] < self._gaze_confidence_threshold:
                         continue
-                    gaze_topic, gaze_timestamp = gaze_on_surface["base_data"]
-                    gaze_bisector = self._gaze_bisectors_by_topic[gaze_topic]
-                    try:
-                        gaze_datum = gaze_bisector.find_datum_by_timestamp(
-                            timestamp=gaze_timestamp
-                        )
-                    except ValueError:
-                        # Skip surface-mapped gaze if no gaze is avalable
-                        return
+                    gaze_datum = self._lookup_corresponding_gaze_datum(gaze_on_surface)
+                    if gaze_datum is None:
+                        continue  # Skip surface-mapped gaze if no gaze is avalable
                     self._add_gaze_sample(
                         gaze_on_surface_datum=gaze_on_surface,
                         gaze_datum=gaze_datum,
                         logged_time=logged_time,
                     )
+
+    def _lookup_corresponding_gaze_datum(self, gaze_on_surface):
+        gaze_topic, gaze_timestamp = gaze_on_surface["base_data"]
+        gaze_bisector = self._gaze_bisectors_by_topic[gaze_topic]
+        try:
+            return gaze_bisector.find_datum_by_timestamp(timestamp=gaze_timestamp)
+        except DatumNotFoundError:
+            pass
+
+    def _cache_gaze_datum(self, topic, payload):
+        gaze_bisector = self._gaze_bisectors_by_topic[topic]
+        gaze_bisector.insert(datum=payload, timestamp=payload["timestamp"])
+        # Remove gaze datums older than 3sec (200Hz)
+        if len(gaze_bisector) >= 200 * 3:
+            gaze_bisector.delete(index=0)
 
     def _add_gaze_sample(self, gaze_on_surface_datum, gaze_datum, logged_time):
 

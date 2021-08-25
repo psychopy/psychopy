@@ -5,13 +5,18 @@
 import numpy as np
 
 
+class DatumNotFoundError(ValueError):
+    pass
+
+
 class ImmutableBisector:
     """Stores data with associated timestamps, both sorted by the timestamp."""
 
     def __init__(self, data=(), time=()):
         if len(data) != len(time):
             raise ValueError(
-                "Each element in `data` requires a corresponding timestamp in `time`")
+                "Each element in `data` requires a corresponding timestamp in `time`"
+            )
         elif not len(data):
             self._data = np.array([], dtype=object)
             self._time = np.array([])
@@ -44,12 +49,12 @@ class ImmutableBisector:
         try:
             d, t = self[found_index]
         except IndexError:
-            raise ValueError
+            raise DatumNotFoundError
 
         if t == timestamp:
             return d
         else:
-            raise ValueError
+            raise DatumNotFoundError
 
     def __getitem__(self, key):
         return self._data[key], self._time[key]
@@ -66,7 +71,6 @@ class ImmutableBisector:
 
 
 class MutableBisector(ImmutableBisector):
-
     def insert(self, datum, timestamp):
         insert_index = np.searchsorted(self._time, timestamp)
         self._data = np.insert(self._data, insert_index, datum)

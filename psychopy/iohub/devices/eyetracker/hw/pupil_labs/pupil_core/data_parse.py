@@ -3,7 +3,6 @@
 # Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 from psychopy.iohub.constants import EventConstants, EyeTrackerConstants
-from psychopy.iohub.devices import Computer, Device
 
 from psychopy.iohub.devices.eyetracker.hw.pupil_labs.pupil_core.constants import (
     EYE_ID_LEFT,
