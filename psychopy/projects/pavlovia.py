@@ -7,7 +7,6 @@
 
 """Helper functions in PsychoPy for interacting with Pavlovia.org
 """
-from future.builtins import object
 import glob
 import pathlib
 import os, time, socket
