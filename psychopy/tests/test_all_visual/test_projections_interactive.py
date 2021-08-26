@@ -1,12 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from past.utils import old_div
-import numpy as np
-import time
-import pyglet
 from pyglet.window import key
-from psychopy import core, logging, monitors, event
 from psychopy.visual import *
 from psychopy.visual.windowwarp import *
 from psychopy.visual.windowframepack import *
