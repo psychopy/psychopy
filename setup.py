@@ -15,7 +15,7 @@ from setuptools import setup, find_packages
 from setuptools.config import read_configuration
 import os
 from os.path import exists, join
-from sys import platform, argv, version_info
+from sys import platform, argv
 
 
 with open('version') as f:
