@@ -25,7 +25,7 @@ else:
     tmpApp = wx.App(False)
 from psychopy.localization import _translate
 from psychopy import (info, data, visual, gui, core, __version__,
-                      prefs, event, constants)
+                      prefs, event)
 
 # set values, using a form that poedit can discover:
 _localized = {
