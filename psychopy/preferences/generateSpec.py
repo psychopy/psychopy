@@ -5,7 +5,6 @@
 # copies & tweaks baseNoArch.spec -> write out as platform specific .spec file
 
 import os
-import sys
 
 write_mode = 'w'
 
