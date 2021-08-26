@@ -12,7 +12,6 @@ from past.builtins import unicode
 haveQt = False  # until we confirm otherwise
 importOrder = ['PyQt5', 'PyQt4']
 
-haveQt = False
 for libname in importOrder:
     try:
         exec("import {}".format(libname))
