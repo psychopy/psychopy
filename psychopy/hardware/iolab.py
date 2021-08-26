@@ -12,7 +12,6 @@
 # And iolabs.py (lowercase) did not solve it either, something is case
 # insensitive somewhere
 
-from builtins import range
 from numpy import ubyte
 from psychopy import core, event, logging
 

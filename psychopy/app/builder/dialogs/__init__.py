@@ -9,7 +9,6 @@
 """
 import sys
 
-from builtins import map
 import os
 import copy
 from collections import OrderedDict

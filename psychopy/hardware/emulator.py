@@ -11,7 +11,6 @@ you can emulate sync pulses and user responses.
 Limitations: pyglet only; keyboard events only.
 """
 
-from builtins import range
 import threading
 
 from psychopy import visual, event, core, logging

@@ -16,8 +16,6 @@ import sys
 import weakref
 import atexit
 from itertools import product
-
-from builtins import range
 from collections import deque
 
 from psychopy.contrib.lazy_import import lazy_import

@@ -2,7 +2,6 @@
 
 py.test -k polygon --cov-report term-missing --cov visual/helpers.py
 """
-from builtins import range
 from past.utils import old_div
 from psychopy import visual, monitors
 from psychopy.visual import helpers

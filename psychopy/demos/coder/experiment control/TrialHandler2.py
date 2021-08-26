@@ -5,7 +5,6 @@
 Demo of TrialHandler
 """
 
-from builtins import range
 from random import random
 from psychopy import data
 

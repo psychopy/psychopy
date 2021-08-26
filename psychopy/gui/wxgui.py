@@ -8,8 +8,6 @@
 """To build simple dialogues etc. (requires wxPython)
 """
 
-from builtins import super
-from builtins import range
 from psychopy import logging
 import wx
 import numpy

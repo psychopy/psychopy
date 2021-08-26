@@ -11,7 +11,6 @@ has u3 (and others below an umbrella called labjack) so the import
 line is slightly different to the documentation on LabJack's website
 """
 
-from builtins import range
 from psychopy import visual, core, event, sound
 try:
     from labjack import u3

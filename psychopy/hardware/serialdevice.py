@@ -8,7 +8,7 @@
 """Base class for serial devices. Includes some convenience methods to open
 ports and check for the expected device
 """
-from builtins import range
+
 import sys
 import time
 

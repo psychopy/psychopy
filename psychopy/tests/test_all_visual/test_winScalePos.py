@@ -1,5 +1,4 @@
 
-from builtins import zip
 from psychopy import visual
 from psychopy.tests import utils
 import os

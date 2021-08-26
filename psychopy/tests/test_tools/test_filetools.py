@@ -8,10 +8,8 @@ import os
 import sys
 import json
 import pickle
-import codecs
 import pytest
 
-from builtins import zip
 from tempfile import mkdtemp, mkstemp
 from psychopy.tools.filetools import (genDelimiter, genFilenameFromDelimiter,
                                       openOutputFile, fromFile)

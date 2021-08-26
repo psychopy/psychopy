@@ -7,11 +7,6 @@
 
 # set the gamma LUT using platform-specific hardware calls
 
-
-
-
-from builtins import map
-from builtins import range
 import numpy
 import sys
 import platform

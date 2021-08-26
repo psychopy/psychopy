@@ -6,7 +6,6 @@
 # directory to generate hints.py. If you don't have write-permission
 # to psychopy/preferences, the script outputs contents of hint.py to STDOUT.
 
-from builtins import range
 import re
 import sys
 from psychopy import core

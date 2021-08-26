@@ -7,7 +7,6 @@
 
 """Conditions-file preview and mini-editor for the Builder
 """
-from builtins import range
 import os
 import sys
 import pickle

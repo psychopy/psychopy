@@ -6,7 +6,6 @@ Created on Sat May 25 00:09:01 2013
 
 @author: Sol
 """
-from builtins import range
 from textwrap import TextWrapper
 import io
 import os

@@ -8,7 +8,6 @@
 from pathlib import Path
 
 from past.builtins import unicode
-from builtins import range
 import wx
 import wx.stc
 import wx.richtext

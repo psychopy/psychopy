@@ -16,7 +16,6 @@ pyxid package instead (bundled with Standalone PsychoPy)::
 ----------
 """
 
-from builtins import range
 from psychopy import core, logging
 import struct
 

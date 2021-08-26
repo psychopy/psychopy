@@ -6,8 +6,6 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from past.builtins import xrange, unicode
-from builtins import map
-from builtins import range
 
 import time
 import os

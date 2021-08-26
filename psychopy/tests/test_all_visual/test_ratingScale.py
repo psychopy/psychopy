@@ -1,5 +1,3 @@
-from builtins import map
-from builtins import range
 from past.utils import old_div
 
 from psychopy.colors import Color

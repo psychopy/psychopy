@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from builtins import range
 from past.utils import old_div
 import numpy as np
 import time

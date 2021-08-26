@@ -4,7 +4,6 @@ Created on Mon Dec 15 15:22:48 2014
 
 @author: lpzjwp
 """
-from builtins import range
 from psychopy import visual
 from psychopy.hardware import crs
 from psychopy.tests import skip_under_vm, _vmTesting

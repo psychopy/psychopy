@@ -1,4 +1,3 @@
-from builtins import range
 from psychopy import visual, event, info
 import pytest
 import numpy as np

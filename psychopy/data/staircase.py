@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from builtins import zip
-from builtins import range
-
 import sys
 import os
 import pickle

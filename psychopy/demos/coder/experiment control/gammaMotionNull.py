@@ -12,7 +12,6 @@ Instructions: on each trial press the up/down cursor keys depending on
 the apparent direction of motion of the bars.
 """
 
-from builtins import range
 from psychopy import visual, core, event, gui, data
 from psychopy.tools.filetools import fromFile, toFile
 from psychopy.visual import filters

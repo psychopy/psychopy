@@ -11,7 +11,6 @@ See http://www.photoresearch.com/
 --------
 """
 
-from builtins import range
 from psychopy import logging
 import sys
 import time

@@ -14,10 +14,6 @@ You should have received a copy of the GNU General Public License along
 with this program. If not, see http://www.gnu.org/licenses/
 """
 
-
-
-from builtins import map
-from builtins import range
 import numpy as np
 from psychopy import logging
 from OpenGL.arrays import ArrayDatatype as ADT

@@ -1,4 +1,3 @@
-from builtins import range
 import pytest
 from psychopy.visual import Window
 from psychopy.visual.windowframepack import ProjectorFramePacker

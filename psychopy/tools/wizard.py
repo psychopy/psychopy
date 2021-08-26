@@ -10,10 +10,6 @@
 
 # Author: Jeremy Gray, Oct 2012; localization 2014
 
-
-
-
-from builtins import map, str, range, object
 from pyglet.gl import gl_info
 import os
 import sys

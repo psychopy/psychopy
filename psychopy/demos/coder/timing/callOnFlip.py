@@ -13,7 +13,6 @@ arguments are the arguments exactly as you would normally use them
 (and can used ordered arguments or named, keyword args as usual).
 """
 
-from builtins import range
 from psychopy import visual, core
 import numpy
 

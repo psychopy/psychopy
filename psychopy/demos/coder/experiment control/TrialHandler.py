@@ -8,7 +8,6 @@ The contents of this file are in the public domain.
 
 """
 
-from builtins import range
 from random import random
 
 from psychopy import data
