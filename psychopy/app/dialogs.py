@@ -13,7 +13,6 @@ ListWidget:
     the user to add/remove entries. e.g. expInfo control
 """
 
-from builtins import range
 import wx
 from wx.lib.newevent import NewEvent
 
