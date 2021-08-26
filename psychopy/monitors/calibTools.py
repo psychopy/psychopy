@@ -15,21 +15,18 @@ from psychopy import __version__, logging, hardware, constants
 try:
     import serial
     haveSerial = True
-except Exception:
+except (ModuleNotFoundError, ImportError):
     haveSerial = False
 import errno
 import os
 import time
 import glob
-import pickle
 import sys
 from copy import deepcopy, copy
 
 import numpy as np
 from scipy import interpolate
 import json_tricks  # allows json to dump/load np.arrays and dates
-
-from psychopy import constants
 
 DEBUG = False
 
