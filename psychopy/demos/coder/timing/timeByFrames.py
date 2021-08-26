@@ -11,7 +11,6 @@ Shut down as many applications as possible, especially those that
 might try to update
 """
 
-from builtins import range
 from psychopy import visual, logging, core, event
 visual.useFBO = True  # if available (try without for comparison)
 
