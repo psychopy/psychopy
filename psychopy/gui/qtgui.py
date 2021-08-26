@@ -7,8 +7,6 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from past.builtins import unicode
-
 haveQt = False  # until we confirm otherwise
 importOrder = ['PyQt5', 'PyQt4']
 
@@ -197,7 +195,7 @@ class Dlg(QtWidgets.QDialog):
                 thisType = self.inputFieldTypes[name]
 
                 try:
-                    if thisType in (str, unicode, bytes):
+                    if thisType in (str, bytes):
                         self.data[ix] = str(new_text)
                     elif thisType == tuple:
                         jtext = "[" + str(new_text) + "]"
