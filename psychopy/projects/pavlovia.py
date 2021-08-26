@@ -9,12 +9,13 @@
 """
 import glob
 import pathlib
-import os, time, socket
+import os
+import time
 import subprocess
 import traceback
 from pkg_resources import parse_version
 
-from psychopy import logging, prefs, constants, exceptions
+from psychopy import logging, prefs, exceptions
 from psychopy.tools.filetools import DictStorage, KnownProjects
 from psychopy import app
 from psychopy.localization import _translate
