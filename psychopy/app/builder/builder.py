@@ -42,8 +42,6 @@ except ImportError:
 if parse_version(wx.__version__) < parse_version('4.0.3'):
     wx.NewIdRef = wx.NewId
 
-from queue import Queue, Empty
-
 from psychopy.localization import _translate
 from ... import experiment, prefs
 from .. import dialogs
