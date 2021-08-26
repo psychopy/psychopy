@@ -7,8 +7,6 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from .. import constants
-
 from past.builtins import unicode
 
 haveQt = False  # until we confirm otherwise
