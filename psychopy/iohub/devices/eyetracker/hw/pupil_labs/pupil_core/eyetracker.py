@@ -14,6 +14,7 @@ from psychopy.iohub.devices.eyetracker.hw.pupil_labs.pupil_core.bisector import 
     MutableBisector,
     DatumNotFoundError,
 )
+from psychopy.iohub.errors import print2err
 
 
 class EyeTracker(EyeTrackerDevice):
@@ -342,7 +343,8 @@ class EyeTracker(EyeTrackerDevice):
         }
 
         position = self._gaze_in_display_coords(gaze_on_surface_datum)
-        sample = eye_sample_from_gaze_3d(position, gaze_datum, metadata)
+        sample = data_parse.eye_sample_from_gaze_3d(position, gaze_datum, metadata)
+        print2err(sample)
 
         self._addNativeEventToBuffer(sample)
 
