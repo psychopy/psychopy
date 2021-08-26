@@ -42,10 +42,7 @@ except ImportError:
 if parse_version(wx.__version__) < parse_version('4.0.3'):
     wx.NewIdRef = wx.NewId
 
-try:
-    from queue import Queue, Empty
-except ImportError:
-    from Queue import Queue, Empty  # python 2.x
+from queue import Queue, Empty
 
 from psychopy.localization import _translate
 from ... import experiment, prefs
