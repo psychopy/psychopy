@@ -49,17 +49,18 @@ except ImportError:
 
 from psychopy.localization import _translate
 from ... import experiment, prefs
-from .. import dialogs, icons
-from ..themes import IconCache, ThemeMixin
+from .. import dialogs
+from ..themes import ThemeMixin
 from ..themes._themes import PsychopyDockArt, PsychopyTabArt, ThemeSwitcher
-from psychopy import logging, constants, data
+from psychopy import logging, data
 from psychopy.tools.filetools import mergeFolder
 from .dialogs import (DlgComponentProperties, DlgExperimentProperties,
-                      DlgCodeComponentProperties, DlgLoopProperties, ParamCtrls, ParamNotebook)
+                      DlgCodeComponentProperties, DlgLoopProperties,
+                      ParamNotebook)
 from ..utils import (PsychopyToolbar, PsychopyPlateBtn, WindowFrozen,
                      FileDropTarget, FrameSwitcher, updateDemosMenu)
 
-from psychopy.experiment import components, getAllStandaloneRoutines
+from psychopy.experiment import getAllStandaloneRoutines
 from psychopy.app import pavlovia_ui
 from psychopy.projects import pavlovia
 
