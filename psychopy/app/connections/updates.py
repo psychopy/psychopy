@@ -5,8 +5,6 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from past.builtins import unicode
-
 import sys
 import re
 import glob
@@ -27,7 +25,6 @@ from .. import dialogs
 from psychopy.localization import _translate
 from psychopy import logging
 from psychopy import web
-from psychopy import constants
 import io
 urllib = web.urllib
 
