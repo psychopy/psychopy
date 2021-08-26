@@ -21,7 +21,7 @@ try:
 except ImportError:
     import pickle
 
-from psychopy import logging, constants
+from psychopy import logging
 from psychopy.tools.fileerrortools import handleFileCollision
 
 
