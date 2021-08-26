@@ -12,7 +12,7 @@ ports and check for the expected device
 import sys
 import time
 
-from psychopy import logging, constants
+from psychopy import logging
 try:
     import serial
 except ImportError:
