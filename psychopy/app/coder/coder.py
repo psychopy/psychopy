@@ -7,7 +7,6 @@
 
 from pathlib import Path
 
-from past.builtins import unicode
 import wx
 import wx.stc
 import wx.richtext
@@ -289,8 +288,8 @@ class UnitTestFrame(wx.Frame):
         def write(self, inStr):
             self.MoveEnd()  # always 'append' text rather than 'writing' it
             for thisLine in inStr.splitlines(True):
-                if not isinstance(thisLine, unicode):
-                    thisLine = unicode(thisLine)
+                if not isinstance(thisLine, str):
+                    thisLine = str(thisLine)
                 if thisLine.startswith('OK'):
                     self.BeginBold()
                     self.BeginTextColour(self.good)
