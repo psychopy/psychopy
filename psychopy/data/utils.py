@@ -10,7 +10,6 @@ import re
 import ast
 import pickle
 import time
-import codecs
 import numpy as np
 import pandas as pd
 
