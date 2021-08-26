@@ -1,5 +1,4 @@
 """Tests for psychopy.data.DataHandler"""
-from builtins import range
 import os, glob
 from os.path import join as pjoin
 import shutil
