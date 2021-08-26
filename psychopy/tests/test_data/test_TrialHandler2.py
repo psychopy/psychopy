@@ -1,5 +1,6 @@
 """Tests for psychopy.data.DataHandler"""
-import os, glob
+import os
+import glob
 from os.path import join as pjoin
 import shutil
 from tempfile import mkdtemp, mkstemp
