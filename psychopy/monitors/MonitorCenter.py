@@ -15,7 +15,6 @@ import wx
 from wx import grid
 from wx.lib import intctrl
 
-from psychopy import constants
 from psychopy.localization import _translate
 from psychopy import monitors, hardware, logging
 from psychopy.app import dialogs
