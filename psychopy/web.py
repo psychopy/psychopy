@@ -86,9 +86,9 @@ def tryProxy(handler, URL=None):
     try:
         opener.open(req, timeout=2).read(5)  # open and read a few characters
         return True
-    except urllib.error.URLError as err:
-        return err
     except urllib.error.HTTPError as err:
+        return err
+    except urllib.error.URLError as err:
         return err
 
 
