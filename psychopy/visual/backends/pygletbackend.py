@@ -20,7 +20,7 @@ import numpy as np
 import psychopy
 from psychopy import core
 from psychopy.hardware import mouse
-from psychopy import logging, event, platform_specific, constants
+from psychopy import logging, event, platform_specific
 from psychopy.visual import window
 from psychopy.tools.attributetools import attributeSetter
 from psychopy.tests import _vmTesting
