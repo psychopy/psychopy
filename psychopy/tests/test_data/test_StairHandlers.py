@@ -1,6 +1,5 @@
 """Test StairHandler"""
 
-from builtins import range
 import numpy as np
 import shutil
 import json_tricks
