@@ -12,9 +12,6 @@
 
 import wx
 import wx.stc
-import sys
-from pkg_resources import parse_version
-from psychopy import logging
 from ..themes import ThemeMixin
 
 from psychopy.localization import _translate
