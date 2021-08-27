@@ -9,13 +9,9 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-
-
-
-from past.utils import old_div
 import numpy
 from numpy.fft import fft2, ifft2, fftshift, ifftshift
-from psychopy import logging
+
 try:
     from PIL import Image
 except ImportError:
