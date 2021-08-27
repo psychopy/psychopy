@@ -216,6 +216,16 @@ class pythonTransformer(ast.NodeTransformer):
             )
 
         # a = [1,2,3]
+        # a.extend([4, 5, 6]) --> a.concat([4, 5, 6])
+        if func.attr == 'extend':
+            func.attr = 'concat'
+            return ast.Call(
+                func=func,
+                args=args,
+                keywords=[]
+            )
+
+        # a = [1,2,3]
         # a.index(2) --> util.index(a,2)
         # value=Call(func=Attribute(value=Name(id='a', ctx=Load()), attr='index', ctx=Load()), args=[Num(n=2)], keywords=[])
         # value=Call(func=Attribute(value=Name(id='util', ctx=Load()), attr='index', ctx=Load()), args=[Name(id='a', ctx=Load()), Num(n=2)], keywords=[])
