@@ -30,7 +30,7 @@ There are many advantages to using PsychoPy, but here are some of the key ones
 - Automated monitor calibration (for supported photometers)
 
 A sustainable open-source model
-----------------
+--------------------------------
 `Open-source <https://en.wikipedia.org/wiki/Open_source>`_  and `Open Science <https://en.wikipedia.org/wiki/Open_science>`_ is at the heart of our community. Because PsychoPy is open source, you can download it and modify the package if you don't like it. And if you make changes that others might use then please consider giving them back to the community via the `github page <https://github.com/psychopy/psychopy>`_. PsychoPy has been written and provided to you absolutely for free and it is thanks to a large number of `dedicated contributors <https://github.com/psychopy/psychopy/graphs/contributors>`_ that is can keep getting better and better - so please do contribute!
 
 As PsychoPy grew in popularity, it became clear that developing it "as a side project" in researchers spare time was not going to be sustainable. `Pavlovia.org <https://pavlovia.org/>`_ provides a revenue to sustain ongoing development. We have been very careful with our `pricing <https://pavlovia.org/docs/store/pricing>`_ to ensure a cost that is as accessible as possible whilst still providing sufficient revenue to keep developing professional tools. The aim is that we can keep developing great research software, that is still free for most users (you can still run your study offline and share your experiment with other researchers using pavlovia for free), but now we have funding support to employ full-time `staff <https://opensciencetools.org/people.html#main>`_ to work on it!
