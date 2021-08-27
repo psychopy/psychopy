@@ -51,8 +51,8 @@ def makeGrating(res,
     """
     # to prevent the sinusoid ever being exactly at zero (for sqr wave):
     tiny = 0.0000000000001
-    ori *= (old_div(-numpy.pi, 180))
-    phase *= (old_div(numpy.pi, 180))
+    ori *= -numpy.pi / 180.
+    phase *= numpy.pi / 180.
     cyclesTwoPi = cycles * 2.0 * numpy.pi
     xrange, yrange = numpy.mgrid[0.0: cyclesTwoPi: old_div(cyclesTwoPi, res),
                                  0.0: cyclesTwoPi: old_div(cyclesTwoPi, res)]
@@ -73,12 +73,14 @@ def makeGrating(res,
         intensity = sin(xrange) * sin(yrange)
     else:
         # might be a filename of an image
-        try:
-            im = Image.open(gratType)
-        except Exception:
-            logging.error("couldn't find tex...", gratType)
-            return
-        # todo: opened it, now what?
+        # try:
+        #     im = Image.open(gratType)
+        # except Exception:
+        #     logging.error("couldn't find tex...", gratType)
+        #     return
+        # # todo: opened it, now what?
+        raise ValueError("Invalid value for parameter `gratType`.")
+
     return intensity
 
 
