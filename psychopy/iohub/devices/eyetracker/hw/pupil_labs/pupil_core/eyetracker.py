@@ -362,9 +362,10 @@ class EyeTracker(EyeTrackerDevice):
     def _trackerTimeInPsychopyTime(self, tracker_time):
         return tracker_time - self._pupil_remote.psychopy_pupil_clock_offset
 
-    def __del__(self):
+    def _close(self):
         """Do any final cleanup of the eye tracker before the object is
         destroyed."""
         self.setRecordingState(False)
         self.setConnectionState(False)
         self.__class__._INSTANCE = None
+        super()._close()
