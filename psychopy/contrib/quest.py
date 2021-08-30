@@ -31,8 +31,6 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 # DAMAGE.
 
-from builtins import zip
-from builtins import range
 __all__ = ['QuestObject']
 
 import math
