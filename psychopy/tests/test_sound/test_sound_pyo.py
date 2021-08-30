@@ -1,7 +1,5 @@
 """Test PsychoPy sound.py using pyo backend
 """
-from past.utils import old_div
-
 import pytest
 from scipy.io import wavfile
 import shutil, os
@@ -63,7 +61,7 @@ class TestPyo():
             sound.setaudioLib('foo')
 
         points = 100
-        snd = old_div(np.ones(points), 20)
+        snd = np.ones(points) / 20
 
         s = sound.Sound(self.testFile)
 
