@@ -12,7 +12,6 @@
 #
 #   Please see <http://www.gnu.org/licenses/> for a copy of the GNU General Public License.
 
-from builtins import range
 __all__ = ['PsiObject']
 
 from numpy import *
