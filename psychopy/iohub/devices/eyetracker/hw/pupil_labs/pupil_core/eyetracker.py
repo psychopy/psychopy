@@ -223,7 +223,7 @@ class EyeTracker(EyeTrackerDevice):
             self._latest_sample = None
             self._latest_gaze_position = None
 
-        return is_recording_enabled
+        return EyeTrackerDevice.enableEventReporting(self, self._actively_recording)
 
     def isRecordingEnabled(self):
         """The isRecordingEnabled method indicates if the eye tracker device is

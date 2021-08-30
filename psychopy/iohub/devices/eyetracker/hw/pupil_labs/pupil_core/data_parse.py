@@ -70,7 +70,7 @@ def _binocular_eye_sample_from_gaze_3d(
     right_pupil_measure2 = pupil_datum_right.get("diameter_3d", None)
     left_pupil_measure2 = pupil_datum_left.get("diameter_3d", None)
 
-    status = f"{pupil_datum_right['method']} --- {pupil_datum_left['method']}"
+    status = 0
 
     return [  # BinocularEyeSampleEvent
         metadata["experiment_id"],
@@ -142,7 +142,7 @@ def _monocular_eye_sample_from_gaze_3d(gaze_in_display_coords, pupil_datum, meta
     pupil_measure2_type = EyeTrackerConstants.PUPIL_DIAMETER_MM  # diameter 3d
     pupil_measure2 = pupil_datum.get("diameter_3d", None)
 
-    status = pupil_datum["method"]
+    status = 0
 
     return [  # MonocularEyeSampleEvent
         metadata["experiment_id"],
