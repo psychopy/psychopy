@@ -6,7 +6,6 @@ Created on Mon Jan 07 11:18:51 2013
 
 @author: Sol
 """
-from builtins import range
 import numpy as np
 from weakref import proxy
 from psychopy import core
