@@ -21,8 +21,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-from builtins import range
-from past.utils import old_div
 """ Python interface to the CRS 'OptiCAL' photometer.
 
     Overview
@@ -282,7 +280,7 @@ class OptiCAL(object):
         return _to_int(self._read_eeprom(2, 5))
 
     def _read_firmware_version(self):
-        return old_div(float(_to_int(self._read_eeprom(6, 7))), 100)
+        return float(_to_int(self._read_eeprom(6, 7))) / 100
 
     def _read_probe_serial_number(self):
         return int(self._read_eeprom(80, 95))
