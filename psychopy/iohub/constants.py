@@ -5,7 +5,6 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import sys
-from future.utils import iteritems
 from .errors import print2err
 
 # pylint: disable=too-many-lines
@@ -71,7 +70,7 @@ class Constants:
             (a[0] != '_') and (not callable(getattr(cls, a))))])
         cls._keys = list(cls._names.keys())
         cls._names.update(dict([(v, k)
-                                for k, v in iteritems(cls._names)]))
+                                for k, v in cls._names.items()]))
         cls._initialized = True
 
     @classmethod
