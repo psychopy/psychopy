@@ -7,10 +7,6 @@
 
 """Functions and classes related to coordinate system conversion
 """
-
-
-
-from past.utils import old_div
 import numpy
 from numpy import radians
 
@@ -70,8 +66,8 @@ def cart2sph(z, y, x):
     elevation = numpy.arctan2(z, numpy.sqrt(x**2 + y**2))
 
     # convert azimuth and elevation angles into degrees
-    azimuth *= (old_div(180.0, numpy.pi))
-    elevation *= (old_div(180.0, numpy.pi))
+    azimuth *= 180.0 / numpy.pi
+    elevation *= 180.0 / numpy.pi
 
     sphere = numpy.array([elevation, azimuth, radius])
     sphere = numpy.rollaxis(sphere, 0, 3)
