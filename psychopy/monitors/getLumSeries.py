@@ -6,7 +6,6 @@ The advantage of running as a script is that this won't interact with your
 existing namespace (e.g. avbin can load because scipy won't already have
 been loaded).
 """
-from past.utils import old_div
 from psychopy import logging
 from .calibTools import DACrange
 import numpy
@@ -51,7 +50,6 @@ def getLumSeries(lumLevels=8,
             screen (use this to see that the display is performing as
             expected).
     """
-    import psychopy.event
     import psychopy.visual
     from psychopy import core
     if photometer is None:
@@ -65,7 +63,7 @@ def getLumSeries(lumLevels=8,
         havePhotom = True
 
     if gamma == 1:
-        initRGB = 0.5**(old_div(1, 2.0)) * 2 - 1
+        initRGB = 0.5 ** (1 / 2.0) * 2 - 1
     else:
         initRGB = 0.8
     # setup screen and "stimuli"
@@ -75,6 +73,7 @@ def getLumSeries(lumLevels=8,
     if useBits == 'Bits++':
         from psychopy.hardware import crs
         bits = crs.BitsPlusPlus(myWin, gamma=[1, 1, 1])
+
     instructions = ("Point the photometer at the central bar. "
                     "Hit a key when ready (or wait 30s)")
     message = psychopy.visual.TextStim(myWin, text=instructions, height=0.1,
@@ -82,8 +81,8 @@ def getLumSeries(lumLevels=8,
     noise = numpy.random.rand(512, 512).round() * 2 - 1
     backPatch = psychopy.visual.PatchStim(myWin, tex=noise, size=2,
                                           units='norm',
-                                          sf=[old_div(winSize[0], 512.0),
-                                              old_div(winSize[1], 512.0)])
+                                          sf=[winSize[0] / 512.0,
+                                              winSize[1] / 512.0])
     testPatch = psychopy.visual.PatchStim(myWin,
                                           tex='sqr',
                                           size=stimSize,
@@ -113,7 +112,7 @@ def getLumSeries(lumLevels=8,
 
     # LS100 likes to take at least one bright measurement
     if havePhotom and photometer.type == 'LS100':
-        junk = photometer.getLum()
+        _ = photometer.getLum()  # get junk, throw it away
 
     # what are the test values of luminance
     if (type(lumLevels) is int) or (type(lumLevels) is float):
@@ -121,16 +120,18 @@ def getLumSeries(lumLevels=8,
     else:
         toTest = numpy.asarray(lumLevels)
 
+    # FIXME - this is a bit confusing here, `guns` might not be defined!
     if allGuns:
         guns = [0, 1, 2, 3]  # gun=0 is the white luminance measure
     else:
         allGuns = [0]
+
     # this will hold the measured luminance values
     lumsList = numpy.zeros((len(guns), len(toTest)), 'd')
     # for each gun, for each value run test
     for gun in guns:
         for valN, DACval in enumerate(toTest):
-            lum = old_div(DACval, 127.5) - 1  # get into range -1:1
+            lum = (DACval / 127.5) - 1  # get into range -1:1
             # only do luminanc=-1 once
             if lum == -1 and gun > 0:
                 continue
