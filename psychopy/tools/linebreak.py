@@ -7,7 +7,6 @@ Split string in accordance with UAX#14 Unicode line breaking.
 Code is based on uniseg 0.7.1 (https://pypi.org/project/uniseg/)
 """
 
-
 import sys
 import re
 from psychopy.tools.linebreak_class import linebreak_class
@@ -17,19 +16,16 @@ __all__ = [
     'break_units',
 ]
 
-if sys.version_info >= (3, 0):
-    from builtins import ord as _ord
-else:
-    from __builtin__ import ord as _ord
+from builtins import ord as _ord
+
 
 if sys.maxunicode < 0x10000:
     # narrow unicode build
     def ord(c, index=None):
-        
         if isinstance(c, str):
             return _ord(c[index or 0])
-        if not isinstance(c, unicode):
-            raise TypeError('must be unicode, not %s' % type(c).__name__)
+        # if not isinstance(c, unicode):
+        #     raise TypeError('must be unicode, not %s' % type(c).__name__)
         i = index or 0
         len_s = len(c)-i
         if len_s:
