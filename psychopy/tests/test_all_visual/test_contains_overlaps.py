@@ -2,7 +2,6 @@
 
 py.test -k polygon --cov-report term-missing --cov visual/helpers.py
 """
-from past.utils import old_div
 from psychopy import visual, monitors
 from psychopy.visual import helpers
 from numpy import sqrt, array
@@ -20,12 +19,12 @@ unitDist = 0.2
 sqrt2 = sqrt(2)
 
 points = [
-    array((0,0)),
-    array((0,unitDist)),
-    array((0,unitDist*2)),
-    array((old_div(unitDist,sqrt2),old_div(unitDist,sqrt2))),
-    array((unitDist*sqrt2,0)),
-    array((unitDist*sqrt2,unitDist*sqrt2)) ]
+    array((0, 0)),
+    array((0, unitDist)),
+    array((0, unitDist * 2)),
+    array(((unitDist / sqrt2) / (unitDist / sqrt2))),
+    array((unitDist * sqrt2, 0)),
+    array((unitDist * sqrt2, unitDist * sqrt2))]
 
 postures = [
     {'ori':  0,'size':(1.0,1.0),'pos':array((0,0))},
