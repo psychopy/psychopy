@@ -12,7 +12,6 @@
 #    Shader code for mono++ and color++ modes was based on code in Psychtoolbox
 #    (Kleiner) but does not actually use that code directly
 
-from builtins import range
 import os
 import sys
 import time

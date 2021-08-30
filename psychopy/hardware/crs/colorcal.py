@@ -12,8 +12,6 @@
 # Acknowledgements
 #    This code was written by Jon Peirce
 
-from builtins import bytes
-from builtins import range
 import sys
 try:
     import serial

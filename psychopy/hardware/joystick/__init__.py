@@ -32,7 +32,6 @@ Typical usage::
         win.flip()  # flipping implicitly updates the joystick info
 """
 
-from builtins import range
 try:
     import pygame.joystick
     havePygame = True

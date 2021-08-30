@@ -1,5 +1,3 @@
-from past.builtins import unicode
-
 import sys
 import os
 import io
@@ -12,7 +10,6 @@ if parse_version(wx.__version__) < parse_version('2.9'):
 else:
     tmpApp = wx.App(False)
 from psychopy import experiment
-from psychopy import constants
 from psychopy.experiment.components import getAllComponents
 
 # usage: generate or compare all Component.param settings & options
