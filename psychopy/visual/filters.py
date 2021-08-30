@@ -50,8 +50,9 @@ def makeGrating(res,
     ori *= -numpy.pi / 180.
     phase *= numpy.pi / 180.
     cyclesTwoPi = cycles * 2.0 * numpy.pi
-    xrange, yrange = numpy.mgrid[0.0: cyclesTwoPi: old_div(cyclesTwoPi, res),
-                                 0.0: cyclesTwoPi: old_div(cyclesTwoPi, res)]
+    xrange, yrange = numpy.mgrid[
+                     0.0:cyclesTwoPi:(cyclesTwoPi / res),
+                     0.0:cyclesTwoPi:(cyclesTwoPi / res)]
 
     sin, cos = numpy.sin, numpy.cos
     if gratType == "none":

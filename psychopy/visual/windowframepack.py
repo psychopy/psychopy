@@ -14,9 +14,6 @@ You should have received a copy of the GNU General Public License along
 with this program. If not, see http://www.gnu.org/licenses/
 """
 
-
-
-from past.utils import old_div
 import pyglet
 GL = pyglet.gl
 
@@ -60,8 +57,8 @@ class ProjectorFramePacker(object):
 
         # This part is increasingly ugly.  Add a function to set these values?
         win._monitorFrameRate = 180.0
-        win.monitorFramePeriod = old_div(1.0, win._monitorFrameRate)
-        win.refreshThreshold = (old_div(1.0, win._monitorFrameRate)) * 1.2
+        win.monitorFramePeriod = 1.0 / win._monitorFrameRate
+        win.refreshThreshold = (1.0 / win._monitorFrameRate) * 1.2
 
         # enable Blue initially, since projector output sequence is BGR
         GL.glColorMask(False, False, True, True)
