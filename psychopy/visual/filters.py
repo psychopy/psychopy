@@ -12,11 +12,6 @@
 import numpy
 from numpy.fft import fft2, ifft2, fftshift, ifftshift
 
-try:
-    from PIL import Image
-except ImportError:
-    import Image
-
 
 def makeGrating(res,
                 ori=0.0,  # in degrees
