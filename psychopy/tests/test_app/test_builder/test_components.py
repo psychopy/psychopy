@@ -1,7 +1,5 @@
 from pathlib import Path
 
-from past.builtins import unicode
-
 import os
 import io
 import pytest
