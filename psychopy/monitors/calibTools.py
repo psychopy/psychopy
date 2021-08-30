@@ -9,7 +9,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from .calibData import wavelength_5nm, juddVosXYZ1976_5nm, cones_SmithPokorny
-from psychopy import __version__, logging, hardware, constants
+from psychopy import __version__, logging, hardware
 
 try:
     import serial
