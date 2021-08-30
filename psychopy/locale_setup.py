@@ -15,7 +15,6 @@ their experiment vary by locale. If they do, it is easy enough for them to
 create multiple versions of an experiment.
 """
 
-from builtins import map
 import platform
 macVer = platform.mac_ver()[0]  # e.g., '10.9.5' or '' for non-Mac
 
