@@ -4,7 +4,6 @@
 """Completely untested. Doesn't work at all on Mac (no parallel).
 """
 
-from builtins import hex
 from . signal import _BaseVoiceKeySignal
 from . vk_tools import get_time, sleep
 
