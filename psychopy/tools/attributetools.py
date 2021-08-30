@@ -8,9 +8,7 @@
 """Functions and classes related to attribute handling
 """
 
-from past.utils import old_div
 import numpy
-
 from psychopy import logging
 
 
