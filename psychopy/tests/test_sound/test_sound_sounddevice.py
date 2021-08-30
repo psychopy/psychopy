@@ -1,7 +1,5 @@
 """Test PsychoPy sound.py using pyo backend
 """
-from past.utils import old_div
-
 import pytest
 import shutil, os
 from tempfile import mkdtemp
@@ -45,7 +43,7 @@ class TestSoundDevice():
             sound.Sound(-1)  # negative frequency makes no sense
 
         points = 100
-        snd = old_div(np.ones(points), 20)  # noqa
+        snd = np.ones(points) / 20  # noqa
 
         s = sound.Sound(self.testFile)  # noqa
 
