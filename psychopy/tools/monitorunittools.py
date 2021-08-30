@@ -567,7 +567,7 @@ class Vector(object):
         # get monitor dimensions
         dist = self.monitor.getDistance()
         if self.correctFlat:
-            #return np.degrees(np.arctan(old_div(self.cm, dist)))
+            # return np.degrees(np.arctan(self.cm / dist))
             return tuple((c*360)/(pi*dist**2) for c in self.cm)
         else:
             return tuple(arctan(c/(2*dist))*2 for c in self.cm)
