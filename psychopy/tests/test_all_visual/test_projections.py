@@ -1,11 +1,8 @@
-from past.utils import old_div
 import sys
-import pyglet
 from pyglet.window import key
-from psychopy.visual import Window, shape, TextStim, GratingStim, Circle
+from psychopy.visual import Window, TextStim, GratingStim, Circle
 from psychopy.visual.windowwarp import Warper
-from psychopy import event, core 
-from psychopy.tests import utils
+from psychopy import event
 import pytest, copy
 
 """define WindowWarp configurations, test the logic
@@ -19,7 +16,7 @@ foregroundColor = [-1, -1, -1]
 backgroundColor = [1, 1, 1]
 
 
-class ProjectionsLinesAndCircles():
+class ProjectionsLinesAndCircles:
     """
     Test jig for projection warping.
     Switch between warpings by pressing a key 'S'pherical, 'C'ylindrical, 'N'one, warp'F'ile.
@@ -34,9 +31,9 @@ class ProjectionsLinesAndCircles():
         self.stimT = TextStim(self.win, text='Null warper', units = 'pix',
                               pos=(0, -140), height=20)
 
-        self.bl = old_div(-win.size, 2.0)
+        self.bl = -win.size / 2.0
         self.tl = (self.bl[0], -self.bl[1])
-        self.tr = old_div(win.size, 2.0)
+        self.tr = win.size / 2.0
 
         self.stims = []
         self.degrees = 120
@@ -151,7 +148,7 @@ class ProjectionsLinesAndCircles():
             self.warper.changeProjection (self.warper.warp, self.warper.warpfile, self.warper.eyepoint)
             self.updateInfo()
 
-        pos = old_div((self.mouse.getPos() + 1), 2)
+        pos = (self.mouse.getPos() + 1) / 2
         leftDown = self.mouse.getPressed()[0]
         if leftDown:
             self.warper.changeProjection (self.warper.warp, self.warper.warpfile, pos)
