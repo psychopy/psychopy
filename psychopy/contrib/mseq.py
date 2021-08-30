@@ -50,9 +50,6 @@ run tests with:
 
 
 '''
-
-from builtins import map
-from builtins import range
 import sys
 import numpy
 
