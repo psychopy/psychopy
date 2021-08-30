@@ -229,7 +229,7 @@ for val in alphaSpaces:
     nonAlphaSpaces.remove(val)
 
 
-class Color(object):
+class Color:
     """A class to store colour details, knows what colour space it's in and can
     supply colours in any space.
 

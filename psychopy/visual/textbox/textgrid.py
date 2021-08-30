@@ -20,7 +20,7 @@ from . import parsedtext
 getTime = core.getTime
 
 
-class TextGrid(object):
+class TextGrid:
 
     def __init__(self, text_box, line_color=None, line_width=1,
                  font_color=(1, 1, 1, 1), shape=None,

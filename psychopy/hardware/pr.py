@@ -22,7 +22,7 @@ except ImportError:
     serial = False
 
 
-class PR650(object):
+class PR650:
     """An interface to the PR650 via the serial port.
 
     (Added in version 1.63.02)

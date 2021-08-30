@@ -77,7 +77,7 @@ if _hasSpeechRecognition:
 # Classes and functions for speech-to-text transcription
 #
 
-class TranscriptionResult(object):
+class TranscriptionResult:
     """Descriptor for returned transcription data.
 
     Fields within this class can be used to access transcribed words and other

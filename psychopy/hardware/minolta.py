@@ -21,7 +21,7 @@ except ImportError:
     serial = False
 
 
-class LS100(object):
+class LS100:
     """A class to define a Minolta LS100 (or LS110?) photometer
 
     You need to connect a LS100 to the serial (RS232) port and

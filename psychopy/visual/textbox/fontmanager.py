@@ -64,7 +64,7 @@ def nextPow2(n):
     return int(pow(2, ceil(log(n, 2))))
 
 
-class FontManager(object):
+class FontManager:
     """FontManager provides a simple API for finding and loading font files
     (.ttf) via the FreeType lib
 
@@ -348,7 +348,7 @@ class FontManager(object):
             self._available_font_info = None
 
 
-class FontInfo(object):
+class FontInfo:
 
     def __init__(self, fp, face):
         self.path = fp
@@ -376,7 +376,7 @@ class FontInfo(object):
         return d
 
 
-class MonospaceFontAtlas(object):
+class MonospaceFontAtlas:
 
     def __init__(self, font_info, size, dpi):
         self.font_info = font_info

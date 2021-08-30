@@ -225,9 +225,7 @@ class touch(dict):
         for k,v in value.items(): self[k]=v
 
 
-
-
-class BitsPlusPlus(object):
+class BitsPlusPlus:
     """The main class to control a Bits++ box.
     This is usually a class added within the window object and is
     typically accessed from there. e.g.::
@@ -5196,8 +5194,9 @@ class DisplayPlusPlusTouch(DisplayPlusPlus):
         values = self.getTouchEvents(distance, t, type)
         value = values[N]
         return value
-        
-class Config(object):
+
+
+class Config:
 
     def __init__(self, bits):
         # we need to set bits reference using weakref to avoid circular refs

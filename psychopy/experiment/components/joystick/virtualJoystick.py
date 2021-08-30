@@ -12,7 +12,7 @@
 from psychopy import event
 
 
-class VirtualJoystick(object):
+class VirtualJoystick:
     def __init__(self, device_number):
         self.device_number = device_number
         self.numberKeys = ['0','1','2','3','4','5','6','7','8','9']

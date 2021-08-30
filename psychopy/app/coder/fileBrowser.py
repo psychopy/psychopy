@@ -45,7 +45,7 @@ def convertBytes(nbytes):
         return '{:.1f} B'.format(nbytes)
 
 
-class FolderItemData(object):
+class FolderItemData:
     """Class representing a folder item in the file browser."""
     __slots__ = ['name', 'abspath', 'basename']
     def __init__(self, name, abspath, basename):
@@ -54,7 +54,7 @@ class FolderItemData(object):
         self.basename = basename
 
 
-class FileItemData(object):
+class FileItemData:
     """Class representing a file item in the file browser."""
     __slots__ = ['name', 'abspath', 'basename', 'fsize', 'mod']
     def __init__(self, name, abspath, basename, fsize, mod):

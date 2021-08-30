@@ -20,7 +20,7 @@ import numpy as np
 import sys
 
 
-class TextureAtlas(object):
+class TextureAtlas:
     '''
     Group multiple small data regions into a larger texture.
 

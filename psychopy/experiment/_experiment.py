@@ -49,7 +49,7 @@ RequiredImport = namedtuple('RequiredImport',
                                          'importAs'))
 
 
-class Experiment(object):
+class Experiment:
     """
     An experiment contains a single Flow and at least one
     Routine. The Flow controls how Routines are organised

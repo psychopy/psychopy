@@ -76,7 +76,7 @@ def getGLInfo():
     return gl_info
 
 
-class TextBox(object):
+class TextBox:
     """
     Similar to the visual.TextStim component, TextBox can be used to display
     text within a psychopy window. TextBox and TextStim each have different

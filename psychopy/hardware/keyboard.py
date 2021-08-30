@@ -336,7 +336,7 @@ class Keyboard:
             event.clearEvents(eventType)
 
 
-class KeyPress(object):
+class KeyPress:
     """Class to store key presses, as returned by `Keyboard.getKeys()`
 
     Unlike keypresses from the old event.getKeys() which returned a list of
@@ -418,7 +418,7 @@ class _KeyBuffers(dict):
         return self[kb_id]
 
 
-class _KeyBuffer(object):
+class _KeyBuffer:
     """This is our own local buffer of events with more control over clearing.
 
     The user shouldn't use this directly. It is fetched from the _keybuffers

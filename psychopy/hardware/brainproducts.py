@@ -37,7 +37,7 @@ _acquisitionStates = {
 }
 
 
-class RemoteControlServer(object):
+class RemoteControlServer:
     """
     Provides a remote-control interface to BrainProducts Recorder.
 

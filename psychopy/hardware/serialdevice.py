@@ -19,7 +19,7 @@ except ImportError:
     serial = False
 
 
-class SerialDevice(object):
+class SerialDevice:
     """A base class for serial devices, to be sub-classed by specific devices
 
     If port=None then the SerialDevice.__init__() will search for the device

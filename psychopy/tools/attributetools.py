@@ -12,7 +12,7 @@ import numpy
 from psychopy import logging
 
 
-class attributeSetter(object):
+class attributeSetter:
     """Makes functions appear as attributes. Takes care of autologging.
     """
 

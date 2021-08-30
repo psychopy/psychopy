@@ -176,7 +176,7 @@ __docformat__ = "restructuredtext en"
 import serial
 
 
-class OptiCAL(object):
+class OptiCAL:
     """ Object to access the OptiCAL """
 
     _ACK = '\x06'

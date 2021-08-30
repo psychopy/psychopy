@@ -60,7 +60,7 @@ except OSError as err:
         raise
 
 
-class Monitor(object):
+class Monitor:
     """Creates a monitor object for storing calibration details.
     This will be loaded automatically from disk if the
     monitor name is already defined (see methods).
@@ -650,7 +650,7 @@ class Monitor(object):
                                   overrideGamma=overrideGamma)
 
 
-class GammaCalculator(object):
+class GammaCalculator:
     """Class for managing gamma tables
 
     **Parameters:**

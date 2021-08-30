@@ -7,7 +7,7 @@ import pytest
 
 
 @pytest.mark.needs_qt
-class TestDlgFromDictQt(object):
+class TestDlgFromDictQt:
     def setup(self):
         self.d = dict(
             participant='000',

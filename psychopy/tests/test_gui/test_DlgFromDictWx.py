@@ -7,7 +7,7 @@ import pytest
 
 
 @pytest.mark.needs_wx
-class TestDlgFromDictWx(object):
+class TestDlgFromDictWx:
     def setup(self):
         self.d = dict(
             participant='000',

@@ -124,7 +124,7 @@ def logout():
             frame.setUser(None)
 
 
-class User(object):
+class User:
     """Class to combine what we know about the user locally and on gitlab
 
     (from previous logins and from the current session)"""

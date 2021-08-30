@@ -18,7 +18,7 @@ import pyglet
 GL = pyglet.gl
 
 
-class ProjectorFramePacker(object):
+class ProjectorFramePacker:
     """Class which packs 3 monochrome images per RGB frame.
 
     Allowing 180Hz stimuli with DLP projectors such as TI LightCrafter 4500.

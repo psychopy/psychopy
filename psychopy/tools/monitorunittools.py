@@ -269,7 +269,8 @@ def pix2deg(pixels, monitor, correctFlat=False):
     cmSize = pixels * float(scrWidthCm) / scrSizePix[0]
     return cm2deg(cmSize, monitor, correctFlat)
 
-class DummyMonitor(object):
+
+class DummyMonitor:
     def getDistance(self):
         return 50
     def getSizePix(self):
@@ -277,13 +278,15 @@ class DummyMonitor(object):
     def getWidth(self):
         return 50
 
-class DummyWin(object):
+
+class DummyWin:
     @property
     def size(self):
         return (1920, 1080, 1000)
     @property
     def useRetina(self):
         return False
+
 
 # Shorthand for common regexpressions
 _lbr = r'[\[\(]\s*'
@@ -300,7 +303,7 @@ vectorSpaces = {
     'height': re.compile(_lbr+r'('+r'\-?'+_float+r',\s*'+r')*'+r'\-?'+_float+_rbr),
 }
 
-class Vector(object):
+class Vector:
     def __init__(self, pos, units, win=None, monitor=None, correctFlat=False):
         self.set(pos, units, win, monitor, correctFlat)
         # if not isinstance(monitor, monitors.Monitor):

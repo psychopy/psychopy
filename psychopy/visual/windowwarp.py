@@ -21,7 +21,7 @@ import pyglet
 GL = pyglet.gl
 
 
-class Warper(object):
+class Warper:
     """Class to perform warps.
 
     Supports spherical, cylindrical, warpfile, or None (disabled) warps

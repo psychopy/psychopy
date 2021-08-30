@@ -39,7 +39,7 @@ BUTTON_MAP = [
     (0x10, BUTTON_TRIGGER)]
 
 
-class ButtonBox(object):
+class ButtonBox:
     """Serial line interface to the fORP MRI response box.
 
     To use this object class, select the box use setting `serialPort`,

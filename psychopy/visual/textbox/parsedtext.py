@@ -13,7 +13,7 @@ from collections import deque
 from weakref import proxy
 
 
-class ParsedTextDocument(object):
+class ParsedTextDocument:
 
     def __init__(self, text_data, text_grid):
         if os.path.isfile(text_data):
@@ -236,7 +236,7 @@ class ParsedTextDocument(object):
 import numpy
 
 
-class ParsedTextLine(object):
+class ParsedTextLine:
     charcodes_with_glyphs = None
     replacement_charcode = None
 

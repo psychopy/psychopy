@@ -57,7 +57,7 @@ def getUSB2TTL8s():
             devices.append(lhd_conf)
     return devices
 
-class USB2TTL8(object):
+class USB2TTL8:
     _sport = None
     _instance_count = 0
     def __init__(self):

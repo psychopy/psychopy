@@ -31,7 +31,7 @@ else:  # Use our contrib package if configobj is not installed or too old.
 join = os.path.join
 
 
-class Preferences(object):
+class Preferences:
     """Users can alter preferences from the dialog box in the application,
     by editing their user preferences file (which is what the dialog box does)
     or, within a script, preferences can be controlled like this::

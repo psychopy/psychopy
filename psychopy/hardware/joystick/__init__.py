@@ -71,14 +71,16 @@ def getNumJoysticks():
         pygame.joystick.init()
         return pygame.joystick.get_count()
 
+
 if havePyglet:
-    class PygletDispatcher():
+    class PygletDispatcher:
         def dispatch_events(self):
             pyglet_app.platform_event_loop.step(timeout=0.001)
 
     pyglet_dispatcher = PygletDispatcher()
 
-class Joystick(object):
+
+class Joystick:
 
     def __init__(self, id):
         """An object to control a multi-axis joystick or gamepad.

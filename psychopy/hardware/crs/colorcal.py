@@ -29,7 +29,7 @@ except ImportError:
 eol = "\n\r"  # unusual for a serial port?!
 
 
-class ColorCAL(object):
+class ColorCAL:
     """A class to handle the CRS Ltd ColorCAL device
     """
 

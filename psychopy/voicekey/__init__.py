@@ -43,7 +43,7 @@ class VoiceKeyException(Exception):
     pass
 
 
-class _BaseVoiceKey(object):
+class _BaseVoiceKey:
     """Abstract base class for virtual voice-keys.
 
     Accepts data as real-time input (from a microphone by default) or off-line

@@ -327,7 +327,7 @@ class TrialHandler():
         return self.params['name'].val
 
 
-class StairHandler(object):
+class StairHandler:
     """A staircase experimental control object.
     """
 
@@ -473,7 +473,7 @@ class StairHandler(object):
         return 'StairHandler'
 
 
-class MultiStairHandler(object):
+class MultiStairHandler:
     """To handle multiple interleaved staircases
     """
 
@@ -720,7 +720,7 @@ class MultiStairHandler(object):
         pass
 
 
-class LoopInitiator(object):
+class LoopInitiator:
     """A simple class for inserting into the flow.
     This is created automatically when the loop is created"""
 
@@ -778,7 +778,7 @@ class LoopInitiator(object):
         pass
 
 
-class LoopTerminator(object):
+class LoopTerminator:
     """A simple class for inserting into the flow.
     This is created automatically when the loop is created"""
 
