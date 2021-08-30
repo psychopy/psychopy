@@ -69,8 +69,6 @@ from command line:
 %POSSIBILITY OF SUCH DAMAGE.
 """
 
-from builtins import map
-from builtins import range
 import numpy
 import sys
 import time
