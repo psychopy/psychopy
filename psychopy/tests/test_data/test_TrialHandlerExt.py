@@ -4,7 +4,6 @@ So far, just copies tests for TrialHandler, no further test of weights etc.
 Maybe not worth doing if TrialHandler2 is going to have weights eventually.
 """
 
-from builtins import range
 import os, glob
 from os.path import join as pjoin
 import shutil
