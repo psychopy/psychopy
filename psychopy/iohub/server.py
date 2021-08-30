@@ -3,8 +3,6 @@
 # Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from past.builtins import xrange
-
 import os
 import sys
 from operator import itemgetter
@@ -358,7 +356,7 @@ class udpServer(DatagramServer):
                 mpr_payload = ('IOHUB_MULTIPACKET_RESPONSE', pkt_cnt)
                 self.sendResponse(mpr_payload, address)
                 gevent.sleep(0.0001)
-                for p in xrange(pkt_cnt - 1):
+                for p in range(pkt_cnt - 1):
                     si = p*max_pkt_sz
                     self.socket.sendto(reply_data[si:si+max_pkt_sz], address)
                     # macOS hangs if we do not sleep gevent between each msg packet
