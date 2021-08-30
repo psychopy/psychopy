@@ -14,7 +14,7 @@ import numpy as np
 from .computer import Computer
 from ..errors import print2err, printExceptionDetailsToStdErr
 from ..util import convertCamelToSnake
-from future.utils import with_metaclass
+
 
 class ioDeviceError(Exception):
 
@@ -72,7 +72,7 @@ class ioObjectMetaClass(type):
         return parent
 
 
-class ioObject(with_metaclass(ioObjectMetaClass, object)):
+class ioObject(metaclass=ioObjectMetaClass):
     """The ioObject class is the base class for all ioHub Device and
     DeviceEvent classes.
 
