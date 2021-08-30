@@ -1,8 +1,7 @@
-from past.utils import old_div
 import pytest
 import shutil, os, glob
 from tempfile import mkdtemp
-from os.path import abspath, dirname, join
+from os.path import join
 from psychopy import microphone
 from psychopy.microphone import _getFlacPath
 from psychopy import core
@@ -14,19 +13,20 @@ from psychopy.tests import skip_under_vm
 # flac2wav will delete the .flac file unless given keep=True
 # Speech2Text can overwrite and then delete .flac if given a .wav of the same name
 
-from psychopy.tests.utils import TESTS_PATH, TESTS_DATA_PATH
+from psychopy.tests.utils import TESTS_DATA_PATH
 
 @pytest.mark.needs_sound
 @pytest.mark.microphone
 @pytest.mark.slow
 @skip_under_vm
-class TestMicrophone():
+class TestMicrophone:
     @classmethod
     def setup_class(self):
         global sound
         from psychopy import sound
         microphone.switchOn(48000)
         self.tmp = mkdtemp(prefix='psychopy-tests-microphone')
+
     @classmethod
     def teardown_class(self):
         if hasattr(self, 'tmp'):
@@ -73,7 +73,7 @@ class TestMicrophone():
 
         old_size = os.path.getsize(mic.savedFile)
         new_file = mic.resample(keep=False)
-        assert old_div(old_size, 3.1) < os.path.getsize(new_file) < old_div(old_size, 2.9)
+        assert (old_size / 3.1) < os.path.getsize(new_file) < (old_size / 2.9)
         mic.getLoudness()
 
         mic.playback()
