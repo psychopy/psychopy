@@ -405,7 +405,7 @@ class NumPyRingBuffer():
 
         ring_buffer=NumPyRingBuffer(10)
 
-        for i in xrange(25):
+        for i in range(25):
             ring_buffer.append(i)
             print('-------')
             print('Ring Buffer Stats:')
