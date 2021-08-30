@@ -5,9 +5,6 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from past.utils import old_div
-import sys
-import time
 from psychopy import logging
 try:
     import ctypes
