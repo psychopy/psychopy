@@ -94,7 +94,7 @@ packages = ['wx', 'psychopy',
             'psychopy_ext', 'pyfilesec',
             'bidi', 'arabic_reshaper',  # for right-left language conversions
             # for Py3 compatibility
-            'future', 'past', 'lib2to3',
+            'lib2to3',
             'json_tricks',  # allows saving arrays/dates in json
             'git', 'gitlab',
             'astunparse', 'esprima',  # for translating/adapting py/JS
