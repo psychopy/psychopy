@@ -336,9 +336,9 @@ class OptiCAL(object):
     def read_luminance(self):
         """ the luminance in cd/m**2 """
         ADC_adjust = self._read_adc()
-        numerator = (old_div(float(ADC_adjust), 524288)) * self._V_ref * 1.e-6
+        numerator = (float(ADC_adjust) / 524288) * self._V_ref * 1.e-6
         denominator = self._R_feed * self._K_cal * 1.e-15
-        return max(0.0, old_div(numerator, denominator))
+        return max(0.0, numerator / denominator)
 
 
 def _to_int(byte_string):
