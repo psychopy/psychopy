@@ -45,8 +45,6 @@ to inherit from them).
 
 """
 
-from past.builtins import unicode
-
 
 class BzrError(Exception):
     """Base class for errors raised by bzrlib.
@@ -120,8 +118,8 @@ class BzrError(Exception):
         u = self._format()
         if isinstance(u, bytes):
             # Try decoding the str using the default encoding.
-            u = unicode(u)
-        elif not isinstance(u, unicode):
+            u = str(u)
+        elif not isinstance(u, str):
             # Try to make a unicode object from it, because __unicode__ must
             # return a unicode object.
             u = u'{}'.format(u)
@@ -129,7 +127,7 @@ class BzrError(Exception):
 
     def __str__(self):
         s = self._format()
-        if isinstance(s, unicode):
+        if isinstance(s, str):
             s = s.encode('utf8')
         else:
             # __str__ must return a str.
@@ -146,7 +144,7 @@ class BzrError(Exception):
             #from bzrlib.i18n import gettext
             def gettext(t):
                 return t
-            return gettext(unicode(fmt))  # _fmt strings should be ascii
+            return gettext(str(fmt))  # _fmt strings should be ascii
 
     def __eq__(self, other):
         if self.__class__ is not other.__class__:
