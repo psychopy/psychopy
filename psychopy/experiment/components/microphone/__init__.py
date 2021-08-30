@@ -6,9 +6,6 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 # Author: Jeremy R. Gray, 2012
-
-from builtins import super  # provides Py3-style super() using python-future
-
 from pathlib import Path
 
 from psychopy.alerts import alert
