@@ -8,17 +8,15 @@
 """Functions and classes related to array handling
 """
 
+__all__ = [
+    "createXYs",
+    "extendArr",
+    "makeRadialMatrix",
+    "ratioRange",
+    "shuffleArray",
+    "val2array",
+    "array2pointer"]
 
-
-__all__ = ["createXYs",
-           "extendArr",
-           "makeRadialMatrix",
-           "ratioRange",
-           "shuffleArray",
-           "val2array",
-           "array2pointer"]
-
-from past.utils import old_div
 import numpy
 import ctypes
 
