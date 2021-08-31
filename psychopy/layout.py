@@ -17,21 +17,20 @@ unitTypes = [
 
 
 class Vector(object):
-    def __init__(self, value, units, win, correctFlat=False):
+    def __init__(self, value, units, win):
         # Create a dict to cache values on access
         self._cache = {}
         # Assume invalid until validation happens
         self.valid = False
 
-        self.set(value, units, win, correctFlat)
+        self.set(value, units, win)
 
-    def set(self, value, units, win=None, correctFlat=False):
+    def set(self, value, units, win=None):
         # Check inputs
         if win is None:
             win = self.win
         # Set extras
         self.win = win
-        self.correctFlat = correctFlat
         # If input is a Vector object, duplicate all settings
         if isinstance(value, Vector):
             self._requested = value._requested
@@ -79,7 +78,7 @@ class Vector(object):
 
         # Replace None with the matching window dimension
         if (value == None).any():
-            win = Vector((1, 1), units="norm", win=self.win, correctFlat=self.correctFlat)
+            win = Vector((1, 1), units="norm", win=self.win)
             value[value[:, 1] == None, 1] = getattr(win, units)[1]
             value[value[:, 0] == None, 0] = getattr(win, units)[10]
 
@@ -164,7 +163,7 @@ class Vector(object):
 
     def copy(self):
         """Create a copy of this object"""
-        return self.__class__(self._requested, self._requestedUnits, self.win, self.correctFlat)
+        return self.__class__(self._requested, self._requestedUnits, self.win)
 
     @property
     def monitor(self):
@@ -227,6 +226,8 @@ class Vector(object):
         # Return cached value if present
         if 'pix' in self._cache:
             return self._cache['pix']
+        else:
+            raise AttributeError(f"Could not retrieve pixel value of Vector object set in {self._requestedUnits}")
 
     @pix.setter
     def pix(self, value):
@@ -246,7 +247,7 @@ class Vector(object):
         if 'deg' in self._cache:
             return self._cache['deg']
         # Otherwise, do conversion and cache
-        self._cache['deg'] = tools.pix2deg(self.pix, self.monitor, self.correctFlat)
+        self._cache['deg'] = tools.pix2deg(self.pix, self.monitor)
         # Return new cached value
         return self._cache['deg']
 
@@ -255,7 +256,47 @@ class Vector(object):
         # Validate
         value, units = self.validate(value, 'deg')
         # Convert and set
-        self.pix = tools.deg2pix(value, self.monitor, self.correctFlat)
+        self.pix = tools.deg2pix(value, self.monitor)
+
+    @property
+    def degFlat(self):
+        """
+
+        """
+        # Return cached value if present
+        if 'degFlat' in self._cache:
+            return self._cache['degFlat']
+        # Otherwise, do conversion and cache
+        self._cache['degFlat'] = tools.pix2deg(self.pix, self.monitor, correctFlat=True)
+        # Return new cached value
+        return self._cache['degFlat']
+
+    @degFlat.setter
+    def degFlat(self, value):
+        # Validate
+        value, units = self.validate(value, 'degFlat')
+        # Convert and set
+        self.pix = tools.deg2pix(value, self.monitor, correctFlat=True)
+
+    @property
+    def degFlatPos(self):
+        """
+
+        """
+        # Return cached value if present
+        if 'degFlatPos' in self._cache:
+            return self._cache['degFlatPos']
+        # Otherwise, do conversion and cache
+        self._cache['degFlatPos'] = self.degFlat
+        # Return new cached value
+        return self._cache['degFlatPos']
+
+    @degFlatPos.setter
+    def degFlatPos(self, value):
+        # Validate
+        value, units = self.validate(value, 'degFlatPos')
+        # Convert and set
+        self.degFlat = value
 
     @property
     def cm(self):
@@ -331,13 +372,13 @@ class Vector(object):
 
 
 class Position(Vector):
-    def __init__(self, value, units, win=None, correctFlat=False):
-        Vector.__init__(self, value, units, win, correctFlat)
+    def __init__(self, value, units, win=None):
+        Vector.__init__(self, value, units, win)
 
 
 class Size(Vector):
-    def __init__(self, value, units, win=None, correctFlat=False):
-        Vector.__init__(self, value, units, win, correctFlat)
+    def __init__(self, value, units, win=None):
+        Vector.__init__(self, value, units, win)
 
 
 class Vertices(object):
