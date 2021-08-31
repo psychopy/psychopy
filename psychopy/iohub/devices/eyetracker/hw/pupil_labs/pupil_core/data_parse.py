@@ -43,6 +43,10 @@ def eye_sample_from_gaze_3d(gaze_in_display_coords, gaze_datum, metadata):
         return None
 
 
+def eye_sample_from_pupil(pupil_datum, metadata):
+    return _monocular_eye_sample_from_pupil(pupil_datum=pupil_datum, metadata=metadata)
+
+
 def _binocular_eye_sample_from_gaze_3d(
     gaze_in_display_coords, pupil_datum_right, pupil_datum_left, metadata
 ):
@@ -165,6 +169,63 @@ def _monocular_eye_sample_from_gaze_3d(gaze_in_display_coords, pupil_datum, meta
         gaze_x,
         gaze_y,
         gaze_z,
+        eye_cam_x,
+        eye_cam_y,
+        eye_cam_z,
+        angle_x,
+        angle_y,
+        raw_x,
+        raw_y,
+        pupil_measure1,
+        pupil_measure1_type,
+        pupil_measure2,
+        pupil_measure2_type,
+        EyeTrackerConstants.UNDEFINED,  # ppd_x
+        EyeTrackerConstants.UNDEFINED,  # ppd_y
+        EyeTrackerConstants.UNDEFINED,  # velocity_x
+        EyeTrackerConstants.UNDEFINED,  # velocity_y
+        EyeTrackerConstants.UNDEFINED,  # velocity_xy
+        status,
+    ]
+
+
+def _monocular_eye_sample_from_pupil(pupil_datum, metadata):
+    raw_x, raw_y = pupil_datum["norm_pos"]
+    pupil_measure1_type = EyeTrackerConstants.PUPIL_MAJOR_AXIS  # diameter 2d
+    pupil_measure1 = pupil_datum["diameter"]
+    pupil_measure2_type = EyeTrackerConstants.PUPIL_DIAMETER_MM  # diameter 3d
+
+    try:
+        eye_cam_x, eye_cam_y, eye_cam_z = pupil_datum["sphere"]["center"]
+        angle_x, angle_y = pupil_datum["phi"], pupil_datum["theta"]
+        pupil_measure2 = pupil_datum["diameter_3d"]
+    except KeyError:
+        eye_cam_x = eye_cam_y = eye_cam_z = float("nan")
+        angle_x = angle_y = float("nan")
+        pupil_measure2 = EyeTrackerConstants.UNDEFINED
+
+    status = 0
+    eye = {
+        EYE_ID_RIGHT: EyeTrackerConstants.RIGHT_EYE,
+        EYE_ID_LEFT: EyeTrackerConstants.LEFT_EYE,
+    }[pupil_datum["id"]]
+
+    return [  # MonocularEyeSampleEvent
+        metadata["experiment_id"],
+        metadata["session_id"],
+        metadata["device_id"],
+        metadata["event_id"],
+        EventConstants.MONOCULAR_EYE_SAMPLE,  # type
+        metadata["device_time"],
+        metadata["logged_time"],
+        metadata["time"],
+        metadata["confidence_interval"],
+        metadata["delay"],
+        metadata["filter_id"],
+        eye,
+        float("nan"),  # gaze_x
+        float("nan"),  # gaze_y
+        float("nan"),  # gaze_z
         eye_cam_x,
         eye_cam_y,
         eye_cam_z,

@@ -82,7 +82,10 @@ class EyeTracker(EyeTrackerDevice):
         self._pupil_remote_ip_address = pupil_remote_settings["ip_address"]
         self._pupil_remote_port = pupil_remote_settings["port"]
         self._pupil_remote_timeout_ms = pupil_remote_settings["timeout_ms"]
-        self._pupil_remote_subscriptions = ["gaze.3d.", self.surface_topic]
+        if self._runtime_settings["pupillometry_only"]:
+            self._pupil_remote_subscriptions = ["pupil"]
+        else:
+            self._pupil_remote_subscriptions = ["gaze.3d.", self.surface_topic]
 
         capture_recording_settings = self._runtime_settings["pupil_capture_recording"]
         self._capture_recording_enabled = capture_recording_settings["enabled"]
@@ -307,6 +310,8 @@ class EyeTracker(EyeTrackerDevice):
                         gaze_datum=gaze_datum,
                         logged_time=logged_time,
                     )
+            if topic.startswith("pupil"):
+                self._add_pupil_sample(pupil_datum=payload, logged_time=logged_time)
 
     def _lookup_corresponding_gaze_datum(self, gaze_on_surface):
         gaze_topic, gaze_timestamp = gaze_on_surface["base_data"]
@@ -348,6 +353,29 @@ class EyeTracker(EyeTrackerDevice):
 
         self._latest_sample = sample
         self._latest_gaze_position = position
+
+    def _add_pupil_sample(self, pupil_datum, logged_time):
+        native_time = pupil_datum["timestamp"]
+        iohub_time = self._trackerTimeInPsychopyTime(native_time)
+
+        metadata = {
+            "experiment_id": 0,  # experiment_id, iohub fills in automatically
+            "session_id": 0,  # session_id, iohub fills in automatically
+            "device_id": 0,  # device_id, keep at 0
+            "event_id": Device._getNextEventID(),  # iohub event unique ID
+            "device_time": native_time,
+            "logged_time": logged_time,
+            "time": iohub_time,
+            "confidence_interval": -1.0,
+            "delay": (logged_time - iohub_time),
+            "filter_id": False,
+        }
+
+        sample = data_parse.eye_sample_from_pupil(pupil_datum, metadata)
+
+        self._addNativeEventToBuffer(sample)
+
+        self._latest_sample = sample
 
     def _gaze_in_display_coords(self, gaze_on_surface_datum):
         gaze_x, gaze_y = gaze_on_surface_datum["norm_pos"]
