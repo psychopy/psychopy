@@ -479,8 +479,6 @@ class Vertices(object):
         if self.pos is None:
             raise ValueError("Cannot not calculate absolute positions of vertices without a pos attribute")
         verts += getattr(self.pos, units)
-        # Apply flip
-        verts *= self._flip
 
         return verts
 
