@@ -143,6 +143,11 @@ def _monocular_eye_sample_from_gaze_3d(gaze_in_display_coords, pupil_datum, meta
     pupil_measure2 = pupil_datum.get("diameter_3d", None)
 
     status = 0
+    status = 0
+    eye = {
+        EYE_ID_RIGHT: EyeTrackerConstants.RIGHT_EYE,
+        EYE_ID_LEFT: EyeTrackerConstants.LEFT_EYE,
+    }[pupil_datum["id"]]
 
     return [  # MonocularEyeSampleEvent
         metadata["experiment_id"],
@@ -156,6 +161,7 @@ def _monocular_eye_sample_from_gaze_3d(gaze_in_display_coords, pupil_datum, meta
         metadata["confidence_interval"],
         metadata["delay"],
         metadata["filter_id"],
+        eye,
         gaze_x,
         gaze_y,
         gaze_z,
