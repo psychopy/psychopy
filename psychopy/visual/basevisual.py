@@ -753,15 +753,18 @@ class ContainerMixin(object):
         """Sets Stim.verticesPix and ._borderPix from pos, size, ori,
         flipVert, flipHoriz
         """
-        if hasattr(self, '_tesselVertices'):  # Shapes need to render from this
-            verts = self._tesselVertices
-        else:
-            verts = self.vertices
 
-        verts = numpy.dot(verts, self._rotationMatrix)
+        verts = numpy.dot(self.vertices, self._rotationMatrix)
         # Convert to a vertices object if not already
         verts = Vertices(verts, obj=self, flip=self.flip).pix
         self.__dict__['verticesPix'] = self.__dict__['_borderPix'] = verts
+
+        if hasattr(self, '_tesselVertices'):  # Shapes need to render from this
+            tesselVerts = self._tesselVertices
+            tesselVerts = numpy.dot(tesselVerts, self._rotationMatrix)
+            # Convert to a vertices object if not already
+            tesselVerts = Vertices(tesselVerts, obj=self, flip=self.flip).pix
+            self.__dict__['verticesPix'] = tesselVerts
 
         self._needVertexUpdate = False
         self._needUpdate = True  # but we presumably need to update the list
