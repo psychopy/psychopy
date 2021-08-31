@@ -576,7 +576,7 @@ class _baseVisualTest(object):
     def test_radial(self):
         win = self.win
         #using init
-        wedge = visual.RadialStim(win, tex='sqrXsqr', color=1, size=2,
+        wedge = visual.RadialStim(win, tex='sqrXsqr', color=1, size=2* self.scaleFactor,
             visibleWedge=[0, 45], radialCycles=2, angularCycles=2, interpolate=False)
         wedge.draw()
         thresh = 15  # there are often a slight interpolation differences
