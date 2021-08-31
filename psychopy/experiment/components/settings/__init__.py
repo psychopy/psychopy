@@ -123,6 +123,14 @@ class SettingsComponent(object):
                  elTrackingMode='PUPIL_CR_TRACKING', elPupilMeasure='PUPIL_AREA', elPupilAlgorithm='ELLIPSE_FIT',
                  elAddress='100.1.1.1',
                  tbModel="", tbLicenseFile="", tbSerialNo="", tbSampleRate=60,
+                 plPupillometryOnly=False,
+                 plSurfaceName="psychopy_iohub_surface",
+                 plGazeConfidenceThreshold=0.6,
+                 plPupilRemoteAddress="127.0.0.1",
+                 plPupilRemotePort=50020,
+                 plPupilRemoteTimeoutMs=1000,
+                 plPupilCaptureRecordingEnabled=True,
+                 plPupilCaptureRecordingLocation="",
                  filename=None, exportHTML='on Sync'):
         self.type = 'Settings'
         self.exp = exp  # so we can access the experiment if necess
@@ -349,6 +357,9 @@ class SettingsComponent(object):
                                 "elDataFiltering", "elTrackingMode", "elPupilMeasure", "elPupilAlgorithm",
                                 "elAddress"],
             "Tobii Technology": ["tbModel", "tbLicenseFile", "tbSerialNo", "tbSampleRate"],
+            "Pupil Labs": ["plPupillometryOnly", "plSurfaceName", "plGazeConfidenceThreshold",
+                           "plPupilRemoteAddress", "plPupilRemotePort", "plPupilRemoteTimeoutMs",
+                           "plPupilCaptureRecordingEnabled", "plPupilCaptureRecordingLocation"],
         }
         for tracker in trackerParams:
             for depParam in trackerParams[tracker]:
@@ -505,6 +516,49 @@ class SettingsComponent(object):
             tbSampleRate, valType='num', inputType="single",
             hint=_translate("Eye tracker sampling rate."),
             label=_translate("Sampling Rate"), categ="Eyetracking"
+        )
+
+        # pupil labs
+        self.params['plPupillometryOnly'] = Param(
+            plPupillometryOnly, valType='bool', inputType="bool",
+            hint=_translate("Subscribe to pupil data only, does not require calibration or surface setup"),
+            label=_translate("Pupillometry Only"),
+            categ="Eyetracking"
+        )
+        self.params['plSurfaceName'] = Param(
+            plSurfaceName, valType='str', inputType="single",
+            hint=_translate("Name of the Pupil Capture surface"),
+            label=_translate("Surface Name"), categ="Eyetracking"
+        )
+        self.params['plGazeConfidenceThreshold'] = Param(
+            plGazeConfidenceThreshold, valType='num', inputType="single",
+            hint=_translate("Gaze Confidence Threshold"),
+            label=_translate("Gaze Confidence Threshold"), categ="Eyetracking"
+        )
+        self.params['plPupilRemoteAddress'] = Param(
+            plPupilRemoteAddress, valType='str', inputType="single",
+            hint=_translate("Pupil Remote Address"),
+            label=_translate("Pupil Remote Address"), categ="Eyetracking"
+        )
+        self.params['plPupilRemotePort'] = Param(
+            plPupilRemotePort, valType='num', inputType="single",
+            hint=_translate("Pupil Remote Port"),
+            label=_translate("Pupil Remote Port"), categ="Eyetracking"
+        )
+        self.params['plPupilRemoteTimeoutMs'] = Param(
+            plPupilRemoteTimeoutMs, valType='num', inputType="single",
+            hint=_translate("Pupil Remote Timeout (ms)"),
+            label=_translate("Pupil Remote Timeout (ms)"), categ="Eyetracking"
+        )
+        self.params['plPupilCaptureRecordingEnabled'] = Param(
+            plPupilCaptureRecordingEnabled, valType='bool', inputType="bool",
+            hint=_translate("Pupil Capture Recording Enabled"),
+            label=_translate("Pupil Capture Recording Enabled"), categ="Eyetracking"
+        )
+        self.params['plPupilCaptureRecordingLocation'] = Param(
+            plPupilCaptureRecordingLocation, valType='str', inputType="single",
+            hint=_translate("Pupil Capture Recording Location"),
+            label=_translate("Pupil Capture Recording Location"), categ="Eyetracking"
         )
 
     @property
@@ -1074,6 +1128,72 @@ class SettingsComponent(object):
                     "}\n"
                 )
                 buff.writeIndentedLines(code % inits)
+                buff.setIndentLevel(-1, relative=True)
+                code = (
+                    "}\n"
+                )
+                buff.writeIndentedLines(code % inits)
+
+            elif self.params['eyetracker'] == "Pupil Labs":
+                # Open runtime_settings dict
+                code = (
+                    "'runtime_settings': {\n"
+                )
+                buff.writeIndentedLines(code % inits)
+                buff.setIndentLevel(1, relative=True)
+
+                # Define runtime_settings dict
+                code = (
+                    "'pupillometry_only': %(plPupillometryOnly)s,\n"
+                    "'surface_name': %(plSurfaceName)s,\n"
+                    "'gaze_confidence_threshold': %(plGazeConfidenceThreshold)s,\n"
+                )
+                buff.writeIndentedLines(code % inits)
+
+                # Open runtime_settings > pupil_remote dict
+                code = (
+                    "'pupil_remote': {\n"
+                )
+                buff.writeIndentedLines(code % inits)
+                buff.setIndentLevel(1, relative=True)
+
+                # Define runtime_settings > pupil_remote dict
+                code = (
+                    "'ip_address': %(plPupilRemoteAddress)s,\n"
+                    "'port': %(plPupilRemotePort)s,\n"
+                    "'timeout_ms': %(plPupilRemoteTimeoutMs)s,\n"
+                )
+                buff.writeIndentedLines(code % inits)
+
+                # Close runtime_settings > pupil_remote dict
+                buff.setIndentLevel(-1, relative=True)
+                code = (
+                    "},\n"
+                )
+                buff.writeIndentedLines(code % inits)
+
+                # Open runtime_settings > pupil_capture_recording dict
+                code = (
+                    "'pupil_capture_recording': {\n"
+                )
+                buff.writeIndentedLines(code % inits)
+                buff.setIndentLevel(1, relative=True)
+
+                # Define runtime_settings > pupil_capture_recording dict
+                code = (
+                    "'enabled': %(plPupilCaptureRecordingEnabled)s,\n"
+                    "'location': %(plPupilCaptureRecordingLocation)s,\n"
+                )
+                buff.writeIndentedLines(code % inits)
+
+                # Close runtime_settings > pupil_capture_recording dict
+                buff.setIndentLevel(-1, relative=True)
+                code = (
+                    "}\n"
+                )
+                buff.writeIndentedLines(code % inits)
+
+                # Close runtime_settings dict
                 buff.setIndentLevel(-1, relative=True)
                 code = (
                     "}\n"
