@@ -473,6 +473,8 @@ class Vertices(object):
         if self.size is None:
             raise ValueError("Cannot not calculate absolute positions of vertices without a size attribute")
         verts *= getattr(self.size, units)
+        # Apply flip
+        verts *= self._flip
         # Apply pos
         if self.pos is None:
             raise ValueError("Cannot not calculate absolute positions of vertices without a pos attribute")
