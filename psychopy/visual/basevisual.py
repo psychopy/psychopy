@@ -1474,6 +1474,8 @@ class WindowMixin(object):
         if not hasattr(self, "_vertices"):
             self.vertices = None
         self._vertices.flip = self.flip
+        # Mark as needing vertex update
+        self._needVertexUpdate = True
 
     @property
     def flipHoriz(self):
