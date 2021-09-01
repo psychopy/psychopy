@@ -279,23 +279,23 @@ def createLumPattern(patternType, res, maskParams=None):
         # remove from 3 to get back down to -1
         intens[res // 2 + 1:] = 2.0 - intens[res // 2 + 1:]
         intensity = intens * numpy.ones([res, 1])  # make 2D
-    elif res == "sinXsin":
+    elif patternType == "sinXsin":
         # NB 1j*res is a special mgrid notation
         onePeriodX, onePeriodY = numpy.mgrid[0:2 * pi:1j * res,
                                              0:2 * pi:1j * res]
         intensity = \
             numpy.sin(onePeriodX - pi / 2) * numpy.sin(onePeriodY - pi / 2)
-    elif res == "sqrXsqr":
+    elif patternType == "sqrXsqr":
         # NB 1j*res is a special mgrid notation
         onePeriodX, onePeriodY = numpy.mgrid[0:2 * pi:1j * res,
                                              0:2 * pi:1j * res]
         sinusoid = \
             numpy.sin(onePeriodX - pi / 2) * numpy.sin(onePeriodY - pi / 2)
         intensity = numpy.where(sinusoid > 0, 1, -1)
-    elif res == "circle":
+    elif patternType == "circle":
         rad = makeRadialMatrix(res)
         intensity = (rad <= 1) * 2 - 1
-    elif res == "gauss":
+    elif patternType == "gauss":
         rad = makeRadialMatrix(res)
         # 3sd.s by the edge of the stimulus
         try:
@@ -307,7 +307,7 @@ def createLumPattern(patternType, res, maskParams=None):
 
         invVar = (1.0 / maskStdev) ** 2.0
         intensity = numpy.exp(-rad ** 2.0 / (2.0 * invVar)) * 2 - 1
-    elif res == "cross":
+    elif patternType == "cross":
         X, Y = numpy.mgrid[-1:1:1j * res, -1:1:1j * res]
         tfNegCross = (((X < -0.2) & (Y < -0.2)) |
                       ((X < -0.2) & (Y > 0.2)) |
@@ -316,12 +316,12 @@ def createLumPattern(patternType, res, maskParams=None):
         # tfNegCross == True at places where the cross is transparent,
         # i.e. the four corners
         intensity = numpy.where(tfNegCross, -1, 1)
-    elif res == "radRamp":  # a radial ramp
+    elif patternType == "radRamp":  # a radial ramp
         rad = makeRadialMatrix(res)
         intensity = 1 - 2 * rad
         # clip off the corners (circular)
         intensity = numpy.where(rad < -1, intensity, -1)
-    elif res == "raisedCos":  # A raised cosine
+    elif patternType == "raisedCos":  # A raised cosine
         hammingLen = 1000  # affects the 'granularity' of the raised cos
         rad = makeRadialMatrix(res)
         intensity = numpy.zeros_like(rad)
