@@ -22,7 +22,7 @@ points = [
     array((0, 0)),
     array((0, unitDist)),
     array((0, unitDist * 2)),
-    array(((unitDist / sqrt2) / (unitDist / sqrt2))),
+    array(((unitDist / sqrt2), (unitDist / sqrt2))),
     array((unitDist * sqrt2, 0)),
     array((unitDist * sqrt2, unitDist * sqrt2))]
 
