@@ -223,7 +223,7 @@ def array2pointer(arr, dtype=None):
         ctypes.POINTER(numpy.ctypeslib.as_ctypes_type(dtype)))
 
 
-def createLumPattern(patternType, res, maskParams=None):
+def createLumPattern(patternType, res, texParams=None, maskParams=None):
     """Create a luminance (single channel) defined pattern.
     
     Parameters
@@ -235,28 +235,57 @@ def createLumPattern(patternType, res, maskParams=None):
         array of ones will be returned with `size==(res, res)`.
     res : int
         Resolution for the texture in texels.
-    maskParams : dict
-        Additional parameters to control how the mask is applied.
+    texParams : dict or None
+        Additional parameters to control texture generation. Not currently used
+        but may in the future. These can be settings like duty-cycle, etc.
+        Passing valid values to this parameter do nothing yet.
+    maskParams : dict or None
+        Additional parameters to control how the texture's mask is applied.
 
     Returns
     -------
     ndarray
         Array of normalized intensity values containing the desired pattern
         specified by `mode`.
+
+    Examples
+    --------
+    Create a gaussian bump luminance map with resolution 1024x1024 and standard
+    deviation of 0.5::
+
+        res = 1024
+        maskParams = {'sd': 0.5}
+        intensity = createLumPattern('gauss', res, None, maskParams)
     
     """
+    # This code was originally in `TextureMixin._createTexture`, but moved here
+    # to clean up that class and to provide a reusable way of generating these
+    # textures.
+
+    # Check and sanitize parameters passed to this function before generating
+    # anything with them.
     if res <= 0:
         raise ValueError('invalid value for parameter `res`, must be >0')
 
-    # set defaults if not provided
-    reqMaskParams = {'fringeWidth': 0.2, 'sd': 3}
-    if maskParams is None:  # if not specified, set defaults
-        maskParams = reqMaskParams
-    elif isinstance(maskParams, dict):  # specified, override defaults if so
-        maskParams = reqMaskParams.update(maskParams)
+    # parameters to control texture generation, unused but roughed in for now
+    allTexParams = {}
+    if isinstance(texParams, dict):  # specified, override defaults if so
+        allTexParams.update(texParams)
+    elif texParams is None:  # if not specified, use empty dict
+        pass  # nop for now, change to `allTexParams = {}` when needed
+    else:
+        raise TypeError('parameter `texParams` must be type `dict` or `None`')
+
+    # mask parameters for additional parameters to control how maks are applied
+    allMaskParams = {'fringeWidth': 0.2, 'sd': 3}
+    if isinstance(maskParams, dict):  # specified, override defaults if so
+        allMaskParams.update(maskParams)
+    elif maskParams is None:  # if not specified, use empty dict
+        allMaskParams = {}
     else:
         raise TypeError('parameter `maskParams` must be type `dict` or `None`')
 
+    # here is where we generate textures
     pi = numpy.pi
     if patternType in (None, "none", "None", "color"):
         res = 1
@@ -299,7 +328,7 @@ def createLumPattern(patternType, res, maskParams=None):
         rad = makeRadialMatrix(res)
         # 3sd.s by the edge of the stimulus
         try:
-            maskStdev = maskParams['sd']
+            maskStdev = allMaskParams['sd']
         except KeyError:
             raise ValueError(
                 "Mask parameter 'sd' not provided but is required by "
@@ -327,7 +356,7 @@ def createLumPattern(patternType, res, maskParams=None):
         intensity = numpy.zeros_like(rad)
         intensity[numpy.where(rad < 1)] = 1
 
-        maskFringeWidth = maskParams['fringeWidth']
+        maskFringeWidth = allMaskParams['fringeWidth']
         raisedCosIdx = numpy.where(
             [numpy.logical_and(rad <= 1, rad >= 1 - maskFringeWidth)])[1:]
 

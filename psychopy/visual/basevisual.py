@@ -902,7 +902,8 @@ class TextureMixin(object):
                        forcePOW2=True, dataType=None, wrapping=True):
 
         # transform all variants of `None` to that
-        tex = tex if tex not in (None, "none", "None", "color") else None
+        if tex in ["none", "None", "color"]:
+            tex = None
 
         # Create an intensity texture, ranging -1:1.0
         notSqr = False  # most of the options will be creating a sqr texture
@@ -962,7 +963,7 @@ class TextureMixin(object):
                 wrapping = True  # override any wrapping setting for None
 
             # compute array of intensity value for desired pattern
-            intensity = createLumPattern(tex, res, allMaskParams)
+            intensity = createLumPattern(tex, res, None, allMaskParams)
             wasLum = True
         else:
             if isinstance(tex, (basestring, Path)):
