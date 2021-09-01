@@ -45,7 +45,7 @@ from psychopy.tools.monitorunittools import (cm2pix, deg2pix, pix2cm,
 from psychopy.visual.helpers import (pointInPolygon, polygonsOverlap,
                                      setColor, findImageFile)
 from psychopy.tools.typetools import float_uint8
-from psychopy.tools.arraytools import makeRadialMatrix
+from psychopy.tools.arraytools import makeRadialMatrix, createLumPattern
 from psychopy.tools.colorspacetools import dkl2rgb, lms2rgb  # pylint: disable=W0611
 
 from . import globalVars
@@ -901,6 +901,9 @@ class TextureMixin(object):
     def _createTexture(self, tex, id, pixFormat, stim, res=128, maskParams=None,
                        forcePOW2=True, dataType=None, wrapping=True):
 
+        # transform all variants of `None` to that
+        tex = tex if tex not in (None, "none", "None", "color") else None
+
         # Create an intensity texture, ranging -1:1.0
         notSqr = False  # most of the options will be creating a sqr texture
         wasImage = False  # change this if image loading works
@@ -920,7 +923,6 @@ class TextureMixin(object):
         allMaskParams = {'fringeWidth': 0.2, 'sd': 3}
         allMaskParams.update(maskParams)
 
-        sin = numpy.sin
         if type(tex) == numpy.ndarray:
             # handle a numpy array
             # for now this needs to be an NxN intensity array
@@ -943,7 +945,7 @@ class TextureMixin(object):
                 stim._tex1D = False
                 # check if it's a square power of two
                 maxDim = max(tex.shape)
-                powerOf2 = 2**numpy.ceil(numpy.log2(maxDim))
+                powerOf2 = 2 ** numpy.ceil(numpy.log2(maxDim))
                 if (forcePOW2 and
                         (tex.shape[0] != powerOf2 or
                          tex.shape[1] != powerOf2)):
@@ -953,116 +955,15 @@ class TextureMixin(object):
                 res = tex.shape[0]
             if useShaders:
                 dataType = GL.GL_FLOAT
-        elif tex in (None, "none", "None", "color"):
-            # 4x4 (2x2 is SUPPOSED to be fine but generates weird colors!)
-            res = 1
-            intensity = numpy.ones([res, res], numpy.float32)
-            wasLum = True
-            wrapping = True  # override any wrapping setting for None
-        elif tex == "sin":
-            # NB 1j*res is a special mgrid notation
-            onePeriodX, onePeriodY = numpy.mgrid[0:res, 0:2 * pi:1j * res]
-            intensity = numpy.sin(onePeriodY - pi / 2)
-            wasLum = True
-        elif tex == "sqr":  # square wave (symmetric duty cycle)
-            # NB 1j*res is a special mgrid notation
-            onePeriodX, onePeriodY = numpy.mgrid[0:res, 0:2 * pi:1j * res]
-            sinusoid = numpy.sin(onePeriodY - pi / 2)
-            intensity = numpy.where(sinusoid > 0, 1, -1)
-            wasLum = True
-        elif tex == "saw":
-            intensity = (numpy.linspace(-1.0, 1.0, res, endpoint=True) *
-                         numpy.ones([res, 1]))
-            wasLum = True
-        elif tex == "tri":
-            # -1:3 means the middle is at +1
-            intens = numpy.linspace(-1.0, 3.0, res, endpoint=True)
-            # remove from 3 to get back down to -1
-            intens[res // 2 + 1 :] = 2.0 - intens[res // 2 + 1 :]
-            intensity = intens * numpy.ones([res, 1])  # make 2D
-            wasLum = True
-        elif tex == "sinXsin":
-            # NB 1j*res is a special mgrid notation
-            onePeriodX, onePeriodY = numpy.mgrid[0:2 * pi:1j * res,
-                                                 0:2 * pi:1j * res]
-            intensity = sin(onePeriodX - pi / 2) * sin(onePeriodY - pi / 2)
-            wasLum = True
-        elif tex == "sqrXsqr":
-            # NB 1j*res is a special mgrid notation
-            onePeriodX, onePeriodY = numpy.mgrid[0:2 * pi:1j * res,
-                                                 0:2 * pi:1j * res]
-            sinusoid = sin(onePeriodX - pi / 2) * sin(onePeriodY - pi / 2)
-            intensity = numpy.where(sinusoid > 0, 1, -1)
-            wasLum = True
-        elif tex == "circle":
-            rad = makeRadialMatrix(res)
-            intensity = (rad <= 1) * 2 - 1
-            wasLum = True
-        elif tex == "gauss":
-            rad = makeRadialMatrix(res)
-            # 3sd.s by the edge of the stimulus
-            invVar = (1.0 / allMaskParams['sd']) ** 2.0
-            intensity = numpy.exp( -rad**2.0 / (2.0 * invVar)) * 2 - 1
-            wasLum = True
-        elif tex == "cross":
-            X, Y = numpy.mgrid[-1:1:1j * res, -1:1:1j * res]
-            tfNegCross = (((X < -0.2) & (Y < -0.2)) |
-                          ((X < -0.2) & (Y > 0.2)) |
-                          ((X > 0.2) & (Y < -0.2)) |
-                          ((X > 0.2) & (Y > 0.2)))
-            # tfNegCross == True at places where the cross is transparent,
-            # i.e. the four corners
-            intensity = numpy.where(tfNegCross, -1, 1)
-            wasLum = True
-        elif tex == "radRamp":  # a radial ramp
-            rad = makeRadialMatrix(res)
-            intensity = 1 - 2 * rad
-            # clip off the corners (circular)
-            intensity = numpy.where(rad < -1, intensity, -1)
-            wasLum = True
-        elif tex == "raisedCos":  # A raised cosine
-            wasLum = True
-            hammingLen = 1000  # affects the 'granularity' of the raised cos
+        elif tex in ("sin", "sqr", "saw", "tri", "sinXsin", "sqrXsqr", "circle",
+                     "gauss", "cross", "radRamp", "raisedCos", None):
+            if tex is None:
+                res = 1
+                wrapping = True  # override any wrapping setting for None
 
-            rad = makeRadialMatrix(res)
-            intensity = numpy.zeros_like(rad)
-            intensity[numpy.where(rad < 1)] = 1
-            frng = allMaskParams['fringeWidth']
-            raisedCosIdx = numpy.where(
-                [numpy.logical_and(rad <= 1, rad >= 1 - frng)])[1:]
-
-            # Make a raised_cos (half a hamming window):
-            raisedCos = numpy.hamming(hammingLen)[ : hammingLen // 2]
-            raisedCos -= numpy.min(raisedCos)
-            raisedCos /= numpy.max(raisedCos)
-
-            # Measure the distance from the edge - this is your index into the
-            # hamming window:
-            dFromEdge = numpy.abs(
-                (1 - allMaskParams['fringeWidth']) - rad[raisedCosIdx])
-            dFromEdge /= numpy.max(dFromEdge)
-            dFromEdge *= numpy.round(hammingLen/2)
-
-            # This is the indices into the hamming (larger for small distances
-            # from the edge!):
-            portionIdx = (-1 * dFromEdge).astype(int)
-
-            # Apply the raised cos to this portion:
-            intensity[raisedCosIdx] = raisedCos[portionIdx]
-
-            # Scale it into the interval -1:1:
-            intensity = intensity - 0.5
-            intensity /= numpy.max(intensity)
-
-            # Sometimes there are some remaining artifacts from this process,
-            # get rid of them:
-            artifactIdx = numpy.where(numpy.logical_and(intensity == -1,
-                                                        rad < 0.99))
-            intensity[artifactIdx] = 1
-            artifactIdx = numpy.where(numpy.logical_and(intensity == 1,
-                                                        rad > 0.99))
-            intensity[artifactIdx] = 0
-
+            # compute array of intensity value for desired pattern
+            intensity = createLumPattern(tex, res, allMaskParams)
+            wasLum = True
         else:
             if isinstance(tex, (basestring, Path)):
                 # maybe tex is the name of a file:
