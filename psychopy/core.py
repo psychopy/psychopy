@@ -23,6 +23,7 @@ from psychopy.clock import (MonotonicClock, Clock, CountdownTimer,
 from psychopy.platform_specific import rush  # pylint: disable=W0611
 from psychopy import logging
 from psychopy.constants import STARTED, NOT_STARTED, FINISHED
+from psychopy.iohub.client import ioHubConnection
 
 try:
     import pyglet
@@ -71,6 +72,10 @@ def quit():
     """
     # pygame.quit()  # safe even if pygame was never initialised
     logging.flush()
+
+    # properly shutdown ioHub server
+    if ioHubConnection.ACTIVE_CONNECTION:
+        ioHubConnection.ACTIVE_CONNECTION.quit()
 
     for thisThread in threading.enumerate():
         if hasattr(thisThread, 'stop') and hasattr(thisThread, 'running'):
