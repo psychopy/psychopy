@@ -38,3 +38,17 @@ class TestTranspiler(object):
         py = "status = STOPPED"
         js = "status = PsychoJS.Status.STOPPED;\n"
         self.runTranspile(py, js)
+
+    def test_substitutions(self):
+        # Define some cases which should be handled
+        cases = [
+            {'py': "a.append(4)", 'js': "a.push(4);\n"},
+            {'py': "a.index(2)", 'js': "util.index(a, 2);\n"},
+            {'py': "a.count(2)", 'js': "util.count(a, 2);\n"},
+            {'py': "a.lower()", 'js': "a.toLowerCase();\n"},
+            {'py': "a.upper()", 'js': "a.toUpperCase();\n"},
+            {'py': "a.extend([4, 5, 6])", 'js': "a.concat([4, 5, 6]);\n"},
+        ]
+        # Try each case
+        for case in cases:
+            self.runTranspile(case['py'], case['js'])
