@@ -215,6 +215,17 @@ class pythonTransformer(ast.NodeTransformer):
                 keywords=[]
             )
 
+        # a = 'hello
+        # a.upper() --> a.toUpperCase()
+        # value=Call(func=Attribute(value=Name(id='a', ctx=Load()), attr='append', ctx=Load()), args=[Num(n=4)], keywords=[])
+        if func.attr == 'upper':
+            func.attr = 'toUpperCase'
+            return ast.Call(
+                func=func,
+                args=args,
+                keywords=[]
+            )
+
         # a = [1,2,3]
         # a.index(2) --> util.index(a,2)
         # value=Call(func=Attribute(value=Name(id='a', ctx=Load()), attr='index', ctx=Load()), args=[Num(n=2)], keywords=[])
