@@ -243,7 +243,7 @@ def findImageFile(filename):
     """Tests whether the filename is an image file. If not will try some common
     alternatives (e.g. extensions .jpg .tif...)
     """
-    # if user supplied correct path then reutnr quickly
+    # if user supplied correct path then return quickly
     filename = pathToString(filename)
     isfile = os.path.isfile
     if isfile(filename):

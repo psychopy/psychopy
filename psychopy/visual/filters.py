@@ -174,22 +174,41 @@ def makeMask(matrixSize, shape='circle', radius=1.0, center=(0.0, 0.0),
 
 
 def makeRadialMatrix(matrixSize, center=(0.0, 0.0), radius=1.0):
-    """Generate a square matrix where each element val is
-    its distance from the centre of the matrix
+    """Generate a square matrix where each element values is its distance from
+    the centre of the matrix.
 
-    :Parameters:
-        matrixSize: integer
-            the size of the resulting matrix on both dimensions (e.g 256)
-        radius:  float
-            scale factor to be applied to the mask (circle with radius of
-            [1,1] will extend just to the edge of the matrix). Radius can
-            be asymmetric, e.g. [1.0,2.0] will be wider than it is tall.
-        center:  2x1 tuple or list (default=[0.0,0.0])
-            the centre of the mask in the matrix ([1,1] is top-right
-            corner, [-1,-1] is bottom-left)
+    Parameters
+    ----------
+    matrixSize : int
+        Matrix size. Corresponds to the number of elements along each dimension.
+        Must be >0.
+    radius:  float
+        scale factor to be applied to the mask (circle with radius of
+        [1,1] will extend just to the edge of the matrix). Radius can
+        be asymmetric, e.g. [1.0,2.0] will be wider than it is tall.
+    center:  2x1 tuple or list (default=[0.0,0.0])
+        the centre of the mask in the matrix ([1,1] is top-right
+        corner, [-1,-1] is bottom-left)
+
+    Returns
+    -------
+    ndarray
+        Square matrix populated with distance values and
+        `size == (matrixSize, matrixSize)`.
+
     """
     if type(radius) in [int, float]:
         radius = [radius, radius]
+
+    try:
+        matrixSize = int(matrixSize)
+    except ValueError:
+        raise TypeError('parameter `matrixSize` must be a numeric type')
+
+    if matrixSize <= 1:
+        raise ValueError(
+            'parameter `matrixSize` must be positive and greater than 1, got: {}'.format(
+                matrixSize))
 
     # NB need to add one step length because
     yy, xx = numpy.mgrid[0:matrixSize, 0:matrixSize]

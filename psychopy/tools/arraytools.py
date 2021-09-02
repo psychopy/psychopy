@@ -79,39 +79,11 @@ def extendArr(inArray, newSize):
     return newArr
 
 
-def makeRadialMatrix(matrixSize):
-    """Generate a square matrix where each element values is its distance from
-    the centre of the matrix.
-
-    Parameters
-    ----------
-    matrixSize : int
-        Matrix size. Corresponds to the number of elements along each dimension.
-        Must be >0.
-
-    Returns
-    -------
-    ndarray
-        Square matrix populated with distance values and
-        `size == (matrixSize, matrixSize)`.
-
+def makeRadialMatrix(matrixSize, center=(0.0, 0.0), radius=1.0):
+    """DEPRECATED: please use psychopy.filters.makeRadialMatrix instead
     """
-    try:
-        matrixSize = int(matrixSize)
-    except ValueError:
-        raise TypeError('parameter `matrixSize` must be a numeric type')
-
-    if matrixSize <= 0:
-        raise ValueError(
-            'parameter `matrixSize` must be positive and non-zero, got: {}'.format(
-                matrixSize))
-
-    oneStep = (2.0 / (matrixSize - 1) or -1)
-    # NB need to add one step length because
-    xx, yy = numpy.mgrid[0:2 + oneStep:oneStep, 0:2 + oneStep:oneStep] - 1.0
-    rad = numpy.sqrt(xx ** 2 + yy ** 2)
-
-    return rad
+    from psychopy.visual import filters
+    return filters.makeRadialMatrix(matrixSize, center, radius)
 
 
 def ratioRange(start, nSteps=None, stop=None,
