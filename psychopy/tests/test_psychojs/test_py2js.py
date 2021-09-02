@@ -4,7 +4,7 @@
 
 import psychopy.experiment.py2js as py2js
 
-class Test_PY2JS_Compile(object):
+class Test_PY2JS_Compile():
     """
     Test class for py2js code conversion
     """

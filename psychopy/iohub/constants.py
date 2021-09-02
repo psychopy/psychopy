@@ -3,15 +3,13 @@
 # Part of the PsychoPy library
 # Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
-from __future__ import division, absolute_import
 
 import sys
-from future.utils import iteritems
 from .errors import print2err
 
 # pylint: disable=too-many-lines
 
-class Constants(object):
+class Constants:
     UNDEFINED = 0
     _keys = None
     _names = None
@@ -72,7 +70,7 @@ class Constants(object):
             (a[0] != '_') and (not callable(getattr(cls, a))))])
         cls._keys = list(cls._names.keys())
         cls._names.update(dict([(v, k)
-                                for k, v in iteritems(cls._names)]))
+                                for k, v in cls._names.items()]))
         cls._initialized = True
 
     @classmethod

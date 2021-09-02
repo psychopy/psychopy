@@ -15,7 +15,7 @@ from ......util import convertCamelToSnake, win32MessagePump, updateSettings
 import pylink
 
 
-class FixationTarget(object):
+class FixationTarget():
     def __init__(self, psychopy_eyelink_graphics):
         win = psychopy_eyelink_graphics.window
         color_type = psychopy_eyelink_graphics.getCalibSetting(['color_type'])
@@ -66,7 +66,7 @@ class FixationTarget(object):
 
 
 # Intro Screen
-class BlankScreen(object):
+class BlankScreen():
 
     def __init__(self, psychopy_win, color):
         self.display_size = psychopy_win.size
@@ -87,7 +87,7 @@ class BlankScreen(object):
 
 
 # Intro Screen
-class TextLine(object):
+class TextLine():
 
     def __init__(self, psychopy_win):
         self.display_size = psychopy_win.size
@@ -121,7 +121,7 @@ class TextLine(object):
 
 
 # Intro Screen
-class IntroScreen(object):
+class IntroScreen():
     def __init__(self, psychopy_win):
         self.display_size = psychopy_win.size
         window = psychopy_win

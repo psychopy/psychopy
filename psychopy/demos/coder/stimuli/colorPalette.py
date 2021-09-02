@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import absolute_import, division
 from psychopy import locale_setup, visual, core
 import numpy as np
 from psychopy.hardware import keyboard

@@ -1,17 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import absolute_import, print_function
-
 # We deliberately delay importing the inpout32 or inpoutx64 module until we try
 # to use it - this allows us to import the class on machines
 # which don't have it and then worry about dealing with
 # using the right one later
 
 
-from past.builtins import basestring
-from builtins import object
-class PParallelInpOut(object):
+class PParallelInpOut:
     """This class provides read/write access to the parallel port on a PC
     using inpout32 or inpoutx64 (for instance for Windows 7 64-bit)
     """
@@ -31,7 +27,7 @@ class PParallelInpOut(object):
         from ctypes import windll
         import platform
 
-        if isinstance(address, basestring) and address.startswith('0x'):
+        if isinstance(address, str) and address.startswith('0x'):
             # convert u"0x0378" into 0x0378
             self.base = int(address, 16)
         else:

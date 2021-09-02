@@ -5,7 +5,6 @@ Simple iohub eye tracker device demo.
 Select which tracker to use by setting the TRACKER variable below.
 """
 
-from __future__ import absolute_import, division, print_function
 from psychopy import core, visual
 from psychopy.iohub import launchHubServer
 from psychopy.iohub.util import hideWindow, showWindow

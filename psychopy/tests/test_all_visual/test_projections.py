@@ -1,14 +1,8 @@
-from __future__ import division
-from builtins import range
-from builtins import object
-from past.utils import old_div
 import sys
-import pyglet
 from pyglet.window import key
-from psychopy.visual import Window, shape, TextStim, GratingStim, Circle
+from psychopy.visual import Window, TextStim, GratingStim, Circle
 from psychopy.visual.windowwarp import Warper
-from psychopy import event, core 
-from psychopy.tests import utils
+from psychopy import event
 import pytest, copy
 
 """define WindowWarp configurations, test the logic
@@ -22,7 +16,7 @@ foregroundColor = [-1, -1, -1]
 backgroundColor = [1, 1, 1]
 
 
-class ProjectionsLinesAndCircles(object):
+class ProjectionsLinesAndCircles:
     """
     Test jig for projection warping.
     Switch between warpings by pressing a key 'S'pherical, 'C'ylindrical, 'N'one, warp'F'ile.
@@ -37,9 +31,9 @@ class ProjectionsLinesAndCircles(object):
         self.stimT = TextStim(self.win, text='Null warper', units = 'pix',
                               pos=(0, -140), height=20)
 
-        self.bl = old_div(-win.size, 2.0)
+        self.bl = -win.size / 2.0
         self.tl = (self.bl[0], -self.bl[1])
-        self.tr = old_div(win.size, 2.0)
+        self.tr = win.size / 2.0
 
         self.stims = []
         self.degrees = 120
@@ -154,14 +148,14 @@ class ProjectionsLinesAndCircles(object):
             self.warper.changeProjection (self.warper.warp, self.warper.warpfile, self.warper.eyepoint)
             self.updateInfo()
 
-        pos = old_div((self.mouse.getPos() + 1), 2)
+        pos = (self.mouse.getPos() + 1) / 2
         leftDown = self.mouse.getPressed()[0]
         if leftDown:
             self.warper.changeProjection (self.warper.warp, self.warper.warpfile, pos)
             self.updateInfo()
 
 
-class Test_class_WindowWarp(object):
+class Test_class_WindowWarp():
     def setup_class(self):
         self.win = Window(monitor='testMonitor', screen=1, fullscr=True, color='gray', useFBO = True, autoLog=False)
         self.warper = Warper(self.win, warp='spherical', warpfile="", warpGridsize=128, eyepoint=[0.5, 0.5],

@@ -9,34 +9,13 @@
 
 # Author: Jeremy R. Gray, March 2012, March 2013
 
-from __future__ import absolute_import, division, print_function
-
-# from future import standard_library
-# standard_library.install_aliases()
-from builtins import str
-from past.builtins import basestring
-from builtins import object
 import os
 import glob
 import threading
-from psychopy.constants import PY3
 from psychopy.tools.filetools import pathToString
-
-if PY3:
-    import urllib.request
-    import urllib.error
-    import urllib.parse
-else:
-    import urllib2
-    # import urllib.request, urllib.error, urllib.parse
-
-    class FakeURLlib(object):
-
-        def __init__(self, lib):
-            self.request = lib
-            self.error = lib
-            self.parse = lib
-    urllib = FakeURLlib(urllib2)
+import urllib.request
+import urllib.error
+import urllib.parse
 
 import json
 import numpy as np
@@ -54,7 +33,7 @@ haveMic = False  # goes True in switchOn, if can import pyo
 FLAC_PATH = None  # set on first call to _getFlacPath()
 
 
-class AudioCapture(object):
+class AudioCapture:
     """Capture sound sample from the default sound input, and save to a file.
 
         Untested whether you can have two recordings going on simultaneously.
@@ -87,7 +66,7 @@ class AudioCapture(object):
         :Author: Jeremy R. Gray, March 2012
     """
 
-    class _Recorder(object):
+    class _Recorder():
         """Class for internal object to make an audio recording using pyo.
 
         Never needed by end-users; only used internally in __init__:
@@ -685,7 +664,7 @@ def getRMS(data):
         if len(data.shape) > 1:
             return np.std(data, axis=1)  # np.sqrt(np.mean(data ** 2, axis=1))
         return np.std(data)  # np.sqrt(np.mean(data ** 2))
-    if isinstance(data, basestring):
+    if isinstance(data, str):
         if not os.path.isfile(data):
             raise ValueError('getRMS: could not find file %s' % data)
         _junk, data = wavfile.read(data)
@@ -805,7 +784,7 @@ class _GSQueryThread(threading.Thread):
         self.running = False
 
 
-class Speech2Text(object):
+class Speech2Text():
     """Class for speech-recognition (voice to text), using Google's public API.
 
         Google's speech API is currently free to use, and seems to work well.

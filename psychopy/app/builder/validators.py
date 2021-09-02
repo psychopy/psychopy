@@ -7,10 +7,7 @@
 
 """Module containing validators for various parameters.
 """
-from __future__ import absolute_import, print_function
-
 import re
-from past.builtins import basestring
 import wx
 import psychopy.experiment.utils
 from psychopy.tools import stringtools
@@ -36,7 +33,7 @@ VALIDATOR_WARNING_FONT_MISSING = 3
 VALIDATOR_WARNING_COUNT = 4  # increment when adding more
 
 
-class ValidatorWarning(object):
+class ValidatorWarning():
     """Class for validator warnings.
 
     These are used internally by the `WarningManager`, do not create instances
@@ -127,7 +124,7 @@ class ValidatorWarning(object):
         """`True` if this is a non-critical message which doesn't disable the OK button"""
         return self.kind in [VALIDATOR_WARNING_FONT_MISSING]
 
-class WarningManager(object):
+class WarningManager():
     """Manager for warnings produced by validators associated with controls
     within the component properties dialog. Assumes that the `parent` dialog
     uses a standardized convention for attribute names for all components.
@@ -473,7 +470,7 @@ class CodeSnippetValidator(BaseValidator):
             return '', True  # mdc - why return anything here?
 
         val = control.GetValue()  # same as parent.params[self.fieldName].val
-        if not isinstance(val, basestring):
+        if not isinstance(val, str):
             return '', True
 
         field = self.fieldName

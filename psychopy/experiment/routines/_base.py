@@ -8,8 +8,6 @@
 """Describes the Flow of an experiment
 """
 
-from __future__ import absolute_import, print_function
-
 from psychopy.constants import FOREVER
 from xml.etree.ElementTree import Element
 from pathlib import Path

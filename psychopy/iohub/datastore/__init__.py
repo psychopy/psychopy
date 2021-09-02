@@ -3,13 +3,10 @@
 # Part of the PsychoPy library
 # Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
-from __future__ import division, absolute_import, print_function
 
 import os
 import atexit
 import numpy as np
-from builtins import str
-from builtins import object
 from pkg_resources import parse_version
 from ..server import DeviceEvent
 from ..constants import EventConstants
@@ -52,7 +49,7 @@ SCHEMA_AUTHORS = 'Sol Simpson'
 SCHEMA_MODIFIED_DATE = 'March 19th, 2021'
 
 
-class DataStoreFile(object):
+class DataStoreFile():
     def __init__(self, fileName, folderPath, fmode='a', iohub_settings=None):
         self.fileName = fileName
         self.folderPath = folderPath

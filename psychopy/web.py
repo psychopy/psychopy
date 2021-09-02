@@ -7,35 +7,15 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import, print_function
-
-# from future import standard_library
-# standard_library.install_aliases()
-
-from builtins import object
 import sys
 import socket
 import re
 from psychopy import logging
-from psychopy.constants import PSYCHOPY_USERAGENT, PY3
 from psychopy import prefs
 
-
-if PY3:
-    import urllib.request
-    import urllib.error
-    import urllib.parse
-else:
-    import urllib2
-    # import urllib.request, urllib.error, urllib.parse
-
-    class FakeURLlib(object):
-
-        def __init__(self, lib):
-            self.request = lib
-            self.error = lib
-            self.parse = lib
-    urllib = FakeURLlib(urllib2)
+import urllib.request
+import urllib.error
+import urllib.parse
 
 # default 20s from prefs, min 2s
 TIMEOUT = max(prefs.connections['timeout'], 2.0)
@@ -106,9 +86,9 @@ def tryProxy(handler, URL=None):
     try:
         opener.open(req, timeout=2).read(5)  # open and read a few characters
         return True
-    except urllib.error.URLError as err:
-        return err
     except urllib.error.HTTPError as err:
+        return err
+    except urllib.error.URLError as err:
         return err
 
 

@@ -42,7 +42,7 @@ tobii_research provides real-time access to binocular sample data.
 
 The following fields of the ioHub BinocularEyeSample event are supported:
 
-.. autoclass:: psychopy.iohub.devices.eyetracker.BinocularEyeSampleEvent(object)
+.. autoclass:: psychopy.iohub.devices.eyetracker.BinocularEyeSampleEvent
 
     .. attribute:: time
 

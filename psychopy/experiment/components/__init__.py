@@ -8,10 +8,6 @@
 """Extensible set of components for the PsychoPy Builder view
 """
 
-from __future__ import absolute_import, print_function
-
-from builtins import str
-from past.builtins import basestring
 import os
 import glob
 import copy
@@ -59,7 +55,7 @@ def getAllComponents(folderList=(), fetchIcons=True):
     as all folders in the folderlist.
     User-defined components will override built-ins with the same name.
     """
-    if isinstance(folderList, basestring):
+    if isinstance(folderList, str):
         raise TypeError('folderList should be iterable, not a string')
     components = getComponents(fetchIcons=fetchIcons)  # get the built-ins
     for folder in folderList:
