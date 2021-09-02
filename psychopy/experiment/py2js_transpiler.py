@@ -204,6 +204,16 @@ class pythonTransformer(ast.NodeTransformer):
 
     def substitutionTransform(self, func, args):
 
+        # a = 'HELLO'
+        # a.lower() --> a.toLowerCase()
+        if func.attr == 'lower':
+            func.attr = 'toLowerCase'
+            return ast.Call(
+                func=func,
+                args=args,
+                keywords=[]
+            )
+
         # a = [1,2,3]
         # a.append(4) --> a.push(4)
         # value=Call(func=Attribute(value=Name(id='a', ctx=Load()), attr='append', ctx=Load()), args=[Num(n=4)], keywords=[])
