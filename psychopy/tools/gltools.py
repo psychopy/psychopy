@@ -3225,13 +3225,10 @@ class SimpleMaterial(object):
             Contrast of the material colors.
         face : str
             Face to apply material to. Values are `front`, `back` or `both`.
-        textures : dict, optional
-            Texture maps associated with this material. Textures are specified
-            as a list. The index of textures in the list will be used to set
-            the corresponding texture unit they are bound to.
         useShaders : bool
             Use per-pixel lighting when rendering this stimulus. By default,
-            Blinn-Phong shading will be used.
+            Blinn-Phong shading will be used. Always `True` as of PsychoPy
+            2021.2.3.
         """
         self.win = win
 
@@ -3272,7 +3269,6 @@ class SimpleMaterial(object):
         self._normalTexture = None
 
         self._useTextures = False  # keeps track if textures are being used
-        self._useShaders = useShaders
 
     @property
     def diffuseTexture(self):

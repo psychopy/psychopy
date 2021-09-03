@@ -255,7 +255,6 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self.dotLife = dotLife
         self.signalDots = signalDots
 
-        self.useShaders = False  # not needed for dots?
         if rgb != None:
             logging.warning("Use of rgb arguments to stimuli are deprecated."
                             " Please use color and colorSpace args instead")
