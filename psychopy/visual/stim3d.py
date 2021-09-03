@@ -529,7 +529,6 @@ class BlinnPhongMaterial(object):
         self._normalTexture = None
 
         self._useTextures = False  # keeps track if textures are being used
-        self._useShaders = False
 
     @property
     def diffuseTexture(self):
@@ -652,7 +651,7 @@ class BlinnPhongMaterial(object):
     def shininess(self, value):
         self._shininess = float(value)
 
-    def begin(self, useTextures=True, useShaders=False):
+    def begin(self, useTextures=True):
         """Use this material for successive rendering calls.
 
         Parameters
@@ -664,13 +663,11 @@ class BlinnPhongMaterial(object):
         GL.glDisable(GL.GL_COLOR_MATERIAL)  # disable color tracking
         face = self._face
 
-        if useShaders:
-            # number of scene lights
-            self._useShaders = True
-            nLights = len(self.win.lights)
-            useTextures = useTextures and self.diffuseTexture is not None
-            shaderKey = (nLights, useTextures)
-            gt.useProgram(self.win._shaders['stim3d_phong'][shaderKey])
+        # number of scene lights
+        nLights = len(self.win.lights)
+        useTextures = useTextures and self.diffuseTexture is not None
+        shaderKey = (nLights, useTextures)
+        gt.useProgram(self.win._shaders['stim3d_phong'][shaderKey])
 
         # pass values to OpenGL
         GL.glMaterialfv(face, GL.GL_DIFFUSE, self._ptrDiffuse)
@@ -731,9 +728,7 @@ class BlinnPhongMaterial(object):
             gt.unbindTexture(self.diffuseTexture)
             GL.glDisable(GL.GL_TEXTURE_2D)
 
-        if self._useShaders:
-            gt.useProgram(0)
-            self._useShaders = False
+        gt.useProgram(0)
 
         GL.glEnable(GL.GL_COLOR_MATERIAL)
 
@@ -1364,7 +1359,7 @@ class BaseRigidBodyStim(ColorMixin, WindowMixin):
                  colorSpace='rgb',
                  contrast=1.0,
                  opacity=1.0,
-                 useShaders=False,
+                 useShaders=True,
                  name='',
                  autoLog=True):
         """
@@ -1393,7 +1388,6 @@ class BaseRigidBodyStim(ColorMixin, WindowMixin):
         self.color = color
 
         self._thePose = RigidBodyPose(pos, ori)
-        self._useShaders = useShaders
         self.material = None
 
         self._vao = None
@@ -1530,70 +1524,31 @@ class BaseRigidBodyStim(ColorMixin, WindowMixin):
         GL.glMultTransposeMatrixf(at.array2pointer(self.thePose.modelMatrix))
 
         if self.material is not None:  # has a material, use it
-            if self._useShaders:
-                useTexture = self.material.diffuseTexture is not None
-                self.material.begin(useTexture, useShaders=True)
-                gt.drawVAO(self._vao, GL.GL_TRIANGLES)
-                self.material.end()
-            else:
-                self.material.begin(self.material.diffuseTexture is not None)
-                gt.drawVAO(self._vao, GL.GL_TRIANGLES)
-                self.material.end()
+            useTexture = self.material.diffuseTexture is not None
+            self.material.begin(useTexture, useShaders=True)
+            gt.drawVAO(self._vao, GL.GL_TRIANGLES)
+            self.material.end()
         else:  # doesn't have a material, use class colors
             r, g, b = self._foreColor.render('rgb')
             color = np.ctypeslib.as_ctypes(
                 np.array((r, g, b, self.opacity), np.float32))
 
-            if self._useShaders:
-                nLights = len(self.win.lights)
-                shaderKey = (nLights, False)
-                gt.useProgram(self.win._shaders['stim3d_phong'][shaderKey])
+            nLights = len(self.win.lights)
+            shaderKey = (nLights, False)
+            gt.useProgram(self.win._shaders['stim3d_phong'][shaderKey])
 
-                # pass values to OpenGL as material
-                GL.glColor4f(r, g, b, self.opacity)
-                GL.glMaterialfv(GL.GL_FRONT, GL.GL_DIFFUSE, color)
-                GL.glMaterialfv(GL.GL_FRONT, GL.GL_AMBIENT, color)
+            # pass values to OpenGL as material
+            GL.glColor4f(r, g, b, self.opacity)
+            GL.glMaterialfv(GL.GL_FRONT, GL.GL_DIFFUSE, color)
+            GL.glMaterialfv(GL.GL_FRONT, GL.GL_AMBIENT, color)
 
-                gt.drawVAO(self._vao, GL.GL_TRIANGLES)
+            gt.drawVAO(self._vao, GL.GL_TRIANGLES)
 
-                gt.useProgram(0)
-            else:
-                # material tracks color
-                GL.glEnable(GL.GL_COLOR_MATERIAL)  # enable color tracking
-                GL.glDisable(GL.GL_TEXTURE_2D)
-                GL.glColorMaterial(GL.GL_FRONT, GL.GL_AMBIENT_AND_DIFFUSE)
-                GL.glMaterialfv(GL.GL_FRONT, GL.GL_AMBIENT, color)
-                # 'rgb' is created and set when color is set
-                GL.glColor4f(r, g, b, self.opacity)
-
-                # draw the shape
-                gt.drawVAO(self._vao, GL.GL_TRIANGLES)
-                GL.glDisable(GL.GL_COLOR_MATERIAL)  # enable color tracking
+            gt.useProgram(0)
 
         GL.glPopMatrix()
 
         win.draw3d = False
-
-    @attributeSetter
-    def useShaders(self, value):
-        """Should shaders be used to render the stimulus
-        (typically leave as `True`)
-
-        If the system support the use of OpenGL shader language then leaving
-        this set to True is highly recommended. If shaders cannot be used then
-        various operations will be slower (notably, changes to stimulus color
-        or contrast)
-        """
-        if value is True and self.win._haveShaders is False:
-            logging.error("Shaders were requested but aren't available. "
-                          "Shaders need OpenGL 2.0+ drivers")
-        if value != self._useShaders:  # if there's a change...
-            self._useShaders = value
-
-    def setUseShaders(self, value=True, log=None):
-        """Usually you can use 'stim.attribute = value' syntax instead,
-        but use this method if you need to suppress the log message"""
-        setAttribute(self, 'useShaders', value, log)  # call attributeSetter
 
     @attributeSetter
     def units(self, value):
@@ -1754,7 +1709,7 @@ class SphereStim(BaseRigidBodyStim):
                  contrast=1.0,
                  opacity=1.0,
                  useMaterial=None,
-                 useShaders=False,
+                 useShaders=True,
                  name='',
                  autoLog=True):
         """
@@ -1821,7 +1776,6 @@ class SphereStim(BaseRigidBodyStim):
         self._vao = self._createVAO(vertices, textureCoords, normals, faces)
 
         self.material = useMaterial
-        self._useShaders = useShaders
 
         self._radius = radius  # for raypicking
 
@@ -1879,7 +1833,7 @@ class BoxStim(BaseRigidBodyStim):
                  contrast=1.0,
                  opacity=1.0,
                  useMaterial=None,
-                 useShaders=False,
+                 useShaders=True,
                  textureScale=None,
                  name='',
                  autoLog=True):
@@ -1987,7 +1941,7 @@ class PlaneStim(BaseRigidBodyStim):
                  contrast=1.0,
                  opacity=1.0,
                  useMaterial=None,
-                 useShaders=False,
+                 useShaders=True,
                  textureScale=None,
                  name='',
                  autoLog=True):
@@ -2113,7 +2067,7 @@ class ObjMeshStim(BaseRigidBodyStim):
                  colorSpace='rgb',
                  contrast=1.0,
                  opacity=1.0,
-                 useShaders=False,
+                 useShaders=True,
                  name='',
                  autoLog=True):
         """
@@ -2201,7 +2155,6 @@ class ObjMeshStim(BaseRigidBodyStim):
                  GL.GL_NORMAL_ARRAY: (vertexAttr, 3, 5, True)},
                 indexBuffer=indexBuffer, legacy=True)
 
-        self._useShaders = useShaders
         self.extents = objModel.extents
 
         self.thePose.bounds = BoundingBox()
