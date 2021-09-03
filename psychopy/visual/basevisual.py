@@ -1340,10 +1340,7 @@ class WindowMixin(object):
         after every call to .set()
         Chooses between using and not using shaders each call.
         """
-        if self.useShaders:
-            self._updateListShaders()
-        else:
-            self._updateListNoShaders()
+        self._updateListShaders()
 
 
 class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin, LegacyColorMixin):
