@@ -568,55 +568,6 @@ class RadialStim(GratingStim):
         # setup the shaderprogram
         GL.glEndList()
 
-    def _updateListNoShaders(self):
-        """The user shouldn't need this method since it gets called
-        after every call to .set() Basically it updates the OpenGL
-        representation of your stimulus if some parameter of the
-        stimulus changes. Call it if you change a property manually
-        rather than using the .set() command
-        """
-        self._needUpdate = False
-        GL.glNewList(self._listID, GL.GL_COMPILE)
-        # glColor can interfere with multitextures
-        GL.glColor4f(1.0, 1.0, 1.0, self.opacity)
-
-        # assign vertex array
-        GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self.verticesPix.ctypes)
-        GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
-
-        # bind and enable textures
-        # main texture
-        GL.glActiveTexture(GL.GL_TEXTURE0)
-        GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
-        GL.glEnable(GL.GL_TEXTURE_2D)
-        # mask
-        GL.glActiveTexture(GL.GL_TEXTURE1)
-        GL.glBindTexture(GL.GL_TEXTURE_1D, self._maskID)
-        GL.glDisable(GL.GL_TEXTURE_2D)
-        GL.glEnable(GL.GL_TEXTURE_1D)
-
-        # set pointers to visible textures
-        # mask
-        GL.glClientActiveTexture(GL.GL_TEXTURE1)
-        GL.glTexCoordPointer(2, GL.GL_DOUBLE, 0, self._visibleMask.ctypes)
-        GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)
-        # texture
-        GL.glClientActiveTexture(GL.GL_TEXTURE0)
-        GL.glTexCoordPointer(2, GL.GL_DOUBLE, 0, self._visibleTexture.ctypes)
-        GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)
-
-        # do the drawing
-        GL.glDrawArrays(GL.GL_TRIANGLES, 0, self._nVisible)
-
-        # disable set states
-        GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
-        GL.glActiveTexture(GL.GL_TEXTURE0)
-        GL.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY)
-        GL.glActiveTexture(GL.GL_TEXTURE1)
-        GL.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY)
-
-        GL.glEndList()
-
     def __del__(self):
         """Remove textures from graphics card to prevent crash
         """
