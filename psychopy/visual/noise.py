@@ -202,8 +202,7 @@ class NoiseStim(GratingStim):
                              name=name, autoLog=autoLog, autoDraw=autoDraw,
                              blendmode=blendmode,
                              maskParams=None)
-        # use shaders if available by default, this is a good thing
-        self.__dict__['useShaders'] = win._haveShaders
+
         # UGLY HACK: Some parameters depend on each other for processing.
         # They are set "superficially" here.
         # TO DO: postpone calls to _createTexture, setColor and

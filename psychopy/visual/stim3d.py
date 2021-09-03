@@ -1359,7 +1359,6 @@ class BaseRigidBodyStim(ColorMixin, WindowMixin):
                  colorSpace='rgb',
                  contrast=1.0,
                  opacity=1.0,
-                 useShaders=True,
                  name='',
                  autoLog=True):
         """
@@ -1525,7 +1524,7 @@ class BaseRigidBodyStim(ColorMixin, WindowMixin):
 
         if self.material is not None:  # has a material, use it
             useTexture = self.material.diffuseTexture is not None
-            self.material.begin(useTexture, useShaders=True)
+            self.material.begin(useTexture)
             gt.drawVAO(self._vao, GL.GL_TRIANGLES)
             self.material.end()
         else:  # doesn't have a material, use class colors
@@ -1709,7 +1708,6 @@ class SphereStim(BaseRigidBodyStim):
                  contrast=1.0,
                  opacity=1.0,
                  useMaterial=None,
-                 useShaders=True,
                  name='',
                  autoLog=True):
         """
@@ -1763,7 +1761,6 @@ class SphereStim(BaseRigidBodyStim):
                                          colorSpace=colorSpace,
                                          contrast=contrast,
                                          opacity=opacity,
-                                         useShaders=useShaders,
                                          name=name,
                                          autoLog=autoLog)
 
@@ -1833,7 +1830,6 @@ class BoxStim(BaseRigidBodyStim):
                  contrast=1.0,
                  opacity=1.0,
                  useMaterial=None,
-                 useShaders=True,
                  textureScale=None,
                  name='',
                  autoLog=True):
@@ -1892,7 +1888,6 @@ class BoxStim(BaseRigidBodyStim):
             colorSpace=colorSpace,
             contrast=contrast,
             opacity=opacity,
-            useShaders=useShaders,
             name=name,
             autoLog=autoLog)
 
@@ -1941,7 +1936,6 @@ class PlaneStim(BaseRigidBodyStim):
                  contrast=1.0,
                  opacity=1.0,
                  useMaterial=None,
-                 useShaders=True,
                  textureScale=None,
                  name='',
                  autoLog=True):
@@ -1995,7 +1989,6 @@ class PlaneStim(BaseRigidBodyStim):
             colorSpace=colorSpace,
             contrast=contrast,
             opacity=opacity,
-            useShaders=useShaders,
             name=name,
             autoLog=autoLog)
 
@@ -2067,7 +2060,6 @@ class ObjMeshStim(BaseRigidBodyStim):
                  colorSpace='rgb',
                  contrast=1.0,
                  opacity=1.0,
-                 useShaders=True,
                  name='',
                  autoLog=True):
         """
@@ -2100,8 +2092,6 @@ class ObjMeshStim(BaseRigidBodyStim):
             after initialization will be a dictionary where keys are material
             names and values are materials. Any textures associated with the
             model will be loaded as per the material requirements.
-        useShaders : bool
-            Use shaders when rendering.
 
         """
         super(ObjMeshStim, self).__init__(
@@ -2112,7 +2102,6 @@ class ObjMeshStim(BaseRigidBodyStim):
             colorSpace=colorSpace,
             contrast=contrast,
             opacity=opacity,
-            useShaders=useShaders,
             name=name,
             autoLog=autoLog)
 
@@ -2246,12 +2235,12 @@ class ObjMeshStim(BaseRigidBodyStim):
             # if material is a dictionary
             if isinstance(self.material, dict):
                 for materialName, materialDesc in self.material.items():
-                    materialDesc.begin(useShaders=self._useShaders)
+                    materialDesc.begin()
                     gt.drawVAO(self._vao[materialName], GL.GL_TRIANGLES)
                     materialDesc.end()
             else:
                 # material is a single item
-                self.material.begin(useShaders=self._useShaders)
+                self.material.begin()
                 for materialName, _ in self._vao.items():
                     gt.drawVAO(self._vao[materialName], GL.GL_TRIANGLES)
                 self.material.end()
@@ -2260,35 +2249,19 @@ class ObjMeshStim(BaseRigidBodyStim):
             color = np.ctypeslib.as_ctypes(
                 np.array((r, g, b, self.opacity), np.float32))
 
-            if self._useShaders:
-                nLights = len(self.win.lights)
-                shaderKey = (nLights, False)
-                gt.useProgram(self.win._shaders['stim3d_phong'][shaderKey])
+            nLights = len(self.win.lights)
+            shaderKey = (nLights, False)
+            gt.useProgram(self.win._shaders['stim3d_phong'][shaderKey])
 
-                # pass values to OpenGL as material
-                GL.glColor4f(r, g, b, self.opacity)
-                GL.glMaterialfv(GL.GL_FRONT, GL.GL_DIFFUSE, color)
-                GL.glMaterialfv(GL.GL_FRONT, GL.GL_AMBIENT, color)
+            # pass values to OpenGL as material
+            GL.glColor4f(r, g, b, self.opacity)
+            GL.glMaterialfv(GL.GL_FRONT, GL.GL_DIFFUSE, color)
+            GL.glMaterialfv(GL.GL_FRONT, GL.GL_AMBIENT, color)
 
-                for materialName, _ in self._vao.items():
-                    gt.drawVAO(self._vao[materialName], GL.GL_TRIANGLES)
+            for materialName, _ in self._vao.items():
+                gt.drawVAO(self._vao[materialName], GL.GL_TRIANGLES)
 
-                gt.useProgram(0)
-            else:
-                # material tracks color
-                GL.glEnable(GL.GL_COLOR_MATERIAL)  # enable color tracking
-                GL.glDisable(GL.GL_TEXTURE_2D)
-                GL.glColorMaterial(GL.GL_FRONT, GL.GL_AMBIENT_AND_DIFFUSE)
-                GL.glMaterialfv(GL.GL_FRONT, GL.GL_DIFFUSE, color)
-                GL.glMaterialfv(GL.GL_FRONT, GL.GL_AMBIENT, color)
-                # 'rgb' is created and set when color is set
-                GL.glColor4f(r, g, b, self.opacity)
-
-                # draw the shape
-                for materialName, _ in self._vao.items():
-                    gt.drawVAO(self._vao[materialName], GL.GL_TRIANGLES)
-
-                GL.glDisable(GL.GL_COLOR_MATERIAL)  # enable color tracking
+            gt.useProgram(0)
 
         GL.glPopMatrix()
 

@@ -119,7 +119,6 @@ class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
         self._needVertexUpdate = True
         self._needColorUpdate = True
         self._RGBAs = None
-        self.useShaders = True
         self.interpolate = interpolate
         self.__dict__['fieldDepth'] = fieldDepth
         self.__dict__['depths'] = depths
