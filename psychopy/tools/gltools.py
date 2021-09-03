@@ -3193,8 +3193,7 @@ class SimpleMaterial(object):
                  specularTexture=None,
                  opacity=1.0,
                  contrast=1.0,
-                 face='front',
-                 useShaders=False):
+                 face='front'):
         """
         Parameters
         ----------
@@ -3225,10 +3224,6 @@ class SimpleMaterial(object):
             Contrast of the material colors.
         face : str
             Face to apply material to. Values are `front`, `back` or `both`.
-        useShaders : bool
-            Use per-pixel lighting when rendering this stimulus. By default,
-            Blinn-Phong shading will be used. Always `True` as of PsychoPy
-            2021.2.3.
         """
         self.win = win
 
