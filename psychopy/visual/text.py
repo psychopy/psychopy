@@ -167,7 +167,6 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self._needUpdate = True
         self._needVertexUpdate = True
         # use shaders if available by default, this is a good thing
-        self.__dict__['useShaders'] = win._haveShaders
         self.__dict__['antialias'] = antialias
         self.__dict__['font'] = font
         self.__dict__['bold'] = bold
@@ -696,21 +695,17 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
         GL.glScalef((1, -1)[self.flipHoriz], (1, -1)
                     [self.flipVert], 1)  # x,y,z; -1=flipped
 
-        if self.useShaders:  # then rgb needs to be set as glColor
-            # setup color
-            GL.glColor4f(*self._foreColor.render('rgba1'))
+        # setup color
+        GL.glColor4f(*self._foreColor.render('rgba1'))
 
-            GL.glUseProgram(self.win._progSignedTexFont)
-            # GL.glUniform3iv(GL.glGetUniformLocation(
-            #       self.win._progSignedTexFont, "rgb"), 1,
-            #       desiredRGB.ctypes.data_as(ctypes.POINTER(ctypes.c_float)))
-            #  # set the texture to be texture unit 0
-            GL.glUniform3f(
-                GL.glGetUniformLocation(self.win._progSignedTexFont, b"rgb"),
-                *self._foreColor.render('rgb1'))
-
-        else:  # color is set in texture, so set glColor to white
-            GL.glColor4f(1, 1, 1, 1)
+        GL.glUseProgram(self.win._progSignedTexFont)
+        # GL.glUniform3iv(GL.glGetUniformLocation(
+        #       self.win._progSignedTexFont, "rgb"), 1,
+        #       desiredRGB.ctypes.data_as(ctypes.POINTER(ctypes.c_float)))
+        #  # set the texture to be texture unit 0
+        GL.glUniform3f(
+            GL.glGetUniformLocation(self.win._progSignedTexFont, b"rgb"),
+            *self._foreColor.render('rgb1'))
 
         # should text have a depth or just on top?
         GL.glDisable(GL.GL_DEPTH_TEST)
@@ -738,10 +733,6 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         # pyglets text.draw() method alters the blend func so reassert ours
         win.setBlendMode(blendMode, log=False)
-
-        if self.useShaders:
-            # disable shader (but command isn't available pre-OpenGL2.0)
-            GL.glUseProgram(0)
-
+        GL.glUseProgram(0)
         # GL.glEnable(GL.GL_DEPTH_TEST)  # Enables Depth Testing
         GL.glPopMatrix()

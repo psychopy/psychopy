@@ -165,8 +165,7 @@ class EnvelopeGrating(GratingStim):
                              depth=depth, interpolate=interpolate,
                              name=name, autoLog=autoLog, autoDraw=autoDraw,
                              maskParams=None)
-        # use shaders if available by default, this is a good thing
-        self.__dict__['useShaders'] = win._haveShaders
+
         # UGLY HACK: Some parameters depend on each other for processing.
         # They are set "superficially" here.
         # TO DO: postpone calls to _createTexture, setColor and
@@ -355,14 +354,9 @@ class EnvelopeGrating(GratingStim):
         (e.g. 256 x 256). If not then PsychoPy will upsample your stimulus
         to the next larger power of two.
         """
-        if self.useShaders == True:
-            self._createTexture(value, id=self._envelopeID,
-                                pixFormat=GL.GL_RGB, stim=self,
-                                res=self.texRes)
-        else:
-            self._createTexture(value, id=self._envelopeID,
-                                pixFormat=GL.GL_ALPHA, stim=self,
-                                res=self.texRes)
+        self._createTexture(value, id=self._envelopeID,
+                            pixFormat=GL.GL_RGB, stim=self,
+                            res=self.texRes)
 
         # if user requested size=None then update the size for new stim here
         if hasattr(self, '_requestedSize') and self._requestedSize is None:
@@ -384,10 +378,12 @@ class EnvelopeGrating(GratingStim):
            Landy and Oruc, Vis Res 2002.
            Note overall contrast (apparent carrier contrast) will be altered.
         """
-        if self.useShaders == True:
-            self._createTexture(numpy.ones((self.texRes,self.texRes))*value, id=self._powerID,
-                                pixFormat=GL.GL_RGB, stim=self,
-                                res=self.texRes)
+        self._createTexture(
+            numpy.ones((self.texRes,self.texRes)) * value,
+            id=self._powerID,
+            pixFormat=GL.GL_RGB,
+            stim=self,
+            res=self.texRes)
 
         # if user requested size=None then update the size for new stim here
         if hasattr(self, '_requestedSize') and self._requestedSize is None:
