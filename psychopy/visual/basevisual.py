@@ -1059,8 +1059,7 @@ class TextureMixin(object):
             data[:, :, 2] = intensity  # B
         elif (pixFormat == GL.GL_RGB and
                 wasLum and
-                dataType != GL.GL_FLOAT and
-                stim.useShaders):
+                dataType != GL.GL_FLOAT):
             # was a lum image: stick with ubyte for speed
             internalFormat = GL.GL_RGB
             # initialise data array as a float
@@ -1069,32 +1068,6 @@ class TextureMixin(object):
             data[:, :, 0] = intensity  # R
             data[:, :, 1] = intensity  # G
             data[:, :, 2] = intensity  # B
-        # Grating on legacy hardware, or ImageStim with wasLum=True
-        elif pixFormat == GL.GL_RGB and wasLum and not stim.useShaders:
-            # scale by rgb and convert to ubyte
-            internalFormat = GL.GL_RGB
-            if hasattr(stim, '_foreColor'):
-                rgb = stim._foreColor.rgba
-            elif hasattr(stim, '_fillColor'):
-                rgb = stim._fillColor.rgba
-            else:
-                raise AttributeError(
-                    "class does not have attribute `_foreColor` or `_fillColor`"
-                )
-
-            # if wasImage it will also have ubyte values for the intensity
-            if wasImage:
-                intensity = (intensity / 127.5) - 1.0
-            # scale by rgb
-            # initialise data array as a float
-            data = numpy.ones((intensity.shape[0], intensity.shape[1], 4),
-                              numpy.float32)
-            data[:, :, 0] = intensity * rgb[0] + stim.rgbPedestal[0]  # R
-            data[:, :, 1] = intensity * rgb[1] + stim.rgbPedestal[1]  # G
-            data[:, :, 2] = intensity * rgb[2] + stim.rgbPedestal[2]  # B
-            data[:, :, :-1] = data[:, :, :-1] * stim.contrast
-            # convert to ubyte
-            data = float_uint8(data)
         elif pixFormat == GL.GL_RGB and dataType == GL.GL_FLOAT:
             # probably a custom rgb array or rgb image
             internalFormat = GL.GL_RGB32F_ARB
