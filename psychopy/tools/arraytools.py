@@ -285,6 +285,20 @@ def createLumPattern(patternType, res, texParams=None, maskParams=None):
     else:
         raise TypeError('parameter `maskParams` must be type `dict` or `None`')
 
+    # correct `makeRadialMatrix` from filters, duplicated her to avoid importing
+    # all of visual to test this function out
+    def _makeRadialMatrix(matrixSize, center=(0.0, 0.0), radius=1.0):
+        if type(radius) in [int, float]:
+            radius = [radius, radius]
+
+        # NB need to add one step length because
+        yy, xx = numpy.mgrid[0:matrixSize, 0:matrixSize]
+        xx = ((1.0 - 2.0 / matrixSize * xx) + center[0]) / radius[0]
+        yy = ((1.0 - 2.0 / matrixSize * yy) + center[1]) / radius[1]
+        rad = numpy.sqrt(numpy.power(xx, 2) + numpy.power(yy, 2))
+
+        return rad
+
     # here is where we generate textures
     pi = numpy.pi
     if patternType in (None, "none", "None", "color"):
@@ -322,10 +336,10 @@ def createLumPattern(patternType, res, texParams=None, maskParams=None):
             numpy.sin(onePeriodX - pi / 2) * numpy.sin(onePeriodY - pi / 2)
         intensity = numpy.where(sinusoid > 0, 1, -1)
     elif patternType == "circle":
-        rad = makeRadialMatrix(res)
+        rad = _makeRadialMatrix(res)
         intensity = (rad <= 1) * 2 - 1
     elif patternType == "gauss":
-        rad = makeRadialMatrix(res)
+        rad = _makeRadialMatrix(res)
         # 3sd.s by the edge of the stimulus
         try:
             maskStdev = allMaskParams['sd']
@@ -346,13 +360,13 @@ def createLumPattern(patternType, res, texParams=None, maskParams=None):
         # i.e. the four corners
         intensity = numpy.where(tfNegCross, -1, 1)
     elif patternType == "radRamp":  # a radial ramp
-        rad = makeRadialMatrix(res)
+        rad = _makeRadialMatrix(res)
         intensity = 1 - 2 * rad
         # clip off the corners (circular)
         intensity = numpy.where(rad < -1, intensity, -1)
     elif patternType == "raisedCos":  # A raised cosine
         hammingLen = 1000  # affects the 'granularity' of the raised cos
-        rad = makeRadialMatrix(res)
+        rad = _makeRadialMatrix(res)
         intensity = numpy.zeros_like(rad)
         intensity[numpy.where(rad < 1)] = 1
 
