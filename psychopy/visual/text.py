@@ -361,10 +361,8 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
             self.__dict__['text'] = text
 
-        if self.useShaders:
-            self._setTextShaders(text)
-        else:
-            self._setTextNoShaders(text)
+        self._setTextShaders(text)
+        
         self._needSetText = False
 
     def setText(self, text=None, log=None):
@@ -501,45 +499,6 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         GL.glEndList()
         self._needUpdate = False
-
-    def _setTextNoShaders(self, value=None):
-        """Set the text to be rendered using the current font
-        """
-        if self.win.winType in ["pyglet", "glfw"]:
-            rgba255 = self._foreColor.rgba255
-            rgba255[3] = rgba255[3]*255
-            rgba255 = [int(c) for c in rgba255]
-            self._pygletTextObj = pyglet.text.Label(
-                self.text, self.font, int(self._heightPix*0.75),
-                anchor_x=self.anchorHoriz,
-                anchor_y=self.anchorVert,  # the point we rotate around
-                align=self.alignText,
-                color = rgba255,
-                multiline=True, width=self._wrapWidthPix)  # width of the frame
-            self.width = self._pygletTextObj.width
-        else:
-            self._surf = self._font.render(value, self.antialias,
-                                           self._foreColor.render('rgba255'))
-            self.width, self._fontHeightPix = self._surf.get_size()
-            if self.antialias:
-                smoothing = GL.GL_LINEAR
-            else:
-                smoothing = GL.GL_NEAREST
-            # generate the textures from pygame surface
-            GL.glEnable(GL.GL_TEXTURE_2D)
-            # bind that name to the target
-            GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
-            GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA,
-                            self.width, self._fontHeightPix, 0,
-                            GL.GL_RGBA, GL.GL_UNSIGNED_BYTE,
-                            pygame.image.tostring(self._surf, "RGBA", 1))
-            # linear smoothing if texture is stretched?
-            GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER,
-                               smoothing)
-            # but nearest pixel value if it's compressed?
-            GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER,
-                               smoothing)
-        self._needUpdate = True
 
     @attributeSetter
     def flipHoriz(self, value):
