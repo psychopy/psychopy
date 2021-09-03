@@ -3,7 +3,7 @@ import os
 from psychopy import prefs
 from psychopy.app import psychopyApp
 
-class Test_RunnerFrame(object):
+class Test_RunnerFrame():
     """
     This test opens Runner, and several processes.
     """

@@ -1,5 +1,3 @@
-from __future__ import print_function
-from builtins import object
 import pytest
 import shutil
 from tempfile import mkdtemp
@@ -29,7 +27,7 @@ testsDataDir = psychoRoot/'tests/data'
 
 
 
-class Test_PsychoJS_from_Builder(object):
+class Test_PsychoJS_from_Builder():
     """Some tests just for the window - we don't really care about what's drawn inside it
     """
     @pytest.mark.usefixtures("get_app")

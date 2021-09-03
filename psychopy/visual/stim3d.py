@@ -26,7 +26,7 @@ import numpy as np
 import pyglet.gl as GL
 
 
-class LightSource(object):
+class LightSource:
     """Class for representing a light source in a scene.
 
     Only point and directional lighting is supported by this object for now. The
@@ -212,7 +212,7 @@ class LightSource(object):
         self._kAttenuation = np.asarray(value, np.float32)
 
 
-class SceneSkybox(object):
+class SceneSkybox:
     """Class to render scene skyboxes.
 
     A skybox provides background imagery to serve as a visual reference for the
@@ -397,7 +397,7 @@ class SceneSkybox(object):
         win.draw3d = False
 
 
-class BlinnPhongMaterial(object):
+class BlinnPhongMaterial:
     """Class representing a material using the Blinn-Phong lighting model.
 
     This class stores material information to modify the appearance of drawn
@@ -733,7 +733,7 @@ class BlinnPhongMaterial(object):
         GL.glEnable(GL.GL_COLOR_MATERIAL)
 
 
-class RigidBodyPose(object):
+class RigidBodyPose:
     """Class for representing rigid body poses.
 
     This class is an abstract representation of a rigid body pose, where the
@@ -1263,7 +1263,7 @@ class RigidBodyPose(object):
             self._ori, mt.alignTo(fwd, invPos, dtype=np.float32))
 
 
-class BoundingBox(object):
+class BoundingBox:
     """Class for representing object bounding boxes.
 
     A bounding box is a construct which represents a 3D rectangular volume about

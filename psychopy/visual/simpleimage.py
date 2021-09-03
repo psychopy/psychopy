@@ -9,8 +9,6 @@ the resolution and color in the file (subject to gamma correction if set).
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import, division, print_function
-from past.builtins import basestring
 import os
 
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
@@ -258,7 +256,7 @@ class SimpleImageStim(MinimalStim, WindowMixin):
         """
         filename = pathToString(filename)
         self.__dict__['image'] = filename
-        if isinstance(filename, basestring):
+        if isinstance(filename, str):
             # is a string - see if it points to a file
             if os.path.isfile(filename):
                 self.filename = filename

@@ -13,7 +13,6 @@ used by backends.getBackend(winType) which will locate the appropriate class
 and initialize an instance using the attributes of the Window.
 """
 
-from __future__ import absolute_import, print_function
 import sys
 import os
 import numpy as np
@@ -21,7 +20,7 @@ import numpy as np
 import psychopy
 from psychopy import core
 from psychopy.hardware import mouse
-from psychopy import logging, event, platform_specific, constants
+from psychopy import logging, event, platform_specific
 from psychopy.visual import window
 from psychopy.tools.attributetools import attributeSetter
 from psychopy.tests import _vmTesting
@@ -500,18 +499,11 @@ class PygletBackend(BaseBackend):
         """
         if sys.platform == 'win32':
             scrBytes = self.winHandle._dc
-            if constants.PY3:
-                try:
-                    _screenID = 0xFFFFFFFF & int.from_bytes(
-                        scrBytes, byteorder='little')
-                except TypeError:
-                    _screenID = 0xFFFFFFFF & scrBytes
-            else:
-                try:
-                    _screenID = 0xFFFFFFFF & scrBytes
-                except TypeError:
-                    _screenID = scrBytes
-
+            try:
+                _screenID = 0xFFFFFFFF & int.from_bytes(
+                    scrBytes, byteorder='little')
+            except TypeError:
+                _screenID = 0xFFFFFFFF & scrBytes
         elif sys.platform == 'darwin':
             try:
                 _screenID = self.winHandle._screen.id  # pyglet1.2alpha1

@@ -4,8 +4,6 @@
 """
 New backend for the Psychtoolbox portaudio engine
 """
-from __future__ import absolute_import, division, print_function
-
 import sys
 import os
 import time

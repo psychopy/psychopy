@@ -1,10 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import absolute_import, division, print_function
-
-from builtins import str
-from builtins import object
 import sys
 import os
 import time
@@ -18,7 +14,7 @@ except ImportError:
 
 from psychopy import logging
 from psychopy.constants import (PLAYING, PAUSED, FINISHED, STOPPED,
-                                NOT_STARTED, PY3)
+                                NOT_STARTED)
 from .exceptions import SoundFormatError, DependencyError
 from ._base import _SoundBase, HammingWindow
 
@@ -144,7 +140,7 @@ class _StreamsDict(dict):
 streams = _StreamsDict()
 
 
-class _SoundStream(object):
+class _SoundStream():
     def __init__(self, sampleRate, channels, blockSize,
                  device=None, duplex=False):
         # initialise thread
@@ -241,8 +237,7 @@ class _SoundStream(object):
             del self._sdStream
         if hasattr(sys, 'stdout'):
             sys.stdout.flush()
-        if PY3:
-            atexit.unregister(self.__del__)
+        atexit.unregister(self.__del__)
 
 
 class SoundDeviceSound(_SoundBase):

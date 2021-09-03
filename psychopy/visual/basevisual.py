@@ -8,10 +8,6 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import, division, print_function
-
-from builtins import object
-from past.builtins import basestring
 from pathlib import Path
 from statistics import mean
 from psychopy.colors import Color, colorSpaces
@@ -82,7 +78,7 @@ mixin(s) as needed to add functionality.
 """
 
 
-class MinimalStim(object):
+class MinimalStim:
     """Non-visual methods and attributes for BaseVisualStim and RatingScale.
 
     Includes: name, autoDraw, autoLog, status, __str__
@@ -204,7 +200,7 @@ class MinimalStim(object):
         setAttribute(self, 'autoLog', value, log)
 
 
-class LegacyVisualMixin(object):
+class LegacyVisualMixin:
     """Class to hold deprecated visual methods and attributes.
 
     Intended only for use as a mixin class for BaseVisualStim, to maintain
@@ -263,7 +259,7 @@ class LegacyVisualMixin(object):
         self.__dict__['depth'] = value
 
 
-class LegacyColorMixin(object):
+class LegacyColorMixin:
     def setDKL(self, color, operation=''):
         """DEPRECATED since v1.60.05: Please use the `color` attribute
         """
@@ -711,7 +707,7 @@ class ColorMixin(LegacyColorMixin):
         return
 
 
-class ContainerMixin(object):
+class ContainerMixin:
     """Mixin class for visual stim that have verticesPix attrib
     and .contains() methods.
     """
@@ -866,7 +862,7 @@ class ContainerMixin(object):
         return polygonsOverlap(self, polygon)
 
 
-class TextureMixin(object):
+class TextureMixin:
     """Mixin class for visual stim that have textures.
 
     Could move visual.helpers.setTexIfNoShaders() into here.
@@ -965,7 +961,7 @@ class TextureMixin(object):
             intensity = createLumPattern(tex, res, None, allMaskParams)
             wasLum = True
         else:
-            if isinstance(tex, (basestring, Path)):
+            if isinstance(tex, (str, Path)):
                 # maybe tex is the name of a file:
                 filename = findImageFile(tex)
                 if not filename:
@@ -1221,7 +1217,7 @@ class TextureMixin(object):
         self.__dict__['interpolate'] = value
 
 
-class WindowMixin(object):
+class WindowMixin:
     """Window-related attributes and methods.
 
     Used by BaseVisualStim, SimpleImageStim and ElementArrayStim.

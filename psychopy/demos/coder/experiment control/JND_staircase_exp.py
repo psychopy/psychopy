@@ -5,8 +5,6 @@
 Measure your JND in orientation using a staircase method
 """
 
-from __future__ import absolute_import, division, print_function
-
 from psychopy import core, visual, gui, data, event
 from psychopy.tools.filetools import fromFile, toFile
 import time, numpy

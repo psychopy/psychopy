@@ -9,11 +9,6 @@ detailed random dot stimuli."""
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import, division, print_function
-
-from builtins import str
-from past.utils import old_div
-
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
 # other calls to pyglet or pyglet submodules, otherwise it may not get picked
 # up by the pyglet GL engine and have no effect.
@@ -238,24 +233,24 @@ class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
             rand = numpy.random.rand
             if self.fieldShape in ('sqr', 'square'):
                 # initialise a random array of X,Y
-                self.__dict__['xys'] = rand(self.nElements, 2) * fsz - old_div(fsz, 2)
+                self.__dict__['xys'] = rand(self.nElements, 2) * fsz - (fsz / 2)
                 # gone outside the square
-                xxx = (self.xys[:, 0] + old_div(fsz[0], 2)) % fsz[0]
-                yyy = (self.xys[:, 1] + old_div(fsz[1], 2)) % fsz[1]
-                self.__dict__['xys'][:, 0] = xxx - old_div(fsz[0], 2)
-                self.__dict__['xys'][:, 1] = yyy - old_div(fsz[1], 2)
+                xxx = (self.xys[:, 0] + (fsz[0] / 2)) % fsz[0]
+                yyy = (self.xys[:, 1] + (fsz[1] / 2)) % fsz[1]
+                self.__dict__['xys'][:, 0] = xxx - (fsz[0] / 2)
+                self.__dict__['xys'][:, 1] = yyy - (fsz[1] / 2)
             elif self.fieldShape == 'circle':
                 # take twice as many elements as we need (and cull the ones
                 # outside the circle)
                 # initialise a random array of X,Y
-                xys = rand(self.nElements * 2, 2) * fsz - old_div(fsz, 2)
+                xys = rand(self.nElements * 2, 2) * fsz - (fsz / 2)
                 # gone outside the square
-                xys[:, 0] = ((xys[:, 0] + old_div(fsz[0], 2)) % fsz[0]) - old_div(fsz[0], 2)
-                xys[:, 1] = ((xys[:, 1] + old_div(fsz[1], 2)) % fsz[1]) - old_div(fsz[1], 2)
+                xys[:, 0] = ((xys[:, 0] + (fsz[0] / 2)) % fsz[0]) - (fsz[0] / 2)
+                xys[:, 1] = ((xys[:, 1] + (fsz[1] / 2)) % fsz[1]) - (fsz[1] / 2)
                 # use a circular envelope and flips dot to opposite edge
                 # if they fall beyond radius.
                 # NB always circular - uses fieldSize in X only
-                normxy = old_div(xys, (old_div(fsz, 2.0)))
+                normxy = xys / (fsz / 2.0)
                 dotDist = numpy.sqrt((normxy[:, 0]**2.0 + normxy[:, 1]**2.0))
                 self.__dict__['xys'] = xys[dotDist < 1.0, :][0:self.nElements]
         else:
@@ -652,10 +647,10 @@ class ElementArrayStim(MinimalStim, TextureMixin, ColorMixin):
         # for the main texture
         # sf is dependent on size (openGL default)
         if self.units in ['norm', 'pix', 'height']:
-            L = old_div(-self.sfs[:, 0], 2) - self.phases[:, 0] + 0.5
-            R = old_div(+self.sfs[:, 0], 2) - self.phases[:, 0] + 0.5
-            T = old_div(+self.sfs[:, 1], 2) - self.phases[:, 1] + 0.5
-            B = old_div(-self.sfs[:, 1], 2) - self.phases[:, 1] + 0.5
+            L = (-self.sfs[:, 0] / 2) - self.phases[:, 0] + 0.5
+            R = (+self.sfs[:, 0] / 2) - self.phases[:, 0] + 0.5
+            T = (+self.sfs[:, 1] / 2) - self.phases[:, 1] + 0.5
+            B = (-self.sfs[:, 1] / 2) - self.phases[:, 1] + 0.5
         else:
             # we should scale to become independent of size
             L = (-self.sfs[:, 0] * self.sizes[:, 0] / 2

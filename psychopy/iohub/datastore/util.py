@@ -3,13 +3,8 @@
 # Part of the PsychoPy library
 # Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
-from __future__ import division, absolute_import, print_function
 
-from builtins import next
-from past.builtins import basestring
-from builtins import object
 import numbers  # numbers.Integral is like (int, long) but supports Py3
-from tables import *
 import os
 from collections import namedtuple
 import json
@@ -89,7 +84,7 @@ def displayEventTableSelectionDialog(
 ########### Experiment / Experiment Session Based Data Access #################
 
 
-class ExperimentDataAccessUtility(object):
+class ExperimentDataAccessUtility():
     """The ExperimentDataAccessUtility  provides a simple, high level, way to
     access data saved in an ioHub DataStore HDF5 file. Data access is done by
     providing information at an experiment and session level, as well as
@@ -247,7 +242,7 @@ class ExperimentDataAccessUtility(object):
             event_column = None
             event_value = None
 
-            if isinstance(event_type, basestring):
+            if isinstance(event_type, str):
                 if event_type.find('Event') >= 0:
                     event_column = 'class_name'
                     event_value = event_type
@@ -393,7 +388,7 @@ class ExperimentDataAccessUtility(object):
         if isinstance(value, (list, tuple)):
             resolvedValues = []
             for v in value:
-                if isinstance(value, basestring) and value.startswith(
+                if isinstance(value, str) and value.startswith(
                         '@') and value.endswith('@'):
                     value=value[1:-1]
                     if value in cvNames:
@@ -402,10 +397,10 @@ class ExperimentDataAccessUtility(object):
                         raise ExperimentDataAccessException(
                             'getEventAttributeValues: {0} is not a valid attribute name in {1}'.format(
                                 v, cvNames))
-                elif isinstance(value, basestring):
+                elif isinstance(value, str):
                     resolvedValues.append(value)
             return resolvedValues
-        elif isinstance(value, basestring) and value.startswith('@') and value.endswith('@'):
+        elif isinstance(value, str) and value.startswith('@') and value.endswith('@'):
             value = value[1:-1]
             if value in cvNames:
                 return getattr(cv, value)

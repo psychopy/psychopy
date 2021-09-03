@@ -7,7 +7,6 @@
 
 """Functions and classes related to array handling
 """
-from __future__ import absolute_import, division, print_function
 
 __all__ = ["createXYs",
            "extendArr",
@@ -18,8 +17,6 @@ __all__ = ["createXYs",
            "array2pointer",
            "createLumPattern"]
 
-from builtins import str
-from past.utils import old_div
 import numpy
 import ctypes
 
@@ -82,15 +79,11 @@ def extendArr(inArray, newSize):
     return newArr
 
 
-def makeRadialMatrix(matrixSize):
-    """Generate a square matrix where each element val is
-    its distance from the centre of the matrix
+def makeRadialMatrix(matrixSize, center=(0.0, 0.0), radius=1.0):
+    """DEPRECATED: please use psychopy.filters.makeRadialMatrix instead
     """
-    oneStep = old_div(2.0, (matrixSize - 1) or -1)
-    # NB need to add one step length because
-    xx, yy = numpy.mgrid[0:2 + oneStep:oneStep, 0:2 + oneStep:oneStep] - 1.0
-    rad = numpy.sqrt(xx**2 + yy**2)
-    return rad
+    from psychopy.visual import filters
+    return filters.makeRadialMatrix(matrixSize, center, radius)
 
 
 def ratioRange(start, nSteps=None, stop=None,
@@ -113,34 +106,37 @@ def ratioRange(start, nSteps=None, stop=None,
     badRange = "Can't calculate ratio ranges on negatives or zero"
     if start <= 0:
         raise RuntimeError(badRange)
+
     if stepdB is not None:
-        stepRatio = 10.0**(old_div(stepdB, 20.0))  # dB = 20*log10(ratio)
+        stepRatio = 10.0 ** (stepdB / 20.0)  # dB = 20*log10(ratio)
+
     if stepLogUnits is not None:
-        stepRatio = 10.0**stepLogUnits  # logUnit = log10(ratio)
+        stepRatio = 10.0 ** stepLogUnits  # logUnit = log10(ratio)
 
-    if (stepRatio != None) and (nSteps != None):
-        factors = stepRatio**numpy.arange(nSteps, dtype='d')
+    if stepRatio is not None and nSteps is not None:
+        factors = stepRatio ** numpy.arange(nSteps, dtype='d')
         output = start * factors
-
-    elif (nSteps != None) and (stop != None):
+    elif nSteps is not None and stop is not None:
         if stop <= 0:
             raise RuntimeError(badRange)
         lgStart = numpy.log10(start)
         lgStop = numpy.log10(stop)
-        lgStep = old_div((lgStop - lgStart), (nSteps - 1))
+        lgStep = (lgStop - lgStart) / (nSteps - 1)
         lgArray = numpy.arange(lgStart, lgStop + lgStep, lgStep)
         # if the above is a badly rounded float it may have one extra entry
         if len(lgArray) > nSteps:
             lgArray = lgArray[:-1]
-        output = 10**lgArray
-
-    elif (stepRatio != None) and (stop != None):
+        output = 10 ** lgArray
+    elif stepRatio is not None and stop is not None:
         thisVal = float(start)
         outList = []
         while thisVal < stop:
             outList.append(thisVal)
             thisVal *= stepRatio
         output = numpy.asarray(outList)
+    else:
+        # if any of the conditions above are not satisfied, throw this error.
+        raise ValueError('Invalid input parameters.')
 
     return output
 
@@ -225,7 +221,7 @@ def array2pointer(arr, dtype=None):
 
 def createLumPattern(patternType, res, texParams=None, maskParams=None):
     """Create a luminance (single channel) defined pattern.
-    
+
     Parameters
     ----------
     patternType : str or None
@@ -256,7 +252,7 @@ def createLumPattern(patternType, res, texParams=None, maskParams=None):
         res = 1024
         maskParams = {'sd': 0.5}
         intensity = createLumPattern('gauss', res, None, maskParams)
-    
+
     """
     # This code was originally in `TextureMixin._createTexture`, but moved here
     # to clean up that class and to provide a reusable way of generating these

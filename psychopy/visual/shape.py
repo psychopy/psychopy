@@ -7,10 +7,6 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL)
 
-from __future__ import absolute_import, print_function
-
-from builtins import str
-from past.builtins import basestring
 import copy
 import numpy
 
@@ -579,7 +575,7 @@ class ShapeStim(BaseShapeStim):
         :ref:`Operations <attrib-operations>` supported with `.setVertices()`.
         """
         # check if this is a name of one of our known shapes
-        if isinstance(newVerts, basestring) and newVerts in knownShapes:
+        if isinstance(newVerts, str) and newVerts in knownShapes:
             newVerts = knownShapes[newVerts]
         if isinstance(newVerts, int):
             newVerts = self._calcEquilateralVertices(newVerts)

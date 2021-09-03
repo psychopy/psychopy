@@ -13,10 +13,6 @@ arguments are the arguments exactly as you would normally use them
 (and can used ordered arguments or named, keyword args as usual).
 """
 
-from __future__ import division
-from __future__ import print_function
-
-from builtins import range
 from psychopy import visual, core
 import numpy
 

@@ -47,6 +47,11 @@ if 'installing' not in locals():
 
     from psychopy.tools.versionchooser import useVersion, ensureMinimal
 
+if sys.version_info.major < 3:
+    raise ImportError("psychopy does not support Python2 installations. "
+                      "The last version to support Python2.7 was PsychoPy "
+                      "2021.2.x")
+
 # import readline here to get around an issue with sounddevice
 # issues GH-2230 GH-2344 GH-2662
 try:

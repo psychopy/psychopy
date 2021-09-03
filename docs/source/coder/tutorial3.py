@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 #This analysis script takes one or more staircase datafiles as input
 #from a GUI. It then plots the staircases on top of each other on
 #the left and a combined psychometric function from the same data

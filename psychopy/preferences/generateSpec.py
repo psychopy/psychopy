@@ -4,16 +4,9 @@
 # generate .spec files for all OS's based on differences from baseNoArch.spec
 # copies & tweaks baseNoArch.spec -> write out as platform specific .spec file
 
-from __future__ import absolute_import, print_function
-
 import os
-import sys
 
-PY3 = sys.version_info.major >= 3
-if PY3:
-    write_mode = 'w'
-else:
-    write_mode = 'wb'
+write_mode = 'w'
 
 
 def generateSpec(baseSpec=None):
