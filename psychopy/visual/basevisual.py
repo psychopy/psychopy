@@ -1294,37 +1294,6 @@ class WindowMixin(object):
         except Exception:
             pass
 
-    @attributeSetter
-    def useShaders(self, value):
-        """Should shaders be used to render the stimulus
-        (typically leave as `True`)
-
-        If the system support the use of OpenGL shader language then leaving
-        this set to True is highly recommended. If shaders cannot be used then
-        various operations will be slower (notably, changes to stimulus color
-        or contrast)
-        """
-        if value == True and self.win._haveShaders == False:
-            logging.error("Shaders were requested but aren't available. "
-                          "Shaders need OpenGL 2.0+ drivers")
-        if value != self.useShaders:  # if there's a change...
-            self.__dict__['useShaders'] = value
-            if hasattr(self, 'tex'):
-                self.tex = self.tex  # calling attributeSetter
-            elif hasattr(self, 'mask'):
-                # calling attributeSetter (does the same as mask)
-                self.mask = self.mask
-            if hasattr(self, '_imName'):
-                self.setImage(self._imName, log=False)
-            if self.__class__.__name__ == 'TextStim':
-                self._needSetText = True
-            self._needUpdate = True
-
-    def setUseShaders(self, value=True, log=None):
-        """Usually you can use 'stim.attribute = value' syntax instead,
-        but use this method if you need to suppress the log message"""
-        setAttribute(self, 'useShaders', value, log)  # call attributeSetter
-
     def draw(self):
         raise NotImplementedError('Stimulus classes must override '
                                   'visual.BaseVisualStim.draw')

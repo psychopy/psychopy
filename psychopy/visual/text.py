@@ -362,7 +362,7 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
             self.__dict__['text'] = text
 
         self._setTextShaders(text)
-        
+
         self._needSetText = False
 
     def setText(self, text=None, log=None):
