@@ -901,17 +901,16 @@ class TextureMixin(object):
     def _createTexture(self, tex, id, pixFormat, stim, res=128, maskParams=None,
                        forcePOW2=True, dataType=None, wrapping=True):
 
-        # transform all variants of `None` to that
+        # transform all variants of `None` to that, simplifies conditions below
         if tex in ["none", "None", "color"]:
             tex = None
 
         # Create an intensity texture, ranging -1:1.0
         notSqr = False  # most of the options will be creating a sqr texture
         wasImage = False  # change this if image loading works
-        useShaders = stim.useShaders
         interpolate = stim.interpolate
         if dataType is None:
-            if useShaders and pixFormat == GL.GL_RGB:
+            if pixFormat == GL.GL_RGB:
                 dataType = GL.GL_FLOAT
             else:
                 dataType = GL.GL_UNSIGNED_BYTE
@@ -954,8 +953,8 @@ class TextureMixin(object):
                                   "16 x 16, 256 x 256) texture but didn't "
                                   "receive one")
                 res = tex.shape[0]
-            if useShaders:
-                dataType = GL.GL_FLOAT
+
+            dataType = GL.GL_FLOAT
         elif tex in ("sin", "sqr", "saw", "tri", "sinXsin", "sqrXsqr", "circle",
                      "gauss", "cross", "radRamp", "raisedCos", None):
             if tex is None:
@@ -1014,6 +1013,7 @@ class TextureMixin(object):
                         logging.warning("Multiple images have needed resizing"
                                         " - I'll stop bothering you!")
                         im = im.resize([powerOf2, powerOf2], Image.BILINEAR)
+
             # is it Luminance or RGB?
             if pixFormat == GL.GL_ALPHA and im.mode != 'L':
                 # we have RGB and need Lum
@@ -1021,13 +1021,15 @@ class TextureMixin(object):
                 im = im.convert("L")  # force to intensity (need if was rgb)
             elif im.mode == 'L':  # we have lum and no need to change
                 wasLum = True
-                if useShaders:
-                    dataType = GL.GL_FLOAT
+                dataType = GL.GL_FLOAT
             elif pixFormat == GL.GL_RGB:
                 # we want RGB and might need to convert from CMYK or Lm
                 # texture = im.tostring("raw", "RGB", 0, -1)
                 im = im.convert("RGBA")
                 wasLum = False
+            else:
+                raise ValueError('cannot determine if image is luminance or RGB')
+
             if dataType == GL.GL_FLOAT:
                 # convert from ubyte to float
                 # much faster to avoid division 2/255
@@ -1035,6 +1037,7 @@ class TextureMixin(object):
                     numpy.float32) * 0.0078431372549019607 - 1.0
             else:
                 intensity = numpy.array(im)
+
         if pixFormat == GL.GL_RGB and wasLum and dataType == GL.GL_FLOAT:
             # grating stim on good machine
             # keep as float32 -1:1
@@ -1074,6 +1077,11 @@ class TextureMixin(object):
                 rgb = stim._foreColor.rgba
             elif hasattr(stim, '_fillColor'):
                 rgb = stim._fillColor.rgba
+            else:
+                raise AttributeError(
+                    "class does not have attribute `_foreColor` or `_fillColor`"
+                )
+
             # if wasImage it will also have ubyte values for the intensity
             if wasImage:
                 intensity = (intensity / 127.5) - 1.0
@@ -1103,6 +1111,9 @@ class TextureMixin(object):
                 data = intensity
             else:
                 data = float_uint8(intensity)
+        else:
+            raise ValueError("invalid or unsupported `pixFormat`")
+
         # check for RGBA textures
         if len(data.shape) > 2 and data.shape[2] == 4:
             if pixFormat == GL.GL_RGB:
@@ -1134,21 +1145,14 @@ class TextureMixin(object):
         if interpolate:
             GL.glTexParameteri(
                 GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR)
-            if useShaders:
-                # GL_GENERATE_MIPMAP was only available from OpenGL 1.4
-                GL.glTexParameteri(
-                    GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)
-                GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_GENERATE_MIPMAP,
-                                   GL.GL_TRUE)
-                GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, internalFormat,
-                                data.shape[1], data.shape[0], 0,
-                                pixFormat, dataType, texture)
-            else:  # use glu
-                GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER,
-                                   GL.GL_LINEAR_MIPMAP_NEAREST)
-                GL.gluBuild2DMipmaps(GL.GL_TEXTURE_2D, internalFormat,
-                                     data.shape[1], data.shape[0],
-                                     pixFormat, dataType, texture)
+            # GL_GENERATE_MIPMAP was only available from OpenGL 1.4
+            GL.glTexParameteri(
+                GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)
+            GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_GENERATE_MIPMAP,
+                               GL.GL_TRUE)
+            GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, internalFormat,
+                            data.shape[1], data.shape[0], 0,
+                            pixFormat, dataType, texture)
         else:
             GL.glTexParameteri(
                 GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST)
@@ -1157,10 +1161,12 @@ class TextureMixin(object):
             GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, internalFormat,
                             data.shape[1], data.shape[0], 0,
                             pixFormat, dataType, texture)
+
         GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE,
                      GL.GL_MODULATE)  # ?? do we need this - think not!
         # unbind our texture so that it doesn't affect other rendering
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+
         return wasLum
 
     def clearTextures(self):
