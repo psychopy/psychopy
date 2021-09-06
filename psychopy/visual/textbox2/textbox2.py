@@ -297,7 +297,20 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         if hasattr(self, "box"):
             self.box.size = value
         if hasattr(self, "boundingBox"):
-            self.boundingBox.size = value
+            self.boundingBox.size = self._size - self._padding * 2
+
+    @property
+    def padding(self):
+        if hasattr(self, "_padding"):
+            return getattr(self._padding, self.units)
+
+    @padding.setter
+    def padding(self, value):
+        # Create a Size object to handle padding
+        self._padding = layout.Size(value, self.units, self.win)
+        # Update size of bounding box
+        if hasattr(self, "boundingBox"):
+            self.boundingBox.size = self._size - self._padding * 2
 
     @property
     def letterHeight(self):
