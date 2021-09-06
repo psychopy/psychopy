@@ -5,7 +5,6 @@
 """iohub wintab util objects / functions for stylus, position traces,
 and validation process psychopy graphics.
 """
-from __future__ import division, absolute_import
 
 import math
 from collections import OrderedDict
@@ -288,7 +287,7 @@ class PenTracesStim(MinimalStim):
 # Pen position validation process code
 #
 
-class ScreenPositionValidation(object):
+class ScreenPositionValidation:
     NUM_VALID_SAMPLES_PER_TARG = 100
     TARGET_TIMEOUT = 10.0
 

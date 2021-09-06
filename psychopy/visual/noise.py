@@ -16,8 +16,6 @@ orientation, frequencyand phase. Also does beat stimuli. """
 # up by the pyglet GL engine and have no effect.
 # Shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
 
-from __future__ import absolute_import, print_function, division
-
 import pyglet
 pyglet.options['debug_gl'] = False
 import ctypes

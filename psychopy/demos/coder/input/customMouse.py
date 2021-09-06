@@ -7,9 +7,6 @@ and ability to change the pointer.
 """
 # authors Jeremy Gray & Todd Parsons
 
-
-from __future__ import absolute_import, division, print_function
-
 from psychopy import visual, event
 
 # Create window

@@ -1,21 +1,20 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import absolute_import, division, print_function
-
 import numpy
 from os import path
-from psychopy import logging,exceptions
+from psychopy import logging
 from psychopy.constants import (STARTED, PLAYING, PAUSED, FINISHED, STOPPED,
                                 NOT_STARTED, FOREVER)
 from ._base import _SoundBase
+from .exceptions import DependencyError
 
 try:
     import pygame
     from pygame import mixer, sndarray
 except ImportError as err:
     # convert this import error to our own, pygame probably not installed
-    raise exceptions.DependencyError(repr(err))
+    raise DependencyError(repr(err))
 
 
 def getDevices(kind=None):

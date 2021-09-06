@@ -12,9 +12,6 @@
 #    (Mario Kleiner) but does not use that code directly
 #    It is, for example, Mario's idea to add the 0.01 to avoid rounding issues
 
-from __future__ import absolute_import, print_function
-from psychopy.visual.shaders import compileProgram, vertSimple
-
 bitsMonoModeFrag = """
 /* Mono++ output formatter
  *

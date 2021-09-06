@@ -2,7 +2,7 @@
 # Part of the PsychoPy library
 # Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
-from past.types import basestring
+
 import numpy as N
 from .. import Device, DeviceEvent, Computer, Device
 from ...constants import DeviceConstants, EventConstants
@@ -201,7 +201,7 @@ class LogEvent(DeviceEvent):
         _psychopyAvailable = True
 
         for lln, llv in _levelNames.items():
-            if isinstance(lln, basestring):
+            if isinstance(lln, str):
                 _levelNames[lln] = llv
                 _levelNames[llv] = lln
     except Exception:
@@ -285,7 +285,7 @@ class LogEvent(DeviceEvent):
             log_time = created_time
         if level is None or level not in cls._levelNames:
             level = cls.DEBUG
-        elif isinstance(level, basestring):
+        elif isinstance(level, str):
             level = cls._levelNames[level]
         return cls._createAsList(msg, level, created_time, log_time)
 
@@ -312,5 +312,5 @@ class LogEvent(DeviceEvent):
 
 if not hasattr(LogEvent, 'CRITICAL'):
     for lln, llv in LogEvent._levelNames.items():
-        if isinstance(lln, basestring):
+        if isinstance(lln, str):
             setattr(LogEvent, lln, llv)

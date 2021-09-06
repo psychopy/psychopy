@@ -8,13 +8,9 @@ Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 Distributed under the terms of the GNU General Public License (GPL).
 """
 
-from __future__ import absolute_import, division, print_function
-
 import os, sys
-import re
 import subprocess
 import webbrowser
-from math import floor
 from pathlib import Path
 import glob
 import copy
@@ -46,25 +42,20 @@ except ImportError:
 if parse_version(wx.__version__) < parse_version('4.0.3'):
     wx.NewIdRef = wx.NewId
 
-try:
-    from queue import Queue, Empty
-except ImportError:
-    from Queue import Queue, Empty  # python 2.x
-
 from psychopy.localization import _translate
 from ... import experiment, prefs
-from .. import dialogs, icons
-from ..themes import IconCache, ThemeMixin
+from .. import dialogs
+from ..themes import ThemeMixin
 from ..themes._themes import PsychopyDockArt, PsychopyTabArt, ThemeSwitcher
-from psychopy import logging, constants, data
+from psychopy import logging, data
 from psychopy.tools.filetools import mergeFolder
 from .dialogs import (DlgComponentProperties, DlgExperimentProperties,
-                      DlgCodeComponentProperties, DlgLoopProperties, ParamCtrls, ParamNotebook)
+                      DlgCodeComponentProperties, DlgLoopProperties,
+                      ParamNotebook)
 from ..utils import (PsychopyToolbar, PsychopyPlateBtn, WindowFrozen,
                      FileDropTarget, FrameSwitcher, updateDemosMenu)
 
-from psychopy.experiment import components, getAllStandaloneRoutines
-from builtins import str
+from psychopy.experiment import getAllStandaloneRoutines
 from psychopy.app import pavlovia_ui
 from psychopy.projects import pavlovia
 
@@ -1545,19 +1536,46 @@ class RoutinesNotebook(aui.AuiNotebook, ThemeMixin):
             return routineName
 
     def onClosePane(self, event=None):
-        """Close the pane and remove the routine from the exp
+        """Close the pane and remove the routine from the exp.
         """
-        routine = self.GetPage(event.GetSelection()).routine
+        currentPage = self.GetPage(event.GetSelection())
+        routine = currentPage.routine
         name = routine.name
-        # update experiment object, namespace, and flow window (if this is
-        # being used)
-        if name in self.frame.exp.routines:
-            # remove names of the routine and its components from namespace
-            _nsp = self.frame.exp.namespace
-            for c in self.frame.exp.routines[name]:
-                _nsp.remove(c.params['name'].val)
-            _nsp.remove(self.frame.exp.routines[name].name)
-            del self.frame.exp.routines[name]
+
+        # name is not valid for some reason
+        if name not in self.frame.exp.routines:
+            event.Skip()
+            return
+
+        # check if the user wants a prompt
+        showDlg = self.app.prefs.builder.get('confirmRoutineClose', False)
+        if showDlg:
+            # message to display
+            msg = _translate(
+                "Do you want to remove routine '{}' from the experiment?")
+
+            # dialog asking if the user wants to remove the routine
+            dlg = wx.MessageDialog(
+                self,
+                _translate(msg).format(name),
+                _translate('Remove routine?'),
+                wx.YES_NO | wx.NO_DEFAULT | wx.CENTRE | wx.STAY_ON_TOP)
+
+            # show the dialog and get the response
+            dlgResult = dlg.ShowModal()
+            dlg.Destroy()
+
+            if dlgResult == wx.ID_NO:  # if NO, stop the tab from closing
+                event.Veto()
+                return
+
+        # remove names of the routine and its components from namespace
+        _nsp = self.frame.exp.namespace
+        for c in self.frame.exp.routines[name]:
+            _nsp.remove(c.params['name'].val)
+        _nsp.remove(self.frame.exp.routines[name].name)
+        del self.frame.exp.routines[name]
+
         if routine in self.frame.exp.flow:
             self.frame.exp.flow.removeComponent(routine)
             self.frame.flowPanel.draw()
@@ -2308,7 +2326,25 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             self.Bind(wx.EVT_RIGHT_DOWN, self.onRightClick)
 
         def onClick(self, evt=None, timeout=None):
+            """Called when a component button is clicked on.
+            """
             routine = self.parent.frame.routinePanel.getCurrentRoutine()
+            if routine is None:
+                if timeout is not None:  # just return, we're testing the UI
+                    return
+                # Show a message telling the user there is no routine in the
+                # experiment, making adding a component pointless until they do
+                # so.
+                dlg = wx.MessageDialog(
+                    self,
+                    _translate(
+                        "Cannot add component, experiment has no routines."),
+                    _translate("Error"),
+                    wx.OK | wx.ICON_ERROR | wx.CENTRE)
+                dlg.ShowModal()
+                dlg.Destroy()
+                return
+
             page = self.parent.frame.routinePanel.getCurrentPage()
             comp = self.component(
                 parentName=routine.name,
@@ -3655,7 +3691,4 @@ def extractText(stream):
     :param stream: stream from wx.Process or any byte stream from a file
     :return: text converted to unicode ready for appending to wx text view
     """
-    if constants.PY3:
-        return stream.read().decode('utf-8')
-    else:
-        return stream.read()
+    return stream.read().decode('utf-8')

@@ -1,5 +1,4 @@
-#NOTE: Example currently not working in Python 3.
-from __future__ import print_function
+# NOTE: Example currently not working in Python 3.
 
 import time
 import numpy as np

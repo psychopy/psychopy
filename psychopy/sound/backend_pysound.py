@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import absolute_import, division, print_function
-
-from builtins import object
-from psychopy import logging, exceptions
+from psychopy import logging
+from .exceptions import DependencyError
 from psychopy.constants import (STARTED, PLAYING, PAUSED, FINISHED, STOPPED,
                                 NOT_STARTED, FOREVER)
 from psychopy.tools import attributetools
@@ -15,7 +13,7 @@ try:
     import soundfile as sndfile
 except ImportError as err:
     # convert this import error to our own, pysoundcard probably not installed
-    raise exceptions.DependencyError(repr(err.msg))
+    raise DependencyError(repr(err.msg))
 
 import numpy
 from os import path
@@ -47,7 +45,7 @@ defaultInput = None
 defaultOutput = None
 
 
-class _PySoundCallbackClass(object):
+class _PySoundCallbackClass():
     """To use callbacks without creating circular references we need a
     callback class.
 

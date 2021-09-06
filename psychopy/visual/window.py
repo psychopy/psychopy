@@ -7,7 +7,8 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import, division, print_function
+
+
 
 import ctypes
 import os
@@ -15,12 +16,6 @@ import sys
 import weakref
 import atexit
 from itertools import product
-
-# from builtins import map
-from builtins import object
-from builtins import range
-from builtins import str
-from past.builtins import basestring
 from collections import deque
 
 from psychopy.contrib.lazy_import import lazy_import
@@ -138,7 +133,7 @@ class OpenWinList(list):
 openWindows = core.openWindows = OpenWinList()  # core needs this for wait()
 
 
-class Window(object):
+class Window():
     """Used to set up a context in which to draw objects,
     using either `pyglet <http://www.pyglet.org>`_,
     `pygame <http://www.pygame.org>`_, or `glfw <https://www.glfw.org>`_.
@@ -346,7 +341,7 @@ class Window(object):
         # convert to a Monitor object
         if not monitor:
             self.monitor = monitors.Monitor('__blank__', autoLog=autoLog)
-        elif isinstance(monitor, basestring):
+        elif isinstance(monitor, str):
             self.monitor = monitors.Monitor(monitor, autoLog=autoLog)
         elif hasattr(monitor, 'keys'):
             # convert into a monitor object
@@ -932,6 +927,15 @@ class Window(object):
                             "In this case it was called with obj={}"
                             .format(repr(obj)))
 
+    def _cleanEditables(self):
+        """
+        Make sure there are no dead refs in the editables list
+        """
+        for ref in self._editableChildren:
+            obj = ref()
+            if obj is None:
+                self._editableChildren.remove(ref)
+
     @property
     def currentEditable(self):
         """The editable (Text?) object that currently has key focus"""
@@ -982,7 +986,8 @@ class Window(object):
         # If this is the first editable obj then make it the current
         if len(self._editableChildren) == 1:
             self._currentEditableRef = eRef
-
+        # Clean editables list
+        self._cleanEditables()
 
     def removeEditable(self, editable):
         # If editable is present, remove it from editables list
@@ -993,10 +998,19 @@ class Window(object):
                     self.nextEditable()
                 self._editableChildren.remove(ref)
                 return True
+            else:
+                logging.warning(f"Request to remove editable object {editable} could not be completed as weakref "
+                                f"to this object could not be found in window.")
+        # Clean editables list
+        self._cleanEditables()
+
         return False
     
     def nextEditable(self):
         """Moves focus of the cursor to the next editable window"""
+        # Clean editables list
+        self._cleanEditables()
+        # Progress
         if self.currentEditable is None:
             if len(self._editableChildren):
                 self._currentEditableRef = self._editableChildren[0]            
@@ -1084,6 +1098,8 @@ class Window(object):
                 if isinstance(thisObj, weakref.ref):
                     # Solidify weakref if necessary
                     thisObj = thisObj()
+                if thisObj is None:
+                    continue
                 if isinstance(thisObj.autoDraw, (bool, int, float)):
                     # Store whether this editable is on screen
                     editablesOnScreen.append(thisObj.autoDraw)

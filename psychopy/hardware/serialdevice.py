@@ -8,22 +8,18 @@
 """Base class for serial devices. Includes some convenience methods to open
 ports and check for the expected device
 """
-from __future__ import absolute_import, print_function
 
-from builtins import str
-from builtins import range
-from builtins import object
 import sys
 import time
 
-from psychopy import logging, constants
+from psychopy import logging
 try:
     import serial
 except ImportError:
     serial = False
 
 
-class SerialDevice(object):
+class SerialDevice:
     """A base class for serial devices, to be sub-classed by specific devices
 
     If port=None then the SerialDevice.__init__() will search for the device
@@ -188,7 +184,7 @@ class SerialDevice(object):
             retVal = [line.decode('utf-8') for line in retVal]
         else:  # was -1?
             retVal = self.com.read(self.com.inWaiting())
-        if constants.PY3 and type(retVal) is bytes:
+        if type(retVal) is bytes:
             retVal = retVal.decode('utf-8')
         return retVal
 

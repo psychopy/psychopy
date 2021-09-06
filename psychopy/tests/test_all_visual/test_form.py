@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import division
-
 import os
 from pathlib import Path
 
 import pytest
 from pandas import DataFrame
+
+from psychopy.tests.test_all_visual.test_basevisual import _TestColorMixin
 from psychopy.visual.window import Window
 from psychopy.visual.form import Form
 from psychopy.visual.textbox2.textbox2 import TextBox2
@@ -19,7 +19,7 @@ from tempfile import mkdtemp
 import numpy as np
 
 
-class Test_Form(object):
+class Test_Form(_TestColorMixin):
     """Test suite for Form component"""
 
     def setup_class(self):
@@ -58,6 +58,17 @@ class Test_Form(object):
 
         self.win = Window(units='height', allowStencil=True, autoLog=False)
         self.survey = Form(self.win, items=self.questions, size=(1.0, 0.3), pos=(0.0, 0.0), autoLog=False)
+        self.obj = self.survey
+        # Pixel coord of top left corner
+        tl = (round(self.obj.win.size[0]/2 - 1*self.obj.win.size[1]/2),
+              round(self.obj.win.size[1]/2 - 0.3*self.obj.win.size[1]/2))
+        # Pixel which is the border color
+        self.obj.border.lineWidth = 2
+        self.borderPoint = (tl[1], tl[0])
+        self.borderUsed = True
+        # Pixel which is the fill color
+        self.fillPoint = (tl[1]+4, tl[0]+4)
+        self.fillUsed = True
 
         # Create datafiles
         df = DataFrame(self.questions)

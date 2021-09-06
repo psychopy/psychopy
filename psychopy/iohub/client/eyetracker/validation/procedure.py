@@ -35,7 +35,7 @@ from psychopy.iohub.client.eyetracker.validation import PositionGrid, Trigger, K
 getTime = Computer.getTime
 
 
-class TargetStim(object):
+class TargetStim:
     def __init__(self, win, radius=None, fillcolor=None, edgecolor=None, edgewidth=None,
                  dotcolor=None, dotradius=None, units=None, colorspace=None, opacity=1.0, contrast=1.0):
         """
@@ -159,8 +159,7 @@ def create17PointGrid():
     return [(0.0, 0.0), ] + sixteen_pos
 
 
-
-class ValidationProcedure(object):
+class ValidationProcedure:
     def __init__(self,
                  win=None,  # psychopy window
                  target=None,  # target stim
@@ -706,7 +705,7 @@ class ValidationProcedure(object):
             ci += 1
 
 
-class ValidationTargetRenderer(object):
+class ValidationTargetRenderer:
     TARGET_STATIONARY = 1
     TARGET_MOVING = 2
     TARGET_EXPANDING = 4
