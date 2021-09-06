@@ -315,25 +315,26 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
     @property
     def letterHeight(self):
         if hasattr(self, "_letterHeight"):
-            return getattr(self._letterHeight, self.units)
+            return getattr(self._letterHeight, self.units)[1]
 
     @letterHeight.setter
     def letterHeight(self, value):
-        self._letterHeight = layout.Vector(value, units=self.units, win=self.win)
+        if isinstance(value, layout.Vector):
+            # If given a Vector, use it directly
+            self._letterHeight = value
+        elif isinstance(value, (int, float)):
+            # If given an integer, convert it to a 2D Vector with width 0
+            self._letterHeight = layout.Size([0, value], units=self.units, win=self.win)
+        elif isinstance(value, (list, tuple, numpy.ndarray)):
+            # If given an array, convert it to a Vector
+            self._letterHeight = layout.Size(value, units=self.units, win=self.win)
 
     @property
     def letterHeightPix(self):
         """
         Convenience function to get self._letterHeight.pix and be guaranteed a return that is a single integer
         """
-        value = self._letterHeight.pix
-        if isinstance(value, np.ndarray):
-            value = np.resize(value, 1)
-            return int(value)
-        elif isinstance(value, (list, tuple)):
-            return int(value[-1])
-        else:
-            return int(value)
+        return self._letterHeight.pix[1]
 
     @property
     def fontMGR(self):
