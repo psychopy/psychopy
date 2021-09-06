@@ -158,12 +158,16 @@ class Vector(object):
             return Vector(self.pix * other.pix, "pix", self.win)
         if isinstance(other, (int, float)):
             return Vector(self.pix * other, "pix", self.win)
+        if isinstance(other, (list, tuple, numpy.ndarray)):
+            return Vector(self.pix * numpy.array(other), "pix", self.win)
 
     def __truediv__(self, other):
         if isinstance(other, Vector):
             return Vector(self.pix / other.pix, "pix", self.win)
         if isinstance(other, (int, float)):
             return Vector(self.pix / other, "pix", self.win)
+        if isinstance(other, (list, tuple, numpy.ndarray)):
+            return Vector(self.pix / numpy.array(other), "pix", self.win)
 
     def copy(self):
         """Create a copy of this object"""
