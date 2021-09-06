@@ -486,12 +486,33 @@ class Vertices(object):
 
         return verts
 
+    def setas(self, value, units):
+        assert units in unitTypes, f"Unrecognised unit type '{units}'"
+        # Enforce numpy
+        value = numpy.array(value)
+        # Account for size
+        if self.size is None:
+            raise ValueError("Cannot not calculate absolute positions of vertices without a size attribute")
+        value /= getattr(self.size, units)
+        # Account for flip
+        value *= self._flip
+        # Account for pos
+        if self.pos is None:
+            raise ValueError("Cannot not calculate absolute positions of vertices without a pos attribute")
+        value -= getattr(self.pos, units)
+        # Apply
+        self.base = value
+
     @property
     def pix(self):
         """
         Get absolute positions of vertices in pix units
         """
         return self.getas('pix')
+
+    @pix.setter
+    def pix(self, value):
+        self.setas(value, 'pix')
 
     @property
     def deg(self):
@@ -500,12 +521,20 @@ class Vertices(object):
         """
         return self.getas('deg')
 
+    @deg.setter
+    def deg(self, value):
+        self.setas(value, 'deg')
+
     @property
     def cm(self):
         """
         Get absolute positions of vertices in cm units
         """
         return self.getas('cm')
+
+    @cm.setter
+    def cm(self, value):
+        self.setas(value, 'cm')
 
     @property
     def norm(self):
@@ -514,9 +543,17 @@ class Vertices(object):
         """
         return self.getas('norm')
 
+    @norm.setter
+    def norm(self, value):
+        self.setas(value, 'norm')
+
     @property
     def height(self):
         """
         Get absolute positions of vertices in height units
         """
         return self.getas('height')
+
+    @height.setter
+    def height(self, value):
+        self.setas(value, 'height')
