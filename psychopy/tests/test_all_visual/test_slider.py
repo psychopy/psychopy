@@ -6,6 +6,7 @@ from __future__ import division
 import pytest
 
 from psychopy.colors import Color
+from psychopy.constants import NOT_STARTED, STARTED
 from psychopy.tests.test_all_visual.test_basevisual import _TestColorMixin
 from psychopy.visual.window import Window
 from psychopy.visual.slider import Slider
@@ -179,6 +180,19 @@ class Test_Slider(_TestColorMixin):
         assert len(RT) == counter
         assert max(RT) <= 1
         assert min(RT) >= 0
+
+    def test_pressed(self):
+        # Check that slider starts off not pressed
+        s = Slider(self.win, size=(1, 0.1))
+        assert not s.pressed
+        # Check that pressing when not started doesn't change this
+        s.status = NOT_STARTED
+        s.recordRating(1, 1)
+        assert not s.pressed
+        # Check that once it's started, recording responses does trigger pressed
+        s.status = STARTED
+        s.recordRating(1, 1)
+        assert s.pressed
 
     def test_getRating(self):
         s = Slider(self.win, size=(1, 0.1))
