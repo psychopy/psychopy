@@ -303,7 +303,7 @@ class SliderComponent(BaseVisualComponent):
         forceEnd = self.params['forceEndRoutine'].val
         if forceEnd:
             code = ("\n# Check %(name)s for response to end routine\n"
-                    "if %(name)s.getRating() is not None and %(name)s.status == STARTED:\n"
+                    "if %(name)s.pressed:\n"
                     "    continueRoutine = False")
             buff.writeIndentedLines(code % (self.params))
 

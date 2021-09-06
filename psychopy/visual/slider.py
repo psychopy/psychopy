@@ -197,6 +197,7 @@ class Slider(MinimalStim, ColorMixin):
         if autoLog:
             logging.exp("Created %s = %s" % (self.name, repr(self)))
         self.status = NOT_STARTED
+        self.pressed = False
         self.responseClock = core.Clock()
 
         # set the style when everything else is set
@@ -492,6 +493,8 @@ class Slider(MinimalStim, ColorMixin):
         """
         rating = self._granularRating(rating)
         setAttribute(self, attrib='rating', value=rating, operation='', log=log)
+        if self.status == STARTED:
+            self.pressed = True
         if rt is None:
             self.rt = self.responseClock.getTime()
         else:
