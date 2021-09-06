@@ -147,19 +147,23 @@ class Vector(object):
     # ---operations---
     def __add__(self, other):
         if isinstance(other, Vector):
-            return Vector(self.pix + other.pix, "pix")
+            return Vector(self.pix + other.pix, "pix", self.win)
 
     def __sub__(self, other):
         if isinstance(other, Vector):
-            return Vector(self.pix - other.pix, "pix")
+            return Vector(self.pix - other.pix, "pix", self.win)
 
     def __mul__(self, other):
         if isinstance(other, Vector):
-            return Vector(self.pix * other.pix, "pix")
+            return Vector(self.pix * other.pix, "pix", self.win)
+        if isinstance(other, (int, float)):
+            return Vector(self.pix * other, "pix", self.win)
 
     def __truediv__(self, other):
         if isinstance(other, Vector):
-            return Vector(self.pix / other.pix, "pix")
+            return Vector(self.pix / other.pix, "pix", self.win)
+        if isinstance(other, (int, float)):
+            return Vector(self.pix / other, "pix", self.win)
 
     def copy(self):
         """Create a copy of this object"""
