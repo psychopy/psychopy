@@ -1,6 +1,7 @@
 import os
 import subprocess
 import sys
+import builtins
 
 import wx
 import wx.lib.agw.aui as aui
@@ -10,7 +11,6 @@ from psychopy.localization import _translate
 from wx import py
 import numpy
 import keyword
-import builtins
 from pathlib import Path
 from psychopy import prefs
 from psychopy import logging

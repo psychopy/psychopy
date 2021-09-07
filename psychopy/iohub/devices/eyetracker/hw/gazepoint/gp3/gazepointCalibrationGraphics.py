@@ -14,7 +14,7 @@ from psychopy.iohub.errors import print2err
 currentTime = Computer.getTime
 
 
-class GazepointPsychopyCalibrationGraphics(object):
+class GazepointPsychopyCalibrationGraphics:
     IOHUB_HEARTBEAT_INTERVAL = 0.050
     CALIBRATION_POINT_LIST = [(0.5, 0.5), (0.1, 0.1), (0.9, 0.1), (0.9, 0.9), (0.1, 0.9)]
 

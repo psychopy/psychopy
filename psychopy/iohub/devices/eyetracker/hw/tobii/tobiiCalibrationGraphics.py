@@ -16,7 +16,7 @@ from .....errors import print2err, printExceptionDetailsToStdErr
 currentTime = Computer.getTime
 
 
-class TobiiPsychopyCalibrationGraphics(object):
+class TobiiPsychopyCalibrationGraphics:
     IOHUB_HEARTBEAT_INTERVAL = 0.050  # seconds between forced run through of micro threads, since one is blocking on camera setup.
     CALIBRATION_POINT_LIST = [(0.5, 0.5), (0.1, 0.1), (0.9, 0.1), (0.9, 0.9), (0.1, 0.9), (0.5, 0.5)]
 

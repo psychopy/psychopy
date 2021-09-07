@@ -1,15 +1,11 @@
-from __future__ import print_function
-from past.builtins import execfile
-from builtins import object
 from pathlib import Path
-import xml.etree.ElementTree as xml
 
 import psychopy.experiment
 from psychopy.experiment.components.text import TextComponent
 from psychopy.experiment._experiment import RequiredImport
 from psychopy.tests.utils import TESTS_FONT
 from os import path
-import os, shutil, glob, sys
+import os, shutil, glob
 import py_compile
 import difflib
 from tempfile import mkdtemp
@@ -61,7 +57,7 @@ def _diff_file(a, b):
     return list(diff)
 
 
-class TestExpt(object):
+class TestExpt():
     @classmethod
     def setup_class(cls):
         cls.exp = psychopy.experiment.Experiment() # create once, not every test
@@ -399,7 +395,7 @@ class TestExpt(object):
         assert namespace.makeLoopIndex('stimuli') == 'thisStimulus'
 
 
-class TestExpImports(object):
+class TestExpImports():
     def setup(self):
         self.exp = psychopy.experiment.Experiment()
         self.exp.requiredImports = []
@@ -485,7 +481,7 @@ class TestExpImports(object):
         assert 'import bar\n' in script
 
 
-class TestRunOnce(object):
+class TestRunOnce():
     def setup(self):
         from psychopy.experiment import exports
         self.buff = exports.IndentingBuffer()
@@ -521,7 +517,7 @@ class TestRunOnce(object):
         script = self.buff.getvalue()
         assert script.count(code) == 1
 
-class TestDisabledComponents(object):
+class TestDisabledComponents():
     def setup(self):
         self.exp = psychopy.experiment.Experiment()
         self.exp.addRoutine(routineName='Test Routine')

@@ -16,11 +16,6 @@ The code that writes out a *_lastrun.py experiment file is (in order):
     settings.SettingsComponent.writeEndCode()
 """
 
-from __future__ import absolute_import, print_function
-# from future import standard_library
-
-from past.builtins import basestring
-from builtins import object
 import os
 import codecs
 import xml.etree.ElementTree as xml
@@ -44,8 +39,6 @@ from .components import getComponents, getAllComponents
 from psychopy.localization import _translate
 import locale
 
-# standard_library.install_aliases()
-
 from collections import namedtuple, OrderedDict
 
 from ..alerts import alert
@@ -56,7 +49,7 @@ RequiredImport = namedtuple('RequiredImport',
                                          'importAs'))
 
 
-class Experiment(object):
+class Experiment:
     """
     An experiment contains a single Flow and at least one
     Routine. The Flow controls how Routines are organised
@@ -853,14 +846,14 @@ class Experiment(object):
             if thisFile not in paths:
                 paths.append(thisFile)
             # does it look at all like an excel file?
-            if (not isinstance(filePath, basestring)
+            if (not isinstance(filePath, str)
                     or not os.path.splitext(filePath)[1] in ['.csv', '.xlsx',
                                                              '.xls']):
                 return paths
             conds = data.importConditions(thisFile['abs'])  # load the abs path
             for thisCond in conds:  # thisCond is a dict
                 for param, val in list(thisCond.items()):
-                    if isinstance(val, basestring) and len(val):
+                    if isinstance(val, str) and len(val):
                         # only add unique entries (can't use set() on a dict)
                         for thisFile in findPathsInFile(val):
                             if thisFile not in paths:
@@ -882,9 +875,9 @@ class Experiment(object):
                     for paramName in thisComp.params:
                         thisParam = thisComp.params[paramName]
                         thisFile = ''
-                        if isinstance(thisParam, basestring):
+                        if isinstance(thisParam, str):
                             thisFile = getPaths(thisParam)
-                        elif isinstance(thisParam.val, basestring):
+                        elif isinstance(thisParam.val, str):
                             thisFile = getPaths(thisParam.val)
                         # then check if it's a valid path and not yet included
                         if thisFile and thisFile not in resources:

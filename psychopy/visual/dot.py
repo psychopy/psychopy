@@ -19,11 +19,6 @@ determines how they change on every call to the .draw() method.
 # Provide a visible wrapper function to refresh all the dot locations so that 
 # the whole field can be more easily refreshed between trials.
 
-from __future__ import absolute_import, division, print_function
-
-from builtins import str
-from builtins import range
-
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
 # other calls to pyglet or pyglet submodules, otherwise it may not get picked
 # up by the pyglet GL engine and have no effect.

@@ -9,12 +9,10 @@ import io
 import sys
 import os
 import argparse
-import traceback
 from copy import deepcopy
 from subprocess import PIPE, Popen
 
-from psychopy.constants import PY3
-from psychopy import __version__, logging
+from psychopy import __version__
 
 # DO NOT IMPORT ANY OTHER PSYCHOPY SUB-PACKAGES OR THEY WON'T SWITCH VERSIONS
 
@@ -49,8 +47,6 @@ def generateScript(experimentPath, exp, target="PsychoPy"):
         pythonExec = sys.executable.replace(' ', r'\ ')
 
     filename = experimentPath
-    if not PY3:  # encode path in Python2
-        filename = experimentPath = experimentPath.encode(sys.getfilesystemencoding())
 
     # Compile script from command line using version
     compiler = 'psychopy.scripts.psyexpCompile'

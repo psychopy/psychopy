@@ -9,19 +9,19 @@
 
 import sys
 import wx
-import wx.richtext
-from collections import deque
 from psychopy.app.themes import ThemeMixin
+from psychopy.preferences import prefs
+import os
 
 
-class ConsoleTextCtrl(wx.richtext.RichTextCtrl, ThemeMixin):
+class ConsoleTextCtrl(wx.TextCtrl, ThemeMixin):
     """Class for the console text control. This is needed to allow for theming.
     """
     def __init__(self, parent, id_=wx.ID_ANY, value="", pos=wx.DefaultPosition,
                  size=wx.DefaultSize, style=0,
                  name=wx.TextCtrlNameStr):
 
-        wx.richtext.RichTextCtrl.__init__(
+        wx.TextCtrl.__init__(
             self, parent, id=id_, value=value, pos=pos, size=size, style=style,
             validator=wx.DefaultValidator, name=name)
 
@@ -52,6 +52,7 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
 
         # sizer for the panel
         szrMain = wx.BoxSizer(wx.VERTICAL)
+
         # TextCtrl used to display the text from the terminal
         styleFlags = (wx.HSCROLL | wx.TE_MULTILINE | wx.TE_PROCESS_ENTER |
                       wx.TE_PROCESS_TAB | wx.NO_BORDER)
@@ -67,18 +68,15 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
         self.Layout()
 
         # set font
-        # font1 = wx.Font(10, wx.MODERN, wx.NORMAL, wx.NORMAL, False, u'Consolas')
-        # self.txtTerm.SetFont(font1)
-        # self.txtTerm.SetMargins(8)
+        self.setFonts()
+        self.txtTerm.SetMargins(8)
 
         # capture keypresses
         self.txtTerm.Bind(wx.EVT_CHAR, self.onChar)
-        self.txtTerm.Bind(wx.EVT_TEXT, self.onText)
-        self.txtTerm.Bind(wx.EVT_TEXT_ENTER, self.onEnter)
         self.txtTerm.Bind(wx.EVT_TEXT_MAXLEN, self.onMaxLength)
-        self.txtTerm.Bind(wx.EVT_TEXT_URL, self.onURL)
 
-        self._history = deque([])
+        # history
+        self._history = []
         self._historyIdx = 0
 
         # idle event
@@ -96,6 +94,26 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
 
         self.txtTerm.WriteText("Hit [Return] to start a Python REPL.")
         self._lastTextPos = self.txtTerm.GetLastPosition()
+
+    def setFonts(self):
+        """Set the font for the console."""
+        # select the font size, either from prefs or platform defaults
+        if not prefs.coder['codeFontSize']:
+            if wx.Platform == '__WXMSW__':
+                fontSize = 10
+            elif wx.Platform == '__WXMAC__':
+                fontSize = 14
+            else:
+                fontSize = 12
+        else:
+            fontSize = int(prefs.coder['codeFontSize'])
+
+        # get the font to use
+        fontName = prefs.coder['codeFont']
+
+        # apply the font
+        self.txtTerm.SetFont(
+            wx.Font(fontSize, wx.MODERN, wx.NORMAL, wx.NORMAL, False, fontName))
 
     def onTerminate(self, event):
         # hooks for the process we're communicating with
@@ -154,7 +172,10 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
         """Idle event.
 
         This is hooked into the main application even loop. When idle, the
-        input streams are checked and any data is writen to the text box.
+        input streams are checked and any data is written to the text box.
+
+        Output from `stderr` is ignored until there is nothing left to read from
+        the input stream.
 
         """
         # don't do anything unless we have an active process
@@ -169,7 +190,9 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
             stdin_text = self._process.InputStream.read()
             txt = stdin_text.decode('utf-8')
             self.txtTerm.WriteText(txt)
-            if txt == '\r':
+
+            # special stuff
+            if txt == '\r':  # handle carriage returns at some point
                 pass
 
             # hack to get the interactive help working
@@ -180,13 +203,15 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
                 pass
 
             newChars = True
+        else:
+            # check if the input stream has bytes to process
+            if self._process.IsErrorAvailable():
+                stderr_text = self._process.ErrorStream.read()
+                self.txtTerm.WriteText(stderr_text.decode('utf-8'))
 
-        # check if the input stream has bytes to process
-        if self._process.IsErrorAvailable():
-            stderr_text = self._process.ErrorStream.read()
-            self.txtTerm.WriteText(stderr_text.decode('utf-8'))
-            self._isBusy = False
-            newChars = True
+                self._isBusy = False
+
+                newChars = True
 
         # If we have received new character from either stream, advance the
         # boundary of the editable area.
@@ -200,25 +225,25 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
             self.txtTerm.SetInsertionPoint(self._lastTextPos)
             return
 
-    def push(self, line, submit=True):
+    def push(self, lines, submit=True):
         """Push a line to the interpreter.
 
         Parameter
         ---------
         line : str
-            Statement to push to the terminal.
+            Lines to push to the terminal.
 
         """
         if not self.isStarted:
             return
 
         # convert to bytes
-        line = str.encode(line if not submit else line + '\n')
-
-        if submit:
-            self._isBusy = True  # flag that something has been sent
+        for line in lines.split('\n'):
+            line = str.encode(line + '\n')
             self._process.OutputStream.write(line)
             self._process.OutputStream.flush()
+
+        self._isBusy = True
 
     def start(self):
         """Start a new interpreter process."""
@@ -234,6 +259,8 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
 
         # get the path to the interpreter
         interpPath = '"' + sys.executable + '"'
+
+        # start the sub-process
         self._pid = wx.Execute(
             r' '.join([interpPath, r'-i']),
             wx.EXEC_ASYNC,
@@ -246,33 +273,28 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
         self.txtTerm.Clear()
         self.txtTerm.WriteText(
             "Python REPL in PsychoPy (pid:{}) - type some commands!\n\n".format(
-                self._pid))
+                self._pid))  # show the subprocess PID for reference
         self._lastTextPos = self.txtTerm.GetLastPosition()
         wx.EndBusyCursor()
 
     def close(self):
         """Close an open interpreter."""
         if self.isStarted:
-            wx.Process.Kill(self._pid, wx.SIGKILL)
+            os.kill(self._pid, wx.SIGINT)
 
     def restart(self):
         """Close the running interpreter (if running) and spawn a new one."""
-        pass
+        self.close()
+        self.start()
 
     def clear(self):
         """Clear the contents of the console."""
-        pass
-
-    def onText(self, event):
-        event.Skip()
-
-    def onEnter(self, event):
-        event.Skip()
+        self.txtTerm.Clear()
+        self._lastTextPos = self.txtTerm.GetLastPosition()
+        self.push('')
 
     def onMaxLength(self, event):
-        event.Skip()
-
-    def onURL(self, event):
+        """What to do if we exceed the buffer size limit for the control."""
         event.Skip()
 
     def __del__(self):
@@ -292,7 +314,6 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
             self._lastTextPos,
             self.txtTerm.GetLastPosition())
 
-    # Virtual event handlers, overide them in your derived class
     def onChar(self, event):
         self.resetCaret()
 
@@ -309,26 +330,38 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
             self.txtTerm.SetInsertionPointEnd()
             entry = self._getTyped()
             if entry:
-                self._history.appendleft(entry)
+                self._history.insert(0, entry)
             self.push(entry)
-            self._historyIdx = 0
-        elif event.GetKeyCode() == wx.WXK_BACK:
+            self._historyIdx = -1
+        elif event.GetKeyCode() == wx.WXK_BACK or event.GetKeyCode() == wx.WXK_LEFT:
+            # prevent the cursor from leaving the editable region
             if self.txtTerm.GetInsertionPoint() <= self._lastTextPos:
                 self.txtTerm.SetInsertionPoint(self._lastTextPos)
                 return
         elif event.GetKeyCode() == wx.WXK_UP:
+            # get previous (last entered) item in history
             if self._history:
-                self._historyIdx = max(0, self._historyIdx + 1)
+                self._historyIdx = min(
+                    max(0, self._historyIdx + 1),
+                    len(self._history) - 1)
                 self._clearAndReplaceTyped(self._history[self._historyIdx])
             return
         elif event.GetKeyCode() == wx.WXK_DOWN:
+            # get next item in history
             if self._history:
-                self._historyIdx = min(len(self._history), self._historyIdx - 1)
-                self._clearAndReplaceTyped(self._history[self._historyIdx])
+                self._historyIdx = max(self._historyIdx - 1, -1)
+                if self._historyIdx >= 0:
+                    self._clearAndReplaceTyped(self._history[self._historyIdx])
+                else:
+                    self._clearAndReplaceTyped()
             return
+        elif event.GetKeyCode() == wx.WXK_F8:  # close a misbehaving terminal
+            self.close()
+        elif event.GetKeyCode() == wx.WXK_F4:  # close a misbehaving terminal
+            self.clear()
         else:
             if self._history:
-                self._historyIdx = 0
+                self._historyIdx = -1
 
         event.Skip()
 

@@ -17,7 +17,7 @@ consoles/terminals within the PsychoPy GUI suite.
 import sys
 
 
-class StdStreamDispatcher(object):
+class StdStreamDispatcher:
     """Class for broadcasting standard output to text boxes.
 
     This class serves to redirect and log standard streams within the PsychoPy

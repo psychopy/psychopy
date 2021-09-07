@@ -1,6 +1,3 @@
-from __future__ import print_function
-from builtins import object
-
 from os import path
 import shutil
 import py_compile
@@ -30,7 +27,7 @@ allComponents = psychopy.experiment.getComponents(fetchIcons=False)
 import wx
 
 
-class Test_BuilderFrame(object):
+class Test_BuilderFrame():
     """This test fetches all standard components and checks that, with default
     settings, they can be added to a Routine and result in a script that compiles
     """

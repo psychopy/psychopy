@@ -8,36 +8,24 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import, division, print_function
-
-# from future import standard_library
-# standard_library.install_aliases()
-from builtins import str
-from builtins import range
-from past.builtins import basestring
-from past.utils import old_div
-from builtins import object
 from .calibData import wavelength_5nm, juddVosXYZ1976_5nm, cones_SmithPokorny
-from psychopy import __version__, logging, hardware, constants
+from psychopy import __version__, logging, hardware
 
 try:
     import serial
     haveSerial = True
-except Exception:
+except (ModuleNotFoundError, ImportError):
     haveSerial = False
 import errno
 import os
 import time
 import glob
-import pickle
 import sys
 from copy import deepcopy, copy
 
 import numpy as np
 from scipy import interpolate
 import json_tricks  # allows json to dump/load np.arrays and dates
-
-from psychopy import constants
 
 DEBUG = False
 
@@ -72,7 +60,7 @@ except OSError as err:
         raise
 
 
-class Monitor(object):
+class Monitor:
     """Creates a monitor object for storing calibration details.
     This will be loaded automatically from disk if the
     monitor name is already defined (see methods).
@@ -433,36 +421,19 @@ class Monitor(object):
         """Fetches the calibrations for this monitor from disk, storing them
         as self.calibs
         """
-        if constants.PY3:
-            ext = ".json"
-        else:
-            ext = ".calib"
-
+        ext = ".json"
         # the name of the actual file:
         thisFileName = os.path.join(monitorFolder, self.name + ext)
         if not os.path.exists(thisFileName):
             self.calibNames = []
         else:
-            if ext == ".json":
-                with open(thisFileName, 'r') as thisFile:
-                    if constants.PY3:
-                        # Passing encoding parameter to json.loads has been
-                        # deprecated and removed in Python 3.9
-                        self.calibs = json_tricks.load(
-                            thisFile, ignore_comments=False,
-                            preserve_order=False)
-                    else:
-                        self.calibs = json_tricks.load(
-                            thisFile, ignore_comments=False, encoding='utf-8',
-                            preserve_order=False)
-            else:
-                with open(thisFileName, 'rb') as thisFile:
-                    self.calibs = pickle.load(thisFile)
+            with open(thisFileName, 'r') as thisFile:
+                # Passing encoding parameter to json.loads has been
+                # deprecated and removed in Python 3.9
+                self.calibs = json_tricks.load(
+                    thisFile, ignore_comments=False,
+                    preserve_order=False)
             self.calibNames = sorted(self.calibs)
-            
-            if not constants.PY3:  # saving for future (not needed if we are IN future!)
-                # save JSON copies of our calibrations
-                self._saveJSON()
 
     def newCalib(self, calibName=None, width=None,
                  distance=None, gamma=None, notes=None, useBits=False,
@@ -515,7 +486,7 @@ class Monitor(object):
         """
         # find the appropriate file
         # get desired calibration name if necess
-        if (isinstance(calibration, basestring) and
+        if (isinstance(calibration, str) and
                 calibration in self.calibNames):
             self.currentCalibName = calibration
         elif type(calibration) == int and calibration <= len(self.calibNames):
@@ -545,18 +516,7 @@ class Monitor(object):
         This will write a `json` file to the `monitors` subfolder of your
         PsychoPy configuration folder (typically `~/.psychopy3/monitors` on
         Linux and macOS, and `%APPDATA%\\psychopy3\\monitors` on Windows).
-
-        Additionally saves a pickle (`.calib`) file if you are running
-        Python 2.7.
-
         """
-        if not constants.PY3:  # don't ever save pickle files form PY3
-            thisFileName = os.path.join(monitorFolder, self.name + ".calib")
-            with open(thisFileName, 'wb') as thisFile:
-                pickle.dump(self.calibs, thisFile)
-
-        # also save as JSON (at the moment)
-        # (When we're sure this works we should ONLY save as JSON)
         self._saveJSON()
 
     def saveMon(self):
@@ -607,11 +567,12 @@ class Monitor(object):
                 self._gammaInterpolator = []
                 self._gammaInterpolator2 = []
                 # each of these interpolators is a function!
-                levelsPre = old_div(self.getLevelsPre(), 255.0)
+                levelsPre = self.getLevelsPre() / 255.0
                 for gun in range(4):
                     # scale to 0:1
-                    lumsPre[gun, :] = (old_div((lumsPre[gun, :] - lumsPre[gun, 0]),
-                                       (lumsPre[gun, -1] - lumsPre[gun, 0])))
+                    lumsPre[gun, :] = \
+                        (lumsPre[gun, :] - lumsPre[gun, 0] /
+                         (lumsPre[gun, -1] - lumsPre[gun, 0]))
                     self._gammaInterpolator.append(
                         interpolate.interp1d(lumsPre[gun, :],
                                              levelsPre,
@@ -689,7 +650,7 @@ class Monitor(object):
                                   overrideGamma=overrideGamma)
 
 
-class GammaCalculator(object):
+class GammaCalculator:
     """Class for managing gamma tables
 
     **Parameters:**
@@ -738,7 +699,7 @@ class GammaCalculator(object):
                 self.inputs, self.lumsInitial)
             if eq == 4:
                 self.gamma, self.a, self.k = self.gammaModel
-                self.b = (lums[0] - self.a)**(old_div(1.0, self.gamma))
+                self.b = (lums[0] - self.a) ** (1.0 / self.gamma)
             else:
                 self.gamma = self.gammaModel[0]
                 self.a = self.b = self.k = None
@@ -763,8 +724,8 @@ class GammaCalculator(object):
         minLum = y[0]
         maxLum = y[-1]
         if self.eq == 4:
-            aGuess = old_div(minLum, 5.0)
-            kGuess = (maxLum - aGuess)**(old_div(1.0, gammaGuess)) - aGuess
+            aGuess = minLum / 5.0
+            kGuess = (maxLum - aGuess) ** (1.0 / gammaGuess) - aGuess
             guess = [gammaGuess, aGuess, kGuess]
             bounds = [[0.8, 5.0], [0.00001, minLum - 0.00001], [2, 200]]
         else:
@@ -815,7 +776,7 @@ def makeDKL2RGB(nm, powerRGB):
     dkl_to_cones = np.dot(rgb_to_cones, [[1, 0, 0], [1, 0, 0], [1, 0, 0]])
 
     # cone weights for L-M primary
-    dkl_to_cones[0, 1] = old_div(lumwt[1], lumwt[0])
+    dkl_to_cones[0, 1] = lumwt[1] / lumwt[0]
     dkl_to_cones[1, 1] = -1
     dkl_to_cones[2, 1] = lumwt[2]
 
@@ -848,6 +809,7 @@ def makeLMS2RGB(nm, powerRGB):
     cones_to_rgb = np.linalg.inv(rgb_to_cones)
 
     return cones_to_rgb
+
 
 def makeXYZ2RGB(red_xy,
                 green_xy,
@@ -964,7 +926,7 @@ def getLumSeries(lumLevels=8,
         bitsMode = None
 
     if gamma == 1:
-        initRGB = 0.5**(old_div(1, 2.0)) * 2 - 1
+        initRGB = 0.5 ** (1 / 2.0) * 2 - 1
     else:
         initRGB = 0.8
     # setup screen and "stimuli"
@@ -979,8 +941,8 @@ def getLumSeries(lumLevels=8,
     noise = np.random.rand(512, 512).round() * 2 - 1
     backPatch = psychopy.visual.PatchStim(myWin, tex=noise, size=2,
                                           units='norm',
-                                          sf=[old_div(winSize[0], 512.0),
-                                              old_div(winSize[1], 512.0)])
+                                          sf=[winSize[0] / 512.0,
+                                              winSize[1] / 512.0])
     testPatch = psychopy.visual.PatchStim(myWin,
                                           tex='sqr',
                                           size=stimSize,
@@ -1026,7 +988,7 @@ def getLumSeries(lumLevels=8,
     # for each gun, for each value run test
     for gun in guns:
         for valN, DACval in enumerate(toTest):
-            lum = old_div(DACval, 127.5) - 1  # get into range -1:1
+            lum = (DACval / 127.5) - 1  # get into range -1:1
             # only do luminanc=-1 once
             if lum == -1 and gun > 0:
                 continue
@@ -1162,15 +1124,13 @@ def DACrange(n):
     """Returns an array of n DAC values spanning 0-255
     """
     # NB python ranges exclude final val
-    return np.arange(0.0, 256.0, old_div(255.0, (n - 1))).astype(np.uint8)
+    return np.arange(0.0, 256.0, 255.0 / float(n - 1)).astype(np.uint8)
 
 
 def getAllMonitors():
     """Find the names of all monitors for which calibration files exist
     """
-    monitorList = glob.glob(os.path.join(monitorFolder, '*.calib'))
-    if constants.PY3:
-        monitorList = glob.glob(os.path.join(monitorFolder, '*.json'))
+    monitorList = glob.glob(os.path.join(monitorFolder, '*.json'))
     split = os.path.split
     splitext = os.path.splitext
     # skip the folder and the extension for each file
@@ -1196,9 +1156,10 @@ def gammaFun(xx, minLum, maxLum, gamma, eq=1, a=None, b=None, k=None):
     # scale x to be in range minLum:maxLum
     xx = np.array(xx, 'd')
     maxXX = max(xx)
+    invGamma = 1.0 / float(gamma)  # used a lot below, so compute it here
     if maxXX > 2.0:
         # xx = xx * maxLum / 255.0 + minLum
-        xx = old_div(xx, 255.0)
+        xx = xx / 255.0
     else:  # assume data are in range 0:1
         pass
         # xx = xx * maxLum + minLum
@@ -1208,15 +1169,15 @@ def gammaFun(xx, minLum, maxLum, gamma, eq=1, a=None, b=None, k=None):
     # eq4: y = a + (b + k*xx)**gamma  # Pelli & Zhang 1991
     if eq == 1:
         a = minLum
-        b = (maxLum - a)**(old_div(1, gamma))
-        yy = a + (b * xx)**gamma
+        b = (maxLum - a) ** invGamma
+        yy = a + (b * xx) ** gamma
     elif eq == 2:
-        a = minLum**(old_div(1, gamma))
-        b = maxLum**(old_div(1, gamma)) - a
-        yy = (a + b * xx)**gamma
+        a = minLum ** invGamma
+        b = maxLum ** invGamma - a
+        yy = (a + b * xx) ** gamma
     elif eq == 3:
         # NB method 3 was an interpolation method that didn't work well
-        pass
+        raise ValueError('Parameter `eq` must be one of 1, 2 or 4.')
     elif eq == 4:
         nMissing = sum([a is None, b is None, k is None])
         # check params
@@ -1225,16 +1186,18 @@ def gammaFun(xx, minLum, maxLum, gamma, eq=1, a=None, b=None, k=None):
             raise AttributeError(msg)
         elif nMissing == 1:
             if a is None:
-                a = minLum - b**(old_div(1.0, gamma))  # when y=min, x=0
+                a = minLum - b ** invGamma  # when y=min, x=0
             elif b is None:
                 if a >= minLum:
-                    b = 0.1**(old_div(1.0, gamma))  # can't take inv power of -ve
+                    b = 0.1 ** invGamma  # can't take inv power of -ve
                 else:
-                    b = (minLum - a)**(old_div(1.0, gamma))  # when y=min, x=0
+                    b = (minLum - a) ** invGamma  # when y=min, x=0
             elif k is None:
-                k = (maxLum - a)**(old_div(1.0, gamma)) - b  # when y=max, x=1
+                k = (maxLum - a) ** invGamma - b  # when y=max, x=1
         # this is the same as Pelli and Zhang (but different inverse function)
-        yy = a + (b + k * xx)**gamma  # Pelli and Zhang (1991)
+        yy = a + (b + k * xx) ** gamma  # Pelli and Zhang (1991)
+    else:
+        raise ValueError('Parameter `eq` must be one of 1, 2 or 4.')
 
     return yy
 
@@ -1262,8 +1225,9 @@ def gammaInvFun(yy, minLum, maxLum, gamma, b=None, eq=1):
     # eq1: y = a + (b * xx)**gamma
     # eq2: y = (a + b * xx)**gamma
     # eq4: y = a + (b + kxx)**gamma
+    invGamma = 1.0 / float(gamma)
     if max(yy) == 255:
-        yy = old_div(np.asarray(yy, 'd'), 255.0)
+        yy = np.asarray(yy, 'd') / 255.0
     elif min(yy) < 0 or max(yy) > 1:
         logging.warning(
             'User supplied values outside the expected range (0:1)')
@@ -1271,24 +1235,26 @@ def gammaInvFun(yy, minLum, maxLum, gamma, b=None, eq=1):
         yy = np.asarray(yy, 'd')
 
     if eq == 1:
-        xx = np.asarray(yy)**(old_div(1.0, gamma))
+        xx = np.asarray(yy) ** invGamma
     elif eq == 2:
         yy = np.asarray(yy) * (maxLum - minLum) + minLum
-        a = minLum**(old_div(1, gamma))
-        b = maxLum**(old_div(1, gamma)) - a
-        xx = old_div((yy**(old_div(1, gamma)) - a), b)
-        maxLUT = old_div((maxLum**(old_div(1, gamma)) - a), b)
-        minLUT = old_div((minLum**(old_div(1, gamma)) - a), b)
-        xx = old_div(xx, (maxLUT - minLUT)) - minLUT
+        a = minLum ** invGamma
+        b = maxLum ** invGamma - a
+        xx = (yy ** invGamma - a) / float(b)
+        maxLUT = (maxLum ** invGamma - a) / float(b)
+        minLUT = (minLum ** invGamma - a) / float(b)
+        xx = (xx / (maxLUT - minLUT)) - minLUT
     elif eq == 3:
         # NB method 3 was an interpolation method that didn't work well
-        pass
+        raise ValueError('Parameter `eq` must be one of 1, 2 or 4.')
     elif eq == 4:
         # this is not the same as Zhang and Pelli's inverse
         # see https://www.psychopy.org/general/gamma.html for derivation
-        a = minLum - b**gamma
-        k = (maxLum - a)**(old_div(1., gamma)) - b
-        xx = old_div((((1 - yy) * b**gamma + yy * (b + k)**gamma)**(old_div(1, gamma)) - b), k)
+        a = minLum - b ** gamma
+        k = (maxLum - a) ** invGamma - b
+        xx = (((1 - yy) * b**gamma + yy * (b + k)**gamma) ** invGamma - b) / float(k)
+    else:
+        raise ValueError('Parameter `eq` must be one of 1, 2 or 4.')
 
     # then return to range (0:1)
     # xx = xx / (maxLUT - minLUT) - minLUT

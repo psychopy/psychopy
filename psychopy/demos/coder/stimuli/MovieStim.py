@@ -10,10 +10,6 @@ To create a movie that will play on all systems I would recommend using the form
     video: H.264 compressed,
     audio: Linear PCM
 """
-
-from __future__ import division
-from __future__ import print_function
-
 from psychopy import visual, core, event, constants
 
 win = visual.Window((800, 600))

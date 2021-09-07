@@ -56,7 +56,6 @@ but will always find the last chunk of data recorded instead.
 See xxxxx for a description of the bits.py approach to CRS hardware and programmer guide.
 
 """
-from __future__ import absolute_import, division, print_function
 from psychopy import locale_setup, sound, gui, visual, core, data, event, logging
 from psychopy import monitors, filters, gamma 
 from psychopy.hardware import crs

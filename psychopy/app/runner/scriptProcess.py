@@ -54,7 +54,7 @@ class OutputThread(Thread):
         return lines
 
 
-class ScriptProcess(object):
+class ScriptProcess():
     """Class to run script through subprocess."""
 
     def __init__(self, app):

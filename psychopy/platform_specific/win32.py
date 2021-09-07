@@ -18,8 +18,6 @@
 # define THREAD_PRIORITY_HIGHEST         2
 # define THREAD_PRIORITY_TIME_CRITICAL   15
 
-from __future__ import absolute_import, print_function
-
 import os
 
 try:

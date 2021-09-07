@@ -8,9 +8,6 @@
 """Functions and classes related to plotting
 """
 
-from __future__ import absolute_import, print_function
-
-
 def plotFrameIntervals(intervals):
     """Plot a histogram of the frame intervals.
 

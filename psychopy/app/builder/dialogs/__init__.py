@@ -7,13 +7,8 @@
 
 """Dialog classes for the Builder, including ParamCtrls
 """
-
-from __future__ import absolute_import, division, print_function
 import sys
 
-from builtins import map
-from builtins import str
-from builtins import object
 import os
 import copy
 from collections import OrderedDict
@@ -45,7 +40,7 @@ codeSyntaxOkay = wx.Colour(220, 250, 220, 255)  # light green
 from ..localizedStrings import _localizedDialogs as _localized
 
 
-class ParamCtrls(object):
+class ParamCtrls():
 
     def __init__(self, dlg, label, param, parent, fieldName,
                  browse=False, noCtrls=False, advanced=False, appPrefs=None):

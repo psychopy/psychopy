@@ -6,11 +6,7 @@ Created on Thu Mar 21 18:38:35 2013
 
 @author: Sol
 """
-from __future__ import absolute_import, division, print_function
 
-from builtins import str
-from past.builtins import basestring
-from builtins import object
 import os
 import inspect
 import numbers
@@ -80,7 +76,7 @@ def getGLInfo():
     return gl_info
 
 
-class TextBox(object):
+class TextBox:
     """
     Similar to the visual.TextStim component, TextBox can be used to display
     text within a psychopy window. TextBox and TextStim each have different
@@ -1157,7 +1153,7 @@ class TextBox(object):
         #        "TextBox: %s is not a valid color." % (str(color)))
 
         valid_opacity = opacity >= 0.0 and opacity <= 1.0
-        if isinstance(color, basestring):
+        if isinstance(color, str):
             if color[0] == '#' or color[0:2].lower() == '0x':
                 rgb255color = colors.hex2rgb255(color)
                 if rgb255color and valid_opacity:
