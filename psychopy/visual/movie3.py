@@ -183,7 +183,7 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
 
     def reset(self):
         self._numpyFrame = None
-        self._nextFrameT = None
+        self._nextFrameT = 0.0
         self._texID = None
         self.status = NOT_STARTED
         self.nDroppedFrames = 0
