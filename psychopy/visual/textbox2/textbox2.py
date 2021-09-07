@@ -137,11 +137,37 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         ColorMixin.foreColor.fset(self, color)  # Have to call the superclass directly on init as text has not been set
         self.onTextCallback = onTextCallback
 
+        # Box around the whole textbox - drawn
+        self.box = Rect(
+            win,
+            units=self.units, pos=(0, 0), size=(0, 0),  # set later by self.size and self.pos
+            colorSpace=colorSpace, lineColor=borderColor, fillColor=fillColor,
+            lineWidth=borderWidth,
+            opacity=self.opacity,
+            autoLog=False,
+        )
+        # Box around just the content area, excluding padding - not drawn
+        self.contentBox = Rect(
+            win,
+            units=self.units, pos=(0, 0), size=(0, 0),  # set later by self.size and self.pos
+            colorSpace=colorSpace, lineColor=None, fillColor=None,
+            lineWidth=0, opacity=0,
+            autoLog=False
+        )
+        # Box around current content, wrapped tight - not drawn
+        self.boundingBox = Rect(
+            win,
+            units=self.units, pos=(0, 0), size=(0, 0),  # set later by self.size and self.pos
+            colorSpace=colorSpace, lineColor=None, fillColor=None,
+            lineWidth=0, opacity=0,
+            autoLog=False
+        )
+        # Sizing params
+        self.letterHeight = letterHeight
+        self.padding = padding
         self.size = size
         self.pos = pos
 
-        # first set params needed to create font (letter sizes etc)
-        self.letterHeight = letterHeight
         # self._pixLetterHeight helps get font size right but not final layout
         if 'deg' in self.units:  # treat deg, degFlat or degFlatPos the same
             scaleUnits = 'deg'  # scale units are just for font resolution
@@ -151,9 +177,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.bold = bold
         self.italic = italic
         self.lineSpacing = lineSpacing
-        if padding is None:
-            padding = self.letterHeight / 2.0
-        self.padding = padding
         self.glFont = None  # will be set by the self.font attribute setter
         self.font = font
         # If font not found, default to Open Sans Regular and raise alert
@@ -199,18 +222,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.contrast = contrast
         self.opacity = opacity
 
-        self.box = Rect(
-                win, pos=self.pos,
-                units=self.units,
-                lineWidth=borderWidth, lineColor=borderColor,
-                fillColor=fillColor, opacity=self.opacity,
-                autoLog=False, fillColorSpace=self.colorSpace)
-        # also bounding box (not normally drawn but gives tight box around chrs)
-        self.boundingBox = Rect(
-                win, pos=self.pos,
-                units=self.units,
-                lineWidth=1, lineColor=None, fillColor=fillColor, opacity=0.1,
-                autoLog=False)
         # set linebraking option
         if lineBreaking not in ('default', 'uax14'):
             raise ValueError("Unknown lineBreaking option ({}) is"
@@ -292,12 +303,42 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
     @size.setter
     def size(self, value):
-        self._requestedSize = value
         WindowMixin.size.fset(self, value)
         if hasattr(self, "box"):
-            self.box.size = value
-        if hasattr(self, "boundingBox"):
-            self.boundingBox.size = self._size - self._padding * 2
+            self.box.size = self._size
+        if hasattr(self, "contentBox"):
+            self.contentBox.size = self._size - self._padding * 2
+
+    @property
+    def pos(self):
+        """The position of the center of the TextBox in the stimulus
+        :ref:`units <units>`
+
+        `value` should be an :ref:`x,y-pair <attrib-xy>`.
+        :ref:`Operations <attrib-operations>` are also supported.
+
+        Example::
+
+            stim.pos = (0.5, 0)  # Set slightly to the right of center
+            stim.pos += (0.5, -1)  # Increment pos rightwards and upwards.
+                Is now (1.0, -1.0)
+            stim.pos *= 0.2  # Move stim towards the center.
+                Is now (0.2, -0.2)
+
+        Tip: If you need the position of stim in pixels, you can obtain
+        it like this:
+
+            myTextbox._pos.pix
+        """
+        return WindowMixin.pos.fget(self)
+
+    @pos.setter
+    def pos(self, value):
+        WindowMixin.pos.fset(self, value)
+        if hasattr(self, "box"):
+            self.box.size = self._pos
+        if hasattr(self, "contentBox"):
+            self.contentBox.pos = self._pos
 
     @property
     def padding(self):
@@ -306,11 +347,14 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
     @padding.setter
     def padding(self, value):
+        # Substitute None for a default value
+        if value is None:
+            value = self.letterHeight / 2
         # Create a Size object to handle padding
         self._padding = layout.Size(value, self.units, self.win)
         # Update size of bounding box
-        if hasattr(self, "boundingBox"):
-            self.boundingBox.size = self._size - self._padding * 2
+        if hasattr(self, "contentBox") and hasattr(self, "_size"):
+            self.contentBox.size = self._size - self._padding * 2
 
     @property
     def letterHeight(self):
@@ -325,7 +369,10 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         elif isinstance(value, (int, float)):
             # If given an integer, convert it to a 2D Vector with width 0
             self._letterHeight = layout.Size([0, value], units=self.units, win=self.win)
-        elif isinstance(value, (list, tuple, numpy.ndarray)):
+        elif value is None:
+            # If None, use default (20px)
+            self._letterHeight = layout.Size([0, 20], units='pix', win=self.win)
+        elif isinstance(value, (list, tuple, np.ndarray)):
             # If given an array, convert it to a Vector
             self._letterHeight = layout.Size(value, units=self.units, win=self.win)
 
@@ -498,10 +545,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
         self._lineHeight = font.height * self.lineSpacing
 
-        if np.isnan(self._requestedSize[0]):
-            lineMax = float('inf')
-        else:
-            lineMax = (self._requestedSize[0] - self.padding) * self._pixelScaling
+        lineMax = self.contentBox._size.pix[0]
 
         current = [0, 0]
         fakeItalic = 0.0
@@ -959,13 +1003,13 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
         # calculate anchor offsets (text begins on left=0, box begins center=0)
         if self._anchorX == 'right':
-            self._anchorOffsetX = - self.size[0] + self.padding
+            self._anchorOffsetX = - self.size[0] + self.padding[0]
             boxOffsetX = - self.size[0] / 2.0
         elif self._anchorX == 'center':
-            self._anchorOffsetX = - self.size[0] / 2.0 + self.padding
+            self._anchorOffsetX = - self.size[0] / 2.0 + self.padding[0]
             boxOffsetX = 0
         elif self._anchorX == 'left':
-            self._anchorOffsetX = 0 + self.padding
+            self._anchorOffsetX = 0 + self.padding[0]
             boxOffsetX = + self.size[0] / 2.0
         else:
             raise ValueError('Unexpected value for _anchorX')
@@ -1074,37 +1118,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
     def getVisibleText(self):
         """Returns the current visible text in the box"""
         return self.visibleText
-
-    @attributeSetter
-    def pos(self, value):
-        """The position of the center of the TextBox in the stimulus
-        :ref:`units <units>`
-
-        `value` should be an :ref:`x,y-pair <attrib-xy>`.
-        :ref:`Operations <attrib-operations>` are also supported.
-
-        Example::
-
-            stim.pos = (0.5, 0)  # Set slightly to the right of center
-            stim.pos += (0.5, -1)  # Increment pos rightwards and upwards.
-                Is now (1.0, -1.0)
-            stim.pos *= 0.2  # Move stim towards the center.
-                Is now (0.2, -0.2)
-
-        Tip: If you need the position of stim in pixels, you can obtain
-        it like this:
-
-            from psychopy.tools.monitorunittools import posToPix
-            posPix = posToPix(stim)
-        """
-        self.__dict__['pos'] = val2array(value, False, False)
-        try:
-            self.box.pos = (self.__dict__['pos'] +
-                            (self._anchorOffsetX, self._anchorOffsetY))
-        except AttributeError:
-            pass  # may not be created yet, which is fine
-        self._needVertexUpdate = True
-        self._needUpdate = True
 
     def setText(self, text=None, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
