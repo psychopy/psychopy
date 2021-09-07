@@ -826,14 +826,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         # convert the vertices to stimulus units
         self._rawVerts = vertices / self._pixelScaling
 
-        # thisW = current[0] - glyph.advance[0] + glyph.size[0] * alphaCorrection
-        # calculate final self.size and tightBox
-        if np.isnan(self._requestedSize[0]):
-            self.size[0] = max(self._lineWidths) + self.padding*2
-        if np.isnan(self._requestedSize[1]):
-            self.size[1] = ((lineN + 1) * self._lineHeight / self._pixelScaling
-                            + self.padding * 2)
-
         # if we had to add more glyphs to make possible then 
         if self.glFont._dirty:
             self.glFont.upload()
@@ -981,13 +973,13 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         # to start with the anchor is bottom left of *first line*
         if self._anchorY == 'top':
             self._anchorOffsetY = (-font.ascender / self._pixelScaling
-                                   - self.padding)
+                                   - self.padding[1])
             boxOffsetY = - self.size[1] / 2.0
         elif self._anchorY == 'center':
             self._anchorOffsetY = (
                     self.size[1] / 2
                     - (font.height / 2 - font.descender) / self._pixelScaling
-                    - self.padding
+                    - self.padding[1]
             )
             boxOffsetY = 0
         elif self._anchorY == 'bottom':
