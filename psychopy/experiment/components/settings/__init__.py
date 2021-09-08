@@ -979,11 +979,6 @@ class SettingsComponent:
                 buff.writeIndentedLines(code % inits)
                 buff.setIndentLevel(-1, relative=True)
                 code = (
-                        "}\n"
-                )
-                buff.writeIndentedLines(code % inits)
-                buff.setIndentLevel(-1, relative=True)
-                code = (
                     "}\n"
                 )
                 buff.writeIndentedLines(code % inits)
@@ -997,11 +992,6 @@ class SettingsComponent:
                 code = (
                             "'ip_address': %(gpAddress)s,\n"
                             "'port': %(gpPort)s\n"
-                )
-                buff.writeIndentedLines(code % inits)
-                buff.setIndentLevel(-1, relative=True)
-                code = (
-                        "}\n"
                 )
                 buff.writeIndentedLines(code % inits)
                 buff.setIndentLevel(-1, relative=True)
@@ -1020,11 +1010,6 @@ class SettingsComponent:
                 buff.setIndentLevel(1, relative=True)
                 code = (
                             "'sampling_rate': %(tbSampleRate)s,\n"
-                )
-                buff.writeIndentedLines(code % inits)
-                buff.setIndentLevel(-1, relative=True)
-                code = (
-                        "}\n"
                 )
                 buff.writeIndentedLines(code % inits)
                 buff.setIndentLevel(-1, relative=True)
@@ -1070,11 +1055,6 @@ class SettingsComponent:
                 buff.writeIndentedLines(code % inits)
                 buff.setIndentLevel(-1, relative=True)
                 code = (
-                        "}\n"
-                )
-                buff.writeIndentedLines(code % inits)
-                buff.setIndentLevel(-1, relative=True)
-                code = (
                     "}\n"
                 )
                 buff.writeIndentedLines(code % inits)
@@ -1083,6 +1063,13 @@ class SettingsComponent:
                     "}\n"
                 )
                 buff.writeIndentedLines(code % inits)
+
+            # Close ioDevice dict
+            buff.setIndentLevel(-1, relative=True)
+            code = (
+                "}\n"
+            )
+            buff.writeIndentedLines(code % inits)
 
             # Close ioConfig dict
             buff.setIndentLevel(-1, relative=True)
