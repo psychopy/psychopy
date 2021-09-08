@@ -236,7 +236,7 @@ class Param(object):
             else:
                 return val
         elif self.valType == 'color':
-            valid, val = self.dollarSyntax()
+            _, val = self.dollarSyntax()
             if "," in val:
                 # Handle lists (e.g. RGB, HSV, etc.)
                 val = toList(val)
