@@ -68,6 +68,7 @@ eyetracker.hw.mouse.EyeTracker:
         auto_pace: IOHUB_BOOL
         randomize: IOHUB_BOOL
         screen_background_color: IOHUB_COLOR
+        text_color: IOHUB_COLOR
         target_attributes:
             outer_diameter:
                 IOHUB_FLOAT:

@@ -44,9 +44,13 @@ eyetracker.hw.mouse.EyeTracker:
         # Should the target positions be randomized?
         randomize: True
 
-        # screen_background_color specifies the r,g,b background color to
-        # set the calibration, validation, etc, screens to.
+        # screen_background_color specifies the background color to
+        # set the calibration screens to.
         screen_background_color: [128,128,128]
+
+        # text_color specifies the text color to use during calibration.
+        # If None / empty, text_color will be set to inverse of screen_background_color.
+        text_color:
 
         # The associated target attribute properties can be supplied
         # for the given target_type.
