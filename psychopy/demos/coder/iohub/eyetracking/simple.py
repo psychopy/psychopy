@@ -11,7 +11,7 @@ from psychopy.iohub.util import hideWindow, showWindow
 
 # Eye tracker to use ('mouse', 'eyelink', 'gazepoint', or 'tobii')
 TRACKER = 'mouse'
-BACKGROUND_COLOR = [128, 0, 0]
+BACKGROUND_COLOR = [128, 128, 128]
 
 devices_config = dict()
 eyetracker_config = dict(name='tracker')
