@@ -11,18 +11,23 @@ from psychopy.iohub.util import hideWindow, showWindow
 
 # Eye tracker to use ('mouse', 'eyelink', 'gazepoint', or 'tobii')
 TRACKER = 'mouse'
+BACKGROUND_COLOR = [128, 0, 0]
 
+devices_config = dict()
 eyetracker_config = dict(name='tracker')
-devices_config = {}
 if TRACKER == 'mouse':
+    eyetracker_config['calibration'] = dict(screen_background_color=BACKGROUND_COLOR)
     devices_config['eyetracker.hw.mouse.EyeTracker'] = eyetracker_config
 elif TRACKER == 'eyelink':
     eyetracker_config['model_name'] = 'EYELINK 1000 DESKTOP'
     eyetracker_config['runtime_settings'] = dict(sampling_rate=1000, track_eyes='RIGHT')
+    eyetracker_config['calibration'] = dict(screen_background_color=BACKGROUND_COLOR)
     devices_config['eyetracker.hw.sr_research.eyelink.EyeTracker'] = eyetracker_config
 elif TRACKER == 'gazepoint':
+    eyetracker_config['calibration'] = dict(use_builtin=False, screen_background_color=BACKGROUND_COLOR)
     devices_config['eyetracker.hw.gazepoint.gp3.EyeTracker'] = eyetracker_config
 elif TRACKER == 'tobii':
+    eyetracker_config['calibration'] = dict(screen_background_color=BACKGROUND_COLOR)
     devices_config['eyetracker.hw.tobii.EyeTracker'] = eyetracker_config
 else:
     print("{} is not a valid TRACKER name; please use 'mouse', 'eyelink', 'gazepoint', or 'tobii'.".format(TRACKER))
@@ -38,7 +43,7 @@ win = visual.Window((1920, 1080),
                     allowGUI=False,
                     colorSpace='rgb255',
                     monitor='55w_60dist',
-                    color=[128, 128, 128]
+                    color=BACKGROUND_COLOR
                     )
 
 win.setMouseVisible(False)
