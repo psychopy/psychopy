@@ -88,23 +88,17 @@ class BlankScreen():
 
 # Intro Screen
 class TextLine():
-
-    def __init__(self, psychopy_win):
-        self.display_size = psychopy_win.size
-        win = psychopy_win
-
+    def __init__(self, parent):
+        self.display_size = parent.window.size
+        win = parent.window
+        tcolor, tctype = parent.getTextColorAndType()
         self.textLine = visual.TextStim(
             win,
             text='***********************',
-            pos=(
-                0,
-                0),
+            pos=(0, 0),
             height=30,
-            color=(
-                0,
-                0,
-                0),
-            colorSpace='rgb255',
+            color=tcolor,
+            colorSpace=tctype,
             opacity=1.0,
             contrast=1.0,
             units='pix',
@@ -122,9 +116,9 @@ class TextLine():
 
 # Intro Screen
 class IntroScreen():
-    def __init__(self, psychopy_win):
-        self.display_size = psychopy_win.size
-        window = psychopy_win
+    def __init__(self, parent):
+        window = parent.window
+        self.display_size = window.size
         font_height = 24
         space_per_lines = font_height * 2.5
         if window.useRetina:
@@ -133,19 +127,16 @@ class IntroScreen():
             topline_y = window.size[1] / 2 - font_height * 2
         wrap_width = window.size[1] * .8
 
+        tcolor, tctype = parent.getTextColorAndType()
+
         self.introlines = []
 
         self.introlines.append(visual.TextStim(window,
                                                text='>>>> Eyelink System Setup:  Keyboard Actions <<<<',
-                                               pos=(
-                                                   0,
-                                                   topline_y),
+                                               pos=(0, topline_y),
                                                height=font_height * 1.2,
-                                               color=(
-                                                   0,
-                                                   0,
-                                                   0),
-                                               colorSpace='rgb255',
+                                               color=tcolor,
+                                               colorSpace=tctype,
                                                opacity=1.0,
                                                contrast=1.0,
                                                units='pix',
@@ -163,13 +154,10 @@ class IntroScreen():
         topline_y = topline_y - space_per_lines / 3
         self.introlines.append(visual.TextStim(window,
                                                text='* ENTER: Begin Camera Setup Mode',
-                                               pos=(left_margin,
-                                                    topline_y - space_per_lines * (len(self.introlines))),
+                                               pos=(left_margin, topline_y - space_per_lines * (len(self.introlines))),
                                                height=font_height,
-                                               color=(0,
-                                                      0,
-                                                      0),
-                                               colorSpace='rgb255',
+                                               color=tcolor,
+                                               colorSpace=tctype,
                                                opacity=1.0,
                                                contrast=1.0,
                                                units='pix',
@@ -186,10 +174,8 @@ class IntroScreen():
                                                pos=(left_margin,
                                                     topline_y - space_per_lines * (len(self.introlines))),
                                                height=font_height,
-                                               color=(0,
-                                                      0,
-                                                      0),
-                                               colorSpace='rgb255',
+                                               color=tcolor,
+                                               colorSpace=tctype,
                                                opacity=1.0,
                                                contrast=1.0,
                                                units='pix',
@@ -203,13 +189,10 @@ class IntroScreen():
 
         self.introlines.append(visual.TextStim(window,
                                                text='* V: Start Validation Procedure',
-                                               pos=(left_margin,
-                                                    topline_y - space_per_lines * (len(self.introlines))),
+                                               pos=(left_margin, topline_y - space_per_lines * (len(self.introlines))),
                                                height=font_height,
-                                               color=(0,
-                                                      0,
-                                                      0),
-                                               colorSpace='rgb255',
+                                               color=tcolor,
+                                               colorSpace=tctype,
                                                opacity=1.0,
                                                contrast=1.0,
                                                units='pix',
@@ -223,13 +206,10 @@ class IntroScreen():
 
         self.introlines.append(visual.TextStim(window,
                                                text='* ESCAPE: Exit EyeLink System Setup',
-                                               pos=(left_margin,
-                                                    topline_y - space_per_lines * (len(self.introlines))),
+                                               pos=(left_margin, topline_y - space_per_lines * (len(self.introlines))),
                                                height=font_height,
-                                               color=(0,
-                                                      0,
-                                                      0),
-                                               colorSpace='rgb255',
+                                               color=tcolor,
+                                               colorSpace=tctype,
                                                opacity=1.0,
                                                contrast=1.0,
                                                units='pix',
@@ -244,13 +224,10 @@ class IntroScreen():
         topline_y = topline_y - space_per_lines / 3
         self.introlines.append(visual.TextStim(window,
                                                text='------ Camera Setup Mode Specific Actions ------',
-                                               pos=(0,
-                                                    topline_y - space_per_lines * (len(self.introlines))),
+                                               pos=(0, topline_y - space_per_lines * (len(self.introlines))),
                                                height=font_height * 1.2,
-                                               color=(0,
-                                                      0,
-                                                      0),
-                                               colorSpace='rgb255',
+                                               color=tcolor,
+                                               colorSpace=tctype,
                                                opacity=1.0,
                                                contrast=1.0,
                                                units='pix',
@@ -261,15 +238,11 @@ class IntroScreen():
                                                wrapWidth=wrap_width))
 
         topline_y = topline_y - space_per_lines / 3
-        self.introlines.append(visual.TextStim(window,
-                                               text='* Left / Right Arrow: Switch Between Camera Views',
-                                               pos=(left_margin,
-                                                    topline_y - space_per_lines * (len(self.introlines))),
+        self.introlines.append(visual.TextStim(window, text='* Left / Right Arrow: Switch Between Camera Views',
+                                               pos=(left_margin, topline_y - space_per_lines * (len(self.introlines))),
                                                height=font_height,
-                                               color=(0,
-                                                      0,
-                                                      0),
-                                               colorSpace='rgb255',
+                                               color=tcolor,
+                                               colorSpace=tctype,
                                                opacity=1.0,
                                                contrast=1.0,
                                                units='pix',
@@ -283,13 +256,10 @@ class IntroScreen():
 
         self.introlines.append(visual.TextStim(window,
                                                text='* A: Auto-Threshold Image',
-                                               pos=(left_margin,
-                                                    topline_y - space_per_lines * (len(self.introlines))),
+                                               pos=(left_margin, topline_y - space_per_lines * (len(self.introlines))),
                                                height=font_height,
-                                               color=(0,
-                                                      0,
-                                                      0),
-                                               colorSpace='rgb255',
+                                               color=tcolor,
+                                               colorSpace=tctype,
                                                opacity=1.0,
                                                contrast=1.0,
                                                units='pix',
@@ -303,13 +273,10 @@ class IntroScreen():
 
         self.introlines.append(visual.TextStim(window,
                                                text='* Up / Down Arrow: Manually Adjust Pupil Threshold',
-                                               pos=(left_margin,
-                                                    topline_y - space_per_lines * (len(self.introlines))),
+                                               pos=(left_margin, topline_y - space_per_lines * (len(self.introlines))),
                                                height=font_height,
-                                               color=(0,
-                                                      0,
-                                                      0),
-                                               colorSpace='rgb255',
+                                               color=tcolor,
+                                               colorSpace=tctype,
                                                opacity=1.0,
                                                contrast=1.0,
                                                units='pix',
@@ -323,13 +290,10 @@ class IntroScreen():
 
         self.introlines.append(visual.TextStim(window,
                                                text='* + or -: Manually Adjust CR Threshold.',
-                                               pos=(left_margin,
-                                                    topline_y - space_per_lines * (len(self.introlines))),
+                                               pos=(left_margin, topline_y - space_per_lines * (len(self.introlines))),
                                                height=font_height,
-                                               color=(0,
-                                                      0,
-                                                      0),
-                                               colorSpace='rgb255',
+                                               color=tcolor,
+                                               colorSpace=tctype,
                                                opacity=1.0,
                                                contrast=1.0,
                                                units='pix',
@@ -415,8 +379,8 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
                                     )
 
         self.blankdisplay = BlankScreen(self.window, self.getCalibSetting(['screen_background_color']))
-        self.textmsg = TextLine(self.window)
-        self.introscreen = IntroScreen(self.window)
+        self.textmsg = TextLine(self)
+        self.introscreen = IntroScreen(self)
         self.fixationpoint = FixationTarget(self)
         self.imagetitlestim = None
         self.eye_image = None
@@ -435,6 +399,23 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
             for s in setting[:-1]:
                 calibration_args = calibration_args.get(s)
             return calibration_args.get(setting[-1])
+
+    def getTextColorAndType(self):
+        color_type = self.getCalibSetting('color_type')
+        if color_type is None:
+            color_type = self.window.colorSpace
+        tcolor = self.getCalibSetting(['text_color'])
+        if tcolor is None:
+            # If no calibration text color provided, base it on the window background color
+            from psychopy.iohub.util import complement
+            sbcolor = self.getCalibSetting(['screen_background_color'])
+            if sbcolor is None:
+                sbcolor = self.window.color
+            from psychopy.colors import Color
+            tcolor_obj = Color(sbcolor, color_type)
+            tcolor = complement(*tcolor_obj.rgb255)
+            color_type = 'rgb255'
+        return tcolor, color_type
 
     def clearAllEventBuffers(self):
         pylink.flushGetkeyQueue()
@@ -606,18 +587,14 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
         """Display the current camera, Pupil, and CR thresholds above the
         camera image when in Camera Setup Mode."""
         if self.imagetitlestim is None:
+            tcolor, tctype = self.getTextColorAndType()
             self.imagetitlestim = visual.TextStim(
                 self.window,
                 text=text,
-                pos=(
-                    0,
-                    self.window.size[1] / 2 - 15),
+                pos=(0, self.window.size[1] / 2 - 15),
                 height=28,
-                color=(
-                    0,
-                    0,
-                    0),
-                colorSpace='rgb255',
+                color=tcolor,
+                colorSpace=tctype,
                 opacity=1.0,
                 contrast=1.0,
                 units='pix',

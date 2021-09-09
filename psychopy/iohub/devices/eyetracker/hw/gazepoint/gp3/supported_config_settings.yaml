@@ -64,6 +64,7 @@ eyetracker.hw.gazepoint.gp3.EyeTracker:
                 max_length: 1
         randomize: IOHUB_BOOL
         screen_background_color: IOHUB_COLOR
+        text_color: IOHUB_COLOR
         target_attributes:
             outer_diameter:
                 IOHUB_FLOAT:

@@ -21,7 +21,6 @@ class TobiiPsychopyCalibrationGraphics:
     CALIBRATION_POINT_LIST = [(0.5, 0.5), (0.1, 0.1), (0.9, 0.1), (0.9, 0.9), (0.1, 0.9), (0.5, 0.5)]
 
     TEXT_POS = [0, 0]
-    TEXT_COLOR = [0, 0, 0]
     TEXT_HEIGHT = 36
     _keyboard_key_index = EventConstants.getClass(
         EventConstants.KEYBOARD_RELEASE).CLASS_ATTRIBUTE_NAMES.index('key')
@@ -238,13 +237,26 @@ class TobiiPsychopyCalibrationGraphics:
             edges=64,
             units=unit_type, colorSpace=color_type)
 
+        tctype = color_type
+        tcolor = self.getCalibSetting(['text_color'])
+        if tcolor is None:
+            # If no calibration text color provided, base it on the window background color
+            from psychopy.iohub.util import complement
+            sbcolor = self.getCalibSetting(['screen_background_color'])
+            if sbcolor is None:
+                sbcolor = self.window.color
+            from psychopy.colors import Color
+            tcolor_obj = Color(sbcolor, color_type)
+            tcolor = complement(*tcolor_obj.rgb255)
+            tctype = 'rgb255'
+
         instuction_text = 'Press SPACE to Start Calibration; ESCAPE to Exit.'
         self.textLineStim = visual.TextStim(self.window,
                                             text=instuction_text,
                                             pos=self.TEXT_POS,
                                             height=self.TEXT_HEIGHT,
-                                            color=self.TEXT_COLOR,
-                                            colorSpace='rgb255',
+                                            color=tcolor,
+                                            colorSpace=tctype,
                                             units='pix',
                                             wrapWidth=self.width * 0.9)
 
