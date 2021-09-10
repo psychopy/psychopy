@@ -48,8 +48,8 @@ eyetracker.hw.mouse.EyeTracker:
         # set the calibration screens to.
         screen_background_color: [128,128,128]
 
-        # text_color specifies the text color to use during calibration.
-        # If None / empty, text_color will be set to a complimentary color of screen_background_color.
+        # text_color specifies the foreground color of any text used during calibration.
+        # If empty, text_color is calculated automatically based on screen_background_color.
         text_color:
 
         # The associated target attribute properties can be supplied
