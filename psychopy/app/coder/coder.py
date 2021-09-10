@@ -1102,8 +1102,9 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
         backward = not (findData.GetFlags() & wx.FR_DOWN)
         matchcase = (findData.GetFlags() & wx.FR_MATCHCASE) != 0
         end = self.GetLength()
-        textstring = self.GetTextRange(0, end)
-        findstring = findData.GetFindString()
+        # Byte string is necessary to let SetSelection() work properly
+        textstring = self.GetTextRangeRaw(0, end)
+        findstring = findData.GetFindString().encode('utf-8')
         if not matchcase:
             textstring = textstring.lower()
             findstring = findstring.lower()
@@ -1126,7 +1127,7 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
         # was it still not found?
         if loc == -1:
             dlg = dialogs.MessageDialog(self, message=_translate(
-                'Unable to find "%s"') % findstring, type='Info')
+                'Unable to find "%s"') % findstring.decode('utf-8'), type='Info')
             dlg.ShowModal()
             dlg.Destroy()
         else:
