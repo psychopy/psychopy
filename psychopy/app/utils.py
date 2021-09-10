@@ -395,6 +395,50 @@ class ButtonArray(wx.WrapSizer):
         self.Enable(False)
 
 
+class ImageCtrl(wx.StaticBitmap):
+    def __init__(self, parent, bitmap, size=(128, 128)):
+        wx.StaticBitmap.__init__(self, parent, bitmap=wx.Bitmap(), size=size)
+        self.parent = parent
+        # Set bitmap
+        self.SetBitmap(bitmap)
+        # Setup sizer
+        self.sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.sizer.AddStretchSpacer(1)
+        self.SetSizer(self.sizer)
+        # Add edit button
+        self.editBtn = wx.Button(self, size=(24, 24), label=chr(int("270E", 16)), style=wx.BORDER_NONE)
+        self.editBtn.Bind(wx.EVT_BUTTON, self.LoadBitmap)
+        self.sizer.Add(self.editBtn, border=6, flag=wx.ALIGN_BOTTOM | wx.ALL)
+
+    def LoadBitmap(self, evt=None):
+        # Open file dlg
+        _dlg = wx.FileDialog(self.parent, message=_translate("Select image..."))
+        if _dlg.ShowModal() != wx.ID_OK:
+            return
+        # Get value
+        self.SetBitmap(str(Path(_dlg.GetPath())))
+
+    def SetBitmap(self, bitmap):
+        # Get from file if needed
+        if not isinstance(bitmap, wx.Bitmap):
+            bitmap = wx.Bitmap(bitmap)
+        # Store full size bitmap
+        self._fullBitmap = bitmap
+        # Resize bitmap
+        buffer = wx.ImageFromBitmap(bitmap)
+        buffer = buffer.Scale(*self.Size, quality=wx.IMAGE_QUALITY_HIGH)
+        scaledBitmap = wx.BitmapFromImage(buffer)
+        # Set image
+        wx.StaticBitmap.SetBitmap(self, scaledBitmap)
+
+    def GetBitmapFull(self):
+        return self._fullBitmap
+
+    @property
+    def BitmapFull(self):
+        return self.GetBitmapFull()
+
+
 class PsychopyScrollbar(wx.ScrollBar):
     def __init__(self, parent, ori=wx.VERTICAL):
         wx.ScrollBar.__init__(self)
