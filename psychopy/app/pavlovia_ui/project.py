@@ -20,11 +20,15 @@ from psychopy.app.pavlovia_ui import sync
 import wx
 from wx.lib import scrolledpanel as scrlpanel
 
+from .. import utils
+
 try:
     import wx.lib.agw.hyperlink as wxhl  # 4.0+
 except ImportError:
     import wx.lib.hyperlink as wxhl  # <3.0.2
 
+_starred = u"\u2605"
+_unstarred = u"\u2606"
 
 class ProjectEditor(wx.Dialog):
     def __init__(self, parent=None, id=wx.ID_ANY, project=None, localRoot="",
@@ -175,208 +179,143 @@ class ProjectEditor(wx.Dialog):
         self.Raise()
 
 
-class DetailsPanel(scrlpanel.ScrolledPanel):
+class DetailsPanel(wx.Panel):
 
-    def __init__(self, parent, noTitle=False,
-                 style=wx.VSCROLL | wx.NO_BORDER,
-                 project={}):
+    def __init__(self, parent, project=None,
+                 size=(600, 500),
+                 style=wx.NO_BORDER):
 
-        scrlpanel.ScrolledPanel.__init__(self, parent, -1, style=style)
-        self.parent = parent
-        self.project = project  # type: pavlovia.PavloviaProject
-        self.noTitle = noTitle
-        self.localFolder = ''
-        self.syncPanel = None
-
-        if not noTitle:
-            self.title = wx.StaticText(parent=self, id=-1,
-                                       label="", style=wx.ALIGN_CENTER)
-            font = wx.Font(18, wx.DECORATIVE, wx.NORMAL, wx.BOLD)
-            self.title.SetFont(font)
-
-        # if we've synced before we should know the local location
-        self.localFolderCtrl = wx.StaticText(
-            parent=self, id=wx.ID_ANY,
-            label=_translate("Local root: "))
-        self.browseLocalBtn = wx.Button(parent=self, id=wx.ID_ANY,
-                                        label=_translate("Browse..."))
-        self.browseLocalBtn.Bind(wx.EVT_BUTTON, self.onBrowseLocalFolder)
-
-        # remote attributes
-        self.url = wxhl.HyperLinkCtrl(parent=self, id=-1,
-                                      label="https://pavlovia.org",
-                                      URL="https://pavlovia.org",
-                                      )
-        self.description = wx.StaticText(parent=self, id=-1,
-                                         label=_translate(
-                                             "Select a project for details"))
-        self.tags = wx.StaticText(parent=self, id=-1,
-                                  label="")
-        self.visibility = wx.StaticText(parent=self, id=-1,
-                                        label="")
-
-        self.syncButton = wx.Button(self, -1, _translate("Sync..."))
-        self.syncButton.Enable(False)
-        self.syncButton.Bind(wx.EVT_BUTTON, self.onSyncButton)
-        self.syncPanel = sync.SyncStatusPanel(parent=self, id=wx.ID_ANY)
-
-        # layout
-        # sizers: on the right we have detail
+        wx.Panel.__init__(self, parent, -1,
+                          size=size,
+                          style=style)
+        self.SetBackgroundColour("white")
+        iconCache = parent.app.iconCache
+        # Setup sizer
+        self.contentBox = wx.BoxSizer()
+        self.SetSizer(self.contentBox)
         self.sizer = wx.BoxSizer(wx.VERTICAL)
-        # self.sizer.Add(wx.StaticText(self, -1, _translate("Project Info")),
-        #                flag=wx.ALL,
-        #                border=5)
-        if not noTitle:
-            self.sizer.Add(self.title, border=5,
-                           flag=wx.ALL | wx.CENTER)
-        self.sizer.Add(self.url, border=5,
-                       flag=wx.ALL | wx.CENTER)
-        self.sizer.Add(self.localFolderCtrl, border=5,
-                             flag=wx.ALL | wx.EXPAND),
-        self.sizer.Add(self.browseLocalBtn, border=5,
-                             flag=wx.ALL | wx.LEFT)
-        self.sizer.Add(self.tags, border=5, flag=wx.ALL | wx.EXPAND)
-        self.sizer.Add(self.visibility, border=5, flag=wx.ALL | wx.EXPAND)
-        self.sizer.Add(wx.StaticLine(self, -1, style=wx.LI_HORIZONTAL),
-                       flag=wx.ALL | wx.EXPAND)
-        self.sizer.Add(self.description, border=10, flag=wx.ALL | wx.EXPAND)
+        self.contentBox.Add(self.sizer, proportion=1, border=12, flag=wx.ALL | wx.EXPAND)
+        # Head sizer
+        self.headSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.sizer.Add(self.headSizer, border=0, flag=wx.EXPAND)
+        # Icon
+        self.icon = utils.ImageCtrl(self, bitmap=wx.Bitmap("E:\\My Drive\\My Pavlovia Demos\\pizza\\icon.png"), size=(128, 128))
+        self.icon.SetBackgroundColour("#f2f2f2")
+        self.headSizer.Add(self.icon, border=6, flag=wx.ALL)
+        # Title sizer
+        self.titleSizer = wx.BoxSizer(wx.VERTICAL)
+        self.headSizer.Add(self.titleSizer, proportion=1, flag=wx.EXPAND)
+        # Title
+        self.title = wx.TextCtrl(self, size=(-1, -1), value="Pizza Calculator")
+        self.title.SetFont(
+            wx.Font(24, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
+        )
+        self.titleSizer.Add(self.title, border=6, flag=wx.ALL | wx.EXPAND)
+        # Author
+        self.author = wx.StaticText(self, size=(-1, -1), label="by Demos")
+        self.titleSizer.Add(self.author, border=6, flag=wx.LEFT | wx.RIGHT)
+        # Pavlovia link
+        self.link = wxhl.HyperLinkCtrl(self, -1,
+                                       label="https://pavlovia.org/demos/pizza-calculator",
+                                       URL="https://pavlovia.org/demos/pizza-calculator",
+                                       )
+        self.link.SetBackgroundColour("white")
+        self.titleSizer.Add(self.link, border=6, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM)
+        # Button sizer
+        self.btnSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.titleSizer.Add(self.btnSizer, flag=wx.EXPAND)
+        # Star button
+        self.starBtn = wx.Button(self, label=_translate("Star"), style=wx.BORDER_NONE)
+        self.starBtn.SetBitmap(iconCache.getBitmap(name="starred", size=16))
+        self.btnSizer.Add(self.starBtn, border=6, flag=wx.ALL | wx.EXPAND)
+        # Sync button
+        self.syncBtn = wx.Button(self, label=_translate("Sync"), style=wx.BORDER_NONE)
+        self.syncBtn.SetBitmap(iconCache.getBitmap(name="view-refresh", size=16))
+        self.btnSizer.Add(self.syncBtn, border=6, flag=wx.ALL | wx.EXPAND)
+        self.btnSizer.AddStretchSpacer(1)
+        # Sep
+        self.sizer.Add(wx.StaticLine(self, -1), border=6, flag=wx.EXPAND | wx.ALL)
+        # Local root
+        self.rootSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.sizer.Add(self.rootSizer, flag=wx.EXPAND)
+        self.localRootLabel = wx.StaticText(self, label="Local root:")
+        self.rootSizer.Add(self.localRootLabel, border=6, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP)
+        self.localRoot = utils.FileCtrl(self)
+        self.rootSizer.Add(self.localRoot, proportion=1, border=6, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM)
+        # Sep
+        self.sizer.Add(wx.StaticLine(self, -1), border=6, flag=wx.EXPAND | wx.ALL)
+        # Description
+        self.description = wx.TextCtrl(self, size=(-1, -1), value="This demo helps you work out whether to get a slice of a big pizza or a whole small pizza... Very important science, obviously. Use the sliders on the right to specify the size (diameter in inches) of the big pizza and how much of it you'd be getting. The slider on the left shows you how much pizza you're actually getting, relative to standard pizza sizes (e.g. Small 10\", Medium 12\", Large 14\", etc.) so that you can choose whichever option gives you the most pizza for your money.", style=wx.TE_MULTILINE)
+        self.sizer.Add(self.description, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
+        # Sep
+        self.sizer.Add(wx.StaticLine(self, -1), border=6, flag=wx.EXPAND | wx.ALL)
+        # Visibility
+        self.visSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.sizer.Add(self.visSizer, flag=wx.EXPAND)
+        self.visLbl = wx.StaticText(self, label=_translate("Visibility:"))
+        self.visSizer.Add(self.visLbl, border=6, flag=wx.EXPAND | wx.ALL)
+        self.visibility = wx.Choice(self, choices=["Private", "Public"])
+        self.visSizer.Add(self.visibility, proportion=1, border=6, flag=wx.EXPAND | wx.ALL)
+        # Status
+        self.statusSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.sizer.Add(self.statusSizer, flag=wx.EXPAND)
+        self.statusLbl = wx.StaticText(self, label=_translate("Status:"))
+        self.statusSizer.Add(self.statusLbl, border=6, flag=wx.EXPAND | wx.ALL)
+        self.status = wx.Choice(self, choices=["Running", "Piloting", "Inactive"])
+        self.statusSizer.Add(self.status, proportion=1, border=6, flag=wx.EXPAND | wx.ALL)
+        # Tags
+        self.tagSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.sizer.Add(self.tagSizer, flag=wx.EXPAND)
+        self.tagLbl = wx.StaticText(self, label=_translate("Tags:"))
+        self.tagSizer.Add(self.tagLbl, border=6, flag=wx.EXPAND | wx.ALL)
+        self.tags = utils.ButtonArray(self, orient=wx.HORIZONTAL, items=["pizza", "utility", "lorem", "ipsum", "dolor", "sit", "amun", "vene", "vidi", "vici", "dulce", "et", "decorum", "est"])
+        self.tagSizer.Add(self.tags, proportion=1, border=6, flag=wx.EXPAND | wx.ALL)
+        # Populate
+        #self.project = project
 
-        self.sizer.Add(wx.StaticLine(self, -1, style=wx.LI_HORIZONTAL),
-                       flag=wx.ALL | wx.EXPAND)
-        self.sizer.Add(self.syncButton,
-                       flag=wx.ALL | wx.RIGHT, border=5)
-        self.sizer.Add(self.syncPanel, border=5, proportion=1,
-                       flag=wx.ALL | wx.RIGHT | wx.EXPAND)
+    @property
+    def project(self):
+        return self._project
 
-        if self.project:
-            self.setProject(self.project)
-            self.syncPanel.setStatus(_translate("Ready to sync"))
-        else:
-            self.syncPanel.setStatus(
-                    _translate("This file doesn't belong to a project yet"))
+    @project.setter
+    def project(self, project):
+        self._project = project
 
-        self.SetAutoLayout(True)
-        self.SetSizerAndFit(self.sizer)
-        self.SetupScrolling()
-        self.Bind(wx.EVT_SIZE, self.onResize)
-
-
-    def setProject(self, project, localRoot=''):
-        if not isinstance(project, pavlovia.PavloviaProject):
-            project = pavlovia.getCurrentSession().getProject(project)
+        # Populate fields
         if project is None:
-            return  # we're done
-        self.project = project
+            # Icon
+            self.icon.SetBitmap(wx.Bitmap())
+            self.icon.Disable()
+            # Title
+            self.title.SetValue("")
+            self.title.Disable()
+            # Author
+            self.author.SetLabel("by ---")
+            self.author.Disable()
+            # Link
+            self.link.SetLabel("https://pavlovia.org/")
+            self.link.Disable()
+            # Star button
+            self.starBtn.Disable()
+            # Sync button
+            self.syncBtn.Disable()
+            # Local root
+            self.localRootLabel.Disable()
+            self.localRoot.SetValue("")
+            self.localRoot.Disable()
+            # Description
+            self.description.SetValue("")
+            self.description.Disable()
+            # Visibility
+            self.visibility.SetSelection(wx.NOT_FOUND)
+            self.visibility.Disable()
+            # Status
+            self.status.SetSelection(wx.NOT_FOUND)
+            self.status.Disable()
+            # Tags
+            self.tags.clear()
+            self.tags.Disable()
 
-        if not self.noTitle:
-            # use the id (namespace/name) but give space around /
-            self.title.SetLabel(project.id.replace("/", " / "))
-
-        # url
-        self.url.SetLabel(self.project.web_url)
-        self.url.SetURL(self.project.web_url)
-
-        # public / private
-        if hasattr(project.attributes, 'description') and project.attributes['description']:
-            self.description.SetLabel(project.attributes['description'])
-        else:
-            self.description.SetLabel('')
-        if not hasattr(project, 'visibility'):
-            visib = _translate("User not logged in!")
-        elif project.visibility in ['public', 'internal']:
-            visib = "Public"
-        else:
-            visib = "Private"
-        self.visibility.SetLabel(_translate("Visibility: {}").format(visib))
-
-        # do we have a local location?
-        localFolder = project.localRoot
-        if not localFolder:
-            localFolder = _translate("<not yet synced>")
-        self.localFolderCtrl.SetLabel(_translate("Local root: {}").format(localFolder))
-
-        # Check permissions: login, fork or sync
-        perms = project.permissions
-
-        # we've got the permissions value so use it
-        if not pavlovia.getCurrentSession().user:
-            self.syncButton.SetLabel(_translate('Log in to sync...'))
-        elif not perms or perms < pavlovia.permissions['developer']:
-            self.syncButton.SetLabel(_translate('Fork + sync...'))
-        else:
-            self.syncButton.SetLabel(_translate('Sync...'))
-        self.syncButton.Enable(True)  # now we have a project we should enable
-
-        while None in project.tags:
-            project.tags.remove(None)
-        self.tags.SetLabel(_translate("Tags:") + " " + ", ".join(project.tags))
-        # call onResize to get correct wrapping of description box and title
-        self.onResize()
-
-    def onResize(self, evt=None):
-        if self.project is None:
-            return
-        w, h = self.GetSize()
-        # if it hasn't been created yet then we won't have attributes
-        if hasattr(self.project, 'attributes') and self.project.attributes['description'] is not None:
-                self.description.SetLabel(self.project.attributes['description'])
-                self.description.Wrap(w - 20)
-        # noTitle in some uses of the detailsPanel
-        if not self.noTitle and 'name' in self.project:
-            self.title.SetLabel(self.project.name)
-            self.title.Wrap(w - 20)
-        self.Layout()
-
-    def onSyncButton(self, event):
-        if not pavlovia.haveGit:
-            noGitWarning(parent=self.parent)
-            return 0
-
-        if self.project is None:
-            raise AttributeError("User pressed the sync button with no "
-                                 "current project existing.")
-
-        # log in first if needed
-        if not pavlovia.getCurrentSession().user:
-            logInPavlovia(parent=self.parent)
-            return
-
-        # fork first if needed
-        perms = self.project.permissions
-        if not perms or perms < pavlovia.permissions['developer']:
-            # specifying the group to fork to has no effect so don't use it
-            # dlg = ForkDlg(parent=self.parent, project=self.project)
-            # if dlg.ShowModal() == wx.ID_CANCEL:
-            #     return
-            # else:
-            #     newGp = dlg.groupField.GetStringSelection()
-            #     newName = dlg.nameField.GetValue()
-            fork = self.project.forkTo()  # logged-in user
-            self.setProject(fork.id)
-
-        # if project.localRoot doesn't exist, or is empty
-        if 'localRoot' not in self.project or not self.project.localRoot:
-            # we first need to choose a location for the repository
-            newPath = setLocalPath(self, self.project)
-            if newPath:
-                self.localFolderCtrl.SetLabel(
-                    label=_translate("Local root: {}").format(newPath))
-            self.project.local = newPath
-            self.Layout()
-            self.Raise()
-
-        self.syncPanel.setStatus(_translate("Synchronizing..."))
-        self.project.sync(infoStream=self.syncPanel.infoStream)
-        self.parent.Raise()
-
-    def onBrowseLocalFolder(self, evt):
-        self.localFolder = setLocalPath(self, self.project)
-        if self.localFolder:
-            self.localFolderCtrl.SetLabel(
-                label=_translate("Local root: {}").format(self.localFolder))
-        self.localFolderCtrl.Wrap(self.GetSize().width)
-        self.Layout()
-        self.parent.Raise()
 
 
 class ProjectFrame(wx.Dialog):

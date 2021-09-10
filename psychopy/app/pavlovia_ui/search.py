@@ -20,247 +20,123 @@ import wx.lib.mixins.listctrl as listmixin
 
 import requests
 
-starChar = u"\u2B50"
+from ..themes._themes import IconCache
+
+_starred = u"\u2605"
+_unstarred = u"\u2606"
 forkChar = u"\u2442"
+
+
+class ListCtrl(wx.ListCtrl, listmixin.ListCtrlAutoWidthMixin):
+    """
+    A ListCtrl with ListCtrlAutoWidthMixin already mixed in, purely for convenience
+    """
+    def __init__(self, *args, **kwargs):
+        wx.ListCtrl.__init__(self, *args, **kwargs)
+        listmixin.ListCtrlAutoWidthMixin.__init__(self)
 
 
 class SearchFrame(wx.Dialog):
 
-    def __init__(self, app, parent=None, style=None,
+    def __init__(self, app, parent=None, style=wx.RESIZE_BORDER | wx.DEFAULT_DIALOG_STYLE | wx.CENTER | wx.TAB_TRAVERSAL | wx.NO_BORDER,
                  pos=wx.DefaultPosition):
-        if style is None:
-            style = (wx.DEFAULT_DIALOG_STYLE | wx.CENTER |
-                     wx.TAB_TRAVERSAL | wx.RESIZE_BORDER)
-        title = _translate("Search for projects online")
         self.frameType = 'ProjectSearch'
-        wx.Dialog.__init__(self, parent, -1, title=title, style=style,
-                           size=(800, 500), pos=pos)
-
+        wx.Dialog.__init__(self, parent, -1, title=_translate("Search for projects online"),
+                           style=style,
+                           size=(1080, 720), pos=pos)
         self.app = app
-        self.project = None
-        self.parent = parent
-        # info about last search (NB None means no search but [] or '' means empty)
-        self.lastSearchStr = None
-        self.lastSearchOwn = None
-        self.lastSearchGp = None
-        self.lastSearchPub = None
-
-        # self.mainPanel = wx.Panel(self, wx.ID_ANY)
-        self.searchLabel = wx.StaticText(self, wx.ID_ANY, _translate('Search:'))
-        self.searchCtrl = wx.TextCtrl(self, wx.ID_ANY)
-        self.searchCtrl.Bind(wx.EVT_BUTTON, self.onSearch)
-        self.searchBtn = wx.Button(self, wx.ID_ANY, _translate("Search"))
-        self.searchBtn.Bind(wx.EVT_BUTTON, self.onSearch)
-        self.searchBtn.SetDefault()
-
-        self.searchInclPublic = wx.CheckBox(self, wx.ID_ANY,
-                                          label="Public")
-        self.searchInclPublic.Bind(wx.EVT_CHECKBOX, self.onSearch)
-        self.searchInclPublic.SetValue(True)
-
-        self.searchInclGroup = wx.CheckBox(self, wx.ID_ANY,
-                                          label="My groups")
-        self.searchInclGroup.Bind(wx.EVT_CHECKBOX, self.onSearch)
-        self.searchInclGroup.SetValue(True)
-
-        self.searchBuilderOnly = wx.CheckBox(self, wx.ID_ANY,
-                                             label="Only Builder")
-        self.searchBuilderOnly.Bind(wx.EVT_CHECKBOX, self.onSearch)
-        # then the search results
-        self.searchResults = ProjectListCtrl(self)
-
-        # on the right
-        self.detailsPanel = DetailsPanel(parent=self)
-
-        # sizers layout
-        self.searchBtnSizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.searchBtnSizer.Add(self.searchCtrl, 1, wx.EXPAND | wx.ALL, 5)
-        self.searchBtnSizer.Add(self.searchBtn, 0, wx.EXPAND | wx.ALL, 5)
-        self.optionsSizer = wx.WrapSizer()
-        self.optionsSizer.AddMany([self.searchInclGroup, self.searchInclPublic,
-                                   self.searchBuilderOnly])
-
-        self.leftSizer = wx.BoxSizer(wx.VERTICAL)
-        self.leftSizer.Add(self.searchLabel, 0, wx.EXPAND | wx.ALL, 5)
-        self.leftSizer.Add(self.optionsSizer)
-        self.leftSizer.Add(self.searchBtnSizer, 0, wx.EXPAND | wx.ALL, 5)
-        self.leftSizer.Add(self.searchResults, 1, wx.EXPAND | wx.ALL, 5)
-
-        self.mainSizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.mainSizer.Add(self.leftSizer, 1, wx.EXPAND | wx.ALL, 5)
-        self.mainSizer.Add(self.detailsPanel, 1, wx.EXPAND | wx.ALL, 5)
-
-        self.SetSizer(self.mainSizer)  # don't fit until search is populated
-        if self.parent:
-            self.CenterOnParent()
-        self.Layout()
-        # if projects == 'no user':
-        #     msg = _translate("Log in to search your own projects")
-        #     loginBtn = wx.Button(self, wx.ID_ANY, label=msg)
-        #     loginBtn.Bind(wx.EVT_BUTTON, self.onLoginClick)
-
-    def getSearchOptions(self):
-        opts = {}
-        opts['inclPublic'] = self.searchInclPublic.GetValue()
-        opts['builderOnly'] = self.searchBuilderOnly.GetValue()
-        opts['inclGroup'] = self.searchBuilderOnly.GetValue()
-        return opts
-
-    def onSearch(self, evt=None):
-        opts = self.getSearchOptions()
-
-        searchStr = self.searchCtrl.GetValue()
-        newSearch = (searchStr!=self.lastSearchStr)
-        self.lastSearchStr = newSearch
-
-        session = pavlovia.getCurrentSession()
-        # search own
-        if newSearch:
-            try:
-                self.lastSearchOwn = session.gitlab.projects.list(owned=True, search=searchStr)
-            except requests.exceptions.ConnectionError:
-                print("Failed to establish a new connection: No internet?")
-                return None
-
-        # search my groups
-        if opts['inclGroup'] and (newSearch or self.lastSearchGp is None):
-            # group projects: owned=False, membership=True
-            self.lastSearchGp = session.gitlab.projects.list(
-                owned=False, membership=True, search=searchStr)
-        elif not opts['inclGroup']:  # set to None (to indicate non-search not simply empty result)
-            self.lastSearchGp = None
-        elif opts['inclGroup'] and not newSearch:
-            pass  # we have last search and we need it so do nothing
-        else:
-            print("ERROR: During Pavlovia search we found opts['inclGroup']={}, newSearch={}"
-                  .format(opts['inclGroup'], newSearch))
-
-        # search public
-        if opts['inclPublic'] and (newSearch or self.lastSearchPub is None):
-            self.lastSearchPub = session.gitlab.projects.list(owned=False, membership=False,
-                                                              search=searchStr)
-        elif not opts['inclPublic']:  # set to None (to indicate non-search not simply empty result)
-            self.lastSearchPub = None
-        elif opts['inclPublic'] and not newSearch:
-            pass  # we have last search and we need it so do nothing
-        else:
-            print("ERROR: During Pavlovia search we found opts['inclPublic']={}, newSearch={}"
-                  .format(opts['inclPublic'], newSearch))
-
-        projs = copy.copy(self.lastSearchOwn)
-        if opts['inclGroup']:
-            projs.extend(self.lastSearchGp)
-        if opts['inclPublic']:
-            projs.extend(self.lastSearchPub)
-
-        projs = getUniqueByID(projs)
-        projs = [pavlovia.PavloviaProject(proj) for proj in projs if proj.id]
-
-        self.searchResults.setContents(projs)
-        self.searchResults.Update()
+        self.SetMinSize((800, 500))
+        # Setup sizer
+        self.sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.SetSizer(self.sizer)
+        # Make panels
+        self.detailsPanel = DetailsPanel(self)
+        self.searchPanel = SearchPanel(self, viewer=self.detailsPanel)
+        # Add to sizers
+        self.sizer.Add(self.searchPanel, border=12, flag=wx.EXPAND | wx.ALL)
+        self.sizer.Add(self.detailsPanel, proportion=1, border=12, flag=wx.EXPAND | wx.ALL)
+        # Layout
         self.Layout()
 
-    def onLoginClick(self, event):
-        user = logInPavlovia(parent=self.parent)
 
-    def Show(self):
-        # show the dialog then start search
-        wx.Dialog.Show(self)
-        wx.Yield()
-        self.onSearch()  # trigger the search update
-
-
-class ProjectListCtrl(wx.ListCtrl, listmixin.ListCtrlAutoWidthMixin):
+class SearchPanel(wx.Panel):
     """A scrollable panel showing a list of projects. To be used within the
     Project Search dialog
     """
 
-    def __init__(self, parent, frame=None):
-        wx.ListCtrl.__init__(self, parent, wx.ID_ANY,
-                             style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
-        listmixin.ListCtrlAutoWidthMixin.__init__(self)
-        self.AlwaysShowScrollbars(True)
-        self.parent = parent
-        if frame is None:
-            self.frame = parent
-        else:
-            self.frame = frame
-        self.projList = []
-        self.columnNames = [starChar, forkChar, 'Group', 'Name', 'Description']
-        self._currentSortCol = 0
-        self._currentSortRev = False
+    def __init__(self, parent, viewer,
+                 size=(400, -1),
+                 style=wx.NO_BORDER
+                 ):
+        # Init self
+        wx.Panel.__init__(self, parent, -1,
+                          size=size,
+                          style=style
+                          )
+        # Setup sizer
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.SetSizer(self.sizer)
+        # Add search ctrl
+        self.searchCtrl = wx.SearchCtrl(self)
+        self.sizer.Add(self.searchCtrl, border=4, flag=wx.EXPAND | wx.ALL)
+        # Add sort / filter buttons
+        self.filterCtrls = wx.BoxSizer(wx.HORIZONTAL)
+        self.filterCtrls.AddStretchSpacer(1)
+        self.sortBtn = wx.Button(self, label=_translate("Sort..."), style=wx.BORDER_NONE)
+        self.filterCtrls.Add(self.sortBtn, border=6, flag=wx.LEFT | wx.RIGHT)
+        self.filterBtn = wx.Button(self, label=_translate("Filter..."), style=wx.BORDER_NONE)
+        self.filterCtrls.Add(self.filterBtn, border=6, flag=wx.LEFT | wx.RIGHT)
+        self.sizer.Add(self.filterCtrls, border=4, flag=wx.EXPAND | wx.ALL)
+        # Add project list
+        self.projectList = ListCtrl(self, size=(-1, -1), style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
+        self.sizer.Add(self.projectList, proportion=1, border=4, flag=wx.EXPAND | wx.ALL)
+        # Setup project list
+        #self.projectList.InsertColumn(0, '', width=32, format=wx.LIST_FORMAT_CENTER)  # Icon
+        self.projectList.InsertColumn(0, _starred, width=24, format=wx.LIST_FORMAT_CENTER)  # Stars
+        self.projectList.InsertColumn(1, _translate('Author'), width=wx.LIST_AUTOSIZE, format=wx.LIST_FORMAT_LEFT)  # Author
+        self.projectList.InsertColumn(2, _translate('Name'), width=wx.LIST_AUTOSIZE, format=wx.LIST_FORMAT_LEFT)  # Name
+        self.projectList.InsertColumn(3, _translate('Description'), width=wx.LIST_AUTOSIZE, format=wx.LIST_FORMAT_LEFT | wx.EXPAND)  # Description
+        # Setup list to store icons
+        #self.icons = wx.ImageList(width=16, height=16)
+        #self.projectList.SetImageList(self.icons, wx.IMAGE_LIST_SMALL)
 
-        # Give it some columns.
-        # The ID col we'll customize a bit:
-        for n, columnName in enumerate(self.columnNames):
-            if len(columnName) < 3:  # for short names center the text
-                self.InsertColumn(n, columnName, wx.LIST_FORMAT_CENTER)
-            else:
-                self.InsertColumn(n, columnName)
-        # set the column sizes *after* adding the items
-        for n, columnName in enumerate(self.columnNames):
-            self.SetColumnWidth(n, wx.LIST_AUTOSIZE)
+        # Make example item (delete once working)
+        #_bmp = self.icons.Add(wx.Bitmap("E:\\My Drive\\My Pavlovia Demos\\pizza\\icon_small.jpg"))
+        i = self.projectList.Append([
+        #    '',
+            1,
+            "Demos",
+            "Pizza Calculator",
+            "This demo helps you work out whether to get a slice of a big pizza or a whole small pizza... Very important science, obviously. Use the sliders on the right to specify the size (diameter in inches) of the big pizza and how much of it you'd be getting. The slider on the left shows you how much pizza you're actually getting, relative to standard pizza sizes (e.g. Small 10\", Medium 12\", Large 14\", etc.) so that you can choose whichever option gives you the most pizza for your money."
+        ])
+        #self.projectList.GetItem(i).SetImage(_bmp)
+        # Make example item (delete once working)
+        #_bmp = self.icons.Add(wx.Bitmap("E:\\My Drive\\My Pavlovia Demos\\pizza\\icon_small.jpg"))
+        i = self.projectList.Append([
+        #    '',
+            0,
+            "TPronk",
+            "Pizza Calculator",
+            "This demo helps you work out whether to get a slice of a big pizza or a whole small pizza... Very important science, obviously. Use the sliders on the right to specify the size (diameter in inches) of the big pizza and how much of it you'd be getting. The slider on the left shows you how much pizza you're actually getting, relative to standard pizza sizes (e.g. Small 10\", Medium 12\", Large 14\", etc.) so that you can choose whichever option gives you the most pizza for your money."
+        ])
+        #self.projectList.GetItem(i).SetImage(_bmp)
 
-        # after creating columns we can create the sort mixin
-        # listmixin.ColumnSorterMixin.__init__(self, len(columnList))
-        self.SetAutoLayout(True)
-        self.Bind(wx.EVT_LIST_COL_CLICK, self.onColumnClick)
-        self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onChangeSelection)
+        # Link ProjectViewer
+        self.viewer = viewer
+        self.projectList.Bind(wx.EVT_LIST_ITEM_SELECTED, self.viewProject)
+        # Layout
+        self.Layout()
 
-    def setContents(self, projects):
-        self.DeleteAllItems()
-        # first time around we have a list of PavloviaProjects
-        if projects and isinstance(projects[0], pavlovia.PavloviaProject):
-            self.projList = []
-            for index, thisProj in enumerate(projects):
-                if not hasattr(thisProj, 'id'):
-                    continue
-                data = (thisProj.star_count, thisProj.forks_count,
-                        thisProj.group, thisProj.name, thisProj.description)
-                proj = {}
-                proj[starChar] = thisProj.star_count
-                proj[forkChar] = thisProj.forks_count
-                proj['Name'] = thisProj.name
-                proj['Group'] = thisProj.group
-                proj['Description'] = thisProj.description
-                proj['id'] = thisProj.id
-                self.projList.append(proj)
-                self.Append(data)  # append to the wx table
-        # subsequent iterations are simple dicts
-        else:
-            self.projList = projects
-            for index, thisProj in enumerate(projects):
-                data = (thisProj[starChar], thisProj[forkChar],
-                        thisProj['Group'], thisProj['Name'],
-                        thisProj['Description'])
-                self.Append(data)  # append to the wx table
-        self.resizeCols(finalOnly=False)
-        self.Update()
-
-    def resizeCols(self, finalOnly):
-        # resize the columns
-        for n in range(self.ColumnCount):
-            if not finalOnly:
-                self.SetColumnWidth(n, wx.LIST_AUTOSIZE_USEHEADER)
-                if self.GetColumnWidth(n) > 100:
-                    self.SetColumnWidth(n, 100)
-
-    def onChangeSelection(self, event):
-        proj = self.projList[event.GetIndex()]
-        self.frame.detailsPanel.setProject(proj['id'])
-
-    def onColumnClick(self, event=None):
-        col = event.Column
-        if col == self._currentSortCol:  # toggle direction
-            self._currentSortRev = not(self._currentSortRev)
-        self._currentSortCol = col
-        projs = sortProjects(self.projList, self.columnNames[col],
-                             reverse=self._currentSortRev)
-        self.setContents(projs)
+    def viewProject(self, evt=None):
+        """
+        View current project in associated viewer
+        """
+        return
 
 
 def sortProjects(seq, name, reverse=False):
     return sorted(seq, key=lambda k: k[name], reverse=reverse)
+
 
 def getUniqueByID(seq):
     """Very fast function to remove duplicates from a list while preserving order
