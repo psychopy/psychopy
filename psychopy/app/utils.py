@@ -22,7 +22,7 @@ import psychopy
 from psychopy import logging
 from . import pavlovia_ui
 from . import icons
-from .themes import ThemeMixin
+from .themes import ThemeMixin, IconCache
 from psychopy.localization import _translate
 from psychopy.tools.stringtools import prettyname
 
@@ -367,6 +367,48 @@ class PsychopyScrollbar(wx.ScrollBar):
             range=1,
             pageSize=vsz
         )
+
+
+class FileCtrl(wx.TextCtrl):
+    def __init__(self, parent):
+        wx.TextCtrl.__init__(self, parent, size=(-1, 24))
+        # Setup sizer
+        self.sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.SetSizer(self.sizer)
+        self.sizer.AddStretchSpacer(1)
+        # Add button
+        self.fileBtn = wx.Button(self, size=(16, 16), style=wx.BORDER_NONE)
+        self.fileBtn.SetBackgroundColour(self.GetBackgroundColour())
+        self.fileBtn.SetBitmap(IconCache().getBitmap(name="folder", size=16))
+        self.sizer.Add(self.fileBtn, border=4, flag=wx.ALL)
+        # Bind browse function
+        self.fileBtn.Bind(wx.EVT_BUTTON, self.browse)
+
+    def browse(self, evt=None):
+        file = Path(self.GetValue())
+        # Open file dlg
+        dlg = wx.DirDialog(self, message=_translate("Specify file..."), defaultPath=str(file))
+        if dlg.ShowModal() != wx.ID_OK:
+            return
+        # Get data from dlg
+        file = Path(dlg.GetPath())
+        # Set data
+        self.SetValue(str(file))
+
+    def Enable(self, enable=True):
+        wx.TextCtrl.Enable(self, enable)
+        self.fileBtn.Enable(enable)
+        self.fileBtn.SetBackgroundColour(self.GetBackgroundColour())
+
+    def Disable(self):
+        self.Enable(False)
+
+    def Show(self, show=True):
+        wx.TextCtrl.Show(self, show)
+        self.fileBtn.Show(show)
+
+    def Hide(self):
+        self.Show(False)
 
 
 def updateDemosMenu(frame, menu, folder, ext):
