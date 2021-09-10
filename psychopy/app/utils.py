@@ -325,6 +325,76 @@ class PsychopyPlateBtn(platebtn.PlateButton, ThemeMixin):
                       htxt=cs['text'])
         return colors
 
+
+class ButtonArray(wx.WrapSizer):
+    def __init__(self, parent, orient=wx.HORIZONTAL, items=[]):
+        # Create sizer
+        wx.WrapSizer.__init__(self, orient=orient)
+        self.parent = parent
+        # Create add button
+        self.addBtn = wx.Button(self.parent, size=(24, 24), label="+", style=wx.BORDER_NONE)
+        self.addBtn.Bind(wx.EVT_BUTTON, self.newItem)
+        self.Add(self.addBtn, border=3, flag=wx.EXPAND | wx.ALL)
+        # Add items
+        self.items = items
+
+    def Bind(self, evt, func):
+        for item in self.items:
+            item.Bind(wx.EVT_BUTTON, func)
+
+    @property
+    def items(self):
+        items = {}
+        for child in self.GetChildren():
+            if not child.Window == self.addBtn:
+                items[child.Window.Label] = child.Window
+        return items
+
+    @items.setter
+    def items(self, value):
+        assert isinstance(value, (list, tuple))
+
+        value.reverse()
+
+        self.clear()
+        for item in value:
+            self.addItem(item)
+
+    def newItem(self, evt=None):
+        _dlg = wx.TextEntryDialog(self.parent, message="Add tag...")
+        if _dlg.ShowModal() != wx.ID_OK:
+            return
+        self.addItem(_dlg.GetValue())
+
+    def addItem(self, item):
+        if not isinstance(item, wx.Window):
+            item = wx.Button(self.parent, label=item, style=wx.BORDER_NONE)
+        self.Insert(0, item, border=3, flag=wx.EXPAND | wx.ALL)
+        self.parent.Layout()
+
+    def removeItem(self, item):
+        items = self.items.copy()
+        # Get key from value if needed
+        if item in list(items.values()):
+            item = list(items.keys())[list(items.values()).index(item)]
+        # Delete object and item in dict
+        if item in items:
+            i = self.Children.index(self.GetItem(items[item]))
+            self.Remove(i)
+            items[item].Hide()
+
+    def clear(self):
+        for item in self.items:
+            self.removeItem(item)
+
+    def Enable(self, enable):
+        for child in self.Children:
+            child.Window.Enable(enable)
+
+    def Disable(self):
+        self.Enable(False)
+
+
 class PsychopyScrollbar(wx.ScrollBar):
     def __init__(self, parent, ori=wx.VERTICAL):
         wx.ScrollBar.__init__(self)
