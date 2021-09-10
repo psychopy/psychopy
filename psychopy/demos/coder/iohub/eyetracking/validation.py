@@ -248,6 +248,4 @@ while t < TRIAL_COUNT:
 # All Trials are done
 # End experiment
 tracker.setConnectionState(False)
-
-io.quit()
 core.quit()
