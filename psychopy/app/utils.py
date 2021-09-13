@@ -495,8 +495,10 @@ class PsychopyScrollbar(wx.ScrollBar):
 
 
 class FileCtrl(wx.TextCtrl):
-    def __init__(self, parent):
+    def __init__(self, parent, dlgtype="file"):
         wx.TextCtrl.__init__(self, parent, size=(-1, 24))
+        # Store type
+        self.dlgtype = dlgtype
         # Setup sizer
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.SetSizer(self.sizer)
@@ -511,8 +513,11 @@ class FileCtrl(wx.TextCtrl):
 
     def browse(self, evt=None):
         file = Path(self.GetValue())
-        # Open file dlg
-        dlg = wx.DirDialog(self, message=_translate("Specify file..."), defaultPath=str(file))
+        # Open file or dir dlg
+        if self.dlgtype == "dir":
+            dlg = wx.DirDialog(self, message=_translate("Specify folder..."), defaultPath=str(file))
+        else:
+            dlg = wx.FileDialog(self, message=_translate("Specify file..."), defaultDir=str(file))
         if dlg.ShowModal() != wx.ID_OK:
             return
         # Get data from dlg

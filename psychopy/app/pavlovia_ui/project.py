@@ -189,7 +189,7 @@ class DetailsPanel(wx.Panel):
                           size=size,
                           style=style)
         self.SetBackgroundColour("white")
-        iconCache = parent.app.iconCache
+        self.iconCache = parent.app.iconCache
         # Setup sizer
         self.contentBox = wx.BoxSizer()
         self.SetSizer(self.contentBox)
@@ -232,7 +232,8 @@ class DetailsPanel(wx.Panel):
         self.btnSizer.Add(self.starBtn, border=6, flag=wx.ALL | wx.EXPAND)
         # Sync button
         self.syncBtn = wx.Button(self, label=_translate("Sync"), style=wx.BORDER_NONE)
-        self.syncBtn.SetBitmap(iconCache.getBitmap(name="view-refresh", size=16))
+        self.syncBtn.SetBitmap(self.iconCache.getBitmap(name="view-refresh", size=16))
+        self.syncBtn.Bind(wx.EVT_BUTTON, self.sync)
         self.btnSizer.Add(self.syncBtn, border=6, flag=wx.ALL | wx.EXPAND)
         self.btnSizer.AddStretchSpacer(1)
         # Sep
@@ -242,7 +243,8 @@ class DetailsPanel(wx.Panel):
         self.sizer.Add(self.rootSizer, flag=wx.EXPAND)
         self.localRootLabel = wx.StaticText(self, label="Local root:")
         self.rootSizer.Add(self.localRootLabel, border=6, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP)
-        self.localRoot = utils.FileCtrl(self)
+        self.localRoot = utils.FileCtrl(self, dlgtype="dir")
+        self.localRoot.Bind(wx.EVT_TEXT, self.setLocalRoot)
         self.rootSizer.Add(self.localRoot, proportion=1, border=6, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM)
         # Sep
         self.sizer.Add(wx.StaticLine(self, -1), border=6, flag=wx.EXPAND | wx.ALL)
@@ -354,6 +356,22 @@ class DetailsPanel(wx.Panel):
             # Tags
             self.tags.items = project['tags']
             self.tags.Enable()
+
+    def sync(self, evt=None):
+        # If not synced locally, choose a folder
+        if not self.localRoot.GetValue():
+            self.localRoot.browse()
+        # If cancelled, return
+        if not self.localRoot.GetValue():
+            return
+        else:
+            self.localRoot.Enable()
+        # Do sync (todo:)
+
+    def setLocalRoot(self, evt=None):
+        # Set local root for this project
+        if self.project:
+            self.project.localRoot = self.localRoot.GetValue()
 
 
 class ProjectFrame(wx.Dialog):
