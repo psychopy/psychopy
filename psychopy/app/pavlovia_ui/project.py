@@ -200,25 +200,25 @@ class DetailsPanel(wx.Panel):
         self.headSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.sizer.Add(self.headSizer, border=0, flag=wx.EXPAND)
         # Icon
-        self.icon = utils.ImageCtrl(self, bitmap=wx.Bitmap("E:\\My Drive\\My Pavlovia Demos\\pizza\\icon.png"), size=(128, 128))
+        self.icon = utils.ImageCtrl(self, bitmap=wx.Bitmap(), size=(128, 128))
         self.icon.SetBackgroundColour("#f2f2f2")
         self.headSizer.Add(self.icon, border=6, flag=wx.ALL)
         # Title sizer
         self.titleSizer = wx.BoxSizer(wx.VERTICAL)
         self.headSizer.Add(self.titleSizer, proportion=1, flag=wx.EXPAND)
         # Title
-        self.title = wx.TextCtrl(self, size=(-1, -1), value="Pizza Calculator")
+        self.title = wx.TextCtrl(self, size=(-1, -1), value="")
         self.title.SetFont(
             wx.Font(24, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
         )
         self.titleSizer.Add(self.title, border=6, flag=wx.ALL | wx.EXPAND)
         # Author
-        self.author = wx.StaticText(self, size=(-1, -1), label="by Demos")
+        self.author = wx.StaticText(self, size=(-1, -1), label="by ---")
         self.titleSizer.Add(self.author, border=6, flag=wx.LEFT | wx.RIGHT)
         # Pavlovia link
         self.link = wxhl.HyperLinkCtrl(self, -1,
-                                       label="https://pavlovia.org/demos/pizza-calculator",
-                                       URL="https://pavlovia.org/demos/pizza-calculator",
+                                       label="https://pavlovia.org/",
+                                       URL="https://pavlovia.org/",
                                        )
         self.link.SetBackgroundColour("white")
         self.titleSizer.Add(self.link, border=6, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM)
@@ -248,7 +248,7 @@ class DetailsPanel(wx.Panel):
         # Sep
         self.sizer.Add(wx.StaticLine(self, -1), border=6, flag=wx.EXPAND | wx.ALL)
         # Description
-        self.description = wx.TextCtrl(self, size=(-1, -1), value="This demo helps you work out whether to get a slice of a big pizza or a whole small pizza... Very important science, obviously. Use the sliders on the right to specify the size (diameter in inches) of the big pizza and how much of it you'd be getting. The slider on the left shows you how much pizza you're actually getting, relative to standard pizza sizes (e.g. Small 10\", Medium 12\", Large 14\", etc.) so that you can choose whichever option gives you the most pizza for your money.", style=wx.TE_MULTILINE)
+        self.description = wx.TextCtrl(self, size=(-1, -1), value="", style=wx.TE_MULTILINE)
         self.sizer.Add(self.description, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
         # Sep
         self.sizer.Add(wx.StaticLine(self, -1), border=6, flag=wx.EXPAND | wx.ALL)
@@ -271,7 +271,7 @@ class DetailsPanel(wx.Panel):
         self.sizer.Add(self.tagSizer, flag=wx.EXPAND)
         self.tagLbl = wx.StaticText(self, label=_translate("Tags:"))
         self.tagSizer.Add(self.tagLbl, border=6, flag=wx.EXPAND | wx.ALL)
-        self.tags = utils.ButtonArray(self, orient=wx.HORIZONTAL, items=["pizza", "utility", "lorem", "ipsum", "dolor", "sit", "amun", "vene", "vidi", "vici", "dulce", "et", "decorum", "est"])
+        self.tags = utils.ButtonArray(self, orient=wx.HORIZONTAL, items=[])
         self.tagSizer.Add(self.tags, proportion=1, border=6, flag=wx.EXPAND | wx.ALL)
         # Populate
         self.project = project
