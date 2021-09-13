@@ -47,7 +47,7 @@ class EyetrackerCalibration:
                  units="height", colorSpace="rgb",
                  progressMode="time", targetDur=1.5, expandScale=1.5,
                  targetLayout="NINE_POINTS", randomisePos=True,
-                 movementAnimation=False, targetDelay=1.0
+                 movementAnimation=False, targetDelay=1.0, textColor='Auto'
                  ):
         # Store params
         self.win = win
@@ -56,6 +56,7 @@ class EyetrackerCalibration:
         self.progressMode = progressMode
         self.targetLayout = targetLayout
         self.randomisePos = randomisePos
+        self.textColor = textColor
         self.units = units or self.win.units
         self.colorSpace = colorSpace or self.win.colorSpace
         # Animation
@@ -79,6 +80,11 @@ class EyetrackerCalibration:
             target.units = self.units
         # Get self as dict
         asDict = {}
+
+        textColor = self.textColor
+        if isinstance(textColor, str) and textColor.lower() == 'auto':
+            textColor = None
+
         if tracker == 'eyetracker.hw.sr_research.eyelink.EyeTracker':
             # As EyeLink
             asDict = {
@@ -86,6 +92,7 @@ class EyetrackerCalibration:
                 'type': self.targetLayout,
                 'auto_pace': self.progressMode == "time",
                 'pacing_speed': self.targetDelay,
+                'text_color': textColor,
                 'screen_background_color': getattr(self.win._color, self.colorSpace)
             }
         elif tracker == 'eyetracker.hw.tobii.EyeTracker':
@@ -139,6 +146,7 @@ class EyetrackerCalibration:
                 'target_duration': self.targetDur,
                 'unit_type': self.units,
                 'color_type': self.colorSpace,
+                'text_color': textColor,
                 'screen_background_color': getattr(self.win._color, self.colorSpace),
             }
         elif tracker == 'eyetracker.hw.gazepoint.gp3.EyeTracker':
@@ -158,6 +166,7 @@ class EyetrackerCalibration:
                 'randomize': self.randomisePos,
                 'unit_type': self.units,
                 'color_type': self.colorSpace,
+                'text_color': textColor,
                 'screen_background_color': getattr(self.win._color, self.colorSpace),
             }
 
@@ -178,6 +187,7 @@ class EyetrackerCalibration:
                 'pacing_speed': self.targetDelay,
                 'unit_type': self.units,
                 'color_type': self.colorSpace,
+                'text_color': textColor,
                 'screen_background_color': getattr(self.win._color, self.colorSpace),
             }
         # Return
