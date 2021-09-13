@@ -210,7 +210,6 @@ class DetailsPanel(wx.Panel):
             print(self.value, not self.value)
             self.value = (not self.value)
 
-
     def __init__(self, parent, project=None,
                  size=(600, 500),
                  style=wx.NO_BORDER):
@@ -328,6 +327,7 @@ class DetailsPanel(wx.Panel):
             self.author.Disable()
             # Link
             self.link.SetLabel("https://pavlovia.org/")
+            self.link.SetURL("https://pavlovia.org/")
             self.link.Disable()
             # Star button
             self.starBtn.Disable()
@@ -363,6 +363,7 @@ class DetailsPanel(wx.Panel):
             self.author.Enable()
             # Link
             self.link.SetLabel(project['remoteHTTPS'])
+            self.link.SetURL(project['remoteHTTPS'])
             self.link.Enable()
             # Star button
             self.starBtn.value = bool(project['starred'])
