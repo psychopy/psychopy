@@ -403,6 +403,7 @@ class DetailsPanel(wx.Panel):
     def star(self, evt=None):
         self.starBtn.toggle()
         # Star/unstar project online (todo:)
+        self.project['starred'] = self.starBtn.value
         # Refresh stars count (todo:)
 
     def setLocalRoot(self, evt=None):
