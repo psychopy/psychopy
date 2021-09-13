@@ -181,6 +181,36 @@ class ProjectEditor(wx.Dialog):
 
 class DetailsPanel(wx.Panel):
 
+    class StarBtn(wx.Button):
+        def __init__(self, parent, iconCache, value=False):
+            wx.Button.__init__(self, parent, label=_translate("Star"), style=wx.BORDER_NONE)
+            # Setup icons
+            self.icons = {
+                True: iconCache.getBitmap(name="starred", size=16),
+                False: iconCache.getBitmap(name="unstarred", size=16),
+            }
+            self.SetBitmapDisabled(self.icons[False])  # Always appear empty when disabled
+            # Set start value
+            self.value = value
+
+        @property
+        def value(self):
+            return self._value
+
+        @value.setter
+        def value(self, value):
+            # Store value
+            self._value = bool(value)
+            # Change icon
+            self.SetBitmap(self.icons[self._value])
+            self.SetBitmapCurrent(self.icons[self._value])
+            self.SetBitmapFocus(self.icons[self._value])
+
+        def toggle(self):
+            print(self.value, not self.value)
+            self.value = (not self.value)
+
+
     def __init__(self, parent, project=None,
                  size=(600, 500),
                  style=wx.NO_BORDER):
@@ -189,7 +219,7 @@ class DetailsPanel(wx.Panel):
                           size=size,
                           style=style)
         self.SetBackgroundColour("white")
-        self.iconCache = parent.app.iconCache
+        iconCache = parent.app.iconCache
         # Setup sizer
         self.contentBox = wx.BoxSizer()
         self.SetSizer(self.contentBox)
@@ -227,12 +257,12 @@ class DetailsPanel(wx.Panel):
         # Star button
         self.starLbl = wx.StaticText(self, label="-")
         self.btnSizer.Add(self.starLbl, border=6, flag=wx.LEFT | wx.TOP | wx.BOTTOM | wx.ALIGN_CENTER_VERTICAL)
-        self.starBtn = wx.Button(self, label=_translate("Star"), style=wx.BORDER_NONE)
-        self.starBtn.SetBitmap(iconCache.getBitmap(name="starred", size=16))
+        self.starBtn = self.StarBtn(self, iconCache=iconCache)
+        self.starBtn.Bind(wx.EVT_BUTTON, self.star)
         self.btnSizer.Add(self.starBtn, border=6, flag=wx.ALL | wx.EXPAND)
         # Sync button
         self.syncBtn = wx.Button(self, label=_translate("Sync"), style=wx.BORDER_NONE)
-        self.syncBtn.SetBitmap(self.iconCache.getBitmap(name="view-refresh", size=16))
+        self.syncBtn.SetBitmap(iconCache.getBitmap(name="view-refresh", size=16))
         self.syncBtn.Bind(wx.EVT_BUTTON, self.sync)
         self.btnSizer.Add(self.syncBtn, border=6, flag=wx.ALL | wx.EXPAND)
         self.btnSizer.AddStretchSpacer(1)
@@ -335,6 +365,7 @@ class DetailsPanel(wx.Panel):
             self.link.SetLabel(project['remoteHTTPS'])
             self.link.Enable()
             # Star button
+            self.starBtn.value = bool(project['starred'])
             self.starBtn.Enable()
             self.starLbl.SetLabel(str(project['stars']))
             self.starLbl.Enable()
@@ -367,6 +398,11 @@ class DetailsPanel(wx.Panel):
         else:
             self.localRoot.Enable()
         # Do sync (todo:)
+
+    def star(self, evt=None):
+        self.starBtn.toggle()
+        # Star/unstar project online (todo:)
+        # Refresh stars count (todo:)
 
     def setLocalRoot(self, evt=None):
         # Set local root for this project

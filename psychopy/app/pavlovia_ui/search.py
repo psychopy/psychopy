@@ -119,6 +119,7 @@ class SearchPanel(wx.Panel):
             pavlovia.PavloviaProject(proj={
                 "remoteHTTPS": "https://pavlovia.org/demos/pizza-calculator",
                 "stars": 1,
+                "starred": True,
                 "group": "Demos",
                 "name": "Pizza Calculator",
                 "desc": "This demo helps you work out whether to get a slice of a big pizza or a whole small pizza... Very important science, obviously. Use the sliders on the right to specify the size (diameter in inches) of the big pizza and how much of it you'd be getting. The slider on the left shows you how much pizza you're actually getting, relative to standard pizza sizes (e.g. Small 10\", Medium 12\", Large 14\", etc.) so that you can choose whichever option gives you the most pizza for your money.",
@@ -132,6 +133,7 @@ class SearchPanel(wx.Panel):
             pavlovia.PavloviaProject(proj={
                 "remoteHTTPS": "https://pavlovia.org/tpronk/pizza-calculator",
                 "stars": 0,
+                "starred": False,
                 "group": "TPronk",
                 "name": "Pizza Calculator",
                 "desc": "This demo helps you work out whether to get a slice of a big pizza or a whole small pizza... Very important science, obviously. Use the sliders on the right to specify the size (diameter in inches) of the big pizza and how much of it you'd be getting. The slider on the left shows you how much pizza you're actually getting, relative to standard pizza sizes (e.g. Small 10\", Medium 12\", Large 14\", etc.) so that you can choose whichever option gives you the most pizza for your money.",
