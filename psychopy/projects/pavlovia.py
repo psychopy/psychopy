@@ -471,6 +471,12 @@ class PavloviaProject(dict):
         self['remoteHTTPS'] = ''
         self._lastKnownSync = 0
 
+        # if given a dict, create a detached project from it (useful for testing)
+        if isinstance(proj, dict) and not isinstance(proj, PavloviaProject):
+            for key in proj:
+                self[key] = proj[key]
+            proj = None
+
         # try to find the remote project through a connection to pavlovia
         if proj:  # we were given a proj or projID for the remote
             currentSession = getCurrentSession()

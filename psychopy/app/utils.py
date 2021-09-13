@@ -387,7 +387,7 @@ class ButtonArray(wx.WrapSizer):
         for item in self.items:
             self.removeItem(item)
 
-    def Enable(self, enable):
+    def Enable(self, enable=True):
         for child in self.Children:
             child.Window.Enable(enable)
 
@@ -422,10 +422,14 @@ class ImageCtrl(wx.StaticBitmap):
         # Get from file if needed
         if not isinstance(bitmap, wx.Bitmap):
             bitmap = wx.Bitmap(bitmap)
+        # Sub in blank bitmaps
+        if not bitmap.IsOk():
+            wx.StaticBitmap.SetBitmap(self, wx.Bitmap())
+            return
         # Store full size bitmap
         self._fullBitmap = bitmap
         # Resize bitmap
-        buffer = wx.ImageFromBitmap(bitmap)
+        buffer = bitmap.ConvertToImage()
         buffer = buffer.Scale(*self.Size, quality=wx.IMAGE_QUALITY_HIGH)
         scaledBitmap = wx.BitmapFromImage(buffer)
         # Set image
@@ -437,6 +441,13 @@ class ImageCtrl(wx.StaticBitmap):
     @property
     def BitmapFull(self):
         return self.GetBitmapFull()
+
+    def Enable(self, enable=True):
+        wx.StaticBitmap.Enable(self, enable)
+        self.editBtn.Enable(enable)
+
+    def Disable(self):
+        self.Enable(False)
 
 
 class PsychopyScrollbar(wx.ScrollBar):

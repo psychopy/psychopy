@@ -272,7 +272,7 @@ class DetailsPanel(wx.Panel):
         self.tags = utils.ButtonArray(self, orient=wx.HORIZONTAL, items=["pizza", "utility", "lorem", "ipsum", "dolor", "sit", "amun", "vene", "vidi", "vici", "dulce", "et", "decorum", "est"])
         self.tagSizer.Add(self.tags, proportion=1, border=6, flag=wx.EXPAND | wx.ALL)
         # Populate
-        #self.project = project
+        self.project = project
 
     @property
     def project(self):
@@ -316,7 +316,39 @@ class DetailsPanel(wx.Panel):
             # Tags
             self.tags.clear()
             self.tags.Disable()
-
+        else:
+            # Icon
+            self.icon.SetBitmap(project['icon'])
+            self.icon.Enable()
+            # Title
+            self.title.SetValue(project['name'])
+            self.title.Enable()
+            # Author
+            self.author.SetLabel("by %(group)s" % project)
+            self.author.Enable()
+            # Link
+            self.link.SetLabel(project['remoteHTTPS'])
+            self.link.Enable()
+            # Star button
+            self.starBtn.Enable()
+            # Sync button
+            self.syncBtn.Enable()
+            # Local root
+            self.localRootLabel.Enable(bool(project.localRoot))
+            self.localRoot.SetValue(project.localRoot)
+            self.localRoot.Enable(bool(project.localRoot))
+            # Description
+            self.description.SetValue(project['desc'])
+            self.description.Enable()
+            # Visibility
+            self.visibility.SetStringSelection(project['visibility'])
+            self.visibility.Enable()
+            # Status
+            self.status.SetStringSelection(project['status'])
+            self.status.Enable()
+            # Tags
+            self.tags.items = project['tags']
+            self.tags.Enable()
 
 
 class ProjectFrame(wx.Dialog):
