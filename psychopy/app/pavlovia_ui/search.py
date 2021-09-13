@@ -90,7 +90,7 @@ class SearchPanel(wx.Panel):
         self.sizer.Add(self.filterCtrls, border=4, flag=wx.EXPAND | wx.ALL)
         # Add project list
         self.projectList = ListCtrl(self, size=(-1, -1), style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
-        self.projectList.Bind(wx.EVT_LIST_ITEM_FOCUSED, self.showProject)
+        self.projectList.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.showProject)
         self.sizer.Add(self.projectList, proportion=1, border=4, flag=wx.EXPAND | wx.ALL)
         # Setup project list
         self.projectList.InsertColumn(0, _starred, width=24, format=wx.LIST_FORMAT_CENTER)  # Stars
@@ -144,7 +144,7 @@ class SearchPanel(wx.Panel):
 
         # Clear list and projects dict
         self.projectList.DeleteAllItems()
-        self.projects = {}
+        self.projects = {-1: None}
         # Populate list and projects dict
         for project in _projects:
             i = self.projectList.Append([
