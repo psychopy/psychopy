@@ -225,6 +225,8 @@ class DetailsPanel(wx.Panel):
         self.btnSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.titleSizer.Add(self.btnSizer, flag=wx.EXPAND)
         # Star button
+        self.starLbl = wx.StaticText(self, label="-")
+        self.btnSizer.Add(self.starLbl, border=6, flag=wx.LEFT | wx.TOP | wx.BOTTOM | wx.ALIGN_CENTER_VERTICAL)
         self.starBtn = wx.Button(self, label=_translate("Star"), style=wx.BORDER_NONE)
         self.starBtn.SetBitmap(iconCache.getBitmap(name="starred", size=16))
         self.btnSizer.Add(self.starBtn, border=6, flag=wx.ALL | wx.EXPAND)
@@ -297,6 +299,8 @@ class DetailsPanel(wx.Panel):
             self.link.Disable()
             # Star button
             self.starBtn.Disable()
+            self.starLbl.SetLabel("-")
+            self.starLbl.Disable()
             # Sync button
             self.syncBtn.Disable()
             # Local root
@@ -330,6 +334,8 @@ class DetailsPanel(wx.Panel):
             self.link.Enable()
             # Star button
             self.starBtn.Enable()
+            self.starLbl.SetLabel(str(project['stars']))
+            self.starLbl.Enable()
             # Sync button
             self.syncBtn.Enable()
             # Local root
