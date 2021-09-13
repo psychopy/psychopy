@@ -236,6 +236,7 @@ class DetailsPanel(wx.Panel):
         self.headSizer.Add(self.titleSizer, proportion=1, flag=wx.EXPAND)
         # Title
         self.title = wx.TextCtrl(self, size=(-1, -1), value="")
+        self.title.Bind(wx.EVT_TEXT, self.updateProject)
         self.title.SetFont(
             wx.Font(24, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
         )
@@ -273,12 +274,13 @@ class DetailsPanel(wx.Panel):
         self.localRootLabel = wx.StaticText(self, label="Local root:")
         self.rootSizer.Add(self.localRootLabel, border=6, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP)
         self.localRoot = utils.FileCtrl(self, dlgtype="dir")
-        self.localRoot.Bind(wx.EVT_TEXT, self.setLocalRoot)
+        self.localRoot.Bind(wx.EVT_TEXT, self.updateProject)
         self.rootSizer.Add(self.localRoot, proportion=1, border=6, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM)
         # Sep
         self.sizer.Add(wx.StaticLine(self, -1), border=6, flag=wx.EXPAND | wx.ALL)
         # Description
         self.description = wx.TextCtrl(self, size=(-1, -1), value="", style=wx.TE_MULTILINE)
+        self.description.Bind(wx.EVT_TEXT, self.updateProject)
         self.sizer.Add(self.description, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
         # Sep
         self.sizer.Add(wx.StaticLine(self, -1), border=6, flag=wx.EXPAND | wx.ALL)
@@ -288,6 +290,7 @@ class DetailsPanel(wx.Panel):
         self.visLbl = wx.StaticText(self, label=_translate("Visibility:"))
         self.visSizer.Add(self.visLbl, border=6, flag=wx.EXPAND | wx.ALL)
         self.visibility = wx.Choice(self, choices=["Private", "Public"])
+        self.visibility.Bind(wx.EVT_TEXT, self.updateProject)
         self.visSizer.Add(self.visibility, proportion=1, border=6, flag=wx.EXPAND | wx.ALL)
         # Status
         self.statusSizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -295,6 +298,7 @@ class DetailsPanel(wx.Panel):
         self.statusLbl = wx.StaticText(self, label=_translate("Status:"))
         self.statusSizer.Add(self.statusLbl, border=6, flag=wx.EXPAND | wx.ALL)
         self.status = wx.Choice(self, choices=["Running", "Piloting", "Inactive"])
+        self.status.Bind(wx.EVT_TEXT, self.updateProject)
         self.statusSizer.Add(self.status, proportion=1, border=6, flag=wx.EXPAND | wx.ALL)
         # Tags
         self.tagSizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -402,15 +406,36 @@ class DetailsPanel(wx.Panel):
         # Do sync (todo:)
 
     def star(self, evt=None):
+        # Toggle button
         self.starBtn.toggle()
-        # Star/unstar project online (todo:)
-        self.project['starred'] = self.starBtn.value
-        # Refresh stars count (todo:)
+        # Star/unstar project
+        self.updateProject(evt)
+        # todo: Refresh stars count
 
-    def setLocalRoot(self, evt=None):
-        # Set local root for this project
-        if self.project:
-            self.project.localRoot = self.localRoot.GetValue()
+    def updateProject(self, evt=None):
+        # Skip if no project
+        if self.project is None or evt is None:
+            return
+        # Get object
+        obj = evt.GetObject()
+
+        # Update project attribute according to supplying object
+        if obj == self.title:
+            self.project['name'] = self.title.Value
+        if obj == self.starBtn:
+            self.project['starred'] = self.starBtn.value
+        if obj == self.localRoot:
+            self.project.localRoot = self.localRoot.Value
+        if obj == self.description:
+            self.project['desc'] = self.description.Value
+        if obj == self.visibility:
+            self.project['visibility'] = self.visibility.GetStringSelection()
+        if obj == self.status:
+            self.project['status'] = self.status.GetStringSelection()
+        if obj == self.tags:
+            self.project['tags'] = self.tags.GetValue()
+
+        # todo: Update project online
 
 
 class ProjectFrame(wx.Dialog):
