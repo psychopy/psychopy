@@ -327,6 +327,29 @@ class PsychopyPlateBtn(platebtn.PlateButton, ThemeMixin):
 
 
 class ButtonArray(wx.WrapSizer):
+
+    class ArrayBtn(wx.Button):
+        def __init__(self, parent, array, label=""):
+            wx.Button.__init__(self, parent, label=label, style=wx.BORDER_NONE)
+            self.array = array
+            # Setup sizer
+            self.sizer = wx.BoxSizer(wx.HORIZONTAL)
+            self.SetSizer(self.sizer)
+            # Create remove btn
+            self.removeBtn = wx.Button()
+            self.removeBtn.SetBackgroundStyle(wx.BG_STYLE_TRANSPARENT)
+            self.removeBtn.Create(self, size=(12, 12), style=wx.BORDER_NONE)
+            self.removeBtn.SetBitmap(IconCache().getBitmap(name="delete", size=8))
+            # Add remove btn to spacer
+            self.sizer.AddStretchSpacer(1)
+            self.sizer.Add(self.removeBtn, border=4, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
+            self.Layout()
+            # Bind remove btn to remove function
+            self.removeBtn.Bind(wx.EVT_BUTTON, self.remove)
+
+        def remove(self, evt=None):
+            self.array.removeItem(self)
+
     def __init__(self, parent, orient=wx.HORIZONTAL, items=[]):
         # Create sizer
         wx.WrapSizer.__init__(self, orient=orient)
@@ -368,7 +391,7 @@ class ButtonArray(wx.WrapSizer):
 
     def addItem(self, item):
         if not isinstance(item, wx.Window):
-            item = wx.Button(self.parent, label=item, style=wx.BORDER_NONE)
+            item = self.ArrayBtn(self.parent, array=self, label=item)
         self.Insert(0, item, border=3, flag=wx.EXPAND | wx.ALL)
         self.parent.Layout()
 
@@ -382,6 +405,7 @@ class ButtonArray(wx.WrapSizer):
             i = self.Children.index(self.GetItem(items[item]))
             self.Remove(i)
             items[item].Hide()
+        self.Layout()
 
     def clear(self):
         for item in self.items:
@@ -393,6 +417,9 @@ class ButtonArray(wx.WrapSizer):
 
     def Disable(self):
         self.Enable(False)
+
+    def GetValue(self):
+        return list(self.items)
 
 
 class ImageCtrl(wx.StaticBitmap):
