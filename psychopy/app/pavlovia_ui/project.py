@@ -396,8 +396,9 @@ class DetailsPanel(wx.Panel):
         # If cancelled, return
         if not self.localRoot.GetValue():
             return
-        else:
-            self.localRoot.Enable()
+        # Enable ctrl now that there is a local root
+        self.localRoot.Enable()
+        self.localRootLabel.Enable()
         # Do sync (todo:)
 
     def star(self, evt=None):
