@@ -231,6 +231,7 @@ class DetailsPanel(wx.Panel):
         # Icon
         self.icon = utils.ImageCtrl(self, bitmap=wx.Bitmap(), size=(128, 128))
         self.icon.SetBackgroundColour("#f2f2f2")
+        self.icon.Bind(wx.EVT_FILEPICKER_CHANGED, self.updateProject)
         self.headSizer.Add(self.icon, border=6, flag=wx.ALL)
         # Title sizer
         self.titleSizer = wx.BoxSizer(wx.VERTICAL)
@@ -275,7 +276,7 @@ class DetailsPanel(wx.Panel):
         self.localRootLabel = wx.StaticText(self, label="Local root:")
         self.rootSizer.Add(self.localRootLabel, border=6, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP)
         self.localRoot = utils.FileCtrl(self, dlgtype="dir")
-        self.localRoot.Bind(wx.EVT_TEXT, self.updateProject)
+        self.localRoot.Bind(wx.EVT_FILEPICKER_CHANGED, self.updateProject)
         self.rootSizer.Add(self.localRoot, proportion=1, border=6, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM)
         # Sep
         self.sizer.Add(wx.StaticLine(self, -1), border=6, flag=wx.EXPAND | wx.ALL)
@@ -291,7 +292,7 @@ class DetailsPanel(wx.Panel):
         self.visLbl = wx.StaticText(self, label=_translate("Visibility:"))
         self.visSizer.Add(self.visLbl, border=6, flag=wx.EXPAND | wx.ALL)
         self.visibility = wx.Choice(self, choices=["Private", "Public"])
-        self.visibility.Bind(wx.EVT_TEXT, self.updateProject)
+        self.visibility.Bind(wx.EVT_CHOICE, self.updateProject)
         self.visSizer.Add(self.visibility, proportion=1, border=6, flag=wx.EXPAND | wx.ALL)
         # Status
         self.statusSizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -299,7 +300,7 @@ class DetailsPanel(wx.Panel):
         self.statusLbl = wx.StaticText(self, label=_translate("Status:"))
         self.statusSizer.Add(self.statusLbl, border=6, flag=wx.EXPAND | wx.ALL)
         self.status = wx.Choice(self, choices=["Running", "Piloting", "Inactive"])
-        self.status.Bind(wx.EVT_TEXT, self.updateProject)
+        self.status.Bind(wx.EVT_CHOICE, self.updateProject)
         self.statusSizer.Add(self.status, proportion=1, border=6, flag=wx.EXPAND | wx.ALL)
         # Tags
         self.tagSizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -425,6 +426,8 @@ class DetailsPanel(wx.Panel):
         # Update project attribute according to supplying object
         if obj == self.title:
             self.project['name'] = self.title.Value
+        if obj == self.icon:
+            self.project['icon'] = self.icon.GetBitmapFull()
         if obj == self.starBtn:
             self.project['starred'] = self.starBtn.value
         if obj == self.localRoot:

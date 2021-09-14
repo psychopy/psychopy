@@ -465,7 +465,12 @@ class ImageCtrl(wx.StaticBitmap):
         if _dlg.ShowModal() != wx.ID_OK:
             return
         # Get value
-        self.SetBitmap(str(Path(_dlg.GetPath())))
+        path = str(Path(_dlg.GetPath()))
+        self.SetBitmap(path)
+        # Post event
+        evt = wx.FileDirPickerEvent(wx.EVT_FILEPICKER_CHANGED.typeId, self, -1, path)
+        evt.SetEventObject(self)
+        wx.PostEvent(self, evt)
 
     def SetBitmap(self, bitmap):
         # Get from file if needed
@@ -573,6 +578,14 @@ class FileCtrl(wx.TextCtrl):
         file = Path(dlg.GetPath())
         # Set data
         self.SetValue(str(file))
+
+    def SetValue(self, value):
+        # Do base value setting
+        wx.TextCtrl.SetValue(self, value)
+        # Post event
+        evt = wx.FileDirPickerEvent(wx.EVT_FILEPICKER_CHANGED.typeId, self, -1, value)
+        evt.SetEventObject(self)
+        wx.PostEvent(self, evt)
 
     def Enable(self, enable=True):
         wx.TextCtrl.Enable(self, enable)
