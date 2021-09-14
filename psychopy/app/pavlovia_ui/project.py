@@ -372,9 +372,9 @@ class DetailsPanel(wx.Panel):
             self.link.SetURL(project['remoteHTTPS'])
             self.link.Enable()
             # Star button
-            self.starBtn.value = bool(project['starred'])
+            self.starBtn.value = True#bool(project['starred'])
             self.starBtn.Enable()
-            self.starLbl.SetLabel(str(project['stars']))
+            self.starLbl.SetLabel(str(project['star_count']))
             self.starLbl.Enable()
             # Sync button
             self.syncBtn.Enable()
@@ -383,16 +383,16 @@ class DetailsPanel(wx.Panel):
             self.localRoot.SetValue(project.localRoot)
             self.localRoot.Enable(bool(project.localRoot))
             # Description
-            self.description.SetValue(project['desc'])
+            self.description.SetValue(project['description'])
             self.description.Enable()
             # Visibility
             self.visibility.SetStringSelection(project['visibility'])
             self.visibility.Enable()
             # Status
-            self.status.SetStringSelection(project['status'])
+            self.status.SetStringSelection("Active")#"#project['status'])
             self.status.Enable()
             # Tags
-            self.tags.items = project['tags']
+            self.tags.items = project['tag_list']
             self.tags.Enable()
 
     def sync(self, evt=None):
