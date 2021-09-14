@@ -444,6 +444,79 @@ class ButtonArray(wx.Window):
         return list(self.items)
 
 
+class SortCtrl(wx.Window):
+    class SortItem(wx.Window):
+        def __init__(self, parent, icon=None, label=""):
+            # Create self
+            wx.Window.__init__(self, parent, style=wx.BORDER_NONE)
+            self.SetBackgroundColour("white")
+            self.parent = parent
+            # Setup sizer
+            self.sizer = wx.BoxSizer(wx.HORIZONTAL)
+            self.SetSizer(self.sizer)
+            # Add label
+            self.label = wx.StaticText(self, label=label)
+            self.sizer.Add(self.label, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
+            # Add ctrls sizer
+            self.ctrlsSizer = wx.BoxSizer(wx.VERTICAL)
+            self.sizer.Add(self.ctrlsSizer, border=6, flag=wx.ALL | wx.EXPAND)
+            # Add up button
+            self.upBtn = wx.Button(self, size=(16, 8), label="▲", style=wx.BORDER_NONE)
+            self.upBtn.SetBackgroundColour(self.GetBackgroundColour())
+            self.upBtn.Bind(wx.EVT_BUTTON, self.moveUp)
+            self.ctrlsSizer.Add(self.upBtn, proportion=1, border=0, flag=wx.ALL | wx.EXPAND)
+            # Add up button
+            self.downBtn = wx.Button(self, size=(16, 8), label="▼", style=wx.BORDER_NONE)
+            self.downBtn.SetBackgroundColour(self.GetBackgroundColour())
+            self.downBtn.Bind(wx.EVT_BUTTON, self.moveDown)
+            self.ctrlsSizer.Add(self.downBtn, proportion=1, border=0, flag=wx.ALL | wx.EXPAND)
+
+        def moveUp(self, evt=None):
+            # Get own index
+            i = self.parent.items.index(self)
+            # Insert popped self before previous position
+            self.parent.items.insert(max(i-1, 0), self.parent.items.pop(i))
+            # Layout
+            self.parent.Layout()
+
+        def moveDown(self, evt=None):
+            # Get own index
+            i = self.parent.items.index(self)
+            # Insert popped self before previous position
+            self.parent.items.insert(min(i+1, len(self.parent.items)), self.parent.items.pop(i))
+            # Layout
+            self.parent.Layout()
+
+    def __init__(self, parent, items=[], orient=wx.VERTICAL):
+        wx.Window.__init__(self, parent)
+        # Setup sizer
+        self.sizer = wx.BoxSizer(orient)
+        self.SetSizer(self.sizer)
+        # Setup items
+        self.items = []
+        for i, label in enumerate(items):
+            self.items.append(self.SortItem(self, label=label))
+            self.sizer.Add(self.items[i], border=6, flag=wx.ALL | wx.EXPAND)
+        # Layout
+        self.Layout()
+
+    def Layout(self):
+        # Get order of items in reverse
+        items = self.items.copy()
+        items.reverse()
+        # Remove each item
+        for item in items:
+            self.sizer.Remove(self.sizer.Children.index(self.sizer.GetItem(item)))
+        # Add items back in oder
+        for i, item in enumerate(items):
+            self.sizer.Prepend(item, border=6, flag=wx.ALL | wx.EXPAND)
+            item.upBtn.Show(i != len(items)-1)
+            item.downBtn.Show(i != 0)
+        # Disable appropriate buttons
+        # Do base layout
+        wx.Window.Layout(self)
+
+
 class ImageCtrl(wx.StaticBitmap):
     def __init__(self, parent, bitmap, size=(128, 128)):
         wx.StaticBitmap.__init__(self, parent, bitmap=wx.Bitmap(), size=size)
