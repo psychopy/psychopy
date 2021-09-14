@@ -307,6 +307,8 @@ class DetailsPanel(wx.Panel):
         self.tagLbl = wx.StaticText(self, label=_translate("Tags:"))
         self.tagSizer.Add(self.tagLbl, border=6, flag=wx.EXPAND | wx.ALL)
         self.tags = utils.ButtonArray(self, orient=wx.HORIZONTAL, items=[])
+        self.tags.Bind(wx.EVT_LIST_INSERT_ITEM, self.updateProject)
+        self.tags.Bind(wx.EVT_LIST_DELETE_ITEM, self.updateProject)
         self.tagSizer.Add(self.tags, proportion=1, border=6, flag=wx.EXPAND | wx.ALL)
         # Populate
         self.project = project
@@ -418,7 +420,7 @@ class DetailsPanel(wx.Panel):
         if self.project is None or evt is None:
             return
         # Get object
-        obj = evt.GetObject()
+        obj = evt.GetEventObject()
 
         # Update project attribute according to supplying object
         if obj == self.title:

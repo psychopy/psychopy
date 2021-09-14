@@ -326,12 +326,12 @@ class PsychopyPlateBtn(platebtn.PlateButton, ThemeMixin):
         return colors
 
 
-class ButtonArray(wx.WrapSizer):
+class ButtonArray(wx.Window):
 
     class ArrayBtn(wx.Button):
-        def __init__(self, parent, array, label=""):
+        def __init__(self, parent, label=""):
             wx.Button.__init__(self, parent, label=label, style=wx.BORDER_NONE)
-            self.array = array
+            self.parent = parent
             # Setup sizer
             self.sizer = wx.BoxSizer(wx.HORIZONTAL)
             self.SetSizer(self.sizer)
@@ -346,29 +346,38 @@ class ButtonArray(wx.WrapSizer):
             self.Layout()
             # Bind remove btn to remove function
             self.removeBtn.Bind(wx.EVT_BUTTON, self.remove)
+            # Bind button to button function
+            self.Bind(wx.EVT_BUTTON, self.onClick)
 
         def remove(self, evt=None):
-            self.array.removeItem(self)
+            self.parent.removeItem(self)
+
+        def onClick(self, evt=None):
+            evt = wx.CommandEvent(wx.EVT_BUTTON.typeId)
+            evt.SetEventObject(self)
+            wx.PostEvent(self.parent, evt)
 
     def __init__(self, parent, orient=wx.HORIZONTAL, items=[]):
-        # Create sizer
-        wx.WrapSizer.__init__(self, orient=orient)
+        # Create self
+        wx.Window.__init__(self, parent)
+        self.SetBackgroundColour(parent.GetBackgroundColour())
         self.parent = parent
+        # Create sizer
+        self.sizer = wx.WrapSizer(orient=orient)
+        self.SetSizer(self.sizer)
         # Create add button
-        self.addBtn = wx.Button(self.parent, size=(24, 24), label="+", style=wx.BORDER_NONE)
+        self.addBtn = wx.Button(self, size=(24, 24), label="+", style=wx.BORDER_NONE)
         self.addBtn.Bind(wx.EVT_BUTTON, self.newItem)
-        self.Add(self.addBtn, border=3, flag=wx.EXPAND | wx.ALL)
+        self.sizer.Add(self.addBtn, border=3, flag=wx.EXPAND | wx.ALL)
         # Add items
         self.items = items
-
-    def Bind(self, evt, func):
-        for item in self.items:
-            item.Bind(wx.EVT_BUTTON, func)
+        # Layout
+        self.Layout()
 
     @property
     def items(self):
         items = {}
-        for child in self.GetChildren():
+        for child in self.sizer.Children:
             if not child.Window == self.addBtn:
                 items[child.Window.Label] = child.Window
         return items
@@ -391,29 +400,42 @@ class ButtonArray(wx.WrapSizer):
 
     def addItem(self, item):
         if not isinstance(item, wx.Window):
-            item = self.ArrayBtn(self.parent, array=self, label=item)
-        self.Insert(0, item, border=3, flag=wx.EXPAND | wx.ALL)
-        self.parent.Layout()
+            item = self.ArrayBtn(self, label=item)
+        self.sizer.Insert(0, item, border=3, flag=wx.EXPAND | wx.ALL)
+        self.Layout()
+        # Raise event
+        evt = wx.ListEvent(wx.EVT_LIST_INSERT_ITEM.typeId)
+        evt.SetEventObject(self)
+        wx.PostEvent(self, evt)
 
     def removeItem(self, item):
         items = self.items.copy()
-        # Get key from value if needed
-        if item in list(items.values()):
-            item = list(items.keys())[list(items.values()).index(item)]
-        # Delete object and item in dict
+        # Get value from key if needed
         if item in items:
-            i = self.Children.index(self.GetItem(items[item]))
-            self.Remove(i)
-            items[item].Hide()
+            item = items[item]
+        # Delete object and item in dict
+        if item in list(items.values()):
+            i = self.sizer.Children.index(self.sizer.GetItem(item))
+            self.sizer.Remove(i)
+            item.Hide()
         self.Layout()
+        # Raise event
+        evt = wx.ListEvent(wx.EVT_LIST_DELETE_ITEM.typeId)
+        evt.SetEventObject(self)
+        wx.PostEvent(self, evt)
 
     def clear(self):
+        # Raise event
+        evt = wx.ListEvent(wx.EVT_LIST_DELETE_ALL_ITEMS.typeId)
+        evt.SetEventObject(self)
+        wx.PostEvent(self, evt)
+        # Delete all items
         for item in self.items:
             self.removeItem(item)
 
     def Enable(self, enable=True):
         for child in self.Children:
-            child.Window.Enable(enable)
+            child.Enable(enable)
 
     def Disable(self):
         self.Enable(False)
