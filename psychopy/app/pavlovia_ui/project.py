@@ -207,7 +207,6 @@ class DetailsPanel(wx.Panel):
             self.SetBitmapFocus(self.icons[self._value])
 
         def toggle(self):
-            print(self.value, not self.value)
             self.value = (not self.value)
 
     def __init__(self, parent, project=None,
