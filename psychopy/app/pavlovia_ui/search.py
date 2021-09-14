@@ -20,6 +20,7 @@ import wx.lib.mixins.listctrl as listmixin
 
 import requests
 
+from .. import utils
 from ..themes._themes import IconCache
 
 _starred = u"\u2605"
@@ -80,14 +81,19 @@ class SearchPanel(wx.Panel):
         self.searchCtrl = wx.SearchCtrl(self)
         self.searchCtrl.Bind(wx.EVT_SEARCH, self.search)
         self.sizer.Add(self.searchCtrl, border=4, flag=wx.EXPAND | wx.ALL)
-        # Add sort / filter buttons
-        self.filterCtrls = wx.BoxSizer(wx.HORIZONTAL)
-        self.filterCtrls.AddStretchSpacer(1)
+        # Add button sizer
+        self.btnSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.sizer.Add(self.btnSizer, border=4, flag=wx.EXPAND | wx.ALL)
+        self.btnSizer.AddStretchSpacer(1)
+        # Add sort button
         self.sortBtn = wx.Button(self, label=_translate("Sort..."), style=wx.BORDER_NONE)
-        self.filterCtrls.Add(self.sortBtn, border=6, flag=wx.LEFT | wx.RIGHT)
+        self.sortOrder = []
+        self.sortBtn.Bind(wx.EVT_BUTTON, self.sort)
+        self.btnSizer.Add(self.sortBtn, border=6, flag=wx.LEFT | wx.RIGHT)
+        # Add filter button
         self.filterBtn = wx.Button(self, label=_translate("Filter..."), style=wx.BORDER_NONE)
-        self.filterCtrls.Add(self.filterBtn, border=6, flag=wx.LEFT | wx.RIGHT)
-        self.sizer.Add(self.filterCtrls, border=4, flag=wx.EXPAND | wx.ALL)
+        self.btnSizer.Add(self.filterBtn, border=6, flag=wx.LEFT | wx.RIGHT)
+
         # Add project list
         self.projectList = ListCtrl(self, size=(-1, -1), style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
         self.projectList.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.showProject)
@@ -136,8 +142,31 @@ class SearchPanel(wx.Panel):
             ])
             self.projects[i] = project
 
+    def sort(self, evt=None):
+        _dlg = SortDlg(self)
+        if _dlg.ShowModal() != wx.OK:
+            return
+        self.sortOrder = _dlg.ctrls.items.copy()
+
     def showProject(self, evt=None):
         self.viewer.project = self.projects[self.projectList.FocusedItem]
+
+
+class SortDlg(wx.Dialog):
+    def __init__(self, parent, size=(200, 400)):
+        wx.Dialog.__init__(self, parent, size=size, title="Sort by...", style=wx.DEFAULT_DIALOG_STYLE | wx.DIALOG_NO_PARENT)
+        # Setup sizer
+        self.contentBox = wx.BoxSizer(wx.VERTICAL)
+        self.SetSizer(self.contentBox)
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.contentBox.Add(self.sizer, proportion=1, border=12, flag=wx.EXPAND | wx.ALL)
+        # Create rearrange control
+        self.ctrls = utils.SortCtrl(self, items=["Stars", "Name", "Last edited"])
+        self.sizer.Add(self.ctrls, border=6, flag=wx.EXPAND | wx.ALL)
+        # Add Okay button
+        self.sizer.AddStretchSpacer(1)
+        self.OK = wx.Button(self, id=wx.ID_OK, label="Okay")
+        self.contentBox.Add(self.OK, border=6, flag=wx.ALL | wx.ALIGN_RIGHT)
 
 
 def sortProjects(seq, name, reverse=False):
