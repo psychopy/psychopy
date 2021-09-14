@@ -19,6 +19,7 @@ from psychopy import logging, prefs, exceptions
 from psychopy.tools.filetools import DictStorage, KnownProjects
 from psychopy import app
 from psychopy.localization import _translate
+import wx
 
 try:
     import git  # must import psychopy constants before this (custom git path)
@@ -471,6 +472,9 @@ class PavloviaProject(dict):
         self['remoteHTTPS'] = ''
         self._lastKnownSync = 0
 
+        # Get icon todo: retrieve actual icon
+        self['icon'] = wx.Bitmap()
+
         # if given a dict, create a detached project from it (useful for testing)
         if isinstance(proj, dict) and not isinstance(proj, PavloviaProject):
             for key in proj:
@@ -512,7 +516,6 @@ class PavloviaProject(dict):
         # todo: we weren't given a url, but maybe we can deduce one?
         # if self.localRoot and not self.pavlovia:
 
-
     def __getattr__(self, name):
         if name == 'owner':
             return
@@ -532,6 +535,12 @@ class PavloviaProject(dict):
             selfDescr = repr(
                     self)  # this includes self.id so don't use if id fails!
         raise AttributeError("No attribute '{}' in {}".format(name, selfDescr))
+
+    def __getitem__(self, key):
+        try:
+            return dict.__getitem__(self, key)
+        except KeyError:
+            return getattr(self, key)
 
     @property
     def pavlovia(self):

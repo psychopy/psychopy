@@ -113,36 +113,15 @@ class SearchPanel(wx.Panel):
         return
 
     def search(self, evt=None):
-        # Get projects
-        _projects = []
-        _projects += [
-            pavlovia.PavloviaProject(proj={
-                "remoteHTTPS": "https://pavlovia.org/demos/pizza-calculator",
-                "stars": 1,
-                "starred": True,
-                "group": "Demos",
-                "name": "Pizza Calculator",
-                "desc": "This demo helps you work out whether to get a slice of a big pizza or a whole small pizza... Very important science, obviously. Use the sliders on the right to specify the size (diameter in inches) of the big pizza and how much of it you'd be getting. The slider on the left shows you how much pizza you're actually getting, relative to standard pizza sizes (e.g. Small 10\", Medium 12\", Large 14\", etc.) so that you can choose whichever option gives you the most pizza for your money.",
-                "icon": wx.Bitmap("E:\\My Drive\\My Pavlovia Demos\\pizza\\icon.png"),
-                "visibility": "Private",
-                "status": "Inactive",
-                "tags": ["pizza", "utility"],
-            }, localRoot="E:\My Drive\My Pavlovia Demos\pizza")
-        ]
-        _projects += [
-            pavlovia.PavloviaProject(proj={
-                "remoteHTTPS": "https://pavlovia.org/tpronk/pizza-calculator",
-                "stars": 0,
-                "starred": False,
-                "group": "TPronk",
-                "name": "Pizza Calculator",
-                "desc": "This demo helps you work out whether to get a slice of a big pizza or a whole small pizza... Very important science, obviously. Use the sliders on the right to specify the size (diameter in inches) of the big pizza and how much of it you'd be getting. The slider on the left shows you how much pizza you're actually getting, relative to standard pizza sizes (e.g. Small 10\", Medium 12\", Large 14\", etc.) so that you can choose whichever option gives you the most pizza for your money.",
-                "icon": wx.Bitmap("E:\\My Drive\\My Pavlovia Demos\\pizza\\icon.png"),
-                "visibility": "Private",
-                "status": "Inactive",
-                "tags": ["pizza", "utility"],
-            }, localRoot=""),
-        ]
+        # Get search term
+        if isinstance(evt, str):
+            term = evt
+        else:
+            term = evt.GetString()
+        # Get session
+        session = pavlovia.getCurrentSession()
+        # Do search
+        _projects = session.findProjects(term)
 
         # Clear list and projects dict
         self.projectList.DeleteAllItems()
@@ -150,10 +129,10 @@ class SearchPanel(wx.Panel):
         # Populate list and projects dict
         for project in _projects:
             i = self.projectList.Append([
-                project['stars'],
+                project['star_count'],
                 project['group'],
                 project['name'],
-                project['desc']
+                project['description']
             ])
             self.projects[i] = project
 
