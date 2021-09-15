@@ -228,6 +228,9 @@ class Keyboard(ioHubKeyboardDevice):
 
         if isinstance(key, bytes):
             key = str(key, 'utf-8')
+        if isinstance(char, bytes):
+            char = str(char, 'utf-8')
+
         key = key.lower()
 
         # misc. char value cleanup.
