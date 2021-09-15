@@ -42,6 +42,22 @@ numpad_key_value_mappings = dict(Numpad0='insert',
                                  Decimal='delete'
                                  )
 
+psychopy_key_mappings = {'`': 'quoteleft',
+                         '[': 'bracketleft',
+                         ']': 'bracketright',
+                         '\\': 'backslash',
+                         '/': 'slash',
+                         ';': 'semicolon',
+                         "'": 'apostrophe',
+                         ',': 'comma',
+                         '.': 'period',
+                         '-': 'minus',
+                         '=': 'equal',
+                         '+': 'num_add',
+                         '*': 'num_multiply',
+                         ' ': 'space'
+                         }
+
 def updateToPsychopyKeymap():
     global numpad_key_value_mappings
     numpad_key_value_mappings = dict(Numpad0='num_0',
@@ -58,6 +74,7 @@ def updateToPsychopyKeymap():
                                      )
 
 class Keyboard(ioHubKeyboardDevice):
+    use_psychopy_keymap = 'psychopy'
     _win32_modifier_mapping = {
         win32_vk.VK_LCONTROL: 'lctrl',
         win32_vk.VK_RCONTROL: 'rctrl',
@@ -80,7 +97,8 @@ class Keyboard(ioHubKeyboardDevice):
         self._keyboard_state = (ctypes.c_ubyte * 256)()
         self._unichar = (ctypes.c_wchar * 8)()
 
-        if self.getConfiguration().get('use_keymap') == 'psychopy':
+        Keyboard.use_psychopy_keymap = self.getConfiguration().get('use_keymap') == 'psychopy'
+        if self.use_psychopy_keymap:
             updateToPsychopyKeymap()
 
         self.resetKeyAndModState()
@@ -208,13 +226,20 @@ class Keyboard(ioHubKeyboardDevice):
         if key is None:
             key = KeyboardConstants._getKeyName(event)
 
+        if isinstance(key, bytes):
+            key = str(key, 'utf-8')
+        key = key.lower()
+
         # misc. char value cleanup.
         if key == 'return':
             char = '\n'.encode('utf-8')
         elif key in ('escape', 'backspace'):
             char = ''
 
-        return key.lower(), char
+        if Keyboard.use_psychopy_keymap and key in psychopy_key_mappings.keys():
+            key = psychopy_key_mappings[key]
+
+        return key, char
 
     def _evt2json(self, event):
         return jdumps(dict(Type=event.Type,

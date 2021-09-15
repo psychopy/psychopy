@@ -251,8 +251,6 @@ class Keyboard:
                     keys.append(thisKey)
         elif Keyboard.backend == 'iohub':
             watchForKeys = keyList
-            if watchForKeys:
-                watchForKeys = [' ' if k == 'space' else k for k in watchForKeys]
             if waitRelease:
                 key_events = Keyboard._iohubKeyboard.getReleases(keys=watchForKeys, clear=clear)
             else:
@@ -260,8 +258,6 @@ class Keyboard:
 
             for k in key_events:
                 kname = k.key
-                if kname == ' ':
-                    kname = 'space'
 
                 if waitRelease:
                     tDown = k.time-k.duration
