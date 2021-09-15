@@ -29,17 +29,17 @@ except Exception:
 
 # Map key value when numlock is ON
 # to value when numlock is OFF.
-numpad_key_value_mappings = dict(Numpad0='insert',
-                                 Numpad1='end',
-                                 Numpad2='down',
-                                 Numpad3='pagedown',
-                                 Numpad4='left',
-                                 Numpad5=' ',
-                                 Numpad6='right',
-                                 Numpad7='home',
-                                 Numpad8='up',
-                                 Numpad9='pageup',
-                                 Decimal='delete'
+numpad_key_value_mappings = dict(Numpad0='num_0',
+                                 Numpad1='num_1',
+                                 Numpad2='num_2',
+                                 Numpad3='num_3',
+                                 Numpad4='num_4',
+                                 Numpad5='num_5',
+                                 Numpad6='num_6',
+                                 Numpad7='num_7',
+                                 Numpad8='num_8',
+                                 Numpad9='num_9',
+                                 Decimal='num_decimal'
                                  )
 
 
