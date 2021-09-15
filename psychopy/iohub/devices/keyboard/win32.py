@@ -10,7 +10,7 @@ except ImportError:
 
 import ctypes
 from unicodedata import category as ucategory
-from . import ioHubKeyboardDevice
+from . import ioHubKeyboardDevice, psychopy_key_mappings
 from ...constants import KeyboardConstants, EventConstants
 from .. import Computer, Device
 from ...errors import print2err, printExceptionDetailsToStdErr
@@ -42,21 +42,6 @@ numpad_key_value_mappings = dict(Numpad0='insert',
                                  Decimal='delete'
                                  )
 
-psychopy_key_mappings = {'`': 'quoteleft',
-                         '[': 'bracketleft',
-                         ']': 'bracketright',
-                         '\\': 'backslash',
-                         '/': 'slash',
-                         ';': 'semicolon',
-                         "'": 'apostrophe',
-                         ',': 'comma',
-                         '.': 'period',
-                         '-': 'minus',
-                         '=': 'equal',
-                         '+': 'num_add',
-                         '*': 'num_multiply',
-                         ' ': 'space'
-                         }
 
 def updateToPsychopyKeymap():
     global numpad_key_value_mappings
@@ -74,7 +59,6 @@ def updateToPsychopyKeymap():
                                      )
 
 class Keyboard(ioHubKeyboardDevice):
-    use_psychopy_keymap = 'psychopy'
     _win32_modifier_mapping = {
         win32_vk.VK_LCONTROL: 'lctrl',
         win32_vk.VK_RCONTROL: 'rctrl',
@@ -97,7 +81,6 @@ class Keyboard(ioHubKeyboardDevice):
         self._keyboard_state = (ctypes.c_ubyte * 256)()
         self._unichar = (ctypes.c_wchar * 8)()
 
-        Keyboard.use_psychopy_keymap = self.getConfiguration().get('use_keymap') == 'psychopy'
         if self.use_psychopy_keymap:
             updateToPsychopyKeymap()
 
