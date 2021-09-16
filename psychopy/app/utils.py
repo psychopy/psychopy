@@ -527,6 +527,13 @@ class SortCtrl(wx.Window):
         # Layout
         self.Layout()
 
+    def GetValue(self):
+        items = []
+        for item in self.items:
+            if item.selected:
+                items.append(item.label.GetLabel())
+        return items
+
     def Layout(self):
         # Get order of items in reverse
         items = self.items.copy()
