@@ -472,9 +472,6 @@ class PavloviaProject(dict):
         self['remoteHTTPS'] = ''
         self._lastKnownSync = 0
 
-        # Get icon todo: retrieve actual icon
-        self['icon'] = wx.Bitmap()
-
         # if given a dict, create a detached project from it (useful for testing)
         if isinstance(proj, dict) and not isinstance(proj, PavloviaProject):
             for key in proj:
