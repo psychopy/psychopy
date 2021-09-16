@@ -108,15 +108,9 @@ class SearchPanel(wx.Panel):
 
         # Link ProjectViewer
         self.viewer = viewer
-        self.projectList.Bind(wx.EVT_LIST_ITEM_SELECTED, self.viewProject)
+        self.projectList.Bind(wx.EVT_LIST_ITEM_SELECTED, self.showProject)
         # Layout
         self.Layout()
-
-    def viewProject(self, evt=None):
-        """
-        View current project in associated viewer
-        """
-        return
 
     def search(self, evt=None):
         # Get search term
@@ -177,6 +171,9 @@ class SearchPanel(wx.Panel):
         self.search()
 
     def showProject(self, evt=None):
+        """
+        View current project in associated viewer
+        """
         self.viewer.project = self.projects[self.projectList.FocusedItem]
 
 
