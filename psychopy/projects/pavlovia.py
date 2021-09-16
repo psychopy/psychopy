@@ -469,6 +469,8 @@ class PavloviaSearch(pandas.DataFrame):
         for item in self.sortOrder:
             if item in self.sortMap:
                 sortKeys.append(self.sortMap[item])
+            elif item in self.columns:
+                sortKeys.append(item)
         # Do actual sorting
         if sortKeys:
             pandas.DataFrame.sort_values(self, sortKeys, inplace=inplace, ignore_index=ignore_index, **kwargs)
