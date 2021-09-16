@@ -450,9 +450,28 @@ class PavloviaSession:
 
 
 class PavloviaSearch(pandas.DataFrame):
+    # Map sort menu items to project columns
+    sortMap = {
+        "Stars": "star_count",
+        "Last edited": "last_activity_at",
+        "Forks": "forks_count",
+        "Date created": "created_at",
+        "Name (A-Z)": "name",
+    }
+
     def __init__(self, session, term, sortBy=(), filterBy=()):
         data = [proj._attrs for proj in session.gitlab.projects.list(search=term, as_list=False)]
         pandas.DataFrame.__init__(self, data=data)
+
+    def sort_values(self, by, inplace=True, ignore_index=True, **kwargs):
+        # Add mapped and selected menu items to sort keys list
+        sortKeys = []
+        for item in self.sortOrder:
+            if item in self.sortMap:
+                sortKeys.append(self.sortMap[item])
+        # Do actual sorting
+        if sortKeys:
+            pandas.DataFrame.sort_values(self, sortKeys, inplace=inplace, ignore_index=ignore_index, **kwargs)
 
 
 class PavloviaProject(dict):
