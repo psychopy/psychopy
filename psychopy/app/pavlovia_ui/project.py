@@ -340,6 +340,8 @@ class DetailsPanel(wx.Panel):
             self.link.Disable()
             # Star button
             self.starBtn.Disable()
+            self.starBtn.value = False
+            # Star label
             self.starLbl.SetLabel("-")
             self.starLbl.Disable()
             # Sync button
@@ -375,23 +377,24 @@ class DetailsPanel(wx.Panel):
             self.title.SetValue(project['name'])
             self.title.Enable()
             # Author
-            self.author.SetLabel("by %(group)s" % project)
+            self.author.SetLabel("by %(owner)s" % project)
             self.author.Enable()
             # Link
-            self.link.SetLabel(project['remoteHTTPS'])
-            self.link.SetURL(project['remoteHTTPS'])
+            self.link.SetLabel(project['web_url'])
+            self.link.SetURL(project['web_url'])
             self.link.Enable()
             # Star button
             self.starBtn.value = True#bool(project['starred'])
             self.starBtn.Enable()
+            # Star label
             self.starLbl.SetLabel(str(project['star_count']))
             self.starLbl.Enable()
             # Sync button
             self.syncBtn.Enable()
             # Local root
-            self.localRootLabel.Enable(bool(project.localRoot))
-            self.localRoot.SetValue(project.localRoot)
-            self.localRoot.Enable(bool(project.localRoot))
+            self.localRootLabel.Enable(bool(project['path']))
+            self.localRoot.SetValue(project['path'])
+            self.localRoot.Enable(bool(project['path']))
             # Description
             self.description.SetValue(project['description'])
             self.description.Enable()
@@ -439,7 +442,7 @@ class DetailsPanel(wx.Panel):
         if obj == self.starBtn:
             self.project['starred'] = self.starBtn.value
         if obj == self.localRoot:
-            self.project.localRoot = self.localRoot.Value
+            self.project['path'] = self.localRoot.Value
         if obj == self.description:
             self.project['desc'] = self.description.Value
         if obj == self.visibility:

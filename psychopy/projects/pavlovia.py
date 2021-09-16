@@ -13,6 +13,8 @@ import os
 import time
 import subprocess
 import traceback
+
+import pandas
 from pkg_resources import parse_version
 
 from psychopy import logging, prefs, exceptions
@@ -445,6 +447,12 @@ class PavloviaSession:
             return self.gitlab.user
         else:
             return None
+
+
+class PavloviaSearch(pandas.DataFrame):
+    def __init__(self, session, term, sortBy=(), filterBy=()):
+        data = [proj._attrs for proj in session.gitlab.projects.list(search=term, as_list=False)]
+        pandas.DataFrame.__init__(self, data=data)
 
 
 class PavloviaProject(dict):
