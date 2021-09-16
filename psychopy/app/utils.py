@@ -446,7 +446,7 @@ class ButtonArray(wx.Window):
 
 class SortCtrl(wx.Window):
     class SortItem(wx.Window):
-        def __init__(self, parent, icon=None, label=""):
+        def __init__(self, parent, label="", showSelect=False, selected=True):
             # Create self
             wx.Window.__init__(self, parent, style=wx.BORDER_NONE)
             self.SetBackgroundColour("white")
@@ -454,6 +454,12 @@ class SortCtrl(wx.Window):
             # Setup sizer
             self.sizer = wx.BoxSizer(wx.HORIZONTAL)
             self.SetSizer(self.sizer)
+            # Add tickbox (if select)
+            self.selectCtrl = wx.CheckBox(self)
+            self.selectCtrl.Bind(wx.EVT_CHECKBOX, self.onSelect)
+            self.selectCtrl.SetValue(selected)
+            self.selectCtrl.Show(showSelect)
+            self.sizer.Add(self.selectCtrl, border=6, flag=wx.ALL | wx.EXPAND)
             # Add label
             self.label = wx.StaticText(self, label=label)
             self.sizer.Add(self.label, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
@@ -470,6 +476,8 @@ class SortCtrl(wx.Window):
             self.downBtn.SetBackgroundColour(self.GetBackgroundColour())
             self.downBtn.Bind(wx.EVT_BUTTON, self.moveDown)
             self.ctrlsSizer.Add(self.downBtn, proportion=1, border=0, flag=wx.ALL | wx.EXPAND)
+            # Do initial select
+            self.onSelect()
 
         def moveUp(self, evt=None):
             # Get own index
@@ -487,15 +495,32 @@ class SortCtrl(wx.Window):
             # Layout
             self.parent.Layout()
 
-    def __init__(self, parent, items=[], orient=wx.VERTICAL):
+        @property
+        def selected(self):
+            return self.selectCtrl.GetValue()
+
+        def onSelect(self, evt=None):
+            self.Enable(self.selected)
+
+        def Enable(self, enable=True):
+            self.label.Enable(enable)
+
+        def Disable(self):
+            self.Enable(False)
+
+    def __init__(self, parent, items=[], showSelect=False, selected=True, orient=wx.VERTICAL):
         wx.Window.__init__(self, parent)
         # Setup sizer
         self.sizer = wx.BoxSizer(orient)
         self.SetSizer(self.sizer)
+        # If given a bool for select, apply it to all items
+        if isinstance(selected, bool):
+            select = [selected] * len(items)
+        assert isinstance(selected, (list, tuple)) and len(selected) == len(items), "Parameter 'select' of SortCtrl must be either a bool value or a list containing a bool value for each item."
         # Setup items
         self.items = []
         for i, label in enumerate(items):
-            self.items.append(self.SortItem(self, label=label))
+            self.items.append(self.SortItem(self, label=label, showSelect=showSelect, selected=selected[i]))
             self.sizer.Add(self.items[i], border=6, flag=wx.ALL | wx.EXPAND)
         # Layout
         self.Layout()
