@@ -130,8 +130,22 @@ class SearchPanel(wx.Panel):
         # Do search
         self.projects = pavlovia.PavloviaSearch(session=session, term=term)
 
-        # todo: Apply sort order
-        print(self.sortOrder)
+        # Map sort menu items to project columns
+        sortMap = {
+            "Stars": "star_count",
+            "Last edited": "last_activity_at",
+            "Forks": "forks_count",
+            "Date created": "created_at",
+            "Name (A-Z)": "name",
+        }
+        # Add mapped and selected menu items to sort keys list
+        sortKeys = []
+        for item in self.sortOrder:
+            if item in sortMap:
+                sortKeys.append(sortMap[item])
+        # Sort projects
+        if sortKeys:
+            self.projects.sort_values(sortKeys, inplace=True, ignore_index=False)
 
         # Clear list and projects dict
         self.projectList.DeleteAllItems()
