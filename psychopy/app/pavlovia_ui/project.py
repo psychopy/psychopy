@@ -4,10 +4,12 @@
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
+import io
 import sys
 import time
 import os
 import traceback
+from urllib import request
 
 from .functions import (setLocalPath, showCommitDialog, logInPavlovia,
                         noGitWarning)
@@ -359,7 +361,14 @@ class DetailsPanel(wx.Panel):
             self.tags.Disable()
         else:
             # Icon
-            self.icon.SetBitmap(project['icon'])
+            if hasattr(project, 'avatarUrl'):
+                content = request.urlopen(project['avatarUrl']).read()
+                icon = wx.Image(
+                    io.BytesIO(content)
+                ).ConvertToBitmap()
+            else:
+                icon = wx.Bitmap()
+            self.icon.SetBitmap(icon)
             self.icon.Enable()
             # Title
             self.title.SetValue(project['name'])
