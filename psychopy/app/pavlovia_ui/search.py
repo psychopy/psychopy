@@ -153,15 +153,18 @@ class SearchPanel(wx.Panel):
 
 
 class SortDlg(wx.Dialog):
-    def __init__(self, parent, size=(200, 400)):
+    def __init__(self, parent, size=(200, 300)):
         wx.Dialog.__init__(self, parent, size=size, title="Sort by...", style=wx.DEFAULT_DIALOG_STYLE | wx.DIALOG_NO_PARENT)
         # Setup sizer
         self.contentBox = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.contentBox)
         self.sizer = wx.BoxSizer(wx.VERTICAL)
-        self.contentBox.Add(self.sizer, proportion=1, border=12, flag=wx.EXPAND | wx.ALL)
+        self.contentBox.Add(self.sizer, proportion=1, border=0, flag=wx.EXPAND | wx.ALL)
         # Create rearrange control
-        self.ctrls = utils.SortCtrl(self, items=["Stars", "Name", "Last edited"])
+        self.ctrls = utils.SortCtrl(self,
+                                    items=["Stars", "Last edited", "Forks", "Date created", "Name (A-Z)"],
+                                    showSelect=True,
+                                    selected=[True, True, False, False, False])
         self.sizer.Add(self.ctrls, border=6, flag=wx.EXPAND | wx.ALL)
         # Add Okay button
         self.sizer.AddStretchSpacer(1)
