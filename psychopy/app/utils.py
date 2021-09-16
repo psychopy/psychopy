@@ -470,12 +470,14 @@ class SortCtrl(wx.Window):
             self.upBtn = wx.Button(self, size=(16, 8), label="▲", style=wx.BORDER_NONE)
             self.upBtn.SetBackgroundColour(self.GetBackgroundColour())
             self.upBtn.Bind(wx.EVT_BUTTON, self.moveUp)
-            self.ctrlsSizer.Add(self.upBtn, proportion=1, border=0, flag=wx.ALL | wx.EXPAND)
+            self.ctrlsSizer.Add(self.upBtn, border=0, flag=wx.ALL | wx.EXPAND)
+            # Add stretch spacer inbetween
+            self.ctrlsSizer.AddStretchSpacer(1)
             # Add up button
             self.downBtn = wx.Button(self, size=(16, 8), label="▼", style=wx.BORDER_NONE)
             self.downBtn.SetBackgroundColour(self.GetBackgroundColour())
             self.downBtn.Bind(wx.EVT_BUTTON, self.moveDown)
-            self.ctrlsSizer.Add(self.downBtn, proportion=1, border=0, flag=wx.ALL | wx.EXPAND)
+            self.ctrlsSizer.Add(self.downBtn, border=0, flag=wx.ALL | wx.EXPAND)
             # Do initial select
             self.onSelect()
 
