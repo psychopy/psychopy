@@ -104,7 +104,7 @@ class SearchPanel(wx.Panel):
         self.projectList.InsertColumn(2, _translate('Name'), width=wx.LIST_AUTOSIZE, format=wx.LIST_FORMAT_LEFT)  # Name
         self.projectList.InsertColumn(3, _translate('Description'), width=wx.LIST_AUTOSIZE, format=wx.LIST_FORMAT_LEFT | wx.EXPAND)  # Description
         # Setup projects dict
-        self.projects = {}
+        self.projects = None
 
         # Link ProjectViewer
         self.viewer = viewer
@@ -123,28 +123,26 @@ class SearchPanel(wx.Panel):
         # Abandom blank search
         if term == "":
             self.projectList.DeleteAllItems()
-            self.projects = {-1: None}
+            self.projects = None
             return
         # Get session
         session = pavlovia.getCurrentSession()
         # Do search
-        _projects = session.findProjects(term)
+        self.projects = pavlovia.PavloviaSearch(session=session, term=term)
 
         # todo: Apply sort order
         print(self.sortOrder)
 
         # Clear list and projects dict
         self.projectList.DeleteAllItems()
-        self.projects = {-1: None}
         # Populate list and projects dict
-        for project in _projects:
+        for i, _ in self.projects.iterrows():
             i = self.projectList.Append([
-                project['star_count'],
-                project['group'],
-                project['name'],
-                project['description']
+                self.projects['star_count'][i],
+                self.projects['owner'][i],
+                self.projects['name'][i],
+                self.projects['description'][i],
             ])
-            self.projects[i] = project
 
     def sort(self, evt=None):
         # Get list of items
@@ -174,7 +172,8 @@ class SearchPanel(wx.Panel):
         """
         View current project in associated viewer
         """
-        self.viewer.project = self.projects[self.projectList.FocusedItem]
+        if self.projects is not None:
+            self.viewer.project = dict(self.projects.iloc[self.projectList.GetFocusedItem()])
 
 
 class SortDlg(wx.Dialog):
