@@ -12,6 +12,7 @@ import traceback
 from urllib import request
 from pathlib import Path
 
+import requests
 from .functions import (setLocalPath, showCommitDialog, logInPavlovia,
                         noGitWarning)
 from psychopy.localization import _translate
@@ -32,6 +33,7 @@ except ImportError:
 
 _starred = u"\u2605"
 _unstarred = u"\u2606"
+
 
 class ProjectEditor(wx.Dialog):
     def __init__(self, parent=None, id=wx.ID_ANY, project=None, localRoot="",
@@ -364,11 +366,12 @@ class DetailsPanel(wx.Panel):
             self.tags.Disable()
         else:
             # Icon
-            if hasattr(project, 'avatarUrl'):
-                content = request.urlopen(project['avatarUrl']).read()
-                icon = wx.Image(
-                    io.BytesIO(content)
-                ).ConvertToBitmap()
+            if 'avatarUrl' in project:
+                try:
+                    content = requests.get(project['avatarUrl']).content
+                    icon = wx.Image(io.BytesIO(content)).ConvertToBitmap()
+                except requests.exceptions.MissingSchema:
+                    icon = wx.Bitmap()
             else:
                 icon = wx.Bitmap()
             self.icon.SetBitmap(icon)
@@ -377,24 +380,24 @@ class DetailsPanel(wx.Panel):
             self.title.SetValue(project['name'])
             self.title.Enable()
             # Author
-            self.author.SetLabel("by %(owner)s" % project)
+            self.author.SetLabel("by " + project['pathWithNamespace'].split('/')[0])
             self.author.Enable()
             # Link
-            self.link.SetLabel(project['web_url'])
-            self.link.SetURL(project['web_url'])
+            self.link.SetLabel(project['pathWithNamespace'])
+            self.link.SetURL("https://pavlovia.org/" + project['pathWithNamespace'])
             self.link.Enable()
             # Star button
             self.starBtn.value = True#bool(project['starred'])
             self.starBtn.Enable()
             # Star label
-            self.starLbl.SetLabel(str(project['star_count']))
+            self.starLbl.SetLabel(str(project['nbStars']))
             self.starLbl.Enable()
             # Sync button
             self.syncBtn.Enable()
             # Local root
-            self.localRootLabel.Enable(bool(project['path']))
-            self.localRoot.SetValue(project['path'])
-            self.localRoot.Enable(bool(project['path']))
+            self.localRootLabel.Enable(False)#bool(project['path']))
+            self.localRoot.SetValue("")#project['path'])
+            self.localRoot.Enable(False)#bool(project['path']))
             # Description
             self.description.SetValue(project['description'])
             self.description.Enable()
@@ -402,10 +405,10 @@ class DetailsPanel(wx.Panel):
             self.visibility.SetStringSelection(project['visibility'])
             self.visibility.Enable()
             # Status
-            self.status.SetStringSelection("Active")#"#project['status'])
+            self.status.SetStringSelection(project['status'])
             self.status.Enable()
             # Tags
-            self.tags.items = project['tag_list']
+            self.tags.items = []#project['tag_list']
             self.tags.Enable()
 
     def sync(self, evt=None):

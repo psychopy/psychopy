@@ -133,13 +133,17 @@ class SearchPanel(wx.Panel):
         # Sort values
         self.projects.sort_values(self.sortOrder)
 
+        # Refresh
+        self.refreshCtrl()
+
+    def refreshCtrl(self):
         # Clear list and projects dict
         self.projectList.DeleteAllItems()
         # Populate list and projects dict
         for i, _ in self.projects.iterrows():
             i = self.projectList.Append([
-                self.projects['star_count'][i],
-                self.projects['owner'][i],
+                self.projects['nbStars'][i],
+                self.projects['pathWithNamespace'][i].split('/')[0],
                 self.projects['name'][i],
                 self.projects['description'][i],
             ])
@@ -165,8 +169,10 @@ class SearchPanel(wx.Panel):
             return
         # Update sort order
         self.sortOrder = _dlg.ctrls.GetValue()
-        # Search again with new sorting
-        self.search()
+        # Sort
+        self.projects.sort_values(self.sortOrder)
+        # Refresh
+        self.refreshCtrl()
 
     def showProject(self, evt=None):
         """

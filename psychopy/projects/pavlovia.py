@@ -8,6 +8,7 @@
 """Helper functions in PsychoPy for interacting with Pavlovia.org
 """
 import glob
+import json
 import pathlib
 import os
 import time
@@ -452,16 +453,16 @@ class PavloviaSession:
 class PavloviaSearch(pandas.DataFrame):
     # Map sort menu items to project columns
     sortMap = {
-        "Stars": "star_count",
-        "Last edited": "last_activity_at",
-        "Forks": "forks_count",
-        "Date created": "created_at",
+        "Stars": "nbStars",
+        "Last edited": "updateDate",
+        "Forks": "nbForks",
+        "Date created": "creationDate",
         "Name (A-Z)": "name",
     }
 
     def __init__(self, session, term, sortBy=(), filterBy=()):
-        data = [proj._attrs for proj in session.gitlab.projects.list(search=term, as_list=False)]
-        pandas.DataFrame.__init__(self, data=data)
+        data = requests.get(f"https://pavlovia.org/api/v2/experiments?search={term}").json()
+        pandas.DataFrame.__init__(self, data=data['experiments'])
 
     def sort_values(self, by, inplace=True, ignore_index=True, **kwargs):
         if isinstance(by, (str, int)):
