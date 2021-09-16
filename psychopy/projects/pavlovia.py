@@ -464,9 +464,11 @@ class PavloviaSearch(pandas.DataFrame):
         pandas.DataFrame.__init__(self, data=data)
 
     def sort_values(self, by, inplace=True, ignore_index=True, **kwargs):
+        if isinstance(by, (str, int)):
+            by = [str(by)]
         # Add mapped and selected menu items to sort keys list
         sortKeys = []
-        for item in self.sortOrder:
+        for item in by:
             if item in self.sortMap:
                 sortKeys.append(self.sortMap[item])
             elif item in self.columns:
