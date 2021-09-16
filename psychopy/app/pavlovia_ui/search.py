@@ -87,7 +87,7 @@ class SearchPanel(wx.Panel):
         self.btnSizer.AddStretchSpacer(1)
         # Add sort button
         self.sortBtn = wx.Button(self, label=_translate("Sort..."), style=wx.BORDER_NONE)
-        self.sortOrder = []
+        self.sortOrder = ["Stars", "Last edited"]
         self.sortBtn.Bind(wx.EVT_BUTTON, self.sort)
         self.btnSizer.Add(self.sortBtn, border=6, flag=wx.LEFT | wx.RIGHT)
         # Add filter button
@@ -120,14 +120,24 @@ class SearchPanel(wx.Panel):
 
     def search(self, evt=None):
         # Get search term
-        if isinstance(evt, str):
+        if evt is None:
+            term = self.searchCtrl.GetValue()
+        elif isinstance(evt, str):
             term = evt
         else:
             term = evt.GetString()
+        # Abandom blank search
+        if term == "":
+            self.projectList.DeleteAllItems()
+            self.projects = {-1: None}
+            return
         # Get session
         session = pavlovia.getCurrentSession()
         # Do search
         _projects = session.findProjects(term)
+
+        # todo: Apply sort order
+        print(self.sortOrder)
 
         # Clear list and projects dict
         self.projectList.DeleteAllItems()
@@ -143,17 +153,38 @@ class SearchPanel(wx.Panel):
             self.projects[i] = project
 
     def sort(self, evt=None):
-        _dlg = SortDlg(self)
-        if _dlg.ShowModal() != wx.OK:
+        # Get list of items
+        allItems = ["Stars", "Last edited", "Forks", "Date created", "Name (A-Z)"]
+        items = []
+        selected = [False] * len(allItems)
+        # Set order from .sortOrder
+        for item in self.sortOrder:
+            items.append(item)
+        for item in allItems:
+            if item not in items:
+                items.append(item)
+        # Set selected from .sortOrder
+        for i, item in enumerate(items):
+            if item in self.sortOrder:
+                selected[i] = True
+        # Create dlg
+        _dlg = SortDlg(self, items=items, selected=selected)
+        if _dlg.ShowModal() != wx.ID_OK:
             return
-        self.sortOrder = _dlg.ctrls.items.copy()
+        # Update sort order
+        self.sortOrder = _dlg.ctrls.GetValue()
+        # Search again with new sorting
+        self.search()
 
     def showProject(self, evt=None):
         self.viewer.project = self.projects[self.projectList.FocusedItem]
 
 
 class SortDlg(wx.Dialog):
-    def __init__(self, parent, size=(200, 300)):
+    def __init__(self, parent, size=(200, 300),
+                 items=("Stars", "Last edited", "Forks", "Date created", "Name (A-Z)"),
+                 selected=(True, True, False, False, False)
+                 ):
         wx.Dialog.__init__(self, parent, size=size, title="Sort by...", style=wx.DEFAULT_DIALOG_STYLE | wx.DIALOG_NO_PARENT)
         # Setup sizer
         self.contentBox = wx.BoxSizer(wx.VERTICAL)
@@ -162,14 +193,19 @@ class SortDlg(wx.Dialog):
         self.contentBox.Add(self.sizer, proportion=1, border=0, flag=wx.EXPAND | wx.ALL)
         # Create rearrange control
         self.ctrls = utils.SortCtrl(self,
-                                    items=["Stars", "Last edited", "Forks", "Date created", "Name (A-Z)"],
+                                    items=items,
                                     showSelect=True,
-                                    selected=[True, True, False, False, False])
+                                    selected=selected)
         self.sizer.Add(self.ctrls, border=6, flag=wx.EXPAND | wx.ALL)
         # Add Okay button
         self.sizer.AddStretchSpacer(1)
-        self.OK = wx.Button(self, id=wx.ID_OK, label="Okay")
-        self.contentBox.Add(self.OK, border=6, flag=wx.ALL | wx.ALIGN_RIGHT)
+        self.OkayBtn = wx.Button(self, id=wx.ID_OK, label="Okay")
+        self.contentBox.Add(self.OkayBtn, border=6, flag=wx.ALL | wx.ALIGN_RIGHT)
+        # Bind cancel
+        self.Bind(wx.EVT_CLOSE, self.onCancel)
+
+    def onCancel(self, evt=None):
+        self.EndModal(wx.ID_CANCEL)
 
 
 def sortProjects(seq, name, reverse=False):
