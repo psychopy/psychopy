@@ -25,7 +25,7 @@ from ..themes._themes import IconCache
 
 _starred = u"\u2605"
 _unstarred = u"\u2606"
-forkChar = u"\u2442"
+_fork = u"\u2442"
 
 
 class ListCtrl(wx.ListCtrl, listmixin.ListCtrlAutoWidthMixin):
@@ -100,9 +100,10 @@ class SearchPanel(wx.Panel):
         self.sizer.Add(self.projectList, proportion=1, border=4, flag=wx.EXPAND | wx.ALL)
         # Setup project list
         self.projectList.InsertColumn(0, _starred, width=24, format=wx.LIST_FORMAT_CENTER)  # Stars
-        self.projectList.InsertColumn(1, _translate('Author'), width=wx.LIST_AUTOSIZE, format=wx.LIST_FORMAT_LEFT)  # Author
-        self.projectList.InsertColumn(2, _translate('Name'), width=wx.LIST_AUTOSIZE, format=wx.LIST_FORMAT_LEFT)  # Name
-        self.projectList.InsertColumn(3, _translate('Description'), width=wx.LIST_AUTOSIZE, format=wx.LIST_FORMAT_LEFT | wx.EXPAND)  # Description
+        self.projectList.InsertColumn(1, _fork, width=24, format=wx.LIST_FORMAT_CENTER)  # Forks
+        self.projectList.InsertColumn(2, _translate('Author'), width=wx.LIST_AUTOSIZE, format=wx.LIST_FORMAT_LEFT)  # Author
+        self.projectList.InsertColumn(3, _translate('Name'), width=wx.LIST_AUTOSIZE, format=wx.LIST_FORMAT_LEFT)  # Name
+        self.projectList.InsertColumn(4, _translate('Description'), width=wx.LIST_AUTOSIZE, format=wx.LIST_FORMAT_LEFT | wx.EXPAND)  # Description
         # Setup projects dict
         self.projects = None
 
@@ -147,6 +148,7 @@ class SearchPanel(wx.Panel):
         for i, _ in self.projects.iterrows():
             i = self.projectList.Append([
                 self.projects['nbStars'][i],
+                self.projects['nbForks'][i],
                 self.projects['pathWithNamespace'][i].split('/')[0],
                 self.projects['name'][i],
                 self.projects['description'][i],
