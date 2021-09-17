@@ -265,6 +265,13 @@ class DetailsPanel(wx.Panel):
         self.starBtn = self.StarBtn(self, iconCache=iconCache)
         self.starBtn.Bind(wx.EVT_BUTTON, self.star)
         self.btnSizer.Add(self.starBtn, border=6, flag=wx.ALL | wx.EXPAND)
+        # Fork button
+        self.forkLbl = wx.StaticText(self, label="-")
+        self.btnSizer.Add(self.forkLbl, border=6, flag=wx.LEFT | wx.TOP | wx.BOTTOM | wx.ALIGN_CENTER_VERTICAL)
+        self.forkBtn = wx.Button(self, label=_translate("Fork"), style=wx.BORDER_NONE)
+        self.forkBtn.SetBitmap(iconCache.getBitmap(name="fork", size=16))
+        self.forkBtn.Bind(wx.EVT_BUTTON, self.fork)
+        self.btnSizer.Add(self.forkBtn, border=6, flag=wx.ALL | wx.EXPAND)
         # Sync button
         self.syncBtn = wx.Button(self, label=_translate("Sync"), style=wx.BORDER_NONE)
         self.syncBtn.SetBitmap(iconCache.getBitmap(name="view-refresh", size=16))
@@ -346,6 +353,11 @@ class DetailsPanel(wx.Panel):
             # Star label
             self.starLbl.SetLabel("-")
             self.starLbl.Disable()
+            # Fork button
+            self.forkBtn.Disable()
+            # Fork label
+            self.forkLbl.SetLabel("-")
+            self.forkLbl.Disable()
             # Sync button
             self.syncBtn.Disable()
             # Local root
@@ -392,6 +404,11 @@ class DetailsPanel(wx.Panel):
             # Star label
             self.starLbl.SetLabel(str(project['nbStars']))
             self.starLbl.Enable()
+            # Fork button
+            self.forkBtn.Enable(not project.editable)
+            # Fork label
+            self.forkLbl.SetLabel(str(project['nbForks']))
+            self.forkLbl.Enable()
             # Sync button
             self.syncBtn.Enable(project.editable)
             # Local root
@@ -411,6 +428,9 @@ class DetailsPanel(wx.Panel):
             self.tags.items = []#project['tag_list']
             self.tags.Enable(project.editable)
 
+        # Layout
+        self.Layout()
+
     def sync(self, evt=None):
         # If not synced locally, choose a folder
         if not self.localRoot.GetValue():
@@ -422,6 +442,17 @@ class DetailsPanel(wx.Panel):
         self.localRoot.Enable()
         self.localRootLabel.Enable()
         # Do sync (todo:)
+        pass
+
+    def fork(self, evt=None):
+        # Do fork (todo:)
+        pass
+        # Get new project (todo:)
+        pass
+        # Sync
+        dlg = wx.MessageDialog(self, "Fork created! Sync it to a local folder?", style=wx.YES_NO)
+        if dlg.ShowModal() == wx.ID_YES:
+            self.sync()
 
     def star(self, evt=None):
         # Toggle button
@@ -445,7 +476,7 @@ class DetailsPanel(wx.Panel):
         if obj == self.starBtn:
             self.project['starred'] = self.starBtn.value
         if obj == self.localRoot:
-            self.project['path'] = self.localRoot.Value
+            self.project.localRoot = self.localRoot.Value
         if obj == self.description:
             self.project['desc'] = self.description.Value
         if obj == self.visibility:
