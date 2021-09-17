@@ -461,7 +461,11 @@ class PavloviaSearch(pandas.DataFrame):
     }
 
     def __init__(self, session, term, sortBy=(), filterBy=()):
-        data = requests.get(f"https://pavlovia.org/api/v2/experiments?search={term}").json()
+        try:
+            data = requests.get(f"https://pavlovia.org/api/v2/experiments?search={term}", timeout=2).json()
+        except requests.exceptions.ReadTimeout:
+            msg = "Could not connect to Pavlovia server. Please check that you are conencted to the internet. If you are connected, then the Pavlovia servers may be down. You can check their status here: https://pavlovia.org/status"
+            raise ConnectionError(msg)
         pandas.DataFrame.__init__(self, data=data['experiments'])
 
     def sort_values(self, by, inplace=True, ignore_index=True, **kwargs):
