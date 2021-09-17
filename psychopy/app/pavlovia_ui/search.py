@@ -46,7 +46,7 @@ class SearchFrame(wx.Dialog):
                            style=style,
                            size=(1080, 720), pos=pos)
         self.app = app
-        self.SetMinSize((800, 500))
+        self.SetMinSize((980, 520))
         # Setup sizer
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.SetSizer(self.sizer)
