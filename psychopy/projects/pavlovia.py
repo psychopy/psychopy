@@ -460,13 +460,37 @@ class PavloviaSearch(pandas.DataFrame):
         "Name (A-Z)": "name",
     }
 
-    def __init__(self, session, term, sortBy=(), filterBy=()):
+    class FilterTerm(dict):
+        def __str__(self):
+            # Start off with blank str
+            terms = ""
+            # Iterate through values
+            for key, value in self.items():
+                # Ensure value is iterable
+                if not isinstance(value, (list, tuple)):
+                    value = [value]
+                # Ensure each sub-value is a string
+                for i in range(len(value)):
+                    value[i] = str(value[i])
+                # Add this term
+                terms += f"&{key}={','.join(value)}"
+            return terms
+
+    def __init__(self, term, sortBy=None, filterBy=None):
+        # Replace default filter
+        if filterBy is None:
+            filterBy = {}
+        # Ensure filter is a FilterTerm
+        filterBy = self.FilterTerm(filterBy)
         try:
-            data = requests.get(f"https://pavlovia.org/api/v2/experiments?search={term}", timeout=2).json()
+            data = requests.get(f"https://pavlovia.org/api/v2/experiments?search={term}{filterBy}", timeout=2).json()
         except requests.exceptions.ReadTimeout:
             msg = "Could not connect to Pavlovia server. Please check that you are conencted to the internet. If you are connected, then the Pavlovia servers may be down. You can check their status here: https://pavlovia.org/status"
             raise ConnectionError(msg)
         pandas.DataFrame.__init__(self, data=data['experiments'])
+        # Do any requested sorting
+        if sortBy is not None:
+            self.sort_values(sortBy)
 
     def sort_values(self, by, inplace=True, ignore_index=True, **kwargs):
         if isinstance(by, (str, int)):
