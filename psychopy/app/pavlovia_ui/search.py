@@ -131,7 +131,8 @@ class SearchPanel(wx.Panel):
         self.projects = pavlovia.PavloviaSearch(session=session, term=term)
 
         # Sort values
-        self.projects.sort_values(self.sortOrder)
+        if len(self.projects):
+            self.projects.sort_values(self.sortOrder)
 
         # Refresh
         self.refreshCtrl()
@@ -139,6 +140,9 @@ class SearchPanel(wx.Panel):
     def refreshCtrl(self):
         # Clear list and projects dict
         self.projectList.DeleteAllItems()
+        # Skip if empty search
+        if len(self.projects) == 0:
+            return
         # Populate list and projects dict
         for i, _ in self.projects.iterrows():
             i = self.projectList.Append([
@@ -179,7 +183,7 @@ class SearchPanel(wx.Panel):
         View current project in associated viewer
         """
         if self.projects is not None:
-            self.viewer.project = dict(self.projects.iloc[self.projectList.GetFocusedItem()])
+            self.viewer.project = pavlovia.PavloviaProject(self.projects.iloc[self.projectList.GetFocusedItem()])
 
 
 class SortDlg(wx.Dialog):

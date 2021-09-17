@@ -375,10 +375,10 @@ class DetailsPanel(wx.Panel):
             else:
                 icon = wx.Bitmap()
             self.icon.SetBitmap(icon)
-            self.icon.Enable()
+            self.icon.Enable(project.editable)
             # Title
             self.title.SetValue(project['name'])
-            self.title.Enable()
+            self.title.Enable(project.editable)
             # Author
             self.author.SetLabel("by " + project['pathWithNamespace'].split('/')[0])
             self.author.Enable()
@@ -393,23 +393,23 @@ class DetailsPanel(wx.Panel):
             self.starLbl.SetLabel(str(project['nbStars']))
             self.starLbl.Enable()
             # Sync button
-            self.syncBtn.Enable()
+            self.syncBtn.Enable(project.editable)
             # Local root
             self.localRootLabel.Enable(False)#bool(project['path']))
             self.localRoot.SetValue("")#project['path'])
-            self.localRoot.Enable(False)#bool(project['path']))
+            self.localRoot.Enable(False)#bool(project['path']) and project.editable)
             # Description
             self.description.SetValue(project['description'])
-            self.description.Enable()
+            self.description.Enable(project.editable)
             # Visibility
             self.visibility.SetStringSelection(project['visibility'])
-            self.visibility.Enable()
+            self.visibility.Enable(project.editable)
             # Status
             self.status.SetStringSelection(project['status'])
-            self.status.Enable()
+            self.status.Enable(project.editable)
             # Tags
             self.tags.items = []#project['tag_list']
-            self.tags.Enable()
+            self.tags.Enable(project.editable)
 
     def sync(self, evt=None):
         # If not synced locally, choose a folder

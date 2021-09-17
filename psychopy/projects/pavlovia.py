@@ -499,179 +499,39 @@ class PavloviaProject(dict):
     .localRoot is the path to the local root
     """
 
-    def __init__(self, proj=None, repo=None, localRoot=''):
-        dict.__init__(self)
-        self._storedAttribs = {}  # these will go into knownProjects file
-        self['id'] = ''
-        self['localRoot'] = ''
-        self['remoteSSH'] = ''
-        self['remoteHTTPS'] = ''
-        self._lastKnownSync = 0
+    def __setitem__(self, key, value):
+        dict.__setitem__(self, key, value)
+        #self.project.attributes[key] = value
+        # todo: send request on set
 
-        # if given a dict, create a detached project from it (useful for testing)
-        if isinstance(proj, dict) and not isinstance(proj, PavloviaProject):
-            for key in proj:
-                self[key] = proj[key]
-            proj = None
+    @property
+    def session(self):
+        # If previous value is cached, return it
+        if hasattr(self, "_session"):
+            return self._session
+        # Otherwise, get current session
+        return getCurrentSession()
 
-        # try to find the remote project through a connection to pavlovia
-        if proj:  # we were given a proj or projID for the remote
-            currentSession = getCurrentSession()
-            self._newRemote = False  # False can also indicate 'unknown'
-            if isinstance(proj, gitlab.v4.objects.Project):
-                self.pavlovia = proj
-            elif currentSession.gitlab is None:
-                self.pavlovia = None
-            else:
-                try:
-                    self.pavlovia = currentSession.gitlab.projects.get(proj)
-                except gitlab.exceptions.GitlabGetError as e:
-                    if "404 Project Not Found" in str(e):
-                        self.pavlovia = False
-                    else:
-                        raise e
-        else:
-            self.pavlovia = None
-
-        self.repo = repo
-
-        # do we already have a local folder for this?
-        if localRoot:
-            self.localRoot = localRoot
-        elif self.id in knownProjects:
-            self.localRoot = knownProjects[self.id]['localRoot']
-        elif self.repo:
-            self.localRoot = repo.working_dir
-            self.configGitLocal()
-        else:
-            self.localRoot = localRoot  # which is probably ''
-
-        # todo: we weren't given a url, but maybe we can deduce one?
-        # if self.localRoot and not self.pavlovia:
-
-    def __getattr__(self, name):
-        if name == 'owner':
-            return
-        proj = self.__dict__['pavlovia']
-        if not proj:
-            return
-        toSearch = [self, self.__dict__, proj._attrs]
-        if 'attributes' in self.pavlovia.__dict__:
-            toSearch.append(self.pavlovia.__dict__['attributes'])
-        for attDict in toSearch:
-            if name in attDict:
-                return attDict[name]
-        # error if none found
-        if name == 'id':
-            selfDescr = "PavloviaProject"
-        else:
-            selfDescr = repr(
-                    self)  # this includes self.id so don't use if id fails!
-        raise AttributeError("No attribute '{}' in {}".format(name, selfDescr))
-
-    def __getitem__(self, key):
+    @property
+    def project(self):
+        # If previous value is cached, return it
+        if hasattr(self, "_project"):
+            return self._project
+        # Make sure we have a value for id
+        if 'id' not in self:
+            self['id'] = ""
+        # Get gitlab project
         try:
-            return dict.__getitem__(self, key)
-        except KeyError:
-            return getattr(self, key)
+            return self.session.gitlab.projects.get(self['id'])
+        except gitlab.exceptions.GitlabGetError as e:
+            raise KeyError("Could not find project on GitLab from given id.")
 
     @property
-    def pavlovia(self):
-        return self.__dict__['pavlovia']
-
-    @pavlovia.setter
-    def pavlovia(self, proj):
-        global knownProjects
-        self.__dict__['pavlovia'] = proj
-        if not hasattr(proj, 'attributes'):
-            return
-        thisID = proj.attributes['path_with_namespace']
-        if thisID in knownProjects \
-                and os.path.exists(knownProjects[thisID]['localRoot']):
-            rememberedProj = knownProjects[thisID]
-            if rememberedProj['idNumber'] != proj.attributes['id']:
-                logging.warning("Project {} has changed gitlab ID since last "
-                                "use (was {} now {})"
-                                .format(thisID,
-                                        rememberedProj['idNumber'],
-                                        proj.attributes['id']))
-            self.update(rememberedProj)
-        elif 'localRoot' in self:
-            # this means the local root was set before the remote was known
-            self['id'] = proj.attributes['path_with_namespace']
-            self['idNumber'] = proj.attributes['id']
-            knownProjects[self['id']] = self
+    def editable(self):
+        if self.session.user:
+            return self.session.user.attributes['id'] == self['creatorId']
         else:
-            self['localRoot'] = ''
-            self['id'] = proj.attributes['path_with_namespace']
-            self['idNumber'] = proj.attributes['id']
-        self['remoteSSH'] = proj.ssh_url_to_repo
-        self['remoteHTTPS'] = proj.http_url_to_repo
-
-    @property
-    def emptyRemote(self):
-        return not bool(self.pavlovia.attributes['default_branch'])
-
-    @property
-    def localRoot(self):
-        return self['localRoot']
-
-    @localRoot.setter
-    def localRoot(self, localRoot):
-        self['localRoot'] = localRoot.replace('\\', '/')
-        # this is where we add a project to knownProjects
-        # if we have both a
-        if localRoot and self.id:  # i.e. not set to None or ''
-            knownProjects[self.id] = self
-
-    @property
-    def id(self):
-        if self.pavlovia and 'id' in self.pavlovia.attributes:
-            return self.pavlovia.attributes['path_with_namespace']
-
-    @property
-    def idNumber(self):
-        if self.pavlovia:
-            return self.pavlovia.attributes['id']
-
-    @property
-    def remoteWithToken(self):
-        """The remote for git sync using an oauth token (always as a bytes obj)
-        """
-        currentSession = getCurrentSession()
-        rawHTTPS = self['remoteHTTPS']
-        if rawHTTPS:
-            remote = rawHTTPS.replace('https://gitlab.pavlovia.org/',
-                                      'https://oauth2:{}@gitlab.pavlovia.org/'
-                                      .format(currentSession.token))
-        else:
-            remote = None
-        # if remote and type(remote) != bytes:
-        #     remote = remote.encode('utf-8')
-        return remote
-
-    @property
-    def group(self):
-        if self.pavlovia:
-            namespaceName = self.id.split('/')[0]
-            return namespaceName
-
-    @property
-    def attributes(self):
-        if self.pavlovia:
-            return self.pavlovia.attributes
-
-    @property
-    def title(self):
-        """The title of this project (alias for name)
-        """
-        return self.name
-
-    @property
-    def tags(self):
-        """The title of this project (alias for name)
-        """
-        return self.tag_list
+            return False
 
     def sync(self, infoStream=None):
         """Performs a pull-and-push operation on the remote
