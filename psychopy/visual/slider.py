@@ -170,7 +170,7 @@ class Slider(MinimalStim, ColorMixin):
         self.readOnly = readOnly
 
         self.categorical = False  # will become True if no ticks set only labels
-        self.startValue = self.rating =  self.markerPos = startValue
+        self.startValue = self.markerPos = startValue
         self.rt = None
         self.history = []
         self.marker = None
