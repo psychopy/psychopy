@@ -74,6 +74,7 @@ class SearchPanel(wx.Panel):
                           size=size,
                           style=style
                           )
+        iconCache = parent.app.iconCache
         # Setup sizer
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.sizer)
@@ -92,8 +93,8 @@ class SearchPanel(wx.Panel):
         self.btnSizer.Add(self.sortBtn, border=6, flag=wx.LEFT | wx.RIGHT)
         # Add filter button
         self.filterBtn = wx.Button(self, label=_translate("Filter..."), style=wx.BORDER_NONE)
-        self.btnSizer.Add(self.filterBtn, border=6, flag=wx.LEFT | wx.RIGHT)
-
+        self.filterTerms = {}
+        self.btnSizer.Add(self.filterBtn, border=6, flag=wx.LEFT)
         # Add project list
         self.projectList = ListCtrl(self, size=(-1, -1), style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
         self.projectList.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.showProject)
@@ -129,7 +130,7 @@ class SearchPanel(wx.Panel):
         # Get session
         session = pavlovia.getCurrentSession()
         # Do search
-        self.projects = pavlovia.PavloviaSearch(session=session, term=term)
+        self.projects = pavlovia.PavloviaSearch(term=term, filterBy=self.filterTerms)
 
         # Sort values
         if len(self.projects):
