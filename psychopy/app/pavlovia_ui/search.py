@@ -88,7 +88,7 @@ class SearchPanel(wx.Panel):
         self.btnSizer.AddStretchSpacer(1)
         # Add sort button
         self.sortBtn = wx.Button(self, label=_translate("Sort..."), style=wx.BORDER_NONE)
-        self.sortOrder = ["Stars", "Last edited"]
+        self.sortOrder = ["Relevance"]
         self.sortBtn.Bind(wx.EVT_BUTTON, self.sort)
         self.btnSizer.Add(self.sortBtn, border=6, flag=wx.LEFT | wx.RIGHT)
         # Add filter button
@@ -174,7 +174,7 @@ class SearchPanel(wx.Panel):
 
     def sort(self, evt=None):
         # Get list of items
-        allItems = ["Stars", "Last edited", "Forks", "Date created", "Name (A-Z)", "Author (A-Z)"]
+        allItems = list(pavlovia.PavloviaSearch.sortMap)
         items = []
         selected = [False] * len(allItems)
         # Set order from .sortOrder
@@ -221,9 +221,9 @@ class SearchPanel(wx.Panel):
 
 
 class SortDlg(wx.Dialog):
-    def __init__(self, parent, size=(200, 350),
-                 items=("Stars", "Last edited", "Forks", "Date created", "Name (A-Z)", "Author (A-Z)"),
-                 selected=(True, True, False, False, False)
+    def __init__(self, parent, size=(200, 400),
+                 items=tuple(pavlovia.PavloviaSearch.sortMap),
+                 selected=(True, False, False, False, False, False)
                  ):
         wx.Dialog.__init__(self, parent, size=size, title="Sort by...", style=wx.DEFAULT_DIALOG_STYLE | wx.DIALOG_NO_PARENT)
         # Setup sizer
