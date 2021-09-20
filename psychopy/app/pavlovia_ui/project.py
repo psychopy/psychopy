@@ -317,7 +317,7 @@ class DetailsPanel(wx.Panel):
         self.sizer.Add(self.tagSizer, flag=wx.EXPAND)
         self.tagLbl = wx.StaticText(self, label=_translate("Tags:"))
         self.tagSizer.Add(self.tagLbl, border=6, flag=wx.EXPAND | wx.ALL)
-        self.tags = utils.ButtonArray(self, orient=wx.HORIZONTAL, items=[])
+        self.tags = utils.ButtonArray(self, orient=wx.HORIZONTAL, items=[], itemAlias=_translate("tag"))
         self.tags.Bind(wx.EVT_LIST_INSERT_ITEM, self.updateProject)
         self.tags.Bind(wx.EVT_LIST_DELETE_ITEM, self.updateProject)
         self.tagSizer.Add(self.tags, proportion=1, border=6, flag=wx.EXPAND | wx.ALL)
