@@ -469,7 +469,6 @@ class EyeTracker(EyeTrackerDevice):
             if recording is True and not self.isRecordingEnabled():
                 starter_thread = threading.Thread(target=start_eyelink, args=(EyeTracker._eyelink,))
                 starter_thread.start()
-                gevent.sleep(0.1)
                 while starter_thread.is_alive():
                     gevent.sleep(0.001)
                 EyeTrackerDevice.enableEventReporting(self, True)
@@ -477,9 +476,9 @@ class EyeTracker(EyeTrackerDevice):
 
             elif recording is False and self.isRecordingEnabled():
                 stopper_thread = threading.Thread(target=stop_eyelink, args=(EyeTracker._eyelink,))
+                stime = Computer.getTime()
                 stopper_thread.start()
-                gevent.sleep(0.1)
-                while stopper_thread.is_alive():
+                while stopper_thread.is_alive() or Computer.getTime()-stime < 0.5:
                     gevent.sleep(0.001)
                 EyeTrackerDevice.enableEventReporting(self, False)
 
