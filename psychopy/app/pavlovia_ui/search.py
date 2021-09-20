@@ -156,6 +156,9 @@ class SearchPanel(wx.Panel):
     def refreshCtrl(self):
         # Clear list and projects dict
         self.projectList.DeleteAllItems()
+        # Skip if not searched yet
+        if self.projects is None:
+            return
         # Skip if empty search
         if len(self.projects) == 0:
             return
@@ -171,7 +174,7 @@ class SearchPanel(wx.Panel):
 
     def sort(self, evt=None):
         # Get list of items
-        allItems = ["Stars", "Last edited", "Forks", "Date created", "Name (A-Z)"]
+        allItems = ["Stars", "Last edited", "Forks", "Date created", "Name (A-Z)", "Author (A-Z)"]
         items = []
         selected = [False] * len(allItems)
         # Set order from .sortOrder
@@ -191,7 +194,8 @@ class SearchPanel(wx.Panel):
         # Update sort order
         self.sortOrder = _dlg.ctrls.GetValue()
         # Sort
-        self.projects.sort_values(self.sortOrder)
+        if self.projects is not None:
+            self.projects.sort_values(self.sortOrder)
         # Refresh
         self.refreshCtrl()
 
@@ -217,8 +221,8 @@ class SearchPanel(wx.Panel):
 
 
 class SortDlg(wx.Dialog):
-    def __init__(self, parent, size=(200, 300),
-                 items=("Stars", "Last edited", "Forks", "Date created", "Name (A-Z)"),
+    def __init__(self, parent, size=(200, 350),
+                 items=("Stars", "Last edited", "Forks", "Date created", "Name (A-Z)", "Author (A-Z)"),
                  selected=(True, True, False, False, False)
                  ):
         wx.Dialog.__init__(self, parent, size=size, title="Sort by...", style=wx.DEFAULT_DIALOG_STYLE | wx.DIALOG_NO_PARENT)

@@ -458,6 +458,7 @@ class PavloviaSearch(pandas.DataFrame):
         "Forks": "nbForks",
         "Date created": "creationDate",
         "Name (A-Z)": "name",
+        "Author (A-Z)": "pathWithNamespace"
     }
 
     class FilterTerm(dict):
