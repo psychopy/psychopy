@@ -253,7 +253,6 @@ class FilterDlg(wx.Dialog):
         def __init__(self, parent,
                      key, value,
                      options=None,
-                     itemAlias=_translate("item"),
                      selected=True):
             # Init self
             wx.Window.__init__(self, parent, size=(-1, -1))
@@ -271,7 +270,7 @@ class FilterDlg(wx.Dialog):
             self.titleSizer.Add(self.selectCtrl, border=6, flag=wx.ALL | wx.EXPAND)
             # Add label
             self.key = key
-            self.label = wx.StaticText(self, label=prettyname(key)+":")
+            self.label = wx.StaticText(self, label=f"{key}:")
             self.titleSizer.Add(self.label, proportion=1, border=6, flag=wx.ALL | wx.EXPAND | wx.TEXT_ALIGNMENT_LEFT)
             # Add ctrl
             if options is None:
@@ -341,7 +340,7 @@ class FilterDlg(wx.Dialog):
         for key in terms:
             self.ctrls[key] = self.KeyCtrl(self, key,
                                            terms[key], selected=bool(terms[key]),
-                                           options=options[key], itemAlias=key)
+                                           options=options[key])
             self.sizer.Add(self.ctrls[key], border=6, flag=wx.EXPAND | wx.ALL)
         # Add Okay button
         self.sizer.AddStretchSpacer(1)
