@@ -574,6 +574,17 @@ class PavloviaProject(dict):
         else:
             return False
 
+    @property
+    def localRoot(self):
+        if hasattr(self, "_localRoot"):
+            return self._localRoot
+        else:
+            return ""
+
+    @localRoot.setter
+    def localRoot(self, value):
+        self._localRoot = value
+
     def sync(self, infoStream=None):
         """Performs a pull-and-push operation on the remote
 
