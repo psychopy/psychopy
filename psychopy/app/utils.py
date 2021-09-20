@@ -357,11 +357,16 @@ class ButtonArray(wx.Window):
             evt.SetEventObject(self)
             wx.PostEvent(self.parent, evt)
 
-    def __init__(self, parent, orient=wx.HORIZONTAL, items=[]):
+    def __init__(self, parent, orient=wx.HORIZONTAL,
+                 items=(),
+                 options=None,
+                 itemAlias=_translate("item")):
         # Create self
         wx.Window.__init__(self, parent)
         self.SetBackgroundColour(parent.GetBackgroundColour())
         self.parent = parent
+        self.itemAlias = itemAlias
+        self.options = options
         # Create sizer
         self.sizer = wx.WrapSizer(orient=orient)
         self.SetSizer(self.sizer)
@@ -384,6 +389,9 @@ class ButtonArray(wx.Window):
 
     @items.setter
     def items(self, value):
+        if isinstance(value, str):
+            value = [value]
+
         assert isinstance(value, (list, tuple))
 
         value.reverse()
@@ -393,10 +401,18 @@ class ButtonArray(wx.Window):
             self.addItem(item)
 
     def newItem(self, evt=None):
-        _dlg = wx.TextEntryDialog(self.parent, message="Add tag...")
+        msg = _translate("Add ") + self.itemAlias + "..."
+        if self.options is None:
+            _dlg = wx.TextEntryDialog(self.parent, message=msg)
+        else:
+            _dlg = wx.SingleChoiceDialog(self.parent, msg, "Input Text", choices=self.options)
+
         if _dlg.ShowModal() != wx.ID_OK:
             return
-        self.addItem(_dlg.GetValue())
+        if self.options is None:
+            self.addItem(_dlg.GetValue())
+        else:
+            self.addItem(_dlg.GetStringSelection())
 
     def addItem(self, item):
         if not isinstance(item, wx.Window):
@@ -510,7 +526,7 @@ class SortCtrl(wx.Window):
         def Disable(self):
             self.Enable(False)
 
-    def __init__(self, parent, items=[], showSelect=False, selected=True, orient=wx.VERTICAL):
+    def __init__(self, parent, items=(), showSelect=False, selected=True, orient=wx.VERTICAL):
         wx.Window.__init__(self, parent)
         # Setup sizer
         self.sizer = wx.BoxSizer(orient)
