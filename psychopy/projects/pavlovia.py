@@ -451,15 +451,15 @@ class PavloviaSession:
 
 
 class PavloviaSearch(pandas.DataFrame):
-    # Map sort menu items to project columns
+    # Map sort menu items to project columns (- = descending, + = ascending)
     sortMap = {
-        "Relevance": "pavloviaScore",
-        "Most stars": "nbStars",
-        "Most forks": "nbForks",
-        "Last edited": "updateDate",
-        "First created": "creationDate",
-        "Name (A-Z)": "name",
-        "Author (A-Z)": "pathWithNamespace"
+        "Relevance": "pavloviaScore-",
+        "Most stars": "nbStars-",
+        "Most forks": "nbForks-",
+        "Last edited": "updateDate-",
+        "First created": "creationDate+",
+        "Name (A-Z)": "name+",
+        "Author (A-Z)": "pathWithNamespace+"
     }
 
     class FilterTerm(dict):
@@ -520,9 +520,19 @@ class PavloviaSearch(pandas.DataFrame):
                 sortKeys.append(self.sortMap[item])
             elif item in self.columns:
                 sortKeys.append(item)
+        # Work out sort direction
+        ascending = []
+        for i, item in enumerate(sortKeys):
+            if item.endswith("+") or item.endswith("-"):
+                ascending += [item[-1] == "+"]
+                sortKeys[i] = item[:-1]
+            else:
+                ascending += [True]
         # Do actual sorting
         if sortKeys:
-            pandas.DataFrame.sort_values(self, sortKeys, inplace=inplace, ignore_index=ignore_index, **kwargs)
+            pandas.DataFrame.sort_values(self, sortKeys,
+                                         inplace=inplace, ascending=ascending, ignore_index=ignore_index,
+                                         **kwargs)
 
 
 class PavloviaProject(dict):
