@@ -453,10 +453,11 @@ class PavloviaSession:
 class PavloviaSearch(pandas.DataFrame):
     # Map sort menu items to project columns
     sortMap = {
-        "Stars": "nbStars",
+        "Relevance": "pavloviaScore",
+        "Most stars": "nbStars",
+        "Most forks": "nbForks",
         "Last edited": "updateDate",
-        "Forks": "nbForks",
-        "Date created": "creationDate",
+        "First created": "creationDate",
         "Name (A-Z)": "name",
         "Author (A-Z)": "pathWithNamespace"
     }
