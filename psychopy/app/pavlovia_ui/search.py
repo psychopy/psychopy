@@ -93,7 +93,21 @@ class SearchPanel(wx.Panel):
         self.btnSizer.Add(self.sortBtn, border=6, flag=wx.LEFT | wx.RIGHT)
         # Add filter button
         self.filterBtn = wx.Button(self, label=_translate("Filter..."), style=wx.BORDER_NONE)
-        self.filterTerms = {}
+        self.filterTerms = {
+            "Author": [],
+            "Status": [],
+            "Platform": [],
+            "Visibility": [],
+            "Tags": [],
+        }
+        self.filterOptions = {
+            "Author": None,
+            "Status": ["running", "piloting", "inactive"],
+            "Platform": ["psychojs", "jspsych", "labjs", "opensesame", "other"],
+            "Visibility": ["public", "private"],
+            "Tags": None,
+        }
+        self.filterBtn.Bind(wx.EVT_BUTTON, self.filter)
         self.btnSizer.Add(self.filterBtn, border=6, flag=wx.LEFT)
         # Add project list
         self.projectList = ListCtrl(self, size=(-1, -1), style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
@@ -181,6 +195,19 @@ class SearchPanel(wx.Panel):
         # Refresh
         self.refreshCtrl()
 
+    def filter(self, evt=None):
+        # Open filter dlg
+        _dlg = FilterDlg(self,
+                         terms=self.filterTerms,
+                         options=self.filterOptions)
+        # Skip if cancelled
+        if _dlg.ShowModal() != wx.ID_OK:
+            return
+        # Update filters if Okayed
+        self.filterTerms = _dlg.GetValue()
+        # Re-search
+        self.search()
+
     def showProject(self, evt=None):
         """
         View current project in associated viewer
@@ -215,6 +242,121 @@ class SortDlg(wx.Dialog):
 
     def onCancel(self, evt=None):
         self.EndModal(wx.ID_CANCEL)
+
+
+class FilterDlg(wx.Dialog):
+    class KeyCtrl(wx.Window):
+        def __init__(self, parent,
+                     key, value,
+                     options=None,
+                     itemAlias=_translate("item"),
+                     selected=True):
+            # Init self
+            wx.Window.__init__(self, parent, size=(-1, -1))
+            self.SetBackgroundColour(parent.GetBackgroundColour())
+            # Create master sizer
+            self.sizer = wx.BoxSizer(wx.VERTICAL)
+            self.SetSizer(self.sizer)
+            # Create title sizer
+            self.titleSizer = wx.BoxSizer(wx.HORIZONTAL)
+            self.sizer.Add(self.titleSizer, border=0, flag=wx.ALL | wx.EXPAND)
+            # Add tickbox
+            self.selectCtrl = wx.CheckBox(self)
+            self.selectCtrl.Bind(wx.EVT_CHECKBOX, self.onSelect)
+            self.selectCtrl.SetValue(selected)
+            self.titleSizer.Add(self.selectCtrl, border=6, flag=wx.ALL | wx.EXPAND)
+            # Add label
+            self.key = key
+            self.label = wx.StaticText(self, label=prettyname(key)+":")
+            self.titleSizer.Add(self.label, proportion=1, border=6, flag=wx.ALL | wx.EXPAND | wx.TEXT_ALIGNMENT_LEFT)
+            # Add ctrl
+            if options is None:
+                self.ctrl = wx.TextCtrl(self, value=",".join(value))
+            else:
+                self.ctrl = wx.CheckListBox(self, choices=options)
+                self.ctrl.SetCheckedStrings(value)
+            self.sizer.Add(self.ctrl, border=6, flag=wx.LEFT | wx.RIGHT | wx.EXPAND)
+            # Layout
+            self.Layout()
+            # Enable
+            self.Enable(selected)
+
+        @property
+        def selected(self):
+            return self.selectCtrl.Value
+
+        @selected.setter
+        def selected(self, value):
+            self.selectCtrl.Value = value
+
+        def onSelect(self, evt=None):
+            self.Enable(self.selected)
+
+        def Enable(self, enable=True):
+            # Select button always enabled
+            self.selectCtrl.Enable(True)
+            # Enable/disable children
+            self.label.Enable(enable)
+            self.ctrl.Enable(enable)
+            if not enable and isinstance(self.ctrl, wx.CheckListBox):
+                # If disabled, every option should be checked and none selected
+                self.ctrl.SetCheckedStrings(self.ctrl.GetStrings())
+                self.ctrl.SetSelection(-1)
+
+        def Disable(self):
+            self.Enable(False)
+
+        def GetValue(self):
+            # If deselected, return blank
+            if not self.selected:
+                return []
+            # Otherwise, get ctrl value
+            if isinstance(self.ctrl, wx.CheckListBox):
+                # List of checked strings for check lists
+                return self.ctrl.GetCheckedStrings()
+            else:
+                # String split by commas for text ctrl
+                if self.ctrl.GetValue():
+                    return self.ctrl.GetValue().split(",")
+                else:
+                    # Substitute [''] for [] so it's booleanised to False
+                    return []
+
+    def __init__(self, parent, size=(250, 550),
+                 terms={},
+                 options={}):
+        wx.Dialog.__init__(self, parent, size=size,
+                           title="Filter by...", style=wx.DEFAULT_DIALOG_STYLE | wx.DIALOG_NO_PARENT)
+        # Setup sizer
+        self.contentBox = wx.BoxSizer(wx.VERTICAL)
+        self.SetSizer(self.contentBox)
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.contentBox.Add(self.sizer, proportion=1, border=0, flag=wx.EXPAND | wx.ALL)
+        # Add dict ctrl
+        self.ctrls = {}
+        for key in terms:
+            self.ctrls[key] = self.KeyCtrl(self, key,
+                                           terms[key], selected=bool(terms[key]),
+                                           options=options[key], itemAlias=key)
+            self.sizer.Add(self.ctrls[key], border=6, flag=wx.EXPAND | wx.ALL)
+        # Add Okay button
+        self.sizer.AddStretchSpacer(1)
+        self.OkayBtn = wx.Button(self, id=wx.ID_OK, label=_translate("Okay"))
+        self.contentBox.Add(self.OkayBtn, border=6, flag=wx.ALL | wx.ALIGN_RIGHT)
+        # Bind cancel
+        self.Bind(wx.EVT_CLOSE, self.onCancel)
+
+    def onCancel(self, evt=None):
+        self.EndModal(wx.ID_CANCEL)
+
+    def GetValue(self):
+        # Create blank dict
+        value = {}
+        # Update dict keys with value from each ctrl
+        for key, ctrl in self.ctrls.items():
+            value[key] = ctrl.GetValue()
+
+        return value
 
 
 def sortProjects(seq, name, reverse=False):

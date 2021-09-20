@@ -461,17 +461,33 @@ class PavloviaSearch(pandas.DataFrame):
     }
 
     class FilterTerm(dict):
+        # Map filter menu items to project columns
+        filterMap = {
+            "Author": "designer",
+            "Status": "status",
+            "Platform": "platform",
+            "Visibility": "visibility",
+            "Tags": "tags",
+        }
+
         def __str__(self):
             # Start off with blank str
             terms = ""
             # Iterate through values
             for key, value in self.items():
-                # Ensure value is iterable
+                # Ensure value is iterable and mutable
                 if not isinstance(value, (list, tuple)):
                     value = [value]
+                value = list(value)
                 # Ensure each sub-value is a string
                 for i in range(len(value)):
                     value[i] = str(value[i])
+                # Skip empty terms
+                if len(value) == 0:
+                    continue
+                # Alias keys
+                if key in self.filterMap:
+                    key = self.filterMap[key]
                 # Add this term
                 terms += f"&{key}={','.join(value)}"
             return terms
