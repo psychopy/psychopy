@@ -3,6 +3,8 @@
 # Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 import os
+import gevent
+import threading
 import pylink
 
 try:
@@ -21,6 +23,16 @@ try:
 except Exception:
     pass
 
+def start_eyelink(eyelink):
+    error = eyelink.startRecording(1, 1, 1, 1)
+    if error:
+        print2err('Start Recording error : ', error)
+
+    if not eyelink.waitForBlockStart(100, 1, 0):
+        print2err('EYETRACKER_START_RECORD_EXCEPTION ')
+
+def stop_eyelink(eyelink):
+    eyelink.stopRecording()
 
 class EyeTracker(EyeTrackerDevice):
     """
@@ -455,18 +467,20 @@ class EyeTracker(EyeTrackerDevice):
                 printExceptionDetailsToStdErr()
 
             if recording is True and not self.isRecordingEnabled():
-                error = self._eyelink.startRecording(1, 1, 1, 1)
-                if error:
-                    print2err('Start Recording error : ', error)
-
-                if not self._eyelink.waitForBlockStart(100, 1, 0):
-                    print2err('EYETRACKER_START_RECORD_EXCEPTION ')
-
+                starter_thread = threading.Thread(target=start_eyelink, args=(EyeTracker._eyelink,))
+                starter_thread.start()
+                gevent.sleep(0.1)
+                while starter_thread.is_alive():
+                    gevent.sleep(0.001)
                 EyeTrackerDevice.enableEventReporting(self, True)
                 return self.isRecordingEnabled()
 
             elif recording is False and self.isRecordingEnabled():
-                self._eyelink.stopRecording()
+                stopper_thread = threading.Thread(target=stop_eyelink, args=(EyeTracker._eyelink,))
+                stopper_thread.start()
+                gevent.sleep(0.1)
+                while stopper_thread.is_alive():
+                    gevent.sleep(0.001)
                 EyeTrackerDevice.enableEventReporting(self, False)
 
                 self._latest_sample = None
