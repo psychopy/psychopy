@@ -81,5 +81,4 @@ while not keyboard.getPresses():
 serial_device.enableEventReporting(False)
 
 # Close the window and quit the program.
-io.quit()
 core.quit()

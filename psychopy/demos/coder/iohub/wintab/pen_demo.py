@@ -255,6 +255,7 @@ if __name__ == '__main__':
 
             myWin.flip()#redraw the buffer
 
-        io.quit()
         if testTimeOutClock.getTime() >= test_timeout_sec:
             print("Test Time Out Occurred.")
+
+        core.quit()

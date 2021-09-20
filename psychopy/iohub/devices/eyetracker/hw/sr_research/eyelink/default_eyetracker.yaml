@@ -108,7 +108,11 @@ eyetracker.hw.sr_research.eyelink.EyeTracker:
         # screen_background_color: Specifies the background color to
         #   set the calibration, validation, etc, screens to.
         screen_background_color: [128,128,128]
-        
+
+        # text_color specifies the foreground color of any text used during calibration.
+        # If empty, text_color is calculated automatically based on screen_background_color.
+        text_color:
+
         # target_type: Defines what form of calibration graphic should be used
         #   during calibration, validation, etc. modes. sr_research.eyelink.EyeTracker
         #   supports the CIRCLE_TARGET type.

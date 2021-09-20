@@ -367,6 +367,26 @@ getCurrentDateTime = datetime.datetime.now
 getCurrentDateTimeString = lambda: getCurrentDateTime().strftime("%Y-%m-%d %H:%M")
 
 
+# rgb255 color utils
+def hilo(a, b, c):
+    if c < b:
+        b, c = c, b
+    if b < a:
+        a, b = b, a
+    if c < b:
+        b, c = c, b
+    return a + c
+
+
+def complement(r, g, b):
+    if r == g == b:
+        # handle mono color
+        if r >= 128:
+            return 0, 0, 0
+        return 255, 255, 255
+    k = hilo(r, g, b)
+    return tuple(k - u for u in (r, g, b))
+
 class NumPyRingBuffer():
     """NumPyRingBuffer is a circular buffer implemented using a one dimensional
     numpy array on the backend. The algorithm used to implement the ring buffer
