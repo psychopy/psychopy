@@ -493,10 +493,16 @@ class PavloviaSearch(pandas.DataFrame):
                 terms += f"&{key}={','.join(value)}"
             return terms
 
-    def __init__(self, term, sortBy=None, filterBy=None):
+    def __init__(self, term, sortBy=None, filterBy=None, mine=False):
         # Replace default filter
         if filterBy is None:
             filterBy = {}
+        # Add filter for "mine" only
+        if mine:
+            session = getCurrentSession()
+            if "creatorId" not in filterBy:
+                filterBy['creatorId'] = []
+            filterBy['creatorId'] += [session.userID]
         # Ensure filter is a FilterTerm
         filterBy = self.FilterTerm(filterBy)
         try:
