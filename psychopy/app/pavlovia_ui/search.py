@@ -88,7 +88,7 @@ class SearchPanel(wx.Panel):
         self.btnSizer.AddStretchSpacer(1)
         # Add sort button
         self.sortBtn = wx.Button(self, label=_translate("Sort..."), style=wx.BORDER_NONE)
-        self.sortOrder = ["Relevance"]
+        self.sortOrder = []
         self.sortBtn.Bind(wx.EVT_BUTTON, self.sort)
         self.btnSizer.Add(self.sortBtn, border=6, flag=wx.LEFT | wx.RIGHT)
         # Add filter button
@@ -223,7 +223,7 @@ class SearchPanel(wx.Panel):
 class SortDlg(wx.Dialog):
     def __init__(self, parent, size=(200, 400),
                  items=tuple(pavlovia.PavloviaSearch.sortMap),
-                 selected=(True, False, False, False, False, False)
+                 selected=False
                  ):
         wx.Dialog.__init__(self, parent, size=size, title="Sort by...", style=wx.DEFAULT_DIALOG_STYLE | wx.DIALOG_NO_PARENT)
         # Setup sizer
