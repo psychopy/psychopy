@@ -453,7 +453,6 @@ class PavloviaSession:
 class PavloviaSearch(pandas.DataFrame):
     # Map sort menu items to project columns (- = descending, + = ascending)
     sortMap = {
-        "Relevance": "pavloviaScore-",
         "Most stars": "nbStars-",
         "Most forks": "nbForks-",
         "Last edited": "updateDate-",
@@ -531,6 +530,9 @@ class PavloviaSearch(pandas.DataFrame):
                 sortKeys[i] = item[:-1]
             else:
                 ascending += [True]
+        # Add pavlovia score as final sort option
+        sortKeys.append("pavloviaScore")
+        ascending += [False]
         # Do actual sorting
         if sortKeys:
             pandas.DataFrame.sort_values(self, sortKeys,
