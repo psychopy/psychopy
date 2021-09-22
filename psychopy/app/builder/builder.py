@@ -111,7 +111,6 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         self.frameType = 'builder'
         self.filename = fileName
         self.htmlPath = None
-        self.project = None  # type: pavlovia.PavloviaProject
         self.btnHandles = {}  # stores toolbar buttons so they can be altered
         self.scriptProcess = None
         self.stdoutBuffer = None
@@ -703,11 +702,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         if self.app.runner:
             self.app.runner.addTask(fileName=self.filename)  # Add to Runner
 
-        try:
-            self.project = pavlovia.getProject(filename)
-        except Exception as e:  # failed for
-            self.project = None
-            print(e)
+        self.project = pavlovia.getProject(filename)
         self.app.updateWindowMenu()
 
     def fileSave(self, event=None, filename=None):
@@ -1429,16 +1424,16 @@ class BuilderFrame(wx.Frame, ThemeMixin):
     def project(self):
         """A PavloviaProject object if one is known for this experiment
         """
-        if 'project' in self.__dict__ and self.__dict__['project']:
-            return self.__dict__['project']
-        elif self.filename and pavlovia.getProject(self.filename):
+        if hasattr(self, "_project"):
+            return self._project
+        elif self.filename:
             return pavlovia.getProject(self.filename)
         else:
             return None
 
     @project.setter
     def project(self, project):
-        self.__dict__['project'] = project
+        self._project = project
 
 
 class RoutinesNotebook(aui.AuiNotebook, ThemeMixin):

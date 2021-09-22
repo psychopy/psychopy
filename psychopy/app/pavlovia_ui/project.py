@@ -503,7 +503,7 @@ class ProjectFrame(wx.Dialog):
             style = (wx.DEFAULT_DIALOG_STYLE | wx.CENTER |
                      wx.TAB_TRAVERSAL | wx.RESIZE_BORDER)
         if project:
-            title = project.title
+            title = project['name']
         else:
             title = _translate("Project info")
         self.frameType = 'ProjectInfo'
