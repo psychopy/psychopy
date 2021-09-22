@@ -75,6 +75,7 @@ class SearchPanel(wx.Panel):
                           style=style
                           )
         iconCache = parent.app.iconCache
+        self.session = pavlovia.getCurrentSession()
         # Setup sizer
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.sizer)
@@ -85,6 +86,15 @@ class SearchPanel(wx.Panel):
         # Add button sizer
         self.btnSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.sizer.Add(self.btnSizer, border=4, flag=wx.EXPAND | wx.ALL)
+        # Add "me mode" button
+        self.mineBtn = wx.ToggleButton(self, size=(64, -1), label=_translate("Me"), style=wx.BORDER_NONE)
+        self.mineBtn.SetBitmap(iconCache.getBitmap("person_off", size=16))
+        self.mineBtn.SetBitmapFocus(iconCache.getBitmap("person_on", size=16))
+        self.mineBtn.SetBitmapPressed(iconCache.getBitmap("person_on", size=16))
+        self._mine = False
+        self.mineBtn.Bind(wx.EVT_TOGGLEBUTTON, self.onMineBtn)
+        self.mineBtn.Enable(self.session.userID is not None)
+        self.btnSizer.Add(self.mineBtn, border=4, flag=wx.EXPAND | wx.ALL)
         self.btnSizer.AddStretchSpacer(1)
         # Add sort button
         self.sortBtn = wx.Button(self, label=_translate("Sort..."), style=wx.BORDER_NONE)
@@ -144,7 +154,7 @@ class SearchPanel(wx.Panel):
         # Get session
         session = pavlovia.getCurrentSession()
         # Do search
-        self.projects = pavlovia.PavloviaSearch(term=term, filterBy=self.filterTerms)
+        self.projects = pavlovia.PavloviaSearch(term=term, filterBy=self.filterTerms, mine=self._mine)
 
         # Sort values
         if len(self.projects):
@@ -218,6 +228,14 @@ class SearchPanel(wx.Panel):
         """
         if self.projects is not None:
             self.viewer.project = pavlovia.PavloviaProject(self.projects.iloc[self.projectList.GetFocusedItem()])
+
+    def onMineBtn(self, evt=None):
+        # If triggered manually with a bool, do setting
+        if isinstance(evt, bool):
+            self.mineBtn.Value = evt
+        # Apply "mine" filter
+        self._mine = self.mineBtn.Value
+        self.search()
 
 
 class SortDlg(wx.Dialog):
