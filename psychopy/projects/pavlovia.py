@@ -569,9 +569,9 @@ class PavloviaProject(dict):
     def __init__(self, values, localRoot=None):
         # If given a project ID, get dict from API
         if isinstance(values, int):
-            values = requests.get(f"https://pavlovia.org/api/v2/experiments/{values}").json()
+            values = requests.get(f"https://pavlovia.org/api/v2/experiments/{values}").json()['experiment']
         # Init dict
-        dict.__init__(self, values['experiment'])
+        dict.__init__(self, values)
         # Convert datetime
         for key in self:
             if "date" in key.lower():
