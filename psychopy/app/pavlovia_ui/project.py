@@ -275,6 +275,8 @@ class DetailsPanel(wx.Panel):
         self.syncBtn.SetBitmap(iconCache.getBitmap(name="view-refresh", size=16))
         self.syncBtn.Bind(wx.EVT_BUTTON, self.sync)
         self.btnSizer.Add(self.syncBtn, border=6, flag=wx.ALL | wx.EXPAND)
+        self.syncLbl = wx.StaticText(self, size=(-1, -1), label="---")
+        self.btnSizer.Add(self.syncLbl, border=6, flag=wx.RIGHT | wx.TOP | wx.BOTTOM | wx.ALIGN_CENTER_VERTICAL)
         self.btnSizer.AddStretchSpacer(1)
         # Sep
         self.sizer.Add(wx.StaticLine(self, -1), border=6, flag=wx.EXPAND | wx.ALL)
@@ -339,10 +341,10 @@ class DetailsPanel(wx.Panel):
             self.title.SetValue("")
             self.title.Disable()
             # Author
-            self.author.SetLabel("by ---")
+            self.author.SetLabel("by --- on ---")
             self.author.Disable()
             # Link
-            self.link.SetLabel("https://pavlovia.org/")
+            self.link.SetLabel("---/---")
             self.link.SetURL("https://pavlovia.org/")
             self.link.Disable()
             # Star button
@@ -358,6 +360,9 @@ class DetailsPanel(wx.Panel):
             self.forkLbl.Disable()
             # Sync button
             self.syncBtn.Disable()
+            # Sync label
+            self.syncLbl.SetLabel("---")
+            self.syncLbl.Disable()
             # Local root
             self.localRootLabel.Disable()
             self.localRoot.SetValue("")
@@ -390,7 +395,7 @@ class DetailsPanel(wx.Panel):
             self.title.SetValue(project['name'])
             self.title.Enable(project.editable)
             # Author
-            self.author.SetLabel("by " + project['pathWithNamespace'].split('/')[0])
+            self.author.SetLabel(f"by {project['pathWithNamespace'].split('/')[0]} on {project['creationDate']:%d %B %Y}")
             self.author.Enable()
             # Link
             self.link.SetLabel(project['pathWithNamespace'])
@@ -409,6 +414,9 @@ class DetailsPanel(wx.Panel):
             self.forkLbl.Enable()
             # Sync button
             self.syncBtn.Enable(project.editable)
+            # Sync label
+            self.syncLbl.SetLabel(f"{project['updateDate']:%d %B %Y, %I:%M%p}")
+            self.syncLbl.Enable(project.editable)
             # Local root
             self.localRootLabel.Enable(False)#bool(project['path']))
             self.localRoot.SetValue("")#project['path'])

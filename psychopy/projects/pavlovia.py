@@ -506,6 +506,9 @@ class PavloviaSearch(pandas.DataFrame):
             msg = "Could not connect to Pavlovia server. Please check that you are conencted to the internet. If you are connected, then the Pavlovia servers may be down. You can check their status here: https://pavlovia.org/status"
             raise ConnectionError(msg)
         pandas.DataFrame.__init__(self, data=data['experiments'])
+        for col in self.columns:
+            if "date" in col.lower():
+                self[col] = pandas.to_datetime(self[col], format="%Y-%m-%d %H:%M:%S.%f")
         # Do any requested sorting
         if sortBy is not None:
             self.sort_values(sortBy)
