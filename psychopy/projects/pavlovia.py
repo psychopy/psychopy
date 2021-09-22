@@ -11,6 +11,7 @@ import glob
 import json
 import pathlib
 import os
+import re
 import time
 import subprocess
 import traceback
@@ -274,9 +275,17 @@ class PavloviaSession:
         self.userFullName = None
         self.remember_me = remember_me
         self.authenticated = False
-        self.currentProject = None
         self.setToken(token)
         logging.debug("PavloviaLoggedIn")
+
+    @property
+    def currentProject(self):
+        if hasattr(self, "_currentProject"):
+            return self._currentProject
+
+    @currentProject.setter
+    def currentProject(self, value):
+        self._currentProject = PavloviaProject(value)
 
     def createProject(self, name, description="", tags=(), visibility='private',
                       localRoot='', namespace=''):
@@ -328,7 +337,7 @@ class PavloviaSession:
         pavProject = PavloviaProject(gitlabProj, localRoot=localRoot)
         return pavProject
 
-    def getProject(self, id, repo=None):
+    def getProject(self, id):
         """Gets a Pavlovia project from an ID number or namespace/name
 
         Parameters
@@ -341,9 +350,7 @@ class PavloviaSession:
 
         """
         if id:
-            return PavloviaProject(id, repo=repo)
-        elif repo:
-            return PavloviaProject(repo=repo)
+            return PavloviaProject(id)
         else:
             return None
 
@@ -511,9 +518,6 @@ class PavloviaSearch(pandas.DataFrame):
             msg = "Could not connect to Pavlovia server. Please check that you are conencted to the internet. If you are connected, then the Pavlovia servers may be down. You can check their status here: https://pavlovia.org/status"
             raise ConnectionError(msg)
         pandas.DataFrame.__init__(self, data=data['experiments'])
-        for col in self.columns:
-            if "date" in col.lower():
-                self[col] = pandas.to_datetime(self[col], format="%Y-%m-%d %H:%M:%S.%f")
         # Do any requested sorting
         if sortBy is not None:
             self.sort_values(sortBy)
@@ -561,6 +565,19 @@ class PavloviaProject(dict):
     .group is technically the namespace. Get the owner from .attributes['owner']
     .localRoot is the path to the local root
     """
+
+    def __init__(self, values, localRoot=None):
+        # If given a project ID, get dict from API
+        if isinstance(values, int):
+            values = requests.get(f"https://pavlovia.org/api/v2/experiments/{values}").json()
+        # Init dict
+        dict.__init__(self, values['experiment'])
+        # Convert datetime
+        for key in self:
+            if "date" in key.lower():
+                self[key] = pandas.to_datetime(self[key], format="%Y-%m-%d %H:%M:%S.%f")
+        # Set local root
+        self.localRoot = localRoot
 
     def __setitem__(self, key, value):
         dict.__setitem__(self, key, value)
@@ -1041,67 +1058,36 @@ def getGitRoot(p):
 def getProject(filename):
     """Will try to find (locally synced) pavlovia Project for the filename
     """
+    # Check that we have Git
     if not haveGit:
         raise exceptions.DependencyError(
                 "gitpython and a git installation required for getProject()")
-
+    # Get git root
     gitRoot = getGitRoot(filename)
+    # Get session
+    session = getCurrentSession()
+    # If already found, return
     if gitRoot in knownProjects:
         return knownProjects[gitRoot]
     elif gitRoot:
         # Existing repo but not in our knownProjects. Investigate
         logging.info("Investigating repo at {}".format(gitRoot))
         localRepo = git.Repo(gitRoot)
-        proj = None
         for remote in localRepo.remotes:
             for url in remote.urls:
                 if "gitlab.pavlovia.org" in url:
-                    # could be 'https://gitlab.pavlovia.org/NameSpace/Name.git'
-                    # or may be 'git@gitlab.pavlovia.org:NameSpace/Name.git'
-                    namespaceName = url.split('gitlab.pavlovia.org')[1]
-                    # remove the first char (: or /)
-                    if namespaceName[0] in ['/', ':']:
-                        namespaceName = namespaceName[1:]
-                    # remove the .git at the end if present
-                    namespaceName = namespaceName.replace('.git', '')
-                    pavSession = getCurrentSession()
-                    if not pavSession.user:
-                        nameSpace = namespaceName.split('/')[0]
-                        if nameSpace in knownUsers:  # Log in if user is known
-                            login(nameSpace, rememberMe=True)
-                        else:  # Check whether project repo is found in any of the known users accounts
-                            for user in knownUsers:
-                                try:
-                                    login(user)
-                                except requests.exceptions.ConnectionError:
-                                    break
-                                foundProject = False
-                                for repo in pavSession.findUserProjects():
-                                    if namespaceName in repo['id']:
-                                        foundProject = True
-                                        logging.info("Logging in as {}".format(user))
-                                        break
-                                if not foundProject:
-                                    logging.warning("Could not find {namespace} in your Pavlovia accounts. "
-                                                    "Logging in as {user}.".format(namespace=namespaceName,
-                                                                                   user=user))
-                    if pavSession.user:
-                        proj = pavSession.getProject(namespaceName,
-                                                     repo=localRepo)
-                        if proj.pavlovia and proj.pavlovia.get_id() == 0:
-                            logging.warning(
-                                _translate("We found a repository pointing to {} "
-                                                       "but no project was found there (deleted?)").format(url))
-                    else:
-                        logging.warning(_translate("We found a repository pointing to {} "
-                                                   "but no user is logged in for us to check it".format(url)))
-                    return proj
-
-        if proj == None:
-            logging.warning("We found a repository at {} but it "
-                            "doesn't point to gitlab.pavlovia.org. "
-                            "You could create that as a remote to "
-                            "sync from PsychoPy.".format(gitRoot))
+                    # Get Namespace/Name from standard style url
+                    nameSearch = re.search(r"(?<=https:\/\/gitlab\.pavlovia\.org\/).*\/.*(?=\.git)", url)
+                elif "git@gitlab.pavlovia.org:" in url:
+                    # Get Namespace/Name from @ stye url
+                    nameSearch = re.search(r"(?<=git@gitlab\.pavlovia\.org:).*\/.*(?=\.git)", url)
+                else:
+                    # Attempt to get Namespace/Name from unhandled style
+                    nameSearch = re.search(r"[\w\-]*\\[\w\-]*\.git", url)
+                if nameSearch is not None:
+                    name = nameSearch.group(0)
+                    project = session.gitlab.projects.get(name)
+                    return PavloviaProject(project.id)
 
 
 global _existingSession
