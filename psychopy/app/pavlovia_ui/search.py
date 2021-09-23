@@ -227,7 +227,8 @@ class SearchPanel(wx.Panel):
         View current project in associated viewer
         """
         if self.projects is not None:
-            self.viewer.project = pavlovia.PavloviaProject(self.projects.iloc[self.projectList.GetFocusedItem()])
+            proj = self.projects.iloc[self.projectList.GetFocusedItem()]
+            self.viewer.project = pavlovia.PavloviaProject(proj)
 
     def onMineBtn(self, evt=None):
         # If triggered manually with a bool, do setting

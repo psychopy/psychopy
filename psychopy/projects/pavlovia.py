@@ -566,17 +566,22 @@ class PavloviaProject(dict):
     .localRoot is the path to the local root
     """
 
-    def __init__(self, values, localRoot=None):
-        # If given a project ID, get dict from API
-        if isinstance(values, int):
-            values = requests.get(f"https://pavlovia.org/api/v2/experiments/{values}").json()['experiment']
+    def __init__(self, id, localRoot=None):
+        if not isinstance(id, int):
+            # If given a dict from Pavlovia rather than an ID, store it rather than requesting again
+            self.info = dict(id)
+        else:
+            # If given an ID, get Pavlovia info
+            self.info = requests.get("https://pavlovia.org/api/v2/experiments/" + str(id)).json()['experiment']
+        # Store own id
+        self.id = int(self.info['gitlabId'])
         # Init dict
-        dict.__init__(self, values)
+        dict.__init__(self, self.project.attributes)
         # Convert datetime
-        dtRegex = re.compile("\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d.\d\d\d")
-        for key in self:
-            if dtRegex.match(str(self[key])):
-                self[key] = pandas.to_datetime(self[key], format="%Y-%m-%d %H:%M:%S.%f")
+        dtRegex = re.compile("\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d(.\d\d\d)?")
+        for key in self.info:
+            if dtRegex.match(str(self.info[key])):
+                self.info[key] = pandas.to_datetime(self.info[key], format="%Y-%m-%d %H:%M:%S.%f")
         # Set local root
         self.localRoot = localRoot
 
@@ -590,29 +595,42 @@ class PavloviaProject(dict):
         # If previous value is cached, return it
         if hasattr(self, "_session"):
             return self._session
-        # Otherwise, get current session
-        return getCurrentSession()
+        # Get and cache current session
+        self._session = getCurrentSession()
+        return self._session
 
     @property
     def project(self):
         # If previous value is cached, return it
         if hasattr(self, "_project"):
             return self._project
-        # Make sure we have a value for id
-        if 'id' not in self:
-            self['id'] = ""
-        # Get gitlab project
+        # Get and cache gitlab project
         try:
-            return self.session.gitlab.projects.get(self['id'])
+            self._project = self.session.gitlab.projects.get(self.id)
+            return self._project
         except gitlab.exceptions.GitlabGetError as e:
             raise KeyError("Could not find project on GitLab from given id.")
 
     @property
     def editable(self):
+        """
+        Whether or not the project is editable by the current user
+        """
+        # If previous value is cached, return it
+        if hasattr(self, "_editable"):
+            return self._editable
+        # Otherwise, figure it out
         if self.session.user:
-            return self.session.user.attributes['id'] == self['creatorId']
+            # Get current user id
+            _id = self.session.user.attributes['id']
+            # Search gitlab project users for id
+            results = self.project.users.list(id=_id)
+            # Return whether or not the search returns any result
+            self._editable = bool(results)
         else:
-            return False
+            # If there's no user, they can't edit, so return False
+            self._editable = False
+        return self._editable
 
     @property
     def localRoot(self):
