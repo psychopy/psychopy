@@ -573,8 +573,9 @@ class PavloviaProject(dict):
         # Init dict
         dict.__init__(self, values)
         # Convert datetime
+        dtRegex = re.compile("\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d.\d\d\d")
         for key in self:
-            if "date" in key.lower():
+            if dtRegex.match(str(self[key])):
                 self[key] = pandas.to_datetime(self[key], format="%Y-%m-%d %H:%M:%S.%f")
         # Set local root
         self.localRoot = localRoot
