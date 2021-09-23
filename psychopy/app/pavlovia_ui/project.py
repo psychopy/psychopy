@@ -381,9 +381,9 @@ class DetailsPanel(wx.Panel):
             self.tags.Disable()
         else:
             # Icon
-            if 'avatarUrl' in project:
+            if 'avatarUrl' in project.info:
                 try:
-                    content = requests.get(project['avatarUrl']).content
+                    content = requests.get(project.info['avatarUrl']).content
                     icon = wx.Image(io.BytesIO(content)).ConvertToBitmap()
                 except requests.exceptions.MissingSchema:
                     icon = wx.Bitmap()
@@ -392,46 +392,47 @@ class DetailsPanel(wx.Panel):
             self.icon.SetBitmap(icon)
             self.icon.Enable(project.editable)
             # Title
-            self.title.SetValue(project['name'])
+            self.title.SetValue(project.info['name'])
             self.title.Enable(project.editable)
             # Author
-            self.author.SetLabel(f"by {project['pathWithNamespace'].split('/')[0]} on {project['creationDate']:%d %B %Y}")
+            self.author.SetLabel(f"by {project.info['pathWithNamespace'].split('/')[0]} on {project.info['creationDate']:%d %B %Y}")
             self.author.Enable()
             # Link
-            self.link.SetLabel(project['pathWithNamespace'])
-            self.link.SetURL("https://pavlovia.org/" + project['pathWithNamespace'])
+            self.link.SetLabel(project.info['pathWithNamespace'])
+            self.link.SetURL("https://pavlovia.org/" + project.info['pathWithNamespace'])
             self.link.Enable()
             # Star button
-            self.starBtn.value = True#bool(project['starred'])
+            self.starBtn.value = True#bool(project.info['starred'])
             self.starBtn.Enable()
             # Star label
-            self.starLbl.SetLabel(str(project['nbStars']))
+            self.starLbl.SetLabel(str(project.info['nbStars']))
             self.starLbl.Enable()
             # Fork button
             self.forkBtn.Enable(not project.editable)
             # Fork label
-            self.forkLbl.SetLabel(str(project['nbForks']))
+            self.forkLbl.SetLabel(str(project.info['nbForks']))
             self.forkLbl.Enable()
             # Sync button
             self.syncBtn.Enable(project.editable)
             # Sync label
-            self.syncLbl.SetLabel(f"{project['updateDate']:%d %B %Y, %I:%M%p}")
+            print(project.info['updateDate'], type(project.info['updateDate']))
+            self.syncLbl.SetLabel(f"{project.info['updateDate']:%d %B %Y, %I:%M%p}")
             self.syncLbl.Enable(project.editable)
             # Local root
-            self.localRootLabel.Enable(False)#bool(project['path']))
-            self.localRoot.SetValue("")#project['path'])
-            self.localRoot.Enable(False)#bool(project['path']) and project.editable)
+            self.localRootLabel.Enable(False)#bool(project.info['path']))
+            self.localRoot.SetValue("")#project.info['path'])
+            self.localRoot.Enable(False)#bool(project.info['path']) and project.editable)
             # Description
-            self.description.SetValue(project['description'])
+            self.description.SetValue(project.info['description'])
             self.description.Enable(project.editable)
             # Visibility
-            self.visibility.SetStringSelection(project['visibility'])
+            self.visibility.SetStringSelection(project.info['visibility'])
             self.visibility.Enable(project.editable)
             # Status
-            self.status.SetStringSelection(project['status'])
+            self.status.SetStringSelection(project.info['status'])
             self.status.Enable(project.editable)
             # Tags
-            self.tags.items = []#project['tag_list']
+            self.tags.items = []#project.info['tag_list']
             self.tags.Enable(project.editable)
 
         # Layout
