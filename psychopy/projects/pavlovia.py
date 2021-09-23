@@ -633,6 +633,32 @@ class PavloviaProject(dict):
         return self._editable
 
     @property
+    def starred(self):
+        """
+        Star/unstar the project, or view starred status
+        """
+        # If previous value is cached, return it
+        if hasattr(self, "_starred"):
+            return self._starred
+        # Otherwise, return whether this project is in the list of starred projects
+        self._starred = bool(self.session.gitlab.projects.list(starred=True, search=str(self.id)))
+        return self._starred
+
+    @starred.setter
+    def starred(self, value):
+        # Enforce bool
+        value = bool(value)
+        # Store value
+        self._starred = value
+        # Set on gitlab
+        if value:
+            self.project.star()
+        else:
+            self.project.unstar()
+        # Get info from Pavlovia again, as star count will have changed
+        self.info = requests.get("https://pavlovia.org/api/v2/experiments/" + str(self.id)).json()['experiment']
+
+    @property
     def localRoot(self):
         if hasattr(self, "_localRoot"):
             return self._localRoot

@@ -404,13 +404,13 @@ class DetailsPanel(wx.Panel):
             self.link.SetURL("https://pavlovia.org/" + project.info['pathWithNamespace'])
             self.link.Enable()
             # Star button
-            self.starBtn.value = True#bool(project.info['starred'])
-            self.starBtn.Enable()
+            self.starBtn.value = project.starred
+            self.starBtn.Enable(bool(project.session.user))
             # Star label
             self.starLbl.SetLabel(str(project.info['nbStars']))
             self.starLbl.Enable()
             # Fork button
-            self.forkBtn.Enable(not project.editable)
+            self.forkBtn.Enable(bool(project.session.user) and not project.editable)
             # Fork label
             self.forkLbl.SetLabel(str(project.info['nbForks']))
             self.forkLbl.Enable()
@@ -483,7 +483,8 @@ class DetailsPanel(wx.Panel):
         if obj == self.icon:
             self.project['icon'] = self.icon.GetBitmapFull()
         if obj == self.starBtn:
-            self.project['starred'] = self.starBtn.value
+            self.project.starred = self.starBtn.value
+            self.starLbl.SetLabel(str(self.project.info['nbStars']))
         if obj == self.localRoot:
             self.project.localRoot = self.localRoot.Value
         if obj == self.description:
