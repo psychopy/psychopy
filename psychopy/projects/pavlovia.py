@@ -504,20 +504,19 @@ class PavloviaSearch(pandas.DataFrame):
         # Replace default filter
         if filterBy is None:
             filterBy = {}
-        # Define stem according to whether we're searching all projects or just owned
-        if mine:
-            session = getCurrentSession()
-            stem = f"api/v2/designers/{session.userID}"
-        else:
-            stem = "api/v2"
         # Ensure filter is a FilterTerm
         filterBy = self.FilterTerm(filterBy)
         try:
-            data = requests.get(f"https://pavlovia.org/{stem}/experiments?search={term}{filterBy}", timeout=2).json()
+            data = requests.get(f"https://pavlovia.org/api/v2/experiments?search={term}{filterBy}", timeout=2).json()
         except requests.exceptions.ReadTimeout:
             msg = "Could not connect to Pavlovia server. Please check that you are conencted to the internet. If you are connected, then the Pavlovia servers may be down. You can check their status here: https://pavlovia.org/status"
             raise ConnectionError(msg)
+        # Construct dataframe
         pandas.DataFrame.__init__(self, data=data['experiments'])
+        # Apply me mode
+        if mine:
+            session = getCurrentSession()
+            self.drop(self.loc[self['creatorId'] != session.userID].index, inplace=True)
         # Do any requested sorting
         if sortBy is not None:
             self.sort_values(sortBy)
