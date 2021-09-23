@@ -20,16 +20,18 @@ class TargetStim(ShapeStim):
         if name is None:
             name = "target"
         # Init super (creates outer circle)
+        if units is None:
+            units = win.units
         ShapeStim.__init__(self, win, name=name,
                            vertices="circle",
                            size=(radius*2, radius*2), pos=pos,
-                           lineWidth=lineWidth, units=(units or ''),
+                           lineWidth=lineWidth, units=units,
                            fillColor=fillColor, lineColor=borderColor, colorSpace=colorSpace,
                            autoLog=autoLog, autoDraw=autoDraw)
 
         self.inner = ShapeStim(win, name=name+"Inner",
                                vertices="circle",
-                               size=(innerRadius*2, innerRadius*2), pos=pos, units=(units or ''),
+                               size=(innerRadius*2, innerRadius*2), pos=pos, units=units,
                                lineWidth=(innerLineWidth or lineWidth),
                                fillColor=innerFillColor, lineColor=innerBorderColor, colorSpace=colorSpace,
                                autoLog=autoLog, autoDraw=autoDraw)
