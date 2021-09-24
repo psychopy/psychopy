@@ -622,10 +622,10 @@ class PavloviaProject(dict):
         if self.session.user:
             # Get current user id
             _id = self.session.user.attributes['id']
-            # Search gitlab project users for id
-            results = self.project.users.list(id=_id)
-            # Return whether or not the search returns any result
-            self._editable = bool(results)
+            # Get gitlab project users
+            _users = self.project.users.list()
+            # Return whether or not current user in in project users
+            self._editable = _id in [user.id for user in _users]
         else:
             # If there's no user, they can't edit, so return False
             self._editable = False
