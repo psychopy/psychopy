@@ -19,7 +19,7 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
                  showCursor=True, cursorFillColor="green",
                  innerFillColor='green', innerBorderColor='black', innerBorderWidth=2, innerRadius=0.0035,
                  fillColor='', borderColor="black", borderWidth=2, outerRadius=0.01,
-                 colorSpace="rgb", units='from exp settings',
+                 colorSpace="rgb", units='from exp settings', textColor="auto",
                  randomisePos=True, targetLayout="NINE_POINTS", targetPositions="NINE_POINTS",
                  progressMode="time", targetDur=1.5, expandDur=1, expandScale=1.5,
                  movementAnimation=True, movementDur=1.0, targetDelay=1.0,
@@ -52,6 +52,7 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
             "randomisePos",
             "showCursor",
             "cursorFillColor",
+            "textColor"
         ]
 
         self.params['targetLayout'] = Param(targetLayout,
@@ -81,9 +82,14 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
                                             label=_translate("Randomise Target Positions"))
 
         self.params['cursorFillColor'] = Param(cursorFillColor,
-            valType="color", inputType="color", categ="Basic",
-            hint=_translate("Fill color of the gaze cursor"),
-            label=_translate("Gaze Cursor Color"))
+                                               valType="color", inputType="color", categ="Basic",
+                                               hint=_translate("Fill color of the gaze cursor"),
+                                               label=_translate("Gaze Cursor Color"))
+
+        self.params['textColor'] = Param(textColor,
+                                               valType="color", inputType="color", categ="Basic",
+                                               hint=_translate("Color of text used in validation procedure."),
+                                               label=_translate("Text Color"))
 
         # Target Params
         self.order += [
@@ -325,7 +331,7 @@ class EyetrackerValidationRoutine(BaseStandaloneRoutine):
                 "positions=%(targetPositions)s, randomize_positions=%(randomisePos)s,\n"
                 "expand_scale=%(expandScale)s, target_duration=%(targetDur)s,\n"
                 "enable_position_animation=%(movementAnimation)s, target_delay=%(targetDelay)s,\n"
-                "progress_on_key=%(progressKey)s,\n"
+                "progress_on_key=%(progressKey)s, text_color=%(textColor)s,\n"
                 "show_results_screen=%(showResults)s, save_results_screen=%(saveAsImg)s,\n"
                 "color_space=%(colorSpace)s, unit_type=%(units)s\n"
         )
