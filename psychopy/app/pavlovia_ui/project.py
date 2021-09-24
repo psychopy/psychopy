@@ -479,22 +479,22 @@ class DetailsPanel(wx.Panel):
         if obj == self.title:
             self.project['name'] = self.title.Value
         if obj == self.icon:
-            self.project['icon'] = self.icon.GetBitmapFull()
+            pass
         if obj == self.starBtn:
             self.project.starred = self.starBtn.value
             self.starLbl.SetLabel(str(self.project.info['nbStars']))
         if obj == self.localRoot:
             self.project.localRoot = self.localRoot.Value
         if obj == self.description:
-            self.project['desc'] = self.description.Value
+            self.project['description'] = self.description.Value
         if obj == self.visibility:
             self.project['visibility'] = self.visibility.GetStringSelection()
         if obj == self.status:
-            self.project['status'] = self.status.GetStringSelection()
+            pass
         if obj == self.tags:
-            self.project['tags'] = self.tags.GetValue()
+            self.project['tag_list'] = self.tags.GetValue()
 
-        # todo: Update project online
+        self.project.save()
 
 
 class ProjectFrame(wx.Dialog):
