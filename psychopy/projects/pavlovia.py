@@ -586,8 +586,7 @@ class PavloviaProject(dict):
 
     def __setitem__(self, key, value):
         dict.__setitem__(self, key, value)
-        #self.project.attributes[key] = value
-        # todo: send request on set
+        self.project.attributes[key] = value
 
     @property
     def session(self):
@@ -1007,7 +1006,7 @@ class PavloviaProject(dict):
 
     def save(self):
         """Saves the metadata to gitlab.pavlovia.org"""
-        self.pavlovia.save()
+        self.project.save()
         # note that saving info locally about known projects is done
         # by the knownProjects DictStorage class
 
