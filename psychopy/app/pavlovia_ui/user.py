@@ -30,7 +30,7 @@ class UserFrame(wx.Dialog):
                            size=size)
         self.app = parent.app
         self.sizer = wx.BoxSizer()
-        self.sizer.Add(UserPanel(self), proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
+        self.sizer.Add(UserPanel(self), proportion=1, border=12, flag=wx.ALL | wx.EXPAND)
         self.SetSizerAndFit(self.sizer)
 
 
