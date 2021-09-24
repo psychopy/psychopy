@@ -8,6 +8,9 @@
 from .functions import logInPavlovia, logOutPavlovia
 from psychopy.localization import _translate
 from psychopy.projects import pavlovia
+from psychopy.app import utils
+import requests
+import io
 from psychopy import prefs
 import os
 import wx
@@ -17,115 +20,174 @@ except ImportError:
     import wx.lib.hyperlink as wxhl # <3.0.2
 
 
-class UserEditor(wx.Dialog):
-    defStyle = wx.DEFAULT_DIALOG_STYLE #| wx.RESIZE_BORDER
-    def __init__(self, parent=None, id=wx.ID_ANY, style=defStyle,
-                 *args, **kwargs):
+class UserFrame(wx.Dialog):
+    def __init__(self, parent,
+                 style=wx.DEFAULT_DIALOG_STYLE | wx.CENTER | wx.TAB_TRAVERSAL | wx.RESIZE_BORDER,
+                 size=(-1, -1)):
 
-        wx.Dialog.__init__(self, parent, id,
-                           *args, style=style, **kwargs)
-        self.SetWindowStyle(wx.STAY_ON_TOP)  # this will be a modal dialog
-        panel = wx.Panel(self, wx.ID_ANY, style=wx.TAB_TRAVERSAL)
+        wx.Dialog.__init__(self, parent,
+                           style=style,
+                           size=size)
+        self.app = parent.app
+        self.sizer = wx.BoxSizer()
+        self.sizer.Add(UserPanel(self), proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
+        self.SetSizerAndFit(self.sizer)
+
+
+class UserPanel(wx.Panel):
+    def __init__(self, parent,
+                 size=(600, 500),
+                 style=wx.NO_BORDER):
+        wx.Panel.__init__(self, parent, -1,
+                          size=size,
+                          style=style)
         self.parent = parent
-        self.app = wx.GetApp()
-        pavSession = pavlovia.getCurrentSession()
-        if pavSession.user:
-            pavSession.gitlab.auth()
-            self.user = pavSession.user
+        self.SetBackgroundColour("white")
+        self.session = pavlovia.getCurrentSession()
+        iconCache = parent.app.iconCache
+        # Setup sizer
+        self.contentBox = wx.BoxSizer()
+        self.SetSizer(self.contentBox)
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.contentBox.Add(self.sizer, proportion=1, border=12, flag=wx.ALL | wx.EXPAND)
+        # Head sizer
+        self.headSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.sizer.Add(self.headSizer, border=0, flag=wx.EXPAND)
+        # Icon
+        self.icon = utils.ImageCtrl(self, bitmap=wx.Bitmap(), size=(128, 128))
+        self.icon.SetBackgroundColour("#f2f2f2")
+        self.icon.Bind(wx.EVT_FILEPICKER_CHANGED, self.updateUser)
+        self.headSizer.Add(self.icon, border=6, flag=wx.ALL)
+        # Title sizer
+        self.titleSizer = wx.BoxSizer(wx.VERTICAL)
+        self.headSizer.Add(self.titleSizer, proportion=1, flag=wx.EXPAND)
+        # Full name
+        self.fullName = wx.TextCtrl(self, size=(-1, -1), value="---")
+        self.fullName.SetFont(
+            wx.Font(24, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
+        )
+        self.titleSizer.Add(self.fullName, border=6, flag=wx.ALL | wx.EXPAND)
+        # Organisation
+        self.organisation = wx.TextCtrl(self, size=(-1, -1), value="---")
+        self.titleSizer.Add(self.organisation, border=6, flag=wx.ALL | wx.EXPAND)
+        # Spacer
+        self.titleSizer.AddStretchSpacer(1)
+        # Button sizer
+        self.btnSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.titleSizer.Add(self.btnSizer, flag=wx.EXPAND)
+        # Spacer
+        self.btnSizer.AddStretchSpacer(1)
+        # Pavlovia link
+        self.link = wxhl.HyperLinkCtrl(self, -1,
+                                       label="",
+                                       URL="https://gitlab.pavlovia.org/",
+                                       )
+        self.link.SetBackgroundColour(self.GetBackgroundColour())
+        self.btnSizer.Add(self.link, border=6, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
+        # Login
+        self.login = wx.Button(self, label=_translate("Login"), style=wx.BORDER_NONE)
+        self.login.SetBitmap(iconCache.getBitmap(name="person_off", size=16))
+        self.login.Bind(wx.EVT_BUTTON, self.onLogin)
+        self.btnSizer.Add(self.login, border=6, flag=wx.ALL | wx.EXPAND)
+        # Logout
+        self.logout = wx.Button(self, label=_translate("Logout"), style=wx.BORDER_NONE)
+        self.logout.SetBitmap(iconCache.getBitmap(name="person_off", size=16))
+        self.logout.Bind(wx.EVT_BUTTON, self.onLogout)
+        self.btnSizer.Add(self.logout, border=6, flag=wx.ALL | wx.EXPAND)
+        # Sep
+        self.sizer.Add(wx.StaticLine(self, -1), border=6, flag=wx.EXPAND | wx.ALL)
+        # Bio
+        self.description = wx.TextCtrl(self, size=(-1, -1), value="", style=wx.TE_MULTILINE)
+        self.description.SetMaxLength(250)
+        self.description.Bind(wx.EVT_TEXT, self.updateUser)
+        self.sizer.Add(self.description, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
+
+        # Populate
+        self.user = self.session.user
+
+    @property
+    def user(self):
+        if hasattr(self, "_user"):
+            return self._user
+
+    @user.setter
+    def user(self, user):
+        self._user = user
+
+        if user is None:
+            # Icon
+            self.icon.SetBitmap(wx.Bitmap())
+            self.icon.Disable()
+            # Full name
+            self.fullName.SetValue("---")
+            self.fullName.Disable()
+            # Organisation
+            self.organisation.SetValue("---")
+            self.organisation.Disable()
+            # Link
+            self.link.SetLabel("")
+            self.link.SetURL("https://pavlovia.org/")
+            self.link.Disable()
+            # Hide logout and show login
+            self.logout.Hide()
+            self.login.Show()
+            # Description
+            self.description.SetValue("")
+            self.description.Disable()
         else:
-            self.user = logInPavlovia(parent=parent)
-            if not self.user:
-                return  # they were given a login but cancelled
-        if type(self.user) != pavlovia.User:
-            self.user = pavlovia.User(gitlabData=self.user)
-
-        # create the controls
-        userField = wxhl.HyperLinkCtrl(panel, id=wx.ID_ANY,
-                                       label=self.user.url, URL=self.user.url)
-        logoutBtn = wx.Button(panel, label=_translate("Logout"))
-        logoutBtn.Bind(wx.EVT_BUTTON, self.onLogout)
-        nameLabel = wx.StaticText(panel, id=wx.ID_ANY,
-                                  label=_translate("Full name:"))
-        self.nameField = wx.StaticText(panel, wx.ID_ANY, self.user.name)
-        bitmapFile = self.user.avatar or "user_invisible.png"
-        self.avatarBtn = self.app.iconCache.makeBitmapButton(
-                    parent=panel,
-                    filename=bitmapFile,
-                    label=self.user.name, name=self.user.name)
-
-        org = self.user.organization or ""
-        orgLabel = wx.StaticText(panel, wx.ID_ANY, _translate("Organization:"))
-        self.orgField = wx.StaticText(panel, wx.ID_ANY, org, size=(300, -1))
-
-        bio = self.user.bio or ""
-        self.bioLabel = wx.StaticText(panel, wx.ID_ANY, _translate("Bio (250 chrs):"))
-        self.bioField = wx.StaticText(panel, wx.ID_ANY, bio,
-                                    style=wx.TE_MULTILINE)
-        # submit/cancel
-        buttonMsg = _translate("OK")
-        updateBtn = wx.Button(panel, id=wx.ID_OK, label=buttonMsg)
-        updateBtn.Bind(wx.EVT_BUTTON, self.submitChanges)
-        # cancelBtn = wx.Button(panel, id=wx.ID_CANCEL, label=_translate("Cancel"))
-        # cancelBtn.Bind(wx.EVT_BUTTON, self.onCancel)
-
-        # layout
-        userAndLogout = wx.BoxSizer(wx.VERTICAL)
-        userAndLogout.Add(userField, 1, wx.ALL | wx.CENTER, 5)
-        userAndLogout.Add(logoutBtn, 0, wx.ALL | wx.CENTER , 5)
-        topRow = wx.BoxSizer(wx.HORIZONTAL)
-        topRow.Add(userAndLogout, 1, wx.ALL | wx.CENTER, 5)
-        topRow.Add(self.avatarBtn, 0, wx.ALL | wx.RIGHT, 5)
-
-        fieldsSizer = wx.FlexGridSizer(cols=2, rows=5, vgap=10, hgap=10)
-        fieldsSizer.AddMany([
-            (nameLabel, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL),
-            (self.nameField,0, wx.EXPAND),
-            (orgLabel, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL),
-            (self.orgField,0, wx.EXPAND),
-            (self.bioLabel, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL),
-            (self.bioField, 1, wx.EXPAND),
-        ])
-
-        btnSizer = wx.BoxSizer(wx.HORIZONTAL)
-        btnSizer.Add(updateBtn)
-
-        border = wx.BoxSizer(wx.VERTICAL)
-        border.Add(topRow, 0, wx.ALL| wx.EXPAND, 5)
-        border.Add(fieldsSizer, 1, wx.ALL | wx.EXPAND, 10)
-        border.Add(btnSizer, 0, wx.ALIGN_RIGHT | wx.ALL, 5)
-        panel.SetSizerAndFit(border)
-        self.Fit()
+            try:
+                content = requests.get(user.attributes['avatar_url']).content
+                icon = wx.Image(io.BytesIO(content)).ConvertToBitmap()
+            except requests.exceptions.MissingSchema:
+                icon = wx.Bitmap()
+            self.icon.SetBitmap(icon)
+            self.icon.Enable()
+            # Icon
+            self.icon.SetBitmap(wx.Bitmap())
+            self.icon.Enable()
+            # Full name
+            self.fullName.SetValue(user.attributes['name'] or "")
+            self.fullName.Enable()
+            # Organisation
+            self.organisation.SetValue(user.attributes['organization'] or "No organization")
+            self.organisation.Enable()
+            # Link
+            self.link.SetLabel("%(username)s (%(id)s)" % user.attributes)
+            self.link.SetURL(user.attributes['web_url'] or "")
+            self.link.Enable()
+            # Hide logout and show login
+            self.logout.Show()
+            self.login.Hide()
+            # Description
+            self.description.SetValue(user.attributes['bio'] or "")
+            self.description.Enable()
+        self.Layout()
 
     def onLogout(self, evt=None):
-        logOutPavlovia(self.parent)
-        self.user = None
-        self.Close()
+        self.user = logOutPavlovia(self.parent)
 
-    def onCancel(self, evt=None):
-        self.EndModal(wx.ID_CANCEL)
+    def onLogin(self, evt=None):
+        self.user = logInPavlovia(parent=self.parent)
 
-    def submitChanges(self, evt=None):
-        # print("updating gitlab.pavlovia.org users from within PsychoPy not yet working")
-        # isDirty = False
-        # toCheck = {'name': self.nameField.GetValue,
-        #            'organization': self.orgField.GetValue,
-        #            'bio': self.bioField.GetValue,
-        #            }
-        # for field in toCheck:
-        #     newVal = toCheck[field]()
-        #     prev = getattr(self.user, field)
-        #     if prev != newVal and not (prev is None and newVal==""):
-        #         setattr(self.user, field, newVal)
-        #         isDirty = True
-        # if isDirty:
-        #     # currently gives an error:
-        #     # https://github.com/python-gitlab/python-gitlab/issues/547
-        #     self.user.save()
-        self.EndModal(wx.ID_OK)
+    def updateUser(self, evt=None):
+        # Skip if no user
+        if self.user is None or evt is None or self.session.user is None:
+            return
+        # Get object
+        obj = evt.GetEventObject()
+        # Update full name
+        if obj == self.fullName:
+            self.session.user.attributes['full_name'] = self.fullName.GetValue()
+        # Update organisation
+        if obj == self.organisation:
+            self.session.user.attributes['organization'] = self.organisation.GetValue()
+        # Update bio
+        if obj == self.description:
+            self.session.user.attributes['bio'] = self.description.GetValue()
+        # Update avatar
+        if obj == self.icon:
+            if self.icon.path:
+                self.session.user.avatar = open(self.icon.path, 'rb')
 
-    def onSetAvatar(self, event=None):
-        print("Uploading a user image (avatar) from within PsychoPy is not yet supported. "
-              "You can do that by going to the gitlab.pavlovia.org profile settings.")
-
-    def onURL(self, evt):
-        print(dir(evt))
+        # Save
+        #self.session.user.save()

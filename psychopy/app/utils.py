@@ -598,6 +598,7 @@ class ImageCtrl(wx.StaticBitmap):
     def SetBitmap(self, bitmap):
         # Get from file if needed
         if not isinstance(bitmap, wx.Bitmap):
+            self.path = bitmap
             bitmap = wx.Bitmap(bitmap)
         # Sub in blank bitmaps
         if not bitmap.IsOk():
@@ -611,6 +612,18 @@ class ImageCtrl(wx.StaticBitmap):
         scaledBitmap = wx.BitmapFromImage(buffer)
         # Set image
         wx.StaticBitmap.SetBitmap(self, scaledBitmap)
+
+    @property
+    def path(self):
+        """
+        If current bitmap is from a file, returns the filepath. Otherwise, returns None.
+        """
+        if hasattr(self, "_path"):
+            return self._path
+
+    @path.setter
+    def path(self, value):
+        self._path = value
 
     def GetBitmapFull(self):
         return self._fullBitmap
