@@ -225,6 +225,12 @@ class Keyboard(ioHubKeyboardDevice):
         if Keyboard.use_psychopy_keymap and key in psychopy_key_mappings.keys():
             key = psychopy_key_mappings[key]
 
+            # win32 specific handling of keypad / and - keys
+            if event.Key == 'Subtract':
+                key = 'num_subtract'
+            elif event.Key == 'Divide':
+                key = 'num_divide'
+
         return key, char
 
     def _evt2json(self, event):
@@ -309,6 +315,7 @@ class Keyboard(ioHubKeyboardDevice):
                 key = modKeyName
                 char = ''
             else:
+                print2err(event.Key," ",event.Ascii," ", event.KeyID," ", event.ScanCode," ", event.flags)
                 key, char = self._getKeyCharValue(event)
 
             kb_event = [0,
