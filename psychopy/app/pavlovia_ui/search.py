@@ -147,12 +147,10 @@ class SearchPanel(wx.Panel):
         else:
             term = evt.GetString()
         # Abandom blank search
-        if term == "":
+        if term == "" and not self._mine and not any(bool(val) for val in self.filterTerms.values()):
             self.projectList.DeleteAllItems()
             self.projects = None
             return
-        # Get session
-        session = pavlovia.getCurrentSession()
         # Do search
         self.projects = pavlovia.PavloviaSearch(term=term, filterBy=self.filterTerms, mine=self._mine)
 
