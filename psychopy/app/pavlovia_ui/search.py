@@ -64,6 +64,40 @@ class SearchPanel(wx.Panel):
     """A scrollable panel showing a list of projects. To be used within the
     Project Search dialog
     """
+    class FilterLabel(wx.StaticText):
+        """
+        A label to show what filters and sorting are applied to the current search
+        """
+        def update(self):
+            # Get parent object
+            parent = self.GetParent()
+            # Add me mode
+            mineLbl = ""
+            if parent._mine:
+                mineLbl += "Owned by me. "
+            # Add sort params
+            sortLbl = ""
+            if len(parent.sortOrder):
+                sortLbl += "Sort by: "
+                sortLbl += " then ".join([item.label.lower() for item in parent.sortOrder])
+                sortLbl += ". "
+            # Add filter params
+            filterLbl = ""
+            for key, values in parent.filterTerms.items():
+                if values:
+                    if isinstance(values, str):
+                        values = [values]
+                    filterLbl += f"{key}: "
+                    filterLbl += " or ".join(values)
+                    filterLbl += ". "
+            # Construct full label
+            label = mineLbl + sortLbl + filterLbl
+            # Apply label
+            self.SetLabel(label)
+            self.Wrap(parent.GetSize()[0] - 12)
+            # Show or hide self according to label
+            self.Show(bool(label))
+            parent.Layout()
 
     def __init__(self, parent, viewer,
                  size=(400, -1),
@@ -94,7 +128,7 @@ class SearchPanel(wx.Panel):
         self._mine = False
         self.mineBtn.Bind(wx.EVT_TOGGLEBUTTON, self.onMineBtn)
         self.mineBtn.Enable(self.session.userID is not None)
-        self.btnSizer.Add(self.mineBtn, border=4, flag=wx.EXPAND | wx.ALL)
+        self.btnSizer.Add(self.mineBtn, border=4, flag=wx.EXPAND | wx.RIGHT | wx.TOP | wx.BOTTOM)
         self.btnSizer.AddStretchSpacer(1)
         # Add sort button
         self.sortBtn = wx.Button(self, label=_translate("Sort..."), style=wx.BORDER_NONE)
@@ -119,6 +153,10 @@ class SearchPanel(wx.Panel):
         }
         self.filterBtn.Bind(wx.EVT_BUTTON, self.filter)
         self.btnSizer.Add(self.filterBtn, border=6, flag=wx.LEFT)
+        # Add filter label
+        self.filterLbl = self.FilterLabel(self)
+        self.sizer.Add(self.filterLbl, border=6, flag=wx.LEFT | wx.RIGHT)
+        self.filterLbl.update()
         # Add project list
         self.projectList = ListCtrl(self, size=(-1, -1), style=wx.LC_REPORT | wx.LC_SINGLE_SEL)
         self.projectList.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.showProject)
@@ -202,6 +240,7 @@ class SearchPanel(wx.Panel):
             self.projects.sort_values(self.sortOrder)
         # Refresh
         self.refreshCtrl()
+        self.filterLbl.update()
 
     def filter(self, evt=None):
         # Open filter dlg
@@ -213,6 +252,8 @@ class SearchPanel(wx.Panel):
             return
         # Update filters if Okayed
         self.filterTerms = _dlg.GetValue()
+        # Update filter label
+        self.filterLbl.update()
         # Re-search
         self.search()
 
@@ -230,6 +271,8 @@ class SearchPanel(wx.Panel):
             self.mineBtn.Value = evt
         # Apply "mine" filter
         self._mine = self.mineBtn.Value
+        # Update
+        self.filterLbl.update()
         self.search()
 
 
