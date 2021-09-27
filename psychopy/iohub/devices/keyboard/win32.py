@@ -315,7 +315,6 @@ class Keyboard(ioHubKeyboardDevice):
                 key = modKeyName
                 char = ''
             else:
-                print2err(event.Key," ",event.Ascii," ", event.KeyID," ", event.ScanCode," ", event.flags)
                 key, char = self._getKeyCharValue(event)
 
             kb_event = [0,
