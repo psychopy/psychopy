@@ -395,11 +395,11 @@ class DetailsPanel(wx.Panel):
             self.title.SetValue(project['name'])
             self.title.Enable(project.editable)
             # Author
-            self.author.SetLabel(f"by {project['name_with_namespace'].split('/')[0]} on {project['created_at']:%d %B %Y}")
+            self.author.SetLabel(f"by {project['path_with_namespace'].split('/')[0]} on {project['created_at']:%d %B %Y}")
             self.author.Enable()
             # Link
-            self.link.SetLabel(project['name_with_namespace'])
-            self.link.SetURL("https://pavlovia.org/" + project['name_with_namespace'])
+            self.link.SetLabel(project['path_with_namespace'])
+            self.link.SetURL("https://pavlovia.org/" + project['path_with_namespace'])
             self.link.Enable()
             # Star button
             self.starBtn.value = project.starred
