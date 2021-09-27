@@ -181,20 +181,16 @@ class SearchPanel(wx.Panel):
             ])
 
     def sort(self, evt=None):
-        # Get list of items
-        allItems = list(pavlovia.PavloviaSearch.sortMap)
-        items = []
-        selected = [False] * len(allItems)
-        # Set order from .sortOrder
-        for item in self.sortOrder:
-            items.append(item)
-        for item in allItems:
-            if item not in items:
-                items.append(item)
-        # Set selected from .sortOrder
-        for i, item in enumerate(items):
+        # Create temporary arrays
+        items = copy.deepcopy(self.sortOrder)
+        selected = []
+        # Append missing items to copy
+        for item in pavlovia.PavloviaSearch.sortTerms:
             if item in self.sortOrder:
-                selected[i] = True
+                selected.append(True)
+            else:
+                items.append(copy.deepcopy(item))
+                selected.append(False)
         # Create dlg
         _dlg = SortDlg(self, items=items, selected=selected)
         if _dlg.ShowModal() != wx.ID_OK:
@@ -239,9 +235,8 @@ class SearchPanel(wx.Panel):
 
 class SortDlg(wx.Dialog):
     def __init__(self, parent, size=(200, 400),
-                 items=tuple(pavlovia.PavloviaSearch.sortMap),
-                 selected=False
-                 ):
+                 items=pavlovia.PavloviaSearch.sortTerms,
+                 selected=False):
         wx.Dialog.__init__(self, parent, size=size, title="Sort by...", style=wx.DEFAULT_DIALOG_STYLE | wx.DIALOG_NO_PARENT)
         # Setup sizer
         self.contentBox = wx.BoxSizer(wx.VERTICAL)
@@ -251,8 +246,8 @@ class SortDlg(wx.Dialog):
         # Create rearrange control
         self.ctrls = utils.SortCtrl(self,
                                     items=items,
-                                    showSelect=True,
-                                    selected=selected)
+                                    showFlip=True,
+                                    showSelect=True, selected=selected)
         self.sizer.Add(self.ctrls, border=6, flag=wx.EXPAND | wx.ALL)
         # Add Okay button
         self.sizer.AddStretchSpacer(1)

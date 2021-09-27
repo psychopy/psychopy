@@ -25,6 +25,8 @@ from psychopy import app
 from psychopy.localization import _translate
 import wx
 
+from ..tools.apptools import SortTerm
+
 try:
     import git  # must import psychopy constants before this (custom git path)
     haveGit = True
@@ -458,15 +460,15 @@ class PavloviaSession:
 
 
 class PavloviaSearch(pandas.DataFrame):
-    # Map sort menu items to project columns (- = descending, + = ascending)
-    sortMap = {
-        "Most stars": "nbStars-",
-        "Most forks": "nbForks-",
-        "Last edited": "updateDate-",
-        "First created": "creationDate+",
-        "Name (A-Z)": "name+",
-        "Author (A-Z)": "pathWithNamespace+"
-    }
+    # List all possible sort terms
+    sortTerms = [
+        SortTerm("nbStars", dLabel=_translate("Most stars"), aLabel=_translate("Least stars"), ascending=False),
+        SortTerm("nbForks", dLabel=_translate("Most forks"), aLabel=_translate("Least forks"), ascending=False),
+        SortTerm("updateDate", dLabel=_translate("Last edited"), aLabel=_translate("Longest since edited"), ascending=False),
+        SortTerm("creationDate", dLabel=_translate("Last created"), aLabel=_translate("First created"), ascending=False),
+        SortTerm("name", dLabel=_translate("Name (Z-A)"), aLabel=_translate("Name (A-Z)"), ascending=True),
+        SortTerm("pathWithNamespace", dLabel=_translate("Author (Z-A)"), aLabel=_translate("Author (A-Z)"), ascending=True),
+    ]
 
     class FilterTerm(dict):
         # Map filter menu items to project columns
@@ -526,19 +528,11 @@ class PavloviaSearch(pandas.DataFrame):
             by = [str(by)]
         # Add mapped and selected menu items to sort keys list
         sortKeys = []
-        for item in by:
-            if item in self.sortMap:
-                sortKeys.append(self.sortMap[item])
-            elif item in self.columns:
-                sortKeys.append(item)
-        # Work out sort direction
         ascending = []
-        for i, item in enumerate(sortKeys):
-            if item.endswith("+") or item.endswith("-"):
-                ascending += [item[-1] == "+"]
-                sortKeys[i] = item[:-1]
-            else:
-                ascending += [True]
+        for item in by:
+            if item.value in self.columns:
+                sortKeys.append(item.value)
+                ascending.append(item.ascending)
         # Add pavlovia score as final sort option
         sortKeys.append("pavloviaScore")
         ascending += [False]

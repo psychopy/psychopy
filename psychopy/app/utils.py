@@ -25,6 +25,7 @@ from . import icons
 from .themes import ThemeMixin, IconCache
 from psychopy.localization import _translate
 from psychopy.tools.stringtools import prettyname
+from psychopy.tools.apptools import SortTerm
 
 
 class FileDropTarget(wx.FileDropTarget):
@@ -462,11 +463,18 @@ class ButtonArray(wx.Window):
 
 class SortCtrl(wx.Window):
     class SortItem(wx.Window):
-        def __init__(self, parent, label="", showSelect=False, selected=True):
+        def __init__(self, parent,
+                     item,
+                     showSelect=False, selected=True,
+                     showFlip=False
+                     ):
             # Create self
             wx.Window.__init__(self, parent, style=wx.BORDER_NONE)
             self.SetBackgroundColour("white")
             self.parent = parent
+            # Make sure we've been given a SortTerm
+            assert isinstance(item, SortTerm)
+            self.item = item
             # Setup sizer
             self.sizer = wx.BoxSizer(wx.HORIZONTAL)
             self.SetSizer(self.sizer)
@@ -477,8 +485,14 @@ class SortCtrl(wx.Window):
             self.selectCtrl.Show(showSelect)
             self.sizer.Add(self.selectCtrl, border=6, flag=wx.ALL | wx.EXPAND)
             # Add label
-            self.label = wx.StaticText(self, label=label)
-            self.sizer.Add(self.label, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
+            self.labelObj = wx.StaticText(self, label=self.item.label)
+            self.sizer.Add(self.labelObj, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
+            # Add flip button
+            self.flipBtn = wx.Button(self, size=(16, 8), label="⇵", style=wx.BORDER_NONE)
+            self.flipBtn.SetBackgroundColour(self.GetBackgroundColour())
+            self.flipBtn.Bind(wx.EVT_BUTTON, self.flip)
+            self.flipBtn.Show(showFlip)
+            self.sizer.Add(self.flipBtn, border=6, flag=wx.ALL | wx.EXPAND)
             # Add ctrls sizer
             self.ctrlsSizer = wx.BoxSizer(wx.VERTICAL)
             self.sizer.Add(self.ctrlsSizer, border=6, flag=wx.ALL | wx.EXPAND)
@@ -496,6 +510,20 @@ class SortCtrl(wx.Window):
             self.ctrlsSizer.Add(self.downBtn, border=0, flag=wx.ALL | wx.EXPAND)
             # Do initial select
             self.onSelect()
+
+        @property
+        def label(self):
+            return self.item.label
+
+        @property
+        def value(self):
+            return self.item.value
+
+        def flip(self, evt=None):
+            # Flip state
+            self.item.ascending = not self.item.ascending
+            # Change label
+            self.labelObj.SetLabel(self.label)
 
         def moveUp(self, evt=None):
             # Get own index
@@ -521,24 +549,34 @@ class SortCtrl(wx.Window):
             self.Enable(self.selected)
 
         def Enable(self, enable=True):
-            self.label.Enable(enable)
+            self.labelObj.Enable(enable)
 
         def Disable(self):
             self.Enable(False)
 
-    def __init__(self, parent, items=(), showSelect=False, selected=True, orient=wx.VERTICAL):
+    def __init__(self, parent,
+                 items,
+                 showSelect=False, selected=True,
+                 showFlip=False,
+                 orient=wx.VERTICAL):
         wx.Window.__init__(self, parent)
+        # Make sure we've been given an array
+        if not isinstance(items, (list, tuple)):
+            items = [items]
         # Setup sizer
         self.sizer = wx.BoxSizer(orient)
         self.SetSizer(self.sizer)
         # If given a bool for select, apply it to all items
         if isinstance(selected, bool):
-            select = [selected] * len(items)
-        assert isinstance(selected, (list, tuple)) and len(selected) == len(items), "Parameter 'select' of SortCtrl must be either a bool value or a list containing a bool value for each item."
+            selected = [selected] * len(items)
+        assert isinstance(selected, (list, tuple)) and len(selected) == len(items)
         # Setup items
         self.items = []
-        for i, label in enumerate(items):
-            self.items.append(self.SortItem(self, label=label, showSelect=showSelect, selected=selected[i]))
+        for i, item in enumerate(items):
+            self.items.append(self.SortItem(self,
+                                            item=item,
+                                            showSelect=showSelect, selected=selected[i],
+                                            showFlip=showFlip))
             self.sizer.Add(self.items[i], border=6, flag=wx.ALL | wx.EXPAND)
         # Layout
         self.Layout()
@@ -547,7 +585,7 @@ class SortCtrl(wx.Window):
         items = []
         for item in self.items:
             if item.selected:
-                items.append(item.label.GetLabel())
+                items.append(item.item)
         return items
 
     def Layout(self):
