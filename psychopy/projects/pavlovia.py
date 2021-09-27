@@ -584,6 +584,19 @@ class PavloviaProject(dict):
         # Set local root
         self.localRoot = localRoot
 
+    def __getitem__(self, key):
+        # Get either from self or project.attributes
+        try:
+            value = dict.__getitem__(self, key)
+        except KeyError:
+            value = self.project.attributes[key]
+        # Transform datetimes
+        dtRegex = re.compile("\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(.\d\d\d)?\w?")
+        if dtRegex.match(str(value)):
+            value = pandas.to_datetime(value, format="%Y-%m-%d %H:%M:%S.%f")
+
+        return value
+
     def __setitem__(self, key, value):
         dict.__setitem__(self, key, value)
         self.project.attributes[key] = value
