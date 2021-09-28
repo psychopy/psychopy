@@ -94,10 +94,17 @@ class SearchPanel(wx.Panel):
             label = mineLbl + sortLbl + filterLbl
             # Apply label
             self.SetLabel(label)
-            self.Wrap(parent.GetSize()[0] - 12)
             # Show or hide self according to label
             self.Show(bool(label))
             parent.Layout()
+
+        def hoverOn(self, evt=None):
+            self.Wrap(self.GetParent().GetSize()[0] - 12)
+            self.GetParent().Layout()
+
+        def hoverOff(self, evt=None):
+            self.SetLabel(self.GetLabel().replace("\n", " "))
+            self.GetParent().Layout()
 
     def __init__(self, parent, viewer,
                  size=(400, -1),
@@ -154,7 +161,9 @@ class SearchPanel(wx.Panel):
         self.filterBtn.Bind(wx.EVT_BUTTON, self.filter)
         self.btnSizer.Add(self.filterBtn, border=6, flag=wx.LEFT)
         # Add filter label
-        self.filterLbl = self.FilterLabel(self)
+        self.filterLbl = self.FilterLabel(self, style=wx.ST_ELLIPSIZE_END)
+        self.filterLbl.Bind(wx.EVT_ENTER_WINDOW, self.filterLbl.hoverOn)
+        self.filterLbl.Bind(wx.EVT_LEAVE_WINDOW, self.filterLbl.hoverOff)
         self.sizer.Add(self.filterLbl, border=6, flag=wx.LEFT | wx.RIGHT)
         self.filterLbl.update()
         # Add project list
