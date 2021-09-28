@@ -61,19 +61,17 @@ class TargetStim(ShapeStim):
     @property
     def pos(self):
         """For target stims, pos is overloaded so that it moves both the inner and outer shapes."""
-        return self._pos
+        return ShapeStim.pos.fget(self)
 
     @pos.setter
     def pos(self, value):
-        self._pos = value
-        ShapeStim.pos.__set__(self, value)
+        ShapeStim.pos.fset(self, value)
         if hasattr(self, "inner"):
             self.inner.pos = value
 
     @property
     def size(self):
-        if hasattr(self, "_size"):
-            return self._size
+        return ShapeStim.size.fget(self)
 
     @size.setter
     def size(self, value):
@@ -82,7 +80,7 @@ class TargetStim(ShapeStim):
                 value[0] / self.size[0] * self.inner.size[0],
                 value[1] / self.size[1] * self.inner.size[1]
             )
-        self._size = value
+        ShapeStim.size.fset(self, value)
 
     @scale.setter
     def scale(self, newScale):
