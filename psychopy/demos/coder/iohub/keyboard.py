@@ -6,10 +6,16 @@ Example of how to access Keyboard events using iohub.
 Displays information from ioHub Keyboard Events vs. psychopy.event.geKeys().
 """
 
+from __future__ import absolute_import, division, print_function
+
+from builtins import str
 from psychopy import core, visual, event
+from psychopy.hardware import keyboard as ptb_keyboard
 from psychopy.iohub import launchHubServer
 
 WINDOW_SIZE = 1024, 768
+
+ptb_keyboard = ptb_keyboard.Keyboard()
 
 # Start iohub process. The iohub process can be accessed using `io`.
 io = launchHubServer()
@@ -78,8 +84,13 @@ event_type_label = visual.TextStim(win, units=unit_type,
     color='black', alignText='left', anchorHoriz='left',
     height=TEXT_STIM_HEIGHT, wrapWidth=LABEL_WRAP_LENGTH)
 psychopy_key_label = visual.TextStim(win, units=unit_type,
-    text=u'event.getKeys():',
+    text=u'vs. event.getKeys():',
     pos=[LABEL_COLUMN_X, TEXT_ROWS_START_Y - TEXT_ROW_HEIGHT * 8],
+    color='black', alignText='left', anchorHoriz='left',
+    height=TEXT_STIM_HEIGHT, wrapWidth=LABEL_WRAP_LENGTH)
+ptb_key_label = visual.TextStim(win, units=unit_type,
+    text=u'vs. keyboard.getKeys():',
+    pos=[LABEL_COLUMN_X, TEXT_ROWS_START_Y - TEXT_ROW_HEIGHT * 9],
     color='black', alignText='left', anchorHoriz='left',
     height=TEXT_STIM_HEIGHT, wrapWidth=LABEL_WRAP_LENGTH)
 
@@ -112,14 +123,18 @@ psychopy_key_stim = visual.TextStim(win, units=unit_type, text=u'',
     pos=[VALUE_COLUMN_X, TEXT_ROWS_START_Y - TEXT_ROW_HEIGHT * 8],
     color='black', alignText='left', anchorHoriz='left',
     height=TEXT_STIM_HEIGHT,  wrapWidth=dw * 2)
+ptb_key_stim = visual.TextStim(win, units=unit_type, text=u'',
+    pos=[VALUE_COLUMN_X, TEXT_ROWS_START_Y - TEXT_ROW_HEIGHT * 9],
+    color='black', alignText='left', anchorHoriz='left',
+    height=TEXT_STIM_HEIGHT,  wrapWidth=dw * 2)
 
 # Having all the stim to update / draw in a list makes drawing code
 # more compact and reusable
 STIM_LIST = [title_label, title2_label, key_text_label, char_label,
     modifiers_label, keypress_duration_label, all_pressed__label,
-    event_type_label, psychopy_key_label,
+    event_type_label, psychopy_key_label, ptb_key_label,
     key_text_stim, char_stim, modifiers_stim, keypress_duration_stim,
-    all_pressed_stim, event_type_stim, psychopy_key_stim]
+    all_pressed_stim, event_type_stim, psychopy_key_stim, ptb_key_stim]
 
 # Clear all events from the global and device level ioHub Event Buffers.
 
@@ -152,6 +167,10 @@ while not 'q' in events and flip_time - demo_timeout_start < 15.0:
             psychopy_key_stim.text = psychopy_keys[0]
         elif kbe.type == "KEYBOARD_PRESS":
             psychopy_key_stim.text = ''
+
+        ptb_keys = ptb_keyboard.getKeys(waitRelease=False)
+        if ptb_keys:
+            ptb_key_stim.text = ptb_keys[0].name
 
         all_pressed_stim.text = str(list(keyboard.state.keys()))
 
