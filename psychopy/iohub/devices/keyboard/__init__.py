@@ -40,7 +40,7 @@ class ioHubKeyboardDevice(Device):
     originate from a single keyboard device in the experiment.
 
     """
-    use_psychopy_keymap = 'psychopy'
+    use_psychopy_keymap = False
     EVENT_CLASS_NAMES = [
         'KeyboardInputEvent',
         'KeyboardPressEvent',
