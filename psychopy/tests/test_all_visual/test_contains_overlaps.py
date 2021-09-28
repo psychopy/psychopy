@@ -45,7 +45,7 @@ correctResults = [
     (False, False, False, False, True, False),
     (False, False, False, False, True, True),
     (False, False, False, True, True, False),
-    (True, False, False, False, True, False) ]
+    (False, False, False, False, True, False) ]
 
 mon = monitors.Monitor('testMonitor')
 mon.setDistance(57)
