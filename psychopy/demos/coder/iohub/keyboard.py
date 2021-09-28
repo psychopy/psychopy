@@ -14,20 +14,21 @@ from psychopy.hardware import keyboard as ptb_keyboard
 from psychopy.iohub import launchHubServer
 
 WINDOW_SIZE = 1024, 768
-
-ptb_keyboard = ptb_keyboard.Keyboard()
-
-# Start iohub process. The iohub process can be accessed using `io`.
-io = launchHubServer()
-
-# A `keyboard` variable is used to access the iohub Keyboard device.
-keyboard = io.devices.keyboard
-
 dw = WINDOW_SIZE[0] / 2
 dh = WINDOW_SIZE[1] / 2
 unit_type = 'pix'
 win = visual.Window(WINDOW_SIZE, units=unit_type,
     color=[128, 128, 128], colorSpace='rgb255')
+
+# Create a Keyboard class with ptb as the backend
+ptb_keyboard = ptb_keyboard.Keyboard()
+
+# Start iohub process. The iohub process can be accessed using `io`.
+io = launchHubServer(window=win)
+
+# A `keyboard` variable is used to access the iohub Keyboard device.
+keyboard = io.devices.keyboard
+
 
 # constants for text element spacing:
 ROW_COUNT = 10
@@ -55,16 +56,16 @@ title2_label = visual.TextStim(win, units=unit_type,
     color=[0.25, 0.2, 1],
     alignText='center', anchorHoriz='center', anchorVert='top',
     wrapWidth=dw * 2)
-key_text_label = visual.TextStim(win, units=unit_type, text=u'event.key:',
+key_text_label = visual.TextStim(win, units=unit_type, text=u'iohub .key:',
     pos=[LABEL_COLUMN_X, TEXT_ROWS_START_Y - TEXT_ROW_HEIGHT * 2],
     color='black', alignText='left', anchorHoriz='left',
     height=TEXT_STIM_HEIGHT, wrapWidth=LABEL_WRAP_LENGTH)
-char_label = visual.TextStim(win, units=unit_type, text=u'event.char:',
+char_label = visual.TextStim(win, units=unit_type, text=u'iohub .char:',
     pos=[LABEL_COLUMN_X, TEXT_ROWS_START_Y - TEXT_ROW_HEIGHT * 3],
     color='black', alignText='left', anchorHoriz='left',
     height=TEXT_STIM_HEIGHT, wrapWidth=LABEL_WRAP_LENGTH)
 modifiers_label = visual.TextStim(win, units=unit_type,
-    text=u'event.modifiers',
+    text=u'iohub .modifiers',
     pos=[LABEL_COLUMN_X, TEXT_ROWS_START_Y - TEXT_ROW_HEIGHT * 4],
     color='black', alignText='left', anchorHoriz='left',
     height=TEXT_STIM_HEIGHT, wrapWidth=LABEL_WRAP_LENGTH)
@@ -89,7 +90,7 @@ psychopy_key_label = visual.TextStim(win, units=unit_type,
     color='black', alignText='left', anchorHoriz='left',
     height=TEXT_STIM_HEIGHT, wrapWidth=LABEL_WRAP_LENGTH)
 ptb_key_label = visual.TextStim(win, units=unit_type,
-    text=u'vs. keyboard.getKeys():',
+    text=u'vs. ptb_kb.getKeys():',
     pos=[LABEL_COLUMN_X, TEXT_ROWS_START_Y - TEXT_ROW_HEIGHT * 9],
     color='black', alignText='left', anchorHoriz='left',
     height=TEXT_STIM_HEIGHT, wrapWidth=LABEL_WRAP_LENGTH)
