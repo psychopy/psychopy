@@ -58,6 +58,8 @@ Example usage
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
+from __future__ import absolute_import, division, print_function
+
 from collections import deque
 import sys
 import copy
@@ -249,8 +251,6 @@ class Keyboard:
                     keys.append(thisKey)
         elif Keyboard.backend == 'iohub':
             watchForKeys = keyList
-            if watchForKeys:
-                watchForKeys = [' ' if k == 'space' else k for k in watchForKeys]
             if waitRelease:
                 key_events = Keyboard._iohubKeyboard.getReleases(keys=watchForKeys, clear=clear)
             else:
@@ -258,8 +258,6 @@ class Keyboard:
 
             for k in key_events:
                 kname = k.key
-                if kname == ' ':
-                    kname = 'space'
 
                 if waitRelease:
                     tDown = k.time-k.duration
@@ -336,7 +334,7 @@ class Keyboard:
             event.clearEvents(eventType)
 
 
-class KeyPress:
+class KeyPress(object):
     """Class to store key presses, as returned by `Keyboard.getKeys()`
 
     Unlike keypresses from the old event.getKeys() which returned a list of
@@ -418,7 +416,7 @@ class _KeyBuffers(dict):
         return self[kb_id]
 
 
-class _KeyBuffer:
+class _KeyBuffer(object):
     """This is our own local buffer of events with more control over clearing.
 
     The user shouldn't use this directly. It is fetched from the _keybuffers
