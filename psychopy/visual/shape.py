@@ -134,7 +134,7 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         super(BaseShapeStim, self).__init__(win, units=units,
                                             name=name, autoLog=False)
 
-        self.pos = numpy.array(pos, float)
+        self.pos = pos
         self.closeShape = closeShape
         self.lineWidth = lineWidth
         self.interpolate = interpolate
@@ -174,7 +174,7 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         # Other stuff
         self.depth = depth
         self.ori = numpy.array(ori, float)
-        self.size = numpy.array([0.0, 0.0]) + size  # make sure that it's 2D
+        self.size = size  # make sure that it's 2D
         if vertices != ():  # flag for when super-init'ing a ShapeStim
             self.vertices = vertices  # call attributeSetter
         self.autoDraw = autoDraw  # call attributeSetter
