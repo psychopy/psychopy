@@ -11,6 +11,28 @@ asynchronously without blocking the main application loop which would otherwise
 render the UI unresponsive.
 """
 
+__all__ = [
+    'EXEC_SYNC',
+    'EXEC_ASYNC',
+    'EXEC_SHOW_CONSOLE',
+    'EXEC_HIDE_CONSOLE',
+    'EXEC_MAKE_GROUP_LEADER',
+    'EXEC_NODISABLE',
+    'EXEC_NOEVENTS',
+    'EXEC_BLOCK',
+    'SIGTERM',
+    'SIGKILL',
+    'SIGINT',
+    'KILL_NOCHILDREN',
+    'KILL_CHILDREN',
+    'KILL_OK',
+    'KILL_BAD_SIGNAL',
+    'KILL_ACCESS_DENIED',
+    'KILL_NO_PROCESS',
+    'KILL_ERROR',
+    'Job'
+]
+
 import wx
 
 # Aliases so we don't need to explicitly import `wx`.
