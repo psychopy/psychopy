@@ -218,8 +218,8 @@ def test_line_overlaps():
     assert line.overlaps(circle_1)
     assert circle_1.overlaps(circle_1)
 
-    assert (line.overlaps(circle_2) is False)
-    assert (circle_2.overlaps(line) is False)
+    assert not line.overlaps(circle_2)
+    assert not circle_2.overlaps(line)
 
 
 def test_line_contains():

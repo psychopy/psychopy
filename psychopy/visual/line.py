@@ -160,7 +160,7 @@ class Line(ShapeStim):
             lineColorSpace=None,
             fillColor=None,
             fillColorSpace=lineColorSpace,  # have these set to the same
-            vertices=self.vertices,
+            vertices=None,
             closeShape=False,
             pos=pos,
             size=size,
@@ -177,8 +177,8 @@ class Line(ShapeStim):
             color=color,
             colorSpace=colorSpace)
 
-        self.vertices = None
         self._vertices.setas([start, end], self.units)
+        del self._tesselVertices
 
     @property
     def color(self):
