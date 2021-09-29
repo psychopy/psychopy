@@ -496,7 +496,7 @@ class Vertices(object):
     def setas(self, value, units):
         assert units in unitTypes, f"Unrecognised unit type '{units}'"
         # Enforce numpy
-        value = numpy.array(value)
+        value = numpy.array(value, dtype=float)
         # Account for size
         if self.size is None:
             raise ValueError("Cannot not calculate absolute positions of vertices without a size attribute")
