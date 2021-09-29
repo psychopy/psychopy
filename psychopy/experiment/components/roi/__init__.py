@@ -126,7 +126,7 @@ class RegionOfInterestComponent(PolygonComponent):
             inits['shape'] = self.params['vertices']
 
         code = (
-            "%(name)s = visual.ROI(win, name='%(name)s', tracker=eyetracker,\n"
+            "%(name)s = visual.ROI(win, name='%(name)s', device=eyetracker,\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(1, relative=True)
