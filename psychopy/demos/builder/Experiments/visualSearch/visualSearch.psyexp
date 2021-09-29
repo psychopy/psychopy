@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" ?>
-<PsychoPy2experiment encoding="utf-8" version="2021.2.0">
+<PsychoPy2experiment encoding="utf-8" version="2021.3.1">
   <Settings>
     <Param name="Audio latency priority" updates="None" val="use prefs" valType="str"/>
     <Param name="Audio lib" updates="None" val="use prefs" valType="str"/>
@@ -176,7 +176,7 @@
         <Param name="name" updates="None" val="instructions_gaze_cursor" valType="code"/>
         <Param name="opacity" updates="constant" val="" valType="num"/>
         <Param name="ori" updates="constant" val="45" valType="num"/>
-        <Param name="pos" updates="set every frame" val="instructions_record.pos" valType="list"/>
+        <Param name="pos" updates="set every frame" val="eyetracker.getPos()" valType="list"/>
         <Param name="saveStartStop" updates="None" val="True" valType="bool"/>
         <Param name="shape" updates="None" val="cross" valType="str"/>
         <Param name="size" updates="constant" val="(0.05, 0.05)" valType="list"/>
@@ -266,7 +266,7 @@
         <Param name="name" updates="None" val="fixation_gaze_cursor" valType="code"/>
         <Param name="opacity" updates="constant" val="" valType="num"/>
         <Param name="ori" updates="constant" val="45" valType="num"/>
-        <Param name="pos" updates="set every frame" val="fix_record.pos" valType="list"/>
+        <Param name="pos" updates="set every frame" val="eyetracker.getPos()" valType="list"/>
         <Param name="saveStartStop" updates="None" val="True" valType="bool"/>
         <Param name="shape" updates="None" val="cross" valType="str"/>
         <Param name="size" updates="constant" val="(0.05, 0.05)" valType="list"/>
@@ -632,7 +632,7 @@
         <Param name="name" updates="None" val="trial_gaze_cursor" valType="code"/>
         <Param name="opacity" updates="constant" val="" valType="num"/>
         <Param name="ori" updates="constant" val="45" valType="num"/>
-        <Param name="pos" updates="set every frame" val="trial_record.pos" valType="list"/>
+        <Param name="pos" updates="set every frame" val="eyetracker.getPos()" valType="list"/>
         <Param name="saveStartStop" updates="None" val="True" valType="bool"/>
         <Param name="shape" updates="None" val="cross" valType="str"/>
         <Param name="size" updates="constant" val="(0.05, 0.05)" valType="list"/>
@@ -667,6 +667,7 @@
       <Param name="targetDelay" updates="None" val="1.0" valType="num"/>
       <Param name="targetDur" updates="None" val="1.5" valType="num"/>
       <Param name="targetLayout" updates="None" val="NINE_POINTS" valType="str"/>
+      <Param name="textColor" updates="None" val="white" valType="color"/>
       <Param name="units" updates="None" val="from exp settings" valType="str"/>
     </EyetrackerCalibrationRoutine>
   </Routines>
