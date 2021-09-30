@@ -471,6 +471,7 @@ class EyeTracker(EyeTrackerDevice):
                 starter_thread.start()
                 while starter_thread.is_alive():
                     gevent.sleep(0.001)
+                starter_thread.join()
                 EyeTrackerDevice.enableEventReporting(self, True)
                 return self.isRecordingEnabled()
 
@@ -480,6 +481,7 @@ class EyeTracker(EyeTrackerDevice):
                 stopper_thread.start()
                 while stopper_thread.is_alive() or Computer.getTime()-stime < 0.5:
                     gevent.sleep(0.001)
+                stopper_thread.join()
                 EyeTrackerDevice.enableEventReporting(self, False)
 
                 self._latest_sample = None
