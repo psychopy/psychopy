@@ -7,7 +7,7 @@ try:
     import pyHook
 except ImportError:
     import pyWinhook as pyHook
-
+import win32api
 import ctypes
 from unicodedata import category as ucategory
 from . import ioHubKeyboardDevice
@@ -311,3 +311,12 @@ class Keyboard(ioHubKeyboardDevice):
             return kb_event
         except Exception:
             printExceptionDetailsToStdErr()
+
+    def _syncPressedKeyState(self):
+        remove_keys = []
+        for kid in self._key_states.keys():
+            if win32api.GetAsyncKeyState(kid) == 0:
+                # Key is no longer pressed, remove it from pressed key dict
+                remove_keys.append(kid)
+        for kid in remove_keys:
+            del self._key_states[kid]

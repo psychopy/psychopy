@@ -24,10 +24,8 @@ except Exception:
     pass
 
 def start_eyelink(eyelink):
-    error = eyelink.startRecording(1, 1, 1, 1)
-    if error:
-        print2err('Start Recording error : ', error)
-
+    eyelink.startRecording(1, 1, 1, 1)
+    gevent.sleep(0.01)
     if not eyelink.waitForBlockStart(100, 1, 0):
         print2err('EYETRACKER_START_RECORD_EXCEPTION ')
 
@@ -100,6 +98,7 @@ class EyeTracker(EyeTrackerDevice):
     _host_edf_name = None
     _active_edf_file = None
     _file_transfer_progress_dialog = None
+    _keyboard = None
     # <<<
 
     # >>> Overwritten class attributes
@@ -121,6 +120,11 @@ class EyeTracker(EyeTrackerDevice):
         EyeTrackerDevice.__init__(self, *args, **kwargs)
 
         EyeTracker._eyelink = None
+
+        if self._iohub_server:
+            for dev in self._iohub_server.devices:
+                if dev.__class__.__name__ == 'Keyboard':
+                    EyeTracker._keyboard = dev
 
         try:
             tracker_config = self.getConfiguration()
@@ -468,10 +472,14 @@ class EyeTracker(EyeTrackerDevice):
 
             if recording is True and not self.isRecordingEnabled():
                 starter_thread = threading.Thread(target=start_eyelink, args=(EyeTracker._eyelink,))
+                stime = Computer.getTime()
                 starter_thread.start()
-                while starter_thread.is_alive():
+                while starter_thread.is_alive() or Computer.getTime()-stime < 0.5:
                     gevent.sleep(0.001)
                 starter_thread.join()
+                #print2err('start: ', Computer.getTime()-stime)
+                if Computer.platform == 'win32' and EyeTracker._keyboard:
+                    EyeTracker._keyboard._syncPressedKeyState()
                 EyeTrackerDevice.enableEventReporting(self, True)
                 return self.isRecordingEnabled()
 
@@ -482,6 +490,9 @@ class EyeTracker(EyeTrackerDevice):
                 while stopper_thread.is_alive() or Computer.getTime()-stime < 0.5:
                     gevent.sleep(0.001)
                 stopper_thread.join()
+                #print2err('stop: ', Computer.getTime() - stime)
+                if Computer.platform == 'win32' and EyeTracker._keyboard:
+                    EyeTracker._keyboard._syncPressedKeyState()
                 EyeTrackerDevice.enableEventReporting(self, False)
 
                 self._latest_sample = None
