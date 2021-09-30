@@ -234,6 +234,23 @@ class Job:
         """
         return self._pid
 
+    def setPriority(self, priority):
+        """Set the subprocess priority. Has no effect if the process has not
+        been started.
+
+        Parameters
+        ----------
+        priority : int
+            Process priority from 0 to 100, where 100 is the highest. Values
+            will be clipped between 0 and 100.
+
+        """
+        if self._process is None:
+            return
+
+        priority = max(min(int(priority), 100), 0)  # clip range
+        self._process.SetPriority(int(priority))  # set it
+
     @property
     def isOutputAvailable(self):
         """`True` if the output pipe to the subprocess is opened (therefore
@@ -307,14 +324,16 @@ class Job:
             return
 
         # is there data in the input pipe?
-        if self._process.IsInputAvailable() and self._inputCallback is not None:
+        if self._process.IsInputAvailable():
             stdinText = self._process.InputStream.read()
-            wx.CallAfter(self._inputCallback, args=(stdinText,))
+            if self._inputCallback is not None:
+                wx.CallAfter(self._inputCallback, args=(stdinText,))
 
         # same as above but with the error stream
-        if self._process.IsErrorAvailable() and self._errorCallback is not None:
+        if self._process.IsErrorAvailable():
             stderrText = self._process.ErrorStream.read()
-            wx.CallAfter(self._errorCallback, args=(stderrText,))
+            if self._errorCallback is not None:
+                wx.CallAfter(self._errorCallback, args=(stderrText,))
 
     def onTerminate(self, evt=None):
         """Called when the process exits. Override for custom functionality."""
