@@ -6,17 +6,23 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Utilities for running scripts from the PsychoPy application suite.
+
+Usually these are Python scripts, either written by the user in Coder or
+compiled from Builder.
+
 """
 
 __all__ = ['ScriptProcess']
 
-import wx
 import sys
 import psychopy.app.jobs as jobs
 
 
 class ScriptProcess:
-    """Class to run script through subprocess.
+    """Class to run and manage user/compiled scripts from the PsychoPy UI.
+
+    Currently used as a "mixin" class, so don't create instances of this class
+    directly for now.
 
     Parameters
     ----------
@@ -26,8 +32,9 @@ class ScriptProcess:
 
     """
     def __init__(self, app):
-        self.app = app
-        self.scriptProcess = None
+        self.app = app  # reference to the app
+        self.scriptProcess = None  # reference to the `Job` object
+        self._processEndTime = None  # time the process ends
 
     @property
     def running(self):
@@ -65,8 +72,11 @@ class ScriptProcess:
             stdOut.write(runMsg)
             stdOut.lenLastRun = len(self.app.runner.stdOut.getText())
         else:
-            # if not, just write to the output pipe
-            sys.stdout.write(runMsg)
+            # if not, just write to the standard output pipe
+            stdOut = sys.stdout
+
+        stdOut.write(runMsg)
+        stdOut.flush()
 
         # build the shell command to run the script
         command = [sys.executable, '-u', fullPath]
@@ -78,17 +88,14 @@ class ScriptProcess:
         else:
             execFlags |= jobs.EXEC_MAKE_GROUP_LEADER
 
-        # time the process ends
-        self._processEndTime = None
-
         # create a new job with the user script
         self.scriptProcess = jobs.Job(
             command=command,
             flags=execFlags,
             inputCallback=self._onInputCallback,  # both treated the same
-            errorCallback=self._onInputCallback,
+            errorCallback=self._onErrorCallback,
             terminateCallback=self._onTerminateCallback,
-            pollMillis=120  # check input every 120 ms
+            pollMillis=120  # check input/error pipes every 120 ms
         )
 
         # start the subprocess
@@ -96,6 +103,13 @@ class ScriptProcess:
 
     def stopFile(self, event=None):
         """Stop the script process.
+
+        Parameters
+        ----------
+        event : wx.Event or None
+            Parameter for event information if this function is bound as a
+            callback. Set as `None` if calling directly.
+
         """
         if hasattr(self.app, 'terminateHubProcess'):
             self.app.terminateHubProcess()
@@ -106,7 +120,45 @@ class ScriptProcess:
         # Used to call `_onTerminateCallback` here, but that is now called by
         # the `Job` instance when it exits.
 
-    def _onInputCallback(self, data):
+    def _writeOutput(self, text, flush=True):
+        """Write out bytes coming from the current subprocess.
+
+        By default, `text` is written to the Runner window output box. If not
+        available for some reason, text is written to `sys.stdout`.
+
+        Parameters
+        ----------
+        text : str or bytes
+            Text to write.
+        flush : bool
+            Flush text so it shows up immediately on the pipe.
+
+        """
+
+        # Make sure we have a string, data from pipes usually comes out as bytes
+        # so we make the conversion if needed.
+        if isinstance(text, bytes):
+            text = text.decode('utf-8')
+
+        # Where are we outputting to? Usually this is the Runner window, but if
+        # not available we just write to `sys.stdout`.
+        if hasattr(self.app, 'runner'):
+            # get any remaining data on the pipes
+            stdOut = self.app.runner.stdOut
+            self.app.runner.Show()
+        else:
+            stdOut = sys.stdout
+
+        # write and flush if needed
+        stdOut.write(text)
+        if hasattr(stdOut, 'flush') and flush:
+            stdOut.flush()
+
+    # --------------------------------------------------------------------------
+    # Callbacks for subprocess events
+    #
+
+    def _onInputCallback(self, streamBytes):
         """Callback to process data from the input stream from the subprocess.
         This is called everytime `poll` is called.
 
@@ -115,14 +167,27 @@ class ScriptProcess:
 
         Parameters
         ----------
-        data : bytes or str
-            Data from the 'stdin' or 'sderr' streams connected to the
-            subprocess.
+        streamBytes : bytes or str
+            Data from the 'stdin' streams connected to the subprocess.
 
         """
-        if hasattr(self.app, 'runner'):
-            self.app.runner.stdOut.write(data.decode('utf-8'))
-            self.app.runner.stdOut.flush()
+        self._writeOutput(streamBytes, flush=True)
+
+    def _onErrorCallback(self, streamBytes):
+        """Callback to process data from the error stream from the subprocess.
+        This is called everytime `poll` is called.
+
+        The default behavior is to call `_onInputCallback`, forwarding argument
+        `streamBytes` to it. Override this method if you want data from `stderr`
+        to be treated differently.
+
+        Parameters
+        ----------
+        streamBytes : bytes or str
+            Data from the 'sdterr' streams connected to the subprocess.
+
+        """
+        self._onInputCallback(streamBytes)
 
     def _onTerminateCallback(self):
         """Callback invoked when the subprocess exits.
@@ -131,16 +196,12 @@ class ScriptProcess:
         and show it by raising the Runner window.
 
         """
-        self.scriptProcess = None
-        if hasattr(self.app, 'runner'):
-            self.app.runner.stdOut.flush()
-            self.app.runner.Show()
-
         # write a close message
         closeMsg = "##### Experiment ended. #####\n"
-        sys.stdout.write(closeMsg)
+        self._writeOutput(closeMsg, flush=True)
+
+        self.scriptProcess = None  # reset
 
 
 if __name__ == "__main__":
     pass
-
