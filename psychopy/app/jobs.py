@@ -70,7 +70,7 @@ class Job:
 
     Parameters
     ----------
-    command : str
+    command : str, list or tuple
     pollMillis : int or None
         Time in milliseconds between polling intervals. When interval specified
         by `pollMillis` elapses, the input and error streams will be read and
@@ -122,7 +122,11 @@ class Job:
         self._process.Redirect()  # redirect streams from subprocess
 
         # start the sub-process
-        self._pid = wx.Execute(self._command, self._flags, self._process)
+        command = self._command
+        if isinstance(command, (list, tuple,)):
+            command = " ".join(command)
+
+        self._pid = wx.Execute(command, self._flags, self._process)
 
         # bind the event called when the process ends
         self._process.Bind(wx.EVT_END_PROCESS, self.onTerminate)
@@ -171,7 +175,8 @@ class Job:
         self._pollTimer.Stop()
 
         if isOk:
-            self._process = self._pid = None
+            self._process = self._pid = None  # reset
+            self._flags = 0
 
         wx.EndBusyCursor()
 
@@ -194,8 +199,7 @@ class Job:
 
     @property
     def flags(self):
-        """Shell command to execute (`str`). Same as the `command` argument.
-        Raises an error if this value is changed after `start()` was called.
+        """Subprocess execution option flags (`int`).
         """
         return self._flags
 
@@ -327,13 +331,13 @@ class Job:
         if self._process.IsInputAvailable():
             stdinText = self._process.InputStream.read()
             if self._inputCallback is not None:
-                wx.CallAfter(self._inputCallback, args=(stdinText,))
+                wx.CallAfter(self._inputCallback, stdinText)
 
         # same as above but with the error stream
         if self._process.IsErrorAvailable():
             stderrText = self._process.ErrorStream.read()
             if self._errorCallback is not None:
-                wx.CallAfter(self._errorCallback, args=(stderrText,))
+                wx.CallAfter(self._errorCallback, stderrText)
 
     def onTerminate(self, evt=None):
         """Called when the process exits. Override for custom functionality."""
@@ -346,6 +350,14 @@ class Job:
         to user defined callbacks (if `poll()` has not been overwritten).
         """
         self.poll()
+
+    def __del__(self):
+        """Called when the object is garbage collected or deleted."""
+        try:
+            if hasattr(self, '_process'):
+                wx.Process.Kill(self._process)
+        except (ValueError, AttributeError):
+            pass
 
 
 if __name__ == "__main__":

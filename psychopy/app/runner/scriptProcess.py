@@ -1,144 +1,146 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Part of the PsychoPy library
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Distributed under the terms of the GNU General Public License (GPL).
+
+"""Utilities for running scripts from the PsychoPy application suite.
+"""
+
+__all__ = ['ScriptProcess']
+
 import wx
 import sys
-import time
-from queue import Queue
-from subprocess import Popen, PIPE
-from threading import Thread
-from pathlib import Path
-
-try:
-    FileNotFoundError
-except NameError:
-    # Py2 has no FileNotFoundError
-    FileNotFoundError = IOError
+import psychopy.app.jobs as jobs
 
 
-class OutputThread(Thread):
-    """Thread class for collecting standard stream data."""
+class ScriptProcess:
+    """Class to run script through subprocess.
 
-    def __init__(self, proc):
-        Thread.__init__(self)
-        self.proc = proc
-        self.queue = Queue()
-        self.daemon = True
-        self.exit = False
+    Parameters
+    ----------
+    app : object
+        Handle for the application. Used to update UI elements to reflect the
+        current state of the script.
 
-    def run(self):
-        """Start the thread."""
-        running = self.doCheck()  # block until process ends
-
-    def doCheck(self):
-        # will do the next line repeatedly until finds EOL
-        # after checking each line check if we should quit
-        try:
-            for line in iter(self.proc.stdout.readline, b''):
-                # this runs repeatedly
-                self.queue.put(line)
-                if not line:
-                    break
-        except ValueError:
-            return False
-            # then check if the process ended
-            # self.exit
-        for line in self.proc.stderr.readlines():
-            self.queue.put(line)
-            if not line:
-                break
-        return True
-
-    def getBuffer(self):
-        """Retrieve all lines currently in buffer."""
-        lines = ''
-        while not self.queue.empty():
-            lines += self.queue.get_nowait()
-        return lines
-
-
-class ScriptProcess():
-    """Class to run script through subprocess."""
-
+    """
     def __init__(self, app):
         self.app = app
         self.scriptProcess = None
-        self._stdoutThread = None
-        self.Bind(wx.EVT_END_PROCESS, self.onProcessEnded)
-        self.running = False
+
+    @property
+    def running(self):
+        """Is there a script running (`bool`)?
+        """
+        # This is an alias for the old `runner` attribute.
+        if self.scriptProcess is None:
+            return False
+
+        return self.scriptProcess.isRunning
 
     def runFile(self, event=None, fileName=None):
-        """Begin new process to run experiment."""
-        self.running = True
+        """Begin new process to run experiment.
+
+        Parameters
+        ----------
+        event : wx.Event or None
+            Parameter for event information if this function is bound as a
+            callback. Set as `None` if calling directly.
+        fileName : str
+            Path to the file to run.
+
+        """
+        # full path to the script
         fullPath = fileName.replace('.psyexp', '_lastrun.py')
-        wx.BeginBusyCursor()
 
-        # provide a running... message
-        self.app.runner.stdOut.write((u"## Running: {} ##".format(fullPath)).center(80, "#")+"\n")
-        self.app.runner.stdOut.lenLastRun = len(self.app.runner.stdOut.getText())
+        # provide a message that the script is running
+        # format the output message
+        runMsg = u"## Running: {} ##".format(fullPath)
+        runMsg = runMsg.center(80, "#") + "\n"
 
-        if sys.platform == 'win32':
-            # the quotes allow file paths with spaces
-            command = [sys.executable, '-u', fullPath]
-            if hasattr(wx, "EXEC_NOHIDE"):
-                _opts = wx.EXEC_ASYNC | wx.EXEC_NOHIDE  # that hid console!
-            else:
-                _opts = wx.EXEC_ASYNC | wx.EXEC_SHOW_CONSOLE
+        # if we have a runner frame, write to the output text box
+        if hasattr(self.app, 'runner'):
+            stdOut = self.app.runner.stdOut
+            stdOut.write(runMsg)
+            stdOut.lenLastRun = len(self.app.runner.stdOut.getText())
         else:
-            command = [sys.executable, '-u', fullPath]
-            _opts = wx.EXEC_ASYNC | wx.EXEC_MAKE_GROUP_LEADER
+            # if not, just write to the output pipe
+            sys.stdout.write(runMsg)
 
-        fullPathDir = str(Path(fullPath).parent)  # for cwd the file path - JK
-        # the whileRunning method will check on stdout from the script
+        # build the shell command to run the script
+        command = [sys.executable, '-u', fullPath]
+
+        # option flags for the subprocess
+        execFlags = jobs.EXEC_ASYNC  # all use `EXEC_ASYNC`
+        if sys.platform == 'win32':
+            execFlags |= jobs.EXEC_HIDE_CONSOLE
+        else:
+            execFlags |= jobs.EXEC_MAKE_GROUP_LEADER
+
+        # time the process ends
         self._processEndTime = None
-        self.scriptProcess = Popen(
-            args=command,
-            bufsize=1, executable=None, stdin=None,
-            stdout=PIPE, stderr=PIPE, preexec_fn=None,
-            shell=False, cwd=fullPathDir, env=None,
-            universal_newlines=True,  # gives us back a string instead of bytes
-            creationflags=0,
+
+        # create a new job with the user script
+        self.scriptProcess = jobs.Job(
+            command=command,
+            flags=execFlags,
+            inputCallback=self._onInputCallback,  # both treated the same
+            errorCallback=self._onInputCallback,
+            terminateCallback=self._onTerminateCallback,
+            pollMillis=120  # check input every 120 ms
         )
-        # this part creates a non-blocking thread to check the stdout/err
-        self._stdoutThread = OutputThread(self.scriptProcess)
-        self._stdoutThread.start()
-        self.Bind(wx.EVT_IDLE, self.whileRunningFile)
+
+        # start the subprocess
+        self.scriptProcess.start()
 
     def stopFile(self, event=None):
-        """Kill script processes"""
-        self.app.terminateHubProcess()
-        if self.scriptProcess:
-            self.scriptProcess.kill()
-        self.onProcessEnded()
-
-    def whileRunningFile(self, event=None):
+        """Stop the script process.
         """
-        This is an Idle function while study is running.
+        if hasattr(self.app, 'terminateHubProcess'):
+            self.app.terminateHubProcess()
 
-        Check on process and handle stdout.
+        if self.scriptProcess is not None:
+            self.scriptProcess.terminate()
+
+        # Used to call `_onTerminateCallback` here, but that is now called by
+        # the `Job` instance when it exits.
+
+    def _onInputCallback(self, data):
+        """Callback to process data from the input stream from the subprocess.
+        This is called everytime `poll` is called.
+
+        The default behavior here is to convert the data to a UTF-8 string and
+        write it to the Runner output window.
+
+        Parameters
+        ----------
+        data : bytes or str
+            Data from the 'stdin' or 'sderr' streams connected to the
+            subprocess.
+
         """
-        newOutput = self._stdoutThread.getBuffer()
-        if newOutput:
-            sys.stdout.write(newOutput)
-        if (self.scriptProcess is None
-                or self.scriptProcess.poll() is not None):
-            # no script or poll() sent a returncode (None means still running)
-            self.onProcessEnded()
-        else:
-            time.sleep(0.1)  # let's not check too often
+        if hasattr(self.app, 'runner'):
+            self.app.runner.stdOut.write(data.decode('utf-8'))
+            self.app.runner.stdOut.flush()
 
-    def onProcessEnded(self, event=None):
-        """Perform when script has finished running."""
-        self.running = False
-        try:
-            wx.EndBusyCursor()
-        except wx._core.wxAssertionError:
-            pass
+    def _onTerminateCallback(self):
+        """Callback invoked when the subprocess exits.
+
+        Default behavior is to push remaining data to the Runner output window
+        and show it by raising the Runner window.
+
+        """
         self.scriptProcess = None
-        self.Bind(wx.EVT_IDLE, None)
-        # handle stdout
-        self._stdoutThread.exit = True
-        time.sleep(0.1)  # give time for the buffers to finish writing?
-        buff = self._stdoutThread.getBuffer()
-        self.app.runner.stdOut.write(buff)
-        self.app.runner.stdOut.flush()
-        self.app.runner.Show()
+        if hasattr(self.app, 'runner'):
+            self.app.runner.stdOut.flush()
+            self.app.runner.Show()
 
-        print("##### Experiment ended. #####\n")
+        # write a close message
+        closeMsg = "##### Experiment ended. #####\n"
+        sys.stdout.write(closeMsg)
+
+
+if __name__ == "__main__":
+    pass
+
