@@ -134,7 +134,6 @@ class ScriptProcess:
             Flush text so it shows up immediately on the pipe.
 
         """
-
         # Make sure we have a string, data from pipes usually comes out as bytes
         # so we make the conversion if needed.
         if isinstance(text, bytes):
@@ -159,8 +158,9 @@ class ScriptProcess:
     #
 
     def _onInputCallback(self, streamBytes):
-        """Callback to process data from the input stream from the subprocess.
-        This is called everytime `poll` is called.
+        """Callback to process data from the input stream of the subprocess.
+        This is called everytime `~psychopy.app.jobs.Jobs.poll` is called,
+        either manually or by the internal timer of the `Job` class.
 
         The default behavior here is to convert the data to a UTF-8 string and
         write it to the Runner output window.
@@ -171,10 +171,10 @@ class ScriptProcess:
             Data from the 'stdin' streams connected to the subprocess.
 
         """
-        self._writeOutput(streamBytes, flush=True)
+        self._writeOutput(streamBytes)
 
     def _onErrorCallback(self, streamBytes):
-        """Callback to process data from the error stream from the subprocess.
+        """Callback to process data from the error stream of the subprocess.
         This is called everytime `poll` is called.
 
         The default behavior is to call `_onInputCallback`, forwarding argument
@@ -193,14 +193,20 @@ class ScriptProcess:
         """Callback invoked when the subprocess exits.
 
         Default behavior is to push remaining data to the Runner output window
-        and show it by raising the Runner window.
+        and show it by raising the Runner window. The 'Stop' button will be
+        disabled in Runner (if available) since the process has ended and no
+        longer can be stopped.
 
         """
         # write a close message
         closeMsg = "##### Experiment ended. #####\n"
-        self._writeOutput(closeMsg, flush=True)
+        self._writeOutput(closeMsg)
 
         self.scriptProcess = None  # reset
+
+        # disable the stop button after exiting, no longer needed
+        if hasattr(self, 'stopBtn'):  # relies on this being a mixin class
+            self.stopBtn.Disable()
 
 
 if __name__ == "__main__":

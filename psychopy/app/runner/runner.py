@@ -472,7 +472,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
                                           name=title,
                                           )
         ScriptProcess.__init__(self, app)
-        self.Bind(wx.EVT_END_PROCESS, self.onProcessEnded)
+        #self.Bind(wx.EVT_END_PROCESS, self.onProcessEnded)
 
         # double buffered better rendering except if retina
         self.SetDoubleBuffered(parent.IsDoubleBuffered())
@@ -639,9 +639,9 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
         self.SetSizerAndFit(self.mainSizer)
         self.SetMinSize(self.Size)
 
-    def onProcessEnded(self):
-        ScriptProcess.onProcessEnded(self)
-        self.stopTask()
+    # def onProcessEnded(self):
+    #     ScriptProcess.onProcessEnded(self)
+    #     self.stopTask()
 
     def setAlertsVisible(self, new=True):
         if type(new) == bool:
