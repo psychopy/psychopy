@@ -16,6 +16,7 @@ __all__ = ['ScriptProcess']
 
 import sys
 import psychopy.app.jobs as jobs
+from wx import BeginBusyCursor, EndBusyCursor
 
 
 class ScriptProcess:
@@ -98,6 +99,8 @@ class ScriptProcess:
             pollMillis=120  # check input/error pipes every 120 ms
         )
 
+        BeginBusyCursor()  # visual feedback
+
         # start the subprocess
         self.scriptProcess.start()
 
@@ -159,8 +162,8 @@ class ScriptProcess:
 
     def _onInputCallback(self, streamBytes):
         """Callback to process data from the input stream of the subprocess.
-        This is called everytime `~psychopy.app.jobs.Jobs.poll` is called,
-        either manually or by the internal timer of the `Job` class.
+        This is called when `~psychopy.app.jobs.Jobs.poll` is called and only if
+        there is data in the associated pipe.
 
         The default behavior here is to convert the data to a UTF-8 string and
         write it to the Runner output window.
@@ -175,7 +178,8 @@ class ScriptProcess:
 
     def _onErrorCallback(self, streamBytes):
         """Callback to process data from the error stream of the subprocess.
-        This is called everytime `poll` is called.
+        This is called when `~psychopy.app.jobs.Jobs.poll` is called and only if
+        there is data in the associated pipe.
 
         The default behavior is to call `_onInputCallback`, forwarding argument
         `streamBytes` to it. Override this method if you want data from `stderr`
@@ -195,7 +199,7 @@ class ScriptProcess:
         Default behavior is to push remaining data to the Runner output window
         and show it by raising the Runner window. The 'Stop' button will be
         disabled in Runner (if available) since the process has ended and no
-        longer can be stopped.
+        longer can be stopped. Also restores the user's cursor to the default.
 
         """
         # write a close message
@@ -207,6 +211,8 @@ class ScriptProcess:
         # disable the stop button after exiting, no longer needed
         if hasattr(self, 'stopBtn'):  # relies on this being a mixin class
             self.stopBtn.Disable()
+
+        EndBusyCursor()
 
 
 if __name__ == "__main__":

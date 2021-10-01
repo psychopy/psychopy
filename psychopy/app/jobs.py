@@ -115,8 +115,6 @@ class Job:
             Process ID assigned by the operating system.
 
         """
-        wx.BeginBusyCursor()  # visual feedback
-
         # create a new process object, this handles streams and stuff
         self._process = wx.Process(None, -1)
         self._process.Redirect()  # redirect streams from subprocess
@@ -135,8 +133,6 @@ class Job:
         if self._pollMillis is not None:
             self._pollTimer.Notify = self.onNotify  # override
             self._pollTimer.Start(self._pollMillis, oneShot=wx.TIMER_CONTINUOUS)
-
-        wx.EndBusyCursor()
 
         return self._pid
 
@@ -168,8 +164,6 @@ class Job:
         if not self.isRunning:
             return  # nop
 
-        wx.BeginBusyCursor()  # visual feedback
-
         # kill the process, check if itm was successful
         isOk = wx.Process.Kill(self._pid, signal, flags) != wx.KILL_OK
         self._pollTimer.Stop()
@@ -177,8 +171,6 @@ class Job:
         if isOk:
             self._process = self._pid = None  # reset
             self._flags = 0
-
-        wx.EndBusyCursor()
 
         return isOk
 
@@ -340,7 +332,14 @@ class Job:
                 wx.CallAfter(self._errorCallback, stderrText)
 
     def onTerminate(self, evt=None):
-        """Called when the process exits. Override for custom functionality."""
+        """Called when the process exits.
+
+        Override for custom functionality. Right now we're just stopping the
+        polling timer and calling the user specified `terminateCallback`.
+        """
+        if self._pollTimer.IsRunning():
+            self._pollTimer.Stop()
+
         wx.CallAfter(self._terminateCallback)
 
     def onNotify(self):
