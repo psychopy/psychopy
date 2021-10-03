@@ -1,0 +1,151 @@
+<?xml version="1.0" ?>
+<PsychoPy2experiment encoding="utf-8" version="3.0.1">
+  <Settings>
+    <Param name="Completed URL" updates="None" val="" valType="str"/>
+    <Param name="Data filename" updates="None" val="u'data/%s_%s_%s' % (expInfo['participant'], expName, expInfo['date'])" valType="code"/>
+    <Param name="Enable Escape" updates="None" val="True" valType="bool"/>
+    <Param name="Experiment info" updates="None" val="{u'Participant': u''}" valType="code"/>
+    <Param name="Force stereo" updates="None" val="True" valType="bool"/>
+    <Param name="Full-screen window" updates="None" val="False" valType="bool"/>
+    <Param name="HTML path" updates="None" val="html" valType="str"/>
+    <Param name="Incomplete URL" updates="None" val="" valType="str"/>
+    <Param name="JS libs" updates="None" val="packaged" valType="str"/>
+    <Param name="Monitor" updates="None" val="testMonitor" valType="str"/>
+    <Param name="Save csv file" updates="None" val="False" valType="bool"/>
+    <Param name="Save excel file" updates="None" val="False" valType="bool"/>
+    <Param name="Save log file" updates="None" val="True" valType="bool"/>
+    <Param name="Save psydat file" updates="None" val="True" valType="bool"/>
+    <Param name="Save wide csv file" updates="None" val="True" valType="bool"/>
+    <Param name="Saved data folder" updates="None" val="" valType="code"/>
+    <Param name="Screen" updates="None" val="1" valType="num"/>
+    <Param name="Show info dlg" updates="None" val="True" valType="bool"/>
+    <Param name="Show mouse" updates="None" val="False" valType="bool"/>
+    <Param name="Units" updates="None" val="pix" valType="str"/>
+    <Param name="Use version" updates="None" val="" valType="str"/>
+    <Param name="Window size (pixels)" updates="None" val="[1680, 1050]" valType="code"/>
+    <Param name="blendMode" updates="None" val="avg" valType="str"/>
+    <Param name="color" updates="None" val="black" valType="str"/>
+    <Param name="colorSpace" updates="None" val="rgb" valType="str"/>
+    <Param name="expName" updates="None" val="stroop" valType="str"/>
+    <Param name="exportHTML" updates="None" val="on Sync" valType="str"/>
+    <Param name="logging level" updates="None" val="warning" valType="code"/>
+  </Settings>
+  <Routines>
+    <Routine name="trial">
+      <TextComponent name="stimulus">
+        <Param name="color" updates="set every repeat" val="$stimColor" valType="str"/>
+        <Param name="colorSpace" updates="constant" val="rgb" valType="str"/>
+        <Param name="durationEstim" updates="None" val="" valType="code"/>
+        <Param name="flip" updates="constant" val="" valType="str"/>
+        <Param name="font" updates="constant" val="Arial" valType="str"/>
+        <Param name="languageStyle" updates="None" val="LTR" valType="str"/>
+        <Param name="letterHeight" updates="constant" val="100" valType="code"/>
+        <Param name="name" updates="constant" val="stimulus" valType="code"/>
+        <Param name="opacity" updates="constant" val="1" valType="code"/>
+        <Param name="ori" updates="constant" val="0" valType="code"/>
+        <Param name="pos" updates="constant" val="[0, 0]" valType="code"/>
+        <Param name="startEstim" updates="None" val="" valType="code"/>
+        <Param name="startType" updates="None" val="time (s)" valType="str"/>
+        <Param name="startVal" updates="None" val="0.5" valType="code"/>
+        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
+        <Param name="stopVal" updates="constant" val="" valType="code"/>
+        <Param name="text" updates="set every repeat" val="$stimText" valType="str"/>
+        <Param name="units" updates="None" val="from exp settings" valType="str"/>
+        <Param name="wrapWidth" updates="constant" val="" valType="code"/>
+      </TextComponent>
+      <CodeComponent name="iohub_keyboard">
+        <Param name="Begin Experiment" updates="constant" val="try:&amp;#10;    from psychopy.iohub.client import ioHubConnection,yload,yLoader&amp;#10;    from psychopy.iohub.constants import EventConstants,KeyboardConstants&amp;#10;    from psychopy.data import getDateStr&amp;#10;    # Load the iohub device config, file converting it to a python dict.&amp;#10;    io_config=yload(open('iohub_config.yaml','r'), Loader=yLoader)&amp;#10;&amp;#10;    # Add / Update the session code to be unique. Here we use the psychopy getDateStr() function for session code generation&amp;#10;    session_info=io_config.get('data_store').get('session_info')&amp;#10;    session_info.update(code=&quot;S_%s&quot;%(getDateStr()))&amp;#10;&amp;#10;    # Create an ioHubConnection instance, which starts the ioHubProcess, and informs it of the requested devices and their configurations.&amp;#10;    io=ioHubConnection(io_config)&amp;#10;    iokeyboard=io.devices.keyboard&amp;#10;    iomouse=io.devices.mouse&amp;#10;except Exception as e:&amp;#10;   print(&quot;!! Error starting ioHub: &quot;,e,&quot; Exiting...&quot;)&amp;#10;   core.quit()" valType="extendedCode"/>
+        <Param name="Begin JS Experiment" updates="constant" val="" valType="extendedCode"/>
+        <Param name="Begin JS Routine" updates="constant" val="" valType="extendedCode"/>
+        <Param name="Begin Routine" updates="constant" val="response_event=None&amp;#10;trial_start=0&amp;#10;io.clearEvents()" valType="extendedCode"/>
+        <Param name="Code Type" updates="None" val="Py" valType="str"/>
+        <Param name="Each Frame" updates="constant" val="if frameN == 0:&amp;#10;    io.clearEvents('all')&amp;#10;    trial_start=core.getTime()&amp;#10;else:&amp;#10;    iokeys=iokeyboard.getEvents(EventConstants.KEYBOARD_PRESS)&amp;#10;    for iok in iokeys:&amp;#10;        if iok.key in [u'down',u'left',u'right']:&amp;#10;            response_event=iok&amp;#10;            continueRoutine = False &amp;#10;            break" valType="extendedCode"/>
+        <Param name="Each JS Frame" updates="constant" val="" valType="extendedCode"/>
+        <Param name="End Experiment" updates="constant" val="io.quit()" valType="extendedCode"/>
+        <Param name="End JS Experiment" updates="constant" val="" valType="extendedCode"/>
+        <Param name="End JS Routine" updates="constant" val="" valType="extendedCode"/>
+        <Param name="End Routine" updates="constant" val="trials.addData(&quot;trial_start_time&quot;, trial_start)&amp;#10;if response_event:&amp;#10;    trials.addData(&quot;resp.time&quot;, response_event.time)&amp;#10;    trials.addData(&quot;resp.rt&quot;, response_event.time-trial_start)&amp;#10;    trials.addData(&quot;resp.duration&quot;, response_event.duration)&amp;#10;    trials.addData('resp.keys',response_event.key)&amp;#10;    trials.addData('resp.corr', response_event.key.lower()==corrAns)&amp;#10;else:&amp;#10;    trials.addData(&quot;resp.time&quot;,-1.0)&amp;#10;    trials.addData(&quot;resp.rt&quot;, -1.0)&amp;#10;    trials.addData(&quot;resp.duration&quot;, -1.0)&amp;#10;    trials.addData('resp.keys','None')&amp;#10;    trials.addData('resp.corr', False)&amp;#10;&amp;#10;" valType="extendedCode"/>
+        <Param name="name" updates="None" val="iohub_keyboard" valType="code"/>
+      </CodeComponent>
+    </Routine>
+    <Routine name="instruct">
+      <TextComponent name="instrText">
+        <Param name="color" updates="constant" val="$[1, 1, 1]" valType="str"/>
+        <Param name="colorSpace" updates="constant" val="rgb" valType="str"/>
+        <Param name="durationEstim" updates="None" val="" valType="code"/>
+        <Param name="flip" updates="constant" val="" valType="str"/>
+        <Param name="font" updates="constant" val="Arial" valType="str"/>
+        <Param name="languageStyle" updates="None" val="LTR" valType="str"/>
+        <Param name="letterHeight" updates="constant" val="50" valType="code"/>
+        <Param name="name" updates="constant" val="instrText" valType="code"/>
+        <Param name="opacity" updates="constant" val="1" valType="code"/>
+        <Param name="ori" updates="constant" val="0" valType="code"/>
+        <Param name="pos" updates="constant" val="[0, 0]" valType="code"/>
+        <Param name="startEstim" updates="None" val="" valType="code"/>
+        <Param name="startType" updates="None" val="time (s)" valType="str"/>
+        <Param name="startVal" updates="None" val="0" valType="code"/>
+        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
+        <Param name="stopVal" updates="constant" val="" valType="code"/>
+        <Param name="text" updates="constant" val="OK. Ready?&amp;#10;&amp;#10;Remember: &amp;#10;1) Stay fixated on the central white dot. &amp;#10;2) Ignore the word itself; press:&amp;#10; - Left for red LETTERS&amp;#10; - Down for green LETTERS&amp;#10; - Right for blue LETTERS&amp;#10; - (Esc will quit)&amp;#10;3) To toggle gaze position visibility, press 'g'. &amp;#10;&amp;#10;Press any key to continue" valType="str"/>
+        <Param name="units" updates="None" val="pix" valType="str"/>
+        <Param name="wrapWidth" updates="constant" val="800" valType="code"/>
+      </TextComponent>
+      <KeyboardComponent name="ready">
+        <Param name="allowedKeys" updates="constant" val="" valType="code"/>
+        <Param name="correctAns" updates="constant" val="thisTrial.corrAns" valType="str"/>
+        <Param name="discard previous" updates="constant" val="True" valType="bool"/>
+        <Param name="durationEstim" updates="None" val="" valType="code"/>
+        <Param name="forceEndRoutine" updates="constant" val="True" valType="bool"/>
+        <Param name="name" updates="None" val="ready" valType="code"/>
+        <Param name="startEstim" updates="None" val="" valType="code"/>
+        <Param name="startType" updates="None" val="time (s)" valType="str"/>
+        <Param name="startVal" updates="None" val="0" valType="code"/>
+        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
+        <Param name="stopVal" updates="constant" val="" valType="code"/>
+        <Param name="store" updates="constant" val="nothing" valType="str"/>
+        <Param name="storeCorrect" updates="constant" val="False" valType="bool"/>
+        <Param name="syncScreenRefresh" updates="constant" val="True" valType="bool"/>
+      </KeyboardComponent>
+    </Routine>
+    <Routine name="thanks">
+      <TextComponent name="thanksText">
+        <Param name="color" updates="constant" val="$[1, 1, 1]" valType="str"/>
+        <Param name="colorSpace" updates="constant" val="rgb" valType="str"/>
+        <Param name="durationEstim" updates="None" val="" valType="code"/>
+        <Param name="flip" updates="constant" val="" valType="str"/>
+        <Param name="font" updates="constant" val="arial" valType="str"/>
+        <Param name="languageStyle" updates="None" val="LTR" valType="str"/>
+        <Param name="letterHeight" updates="constant" val="50" valType="code"/>
+        <Param name="name" updates="constant" val="thanksText" valType="code"/>
+        <Param name="opacity" updates="constant" val="1" valType="code"/>
+        <Param name="ori" updates="constant" val="0" valType="code"/>
+        <Param name="pos" updates="constant" val="[0, 0]" valType="code"/>
+        <Param name="startEstim" updates="None" val="" valType="code"/>
+        <Param name="startType" updates="None" val="time (s)" valType="str"/>
+        <Param name="startVal" updates="None" val="0.0" valType="code"/>
+        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
+        <Param name="stopVal" updates="constant" val="2.0" valType="code"/>
+        <Param name="text" updates="constant" val="This is the end of the experiment.&amp;#10;&amp;#10;Thanks!" valType="str"/>
+        <Param name="units" updates="None" val="pix" valType="str"/>
+        <Param name="wrapWidth" updates="constant" val="800" valType="code"/>
+      </TextComponent>
+    </Routine>
+  </Routines>
+  <Flow>
+    <Routine name="instruct"/>
+    <LoopInitiator loopType="TrialHandler" name="trials">
+      <Param name="Selected rows" updates="None" val="" valType="str"/>
+      <Param name="conditions" updates="None" val="[{u'stimColor': u'red', u'stimText': u'red', u'congruent': 1, u'corrAns': u'left'}, {u'stimColor': u'green', u'stimText': u'red', u'congruent': 0, u'corrAns': u'down'}, {u'stimColor': u'green', u'stimText': u'green', u'congruent': 1, u'corrAns': u'down'}, {u'stimColor': u'blue', u'stimText': u'green', u'congruent': 0, u'corrAns': u'right'}, {u'stimColor': u'blue', u'stimText': u'blue', u'congruent': 1, u'corrAns': u'right'}, {u'stimColor': u'red', u'stimText': u'blue', u'congruent': 0, u'corrAns': u'left'}]" valType="str"/>
+      <Param name="conditionsFile" updates="None" val="trialTypes.xlsx" valType="str"/>
+      <Param name="endPoints" updates="None" val="[1, 2]" valType="num"/>
+      <Param name="isTrials" updates="None" val="True" valType="bool"/>
+      <Param name="loopType" updates="None" val="random" valType="str"/>
+      <Param name="nReps" updates="None" val="5" valType="num"/>
+      <Param name="name" updates="None" val="trials" valType="code"/>
+      <Param name="random seed" updates="None" val="" valType="code"/>
+    </LoopInitiator>
+    <Routine name="trial"/>
+    <LoopTerminator name="trials"/>
+    <Routine name="thanks"/>
+  </Flow>
+</PsychoPy2experiment>

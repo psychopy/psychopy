@@ -32,7 +32,7 @@ from psychopy.visual import Window
 from psychopy.core import (getTime, MonotonicClock, Clock, CountdownTimer, wait,
                            StaticPeriod, shellCall)
 from psychopy.clock import monotonicClock
-from psychopy.constants import PY3
+from psychopy.tests import _vmTesting
 
 
 def test_EmptyFunction():
@@ -71,7 +71,7 @@ def printExceptionDetails():
 def test_DelayDurationAccuracy(sample_size=100):
     # test with sample_size randomly selected durations between 0.05 and 1.0 msec
     durations=np.zeros((3,sample_size))
-    durations[0,:]=(np.random.random_integers(50,1000,sample_size)*0.001)
+    durations[0,:] = (np.random.randint(50, 1001, sample_size) * 0.001)
 
     for t in range(sample_size):
         cdur=durations[0][t]
@@ -382,9 +382,13 @@ def test_StaticPeriod():
     timer.reset(period_duration )
     static.complete()
 
+    if _vmTesting:
+        tolerance = 0.01  # without a proper screen timing might not eb sub-ms
+    else:
+        tolerance = 0.001
     assert np.allclose(timer.getTime(),
                        1.0/refresh_rate,
-                       atol=0.001)
+                       atol=tolerance)
     win.close()
 
 

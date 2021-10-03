@@ -4,14 +4,9 @@
 from __future__ import absolute_import, print_function
 
 from os import path
+from pathlib import Path
 from psychopy.experiment.components import BaseComponent, Param, _translate
-
-# the absolute path to the folder containing this path
-thisFolder = path.abspath(path.dirname(__file__))
-iconFile = path.join(thisFolder, '../base.png')
-tooltip = _translate('Unknown: A component that is not known by the current '
-                     'installed version of PsychoPy\n(most likely from the '
-                     'future)')
+from psychopy import prefs
 
 # only use _localized values for label values, nothing functional:
 _localized = {'name': _translate('Name')}
@@ -19,11 +14,19 @@ _localized = {'name': _translate('Name')}
 
 class UnknownComponent(BaseComponent):
     """This is used by Builder to represent a component that was not known
-    by thecurrent installed version of PsychoPy (most likely from the future).
+    by the current installed version of PsychoPy (most likely from the future).
     We want this to be loaded, represented and saved but not used in any
     script-outputs. It should have nothing but a name - other params will be
     added by the loader
     """
+    targets = ['PsychoPy']
+
+    categories = ['Other']
+    targets = ['PsychoPy']
+    iconFile = Path(__file__).parent / 'unknown.png'
+    tooltip = _translate('Unknown: A component that is not known by the current '
+                         'installed version of PsychoPy\n(most likely from the '
+                         'future)')
 
     def __init__(self, exp, parentName, name=''):
         self.type = 'Unknown'
@@ -33,10 +36,11 @@ class UnknownComponent(BaseComponent):
         self.depends = []
         _hint = _translate("Name of this component (alpha-numeric or _, "
                            "no spaces)")
-        self.params['name'] = Param(name, valType='code',
+        self.params['name'] = Param(name, valType='code', inputType="multi",
                                     hint=_hint,
                                     label=_localized['name'])
-        self.order = ['name']  # name first, then timing, then others
+        super(UnknownComponent, self).__init__(exp, parentName)
+        self.order += []
     # make sure nothing gets written into experiment for an unknown object
     # class!
 

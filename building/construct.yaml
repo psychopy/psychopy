@@ -1,0 +1,60 @@
+# name and version (required)
+name: PsychoPy
+company: Open Science Tools
+version: 2020.1
+signing_identity_name: OST
+
+# channels to pull packages from
+channels:
+  - https://repo.anaconda.com/pkgs/main/
+  - https://conda.anaconda.org/conda-forge/
+
+install_in_dependency_order: True
+
+# specifications can specify  [unix]
+specs:
+  - python
+  - conda
+  - psychopy
+  - pip
+
+# exclude these packages (list of names)
+exclude:
+  - tk
+
+#pre_install: hello.sh                 [unix]
+#post_install: goodbye.sh              [unix]
+#post_install: test-post.bat           [win]
+
+# The conda default channels which are used when running a conda which
+# was installed be the constructor created (requires conda in the
+# specifications) installer
+#conda_default_channels: *id1
+
+# type of the installer being created.  Possible values are "sh", "pkg",
+# and "exe".  By default, the type is "sh" on Unix, and "exe" on Windows.
+#installer_type: pkg                   [osx]
+
+# installer filename (a reasonable default filename will determined by
+# the `name`, (optional) `version`, OS and installer type)
+#installer_filename: grin.sh
+
+# a file with a license text, which is shown during the install process
+license_file: ../LICENSE
+
+# default install prefix
+#default_prefix: /opt/example
+
+icon_image: ../psychopy/app/Resources/psychopy.png
+welcome_image: ../psychopy/app/Resources/psychopy.png
+# If `welcome_image` or `header_image` are not provided, their texts
+# default to `name`, which may be overridden by the following keys
+#welcome_image_text: |-
+#                    PsychoPy
+#                    - Easy
+#                    - Precise
+#                    - Flexible
+#
+header_image_text:  |-
+                    Open Science
+                    Tools Ltd.

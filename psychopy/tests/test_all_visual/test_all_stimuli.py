@@ -2,6 +2,8 @@ from __future__ import division
 from builtins import object
 
 import sys, os, copy
+from pathlib import Path
+
 from psychopy import visual, monitors, prefs, constants
 from psychopy.visual import filters
 from psychopy.tools.coordinatetools import pol2cart
@@ -18,13 +20,8 @@ To add a new stimulus test use _base so that it gets tested in all contexts
 
 """
 
-# are we testing on Travis and is it Anaconda or system python?
-_travisTesting = bool("{}".format(os.environ.get('TRAVIS')).lower() == 'true')
-_anacondaTesting = bool("{}".format(os.environ.get('ANACONDA')).lower() == 'true')
-# the ffmpeg doesn't seem to work on Travis system python (using 12.04)
-# upgrading to trusty (14.04) we could get ffmpeg to work but then test_bitsShaders
-# stopped working on conda and system python setup would even build with all the
-# dependencies. It was test environment hell! (sorry, it's been a bad day)
+from psychopy.tests import _travisTesting, skip_under_vm, _vmTesting
+
 
 class Test_Window(object):
     """Some tests just for the window - we don't really care about what's drawn inside it
@@ -60,6 +57,7 @@ class Test_Window(object):
             assert val==2
         self.win.callOnFlip(assertThisIs2, 2)
         self.win.flip()
+
 
 class _baseVisualTest(object):
     #this class allows others to be created that inherit all the tests for
@@ -135,6 +133,45 @@ class _baseVisualTest(object):
             utils.compareScreenshot('envelopeandrcos_%s.png' %(self.contextName), win)
             win.flip()
             "{}".format(image)
+            
+    def test_envelopeGratingPowerAndRaisedCos(self):
+        win = self.win
+        size = numpy.array([2.0,2.0])*self.scaleFactor
+        if win.units in ['norm','height']:
+            sf = 5
+        else:
+            sf = 5.0/size #this will do the flipping and get exactly one cycle
+        if win._haveShaders==True:  # can't draw envelope gratings without shaders so skip this test
+            image = visual.EnvelopeGrating(win, carrier='sin', envelope='sin',
+                                           size=size, sf=sf, mask='raisedCos',
+                                           ori=-45, envsf=sf / 2, envori=45,
+                                           envphase=90, moddepth=0.5, power=0.5,
+                                           contrast=0.5)
+            image.draw()
+            utils.compareScreenshot('envelopepowerandrcos_%s.png' %(self.contextName), win)
+            win.flip()
+            "{}".format(image)
+
+    def test_NoiseStim_defaults(self):
+        noiseTypes = ['binary', 'uniform', 'normal', 'white', 'filtered']
+
+        for noiseType in noiseTypes:
+            stim = visual.NoiseStim(win=self.win,
+                                    noiseType=noiseType,
+                                    size=(32, 32),
+                                    units='pix')
+            stim.updateNoise()
+            stim.draw()
+
+    def test_NoiseStim_defaults_image(self):
+        noiseType = 'image'
+
+        # noiseImage kwarg missing.
+        with pytest.raises(ValueError):
+            visual.NoiseStim(win=self.win,
+                             noiseType=noiseType,
+                             size=(32, 32),
+                             units='pix')
 
     def test_noiseAndRaisedCos(self):
         numpy.random.seed(1)
@@ -176,6 +213,62 @@ class _baseVisualTest(object):
             noiseBW=0.5, noiseBWO=7, noiseFractalPower=-1,noiseFilterLower=4.0/size[0], noiseFilterUpper=16.0/size[0], noiseFilterOrder=1, noiseClip=4.0, interpolate=False, depth=-1.0)
         image.draw()
         utils.compareScreenshot('noiseAndRcos_%s.png' %(self.contextName), win)
+        win.flip()
+        str(image)
+        
+    def test_noiseFiltersAndRaisedCos(self):
+        numpy.random.seed(1)
+        win = self.win
+        size = numpy.array([2.0,2.0])*self.scaleFactor
+        tres=128
+        elementsize=4
+        sf=None
+        ntype='Binary'
+        comp='Amplitude'
+        fileName = os.path.join(utils.TESTS_DATA_PATH, 'testimagegray.jpg')
+        if win.units in ['pix']:
+            ftype='Butterworth'
+            size = numpy.array([128,128])
+        elif win.units in ['degFlatPos']:
+            ftype='Gabor'
+            sf=0.125
+            elementsize=1
+        elif win.units in ['degFlat']:
+            ftype='Isotropic'
+            sf=0.125
+            elementsize=1
+        elif win.units in ['deg']:
+            ntype='Image'
+            ftype='Butterworth'
+            sf=0.125
+        elif win.units in ['cm']:
+            ntype='Image'
+            ftype='Butterworth'
+            comp='Phase'
+            sf=0.25
+        else:
+            if self.contextName=='stencil':
+                ntype='White'
+                ftype='Butterworth'
+            elif self.contextName=='height':
+                ntype='Uniform'
+                ftype='Butterworth'
+            else:
+                ntype='Normal'
+                ftype='Butterworth'
+            elementsize=1.0/8.0
+        image  = visual.NoiseStim(win=win, name='noise',units=win.units, 
+            noiseImage=fileName, mask='raisedCos',
+            ori=0, pos=(0, 0), size=size, sf=sf, phase=0,
+            color=[1,1,1], colorSpace='rgb', opacity=1, blendmode='avg', contrast=0.5,
+            texRes=tres,
+            noiseType=ntype, noiseElementSize=elementsize, noiseBaseSf=32.0/size[0],
+            noiseBW=0.5, noiseBWO=7, noiseFractalPower=-1,noiseFilterLower=4.0/size[0], 
+            noiseFilterUpper=16.0/size[0], noiseFilterOrder=1, noiseOri=45.0,
+            noiseClip=4.0, imageComponent=comp, filter=ftype, interpolate=False, depth=-1.0)
+ 
+        image.draw()
+        utils.compareScreenshot('noiseFiltersAndRcos_%s.png' %(self.contextName), win)
         win.flip()
         str(image)
 
@@ -262,6 +355,21 @@ class _baseVisualTest(object):
         utils.compareScreenshot('numpyLowContr_%s.png' %(self.contextName), win)
         win.flip()
 
+    def test_hexColors(self):
+        win = self.win
+        circle = visual.Circle(win, fillColor='#0000FF',
+                               lineColor=None,
+                               size=2* self.scaleFactor)
+        circle.draw()
+        grat = visual.GratingStim(win, ori=20, color='#00AAFF',
+            pos=[0.6 * self.scaleFactor, -0.6 * self.scaleFactor],
+            sf=3.0 / self.scaleFactor, size=2 * self.scaleFactor,
+            interpolate=True)
+        grat.draw()
+        utils.compareScreenshot('circleHex_%s.png' %(self.contextName), win)
+        win.flip()
+
+
     def test_gabor(self):
         win = self.win
         #using init
@@ -325,7 +433,7 @@ class _baseVisualTest(object):
     def test_text(self):
         win = self.win
         #set font
-        fontFile = os.path.join(prefs.paths['resources'], 'DejaVuSerif.ttf')
+        fontFile = str(Path(prefs.paths['resources']) / "fonts" / 'DejaVuSerif.ttf')
         #using init
         stim = visual.TextStim(win,text=u'\u03A8a', color=[0.5, 1.0, 1.0], ori=15,
             height=0.8*self.scaleFactor, pos=[0,0], font='DejaVu Serif',
@@ -334,7 +442,7 @@ class _baseVisualTest(object):
         if self.win.winType != 'pygame':
             #compare with a LIBERAL criterion (fonts do differ)
             utils.compareScreenshot('text1_%s.png' %(self.contextName), win, crit=20)
-        win.flip()#AFTER compare screenshot
+        win.flip()  # AFTER compare screenshot
         #using set
         stim.text = 'y'
         if sys.platform=='win32':
@@ -351,7 +459,8 @@ class _baseVisualTest(object):
         "{}".format(stim) #check that str(xxx) is working
         if self.win.winType != 'pygame':
             #compare with a LIBERAL criterion (fonts do differ)
-            utils.compareScreenshot('text2_%s.png' %(self.contextName), win, crit=20)
+            utils.compareScreenshot('text2_%s.png' %self.contextName,
+                                    win, crit=20)
 
     def test_text_with_add(self):
         # pyglet text will reset the blendMode to 'avg' so check that we are
@@ -363,27 +472,30 @@ class _baseVisualTest(object):
                                    pos=[0.3,0.0], ori=45, sf=2*self.scaleFactor)
         grat2 = visual.GratingStim(win, size=2 * self.scaleFactor,
                                    opacity=0.5,
-                                   pos=[-0.3,0.0], ori=-45, sf=2*self.scaleFactor)
+                                   pos=[-0.3, 0.0], ori=-45,
+                                   sf=2*self.scaleFactor)
 
         text.draw()
         grat1.draw()
         grat2.draw()
-        utils.skip_under_travis()
+        if _vmTesting:
+            pytest.skip("Blendmode='add' doesn't work under a virtual machine for some reason")
         if self.win.winType != 'pygame':
-            utils.compareScreenshot('blend_add_%s.png' %(self.contextName), win, crit=20)
+            utils.compareScreenshot('blend_add_%s.png' %self.contextName,
+                                    win, crit=20)
 
     def test_mov(self):
         win = self.win
         if self.win.winType == 'pygame':
             pytest.skip("movies only available for pyglet backend")
-        elif _travisTesting and not _anacondaTesting:
-            pytest.skip("Travis with system Python doesn't seem to have a working ffmpeg")
+
         win.flip()
         #construct full path to the movie file
         fileName = os.path.join(utils.TESTS_DATA_PATH, 'testMovie.mp4')
         #check if present
         if not os.path.isfile(fileName):
-            raise IOError('Could not find movie file: %s' % os.path.abspath(fileName))
+            raise IOError('Could not find movie file: %s'
+                          % os.path.abspath(fileName))
         #then do actual drawing
         pos = [0.6*self.scaleFactor, -0.6*self.scaleFactor]
         mov = visual.MovieStim3(win, fileName, pos=pos, noAudio=True)
@@ -392,7 +504,8 @@ class _baseVisualTest(object):
         for frameN in range(10):
             mov.draw()
             if frameN==0:
-                utils.compareScreenshot('movFrame1_%s.png' %(self.contextName), win)
+                utils.compareScreenshot('movFrame1_%s.png' %self.contextName,
+                                        win, crit=10)
             win.flip()
         "{}".format(mov) #check that str(xxx) is working
 
@@ -441,7 +554,6 @@ class _baseVisualTest(object):
         poly.edges = 3
         poly.radius = 1
 
-    @pytest.mark.shape2
     def test_shape(self):
         win = self.win
         arrow = [(-0.4,0.05), (-0.4,-0.05), (-.2,-0.05), (-.2,-0.1), (0,0), (-.2,0.1), (-.2,0.05)]
@@ -467,9 +579,10 @@ class _baseVisualTest(object):
         wedge = visual.RadialStim(win, tex='sqrXsqr', color=1,size=2*self.scaleFactor,
             visibleWedge=[0, 45], radialCycles=2, angularCycles=2, interpolate=False)
         wedge.draw()
-        thresh = 10
+        thresh = 15  # there are often a slight interpolation differences
         if win.winType != 'pygame':  # pygame definitely gets radialstim wrong!
-            utils.compareScreenshot('wedge1_%s.png' %(self.contextName), win, crit=thresh)
+            utils.compareScreenshot('wedge1_%s.png' %(self.contextName),
+                                    win, crit=thresh)
         win.flip()#AFTER compare screenshot
 
         #using .set()
@@ -484,8 +597,9 @@ class _baseVisualTest(object):
         wedge.angularPhase = 0.1
         wedge.draw()
         "{}".format(wedge) #check that str(xxx) is working
-        if win.winType != 'pygame':  # pygame definitely gets radialstim wrong!
-            utils.compareScreenshot('wedge2_%s.png' %(self.contextName), win, crit=10.0)
+        if win.winType != 'pygame': # pygame gets this wrong:
+            utils.compareScreenshot('wedge2_%s.png' %(self.contextName),
+                                    win, crit=thresh)
         else:
             pytest.skip("Pygame fails to render RadialStim properly :-/")
 
@@ -556,8 +670,9 @@ class _baseVisualTest(object):
         radii = numpy.linspace(0,1.0,N)*self.scaleFactor
         x, y = pol2cart(theta=thetas, radius=radii)
         xys = numpy.array([x,y]).transpose()
-        spiral = visual.ElementArrayStim(win, opacities = 0, nElements=N,sizes=0.5*self.scaleFactor,
-            sfs=1.0, xys=xys, oris=-thetas)
+        spiral = visual.ElementArrayStim(
+                win, opacities = 0, nElements=N, sizes=0.5*self.scaleFactor,
+                sfs=1.0, xys=xys, oris=-thetas)
         spiral.draw()
         #check that the update function is working by changing vals after first draw() call
         spiral.opacities = 1.0
@@ -573,8 +688,11 @@ class _baseVisualTest(object):
         win = self.win
         if not win.allowStencil:
             pytest.skip("Don't run aperture test when no stencil is available")
-        grating = visual.GratingStim(win, mask='gauss',sf=8.0, size=2,color='FireBrick', units='norm')
-        aperture = visual.Aperture(win, size=1*self.scaleFactor,pos=[0.8*self.scaleFactor,0])
+        grating = visual.GratingStim(
+                win, mask='gauss',sf=8.0, size=2,color='FireBrick',
+                units='norm')
+        aperture = visual.Aperture(win, size=1*self.scaleFactor,
+                                   pos=[0.8*self.scaleFactor,0])
         aperture.enabled = False
         grating.draw()
         aperture.enabled = True
@@ -595,8 +713,10 @@ class _baseVisualTest(object):
         fileName = os.path.join(utils.TESTS_DATA_PATH, 'testwedges.png')
         if not win.allowStencil:
             pytest.skip("Don't run aperture test when no stencil is available")
-        grating = visual.GratingStim(win, mask='gauss',sf=8.0, size=2,color='FireBrick', units='norm')
-        aperture = visual.Aperture(win, size=1*self.scaleFactor,pos=[0.8*self.scaleFactor,0], shape=fileName)
+        grating = visual.GratingStim(win, mask='gauss',sf=8.0, size=2,
+                                     color='FireBrick', units='norm')
+        aperture = visual.Aperture(win, size=1*self.scaleFactor,
+                                   pos=[0.8*self.scaleFactor,0], shape=fileName)
         aperture.enabled = False
         grating.draw()
         aperture.enabled = True
@@ -604,7 +724,8 @@ class _baseVisualTest(object):
         grating.ori = 90
         grating.color = 'black'
         grating.draw()
-        utils.compareScreenshot('aperture2_%s.png' %(self.contextName), win, crit=30)
+        utils.compareScreenshot('aperture2_%s.png' %(self.contextName),
+                                win, crit=30)
         #aperture should automatically disable on exit
 
     def test_rating_scale(self):
@@ -621,12 +742,12 @@ class _baseVisualTest(object):
         utils.compareScreenshot('ratingscale1_%s.png' %(self.contextName), win, crit=40.0)
         win.flip()#AFTER compare screenshot
 
+    @skip_under_vm
     def test_refresh_rate(self):
         if self.win.winType=='pygame':
             pytest.skip("getMsPerFrame seems to crash the testing of pygame")
         #make sure that we're successfully syncing to the frame rate
-        msPFavg, msPFstd, msPFmed = visual.getMsPerFrame(self.win,nFrames=60, showVisual=True)
-        utils.skip_under_travis()             # skip late so we smoke test the code
+        msPFavg, msPFstd, msPFmed = visual.getMsPerFrame(self.win, nFrames=60, showVisual=True)
         assert (1000/150.0) < msPFavg < (1000/40.0), \
             "Your frame period is %.1fms which suggests you aren't syncing to the frame" %msPFavg
 
@@ -635,16 +756,26 @@ class _baseVisualTest(object):
 class TestPygletNorm(_baseVisualTest):
     @classmethod
     def setup_class(self):
-        self.win = visual.Window([128,128], winType='pyglet', pos=[50,50], allowStencil=True, autoLog=False)
+        self.win = visual.Window([128,128], winType='pyglet', pos=[50,50],
+                                 allowStencil=True, autoLog=False)
         self.contextName='norm'
         self.scaleFactor=1#applied to size/pos values
 
+class TestPygletHexColor(_baseVisualTest):
+    @classmethod
+    def setup_class(self):
+        self.win = visual.Window([128,128], winType='pyglet', pos=[50,50],
+                                 color="#FF0099",
+                                 allowStencil=True, autoLog=False)
+        self.contextName='normHexbackground'
+        self.scaleFactor=1#applied to size/pos values
 
 if not _travisTesting:
     class TestPygletBlendAdd(_baseVisualTest):
         @classmethod
         def setup_class(self):
-            self.win = visual.Window([128,128], winType='pyglet', pos=[50,50], blendMode='add', useFBO=True)
+            self.win = visual.Window([128,128], winType='pyglet', pos=[50,50],
+                                     blendMode='add', useFBO=True)
             self.contextName='normAddBlend'
             self.scaleFactor=1#applied to size/pos values
 
@@ -652,7 +783,8 @@ if not _travisTesting:
 class TestPygletNormFBO(_baseVisualTest):
     @classmethod
     def setup_class(self):
-        self.win = visual.Window([128,128], winType='pyglet', pos=[50,50], allowStencil=True, autoLog=False, useFBO=True)
+        self.win = visual.Window([128,128], winType='pyglet', pos=[50,50],
+                                 allowStencil=True, autoLog=False, useFBO=True)
         self.contextName='norm'
         self.scaleFactor=1#applied to size/pos values
 
@@ -660,24 +792,18 @@ class TestPygletNormFBO(_baseVisualTest):
 class TestPygletHeight(_baseVisualTest):
     @classmethod
     def setup_class(self):
-        self.win = visual.Window([128,64], winType='pyglet', pos=[50,50], allowStencil=False, autoLog=False)
+        self.win = visual.Window([128,64], winType='pyglet', pos=[50,50],
+                                 allowStencil=False, autoLog=False)
         self.contextName='height'
-        self.scaleFactor=1#applied to size/pos values
-
-
-class TestPygletNormNoShaders(_baseVisualTest):
-    @classmethod
-    def setup_class(self):
-        self.win = visual.Window([128,128], monitor='testMonitor', winType='pyglet', pos=[50,50], allowStencil=True, autoLog=False)
-        self.win._haveShaders=False
-        self.contextName='normNoShade'
         self.scaleFactor=1#applied to size/pos values
 
 
 class TestPygletNormStencil(_baseVisualTest):
     @classmethod
     def setup_class(self):
-        self.win = visual.Window([128,128], monitor='testMonitor', winType='pyglet', pos=[50,50], allowStencil=True, autoLog=False)
+        self.win = visual.Window([128,128], monitor='testMonitor',
+                                 winType='pyglet', pos=[50,50],
+                                 allowStencil=True, autoLog=False)
         self.contextName='stencil'
         self.scaleFactor=1#applied to size/pos values
 
@@ -746,13 +872,14 @@ class TestPygletDegFlatPos(_baseVisualTest):
         self.contextName='degFlatPos'
         self.scaleFactor=4#applied to size/pos values
 
+# @pytest.mark.needs_pygame
+# class TestPygameNorm(_baseVisualTest):
+#    @classmethod
+#    def setup_class(self):
+#        self.win = visual.Window([128,128], winType='pygame', allowStencil=True, autoLog=False)
+#        self.contextName='norm'
+#        self.scaleFactor=1#applied to size/pos values
 
-class TestPygameNorm(_baseVisualTest):
-   @classmethod
-   def setup_class(self):
-       self.win = visual.Window([128,128], winType='pygame', allowStencil=True, autoLog=False)
-       self.contextName='norm'
-       self.scaleFactor=1#applied to size/pos values
 #class TestPygamePix(_baseVisualTest):
 #    @classmethod
 #    def setup_class(self):
@@ -764,6 +891,7 @@ class TestPygameNorm(_baseVisualTest):
 #            units='pix', autoLog=False)
 #        self.contextName='pix'
 #        self.scaleFactor=60#applied to size/pos values
+
 #class TestPygameCm(_baseVisualTest):
 #    @classmethod
 #    def setup_class(self):
@@ -775,6 +903,7 @@ class TestPygameNorm(_baseVisualTest):
 #            units='cm')
 #        self.contextName='cm'
 #        self.scaleFactor=2#applied to size/pos values
+
 #class TestPygameDeg(_baseVisualTest):
 #    @classmethod
 #    def setup_class(self):

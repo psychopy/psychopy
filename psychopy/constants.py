@@ -7,7 +7,9 @@
 
 from __future__ import absolute_import, print_function
 
-import sys
+import sys, os, copy
+from os.path import abspath, join
+
 if sys.version_info.major >= 3:
     PY3 = True
 else:
@@ -19,6 +21,8 @@ STARTED = PLAYING
 PAUSED = 2
 STOPPED = -1
 FINISHED = STOPPED
+SKIP = -2
+STOPPING = -3
 
 # for button box:
 PRESSED = 1
@@ -34,3 +38,27 @@ FOREVER = 1000000000  # seconds
 # tools for use with contrib.http.upload()
 PSYCHOPY_USERAGENT = ("PsychoPy: open-source Psychology & Neuroscience tools; "
                       "www.psychopy.org")
+
+
+# find a copy of git if possible to do push/pull as needed
+# the pure-python dulwich lib can do most things but merged push/pull
+# isn't currently possible (e.g. pull overwrites any local commits!)
+# see https://github.com/dulwich/dulwich/issues/666
+ENVIRON = copy.copy(os.environ)
+gitExe = None
+if sys.platform == 'darwin':
+    _gitStandalonePath = abspath(join(sys.executable, '..', '..',
+                                      'Resources', 'git-core'))
+    if os.path.exists(_gitStandalonePath):
+        ENVIRON["PATH"] = "{}:".format(_gitStandalonePath) + ENVIRON["PATH"]
+        gitExe = join(_gitStandalonePath, 'git')
+
+elif sys.platform == 'win32':
+    _gitStandalonePath = abspath(join(sys.executable, '..', 'MinGit', 'cmd'))
+    if os.path.exists(_gitStandalonePath):
+        ENVIRON["PATH"] = "{};".format(_gitStandalonePath) + ENVIRON["PATH"]
+        os.environ["GIT_PYTHON_GIT_EXECUTABLE"] = _gitStandalonePath
+        gitExe = join(_gitStandalonePath, 'git.exe')
+
+if gitExe:
+    os.environ["GIT_PYTHON_GIT_EXECUTABLE"] = gitExe

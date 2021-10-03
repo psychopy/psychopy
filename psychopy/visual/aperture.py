@@ -5,7 +5,7 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
@@ -49,8 +49,7 @@ class Aperture(MinimalStim, ContainerMixin):
     screen as usual.
 
     If shape is 'square' or 'triangle' then that is what will be used
-    If shape is 'circle' or `None` then a polygon with nVerts will be used
-        (120 for a rough circle)
+    If shape is 'circle' or `None` then a polygon with nVerts will be used (120 for a rough circle)
     If shape is a list or numpy array (Nx2) then it will be used directly
         as the vertices to a :class:`~psychopy.visual.ShapeStim`
     If shape is a filename then it will be used to load and image as a
@@ -62,8 +61,7 @@ class Aperture(MinimalStim, ContainerMixin):
 
     :Author:
         2011, Yuri Spitsyn
-        2011, Jon Peirce added units options,
-              Jeremy Gray added shape & orientation
+        2011, Jon Peirce added units options, Jeremy Gray added shape & orientation
         2014, Jeremy Gray added .contains() option
         2015, Thomas Emmerling added ImageStim option
     """
@@ -123,11 +121,11 @@ class Aperture(MinimalStim, ContainerMixin):
         if self.__dict__['filename']:
             self._shape = ImageStim(
                 win=self.win, image=self.__dict__['filename'],
-                pos=pos, size=size, autoLog=False)
+                pos=pos, size=size, autoLog=False, units=self.units)
         else:
             self._shape = BaseShapeStim(
-                win=self.win, vertices=vertices, fillColor=1, lineColor=None,
-                interpolate=False, pos=pos, size=size, autoLog=False)
+                win=self.win, vertices=vertices, fillColor=1, lineColor=None, colorSpace='rgb',
+                interpolate=False, pos=pos, size=size, autoLog=False, units=self.units)
             self.vertices = self._shape.vertices
             self._needVertexUpdate = True
 
@@ -159,8 +157,8 @@ class Aperture(MinimalStim, ContainerMixin):
                 self.win.setScale('pix')
 
             GL.glDisable(GL.GL_LIGHTING)
-            GL.glDisable(GL.GL_DEPTH_TEST)
-            GL.glDepthMask(GL.GL_FALSE)
+            self.win.depthTest = False
+            self.win.depthMask = False
             GL.glStencilFunc(GL.GL_NEVER, 0, 0)
             GL.glStencilOp(GL.GL_INCR, GL.GL_INCR, GL.GL_INCR)
 
@@ -191,7 +189,7 @@ class Aperture(MinimalStim, ContainerMixin):
         :ref:`Operations <attrib-operations>` supported here as
         well as ShapeStim.
 
-        Use setSize() if you want to control 0logging and resetting.
+        Use setSize() if you want to control logging and resetting.
         """
         self.__dict__['size'] = size
         self._shape.size = size  # _shape is a ShapeStim
@@ -289,10 +287,10 @@ class Aperture(MinimalStim, ContainerMixin):
         if value:
             if self._shape._needVertexUpdate:
                 self._shape._updateVertices()
-            GL.glEnable(GL.GL_STENCIL_TEST)
+            self.win.stencilTest = True
             self.status = STARTED
         else:
-            GL.glDisable(GL.GL_STENCIL_TEST)
+            self.win.stencilTest = False
             self.status = STOPPED
 
         self.__dict__['enabled'] = value
@@ -308,4 +306,7 @@ class Aperture(MinimalStim, ContainerMixin):
         self.enabled = False
 
     def __del__(self):
-        self.enabled = False
+        try:
+            self.enabled = False
+        except (ImportError, ModuleNotFoundError, TypeError):
+            pass  # trying to avoid 'Exception ignored in: ....' error from pyglet when experiment exits

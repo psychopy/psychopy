@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #  Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """
@@ -13,22 +13,34 @@ using wxPython if PyQt is not found.
 """
 
 from __future__ import absolute_import, print_function
+import sys
+from .. import constants
 
-haveQt = False  # until we find otherwise
+# check if wx has been imported. If so, import here too and check for app
+if 'wx' in sys.modules:
+    import wx
+    wxApp = wx.GetApp()
+else:
+    wxApp = None
 
-import wx
-
-if wx.GetApp() is None:  # i.e. don't try this if wx is already running
-    try:
-        import PyQt4
-        haveQt = True
-    except ImportError:
+# then setup prefs for
+haveQt = False  # until we confirm otherwise
+if wxApp is None:  # i.e. don't try this if wx is already running
+    # set order for attempts on PyQt4/PyQt5
+    if constants.PY3:  # much more like to have PyQt5 on Python3
+        importOrder = ['PyQt5', 'PyQt4']
+    else:  # more likely the other way on Py27
+        importOrder = ['PyQt4', 'PyQt5']
+    # then check each in turn
+    for libname in importOrder:
         try:
-            import PyQt5
-            haveQt = True
+            exec("import {}".format(libname))
+            haveQt = libname
+            break
         except ImportError:
-            haveQt = False
+            pass
 
+# now we know what we can import let's import the rest
 if haveQt:
     from .qtgui import *
 else:

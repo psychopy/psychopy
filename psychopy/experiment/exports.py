@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Experiment classes:
@@ -44,6 +44,7 @@ class IndentingBuffer(io.StringIO):
         io.StringIO.__init__(self, *args, **kwargs)
         self.oneIndent = "    "
         self.indentLevel = 0
+        self._writtenOnce = []
 
     def writeIndented(self, text):
         """Write to the StringIO buffer, but add the current indent.
@@ -61,6 +62,31 @@ class IndentingBuffer(io.StringIO):
         """
         for line in text.splitlines():
             self.write(self.oneIndent * self.indentLevel + line + '\n')
+
+    def writeOnceIndentedLines(self, text):
+        """Add code to the experiment that is only run exactly once,
+        (typically this is used to write the writeOnceInit sections after
+        all `import`s were done but before Window creation).
+
+        Parameters
+        ----------
+        text : str
+            The code to run. May include newline characters to write several
+            lines of code at once.
+
+        Notes
+        -----
+        For running an `import`, use meth:~`Experiment.requireImport` or
+        :meth:~`Experiment.requirePsychopyLibs` instead.
+
+        See also
+        --------
+        :meth:~`Experiment.requireImport`,
+        :meth:~`Experiment.requirePsychopyLibs`
+        """
+        if text not in self._writtenOnce:
+            self.writeIndentedLines(text)
+            self._writtenOnce.append(text)
 
     def setIndentLevel(self, newLevel, relative=False):
         """Change the indent level for the buffer to a new value.
@@ -121,8 +147,9 @@ class NameSpace(object):
         # noinspection PyUnresolvedReferences
         self.keywords = keyword.kwlist + dir(__builtins__)
         # these are based on a partial test, known to be incomplete:
-        self.psychopy = psychopy.__all__ + ['psychopy', 'os'] + dir(constants)
-        self.builder = ['KeyResponse', 'key_resp', 'buttons',
+        self.psychopy = psychopy.__all__ + ['psychopy', 'os']
+        self.constants = dir(constants)
+        self.builder = ['KeyResponse', 'keyboard', 'buttons',
                         'continueRoutine', 'expInfo', 'expName', 'thisExp',
                         'filename', 'logFile', 'paramName',
                         't', 'frameN', 'currentLoop', 'dlg', '_thisDir',
@@ -133,20 +160,6 @@ class NameSpace(object):
         # user-entered, from Builder dialog or conditions file:
         self.user = []
         self.nonUserBuilder = self.numpy + self.keywords + self.psychopy
-
-        # strings used as codes, separate function from display value:
-        # need the actual strings to be inside _translate for poedit discovery
-        toTranslate = [
-            "one of your Components, Routines, or condition parameters",
-            " Avoid `this`, `these`, `continue`, `Clock`, or `component` in name",
-            "Builder variable",
-            "Psychopy module",
-            "numpy function",
-            "python keyword"
-        ]
-        self._localized = {None: ''}  # start with this so None=""
-        for transStr in toTranslate:
-            self._localized[transStr] = _translate(transStr)
 
     def __str__(self, numpy_count_only=True):
         varibs = self.user + self.builder + self.psychopy
@@ -221,8 +234,7 @@ class NameSpace(object):
 
         # check getDerived:
 
-        # check in this order: return a key from NameSpace._localized.keys(),
-        # not a localized value
+        # check in this order: return unlocalized value
         if name in self.user:
             return "one of your Components, Routines, or condition parameters"
         if name in self.builder:
@@ -320,7 +332,7 @@ class NameSpace(object):
 
     def makeLoopIndex(self, name):
         """return a valid, readable loop-index name:
-            'this' + (plural->singular).capitalize() [+ (_\d+)]
+            'this' + (plural->singular).capitalize() [+ (_\\d+)]
         """
         try:
             newName = str(name)

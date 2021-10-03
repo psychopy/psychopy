@@ -19,7 +19,7 @@ from psychopy import visual, logging, core, event
 visual.useFBO = True  # if available (try without for comparison)
 
 import matplotlib
-matplotlib.use('Qt4Agg')  # change this to control the plotting 'back end'
+matplotlib.use('Qt5Agg')  # change this to control the plotting 'back end'
 import pylab
 
 nIntervals = 500
@@ -66,7 +66,7 @@ pylab.xlabel('frame N')
 pylab.title(droppedString)
 
 pylab.subplot(1, 2, 2)
-pylab.hist(intervalsMS, 50, normed=0, histtype='stepfilled')
+pylab.hist(intervalsMS, 50, histtype='stepfilled')
 pylab.xlabel('t (ms)')
 pylab.ylabel('n frames')
 pylab.title(distString)

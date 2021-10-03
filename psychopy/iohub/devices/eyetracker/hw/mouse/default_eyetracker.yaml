@@ -1,0 +1,93 @@
+eyetracker.hw.mouse.EyeTracker:
+    enable: True
+    name: tracker
+    save_events: True
+    stream_events: True
+    event_buffer_length: 1024
+    device_timer:
+        interval: 0.01
+    runtime_settings:
+        sampling_rate: 50
+        track_eyes: RIGHT_EYE
+    controls:
+        move: []
+        blink: [LEFT_BUTTON, RIGHT_BUTTON]
+        saccade_threshold: 0.5
+    monitor_event_types: [MonocularEyeSampleEvent, FixationStartEvent, FixationEndEvent, SaccadeStartEvent, SaccadeEndEvent, BlinkStartEvent, BlinkEndEvent]
+    model_name: MouseGaze
+    calibration:
+        # target_duration is the number of sec that a calibration point should
+        # be displayed before moving onto the next point. Target size expansion / contraction
+        # optionally occurs during this time period as well.
+        target_duration: 1.5
+
+        # target_delay specifies the time between target position presentations.
+        # Target position animation optionally occurs during this time period as well.
+        target_delay: 0.75
+
+        # auto_pace: If True, the eye tracker will automatically progress from
+        # one calibration point to the next. If False, a manual key or button press
+        # is needed to progress to the next point.
+        #
+        auto_pace: True
+
+        # Number of calibration points to present.
+        # THREE_POINTS,FIVE_POINTS,NINE_POINTS, THIRTEEN_POINTS
+        type: NINE_POINTS
+
+        # color_type: rgb, rgb255, named, hex, etc. Leave blank to use window's color space.
+        color_type:
+
+        # unit_type: norm, pix, height, deg, etc. Leave blank to use window's unit type.
+        unit_type:
+
+        # Should the target positions be randomized?
+        randomize: True
+
+        # screen_background_color specifies the r,g,b background color to
+        # set the calibration, validation, etc, screens to.
+        screen_background_color: [128,128,128]
+
+        # The associated target attribute properties can be supplied
+        # for the given target_type.
+        target_attributes:
+             # outer_diameter: The size of the outer circle of the calibration target
+             outer_diameter: 40.0
+
+             # outer_stroke_width: The thickness of the outer circle edge.
+             outer_stroke_width: 2.0
+
+             # outer_fill_color: color to use to fill the outer circle.
+             outer_fill_color: [64,64,64]
+
+             # outer_line_color: color to used for the outer circle edge.
+             outer_line_color: [255,255,255]
+
+             # inner_diameter: The size of the inner circle calibration target
+             inner_diameter: 15.0
+
+             # inner_stroke_width: The thickness of the inner circle edge.
+             inner_stroke_width: 1.0
+
+             # inner_fill_color: color to use to fill the inner circle.
+             inner_fill_color: [0,255,0]
+
+             # inner_line_color: color to used for the inner circle edge.
+             inner_line_color: [0,0,0]
+
+             # 'animate' controls target movement and expansion / contraction (if any).
+             animate:
+                 # enable: True if the calibration target should be animated between target positions.
+                 # False specifies that the calibration targets could just jump from one calibration point to another.
+                 enable: True
+
+                 # expansion_ratio: If > 1.0, expansion_ratio specifies the maximum target
+                 # outer diameter size as outer_diameter * expansion_ratio.
+                 expansion_ratio: 1.25
+
+                 # contract_only: If True, only contract outer target circle into inner target circle;
+                 # expansion_ratio is ignored. If False, expand and then contract target using expansion_ratio setting.
+                 contract_only: False
+    manufacturer_name: MouseGaze
+    auto_report_events: False
+    device_number: 0

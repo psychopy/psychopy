@@ -5,7 +5,7 @@ Documentation
 .. only:: html
 
     A pdf copy of the current documentation is available at:
-        http://www.psychopy.org/PsychoPyManual.pdf
+        https://www.psychopy.org/PsychoPyManual.pdf
 
     Contents:
 
@@ -13,30 +13,32 @@ Documentation
    :maxdepth: 1
 
    about/index
-   general/general
-   installation
+   general/index
+   download
    gettingStarted
-   Builder - building experiments in a GUI <builder/builder>
-   Coder - writing experiments with scripts <coder/coder>
-   Online - running experiments on the web <online/online>
-   api/api
+   Builder - building experiments in a GUI <builder/index>
+   Coder - writing experiments with scripts <coder/index>
+   Online - running experiments on the web <online/index>
+   api/index
 
 Further information:
 
 .. toctree::
    :maxdepth: 1
 
+   timing/index
    troubleshooting
-   recipes/recipes
-   faqs/faqs
-   resources/resources
+   alerts/index
+   recipes/index
+   faqs/index
+   resources/index
 
 For developers:
 
 .. toctree::
    :maxdepth: 1
 
-   developers/developers
+   developers/index
    psyexp
 
 .. only:: html
@@ -44,5 +46,5 @@ For developers:
     Indices
     -----------
 
-        * :ref:`glossary`
-        * :ref:`genindex`
+    * :ref:`glossary`
+    * :ref:`genindex`

@@ -3,10 +3,10 @@
 
 """Stimulus object for drawing arbitrary bitmap carriers with an arbitrary
 second order envelope carrier and envelope can vary independently for
-orienation, frequencyand phase. Also does beat stimuli. """
+orientation, frequencyand phase. Also does beat stimuli. """
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce.
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd..
 # Additional code provided by Andrew Schofield
 # Distributed under the terms of the GNU General Public License (GPL).
 
@@ -32,13 +32,13 @@ import numpy
 
 from . import shaders as _shaders
 
-# we need a different shader program for this (3 textures)
+# we need a different shader program for this stimuli (3 textures)
 carrierEnvelopeMaskFrag = '''
     uniform sampler2D carrier, envelope, mask;
     uniform float moddepth, offset, ori, add;
 
     void main() {
-    float mid=0.5;
+        float mid=0.5;
         vec4 carrierFrag = texture2D(carrier,gl_TexCoord[0].st);
         vec4 maskFrag = texture2D(mask,gl_TexCoord[2].st);
         vec2 tex = gl_TexCoord[1].st;
@@ -46,10 +46,28 @@ carrierEnvelopeMaskFrag = '''
         vec2 rotated = vec2(cos(ori) * (tex.x - mid ) + sin(ori) * (tex.y - mid) + mid , cos(ori) * (tex.y - mid) - sin(ori) * (tex.x - mid) + mid );
         vec4 envFrag = texture2D( envelope,  rotated);
         gl_FragColor.a = gl_Color.a*maskFrag.a;
-        gl_FragColor.rgb = ((moddepth*envFrag.rgb+offset)*carrierFrag.rgb* (gl_Color.rgb*2.0-1.0)+add)/2.0;
+        gl_FragColor.rgb = ((moddepth*envFrag.rgb + offset)*carrierFrag.rgb*(gl_Color.rgb*2.0 - 1.0) + add)/2.0;
     }
     '''
 
+# we need a different shader program for this (4 textures including the power term)
+carrierEnvelopeMaskFragPow = '''
+    uniform sampler2D carrier, envelope, mask, power;
+    uniform float moddepth, offset, ori, add;
+
+    void main() {
+        float mid=0.5;
+        vec4 carrierFrag = texture2D(carrier,gl_TexCoord[0].st);
+        vec4 maskFrag = texture2D(mask,gl_TexCoord[2].st);
+        vec4 powerFrag = texture2D(power,gl_TexCoord[2].st);
+        vec2 tex = gl_TexCoord[1].st;
+
+        vec2 rotated = vec2(cos(ori) * (tex.x - mid ) + sin(ori) * (tex.y - mid) + mid , cos(ori) * (tex.y - mid) - sin(ori) * (tex.x - mid) + mid );
+        vec4 envFrag = texture2D( envelope,  rotated);
+        gl_FragColor.a = gl_Color.a*maskFrag.a;
+        gl_FragColor.rgb = (pow((moddepth*envFrag.rgb + offset), powerFrag.rgb)*carrierFrag.rgb*(gl_Color.rgb*2.0 - 1.0) + add)/2.0;
+    }
+    '''
 
 class EnvelopeGrating(GratingStim):
     """Second-order envelope stimuli with 3 textures; a carrier, an envelope and a mask
@@ -65,7 +83,7 @@ class EnvelopeGrating(GratingStim):
             mask = None, sf=1, envsf=4, size=1, contrast=0.5,
             moddepth=0.8, envori=0, pos=[-.5,-.5],interpolate=0)
             # If noise is some numpy array containing random values gives a
-            # patch of noise with a low freqeuncy sinewave envelope
+            # patch of noise with a low frequency sinewave envelope
     env4 = EnvelopeGrating(win,ori=90, carrier='sin', envelope='sin',
             mask = 'gauss', sf=24, envsf=4, size=1, contrast=0.5,
             moddepth=1.0, envori=0, pos=[.5,.5], beat=True, interpolate=0)
@@ -79,7 +97,7 @@ class EnvelopeGrating(GratingStim):
 
     contrast controls the contrast of the carrier and moddepth the modulation
     depth of the envelope. contrast and moddepth must work together, for moddepth=1 the max carrier
-    contrast is 0.5 otherwise the displayable raneg will be exceeded. If moddepth < 1 higher contrasts can be accommodated.
+    contrast is 0.5 otherwise the displayable range will be exceeded. If moddepth < 1 higher contrasts can be accommodated.
 
     Opacity controls the transparency of the whole stimulus.
 
@@ -119,6 +137,7 @@ class EnvelopeGrating(GratingStim):
                  colorSpace='rgb',
                  contrast=0.5,  # see doc
                  moddepth=1.0,  # modulation depth for envelope
+                 power=1.0, # power to raise modulator to.
                  opacity=1.0,
                  depth=0,
                  rgbPedestal=(0.0, 0.0, 0.0),
@@ -163,9 +182,11 @@ class EnvelopeGrating(GratingStim):
         GL.glGenTextures(1, ctypes.byref(self._carrierID))
         self._envelopeID = GL.GLuint()
         GL.glGenTextures(1, ctypes.byref(self._envelopeID))
+        self._powerID = GL.GLuint()
+        GL.glGenTextures(1, ctypes.byref(self._powerID))
         self.interpolate = interpolate
         del self._texID  # created by GratingStim.__init__
-
+        self.texRes = int(texRes)
         self.mask = mask
 
         self.envelope = envelope
@@ -174,22 +195,25 @@ class EnvelopeGrating(GratingStim):
         self.envphase = val2array(envphase, False)
         self.envori = float(envori)
         self.moddepth = float(moddepth)
+        self.power = float(power)
         if beat in ['True','true','Yes','yes','Y','y']:
-            self.beat =True
+            self.beat = True
         elif beat in ['False','false','No','no','N','n']:
-            self.beat =False
+            self.beat = False
         else:
-            self.beat =bool(beat)
+            self.beat = bool(beat)
         self._needUpdate = True
         self.blendmode=blendmode
-        self._shaderProg = _shaders.compileProgram(
+        self._shaderProgBeat = _shaders.compileProgram(
             _shaders.vertSimple, carrierEnvelopeMaskFrag)
+        self._shaderProgPow = _shaders.compileProgram(
+            _shaders.vertSimple, carrierEnvelopeMaskFragPow)
 
         self.local = numpy.ones((texRes, texRes), dtype=numpy.ubyte)
         self.local_p = self.local.ctypes
         # fix scaling to window coords
         self._calcEnvCyclesPerStim()
-        self.texRes=int(texRes)
+        
         del self.__dict__['tex']
 
     @attributeSetter
@@ -271,7 +295,7 @@ class EnvelopeGrating(GratingStim):
         (although the carrier will still be a visible component of the overall image)
         whereas they are present in a full modulation. Beats will always appear to have a 100% modulation
         depth and if sinusoidal the modulation will appear to be twice the requested spatial frequency.
-        The modulation depth of fully modulated stimuli can be varied and they appear at their ture frequency.
+        The modulation depth of fully modulated stimuli can be varied and they appear at their true frequency.
         Both beats and full modulations appear in the literature and have specific uses.
         """
         if value in ['True','true','Yes','yes','Y','y']:
@@ -347,6 +371,31 @@ class EnvelopeGrating(GratingStim):
         self._needTextureUpdate = False
 
     @attributeSetter
+    def power(self, value):
+        """Will raise the modulator to the given power 
+           using the equation S=C*(1+M)^power where C is the carrier and M
+           is the modulator. Only works with AM envelopes (hence +1) in 
+           equation. Power is ignored if a beat is requested.
+           This is used to obtain the square root of the modulator (power = 0.5)
+           which is useful if combining two envelope gratings with different carriers
+           and a 180 degree phase shift as the resulting combined signal will not 
+           have any reduction in local contrast at any point in the image.
+           This is similar - but not identical to the method used by 
+           Landy and Oruc, Vis Res 2002.
+           Note overall contrast (apparent carrier contrast) will be altered.
+        """
+        if self.useShaders == True:
+            self._createTexture(numpy.ones((self.texRes,self.texRes))*value, id=self._powerID,
+                                pixFormat=GL.GL_RGB, stim=self,
+                                res=self.texRes)
+
+        # if user requested size=None then update the size for new stim here
+        if hasattr(self, '_requestedSize') and self._requestedSize is None:
+            self.size = None  # Reset size do default
+        self.__dict__['power'] = value
+        self._needTextureUpdate = False
+
+    @attributeSetter
     def texRes(self, value):
         """Power-of-two int. Sets the resolution of the mask and texture.
         texRes is overridden if an array or image is provided as mask.
@@ -360,6 +409,8 @@ class EnvelopeGrating(GratingStim):
             self._set('carrier', self.carrier, log=False)
         if hasattr(self, 'envelope'):
             self._set('envelope', self.envelope, log=False)
+        #if hasattr(self, 'power'):
+        #    self._set('power', self.power, log=False)
         if hasattr(self, 'mask'):
             self._set('mask', self.mask, log=False)
 
@@ -387,6 +438,11 @@ class EnvelopeGrating(GratingStim):
         """DEPRECATED. Use 'stim.parameter = value' syntax instead
         """
         self._set('moddepth', value, log=log)
+        
+    def setPower(self, value, log=None):
+        """DEPRECATED. Use 'stim.parameter = value' syntax instead
+        """
+        self.power = numpy.ones(self.texRes,self.texRes)*value 
 
     def setBeat(self, value, log=None):
         """DEPRECATED. Use 'stim.parameter = value' syntax instead
@@ -396,12 +452,12 @@ class EnvelopeGrating(GratingStim):
     def setCarrier(self, value, log=None):
         """DEPRECATED. Use 'stim.parameter = value' syntax instead
         """
-        self.carrier=value
+        self.carrier = value
 
     def setEnvelope(self, value, log=None):
         """DEPRECATED. Use 'stim.parameter = value' syntax instead
         """
-        self.envelope=value
+        self.envelope = value
 
     #def setBlendmode(self, value, log=None):
     #    """DEPRECATED. Use 'stim.parameter = value' syntax instead
@@ -454,11 +510,16 @@ class EnvelopeGrating(GratingStim):
             addvalue = 1.0
         else:
             addvalue = 0.0
-
+            
+        # setup the shaderprogram
+        if self.beat:
+            self._shaderProg = self._shaderProgBeat
+        else:
+            self._shaderProg = self._shaderProgPow
         self._needUpdate = False
         GL.glNewList(self._listID, GL.GL_COMPILE)
-        # setup the shaderprogram
         GL.glUseProgram(self._shaderProg)
+
         # set the carrier to be texture unit 0
         GL.glUniform1i(GL.glGetUniformLocation(self._shaderProg, b"carrier"),
                        0)
@@ -467,6 +528,8 @@ class EnvelopeGrating(GratingStim):
             self._shaderProg, b"envelope"), 1)
         GL.glUniform1i(GL.glGetUniformLocation(
             self._shaderProg, b"mask"), 2)  # mask is texture unit 2
+        GL.glUniform1i(GL.glGetUniformLocation(
+            self._shaderProg, b"power"), 3)  # power is texture unit 3
         GL.glUniform1f(GL.glGetUniformLocation(
             self._shaderProg, b"moddepth"), self.moddepth)
         GL.glUniform1f(GL.glGetUniformLocation(
@@ -491,7 +554,10 @@ class EnvelopeGrating(GratingStim):
         GL.glActiveTexture(GL.GL_TEXTURE1)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._envelopeID)
         GL.glEnable(GL.GL_TEXTURE_2D)
-
+        #power
+        GL.glActiveTexture(GL.GL_TEXTURE3)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, self._powerID)
+        GL.glEnable(GL.GL_TEXTURE_2D)
         # carrier
         GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._carrierID)
@@ -535,6 +601,10 @@ class EnvelopeGrating(GratingStim):
         GL.glEnd()
 
         # unbind the textures
+        #power
+        GL.glActiveTexture(GL.GL_TEXTURE3)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+        GL.glDisable(GL.GL_TEXTURE_2D)
         # mask
         GL.glActiveTexture(GL.GL_TEXTURE2)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
@@ -572,15 +642,15 @@ class EnvelopeGrating(GratingStim):
         # glColor can interfere with multitextures
         GL.glColor4f(1.0, 1.0, 1.0, 1.0)
         # mask
-        GL.glActiveTextureARB(GL.GL_TEXTURE2_ARB)
+        GL.glActiveTexture(GL.GL_TEXTURE2)
         GL.glEnable(GL.GL_TEXTURE_2D)  # implicitly disables 1D
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._maskID)
         # envelope (eg a grating but can be anything)
-        GL.glActiveTextureARB(GL.GL_TEXTURE1_ARB)
+        GL.glActiveTexture(GL.GL_TEXTURE1)
         GL.glEnable(GL.GL_TEXTURE_2D)  # implicitly disables 1D
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._envelopeID)
         # carrier (eg noise or textuture)
-        GL.glActiveTextureARB(GL.GL_TEXTURE0_ARB)
+        GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glEnable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._carrierID)
 
@@ -626,17 +696,17 @@ class EnvelopeGrating(GratingStim):
         GL.glEnd()
 
         # disable mask
-        GL.glActiveTextureARB(GL.GL_TEXTURE2_ARB)
+        GL.glActiveTexture(GL.GL_TEXTURE2)
         GL.glDisable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
 
         # disable mask
-        GL.glActiveTextureARB(GL.GL_TEXTURE1_ARB)
+        GL.glActiveTexture(GL.GL_TEXTURE1)
         GL.glDisable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
 
         # main texture
-        GL.glActiveTextureARB(GL.GL_TEXTURE0_ARB)
+        GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glDisable(GL.GL_TEXTURE_2D)
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
 

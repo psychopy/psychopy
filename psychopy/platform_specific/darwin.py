@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
@@ -81,7 +81,7 @@ if importCtypesFailed == False:
 
 def syncSwapBuffers(n):
     """syncSwapBuffers(n)
-    if n==1 then buffers will sync, otherwise sync will bee turned off.
+    if n==1 then buffers will sync, otherwise sync will be turned off.
     """
     try:
         # set v to 1 to enable vsync, 0 to disable vsync

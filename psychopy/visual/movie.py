@@ -5,7 +5,7 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
@@ -51,6 +51,7 @@ import psychopy.event
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.attributetools import logAttrib, setAttribute
 from psychopy.visual.basevisual import BaseVisualStim, ContainerMixin
+from psychopy.tools.filetools import pathToString
 
 if sys.platform == 'win32' and not haveAvbin:
     logging.warning("avbin.dll failed to load. "
@@ -144,7 +145,7 @@ class MovieStim(BaseVisualStim, ContainerMixin):
             # pyglet 1.1.4?
             self._player_default_on_eos = self._player._on_eos
 
-        self.filename = filename
+        self.filename = pathToString(filename)
         self.duration = None
         self.loop = loop
         if loop and pyglet.version >= '1.2':
@@ -199,6 +200,7 @@ class MovieStim(BaseVisualStim, ContainerMixin):
         After the file is loaded MovieStim.duration is updated with the movie
         duration (in seconds).
         """
+        filename = pathToString(filename)
         try:
             self._movie = pyglet.media.load(filename, streaming=True)
         except Exception as e:

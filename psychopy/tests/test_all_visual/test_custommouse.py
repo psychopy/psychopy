@@ -5,10 +5,8 @@ import pyglet
 
 # currently just a placeholder for better coverage
 # checks for syntax errors not proper function: flip, opacity, pos, etc
-#
-# py.test -k custommouse --cov-report term-missing --cov visual/custommouse.py
 
-@pytest.mark.custommouse
+
 class Test_Custommouse(object):
     @classmethod
     def setup_class(self):

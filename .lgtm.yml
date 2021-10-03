@@ -14,4 +14,3 @@ extraction:
         - libglu1-mesa-dev
         - libgstreamer1.0-dev
         - libgstreamer-plugins-base1.0-dev
-        - libwebkitgtk-3.0-dev

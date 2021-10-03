@@ -1,0 +1,21 @@
+
+code: 4305
+cat: Components
+msg: The component {name} is currently disabled and will not be written to your experiment script.
+
+# The following are typically used for online help pages, and support reStructured Text.
+label: Component is currently disabled in your experiment
+
+synopsis: |
+  You have a disabled Component in your experiment. This alert is created to inform users that
+  disabled components will not be written to your experiment script. This may not be intentional,
+  and will therefore affect your desired outcome.
+
+details: |
+  Most likely you disabled the Component deliberately while testing things out, but this Alert is making sure you remember that it isn't currently operational.
+
+solutions: |
+  Re-enable the Component in the Builder view (component dialog boxes each have a "testing" tab: unselect the "Disable component" setting there). Otherwise just ignore this Alert if you intended it to be disabled.
+
+versions: |
+  >= 3.1.0

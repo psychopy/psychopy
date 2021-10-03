@@ -1,29 +1,23 @@
-.. _online:
 
-Running studies online
-================================================
+.. raw:: html
 
-During 2016 we've been adding the option for PsychoPy to run studies in a web browser!
-
-For Builder users: As of v1.85.x you can go the `File` menu of PsychoPy and export your study as HTML. This will generate a folder that you can drag to a web server and point participants to that server to run your study. Data will be saved there as '.csv' files in a data folder, in the same way that PsychoPy does on your local computer.
-
-There is now a Javascript equivalent to the PsychoPy Python library. It's called `PsychoJS`_ and, just like the PsychoPy (Python) library Builder can generate experiments for you using that library.
-
-
-Contents:
-
-.. toctree::
-   :maxdepth: 1
-
-   fromBuilder
-
-.. toctree::
-   :maxdepth: 1
-
-   status
-   tech
-   psychojsCode
-   syncOSF
-   cautions
-
-.. _PsychoJS: https://github.com/psychopy/psychojs
+    <!-- REDIRECTING STARTS -->
+    <link rel="canonical" href="index.html"/>
+    <noscript>
+        <meta http-equiv="refresh" content="0; URL=index.html">
+    </noscript>
+    <!--[if lt IE 9]><script type="text/javascript">var IE_fix=true;</script><![endif]-->
+    <script type="text/javascript">
+        var url = "index.html";
+        if(typeof IE_fix != "undefined") // IE8 and lower fix to pass the http referer
+        {
+            document.write("redirecting..."); // Don't remove this line or appendChild() will fail because it is called before document.onload to make the redirect as fast as possible. Nobody will see this text, it is only a tech fix.
+            var referLink = document.createElement("a");
+            referLink.href = url;
+            document.body.appendChild(referLink);
+            referLink.click();
+        }
+        else { window.location.replace(url); } // All other browsers
+    </script>
+    <!-- Credit goes to http://insider.zone/ -->
+    <!-- REDIRECTING ENDS -->

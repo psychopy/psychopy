@@ -3,7 +3,7 @@
 
 """
 Part of the PsychoPy library
-Copyright (C) 2015 Jonathan Peirce
+Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 Distributed under the terms of the GNU General Public License (GPL).
 """
 
@@ -11,16 +11,15 @@ from __future__ import absolute_import, print_function
 
 from builtins import str
 from os import path
+from pathlib import Path
 from psychopy.experiment.components import BaseComponent, Param, _translate
+from psychopy.localization import _localized as __localized
+_localized = __localized.copy()
 
 __author__ = 'Jon Peirce'
 
 # the absolute path to the folder containing this path
-thisFolder = path.abspath(path.dirname(__file__))
-iconFile = path.join(thisFolder, 'static.png')
-tooltip = _translate('Static: Static screen period (e.g. an ISI). '
-                     'Useful for pre-loading stimuli.')
-_localized = {'Custom code': _translate('Custom code')}
+_localized.update({'Custom code': _translate('Custom code')})
 
 
 class StaticComponent(BaseComponent):
@@ -31,6 +30,10 @@ class StaticComponent(BaseComponent):
     # override the categories property below
     # an attribute of the class, determines the section in the components panel
     categories = ['Custom']
+    targets = ['PsychoPy']
+    iconFile = Path(__file__).parent / 'static.png'
+    tooltip = _translate('Static: Static screen period (e.g. an ISI). '
+                         'Useful for pre-loading stimuli.')
 
     def __init__(self, exp, parentName, name='ISI',
                  startType='time (s)', startVal=0.0,
@@ -39,42 +42,12 @@ class StaticComponent(BaseComponent):
         BaseComponent.__init__(self, exp, parentName, name=name)
         self.updatesList = []  # a list of dicts {compParams, fieldName}
         self.type = 'Static'
-        self.url = "http://www.psychopy.org/builder/components/static.html"
+        self.url = "https://www.psychopy.org/builder/components/static.html"
         hnt = _translate(
             "Custom code to be run during the static period (after updates)")
-        self.params['code'] = Param("", valType='code',
+        self.params['code'] = Param("", valType='code', inputType="multi", categ='Custom',
                                     hint=hnt,
                                     label=_localized['Custom code'])
-        self.order = ['name']  # make name come first (others don't matter)
-
-        hnt = _translate("How do you want to define your start point?")
-        self.params['startType'] = Param(startType, valType='str',
-                                         allowedVals=['time (s)', 'frame N'],
-                                         hint=hnt)
-        hnt = _translate("How do you want to define your end point?")
-        _allow = ['duration (s)', 'duration (frames)', 'time (s)', 'frame N']
-        self.params['stopType'] = Param(stopType, valType='str',
-                                        allowedVals=_allow,  # copy not needed
-                                        hint=hnt)
-        hnt = _translate("When does the component start?")
-        self.params['startVal'] = Param(startVal, valType='code',
-                                        allowedTypes=[],
-                                        hint=hnt)
-        hnt = _translate("When does the component end? (blank is endless)")
-        self.params['stopVal'] = Param(stopVal, valType='code',
-                                       allowedTypes=[],
-                                       updates='constant', allowedUpdates=[],
-                                       hint=hnt)
-        hnt = _translate("(Optional) expected start (s), purely for "
-                         "representing in the timeline")
-        self.params['startEstim'] = Param(startEstim, valType='code',
-                                          allowedTypes=[],
-                                          hint=hnt)
-        hnt = _translate("(Optional) expected duration (s), purely for "
-                         "representing in the timeline")
-        self.params['durationEstim'] = Param(durationEstim, valType='code',
-                                             allowedTypes=[],
-                                             hint=hnt)
 
     def addComponentUpdate(self, routine, compName, fieldName):
         self.updatesList.append({'compName': compName,
@@ -131,6 +104,21 @@ class StaticComponent(BaseComponent):
         self.writeParamUpdates(buff)
         code = "%(name)s.complete()  # finish the static period\n"
         buff.writeIndented(code % self.params)
+        # Calculate stop time
+        if self.params['stopType'].val == 'time (s)':
+            code = "%(name)s.tStop = %(stopVal)s  # record stop time\n"
+        elif self.params['stopType'].val == 'duration (s)':
+            code = "%(name)s.tStop = %(name)s.tStart + %(stopVal)s  # record stop time\n"
+        elif self.params['stopType'].val == 'duration (frames)':
+            code = "%(name)s.tStop = %(name)s.tStart + %(stopVal)s*frameDur  # record stop time\n"
+        elif self.params['stopType'].val == 'frame N':
+            code = "%(name)s.tStop = %(stopVal)s*frameDur  # record stop time\n"
+        else:
+            msg = ("Couldn't deduce end point for startType=%(startType)s, "
+                   "stopType=%(stopType)s")
+            raise Exception(msg % self.params)
+        # Store stop time
+        buff.writeIndented(code % self.params)
         # to get out of the if statement
         buff.setIndentLevel(-1, relative=True)
 
@@ -156,11 +144,18 @@ class StaticComponent(BaseComponent):
                     prms = compName.params  # it's already a compon so get params
                 else:
                     # it's a name so get compon and then get params
-                    prms = self.exp.getComponentFromName(bytes(compName)).params
+                    prms = self.exp.getComponentFromName(str(compName)).params
                 self.writeParamUpdate(buff, compName=compName,
                                       paramName=fieldName,
                                       val=prms[fieldName],
                                       updateType=prms[fieldName].updates,
                                       params=prms)
             code = "# component updates done\n"
-            buff.writeIndented(code)
+
+            # Write custom code
+            if self.params['code']:
+                code += ("# Adding custom code for {name}\n"
+                         "{code}\n".format(name=self.params['name'],
+                                           code=self.params['code']))
+
+            buff.writeIndentedLines(code)

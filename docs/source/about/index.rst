@@ -26,9 +26,26 @@ About PsychoPy
 Citing PsychoPy
 -----------------
 
-If you use this software, please cite one of the papers that describe it.
+If you use this software, please cite one of the publications that describe it. For most people **the 2019 paper is probably the most relevant** (the papers from 2009, 2007 did not mention Builder at all, for instance).
 
-       1. Peirce, JW (2007) PsychoPy - Psychophysics software in Python. `J Neurosci Methods, 162(1-2):8-13 <http://www.sciencedirect.com/science?_ob=ArticleURL&_udi=B6T04-4MWGYDH-1&_user=5939061&_rdoc=1&_fmt=&_orig=search&_sort=d&_docanchor=&view=c&_acct=C000009959&_version=1&_urlVersion=0&_userid=5939061&md5=4a09e4ec5b516e9220a1fa5bc3f8f10c>`_
-       2. Peirce JW (2009) Generating stimuli for neuroscience using PsychoPy. `Front. Neuroinform. 2:10. doi:10.3389/neuro.11.010.2008 <http://journal.frontiersin.org/article/10.3389/neuro.11.010.2008/abstract>`_
+- Peirce, J. W., Gray, J. R., Simpson, S., MacAskill, M. R., Höchenberger, R., Sogo, H., Kastman, E., Lindeløv, J. (2019). `PsychoPy2: experiments in behavior made easy. <https://dx.doi.org/10.3758/s13428-018-01193-y>`_
+  *Behavior Research Methods.* 10.3758/s13428-018-01193-y
+- Peirce, J. W., & MacAskill, M. R. (2018). `Building Experiments in PsychoPy. <https://www.amazon.com/Building-Experiments-PsychoPy-Jonathan-Peirce/dp/1473991390>`_
+  London: Sage.
+- Peirce J. W. (2009). Generating stimuli for neuroscience using PsychoPy. *Frontiers in Neuroinformatics,* **2** (10), 1-8. `doi:10.3389/neuro.11.010.2008 <https://doi.org/10.3389/neuro.11.010.2008>`_
+- Peirce, J. W. (2007). PsychoPy - Psychophysics software in Python. *Journal of Neuroscience Methods,* **162** (1-2):8-13 `doi:10.1016/j.jneumeth.2006.11.017 <https://doi.org/10.1016/j.jneumeth.2006.11.017>`_
 
-Citing these papers gives the reviewer/reader of your study information about how the system works, it also attributes some credit for its original creation, and it means provides a way to justify the continued development of the package.
+Citing these papers gives the reviewer/reader of your study information about how the system works and it attributes some credit for its original creation. Academic assessment (whether for promotion or even getting appointed to a job in the first place) prioritises publications over making useful tools for others. Citations provide a way for the developers to justify their continued involvement in the development of the package.
+
+License for use
+-----------------
+
+PsychoPy is licensed under a `GPL3 license <https://github.com/psychopy/psychopy/blob/master/LICENSE>`_
+which means, essentially, that:
+
+- you can use it (and adapt it) for free in your work, and you can even release those versions
+- but you must include the original PsychoPy license
+- AND you must also make your release open source using the same license
+
+What that means is you're free to use PsychoPy's goodwill in being open source,
+you are required to pass on that goodwill!

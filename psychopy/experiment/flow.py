@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Describes the Flow of an experiment
@@ -10,10 +10,10 @@
 
 from __future__ import absolute_import, print_function
 from past.builtins import basestring
+from xml.etree.ElementTree import Element
 
-from psychopy.experiment.utils import unescapedDollarSign_re
-from psychopy.experiment.params import getCodeFromParamStr
-from psychopy.experiment.routine import Routine
+from psychopy.experiment import getAllStandaloneRoutines
+from psychopy.experiment.routines._base import Routine, BaseStandaloneRoutine
 from psychopy.experiment.loops import LoopTerminator, LoopInitiator
 
 
@@ -27,6 +27,8 @@ class Flow(list):
         self.exp = exp
         self._currentRoutine = None
         self._loopList = []  # will be used while we write the code
+        self._loopController = {'LoopInitiator': [],
+                                'LoopTerminator': []}  # Controls whether loop is written
 
     @property
     def loopDict(self):
@@ -42,7 +44,7 @@ class Flow(list):
                 currentList.append(thisEntry.loop) # this loop is child of current
                 loopDict[thisEntry.loop] = []  # and is (current) empty list awaiting children
                 currentList = loopDict[thisEntry.loop]
-                loopStack.append(thisEntry.loop)  # update the list of loops (for depth)
+                loopStack.append(loopDict[thisEntry.loop])  # update the list of loops (for depth)
             elif thisEntry.getType() == 'LoopTerminator':
                 loopStack.pop()
                 currentList = loopStack[-1]
@@ -53,6 +55,22 @@ class Flow(list):
 
     def __repr__(self):
         return "psychopy.experiment.Flow(%s)" % (str(list(self)))
+
+    @property
+    def xml(self):
+        # Make root element
+        element = Element("Flow")
+        # Add an element for every Routine, Loop Initiator, Loop Terminator
+        for item in self:
+            sub = item.xml
+            if isinstance(item, Routine) or isinstance(item, BaseStandaloneRoutine):
+                # Remove all sub elements (we only need its name)
+                comps = [comp for comp in sub]
+                for comp in comps:
+                    sub.remove(comp)
+            element.append(sub)
+
+        return element
 
     def addLoop(self, loop, startPos, endPos):
         """Adds initiator and terminator objects for the loop
@@ -89,7 +107,7 @@ class Flow(list):
                         toBeRemoved.append(comp)
             for comp in toBeRemoved:
                 self.remove(comp)
-        elif component.getType() == 'Routine':
+        elif component.getType() in ['Routine'] + list(getAllStandaloneRoutines()):
             if id is None:
                 # a Routine may come up multiple times - remove them all
                 # self.remove(component)  # cant do this - two empty routines
@@ -108,64 +126,34 @@ class Flow(list):
                 # right-click in GUI)
                 del self[id]
 
-    def _dubiousConstantUpdates(self, component):
-        """Return a list of fields in component that are set to be constant
-        but seem intended to be dynamic. Some code fields are constant, and
-        some denoted as code by $ are constant.
-        """
-        warnings = []
-        # treat expInfo as likely to be constant; also treat its keys as
-        # constant because its handy to make a short-cut in code:
-        # exec(key+'=expInfo[key]')
-        expInfo = self.exp.settings.getInfo()
-        keywords = self.exp.namespace.nonUserBuilder[:]
-        keywords.extend(['expInfo'] + list(expInfo.keys()))
-        reserved = set(keywords).difference({'random', 'rand'})
-        for key in component.params:
-            field = component.params[key]
-            if (not hasattr(field, 'val') or
-                    not isinstance(field.val, basestring)):
-                continue  # continue == no problem, no warning
-            if not (field.allowedUpdates and
-                    isinstance(field.allowedUpdates, list) and
-                    len(field.allowedUpdates) and
-                    field.updates == 'constant'):
-                continue
-            # now have only non-empty, possibly-code, and 'constant' updating
-            if field.valType == 'str':
-                if not bool(unescapedDollarSign_re.search(field.val)):
-                    continue
-                code = getCodeFromParamStr(field.val)
-            elif field.valType == 'code':
-                code = field.val
-            else:
-                continue
-            # get var names in the code; no names == constant
-            try:
-                names = compile(code, '', 'eval').co_names
-            except SyntaxError:
-                continue
-            # ignore reserved words:
-            if not set(names).difference(reserved):
-                continue
-            warnings.append((field, key))
-        return warnings or [(None, None)]
 
-    def _prescreenValues(self):
-        # pre-screen and warn about some conditions in component values:
+    def integrityCheck(self):
+        """Check that the flow makes sense together and check each component"""
+
+        # force monitor to reload for checks (ie. in case monitor has changed)
+        self.exp.settings._monitor = None
+
+        # No checks currently made on flow itself
+
         trailingWhitespace = []
         constWarnings = []
         for entry in self:
+            if hasattr(entry, "integrityCheck"):
+                entry.integrityCheck()
+            # Now check each routine/loop
             # NB each entry is a routine or LoopInitiator/Terminator
             if not isinstance(entry, Routine):
                 continue
+
+            # TODO: the following tests of dubiousConstantUpdates should be
+            #  moved into the alerts mechanism under the comp.integrityCheck()
             for component in entry:
                 # detect and strip trailing whitespace (can cause problems):
                 for key in component.params:
                     field = component.params[key]
                     if not hasattr(field, 'label'):
                         continue  # no problem, no warning
-                    if (field.label.lower() == 'text' or
+                    if (field.label.lower() in ['text', 'customize'] or
                             not field.valType in ('str', 'code')):
                         continue
                     if (isinstance(field.val, basestring) and
@@ -175,10 +163,11 @@ class Flow(list):
                         field.val = field.val.strip()
                 # detect 'constant update' fields that seem intended to be
                 # dynamic:
-                for field, key in self._dubiousConstantUpdates(component):
+                for field, key in component._dubiousConstantUpdates():
                     if field:
                         constWarnings.append(
                             (field.val, key, component, entry))
+
         if trailingWhitespace:
             warnings = []
             msg = '"%s", in Routine %s (%s: %s)'
@@ -201,7 +190,7 @@ class Flow(list):
             # non-redundant, order unknown
             print('\n  '.join(list(set(warnings))))
 
-    def writeStartCode(self, script):
+    def writePreCode(self,script):
         """Write the code that comes before the Window is created
         """
         script.writeIndentedLines("\n# Start Code - component code to be "
@@ -210,26 +199,20 @@ class Flow(list):
             # NB each entry is a routine or LoopInitiator/Terminator
             self._currentRoutine = entry
             # very few components need writeStartCode:
+            if hasattr(entry, 'writePreCode'):
+                entry.writePreCode(script)
+
+    def writeStartCode(self, script):
+        """Write the code that comes after the Window is created
+        """
+        script.writeIndentedLines("\n# Start Code - component code to be "
+                                  "run after the window creation\n")
+        for entry in self:
+            # NB each entry is a routine or LoopInitiator/Terminator
+            self._currentRoutine = entry
+            # very few components need writeStartCode:
             if hasattr(entry, 'writeStartCode'):
                 entry.writeStartCode(script)
-
-    def writeResourcesCodeJS(self, script):
-        """For JS we need to create a function to fetch all resources needed
-        by each loop
-        """
-        code = (
-            "\nfunction registerResources() {\n"
-            "    psychoJS.resourceManager.scheduleRegistration(resourceScheduler);\n"
-            "\n"
-            "    return psychoJS.NEXT;\n"
-            "}\n"
-            "\nfunction downloadResources() {\n"
-            "    psychoJS.resourceManager.scheduleDownload(resourceScheduler);\n"
-            "\n"
-            "    return psychoJS.NEXT;\n"
-            "}\n"
-        )
-        script.writeIndentedLines(code)
 
     def writeBody(self, script):
         """Write the rest of the code
@@ -250,27 +233,17 @@ class Flow(list):
         for entry in self:
             self._currentRoutine = entry
             entry.writeMainCode(script)
+            if hasattr(entry, "writeRoutineEndCode"):
+                entry.writeRoutineEndCode(script)
         # tear-down code (very few components need this)
         for entry in self:
             self._currentRoutine = entry
             entry.writeExperimentEndCode(script)
 
 
-    def writeBodyJS(self, script):
+    def writeFlowSchedulerJS(self, script):
         """Initialise each component and then write the per-frame code too
         """
-
-        tree = []
-
-        # Then on the flow we need only the Loop Init/terminate
-        for entry in self:
-            if entry.getType() in ['LoopInitiator', 'LoopTerminator']:
-                entry.writeMainCodeJS(script)  # will either be function trialsBegin() or trialsEnd()
-
-
-        # write the run function
-        script.writeIndentedLines("\nfunction run() {\n")
-        script.setIndentLevel(+1, relative=True)
 
         # handle email for error messages
         if 'email' in self.exp.settings.params and self.exp.settings.params['email'].val:
@@ -288,55 +261,35 @@ class Flow(list):
                     "}*/\n")
             script.writeIndentedLines(code)
 
-        code = ("// init psychoJS and set up OpenGL Canvas\n"
-                "setupWin();\n"
-                "psychoJS.init(win);\n"
+        code = ("// schedule the experiment:\n"
+                "psychoJS.schedule(psychoJS.gui.DlgFromDict({\n"
+                "  dictionary: expInfo,\n"
+                "  title: expName\n}));\n"
                 "\n"
-                "// main scheduler\n"
-                "scheduler = new psychoJS.Scheduler();\n"
-                "\n"
-                "// Store info about the experiment session\n"
-                "expName = 'stroop';  // from the Builder filename that created this script\n"
-                "expInfo = {'participant':'', 'session':'01'};\n"
-                "\n"
-                "// set up experiment\n"
-                "scheduler.add(setupExperiment);\n"
-                "scheduler.add(psychoJS.setupCallbacks);\n"
-                "\n"
-                "// register all available resources and download them\n"
-                "resourceScheduler = new psychoJS.Scheduler();\n"
-                "resourceScheduler.add(registerResources);\n"
-                "resourceScheduler.add(downloadResources);\n"
-                "// asynchronous approach: the resource scheduler is run in parallel to the main one\n"
-                "scheduler.add(function() { resourceScheduler.start(win); });\n")
+                "const flowScheduler = new Scheduler(psychoJS);\n"
+                "const dialogCancelScheduler = new Scheduler(psychoJS);\n"
+                "psychoJS.scheduleCondition(function() { return (psychoJS.gui.dialogComponent.button === 'OK'); }, flowScheduler, dialogCancelScheduler);\n"
+                "\n")
         script.writeIndentedLines(code)
-        code = ("\n// dialog box\n"
-                "scheduler.add(psychoJS.gui.DlgFromDict({dictionary:expInfo, title:expName}));\n"
-                "\n"
-                "flowScheduler = new psychoJS.Scheduler();\n"
-                "dialogCancelScheduler = new psychoJS.Scheduler();\n"
-                "scheduler.addConditionalBranches(function() "
-                "{ return psychoJS.gui.dialogComponent.button === 'OK'; }, flowScheduler, dialogCancelScheduler);\n"
-                "\n"
-                "// flowScheduler gets run if the participants presses OK\n"
-                "flowScheduler.add(updateInfo); // add timeStamp\n"
-                "flowScheduler.add(experimentInit);")
+
+        code = ("// flowScheduler gets run if the participants presses OK\n"
+               "flowScheduler.add(updateInfo); // add timeStamp\n"
+               "flowScheduler.add(experimentInit);\n")
         script.writeIndentedLines(code)
-        # add the code for each routine
         loopStack = []
         for thisEntry in self:
             if not loopStack:  # if not currently in a loop
                 if thisEntry.getType() == 'LoopInitiator':
-                    code = ("{name}LoopScheduler = new psychoJS.Scheduler();\n"
-                            "flowScheduler.add({name}LoopBegin, {name}LoopScheduler);\n"
+                    code = ("const {name}LoopScheduler = new Scheduler(psychoJS);\n"
+                            "flowScheduler.add({name}LoopBegin({name}LoopScheduler));\n"
                             "flowScheduler.add({name}LoopScheduler);\n"
                             "flowScheduler.add({name}LoopEnd);\n"
-                            .format(name=thisEntry.loop.params['name']))
+                            .format(name=thisEntry.loop.params['name'].val))
                     loopStack.append(thisEntry.loop)
                 elif thisEntry.getType() == "Routine":
-                    code = ("flowScheduler.add({params[name]}RoutineBegin);\n"
-                            "flowScheduler.add({params[name]}RoutineEachFrame);\n"
-                            "flowScheduler.add({params[name]}RoutineEnd);\n"
+                    code = ("flowScheduler.add({params[name]}RoutineBegin());\n"
+                            "flowScheduler.add({params[name]}RoutineEachFrame());\n"
+                            "flowScheduler.add({params[name]}RoutineEnd());\n"
                             .format(params=thisEntry.params))
             else:  # we are already in a loop so don't code here just count
                 code = ""
@@ -346,11 +299,53 @@ class Flow(list):
                     loopStack.remove(thisEntry.loop)
             script.writeIndentedLines(code)
         # quit when all routines are finished
-        script.writeIndented("flowScheduler.add(quitPsychoJS);\n")
+        script.writeIndented("flowScheduler.add(quitPsychoJS, '', true);\n")
         # handled all the flow entries
         code = ("\n// quit if user presses Cancel in dialog box:\n"
-                "dialogCancelScheduler.add(quitPsychoJS);\n"
-                "\nscheduler.start(win);\n")
+                "dialogCancelScheduler.add(quitPsychoJS, '', false);\n\n")
         script.writeIndentedLines(code)
-        script.setIndentLevel(-1, relative=True)
-        script.writeIndented("}\n")
+
+        # Write resource list
+        resourceFiles = set([resource['rel'].replace("\\", "/") for resource in self.exp.getResourceFiles()])
+        if self.exp.htmlFolder:
+            resourceFolderStr = "resources/"
+        else:
+            resourceFolderStr = ""
+        script.writeIndented("psychoJS.start({\n")
+        script.setIndentLevel(1, relative=True)
+        script.writeIndentedLines("expName: expName,\n"
+                                  "expInfo: expInfo,\n")
+        # if we have an html folder then we moved files there so just use that
+        # if not, then we'll need to list all known resource files
+        if not self.exp.htmlFolder:
+            script.writeIndentedLines("resources: [\n")
+            script.setIndentLevel(1, relative=True)
+            code = ""
+            for idx, resource in enumerate(resourceFiles):
+                temp = "{{'name': '{0}', 'path': '{1}{0}'}}".format(resource, resourceFolderStr)
+                code += temp
+                if idx != (len(resourceFiles)-1):
+                    code += ",\n"  # Trailing comma
+            script.writeIndentedLines(code)
+            script.setIndentLevel(-1, relative=True)
+            script.writeIndented("]\n")
+            script.setIndentLevel(-1, relative=True)
+        script.writeIndented("});\n\n")
+
+    def writeLoopHandlerJS(self, script, modular):
+        """
+        Function for setting up handler to look after randomisation of conditions etc
+        """
+        # Then on the flow we need only the Loop Init/terminate
+        for entry in self:
+            loopType = entry.getType()  # Get type i.e., routine or loop
+            if loopType in self._loopController:
+                loopName = entry.loop.params['name'].val  # Get loop name
+                if loopName not in self._loopController[loopType]:  # Write if not already written
+                    entry.writeMainCodeJS(script, modular)  # will either be function trialsBegin() or trialsEnd()
+                    self._loopController[loopType].append(loopName)
+
+    def _resetLoopController(self):
+        """Resets _loopController so loops are written on each call to write script"""
+        self._loopController = {'LoopInitiator': [],
+                                'LoopTerminator': []}  # Controls whether loop is written

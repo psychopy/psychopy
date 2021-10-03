@@ -1,0 +1,23 @@
+
+code: 4325
+cat: Components
+msg: Font `{font} {style}` not available in weight `{weight}`, component `{name}` will default to Open Sans Regular.
+
+# The following are typically used for online help pages, and support reStructured Text.
+label: Font not available
+
+synopsis: |
+  The font you requested could not be found in the weight and style you requested, this alert is to warn you that your component will use Open Sans Regular (fonts.google.com/specimen/Open+Sans)
+
+details: |
+  There are a few reasons why you might be receiving this alert:
+  1. The font you requested does not exist at all, there may be a typo in the font name.
+  2. The font is one which is not installed on your local machine or available on Google Fonts.
+  3. The font you requested exists, but not in the style you requested (bold, italic, etc.). For example, if you requested the font Raleway Dots (fonts.google.com/specimen/Raleway+Dots) in bold, you will always receive this error as this font only exists in regular.
+  4. The font you requested exists on Google Fonts, but could not be retrieved, for example if you are connected to the internet.
+
+solutions: |
+  The first things to check are that the name of the font is spelled correctly, that the font exists and that you are connected to the internet. You can check which fonts are installed on your machine through the Settings for your operating system, you can check whether the font exists on Google Fonts by going to fonts.google.com and searching for it. If the font exists, you can check (either on Google Fonts or your operating system's font manager) what weights and styles it exists in. If `bold` is ticked in Builder, then the requested font weight is 700 (Bold), if not then the requested weight is 400 (Regular). You can set the font weight more precisely by supplying a numeric font weight to the component rather than just True or False, for example if you wanted the font to be Extra-Light you could supply the value 200.
+
+versions: |
+  All

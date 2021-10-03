@@ -1,0 +1,416 @@
+﻿<?xml version="1.0" ?>
+<PsychoPy2experiment encoding="utf-8" version="2021.2.0">
+  <Settings>
+    <Param name="Audio latency priority" updates="None" val="Use prefs" valType="str"/>
+    <Param name="Audio lib" updates="None" val="Use prefs" valType="str"/>
+    <Param name="Completed URL" updates="None" val="" valType="str"/>
+    <Param name="Data file delimiter" updates="None" val="auto" valType="str"/>
+    <Param name="Data filename" updates="None" val="u'data/%s_%s_%s' % (expInfo['participant'], expName, expInfo['date'])" valType="code"/>
+    <Param name="Enable Escape" updates="None" val="True" valType="bool"/>
+    <Param name="Experiment info" updates="None" val="{'participant': '', 'session': '001'}" valType="code"/>
+    <Param name="Force stereo" updates="None" val="True" valType="bool"/>
+    <Param name="Full-screen window" updates="None" val="True" valType="bool"/>
+    <Param name="HTML path" updates="None" val="html" valType="str"/>
+    <Param name="Incomplete URL" updates="None" val="" valType="str"/>
+    <Param name="JS libs" updates="None" val="packaged" valType="str"/>
+    <Param name="Monitor" updates="None" val="testMonitor" valType="str"/>
+    <Param name="Resources" updates="None" val="[]" valType="list"/>
+    <Param name="Save csv file" updates="None" val="False" valType="bool"/>
+    <Param name="Save excel file" updates="None" val="False" valType="bool"/>
+    <Param name="Save hdf5 file" updates="None" val="False" valType="bool"/>
+    <Param name="Save log file" updates="None" val="True" valType="bool"/>
+    <Param name="Save psydat file" updates="None" val="True" valType="bool"/>
+    <Param name="Save wide csv file" updates="None" val="True" valType="bool"/>
+    <Param name="Screen" updates="None" val="1" valType="num"/>
+    <Param name="Show info dlg" updates="None" val="True" valType="bool"/>
+    <Param name="Show mouse" updates="None" val="False" valType="bool"/>
+    <Param name="Units" updates="None" val="height" valType="str"/>
+    <Param name="Use version" updates="None" val="" valType="str"/>
+    <Param name="Window size (pixels)" updates="None" val="[1280, 800]" valType="code"/>
+    <Param name="blendMode" updates="None" val="avg" valType="str"/>
+    <Param name="color" updates="None" val="$[0,0,0]" valType="str"/>
+    <Param name="colorSpace" updates="None" val="rgb" valType="str"/>
+    <Param name="elAddress" updates="None" val="100.1.1.1" valType="str"/>
+    <Param name="elDataFiltering" updates="None" val="FILTER_LEVEL_2" valType="str"/>
+    <Param name="elLiveFiltering" updates="None" val="FILTER_LEVEL_OFF" valType="str"/>
+    <Param name="elModel" updates="None" val="EYELINK 1000 DESKTOP" valType="str"/>
+    <Param name="elPupilAlgorithm" updates="None" val="ELLIPSE_FIT" valType="str"/>
+    <Param name="elPupilMeasure" updates="None" val="PUPIL_AREA" valType="str"/>
+    <Param name="elSampleRate" updates="None" val="1000" valType="num"/>
+    <Param name="elSimMode" updates="None" val="False" valType="bool"/>
+    <Param name="elTrackEyes" updates="None" val="RIGHT_EYE" valType="str"/>
+    <Param name="elTrackingMode" updates="None" val="PUPIL_CR_TRACKING" valType="str"/>
+    <Param name="expName" updates="None" val="puzzleDB" valType="str"/>
+    <Param name="exportHTML" updates="None" val="manually" valType="str"/>
+    <Param name="eyetracker" updates="None" val="None" valType="str"/>
+    <Param name="gpAddress" updates="None" val="127.0.0.1" valType="str"/>
+    <Param name="gpPort" updates="None" val="4242" valType="num"/>
+    <Param name="logging level" updates="None" val="exp" valType="code"/>
+    <Param name="mgBlink" updates="None" val="('MIDDLE_BUTTON',)" valType="list"/>
+    <Param name="mgMove" updates="None" val="CONTINUOUS" valType="str"/>
+    <Param name="mgSaccade" updates="None" val="0.5" valType="num"/>
+    <Param name="tbLicenseFile" updates="None" val="" valType="str"/>
+    <Param name="tbModel" updates="None" val="" valType="str"/>
+    <Param name="tbSampleRate" updates="None" val="60" valType="num"/>
+    <Param name="tbSerialNo" updates="None" val="" valType="str"/>
+  </Settings>
+  <Routines>
+    <Routine name="designA">
+      <CodeComponent name="code">
+        <Param name="Before Experiment" updates="constant" val="" valType="extendedCode"/>
+        <Param name="Before JS Experiment" updates="constant" val="" valType="extendedCode"/>
+        <Param name="Begin Experiment" updates="constant" val="def createPiece(piece, pos, name):&amp;#10;    return visual.Rect(win, &amp;#10;        name=name, size=piece.size, pos=pos,&amp;#10;        lineColor=piece._borderColor, fillColor=piece._fillColor, lineWidth=piece.lineWidth)&amp;#10;&amp;#10;def drawPicked(picked):&amp;#10;    for each in picked:&amp;#10;        each.draw()&amp;#10;&amp;#10;def movePicked(picked, mouse, grabbed):&amp;#10;    if grabbed is not None and mouse.isPressedIn(grabbed):&amp;#10;        grabbed.pos = mouse.getPos()&amp;#10;        return grabbed&amp;#10;    else:&amp;#10;        for piece in picked:&amp;#10;            if mouse.isPressedIn(piece) and grabbed is None:&amp;#10;                return piece&amp;#10;&amp;#10;def createGrid(rows, size, pos, names):&amp;#10;    inc = (size/rows)&amp;#10;    rowStart = pos[0] - size/2&amp;#10;    colStart = pos[1] + size/2&amp;#10;    row, col = rowStart  + inc/2, colStart - inc/2&amp;#10;    counter = 0&amp;#10;    &amp;#10;    grid = []&amp;#10;    for i in range(rows):&amp;#10;        for j in range(rows):&amp;#10;            grid.append(visual.Rect(win, name=names[counter], units='pix', size = [size/rows, size/rows], pos= [row,col], lineColor= 'lightgrey'))&amp;#10;            row += inc&amp;#10;            counter += 1&amp;#10;        col -= inc&amp;#10;        row = rowStart + inc/2&amp;#10;    return grid&amp;#10;&amp;#10;def drawGrid(grid):&amp;#10;    for i in grid:&amp;#10;        i.draw()&amp;#10;&amp;#10;def checkAnswer(grid, pieces):&amp;#10;    # Get names of pieces that were picked&amp;#10;    picNames = [pic.name for pic in pieces]&amp;#10;    correctPieces = []&amp;#10;    for cell in grid:&amp;#10;        # Check if piece has been picked&amp;#10;        if cell.name in picNames:&amp;#10;            &amp;#10;            for name in range(0, len(picNames)):&amp;#10;                if cell.name == picNames[name]:&amp;#10;                    if cell.contains(pieces[name].pos):&amp;#10;                        correctPieces.append(True)&amp;#10;                        break  # Piece found, go to next cell&amp;#10;        else:&amp;#10;            return False  # Correct piece not picked&amp;#10;    return len(correctPieces) == len(grid)&amp;#10;    " valType="extendedCode"/>
+        <Param name="Begin JS Experiment" updates="constant" val="createPiece = function(piece, pos, name){&amp;#10;  return new visual.ImageStim({win : psychoJS.window,&amp;#10;                                image: piece.image, &amp;#10;                                name: name,&amp;#10;                                size: piece.size, &amp;#10;                                pos: pos})&amp;#10;}&amp;#10;&amp;#10;drawPicked = function(picked, draw) {&amp;#10;  if (picked.length &gt; 0) {&amp;#10;    for(let each of picked) {&amp;#10;      each.autoDraw = draw;&amp;#10;    }&amp;#10;  }&amp;#10;}&amp;#10;&amp;#10;movePicked = function(picked, mouse, grabbed) {&amp;#10;  if (grabbed != 'undefined' &amp;&amp;  mouse.getPressed()[0] === 1) {&amp;#10;    grabbed.pos = mouse.getPos();&amp;#10;    return grabbed&amp;#10;  } else {&amp;#10;      for (let piece of picked) {&amp;#10;        if (piece.contains(mouse) &amp;&amp;  mouse.getPressed()[0] === 1 &amp;&amp; grabbed === 'undefined'){&amp;#10;          piece.pos = mouse.getPos();&amp;#10;          return piece;&amp;#10;        }&amp;#10;      }&amp;#10;   return 'undefined'&amp;#10;  }&amp;#10;}&amp;#10;&amp;#10;createGrid = function(rows, size, pos, names) {&amp;#10;    var inc = (size/rows);&amp;#10;    var rowStart = pos[0] - size/2;&amp;#10;    var colStart = pos[1] + size/2;&amp;#10;    var row = rowStart  + inc/2;&amp;#10;    var col = colStart - inc/2;&amp;#10;    var counter = 0;&amp;#10;    var grid = [];&amp;#10;    &amp;#10;    for (let i = 0; i &lt; rows; i++) {&amp;#10;        for (let j = 0; j &lt; rows; j++) {&amp;#10;            grid.push(new visual.Rect({win : psychoJS.window,&amp;#10;                                        name: names[counter], &amp;#10;                                        units: 'pix',&amp;#10;                                        lineColor: new util.Color([1,1,0]),&amp;#10;                                        size: [size/rows, size/rows], &amp;#10;                                        pos: [row,col]}))&amp;#10;            row += inc&amp;#10;            counter += 1&amp;#10;        }&amp;#10;        col -= inc&amp;#10;        row = rowStart + inc/2&amp;#10;    }&amp;#10;    return grid&amp;#10;}&amp;#10;&amp;#10;&amp;#10;drawGrid = function(grid, draw) {&amp;#10;    for (let i of grid) {&amp;#10;        i.autoDraw = draw;&amp;#10;    }&amp;#10;}&amp;#10;&amp;#10;checkAnswer = function(grid, pieces) {&amp;#10;    var picNames = pieces.map((pic) =&gt; pic.name)&amp;#10;    var correctPieces = []&amp;#10;    for (let cell of grid) {&amp;#10;        if (picNames.includes(cell.name)) {&amp;#10;            for (let name = 0; name &lt; picNames.length; name++) {&amp;#10;                if (cell.name === picNames[name]) {&amp;#10;                    if (cell.contains(pieces[name])) {&amp;#10;                        correctPieces.push(true)&amp;#10;                        break&amp;#10;                    }&amp;#10;                }&amp;#10;            }&amp;#10;        } else {&amp;#10;            return false&amp;#10;        }&amp;#10;    }&amp;#10;    return correctPieces.length === grid.length&amp;#10;} &amp;#10;&amp;#10;picNameDict = {whitePiece: &quot;white.png&quot;,&amp;#10;               blackPiece: &quot;black.png&quot;}" valType="extendedCode"/>
+        <Param name="Begin JS Routine" updates="constant" val="pieces = [whitePiece, blackPiece]&amp;#10;answers = [a1,a2,a3,a4,a5,a6,a7,a8,a9]&amp;#10;picked = []&amp;#10;newPiece = 'undefined'&amp;#10;movingPiece = 'undefined'&amp;#10;grid = createGrid(nRows1, size, polygon.pos, answers)&amp;#10;&amp;#10;&amp;#10;" valType="extendedCode"/>
+        <Param name="Begin Routine" updates="constant" val="pieces = [whitePiece, blackPiece]&amp;#10;answers = [a1,a2,a3,a4,a5,a6,a7,a8,a9]&amp;#10;picked = []&amp;#10;newPiece = None&amp;#10;movingPiece = None&amp;#10;grid = createGrid(nRows1, size, polygon.pos, answers)&amp;#10;polygon.setFillColor(None)" valType="extendedCode"/>
+        <Param name="Code Type" updates="None" val="Both" valType="str"/>
+        <Param name="Each Frame" updates="constant" val="for piece in pieces:&amp;#10;    if mouse.isPressedIn(piece) and newPiece == None:&amp;#10;        newPiece = createPiece(piece, mouse.getPos(), piece.name)&amp;#10;        picked.append(newPiece)&amp;#10;        &amp;#10;    &amp;#10;if newPiece is not None and mouse.getPressed()[0] == 0:&amp;#10;    newPiece = None&amp;#10;&amp;#10;movingPiece = movePicked(picked, mouse, movingPiece)&amp;#10;drawGrid(grid)&amp;#10;drawPicked(picked)&amp;#10;" valType="extendedCode"/>
+        <Param name="Each JS Frame" updates="constant" val="for (let piece of pieces) {&amp;#10;    if (piece.contains(mouse) &amp;&amp; mouse.getPressed()[0] === 1 &amp;&amp; newPiece === 'undefined') {&amp;#10;        newPiece = createPiece(piece, mouse.getPos(), picNameDict[piece.name])&amp;#10;        picked.push(newPiece)&amp;#10;    }&amp;#10;}&amp;#10;        &amp;#10;    &amp;#10;if (newPiece !== 'undefined' &amp;&amp; mouse.getPressed()[0] === 0) {&amp;#10;    newPiece = 'undefined'&amp;#10;}&amp;#10;&amp;#10;movingPiece = movePicked(picked, mouse, movingPiece)&amp;#10;drawGrid(grid, true)&amp;#10;drawPicked(picked, true)" valType="extendedCode"/>
+        <Param name="End Experiment" updates="constant" val="" valType="extendedCode"/>
+        <Param name="End JS Experiment" updates="constant" val="" valType="extendedCode"/>
+        <Param name="End JS Routine" updates="constant" val="designATime = parseInt(designAClock.getTime())&amp;#10;correctA = checkAnswer(grid, picked)&amp;#10;drawPicked(picked, false)&amp;#10;drawGrid(grid, false)" valType="extendedCode"/>
+        <Param name="End Routine" updates="constant" val="" valType="extendedCode"/>
+        <Param name="disabled" updates="None" val="False" valType="bool"/>
+        <Param name="name" updates="None" val="code" valType="code"/>
+      </CodeComponent>
+      <PolygonComponent name="polygon">
+        <Param name="colorSpace" updates="constant" val="rgb" valType="str"/>
+        <Param name="contrast" updates="constant" val="1" valType="num"/>
+        <Param name="disabled" updates="None" val="False" valType="bool"/>
+        <Param name="durationEstim" updates="None" val="" valType="num"/>
+        <Param name="fillColor" updates="constant" val="grey" valType="color"/>
+        <Param name="interpolate" updates="constant" val="linear" valType="str"/>
+        <Param name="lineColor" updates="constant" val="white" valType="color"/>
+        <Param name="lineWidth" updates="constant" val="1" valType="num"/>
+        <Param name="nVertices" updates="constant" val="4" valType="int"/>
+        <Param name="name" updates="None" val="polygon" valType="code"/>
+        <Param name="opacity" updates="constant" val="1" valType="num"/>
+        <Param name="ori" updates="constant" val="0" valType="num"/>
+        <Param name="pos" updates="constant" val="(0, 0)" valType="list"/>
+        <Param name="saveStartStop" updates="None" val="True" valType="bool"/>
+        <Param name="shape" updates="constant" val="rectangle" valType="str"/>
+        <Param name="size" updates="set every repeat" val="(size, size)" valType="list"/>
+        <Param name="startEstim" updates="None" val="" valType="num"/>
+        <Param name="startType" updates="None" val="time (s)" valType="str"/>
+        <Param name="startVal" updates="None" val="0.0" valType="num"/>
+        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
+        <Param name="stopVal" updates="constant" val="" valType="num"/>
+        <Param name="syncScreenRefresh" updates="None" val="True" valType="bool"/>
+        <Param name="units" updates="None" val="from exp settings" valType="str"/>
+        <Param name="vertices" updates="constant" val="" valType="list"/>
+      </PolygonComponent>
+      <ImageComponent name="masterPatternA">
+        <Param name="color" updates="constant" val="$[1,1,1]" valType="str"/>
+        <Param name="colorSpace" updates="constant" val="rgb" valType="str"/>
+        <Param name="contrast" updates="constant" val="1" valType="num"/>
+        <Param name="disabled" updates="None" val="False" valType="bool"/>
+        <Param name="durationEstim" updates="None" val="" valType="code"/>
+        <Param name="flipHoriz" updates="constant" val="False" valType="bool"/>
+        <Param name="flipVert" updates="constant" val="False" valType="bool"/>
+        <Param name="image" updates="set every repeat" val="$design1" valType="str"/>
+        <Param name="interpolate" updates="constant" val="linear" valType="str"/>
+        <Param name="mask" updates="constant" val="None" valType="str"/>
+        <Param name="name" updates="None" val="masterPatternA" valType="code"/>
+        <Param name="opacity" updates="constant" val="1" valType="code"/>
+        <Param name="ori" updates="constant" val="0" valType="code"/>
+        <Param name="pos" updates="constant" val="(0, 0.35)" valType="code"/>
+        <Param name="saveStartStop" updates="None" val="True" valType="bool"/>
+        <Param name="size" updates="set every repeat" val="size_design" valType="code"/>
+        <Param name="startEstim" updates="None" val="" valType="code"/>
+        <Param name="startType" updates="None" val="time (s)" valType="str"/>
+        <Param name="startVal" updates="None" val="0.0" valType="code"/>
+        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
+        <Param name="stopVal" updates="constant" val="" valType="code"/>
+        <Param name="syncScreenRefresh" updates="None" val="True" valType="bool"/>
+        <Param name="texture resolution" updates="constant" val="512" valType="code"/>
+        <Param name="units" updates="None" val="from exp settings" valType="str"/>
+      </ImageComponent>
+      <MouseComponent name="mouse">
+        <Param name="clickable" updates="constant" val="" valType="code"/>
+        <Param name="disabled" updates="None" val="False" valType="bool"/>
+        <Param name="durationEstim" updates="None" val="" valType="code"/>
+        <Param name="forceEndRoutineOnPress" updates="constant" val="valid click" valType="str"/>
+        <Param name="name" updates="None" val="mouse" valType="code"/>
+        <Param name="newClicksOnly" updates="constant" val="True" valType="bool"/>
+        <Param name="saveMouseState" updates="None" val="never" valType="str"/>
+        <Param name="saveParamsClickable" updates="constant" val="name," valType="code"/>
+        <Param name="saveStartStop" updates="None" val="True" valType="bool"/>
+        <Param name="startEstim" updates="None" val="" valType="code"/>
+        <Param name="startType" updates="None" val="time (s)" valType="str"/>
+        <Param name="startVal" updates="None" val="0.0" valType="code"/>
+        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
+        <Param name="stopVal" updates="constant" val="" valType="code"/>
+        <Param name="syncScreenRefresh" updates="None" val="False" valType="bool"/>
+        <Param name="timeRelativeTo" updates="constant" val="mouse onset" valType="str"/>
+      </MouseComponent>
+      <ButtonComponent name="endBtn">
+        <Param name="anchor" updates="constant" val="center" valType="str"/>
+        <Param name="bold" updates="constant" val="True" valType="bool"/>
+        <Param name="borderColor" updates="constant" val="None" valType="color"/>
+        <Param name="borderWidth" updates="constant" val="0" valType="num"/>
+        <Param name="callback" updates="constant" val="designATime = int(designAClock.getTime())&amp;#10;correctA = checkAnswer(grid, picked)&amp;#10;thisExp.addData('correctA', correctA)&amp;#10;thisExp.addData('p1Actual', designATime)" valType="code"/>
+        <Param name="color" updates="constant" val="white" valType="color"/>
+        <Param name="colorSpace" updates="constant" val="rgb" valType="str"/>
+        <Param name="contrast" updates="constant" val="1" valType="num"/>
+        <Param name="disabled" updates="None" val="False" valType="bool"/>
+        <Param name="durationEstim" updates="None" val="" valType="num"/>
+        <Param name="fillColor" updates="constant" val="darkgrey" valType="color"/>
+        <Param name="font" updates="constant" val="Arvo" valType="str"/>
+        <Param name="forceEndRoutine" updates="constant" val="True" valType="bool"/>
+        <Param name="italic" updates="constant" val="False" valType="bool"/>
+        <Param name="letterHeight" updates="constant" val="0.05" valType="num"/>
+        <Param name="name" updates="None" val="endBtn" valType="code"/>
+        <Param name="oncePerClick" updates="constant" val="True" valType="bool"/>
+        <Param name="opacity" updates="constant" val="1" valType="num"/>
+        <Param name="ori" updates="constant" val="0" valType="num"/>
+        <Param name="padding" updates="constant" val="0.01" valType="num"/>
+        <Param name="pos" updates="constant" val="(0, -.4)" valType="list"/>
+        <Param name="save" updates="None" val="every click" valType="str"/>
+        <Param name="saveStartStop" updates="None" val="True" valType="bool"/>
+        <Param name="size" updates="constant" val="(0.3, 0.07)" valType="list"/>
+        <Param name="startEstim" updates="None" val="" valType="num"/>
+        <Param name="startType" updates="None" val="time (s)" valType="str"/>
+        <Param name="startVal" updates="None" val="0" valType="num"/>
+        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
+        <Param name="stopVal" updates="constant" val="" valType="num"/>
+        <Param name="syncScreenRefresh" updates="None" val="True" valType="bool"/>
+        <Param name="text" updates="constant" val="Continue" valType="str"/>
+        <Param name="timeRelativeTo" updates="constant" val="button onset" valType="str"/>
+        <Param name="units" updates="None" val="from exp settings" valType="str"/>
+      </ButtonComponent>
+      <PolygonComponent name="whitePiece">
+        <Param name="colorSpace" updates="constant" val="rgb" valType="str"/>
+        <Param name="contrast" updates="constant" val="1" valType="num"/>
+        <Param name="disabled" updates="None" val="False" valType="bool"/>
+        <Param name="durationEstim" updates="None" val="" valType="num"/>
+        <Param name="fillColor" updates="constant" val="white" valType="color"/>
+        <Param name="interpolate" updates="constant" val="linear" valType="str"/>
+        <Param name="lineColor" updates="constant" val="lightgrey" valType="color"/>
+        <Param name="lineWidth" updates="constant" val="20" valType="num"/>
+        <Param name="nVertices" updates="constant" val="4" valType="int"/>
+        <Param name="name" updates="None" val="whitePiece" valType="code"/>
+        <Param name="opacity" updates="constant" val="1" valType="num"/>
+        <Param name="ori" updates="constant" val="0" valType="num"/>
+        <Param name="pos" updates="constant" val="(-.4, 0)" valType="list"/>
+        <Param name="saveStartStop" updates="None" val="True" valType="bool"/>
+        <Param name="shape" updates="constant" val="rectangle" valType="str"/>
+        <Param name="size" updates="set every repeat" val="(size / nRows1, size / nRows1)" valType="list"/>
+        <Param name="startEstim" updates="None" val="" valType="num"/>
+        <Param name="startType" updates="None" val="time (s)" valType="str"/>
+        <Param name="startVal" updates="None" val="0.0" valType="num"/>
+        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
+        <Param name="stopVal" updates="constant" val="" valType="num"/>
+        <Param name="syncScreenRefresh" updates="None" val="True" valType="bool"/>
+        <Param name="units" updates="None" val="from exp settings" valType="str"/>
+        <Param name="vertices" updates="constant" val="" valType="list"/>
+      </PolygonComponent>
+      <PolygonComponent name="blackPiece">
+        <Param name="colorSpace" updates="constant" val="rgb" valType="str"/>
+        <Param name="contrast" updates="constant" val="1" valType="num"/>
+        <Param name="disabled" updates="None" val="False" valType="bool"/>
+        <Param name="durationEstim" updates="None" val="" valType="num"/>
+        <Param name="fillColor" updates="constant" val="black" valType="color"/>
+        <Param name="interpolate" updates="constant" val="linear" valType="str"/>
+        <Param name="lineColor" updates="constant" val="lightgrey" valType="color"/>
+        <Param name="lineWidth" updates="constant" val="20" valType="num"/>
+        <Param name="nVertices" updates="constant" val="4" valType="int"/>
+        <Param name="name" updates="None" val="blackPiece" valType="code"/>
+        <Param name="opacity" updates="constant" val="1" valType="num"/>
+        <Param name="ori" updates="constant" val="0" valType="num"/>
+        <Param name="pos" updates="constant" val="(.4, 0)" valType="list"/>
+        <Param name="saveStartStop" updates="None" val="True" valType="bool"/>
+        <Param name="shape" updates="constant" val="rectangle" valType="str"/>
+        <Param name="size" updates="set every repeat" val="(size / nRows1, size / nRows1)" valType="list"/>
+        <Param name="startEstim" updates="None" val="" valType="num"/>
+        <Param name="startType" updates="None" val="time (s)" valType="str"/>
+        <Param name="startVal" updates="None" val="0.0" valType="num"/>
+        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
+        <Param name="stopVal" updates="constant" val="" valType="num"/>
+        <Param name="syncScreenRefresh" updates="None" val="True" valType="bool"/>
+        <Param name="units" updates="None" val="from exp settings" valType="str"/>
+        <Param name="vertices" updates="constant" val="" valType="list"/>
+      </PolygonComponent>
+    </Routine>
+    <Routine name="result">
+      <KeyboardComponent name="endFB">
+        <Param name="allowedKeys" updates="constant" val="'space'" valType="code"/>
+        <Param name="correctAns" updates="constant" val="" valType="str"/>
+        <Param name="disabled" updates="None" val="False" valType="bool"/>
+        <Param name="discard previous" updates="constant" val="True" valType="bool"/>
+        <Param name="durationEstim" updates="None" val="" valType="code"/>
+        <Param name="forceEndRoutine" updates="constant" val="True" valType="bool"/>
+        <Param name="name" updates="None" val="endFB" valType="code"/>
+        <Param name="saveStartStop" updates="None" val="True" valType="bool"/>
+        <Param name="startEstim" updates="None" val="" valType="code"/>
+        <Param name="startType" updates="None" val="time (s)" valType="str"/>
+        <Param name="startVal" updates="None" val="0.0" valType="code"/>
+        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
+        <Param name="stopVal" updates="constant" val="" valType="code"/>
+        <Param name="store" updates="constant" val="last key" valType="str"/>
+        <Param name="storeCorrect" updates="constant" val="False" valType="bool"/>
+        <Param name="syncScreenRefresh" updates="constant" val="True" valType="bool"/>
+      </KeyboardComponent>
+      <ButtonComponent name="trialEndBtn">
+        <Param name="anchor" updates="constant" val="center" valType="str"/>
+        <Param name="bold" updates="constant" val="True" valType="bool"/>
+        <Param name="borderColor" updates="constant" val="None" valType="color"/>
+        <Param name="borderWidth" updates="constant" val="0" valType="num"/>
+        <Param name="callback" updates="constant" val="" valType="code"/>
+        <Param name="color" updates="constant" val="white" valType="color"/>
+        <Param name="colorSpace" updates="constant" val="rgb" valType="str"/>
+        <Param name="contrast" updates="constant" val="1" valType="num"/>
+        <Param name="disabled" updates="None" val="False" valType="bool"/>
+        <Param name="durationEstim" updates="None" val="" valType="num"/>
+        <Param name="fillColor" updates="constant" val="darkgrey" valType="color"/>
+        <Param name="font" updates="constant" val="Arvo" valType="str"/>
+        <Param name="forceEndRoutine" updates="constant" val="True" valType="bool"/>
+        <Param name="italic" updates="constant" val="False" valType="bool"/>
+        <Param name="letterHeight" updates="constant" val="0.05" valType="num"/>
+        <Param name="name" updates="None" val="trialEndBtn" valType="code"/>
+        <Param name="oncePerClick" updates="constant" val="True" valType="bool"/>
+        <Param name="opacity" updates="constant" val="1" valType="num"/>
+        <Param name="ori" updates="constant" val="0" valType="num"/>
+        <Param name="padding" updates="constant" val="0.01" valType="num"/>
+        <Param name="pos" updates="constant" val="(0.3, -.4)" valType="list"/>
+        <Param name="save" updates="None" val="every click" valType="str"/>
+        <Param name="saveStartStop" updates="None" val="True" valType="bool"/>
+        <Param name="size" updates="constant" val="(0.3, 0.07)" valType="list"/>
+        <Param name="startEstim" updates="None" val="" valType="num"/>
+        <Param name="startType" updates="None" val="time (s)" valType="str"/>
+        <Param name="startVal" updates="None" val="0" valType="num"/>
+        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
+        <Param name="stopVal" updates="constant" val="" valType="num"/>
+        <Param name="syncScreenRefresh" updates="None" val="True" valType="bool"/>
+        <Param name="text" updates="constant" val="Continue" valType="str"/>
+        <Param name="timeRelativeTo" updates="constant" val="button onset" valType="str"/>
+        <Param name="units" updates="None" val="from exp settings" valType="str"/>
+      </ButtonComponent>
+      <TextboxComponent name="textbox_2">
+        <Param name="anchor" updates="constant" val="center" valType="str"/>
+        <Param name="autoLog" updates="constant" val="True" valType="bool"/>
+        <Param name="bold" updates="constant" val="False" valType="bool"/>
+        <Param name="borderColor" updates="constant" val="None" valType="color"/>
+        <Param name="borderWidth" updates="constant" val="2" valType="num"/>
+        <Param name="color" updates="constant" val="white" valType="color"/>
+        <Param name="colorSpace" updates="constant" val="rgb" valType="str"/>
+        <Param name="contrast" updates="constant" val="1" valType="num"/>
+        <Param name="disabled" updates="None" val="False" valType="bool"/>
+        <Param name="durationEstim" updates="None" val="" valType="num"/>
+        <Param name="editable" updates="constant" val="False" valType="bool"/>
+        <Param name="fillColor" updates="constant" val="None" valType="color"/>
+        <Param name="flipHoriz" updates="constant" val="False" valType="bool"/>
+        <Param name="flipVert" updates="constant" val="False" valType="bool"/>
+        <Param name="font" updates="constant" val="Open Sans" valType="str"/>
+        <Param name="italic" updates="constant" val="False" valType="bool"/>
+        <Param name="languageStyle" updates="None" val="LTR" valType="str"/>
+        <Param name="letterHeight" updates="constant" val="0.1" valType="num"/>
+        <Param name="lineSpacing" updates="constant" val="1.0" valType="num"/>
+        <Param name="name" updates="None" val="textbox_2" valType="code"/>
+        <Param name="opacity" updates="constant" val="1" valType="num"/>
+        <Param name="ori" updates="constant" val="0" valType="num"/>
+        <Param name="padding" updates="constant" val="0" valType="num"/>
+        <Param name="pos" updates="constant" val="(0, 0)" valType="list"/>
+        <Param name="saveStartStop" updates="None" val="True" valType="bool"/>
+        <Param name="size" updates="constant" val="(None, None)" valType="list"/>
+        <Param name="startEstim" updates="None" val="" valType="num"/>
+        <Param name="startType" updates="None" val="time (s)" valType="str"/>
+        <Param name="startVal" updates="None" val="0.0" valType="num"/>
+        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
+        <Param name="stopVal" updates="constant" val="" valType="num"/>
+        <Param name="syncScreenRefresh" updates="None" val="True" valType="bool"/>
+        <Param name="text" updates="set every repeat" val="$f&quot;{['Incorrect!', 'Correct!'][correctA]} \nTime taken: {designATime} seconds\n&quot;" valType="str"/>
+        <Param name="units" updates="None" val="from exp settings" valType="str"/>
+      </TextboxComponent>
+    </Routine>
+    <Routine name="InstructionsRoutine">
+      <ButtonComponent name="startBtn">
+        <Param name="anchor" updates="constant" val="center" valType="str"/>
+        <Param name="bold" updates="constant" val="True" valType="bool"/>
+        <Param name="borderColor" updates="constant" val="None" valType="color"/>
+        <Param name="borderWidth" updates="constant" val="0" valType="num"/>
+        <Param name="callback" updates="constant" val="" valType="code"/>
+        <Param name="color" updates="constant" val="white" valType="color"/>
+        <Param name="colorSpace" updates="constant" val="rgb" valType="str"/>
+        <Param name="contrast" updates="constant" val="1" valType="num"/>
+        <Param name="disabled" updates="None" val="False" valType="bool"/>
+        <Param name="durationEstim" updates="None" val="" valType="num"/>
+        <Param name="fillColor" updates="constant" val="darkgrey" valType="color"/>
+        <Param name="font" updates="constant" val="Arvo" valType="str"/>
+        <Param name="forceEndRoutine" updates="constant" val="True" valType="bool"/>
+        <Param name="italic" updates="constant" val="False" valType="bool"/>
+        <Param name="letterHeight" updates="constant" val="0.05" valType="num"/>
+        <Param name="name" updates="None" val="startBtn" valType="code"/>
+        <Param name="oncePerClick" updates="constant" val="True" valType="bool"/>
+        <Param name="opacity" updates="constant" val="1" valType="num"/>
+        <Param name="ori" updates="constant" val="0" valType="num"/>
+        <Param name="padding" updates="constant" val="0.01" valType="num"/>
+        <Param name="pos" updates="constant" val="(0.3, -.4)" valType="list"/>
+        <Param name="save" updates="None" val="every click" valType="str"/>
+        <Param name="saveStartStop" updates="None" val="True" valType="bool"/>
+        <Param name="size" updates="constant" val="(0.3, 0.07)" valType="list"/>
+        <Param name="startEstim" updates="None" val="" valType="num"/>
+        <Param name="startType" updates="None" val="time (s)" valType="str"/>
+        <Param name="startVal" updates="None" val="0.0" valType="num"/>
+        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
+        <Param name="stopVal" updates="constant" val="" valType="num"/>
+        <Param name="syncScreenRefresh" updates="None" val="True" valType="bool"/>
+        <Param name="text" updates="constant" val="Continue" valType="str"/>
+        <Param name="timeRelativeTo" updates="constant" val="button onset" valType="str"/>
+        <Param name="units" updates="None" val="from exp settings" valType="str"/>
+      </ButtonComponent>
+      <TextboxComponent name="textbox">
+        <Param name="anchor" updates="constant" val="center" valType="str"/>
+        <Param name="autoLog" updates="constant" val="True" valType="bool"/>
+        <Param name="bold" updates="constant" val="False" valType="bool"/>
+        <Param name="borderColor" updates="constant" val="None" valType="color"/>
+        <Param name="borderWidth" updates="constant" val="2" valType="num"/>
+        <Param name="color" updates="constant" val="white" valType="color"/>
+        <Param name="colorSpace" updates="constant" val="rgb" valType="str"/>
+        <Param name="contrast" updates="constant" val="1" valType="num"/>
+        <Param name="disabled" updates="None" val="False" valType="bool"/>
+        <Param name="durationEstim" updates="None" val="" valType="num"/>
+        <Param name="editable" updates="constant" val="False" valType="bool"/>
+        <Param name="fillColor" updates="constant" val="None" valType="color"/>
+        <Param name="flipHoriz" updates="constant" val="False" valType="bool"/>
+        <Param name="flipVert" updates="constant" val="False" valType="bool"/>
+        <Param name="font" updates="constant" val="Open Sans" valType="str"/>
+        <Param name="italic" updates="constant" val="False" valType="bool"/>
+        <Param name="languageStyle" updates="None" val="LTR" valType="str"/>
+        <Param name="letterHeight" updates="constant" val="0.05" valType="num"/>
+        <Param name="lineSpacing" updates="constant" val="1.0" valType="num"/>
+        <Param name="name" updates="None" val="textbox" valType="code"/>
+        <Param name="opacity" updates="constant" val="1" valType="num"/>
+        <Param name="ori" updates="constant" val="0" valType="num"/>
+        <Param name="padding" updates="constant" val="0" valType="num"/>
+        <Param name="pos" updates="constant" val="(0, 0)" valType="list"/>
+        <Param name="saveStartStop" updates="None" val="True" valType="bool"/>
+        <Param name="size" updates="constant" val="(1.5, 1)" valType="list"/>
+        <Param name="startEstim" updates="None" val="" valType="num"/>
+        <Param name="startType" updates="None" val="time (s)" valType="str"/>
+        <Param name="startVal" updates="None" val="0.0" valType="num"/>
+        <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
+        <Param name="stopVal" updates="constant" val="" valType="num"/>
+        <Param name="syncScreenRefresh" updates="None" val="True" valType="bool"/>
+        <Param name="text" updates="constant" val="This task shows you the drag and drop capabilities of PsychoPy and PsychoJS.&amp;#10;&amp;#10;The demonstration uses a drag and drop puzzle game. &amp;#10;The task requires you to drag and drop the black and white&amp;#10;pieces into the empty square, in order to match the &amp;#10;puzzle design above.&amp;#10;&amp;#10;When you have finished, press the &quot;END&quot; button to &amp;#10;see whether or not you were correct, and how long the&amp;#10;the trial took.&amp;#10;&amp;#10;Click or tap continue to begin." valType="str"/>
+        <Param name="units" updates="None" val="from exp settings" valType="str"/>
+      </TextboxComponent>
+    </Routine>
+  </Routines>
+  <Flow>
+    <Routine name="InstructionsRoutine"/>
+    <LoopInitiator loopType="TrialHandler" name="trials">
+      <Param name="Selected rows" updates="None" val="" valType="str"/>
+      <Param name="conditions" updates="None" val="[OrderedDict([('design1', 'design_41.png'), ('size', 300), ('size_design', 200), ('nPieces1', 4), ('nRows1', 2), ('a1', 'white.png'), ('a2', 'black.png'), ('a3', 'black.png'), ('a4', 'black.png'), ('a5', None), ('a6', None), ('a7', None), ('a8', None), ('a9', None)]), OrderedDict([('design1', 'design_42.png'), ('size', 300), ('size_design', 200), ('nPieces1', 4), ('nRows1', 2), ('a1', 'white.png'), ('a2', 'white.png'), ('a3', 'black.png'), ('a4', 'black.png'), ('a5', None), ('a6', None), ('a7', None), ('a8', None), ('a9', None)]), OrderedDict([('design1', 'design_43.png'), ('size', 300), ('size_design', 200), ('nPieces1', 4), ('nRows1', 2), ('a1', 'white.png'), ('a2', 'black.png'), ('a3', 'black.png'), ('a4', 'white.png'), ('a5', None), ('a6', None), ('a7', None), ('a8', None), ('a9', None)]), OrderedDict([('design1', 'design_91.png'), ('size', 300), ('size_design', 200), ('nPieces1', 9), ('nRows1', 3), ('a1', 'white.png'), ('a2', 'black.png'), ('a3', 'white.png'), ('a4', 'black.png'), ('a5', 'white.png'), ('a6', 'black.png'), ('a7', 'white.png'), ('a8', 'black.png'), ('a9', 'black.png')]), OrderedDict([('design1', 'design_92.png'), ('size', 300), ('size_design', 200), ('nPieces1', 9), ('nRows1', 3), ('a1', 'white.png'), ('a2', 'black.png'), ('a3', 'white.png'), ('a4', 'black.png'), ('a5', 'black.png'), ('a6', 'black.png'), ('a7', 'white.png'), ('a8', 'black.png'), ('a9', 'black.png')]), OrderedDict([('design1', 'design_93.png'), ('size', 300), ('size_design', 200), ('nPieces1', 9), ('nRows1', 3), ('a1', 'black.png'), ('a2', 'white.png'), ('a3', 'black.png'), ('a4', 'white.png'), ('a5', 'black.png'), ('a6', 'white.png'), ('a7', 'white.png'), ('a8', 'white.png'), ('a9', 'black.png')])]" valType="str"/>
+      <Param name="conditionsFile" updates="None" val="conditions.xlsx" valType="str"/>
+      <Param name="endPoints" updates="None" val="[0, 1]" valType="num"/>
+      <Param name="isTrials" updates="None" val="True" valType="bool"/>
+      <Param name="loopType" updates="None" val="sequential" valType="str"/>
+      <Param name="nReps" updates="None" val="1" valType="code"/>
+      <Param name="name" updates="None" val="trials" valType="code"/>
+      <Param name="random seed" updates="None" val="" valType="code"/>
+    </LoopInitiator>
+    <Routine name="designA"/>
+    <Routine name="result"/>
+    <LoopTerminator name="trials"/>
+  </Flow>
+</PsychoPy2experiment>

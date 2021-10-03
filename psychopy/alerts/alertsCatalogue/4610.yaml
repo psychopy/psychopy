@@ -1,0 +1,22 @@
+
+code: 4610
+cat: Audio Transcription
+msg: Audio transcription service "{transcriber}" is not supported offline.
+
+# The following are typically used for online help pages, and support reStructured Text.
+label: Transcription service not compatible locally
+
+synopsis: |
+  Some audio transcription services can only be run online, some can only be run locally and some can be run either way.
+
+  If you are receiving this alert, it means that the audio transcription service you selected is one which only works
+  online, but you are trying to run your experiment locally, or it is not supported at all.
+
+details: |
+
+
+solutions: |
+  To silence this alert, choose a transcription service which can be run online, such as the built-in transcriber.
+
+versions: |
+  >2021.2.0

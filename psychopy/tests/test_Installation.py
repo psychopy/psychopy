@@ -10,7 +10,6 @@ def test_essential_imports():
     import pyglet
     import OpenGL
     import openpyxl
-    import lxml
     import pandas
 
 def test_extra_imports():
@@ -38,8 +37,6 @@ def test_extra_imports():
     assert pyglet.media.have_avbin
     import serial
     import pyo
-    if sys.platform=='win32':
-        import parallel
     #specific hardware libs
     import egi
     try:

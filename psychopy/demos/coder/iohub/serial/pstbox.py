@@ -1,9 +1,6 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#NOTE: Example currently not working in Python 3.
+from __future__ import print_function
 
-from __future__ import absolute_import, division, print_function
-
-from builtins import range
 import time
 import numpy as np
 from psychopy import core, visual
@@ -130,10 +127,6 @@ for i in range(nreps):
     # Clear the screen and wait a little while for possible late responses.
     win.flip()
     io.wait(0.25)
-
-    # Lower process priorities.
-    computer.setPriority('normal')
-    io.setPriority('normal')
 
     # Check if we collected any button events.
     # If we did, use the first one to determine response time.

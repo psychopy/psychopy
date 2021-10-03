@@ -1,11 +1,10 @@
 #!/usr/bin/env python
-#  -*- coding: utf-8 -*-
-
-# Part of the psychopy.iohub library.
-# Copyright (C) 2012-2016 iSolver Software Solutions
+# -*- coding: utf-8 -*-
+# Part of the PsychoPy library
+# Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 from __future__ import division, absolute_import, print_function
-
+from past.builtins import unicode
 import os
 import sys
 import time
@@ -22,7 +21,7 @@ except ImportError:
     psycho_logging = None
 from past.builtins import basestring
 from ..lazy_import import lazy_import
-from .. import _pkgroot, IOHUB_DIRECTORY
+from .. import IOHUB_DIRECTORY
 from ..util import yload, yLoader
 from ..errors import print2err, ioHubError, printExceptionDetailsToStdErr
 from ..util import isIterable, updateDict, win32MessagePump
@@ -35,6 +34,12 @@ from psychopy import constants
 getTime = Computer.getTime
 
 _currentSessionInfo = None
+
+def getFullClassName(klass):
+    module = klass.__module__
+    if module == 'builtins':
+        return klass.__qualname__  # avoid outputs like 'builtins.str'
+    return module + '.' + klass.__qualname__
 
 class DeviceRPC(object):
     '''
@@ -60,6 +65,12 @@ class DeviceRPC(object):
         # for the method return value sent back from the ioHub Server.
         r = self.sendToHub(('EXP_DEVICE', 'DEV_RPC', self.device_class,
                             self.method_name, args, kwargs))
+        
+        if r is None:
+            # print("r is None:",('EXP_DEVICE', 'DEV_RPC', self.device_class,
+            #                 self.method_name, args, kwargs))
+            return None
+        
         r = r[1:]
         if len(r) == 1:
             r = r[0]
@@ -118,12 +129,11 @@ class ioHubDeviceView(object):
     it connects to the ioHub Process.
     """
 
-    def __init__(self, hubClient, device_class_name, device_config):
+    def __init__(self, hubClient, device_class_path, device_class_name, device_config):
         self.hubClient = hubClient
         self.name = device_config.get('name', device_class_name.lower())
         self.device_class = device_class_name
-        #self._preRemoteMethodCallFunctions = dict()
-        #self._postRemoteMethodCallFunctions = dict()
+        self.device_class_path=device_class_path
 
         rpc_request = ('EXP_DEVICE', 'GET_DEV_INTERFACE', device_class_name)
         r = self.hubClient._sendToHubServer(rpc_request)
@@ -131,22 +141,9 @@ class ioHubDeviceView(object):
 
     def __getattr__(self, name):
         if name in self._methods:
-            #if name in self._preRemoteMethodCallFunctions:
-            #    f, ka = self._preRemoteMethodCallFunctions[name]
-            #    f(ka)
-            r = DeviceRPC(self.hubClient._sendToHubServer, self.device_class,
-                          name)
-            #if name in self._postRemoteMethodCallFunctions:
-            #    f, ka = self._postRemoteMethodCallFunctions[name]
-            #    f(ka)
+            r = DeviceRPC(self.hubClient._sendToHubServer, self.device_class, name)
             return r
         raise AttributeError(self, name)
-
-#    def setPreRemoteMethodCallFunction(self, methodName, funcCall, **kwargs):
-#        self._preRemoteMethodCallFunctions[methodName] = (funcCall, kwargs)
-
-#    def setPostRemoteMethodCallFunction(self, methodName, func_call, **kwargs):
-#        self._postRemoteMethodCallFunctions[methodName] = (func_call, kwargs)
 
     def getName(self):
         """
@@ -161,18 +158,20 @@ class ioHubDeviceView(object):
         """
         return self.name
 
-    def getIOHubDeviceClass(self):
+    def getIOHubDeviceClass(self, full=False):
         """
         Gets the ioHub Device class associated with the oHubDeviceView.
         This is specified for a device in the ioHub configuration file.
         ( the device: device_class: property )
 
-        Args:
-            None
+        :param full:
 
         Returns:
             (class): ioHub Device class associated with this ioHubDeviceView
+
         """
+        if full:
+            return self.device_class_path
         return self.device_class
 
     def getDeviceInterface(self):
@@ -213,7 +212,7 @@ class ioHubDevices(object):
         self._devicesByName[name] = d
 
     def getDevice(self, name):
-        self._devicesByName.get(name)
+        return self._devicesByName.get(name)
 
     def getAll(self):
         return self._devicesByName.values()
@@ -287,7 +286,7 @@ class ioHubConnection(object):
 
         self.iohub_status = self._startServer(ioHubConfig, ioHubConfigAbsPath)
         if self.iohub_status != 'OK':
-            raise RuntimeError('Error starting ioHub server')
+            raise RuntimeError('Error starting ioHub server: {}'.format(self.iohub_status))
 
     @classmethod
     def getActiveConnection(cls):
@@ -600,7 +599,7 @@ class ioHubConnection(object):
             # variable states to iohub so they can be stored for future
             # reference.
             #
-            io.addTrialHandlerRecord(trial.values())
+            io.addTrialHandlerRecord(trial)
 
         """
         trial = trials.trialList[0]
@@ -615,8 +614,6 @@ class ioHubConnection(object):
             if isinstance(cond_val, basestring):
                 numpy_dtype = (cond_name, 'S', 256)
             elif isinstance(cond_val, int):
-                numpy_dtype = (cond_name, 'i4')
-            elif isinstance(cond_val, long):
                 numpy_dtype = (cond_name, 'i8')
             elif isinstance(cond_val, float):
                 numpy_dtype = (cond_name, 'f8')
@@ -898,39 +895,11 @@ class ioHubConnection(object):
 
         self._iohub_server_config = ioHubConfig
 
-        # >>>>> Create open UDP port to ioHub Server
-
-        server_udp_port = self._iohub_server_config.get('udp_port', 9000)
-        from ..net import UDPClientConnection
-        self.udp_client = UDPClientConnection(remote_port=server_udp_port)
-        # <<<<< Done Creating open UDP port to ioHub Server
-
-        # >>>> Check for orphaned ioHub Process and kill if found...
-        iopFileName = os.path.join(rootScriptPath, '.iohpid')
-        if os.path.exists(iopFileName):
-            try:
-                iopFile = open(iopFileName, 'r')
-                line = iopFile.readline()
-                iopFile.close()
-                os.remove(iopFileName)
-                _, iohub_pid = line.split(':')
-                iohub_pid = int(iohub_pid.strip())
-                try:
-                    old_iohub_process = psutil.Process(iohub_pid)
-                    if old_iohub_process.name == 'python.exe':
-                        old_iohub_process.kill()
-                except psutil.NoSuchProcess:
-                    pass
-            except Exception: # pylint: disable=broad-except
-                import traceback
-                traceback.print_exc()
-
         if sys.platform == 'darwin':
             self._osxKillAndFreePort()
-        # <<<< Done handling orphaned iohub process fail safe.
 
         # >>>> Start iohub subprocess
-        run_script = os.path.join(IOHUB_DIRECTORY, 'launchHubProcess.py')
+        run_script = os.path.join(IOHUB_DIRECTORY, 'start_iohub_process.py')
         subprocessArgList = [sys.executable,
                              run_script,
                              '%.6f' % Computer.global_clock.getLastResetTime(),
@@ -961,17 +930,33 @@ class ioHubConnection(object):
 
         self._server_process = subprocess.Popen(subprocessArgList,
                                                 env=envars,
-                                                cwd=IOHUB_DIRECTORY)
+                                                cwd=IOHUB_DIRECTORY,
+                                                # set sub process stderr ro be stdout so PsychoPy Runner
+                                                # shows errors from iohub
+                                                stderr=subprocess.STDOUT,
+                                                )
 
         # Get iohub server pid and psutil process object
         # for affinity and process priority setting.
         Computer.iohub_process_id = self._server_process.pid
         Computer.iohub_process = psutil.Process(self._server_process.pid)
-        # If ioHub server did not respond correctly,
+
+        # >>>>> Create open UDP port to ioHub Server
+        server_udp_port = self._iohub_server_config.get('udp_port', 9000)
+        from ..net import UDPClientConnection
+        # initially open with a timeout so macOS does not hang.        
+        self.udp_client = UDPClientConnection(remote_port=server_udp_port, timeout=0.1)
+
+        # If ioHub server does not respond correctly,
         # terminate process and exit the program.
         if self._waitForServerInit() is False:
             self._server_process.terminate()
             return "ioHub startup failed."
+        
+        # close and reopen blocking version of socket
+        self.udp_client.close()
+        self.udp_client = UDPClientConnection(remote_port=server_udp_port)
+        # <<<<< Done Creating open UDP port to ioHub Server
 
         # <<<<< Done starting iohub subprocess
 
@@ -988,13 +973,6 @@ class ioHubConnection(object):
                 self.registerWindowHandles(*whs)
         except ImportError:
             pass
-
-        # Save ioHub ProcessID to file so next time it is started,
-        # it can be checked and killed if necessary
-        iopFile = open(iopFileName, 'w')
-        iopFile.write("ioHub PID: {}".format(Computer.iohub_process_id))
-        iopFile.flush()
-        iopFile.close()
 
         # Sending experiment_info if available.....
         if experiment_info:
@@ -1045,7 +1023,7 @@ class ioHubConnection(object):
             dev_cls_name = "{}".format(dev_cls_name)
             dev_name = dev_cls_name.lower()
             cls_name_start = dev_name.rfind('.')
-            dev_mod_pth = '%s.devices.' % _pkgroot
+            dev_mod_pth = 'psychopy.iohub.devices.'
             if cls_name_start > 0:
                 dev_mod_pth2 = dev_name[:cls_name_start]
                 dev_mod_pth = '{0}{1}'.format(dev_mod_pth, dev_mod_pth2)
@@ -1075,14 +1053,15 @@ class ioHubConnection(object):
                 # need to touch local_module since it was lazy loaded
 
                 # pylint: disable=exec-used
-                exec('import {}.client.{}'.format(_pkgroot,
-                                                  dev_cls_name.lower()))
+                exec('import psychopy.iohub.client.{}'.format(dev_cls_name.lower()))
                 local_class = getattr(local_module, dev_cls_name, False)
 
             if local_class:
                 d = local_class(self, dev_cls_name, dev_config)
             else:
-                d = ioHubDeviceView(self, dev_cls_name, dev_config)
+                full_device_class_name = getFullClassName(dev_cls)[len('psychopy.iohub.devices.'):]
+                full_device_class_name = full_device_class_name.replace('eyetracker.EyeTracker', 'EyeTracker')
+                d = ioHubDeviceView(self, full_device_class_name, dev_cls_name, dev_config)
 
             self.devices.addDevice(name, d)
             return d
@@ -1090,6 +1069,34 @@ class ioHubConnection(object):
             print2err('_addDeviceView: Error adding class. ')
             printExceptionDetailsToStdErr()
         return None
+
+    def _convertDict(self, d):
+        r = {}
+        for k, v in d.items():
+            if isinstance(v, bytes):
+                v = str(v, 'utf-8')
+            elif isinstance(v, list) or  isinstance(v, tuple):
+                v = self._convertList(v)
+            elif isinstance(v, dict):
+                v = self._convertDict(v)
+        
+            if isinstance(k, bytes):
+                k = str(k, 'utf-8')
+            r[k]=v
+        return r
+
+    def _convertList(self, l):
+        r = []
+        for i in l:
+            if isinstance(i, bytes):
+                r.append(str(i, 'utf-8'))
+            elif isinstance(i, list) or  isinstance(i, tuple):
+                r.append(self._convertList(i))
+            elif isinstance(i, dict):
+                r.append(self._convertDict(i))
+            else:
+                r.append(i)
+        return r
 
     def _sendToHubServer(self, tx_data):
         """General purpose local <-> iohub server process UDP based
@@ -1103,19 +1110,23 @@ class ioHubConnection(object):
         """
         try:
             # send request to host, return is # bytes sent.
+            #print("SEND:",tx_data)
             self.udp_client.sendTo(tx_data)
         except Exception as e: # pylint: disable=broad-except
             import traceback
             traceback.print_exc()
             self.shutdown()
             raise e
-
+        
+        result = None
+        
         try:
             # wait for response from ioHub server, which will be the
             # result data and iohub server address (ip4,port).
             result = self.udp_client.receive()
             if result:
                 result, _ = result
+            #print("RESULT:",result)
         except Exception as e: # pylint: disable=broad-except
             import traceback
             traceback.print_exc()
@@ -1126,23 +1137,16 @@ class ioHubConnection(object):
         # TODO: This is not really working as planned, in part because iohub
         #       server does not consistently return error responses when needed
         errorReply = self._isErrorReply(result)
-        if errorReply:
+        if errorReply:           
             raise ioHubError(result)
-
         # Otherwise return the result
-        if constants.PY3 and not result is None:
-            if isinstance(result, list):
-                for ind, items in enumerate(result):
-                    if isinstance(items, list) and not items is None:
-                        for nextInd, nested in enumerate(items):
-                            if type(nested) not in [dict, list, int, float, bool] and not nested is None :
-                                result[ind][nextInd] = str(nested, 'utf-8')
-                    elif type(items) not in [dict, list, int, float, bool] and not items is None:
-                        result[ind] = str(items, 'utf-8')
-                    elif type(items) is dict:
-                        result[ind] = {str(keys, 'utf-8'): vals for keys, vals in items.items()}
-            else:
-                result = str(result, 'utf-8')
+        
+        if constants.PY3 and result is not None:
+            # Use recursive conversion funcs                     
+            if isinstance(result, list) or  isinstance(result, tuple):
+                result = self._convertList(result)
+            elif isinstance(result, dict):
+                result = self._convertDict(result)
         return result
 
     def _sendExperimentInfo(self, experimentInfoDict):
@@ -1152,8 +1156,7 @@ class ioHubConnection(object):
         and returns a new or existing experiment ID based on that criteria.
         """
         fieldOrder = (('experiment_id', 0), ('code', ''), ('title', ''),
-                      ('description', ''), ('version', ''),
-                      ('total_sessions_to_run', 0))
+                      ('description', ''), ('version', ''))
         values = []
         for key, defaultValue in fieldOrder:
             if key in experimentInfoDict:
@@ -1238,23 +1241,24 @@ class ioHubConnection(object):
     def _shutDownServer(self):
         if self._shutdown_attempted is False:
             try:
-                import psychopy
-                psychopy.visual.window.IOHUB_ACTIVE = False
+                from psychopy.visual import window
+                window.IOHUB_ACTIVE = False
             except ImportError:
                 pass
 
             self._shutdown_attempted = True
             TimeoutError = psutil.TimeoutExpired
             try:
-                self.udp_client.sendTo(('STOP_IOHUB_SERVER',))
-                self.udp_client.close()
+                if self.udp_client:  # if it isn't already garbage-collected
+                    self.udp_client.sendTo(('STOP_IOHUB_SERVER',))
+                    self.udp_client.close()
                 if Computer.iohub_process:
                     r = Computer.iohub_process.wait(timeout=5)
                     print('ioHub Server Process Completed With Code: ', r)
             except TimeoutError:
                 print('Warning: TimeoutExpired, Killing ioHub Server process.')
                 Computer.iohub_process.kill()
-            except Exception: # pylint: disable=broad-except
+            except Exception:  # pylint: disable=broad-except
                 print("Warning: Unhandled Exception. "
                       "Killing ioHub Server process.")
                 if Computer.iohub_process:
@@ -1375,11 +1379,10 @@ class ioEvent(object):
                                                  self.id)
 
 _lazyImports = """
-from {pkgroot}.client.connect import launchHubServer
-
-from {pkgroot}.client import keyboard
-from {pkgroot}.client import wintabtablet
-""".format(pkgroot=_pkgroot)
+from psychopy.iohub.client.connect import launchHubServer
+from psychopy.iohub.client import keyboard
+from psychopy.iohub.client import wintab
+"""
 
 try:
     lazy_import(globals(), _lazyImports)

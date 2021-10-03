@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
@@ -29,7 +29,7 @@ def start_app():
     app.MainLoop()
 
 
-if __name__ == '__main__':
+def main():
     if '-x' in sys.argv:
         # run a .py script from the command line using StandAlone python
         targetScript = sys.argv[sys.argv.index('-x') + 1]
@@ -39,12 +39,12 @@ if __name__ == '__main__':
         sys.exit()
     if '-v' in sys.argv or '--version' in sys.argv:
         from psychopy import __version__
-        msg = ('PsychoPy2, version %s (c)Jonathan Peirce 2015, GNU GPL license'
+        msg = ('PsychoPy3, version %s (c)Jonathan Peirce 2018, GNU GPL license'
                % __version__)
         print(msg)
         sys.exit()
     if '-h' in sys.argv or '--help' in sys.argv:
-        print("""Starts the PsychoPy2 application.
+        print("""Starts the PsychoPy3 application.
 
 Usage:  python PsychoPy.py [options] [file]
 
@@ -88,9 +88,17 @@ Options:
             if '--no-splash' in sys.argv:
                 cmd.append('--no-splash')
 
-            core.shellCall(cmd, env=dict(env, PYTHONW='True'))
+            stdout, stderr = core.shellCall(cmd,
+                                            env=dict(env, PYTHONW='True'),
+                                            stderr=True)
+            print(stdout, file=sys.stdout)
+            print(stderr, file=sys.stderr)
             sys.exit()
         else:
             start_app()
     else:
         start_app()
+
+
+if __name__ == '__main__':
+    main()

@@ -39,7 +39,8 @@ class ExperimentHandler(_ComparisonMixin):
                  savePickle=True,
                  saveWideText=True,
                  dataFileName='',
-                 autoLog=True):
+                 autoLog=True,
+                 appendFiles=False):
         """
         :parameters:
 
@@ -93,6 +94,8 @@ class ExperimentHandler(_ComparisonMixin):
         self._paramNamesSoFar = []
         self.dataNames = []  # names of all the data (eg. resp.keys)
         self.autoLog = autoLog
+        self.appendFiles = appendFiles
+
         if dataFileName in ['', None]:
             logging.warning('ExperimentHandler created with no dataFileName'
                             ' parameter. No data will be saved in the event '
@@ -233,20 +236,36 @@ class ExperimentHandler(_ComparisonMixin):
         self.entries.append(this)
         self.thisEntry = {}
 
+    def getAllEntries(self):
+        """Fetches a copy of all the entries including a final (orphan) entry
+        if that exists. This allows entries to be saved even if nextEntry() is
+        not yet called.
+
+        :return: copy (not pointer) to entries
+        """
+        # check for orphan final data (not committed as a complete entry)
+        entries = copy.copy(self.entries)
+        if self.thisEntry:  # thisEntry is not empty
+            entries.append(self.thisEntry)
+        return entries
+
     def saveAsWideText(self,
                        fileName,
-                       delim=None,
+                       delim='auto',
                        matrixOnly=False,
-                       appendFile=False,
-                       encoding='utf-8',
-                       fileCollisionMethod='rename'):
+                       appendFile=None,
+                       encoding='utf-8-sig',
+                       fileCollisionMethod='rename',
+                       sortColumns=False):
         """Saves a long, wide-format text file, with one line representing
         the attributes and data for a single trial. Suitable for analysis
         in R and SPSS.
 
         If `appendFile=True` then the data will be added to the bottom of
         an existing file. Otherwise, if the file exists already it will
-        be overwritten
+        be kept and a new file will be created with a slightly different
+        name. If you want to overwrite the old file, pass 'overwrite'
+        to ``fileCollisionMethod``.
 
         If `matrixOnly=True` then the file will not contain a header row,
         which can be handy if you want to append data to an existing file
@@ -272,16 +291,29 @@ class ExperimentHandler(_ComparisonMixin):
 
             encoding:
                 The encoding to use when saving a the file.
-                Defaults to `utf-8`.
+                Defaults to `utf-8-sig`.
 
             fileCollisionMethod:
                 Collision method passed to
                 :func:`~psychopy.tools.fileerrortools.handleFileCollision`
 
+            sortColumns:
+                will sort columns alphabetically by header name if True
+
         """
         # set default delimiter if none given
-        if delim is None:
+        delimOptions = {
+                'comma': ",",
+                'semicolon': ";",
+                'tab': "\t"
+            }
+        if delim == 'auto':
             delim = genDelimiter(fileName)
+        elif delim in delimOptions:
+            delim = delimOptions[delim]
+
+        if appendFile is None:
+            appendFile = self.appendFiles
 
         # create the file or send to stdout
         fileName = genFilenameFromDelimiter(fileName, delim)
@@ -293,14 +325,19 @@ class ExperimentHandler(_ComparisonMixin):
         names.extend(self.dataNames)
         # names from the extraInfo dictionary
         names.extend(self._getExtraInfo()[0])
+        if len(names) < 1:
+            logging.error("No data was found, so data file may not look as expected.")
+        # sort names if requested
+        if sortColumns:
+            names.sort()
         # write a header line
         if not matrixOnly:
             for heading in names:
                 f.write(u'%s%s' % (heading, delim))
             f.write('\n')
-        # write the data for each entry
 
-        for entry in self.entries:
+        # write the data for each entry
+        for entry in self.getAllEntries():
             for name in names:
                 if name in entry:
                     ename = str(entry[name])
@@ -343,6 +380,9 @@ class ExperimentHandler(_ComparisonMixin):
         self.savePickle = False
         self.saveWideText = False
 
+        origEntries = self.entries
+        self.entries = self.getAllEntries()
+
         # otherwise use default location
         if not fileName.endswith('.psydat'):
             fileName += '.psydat'
@@ -354,6 +394,7 @@ class ExperimentHandler(_ComparisonMixin):
         if (fileName is not None) and (fileName != 'stdout'):
             logging.info('saved data to %s' % f.name)
 
+        self.entries = origEntries  # revert list of completed entries post-save
         self.savePickle = savePickle
         self.saveWideText = saveWideText
         

@@ -9,27 +9,44 @@ Display:
         IOHUB_INT:
             min: 0
             max: 7
-    reporting_unit_type: [ org, pix, pixel, pixels, deg, degree, degrees, cm, mm, inch, norm, normalize, normalized, percent, percentage] 
-    origin: [ center , top_left , bottom_left]
+    reporting_unit_type:
+        IOHUB_LIST:
+            valid_values: [pix, norm, height, cm, deg, degFlat, degFlatPos]
+            min_length: 0
+            max_length: 1
+    color_space:
+        IOHUB_LIST:
+            valid_values: [rgb, rgb255, named , hex, hsv, dkl, lms]
+            min_length: 0
+            max_length: 1
+    origin: center
     physical_dimensions:
         width:
-            IOHUB_NUMBER:
-                min: 1
-                max: 2048
+            IOHUB_FLOAT:
+                min: 1.0
+                max: 2048.0
                 required: True
         height:
-            IOHUB_NUMBER:
-                min: 1
-                max: 2048
+            IOHUB_FLOAT:
+                min: 1.0
+                max: 2048.0
                 required: True
-        unit_type: [ mm, cm, inch ]
+        unit_type:
+            IOHUB_LIST:
+                valid_values: [ mm, cm, inch ]
+                min_length: 1
+                max_length: 1
     default_eye_distance:
         surface_center:
-            IOHUB_NUMBER:
-                min: 1
-                max: 2048
+            IOHUB_FLOAT:
+                min: 1.0
+                max: 2048.0
                 required: True
-        unit_type: [ mm, cm, inch ]
+        unit_type:
+            IOHUB_LIST:
+                valid_values: [ mm, cm, inch ]
+                min_length: 1
+                max_length: 1
     psychopy_monitor_name:
         IOHUB_STRING:
             min_length: 1
@@ -45,35 +62,8 @@ Display:
         IOHUB_STRING:
             min_length: 1
             max_length: 32
-            default: N/A
-    model_number:
-        IOHUB_STRING:
-            min_length: 1
-            max_length: 16
-            default: N/A
     manufacturer_name:
         IOHUB_STRING:
             min_length: 1
             max_length: 64    
-            default: N/A
-    serial_number:
-        IOHUB_STRING:
-            min_length: 1
-            max_length: 32
-            default: N/A
-    manufacture_date: IOHUB_DATE
-    software_version:
-        IOHUB_STRING:
-            min_length: 1
-            max_length: 8    
-            default: N/A
-    hardware_version: 
-        IOHUB_STRING:
-            min_length: 1
-            max_length: 8
-            default: N/A
-    firmware_version: 
-        IOHUB_STRING:
-            min_length: 1
-            max_length: 8
             default: N/A

@@ -1,0 +1,824 @@
+﻿<?xml version="1.0" ?>
+<PsychoPy2experiment version="2021.1.0.dev4" encoding="utf-8">
+  <Settings>
+    <Param name="Audio latency priority" val="use prefs" valType="str" updates="None"/>
+    <Param name="Audio lib" val="use prefs" valType="str" updates="None"/>
+    <Param name="Completed URL" val="" valType="str" updates="None"/>
+    <Param name="Data file delimiter" val="auto" valType="str" updates="None"/>
+    <Param name="Data filename" val="u'data/%s_%s_%s' % (expInfo['participant'], expName, expInfo['date'])" valType="code" updates="None"/>
+    <Param name="Enable Escape" val="True" valType="bool" updates="None"/>
+    <Param name="Experiment info" val="{'participant': '', 'session': '001'}" valType="code" updates="None"/>
+    <Param name="Force stereo" val="True" valType="bool" updates="None"/>
+    <Param name="Full-screen window" val="False" valType="bool" updates="None"/>
+    <Param name="HTML path" val="" valType="str" updates="None"/>
+    <Param name="Incomplete URL" val="" valType="str" updates="None"/>
+    <Param name="Monitor" val="testMonitor" valType="str" updates="None"/>
+    <Param name="Resources" val="[]" valType="list" updates="None"/>
+    <Param name="Save csv file" val="False" valType="bool" updates="None"/>
+    <Param name="Save excel file" val="False" valType="bool" updates="None"/>
+    <Param name="Save log file" val="True" valType="bool" updates="None"/>
+    <Param name="Save psydat file" val="True" valType="bool" updates="None"/>
+    <Param name="Save wide csv file" val="True" valType="bool" updates="None"/>
+    <Param name="Screen" val="1" valType="num" updates="None"/>
+    <Param name="Show info dlg" val="True" valType="bool" updates="None"/>
+    <Param name="Show mouse" val="False" valType="bool" updates="None"/>
+    <Param name="Units" val="height" valType="str" updates="None"/>
+    <Param name="Use version" val="" valType="str" updates="None"/>
+    <Param name="Window size (pixels)" val="[1080, 720]" valType="list" updates="None"/>
+    <Param name="blendMode" val="avg" valType="str" updates="None"/>
+    <Param name="color" val="$[0,0,0]" valType="color" updates="None"/>
+    <Param name="colorSpace" val="rgb" valType="str" updates="None"/>
+    <Param name="expName" val="sliders2" valType="str" updates="None"/>
+    <Param name="exportHTML" val="on Sync" valType="str" updates="None"/>
+    <Param name="logging level" val="exp" valType="code" updates="None"/>
+  </Settings>
+  <Routines>
+    <Routine name="dynamic_stim">
+      <GratingComponent name="testStim">
+        <Param name="blendmode" val="avg" valType="str" updates="constant"/>
+        <Param name="color" val="$[1,1,1]" valType="color" updates="constant"/>
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="contrast" val="1.0" valType="num" updates="constant"/>
+        <Param name="disabled" val="False" valType="bool" updates="None"/>
+        <Param name="durationEstim" val="" valType="num" updates="None"/>
+        <Param name="interpolate" val="linear" valType="str" updates="constant"/>
+        <Param name="mask" val="circle" valType="file" updates="constant"/>
+        <Param name="name" val="testStim" valType="code" updates="None"/>
+        <Param name="opacity" val="1" valType="num" updates="constant"/>
+        <Param name="ori" val="ori.value or 0" valType="num" updates="set every frame"/>
+        <Param name="phase" val="0.0" valType="num" updates="constant"/>
+        <Param name="pos" val="(pos.value or 0.2, 0)" valType="list" updates="set every frame"/>
+        <Param name="saveStartStop" val="True" valType="bool" updates="None"/>
+        <Param name="sf" val="8" valType="num" updates="constant"/>
+        <Param name="size" val="(0.5, 0.5)" valType="list" updates="constant"/>
+        <Param name="startEstim" val="" valType="num" updates="None"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.0" valType="num" updates="None"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="stopVal" val="" valType="num" updates="constant"/>
+        <Param name="syncScreenRefresh" val="True" valType="bool" updates="None"/>
+        <Param name="tex" val="sin" valType="file" updates="constant"/>
+        <Param name="texture resolution" val="256" valType="num" updates="constant"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+      </GratingComponent>
+      <TextboxComponent name="oriLabel">
+        <Param name="anchor" val="top-center" valType="str" updates="constant"/>
+        <Param name="autoLog" val="True" valType="bool" updates="constant"/>
+        <Param name="bold" val="False" valType="bool" updates="constant"/>
+        <Param name="borderColor" val="None" valType="color" updates="constant"/>
+        <Param name="borderWidth" val="2" valType="num" updates="constant"/>
+        <Param name="color" val="white" valType="color" updates="constant"/>
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="contrast" val="1" valType="num" updates="constant"/>
+        <Param name="disabled" val="False" valType="bool" updates="None"/>
+        <Param name="durationEstim" val="" valType="num" updates="None"/>
+        <Param name="editable" val="False" valType="bool" updates="constant"/>
+        <Param name="fillColor" val="None" valType="color" updates="constant"/>
+        <Param name="flipHoriz" val="False" valType="bool" updates="constant"/>
+        <Param name="flipVert" val="False" valType="bool" updates="constant"/>
+        <Param name="font" val="Open Sans" valType="str" updates="constant"/>
+        <Param name="italic" val="False" valType="bool" updates="constant"/>
+        <Param name="languageStyle" val="LTR" valType="str" updates="None"/>
+        <Param name="letterHeight" val="0.05" valType="num" updates="constant"/>
+        <Param name="lineSpacing" val="1.0" valType="num" updates="constant"/>
+        <Param name="name" val="oriLabel" valType="code" updates="None"/>
+        <Param name="opacity" val="1" valType="num" updates="constant"/>
+        <Param name="ori" val="0" valType="num" updates="constant"/>
+        <Param name="padding" val="0" valType="num" updates="constant"/>
+        <Param name="pos" val="(-0.2, -0.4)" valType="list" updates="constant"/>
+        <Param name="saveStartStop" val="True" valType="bool" updates="None"/>
+        <Param name="size" val="(0.1, 0.05)" valType="list" updates="constant"/>
+        <Param name="startEstim" val="" valType="num" updates="None"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.0" valType="num" updates="None"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="stopVal" val="" valType="num" updates="constant"/>
+        <Param name="syncScreenRefresh" val="True" valType="bool" updates="None"/>
+        <Param name="text" val="Ori" valType="str" updates="constant"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+      </TextboxComponent>
+      <SliderComponent name="ori">
+        <Param name="borderColor" val="white" valType="color" updates="constant"/>
+        <Param name="color" val="white" valType="color" updates="constant"/>
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="contrast" val="1" valType="num" updates="constant"/>
+        <Param name="disabled" val="False" valType="bool" updates="None"/>
+        <Param name="durationEstim" val="" valType="num" updates="None"/>
+        <Param name="fillColor" val="darkred" valType="color" updates="constant"/>
+        <Param name="flip" val="False" valType="bool" updates="constant"/>
+        <Param name="font" val="Open Sans" valType="str" updates="constant"/>
+        <Param name="forceEndRoutine" val="False" valType="bool" updates="constant"/>
+        <Param name="granularity" val="0" valType="num" updates="constant"/>
+        <Param name="labels" val="(0, 180)" valType="list" updates="constant"/>
+        <Param name="letterHeight" val="0.05" valType="num" updates="constant"/>
+        <Param name="name" val="ori" valType="code" updates="None"/>
+        <Param name="opacity" val="" valType="num" updates="constant"/>
+        <Param name="ori" val="0" valType="num" updates="constant"/>
+        <Param name="pos" val="(-0.2, -0.05)" valType="list" updates="constant"/>
+        <Param name="readOnly" val="False" valType="bool" updates="constant"/>
+        <Param name="saveStartStop" val="True" valType="bool" updates="None"/>
+        <Param name="size" val="(0.1, 0.6)" valType="list" updates="constant"/>
+        <Param name="startEstim" val="" valType="num" updates="None"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.0" valType="num" updates="None"/>
+        <Param name="stopType" val="condition" valType="str" updates="None"/>
+        <Param name="stopVal" val="" valType="num" updates="constant"/>
+        <Param name="storeHistory" val="False" valType="bool" updates="constant"/>
+        <Param name="storeRating" val="True" valType="bool" updates="constant"/>
+        <Param name="storeRatingTime" val="True" valType="bool" updates="constant"/>
+        <Param name="styleTweaks" val="()" valType="list" updates="constant"/>
+        <Param name="styles" val="slider" valType="str" updates="constant"/>
+        <Param name="syncScreenRefresh" val="True" valType="bool" updates="None"/>
+        <Param name="ticks" val="(0, 45, 90, 135, 180)" valType="list" updates="constant"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+      </SliderComponent>
+      <TextboxComponent name="posLabel">
+        <Param name="anchor" val="top-center" valType="str" updates="constant"/>
+        <Param name="autoLog" val="True" valType="bool" updates="constant"/>
+        <Param name="bold" val="False" valType="bool" updates="constant"/>
+        <Param name="borderColor" val="None" valType="color" updates="constant"/>
+        <Param name="borderWidth" val="2" valType="num" updates="constant"/>
+        <Param name="color" val="white" valType="color" updates="constant"/>
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="contrast" val="1" valType="num" updates="constant"/>
+        <Param name="disabled" val="False" valType="bool" updates="None"/>
+        <Param name="durationEstim" val="" valType="num" updates="None"/>
+        <Param name="editable" val="False" valType="bool" updates="constant"/>
+        <Param name="fillColor" val="None" valType="color" updates="constant"/>
+        <Param name="flipHoriz" val="False" valType="bool" updates="constant"/>
+        <Param name="flipVert" val="False" valType="bool" updates="constant"/>
+        <Param name="font" val="Open Sans" valType="str" updates="constant"/>
+        <Param name="italic" val="False" valType="bool" updates="constant"/>
+        <Param name="languageStyle" val="LTR" valType="str" updates="None"/>
+        <Param name="letterHeight" val="0.05" valType="num" updates="constant"/>
+        <Param name="lineSpacing" val="1.0" valType="num" updates="constant"/>
+        <Param name="name" val="posLabel" valType="code" updates="None"/>
+        <Param name="opacity" val="1" valType="num" updates="constant"/>
+        <Param name="ori" val="0" valType="num" updates="constant"/>
+        <Param name="padding" val="0" valType="num" updates="constant"/>
+        <Param name="pos" val="(-0.5, -0.4)" valType="list" updates="constant"/>
+        <Param name="saveStartStop" val="True" valType="bool" updates="None"/>
+        <Param name="size" val="(0.1, 0.05)" valType="list" updates="constant"/>
+        <Param name="startEstim" val="" valType="num" updates="None"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.0" valType="num" updates="None"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="stopVal" val="" valType="num" updates="constant"/>
+        <Param name="syncScreenRefresh" val="True" valType="bool" updates="None"/>
+        <Param name="text" val="xPos" valType="str" updates="constant"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+      </TextboxComponent>
+      <SliderComponent name="pos">
+        <Param name="borderColor" val="white" valType="color" updates="constant"/>
+        <Param name="color" val="white" valType="color" updates="constant"/>
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="contrast" val="1" valType="num" updates="constant"/>
+        <Param name="disabled" val="False" valType="bool" updates="None"/>
+        <Param name="durationEstim" val="" valType="num" updates="None"/>
+        <Param name="fillColor" val="darkred" valType="color" updates="constant"/>
+        <Param name="flip" val="False" valType="bool" updates="constant"/>
+        <Param name="font" val="Open Sans" valType="str" updates="constant"/>
+        <Param name="forceEndRoutine" val="False" valType="bool" updates="constant"/>
+        <Param name="granularity" val="0" valType="num" updates="constant"/>
+        <Param name="labels" val="0.1, 0.5" valType="list" updates="constant"/>
+        <Param name="letterHeight" val="0.05" valType="num" updates="constant"/>
+        <Param name="name" val="pos" valType="code" updates="None"/>
+        <Param name="opacity" val="" valType="num" updates="constant"/>
+        <Param name="ori" val="ori.value or 0" valType="num" updates="constant"/>
+        <Param name="pos" val="(-0.5, -0.05)" valType="list" updates="constant"/>
+        <Param name="readOnly" val="False" valType="bool" updates="constant"/>
+        <Param name="saveStartStop" val="True" valType="bool" updates="None"/>
+        <Param name="size" val="(0.1, 0.6)" valType="list" updates="constant"/>
+        <Param name="startEstim" val="" valType="num" updates="None"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.0" valType="num" updates="None"/>
+        <Param name="stopType" val="condition" valType="str" updates="None"/>
+        <Param name="stopVal" val="" valType="num" updates="constant"/>
+        <Param name="storeHistory" val="False" valType="bool" updates="constant"/>
+        <Param name="storeRating" val="True" valType="bool" updates="constant"/>
+        <Param name="storeRatingTime" val="True" valType="bool" updates="constant"/>
+        <Param name="styleTweaks" val="()" valType="list" updates="constant"/>
+        <Param name="styles" val="slider" valType="str" updates="constant"/>
+        <Param name="syncScreenRefresh" val="True" valType="bool" updates="None"/>
+        <Param name="ticks" val="0.1, 0.2, 0.3, 0.4, 0.5" valType="list" updates="constant"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+      </SliderComponent>
+      <TextboxComponent name="dynoInst">
+        <Param name="anchor" val="center" valType="str" updates="constant"/>
+        <Param name="autoLog" val="True" valType="bool" updates="constant"/>
+        <Param name="bold" val="False" valType="bool" updates="constant"/>
+        <Param name="borderColor" val="None" valType="color" updates="constant"/>
+        <Param name="borderWidth" val="2" valType="num" updates="constant"/>
+        <Param name="color" val="white" valType="color" updates="constant"/>
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="contrast" val="1" valType="num" updates="constant"/>
+        <Param name="disabled" val="False" valType="bool" updates="None"/>
+        <Param name="durationEstim" val="" valType="num" updates="None"/>
+        <Param name="editable" val="False" valType="bool" updates="constant"/>
+        <Param name="fillColor" val="None" valType="color" updates="constant"/>
+        <Param name="flipHoriz" val="False" valType="bool" updates="constant"/>
+        <Param name="flipVert" val="False" valType="bool" updates="constant"/>
+        <Param name="font" val="Open Sans" valType="str" updates="constant"/>
+        <Param name="italic" val="False" valType="bool" updates="constant"/>
+        <Param name="languageStyle" val="LTR" valType="str" updates="None"/>
+        <Param name="letterHeight" val="0.05" valType="num" updates="constant"/>
+        <Param name="lineSpacing" val="1.0" valType="num" updates="constant"/>
+        <Param name="name" val="dynoInst" valType="code" updates="None"/>
+        <Param name="opacity" val="1" valType="num" updates="constant"/>
+        <Param name="ori" val="0" valType="num" updates="constant"/>
+        <Param name="padding" val="" valType="num" updates="constant"/>
+        <Param name="pos" val="(0, 0.4)" valType="list" updates="constant"/>
+        <Param name="saveStartStop" val="True" valType="bool" updates="None"/>
+        <Param name="size" val="(1.2, 0.2)" valType="list" updates="constant"/>
+        <Param name="startEstim" val="" valType="num" updates="None"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.0" valType="num" updates="None"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="stopVal" val="" valType="num" updates="constant"/>
+        <Param name="syncScreenRefresh" val="True" valType="bool" updates="None"/>
+        <Param name="text" val="Use the orientation and position sliders to move the stimulus." valType="str" updates="constant"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+      </TextboxComponent>
+      <ButtonComponent name="dynoDone">
+        <Param name="anchor" val="bottom-right" valType="str" updates="constant"/>
+        <Param name="bold" val="True" valType="bool" updates="constant"/>
+        <Param name="borderColor" val="None" valType="color" updates="constant"/>
+        <Param name="borderWidth" val="0" valType="num" updates="constant"/>
+        <Param name="callback" val="" valType="code" updates="constant"/>
+        <Param name="color" val="white" valType="color" updates="constant"/>
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="contrast" val="1" valType="num" updates="constant"/>
+        <Param name="disabled" val="False" valType="bool" updates="None"/>
+        <Param name="durationEstim" val="" valType="num" updates="None"/>
+        <Param name="fillColor" val="darkgrey" valType="color" updates="constant"/>
+        <Param name="font" val="Arvo" valType="str" updates="constant"/>
+        <Param name="forceEndRoutine" val="True" valType="bool" updates="constant"/>
+        <Param name="italic" val="False" valType="bool" updates="constant"/>
+        <Param name="letterHeight" val="0.04" valType="num" updates="constant"/>
+        <Param name="name" val="dynoDone" valType="code" updates="None"/>
+        <Param name="oncePerClick" val="True" valType="bool" updates="constant"/>
+        <Param name="opacity" val="1" valType="num" updates="constant"/>
+        <Param name="ori" val="0" valType="num" updates="constant"/>
+        <Param name="padding" val="0.02" valType="num" updates="constant"/>
+        <Param name="pos" val="(0.65, -0.45)" valType="list" updates="constant"/>
+        <Param name="save" val="every click" valType="str" updates="None"/>
+        <Param name="saveStartStop" val="True" valType="bool" updates="None"/>
+        <Param name="size" val="(0.25, 0.1)" valType="list" updates="constant"/>
+        <Param name="startEstim" val="" valType="num" updates="None"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.1" valType="num" updates="None"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="stopVal" val="" valType="num" updates="constant"/>
+        <Param name="syncScreenRefresh" val="True" valType="bool" updates="None"/>
+        <Param name="text" val="Continue &gt;" valType="str" updates="constant"/>
+        <Param name="timeRelativeTo" val="button onset" valType="str" updates="constant"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+      </ButtonComponent>
+    </Routine>
+    <Routine name="fruit_rating">
+      <TextboxComponent name="fruitLabel">
+        <Param name="anchor" val="center" valType="str" updates="constant"/>
+        <Param name="autoLog" val="True" valType="bool" updates="constant"/>
+        <Param name="bold" val="False" valType="bool" updates="constant"/>
+        <Param name="borderColor" val="None" valType="color" updates="constant"/>
+        <Param name="borderWidth" val="2" valType="num" updates="constant"/>
+        <Param name="color" val="white" valType="color" updates="constant"/>
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="contrast" val="1" valType="num" updates="constant"/>
+        <Param name="disabled" val="False" valType="bool" updates="None"/>
+        <Param name="durationEstim" val="" valType="num" updates="None"/>
+        <Param name="editable" val="False" valType="bool" updates="constant"/>
+        <Param name="fillColor" val="None" valType="color" updates="constant"/>
+        <Param name="flipHoriz" val="False" valType="bool" updates="constant"/>
+        <Param name="flipVert" val="False" valType="bool" updates="constant"/>
+        <Param name="font" val="Open Sans" valType="str" updates="constant"/>
+        <Param name="italic" val="False" valType="bool" updates="constant"/>
+        <Param name="languageStyle" val="LTR" valType="str" updates="None"/>
+        <Param name="letterHeight" val="0.1" valType="num" updates="constant"/>
+        <Param name="lineSpacing" val="1.0" valType="num" updates="constant"/>
+        <Param name="name" val="fruitLabel" valType="code" updates="None"/>
+        <Param name="opacity" val="1" valType="num" updates="constant"/>
+        <Param name="ori" val="0" valType="num" updates="constant"/>
+        <Param name="padding" val="" valType="num" updates="constant"/>
+        <Param name="pos" val="(0, 0.4)" valType="list" updates="constant"/>
+        <Param name="saveStartStop" val="True" valType="bool" updates="None"/>
+        <Param name="size" val="(0.5, 0.1)" valType="list" updates="constant"/>
+        <Param name="startEstim" val="" valType="num" updates="None"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.0" valType="num" updates="None"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="stopVal" val="" valType="num" updates="constant"/>
+        <Param name="syncScreenRefresh" val="True" valType="bool" updates="None"/>
+        <Param name="text" val="$fruitName" valType="str" updates="set every repeat"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+      </TextboxComponent>
+      <SliderComponent name="sourness">
+        <Param name="borderColor" val="yellow" valType="color" updates="constant"/>
+        <Param name="color" val="white" valType="color" updates="constant"/>
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="contrast" val="1" valType="num" updates="constant"/>
+        <Param name="disabled" val="False" valType="bool" updates="None"/>
+        <Param name="durationEstim" val="" valType="num" updates="None"/>
+        <Param name="fillColor" val="green" valType="color" updates="constant"/>
+        <Param name="flip" val="False" valType="bool" updates="constant"/>
+        <Param name="font" val="Open Sans" valType="str" updates="constant"/>
+        <Param name="forceEndRoutine" val="False" valType="bool" updates="constant"/>
+        <Param name="granularity" val="0.5" valType="num" updates="constant"/>
+        <Param name="labels" val="('sour','','neutral','','sweet')" valType="list" updates="constant"/>
+        <Param name="letterHeight" val="0.05" valType="num" updates="constant"/>
+        <Param name="name" val="sourness" valType="code" updates="None"/>
+        <Param name="opacity" val="" valType="num" updates="constant"/>
+        <Param name="ori" val="0" valType="num" updates="constant"/>
+        <Param name="pos" val="(0, 0.2)" valType="list" updates="constant"/>
+        <Param name="readOnly" val="False" valType="bool" updates="constant"/>
+        <Param name="saveStartStop" val="True" valType="bool" updates="None"/>
+        <Param name="size" val="(1, 0.05)" valType="list" updates="constant"/>
+        <Param name="startEstim" val="" valType="num" updates="None"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.0" valType="num" updates="None"/>
+        <Param name="stopType" val="condition" valType="str" updates="None"/>
+        <Param name="stopVal" val="" valType="num" updates="constant"/>
+        <Param name="storeHistory" val="False" valType="bool" updates="constant"/>
+        <Param name="storeRating" val="True" valType="bool" updates="constant"/>
+        <Param name="storeRatingTime" val="True" valType="bool" updates="constant"/>
+        <Param name="styleTweaks" val="()" valType="list" updates="constant"/>
+        <Param name="styles" val="rating" valType="str" updates="constant"/>
+        <Param name="syncScreenRefresh" val="True" valType="bool" updates="None"/>
+        <Param name="ticks" val="(1, 2, 3, 4, 5)" valType="list" updates="constant"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+      </SliderComponent>
+      <SliderComponent name="yumminess">
+        <Param name="borderColor" val="purple" valType="color" updates="constant"/>
+        <Param name="color" val="white" valType="color" updates="constant"/>
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="contrast" val="1" valType="num" updates="constant"/>
+        <Param name="disabled" val="False" valType="bool" updates="None"/>
+        <Param name="durationEstim" val="" valType="num" updates="None"/>
+        <Param name="fillColor" val="red" valType="color" updates="constant"/>
+        <Param name="flip" val="False" valType="bool" updates="constant"/>
+        <Param name="font" val="Open Sans" valType="str" updates="constant"/>
+        <Param name="forceEndRoutine" val="False" valType="bool" updates="constant"/>
+        <Param name="granularity" val="0.5" valType="num" updates="constant"/>
+        <Param name="labels" val="'yucky','yummy'" valType="list" updates="constant"/>
+        <Param name="letterHeight" val="0.05" valType="num" updates="constant"/>
+        <Param name="name" val="yumminess" valType="code" updates="None"/>
+        <Param name="opacity" val="" valType="num" updates="constant"/>
+        <Param name="ori" val="0" valType="num" updates="constant"/>
+        <Param name="pos" val="(0, -0.1)" valType="list" updates="constant"/>
+        <Param name="readOnly" val="False" valType="bool" updates="constant"/>
+        <Param name="saveStartStop" val="True" valType="bool" updates="None"/>
+        <Param name="size" val="(1.0, 0.05)" valType="list" updates="constant"/>
+        <Param name="startEstim" val="" valType="num" updates="None"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.0" valType="num" updates="None"/>
+        <Param name="stopType" val="condition" valType="str" updates="None"/>
+        <Param name="stopVal" val="" valType="num" updates="constant"/>
+        <Param name="storeHistory" val="False" valType="bool" updates="constant"/>
+        <Param name="storeRating" val="True" valType="bool" updates="constant"/>
+        <Param name="storeRatingTime" val="True" valType="bool" updates="constant"/>
+        <Param name="styleTweaks" val="()" valType="list" updates="constant"/>
+        <Param name="styles" val="triangleMarker" valType="str" updates="constant"/>
+        <Param name="syncScreenRefresh" val="True" valType="bool" updates="None"/>
+        <Param name="ticks" val="(1, 2, 3, 4, 5)" valType="list" updates="constant"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+      </SliderComponent>
+      <ButtonComponent name="fruitDone">
+        <Param name="anchor" val="bottom-right" valType="str" updates="constant"/>
+        <Param name="bold" val="True" valType="bool" updates="constant"/>
+        <Param name="borderColor" val="None" valType="color" updates="constant"/>
+        <Param name="borderWidth" val="0" valType="num" updates="constant"/>
+        <Param name="callback" val="" valType="code" updates="constant"/>
+        <Param name="color" val="white" valType="color" updates="constant"/>
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="contrast" val="1" valType="num" updates="constant"/>
+        <Param name="disabled" val="False" valType="bool" updates="None"/>
+        <Param name="durationEstim" val="" valType="num" updates="None"/>
+        <Param name="fillColor" val="darkgrey" valType="color" updates="constant"/>
+        <Param name="font" val="Arvo" valType="str" updates="constant"/>
+        <Param name="forceEndRoutine" val="True" valType="bool" updates="constant"/>
+        <Param name="italic" val="False" valType="bool" updates="constant"/>
+        <Param name="letterHeight" val="0.04" valType="num" updates="constant"/>
+        <Param name="name" val="fruitDone" valType="code" updates="None"/>
+        <Param name="oncePerClick" val="True" valType="bool" updates="constant"/>
+        <Param name="opacity" val="1" valType="num" updates="constant"/>
+        <Param name="ori" val="0" valType="num" updates="constant"/>
+        <Param name="padding" val="0.02" valType="num" updates="constant"/>
+        <Param name="pos" val="(0.65, -0.45)" valType="list" updates="constant"/>
+        <Param name="save" val="every click" valType="str" updates="None"/>
+        <Param name="saveStartStop" val="True" valType="bool" updates="None"/>
+        <Param name="size" val="(0.25, 0.1)" valType="list" updates="constant"/>
+        <Param name="startEstim" val="" valType="num" updates="None"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.1" valType="num" updates="None"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="stopVal" val="" valType="num" updates="constant"/>
+        <Param name="syncScreenRefresh" val="True" valType="bool" updates="None"/>
+        <Param name="text" val="Continue &gt;" valType="str" updates="constant"/>
+        <Param name="timeRelativeTo" val="button onset" valType="str" updates="constant"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+      </ButtonComponent>
+    </Routine>
+    <Routine name="slider_styles">
+      <VariableComponent name="colorNames">
+        <Param name="disabled" val="False" valType="bool" updates="None"/>
+        <Param name="durationEstim" val="" valType="num" updates="None"/>
+        <Param name="name" val="colorNames" valType="code" updates="None"/>
+        <Param name="saveEndExp" val="False" valType="bool" updates="constant"/>
+        <Param name="saveEndRoutine" val="True" valType="bool" updates="constant"/>
+        <Param name="saveFrameValue" val="never" valType="str" updates="constant"/>
+        <Param name="saveStartExp" val="False" valType="bool" updates="constant"/>
+        <Param name="saveStartRoutine" val="False" valType="bool" updates="constant"/>
+        <Param name="saveStartStop" val="True" valType="bool" updates="None"/>
+        <Param name="startEstim" val="" valType="num" updates="None"/>
+        <Param name="startExpValue" val="['red', 'orange', 'green', 'salmon']" valType="code" updates="constant"/>
+        <Param name="startFrameValue" val="" valType="code" updates="None"/>
+        <Param name="startRoutineValue" val="" valType="code" updates="constant"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="" valType="num" updates="None"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="stopVal" val="" valType="num" updates="constant"/>
+        <Param name="syncScreenRefresh" val="False" valType="bool" updates="None"/>
+      </VariableComponent>
+      <TextboxComponent name="stylesInst">
+        <Param name="anchor" val="top-center" valType="str" updates="constant"/>
+        <Param name="autoLog" val="True" valType="bool" updates="constant"/>
+        <Param name="bold" val="False" valType="bool" updates="constant"/>
+        <Param name="borderColor" val="None" valType="color" updates="constant"/>
+        <Param name="borderWidth" val="2" valType="num" updates="constant"/>
+        <Param name="color" val="white" valType="color" updates="constant"/>
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="contrast" val="1" valType="num" updates="constant"/>
+        <Param name="disabled" val="False" valType="bool" updates="None"/>
+        <Param name="durationEstim" val="" valType="num" updates="None"/>
+        <Param name="editable" val="False" valType="bool" updates="constant"/>
+        <Param name="fillColor" val="None" valType="color" updates="constant"/>
+        <Param name="flipHoriz" val="False" valType="bool" updates="constant"/>
+        <Param name="flipVert" val="False" valType="bool" updates="constant"/>
+        <Param name="font" val="Open Sans" valType="str" updates="constant"/>
+        <Param name="italic" val="False" valType="bool" updates="constant"/>
+        <Param name="languageStyle" val="LTR" valType="str" updates="None"/>
+        <Param name="letterHeight" val="0.05" valType="num" updates="constant"/>
+        <Param name="lineSpacing" val="1.0" valType="num" updates="constant"/>
+        <Param name="name" val="stylesInst" valType="code" updates="None"/>
+        <Param name="opacity" val="1" valType="num" updates="constant"/>
+        <Param name="ori" val="0" valType="num" updates="constant"/>
+        <Param name="padding" val="" valType="num" updates="constant"/>
+        <Param name="pos" val="(0, 0.45)" valType="list" updates="constant"/>
+        <Param name="saveStartStop" val="True" valType="bool" updates="None"/>
+        <Param name="size" val="(0.8, 0.3)" valType="list" updates="constant"/>
+        <Param name="startEstim" val="" valType="num" updates="None"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.0" valType="num" updates="None"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="stopVal" val="" valType="num" updates="constant"/>
+        <Param name="syncScreenRefresh" val="True" valType="bool" updates="None"/>
+        <Param name="text" val="Click on some sliders to see their markers" valType="str" updates="constant"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+      </TextboxComponent>
+      <SliderComponent name="categ">
+        <Param name="borderColor" val="white" valType="color" updates="constant"/>
+        <Param name="color" val="white" valType="color" updates="constant"/>
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="contrast" val="1" valType="num" updates="constant"/>
+        <Param name="disabled" val="False" valType="bool" updates="None"/>
+        <Param name="durationEstim" val="" valType="num" updates="None"/>
+        <Param name="fillColor" val="red" valType="color" updates="constant"/>
+        <Param name="flip" val="False" valType="bool" updates="constant"/>
+        <Param name="font" val="Open Sans" valType="str" updates="constant"/>
+        <Param name="forceEndRoutine" val="False" valType="bool" updates="constant"/>
+        <Param name="granularity" val="1" valType="num" updates="constant"/>
+        <Param name="labels" val="*colorNames" valType="list" updates="constant"/>
+        <Param name="letterHeight" val="0.05" valType="num" updates="constant"/>
+        <Param name="name" val="categ" valType="code" updates="None"/>
+        <Param name="opacity" val="" valType="num" updates="constant"/>
+        <Param name="ori" val="0" valType="num" updates="constant"/>
+        <Param name="pos" val="(0, -0.3)" valType="list" updates="constant"/>
+        <Param name="readOnly" val="False" valType="bool" updates="constant"/>
+        <Param name="saveStartStop" val="True" valType="bool" updates="None"/>
+        <Param name="size" val="(0.5, 0.05)" valType="list" updates="constant"/>
+        <Param name="startEstim" val="" valType="num" updates="None"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.0" valType="num" updates="None"/>
+        <Param name="stopType" val="condition" valType="str" updates="None"/>
+        <Param name="stopVal" val="" valType="num" updates="constant"/>
+        <Param name="storeHistory" val="False" valType="bool" updates="constant"/>
+        <Param name="storeRating" val="True" valType="bool" updates="constant"/>
+        <Param name="storeRatingTime" val="True" valType="bool" updates="constant"/>
+        <Param name="styleTweaks" val="()" valType="list" updates="constant"/>
+        <Param name="styles" val="radio" valType="str" updates="constant"/>
+        <Param name="syncScreenRefresh" val="True" valType="bool" updates="None"/>
+        <Param name="ticks" val="*list(range(len(colorNames)))" valType="list" updates="constant"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+      </SliderComponent>
+      <PolygonComponent name="categShape">
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="contrast" val="1" valType="num" updates="constant"/>
+        <Param name="disabled" val="False" valType="bool" updates="None"/>
+        <Param name="durationEstim" val="" valType="num" updates="None"/>
+        <Param name="fillColor" val="$colorNames[int(categ.rating or 0)]" valType="color" updates="set every frame"/>
+        <Param name="interpolate" val="linear" valType="str" updates="constant"/>
+        <Param name="lineColor" val="None" valType="color" updates="constant"/>
+        <Param name="lineWidth" val="1" valType="num" updates="constant"/>
+        <Param name="nVertices" val="4" valType="int" updates="constant"/>
+        <Param name="name" val="categShape" valType="code" updates="None"/>
+        <Param name="opacity" val="leftLabels.value or 1" valType="num" updates="set every frame"/>
+        <Param name="ori" val="0" valType="num" updates="constant"/>
+        <Param name="pos" val="(0, (rightLabels.value or 0.3)-0.4)" valType="list" updates="set every frame"/>
+        <Param name="saveStartStop" val="True" valType="bool" updates="None"/>
+        <Param name="shape" val="triangle" valType="str" updates="constant"/>
+        <Param name="size" val="(0.3, 0.3)" valType="list" updates="constant"/>
+        <Param name="startEstim" val="" valType="num" updates="None"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.0" valType="num" updates="None"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="stopVal" val="" valType="num" updates="constant"/>
+        <Param name="syncScreenRefresh" val="True" valType="bool" updates="None"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+      </PolygonComponent>
+      <SliderComponent name="leftLabels">
+        <Param name="borderColor" val="white" valType="color" updates="constant"/>
+        <Param name="color" val="white" valType="color" updates="constant"/>
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="contrast" val="1" valType="num" updates="constant"/>
+        <Param name="disabled" val="False" valType="bool" updates="None"/>
+        <Param name="durationEstim" val="" valType="num" updates="None"/>
+        <Param name="fillColor" val="red" valType="color" updates="constant"/>
+        <Param name="flip" val="False" valType="bool" updates="constant"/>
+        <Param name="font" val="Open Sans" valType="str" updates="constant"/>
+        <Param name="forceEndRoutine" val="False" valType="bool" updates="constant"/>
+        <Param name="granularity" val="0" valType="num" updates="constant"/>
+        <Param name="labels" val="'left','hand','labels'" valType="list" updates="constant"/>
+        <Param name="letterHeight" val="0.05" valType="num" updates="constant"/>
+        <Param name="name" val="leftLabels" valType="code" updates="None"/>
+        <Param name="opacity" val="" valType="num" updates="constant"/>
+        <Param name="ori" val="0" valType="num" updates="constant"/>
+        <Param name="pos" val="(-0.5, 0)" valType="list" updates="constant"/>
+        <Param name="readOnly" val="False" valType="bool" updates="constant"/>
+        <Param name="saveStartStop" val="True" valType="bool" updates="None"/>
+        <Param name="size" val="(0.05, 0.6)" valType="list" updates="constant"/>
+        <Param name="startEstim" val="" valType="num" updates="None"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.0" valType="num" updates="None"/>
+        <Param name="stopType" val="condition" valType="str" updates="None"/>
+        <Param name="stopVal" val="" valType="num" updates="constant"/>
+        <Param name="storeHistory" val="False" valType="bool" updates="constant"/>
+        <Param name="storeRating" val="True" valType="bool" updates="constant"/>
+        <Param name="storeRatingTime" val="True" valType="bool" updates="constant"/>
+        <Param name="styleTweaks" val="()" valType="list" updates="constant"/>
+        <Param name="styles" val="rating" valType="str" updates="constant"/>
+        <Param name="syncScreenRefresh" val="True" valType="bool" updates="None"/>
+        <Param name="ticks" val="0.001, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0" valType="list" updates="constant"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+      </SliderComponent>
+      <SliderComponent name="rightLabels">
+        <Param name="borderColor" val="white" valType="color" updates="constant"/>
+        <Param name="color" val="white" valType="color" updates="constant"/>
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="contrast" val="1" valType="num" updates="constant"/>
+        <Param name="disabled" val="False" valType="bool" updates="None"/>
+        <Param name="durationEstim" val="" valType="num" updates="None"/>
+        <Param name="fillColor" val="red" valType="color" updates="constant"/>
+        <Param name="flip" val="True" valType="bool" updates="constant"/>
+        <Param name="font" val="Open Sans" valType="str" updates="constant"/>
+        <Param name="forceEndRoutine" val="False" valType="bool" updates="constant"/>
+        <Param name="granularity" val="0" valType="num" updates="constant"/>
+        <Param name="labels" val="('flip', 'for', 'right-hand')" valType="list" updates="constant"/>
+        <Param name="letterHeight" val="0.05" valType="num" updates="constant"/>
+        <Param name="name" val="rightLabels" valType="code" updates="None"/>
+        <Param name="opacity" val="" valType="num" updates="constant"/>
+        <Param name="ori" val="0" valType="num" updates="constant"/>
+        <Param name="pos" val="(0.5, 0)" valType="list" updates="constant"/>
+        <Param name="readOnly" val="False" valType="bool" updates="constant"/>
+        <Param name="saveStartStop" val="True" valType="bool" updates="None"/>
+        <Param name="size" val="(0.05, 0.6)" valType="list" updates="constant"/>
+        <Param name="startEstim" val="" valType="num" updates="None"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.0" valType="num" updates="None"/>
+        <Param name="stopType" val="condition" valType="str" updates="None"/>
+        <Param name="stopVal" val="" valType="num" updates="constant"/>
+        <Param name="storeHistory" val="False" valType="bool" updates="constant"/>
+        <Param name="storeRating" val="True" valType="bool" updates="constant"/>
+        <Param name="storeRatingTime" val="True" valType="bool" updates="constant"/>
+        <Param name="styleTweaks" val="()" valType="list" updates="constant"/>
+        <Param name="styles" val="rating" valType="str" updates="constant"/>
+        <Param name="syncScreenRefresh" val="True" valType="bool" updates="None"/>
+        <Param name="ticks" val="(0.1, 0.7)" valType="list" updates="constant"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+      </SliderComponent>
+      <ButtonComponent name="stylesDone">
+        <Param name="anchor" val="bottom-right" valType="str" updates="constant"/>
+        <Param name="bold" val="True" valType="bool" updates="constant"/>
+        <Param name="borderColor" val="None" valType="color" updates="constant"/>
+        <Param name="borderWidth" val="0" valType="num" updates="constant"/>
+        <Param name="callback" val="" valType="code" updates="constant"/>
+        <Param name="color" val="white" valType="color" updates="constant"/>
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="contrast" val="1" valType="num" updates="constant"/>
+        <Param name="disabled" val="False" valType="bool" updates="None"/>
+        <Param name="durationEstim" val="" valType="num" updates="None"/>
+        <Param name="fillColor" val="darkgrey" valType="color" updates="constant"/>
+        <Param name="font" val="Arvo" valType="str" updates="constant"/>
+        <Param name="forceEndRoutine" val="True" valType="bool" updates="constant"/>
+        <Param name="italic" val="False" valType="bool" updates="constant"/>
+        <Param name="letterHeight" val="0.04" valType="num" updates="constant"/>
+        <Param name="name" val="stylesDone" valType="code" updates="None"/>
+        <Param name="oncePerClick" val="True" valType="bool" updates="constant"/>
+        <Param name="opacity" val="1" valType="num" updates="constant"/>
+        <Param name="ori" val="0" valType="num" updates="constant"/>
+        <Param name="padding" val="0.02" valType="num" updates="constant"/>
+        <Param name="pos" val="(0.65, -0.45)" valType="list" updates="constant"/>
+        <Param name="save" val="every click" valType="str" updates="None"/>
+        <Param name="saveStartStop" val="True" valType="bool" updates="None"/>
+        <Param name="size" val="(0.25, 0.1)" valType="list" updates="constant"/>
+        <Param name="startEstim" val="" valType="num" updates="None"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.0" valType="num" updates="None"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="stopVal" val="" valType="num" updates="constant"/>
+        <Param name="syncScreenRefresh" val="True" valType="bool" updates="None"/>
+        <Param name="text" val="Continue &gt;" valType="str" updates="constant"/>
+        <Param name="timeRelativeTo" val="button onset" valType="str" updates="constant"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+      </ButtonComponent>
+    </Routine>
+    <Routine name="customMarker">
+      <SliderComponent name="customSlider">
+        <Param name="borderColor" val="white" valType="color" updates="constant"/>
+        <Param name="color" val="white" valType="color" updates="constant"/>
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="contrast" val="1" valType="code" updates="constant"/>
+        <Param name="disabled" val="False" valType="bool" updates="None"/>
+        <Param name="durationEstim" val="" valType="num" updates="None"/>
+        <Param name="fillColor" val="white" valType="color" updates="constant"/>
+        <Param name="flip" val="False" valType="bool" updates="constant"/>
+        <Param name="font" val="Open Sans" valType="str" updates="constant"/>
+        <Param name="forceEndRoutine" val="False" valType="bool" updates="constant"/>
+        <Param name="granularity" val="0" valType="num" updates="constant"/>
+        <Param name="labels" val="" valType="list" updates="constant"/>
+        <Param name="letterHeight" val="0.05" valType="num" updates="constant"/>
+        <Param name="name" val="customSlider" valType="code" updates="None"/>
+        <Param name="opacity" val="" valType="num" updates="constant"/>
+        <Param name="ori" val="0" valType="num" updates="constant"/>
+        <Param name="pos" val="(0, 0)" valType="list" updates="constant"/>
+        <Param name="readOnly" val="False" valType="bool" updates="constant"/>
+        <Param name="saveStartStop" val="True" valType="bool" updates="None"/>
+        <Param name="size" val="(1, 0.1)" valType="list" updates="constant"/>
+        <Param name="startEstim" val="" valType="num" updates="None"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.0" valType="num" updates="None"/>
+        <Param name="stopType" val="condition" valType="str" updates="None"/>
+        <Param name="stopVal" val="" valType="num" updates="constant"/>
+        <Param name="storeHistory" val="False" valType="bool" updates="constant"/>
+        <Param name="storeRating" val="True" valType="bool" updates="constant"/>
+        <Param name="storeRatingTime" val="True" valType="bool" updates="constant"/>
+        <Param name="styleTweaks" val="()" valType="list" updates="constant"/>
+        <Param name="styles" val="rating" valType="str" updates="constant"/>
+        <Param name="syncScreenRefresh" val="True" valType="bool" updates="None"/>
+        <Param name="ticks" val="(1, 2, 3, 4, 5)" valType="list" updates="constant"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+      </SliderComponent>
+      <TextboxComponent name="finger">
+        <Param name="anchor" val="center" valType="str" updates="constant"/>
+        <Param name="autoLog" val="True" valType="bool" updates="constant"/>
+        <Param name="bold" val="False" valType="bool" updates="constant"/>
+        <Param name="borderColor" val="None" valType="color" updates="constant"/>
+        <Param name="borderWidth" val="2" valType="num" updates="constant"/>
+        <Param name="color" val="black" valType="color" updates="constant"/>
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="contrast" val="1" valType="code" updates="constant"/>
+        <Param name="disabled" val="False" valType="bool" updates="None"/>
+        <Param name="durationEstim" val="" valType="num" updates="None"/>
+        <Param name="editable" val="False" valType="bool" updates="constant"/>
+        <Param name="fillColor" val="None" valType="color" updates="constant"/>
+        <Param name="flipHoriz" val="False" valType="bool" updates="constant"/>
+        <Param name="flipVert" val="False" valType="bool" updates="constant"/>
+        <Param name="font" val="Noto Sans JP" valType="str" updates="constant"/>
+        <Param name="italic" val="False" valType="bool" updates="constant"/>
+        <Param name="languageStyle" val="LTR" valType="str" updates="None"/>
+        <Param name="letterHeight" val="0.1" valType="num" updates="constant"/>
+        <Param name="lineSpacing" val="1.0" valType="num" updates="constant"/>
+        <Param name="name" val="finger" valType="code" updates="None"/>
+        <Param name="opacity" val="" valType="num" updates="constant"/>
+        <Param name="ori" val="0" valType="num" updates="constant"/>
+        <Param name="padding" val="0.03" valType="num" updates="constant"/>
+        <Param name="pos" val="(0, 0)" valType="list" updates="constant"/>
+        <Param name="saveStartStop" val="True" valType="bool" updates="None"/>
+        <Param name="size" val="(0.15,0.1)" valType="list" updates="constant"/>
+        <Param name="startEstim" val="" valType="num" updates="None"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.0" valType="num" updates="None"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="stopVal" val="0" valType="num" updates="constant"/>
+        <Param name="syncScreenRefresh" val="True" valType="bool" updates="None"/>
+        <Param name="text" val="☝" valType="str" updates="constant"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+      </TextboxComponent>
+      <CodeComponent name="setMarker">
+        <Param name="Before Experiment" val="" valType="code" updates="constant"/>
+        <Param name="Before JS Experiment" val="" valType="code" updates="constant"/>
+        <Param name="Begin Experiment" val="" valType="extendedCode" updates="constant"/>
+        <Param name="Begin JS Experiment" val="" valType="code" updates="constant"/>
+        <Param name="Begin JS Routine" val="customSlider.marker = finger;&amp;#10;" valType="code" updates="constant"/>
+        <Param name="Begin Routine" val="# Set finger as the object to use as the slider's marker&amp;#10;customSlider.marker = finger" valType="extendedCode" updates="constant"/>
+        <Param name="Code Type" val="Auto-&gt;JS" valType="str" updates="None"/>
+        <Param name="Each Frame" val="" valType="extendedCode" updates="constant"/>
+        <Param name="Each JS Frame" val="" valType="code" updates="constant"/>
+        <Param name="End Experiment" val="" valType="extendedCode" updates="constant"/>
+        <Param name="End JS Experiment" val="" valType="code" updates="constant"/>
+        <Param name="End JS Routine" val="" valType="code" updates="constant"/>
+        <Param name="End Routine" val="" valType="extendedCode" updates="constant"/>
+        <Param name="disabled" val="False" valType="bool" updates="None"/>
+        <Param name="name" val="setMarker" valType="code" updates="None"/>
+      </CodeComponent>
+      <TextboxComponent name="customInst">
+        <Param name="anchor" val="top-center" valType="str" updates="constant"/>
+        <Param name="autoLog" val="True" valType="bool" updates="constant"/>
+        <Param name="bold" val="False" valType="bool" updates="constant"/>
+        <Param name="borderColor" val="None" valType="color" updates="constant"/>
+        <Param name="borderWidth" val="2" valType="num" updates="constant"/>
+        <Param name="color" val="white" valType="color" updates="constant"/>
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="contrast" val="1" valType="code" updates="constant"/>
+        <Param name="disabled" val="False" valType="bool" updates="None"/>
+        <Param name="durationEstim" val="" valType="num" updates="None"/>
+        <Param name="editable" val="False" valType="bool" updates="constant"/>
+        <Param name="fillColor" val="None" valType="color" updates="constant"/>
+        <Param name="flipHoriz" val="False" valType="bool" updates="constant"/>
+        <Param name="flipVert" val="False" valType="bool" updates="constant"/>
+        <Param name="font" val="Open Sans" valType="str" updates="constant"/>
+        <Param name="italic" val="False" valType="bool" updates="constant"/>
+        <Param name="languageStyle" val="LTR" valType="str" updates="None"/>
+        <Param name="letterHeight" val="0.05" valType="num" updates="constant"/>
+        <Param name="lineSpacing" val="1.0" valType="num" updates="constant"/>
+        <Param name="name" val="customInst" valType="code" updates="None"/>
+        <Param name="opacity" val="1" valType="num" updates="constant"/>
+        <Param name="ori" val="0" valType="num" updates="constant"/>
+        <Param name="padding" val="" valType="num" updates="constant"/>
+        <Param name="pos" val="(0, 0.5)" valType="list" updates="constant"/>
+        <Param name="saveStartStop" val="True" valType="bool" updates="None"/>
+        <Param name="size" val="(1, 0.3)" valType="list" updates="constant"/>
+        <Param name="startEstim" val="" valType="num" updates="None"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.0" valType="num" updates="None"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="stopVal" val="" valType="num" updates="constant"/>
+        <Param name="syncScreenRefresh" val="True" valType="bool" updates="None"/>
+        <Param name="text" val="Did you know you can use any component with a draw() function as a custom marker for a Slider?" valType="str" updates="constant"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+      </TextboxComponent>
+      <ButtonComponent name="customDone">
+        <Param name="anchor" val="bottom-right" valType="str" updates="constant"/>
+        <Param name="bold" val="True" valType="bool" updates="constant"/>
+        <Param name="borderColor" val="None" valType="color" updates="constant"/>
+        <Param name="borderWidth" val="0" valType="num" updates="constant"/>
+        <Param name="callback" val="" valType="code" updates="constant"/>
+        <Param name="color" val="white" valType="color" updates="constant"/>
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="contrast" val="1" valType="num" updates="constant"/>
+        <Param name="disabled" val="False" valType="bool" updates="None"/>
+        <Param name="durationEstim" val="" valType="num" updates="None"/>
+        <Param name="fillColor" val="darkgrey" valType="color" updates="constant"/>
+        <Param name="font" val="Arvo" valType="str" updates="constant"/>
+        <Param name="forceEndRoutine" val="True" valType="bool" updates="constant"/>
+        <Param name="italic" val="False" valType="bool" updates="constant"/>
+        <Param name="letterHeight" val="0.04" valType="num" updates="constant"/>
+        <Param name="name" val="customDone" valType="code" updates="None"/>
+        <Param name="oncePerClick" val="True" valType="bool" updates="constant"/>
+        <Param name="opacity" val="1" valType="num" updates="constant"/>
+        <Param name="ori" val="0" valType="num" updates="constant"/>
+        <Param name="padding" val="0.02" valType="num" updates="constant"/>
+        <Param name="pos" val="(0.65, -0.45)" valType="list" updates="constant"/>
+        <Param name="save" val="every click" valType="str" updates="None"/>
+        <Param name="saveStartStop" val="True" valType="bool" updates="None"/>
+        <Param name="size" val="(0.2, 0.1)" valType="list" updates="constant"/>
+        <Param name="startEstim" val="" valType="num" updates="None"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.1" valType="num" updates="None"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="stopVal" val="" valType="num" updates="constant"/>
+        <Param name="syncScreenRefresh" val="True" valType="bool" updates="None"/>
+        <Param name="text" val="End" valType="str" updates="constant"/>
+        <Param name="timeRelativeTo" val="button onset" valType="str" updates="constant"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+      </ButtonComponent>
+    </Routine>
+  </Routines>
+  <Flow>
+    <Routine name="slider_styles"/>
+    <LoopInitiator loopType="TrialHandler" name="trials">
+      <Param name="Selected rows" val="" valType="str" updates="None"/>
+      <Param name="conditions" val="[{'fruitName': 'apple'}, {'fruitName': 'grapefruit'}, {'fruitName': 'banana'}, {'fruitName': 'satsuma'}]" valType="str" updates="None"/>
+      <Param name="conditionsFile" val="fruitConditions.xlsx" valType="file" updates="None"/>
+      <Param name="endPoints" val="[0, 1]" valType="num" updates="None"/>
+      <Param name="isTrials" val="True" valType="bool" updates="None"/>
+      <Param name="loopType" val="random" valType="str" updates="None"/>
+      <Param name="nReps" val="1" valType="num" updates="None"/>
+      <Param name="name" val="trials" valType="code" updates="None"/>
+      <Param name="random seed" val="" valType="code" updates="None"/>
+    </LoopInitiator>
+    <Routine name="fruit_rating"/>
+    <LoopTerminator name="trials"/>
+    <Routine name="dynamic_stim"/>
+    <Routine name="customMarker"/>
+  </Flow>
+</PsychoPy2experiment>

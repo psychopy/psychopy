@@ -6,6 +6,10 @@ flowSize = integer(0,2,default=2)
 routineSize = integer(0,2,default=2)
 showLoopInfoInFlow = boolean(default=False)
 testSubset = string(default='all tests')
+lastNewsDate = string(default="2018-12-21T12:00:00.000Z")
+
+[runner]
+taskList = list(default=list())  # List of Runner tasks
 
 [coder]
 winX = integer(default=100)
@@ -48,6 +52,7 @@ prevFiles = list(default=list())  #file open on last quit
     lastOpened = integer(default=0)
 
 [projects]
-fileHistory = list(default=list())  #files in history
-prevFiles = list(default=list())  #file open on last quit
-user = string(default='')
+fileHistory = list(default=list())  # files in history
+prevFiles = list(default=list())  # file open on last quit
+user = string(default='')  # this is OSF user not pavlovia
+pavloviaUser = string(default='')

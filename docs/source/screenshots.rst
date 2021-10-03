@@ -1,27 +1,27 @@
 .. _screenshots:
 
 Screenshots
-=====================================
+~~~~~~~~~~~~~
 
 A few screenshots are provided here to give you a flavour, but it's easier to download the software and run the demos (from the demos menus in each view) to see the variety of stimuli that can be generated. 
 
-PsychoPy is one of very few packages that allows a choice of interface. Use the :ref:`coder` view, for those that like to program (or just use your own editor)
+PsychoPy is one of very few packages that allows a choice of interface. Use the :ref:`coder` view, for those that like to program from scratch (or just use your own editor)
 
 .. image:: images/coder_small.gif
-   :target: coder/coder.html
+   :target: coder/index.html
    :alt: The Coder view
 
-and the :ref:`builder` view for those that don't:
+and the :ref:`builder` view for those that prefer a touch and click interface. In general we recommend even strong programmers use the Builder view, especially if you are taking experiments online, it is much faster and you will probably have better timing and fewer bugs (we use builder + :ref:`code` to make our experiments!):
 
-.. image:: images/builder_small.jpg
-   :target: builder/builder.html
+.. image:: images/builder.png
+   :target: builder/index.html
    :alt: The Builder view
    
 PsychoPy can handle every type of stimulus you can imagine...
 
 Images and movies of most formats:
 
-.. image:: images/demo_face.jpg
+.. image:: images/face_demo.gif
    :alt: images
 
 Random dots and element arrays, drawn in realtime:

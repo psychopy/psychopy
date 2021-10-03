@@ -2,11 +2,8 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
-
-from __future__ import absolute_import
-from __future__ import print_function
 
 
 class DependencyError(Exception):
@@ -15,8 +12,29 @@ class DependencyError(Exception):
     """
     pass
 
+
 class SoundFormatError(Exception):
     """The user tried to create two streams (diff sample rates) on a machine
     that won't allow that
     """
+    pass
+
+
+class NoUserError(Exception):
+    pass
+
+
+class NoGitError(DependencyError):
+    pass
+
+
+class RepositoryError(Exception):
+    pass
+
+
+class ConditionsImportError(Exception):
+    pass
+
+
+class MissingFontError(Exception):
     pass

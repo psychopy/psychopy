@@ -4,25 +4,44 @@
 # To build simple dialogues etc. (requires pyqt4)
 #
 #  Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
+from .. import constants
 
 from builtins import str
 from past.builtins import unicode
-try:
-    from PyQt4 import QtGui
-    QtWidgets = QtGui  # in qt4 these were all in one package
-    from PyQt4.QtCore import Qt
-except ImportError:
+
+haveQt = False  # until we confirm otherwise
+if constants.PY3:  # much more like to have PyQt5 on Python3
+    importOrder = ['PyQt5', 'PyQt4']
+else:  # more likely the other way on Py27
+    importOrder = ['PyQt4', 'PyQt5']
+
+haveQt = False
+for libname in importOrder:
+    try:
+        exec("import {}".format(libname))
+        haveQt = libname
+        break
+    except ImportError:
+        pass
+
+if not haveQt:
+    # do the main import again not in a try...except to recreate error
+    exec("import {}".format(importOrder[0]))
+elif haveQt == 'PyQt5':
     from PyQt5 import QtWidgets
     from PyQt5 import QtGui
     from PyQt5.QtCore import Qt
+else:
+    from PyQt4 import QtGui  
+    QtWidgets = QtGui  # in qt4 these were all in one package
+    from PyQt4.QtCore import Qt
 
 from psychopy import logging
 import numpy as np
-import string
 import os
 import sys
 import json
@@ -30,16 +49,15 @@ from psychopy.localization import _translate
 
 OK = QtWidgets.QDialogButtonBox.Ok
 
-qtapp = None
+qtapp = QtWidgets.QApplication.instance()
 
 
 def ensureQtApp():
     global qtapp
-    # make sure there's a wxApp prior to showing a gui, e.g., for expInfo
+    # make sure there's a QApplication prior to showing a gui, e.g., for expInfo
     # dialog
     if qtapp is None:
         qtapp = QtWidgets.QApplication(sys.argv)
-    return qtapp
 
 
 wasMouseVisible = True
@@ -78,12 +96,11 @@ class Dlg(QtWidgets.QDialog):
                  labelButtonCancel=_translate(" Cancel "),
                  screen=-1):
 
-        global app  # avoid recreating for every gui
-        app = ensureQtApp()
+        ensureQtApp()
         QtWidgets.QDialog.__init__(self, None, Qt.WindowTitleHint)
 
         self.inputFields = []
-        self.inputFieldTypes = []
+        self.inputFieldTypes = {}
         self.inputFieldNames = []
         self.data = []
         self.irow = 0
@@ -108,7 +125,12 @@ class Dlg(QtWidgets.QDialog):
             raise RuntimeWarning("Dlg does not currently support the "
                                  "style kwarg.")
         self.size = size
-        self.screen = screen
+
+        if haveQt == 'PyQt5':
+            nScreens = len(qtapp.screens())
+        else:
+            nScreens = QtWidgets.QDesktopWidget().screenCount()
+        self.screen = -1 if screen >= nScreens else screen
         # self.labelButtonOK = labelButtonOK
         # self.labelButtonCancel = labelButtonCancel
 
@@ -151,9 +173,9 @@ class Dlg(QtWidgets.QDialog):
         """
         self.inputFieldNames.append(label)
         if choices:
-            self.inputFieldTypes.append(str)
+            self.inputFieldTypes[label] = str
         else:
-            self.inputFieldTypes.append(type(initial))
+            self.inputFieldTypes[label] = type(initial)
         if type(initial) == np.ndarray:
             initial = initial.tolist()
 
@@ -179,7 +201,8 @@ class Dlg(QtWidgets.QDialog):
 
             def handleLineEditChange(new_text):
                 ix = self.inputFields.index(inputBox)
-                thisType = self.inputFieldTypes[ix]
+                name = self.inputFieldNames[ix]
+                thisType = self.inputFieldTypes[name]
 
                 try:
                     if thisType in (str, unicode, bytes):
@@ -191,11 +214,9 @@ class Dlg(QtWidgets.QDialog):
                         jtext = "[" + str(new_text) + "]"
                         self.data[ix] = json.loads(jtext)[0]
                     elif thisType == float:
-                        self.data[ix] = string.atof(str(new_text))
+                        self.data[ix] = float(new_text)
                     elif thisType == int:
-                        self.data[ix] = string.atoi(str(new_text))
-                    elif thisType == int:
-                        self.data[ix] = string.atol(str(new_text))
+                        self.data[ix] = int(new_text)
                     elif thisType == dict:
                         jtext = "[" + str(new_text) + "]"
                         self.data[ix] = json.loads(jtext)[0]
@@ -338,15 +359,47 @@ class DlgFromDict(Dlg):
     Parameters
     ----------
 
-    sort_keys : bool
-        Whether the dictionary keys should be ordered alphabetically
-        for displaying.
+    dictionary : dict
+        A dictionary defining the input fields (keys) and pre-filled values
+        (values) for the user dialog
+        
+    title : str
+        The title of the dialog window
 
-    copy_dict : bool
+    labels : dict
+        A dictionary defining labels (values) to be displayed instead of
+        key strings (keys) defined in ``dictionary´´. Not all keys in
+        ``dictionary´´ need to be contained in labels.
+
+    fixed : list
+        A list of keys for which the values shall be displayed in non-editable
+        fields
+    
+    order : list
+        A list of keys defining the display order of keys in ``dictionary´´.
+        If not all keys in ``dictionary´´ are contained in ``order´´, those
+        will appear in random order after all ordered keys.
+
+    tip : list
+        A dictionary assigning tooltips to the keys
+
+    screen : int
+        Screen number where the Dialog is displayed. If -1, the Dialog will
+        be displayed on the primary screen.
+
+    sortKeys : bool
+        A boolean flag indicating that keys are to be sorted alphabetically.
+
+    copyDict : bool
         If False, modify ``dictionary`` in-place. If True, a copy of
         the dictionary is created, and the altered version (after
         user interaction) can be retrieved from
         :attr:~`psychopy.gui.DlgFromDict.dictionary`.
+        
+    labels : dict
+        A dictionary defining labels (dict values) to be displayed instead of
+        key strings (dict keys) defined in ``dictionary´´. Not all keys in
+        ``dictionary´´ need to be contained in labels.
 
     show : bool
         Whether to immediately display the dialog upon instantiation.
@@ -357,11 +410,11 @@ class DlgFromDict(Dlg):
 
     ::
 
-        info = {'Observer':'jwp', 'GratingOri':45, 'ExpVersion': 1.1,
-                'Group': ['Test', 'Control']}
-        dictDlg = gui.DlgFromDict(dictionary=info,
-                title='TestExperiment', fixed=['ExpVersion'])
-        if dictDlg.OK:
+        info = {'Observer':'jwp', 'GratingOri':45,
+                'ExpVersion': 1.1, 'Group': ['Test', 'Control']}
+        infoDlg = gui.DlgFromDict(dictionary=info,
+                    title='TestExperiment', fixed=['ExpVersion'])
+        if infoDlg.OK:
             print(info)
         else:
             print('User Cancelled')
@@ -378,45 +431,60 @@ class DlgFromDict(Dlg):
     """
 
     def __init__(self, dictionary, title='', fixed=None, order=None,
-                 tip=None, screen=-1, sort_keys=True, copy_dict=False,
-                 show=True):
+                 tip=None, screen=-1, sortKeys=True, copyDict=False,
+                 labels=None, show=True,
+                 sort_keys=None, copy_dict=None):
+
+        # We allowed for snake_case parameters in previous releases. This needs
+        # to end soon.
+        if sort_keys:
+            sortKeys = sort_keys
+            logging.warning("Parameter 'sort_keys' is deprecated. "
+                            "Use 'sortKeys' instead.")
+
+        if copy_dict:
+            copyDict = copy_dict
+            logging.warning("Parameter 'copy_dict' is deprecated. "
+                            "Use 'copyDict' instead.")
+        
         # We don't explicitly check for None identity
-        #  for backward-compatibility reasons.
+        # for backward-compatibility reasons.
         if not fixed:
             fixed = []
         if not order:
             order = []
+        if not labels:
+            labels = dict()
         if not tip:
             tip = dict()
 
         Dlg.__init__(self, title, screen=screen)
 
-        if copy_dict:
+        if copyDict:
             self.dictionary = dictionary.copy()
         else:
             self.dictionary = dictionary
 
         self._keys = list(self.dictionary.keys())
+        self._labels = labels
 
-        if sort_keys:
-            self._keys.sort()
         if order:
             self._keys = list(order) + list(set(self._keys).difference(set(order)))
-
-        types = dict()
+        elif sortKeys:
+            self._keys.sort()
 
         for field in self._keys:
-            types[field] = type(self.dictionary[field])
+            label = labels[field] if field in labels else field
             tooltip = ''
             if field in tip:
                 tooltip = tip[field]
             if field in fixed:
-                self.addFixedField(field, self.dictionary[field], tip=tooltip)
+                self.addFixedField(label, self.dictionary[field], tip=tooltip)
             elif type(self.dictionary[field]) in [list, tuple]:
-                self.addField(field, choices=self.dictionary[field],
+                self.addField(label, choices=self.dictionary[field],
                               tip=tooltip)
             else:
-                self.addField(field, self.dictionary[field], tip=tooltip)
+                self.addField(label, self.dictionary[field], tip=tooltip)
 
         if show:
             self.show()
@@ -427,7 +495,14 @@ class DlgFromDict(Dlg):
         ok_data = self.exec_()
         if ok_data:
             for n, thisKey in enumerate(self._keys):
-                self.dictionary[thisKey] = ok_data[n]
+                if thisKey in self._labels:
+                    labelKey = self._labels[thisKey]
+                else:
+                    labelKey = thisKey
+                try:
+                    self.dictionary[thisKey] = self.inputFieldTypes[labelKey](self.data[n])
+                except ValueError:
+                    self.dictionary[thisKey] = self.data[n]
 
 
 def fileSaveDlg(initFilePath="", initFileName="",
@@ -446,7 +521,7 @@ def fileSaveDlg(initFilePath="", initFileName="",
             can be set to custom prompts
         allowed: string
             a string to specify file filters.
-            e.g. "Text files (\*.txt) ;; Image files (\*.bmp \*.gif)"
+            e.g. "Text files (\\*.txt) ;; Image files (\\*.bmp \\*.gif)"
             See http://pyqt.sourceforge.net/Docs/PyQt4/qfiledialog.html
             #getSaveFileName
             for further details
@@ -461,13 +536,17 @@ def fileSaveDlg(initFilePath="", initFileName="",
                    "txt (*.txt);;"
                    "pickled files (*.pickle *.pkl);;"
                    "shelved files (*.shelf)")
-    global qtapp  # avoid recreating for every gui
-    qtapp = ensureQtApp()
+    ensureQtApp()
 
     fdir = os.path.join(initFilePath, initFileName)
-    r = QtWidgets.QFileDialog.getSaveFileName(parent=None, caption=prompt,
+    pathOut = QtWidgets.QFileDialog.getSaveFileName(parent=None, caption=prompt,
                                               directory=fdir, filter=allowed)
-    return str(r) or None
+    if type(pathOut) == tuple:  # some versions(?) of PyQt return (files, filter)
+        pathOut = pathOut[0]
+
+    if len(pathOut) == 0:
+        return None
+    return str(pathOut) or None
 
 
 def fileOpenDlg(tryFilePath="",
@@ -489,7 +568,7 @@ def fileOpenDlg(tryFilePath="",
 
         allowed: string (available since v1.62.01)
             a string to specify file filters.
-            e.g. "Text files (\*.txt) ;; Image files (\*.bmp \*.gif)"
+            e.g. "Text files (\\*.txt) ;; Image files (\\*.bmp \\*.gif)"
             See http://pyqt.sourceforge.net/Docs/PyQt4/qfiledialog.html
             #getOpenFileNames
             for further details
@@ -499,8 +578,7 @@ def fileOpenDlg(tryFilePath="",
 
     If user cancels, then None is returned.
     """
-    global qtapp  # avoid recreating for every gui
-    qtapp = ensureQtApp()
+    ensureQtApp()
 
     if allowed is None:
         allowed = ("All files (*.*);;"
@@ -524,29 +602,25 @@ def fileOpenDlg(tryFilePath="",
 
 
 def infoDlg(title=_translate("Information"), prompt=None):
-    global qtapp  # avoid recreating for every gui
-    qtapp = ensureQtApp()
+    ensureQtApp()
     _pr = _translate("No details provided. ('prompt' value not set).")
     QtWidgets.QMessageBox.information(None, title, prompt or _pr)
 
 
 def warnDlg(title=_translate("Warning"), prompt=None):
-    global qtapp  # avoid recreating for every gui
-    qtapp = ensureQtApp()
+    ensureQtApp()
     _pr = _translate("No details provided. ('prompt' value not set).")
     QtWidgets.QMessageBox.warning(None, title, prompt or _pr)
 
 
 def criticalDlg(title=_translate("Critical"), prompt=None):
-    global qtapp  # avoid recreating for every gui
-    qtapp = ensureQtApp()
+    ensureQtApp()
     _pr = _translate("No details provided. ('prompt' value not set).")
     QtWidgets.QMessageBox.critical(None, title, prompt or _pr)
 
 
 def aboutDlg(title=_translate("About Experiment"), prompt=None):
-    global qtapp  # avoid recreating for every gui
-    qtapp = ensureQtApp()
+    ensureQtApp()
     _pr = _translate("No details provided. ('prompt' value not set).")
     QtWidgets.QMessageBox.about(None, title, prompt or _pr)
 
@@ -557,16 +631,15 @@ def aboutDlg(title=_translate("About Experiment"), prompt=None):
 def hideWindow(win):
     global wasMouseVisible
     if win.winHandle._visible is True:
-        win.winHandle.set_visible(False)
+        wasMouseVisible = win.mouseVisible
+        win.setMouseVisible(True, log=False)
         win.winHandle.minimize()
-        wasMouseVisible = win.winHandle._mouse_visible
-        win.winHandle.set_mouse_visible(True)
 
 
 def showWindow(win):
     global wasMouseVisible
     if win.winHandle._visible is False:
-        win.winHandle.set_mouse_visible(wasMouseVisible)
+        win.setMouseVisible(wasMouseVisible, log=False)
         win.winHandle.maximize()
         win.winHandle.set_visible(True)
         win.winHandle.activate()
@@ -626,6 +699,7 @@ if __name__ == '__main__':
     info = {'Observer': 'jwp', 'GratingOri': 45,
             'ExpVersion': 1.1, 'Group': ['Test', 'Control']}
     dictDlg = DlgFromDict(dictionary=info, title='TestExperiment',
+                          labels={'Group': 'Participant Group'},
                           fixed=['ExpVersion'])
     if dictDlg.OK:
         print(info)
@@ -654,7 +728,7 @@ if __name__ == '__main__':
              u"<br>"
              u"Written by: Dr. John Doe"
              u"<br>"
-             u"Created using <b>PsychoPy</b> © Copyright 2015, Jonathan Peirce")
+             u"Created using <b>PsychoPy</b> © Copyright 2018, Jonathan Peirce")
 
     # Restore full screen psychopy window
     # showWindow(win)

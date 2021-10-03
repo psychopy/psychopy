@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-# Part of the psychopy.iohub library.
-# Copyright (C) 2012-2016 iSolver Software Solutions
+# Part of the PsychoPy library
+# Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 from __future__ import division, absolute_import, print_function
 
 from builtins import str
-from past.builtins import unicode
+#from past.builtins import unicode
 from collections import deque
 import time
 from ..client import ioHubDeviceView, ioEvent, DeviceRPC
@@ -25,7 +25,7 @@ class KeyboardEvent(ioEvent):
     Base class for KeyboardPress and KeyboardRelease events.
 
     Note that keyboard events can be compared using a single character
-    basestring. For example:
+    basestring. For example::
 
         kb_evts = keyboard.getKeys(['a','b','c'])
         for event in kb_evts:
@@ -50,8 +50,8 @@ class KeyboardEvent(ioEvent):
 
     @property
     def key(self):
-        return unicode(self._key, 'utf-8')
-
+        return self._key
+        
     @property
     def char(self):
         """The unicode value of the keyboard event, if available. This field is
@@ -61,7 +61,7 @@ class KeyboardEvent(ioEvent):
         :return: unicode, '' if no char value is available for the event.
 
         """
-        return unicode(self._char, 'utf-8')
+        return self._char
 
     @property
     def modifiers(self):
@@ -88,10 +88,9 @@ class KeyboardEvent(ioEvent):
         return self._modifiers
 
     def __str__(self):
-        return '%s, key: %s char: %s, modifiers: %s' % (
-            ioEvent.__str__(self), unicode(self.key, 'utf-8'),
-            unicode(self.char, 'utf-8'),
-            unicode(self.modifiers, 'utf-8'))
+        pstr = ioEvent.__str__(self)
+        return '{}, key: {} char: {}, modifiers: {}'.format(pstr, self.key,
+                self.char, self.modifiers)
 
     def __eq__(self, v):
         if isinstance(v, KeyboardEvent):
@@ -156,12 +155,55 @@ class KeyboardRelease(KeyboardEvent):
 
 class Keyboard(ioHubDeviceView):
     """The Keyboard device provides access to KeyboardPress and KeyboardRelease
-    events as well as the current keyboard state."""
+    events as well as the current keyboard state.
+    
+    Examples:
+
+        A. Print all keyboard events received for 5 seconds::
+    
+            from psychopy.iohub import launchHubServer
+            from psychopy.core import getTime
+            
+            # Start the ioHub process. 'io' can now be used during the
+            # experiment to access iohub devices and read iohub device events.
+            io = launchHubServer()
+            
+            keyboard = io.devices.keyboard
+                    
+            # Check for and print any Keyboard events received for 5 seconds.
+            stime = getTime()
+            while getTime()-stime < 5.0:
+                for e in keyboard.getEvents():
+                    print(e)
+            
+            # Stop the ioHub Server
+            io.quit()
+            
+        B. Wait for a keyboard press event (max of 5 seconds)::
+    
+            from psychopy.iohub import launchHubServer
+            from psychopy.core import getTime
+            
+            # Start the ioHub process. 'io' can now be used during the
+            # experiment to access iohub devices and read iohub device events.
+            io = launchHubServer()
+            
+            keyboard = io.devices.keyboard
+                    
+            # Wait for a key keypress event ( max wait of 5 seconds )
+            presses = keyboard.waitForPresses(maxWait=5.0)
+            
+            print(presses)
+            
+            # Stop the ioHub Server
+            io.quit()         
+    """
     KEY_PRESS = EventConstants.KEYBOARD_PRESS
     KEY_RELEASE = EventConstants.KEYBOARD_RELEASE
     _type2class = {KEY_PRESS: KeyboardPress, KEY_RELEASE: KeyboardRelease}
+
     def __init__(self, ioclient, dev_cls_name, dev_config):
-        super(Keyboard, self).__init__(ioclient, dev_cls_name, dev_config)
+        super(Keyboard, self).__init__(ioclient, 'client.Keyboard', dev_cls_name, dev_config)
         self._events = dict()
         self._reporting = self.isReportingEvents()
         self._pressed_keys = {}
@@ -187,16 +229,19 @@ class Keyboard(ioHubDeviceView):
 
         """
         kb_state = self.getCurrentDeviceState()
+
+        events = {int(k):v for k,v in list(kb_state.get('events').items())}
+        pressed_keys = {int(k):v for k,v in list(kb_state.get('pressed_keys',{}).items())}
+
         self._reporting = kb_state.get('reporting_events')
-        pressed_keys = kb_state.get('pressed_keys')
         self._pressed_keys.clear()
         akeyix = KeyboardEvent._attrib_index['key']
         iotimeix = DeviceEvent.EVENT_HUB_TIME_INDEX
 
-        for _, (key_array, _) in list(pressed_keys.items()):
+        for _, (key_array, _) in pressed_keys.items():
             self._pressed_keys[key_array[akeyix]] = key_array[iotimeix]
 
-        for etype, event_arrays in list(kb_state.get('events').items()):
+        for etype, event_arrays in events.items():
             ddeque = deque(maxlen=self._event_buffer_length)
             evts = [self._type2class[etype](e) for e in event_arrays]
             self._events.setdefault(etype, ddeque).extend(evts)
@@ -214,7 +259,7 @@ class Keyboard(ioHubDeviceView):
         :return: dict
         """
         self._syncDeviceState()
-        self._pressed_keys = {unicode(keys, 'utf-8'): vals for keys, vals in self._pressed_keys.items()}
+        self._pressed_keys = {keys: vals for keys, vals in self._pressed_keys.items()}
         return self._pressed_keys
 
     @property
@@ -351,7 +396,7 @@ class Keyboard(ioHubDeviceView):
         Returned events are sorted by time.
 
         :param maxWait: Maximum seconds method waits for >=1 matching event.
-                        If 0.0, method functions the same as getKeys().
+                        If <=0.0, method functions the same as getKeys().
                         If None, the methods blocks indefinitely.
         :param keys: Include events where .key in keys.
         :param chars: Include events where .char in chars.
@@ -382,6 +427,11 @@ class Keyboard(ioHubDeviceView):
             if key:
                 return key
             win32MessagePump()
+            return key
+
+        # Don't wait if maxWait is <= 0
+        if maxWait <= 0:
+            key = pumpKeys()
             return key
 
         while getTime() < (timeout - checkInterval * 2):

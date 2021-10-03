@@ -1,47 +1,43 @@
 #!/usr/bin/env python
-#  -*- coding: utf-8 -*-
-
-# Part of the psychopy.iohub library.
-# Copyright (C) 2012-2016 iSolver Software Solutions
+# -*- coding: utf-8 -*-
+# Part of the PsychoPy library
+# Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 from __future__ import division, absolute_import, print_function
 
 import sys
-
 from .errors import print2err, printExceptionDetailsToStdErr
-from .util import module_directory, fix_encoding
-
-fix_encoding.fix_encoding()
+from .util import module_directory
 
 if sys.platform == 'darwin':
     import objc  # pylint: disable=import-error
 
 EXP_SCRIPT_DIRECTORY = ''
 
+
 def _localFunc():
     return None
-IOHUB_DIRECTORY = module_directory(_localFunc)
 
-_ispkg = True
-_pkgroot = 'iohub'
-if IOHUB_DIRECTORY.find('psychopy') >= 0:
-    _ispkg = False
-    _pkgroot = 'psychopy.iohub'
+
+IOHUB_DIRECTORY = module_directory(_localFunc)
 
 _DATA_STORE_AVAILABLE = False
 try:
-    import tables # pylint: disable=wrong-import-position, wrong-import-order
+    import tables
     _DATA_STORE_AVAILABLE = True
 except ImportError:
     print2err('WARNING: pytables package not found. ',
               'ioHub functionality will be disabled.')
-except Exception: # pylint: disable=broad-except
+except Exception:
     printExceptionDetailsToStdErr()
 
+from psychopy.iohub.constants import EventConstants, KeyboardConstants, MouseConstants
+
 lazyImports = """
-from {pkgroot}.client.connect import launchHubServer
-from {pkgroot}.devices.computer import Computer
-""".format(pkgroot=_pkgroot)
+from psychopy.iohub.client.connect import launchHubServer
+from psychopy.iohub.devices.computer import Computer
+from psychopy.iohub.client.eyetracker.validation import ValidationProcedure
+"""
 
 try:
     from psychopy.contrib.lazy_import import lazy_import

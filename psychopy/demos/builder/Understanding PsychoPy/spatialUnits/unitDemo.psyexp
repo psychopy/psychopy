@@ -1,0 +1,158 @@
+﻿<?xml version="1.0" ?>
+<PsychoPy2experiment encoding="utf-8" version="2021.2.0">
+  <Settings>
+    <Param val="use prefs" valType="str" updates="None" name="Audio latency priority"/>
+    <Param val="use prefs" valType="str" updates="None" name="Audio lib"/>
+    <Param val="" valType="str" updates="None" name="Completed URL"/>
+    <Param val="auto" valType="str" updates="None" name="Data file delimiter"/>
+    <Param val="u'data/%s_%s_%s' % (expInfo['participant'], expName, expInfo['date'])" valType="code" updates="None" name="Data filename"/>
+    <Param val="True" valType="bool" updates="None" name="Enable Escape"/>
+    <Param val="{'participant': '', 'session': '001'}" valType="code" updates="None" name="Experiment info"/>
+    <Param val="True" valType="bool" updates="None" name="Force stereo"/>
+    <Param val="False" valType="bool" updates="None" name="Full-screen window"/>
+    <Param val="" valType="str" updates="None" name="HTML path"/>
+    <Param val="" valType="str" updates="None" name="Incomplete URL"/>
+    <Param val="testMonitor" valType="str" updates="None" name="Monitor"/>
+    <Param val="[]" valType="fileList" updates="None" name="Resources"/>
+    <Param val="False" valType="bool" updates="None" name="Save csv file"/>
+    <Param val="False" valType="bool" updates="None" name="Save excel file"/>
+    <Param val="False" valType="bool" updates="None" name="Save hdf5 file"/>
+    <Param val="True" valType="bool" updates="None" name="Save log file"/>
+    <Param val="True" valType="bool" updates="None" name="Save psydat file"/>
+    <Param val="True" valType="bool" updates="None" name="Save wide csv file"/>
+    <Param val="1" valType="num" updates="None" name="Screen"/>
+    <Param val="False" valType="bool" updates="None" name="Show info dlg"/>
+    <Param val="False" valType="bool" updates="None" name="Show mouse"/>
+    <Param val="height" valType="str" updates="None" name="Units"/>
+    <Param val="" valType="str" updates="None" name="Use version"/>
+    <Param val="[1080, 720]" valType="code" updates="None" name="Window size (pixels)"/>
+    <Param val="avg" valType="str" updates="None" name="blendMode"/>
+    <Param val="$[0,0,0]" valType="str" updates="None" name="color"/>
+    <Param val="rgb" valType="str" updates="None" name="colorSpace"/>
+    <Param val="100.1.1.1" valType="str" updates="None" name="elAddress"/>
+    <Param val="FILTER_LEVEL_2" valType="str" updates="None" name="elDataFiltering"/>
+    <Param val="FILTER_LEVEL_OFF" valType="str" updates="None" name="elLiveFiltering"/>
+    <Param val="EYELINK 1000 DESKTOP" valType="str" updates="None" name="elModel"/>
+    <Param val="ELLIPSE_FIT" valType="str" updates="None" name="elPupilAlgorithm"/>
+    <Param val="PUPIL_AREA" valType="str" updates="None" name="elPupilMeasure"/>
+    <Param val="1000" valType="num" updates="None" name="elSampleRate"/>
+    <Param val="False" valType="bool" updates="None" name="elSimMode"/>
+    <Param val="RIGHT_EYE" valType="str" updates="None" name="elTrackEyes"/>
+    <Param val="PUPIL_CR_TRACKING" valType="str" updates="None" name="elTrackingMode"/>
+    <Param val="unitDemo2" valType="str" updates="None" name="expName"/>
+    <Param val="on Sync" valType="str" updates="None" name="exportHTML"/>
+    <Param val="None" valType="str" updates="None" name="eyetracker"/>
+    <Param val="127.0.0.1" valType="str" updates="None" name="gpAddress"/>
+    <Param val="4242" valType="num" updates="None" name="gpPort"/>
+    <Param val="debug" valType="code" updates="None" name="logging level"/>
+    <Param val="MIDDLE_BUTTON" valType="list" updates="None" name="mgBlink"/>
+    <Param val="CONTINUOUS" valType="str" updates="None" name="mgMove"/>
+    <Param val="0.5" valType="num" updates="None" name="mgSaccade"/>
+    <Param val="" valType="str" updates="None" name="tbLicenseFile"/>
+    <Param val="" valType="str" updates="None" name="tbModel"/>
+    <Param val="60" valType="num" updates="None" name="tbSampleRate"/>
+    <Param val="" valType="str" updates="None" name="tbSerialNo"/>
+  </Settings>
+  <Routines>
+    <Routine name="rectMover">
+      <CodeComponent name="code">
+        <Param val="" valType="extendedCode" updates="constant" name="Before Experiment"/>
+        <Param val="" valType="extendedCode" updates="constant" name="Before JS Experiment"/>
+        <Param val="mags = {&amp;#10;    'height': 0.1,&amp;#10;    'norm': 0.1,&amp;#10;    'pix': 100,&amp;#10;    'cm': 1,&amp;#10;    'deg': pi/10,&amp;#10;}&amp;#10;unitCodes = {&amp;#10;    'h': 'height',&amp;#10;    'n': 'norm',&amp;#10;    'p': 'pix',&amp;#10;    'c': 'cm',&amp;#10;    'd': 'deg'&amp;#10;}" valType="extendedCode" updates="constant" name="Begin Experiment"/>
+        <Param val="mags = {&quot;height&quot;: 0.1, &quot;norm&quot;: 0.1, &quot;pix&quot;: 100, &quot;cm&quot;: 1, &quot;deg&quot;: (pi / 10)};&amp;#10;unitCodes = {&quot;h&quot;: &quot;height&quot;, &quot;n&quot;: &quot;norm&quot;, &quot;p&quot;: &quot;pix&quot;, &quot;c&quot;: &quot;cm&quot;, &quot;d&quot;: &quot;deg&quot;};&amp;#10;" valType="extendedCode" updates="constant" name="Begin JS Experiment"/>
+        <Param val="" valType="extendedCode" updates="constant" name="Begin JS Routine"/>
+        <Param val="" valType="extendedCode" updates="constant" name="Begin Routine"/>
+        <Param val="Auto-&gt;JS" valType="str" updates="None" name="Code Type"/>
+        <Param val="keys = event.getKeys()&amp;#10;if keys:&amp;#10;    # Get key&amp;#10;    if 'escape' in keys:&amp;#10;        continueRoutine = False&amp;#10;        break&amp;#10;    key = keys.pop()&amp;#10;    pol = (key in ['right', 'up', 'equal'])*2-1  # Polarity: Whatever dimension, move up or down?&amp;#10;    mag = mags[stim.units]  # Magnitude to move by&amp;#10;    if key in ['left', 'right']:&amp;#10;        # Move along the x axis&amp;#10;        stim.pos = (stim.pos[0] + mag*pol, &amp;#10;                    stim.pos[1])&amp;#10;    if key in ['up', 'down']:&amp;#10;        # Move along the y axis&amp;#10;        stim.pos = (stim.pos[0], &amp;#10;                    stim.pos[1] + mag*pol)&amp;#10;    if key in ['equal', 'minus']:&amp;#10;        # Move along the size axis&amp;#10;        if stim.size[0] + mag*pol&gt;=0: # only if size greater than 0&amp;#10;            stim.size = (stim.size[0] + mag*pol,&amp;#10;                        stim.size[1] + mag*pol)&amp;#10;    if key in ['h', 'p', 'n', 'c', 'd']:&amp;#10;        # Set units&amp;#10;        stim.units = unitCodes[key]&amp;#10;        poslog.units = unitCodes[key]&amp;#10;    if key in ['r']:&amp;#10;        # Reset&amp;#10;        stim.units = 'height'&amp;#10;        stim.size = (0.1, 0.1)&amp;#10;        stim.pos = (0, 0)" valType="extendedCode" updates="constant" name="Each Frame"/>
+        <Param val="var _pj;&amp;#10;function _pj_snippets(container) {&amp;#10;    function in_es6(left, right) {&amp;#10;        if (((right instanceof Array) || ((typeof right) === &quot;string&quot;))) {&amp;#10;            return (right.indexOf(left) &gt; (- 1));&amp;#10;        } else {&amp;#10;            if (((right instanceof Map) || (right instanceof Set) || (right instanceof WeakMap) || (right instanceof WeakSet))) {&amp;#10;                return right.has(left);&amp;#10;            } else {&amp;#10;                return (left in right);&amp;#10;            }&amp;#10;        }&amp;#10;    }&amp;#10;    container[&quot;in_es6&quot;] = in_es6;&amp;#10;    return container;&amp;#10;}&amp;#10;_pj = {};&amp;#10;_pj_snippets(_pj);&amp;#10;keys = event.getKeys();&amp;#10;if (keys) {&amp;#10;    if (_pj.in_es6(&quot;escape&quot;, keys)) {&amp;#10;        continueRoutine = false;&amp;#10;        break;&amp;#10;    }&amp;#10;    key = keys.pop();&amp;#10;    pol = ((_pj.in_es6(key, [&quot;right&quot;, &quot;up&quot;, &quot;equal&quot;]) * 2) - 1);&amp;#10;    mag = mags[stim.units];&amp;#10;    if (_pj.in_es6(key, [&quot;left&quot;, &quot;right&quot;])) {&amp;#10;        stim.pos = [(stim.pos[0] + (mag * pol)), stim.pos[1]];&amp;#10;    }&amp;#10;    if (_pj.in_es6(key, [&quot;up&quot;, &quot;down&quot;])) {&amp;#10;        stim.pos = [stim.pos[0], (stim.pos[1] + (mag * pol))];&amp;#10;    }&amp;#10;    if (_pj.in_es6(key, [&quot;equal&quot;, &quot;minus&quot;])) {&amp;#10;        if (((stim.size[0] + (mag * pol)) &gt;= 0)) {&amp;#10;            stim.size = [(stim.size[0] + (mag * pol)), (stim.size[1] + (mag * pol))];&amp;#10;        }&amp;#10;    }&amp;#10;    if (_pj.in_es6(key, [&quot;h&quot;, &quot;p&quot;, &quot;n&quot;, &quot;c&quot;, &quot;d&quot;])) {&amp;#10;        stim.units = unitCodes[key];&amp;#10;        poslog.units = unitCodes[key];&amp;#10;    }&amp;#10;    if (_pj.in_es6(key, [&quot;r&quot;])) {&amp;#10;        stim.units = &quot;height&quot;;&amp;#10;        stim.size = [0.1, 0.1];&amp;#10;        stim.pos = [0, 0];&amp;#10;    }&amp;#10;}&amp;#10;" valType="extendedCode" updates="constant" name="Each JS Frame"/>
+        <Param val="" valType="extendedCode" updates="constant" name="End Experiment"/>
+        <Param val="" valType="extendedCode" updates="constant" name="End JS Experiment"/>
+        <Param val="" valType="extendedCode" updates="constant" name="End JS Routine"/>
+        <Param val="" valType="extendedCode" updates="constant" name="End Routine"/>
+        <Param val="False" valType="bool" updates="None" name="disabled"/>
+        <Param val="code" valType="code" updates="None" name="name"/>
+      </CodeComponent>
+      <PolygonComponent name="stim">
+        <Param val="rgb" valType="str" updates="constant" name="colorSpace"/>
+        <Param val="1" valType="num" updates="constant" name="contrast"/>
+        <Param val="False" valType="bool" updates="None" name="disabled"/>
+        <Param val="" valType="code" updates="None" name="durationEstim"/>
+        <Param val="$[1,1,1]" valType="str" updates="constant" name="fillColor"/>
+        <Param val="rgb" valType="str" updates="constant" name="fillColorSpace"/>
+        <Param val="linear" valType="str" updates="constant" name="interpolate"/>
+        <Param val="$[1,1,1]" valType="str" updates="constant" name="lineColor"/>
+        <Param val="rgb" valType="str" updates="constant" name="lineColorSpace"/>
+        <Param val="1" valType="code" updates="constant" name="lineWidth"/>
+        <Param val="4" valType="int" updates="constant" name="nVertices"/>
+        <Param val="stim" valType="code" updates="None" name="name"/>
+        <Param val="1" valType="code" updates="constant" name="opacity"/>
+        <Param val="0" valType="code" updates="constant" name="ori"/>
+        <Param val="(0, 0)" valType="code" updates="constant" name="pos"/>
+        <Param val="True" valType="bool" updates="None" name="saveStartStop"/>
+        <Param val="rectangle" valType="str" updates="constant" name="shape"/>
+        <Param val="(0.5, 0.5)" valType="code" updates="constant" name="size"/>
+        <Param val="" valType="code" updates="None" name="startEstim"/>
+        <Param val="time (s)" valType="str" updates="None" name="startType"/>
+        <Param val="0.0" valType="code" updates="None" name="startVal"/>
+        <Param val="duration (s)" valType="str" updates="None" name="stopType"/>
+        <Param val="" valType="code" updates="constant" name="stopVal"/>
+        <Param val="True" valType="bool" updates="None" name="syncScreenRefresh"/>
+        <Param val="from exp settings" valType="str" updates="None" name="units"/>
+        <Param val="" valType="list" updates="constant" name="vertices"/>
+      </PolygonComponent>
+      <TextComponent name="inst">
+        <Param val="black" valType="str" updates="constant" name="color"/>
+        <Param val="rgb" valType="str" updates="constant" name="colorSpace"/>
+        <Param val="1" valType="num" updates="constant" name="contrast"/>
+        <Param val="False" valType="bool" updates="None" name="disabled"/>
+        <Param val="" valType="code" updates="None" name="durationEstim"/>
+        <Param val="" valType="str" updates="constant" name="flip"/>
+        <Param val="Open Sans" valType="str" updates="constant" name="font"/>
+        <Param val="LTR" valType="str" updates="None" name="languageStyle"/>
+        <Param val="0.025" valType="code" updates="constant" name="letterHeight"/>
+        <Param val="inst" valType="code" updates="None" name="name"/>
+        <Param val="1" valType="code" updates="constant" name="opacity"/>
+        <Param val="0" valType="code" updates="constant" name="ori"/>
+        <Param val="(0, -0.4)" valType="code" updates="constant" name="pos"/>
+        <Param val="True" valType="bool" updates="None" name="saveStartStop"/>
+        <Param val="" valType="code" updates="None" name="startEstim"/>
+        <Param val="time (s)" valType="str" updates="None" name="startType"/>
+        <Param val="0.0" valType="code" updates="None" name="startVal"/>
+        <Param val="duration (s)" valType="str" updates="None" name="stopType"/>
+        <Param val="" valType="code" updates="constant" name="stopVal"/>
+        <Param val="True" valType="bool" updates="None" name="syncScreenRefresh"/>
+        <Param val="Move: up, down, left, right&amp;#10;Scale: minus = shrink, equals = grow&amp;#10;Units: p = pix, h = height, n = norm, c = cm, d = deg&amp;#10;Reset: r" valType="extendedStr" updates="constant" name="text"/>
+        <Param val="from exp settings" valType="str" updates="None" name="units"/>
+        <Param val="" valType="code" updates="constant" name="wrapWidth"/>
+      </TextComponent>
+      <TextComponent name="poslog">
+        <Param val="black" valType="str" updates="constant" name="color"/>
+        <Param val="rgb" valType="str" updates="constant" name="colorSpace"/>
+        <Param val="1" valType="num" updates="constant" name="contrast"/>
+        <Param val="False" valType="bool" updates="None" name="disabled"/>
+        <Param val="" valType="code" updates="None" name="durationEstim"/>
+        <Param val="" valType="str" updates="constant" name="flip"/>
+        <Param val="Open Sans" valType="str" updates="constant" name="font"/>
+        <Param val="LTR" valType="str" updates="None" name="languageStyle"/>
+        <Param val="0.05" valType="code" updates="constant" name="letterHeight"/>
+        <Param val="poslog" valType="code" updates="None" name="name"/>
+        <Param val="1" valType="code" updates="constant" name="opacity"/>
+        <Param val="0" valType="code" updates="constant" name="ori"/>
+        <Param val="stim.pos" valType="code" updates="set every frame" name="pos"/>
+        <Param val="True" valType="bool" updates="None" name="saveStartStop"/>
+        <Param val="" valType="code" updates="None" name="startEstim"/>
+        <Param val="time (s)" valType="str" updates="None" name="startType"/>
+        <Param val="0.0" valType="code" updates="None" name="startVal"/>
+        <Param val="duration (s)" valType="str" updates="None" name="stopType"/>
+        <Param val="" valType="code" updates="constant" name="stopVal"/>
+        <Param val="True" valType="bool" updates="None" name="syncScreenRefresh"/>
+        <Param val="$f&quot;pos: ({stim.pos[0]:.2f}, {stim.pos[1]:.2f})\nsize: ({stim.size[0]:.2f}, {stim.size[1]:.2f})\nunits: {stim.units}&quot;" valType="extendedStr" updates="set every frame" name="text"/>
+        <Param val="from exp settings" valType="str" updates="None" name="units"/>
+        <Param val="" valType="code" updates="constant" name="wrapWidth"/>
+      </TextComponent>
+    </Routine>
+  </Routines>
+  <Flow>
+    <Routine name="rectMover"/>
+  </Flow>
+</PsychoPy2experiment>

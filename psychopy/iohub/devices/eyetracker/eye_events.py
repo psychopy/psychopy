@@ -1,15 +1,11 @@
-"""ioHub Common Eye Tracker Interface"""
- # Part of the psychopy.iohub library.
- # Copyright (C) 2012-2016 iSolver Software Solutions
- # Distributed under the terms of the GNU General Public License (GPL).
-
+# -*- coding: utf-8 -*-
+# Part of the PsychoPy library
+# Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
+# Distributed under the terms of the GNU General Public License (GPL).
 from .. import DeviceEvent
 from ...constants import EventConstants
 from . import EyeTrackerDevice
 import numpy as np
-
-##################### Eye Tracker Sample Stream Types ####################
-#
 
 
 class EyeTrackerEvent(DeviceEvent):
@@ -20,19 +16,11 @@ class MonocularEyeSampleEvent(EyeTrackerEvent):
     """A MonocularEyeSampleEvent represents the eye position and eye attribute
     data collected from one frame or reading of an eye tracker device that is
     recoding from only one eye, or is recording from both eyes and averaging
-    the binocular data. The eye sample class contains a large number of
-    attributes to try and accommodate for the different field types different
-    eye trackers report at a sample level. Therefore it will not be uncommon
-    for a given eye tracker implementation to provide a NOT_SUPPORTED_FIELD
-    value for many attributes.
-
-    Please refer to the implementation specific documentation for the eye tracker
-    of interest for more details.
-
+    the binocular data.
+    
     Event Type ID: EventConstants.MONOCULAR_EYE_SAMPLE
 
     Event Type String: 'MONOCULAR_EYE_SAMPLE'
-
     """
     _newDataTypes = [
         # The eye type that the sample is from. Valid values are:
@@ -342,15 +330,11 @@ class EyeSampleEvent(EyeTrackerEvent):
 class BinocularEyeSampleEvent(EyeTrackerEvent):
     """The BinocularEyeSampleEvent event represents the eye position and eye
     attribute data collected from one frame or reading of an eye tracker device
-    that is recording both eyes of a participant. The BinocularEyeSample class
-    contains a large number of attributes to try and accommodate for the
-    different field types different eye trackers report at a sample level.
-    Therefore it will be common for a given eye tracker implementation to
-    provide a NOT_SUPPORTED_FIELD value for many attributes.
+    that is recording both eyes of a participant.
 
-    Please refer to the implementation specific documentation for the
-    eye tracker of interest for more details.
+    Event Type ID: EventConstants.BINOCULAR_EYE_SAMPLE
 
+    Event Type String: 'BINOCULAR_EYE_SAMPLE'
     """
     _newDataTypes = [
         ('left_gaze_x', 'f4'),
@@ -631,6 +615,147 @@ class BinocularEyeSampleEvent(EyeTrackerEvent):
 
         DeviceEvent.__init__(self, *args, **kwargs)
 
+
+class GazepointSampleEvent(EyeTrackerEvent):
+    """GazePointSampleEvent contains the data collected from a GazePoint sample,
+    which can contain both gazepoint eye and biometric data, depending on the hardware being used.
+
+    Fields related to eye data are a subset of the standard BinocularEyeSampleEvent.
+
+    Event Type ID: EventConstants.GAZEPOINT_SAMPLE
+
+    Event Type String: 'GAZEPOINT_SAMPLE'
+    """
+    _newDataTypes = [
+        ('left_gaze_x', 'f4'),
+        ('left_gaze_y', 'f4'),
+        ('left_raw_x', 'f4'),
+        ('left_raw_y', 'f4'),
+        ('left_pupil_measure1', 'f4'),
+        ('left_pupil_measure1_type', 'u1'),
+        ('left_pupil_measure2', 'f4'),
+        ('left_pupil_measure2_type', 'u1'),
+        ('right_gaze_x', 'f4'),
+        ('right_gaze_y', 'f4'),
+        ('right_raw_x', 'f4'),
+        ('right_raw_y', 'f4'),
+        ('right_pupil_measure1', 'f4'),
+        ('right_pupil_measure1_type', 'u1'),
+        ('right_pupil_measure2', 'f4'),
+        ('right_pupil_measure2_type', 'u1'),
+        ('dial', 'f4'),
+        ('dialv', 'u1'),
+        ('gsr', 'f4'),
+        ('gsrv', 'u1'),
+        ('hr', 'f4'),
+        ('hrv', 'u1'),
+        ('hrp', 'f4'),
+        ('status', 'u1')
+    ]
+
+    EVENT_TYPE_ID = EventConstants.GAZEPOINT_SAMPLE
+    EVENT_TYPE_STRING = 'GAZEPOINT_SAMPLE'
+    IOHUB_DATA_TABLE = EVENT_TYPE_STRING
+
+    __slots__ = [e[0] for e in _newDataTypes]
+
+    def __init__(self, *args, **kwargs):
+
+        #: The calibrated horizontal left eye position on the calibration plane.
+        #: This value is specified in Display Coordinate Type Units.
+        self.left_gaze_x = None
+
+        #: The calibrated vertical left eye position on the calibration plane.
+        #: This value is specified in Display Coordinate Type Units.
+        self.left_gaze_y = None
+
+        #: The non-calibrated x position of the calculated left eye 'center'
+        #: on the camera sensor image,
+        #: factoring in any corneal reflection adjustments.
+        #: This is typically reported in some arbitrary unit space that
+        #: often has sub-pixel resolution due to image processing techniques
+        #: being applied.
+        self.left_raw_x = None
+
+        #: The non-calibrated y position of the calculated left eye 'center'
+        #: on the camera sensor image,
+        #: factoring in any corneal reflection adjustments.
+        #: This is typically reported in some arbitrary unit space that
+        #: often has sub-pixel resolution due to image processing techniques
+        #: being applied.
+        self.left_raw_y = None
+
+        #: A measure related to left pupil size or diameter. The attribute
+        #: pupil_measure1_type defines what type the measure represents.
+        self.left_pupil_measure1 = None
+
+        #: * EyeTrackerConstants.PUPIL_DIAMETER
+        self.left_pupil_measure1_type = None
+
+        #: A second measure related to left pupil size or diameter. The attribute
+        #: pupil_measure2_type defines what type the measure represents.
+        self.left_pupil_measure2 = None
+
+        #: The type of left pupil size or shape information provided in the pupil_measure2
+        #: attribute. Several possible pupil_measure types available:
+        #:
+        #: * EyeTrackerConstants.PUPIL_DIAMETER_MM
+        self.left_pupil_measure2_type = None
+
+        #: The calibrated horizontal right eye position on the calibration plane.
+        #: This value is specified in Display Coordinate Type Units.
+        self.right_gaze_x = None
+
+        #: The calibrated vertical right eye position on the calibration plane.
+        #: This value is specified in Display Coordinate Type Units.
+        self.right_gaze_y = None
+
+        #: The non-calibrated x position of the calculated right eye 'center'
+        #: on the camera sensor image,
+        #: factoring in any corneal reflection adjustments.
+        #: This is typically reported in some arbitrary unit space that
+        #: often has sub-pixel resolution due to image processing techniques
+        #: being applied.
+        self.right_raw_x = None
+
+        #: The non-calibrated y position of the calculated right eye 'center'
+        #: on the camera sensor image,
+        #: factoring in any corneal reflection adjustments.
+        #: This is typically reported in some arbitrary unit space that
+        #: often has sub-pixel resolution due to image processing techniques
+        #: being applied.
+        self.right_raw_y = None
+
+        #: A measure related to right pupil size or diameter. The attribute
+        #: pupil_measure1_type defines what type the measure represents.
+        self.right_pupil_measure1 = None
+
+        #: * EyeTrackerConstants.PUPIL_DIAMETER
+        self.right_pupil_measure1_type = None
+
+        #: A second measure related to right pupil size or diameter. The attribute
+        #: pupil_measure2_type defines what type the measure represents.
+        self.right_pupil_measure2 = None
+
+        #: * EyeTrackerConstants.PUPIL_DIAMETER_MM
+        self.right_pupil_measure2_type = None
+
+        #: Dial value from Gazepoint biometrics kit, 0-1
+        self.dial = None
+        self.dialv = None
+        #: GSR resistance value from Gazepoint biometrics kit, ohms
+        self.gsr = None
+        self.gsrv = None
+        #: Heart rate value from Gazepoint biometrics kit, bpm
+        self.hr = None
+        self.hrv = None
+        self.hrp = None
+
+        #: An available status byte for the eye tracker sample.
+        #: Meaning is completely tracker dependent.
+        self.status = None
+
+        DeviceEvent.__init__(self, *args, **kwargs)
 #
 ################### Fixation Event Types ##########################
 #
@@ -641,13 +766,10 @@ class FixationStartEvent(EyeTrackerEvent):
     ( in very general terms, a period of relatively stable eye position ) is
     detected by the eye trackers sample parsing algorithms.
 
-    Please refer to the implementation specific interface documentation
-    for your eye tracker, and even the eye tracker's reference material
-    itself, it you are looking for a more precise definition of how the
-    eye tracker manufacturer has implemented their parser and how it
-    determines when a FixationStartEvent occurs, assuming it supports
-    this event type at all.
+    Event Type ID: EventConstants.FIXATION_START
 
+    Event Type String: 'FIXATION_START'
+    
     """
     _newDataTypes = [
         # The eye type that the fixation is from. Valid values are:
@@ -858,7 +980,15 @@ class FixationStartEvent(EyeTrackerEvent):
 
 
 class FixationEndEvent(EyeTrackerEvent):
-    # 58 fields
+    """A FixationEndEvent is generated when the end of an eye fixation
+    ( in very general terms, a period of relatively stable eye position ) is
+    detected by the eye trackers sample parsing algorithms.
+
+    Event Type ID: EventConstants.FIXATION_END
+
+    Event Type String: 'FIXATION_END'
+
+    """
     _newDataTypes = [
         ('eye', 'u1'),
         ('duration', 'f4'),
@@ -1216,6 +1346,18 @@ class FixationEndEvent(EyeTrackerEvent):
         #: as reported by the eye tracker.
         self.average_velocity_xy = None
 
+        #: Peak Horizontal velocity of the eye during the eye event;
+        #: as reported by the eye tracker.
+        self.peak_velocity_x = None
+
+        #: Peak Vertical velocity of the eye during the eye event;
+        #: as reported by the eye tracker.
+        self.peak_velocity_y = None
+
+        #: Peak 2D Velocity of the eye at the during the eye event;
+        #: as reported by the eye tracker.
+        self.peak_velocity_xy = None
+        
         #: An available status byte for the eye tracker event.
         #: Meaning or use is completely tracker dependent.
         self.status = None

@@ -1,0 +1,18 @@
+# The first key-value pair is used for the alerts package
+
+code: 4105
+cat: Timing
+msg: Your stimulus start {type} exceeds the stop {type}. Consider using a {type} duration.
+
+# The following are typically used for online help pages, and support reStructured Text.
+
+label: Component start time exceeds its stop time
+
+synopsis: |
+  A component start time/frame exceeds the stop time/frame. This means that the component starts *after* it is due to finish and the stimulus will most likely not be shown at all.
+
+solutions: |
+  Check your start and stop time carefully, including the units being used. For example your stimulus might be set to start at a certain `time` (say 36 seconds) rather than frame number 36.
+
+versions: |
+  All versions.

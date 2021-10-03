@@ -1,8 +1,6 @@
-#!/usr/bin/env python
-#  -*- coding: utf-8 -*-
-
-# Part of the psychopy.iohub library.
-# Copyright (C) 2012-2016 iSolver Software Solutions
+# -*- coding: utf-8 -*-
+# Part of the PsychoPy library
+# Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 from __future__ import division, absolute_import, print_function
 
@@ -16,7 +14,6 @@ from operator import itemgetter
 
 import numpy as np
 
-from .. import _pkgroot
 from .computer import Computer
 from ..errors import print2err, printExceptionDetailsToStdErr
 from ..util import convertCamelToSnake
@@ -138,7 +135,7 @@ class ioObject(with_metaclass(ioObjectMetaClass, object)):
         rpcList = []
         dlist = dir(self)
         for d in dlist:
-            if d[0] is not '_' and d not in ['asNumpyArray', ]:
+            if d[0] != '_' and d not in ['asNumpyArray', ]:
                 if callable(getattr(self, d)):
                     rpcList.append(d)
         return rpcList
@@ -154,16 +151,12 @@ class Device(ioObject):
 
     """
     DEVICE_USER_LABEL_INDEX = 0
-    DEVICE_NUMBER_INDEX = 1
-    DEVICE_MANUFACTURER_NAME_INDEX = 2
-    DEVICE_MODEL_NAME_INDEX = 3
-    DEVICE_MODEL_NUMBER_INDEX = 4
-    DEVICE_SOFTWARE_VERSION_INDEX = 5
-    DEVICE_HARDWARE_VERSION_INDEX = 6
-    DEVICE_FIRMWARE_VERSION_INDEX = 7
-    DEVICE_SERIAL_NUMBER_INDEX = 8
-    DEVICE_BUFFER_LENGTH_INDEX = 9
-    DEVICE_MAX_ATTRIBUTE_INDEX = 9
+    DEVICE_BUFFER_LENGTH_INDEX = 1
+    DEVICE_NUMBER_INDEX = 2
+    DEVICE_MANUFACTURER_NAME_INDEX = 3
+    DEVICE_MODEL_NAME_INDEX = 4
+
+    DEVICE_MAX_ATTRIBUTE_INDEX = 4
 
     # Multiplier to use to convert this devices event time stamps to sec format.
     # This is set by the author of the device class or interface
@@ -173,37 +166,18 @@ class Device(ioObject):
     _baseDataTypes = ioObject._baseDataTypes
     _newDataTypes = [
         # The name given to this device instance. User Defined. Should be
-        ('name', np.str, 24),
+        ('name', '|S24'),
+        ('event_buffer_length', np.uint16),
         # unique within all devices of the same type_id for a given experiment.
         # For devices that support multiple connected to the computer at once,
         # with some devices the device_number can be used to select which
         # device ot use.
         ('device_number', np.uint8),
         # The name of the manufacturer for the device being used.
-        ('manufacturer_name', np.str_, 64),
+        ('manufacturer_name', '|S64'),
         # The string name of the device model being used. Some devices support
         # different models.
-        ('model_name', np.str_, 32),
-        # The device model number being used. Some devices support different
-        # models.
-        ('model_number', np.str_, 32),
-        # Used to optionally store the devices software / API version being
-        # used by the ioHub Device
-        ('software_version', np.str_, 8),
-        # Used to optionally store the devices hardware version
-        ('hardware_version', np.str_, 8),
-        # Used to optionally store the devices firmware
-        ('firmware_version', np.str_, 8),
-        # The serial number for the device being used. Serial numbers 'should'
-        # be unique across all devices of the same brand and model.
-        ('serial_number', np.str_, 32),
-        # The serial number for the device being used. Serial numbers 'should'
-        # be unique across all devices of the same brand and model.
-        ('manufacture_date', np.str_, 10),
-        # The maximum size of the device level event buffer for this
-        ('event_buffer_length', np.uint16)
-        # device instance. If the buffer becomes full, when a new event
-        # is added, the oldest event in the buffer is removed.
+        ('model_name', '|S32'),
     ]
 
     EVENT_CLASS_NAMES = []
@@ -260,30 +234,6 @@ class Device(ioObject):
         #: explicitedly support different models of the device and use different
         #: logic in the ioHub Device implementation based on the model_name given.
         self.model_name = None
-
-        #: Model number can be optionally used to hold the specific model number
-        #: specified on the device.
-        self.model_number = None
-
-        #: The software version attribute can optionally be used to store the
-        #: devices software / API version being used by the ioHub Device
-        self.software_version = None
-
-        #: The hardware version attribute can optionally be used to store the
-        #: physical devices hardware version / revision.
-        self.hardware_version = None
-
-        #: The firmware version attribute can optionally be used to store the
-        #: physical devices hardware version / revision.
-        self.firmware_version = None
-
-        #: The unique serial number of the specific device instance being used,
-        #: if applicable.
-        self.serial_number = None
-
-        #: The manufactured date of the specific device instance being used,
-        #: if applicable.(Use DD-MM-YYYY string format.)
-        self.manufacture_date = None
 
         ioObject.__init__(self, *args, **kwargs)
 
@@ -584,7 +534,7 @@ class Device(ioObject):
     def getCurrentDeviceState(self, clear_events=True):
         result_dict = {}
         self._iohub_server.processDeviceEvents()
-        events = {key: tuple(value)
+        events = {str(key): tuple(value)
                   for key, value in list(self._iohub_event_buffer.items())}
         result_dict['events'] = events
         if clear_events:
@@ -1006,8 +956,7 @@ def import_device(module_path, device_class_name):
 
 try:
     if getattr(sys.modules[__name__], 'Display', None) is None:
-        display_class, device_class_name, event_classes = import_device(
-            '%s.devices.display' % (_pkgroot), 'Display')
+        display_class, device_class_name, event_classes = import_device('psychopy.iohub.devices.display', 'Display')
         setattr(sys.modules[__name__], 'Display', display_class)
 except Exception:
     print2err('Warning: display device module could not be imported.')

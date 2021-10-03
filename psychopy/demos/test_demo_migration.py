@@ -17,11 +17,16 @@
 """
 from __future__ import absolute_import, print_function
 
-import sys, glob, os
+import glob, os
+import io
+
 
 def get_contents(f1, f2):
-    f1r = open(f1, 'rU').read()
-    f2r = open(f2, 'rU').read()
+    with io.open(f1, 'r', encoding='utf-8-sig') as f:
+        f1r = f.read()
+    with io.open(f2, 'r', encoding='utf-8-sig') as f:
+        f2r = f.read()
+
     return f1r, f2r
 
 def remove_shbang(f1, f2):

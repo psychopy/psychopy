@@ -18,18 +18,17 @@ from psychopy.constants import PY3
 if PY3:
     from importlib import reload
 
-origSoundPref = prefs.general['audioLib']
+origSoundPref = prefs.hardware['audioLib']
 
 # py.test --cov-report term-missing --cov sound.py tests/test_sound/test_sound_pyo.py
 
 
+@pytest.mark.needs_sound
 class TestSoundDevice(object):
-    # trying to test sounddevice without it actually being installed on
-    # Travis-CI virtual machines!
     @classmethod
     def setup_class(self):
         self.contextName='sounddevice'
-        prefs.general['audioLib'] = ['sounddevice']
+        prefs.hardware['audioLib'] = ['sounddevice']
         reload(sound)
         self.tmp = mkdtemp(prefix='psychopy-tests-sound')
 
@@ -38,7 +37,7 @@ class TestSoundDevice(object):
 
     @classmethod
     def teardown_class(self):
-        prefs.general['audioLib'] = origSoundPref
+        prefs.hardware['audioLib'] = origSoundPref
         if hasattr(self, 'tmp'):
             shutil.rmtree(self.tmp, ignore_errors=True)
 
@@ -48,7 +47,7 @@ class TestSoundDevice(object):
         with pytest.raises(ValueError):
             sound.Sound('this is not a file name')
         with pytest.raises(ValueError):
-            sound.Sound(-1) #negative frequency makes no sense
+            sound.Sound(-1)  # negative frequency makes no sense
 
         points = 100
         snd = old_div(np.ones(points), 20)  # noqa

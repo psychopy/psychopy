@@ -1,7 +1,8 @@
-"""ioHub Common Eye Tracker Interface for Tobii (C) Eye Tracking System"""
 # -*- coding: utf-8 -*-
-# Part of the psychopy.iohub library.
-# Copyright (C) 2012-2016 iSolver Software Solutions
+# Part of the PsychoPy library
+# Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from eyetracker import *
+from __future__ import absolute_import
+
+from .eyetracker import *

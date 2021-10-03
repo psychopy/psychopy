@@ -6,7 +6,7 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
@@ -57,18 +57,18 @@ def makeGrating(res,
                                  0.0: cyclesTwoPi: old_div(cyclesTwoPi, res)]
 
     sin, cos = numpy.sin, numpy.cos
-    if gratType is "none":
+    if gratType == "none":
         res = 2
         intensity = numpy.ones((res, res), float)
-    elif gratType is "sin":
+    elif gratType == "sin":
         intensity = contr * sin(xrange * sin(ori) + yrange * cos(ori) + phase)
-    elif gratType is "ramp":
+    elif gratType == "ramp":
         intensity = contr * (xrange * cos(ori) +
                              yrange * sin(ori)) / (2 * numpy.pi)
-    elif gratType is "sqr":  # square wave (symmetric duty cycle)
+    elif gratType == "sqr":  # square wave (symmetric duty cycle)
         intensity = numpy.where(sin(xrange * sin(ori) + yrange * cos(ori) +
                                     phase + tiny) >= 0, 1, -1)
-    elif gratType is "sinXsin":
+    elif gratType == "sinXsin":
         intensity = sin(xrange) * sin(yrange)
     else:
         # might be a filename of an image
@@ -390,8 +390,8 @@ def butter2d_lp_elliptic(size, cutoff_x, cutoff_y, n=3,
     rows, cols = size
 
     # this time we start up with 2D arrays for easy broadcasting
-    x = (numpy.linspace(-0.5, 0.5, cols) - offset_x)[numpy.newaxis]
-    y = (numpy.linspace(-0.5, 0.5, rows) - offset_y)[:, numpy.newaxis]
+    x = (numpy.linspace(-0.5, 0.5, int(cols)) - offset_x)[numpy.newaxis]
+    y = (numpy.linspace(-0.5, 0.5, int(rows)) - offset_y)[:, numpy.newaxis]
 
     x2 = (x * numpy.cos(alpha) - y * numpy.sin(-alpha))
     y2 = (x * numpy.sin(-alpha) + y * numpy.cos(alpha))

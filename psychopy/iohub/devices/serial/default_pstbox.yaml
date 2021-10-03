@@ -50,7 +50,7 @@ serial.Pstbox:
     #   attribute of events that have a parent device that is polled often can be used to
     #   determine the actual polling rate being achieved by the ioHub Process.
     device_timer:
-        interval: 0.0005
+        interval: 0.001
 
     # enable: Specifies if the device should be enabled by ioHub and monitored
     #   for events.
@@ -101,36 +101,6 @@ serial.Pstbox:
     #   Currently, this field is not used.
     #
     model_name: Serial Response Box
-
-    # The serial number for the specific isnstance of device used
-    #   can be specified here. It is not used by the ioHub, so is FYI only.
-    #
-    serial_number: SRB200-07830
-
-    # manufacture_date: The date of manufactiurer of the device 
-    # can be specified here. It is not used by the ioHub,
-    # so is FYI only.
-    #   
-    manufacture_date: DD-MM-YYYY
-
-    # The device's hardware version can be specified here.
-    #   It is not used by the ioHub, so is FYI only.
-    #
-    hardware_version: N/A
-    
-    # If the device has firmware, its revision number
-    #   can be indicated here. It is not used by the ioHub, so is FYI only.
-    #
-    firmware_version: N/A
-
-    # The device model number can be specified here.
-    #   It is not used by the ioHub, so is FYI only.
-    #
-    model_number: 200A
-    
-    # The device driver and / or SDK software version number.
-    #   This field is not used by ioHub, so is FYI only. 
-    software_version: N/A
 
     # The device number to assign to the Analog Input device. 
     #   device_number is not used by this device type.

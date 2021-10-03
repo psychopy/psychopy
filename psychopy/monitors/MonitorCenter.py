@@ -2,13 +2,14 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
-
+from past.builtins import xrange, unicode
 from builtins import map
 from builtins import range
+
 import time
 import os
 import locale
@@ -17,6 +18,7 @@ import wx
 from wx import grid
 from wx.lib import intctrl
 
+from psychopy import constants
 from psychopy.localization import _translate
 from psychopy import monitors, hardware, logging
 from psychopy.app import dialogs
@@ -63,6 +65,8 @@ def unicodeToFloat(val):
     if val == 'None':
         val = None
     else:
+        if not constants.PY3 and type(val) == unicode:
+            val = val.encode('utf-8')
         try:
             val = locale.atof(val)
         except ValueError:
@@ -90,6 +94,7 @@ class SimpleGrid(grid.Grid):  # , wxGridAutoEditMixin):
         for nRow in range(self.nRows):
             for nCol in range(self.nCols):
                 self.SetCellEditor(nRow, nCol, self.numEditor)
+                self.numEditor.IncRef()
         self.setData(data)
         # self.SetMargins(-5,-5)
         self.Bind(wx.EVT_IDLE, self.OnIdle)
@@ -256,21 +261,21 @@ class MainFrame(wx.Frame):
         self.btnNewMon = wx.Button(parent, idBtnNewMon, _translate('New...'))
         self.Bind(wx.EVT_BUTTON, self.onNewMon, self.btnNewMon)
         monButtonsBox.Add(self.btnNewMon)
-        self.btnNewMon.SetToolTipString(
-            _translate("Create a new monitor"))
+        self.btnNewMon.SetToolTip(wx.ToolTip(
+            _translate("Create a new monitor")))
 
         self.btnSaveMon = wx.Button(parent, idBtnSaveMon, _translate('Save'))
         self.Bind(wx.EVT_BUTTON, self.onSaveMon, self.btnSaveMon)
         monButtonsBox.Add(self.btnSaveMon)
         msg = _translate("Save all calibrations for this monitor")
-        self.btnSaveMon.SetToolTipString(msg)
+        self.btnSaveMon.SetToolTip(wx.ToolTip(msg))
 
         self.btnDeleteMon = wx.Button(parent, idBtnDeleteMon,
                                       _translate('Delete'))
         self.Bind(wx.EVT_BUTTON, self.onDeleteMon, self.btnDeleteMon)
         monButtonsBox.Add(self.btnDeleteMon)
         msg = _translate("Delete this monitor entirely")
-        self.btnDeleteMon.SetToolTipString(msg)
+        self.btnDeleteMon.SetToolTip(wx.ToolTip(msg))
 
         self.ctrlCalibList = wx.ListBox(parent, idCtrlCalibList,
                                         choices=[''],
@@ -284,7 +289,7 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.onCopyCalib, self.btnCopyCalib)
         calibButtonsBox.Add(self.btnCopyCalib)
         msg = _translate("Creates a new calibration entry for this monitor")
-        self.btnCopyCalib.SetToolTipString(msg)
+        self.btnCopyCalib.SetToolTip(wx.ToolTip(msg))
 
         self.btnDeleteCalib = wx.Button(
             parent, idBtnDeleteCalib, _translate('Delete'))
@@ -292,7 +297,7 @@ class MainFrame(wx.Frame):
         calibButtonsBox.Add(self.btnDeleteCalib)
         msg = _translate("Remove this calibration entry (finalized when "
                          "monitor is saved)")
-        self.btnDeleteCalib.SetToolTipString(msg)
+        self.btnDeleteCalib.SetToolTip(wx.ToolTip(msg))
 
         # add controls to box
         adminBoxMainSizer = wx.FlexGridSizer(cols=2, hgap=6, vgap=6)
@@ -651,7 +656,7 @@ class MainFrame(wx.Frame):
             'Name of this calibration (for monitor "%(name)s") will be:)')
         infoStr = msg % {'name': self.currentMon.name}
         dlg = wx.TextEntryDialog(self, message=infoStr,
-                                 defaultValue=calibTimeStr,
+                                 value=calibTimeStr,
                                  caption=_translate('Input text'))
         if dlg.ShowModal() == wx.ID_OK:
             newCalibName = dlg.GetValue()
@@ -688,10 +693,12 @@ class MainFrame(wx.Frame):
         response = dlg.ShowModal()
         dlg.Destroy()
         if response == wx.ID_YES:
-            # delete it
-            monitorFileName = os.path.join(monitors.monitorFolder,
-                                           monToDel + ".calib")
-            os.remove(monitorFileName)
+            # delete it (try to remove both calib and json files)
+            for fileEnding in ['.calib', '.json']:
+                monitorFileName = os.path.join(monitors.monitorFolder,
+                                               monToDel + fileEnding)
+                if os.path.exists(monitorFileName):
+                    os.remove(monitorFileName)
             self.currentMon = None
             self.currentMonName = None
             self.updateMonList()
@@ -744,17 +751,19 @@ class MainFrame(wx.Frame):
         self.unSavedMonitor = True
 
     def onChangeScrPixHoriz(self, event):
+        this = self.currentMon.currentCalib
         if self.currentMon.getSizePix() is None:
             self.currentMon.setSizePix([0,0])
         newVal = unicodeToFloat(self.ctrlScrPixHoriz.GetValue())
-        self.currentMon.currentCalib['sizePix'][0] = newVal
+        this['sizePix'] = [newVal, this['sizePix'][1]]
         self.unSavedMonitor = True
 
     def onChangeScrPixVert(self, event):
+        this = self.currentMon.currentCalib
         if self.currentMon.getSizePix() is None:
             self.currentMon.setSizePix([0,0])
         newVal = unicodeToFloat(self.ctrlScrPixVert.GetValue())
-        self.currentMon.currentCalib['sizePix'][1] = newVal
+        this['sizePix'] = [this['sizePix'][0], newVal]
         self.unSavedMonitor = True
 
     # calib callbacks
@@ -873,7 +882,7 @@ class MainFrame(wx.Frame):
         else:
             self.currentMon.setLineariseMethod(1)
         self.unSavedMonitor = True
-        if self.currentMon.getLumsPre() != None:
+        if self.currentMon.getLumsPre().any() != None:
             self.doGammaFits(self.currentMon.getLevelsPre(),
                              self.currentMon.getLumsPre())
 
@@ -979,7 +988,7 @@ class MainFrame(wx.Frame):
                 self.photom.getNeedsCalibrateZero()):
             # prompt user if we need a dark calibration for the device
             if self.photom.getNeedsCalibrateZero():
-                dlg = wx.Dialog(self, title=_translate(
+                wx.Dialog(self, title=_translate(
                     'Dark calibration of ColorCAL'))
                 msg = _translate('Your ColorCAL needs to be calibrated first.'
                                  ' Please block all light from getting into '
@@ -1010,15 +1019,20 @@ class MainFrame(wx.Frame):
         figure = Figure(figsize=(5, 5), dpi=80)
         figureCanvas = FigureCanvas(plotWindow, -1, figure)
         plt = figure.add_subplot(111)
-        plt.hold('off')
+        plt.cla()
 
         gammaGrid = self.currentMon.getGammaGrid()
         lumsPre = self.currentMon.getLumsPre()
         levelsPre = self.currentMon.getLevelsPre()
         lumsPost = self.currentMon.getLumsPost()
-        if lumsPre != None:
+
+        # Handle the case where the button is pressed but no gamma data is
+        # available.
+        if lumsPre is None:
+            return   # nop
+        elif lumsPre.any() != None:
             colors = 'krgb'
-            xxSmooth = monitors.numpy.arange(0, 255.5, 0.5)
+            xxSmooth = numpy.arange(0, 255.5, 0.5)
             eq = self.currentMon.getLinearizeMethod()
             for gun in range(4):  # includes lum
                 gamma = gammaGrid[gun, 2]
@@ -1050,10 +1064,9 @@ class MainFrame(wx.Frame):
 
             lumsPost = self.currentMon.getLumsPost()
             levelsPost = self.currentMon.getLevelsPost()
-        if lumsPost != None:
+        if lumsPost is not None:
             for gun in range(4):  # includes lum,r,g,b
                 lums = lumsPost[gun, :]
-                gamma = gammaGrid[gun, 2]
                 gamma = gammaGrid[gun, 2]
                 minLum = min(lums)
                 maxLum = max(lums)
@@ -1074,12 +1087,11 @@ class MainFrame(wx.Frame):
         figure = Figure(figsize=(5, 5), dpi=80)
         figureCanvas = FigureCanvas(plotWindow, -1, figure)
         plt = figure.add_subplot(111)
-        plt.hold('off')
+        plt.cla()
 
         nm, spectraRGB = self.currentMon.getSpectra()
         if nm != None:
             plt.plot(nm, spectraRGB[0, :], 'r-', linewidth=1.5)
-            plt.hold('on')
             plt.plot(nm, spectraRGB[1, :], 'g-', linewidth=2)
             plt.plot(nm, spectraRGB[2, :], 'b-', linewidth=2)
         figureCanvas.draw()  # update the canvas

@@ -14,8 +14,6 @@ import pytest
 from psychopy import data, logging
 from psychopy.tools.filetools import fromFile
 
-from psychopy.tests.utils import _travisTesting
-
 logging.console.setLevel(logging.DEBUG)
 DEBUG = False
 
@@ -489,6 +487,24 @@ class TestQuestHandler(_BaseTestStairHandler):
         assert self.stairs._quest.x[0] == -range/2
         assert self.stairs._quest.x[-1] == range/2
 
+    def test_attributes(self):
+        beta = 3.5
+        gamma = 0.01
+        delta = 0.02
+        grain = 0.01
+        range = 1
+
+        q = data.QuestHandler(startVal=0.5, startValSd=0.2, pThreshold=0.63,
+                              nTrials=10,
+                              beta=beta, gamma=gamma, delta=delta,
+                              grain=grain, range=range)
+
+        assert q.beta == beta
+        assert q.gamma == gamma
+        assert q.delta == delta
+        assert q.grain == grain
+        assert q.range == range
+
     def test_comparison_equals(self):
         q1 = data.QuestHandler(0.5, 0.2, pThreshold=0.63, gamma=0.01,
                                nTrials=20, minVal=0, maxVal=1)
@@ -579,12 +595,36 @@ class TestQuestHandler(_BaseTestStairHandler):
         q_loaded = fromFile(path)
         assert q == q_loaded
 
+    def test_epsilon(self):
+        # Values used by Harvey (1986), Table 3.
+        beta = 3.5
+        gamma = 0
+        delta = 0
+        epsilon = 0.0571
+        
+        # QuestHandler needs this, but it doesn't influence our
+        # test. Values chosen arbitrarily.
+        startVal = 0.5
+        startValSd = 1
+        
+        # Estimate the target proportion correct based on epsilon.
+        # (The values provided by Harvey (1986) are rounded to two
+        #  decimal places and, therefore, too imprecise. So we
+        #  have to we calculate it again.)
+        def weibull(x, beta, gamma, delta):
+            p = delta*gamma + (1-delta) * (1 - (1-gamma) * np.exp(-10 ** (beta*x)))
+            return p
+
+        p = weibull(x=epsilon, beta=beta, gamma=gamma, delta=delta)
+        
+        q = data.QuestHandler(startVal=startVal, startValSd=startValSd,
+                              pThreshold=p, beta=beta, gamma=gamma, delta=delta)
+        
+        assert np.isclose(q.epsilon, epsilon, atol=1e-4)
+
 
 class TestPsiHandler(_BaseTestStairHandler):
     def test_comparison_equals(self):
-        if _travisTesting:
-            pytest.skip()
-
         p1 = data.PsiHandler(nTrials=10, intensRange=[0.1, 10],
                              alphaRange=[0.1, 10], betaRange=[0.1, 3],
                              intensPrecision=0.1, alphaPrecision=0.1,
@@ -598,9 +638,6 @@ class TestPsiHandler(_BaseTestStairHandler):
         assert p1 == p2
 
     def test_comparison_equals_after_iteration(self):
-        if _travisTesting:
-            pytest.skip()
-
         p1 = data.PsiHandler(nTrials=10, intensRange=[0.1, 10],
                              alphaRange=[0.1, 10], betaRange=[0.1, 3],
                              intensPrecision=0.1, alphaPrecision=0.1,
@@ -616,9 +653,6 @@ class TestPsiHandler(_BaseTestStairHandler):
         assert p1 == p2
 
     def test_comparison_not_equal(self):
-        if _travisTesting:
-            pytest.skip()
-
         p1 = data.PsiHandler(nTrials=10, intensRange=[0.1, 10],
                              alphaRange=[0.1, 10], betaRange=[0.1, 3],
                              intensPrecision=0.1, alphaPrecision=0.1,
@@ -632,9 +666,6 @@ class TestPsiHandler(_BaseTestStairHandler):
         assert p1 != p2
 
     def test_comparison_not_equal_after_iteration(self):
-        if _travisTesting:
-            pytest.skip()
-
         p1 = data.PsiHandler(nTrials=10, intensRange=[0.1, 10],
                              alphaRange=[0.1, 10], betaRange=[0.1, 3],
                              intensPrecision=0.1, alphaPrecision=0.1,
@@ -650,9 +681,6 @@ class TestPsiHandler(_BaseTestStairHandler):
         assert p1 != p2
 
     def test_json_dump(self):
-        if _travisTesting:
-            pytest.skip()
-
         p = data.PsiHandler(nTrials=10, intensRange=[0.1, 10],
                             alphaRange=[0.1, 10], betaRange=[0.1, 3],
                             intensPrecision=1, alphaPrecision=1,
@@ -663,9 +691,6 @@ class TestPsiHandler(_BaseTestStairHandler):
         assert p == json_tricks.loads(dump)
 
     def test_json_dump_with_data(self):
-        if _travisTesting:
-            pytest.skip()
-
         p = data.PsiHandler(nTrials=10, intensRange=[0.1, 10],
                             alphaRange=[0.1, 10], betaRange=[0.1, 3],
                             intensPrecision=1, alphaPrecision=1,
@@ -678,9 +703,6 @@ class TestPsiHandler(_BaseTestStairHandler):
         assert p == json_tricks.loads(dump)
 
     def test_json_dump_after_iteration(self):
-        if _travisTesting:
-            pytest.skip()
-
         p = data.PsiHandler(nTrials=10, intensRange=[0.1, 10],
                             alphaRange=[0.1, 10], betaRange=[0.1, 3],
                             intensPrecision=1, alphaPrecision=1,
@@ -692,9 +714,6 @@ class TestPsiHandler(_BaseTestStairHandler):
         assert p == json_tricks.loads(dump)
 
     def test_json_dump_with_data_after_iteration(self):
-        if _travisTesting:
-            pytest.skip()
-
         p = data.PsiHandler(nTrials=10, intensRange=[0.1, 10],
                             alphaRange=[0.1, 10], betaRange=[0.1, 3],
                             intensPrecision=1, alphaPrecision=1,
@@ -708,9 +727,6 @@ class TestPsiHandler(_BaseTestStairHandler):
         assert p == json_tricks.loads(dump)
 
     def test_json_dump_to_file(self):
-        if _travisTesting:
-            pytest.skip()
-
         _, path = mkstemp(dir=self.tmp_dir, suffix='.json')
         p = data.PsiHandler(nTrials=10, intensRange=[0.1, 10],
                             alphaRange=[0.1, 10], betaRange=[0.1, 3],
@@ -719,9 +735,6 @@ class TestPsiHandler(_BaseTestStairHandler):
         p.saveAsJson(fileName=path, fileCollisionMethod='overwrite')
 
     def test_json_dump_and_reopen_file(self):
-        if _travisTesting:
-            pytest.skip()
-
         p = data.PsiHandler(nTrials=10, intensRange=[0.1, 10],
                             alphaRange=[0.1, 10], betaRange=[0.1, 3],
                             intensPrecision=1, alphaPrecision=1,
@@ -778,10 +791,8 @@ class TestMultiStairHandler(_BaseTestMultiStairHandler):
             dict(list({'label': 'staircase_1'}.items()) + list(conditions.items())),
         ]
 
-        self.stairs = data.MultiStairHandler(
-                stairType='quest', method='linear',
-                conditions=self.conditions
-        )
+        self.stairs = data.MultiStairHandler(stairType='quest',
+                                             conditions=self.conditions)
 
         # Responses for only one staircase. We will duplicate this below.
         responses = makeBasicResponseCycles(
@@ -840,8 +851,8 @@ def makeBasicResponseCycles(cycles=10, nCorrect=4, nIncorrect=4,
         `cycles * (nCorrect + nIncorrect)`.
 
     """
-    responsesCorrectPerCycle = np.ones(nCorrect, dtype=np.int)
-    responsesIncorrectPerCycle = np.zeros(nIncorrect, dtype=np.int)
+    responsesCorrectPerCycle = np.ones(nCorrect, dtype=int)
+    responsesIncorrectPerCycle = np.zeros(nIncorrect, dtype=int)
 
     responses = np.tile(
         np.r_[responsesCorrectPerCycle, responsesIncorrectPerCycle],
@@ -852,3 +863,383 @@ def makeBasicResponseCycles(cycles=10, nCorrect=4, nIncorrect=4,
         return responses[:length]
     else:
         return responses
+
+
+def test_QuestPlusHandler():
+    import sys
+    if not (sys.version_info.major == 3 and sys.version_info.minor >= 6):
+        pytest.skip('QUEST+ only works on Python 3.6+')
+
+    from psychopy.data.staircase import QuestPlusHandler
+
+    thresholds = np.arange(-40, 0 + 1)
+    slope, guess, lapse = 3.5, 0.5, 0.02
+    contrasts = thresholds.copy()
+
+    expected_contrasts = [-18, -22, -25, -28, -30, -22, -13, -15, -16, -18,
+                          -19, -20, -21, -22, -23, -19, -20, -20, -18, -18,
+                          -19, -17, -17, -18, -18, -18, -19, -19, -19, -19,
+                          -19, -19]
+
+    responses = ['Correct', 'Correct', 'Correct', 'Correct', 'Incorrect',
+                 'Incorrect', 'Correct', 'Correct', 'Correct', 'Correct',
+                 'Correct', 'Correct', 'Correct', 'Correct', 'Incorrect',
+                 'Correct', 'Correct', 'Incorrect', 'Correct', 'Correct',
+                 'Incorrect', 'Correct', 'Correct', 'Correct', 'Correct',
+                 'Correct', 'Correct', 'Correct', 'Correct', 'Correct',
+                 'Correct', 'Correct']
+
+    expected_mode_threshold = -20
+    scale = 'dB'
+    stim_selection_method = 'minEntropy'
+    param_estimation_method = 'mode'
+    func = 'weibull'
+    response_vals = ['Correct', 'Incorrect']
+
+    q = QuestPlusHandler(nTrials=len(expected_contrasts),
+                         intensityVals=contrasts,
+                         thresholdVals=thresholds,
+                         slopeVals=slope,
+                         lowerAsymptoteVals=guess,
+                         lapseRateVals=lapse,
+                         responseVals=response_vals,
+                         psychometricFunc=func,
+                         stimSelectionMethod=stim_selection_method,
+                         stimScale=scale,
+                         paramEstimationMethod=param_estimation_method)
+
+    for trial_index, next_contrast in enumerate(q):
+        assert next_contrast == expected_contrasts[trial_index]
+        q.addResponse(response=responses[trial_index])
+
+    assert np.allclose(q.paramEstimate['threshold'],
+                       expected_mode_threshold)
+
+
+def test_QuestPlusHandler_startIntensity():
+    import sys
+    if not (sys.version_info.major == 3 and sys.version_info.minor >= 6):
+        pytest.skip('QUEST+ only works on Python 3.6+')
+
+    from psychopy.data.staircase import QuestPlusHandler
+
+    thresholds = np.arange(-40, 0 + 1)
+    slope, guess, lapse = 3.5, 0.5, 0.02
+    contrasts = thresholds.copy()
+    response_vals = ['Correct', 'Incorrect']
+    start_intensity = contrasts[10]
+    scale = 'dB'
+    stim_selection_method = 'minEntropy'
+    param_estimation_method = 'mode'
+    func = 'weibull'
+
+    q = QuestPlusHandler(nTrials=10,
+                         startIntensity=start_intensity,
+                         intensityVals=contrasts,
+                         thresholdVals=thresholds,
+                         slopeVals=slope,
+                         lowerAsymptoteVals=guess,
+                         lapseRateVals=lapse,
+                         responseVals=response_vals,
+                         psychometricFunc=func,
+                         stimSelectionMethod=stim_selection_method,
+                         stimScale=scale,
+                         paramEstimationMethod=param_estimation_method)
+
+    assert q.startIntensity == start_intensity
+    assert q._nextIntensity == start_intensity
+
+
+def test_QuestPlusHandler_saveAsJson():
+    import sys
+    if not (sys.version_info.major == 3 and sys.version_info.minor >= 6):
+        pytest.skip('QUEST+ only works on Python 3.6+')
+
+    from psychopy.data.staircase import QuestPlusHandler
+
+    thresholds = np.arange(-40, 0 + 1)
+    slope, guess, lapse = 3.5, 0.5, 0.02
+    contrasts = thresholds.copy()
+    response_vals = ['Correct', 'Incorrect']
+
+    scale = 'dB'
+    stim_selection_method = 'minEntropy'
+    param_estimation_method = 'mode'
+    func = 'weibull'
+
+    q = QuestPlusHandler(nTrials=20,
+                         intensityVals=contrasts,
+                         thresholdVals=thresholds,
+                         slopeVals=slope,
+                         lowerAsymptoteVals=guess,
+                         lapseRateVals=lapse,
+                         responseVals=response_vals,
+                         psychometricFunc=func,
+                         stimSelectionMethod=stim_selection_method,
+                         stimScale=scale,
+                         paramEstimationMethod=param_estimation_method)
+
+    q.origin = ''
+
+    # Add some random responses.
+    q.__next__()
+    q.addResponse(response='Correct')
+    q.__next__()
+    q.addResponse(response='Incorrect')
+
+    # Test dump to memory.
+    q.saveAsJson()
+
+    # Test dump to file.
+    temp_dir = mkdtemp(prefix='psychopy-tests-testdata')
+    _, path = mkstemp(dir=temp_dir, suffix='.json')
+    q.saveAsJson(fileName=path, fileCollisionMethod='overwrite')
+
+    # Test loading from file.
+    q_loaded = fromFile(path)
+    assert q == q_loaded
+
+    # Check if it still works afterwards.
+    q.addResponse(response='Correct')
+
+    shutil.rmtree(temp_dir)
+
+
+def test_QuestPlusHandler_paramEstimate_weibull():
+    import sys
+    if not (sys.version_info.major == 3 and sys.version_info.minor >= 6):
+        pytest.skip('QUEST+ only works on Python 3.6+')
+
+    from psychopy.data.staircase import QuestPlusHandler
+
+    thresholds = np.arange(-40, 0 + 1)
+    slope, guess, lapse = 3.5, 0.5, 0.02
+    contrasts = thresholds.copy()
+    response_vals = ['Correct', 'Incorrect']
+    func = 'weibull'
+
+    q = QuestPlusHandler(nTrials=20,
+                         intensityVals=contrasts,
+                         thresholdVals=thresholds,
+                         slopeVals=slope,
+                         lowerAsymptoteVals=guess,
+                         lapseRateVals=lapse,
+                         responseVals=response_vals,
+                         psychometricFunc=func)
+
+    assert 'threshold' in q.paramEstimate.keys()
+    assert 'slope' in q.paramEstimate.keys()
+    assert 'lowerAsymptote' in q.paramEstimate.keys()
+    assert 'lapseRate' in q.paramEstimate.keys()
+
+
+def test_QuestPlusHandler_posterior_weibull():
+    import sys
+    if not (sys.version_info.major == 3 and sys.version_info.minor >= 6):
+        pytest.skip('QUEST+ only works on Python 3.6+')
+
+    from psychopy.data.staircase import QuestPlusHandler
+
+    thresholds = np.arange(-40, 0 + 1)
+    slope, guess, lapse = 3.5, 0.5, 0.02
+    contrasts = thresholds.copy()
+    response_vals = ['Correct', 'Incorrect']
+    func = 'weibull'
+
+    q = QuestPlusHandler(nTrials=20,
+                         intensityVals=contrasts,
+                         thresholdVals=thresholds,
+                         slopeVals=slope,
+                         lowerAsymptoteVals=guess,
+                         lapseRateVals=lapse,
+                         responseVals=response_vals,
+                         psychometricFunc=func)
+
+    assert 'threshold' in q.posterior.keys()
+    assert 'slope' in q.posterior.keys()
+    assert 'lowerAsymptote' in q.posterior.keys()
+    assert 'lapseRate' in q.posterior.keys()
+
+
+def test_QuesPlusHandler_unknown_kwargs():
+    import sys
+    if not (sys.version_info.major == 3 and sys.version_info.minor >= 6):
+        pytest.skip('QUEST+ only works on Python 3.6+')
+
+    from psychopy.data.staircase import QuestPlusHandler
+
+    thresholds = np.arange(-40, 0 + 1)
+    slope, guess, lapse = 3.5, 0.5, 0.02
+    contrasts = thresholds.copy()
+    response_vals = ['Correct', 'Incorrect']
+    func = 'weibull'
+    unknown_kwargs = dict(foo=1, bar='baz')
+
+    with pytest.warns(RuntimeWarning):
+        QuestPlusHandler(nTrials=20,
+                         intensityVals=contrasts,
+                         thresholdVals=thresholds,
+                         slopeVals=slope,
+                         lowerAsymptoteVals=guess,
+                         lapseRateVals=lapse,
+                         responseVals=response_vals,
+                         psychometricFunc=func,
+                         **unknown_kwargs)
+
+
+def test_QuesPlusHandler_unused_StairHandler_attribs():
+    import sys
+    if not (sys.version_info.major == 3 and sys.version_info.minor >= 6):
+        pytest.skip('QUEST+ only works on Python 3.6+')
+
+    from psychopy.data.staircase import QuestPlusHandler
+
+    thresholds = np.arange(-40, 0 + 1)
+    slope, guess, lapse = 3.5, 0.5, 0.02
+    contrasts = thresholds.copy()
+    response_vals = ['Correct', 'Incorrect']
+    func = 'weibull'
+    stim_scale = 'linear'
+
+    q = QuestPlusHandler(nTrials=20,
+                         intensityVals=contrasts,
+                         thresholdVals=thresholds,
+                         slopeVals=slope,
+                         lowerAsymptoteVals=guess,
+                         lapseRateVals=lapse,
+                         responseVals=response_vals,
+                         psychometricFunc=func,
+                         stimScale=stim_scale)
+
+    assert q.currentDirection is None
+    assert q.stepSizeCurrent is None
+    assert q.stepType == q.stimScale
+
+
+def test_QuesPlusHandler_stimSelectionOptions():
+    import sys
+    if not (sys.version_info.major == 3 and sys.version_info.minor >= 6):
+        pytest.skip('QUEST+ only works on Python 3.6+')
+
+    from psychopy.data.staircase import QuestPlusHandler
+
+    thresholds = np.arange(-40, 0 + 1)
+    slope, guess, lapse = 3.5, 0.5, 0.02
+    contrasts = thresholds.copy()
+    response_vals = ['Correct', 'Incorrect']
+    func = 'weibull'
+    stim_scale = 'linear'
+    stim_selection_method = 'minNEntropy'
+    stim_selection_options = dict(N=10, maxConsecutiveReps=4, randomSeed=0)
+    stim_selection_options_qp = dict(n=10, max_consecutive_reps=4,
+                                     random_seed=0)
+
+    q = QuestPlusHandler(nTrials=20,
+                         intensityVals=contrasts,
+                         thresholdVals=thresholds,
+                         slopeVals=slope,
+                         lowerAsymptoteVals=guess,
+                         lapseRateVals=lapse,
+                         responseVals=response_vals,
+                         psychometricFunc=func,
+                         stimScale=stim_scale,
+                         stimSelectionMethod=stim_selection_method,
+                         stimSelectionOptions=stim_selection_options)
+
+    assert q.stimSelectionOptions == stim_selection_options
+    assert q._qp.stim_selection_options == stim_selection_options_qp
+
+
+def test_QuesPlusHandler_prior():
+    import sys
+    if not (sys.version_info.major == 3 and sys.version_info.minor >= 6):
+        pytest.skip('QUEST+ only works on Python 3.6+')
+
+    from psychopy.data.staircase import QuestPlusHandler
+
+    thresholds = np.arange(-40, 0 + 1)
+    slope, guess, lapse = 3.5, 0.5, 0.02
+    contrasts = thresholds.copy()
+
+    threshold_prior_vals = np.random.randint(low=1, high=10,
+                                             size=len(thresholds))
+    threshold_prior_vals = threshold_prior_vals / threshold_prior_vals.sum()
+    prior = dict(threshold=threshold_prior_vals)
+
+    q = QuestPlusHandler(nTrials=20,
+                         intensityVals=contrasts,
+                         thresholdVals=thresholds,
+                         slopeVals=slope,
+                         lowerAsymptoteVals=guess,
+                         lapseRateVals=lapse,
+                         prior=prior)
+
+    assert np.allclose(q._qp.prior.squeeze().values, threshold_prior_vals)
+    # Even though we only specified a prior for threshold, all parameters
+    # should be present (auto-populated) in q.prior.
+    assert all([k in q.prior for k in ('threshold', 'slope', 'lowerAsymptote',
+                                       'lapseRate')])
+
+
+def test_QuesPlusHandler_invalid_prior_params():
+    import sys
+    if not (sys.version_info.major == 3 and sys.version_info.minor >= 6):
+        pytest.skip('QUEST+ only works on Python 3.6+')
+
+    from psychopy.data.staircase import QuestPlusHandler
+
+    thresholds = np.arange(-40, 0 + 1)
+    slope, guess, lapse = 3.5, 0.5, 0.02
+    contrasts = thresholds.copy()
+
+    prior_vals = np.random.randint(low=1, high=10,
+                                   size=len(thresholds))
+    prior_vals = prior_vals / prior_vals.sum()
+    prior = dict(unknownParam=prior_vals)
+
+    with pytest.raises(ValueError):
+        q = QuestPlusHandler(nTrials=20,
+                             intensityVals=contrasts,
+                             thresholdVals=thresholds,
+                             slopeVals=slope,
+                             lowerAsymptoteVals=guess,
+                             lapseRateVals=lapse,
+                             prior=prior)
+
+
+def test_QuesPlusHandler_unknown_stimSelectionOptions():
+    import sys
+    if not (sys.version_info.major == 3 and sys.version_info.minor >= 6):
+        pytest.skip('QUEST+ only works on Python 3.6+')
+
+    from psychopy.data.staircase import QuestPlusHandler
+
+    thresholds = np.arange(-40, 0 + 1)
+    slope, guess, lapse = 3.5, 0.5, 0.02
+    contrasts = thresholds.copy()
+    stim_selection_method = 'minNEntropy'
+    stim_selection_options = dict(unknownParam=1)
+
+    with pytest.raises(ValueError):
+        q = QuestPlusHandler(nTrials=20,
+                             intensityVals=contrasts,
+                             thresholdVals=thresholds,
+                             slopeVals=slope,
+                             lowerAsymptoteVals=guess,
+                             lapseRateVals=lapse,
+                             stimSelectionMethod=stim_selection_method,
+                             stimSelectionOptions=stim_selection_options)
+
+
+if __name__ == '__main__':
+    test_QuestPlusHandler()
+    test_QuestPlusHandler_startIntensity()
+    test_QuestPlusHandler_saveAsJson()
+    test_QuestPlusHandler_paramEstimate_weibull()
+    test_QuestPlusHandler_posterior_weibull()
+    test_QuesPlusHandler_unknown_kwargs()
+    test_QuesPlusHandler_unused_StairHandler_attribs()
+    test_QuesPlusHandler_stimSelectionOptions()
+    test_QuesPlusHandler_prior()
+    test_QuesPlusHandler_invalid_prior_params()
+    test_QuesPlusHandler_unknown_stimSelectionOptions()

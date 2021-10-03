@@ -1,153 +1,254 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""
+Calibrate, validate, run with GC cursor demo / test.
+Select which tracker to use by setting the TRACKER variable below.
+"""
 
 from __future__ import absolute_import, division, print_function
-
 from psychopy import core, visual
-from psychopy.iohub import launchHubServer, ioHubConnection, EventConstants
-from psychopy.iohub import TimeTrigger, DeviceEventTrigger
-from psychopy.iohub import TargetStim, PositionGrid, ValidationProcedure
-import time
-import numpy as np
-exp_code = 'targetdisplay'
-sess_code = 'S_{0}'.format(int(time.mktime(time.localtime())))
+from psychopy import iohub
+from psychopy.iohub.client.eyetracker.validation import TargetStim
+from psychopy.iohub.util import hideWindow, showWindow
 
-# Start ioHub event monitoring process
-iohub_config = {
-    "eyetracker.hw.tobii_eyex.EyeTracker":{'name':'tracker'},
-    "experiment_code": exp_code,
-    "session_code": sess_code
-}
+# Eye tracker to use ('mouse', 'eyelink', 'gazepoint', or 'tobii')
+TRACKER = 'mouse'
 
-io = launchHubServer(**iohub_config)
+use_unit_type = 'height'
+use_color_type = 'rgb'
 
-# Get the keyboard and mouse devices for future access.
-keyboard = io.devices.keyboard
-mouse = io.devices.mouse
-tracker = io.devices.tracker
-experiment = io.devices.experiment
+eyetracker_config = dict(name='tracker')
+devices_config = {}
+if TRACKER == 'mouse':
+    devices_config['eyetracker.hw.mouse.EyeTracker'] = eyetracker_config
+    eyetracker_config['calibration'] = dict(auto_pace=True,
+                                            target_duration=1.5,
+                                            target_delay=1.0,
+                                            screen_background_color=(0, 0, 0),
+                                            type='NINE_POINTS',
+                                            unit_type=None,
+                                            color_type=None,
+                                            target_attributes=dict(outer_diameter=0.05,
+                                                                   inner_diameter=0.025,
+                                                                   outer_fill_color=[-0.5, -0.5, -0.5],
+                                                                   inner_fill_color=[-1, 1, -1],
+                                                                   outer_line_color=[1, 1, 1],
+                                                                   inner_line_color=[-1, -1, -1],
+                                                                   animate=dict(enable=True,
+                                                                                expansion_ratio=1.5,
+                                                                                contract_only=False)
+                                                                   )
+                                            )
+elif TRACKER == 'eyelink':
+    eyetracker_config['model_name'] = 'EYELINK 1000 DESKTOP'
+    eyetracker_config['simulation_mode'] = False
+    eyetracker_config['runtime_settings'] = dict(sampling_rate=1000, track_eyes='RIGHT')
+    eyetracker_config['calibration'] = dict(auto_pace=True,
+                                            target_duration=1.5,
+                                            target_delay=1.0,
+                                            screen_background_color=(0, 0, 0),
+                                            type='NINE_POINTS',
+                                            unit_type=None,
+                                            color_type=None,
+                                            target_attributes=dict(outer_diameter=0.05,
+                                                                   inner_diameter=0.025,
+                                                                   outer_fill_color=[-0.5, -0.5, -0.5],
+                                                                   inner_fill_color=[-1, 1, -1],
+                                                                   outer_line_color=[1, 1, 1],
+                                                                   inner_line_color=[-1, -1, -1]
+                                                                   )
+                                            )
+    devices_config['eyetracker.hw.sr_research.eyelink.EyeTracker'] = eyetracker_config
+elif TRACKER == 'gazepoint':
+    eyetracker_config['device_timer'] = {'interval': 0.005}
+    eyetracker_config['calibration'] = dict(use_builtin=False,
+                                            target_duration=1.5,
+                                            target_delay=1.0,
+                                            screen_background_color=(0,0,0),
+                                            type='NINE_POINTS',
+                                            unit_type=None,
+                                            color_type=None,
+                                            target_attributes=dict(outer_diameter=0.05,
+                                                                   inner_diameter=0.025,
+                                                                   outer_fill_color=[-0.5, -0.5, -0.5],
+                                                                   inner_fill_color=[-1, 1, -1],
+                                                                   outer_line_color=[1, 1, 1],
+                                                                   inner_line_color=[-1, -1, -1],
+                                                                   animate=dict(enable=True,
+                                                                                expansion_ratio=1.5,
+                                                                                contract_only=False)
+                                                                   )
+                                            )
+    devices_config['eyetracker.hw.gazepoint.gp3.EyeTracker'] = eyetracker_config
+elif TRACKER == 'tobii':
+    eyetracker_config['calibration'] = dict(auto_pace=True,
+                                            target_duration=1.5,
+                                            target_delay=1.0,
+                                            screen_background_color=(0, 0, 0),
+                                            type='NINE_POINTS',
+                                            unit_type=None,
+                                            color_type=None,
+                                            target_attributes=dict(outer_diameter=0.05,
+                                                                   inner_diameter=0.025,
+                                                                   outer_fill_color=[-0.5, -0.5, -0.5],
+                                                                   inner_fill_color=[-1, 1, -1],
+                                                                   outer_line_color=[1, 1, 1],
+                                                                   inner_line_color=[-1, -1, -1],
+                                                                   animate=dict(enable=True,
+                                                                                expansion_ratio=1.5,
+                                                                                contract_only=False)
+                                                                   )
+                                            )
+    devices_config['eyetracker.hw.tobii.EyeTracker'] = eyetracker_config
+else:
+    print("{} is not a valid TRACKER name; please use 'mouse', 'eyelink', 'gazepoint', or 'tobii'.".format(TRACKER))
+    core.quit()
 
-# Create a default PsychoPy Window
-win = visual.Window((1280,1024))
-
-# Create a TargetStim instance
-target = TargetStim(
-        win,
-        radius=16,               # 16 pix outer radius.
-        fillcolor=[.5, .5, .5],  # 75% white fill color.
-        edgecolor=[-1, -1, -1],  # Fully black outer edge
-        edgewidth=3,             # with a 3 pixel width.
-        dotcolor=[1, -1, -1],    # Full red center dot
-        dotradius=3,             # with radius of 3 pixels.
-        units='pix',             # Size & position units are in pix.
-        colorspace='rgb'         # colors are in 'rgb' space (-1.0 - 1.0) range
-    )                            # forevents r,g,b.
-
-# Create a PositionGrid instance that will hold the locations to display the
-# target at. The example lists all possible keyword arguments that are
-# supported. Any set to None are ignored during position grid creation.
-positions = PositionGrid(
-        winSize=win.size,   # width, height of window used for display.
-        shape=3,            # Create a grid with 3 cols and 3 rows (9 points).
-        posCount=None,
-        leftMargin=None,
-        rightMargin=None,
-        topMargin=None,
-        bottomMargin=None,
-        scale=0.85,         # Equally space the 3x3 grid across 85% of the
-                            # window width and height, centered.
-        posList=None,
-        noiseStd=None,
-        firstposindex=4,    # Use the center position grid location as the
-                            # first point in the position order.
-        repeatfirstpos=True # As the last target position to display, use the
-    )                       # value of the first target position.
-
-# randomize the grid position presentation order (not including
-# the first position).
-positions.randomize()
-
-# Specify the Triggers to use to move from target point to point during
-# the validation sequence....
-
-# Use DeviceEventTrigger to create a keyboard char event trigger
-#     which will fire when the space key is pressed.
-kb_trigger = DeviceEventTrigger(io.getDevice('keyboard'),
-                                event_type=EventConstants.KEYBOARD_RELEASE,
-                                event_attribute_conditions={'key': ' '},
-                                repeat_count=0)
-
-# Creating a list of Trigger instances. The first one that
-#     fires will cause the start of the next target position
-#     presentation.
-multi_trigger = (TimeTrigger(start_time=None, delay=1.5), kb_trigger)
-
-
-# run eyetracker calibration
-r=tracker.runSetupProcedure()
-
-# define a dict containing any animation params to be used
-
-targ_anim_param = dict(
-                    velocity=None,#800.0,
-                    expandedscale=None,#2.0,
-                    expansionduration=None,#0.1,
-                    contractionduration=None,#0.1
+# Number if 'trials' to run in demo
+TRIAL_COUNT = 2
+# Maximum trial time / time timeout
+T_MAX = 60.0
+win = visual.Window((1920, 1080),
+                    units=use_unit_type,
+                    fullscr=True,
+                    allowGUI=False,
+                    colorSpace=use_color_type,
+                    monitor='55w_60dist',
+                    color=[0, 0, 0]
                     )
-                        
-# Run a validation procedure 
-validation_proc=ValidationProcedure(win,
-                                    target,
-                                    positions,
-                                    target_animation_params=targ_anim_param,
-                                    background=None,
-                                    triggers=multi_trigger,
-                                    storeeventsfor=None,
-                                    accuracy_period_start=0.550,
-                                    accuracy_period_stop=.150,
-                                    show_intro_screen=True,
-                                    intro_text="Validation procedure is now going to be performed.",
-                                    show_results_screen=True,
-                                    results_in_degrees=True
-                                    )                        
 
-# Run the validation process. The method does not return until the process
-# is complete. Returns the validation calculation results and data collected
-# for the analysis.
-results = validation_proc.display()
+win.setMouseVisible(False)
+text_stim = visual.TextStim(win, text="Start of Experiment",
+                            pos=[0, 0], height=24,
+                            color='black', units='pix', colorSpace='named',
+                            wrapWidth=win.size[0] * .9)
 
-# The last calculated validation results can also be retrieved using
-# results = validation_proc.getValidationResults()
+text_stim.draw()
+win.flip()
+
+# Since no experiment_code or session_code is given, no iohub hdf5 file
+# will be saved, but device events are still available at runtime.
+io = iohub.launchHubServer(window=win, **devices_config)
+
+# Get some iohub devices for future access.
+keyboard = io.getDevice('keyboard')
+tracker = io.getDevice('tracker')
+
+# Minimize the PsychoPy window if needed
+hideWindow(win)
+# Display calibration gfx window and run calibration.
+result = tracker.runSetupProcedure()
+print("Calibration returned: ", result)
+# Maximize the PsychoPy window if needed
+showWindow(win)
+
+# Validation
+
+# Create a target stim. iohub.client.eyetracker.validation.TargetStim provides a standard doughnut style
+# target. Or use any stim that has `.setPos()`, `.radius`, `.innerRadius`, and `.draw()`.
+target_stim = TargetStim(win, radius=0.025, fillcolor=[.5, .5, .5], edgecolor=[-1, -1, -1], edgewidth=2,
+                         dotcolor=[1, -1, -1], dotradius=0.005, units=use_unit_type, colorspace=use_color_type)
+
+# target_positions: Provide your own list of validation positions,
+# target_positions = [(0.0, 0.0), (0.85, 0.85), (-0.85, 0.0), (0.85, 0.0), (0.85, -0.85), (-0.85, 0.85),
+#                    (-0.85, -0.85), (0.0, 0.85), (0.0, -0.85)]
+target_positions = 'FIVE_POINTS'
+
+# Create a validation procedure, iohub must already be running with an
+# eye tracker device, or errors will occur.
+validation_proc = iohub.ValidationProcedure(win,
+                                            target=target_stim,  # target stim
+                                            positions=target_positions,  # string constant or list of points
+                                            randomize_positions=True,  # boolean
+                                            expand_scale=1.5,  # float
+                                            target_duration=1.5,  # float
+                                            target_delay=1.0,  # float
+                                            enable_position_animation=True,
+                                            color_space=use_color_type,
+                                            unit_type=use_unit_type,
+                                            progress_on_key="",  # str or None
+                                            gaze_cursor=(-1.0, 1.0, -1.0),  # None or color value
+                                            show_results_screen=True,  # bool
+                                            save_results_screen=False,  # bool, only used if show_results_screen == True
+                                            )
+
+# Run the validation procedure. run() does not return until the validation is complete.
+validation_proc.run()
+if validation_proc.results:
+    results = validation_proc.results
+    print("++++ Validation Results ++++")
+    print("Passed:", results['passed'])
+    print("failed_pos_count:", results['positions_failed_processing'])
+    print("Units:", results['reporting_unit_type'])
+    print("min_error:", results['min_error'])
+    print("max_error:", results['max_error'])
+    print("mean_error:", results['mean_error'])
+else:
+    print("Validation Aborted by User.")
+
+# Run Trials.....
+
+gaze_ok_region = visual.Circle(win, lineColor='black', radius=0.33, units=use_unit_type, colorSpace='named')
+
+gaze_dot = visual.GratingStim(win, tex=None, mask='gauss', pos=(0, 0),
+                              size=(0.02, 0.02), color='green', colorSpace='named', units=use_unit_type)
+
+text_stim_str = 'Eye Position: %.2f, %.2f. In Region: %s\n'
+text_stim_str += 'Press space key to start next trial.'
+missing_gpos_str = 'Eye Position: MISSING. In Region: No\n'
+missing_gpos_str += 'Press space key to start next trial.'
+text_stim.setText(text_stim_str)
+
+t = 0
+while t < TRIAL_COUNT:
+    io.clearEvents()
+    tracker.setRecordingState(True)
+    run_trial = True
+    tstart_time = core.getTime()
+    while run_trial is True:
+        # Get the latest gaze position in display coord space.
+        gpos = tracker.getLastGazePosition()
+        # Update stim based on gaze position
+        valid_gaze_pos = isinstance(gpos, (tuple, list))
+        gaze_in_region = valid_gaze_pos and gaze_ok_region.contains(gpos)
+        if valid_gaze_pos:
+            # If we have a gaze position from the tracker, update gc stim and text stim.
+            if gaze_in_region:
+                gaze_in_region = 'Yes'
+            else:
+                gaze_in_region = 'No'
+            text_stim.text = text_stim_str % (gpos[0], gpos[1], gaze_in_region)
+
+            gaze_dot.setPos(gpos)
+        else:
+            # Otherwise just update text stim
+            text_stim.text = missing_gpos_str
+
+        # Redraw stim
+        gaze_ok_region.draw()
+        text_stim.draw()
+        if valid_gaze_pos:
+            gaze_dot.draw()
+
+        # Display updated stim on screen.
+        flip_time = win.flip()
+
+        # Check any new keyboard char events for a space key.
+        # If one is found, set the trial end variable.
+        #
+        if keyboard.getPresses(keys=' '):
+            run_trial = False
+        elif core.getTime()-tstart_time > T_MAX:
+            run_trial = False
+    win.flip()
+    # Current Trial is Done
+    # Stop eye data recording
+    tracker.setRecordingState(False)
+    t += 1
+
+# All Trials are done
+# End experiment
+tracker.setConnectionState(False)
 
 io.quit()
-
-#################### Not used below
-#
-## The following are several example trigger values for the triggers kwarg.
-## Use only one of them when setting the triggers argument of
-## TargetPosSequenceStim.
-#
-## Ex: Using DeviceEventTrigger to create a keyboard char event trigger
-##     which will fire when the space key is pressed.
-#kb_trigger = DeviceEventTrigger(io.getDevice('keyboard'),
-#                                event_type=EventConstants.KEYBOARD_RELEASE,
-#                                event_attribute_conditions={'key': ' '},
-#                                repeat_count=0)
-## Ex: Using TimeTrigger which will fire 0.5 sec after the last update
-##     ( flip() ) was made to draw the target as the correct target
-##     position.
-#time_trigger = TimeTrigger(start_time=None, delay=0.5)
-## Ex: Using a string to create a keyboard char event trigger
-##     which will fire when a key matching the string value is pressed.
-#kb_trigger_str = ' '
-## Ex: Using a float which will result in a TimeTrigger being created
-## with a 0.5 sec duration.
-#time_trigger_float = 0.5
-## Ex: Creating a list of Trigger instances. The first one that
-##     fires will cause the start of the next target position
-##     presentation.
-#multi_trigger = (TimeTrigger(start_time=None, delay=1.0), kb_trigger)
-## Ex: Using a list of strings to create a list of keyboard char
-##     based event triggers. First matching key press will cause the
-##     start of the next target position presentation.
-#multi_kb_str_triggers = [' ', 'ESCAPE', 'ENTER']
+core.quit()

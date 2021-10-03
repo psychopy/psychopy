@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-# Part of the psychopy.iohub library.
-# Copyright (C) 2012-2016 iSolver Software Solutions
+# Part of the PsychoPy library
+# Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 from __future__ import division, print_function, absolute_import
 
@@ -16,18 +16,10 @@ from ...errors import print2err, printExceptionDetailsToStdErr
 RectangleBorder = namedtuple('RectangleBorderClass', 'left top right bottom')
 currentSec = Computer.getTime
 
-
-# OS ' independent' view of the Mouse Device
+# OS 'independent' view of the Mouse Device
 
 class MouseDevice(Device):
-    """The Mouse class represents a standard USB or PS2 mouse device that has
-    up to three buttons and an optional scroll wheel (1D on Windows and Linux,
-    2D on OSX).
-
-    Mouse position data is mapped to the coordinate space defined in the ioHub
-    configuration file for the Display index specified. If the mouse is on a
-    display other than the PsychoPy full screen window Display, then positional
-    data is returned using the OS desktop pixel bounds for the given display.
+    """
     """
     EVENT_CLASS_NAMES = [
         'MouseInputEvent',
@@ -69,31 +61,6 @@ class MouseDevice(Device):
             MouseConstants.MOUSE_BUTTON_MIDDLE: 0,
         }
 
-    # def getSystemCursorVisibility(self):
-    #     """Returns whether the system cursor is visible when within the
-    #     physical Display represented by the ioHub Display Device.
-    #
-    #     Returns:
-    #         bool: True if system cursor is visible when within the ioHub
-    #         Display Device being used. False otherwise.
-    #
-    #     """
-    #     return self._nativeGetSystemCursorVisibility()
-
-    # def setSystemCursorVisibility(self, v):
-    #     """Sets whether the system cursor is visible when within the physical
-    #     Display represented by the ioHub Display Device.
-    #
-    #     Args:
-    #         v (bool): True = Show system cursor. False = Hide system cursor.
-    #
-    #     Returns:
-    #         (bool): True if system cursor is visible. False otherwise.
-    #     """
-    #
-    #     self._nativeSetSystemCursorVisibility(v)
-    #     #return self.getSystemCursorVisibility()
-
     def getCurrentButtonStates(self):
         """Returns a list of three booleans, representing the current state of
         the MOUSE_BUTTON_LEFT, MOUSE_BUTTON_MIDDLE, MOUSE_BUTTON_RIGHT ioHub
@@ -110,32 +77,6 @@ class MouseDevice(Device):
         return (self.activeButtons[MouseConstants.MOUSE_BUTTON_LEFT] != 0,
                 self.activeButtons[MouseConstants.MOUSE_BUTTON_MIDDLE] != 0,
                 self.activeButtons[MouseConstants.MOUSE_BUTTON_RIGHT] != 0)
-
-    # def lockMouseToDisplayID(self, display_id):
-    #     self._lock_mouse_to_display_id = display_id
-    #     if display_id is not None:
-    #         if display_id not in self._clipRectsForDisplayID:
-    #             screen = self._display_device.getConfiguration()[
-    #                 'runtime_info']
-    #             if screen:
-    #                 left, top, right, bottom = screen['bounds']
-    #                 clip_rect = RectangleBorder(left, top, right, bottom)
-    #                 native_clip_rect = self._nativeLimitCursorToBoundingRect(
-    #                         clip_rect)
-    #             self._clipRectsForDisplayID[
-    #                 display_id] = native_clip_rect, clip_rect
-    #     else:
-    #         if None not in self._clipRectsForDisplayID:
-    #             left, top, right, bottom = screen['bounds']
-    #             clip_rect = RectangleBorder(left, top, right, bottom)
-    #             native_clip_rect = self._nativeLimitCursorToBoundingRect(
-    #                     clip_rect)
-    #             self._clipRectsForDisplayID[
-    #                 display_id] = native_clip_rect, clip_rect
-    #     return self._clipRectsForDisplayID[display_id][1]
-    #
-    # def getlockedMouseDisplayID(self):
-    #     return self._lock_mouse_to_display_id
 
     def _initialMousePos(self):
         """If getPosition is called prior to any mouse events being received,
@@ -172,22 +113,18 @@ class MouseDevice(Device):
         the center of the screen.
 
         Args:
-             pos ( (x,y) list or tuple ): The position, in Display
-             coordinate space, to set the mouse position too.
+            pos ( (x,y) list or tuple ): The position, in Display
+            coordinate space, to set the mouse position too.
 
-             display_index (int): Optional arguement giving the display index
-             to set the mouse pos within. If None, the active ioHub Display
-             device index is used.
+            display_index (int): Optional arguement giving the display index
+            to set the mouse pos within. If None, the active ioHub Display
+            device index is used.
 
         Returns:
             tuple: new (x,y) position of mouse in Display coordinate space.
-
         """
-        # TODO: Verify Mouse.setPosition code. Needs to handle multiple monitor
-        #      case and when to keep mouse pos within display bounds and when
-        #      not too.
         try:
-            pos = int(pos[0]), int(pos[1])
+            pos = pos[0], pos[1]
         except Exception:
             print2err('Warning: Mouse.setPosition: pos must be a list of '
                       'two numbers, not: ', pos)
@@ -215,12 +152,7 @@ class MouseDevice(Device):
             return self._position
 
 
-        #result = self._validateMousePosForActiveDisplay((px, py), display_index)
-        #if isinstance(result, (list, tuple)):
-        #    px, py = result
-
         mouse_display_index = self.getDisplayIndexForMousePosition((px, py))
-
         if mouse_display_index != display_index:
             print2err(
                     ' !!! requested display_index {0} != mouse_display_index '
@@ -229,7 +161,7 @@ class MouseDevice(Device):
             print2err(' mouse.setPos did not update mouse pos')
         else:
             self._lastPosition = self._position
-            self._position = px, py
+            self._position = pos[0], pos[1]
 
             self._last_display_index = self._display_index
             self._display_index = mouse_display_index
@@ -275,6 +207,9 @@ class MouseDevice(Device):
             self._initialMousePos()
             cpos = self._position
             lpos = self._lastPosition
+            if lpos is None:
+                lpos = cpos[0], cpos[1]
+
             change_x = cpos[0] - lpos[0]
             change_y = cpos[1] - lpos[1]
             if return_display_index is True:
@@ -324,7 +259,7 @@ class MouseDevice(Device):
         Returns:
             int: current vertical scroll value.
         """
-        if isinstance(s, (int, long, float, complex)):
+        if isinstance(s, (int, float, complex)):
             self._scrollPositionY = s
         return self._scrollPositionY
 
@@ -380,14 +315,6 @@ class MouseDevice(Device):
         print2err(
                 'ERROR: _nativeSetMousePos must be overwritten by OS '
                 'dependent implementation')
-
-    #def _nativeLimitCursorToBoundingRect(self, clip_rect):
-    #    print2err(
-    #            'ERROR: _nativeLimitCursorToBoundingRect must be overwritten '
-    #            'by OS dependent implementation')
-    #    native_clip_rect = None
-    #    return native_clip_rect
-
 
 if Computer.platform == 'win32':
     from .win32 import Mouse

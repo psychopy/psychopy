@@ -3,9 +3,18 @@
 
 """Load and play sounds
 
+We have used a number of different Python libraries ("backends") for generating
+sounds in PsychoPy. We started with `Pygame`, then tried `pyo` and `sounddevice`
+but we now strongly recommend you use the PTB setting. That uses the
+`PsychPortAudio`_ engine, written by Mario Kleiner for `Psychophysics Toolbox`_.
+
+With the PTB backend you get some options about how agressively you want to try
+for low latency, and there is also an option to pre-schedule a sound to play at
+a given time in the future.
+
 By default PsychoPy will try to use the following Libs, in this order, for
 sound reproduction but you can alter the order in
-preferences > general > audioLib:
+preferences > hardware > audioLib:
     ['sounddevice', 'pygame', 'pyo']
 For portaudio-based backends (all except for pygame) there is also a
 choice of the underlying sound driver (e.g. ASIO, CoreAudio etc).
@@ -14,63 +23,54 @@ After importing sound, the sound lib and driver being used will be stored as::
     `psychopy.sound.audioLib`
     `psychopy.sound.audioDriver`
 
-For control of bitrate and buffer size you can call psychopy.sound.init before
-creating your first Sound object::
+.. PTB
 
-    from psychopy import sound
-    sound.init(rate=44100, stereo=True, buffer=128)
-    s1 = sound.Sound('ding.wav')
-
-The history of sound libs in PsychoPy:
-
-    - we started with pygame but latencies were always poor
-    - we switched to pyo and latencies were better but very system-dependent.
-      The problem with pyo is that it has to be compiled which was always
-      more painful and prevents us from modifying it easily when needed. It
-      also doesn't support python3 as of 2016 and it doesn't support pip for
-      installation (e.g. in Anaconda)
-    - pysoundcard and sounddevice are new pure python portaudio libraries
-      They both install trivially with pip and support python3
-      Sounddevice appears to be under most recent development (and shares a
-      lot of the original pysoundcard code). In testing we've found the
-      latencies to be low
-
-As of PsychoPy 1.85 **sounddevice looks like it will be the best option** but
-while it is new there may be some teething problems! To be fair, when writing
-the sounddevice code we also changed the method of starting sounds (and pyo
-also supports the new method). It is likely that pyo can achieve the same
-low latencies as sounddevice, but the other advantages of sounddevice make it
-preferable.
+.. _PsychPortAudio: http://psychtoolbox.org/docs/PsychPortAudio-Open
+.. _Psychophysics Toolbox: http://psychtoolbox.org
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
 
+__all__ = []
+
 from builtins import str
+from past.types import basestring
 import sys
 import os
-from psychopy import logging, prefs, exceptions
+from psychopy import logging, prefs, exceptions, constants
+from .audiodevice import *
+from .audioclip import *  # import objects related to AudioClip
+from .microphone import *  # import objects related to the microphone class
+from .transcribe import *  # import transcription engine stuff
 
 pyoSndServer = None
 Sound = None
 audioLib = None
 audioDriver = None
+bits32 = sys.maxsize == 2 ** 32
 
-_audioLibs = ['sounddevice', 'pyo', 'pysoundcard', 'pygame']
+_audioLibs = ['PTB', 'sounddevice', 'pyo', 'pysoundcard', 'pygame']
+failed = []
 
 # check if this is being imported on Travis (has no audio card)
 travisCI = bool(str(os.environ.get('TRAVIS')).lower() == 'true')
 if travisCI:
     # for sounddevice we built in some TravisCI protection but not in pyo
-    prefs.general['audioLib'] = ['sounddevice']
+    prefs.hardware['audioLib'] = ['sounddevice']
 
-for thisLibName in prefs.general['audioLib']:
-
+if isinstance(prefs.hardware['audioLib'], basestring):
+    prefs.hardware['audioLib'] = [prefs.hardware['audioLib']]
+for thisLibName in prefs.hardware['audioLib']:
     try:
-        if thisLibName == 'pyo':
+        if thisLibName.lower() == 'ptb':
+            from . import backend_ptb as backend
+            Sound = backend.SoundPTB
+            audioDriver = backend.audioDriver
+        elif thisLibName == 'pyo':
             from . import backend_pyo as backend
             Sound = backend.SoundPyo
             pyoSndServer = backend.pyoSndServer
@@ -95,7 +95,8 @@ for thisLibName in prefs.general['audioLib']:
             getDevices = backend.getDevices
         logging.info('sound is using audioLib: %s' % audioLib)
         break
-    except exceptions.DependencyError:
+    except exceptions.DependencyError as e:
+        failed.append(thisLibName.lower())
         msg = '%s audio lib was requested but not loaded: %s'
         logging.warning(msg % (thisLibName, sys.exc_info()[1]))
         continue  # to try next audio lib
@@ -104,7 +105,21 @@ if audioLib is None:
     raise exceptions.DependencyError(
             "No sound libs could be loaded. Tried: {}\n"
             "Check whether the necessary sound libs are installed"
-            .format(prefs.general['audioLib']))
+            .format(prefs.hardware['audioLib']))
+elif audioLib.lower() != 'ptb':
+    if constants.PY3 and not bits32 and 'ptb' not in failed:  
+        # Could be running PTB, just aren't?
+        logging.warning("We strongly recommend you activate the PTB sound "
+                        "engine in PsychoPy prefs as the preferred audio "
+                        "engine. Its timing is vastly superior. Your prefs "
+                        "are currently set to use {} (in that order)."
+                        .format(prefs.hardware['audioLib']))
+    else:  # Can't run PTB anyway due to Py2 or 32bit system
+        logging.warning("For experiments that use audio stimuli, timing will "
+                        "be much better if you upgrade your PsychoPy "
+                        "installation to a 64bit Python3 installation and use "
+                        "the PTB backend.")
+
 
 # function to set the device (if current lib allows it)
 def setDevice(dev, kind=None):
@@ -132,22 +147,23 @@ def setDevice(dev, kind=None):
                             "not {!r}".format(kind))
 
 # Set the device according to user prefs (if current lib allows it)
+deviceNames = []
 if hasattr(backend, 'defaultOutput'):
-    pref = prefs.general['audioDevice']
+    pref = prefs.hardware['audioDevice']
     # is it a list or a simple string?
-    if type(prefs.general['audioDevice'])==list:
+    if type(prefs.hardware['audioDevice'])==list:
         # multiple options so use zeroth
-        dev = prefs.general['audioDevice'][0]
+        dev = prefs.hardware['audioDevice'][0]
     else:
         # a single option
-        dev = prefs.general['audioDevice']
+        dev = prefs.hardware['audioDevice']
     # is it simply "default" (do nothing)
     if dev=='default' or travisCI:
         pass  # do nothing
     elif dev not in backend.getDevices(kind='output'):
-        devNames = sorted(backend.getDevices(kind='output').keys())
-        logging.error(u"Requested audio device '{}' that is not available on "
+        deviceNames = sorted(backend.getDevices(kind='output').keys())
+        logging.warn(u"Requested audio device '{}' that is not available on "
                         "this hardware. The 'audioDevice' preference should be one of "
-                        "{}".format(dev, devNames))
+                        "{}".format(dev, deviceNames))
     else:
         setDevice(dev, kind='output')

@@ -2,6 +2,7 @@ from __future__ import division
 from psychopy.sound._base import apodize, HammingWindow
 from psychopy.constants import FINISHED
 import numpy as np
+import pytest
 
 import psychopy.sound.backend_sounddevice as sd
 
@@ -22,6 +23,8 @@ plotting = False
 if plotting:
     import matplotlib.pyplot as plt
 
+
+@pytest.mark.needs_sound
 def test_HammingSmallBlock():
     blockSize = 64
     snd1 = apodize(sndArray, sampleRate)  # is 5 ms

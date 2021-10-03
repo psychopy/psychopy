@@ -4,7 +4,7 @@
 VSS 2012 Satellite Event, May 2012
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-PsychoPy is a modern, powerful easy-to-use software package for conducting psychophysics and imaging studies. It's become the package of choice in thousands of labs worldwide (see http://www.psychopy.org/usage.php). 
+PsychoPy is a modern, powerful easy-to-use software package for conducting psychophysics and imaging studies. It's become the package of choice in thousands of labs worldwide (see https://www.psychopy.org/usage.php).
 
 Using the Python programming language (a more powerful and free alternative to Matlab) PsychoPy can generate your stimuli in real-time and collect responses with high temporal precision.
 
@@ -12,11 +12,11 @@ Want to get started using PsychoPy for your studies? This workshop will get you 
 
 It will be run as a satellite to the `Vision Sciences Society conference <http://www.visionsciences.org/index.html>`_.
 
-    - when: Thurs 10th May, 12-5pm
-    - where: Naples Grand, Banyan Room 1-2
-    - cost: £75
-    - target audience: novice
-    - material will cover the Builder interface and simple Python coding
+- when: Thurs 10th May, 12-5pm
+- where: Naples Grand, Banyan Room 1-2
+- cost: £75
+- target audience: novice
+- material will cover the Builder interface and simple Python coding
 
 Email me personally (jon at peirce.org.uk) if you're interested in attending (or helping!).
 

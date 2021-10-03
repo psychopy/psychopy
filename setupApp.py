@@ -8,37 +8,39 @@ import sys
 from sys import platform
 from distutils.core import setup
 from pkg_resources import parse_version
+# import versioneer
+import psychopy
+version = psychopy.__version__
 
 # regenerate __init__.py only if we're in the source repos (not in a zip file)
 try:
-    import createInitFile  # won't exist in a sdist.zip
+    from building import createInitFile  # won't exist in a sdist.zip
     writeNewInit=True
 except:
     writeNewInit=False
 if writeNewInit:
     vStr = createInitFile.createInitFile(dist='bdist')
-    exec(vStr)#create variables __version__, __author__ etc
 
 #define the extensions to compile if necess
 packageData = []
 requires = []
 
 if platform != 'darwin':
-    raise RuntimeError("As of Aug 2013, setupApp.py is strictly for building the Mac Standalone bundle")
+    raise RuntimeError("setupApp.py is only for building Mac Standalone bundle")
 
 import bdist_mpkg
 import py2app
 resources = glob.glob('psychopy/app/Resources/*')
-resources.append('/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7/pyconfig.h')
-frameworks = ["libavbin.dylib", "/usr/lib/libxml2.2.dylib", #"libyaml.dylib",
+frameworks = ["/usr/lib/libxml2.2.dylib", #"libyaml.dylib",
               "libevent.dylib", "libffi.dylib",
+              "libmp3lame.0.dylib",
+              "/usr/local/Cellar/glfw/3.2.1/lib/libglfw.3.2.dylib",
               ]
 opencvLibs = glob.glob(os.path.join(sys.exec_prefix, 'lib', 'libopencv*.2.4.dylib'))
 frameworks.extend(opencvLibs)
 
-
 import macholib
-#print("~"*60 + "macholib verion: "+macholib.__version__)
+#print("~"*60 + "macholib version: "+macholib.__version__)
 
 if parse_version(macholib.__version__) <= parse_version('1.7'):
     print("Applying macholib patch...")
@@ -59,30 +61,33 @@ includes = ['Tkinter', 'tkFileDialog',
             'hid',
             'pyo', 'greenlet', 'zmq', 'tornado',
             'psutil',  # for iohub
-            'pysoundcard', 'soundfile', 'sounddevice',
-            'cv2', 'hid',
+            'tobii_research',  # need tobii_research file and tobiiresearch pkg
+            'pysoundcard', 'soundfile', 'sounddevice', 'readline',
+            'hid',
             'xlwt',  # writes excel files for pandas
             'vlc',  # install with pip install python-vlc
+            'msgpack_numpy',
+            'configparser',
             ]
 packages = ['wx', 'psychopy',
-            'pyglet', 'pygame',  'pytz', 'OpenGL', 'glfw',
-            'scipy', 'matplotlib', 'lxml', 'xml', 'openpyxl',
-            'moviepy', 'imageio',
-            '_sounddevice_data','_soundfile_data',
-            'cffi','pycparser',
+            'pyglet', 'pytz', 'OpenGL', 'glfw',
+            'scipy', 'matplotlib', 'openpyxl',
+            'xml', 'xmlschema', 'elementpath',
+            'moviepy', 'imageio', 'imageio_ffmpeg',
+            '_sounddevice_data', '_soundfile_data',
+            'cffi', 'pycparser',
             'PIL',  # 'Image',
             'objc', 'Quartz', 'AppKit', 'QTKit', 'Cocoa',
             'Foundation', 'CoreFoundation',
-            'pkg_resources', #needed for objc
-            'pyolib',
-            'requests', 'certifi',  # for up/downloading to servers
-            'pyosf',
+            'pkg_resources',  # needed for objc
+            'pyolib', 'pyo',
+            'requests', 'certifi', 'cryptography',
             # for unit testing
             'coverage',
             # handy external science libs
             'serial',
-            'egi', 'pylink',
-            'pyxid',
+            'egi', 'pylink', 'tobiiresearch',
+            'pyxid', 'pyxid2', 'ftd2xx',  # ftd2xx is used by cedrus
             'pandas', 'tables',  # 'cython',
             'msgpack', 'yaml', 'gevent',  # for ioHub
             # these aren't needed, but liked
@@ -91,6 +96,20 @@ packages = ['wx', 'psychopy',
             # for Py3 compatibility
             'future', 'past', 'lib2to3',
             'json_tricks',  # allows saving arrays/dates in json
+            'git', 'gitlab',
+            'astunparse', 'esprima',  # for translating/adapting py/JS
+            'pylsl', 'pygaze',
+            'smite',  # https://github.com/marcus-nystrom/SMITE (not pypi!)
+            'cv2',
+            'badapted', 'darc_toolbox',  # adaptive methods from Ben Vincent
+            'questplus',
+            'metapensiero.pj', 'dukpy', 'macropy',
+            'jedi', 'parso',
+            'psychtoolbox',
+            'freetype', 'h5py',
+            'markdown_it',
+            'speech_recognition', 'googleapiclient', 'pocketsphinx',
+            'six',  # needed by configobj
             ]
 
 if sys.version_info.major >= 3:
@@ -108,27 +127,31 @@ setup(
             includes=includes,
             packages=packages,
             excludes=['bsddb', 'jinja2', 'IPython','ipython_genutils','nbconvert',
-                      'libsz.2.dylib',
+                      'libsz.2.dylib', 'pygame',
                       # 'stringprep',
                       'functools32',
                       ],  # anything we need to forcibly exclude?
             resources=resources,
-            argv_emulation=True,
+            argv_emulation=False,  # must be False or app bundle pauses (py2app 0.21 and 0.24 tested)
             site_packages=True,
             frameworks=frameworks,
             iconfile='psychopy/app/Resources/psychopy.icns',
             plist=dict(
                   CFBundleIconFile='psychopy.icns',
-                  CFBundleName               = "PsychoPy2",
-                  CFBundleShortVersionString = __version__,  # must be in X.X.X format
-                  CFBundleGetInfoString      = "PsychoPy2 "+__version__,
-                  CFBundleExecutable         = "PsychoPy2",
-                  CFBundleIdentifier         = "org.psychopy.PsychoPy2",
+                  CFBundleName               = "PsychoPy",
+                  CFBundleShortVersionString = version,  # must be in X.X.X format
+                  CFBundleVersion            = version,
+                  CFBundleExecutable         = "PsychoPy",
+                  CFBundleIdentifier         = "org.opensciencetools.psychopy",
                   CFBundleLicense            = "GNU GPLv3+",
+                  NSHumanReadableCopyright   = "Open Science Tools Limited",
                   CFBundleDocumentTypes=[dict(CFBundleTypeExtensions=['*'],
                                               CFBundleTypeRole='Editor')],
-                  ),
-              )))
+                  LSEnvironment=dict(PATH="/usr/local/git/bin:/usr/local/bin:"
+                                          "/usr/local:/usr/bin:/usr/sbin"),
+            ),
+    ))  # end of the options dict
+)
 
 
 # ugly hack for opencv2:
@@ -137,7 +160,7 @@ setup(
 # 'lib' to the rpath as well. These were fine for the packaged
 # framework python but the libs in an app bundle are different.
 # So, create symlinks so they appear in the same place as in framework python
-rpath = "dist/PsychoPy2.app/Contents/Resources/"
+rpath = "dist/PsychoPy.app/Contents/Resources/"
 for libPath in opencvLibs:
     libname = os.path.split(libPath)[-1]
     realPath = "../../Frameworks/"+libname  # relative path (w.r.t. the fake)
@@ -151,6 +174,3 @@ os.symlink(realPath, fakePath)
 if writeNewInit:
     # remove unwanted info about this system post-build
     createInitFile.createInitFile(dist=None)
-
-# running testApp from within the app raises wx errors
-# shutil.rmtree("dist/PsychoPy2.app/Contents/Resources/lib/python2.6/psychopy/tests/testTheApp")

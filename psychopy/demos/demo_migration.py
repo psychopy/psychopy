@@ -7,7 +7,11 @@
 """
 from __future__ import absolute_import, print_function
 
-import sys, glob, os, re
+import sys
+import glob
+import os
+import re
+import io
 
 
 valid_var_re = re.compile(r"^[a-zA-Z_][\w]*$")
@@ -17,7 +21,8 @@ division = 'from __future__ import division'
 
 
 def get_contents(f1):
-    return open(f1, 'rU').read()
+    with io.open(f1, 'r', encoding='utf-8-sig') as f:
+        return f.read()
 
 
 def reposition_division(f1):
@@ -224,7 +229,7 @@ if __name__ == '__main__':
             
             #"""
             out = f1.replace('coder', 'coder_updated')
-            with open(out, 'wb') as fh:
+            with io.open(out, 'wb') as fh:
                 fh.write(new)
             print(new)
             

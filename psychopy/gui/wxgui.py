@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """To build simple dialogues etc. (requires wxPython)
@@ -22,6 +22,7 @@ from pkg_resources import parse_version
 
 OK = wx.ID_OK
 
+thisVer = parse_version(wx.__version__)
 
 def ensureWxApp():
     # make sure there's a wxApp prior to showing a gui, e.g., for expInfo
@@ -30,8 +31,13 @@ def ensureWxApp():
         wx.Dialog(None, -1)  # not shown; FileDialog gives same exception
         return True
     except wx._core.PyNoAppError:
-        if parse_version(wx.__version__) < parse_version('2.9'):
+        if thisVer < parse_version('2.9'):
             return wx.PySimpleApp()
+        elif thisVer >= parse_version('4.0') and thisVer < parse_version('4.1'):
+            raise Exception(
+                    "wx>=4.0 clashes with pyglet and making it unsafe "
+                    "as a PsychoPy gui helper. Please install PyQt (4 or 5)"
+                    " or wxPython3 instead.")
         else:
             return wx.App(False)
 
@@ -182,8 +188,7 @@ class Dlg(wx.Dialog):
         buttons.Add(OK)
         CANCEL = wx.Button(self, wx.ID_CANCEL, self.labelButtonCancel)
         buttons.Add(CANCEL)
-        self.sizer.Add(buttons, 1,
-                       flag=wx.ALIGN_RIGHT | wx.ALIGN_BOTTOM, border=5)
+        self.sizer.Add(buttons, 1, flag=wx.ALIGN_RIGHT, border=5)
 
         self.SetSizerAndFit(self.sizer)
         if self.pos is None:
@@ -234,11 +239,11 @@ class DlgFromDict(Dlg):
     Parameters
     ----------
 
-    sort_keys : bool
+    sortKeys : bool
         Whether the dictionary keys should be ordered alphabetically
         for displaying.
 
-    copy_dict : bool
+    copyDict : bool
         If False, modify ``dictionary`` in-place. If True, a copy of
         the dictionary is created, and the altered version (after
         user interaction) can be retrieved from
@@ -274,7 +279,8 @@ class DlgFromDict(Dlg):
     """
 
     def __init__(self, dictionary, title='', fixed=None, order=None, tip=None,
-                 sort_keys=True, copy_dict=False, show=True):
+                 sortKeys=True, copyDict=False, show=True,
+                 sort_keys=None, copy_dict=None):
         # We don't explicitly check for None identity
         # for backward-compatibility reasons.
         if not fixed:
@@ -287,14 +293,14 @@ class DlgFromDict(Dlg):
         # app = ensureWxApp() done by Dlg
         super().__init__(title)
 
-        if copy_dict:
+        if copyDict:
             self.dictionary = dictionary.copy()
         else:
             self.dictionary = dictionary
 
         self._keys = list(self.dictionary.keys())
 
-        if sort_keys:
+        if sortKeys:
             self._keys.sort()
         if order:
             self._keys = list(order) + list(set(self._keys).difference(set(order)))

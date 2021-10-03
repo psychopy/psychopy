@@ -5,63 +5,203 @@
 :class:`~psychopy.visual.ShapeStim`"""
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
 
-import numpy
+import numpy as np
 
 import psychopy  # so we can get the __path__
-from psychopy import logging
-
 from psychopy.visual.shape import BaseShapeStim
 from psychopy.tools.attributetools import attributeSetter, setAttribute
 
 
 class Rect(BaseShapeStim):
     """Creates a rectangle of given width and height as a special case of a
-    :class:`~psychopy.visual.ShapeStim`
+    :class:`~psychopy.visual.ShapeStim`.
 
-    (New in version 1.72.00)
+    Parameters
+    ----------
+    win : :class:`~psychopy.visual.Window`
+        Window this shape is being drawn to. The stimulus instance will
+        allocate its required resources using that Windows context. In many
+        cases, a stimulus instance cannot be drawn on different windows
+        unless those windows share the same OpenGL context, which permits
+        resources to be shared between them.
+    width, height : float or int
+        The width or height of the shape. *DEPRECATED* use `size` to define
+        the dimensions of the shape on initialization. If `size` is
+        specified the values of `width` and `height` are ignored. This is to
+        provide legacy compatibility for existing applications.
+    units : str
+        Units to use when drawing. This will affect how parameters and
+        attributes `pos`, `size` and `radius` are interpreted.
+    lineWidth : float
+        Width of the shape's outline.
+    lineColor, fillColor : array_like, str, :class:`~psychopy.colors.Color` or None
+        Color of the shape outline and fill. If `None`, a fully transparent
+        color is used which makes the fill or outline invisible.
+    lineColorSpace, fillColorSpace : str
+        Colorspace to use for the outline and fill. These change how the
+        values passed to `lineColor` and `fillColor` are interpreted.
+        *Deprecated*. Please use `colorSpace` to set both outline and fill
+        colorspace. These arguments may be removed in a future version.
+    pos : array_like
+        Initial position (`x`, `y`) of the shape on-screen relative to
+        the origin located at the center of the window or buffer in `units`.
+        This can be updated after initialization by setting the `pos`
+        property. The default value is `(0.0, 0.0)` which results in no
+        translation.
+    size : array_like, float, int or None
+        Width and height of the shape as `(w, h)` or `[w, h]`. If a single
+        value is provided, the width and height will be set to the same
+        specified value. If `None` is specified, the `size` will be set
+        with values passed to `width` and `height`.
+    ori : float
+        Initial orientation of the shape in degrees about its origin.
+        Positive values will rotate the shape clockwise, while negative
+        values will rotate counterclockwise. The default value for `ori` is
+        0.0 degrees.
+    opacity : float
+        Opacity of the shape. A value of 1.0 indicates fully opaque and 0.0
+        is fully transparent (therefore invisible). Values between 1.0 and
+        0.0 will result in colors being blended with objects in the
+        background. This value affects the fill (`fillColor`) and outline
+        (`lineColor`) colors of the shape.
+    contrast : float
+        Contrast level of the shape (0.0 to 1.0). This value is used to
+        modulate the contrast of colors passed to `lineColor` and
+        `fillColor`.
+    depth : int
+        Depth layer to draw the shape when `autoDraw` is enabled.
+        *DEPRECATED*
+    interpolate : bool
+        Enable smoothing (anti-aliasing) when drawing shape outlines. This
+        produces a smoother (less-pixelated) outline of the shape.
+    lineRGB, fillRGB: array_like, :class:`~psychopy.colors.Color` or None
+        *Deprecated*. Please use `lineColor` and `fillColor`. These
+        arguments may be removed in a future version.
+    name : str
+        Optional name of the stimuli for logging.
+    autoLog : bool
+        Enable auto-logging of events associated with this stimuli. Useful
+        for debugging and to track timing when used in conjunction with
+        `autoDraw`.
+    autoDraw : bool
+        Enable auto drawing. When `True`, the stimulus will be drawn every
+        frame without the need to explicitly call the
+        :py:meth:`~psychopy.visual.shape.ShapeStim.draw()` method.
+    color : array_like, str, :class:`~psychopy.colors.Color` or None
+        Sets both the initial `lineColor` and `fillColor` of the shape.
+    colorSpace : str
+        Sets the colorspace, changing how values passed to `lineColor` and
+        `fillColor` are interpreted.
+
+    Attributes
+    ----------
+    width, height : float or int
+        The width and height of the rectangle. Values are aliased with fields
+        in the `size` attribute. Use these values to adjust the size of the
+        rectangle in a single dimension after initialization.
+
     """
+    def __init__(self,
+                 win,
+                 width=.5,
+                 height=.5,
+                 units='',
+                 lineWidth=1.5,
+                 lineColor=None,
+                 lineColorSpace=None,
+                 fillColor=None,
+                 fillColorSpace=None,
+                 pos=(0, 0),
+                 size=None,
+                 ori=0.0,
+                 opacity=None,
+                 contrast=1.0,
+                 depth=0,
+                 interpolate=True,
+                 lineRGB=False,
+                 fillRGB=False,
+                 name=None,
+                 autoLog=None,
+                 autoDraw=False,
+                 color=None,
+                 colorSpace='rgb'):
+        # width and height attributes, these are later aliased with `size`
+        self.__dict__['width'] = float(width)
+        self.__dict__['height'] = float(height)
 
-    def __init__(self, win, width=.5, height=.5, **kwargs):
-        """Rect accepts all input parameters, that
-        `~psychopy.visual.ShapeStim` accept, except vertices and closeShape.
-        """
-        # what local vars are defined (these are the init params) for use by
-        # __repr__
-        self._initParams = dir()
-        self._initParams.remove('self')
-        # kwargs isn't a parameter, but a list of params
-        self._initParams.remove('kwargs')
-        self._initParams.extend(kwargs)
+        # If the size argument was specified, override values of width and
+        # height, this is to maintain legacy compatibility. Args width and
+        # height should be deprecated in later releases.
+        if size is None:
+            size = (self.__dict__['width'],
+                    self.__dict__['height'])
 
-        self.__dict__['width'] = width
-        self.__dict__['height'] = height
-        self._calcVertices()
-        kwargs['closeShape'] = True  # Make sure nobody messes around here
-        kwargs['vertices'] = self.vertices
+        # vertices for rectangle, CCW winding order
+        vertices = np.array([[-.5,  .5],
+                             [ .5,  .5],
+                             [ .5, -.5],
+                             [-.5, -.5]])
 
-        super(Rect, self).__init__(win, **kwargs)
-
-    def _calcVertices(self):
-        self.vertices = numpy.array([(-self.width * .5, self.height * .5),
-                                     (self.width * .5, self.height * .5),
-                                     (self.width * .5, -self.height * .5),
-                                     (-self.width * .5, -self.height * .5)])
+        super(Rect, self).__init__(
+            win,
+            units=units,
+            lineWidth=lineWidth,
+            lineColor=lineColor,
+            lineColorSpace=lineColorSpace,
+            fillColor=fillColor,
+            fillColorSpace=fillColorSpace,
+            vertices=vertices,
+            closeShape=True,
+            pos=pos,
+            size=size,
+            ori=ori,
+            opacity=opacity,
+            contrast=contrast,
+            depth=depth,
+            interpolate=interpolate,
+            lineRGB=lineRGB,
+            fillRGB=fillRGB,
+            name=name,
+            autoLog=autoLog,
+            autoDraw=autoDraw,
+            color=color,
+            colorSpace=colorSpace)
 
     @attributeSetter
-    def width(self, value):
-        """int or float.
-        Width of the Rectangle (in its respective units, if specified).
+    def size(self, value):
+        """Size of the rectangle (`width` and `height`).
+        """
+        # Needed to override `size` to ensure `width` and `height` attrs
+        # are updated when it changes.
+        self.__dict__['size'] = np.array(value, float)
+
+        width, height = self.__dict__['size']
+        self.__dict__['width'] = width
+        self.__dict__['height'] = height
+
+        self._needVertexUpdate = True
+
+    def setSize(self, size, operation='', log=None):
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message
 
         :ref:`Operations <attrib-operations>` supported.
         """
-        self.__dict__['width'] = value
-        self._calcVertices()
-        self.setVertices(self.vertices, log=False)
+        setAttribute(self, 'size', size, log, operation)
+
+    @attributeSetter
+    def width(self, value):
+        """Width of the Rectangle (in its respective units, if specified).
+
+        :ref:`Operations <attrib-operations>` supported.
+        """
+        self.__dict__['width'] = float(value)
+        self.size = (self.__dict__['width'], self.size[1])
 
     def setWidth(self, width, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
@@ -71,14 +211,12 @@ class Rect(BaseShapeStim):
 
     @attributeSetter
     def height(self, value):
-        """int or float.
-        Height of the Rectangle (in its respective units, if specified).
+        """Height of the Rectangle (in its respective units, if specified).
 
         :ref:`Operations <attrib-operations>` supported.
         """
-        self.__dict__['height'] = value
-        self._calcVertices()
-        self.setVertices(self.vertices, log=False)
+        self.__dict__['height'] = float(value)
+        self.size = (self.size[0], self.__dict__['height'])
 
     def setHeight(self, height, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,

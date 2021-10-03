@@ -6,26 +6,22 @@ from os.path import abspath, basename, dirname, isfile, join as pjoin
 import os.path
 import shutil
 import numpy as np
-from psychopy import logging
+import io
+from psychopy import logging, colors
 
 try:
     from PIL import Image
 except ImportError:
     import Image
 
-try:
-    import pytest
-    usePytest=True
-except Exception:
-    usePytest=False
-
-from pytest import skip
+import pytest
 
 # define the path where to find testing data
 # so tests could be ran from any location
 TESTS_PATH = abspath(dirname(__file__))
 TESTS_DATA_PATH = pjoin(TESTS_PATH, 'data')
 TESTS_FONT = pjoin(TESTS_DATA_PATH, 'DejaVuSerif.ttf')
+
 
 def compareScreenshot(fileName, win, crit=5.0):
     """Compare the current back buffer of the given window with the file
@@ -42,8 +38,10 @@ def compareScreenshot(fileName, win, crit=5.0):
     win.movieFrames=[]
     #if the file exists run a test, if not save the file
     if not isfile(fileName):
+        frame = frame.resize((int(frame.size[0]/2), int(frame.size[1]/2)),
+                             resample=Image.LANCZOS)
         frame.save(fileName, optimize=1)
-        skip("Created %s" % basename(fileName))
+        pytest.skip("Created %s" % basename(fileName))
     else:
         expected = Image.open(fileName)
         expDat = np.array(expected.getdata())
@@ -66,15 +64,26 @@ def compareScreenshot(fileName, win, crit=5.0):
             "RMS=%.3g at threshold=%.3g. Local copy in %s" % (rms, crit, filenameLocal)
 
 
-def compareTextFiles(pathToActual, pathToCorrect, delim=None):
-    """Compare the text of two files, ignoring EOL differences, and save a copy if they differ
+def compareTextFiles(pathToActual, pathToCorrect, delim=None,
+                     encoding='utf-8-sig', tolerance=None):
+    """Compare the text of two files, ignoring EOL differences,
+    and save a copy if they differ
+
+    State a tolerance, or percentage of errors allowed,
+    to account for differences in version numbers, datetime, etc
     """
+
     if not os.path.isfile(pathToCorrect):
-        logging.warning('There was no comparison ("correct") file available, saving current file as the comparison:%s' %pathToCorrect)
-        foundComparisonFile=False
-        shutil.copyfile(pathToActual,pathToCorrect)
-        assert foundComparisonFile #deliberately raise an error to see the warning message
-        return
+        logging.warning('There was no comparison ("correct") file available, for path "{pathToActual}"\n'
+                        '\t\t\tSaving current file as the comparison: {pathToCorrect}'
+                        .format(pathToActual=pathToActual,
+                                pathToCorrect=pathToCorrect))
+        shutil.copyfile(pathToActual, pathToCorrect)
+        raise IOError("File not found")  # deliberately raise an error to see the warning message, but also to create file
+
+    allowLines = 0
+    nLinesMatch = True
+
     if delim is None:
         if pathToCorrect.endswith('.csv'):
             delim=','
@@ -82,17 +91,36 @@ def compareTextFiles(pathToActual, pathToCorrect, delim=None):
             delim='\t'
 
     try:
-        #we have the necessary file
-        txtActual = open(pathToActual, 'r').readlines()
-        txtCorrect = open(pathToCorrect, 'r').readlines()
-        assert len(txtActual)==len(txtCorrect), "The data file has the wrong number of lines"
+        # we have the necessary file
+        with io.open(pathToActual, 'r', encoding='utf-8-sig', newline=None) as f:
+            txtActual = f.readlines()
+
+        with io.open(pathToCorrect, 'r', encoding='utf-8-sig', newline=None) as f:
+            txtCorrect = f.readlines()
+
+        if tolerance is not None:
+            # Set number of lines allowed to fail
+            allowLines = round((tolerance * len(txtCorrect)) / 100, 0)
+
+        # Check number of lines per document for equality
+        nLinesMatch = len(txtActual) == len(txtCorrect)
+        assert nLinesMatch
+        errLines = []
+
         for lineN in range(len(txtActual)):
             if delim is None:
-                #just compare the entire line
-                assert lineActual==lineCorrect
-            else:#word by word instead
+                lineActual = txtActual[lineN]
+                lineCorrect = txtCorrect[lineN]
+
+                # just compare the entire line
+                if not lineActual == lineCorrect:
+                    errLines.append({'actual':lineActual, 'correct':lineCorrect})
+                assert len(errLines) <= allowLines
+
+            else:  # word by word instead
                 lineActual=txtActual[lineN].split(delim)
                 lineCorrect=txtCorrect[lineN].split(delim)
+
                 for wordN in range(len(lineActual)):
                     wordActual=lineActual[wordN]
                     wordCorrect=lineCorrect[wordN]
@@ -118,12 +146,23 @@ def compareTextFiles(pathToActual, pathToCorrect, delim=None):
                             print(lineCorrect)
                         assert wordActual==wordCorrect, "Values at (%i,%i) differ: %s != %s " \
                             %(lineN, wordN, repr(wordActual), repr(wordCorrect))
+
     except AssertionError as err:
         pathToLocal, ext = os.path.splitext(pathToCorrect)
         pathToLocal = pathToLocal+'_local'+ext
-        shutil.copyfile(pathToActual,pathToLocal)
-        print("txtActual!=txtCorr: Saving local copy to %s" %pathToLocal)
+
+        # Set assertion type
+        if not nLinesMatch:  # Fail if number of lines not equal
+            msg = "{} has the wrong number of lines".format(pathToActual)
+        elif len(errLines) < allowLines:  # Fail if tolerance reached
+            msg = 'Number of differences in {failed} exceeds the {tol}% tolerance'.format(failed=pathToActual,
+                                                                                          tol=tolerance or 0)
+        else:
+            shutil.copyfile(pathToActual,pathToLocal)
+            msg = "txtActual != txtCorr: Saving local copy to {}".format(pathToLocal)
+        logging.error(msg)
         raise AssertionError(err)
+
 
 def compareXlsxFiles(pathToActual, pathToCorrect):
     from openpyxl.reader.excel import load_workbook
@@ -173,28 +212,28 @@ def compareXlsxFiles(pathToActual, pathToCorrect):
         logging.warning("xlsxActual!=xlsxCorr: Saving local copy to %s" %pathToLocal)
         raise IOError(error)
 
-_travisTesting = bool(str(os.environ.get('TRAVIS')).lower() == 'true')  # in Travis-CI testing
 
-# Alternative skip_under_travis implementation;
-# Seems fine, but Jon / Jeremy can decide to use it or loose it.
-#
-# skip_under_travis = pytest.mark.skipif(_travisTesting == True,
-#                                       reason="Cannot be tested under Travis-CI")
+def comparePixelColor(screen, color, coord=(0,0)):
+    if hasattr(screen, 'getMovieFrame'):  # check it is a Window class (without importing visual in this file)
+        # If given a window, get frame from window
+        screen.getMovieFrame(buffer='back')
+        frame = screen.movieFrames[-1]
+        screen.movieFrames = []
 
-def skip_under_travis(fn=None):
-    """Skip if a test is executed under Travis testing environment
-    Could also be used as a decorator (if argument provided) or
-    unparametrized in the code
-    """
-    # TODO: ad-hoc check ATM -- there might be better ways
-    if _travisTesting:
-        skip, msg = pytest.skip, "Cannot be tested under Travis-CI"
-        if fn is not None:
-            def _inner():
-                skip(msg)
-            _inner.__name__ = fn.__name__
-            return _inner
-        else:
-            skip(msg)
+    elif isinstance(screen, str):
+        # If given a filename, get frame from file
+        frame = Image.open(screen)
     else:
-        return fn
+        # If given anything else, throw error
+        raise TypeError("Function comparePixelColor expected first input of type psychopy.visual.Window or str, received %s" % (type(screen)))
+    frame = np.array(frame)
+    # If given a Color object, convert to rgb255 (this is what PIL uses)
+    if isinstance(color, colors.Color):
+        color = color.rgb255
+    color = np.array(color)
+    pixCol = frame[coord]
+    # Compare observed color to desired color
+    closeEnough = True
+    for i in range(min(pixCol.size, color.size)):
+        closeEnough = closeEnough and abs(pixCol[i] - color[i]) <= 1 # Allow for 1/255 lenience due to rounding up/down in rgb255
+    assert all(c for c in color == pixCol) or closeEnough, f"Pixel color {pixCol} not equal to target color {color}, "

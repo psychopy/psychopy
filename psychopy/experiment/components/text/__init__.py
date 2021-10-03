@@ -2,42 +2,47 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
 
 from os import path
+from pathlib import Path
+from psychopy import logging
+from psychopy.alerts import alerttools
 from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals, _translate
-
-# the absolute path to the folder containing this path
-thisFolder = path.abspath(path.dirname(__file__))
-iconFile = path.join(thisFolder, 'text.png')
-tooltip = _translate('Text: present text stimuli')
+from psychopy.localization import _localized as __localized
+_localized = __localized.copy()
 
 # only use _localized values for label values, nothing functional:
-_localized = {'text': _translate('Text'),
-              'font': _translate('Font'),
-              'letterHeight': _translate('Letter height'),
-              'wrapWidth': _translate('Wrap width'),
-              'flip': _translate('Flip (mirror)')}
+_localized.update({'text': _translate('Text'),
+                   'font': _translate('Font'),
+                   'letterHeight': _translate('Letter height'),
+                   'wrapWidth': _translate('Wrap width'),
+                   'flip': _translate('Flip (mirror)'),
+                   'languageStyle': _translate('Language style')})
 
 
 class TextComponent(BaseVisualComponent):
     """An event class for presenting text-based stimuli
     """
+
     categories = ['Stimuli']
     targets = ['PsychoPy', 'PsychoJS']
+    iconFile = Path(__file__).parent / 'text.png'
+    tooltip = _translate('Text: present text stimuli')
 
     def __init__(self, exp, parentName, name='text',
                  # effectively just a display-value
                  text=_translate('Any text\n\nincluding line breaks'),
-                 font='Arial', units='from exp settings',
+                 font='Open Sans', units='from exp settings',
                  color='white', colorSpace='rgb',
                  pos=(0, 0), letterHeight=0.1, ori=0,
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
-                 flip='', startEstim='', durationEstim='', wrapWidth=''):
+                 flip='None', startEstim='', durationEstim='', wrapWidth='',
+                 languageStyle='LTR'):
         super(TextComponent, self).__init__(exp, parentName, name=name,
                                             units=units,
                                             color=color,
@@ -51,43 +56,48 @@ class TextComponent(BaseVisualComponent):
                                             startEstim=startEstim,
                                             durationEstim=durationEstim)
         self.type = 'Text'
-        self.url = "http://www.psychopy.org/builder/components/text.html"
+        self.url = "https://www.psychopy.org/builder/components/text.html"
 
         # params
         _allow3 = ['constant', 'set every repeat', 'set every frame']  # list
         self.params['text'] = Param(
-            text, valType='str', allowedTypes=[],
+            text, valType='str', inputType="multi", allowedTypes=[], categ='Basic',
             updates='constant', allowedUpdates=_allow3[:],  # copy the list
             hint=_translate("The text to be displayed"),
             label=_localized['text'])
         self.params['font'] = Param(
-            font, valType='str', allowedTypes=[],
+            font, valType='str', inputType="single", allowedTypes=[], categ='Formatting',
             updates='constant', allowedUpdates=_allow3[:],  # copy the list
             hint=_translate("The font name (e.g. Comic Sans)"),
             label=_localized['font'])
         del self.params['size']  # because you can't specify width for text
         self.params['letterHeight'] = Param(
-            letterHeight, valType='code', allowedTypes=[],
+            letterHeight, valType='num', inputType="single", allowedTypes=[], categ='Formatting',
             updates='constant', allowedUpdates=_allow3[:],  # copy the list
             hint=_translate("Specifies the height of the letter (the width"
                             " is then determined by the font)"),
             label=_localized['letterHeight'])
 
         self.params['wrapWidth'] = Param(
-            wrapWidth, valType='code', allowedTypes=[],
+            wrapWidth, valType='num', inputType="single", allowedTypes=[], categ='Layout',
             updates='constant', allowedUpdates=['constant'],
             hint=_translate("How wide should the text get when it wraps? (in"
                             " the specified units)"),
             label=_localized['wrapWidth'])
         self.params['flip'] = Param(
-            flip, valType='str', allowedTypes=[],
-            updates='constant', allowedUpdates=_allow3[:],  # copy the list
+            flip, valType='str', inputType="single", allowedTypes=[], categ='Layout',
+            allowedVals=["horiz", "vert", "None"], updates='constant', allowedUpdates=_allow3[:],  # copy the list
             hint=_translate("horiz = left-right reversed; vert = up-down"
                             " reversed; $var = variable"),
             label=_localized['flip'])
-        for prm in ('ori', 'opacity', 'colorSpace', 'units', 'wrapWidth',
-                    'flip'):
-            self.params[prm].categ = 'Advanced'
+        self.params['languageStyle'] = Param(
+            languageStyle, valType='str', inputType="choice", categ='Formatting',
+            allowedVals=['LTR', 'RTL', 'Arabic'],
+            hint=_translate("Handle right-to-left (RTL) languages and Arabic reshaping"),
+            label=_localized['languageStyle'])
+
+        del self.params['fillColor']
+        del self.params['borderColor']
 
     def writeInitCode(self, buff):
         # do we need units code?
@@ -100,6 +110,7 @@ class TextComponent(BaseVisualComponent):
         inits = getInitVals(self.params, 'PsychoPy')
         if self.params['wrapWidth'].val in ['', 'None', 'none']:
             inits['wrapWidth'] = 'None'
+
         code = ("%(name)s = visual.TextStim(win=win, "
                 "name='%(name)s',\n"
                 "    text=%(text)s,\n"
@@ -108,17 +119,14 @@ class TextComponent(BaseVisualComponent):
                 "pos=%(pos)s, height=%(letterHeight)s, "
                 "wrapWidth=%(wrapWidth)s, ori=%(ori)s, \n"
                 "    color=%(color)s, colorSpace=%(colorSpace)s, "
-                "opacity=%(opacity)s,")
+                "opacity=%(opacity)s, \n"
+                "    languageStyle=%(languageStyle)s,")
         buff.writeIndentedLines(code % inits)
         flip = self.params['flip'].val.strip()
         if flip == 'horiz':
             flipStr = 'flipHoriz=True, '
         elif flip == 'vert':
             flipStr = 'flipVert=True, '
-        elif flip:
-            msg = ("flip value should be 'horiz' or 'vert' (no quotes)"
-                   " in component '%s'")
-            raise ValueError(msg % self.params['name'].val)
         else:
             flipStr = ''
         depth = -self.getPosInRoutine()
@@ -127,37 +135,47 @@ class TextComponent(BaseVisualComponent):
     def writeInitCodeJS(self, buff):
         # do we need units code?
         if self.params['units'].val == 'from exp settings':
-            unitsStr = ""
+            unitsStr = "  units: undefined, \n"
         else:
-            unitsStr = "units : %(units)s, " % self.params
+            unitsStr = "  units: %(units)s, \n" % self.params
         # do writing of init
         # replaces variable params with sensible defaults
         inits = getInitVals(self.params, 'PsychoJS')
 
-        if self.params['wrapWidth'].val in ['', 'None', 'none']:
-            inits['wrapWidth'] = 'undefined'
-        code = ("%(name)s = new psychoJS.visual.TextStim({win : win, "
-                "name : '%(name)s',\n"
-                "    text : %(text)s,\n"
-                "    font : %(font)s,\n"
-                "    " + unitsStr +
-                "pos : %(pos)s, height : %(letterHeight)s, "
-                "wrapWidth : %(wrapWidth)s, ori:%(ori)s, \n"
-                "    color : %(color)s, colorSpace:%(colorSpace)s, "
-                "opacity : %(opacity)s,")
+        # check for NoneTypes
+        for param in inits:
+            if inits[param] in [None, 'None', '']:
+                inits[param].val = 'undefined'
+                if param == 'text':
+                    inits[param].val = ""
+
+        code = ("%(name)s = new visual.TextStim({\n"
+                "  win: psychoJS.window,\n"
+                "  name: '%(name)s',\n"
+                "  text: %(text)s,\n"
+                "  font: %(font)s,\n" + unitsStr +
+                "  pos: %(pos)s, height: %(letterHeight)s,"
+                "  wrapWidth: %(wrapWidth)s, ori: %(ori)s,\n"
+                "  color: new util.Color(%(color)s),"
+                "  opacity: %(opacity)s,")
         buff.writeIndentedLines(code % inits)
+
         flip = self.params['flip'].val.strip()
         if flip == 'horiz':
             flipStr = 'flipHoriz : true, '
         elif flip == 'vert':
             flipStr = 'flipVert : true, '
-        elif flip:
+        elif flip and not flip == "None":
             msg = ("flip value should be 'horiz' or 'vert' (no quotes)"
                    " in component '%s'")
             raise ValueError(msg % self.params['name'].val)
         else:
             flipStr = ''
         depth = -self.getPosInRoutine()
-        code = ("    %sdepth : %.1f \n"
-                "});\n" % (flipStr, depth))
+        code = ("  %sdepth: %.1f \n"
+                "});\n\n" % (flipStr, depth))
         buff.writeIndentedLines(code)
+
+    def integrityCheck(self):
+        super().integrityCheck()  # run parent class checks first
+        alerttools.testFont(self)  # Test whether font is available locally

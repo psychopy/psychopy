@@ -5,7 +5,7 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 # Author: Jeremy Gray, Oct 2012; localization 2014
@@ -119,7 +119,7 @@ class BaseWizard(object):
                        _translate('avoid upgrading during an experiment'),
                        False))
         msg = _translate(
-            'can be set in <a href="http://www.psychopy.org/general/'
+            'can be set in <a href="https://www.psychopy.org/general/'
             'prefs.html#application-settings-app">Preferences -> App</a>')
         report.append(('locale', items['systemLocale'], msg, False))
         msg = ''
@@ -132,7 +132,7 @@ class BaseWizard(object):
             warn = True
         if 'EPD' in items['pythonFullVersion']:
             msg += ' Enthought Python Distribution'
-        elif 'PsychoPy2.app' in items['pythonExecutable']:
+        elif 'PsychoPy3.app' in items['pythonExecutable']:
             msg += ' (PsychoPy StandAlone)'
         bits, linkage = platform.architecture()
         # if not bits.startswith('32'):
@@ -160,7 +160,7 @@ class BaseWizard(object):
         msg = ''
         if items['openGLVersion'] < '2.':
             msg = _translate(
-                'Warning: <a href="http://www.psychopy.org/general/timing'
+                'Warning: <a href="https://www.psychopy.org/general/timing'
                 '/reducingFrameDrops.html?highlight=OpenGL+2.0">OpenGL '
                 '2.0 or higher is ideal</a>.')
             warn = True
@@ -175,7 +175,7 @@ class BaseWizard(object):
         msg = ''
         if not items['windowHaveShaders']:
             msg = _translate(
-                'Warning: <a href="http://www.psychopy.org/general/timing'
+                'Warning: <a href="https://www.psychopy.org/general/timing'
                 '/reducingFrameDrops.html?highlight=shader">Rendering of'
                 ' complex stimuli will be slow</a>.')
             warn = True
@@ -184,7 +184,7 @@ class BaseWizard(object):
 
         warn = False
         msg = _translate(
-            'during the drifting <a href="http://www.psychopy.org/api/'
+            'during the drifting <a href="https://www.psychopy.org/api/'
             'visual/gratingstim.html">GratingStim</a>')
         if items['windowRefreshTimeMedian_ms'] < 3.3333333:
             msg = _translate(
@@ -216,7 +216,7 @@ class BaseWizard(object):
             dots100.draw()
             win.flip()
         msg = _translate(
-            'during <a href="http://www.psychopy.org/api/visual/'
+            'during <a href="https://www.psychopy.org/api/visual/'
             'dotstim.html">DotStim</a> with 100 random dots')
         warn = False
         intervalsMS = np.array(win.frameIntervals) * 1000
@@ -288,7 +288,7 @@ class BaseWizard(object):
         report.append(('auto proxy',
                        str(self.prefs.connections['autoProxy']),
                        _translate('try to auto-detect a proxy if needed; see'
-                                  ' <a href="http://www.psychopy.org/general'
+                                  ' <a href="https://www.psychopy.org/general'
                                   '/prefs.html#connection-settings-connection'
                                   's">Preferences -> Connections</a>'),
                        False))
@@ -298,7 +298,7 @@ class BaseWizard(object):
             prx = str(self.prefs.connections['proxy'])
         report.append(('proxy setting', prx,
                        _translate('current manual proxy setting from <a '
-                                  'href="http://www.psychopy.org/general/'
+                                  'href="https://www.psychopy.org/general/'
                                   'prefs.html#connection-settings-connections'
                                   '">Preferences -> Connections</a>'), False))
 
@@ -313,7 +313,7 @@ class BaseWizard(object):
         # ----- IMPORTS (relevant for developers & non-StandAlone): -----
         if verbose:  # always False for a real first-run
             report.append((_translate('Python packages'), '', '', False))
-            packages = ['PIL', 'openpyxl', 'lxml', 'setuptools', 'pytest',
+            packages = ['PIL', 'openpyxl', 'setuptools', 'pytest',
                         'sphinx', 'psignifit', 'pyserial', 'pp',
                         'pynetstation', 'labjack']
             if sys.platform == 'win32':
@@ -329,8 +329,6 @@ class BaseWizard(object):
                     if pkg == 'PIL':
                         import PIL
                         ver = PIL.__version__
-                    # elif pkg == 'lxml':
-                    #
                     elif pkg == 'pynetstation':
                         from psychopy.hardware import egi
                         ver = 'import ok'
@@ -392,10 +390,10 @@ class BaseWizard(object):
                                'psychopySplash.png')
         _head = (u'<html><head><meta http-equiv="Content-Type" '
                  'content="text/html; charset=utf-8"></head><body>' +
-                 '<a href="http://www.psychopy.org"><img src="%s" '
+                 '<a href="https://www.psychopy.org"><img src="%s" '
                  'width=396 height=156></a>')
         self.header = _head % imgfile
-        # self.iconhtml = '<a href="http://www.psychopy.org"><img src="%s"
+        # self.iconhtml = '<a href="https://www.psychopy.org"><img src="%s"
         #   width=48 height=48></a>' % self.iconfile
         _foot = _translate('This page was auto-generated by the '
                            'PsychoPy configuration wizard on %s')
@@ -454,10 +452,9 @@ class BaseWizard(object):
                 '''<button onClick="toggle('ok', '');">''' + \
                 _translate('Show all information') + '</button></p>'
             htmlDoc += _translate('''<p>Resources:
-                  Contributed <a href="http://upload.psychopy.org/benchmark/report.html">benchmarks</a>
-                | <a href="http://www.psychopy.org/documentation.html">On-line documentation</a>
-                | Download <a href="http://www.psychopy.org/PsychoPyManual.pdf">PDF manual</a>
-                | <a href="http://groups.google.com/group/psychopy-users">Search the user-group archives</a>
+                | <a href="https://www.psychopy.org/documentation.html">On-line documentation</a>
+                | Download <a href="https://www.psychopy.org/PsychoPyManual.pdf">PDF manual</a>
+                | <a href="https://discourse.psychopy.org">Search the user-group archives</a>
                 </p>''')
             htmlDoc += '<hr><p></p>    <table cellspacing=8 border=0>\n'
             htmlDoc += '    <tr><td><font size=+1><strong>' + \
@@ -490,9 +487,8 @@ class BaseWizard(object):
 
     def save(self):
         """Save the html text as a file."""
-        f = codecs.open(self.reportPath, 'wb', 'UTF8')
-        f.write(self.reportText)
-        f.close()
+        with codecs.open(self.reportPath, 'wb', encoding='utf-8-sig') as f:
+            f.write(self.reportText)
 
 class ConfigWizard(BaseWizard):
     """Walk through configuration diagnostics & generate report.
@@ -504,7 +500,7 @@ class ConfigWizard(BaseWizard):
         super(ConfigWizard, self).__init__()
         self.firstrun = firstrun
         self.prefs = prefs
-        self.appName = 'PsychoPy2'
+        self.appName = 'PsychoPy3'
         self.name = self.appName + _translate(' Configuration Wizard')
         self.reportPath = os.path.join(
             self.prefs.paths['userPrefsDir'], 'firstrunReport.html')
@@ -516,7 +512,7 @@ class ConfigWizard(BaseWizard):
         dlg = gui.Dlg(title=self.name)
         dlg.addText('')
         if firstrun:
-            dlg.addText(_translate("Welcome to PsychoPy2!"), color='blue')
+            dlg.addText(_translate("Welcome to PsychoPy3!"), color='blue')
             dlg.addText('')
             dlg.addText(_translate("It looks like you are running PsychoPy "
                                    "for the first time."))
@@ -555,7 +551,7 @@ class ConfigWizard(BaseWizard):
                 <li> Restart PsychoPy.</p>
                 <p>If you updated the drivers and still get this message, you'll
                   need a different video card to use PsychoPy. Click
-                <a href="http://www.psychopy.org/installation.html#recommended-hardware">here
+                <a href="https://www.psychopy.org/installation.html#recommended-hardware">here
                 for more information</a> [psychopy.org].</p>
             """)
             fatalItemsList.append(msg % {'card': cardInfo,
@@ -564,7 +560,6 @@ class ConfigWizard(BaseWizard):
             msg = _translate("""<p>Critical issue:\n</p>""")
             msg += cardInfo
             fatalItemsList.append(msg)
-            pass
         # other fatal conditions? append a 'Critical issue' msg to itemsList
         if not fatalItemsList:
             dlg.addText(_translate("We'll go through a series of configura"
@@ -653,7 +648,7 @@ class BenchmarkWizard(BaseWizard):
         super(BenchmarkWizard, self).__init__()
         self.firstrun = False
         self.prefs = prefs
-        self.appName = 'PsychoPy2'
+        self.appName = 'PsychoPy3'
         self.name = self.appName + _translate(' Benchmark Wizard')
 
         dlg = gui.Dlg(title=self.name)
@@ -790,9 +785,9 @@ class BenchmarkWizard(BaseWizard):
                 fps = win.fps()  # get frames per sec
                 if len(event.getKeys(['escape'])):
                     sys.exit()
-                if fps < baseline * 0.6:
+                if (fps < baseline * 0.6) or (dotCount > 5000):
                     # only break when start dropping a LOT of frames (80% or
-                    # more)
+                    # more) or exceeded 5,000 dots
                     dotsInfo.append(
                         ('dots_' + fieldShape, str(bestDots), '', False))
                     break
@@ -802,10 +797,6 @@ class BenchmarkWizard(BaseWizard):
                     bestDots = dotCount
                 # but do allow to continue in case do better with more dots:
                 dotCount += 100
-                if dotCount > 1200:
-                    dotCount += 100
-                if dotCount > 2400:
-                    dotCount += 100
                 # show the dot count:
                 count.setText(str(dotCount), log=False)
                 count.draw()

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Base class for serial devices. Includes some convenience methods to open
@@ -16,7 +16,7 @@ from builtins import object
 import sys
 import time
 
-from psychopy import logging
+from psychopy import logging, constants
 try:
     import serial
 except ImportError:
@@ -185,8 +185,11 @@ class SerialDevice(object):
             retVal = self.com.readline()
         elif length > 1:
             retVal = self.com.readlines()
+            retVal = [line.decode('utf-8') for line in retVal]
         else:  # was -1?
             retVal = self.com.read(self.com.inWaiting())
+        if constants.PY3 and type(retVal) is bytes:
+            retVal = retVal.decode('utf-8')
         return retVal
 
     def __del__(self):

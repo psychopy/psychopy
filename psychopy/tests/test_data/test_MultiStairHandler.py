@@ -77,5 +77,98 @@ class TestMultiStairHandler(object):
         stairs.saveAsPickle(os.path.join(self.temp_dir, 'multiQuestOut'))
         exp.close()
 
+    def test_QuestPlus(self):
+        import sys
+        if not (sys.version_info.major == 3 and sys.version_info.minor >= 6):
+            pytest.skip('QUEST+ only works on Python 3.6+')
+
+        conditions = data.importConditions(os.path.join(fixturesPath,
+                                           'multiStairQuestPlus.xlsx'))
+        stairs = data.MultiStairHandler(stairType='questplus',
+                                        conditions=conditions,
+                                        method='random',
+                                        nTrials=20,
+                                        name='QuestPlusStairs',
+                                        autoLog=False)
+        exp = data.ExperimentHandler(name='testExp',
+                                     savePickle=True,
+                                     saveWideText=True,
+                                     dataFileName=os.path.join(self.temp_dir,
+                                                               'multiQuestPlusExperiment'),
+                                     autoLog=False)
+        exp.addLoop(stairs)
+
+        for intensity, condition in stairs:
+            response = np.random.choice(['Correct', 'Incorrect'])
+            stairs.addResponse(response)
+
+        stairs.saveAsExcel(os.path.join(self.temp_dir, 'multiQuestPlusOut'))
+
+        # contains more info
+        stairs.saveAsPickle(os.path.join(self.temp_dir, 'multiQuestPlusOut'))
+        exp.close()
+
+
+def test_random():
+    conditions = data.importConditions(os.path.join(fixturesPath,
+                                                    'multiStairConds.xlsx'))
+
+    seed = 11
+    first_pass = ['low', 'high', 'medium']
+
+    kwargs = dict(method='random', randomSeed=seed, stairType='simple',
+                  conditions=conditions, nTrials=5)
+
+    multistairs = data.MultiStairHandler(**kwargs)
+
+    for staircase_idx, staircase in enumerate(multistairs.thisPassRemaining):
+        assert staircase.condition['label'] == first_pass[staircase_idx]
+
+
+def test_different_seeds():
+    conditions = data.importConditions(os.path.join(fixturesPath,
+                                                    'multiStairConds.xlsx'))
+
+    seeds = [7, 11]
+    first_pass = [['high', 'medium', 'low'],
+                  ['low', 'high', 'medium']]
+
+    kwargs = dict(method='random', stairType='simple',
+                  conditions=conditions, nTrials=5)
+
+    for seed_idx, seed in enumerate(seeds):
+        multistairs = data.MultiStairHandler(randomSeed=seed, **kwargs)
+
+        for staircase_idx, staircase in enumerate(multistairs.thisPassRemaining):
+            assert staircase.condition['label'] == first_pass[seed_idx][staircase_idx]
+
+
+def test_fullRandom():
+    conditions = data.importConditions(os.path.join(fixturesPath,
+                                                    'multiStairConds.xlsx'))
+
+    seed = 11
+    first_pass = ['medium', 'low', 'medium']
+
+    kwargs = dict(method='fullRandom', randomSeed=seed, stairType='simple',
+                  conditions=conditions, nTrials=5)
+
+    multistairs = data.MultiStairHandler(**kwargs)
+
+    for staircase_idx, staircase in enumerate(multistairs.thisPassRemaining):
+        assert staircase.condition['label'] == first_pass[staircase_idx]
+
+
+def test_invalid_method():
+    conditions = data.importConditions(os.path.join(fixturesPath,
+                                                    'multiStairConds.xlsx'))
+
+    kwargs = dict(method='foobar', stairType='simple',
+                  conditions=conditions, nTrials=5)
+
+    with pytest.raises(ValueError):
+        data.MultiStairHandler(**kwargs)
+
+
 if __name__ == '__main__':
     pytest.main()

@@ -53,14 +53,11 @@ eyetracker.hw.sr_research.eyelink.EyeTracker:
     #
     event_buffer_length: 1024
 
+
     # device_timer: The EyeLink EyeTracker class uses the polling method to
-    #   check for new events received from the EyeTracker device. device_timer.interval
-    #   specifies the sec.msec time between device polls. 0.004 = 4 msec, so the device will
-    #   be polled at a maxximum rate of 250 Hz. This polling rate is a 'target' value,
-    #   and may not always be achieved depending on your computer specifications and the
-    #   number and type of other devices being used. This can be checked by reviewing the
-    #   confidence_interval column of any of the eye event tables saved to the DataStore
-    #    
+    #   check for new events received from the EyeTracker device. 
+    #   device_timer.interval specifies the sec.msec time between device polls.
+    #   0.001 = 1 msec, so the device will be polled at a rate of 1000 Hz.   
     device_timer:
         interval: 0.001
 
@@ -85,21 +82,31 @@ eyetracker.hw.sr_research.eyelink.EyeTracker:
         #   THREE_POINTS, FIVE_POINTS, NINE_POINTS, THIRTEEN_POINTS
         type: NINE_POINTS
 
+        # color_type: rgb, rgb255, named, hex, etc. Leave blank to use window's color space.
+        color_type:
+
+        # unit_type: norm, pix, height, deg, etc. Leave blank to use window's unit type.
+        unit_type:
+
         # auto_pace: If True, the eye tracker will automatically progress from
         # one calibration point to the next. If False, a manual key or button press
         # is needed to progress to the next point.
         # 
         auto_pace: True
 
-        # pacing_speed: The number of sec.msec that a calibration point should
-        # be displayed before moving onto the next point when auto_pace is set to true.
-        # If auto_pace is False, pacing_speed is ignored.
-        #
-        pacing_speed: 1.5
+
+        # target_duration is the number of sec that a calibration point should
+        # be displayed before moving onto the next point.
+        target_duration: 1.5
+
+        # target_delay specifies the time between target position presentations.
+        target_delay: 0.75
+
+        # **pacing_speed is deprecated. Please use 'target_delay' instead.**
+        pacing_speed:
         
-        # screen_background_color: Specifies the r,g,b,a background color to 
-        #   set the calibration, validation, etc, screens to. Each element of the color
-        #   should be a value between 0 and 255. 0 == black, 255 == white.
+        # screen_background_color: Specifies the background color to
+        #   set the calibration, validation, etc, screens to.
         screen_background_color: [128,128,128]
         
         # target_type: Defines what form of calibration graphic should be used
@@ -114,11 +121,17 @@ eyetracker.hw.sr_research.eyelink.EyeTracker:
         #   target_type value they will simple be ignored.
         #
         target_attributes:
-            # outer_diameter and inner_diameter are specified in pixels
-            outer_diameter: 33
-            inner_diameter: 6
-            outer_color: [255,255,255]
-            inner_color: [0,0,0]
+            outer_diameter: 33.0
+            inner_diameter: 6.0
+            outer_stroke_width: 2.0
+            outer_fill_color: [64,64,64]
+            outer_line_color: [255,255,255]
+            inner_stroke_width: 1.0
+            inner_fill_color: [255,0,0]
+            inner_line_color: [0,0,0]
+            # outer_color and inner_color are deprecated
+            outer_color:
+            inner_color:
 
     # network_settings: Specify the Host computer IP address. Normally
     #   leaving it set to the default value is fine.
@@ -211,48 +224,12 @@ eyetracker.hw.sr_research.eyelink.EyeTracker:
     # model_name: The model_name setting allows the definition of the eye tracker model being used.
     #   For the eyelink implementation, valid values are:
     #       'EYELINK 1000 DESKTOP', 'EYELINK 1000 TOWER', 'EYELINK 1000 REMOTE', 
-    #       'EYELINK 1000 LONG RANGE', 'EYELINK 2'
+    #       'EYELINK 1000 LONG RANGE'
     model_name: EYELINK 1000 DESKTOP
 
-    # manufacturer_name:    manufacturer_name is used to store the name of the
-    #   maker of the eye tracking device. This is for informational purposes only.
+    # manufacturer_name: Used by Builder as the displayed name in the eye tracker selection dropdown.
     #
-    manufacturer_name: SR Research Ltd.
-
-    # model_name: The below parameters are not used by the EyeGaze eye tracker
-    #   implementation, so they can be left as is, or filled out for FYI only.
-    #
-    model_name: EYELINK
-
-    # serial_number: The serial number for the specific isnstance of device used
-    #   can be specified here. It is not used by the ioHub, so is FYI only.
-    #
-    serial_number: N/A
-
-    # manufacture_date: The date of manufactiurer of the device 
-    # can be specified here. It is not used by the ioHub,
-    # so is FYI only.
-    #   
-    manufacture_date: DD-MM-YYYY
-
-    # hardware_version: The device's hardware version can be specified here.
-    #   It is not used by the ioHub, so is FYI only.
-    #
-    hardware_version: N/A
-    
-    # firmware_version: If the device has firmware, its revision number
-    #   can be indicated here. It is not used by the ioHub, so is FYI only.
-    #
-    firmware_version: N/A
-
-    # model_number: The device model number can be specified here.
-    #   It is not used by the ioHub, so is FYI only.
-    #
-    model_number: N/A
-    
-    # software_version: The device driver and / or SDK software version number.
-    #   This field is not used by ioHub, so is FYI only. 
-    software_version: N/A
+    manufacturer_name: SR Research Ltd
 
     # device_number: The device number to assign to the Analog Input device. 
     #   device_number is not used by this device type.

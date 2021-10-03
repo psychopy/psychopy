@@ -1,8 +1,8 @@
-# coding=utf-8
-# Part of the psychopy.iohub library.
-# Copyright (C) 2012-2016 iSolver Software Solutions
+# -*- coding: utf-8 -*-
+# Part of the PsychoPy library
+# Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
-from __future__ import division, absolute_import
+from __future__ import division, absolute_import, print_function
 
 import sys
 import traceback
@@ -10,25 +10,40 @@ import traceback
 
 def print2err(*args):
     """
+    Note: As of atleast Jan-2020, this function seems to 
+    cause iohub to fail to start if the script is started from Coder. 
+    try: except: atleast stops whatever is crashing, 
+    (Appears to be use of sys.stderr.write) but prints() do not appear in 
+    Coder Console. Not sure how to get iohub process prints to 
+    appear in Builder Console...??? Issue is specific to running script from Coder.
+    
     Using the standard python print() function from the iohub server process
     will not print anything to the psychopy process stdout. Use print2err
     for this purpose. Each element of *args is unicode formatted and then
     written to sys.stderr.
+    
     :param args: 0 to N objects of any type.
     """
-    for a in args:
-        sys.stderr.write(u"{0}".format(a))
-    sys.stderr.write(u"\n")
-    sys.stderr.flush()
-
-
+    try:
+        for a in args:
+            sys.stderr.write("{0}".format(a))
+        sys.stderr.write("\n")
+        sys.stderr.flush()
+    except:
+        for a in args:
+            print("{0}".format(a))
+        print()
+        	
 def printExceptionDetailsToStdErr():
     """
     Print the last raised exception in the iohub (well, calling) process
     to the psychopy process stderr.
     """
-    traceback.print_exc(file=sys.stderr)
-    sys.stderr.flush()
+    try:
+        traceback.print_exc(file=sys.stderr)
+        sys.stderr.flush()
+    except:
+        traceback.print_exc()
 
 class ioHubError(Exception):
     #TODO: Fix the way exceptions raised in the iohub process are handled

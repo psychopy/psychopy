@@ -27,7 +27,7 @@
 # General settings
 [general]
     # which system to use as a backend for drawing
-    winType = option('pyglet', 'pygame', default='pyglet')
+    winType = option('pyglet', 'pygame', 'glfw', default='pyglet')
     # the default units for windows and visual stimuli
     units = option('deg', 'norm', 'cm', 'pix', 'height', default='norm')
     # full screen is best for accurate timing
@@ -38,29 +38,25 @@
     version = string(default='')
     # Add paths here to your custom Python modules
     paths=list(default=list())
-    # choice of audio library
-    audioLib = list(default=list('sounddevice', 'pyo', 'pygame'))
-    # audio driver to use
-    audioDriver = list(default=list('Primary Sound','ASIO','Audigy'))
-    # audio device to use (if audioLib allows control)
-    audioDevice = list(default=list('default'))
     # path to flac (lossless audio compression) on this operating system
     flac = string(default='')
-    # a list of parallel ports
-    parallelPorts = list(default=list('0x0378', '0x03BC'))
     # Shutdown keys, following the pyglet naming scheme.
     shutdownKey = string(default='')
     # Modifier keys for shutdown keys
     shutdownKeyModifiers = list(default=list())
+    # What to do if gamma-correction not possible
+    gammaErrorPolicy = option('abort', 'warn', default='abort')
+    # Add plugin names here to load when a PsychoPy session starts.
+    startUpPlugins = list(default=list())
+    # Google Cloud Platform key, required for the audio transcription using Google Speech Recognition. Specified as a path to a JSON file containing the key data.
+    appKeyGoogleCloud = string(default='')
 
 # Application settings, applied to coder, builder, & prefs windows
 [app]
     # display tips when starting PsychoPy
     showStartupTips = boolean(default='True')
-    # size of icons in the Coder and Builder toolbars (top of window)
-    largeIcons = boolean(default='True')
     # what windows to display when PsychoPy starts
-    defaultView = option('last', 'builder', 'coder', 'both', default='last')
+    defaultView = option('builder', 'coder', 'runner', 'all', default='all')
     # reset preferences to defaults on next restart of PsychoPy
     resetPrefs = boolean(default='False') # default must be False!
     # save any unsaved preferences before closing the window
@@ -69,52 +65,76 @@
     debugMode = boolean(default='False')
     # language to use in menus etc; not all translations are available. Select a value, then restart the app.
     locale = string(default='')
+    # Show an error dialog when PsychoPy encounters an unhandled internal error.
+    errorDialog = boolean(default='True')
+    # Theme
+    theme = string(default='PsychopyLight')
 
 # Settings for the Coder window
 [coder]
     # open Coder files as read-only (allows running without accidental changes)
     readonly = boolean(default=False)
     # a list of font names; the first one found on the system will be used
-    codeFont = string(default='Lucida Console')
+    outputFont = string(default='From Theme...')
     # a list of font names; the first one found on the system will be used
-    commentFont = string(default='Lucida Console')
-    # a list of font names; the first one found on the system will be used
-    outputFont = string(default='Lucida Console')
+    codeFont = string(default='From Theme...')
     # Font size (in pts) takes an integer between 6 and 24
     codeFontSize = integer(6,24, default=10)
     # Font size (in pts) takes an integer between 6 and 24
     outputFontSize = integer(6,24, default=10)
-    # activate the source assistant panel
-    showSourceAsst = boolean(default=False)
-    # activate the output and shell panels
+    # Spacing between lines
+    lineSpacing = integer(0, 64, default=4)
+    # Long line edge guide, specify zero to disable
+    edgeGuideColumn = integer(0, 65536, default=80)
+    # Set the source assistant panel to be visible by default
+    showSourceAsst = boolean(default=True)
+    # Set the output/shell to be visible by default
     showOutput = boolean(default=True)
+    # Show code completion suggestion and calltips automatically when typing.
+    autocomplete = boolean(default=True)
     # reload previously opened files after start
     reloadPrevFiles = boolean(default=True)
     # for coder shell window, which shell to use
     preferredShell = option('ipython','pyshell',default='pyshell')
-    # newline for python files: unix = \n, dos = \r\n
-    newlineConvention = option('keep','unix','dos',default='keep')
 
 # Settings for the Builder window
 [builder]
     # whether to automatically reload a previously open experiment
     reloadPrevExp = boolean(default=False)
+    # Default to when writing code components
+    codeComponentLanguage = option('Py', 'JS', 'Both', 'Auto->JS', default='Auto->JS')
     # if False will create scripts with an 'easier' but more cluttered namespace
     unclutteredNamespace = boolean(default=False)
     # folder names for custom components; expects a comma-separated list
-    componentsFolders = list(default=list('/Users/Shared/PsychoPy2/components'))
+    componentsFolders = list(default=list('/Users/Shared/PsychoPy3/components'))
+    # Only show components which work in...
+    componentFilter = option('PsychoPy', 'PsychoJS', 'Any', 'Both', default='Any')
     # a list of components to hide (eg, because you never use them)
-    hiddenComponents = list(default=list('PatchComponent'))
+    hiddenComponents = list(default=list('RatingScaleComponent', 'PatchComponent', 'UnknownComponent'))
     # where the Builder demos are located on this computer (after unpacking)
     unpackedDemosDir = string(default='')
     # name of the folder where subject data should be saved (relative to the script)
     savedDataFolder = string(default='data')
-    # Panels arrangement: topFlow = Flow on top, Components on left
-    topFlow = boolean(default=False)
+    # Panels arrangement: Should Flow be on the top or bottom, and should Components be on the left or right?
+    builderLayout = option('FlowBottom_CompRight','FlowBottom_CompLeft','FlowTop_CompRight','FlowTop_CompLeft',default='FlowBottom_CompRight')
     # Display text in a floating window that describes the experiment
     alwaysShowReadme = boolean(default=True)
     # Upper limit on how many components can be in favorites
     maxFavorites = integer(default=10)
+
+[hardware]
+    # choice of audio library
+    audioLib = list(default=list('sounddevice','PTB', 'pyo', 'pygame'))
+    # latency mode for PsychToolbox audio (3 is good for most applications. See
+    audioLatencyMode = option(0, 1, 2, 3, 4, default=3)
+    # audio driver to use
+    audioDriver = list(default=list('Primary Sound','ASIO','Audigy'))
+    # audio device to use (if audioLib allows control)
+    audioDevice = list(default=list('default'))
+    # a list of parallel ports
+    parallelPorts = list(default=list('0x0378', '0x03BC'))
+    # The name of the Qmix pump configuration to use
+    qmixConfiguration = string(default='qmix_config')
 
 # Settings for connections
 [connections]
@@ -190,7 +210,9 @@
     # convert a Builder .psyexp script into a python script and open it in the Coder
     compileScript = string(default='F5')
     # launch a script, Builder or Coder, or run unit-tests
-    runScript = string(default='Ctrl+R')
+    runScript = string(default='Ctrl+Shift+R')
+    # launch a script, Builder or Coder, or run unit-tests
+    runnerScript = string(default='Ctrl+Alt+R')
     # attempt to interrupt and halt a running script
     stopScript = string(default='Ctrl+.')
 
@@ -212,11 +234,9 @@
     # Coder: show / hide the output panel
     toggleOutputPanel = string(default='Ctrl+Shift+O')
     #Builder: rename an existing routine
-    renameRoutine = string(default='Ctrl+Shift+R')
-    # switch to Builder window from Coder
-    switchToBuilder = string(default='Ctrl+L')
-    # switch to Coder window from Builder
-    switchToCoder = string(default='Ctrl+L')
+    renameRoutine = string(default='Ctrl+Shift+M')
+    # switch between windows
+    cycleWindows = string(default='Ctrl+L')
     # increase display size in Flow
     largerFlow = string(default='Ctrl+=')
     # decrease display size in Flow
@@ -228,12 +248,14 @@
     #show or hide the readme (info) for this experiment if possible
     toggleReadme = string(default='Ctrl+I')
 
-    # Projects: Log in
-    projectsLogIn = string(default='Ctrl+Alt+I')
+    # Projects: Log in to pavlovia
+    pavlovia_logIn = string(default='Ctrl+Alt+I')
+    # Projects: Log in to OSF
+    OSF_logIn = string(default='Ctrl+Alt+Shift+I')
     # Projects: Sync project
     projectsSync = string(default='Ctrl+Alt+Y')
     # Projects: Find projects
-    projectsFind = string(default='Ctrl+Alt+F')
+    projectsFind = string(default='Ctrl+Shift+F')
     # Projects: Open project
     projectsOpen = string(default='Ctrl+Alt+O')
     # Projects: Create new project

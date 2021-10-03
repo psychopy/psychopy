@@ -5,7 +5,7 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
@@ -25,6 +25,7 @@ try:
     haveSerial = True
 except Exception:
     haveSerial = False
+import errno
 import os
 import time
 import glob
@@ -33,9 +34,10 @@ import sys
 from copy import deepcopy, copy
 
 import numpy as np
-import scipy.optimize as optim
 from scipy import interpolate
 import json_tricks  # allows json to dump/load np.arrays and dates
+
+from psychopy import constants
 
 DEBUG = False
 
@@ -47,12 +49,12 @@ join = os.path.join
 if sys.platform == 'win32':
     # we used this for a while (until 0.95.4) but not the proper place for
     # windows app data
-    oldMonitorFolder = join(os.path.expanduser('~'), '.psychopy2', 'monitors')
-    monitorFolder = join(os.environ['APPDATA'], 'psychopy2', 'monitors')
+    oldMonitorFolder = join(os.path.expanduser('~'), '.psychopy3', 'monitors')
+    monitorFolder = join(os.environ['APPDATA'], 'psychopy3', 'monitors')
     if os.path.isdir(oldMonitorFolder) and not os.path.isdir(monitorFolder):
         os.renames(oldMonitorFolder, monitorFolder)
 else:
-    monitorFolder = join(os.environ['HOME'], '.psychopy2', 'monitors')
+    monitorFolder = join(os.environ['HOME'], '.psychopy3', 'monitors')
 
 # HACK for Python2.7! On system where `monitorFolder` contains special characters,
 # for example because the Windows profile name does, `monitorFolder` must be
@@ -63,8 +65,11 @@ else:
 if isinstance(monitorFolder, bytes):
     monitorFolder = monitorFolder.decode(sys.getfilesystemencoding())
 
-if not os.path.isdir(monitorFolder):
+try:
     os.makedirs(monitorFolder)
+except OSError as err:
+    if err.errno != errno.EEXIST:
+        raise
 
 
 class Monitor(object):
@@ -77,14 +82,14 @@ class Monitor(object):
 
     **arguments**:
 
-        - ``width, distance, gamma`` are details about the calibration
-        - ``notes`` is a text field to store any useful info
-        - ``useBits`` True, False, None
-        - ``verbose`` True, False, None
-        - ``currentCalib`` is a dictionary object containing various
-            fields for a calibration. Use with caution since the
-            dictionary may not contain all the necessary fields that
-            a monitor object expects to find.
+    - ``width, distance, gamma`` are details about the calibration
+    - ``notes`` is a text field to store any useful info
+    - ``useBits`` True, False, None
+    - ``verbose`` True, False, None
+    - ``currentCalib`` is a dictionary object containing various
+        fields for a calibration. Use with caution since the
+        dictionary may not contain all the necessary fields that
+        a monitor object expects to find.
 
     **eg**:
 
@@ -262,10 +267,15 @@ class Monitor(object):
         """Returns the size of the current calibration in pixels,
         or None if not defined
         """
+        size = None
         if 'sizePix' in self.currentCalib:
-            return self.currentCalib['sizePix']
-        else:
+            size = self.currentCalib['sizePix']
+        # check various invalid sizes
+        if not hasattr(size, '__iter__') or len(size)!=2:
             return None
+        # make sure it's a list (not tuple) with no None vals
+        sizeOut = [(val or 0) for val in size]
+        return sizeOut
 
     def getWidth(self):
         """Of the viewable screen in cm, or None if not known
@@ -427,15 +437,24 @@ class Monitor(object):
             ext = ".json"
         else:
             ext = ".calib"
+
         # the name of the actual file:
         thisFileName = os.path.join(monitorFolder, self.name + ext)
         if not os.path.exists(thisFileName):
             self.calibNames = []
         else:
-            if ext==".json":
+            if ext == ".json":
                 with open(thisFileName, 'r') as thisFile:
-                    self.calibs = json_tricks.load(thisFile, ignore_comments=False,
-                                                   encoding='utf-8', preserve_order=False)
+                    if constants.PY3:
+                        # Passing encoding parameter to json.loads has been
+                        # deprecated and removed in Python 3.9
+                        self.calibs = json_tricks.load(
+                            thisFile, ignore_comments=False,
+                            preserve_order=False)
+                    else:
+                        self.calibs = json_tricks.load(
+                            thisFile, ignore_comments=False, encoding='utf-8',
+                            preserve_order=False)
             else:
                 with open(thisFileName, 'rb') as thisFile:
                     self.calibs = pickle.load(thisFile)
@@ -524,8 +543,8 @@ class Monitor(object):
         """Save the current calibrations to disk.
 
         This will write a `json` file to the `monitors` subfolder of your
-        PsychoPy configuration folder (typically `~/.psychopy2/monitors` on
-        Linux and macOS, and `%APPDATA%\psychopy2\monitors` on Windows).
+        PsychoPy configuration folder (typically `~/.psychopy3/monitors` on
+        Linux and macOS, and `%APPDATA%\\psychopy3\\monitors` on Windows).
 
         Additionally saves a pickle (`.calib`) file if you are running
         Python 2.7.
@@ -555,7 +574,6 @@ class Monitor(object):
         with open(thisFileName, 'w') as outfile:
             json_tricks.dump(self.calibs, outfile, indent=2,
                              allow_nan=True)
-
 
     def copyCalib(self, calibName=None):
         """Stores the settings for the current calibration settings as
@@ -737,6 +755,7 @@ class GammaCalculator(object):
             -yVals are the measured luminances from a photometer/spectrometer
 
         """
+        import scipy.optimize as optim
         minGamma = 0.8
         maxGamma = 20.0
         gammaGuess = 2.0
@@ -835,38 +854,66 @@ def makeXYZ2RGB(red_xy,
                 blue_xy,
                 whitePoint_xy=(0.3127, 0.329),
                 reverse=False):
-    """Create a linear sRGB conversion matrix.
+    """Create a linear RGB conversion matrix.
 
-    Returns a matrix to convert CIE-XYZ (1931) tristimulus values to linear sRGB
+    Returns a matrix to convert CIE-XYZ (1931) tristimulus values to linear RGB
     given CIE-xy (1931) primaries and white point. By default, the returned
-    matrix transforms CIE-XYZ to linear sRGB coordinates. Use 'reverse=True' to
+    matrix transforms CIE-XYZ to linear RGB coordinates. Use 'reverse=True' to
     get the inverse transformation. The chromaticity coordinates of the
     display's phosphor 'guns' are usually measured with a spectrophotometer.
 
     The routines here are based on methods found at:
-        http://www.ryanjuckett.com/programming/rgb-color-space-conversion/
+    http://www.ryanjuckett.com/programming/rgb-color-space-conversion/
 
-    :param red_xy: tuple, list or ndarray
+    Parameters
+    ----------
+    red_xy : tuple, list or ndarray
         Chromaticity coordinate (CIE-xy) of the 'red' gun.
-    :param green_xy: tuple, list or ndarray
+    green_xy:  tuple, list or ndarray
         Chromaticity coordinate (CIE-xy) of the 'green' gun.
-    :param blue_xy: tuple, list or ndarray
+    blue_xy : tuple, list or ndarray
         Chromaticity coordinate (CIE-xy) of the 'blue' gun.
-    :param whtp_xy: tuple, list or ndarray
+    whitePoint_xy : tuple, list or ndarray
         Chromaticity coordinate (CIE-xy) of the white point, default is D65.
-    :param reverse:
-        Return the inverse transform XYZ -> sRGB
-    :return: 3x3 conversion matrix
+    reverse : bool
+        Return the inverse transform sRGB -> XYZ. Default is `False`.
+
+    Returns
+    -------
+    ndarray
+        3x3 conversion matrix
+
+    Examples
+    --------
+    Construct a conversion matrix to transform CIE-XYZ coordinates to linear
+    (not gamma corrected) RGB values::
+
+        # nominal primaries for sRGB (or BT.709)
+        red = (0.6400, 0.3300)
+        green = (0.300, 0.6000)
+        blue = (0.1500, 0.0600)
+        whiteD65 = (0.3127, 0.329)
+
+        conversionMatrix = makeXYZ2RGB(red, green, blue, whiteD65)
+
+        # The value of `conversionMatrix` should have similar coefficients to
+        # that presented in the BT.709 standard.
+        #
+        # [[ 3.24096994 -1.53738318 -0.49861076]
+        #  [-0.96924364  1.8759675   0.04155506]
+        #  [ 0.05563008 -0.20397696  1.05697151]]
+        #
 
     """
     # convert CIE-xy chromaticity coordinates to xyY and put them into a matrix
-    mat_xyY_primaries = np.asmatrix((
+    mat_xyY_primaries = np.asarray((
         (red_xy[0], red_xy[1], 1.0 - red_xy[0] - red_xy[1]),
         (green_xy[0], green_xy[1], 1.0 - green_xy[0] - green_xy[1]),
         (blue_xy[0], blue_xy[1], 1.0 - blue_xy[0] - blue_xy[1])
     )).T
+
     # convert white point to CIE-XYZ
-    whtp_XYZ = np.asmatrix(
+    whtp_XYZ = np.asarray(
         np.dot(1.0 / whitePoint_xy[1],
             np.asarray((
                 whitePoint_xy[0],
@@ -874,15 +921,17 @@ def makeXYZ2RGB(red_xy,
                 1.0 - whitePoint_xy[0] - whitePoint_xy[1])
             )
         )
-    ).T
+    )
+
     # compute the final matrix (sRGB -> XYZ)
-    to_return = mat_xyY_primaries * np.diag(
-        (np.linalg.inv(mat_xyY_primaries) * whtp_XYZ).A1)
+    u = np.diag(np.dot(whtp_XYZ, np.linalg.inv(mat_xyY_primaries).T))
+    to_return = np.matmul(mat_xyY_primaries, u)
 
     if not reverse:  # for XYZ -> sRGB conversion matrix (we usually want this!)
         return np.linalg.inv(to_return)
 
     return to_return
+
 
 def getLumSeries(lumLevels=8,
                  winSize=(800, 600),
@@ -1094,7 +1143,7 @@ def getRGBspectra(stimSize=0.3, winSize=(800, 600), photometer='COM1'):
     :params:
 
         - 'photometer' could be a photometer object or a serial port
-        name on which a photometer might be found (not recommended)
+          name on which a photometer might be found (not recommended)
 
     """
     import psychopy.event
@@ -1150,6 +1199,8 @@ def getAllMonitors():
     """Find the names of all monitors for which calibration files exist
     """
     monitorList = glob.glob(os.path.join(monitorFolder, '*.calib'))
+    if constants.PY3:
+        monitorList = glob.glob(os.path.join(monitorFolder, '*.json'))
     split = os.path.split
     splitext = os.path.splitext
     # skip the folder and the extension for each file
@@ -1264,7 +1315,7 @@ def gammaInvFun(yy, minLum, maxLum, gamma, b=None, eq=1):
         pass
     elif eq == 4:
         # this is not the same as Zhang and Pelli's inverse
-        # see http://www.psychopy.org/general/gamma.html for derivation
+        # see https://www.psychopy.org/general/gamma.html for derivation
         a = minLum - b**gamma
         k = (maxLum - a)**(old_div(1., gamma)) - b
         xx = old_div((((1 - yy) * b**gamma + yy * (b + k)**gamma)**(old_div(1, gamma)) - b), k)

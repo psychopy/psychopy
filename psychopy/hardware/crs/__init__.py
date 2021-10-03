@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 # Acknowledgements:
@@ -18,7 +18,7 @@ vision research.
 from __future__ import absolute_import, print_function
 
 from psychopy import logging
-from .bits import BitsSharp, BitsPlusPlus
+from .bits import BitsSharp, BitsPlusPlus, DisplayPlusPlus, DisplayPlusPlusTouch
 from .colorcal import ColorCAL
 # Monkey-patch our metadata into CRS class.
 setattr(ColorCAL, "longName", "CRS ColorCAL")

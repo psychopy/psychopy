@@ -1,5 +1,3 @@
-.. _iohub_keyboard:
-
 .. module:: psychopy.iohub.client.keyboard
 
 Keyboard Device
@@ -13,19 +11,18 @@ The iohub Keyboard device provides methods to:
   * Get a list of all currently pressed keys.
 
 .. autoclass:: Keyboard
-    :exclude-members: getDeviceInterface, getIOHubDeviceClass, getName
-	:members:
+    :exclude-members: getDeviceInterface, getIOHubDeviceClass, getName, _syncDeviceState
+    :members:
     :inherited-members:
-    :member-order: bysource
 
 Keyboard Events
-================
+---------------
 
 The Keyboard device can return two types of events, which represent key press
 and key release actions on the keyboard.
 
 KeyboardPress Event
---------------------
+~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: KeyboardPress
     :exclude-members: id
@@ -34,11 +31,11 @@ KeyboardPress Event
     :member-order: bysource
 
 KeyboardRelease Event
------------------------
+~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: KeyboardRelease
     :exclude-members: id
-	:members:
+    :members:
     :inherited-members:
     :member-order: bysource
 

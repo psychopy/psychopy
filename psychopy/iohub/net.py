@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-# Part of the psychopy.iohub library.
-# Copyright (C) 2012-2016 iSolver Software Solutions
+# Part of the PsychoPy library
+# Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 from __future__ import division, absolute_import
 
@@ -21,9 +21,10 @@ from .devices import Computer
 from .errors import print2err, printExceptionDetailsToStdErr
 from .util import NumPyRingBuffer as RingBuffer
 
-MAX_PACKET_SIZE = 64 * 1024
-
-defTimeout = 0.1
+if Computer.platform == 'win32':
+    MAX_PACKET_SIZE = 64 * 1024
+else:
+    MAX_PACKET_SIZE = 16 * 1024
 
 class SocketConnection(object): # pylint: disable=too-many-instance-attributes
     def __init__(
@@ -35,7 +36,7 @@ class SocketConnection(object): # pylint: disable=too-many-instance-attributes
             rcvBufferLength=1492,
             broadcast=False,
             blocking=0,
-            timeout=defTimeout):
+            timeout=0):
         self._local_port = local_port
         self._local_host = local_host
         self._remote_host = remote_host
@@ -52,7 +53,7 @@ class SocketConnection(object): # pylint: disable=too-many-instance-attributes
         self.feed = self.unpacker.feed
         self.unpack = self.unpacker.unpack
 
-    def initSocket(self, broadcast=False, blocking=0, timeout=defTimeout):
+    def initSocket(self, broadcast=False, blocking=0, timeout=0):
         if Computer.is_iohub_process is True:
             from gevent import socket
         else:
@@ -65,7 +66,7 @@ class SocketConnection(object): # pylint: disable=too-many-instance-attributes
             self.sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL,
                                  struct.pack('@i', 1))
 
-        if blocking is not 0:
+        if blocking:
             self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
         self.sock.settimeout(timeout)
@@ -92,8 +93,8 @@ class SocketConnection(object): # pylint: disable=too-many-instance-attributes
                     num_packets = num_packets - 1
                 result = self.unpack()
             return result, address
-        except Exception: # pylint: disable=broad-except
-            pass # printExceptionDetailsToStdErr()
+        except:
+            pass
 
     def close(self):
         self.sock.close()
@@ -102,7 +103,7 @@ class SocketConnection(object): # pylint: disable=too-many-instance-attributes
 class UDPClientConnection(SocketConnection):
     def __init__(self, remote_host='127.0.0.1', remote_port=9000,
                  rcvBufferLength=MAX_PACKET_SIZE, broadcast=False,
-                 blocking=1, timeout=defTimeout):
+                 blocking=1, timeout=None):
         SocketConnection.__init__(self, remote_host=remote_host,
                                   remote_port=remote_port,
                                   rcvBufferLength=rcvBufferLength,
@@ -111,7 +112,7 @@ class UDPClientConnection(SocketConnection):
                                   timeout=timeout)
         self.sock.settimeout(timeout)
 
-    def initSocket(self, broadcast=False, blocking=1, timeout=defTimeout):
+    def initSocket(self, broadcast=False, blocking=1, timeout=None):
         if Computer.is_iohub_process is True:
             from gevent import socket
         else:

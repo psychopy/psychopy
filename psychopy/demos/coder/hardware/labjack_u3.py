@@ -15,7 +15,10 @@ from __future__ import absolute_import, division, print_function
 
 from builtins import range
 from psychopy import visual, core, event, sound
-from labjack import u3
+try:
+    from labjack import u3
+except ImportError:
+    import u3
 
 # sound.setAudioAPI('pyaudio')
 

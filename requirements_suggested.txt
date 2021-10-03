@@ -3,5 +3,5 @@ pyserial
 pyparallel
 egi
 iolabs
-pylink
 pyfilesec
+markdown-it

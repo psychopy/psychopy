@@ -1,17 +1,19 @@
 from __future__ import print_function
-import sys, os
+from past.builtins import unicode
+
+import sys
+import os
+import io
 
 from pkg_resources import parse_version
 import wx
-
-import psychopy.projects
 
 if parse_version(wx.__version__) < parse_version('2.9'):
     tmpApp = wx.PySimpleApp()
 else:
     tmpApp = wx.App(False)
 from psychopy import experiment
-from psychopy.app import builder, projects
+from psychopy import constants
 from psychopy.experiment.components import getAllComponents
 
 # usage: generate or compare all Component.param settings & options
@@ -22,9 +24,6 @@ from psychopy.experiment.components import getAllComponents
 
 # ignore attributes that are there because inherit from object
 ignoreObjectAttribs = True
-
-origProjectCatalog = projects.projectCatalog
-projects.projectCatalog = {}
 
 # should not need a wx.App with fetchIcons=False
 try:
@@ -45,7 +44,9 @@ exp = experiment.Experiment()
 relPath = os.path.join(os.path.split(__file__)[0], 'componsTemplate.txt')
 
 if not '--out' in sys.argv:
-    target = open(relPath, 'rU').read()
+    with io.open(relPath, 'r', encoding='utf-8-sig') as f:
+        target = f.read()
+
     targetLines = target.splitlines()
     targetTag = {}
     for line in targetLines:
@@ -60,8 +61,8 @@ else:
     outfile = open(relPath,'w')
 
 param = experiment.Param('', '')  # want its namespace
-ignore = ['__doc__', '__init__', '__module__', '__str__']
-if not '--out' in sys.argv:
+ignore = ['__doc__', '__init__', '__module__', '__str__', 'next']
+if '--out' not in sys.argv:
     # these are for display only (cosmetic) but no harm in gathering initially:
     ignore += ['hint',
                'label',  # comment-out to not ignore labels when checking
@@ -79,48 +80,52 @@ for compName in sorted(allComp):
     order = '%s.order:%s' % (compName, eval("comp.order"))
     out = [order]
     if '--out' in sys.argv:
-        outfile.write(order.encode('utf8')+'\n')
+        outfile.write(order+'\n')
     elif not order+'\n' in target:
-        tag = order.split(':',1)[0]
+        tag = order.split(':', 1)[0]
         try:
             err = order + ' <== ' + targetTag[tag]
-        except IndexError: # missing
+        except IndexError:  # missing
             err = order + ' <==> NEW (no matching param in original)'
-        print(err.encode('utf8'))
+        print(err)
         mismatches.append(err)
-    for parName in comp.params:
+    for parName in sorted(comp.params):
         # default is what you get from param.__str__, which returns its value
+        if not constants.PY3:
+            if isinstance(comp.params[parName].val, unicode):
+                comp.params[parName].val = comp.params[parName].val.encode('utf8')
         default = '%s.%s.default:%s' % (compName, parName, comp.params[parName])
         out.append(default)
         lineFields = []
-        for field in fields:
+        for field in sorted(fields):
             if parName == 'name' and field == 'updates':
                 continue
-                # ignore b/c never want to change the name *during a running experiment*
-                # the default name.updates value varies across existing components
-            f = '%s.%s.%s:%s' % (compName, parName, field, eval("comp.params[parName].%s" % field))
+                # ignore: never want to change the name *during an experiment*
+                # the default name.updates value varies across components
+            f = '%s.%s.%s:%s' % (compName, parName, field,
+                                 eval("comp.params[parName].%s" % field))
             lineFields.append(f)
 
         for line in [default] + lineFields:
             if '--out' in sys.argv:
                 if not ignoreObjectAttribs:
-                    outfile.write(line.encode('utf8')+'\n')
+                    outfile.write(line+'\n')
                 else:
                     if (not ":<built-in method __" in line and
-                            not ":<method-wrapper '__"  in line):
-                        outfile.write(line.encode('utf8')+'\n')
+                            not ":<method-wrapper '__" in line and
+                                not ":<bound method " in line):
+                        outfile.write(line+'\n')
             elif not line+'\n' in target:
                 # mismatch, so report on the tag from orig file
-                # match checks tag + multi-line, because line is multi-line and target is whole file
-                tag = line.split(':',1)[0]
+                # match checks tag + multi-line
+                # because line is multi-line and target is whole file
+                tag = line.split(':', 1)[0]
                 try:
                     err = line + ' <== ' + targetTag[tag]
-                except KeyError: # missing
+                except KeyError:  # missing
                     err = line + ' <==> NEW (no matching param in original)'
-                print(err.encode('utf8'))
+                print(err)
                 mismatches.append(err)
 
-#return mismatches
+# return mismatches
 
-# revert project catalog to original
-psychopy.projects.ProjectCatalog = origProjectCatalog

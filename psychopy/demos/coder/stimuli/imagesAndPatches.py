@@ -23,7 +23,8 @@ faceALPHA = visual.GratingStim(win, pos=(-0.7, -0.2),
     tex="sin", mask="face.jpg", color=[1.0, 1.0, -1.0],
     size=(0.5, 0.5), units="norm", autoLog=False)
 message = visual.TextStim(win, pos=(-0.95, -0.95),
-    text='[Esc] to quit', color='white', alignHoriz='left', alignVert='bottom')
+    text='[Esc] to quit', color='white',
+    anchorVert='bottom', anchorHoriz='left')
 
 trialClock = core.Clock()
 t = lastFPSupdate = 0

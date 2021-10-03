@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 """Language localization for PsychoPy.
@@ -9,7 +9,7 @@ translation _translate():
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 # Author: Jeremy Gray, July 2014
@@ -18,10 +18,11 @@ translation _translate():
 import gettext
 import os
 import glob
-import codecs
+import io
 from psychopy import logging, prefs, constants
 import wx
 import locale as locale_pkg
+
 
 def setLocaleWX():
     """Sets up the locale for the wx application. Only call this after the app
@@ -34,6 +35,9 @@ def setLocaleWX():
     if locale.IsAvailable(languageID):
         wxlocale = wx.Locale(languageID)
     else:
+        wxlocale = wx.Locale(wx.LANGUAGE_DEFAULT)
+    # Check language layout, and reset to default if RTL
+    if wxlocale.GetCanonicalName()[:2] in ['ar', 'dv', 'fa', 'ha', 'he', 'ps', 'ur', 'yi']:
         wxlocale = wx.Locale(wx.LANGUAGE_DEFAULT)
     # wx.Locale on Py2.7/wx3.0 seems to delete the preferred encoding (utf-8)
     # Check if that happened and reinstate if needed.
@@ -68,16 +72,18 @@ winmap = {'en_US': 'ENU'}
 locname = {'en_US': u'English (U.S.)'}
 reverseMap = {u'English (U.S.)': 'en_US'}
 mappings = os.path.join(os.path.dirname(__file__), 'mappings.txt')
-for line in codecs.open(mappings, 'rU', 'utf8').readlines():
-    try:
-        # canonical, windows, name-with-spaces
-        can, win, name = line.strip().split(' ', 2)
-    except ValueError:
-        can, win = line.strip().split(' ', 1)
-        name = can
-    winmap[can] = win
-    locname[can] = name
-    reverseMap[name] = can
+
+with io.open(mappings, 'r', encoding='utf-8-sig') as f:
+    for line in f.readlines():
+        try:
+            # canonical, windows, name-with-spaces
+            can, win, name = line.strip().split(' ', 2)
+        except ValueError:
+            can, win = line.strip().split(' ', 1)
+            name = can
+        winmap[can] = win
+        locname[can] = name
+        reverseMap[name] = can
 
 # what are the available translations? available languages on the OS?
 expr = os.path.join(os.path.dirname(__file__), '..', 'app', 'locale', '*')
@@ -141,7 +147,8 @@ else:
 # del(__builtins__['_'])  # idea: force psychopy code to use _translate
 
 # Feb 2016: require modules to explicitly import _translate from localization:
-_translate = _  # _ is created by gettext, in builtins namespace
+_translate = _  # noqa: F821
+# Note that _ is created by gettext, in builtins namespace
 del(__builtins__['_'])
 
 
@@ -157,9 +164,14 @@ _localized = {
     'durationEstim': _translate('Expected duration (s)'),
 
     # for BaseVisualComponent:
-    'units': _translate('Units'),
-    'color': _translate('Color'),
-    'colorSpace': _translate('Color space'),
+    'units': _translate('Spatial Units'),
+    'color': _translate('Foreground Color'),
+    'colorSpace': _translate('Color Space'),
+    'fillColor': _translate('Fill Color'),
+    'fillColorSpace': _translate('Fill Color Space'),
+    'borderColor': _translate('Border Color'),
+    'borderColorSpace': _translate('Border Color Space'),
+    'contrast': _translate('Contrast'),
     'opacity': _translate('Opacity'),
     'pos': _translate('Position [x,y]'),
     'ori': _translate('Orientation'),
@@ -169,6 +181,7 @@ _localized = {
     'Name': _translate('Name'),
     'nReps': _translate('nReps'),
     'conditions': _translate('Conditions'),  # not the same
+    'conditionsFile':_translate('conditionsFile'),
     'endPoints': _translate('endPoints'),
     'Selected rows': _translate('Selected rows'),
     'loopType': _translate('loopType'),

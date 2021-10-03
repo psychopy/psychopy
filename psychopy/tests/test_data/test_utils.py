@@ -3,20 +3,26 @@
 
 import os
 import pytest
+import numpy as np
 from psychopy.data import utils
 from psychopy.constants import PY3
+from os.path import join
 
 thisDir, _ = os.path.split(os.path.abspath(__file__))
-fixturesPath = os.path.join(thisDir, '..', 'data')
+fixturesPath = join(thisDir, '..', 'data')
 #
 class Test_utilsClass:
 
     def test_importConditions(self):
-        fileName_xlsx = os.path.join(fixturesPath, 'trialTypes.xlsx')
-        fileName_xls = os.path.join(fixturesPath, 'trialTypes.xls')
-        fileName_csv = os.path.join(fixturesPath, 'trialTypes.csv')
-        fileName_pkl = os.path.join(fixturesPath, 'trialTypes.pkl')
-        fileName_docx = os.path.join(fixturesPath, 'trialTypes.docx')
+        standard_files = []
+        standard_files.append(join(fixturesPath, 'trialTypes.xlsx'))
+        #standard_files.append(join(fixturesPath, 'trialTypes.xls')) # xls is depreciated
+        standard_files.append(join(fixturesPath, 'trialTypes.csv'))
+        standard_files.append(join(fixturesPath, 'trialTypes_eu.csv'))
+        standard_files.append(join(fixturesPath, 'trialTypes.tsv'))
+        # some extra formats (expected fails)
+        fileName_pkl = join(fixturesPath, 'trialTypes.pkl')
+        fileName_docx = join(fixturesPath, 'trialTypes.docx')
 
         expected_cond = utils.OrderedDict(
             [('text', 'red'),
@@ -25,8 +31,13 @@ class Test_utilsClass:
              ('letterColor', 'red'),
              ('n', 2),
              ('float', 1.1)])
-        conds = utils.importConditions(fileName_xlsx)
-        assert conds[0] == expected_cond
+        # check import worked for standard file formats
+        for filename in standard_files:
+            conds = utils.importConditions(filename)
+            assert conds[0] == expected_cond, (
+                "Did not correctly import for '{}': "
+                "expected({}) != imported({})"
+                .format(filename, expected_cond, conds[0]))
 
         # test for None in filename with _assertValidVarNames
         assert utils.importConditions(fileName=None) == []
@@ -35,11 +46,6 @@ class Test_utilsClass:
         with pytest.raises(ValueError) as errMsg:
             utils.importConditions(fileName='raiseErrorfileName')
         assert 'Conditions file not found: %s' % os.path.abspath('raiseErrorfileName') in str(errMsg.value)
-        # Check file extensions in nested pandasToDictList()
-        conds = utils.importConditions(fileName_csv)
-        assert conds[0] == expected_cond
-        conds = utils.importConditions(fileName_xls)
-        assert conds[0] == expected_cond
 
         if PY3:
             conds = utils.importConditions(fileName_pkl)
@@ -53,7 +59,18 @@ class Test_utilsClass:
         # test assertion for invalid file type
         with pytest.raises(IOError) as errMsg:
             utils.importConditions(fileName_docx)
-        assert ('Your conditions file should be an ''xlsx, csv or pkl file') == str(errMsg.value)
+        assert ('Your conditions file should be an ''xlsx, csv, dlm, tsv or pkl file') == str(errMsg.value)
+
+        # test random selection of conditions
+        all_conditions = utils.importConditions(standard_files[0])
+        assert len(all_conditions) == 6
+        num_selected_conditions = 1001
+        selected_conditions = utils.importConditions(
+            standard_files[0],
+            selection=(np.concatenate(
+                ([0.9], np.random.random(num_selected_conditions - 1)*len(all_conditions)))))
+        assert selected_conditions[0] == expected_cond
+        assert len(selected_conditions) == num_selected_conditions
 
     def test_isValidVariableName(self):
         assert utils.isValidVariableName('Name') == (True, '')
@@ -69,7 +86,7 @@ class Test_utilsClass:
         assert utils._getExcelCellName(2, 1) == 'C2'
 
     def test_importTrialTypes(self):
-        filename = os.path.join(fixturesPath, 'dataTest.xlsx')
+        filename = join(fixturesPath, 'dataTest.xlsx')
         expected_cond = utils.OrderedDict(
             [('text', 'red'),
              ('congruent', 1),
@@ -120,11 +137,22 @@ class Test_utilsClass:
         assert utils.getDateStr() == time.strftime("%Y_%b_%d_%H%M", time.localtime())
 
     def test_import_blankColumns(self):
-        fileName_blanks = os.path.join(fixturesPath, 'trialsBlankCols.xlsx')
+        fileName_blanks = join(fixturesPath, 'trialsBlankCols.xlsx')
         conds = utils.importConditions(fileName_blanks)
         assert len(conds) == 6
         assert len(list(conds[0].keys())) == 6
 
+def test_listFromString():
+    assert ['yes', 'no'] == utils.listFromString("yes, no")
+    assert ['yes', 'no'] == utils.listFromString("[yes, no]")
+    assert ['yes', 'no'] == utils.listFromString("(yes, no)")
+    assert ['yes', 'no'] == utils.listFromString("'yes', 'no'")
+    assert ['yes', 'no'] == utils.listFromString("['yes', 'no']")
+    assert ['yes', 'no'] == utils.listFromString("('yes', 'no')")
+    # this should be returned without ast.literal_eval being used
+    assert ['yes', 'no'] == utils.listFromString(('yes', 'no'))
+    # this would create a syntax error in ast.literal_eval
+    assert ["Don't", "Do"] == utils.listFromString("Don't, Do")
 
 if __name__ == '__main__':
     pytest.main()

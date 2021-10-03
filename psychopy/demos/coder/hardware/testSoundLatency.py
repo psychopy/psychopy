@@ -96,7 +96,8 @@ elif sys.platform == 'win32':
     sysName = 'win'
     sysVer = platform.win32_ver()[0]
 elif sys.platform.startswith('linux'):
-    sysName = 'linux_' + platform.dist()
+    from distro import linux_distribution
+    sysName = 'linux_' + linux_distribution()
     sysVer = platform.release()
 else:
     sysName = sysVer = 'n/a'

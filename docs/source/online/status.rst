@@ -1,55 +1,59 @@
 .. _onlineStatus:
+.. role:: darkred
+.. role:: darkgreen
+.. role:: darkorange
 
 Status of online options
 --------------------------
 
-The table below shows you the current state of play is the current state of play. If you want to see things develop faster then see the section below on :ref:`addToPsychoJS`
+The table below shows you the current state of play of PsychoJS. Per feature we list whether it's:
+
+1. :darkgreen:`Built-in` Supported via the PsychoPy Builder
+2. :darkorange:`Prototype` Supported via tutorials or customized experiments that can be cloned and adapted. Kudos to our users for pushing the envelope!
+3. :darkred:`Not supported` Supported by PsychoPy, but not yet supported by PsychoJS
 
 .. csv-table::
-  :header: "Done", " ", "Not done (but could be)"
-  :widths: 100, 50, 100
+  :header: "Feature","Status","Notes"
+  :align: left
+  :widths: 15,15,70
+  :escape: \
 
-      __, __, __
-    ,**Inputs**,
-  Keyboard, ,Mic
-     , ,Mouse (partially done - JS code is written)
-     , ,Webcam
-     , ,Rating Scales
-     , ,Free text (and similar)
-     , ,Multi-touch devices
-      __, __, __
-    ,**Stimuli**,
-  Image, ,Sounds
-  Text, ,Movies
-     , ,Apertures
-     , ,Gratings
-     , ,Dots (RDKs)
-      __, __, __
-      ,**Data**,
-  CSV files, , XLSX files
-  Log files, ,
-      __, __, __
-      ,**Logic**,
-  Loops (including nesting), , Staircases
-  Randomization, , Code Components
-      , , Conditions must be CSV
-      __, __, __
-      ,**Precision**,
-  Frame-by-frame timing, ,
-      __, __, __
-      ,**External tools**,
-  Pushing data to Open Science Framework, , Connections to Mechanical Turk
+  **Stimuli**,,
+    :ref:`Dots (RDK) <dots>`, :darkorange:`Prototype`, Random Dot Kinematogram. Try it out via `staircaserdk <https://gitlab.pavlovia.org/Francesco_Cabiddu/staircaserdk>`_
+    :ref:`Images <image>`, :darkgreen:`Built-in`, Try it out via `e2e_img <https://gitlab.pavlovia.org/tpronk/e2e_img>`_
+    :ref:`Movies <movie>`, :darkgreen:`Built-in`, Try it out via `demo_video <https://gitlab.pavlovia.org/tpronk/demo_video>`_    
+    :ref:`Polygons <polygonComponent>`, :darkgreen:`Built-in`, Try it out via `e2e_polygons <https://gitlab.pavlovia.org/tpronk/e2e_polygons>`_
+    :ref:`Sounds <sound>`, :darkgreen:`Built-in`, Try it out via `demo_sound <https://gitlab.pavlovia.org/tpronk/demo_sound>`_
+    :ref:`Text <textComponent>`, :darkgreen:`Built-in`, Try it out via `e2e_text <https://gitlab.pavlovia.org/tpronk/e2e_text>`_
+    :ref:`Textbox <textboxComponent>`, :darkgreen:`Built-in`, Try it out via `e2e_textbox <https://gitlab.pavlovia.org/tpronk/e2e_textbox>`_    
+    , :darkred:`Not supported`, Apertures\, Envelope Gratings\, Gratings\, Noise
+  **Responses**,,
+    :ref:`Form <formComponent>`, :darkgreen:`Built-in`,
+    Gyroscope, :darkorange:`Prototype`, Measures the orientation of tablets and smartphones. Try it out via `demo_gyroscope <https://gitlab.pavlovia.org/tpronk/demo_gyroscope>`_
+    Eye-tracking, :darkorange:`Prototype`, Try it out via `demo_eye_tracking2 <https://gitlab.pavlovia.org/tpronk/demo_eye_tracking2/>`_
+    :ref:`Keyboard <keyboard>`, :darkgreen:`Built-in`, 
+    :ref:`Mouse <mouse>`, :darkgreen:`Built-in`, 
+    :ref:`Slider <slider>`, :darkgreen:`Built-in`, 
+    :ref:`Textbox <textboxComponent>`, :darkgreen:`Built-in`, Try it out via `e2e_textbox <https://gitlab.pavlovia.org/tpronk/e2e_textbox>`_
+    , :darkred:`Not supported`, Brush\, Joystick\, Microphone\, Button boxes (Cedrus & IO Labs)\, Button component
+  **Data**,,
+    :ref:`CSV files <outputs>`, :darkgreen:`Built-in`, These can easily be imported into analysis software\, such as Matlab\, R\, JAMOVI\, or JASP
+    :ref:`Log files <outputs>`, :darkgreen:`Built-in`, Low-level logs. These offer detailed information\, but are hard to analyze
+    :ref:`MongoDB <onlineFetchingYourData>`, :darkgreen:`Built-in`, Similar to CSV\, but stored in a database instead of files
+    , :darkred:`Not supported`, XLSX
+  **Flow and Logic**,,
+    :ref:`Code <code>`, :darkgreen:`Built-in`, Insert snippets of programming code\, which can be automatically translated from Python to JavaScript
+    :ref:`Loops <loops>`, :darkgreen:`Built-in`, Loops allow randomization and importing condition files. Try it out via `e2e_conditions <https://gitlab.pavlovia.org/tpronk/e2e_conditions>`_
+    :ref:`Staircases <loops>`, :darkorange:`Prototype`, Adapt aspects of a trial based on earlier responses of a participant. Try out a "Just Noticable Difference" staircase via  `staircase-demo <https://gitlab.pavlovia.org/lpxrh6/staircase-demo>`_ or a "Method-of-Adjustment" via `method-of-adjustment <https://gitlab.pavlovia.org/lpxrh6/method-of-adjustment>`_
+    :ref:`Multistair <loops>`, :darkorange:`Prototype`, Interleave several basic staircases. This is currently possible through interleaving basic stair prototype (note that in this prototype the staircase list is randomly shuffled each time). You can try a `pavlovia demo <https://run.pavlovia.org/lpxrh6/interleaved-staircase/>`_ and associated `gitlab project <https://gitlab.pavlovia.org/lpxrh6/interleaved-staircase>`_
+    :ref:`QUEST staircases <loops>`, :darkorange:`Prototype`, This is currently supported via `jsQUEST <https://github.com/kurokida/jsQUEST>`_ you can `try a demo <https://run.pavlovia.org/tpronk/demo_jsquest/>`_ and access the `gitlab project <https://gitlab.pavlovia.org/tpronk/demo_jsquest>`_ to build on for your own research
+  **External Tools**,,
+    Any Tool, :darkgreen:`Built-in`, General instructions are at :ref:`Recruiting participants and connecting with online services <recruitingOnline>`
+    AMT, :darkgreen:`Built-in`, Amazon Mechanical Turk. See instructions in this `forum post <https://discourse.psychopy.org/t/how-to-use-mturk-for-recruiting/8486/7>`_
+    Prolific, :darkgreen:`Built-in`, See instructions at :ref:`Recruiting with Prolific <prolificIntegration>`
+    Qualtrics, :darkgreen:`Built-in`, There are many guides available for integrating Qualtrics on our `forum <https://discourse.psychopy.org/search?q=qualtrics>`_
+    Sona, :darkgreen:`Built-in`, See instructions at the `Sona Systems website <https://www.sona-systems.com/help/psychopy.aspx>`_
 
-Anything else we should add to the list above?
+*Thanks go out to Anastasia Carter, Arnon Weinberg, Francesco Cabiddu, Lindsay Santacroce, and Wakefield Carter; they made tutorials and/or demo experiments available that we referenced in the list above.*
 
-
-.. _addToPsychoJS:
-
-Adding features to the PsychoJS web engine
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-PsychoJS is modular just like PsychoPy. If something you need isn't yet available then let's add it! There are these options:
-
-  - **Contribute some cash.** Let us do it know what you need and for a small price we can add it in (typically a few hundred pounds but some components may be more than that). What? I didn't have to pay for any other part of PsychoPy - you wrote it for free - why do I have to pay for this?! The PsychoJS package was written by professional developers (the excellent `Ilixa Ltd. <http://www.ilixa.com>`_) and they need feeding, whereas the rest of PsychoPy has been written by volunteers in their spare time (volunteers don't need feeding so much). This might be a great way to spend a little of your research slush fund, and support the world of Open Science, still at a fraction of the cost of license fees for other packages.
-  - **Get your developer to add it.** PsychoJS is open source though (see the code inside the `PsychoPy github repository <https://github.com/psychopy/psychopy>`_) so you could add components yourself too if you have the JS knowledge. If you do so please contribute it back so that others can benefit.
-  - **Sit and wait.** If you have no funding for your studies and no JavaScript programmer to help you then hold on. All the above will probably be done eventually but we genuinely don't know when.
+Anything else we should add to the list above? Built a cool prototype? Please tell us via the `PsychoPy Forum <https://discourse.psychopy.org/c/online/14>`_.

@@ -23,7 +23,7 @@ from pkg_resources import parse_version
 import psychopy
 from psychopy import logging
 from psychopy.tools.filetools import (openOutputFile, genDelimiter,
-                                      genFilenameFromDelimiter)
+                                      genFilenameFromDelimiter, pathToString)
 from psychopy.tools.fileerrortools import handleFileCollision
 from psychopy.tools.arraytools import extendArr
 from .utils import _getExcelCellName
@@ -35,7 +35,7 @@ try:
         from openpyxl.utils.cell import get_column_letter
     else:
         from openpyxl.cell import get_column_letter
-    from openpyxl.reader.excel import load_workbook, Workbook
+    from openpyxl import load_workbook, Workbook
     haveOpenpyxl = True
 except ImportError:
     haveOpenpyxl = False
@@ -125,6 +125,8 @@ class _BaseTrialHandler(_ComparisonMixin):
             fileCollisionMethod: Collision method passed to
             :func:`~psychopy.tools.fileerrortools.handleFileCollision`
         """
+        fileName = pathToString(fileName)
+
         if self.thisTrialN < 1 and self.thisRepN < 1:
             # if both are < 1 we haven't started
             if self.autoLog:
@@ -149,7 +151,7 @@ class _BaseTrialHandler(_ComparisonMixin):
                    appendFile=True,
                    summarised=True,
                    fileCollisionMethod='rename',
-                   encoding='utf-8'):
+                   encoding='utf-8-sig'):
         """
         Write a text file with the data and various chosen stimulus attributes
 
@@ -188,9 +190,11 @@ class _BaseTrialHandler(_ComparisonMixin):
             :func:`~psychopy.tools.fileerrortools.handleFileCollision`
 
         encoding:
-            The encoding to use when saving a the file. Defaults to `utf-8`.
+            The encoding to use when saving a the file. Defaults to `utf-8-sig`.
 
         """
+        fileName = pathToString(fileName)
+
         if stimOut is None:
             stimOut = []
 
@@ -291,16 +295,21 @@ class _BaseTrialHandler(_ComparisonMixin):
 
             appendFile: True or False
                 If False any existing file with this name will be
-                overwritten. If True then a new worksheet will be appended.
+                kept and a new file will be created with a slightly different
+                name. If you want to overwrite the old file, pass 'overwrite'
+                to ``fileCollisionMethod``.
+                If True then a new worksheet will be appended.
                 If a worksheet already exists with that name a number will
                 be added to make it unique.
 
             fileCollisionMethod: string
-                Collision method passed to
+                Collision method (``rename``,``overwrite``, ``fail``) passed to
                 :func:`~psychopy.tools.fileerrortools.handleFileCollision`
                 This is ignored if ``append`` is ``True``.
 
         """
+        fileName = pathToString(fileName)
+
         if stimOut is None:
             stimOut = []
 
@@ -331,7 +340,9 @@ class _BaseTrialHandler(_ComparisonMixin):
             newWorkbook = False
         else:
             if not appendFile:
-                # the file exists but we're not appending, will be overwritten
+                # the file exists but we're not appending, a new file will
+                # be saved with a slightly different name, unless 
+                # fileCollisionMethod = ``overwrite``
                 fileName = handleFileCollision(fileName,
                                                fileCollisionMethod)
             wb = Workbook()  # create new workbook
@@ -363,7 +374,7 @@ class _BaseTrialHandler(_ComparisonMixin):
 
     def saveAsJson(self,
                    fileName=None,
-                   encoding='utf-8',
+                   encoding='utf-8-sig',
                    fileCollisionMethod='rename'):
         """
         Serialize the object to the JSON format.
@@ -376,9 +387,7 @@ class _BaseTrialHandler(_ComparisonMixin):
             in-memory JSON object.
 
         encoding : string, optional
-            The encoding to use when writing the file. This parameter will be
-            ignored if `append` is `False` and `fileName` ends with `.psydat`
-            or `.npy` (i.e. if a binary file is to be written).
+            The encoding to use when writing the file.
 
         fileCollisionMethod : string
             Collision method passed to
@@ -392,6 +401,8 @@ class _BaseTrialHandler(_ComparisonMixin):
         because loading the created JSON file would sometimes fail otherwise.
 
         """
+        fileName = pathToString(fileName)
+
         self_copy = copy.deepcopy(self)
         self_copy.origin = ''
         msg = ('Setting attribute .origin to empty string during JSON '
@@ -432,7 +443,8 @@ class _BaseTrialHandler(_ComparisonMixin):
                                   "inspect.getouterframes")
                 return '', ''
         if os.path.isfile(originPath):  # do we NOW have a path?
-            origin = codecs.open(originPath, "r", encoding="utf-8").read()
+            with codecs.open(originPath, "r", encoding="utf-8-sig") as f:
+                origin = f.read()
         else:
             origin = None
         return originPath, origin

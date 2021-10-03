@@ -2,27 +2,26 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
+from builtins import super  # provides Py3-style super() using python-future
+from psychopy.localization import _localized as __localized
+_localized = __localized.copy()
+
 from os import path
+from pathlib import Path
 
 from psychopy.experiment.components.keyboard import KeyboardComponent, Param, _translate
 from psychopy.experiment.utils import valid_var_re
 
 __author__ = 'Jeremy Gray'
 
-# abs path to the folder containing this path
-thisFolder = path.abspath(path.dirname(__file__))
-iconFile = path.join(thisFolder, 'ioLabs.png')
-tooltip = _translate('ioLabs ButtonBox: check and record response buttons on '
-                     'ioLab Systems ButtonBox')
-
 # only use _localized values for label values, nothing functional:
-_localized = {'active': _translate('Active buttons'),
-              'lights': _translate('Lights'),
-              'lights off': _translate('Lights off')}
+_localized.update({'active': _translate('Active buttons'),
+                   'lights': _translate('Lights'),
+                   'lights off': _translate('Lights off')})
 
 
 class ioLabsButtonBoxComponent(KeyboardComponent):
@@ -36,6 +35,10 @@ class ioLabsButtonBoxComponent(KeyboardComponent):
     components over which active buttons (for responses and lights).
     """
     categories = ['Responses']  # which section(s) in the components panel
+    targets = ['PsychoPy']
+    iconFile = Path(__file__).parent / 'ioLabs.png'
+    tooltip = _translate('ioLabs ButtonBox: check and record response buttons on '
+                         'ioLab Systems ButtonBox')
 
     def __init__(self, exp, parentName, name='bbox',
                  active="(0,1,2,3,4,5,6,7)", store='first button',
@@ -53,13 +56,17 @@ class ioLabsButtonBoxComponent(KeyboardComponent):
             startEstim=startEstim, durationEstim=durationEstim)
 
         self.type = 'ioLabsButtonBox'
-        self.url = "http://www.psychopy.org/builder/components/ioLabs.html"
+        self.url = "https://www.psychopy.org/builder/components/ioLabs.html"
+
         self.exp.requirePsychopyLibs(['hardware'])
         del self.params['allowedKeys']
 
         # NB name and timing params always come 1st
-        self.order = ['forceEndRoutine', 'active', 'lights', 'store',
-                      'storeCorrect', 'correctAns']
+        self.order += ['forceEndRoutine',  # Basic tab
+                       'allowedKeys', 'store', 'storeCorrect', 'correctAns'  # Data tab
+                       ]
+        #self.order = ['forceEndRoutine', 'active', 'lights', 'store',
+        #              'storeCorrect', 'correctAns']
 
         msg = _translate(
             "What is the 'correct' response? NB, buttons are labelled 0 to "
@@ -78,20 +85,20 @@ class ioLabsButtonBoxComponent(KeyboardComponent):
         msg = _translate("Active buttons, such as '1,6', '(1,2,5,6)' or '0' "
                          "(without quotes)")
         self.params['active'] = Param(
-            active, valType='code', allowedTypes=[],
+            active, valType='code', inputType="single", allowedTypes=[], categ='Data',
             updates='constant',
             allowedUpdates=['constant', 'set every repeat'],
             hint=msg,
             label=_localized['active'])
 
         self.params['lights'] = Param(
-            lights, valType='bool', allowedTypes=[],
+            lights, valType='bool', inputType="bool", allowedTypes=[], categ='Hardware',
             updates='constant', allowedUpdates=[],
             hint=_translate("Turn ON the lights for the active buttons?"),
             label=_localized['lights'])
 
         self.params['lights off'] = Param(
-            lightsOff, valType='bool', allowedTypes=[],
+            lightsOff, valType='bool', inputType="bool", allowedTypes=[], categ='Hardware',
             updates='constant', allowedUpdates=[],
             hint=_translate("Turn OFF all lights at the end of each routine?"),
             label=_localized['lights off'])
@@ -166,8 +173,8 @@ class ioLabsButtonBoxComponent(KeyboardComponent):
         if self.params['stopVal'].val not in ['', None, -1, 'None']:
             # writes an if statement to determine whether to draw etc
             self.writeStopTestCode(buff)
-            buff.writeIndented("%(name)s.status = STOPPED\n" % self.params)
-            buff.setIndentLevel(-1, True)
+            buff.writeIndented("%(name)s.status = FINISHED\n" % self.params)
+            buff.setIndentLevel(-2, True)
 
         buff.writeIndented("if %(name)s.status == STARTED:\n" % self.params)
         buff.setIndentLevel(1, relative=True)  # to get out of the if statement
@@ -267,6 +274,9 @@ class ioLabsButtonBoxComponent(KeyboardComponent):
             code = ("if %(name)s.btns != None:  # add RTs if there are responses\n" % self.params +
                     "    %s.addData('%s.rt', %s.rt)\n" % loopnamename)
             buff.writeIndentedLines(code)
+
+        # get parent to write code too (e.g. store onset/offset times)
+        super().writeRoutineEndCode(buff)
 
         if currLoop.params['name'].val == self.exp._expHandler.name:
             buff.writeIndented("%s.nextEntry()\n" % self.exp._expHandler.name)

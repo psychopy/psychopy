@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Provides functions for logging error and other messages to one or more
@@ -125,6 +125,10 @@ class _LogEntry(object):
 
     def __init__(self, level, message, t=None, obj=None):
         super(_LogEntry, self).__init__()
+        try:
+            "%0.4f" % (t)
+        except (ValueError, TypeError):
+            raise ValueError("Value \"%s\" of log message \"%s\" could not be coerced to string from numeric" % (t, message))
         self.t = t
         self.t_ms = t * 1000
         self.level = level
@@ -192,7 +196,7 @@ class LogFile(object):
         self.logger._calcLowestTarget()
 
     def write(self, txt):
-        """Write directy to the log file (without using logging functions).
+        """Write directly to the log file (without using logging functions).
         Useful to send messages that only this file receives
         """
         # find the current stdout if we're the console logger
@@ -203,7 +207,21 @@ class LogFile(object):
                 stream = codecs.getwriter(_prefEncoding)(sys.stdout)
         else:
             stream = self.stream
-        stream.write(txt)
+        # try to write
+        try:
+            stream.write(txt)
+        except UnicodeEncodeError as e:  # incompatible encoding of stdout?
+            try:
+                if hasattr(stream, 'reconfigure'):
+                    stream.reconfigure(encoding='utf-8')
+                elif stream == sys.stdout:
+                    # try opening sys.stdout manually as a file
+                    sys.stdout = stream = open(sys.stdout.fileno(), mode='w',
+                                               encoding='utf-8', buffering=1)
+                stream.write(txt)  # try again with the new encoding
+            except Exception:
+                print('Failed to reconfigure logger output encoding', e)
+
         try:
             stream.flush()
         except Exception:
@@ -298,6 +316,7 @@ def flush(logger=root):
     """Send current messages in the log to all targets
     """
     logger.flush()
+
 # make sure this function gets called as python closes
 atexit.register(flush)
 

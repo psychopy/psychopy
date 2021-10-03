@@ -53,18 +53,45 @@ getTime = None
 #     2) On other OS's, if the Python version being used is 2.6 or lower,
 #        time.time is used. For Python 2.7 and above, the timeit.default_timer
 #        function is used.
+try:
+    import psychtoolbox
+    havePTB = True
+except ImportError:
+    havePTB = False
 
-if sys.platform == 'win32':
+if havePTB:
+    # def getTime():
+        # secs, wallTime, error = psychtoolbox.GetSecs('allclocks')
+        # return wallTime
+    getTime = psychtoolbox.GetSecs
+elif sys.platform == 'win32':
     from ctypes import byref, c_int64, windll
     _fcounter = c_int64()
     _qpfreq = c_int64()
     windll.Kernel32.QueryPerformanceFrequency(byref(_qpfreq))
     _qpfreq = float(_qpfreq.value)
     _winQPC = windll.Kernel32.QueryPerformanceCounter
-
     def getTime():
         _winQPC(byref(_fcounter))
         return _fcounter.value / _qpfreq
+elif sys.platform == "darwin":
+    # Monotonic getTime with absolute origin. Suggested by @aforren1, and
+    # copied from github.com/aforren1/toon/blob/master/toon/input/mac_clock.py 
+    import ctypes
+    _libc = ctypes.CDLL('/usr/lib/libc.dylib', use_errno=True)
+    # create helper class to store data
+    class mach_timebase_info_data_t(ctypes.Structure):
+        _fields_ = (('numer', ctypes.c_uint32), ('denom', ctypes.c_uint32))
+    # get function and set response type
+    _mach_absolute_time = _libc.mach_absolute_time
+    _mach_absolute_time.restype = ctypes.c_uint64
+    # calculate timebase
+    _timebase = mach_timebase_info_data_t()
+    _libc.mach_timebase_info(ctypes.byref(_timebase))
+    _ticks_per_second = _timebase.numer / _timebase.denom * 1.0e9
+    #then define getTime func
+    def getTime():
+        return _mach_absolute_time() / _ticks_per_second
 else:
     import timeit
     getTime = timeit.default_timer
@@ -94,10 +121,20 @@ class MonotonicClock(object):
         else:
             self._timeAtLastReset = start_time
 
-    def getTime(self):
-        """Returns the current time on this clock in secs (sub-ms precision)
+    def getTime(self, applyZero=True):
+        """Returns the current time on this clock in secs (sub-ms precision).
+
+        If applying zero then this will be the time since the clock was created
+        (typically the beginning of the script).
+
+        If not applying zero then it is whatever the underlying clock uses as
+        its base time but that is system dependent. e.g. can be time since
+        reboot, time since Unix Epoch etc
         """
-        return getTime() - self._timeAtLastReset
+        if applyZero:
+            return getTime() - self._timeAtLastReset
+        else:
+            return getTime()
 
     def getLastResetTime(self):
         """
@@ -105,6 +142,7 @@ class MonotonicClock(object):
         timebase used by Clock.
         """
         return self._timeAtLastReset
+
 
 monotonicClock = MonotonicClock()
 
@@ -169,6 +207,10 @@ class CountdownTimer(Clock):
         return self._timeAtLastReset - getTime()
 
     def reset(self, t=None):
+        """Reset the time on the clock. With no args, time will be set to the
+        time used for last reset (or start time if no previous resets). If a 
+        float is received, this will be the new time on the clock.
+        """
         if t is None:
             Clock.reset(self, self._countdown_duration)
         else:

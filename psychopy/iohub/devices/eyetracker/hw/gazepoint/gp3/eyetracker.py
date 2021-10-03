@@ -1,26 +1,24 @@
-from __future__ import division
 # -*- coding: utf-8 -*-
-# Part of the psychopy.iohub library.
-# Copyright (C) 2012-2016 iSolver Software Solutions
+# Part of the PsychoPy library
+# Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
-# .. fileauthor:: Martin Guest
-# .. fileauthor:: Sol Simpson
+from __future__ import division
 
-from ......errors import print2err, printExceptionDetailsToStdErr
-from ......constants import EventConstants, EyeTrackerConstants
-from ..... import Computer, Device
-from .... import EyeTrackerDevice
-from ....eye_events import *
+import errno
+import sys
+
 from gevent import socket
-import sys, errno
+
+from ....eye_events import *
+from ..... import Computer, Device
+from ......constants import EyeTrackerConstants
+from ......errors import print2err, printExceptionDetailsToStdErr
+from ......util import updateSettings
 
 ET_UNDEFINED = EyeTrackerConstants.UNDEFINED
 getTime = Computer.getTime
 
 if sys.platform == 'win32':
-    # GP3 sends the Windows QPC value for each sample. getGP3Time() returns
-    # the current QPC time. This is used to calculate the sample qpc 'delay'
-    # which is then used to caclulate the sample time in iohub timebase.
     from ctypes import byref, c_int64, windll
     _fcounter_ = c_int64()
     _qpfreq_ = c_int64()
@@ -28,14 +26,11 @@ if sys.platform == 'win32':
     _qpfreq_ = float(_qpfreq_.value)
     _winQPC_ = windll.Kernel32.QueryPerformanceCounter
 
-    def getGP3Time():
+    def getLocalhostGP3Time():
         _winQPC_(byref(_fcounter_))
         return _fcounter_.value / _qpfreq_
-else:
-    # GP3 is only supported on Windows, so this will never actually be used.
-    def getGP3Time():
-        return getTime()        
-        
+
+
 def to_numeric(lit):
     """Return value of a numeric literal string. If the string can not be
     converted then the original string is returned.
@@ -80,49 +75,61 @@ def to_numeric(lit):
 
 class EyeTracker(EyeTrackerDevice):
     """
-    The Gazepoint GP3 implementation of the Common Eye Tracker Interface can be
-    used by providing the following EyeTracker class path as the eye tracker
-    device name in the iohub_config.yaml device settings file::
+    To start iohub with a Gazepoint GP3 eye tracker device, add a GP3
+    device to the device dictionary passed to launchHubServer or the 
+    experiment's iohub_config.yaml::
 
         eyetracker.hw.gazepoint.gp3.EyeTracker
 
     .. note:: The Gazepoint control application **must** be running
               while using this interface.
+              
+    Examples:
+        A. Start ioHub with Gazepoint GP3 device and run tracker calibration::
+    
+            from psychopy.iohub import launchHubServer
+            from psychopy.core import getTime, wait
 
-    The Gazepoint GP3 interface supports:
-    * connection / disconnection to the GP3 device.
-    * Starting the GP3 Calibration procedure.
-    * Starting / stopping when eye position data is collected.
-    * Sending text messages to the GP3 system.
-    * Current gaze position information, using the FPOGX, FPOGY fields from
-      the most receint REC message received from the GP3
-    * Generation of the BinocularEyeSampleEvent type based on the GP3 REC
-      message type. The following fields of an eye sample event are populated
-      populated:
-        * device_time: uses TIME field of the REC message
-        * logged_time: the time the REC message was received / read.
-        * time: currently set to equal the time the REC message was received.
-        * left_gaze_x: uses LFOGX
-        * left_gaze_y: uses LFOGY
-        * right_gaze_x: uses RFOGX
-        * right_gaze_y: uses RFOGY
-        * combined_gaze_x: uses FPOGX
-        * combined_gaze_Y: uses FPOGY
-        * left_pupil_size: uses LPD and is diameter in pixels
-        * right_pupil_size: uses RPD and is diamter in pixels
-    * Creates FixationStart and FixationEnd events by parsing the FPOGx fields 
-      of REC messages from the GP3.
-
-    The Gazepoint GP3 interface uses a polling method to check for new eye
-    tracker data. The default polling interval is 5 msec. This can be changed
-    in the device's configuration settings for the experiment if needed.
+            iohub_config = {'eyetracker.hw.gazepoint.gp3.EyeTracker':
+                {'name': 'tracker', 'device_timer': {'interval': 0.005}}}
+                
+            io = launchHubServer(**iohub_config)
+            
+            # Get the eye tracker device.
+            tracker = io.devices.tracker
+                            
+            # run eyetracker calibration
+            r = tracker.runSetupProcedure()
+            
+        B. Print all eye tracker events received for 2 seconds::
+                        
+            # Check for and print any eye tracker events received...
+            tracker.setRecordingState(True)
+            
+            stime = getTime()
+            while getTime()-stime < 2.0:
+                for e in tracker.getEvents():
+                    print(e)
+            
+        C. Print current eye position for 5 seconds::
+                        
+            # Check for and print current eye position every 100 msec.
+            stime = getTime()
+            while getTime()-stime < 5.0:
+                print(tracker.getPosition())
+                wait(0.1)
+            
+            tracker.setRecordingState(False)
+            
+            # Stop the ioHub Server
+            io.quit()
     """
 
     # GP3 tracker times are received as msec
     #
     DEVICE_TIMEBASE_TO_SEC = 1.0
     EVENT_CLASS_NAMES = [
-        'MonocularEyeSampleEvent',
+        'GazepointSampleEvent',
         'BinocularEyeSampleEvent',
         'FixationStartEvent',
         'FixationEndEvent',
@@ -131,7 +138,7 @@ class EyeTracker(EyeTrackerDevice):
         'BlinkStartEvent',
         'BlinkEndEvent']
     _recording = False
-    __slots__ = ['_gp3', '_rx_buffer', '_ttfreq', '_last_fix_evt']
+    __slots__ = ['_gp3', '_rx_buffer', '_ttfreq', '_last_fix_evt', '_serverIsLocalhost']
 
     def __init__(self, *args, **kwargs):
         EyeTrackerDevice.__init__(self, *args, **kwargs)
@@ -154,47 +161,48 @@ class EyeTracker(EyeTrackerDevice):
 
         # Connect to the eye tracker server by default.
         self.setConnectionState(True)
-        
+        self._serverIsLocalhost = self.getConfiguration().get('network_settings').get('ip_address') in ['localhost',
+                                                                                                        '127.0.0.1']
         self._gp3get("TIME_TICK_FREQUENCY")
         self._ttfreq = self._waitForAck('TIME_TICK_FREQUENCY').get("FREQ")
 
         self._last_fix_evt = None
-        
+
     def trackerTime(self):
         """
         Current eye tracker time in the eye tracker's native time base.
-        The GP3 system uses a sec.usec timebase based on the Windows QPC.
-
-        Args:
-            None
+        The GP3 system uses a sec.usec timebase based on the Windows QPC,
+        so when running on a single computer setup, iohub can directly read
+        the current gazepoint time. When running with a two computer setup,
+        current gazepoint time is assumed to equal current local time.
 
         Returns:
             float: current native eye tracker time in sec.msec format.
         """
-        return getGP3Time()
+        if sys.platform == 'win32' and self._serverIsLocalhost:
+            return getLocalhostGP3Time()
+        return getTime()
 
     def trackerSec(self):
         """
         Same as the GP3 implementation of trackerTime().
         """
-        if self._gp3:
-            return self.trackerTime() * self.DEVICE_TIMEBASE_TO_SEC
-        return EyeTrackerConstants.EYETRACKER_ERROR
-        
+        return self.trackerTime() * self.DEVICE_TIMEBASE_TO_SEC
+
     def _sendRequest(self, rtype, ID, **kwargs):
         params = ''
-        for k,v in kwargs.items():
+        for k, v in kwargs.items():
             params += ' {}="{}"'.format(k, v)
         rqstr = '<{} ID="{}" {} />\r\n'.format(rtype, ID, params)
-        #print2err("Sending: {}\n".format(rqstr))
-        self._gp3.sendall(str.encode(rqstr))        
-        
+        # print2err("Sending: {}\n".format(rqstr))
+        self._gp3.sendall(str.encode(rqstr))
+
     def _gp3set(self, ID, **kwargs):
-        self._sendRequest("SET", ID, **kwargs)     
+        self._sendRequest("SET", ID, **kwargs)
 
     def _gp3get(self, ID, **kwargs):
-        self._sendRequest("GET", ID, **kwargs)     
-        
+        self._sendRequest("GET", ID, **kwargs)
+
     def _waitForAck(self, type_id, timeout=5.0):
         stime = getTime()
         while getTime() - stime < timeout:
@@ -205,7 +213,7 @@ class EyeTracker(EyeTrackerDevice):
                     return m
         return None
 
-    def _checkForNetData(self, timeout=0):
+    def _checkForNetData(self, timeout=0.0):
         self._gp3.settimeout(timeout)
         while True:
             try:
@@ -259,7 +267,8 @@ class EyeTracker(EyeTrackerDevice):
         return msgs
 
     def setConnectionState(self, enable):
-        """Connects or disconnects from the GP3 eye tracking hardware.
+        """
+        Connects or disconnects from the GP3 eye tracking hardware.
 
         By default, when ioHub is started, a connection is automatically made,
         and when the experiment completes and ioHub is closed, so is the GP3
@@ -269,33 +278,34 @@ class EyeTracker(EyeTrackerDevice):
 
         Return:
             bool: indicates the current connection state to the eye tracking hardware.
-
         """
         if enable is True and self._gp3 is None:
             try:
                 self._rx_buffer = ''
                 self._gp3 = socket.socket()
-                address = ('127.0.0.1', 4242)
+                haddress = self.getConfiguration().get('network_settings').get('ip_address')
+                hport = int(self.getConfiguration().get('network_settings').get('port'))
+                address = (haddress, hport)
                 self._gp3.connect(address)
                 init_connection_str = ''
-                #init_connection_str = '<SET ID="ENABLE_SEND_CURSOR" STATE="1" />\r\n'
                 init_connection_str += '<SET ID="ENABLE_SEND_POG_LEFT" STATE="1" />\r\n'
                 init_connection_str += '<SET ID="ENABLE_SEND_POG_RIGHT" STATE="1" />\r\n'
-                #init_connection_str += '<SET ID="ENABLE_SEND_USER_DATA" STATE="1"/>\r\n'
                 init_connection_str += '<SET ID="ENABLE_SEND_PUPIL_LEFT" STATE="1" />\r\n'
                 init_connection_str += '<SET ID="ENABLE_SEND_PUPIL_RIGHT" STATE="1" />\r\n'
                 init_connection_str += '<SET ID="ENABLE_SEND_POG_FIX" STATE="1" />\r\n'
                 init_connection_str += '<SET ID="ENABLE_SEND_POG_BEST" STATE="1" />\r\n'
+                init_connection_str += '<SET ID="ENABLE_SEND_EYE_LEFT" STATE="1" />\r\n'
+                init_connection_str += '<SET ID="ENABLE_SEND_EYE_RIGHT" STATE="1" />\r\n'
                 init_connection_str += '<SET ID="ENABLE_SEND_COUNTER" STATE="1" />\r\n'
+                init_connection_str += '<SET ID="ENABLE_SEND_DIAL" STATE="1" />\r\n'
+                init_connection_str += '<SET ID="ENABLE_SEND_GSR" STATE="1" />\r\n'
+                init_connection_str += '<SET ID="ENABLE_SEND_HR" STATE="1" />\r\n'
+                init_connection_str += '<SET ID="ENABLE_SEND_HR_PULSE" STATE="1" />\r\n'
                 init_connection_str += '<SET ID="ENABLE_SEND_TIME" STATE="1" />\r\n'
                 init_connection_str += '<SET ID="ENABLE_SEND_TIME_TICK" STATE="1" />\r\n'
                 init_connection_str += '<SET ID="ENABLE_SEND_DATA" STATE="0" />\r\n'
                 self._gp3.sendall(str.encode(init_connection_str))
-                
-                # block for upp to 1 second to get reply txt.
-                #strStatus = self._checkForNetData(1.0)
-                #print2err("strStatus: ",strStatus)
-                                
+
                 if self._waitForAck('ENABLE_SEND_TIME_TICK'):
                     self._rx_buffer = ''
                     return True
@@ -304,9 +314,9 @@ class EyeTracker(EyeTrackerDevice):
 
             except socket.error as e:
                 if e.args[0] == 10061:
-                    print2err(
-                        '***** Socket Error: Check Gazepoint control software is running *****')
+                    print2err('***** Socket Error: Check Gazepoint control software is running *****')
                 print2err('Error connecting to GP3 ', e)
+
         elif enable is False and self._gp3:
             try:
                 if self._gp3:
@@ -320,17 +330,14 @@ class EyeTracker(EyeTrackerDevice):
         return self.isConnected()
 
     def isConnected(self):
-        """isConnected returns whether the GP3 is connected to the experiment
+        """
+        isConnected returns whether the GP3 is connected to the experiment
         PC and if the tracker state is valid. Returns True if the tracker can
         be put into Record mode, etc and False if there is an error with the
         tracker or tracker connection with the experiment PC.
 
-        Args:
-            None
-
         Return:
             bool:  True = the eye tracking hardware is connected. False otherwise.
-
         """
         return self._gp3 is not None
 
@@ -340,20 +347,20 @@ class EyeTracker(EyeTrackerDevice):
         """
         try:
             if time_offset is not None:
-                print2err(
-                    'Warning: GP3 EyeTracker.sendMessage time_offset arguement is ignored by this eye tracker interface.')
+                print2err('Warning: GP3 EyeTracker.sendMessage time_offset arguement is ignored.')
             if self._gp3 and self.isRecordingEnabled() is True:
-                strMessage = '<SET ID="USER_DATA" VALUE="{0}"/>\r\n'.format(
-                    message_contents)
+                strMessage = '<SET ID="USER_DATA" VALUE="{0}"/>\r\n'.format(message_contents)
                 self._gp3.sendall(strMessage)
         except Exception:
-            print2err('Problems sending message: {0}'.FORMAT(message_contents))
+            print2err('Problems sending message: {0}'.format(message_contents))
             printExceptionDetailsToStdErr()
         return EyeTrackerConstants.EYETRACKER_OK
 
     def enableEventReporting(self, enabled=True):
-        """enableEventReporting is functionally identical to the eye tracker
-        device specific setRecordingState method."""
+        """
+        enableEventReporting is functionally identical to the eye tracker
+        device specific setRecordingState method.
+        """
 
         try:
             self.setRecordingState(enabled)
@@ -364,8 +371,8 @@ class EyeTracker(EyeTrackerDevice):
             printExceptionDetailsToStdErr()
 
     def setRecordingState(self, recording):
-        """setRecordingState is used to start or stop the recording of data
-        from the eye tracking device.
+        """
+        setRecordingState is used to start or stop the recording of data from the eye tracking device.
 
         args:
            recording (bool): if True, the eye tracker will start recordng available
@@ -383,7 +390,6 @@ class EyeTracker(EyeTrackerDevice):
 
         Return:trackerTime
             bool: the current recording state of the eye tracking device
-
         """
         current_state = self.isRecordingEnabled()
         if self._gp3 and recording is True and current_state is False:
@@ -399,65 +405,83 @@ class EyeTracker(EyeTrackerDevice):
             self._rx_buffer = ''
             self._gp3.sendall(
                 str.encode('<SET ID="ENABLE_SEND_DATA" STATE="0" />\r\n'))
-            rxdat = self._checkForNetData(1.0)          
+            self._checkForNetData(1.0)
             EyeTracker._recording = False
             self._latest_sample = None
             self._latest_gaze_position = None
         return EyeTrackerDevice.enableEventReporting(self, recording)
 
     def isRecordingEnabled(self):
-        """isRecordingEnabled returns the recording state from the eye tracking
-        device.
-
-        Args:
-           None
+        """
+        isRecordingEnabled returns the recording state from the eye tracking device.
 
         Return:
             bool: True == the device is recording data; False == Recording is not occurring
-
         """
         if self._gp3:
             return self._recording
         return False
 
-    def runSetupProcedure(self,starting_state=None):
-        """runSetupProcedure opens the GP3 Calibration window.
+    def runSetupProcedure(self, calibration_args={}):
         """
-        
-        cal_config = self.getConfiguration().get('calibration')
+        Start the eye tracker calibration procedure.
+        """
+        cal_config = updateSettings(self.getConfiguration().get('calibration'), calibration_args)
+        print2err("gp3 cal_config:", cal_config)
+
+        use_builtin = cal_config.get('use_builtin')
         targ_timeout = cal_config.get('target_duration')
         targ_delay = cal_config.get('target_delay')
-        self._gp3set('CALIBRATE_TIMEOUT', VALUE=targ_timeout)  
-        self._gp3set('CALIBRATE_DELAY', VALUE=targ_delay)        
+
+        self._gp3set('CALIBRATE_TIMEOUT', VALUE=targ_timeout)
+        self._gp3set('CALIBRATE_DELAY', VALUE=targ_delay)
         self._waitForAck('CALIBRATE_DELAY', timeout=2.0)
 
-        self._gp3set('CALIBRATE_SHOW', STATE=1)  
-        self._gp3set('CALIBRATE_START', STATE=1)  
+        if use_builtin is True:
+            self._gp3set('CALIBRATE_RESET')
+            self._gp3set('CALIBRATE_SHOW', STATE=1)
+            self._gp3set('CALIBRATE_START', STATE=1)
+
+        else:
+            from .gazepointCalibrationGraphics import GazepointPsychopyCalibrationGraphics
+            calibration = GazepointPsychopyCalibrationGraphics(self, calibration_args)
+
+            calibration.runCalibration()
+
+            calibration.window.close()
+
+            calibration._unregisterEventMonitors()
+            calibration.clearAllEventBuffers()
+
+        # Get calibration result and return to experiment process.
         cal_result = self._waitForAck('CALIB_RESULT', timeout=30.0)
-
-        if cal_result:        
-            #print2err("GP3 calibration done.")
-            #print2err("Closing GP3 calibration window....")
-            self._gp3set('CALIBRATE_SHOW', STATE=0)  
+        if cal_result:
+            self._gp3set('CALIBRATE_SHOW', STATE=0)
+            self._gp3set('CALIBRATE_START', STATE=0)
             self._gp3get('CALIBRATE_RESULT_SUMMARY')
-    
-            cal_result['SUMMARY']=self._waitForAck('CALIBRATE_RESULT_SUMMARY')
-        #print2err("CAL_RESULT: ",cal_result)
+            del cal_result['type']
+            del cal_result['ID']
+
+            cal_summary = self._waitForAck('CALIBRATE_RESULT_SUMMARY')
+            del cal_summary['type']
+            del cal_summary['ID']
+            cal_result['SUMMARY'] = cal_summary
+
+        self._gp3set('CALIBRATE_SHOW', STATE=0)
+        self._gp3set('CALIBRATE_START', STATE=0)
+
         return cal_result
-        
+
     def _poll(self):
-        """This method is called by gp3 every n msec based on the polling
-        interval set in the eye tracker config.
-
-        Default is 5 msec
-
+        """
+        This method is called by iohub every n msec based on the polling interval set in the eye tracker config.
         """
         try:
             if not self.isRecordingEnabled():
                 return
 
             logged_time = Computer.getTime()
-            tracker_time = getGP3Time()
+            tracker_time = self.trackerTime()
 
             # Check for any new rx data from gp3 socket.
             # If None is returned, that means the gp3 closed the socket
@@ -467,7 +491,7 @@ class EyeTracker(EyeTrackerDevice):
 
             # Parse any rx text received from the gp3 into msg dicts.
             msgs = self._parseRxBuffer()
-            for m in msgs:   
+            for m in msgs:
                 if m.get('type') == 'REC':
                     binocSample = self._parseSampleFromMsg(m, logged_time, tracker_time)
                     self._addNativeEventToBuffer(binocSample)
@@ -477,18 +501,17 @@ class EyeTracker(EyeTrackerDevice):
                     combined_gaze_y = m.get('FPOGY', ET_UNDEFINED)
                     combined_gaze_x, combined_gaze_y = self._eyeTrackerToDisplayCoords(
                         (combined_gaze_x, combined_gaze_y))
-        
-                    
+
                     if combined_gaze_x is not None and combined_gaze_y is not None:
                         self._latest_gaze_position = (combined_gaze_x, combined_gaze_y)
                     else:
                         self._latest_gaze_position = None
-            
+
                     for fix_evt in self._parseFixationFromMsg(m, logged_time, tracker_time):
                         self._addNativeEventToBuffer(fix_evt)
 
                 elif m.get('type') == 'ACK':
-                    pass #print2err('ACK Received: ', m)
+                    pass  # print2err('ACK Received: ', m)
                 else:
                     # Message type is not being handled.
                     print2err('UNHANDLED GP3 MESSAGE: ', m)
@@ -505,108 +528,103 @@ class EyeTracker(EyeTrackerDevice):
         fix_evts = []
         fix_valid = m.get('FPOGV', ET_UNDEFINED)
         if fix_valid == 1:
-            fix_x , fix_y = self._eyeTrackerToDisplayCoords((m.get('FPOGX',
-                                                                   ET_UNDEFINED),
-                                                             m.get('FPOGY', 
-                                                                   ET_UNDEFINED)
-                                                            )
-                                                           )
+            fix_x, fix_y = self._eyeTrackerToDisplayCoords((m.get('FPOGX', ET_UNDEFINED), m.get('FPOGY', ET_UNDEFINED)))
             fix_stime = m.get('FPOGS', ET_UNDEFINED)
             fix_duration = m.get('FPOGD', ET_UNDEFINED)
-            fix_id = m.get('FPOGID', ET_UNDEFINED)        
-            m = dict(FPOGID=fix_id, FPOGV=fix_valid, FPOGX=fix_x, FPOGY=fix_y, 
-                     FPOGS=fix_stime, FPOGD=fix_duration, 
-                     TIME=long(m.get('TIME')),
-                     TIME_TICK=long(m.get('TIME_TICK')))
+            fix_id = m.get('FPOGID', ET_UNDEFINED)
+            m = dict(FPOGID=fix_id, FPOGV=fix_valid, FPOGX=fix_x, FPOGY=fix_y, FPOGS=fix_stime, FPOGD=fix_duration,
+                     TIME=int(m.get('TIME')), TIME_TICK=int(m.get('TIME_TICK')))
 
             if self._last_fix_evt is None:
                 # Create start fixation evt based on m
-                fix_evts = self._createStartFixEvt(m, logged_time, tracker_time)            
+                fix_evts = self._createStartFixEvt(m, logged_time, tracker_time)
             elif fix_id != self._last_fix_evt.get('FPOGID'):
                 # Create Fixation end evt based on self._last_fix_evt
                 fix_evts = self._createEndFixEvt(self._last_fix_evt, logged_time, tracker_time)
                 # Create start fixation evt based on m
                 fstart = self._createStartFixEvt(m, logged_time, tracker_time)
                 fix_evts.extend(fstart)
-                
+
             self._last_fix_evt = m
-            
+
         return fix_evts
-        
+
     def _createStartFixEvt(self, m, logged_time, tracker_time):
         # Create start fixation evt based on m
         # GP3 does not craete separate left and right eye fix evts, so we
         # create a left and right fix evt each time.
         gaze = m.get('FPOGX', ET_UNDEFINED), m.get('FPOGY', ET_UNDEFINED)
 
-        evt_tick_time = long(m.get('TIME_TICK', ET_UNDEFINED))
-        evt_tick_sec = evt_tick_time / self._ttfreq
-   
-        sample_delay = tracker_time-evt_tick_sec 
         fix_dur = m.get('FPOGD', ET_UNDEFINED)
-        iohub_time = logged_time - sample_delay - fix_dur
-        confidence_interval = logged_time - self._last_poll_time
+        if self._serverIsLocalhost:
+            evt_tick_time = int(m.get('TIME_TICK', ET_UNDEFINED))
+            evt_tick_sec = evt_tick_time / self._ttfreq
+            sample_delay = tracker_time - evt_tick_sec
+            iohub_time = logged_time - sample_delay - fix_dur
+        else:
+            sample_delay = 0
+            iohub_time = logged_time - sample_delay - fix_dur
+
         device_time = m.get('FPOGS', ET_UNDEFINED)
+        confidence_interval = logged_time - self._last_poll_time
         etype = EventConstants.FIXATION_START
         estatus = 0
-        
+
         sel = [
-            0,                                      # exp ID
-            0,                                      # sess ID
+            0,  # exp ID
+            0,  # sess ID
             0,  # device id (not currently used)
-            Device._getNextEventID(),              # event ID
-            etype,                                  # event type
+            Device._getNextEventID(),  # event ID
+            etype,  # event type
             device_time,
             logged_time,
             iohub_time,
             confidence_interval,
             sample_delay,
             0,
-            EyeTrackerConstants.LEFT_EYE,                              # eye
-            gaze[0],                                # gaze x
-            gaze[1],                                # gaze y
-            ET_UNDEFINED,                                     # gaze z
-            ET_UNDEFINED,                                # angle x
-            ET_UNDEFINED,                                # angle y
-            ET_UNDEFINED,                                   # raw x
-            ET_UNDEFINED,                                   # raw y
-            ET_UNDEFINED,                    # pupil measure 1
-            ET_UNDEFINED,                    # pupil measure type 1
-            ET_UNDEFINED,                    # pupil measure 2
-            ET_UNDEFINED,                    # pupil measure 2 type
-            ET_UNDEFINED,                                 # ppd x
-            ET_UNDEFINED,                                 # ppd y
-            ET_UNDEFINED,                                    # velocity x
-            ET_UNDEFINED,                                    # velocity y
-            ET_UNDEFINED,                                # velocity xy
-            estatus                                  # status
+            EyeTrackerConstants.LEFT_EYE,  # eye
+            gaze[0],  # gaze x
+            gaze[1],  # gaze y
+            ET_UNDEFINED,  # gaze z
+            ET_UNDEFINED,  # angle x
+            ET_UNDEFINED,  # angle y
+            ET_UNDEFINED,  # raw x
+            ET_UNDEFINED,  # raw y
+            ET_UNDEFINED,  # pupil measure 1
+            ET_UNDEFINED,  # pupil measure type 1
+            ET_UNDEFINED,  # pupil measure 2
+            ET_UNDEFINED,  # pupil measure 2 type
+            ET_UNDEFINED,  # ppd x
+            ET_UNDEFINED,  # ppd y
+            ET_UNDEFINED,  # velocity x
+            ET_UNDEFINED,  # velocity y
+            ET_UNDEFINED,  # velocity xy
+            estatus  # status
         ]
-        
+
         ser = list(sel)
-        ser[3]=Device._getNextEventID()
-        ser[11]=EyeTrackerConstants.RIGHT_EYE
-        
+        ser[3] = Device._getNextEventID()
+        ser[11] = EyeTrackerConstants.RIGHT_EYE
+
         return [sel, ser]
-    
+
     def _createEndFixEvt(self, m, logged_time, tracker_time):
         # Create end fixation evt based on m
         etype = EventConstants.FIXATION_END
         estatus = 0
-        
+
         gaze = m.get('FPOGX', ET_UNDEFINED), m.get('FPOGY', ET_UNDEFINED)
-
-
-        evt_tick_time = long(m.get('TIME_TICK', ET_UNDEFINED))
-        evt_tick_sec = evt_tick_time / self._ttfreq
-   
-        sample_delay = tracker_time-evt_tick_sec 
         fix_dur = m.get('FPOGD', ET_UNDEFINED)
-        iohub_time = logged_time - sample_delay
-        confidence_interval = logged_time - self._last_poll_time
-        device_time = m.get('FPOGS', ET_UNDEFINED)+fix_dur
+        device_time = m.get('FPOGS', ET_UNDEFINED) + fix_dur
+
+        if self._serverIsLocalhost:
+            evt_tick_time = int(m.get('TIME_TICK', ET_UNDEFINED))
+            evt_tick_sec = evt_tick_time / self._ttfreq
+            sample_delay = tracker_time - evt_tick_sec
+        else:
+            sample_delay = 0
 
         confidence_interval = logged_time - self._last_poll_time
-
         iohub_time = logged_time - sample_delay
 
         eel = [0,
@@ -677,25 +695,26 @@ class EyeTracker(EyeTrackerDevice):
                ]
 
         eer = list(eel)
-        eer[3]=Device._getNextEventID()
-        eer[11]=EyeTrackerConstants.RIGHT_EYE
-     
+        eer[3] = Device._getNextEventID()
+        eer[11] = EyeTrackerConstants.RIGHT_EYE
+
         return [eel, eer]
-        
+
     def _parseSampleFromMsg(self, m, logged_time, tracker_time):
-        # Always tracks binoc, so always use BINOCULAR_EYE_SAMPLE
-        event_type = EventConstants.BINOCULAR_EYE_SAMPLE
+        # Always use GAZEPOINT_SAMPLE
+        event_type = EventConstants.GAZEPOINT_SAMPLE
 
         # in seconds, take from the REC TIME field
         event_timestamp = m.get('TIME', ET_UNDEFINED)
 
-        evt_tick_time = long(m.get('TIME_TICK', ET_UNDEFINED))
-        evt_tick_sec = evt_tick_time / self._ttfreq
-   
-        event_delay = tracker_time-evt_tick_sec 
-        #print2err('event_delay: ',event_delay)
+        if self._serverIsLocalhost:
+            evt_tick_time = int(m.get('TIME_TICK', ET_UNDEFINED))
+            evt_tick_sec = evt_tick_time / self._ttfreq
+            sample_delay = tracker_time - evt_tick_sec
+        else:
+            sample_delay = 0
 
-        iohub_time = logged_time - event_delay
+        iohub_time = logged_time - sample_delay
 
         confidence_interval = logged_time - self._last_poll_time
 
@@ -705,6 +724,7 @@ class EyeTracker(EyeTrackerDevice):
             (left_gaze_x, left_gaze_y))
         left_pupil_size = m.get(
             'LPD', ET_UNDEFINED)  # diameter of pupil in pixels
+        left_pupil_size_2 = m.get("LPUPILD", ET_UNDEFINED)  # diameter of pupil in meters (sic!)
 
         right_gaze_x = m.get('RPOGX', ET_UNDEFINED)
         right_gaze_y = m.get('RPOGY', ET_UNDEFINED)
@@ -712,6 +732,7 @@ class EyeTracker(EyeTrackerDevice):
             (right_gaze_x, right_gaze_y))
         right_pupil_size = m.get(
             'RPD', ET_UNDEFINED)  # diameter of pupil in pixels
+        right_pupil_size_2 = m.get("RPUPILD", ET_UNDEFINED)  # diameter of pupil in meters (sic!)
 
         #
         # The X and Y-coordinates of the left and right eye pupil
@@ -724,6 +745,14 @@ class EyeTracker(EyeTrackerDevice):
 
         left_eye_status = m.get('LPOGV', ET_UNDEFINED)
         right_eye_status = m.get('RPOGV', ET_UNDEFINED)
+
+        dial = m.get('DIAL', ET_UNDEFINED)
+        dialv = m.get('DIALV', ET_UNDEFINED)
+        gsr = m.get('GSR', ET_UNDEFINED)
+        gsrv = m.get('GSRV', ET_UNDEFINED)
+        hr = m.get('HR', ET_UNDEFINED)
+        hrv = m.get('HRV', ET_UNDEFINED)
+        hrp = m.get('HRP', ET_UNDEFINED)
 
         # 0 = both eyes OK
         status = 0
@@ -747,77 +776,56 @@ class EyeTracker(EyeTrackerDevice):
             logged_time,  # time _poll is called
             iohub_time,
             confidence_interval,
-            event_delay,
+            sample_delay,
             0,
             left_gaze_x,
             left_gaze_y,
-            ET_UNDEFINED,
-            ET_UNDEFINED,
-            ET_UNDEFINED,
-            ET_UNDEFINED,
-            ET_UNDEFINED,
-            ET_UNDEFINED,
             left_raw_x,
             left_raw_y,
             left_pupil_size,
             EyeTrackerConstants.PUPIL_DIAMETER,
-            ET_UNDEFINED,
-            ET_UNDEFINED,
-            ET_UNDEFINED,
-            ET_UNDEFINED,
-            ET_UNDEFINED,
-            ET_UNDEFINED,
-            ET_UNDEFINED,
+            left_pupil_size_2 * 1000,  # converting to MM
+            EyeTrackerConstants.PUPIL_DIAMETER_MM,
             right_gaze_x,
             right_gaze_y,
-            ET_UNDEFINED,
-            ET_UNDEFINED,
-            ET_UNDEFINED,
-            ET_UNDEFINED,
-            ET_UNDEFINED,
-            ET_UNDEFINED,
             right_raw_x,
             right_raw_y,
             right_pupil_size,
             EyeTrackerConstants.PUPIL_DIAMETER,
-            ET_UNDEFINED,
-            ET_UNDEFINED,
-            ET_UNDEFINED,
-            ET_UNDEFINED,
-            ET_UNDEFINED,
-            ET_UNDEFINED,
-            ET_UNDEFINED,
+            right_pupil_size_2 * 1000,  # converting to MM
+            EyeTrackerConstants.PUPIL_DIAMETER_MM,
+            dial,
+            dialv,
+            gsr,
+            gsrv,
+            hr,
+            hrv,
+            hrp,
             status
-        ]        
+        ]
 
     def _getIOHubEventObject(self, native_event_data):
-        """The _getIOHubEventObject method is called by the ioHub Process to
+        """
+        The _getIOHubEventObject method is called by the ioHub Process to
         convert new native device event objects that have been received to the
-        appropriate ioHub Event type representation."""
+        appropriate ioHub Event type representation.
+        """
         self._latest_sample = native_event_data
         return self._latest_sample
 
     def _eyeTrackerToDisplayCoords(self, eyetracker_point):
-        """Converts GP3 gaze positions to the Display device coordinate space.
-
-        TODO: Check if thgis works for 0.0,0.0 being left,top to 1.0,1.0
-
         """
-
+        Converts GP3 gaze positions to the Display device coordinate space.
+        """
         gaze_x, gaze_y = eyetracker_point
         left, top, right, bottom = self._display_device.getCoordBounds()
         w, h = right - left, top - bottom
         x, y = left + w * gaze_x, bottom + h * (1.0 - gaze_y)
-
-        #print2err("GP3: ",(eyetracker_point),(left,top,right,bottom),(x,y))
         return x, y
 
     def _displayToEyeTrackerCoords(self, display_x, display_y):
-        """Converts a Display device point to GP3 gaze position coordinate
-        space.
-
-        TODO: Check if thgis works for 0.0,0.0 being left,top to 1.0,1.0
-
+        """
+        Converts a Display device point to GP3 gaze position coordinate space.
         """
         left, top, right, bottom = self._display_device.getCoordBounds()
         w, h = right - left, top - bottom

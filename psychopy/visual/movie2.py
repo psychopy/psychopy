@@ -58,7 +58,7 @@ Testing has only been done on Windows and Linux so far.
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 #
 # Contributed by Sol Simpson, April 2014.
@@ -88,6 +88,7 @@ from psychopy import core, logging
 
 from psychopy.tools.arraytools import val2array
 from psychopy.tools.attributetools import logAttrib, setAttribute
+from psychopy.tools.filetools import pathToString
 from psychopy.visual.basevisual import BaseVisualStim, ContainerMixin
 from psychopy.clock import Clock
 from psychopy.constants import FINISHED, NOT_STARTED, PAUSED, PLAYING, STOPPED
@@ -113,9 +114,11 @@ except Exception as err:
         bits = 64
     else:
         bits = 32
-    if "wrong architecture" in err.message:
-        raise OSError("Failed to import vlc module for MovieStim2.\n"
-          "You're using %i-bit python. Is your VLC install the same?" % bits)
+    if "wrong architecture" in err:
+        msg = ("Failed to import vlc module for MovieStim2.\n"
+               "You're using %i-bit python. Is your VLC install the same?"
+               % bits)
+        raise OSError(msg)
     else:
         raise err
 
@@ -233,7 +236,7 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
             logging.warning("FrameRate could not be supplied by psychopy; "
                             "defaulting to 60.0")
             self._retracerate = 60.0
-        self.filename = filename
+        self.filename = pathToString(filename)
         self.loop = loop
         self.flipVert = flipVert
         self.flipHoriz = flipHoriz
@@ -325,6 +328,7 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         After the file is loaded MovieStim.duration is updated with the movie
         duration (in seconds).
         """
+        filename = pathToString(filename)
         self._unload()
         self._reset()
         if self._no_audio is False:
@@ -392,7 +396,7 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
             vlc.EventType.MediaPlayerEndReached, _audioEndCallback,
             weakref.ref(self))
 
-    def _releaseeAudioStream(self):
+    def _releaseAudioStream(self):
         if self._audio_stream_player:
             self._audio_stream_player.stop()
 
@@ -406,7 +410,6 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
             self._audio_stream.release()
 
         if self._vlc_instance:
-            self._vlc_instance.vlm_release()
             self._vlc_instance.release()
 
         self._audio_stream = None
@@ -645,9 +648,11 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
             GL.glEnable(GL.GL_TEXTURE_2D)
             # bind that name to the target
             GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
-            # makes the texture map wrap (this is actually default anyway)
+            # don't allow a movie texture to wrap around
             GL.glTexParameteri(
-                GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_REPEAT)
+                GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP)
+            GL.glTexParameteri(
+                GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP)
             # data from PIL/numpy is packed, but default for GL is 4 bytes
             GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1)
             # important if using bits++ because GL_LINEAR
@@ -787,7 +792,7 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         self._video_stream.release()
         # self._video_stream = None
         self._numpy_frame = None
-        self._releaseeAudioStream()
+        self._releaseAudioStream()
         self.status = FINISHED
 
     def _onEos(self):

@@ -1,47 +1,36 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+"""Classes and functions for working with colors.
+"""
 from __future__ import absolute_import, print_function
 
-from past.builtins import basestring
-from psychopy.tools.colorspacetools import dkl2rgb, lms2rgb, hsv2rgb  # pylint: disable=W0611
-import numpy
+import re
+from math import inf
+from psychopy import logging
+import psychopy.tools.colorspacetools as ct
+from psychopy.tools.mathtools import infrange
+import numpy as np
 
 
-def hex2rgb255(hexColor):
-    """Convert a hex color string (e.g. "#05ff66") into an rgb triplet
-    ranging from 0:255
-    """
-    if hexColor[0] == '#':
-        hexColor = hexColor[1:]
-    elif hexColor[0:2].lower() == '0x':
-        hexColor = hexColor[2:]
-    if len(hexColor) == 3:
-        hexColor = hexColor[0] + '0' + hexColor[1] + '0' + hexColor[2] + '0'
+# Dict of examples of Psychopy Red at 12% opacity in different formats
+colorExamples = {
+    'named': 'crimson',
+    'hex': '#F2545B',
+    'hexa': '#F2545B1E',
+    'rgb': (0.89, -0.35, -0.28),
+    'rgba': (0.89, -0.35, -0.28, -0.76),
+    'rgb1': (0.95, 0.32, 0.36),
+    'rgba1': (0.95, 0.32, 0.36, 0.12),
+    'rgb255': (242, 84, 91),
+    'rgba255': (242, 84, 91, 30),
+    'hsv': (357, 0.65, 0.95),
+    'hsva': (357, 0.65, 0.95, 0.12),
+}
 
-    rgb = (int(hexColor[0:2], 16),
-           int(hexColor[2:4], 16),
-           int(hexColor[4:6], 16))
-
-    return rgb
-
-
-def isValidColor(color):
-    """check color validity (equivalent to existing checks in _setColor)
-    """
-    try:
-        color = float(color)
-        return True
-    except Exception:
-        if isinstance(color, basestring) and len(color):
-            return (color.lower() in list(colors255.keys())
-                    or color[0] == '#' or color[0:2] == '0x')
-        return type(color) in [tuple, list, numpy.ndarray] or not color
-
-
-"""140 colors defined by most modern browsers (originally the standard colors
-of X11). Google for 140 web colors for further info"""
-colors = {
+# Dict of named colours
+colorNames = {
+    "none": (0, 0, 0),
     "aliceblue": (0.882352941176471, 0.945098039215686, 1),
     "antiquewhite": (0.96078431372549, 0.843137254901961, 0.686274509803922),
     "aqua": (-1, 1, 1),
@@ -57,6 +46,7 @@ colors = {
     "burlywood": (0.741176470588235, 0.443137254901961, 0.0588235294117647),
     "cadetblue": (-0.254901960784314, 0.23921568627451, 0.254901960784314),
     "chartreuse": (-0.00392156862745097, 1, -1),
+    "chestnut": (0.607843137254902, -0.27843137254902, -0.27843137254902),
     "chocolate": (0.647058823529412, -0.176470588235294, -0.764705882352941),
     "coral": (1, -0.00392156862745097, -0.372549019607843),
     "cornflowerblue": (-0.215686274509804, 0.168627450980392, 0.858823529411765),
@@ -101,7 +91,6 @@ colors = {
     "greenyellow": (0.356862745098039, 1, -0.631372549019608),
     "honeydew": (0.882352941176471, 1, 0.882352941176471),
     "hotpink": (1, -0.176470588235294, 0.411764705882353),
-    "indianred": (0.607843137254902, -0.27843137254902, -0.27843137254902),
     "indigo": (-0.411764705882353, -1, 0.0196078431372548),
     "ivory": (1, 1, 0.882352941176471),
     "khaki": (0.882352941176471, 0.803921568627451, 0.0980392156862746),
@@ -188,296 +177,763 @@ colors = {
     "white": (1, 1, 1),
     "whitesmoke": (0.92156862745098, 0.92156862745098, 0.92156862745098),
     "yellow": (1, 1, -1),
-    "yellowgreen": (0.207843137254902, 0.607843137254902, -0.607843137254902),
+    "yellowgreen": (0.207843137254902, 0.607843137254902, -0.607843137254902)
 }
-colorsHex = {
-    'aliceblue': '#F0F8FF',
-    'antiquewhite': '#FAEBD7',
-    'aqua': '#00FFFF',
-    'aquamarine': '#7FFFD4',
-    'azure': '#F0FFFF',
-    'beige': '#F5F5DC',
-    'bisque': '#FFE4C4',
-    'black': '#000000',
-    'blanchedalmond': '#FFEBCD',
-    'blue': '#0000FF',
-    'blueviolet': '#8A2BE2',
-    'brown': '#A52A2A',
-    'burlywood': '#DEB887',
-    'cadetblue': '#5F9EA0',
-    'chartreuse': '#7FFF00',
-    'chocolate': '#D2691E',
-    'coral': '#FF7F50',
-    'cornflowerblue': '#6495ED',
-    'cornsilk': '#FFF8DC',
-    'crimson': '#DC143C',
-    'cyan': '#00FFFF',
-    'darkblue': '#00008B',
-    'darkcyan': '#008B8B',
-    'darkgoldenrod': '#B8860B',
-    'darkgray': '#A9A9A9',
-    'darkgreen': '#006400',
-    'darkkhaki': '#BDB76B',
-    'darkmagenta': '#8B008B',
-    'darkolivegreen': '#556B2F',
-    'darkorange': '#FF8C00',
-    'darkorchid': '#9932CC',
-    'darkred': '#8B0000',
-    'darksalmon': '#E9967A',
-    'darkseagreen': '#8FBC8B',
-    'darkslateblue': '#483D8B',
-    'darkslategray': '#2F4F4F',
-    'darkturquoise': '#00CED1',
-    'darkviolet': '#9400D3',
-    'deeppink': '#FF1493',
-    'deepskyblue': '#00BFFF',
-    'dimgray': '#696969',
-    'dodgerblue': '#1E90FF',
-    'firebrick': '#B22222',
-    'floralwhite': '#FFFAF0',
-    'forestgreen': '#228B22',
-    'fuchsia': '#FF00FF',
-    'gainsboro': '#DCDCDC',
-    'ghostwhite': '#F8F8FF',
-    'gold': '#FFD700',
-    'goldenrod': '#DAA520',
-    'gray': '#808080',
-    'green': '#008000',
-    'greenyellow': '#ADFF2F',
-    'honeydew': '#F0FFF0',
-    'hotpink': '#FF69B4',
-    'indianred': '#CD5C5C',
-    'indigo': '#4B0082',
-    'ivory': '#FFFFF0',
-    'khaki': '#F0E68C',
-    'lavender': '#E6E6FA',
-    'lavenderblush': '#FFF0F5',
-    'lawngreen': '#7CFC00',
-    'lemonchiffon': '#FFFACD',
-    'lightblue': '#ADD8E6',
-    'lightcoral': '#F08080',
-    'lightcyan': '#E0FFFF',
-    'lightgoldenrodyellow': '#FAFAD2',
-    'lightgray': '#D3D3D3',
-    'lightgreen': '#90EE90',
-    'lightpink': '#FFB6C1',
-    'lightsalmon': '#FFA07A',
-    'lightseagreen': '#20B2AA',
-    'lightskyblue': '#87CEFA',
-    'lightslategray': '#778899',
-    'lightsteelblue': '#B0C4DE',
-    'lightyellow': '#FFFFE0',
-    'lime': '#00FF00',
-    'limegreen': '#32CD32',
-    'linen': '#FAF0E6',
-    'magenta': '#FF00FF',
-    'maroon': '#800000',
-    'mediumaquamarine': '#66CDAA',
-    'mediumblue': '#0000CD',
-    'mediumorchid': '#BA55D3',
-    'mediumpurple': '#9370DB',
-    'mediumseagreen': '#3CB371',
-    'mediumslateblue': '#7B68EE',
-    'mediumspringgreen': '#00FA9A',
-    'mediumturquoise': '#48D1CC',
-    'mediumvioletred': '#C71585',
-    'midnightblue': '#191970',
-    'mintcream': '#F5FFFA',
-    'mistyrose': '#FFE4E1',
-    'moccasin': '#FFE4B5',
-    'navajowhite': '#FFDEAD',
-    'navy': '#000080',
-    'oldlace': '#FDF5E6',
-    'olive': '#808000',
-    'olivedrab': '#6B8E23',
-    'orange': '#FFA500',
-    'orangered': '#FF4500',
-    'orchid': '#DA70D6',
-    'palegoldenrod': '#EEE8AA',
-    'palegreen': '#98FB98',
-    'paleturquoise': '#AFEEEE',
-    'palevioletred': '#DB7093',
-    'papayawhip': '#FFEFD5',
-    'peachpuff': '#FFDAB9',
-    'peru': '#CD853F',
-    'pink': '#FFC0CB',
-    'plum': '#DDA0DD',
-    'powderblue': '#B0E0E6',
-    'purple': '#800080',
-    'red': '#FF0000',
-    'rosybrown': '#BC8F8F',
-    'royalblue': '#4169E1',
-    'saddlebrown': '#8B4513',
-    'salmon': '#FA8072',
-    'sandybrown': '#F4A460',
-    'seagreen': '#2E8B57',
-    'seashell': '#FFF5EE',
-    'sienna': '#A0522D',
-    'silver': '#C0C0C0',
-    'skyblue': '#87CEEB',
-    'slateblue': '#6A5ACD',
-    'slategray': '#708090',
-    'snow': '#FFFAFA',
-    'springgreen': '#00FF7F',
-    'steelblue': '#4682B4',
-    'tan': '#D2B48C',
-    'teal': '#008080',
-    'thistle': '#D8BFD8',
-    'tomato': '#FF6347',
-    'turquoise': '#40E0D0',
-    'violet': '#EE82EE',
-    'wheat': '#F5DEB3',
-    'white': '#FFFFFF',
-    'whitesmoke': '#F5F5F5',
-    'yellow': '#FFFF00',
-    'yellowgreen': '#9ACD32'
+
+# Convert all named colors to numpy arrays
+for key in colorNames:
+    colorNames[key] = np.array(colorNames[key])
+
+# Dict of regexpressions/ranges for different formats
+colorSpaces = {
+    'named': re.compile("|".join(list(colorNames))), # A named colour space
+    'hex': re.compile(r'#[\dabcdefABCDEF]{6}'), # Hex
+    'rgb': [infrange(-1, 1), infrange(-1, 1), infrange(-1, 1)], # RGB from -1 to 1
+    'rgba': [infrange(-1, 1), infrange(-1, 1), infrange(-1, 1), infrange(0, 1)],  # RGB + alpha from -1 to 1
+    'rgb1': [infrange(0, 1), infrange(0, 1), infrange(0, 1)],  # RGB from 0 to 1
+    'rgba1': [infrange(0, 1), infrange(0, 1), infrange(0, 1), infrange(0, 1)],  # RGB + alpha from 0 to 1
+    'rgb255': [infrange(0, 255, 1), infrange(0, 255, 1), infrange(0, 255, 1)], # RGB from 0 to 255
+    'rgba255': [infrange(0, 255, 1), infrange(0, 255, 1), infrange(0, 255, 1), infrange(0, 1)], # RGB + alpha from 0 to 255
+    'hsv': [infrange(0, 360, 1), infrange(0, 1), infrange(0, 1)], # HSV with hue from 0 to 360 and saturation/vibrancy from 0 to 1
+    'hsva': [infrange(0, 360, 1), infrange(0, 1), infrange(0, 1), infrange(0, 1)], # HSV with hue from 0 to 360 and saturation/vibrancy from 0 to 1 + alpha from 0 to 1
+    # 'rec709TF': [infrange(-4.5, 1), infrange(-4.5, 1), infrange(-4.5, 1)], # rec709TF adjusted RGB from -4.5 to 1
+    # 'rec709TFa': [infrange(-4.5, 1), infrange(-4.5, 1), infrange(-4.5, 1), infrange(0, 1)], # rec709TF adjusted RGB from -4.5 to 1 + alpha from 0 to 1
+    'srgb': [infrange(-1, 1), infrange(-1, 1), infrange(-1, 1)],  # srgb from -1 to 1
+    'srgba': [infrange(-1, 1), infrange(-1, 1), infrange(-1, 1), infrange(0, 1)], # srgb from -1 to 1 + alpha from 0 to 1
+    'lms': [infrange(-1, 1), infrange(-1, 1), infrange(-1, 1), infrange(0, 1)],  # LMS from -1 to 1
+    'lmsa': [infrange(-1, 1), infrange(-1, 1), infrange(-1, 1), infrange(0, 1)],  # LMS + alpha from 0 to 1
+    'dkl': [infrange(-inf, inf), infrange(-inf, inf), infrange(-inf, inf), infrange(0, 1)], # DKL placeholder: Accepts any values
+    'dkla': [infrange(-inf, inf), infrange(-inf, inf), infrange(-inf, inf), infrange(0, 1)], # DKLA placeholder: Accepts any values + alpha from 0 to 1
+    'dklCart': [infrange(-inf, inf), infrange(-inf, inf), infrange(-inf, inf), infrange(0, 1)],
+    # Cartesian DKL placeholder: Accepts any values
+    'dklaCart': [infrange(-inf, inf), infrange(-inf, inf), infrange(-inf, inf), infrange(0, 1)],
+    # Cartesian DKLA placeholder: Accepts any values + alpha from 0 to 1
 }
-colors255 = {
-    "aliceblue": (240, 248, 255),
-    "antiquewhite": (250, 235, 215),
-    "aqua": (0, 255, 255),
-    "aquamarine": (127, 255, 212),
-    "azure": (240, 255, 255),
-    "beige": (245, 245, 220),
-    "bisque": (255, 228, 196),
-    "black": (0, 0, 0),
-    "blanchedalmond": (255, 235, 205),
-    "blue": (0, 0, 255),
-    "blueviolet": (138, 43, 226),
-    "brown": (165, 42, 42),
-    "burlywood": (222, 184, 135),
-    "cadetblue": (95, 158, 160),
-    "chartreuse": (127, 255, 0),
-    "chocolate": (210, 105, 30),
-    "coral": (255, 127, 80),
-    "cornflowerblue": (100, 149, 237),
-    "cornsilk": (255, 248, 220),
-    "crimson": (220, 20, 60),
-    "cyan": (0, 255, 255),
-    "darkblue": (0, 0, 139),
-    "darkcyan": (0, 139, 139),
-    "darkgoldenrod": (184, 134, 11),
-    "darkgray": (169, 169, 169),
-    "darkgreen": (0, 100, 0),
-    "darkgrey": (169, 169, 169),
-    "darkkhaki": (189, 183, 107),
-    "darkmagenta": (139, 0, 139),
-    "darkolivegreen": (85, 107, 47),
-    "darkorange": (255, 140, 0),
-    "darkorchid": (153, 50, 204),
-    "darkred": (139, 0, 0),
-    "darksalmon": (233, 150, 122),
-    "darkseagreen": (143, 188, 143),
-    "darkslateblue": (72, 61, 139),
-    "darkslategray": (47, 79, 79),
-    "darkslategrey": (47, 79, 79),
-    "darkturquoise": (0, 206, 209),
-    "darkviolet": (148, 0, 211),
-    "deeppink": (255, 20, 147),
-    "deepskyblue": (0, 191, 255),
-    "dimgray": (105, 105, 105),
-    "dimgrey": (105, 105, 105),
-    "dodgerblue": (30, 144, 255),
-    "firebrick": (178, 34, 34),
-    "floralwhite": (255, 250, 240),
-    "forestgreen": (34, 139, 34),
-    "fuchsia": (255, 0, 255),
-    "gainsboro": (220, 220, 220),
-    "ghostwhite": (248, 248, 255),
-    "gold": (255, 215, 0),
-    "goldenrod": (218, 165, 32),
-    "gray": (128, 128, 128),
-    "grey": (128, 128, 128),
-    "green": (0, 128, 0),
-    "greenyellow": (173, 255, 47),
-    "honeydew": (240, 255, 240),
-    "hotpink": (255, 105, 180),
-    "indianred": (205, 92, 92),
-    "indigo": (75, 0, 130),
-    "ivory": (255, 255, 240),
-    "khaki": (240, 230, 140),
-    "lavender": (230, 230, 250),
-    "lavenderblush": (255, 240, 245),
-    "lawngreen": (124, 252, 0),
-    "lemonchiffon": (255, 250, 205),
-    "lightblue": (173, 216, 230),
-    "lightcoral": (240, 128, 128),
-    "lightcyan": (224, 255, 255),
-    "lightgoldenrodyellow": (250, 250, 210),
-    "lightgray": (211, 211, 211),
-    "lightgreen": (144, 238, 144),
-    "lightgrey": (211, 211, 211),
-    "lightpink": (255, 182, 193),
-    "lightsalmon": (255, 160, 122),
-    "lightseagreen": (32, 178, 170),
-    "lightskyblue": (135, 206, 250),
-    "lightslategray": (119, 136, 153),
-    "lightslategrey": (119, 136, 153),
-    "lightsteelblue": (176, 196, 222),
-    "lightyellow": (255, 255, 224),
-    "lime": (0, 255, 0),
-    "limegreen": (50, 205, 50),
-    "linen": (250, 240, 230),
-    "magenta": (255, 0, 255),
-    "maroon": (128, 0, 0),
-    "mediumaquamarine": (102, 205, 170),
-    "mediumblue": (0, 0, 205),
-    "mediumorchid": (186, 85, 211),
-    "mediumpurple": (147, 112, 219),
-    "mediumseagreen": (60, 179, 113),
-    "mediumslateblue": (123, 104, 238),
-    "mediumspringgreen": (0, 250, 154),
-    "mediumturquoise": (72, 209, 204),
-    "mediumvioletred": (199, 21, 133),
-    "midnightblue": (25, 25, 112),
-    "mintcream": (245, 255, 250),
-    "mistyrose": (255, 228, 225),
-    "moccasin": (255, 228, 181),
-    "navajowhite": (255, 222, 173),
-    "navy": (0, 0, 128),
-    "oldlace": (253, 245, 230),
-    "olive": (128, 128, 0),
-    "olivedrab": (107, 142, 35),
-    "orange": (255, 165, 0),
-    "orangered": (255, 69, 0),
-    "orchid": (218, 112, 214),
-    "palegoldenrod": (238, 232, 170),
-    "palegreen": (152, 251, 152),
-    "paleturquoise": (175, 238, 238),
-    "palevioletred": (219, 112, 147),
-    "papayawhip": (255, 239, 213),
-    "peachpuff": (255, 218, 185),
-    "peru": (205, 133, 63),
-    "pink": (255, 192, 203),
-    "plum": (221, 160, 221),
-    "powderblue": (176, 224, 230),
-    "purple": (128, 0, 128),
-    "red": (255, 0, 0),
-    "rosybrown": (188, 143, 143),
-    "royalblue": (65, 105, 225),
-    "saddlebrown": (139, 69, 19),
-    "salmon": (250, 128, 114),
-    "sandybrown": (244, 164, 96),
-    "seagreen": (46, 139, 87),
-    "seashell": (255, 245, 238),
-    "sienna": (160, 82, 45),
-    "silver": (192, 192, 192),
-    "skyblue": (135, 206, 235),
-    "slateblue": (106, 90, 205),
-    "slategray": (112, 128, 144),
-    "slategrey": (112, 128, 144),
-    "snow": (255, 250, 250),
-    "springgreen": (0, 255, 127),
-    "steelblue": (70, 130, 180),
-    "tan": (210, 180, 140),
-    "teal": (0, 128, 128),
-    "thistle": (216, 191, 216),
-    "tomato": (255, 99, 71),
-    "turquoise": (64, 224, 208),
-    "violet": (238, 130, 238),
-    "wheat": (245, 222, 179),
-    "white": (255, 255, 255),
-    "whitesmoke": (245, 245, 245),
-    "yellow": (255, 255, 0),
-    "yellowgreen": (154, 205, 50),
-}
+
+# Create subgroups of spaces for easy reference
+integerSpaces = []
+strSpaces = []
+for key, val in colorSpaces.items():
+    if isinstance(val, re.compile("").__class__):
+        # Add any spaces which are str to a list
+        strSpaces.append(key)
+    elif isinstance(val, (list, tuple)):
+        # Add any spaces which are integer-only to a list
+        for cell in val:
+            if isinstance(cell, infrange):
+                if cell.step == 1 and key not in integerSpaces:
+                    integerSpaces.append(key)
+
+alphaSpaces = [
+    'rgba', 'rgba1', 'rgba255', 'hsva', 'srgba', 'lmsa', 'dkla', 'dklaCart']
+nonAlphaSpaces = list(colorSpaces)
+for val in alphaSpaces:
+    nonAlphaSpaces.remove(val)
+
+
+class Color(object):
+    """A class to store colour details, knows what colour space it's in and can
+    supply colours in any space.
+
+    """
+    def __init__(self, color=None, space=None, contrast=None, conematrix=None):
+        self._cache = {}
+        self.contrast = contrast if isinstance(contrast, (int, float)) else 1
+        self.alpha = 1
+        self.valid = False
+        self.conematrix = conematrix
+        self.set(color=color, space=space)
+
+    def validate(self, color, space=None):
+        """
+        Check that a color value is valid in the given space, or all spaces if space==None.
+        """
+        # Treat None as a named color
+        if color is None:
+            color = "none"
+        if isinstance(color, str):
+            if color == "":
+                color = "none"
+        # Handle everything as an array
+        if not isinstance(color, np.ndarray):
+            color = np.array(color)
+        if color.ndim <= 1:
+            color = np.reshape(color, (1, -1))
+        # If data type is string, check against named and hex as these override other spaces
+        if color.dtype.char == 'U':
+            # If colors are all named, override color space
+            namedMatch = np.vectorize(
+                lambda col: bool(colorSpaces['named'].fullmatch(
+                    str(col).lower())))  # match regex against named
+            if all(namedMatch(color[:, 0])):
+                space = 'named'
+            # If colors are all hex, override color space
+            hexMatch = np.vectorize(
+                lambda col: bool(colorSpaces['hex'].fullmatch(str(col))))  # match regex against hex
+            if all(hexMatch(color[:, 0])):
+                space = 'hex'
+            # If color is a string but does not match any string space, it's invalid
+            if space not in strSpaces:
+                self.valid = False
+        # Error if space still not set
+        if not space:
+            self.valid = False
+            raise ValueError("Please specify a color space.")
+        # Check that color space is valid
+        if not space in colorSpaces:
+            self.valid = False
+            raise ValueError("{} is not a valid color space.".format(space))
+        # Get number of columns
+        if color.ndim == 1:
+            ncols = len(color)
+        else:
+            ncols = color.shape[1]
+        # Extract alpha if set
+        if space in strSpaces and ncols > 1:
+            # If color should only be one value, extract second row
+            self.alpha = color[:, 1]
+            color = color[:, 0]
+            ncols -= 1
+        elif space not in strSpaces and ncols > 3:
+            # If color should be triplet, extract fourth row
+            self.alpha = color[:, 3]
+            color = color[:, :3]
+            ncols -= 1
+        elif space not in strSpaces and ncols == 2:
+            # If color should be triplet but is single value, extract second row
+            self.alpha = color[:, 1]
+            color = color[:, 1]
+            ncols -= 1
+        # If single value given in place of triplet, duplicate it
+        if space not in strSpaces and ncols == 1:
+            color = np.tile(color, (1, 3))
+            # ncols = 3  # unused?
+        # If values should be integers, round them
+        if space in integerSpaces:
+            color.round()
+        # Finally, if array is only 1 long, remove extraneous dimension
+        if color.shape[0] == 1:
+            color = color[0]
+
+        return color, space
+
+    def set(self, color=None, space=None):
+        """Set the colour of this object - essentially the same as what happens
+        on creation, but without having to initialise a new object.
+        """
+        # If input is a Color object, duplicate all settings
+        if isinstance(color, Color):
+            self._requested = color._requested
+            self._requestedSpace = color._requestedSpace
+            self.valid = color.valid
+            if color.valid:
+                self.rgba = color.rgba
+            return
+        # Store requested colour and space (or defaults, if none given)
+        self._requested = color
+        self._requestedSpace = space
+        # Validate and prepare values
+        color, space = self.validate(color, space)
+        # Convert to lingua franca
+        if space in colorSpaces:
+            self.valid = True
+            setattr(self, space, color)
+        else:
+            self.valid = False
+            raise ValueError("{} is not a valid color space.".format(space))
+
+    def render(self, space='rgb'):
+        """
+        Apply contrast to the base color value and return the adjusted color value
+        """
+        if space not in colorSpaces:
+            raise ValueError(f"{space} is not a valid color space")
+        # Transform contrast to match rgb
+        contrast = self.contrast
+        contrast = np.reshape(contrast, (-1, 1))
+        contrast = np.hstack((contrast, contrast, contrast))
+        # Multiply
+        adj = np.clip(self.rgb * contrast, -1, 1)
+        buffer = self.copy()
+        buffer.rgb = adj
+        return getattr(buffer, space)
+
+    def __repr__(self):
+        """If colour is printed, it will display its class and value"""
+        if self.valid:
+            if self.named:
+                return f"<{self.__class__.__module__}.{self.__class__.__name__}: {self.named}, alpha={self.alpha}>"
+            else:
+                return f"<{self.__class__.__module__}.{self.__class__.__name__}: {tuple(np.round(self.rgba, 2))}>"
+        else:
+            return f"<{self.__class__.__module__}.{self.__class__.__name__}: Invalid>"
+
+    def __bool__(self):
+        """Determines truth value of object"""
+        return self.valid
+
+    def __len__(self):
+        """Determines the length of object"""
+        if len(self.rgb.shape) > 1:
+            return self.rgb.shape[0]
+        else:
+            return int(bool(self.rgb.shape))
+
+    # ---rich comparisons---
+    def __eq__(self, target):
+        """== will compare RGBA values, rounded to 2dp"""
+        if isinstance(target, Color):
+            return np.all(np.round(target.rgba, 2) == np.round(self.rgba, 2))
+        elif target == None:
+            return self._requested is None
+        else:
+            return False
+
+    def __ne__(self, target):
+        """!= will return the opposite of =="""
+        return not self == target
+
+    #--operators---
+    def __add__(self, other):
+        buffer = self.copy()
+        # If target is a list or tuple, convert it to an array
+        if isinstance(other, (list, tuple)):
+            other = np.array(other)
+        # If target is a single number, add it to each rgba value
+        if isinstance(other, (int, float)):
+            buffer.rgba = self.rgba + other
+        # If target is an array, add the arrays provided they are viable
+        if isinstance(other, np.ndarray):
+            if other.shape in [(len(self), 1), self.rgb.shape, self.rgba.shape]:
+                buffer.rgba = self.rgba + other
+        # If target is a Color object, add together the rgba values
+        if isinstance(other, Color):
+            if len(self) == len(other):
+                buffer.rgba = self.rgba + other.rgba
+        return buffer
+
+    def __sub__(self, other):
+        buffer = self.copy()
+        # If target is a list or tuple, convert it to an array
+        if isinstance(other, (list, tuple)):
+            other = np.array(other)
+        # If target is a single number, subtract it from each rgba value
+        if isinstance(other, (int, float)):
+            buffer.rgba = self.rgba - other
+        # If target is an array, subtract the arrays provided they are viable
+        if isinstance(other, np.ndarray):
+            if other.shape in [(len(self), 1), self.rgb.shape, self.rgba.shape]:
+                buffer.rgba = self.rgba - other
+        # If target is a Color object, add together the rgba values
+        if isinstance(other, Color):
+            if len(self) == len(other):
+                buffer.rgb = self.rgb - other.rgb
+        return buffer
+
+    def copy(self):
+        """Return a duplicate of this colour"""
+        dupe = self.__class__(
+            self._requested, self._requestedSpace, self.contrast)
+        dupe.rgba = self.rgba
+        dupe.valid = self.valid
+        return dupe
+
+    @property
+    def alpha(self):
+        """
+        How opaque (0) or transparent (0) this color is. Synonymous with `opacity`.
+        """
+        return self._alpha
+
+    @alpha.setter
+    def alpha(self, value):
+        # Treat 1x1 arrays as a float
+        if isinstance(value, np.ndarray):
+            if value.size == 1:
+                value = float(value)
+        # Clip value(s) to within range
+        if isinstance(value, np.ndarray):
+            value = np.clip(value, 0, 1)
+        elif isinstance(value, (int, float)):
+            value = min(value,1)
+            value = max(value,0)
+        else:
+            raise TypeError(
+                "Could not set alpha as value `{}` of type `{}`".format(
+                    value, type(value).__name__))
+        self._alpha = value
+
+    @property
+    def opacity(self):
+        """
+        How opaque (0) or transparent (0) this color is. Synonymous with `alpha`.
+        """
+        return self.alpha
+
+    @opacity.setter
+    def opacity(self, value):
+        self.alpha = value
+
+    def _appendAlpha(self, space):
+        # Get alpha, if necessary transform to an array of same length as color
+        alpha = self.alpha
+        if isinstance(alpha, (int, float)):
+            if len(self) > 1:
+                alpha = np.tile([alpha], (len(self), 1))
+            else:
+                alpha = np.array([alpha])
+        if isinstance(alpha, np.ndarray) and len(self) > 1:
+            alpha = alpha.reshape((len(self), 1))
+        # Get color
+        color = getattr(self, space)
+        # Append alpha to color
+        return np.append(color, alpha, axis=1 if color.ndim > 1 else 0)
+
+    #---spaces---
+    # Lingua franca is rgb
+    @property
+    def rgba(self):
+        """
+        Color value expressed as an RGB triplet from -1 to 1, with alpha values (0 to 1)
+        """
+        return self._appendAlpha('rgb')
+
+    @rgba.setter
+    def rgba(self, color):
+        self.rgb = color
+
+    @property
+    def rgb(self):
+        """
+        Color value expressed as an RGB triplet from -1 to 1
+        """
+        if not self.valid:
+            return
+        if hasattr(self, '_franca'):
+            rgb = self._franca
+            return rgb
+        else:
+            return np.array([0, 0, 0])
+
+    @rgb.setter
+    def rgb(self, color):
+        # Validate
+        color, space = self.validate(color, space='rgb')
+        if space != 'rgb':
+            setattr(self, space)
+            return
+        # Set color
+        self._franca = color
+        # Clear outdated values from cache
+        self._cache = {'rgb': color}
+
+    @property
+    def rgba255(self):
+        """
+        Color value expressed as an RGB triplet from 0 to 255, with alpha value (0 to 1)
+        """
+        return self._appendAlpha('rgb255')
+
+    @rgba255.setter
+    def rgba255(self, color):
+        self.rgb255 = color
+
+    @property
+    def rgb255(self):
+        """
+        Color value expressed as an RGB triplet from 0 to 255
+        """
+        if not self.valid:
+            return
+        # Recalculate if not cached
+        if 'rgb255' not in self._cache:
+            self._cache['rgb255'] = np.round(255 * (self.rgb + 1) / 2)
+        return self._cache['rgb255']
+
+    @rgb255.setter
+    def rgb255(self, color):
+        # Validate
+        color, space = self.validate(color, space='rgb255')
+        if space != 'rgb255':
+            setattr(self, space)
+            return
+        # Iterate through values and do conversion
+        self.rgb = 2 * (color / 255 - 0.5)
+        # Clear outdated values from cache
+        self._cache = {'rgb255': color}
+
+    @property
+    def rgba1(self):
+        """
+        Color value expressed as an RGB triplet from 0 to 1, with alpha value (0 to 1)
+        """
+        return self._appendAlpha('rgb1')
+
+    @rgba1.setter
+    def rgba1(self, color):
+        self.rgb1 = color
+
+    @property
+    def rgb1(self):
+        """
+        Color value expressed as an RGB triplet from 0 to 1
+        """
+        if not self.valid:
+            return
+        # Recalculate if not cached
+        if 'rgb1' not in self._cache:
+            self._cache['rgb1'] = (self.rgb + 1) / 2
+        return self._cache['rgb1']
+
+    @rgb1.setter
+    def rgb1(self, color):
+        # Validate
+        color, space = self.validate(color, space='rgb1')
+        if space != 'rgb1':
+            setattr(self, space)
+            return
+        # Iterate through values and do conversion
+        self.rgb = 2 * (color - 0.5)
+        # Clear outdated values from cache
+        self._cache = {'rgb1': color}
+
+    @property
+    def hex(self):
+        """
+        Color value expressed as a hex string - a # followed by 6 values from 0 to F, e.g. #F2545B
+        """
+        if not self.valid:
+            return
+        if 'hex' not in self._cache:
+            # Map rgb255 values to corresponding letters in hex
+            hexmap = {10: 'a', 11: 'b', 12: 'c', 13: 'd', 14: 'e', 15: 'f'}
+            # Handle arrays
+            if self.rgb255.ndim > 1:
+                rgb255 = self.rgb255
+                # Iterate through rows of rgb255
+                self._cache['hex'] = np.array([])
+                for row in rgb255:
+                    rowHex = '#'
+                    # Convert each value to hex and append
+                    for val in row:
+                        dig = hex(int(val)).strip('0x')
+                        rowHex += dig if len(dig) == 2 else '0' + dig
+                    # Append full hex value to new array
+                    self._cache['hex'] = np.append(
+                        self._cache['hex'], [rowHex], 0)
+            else:
+                rowHex = '#'
+                # Convert each value to hex and append
+                for val in self.rgb255:
+                    dig = hex(int(val))[2:]
+                    rowHex += dig if len(dig) == 2 else '0' + dig
+                # Append full hex value to new array
+                self._cache['hex'] = rowHex
+        return self._cache['hex']
+
+    @hex.setter
+    def hex(self, color):
+        # Validate
+        color, space = self.validate(color, space='hex')
+        if space != 'hex':
+            setattr(self, space)
+            return
+        if len(color) > 1:
+            # Handle arrays
+            rgb255 = np.array([""])
+            for row in color:
+                if isinstance(row, np.ndarray):
+                    row = row[0]
+                row = row.strip('#')
+                # Convert string to list of strings
+                hexList = [row[:2], row[2:4], row[4:6]]
+                # Convert strings to int
+                hexInt = [int(val, 16) for val in hexList]
+                # Convert to array and append
+                rgb255 = np.append(rgb255, np.array(hexInt), 0)
+        else:
+            # Handle single values
+            if isinstance(color, np.ndarray):
+                # Strip away any extraneous numpy layers
+                color = color[(0,)*color.ndim]
+            color = color.strip('#')
+            # Convert string to list of strings
+            hexList = [color[:2], color[2:4], color[4:6]]
+            # Convert strings to int
+            hexInt = [int(val, 16) for val in hexList]
+            # Convert to array
+            rgb255 = np.array(hexInt)
+        # Set rgb255 accordingly
+        self.rgb255 = rgb255
+        # Clear outdated values from cache
+        self._cache = {'hex': color}
+
+    @property
+    def named(self):
+        """
+        The name of this color, if it has one.
+        """
+        if 'named' not in self._cache:
+            self._cache['named'] = None
+            # If alpha is 0, then we know that the color is None
+            if isinstance(self.alpha, np.ndarray):
+                invis = all(self.alpha == 0)
+            elif isinstance(self.alpha, (int, float)):
+                invis = self.alpha == 0
+            else:
+                invis = False
+            if invis:
+                self._cache['named'] = 'none'
+                return self._cache['named']
+            self._cache['named'] = np.array([])
+            # Handle array
+            if len(self) > 1:
+                for row in self.rgb:
+                    for name, val in colorNames.items():
+                        if all(val[:3] == row):
+                            self._cache['named'] = np.append(
+                                self._cache['named'], [name], 0)
+                            continue
+                self._cache['named'] = np.reshape(self._cache['named'], (-1, 1))
+            else:
+                rgb = self.rgb
+                for name, val in colorNames.items():
+                    if name == 'none': # skip None
+                        continue
+                    if all(val[:3] == rgb):
+                        self._cache['named'] = name
+                        continue
+        return self._cache['named']
+
+    @named.setter
+    def named(self, color):
+        # Validate
+        color, space = self.validate(color=color, space='named')
+        if space != 'named':
+            setattr(self, space)
+            return
+        # Retrieve named colour
+        if len(color) > 1:
+            # Handle arrays
+            for row in color:
+                row = str(np.reshape(row, ())) # Enforce str
+                if str(row).lower() in colorNames:
+                    self.rgb = colorNames[str(row).lower()]
+                if row.lower() == 'none':
+                    self.alpha = 0
+        else:
+            color = str(np.reshape(color, ())) # Enforce str
+            if color.lower() in colorNames:
+                self.rgb = colorNames[str(color).lower()]
+            if color.lower() == 'none':
+                self.alpha = 0
+        # Clear outdated values from cache
+        self._cache = {'named': color}
+
+    @property
+    def hsva(self):
+        """
+        Color value expressed as an HSV triplet, with alpha value (0 to 1)
+        """
+        return self._appendAlpha('hsv')
+
+    @hsva.setter
+    def hsva(self, color):
+        self.hsv = color
+
+    @property
+    def hsv(self):
+        """
+        Color value expressed as an HSV triplet
+        """
+        if 'hsva' not in self._cache:
+            self._cache['hsv'] = ct.rgb2hsv(self.rgb)
+        return self._cache['hsv']
+
+    @hsv.setter
+    def hsv(self, color):
+        # Validate
+        color, space = self.validate(color=color, space='hsv')
+        if space != 'hsv':
+            setattr(self, space)
+            return
+        # Apply via rgba255
+        self.rgb = ct.hsv2rgb(color)
+        # Clear outdated values from cache
+        self._cache = {'hsv': color}
+
+    @property
+    def lmsa(self):
+        """
+        Color value expressed as an LMS triplet, with alpha value (0 to 1)
+        """
+        return self._appendAlpha('lms')
+
+    @lmsa.setter
+    def lmsa(self, color):
+        self.lms = color
+
+    @property
+    def lms(self):
+        """
+        Color value expressed as an LMS triplet
+        """
+        if 'lms' not in self._cache:
+            self._cache['lms'] = ct.rgb2lms(self.rgb)
+        return self._cache['lms']
+
+    @lms.setter
+    def lms(self, color):
+        # Validate
+        color, space = self.validate(color=color, space='lms')
+        if space != 'lms':
+            setattr(self, space)
+            return
+        # Apply via rgba255
+        self.rgb = ct.lms2rgb(color, self.conematrix)
+        # Clear outdated values from cache
+        self._cache = {'lms': color}
+
+    @property
+    def dkla(self):
+        """
+        Color value expressed as a DKL triplet, with alpha value (0 to 1)
+        """
+        return self._appendAlpha('dkl')
+
+    @dkla.setter
+    def dkla(self, color):
+        self.dkl = color
+
+    @property
+    def dkl(self):
+        """
+        Color value expressed as a DKL triplet
+        """
+        if 'dkl' not in self._cache:
+            raise NotImplementedError(
+                "Conversion from rgb to dkl is not yet implemented.")
+        return self._cache['dkl']
+
+    @dkl.setter
+    def dkl(self, color):
+        # Validate
+        color, space = self.validate(color=color, space='dkl')
+        if space != 'dkl':
+            setattr(self, space)
+            return
+        # Apply via rgba255
+        self.rgb = ct.dkl2rgb(color, self.conematrix)
+        # Clear outdated values from cache
+        self._cache = {'dkl': color}
+
+    @property
+    def dklaCart(self):
+        """
+        Color value expressed as a cartesian DKL triplet, with alpha value (0 to 1)
+        """
+        return self.dklCart
+
+    @dklaCart.setter
+    def dklaCart(self, color):
+        self.dklCart = color
+
+    @property
+    def dklCart(self):
+        """
+        Color value expressed as a cartesian DKL triplet
+        """
+        if 'dklCart' not in self._cache:
+            self._cache['dklCart'] = ct.rgb2dklCart(self.rgb)
+        return self._cache['dklCart']
+
+    @dklCart.setter
+    def dklCart(self, color):
+        # Validate
+        color, space = self.validate(color=color, space='dklCart')
+        if space != 'dkl':
+            setattr(self, space)
+            return
+        # Apply via rgba255
+        self.rgb = ct.dklCart2rgb(color, self.conematrix)
+        # Clear outdated values from cache
+        self._cache = {'dklCart': color}
+
+    @property
+    def srgb(self):
+        """
+        Color value expressed as an sRGB triplet
+        """
+        if 'srgb' not in self._cache:
+            self._cache['srgb'] = ct.srgbTF(self.rgb)
+        return self._cache['srgb']
+
+    @srgb.setter
+    def srgb(self, color):
+        # Validate
+        color, space = self.validate(color=color, space='srgb')
+        if space != 'srgb':
+            setattr(self, space)
+            return
+        # Apply via rgba255
+        self.rgb = ct.srgbTF(color, reverse=True)
+        # Clear outdated values from cache
+        self._cache = {'srgb': color}
+
+    # removing for now
+    # @property
+    # def rec709TF(self):
+    #     if 'rec709TF' not in self._cache:
+    #         self._cache['rec709TF'] = ct.rec709TF(self.rgb)
+    #     return self._cache['rec709TF']
+    #
+    # @rec709TF.setter
+    # def rec709TF(self, color):
+    #     # Validate
+    #     color, space = self.validate(color=color, space='rec709TF')
+    #     if space != 'rec709TF':
+    #         setattr(self, space)
+    #         return
+    #     # Apply via rgba255
+    #     self.rgb = ct.rec709TF(color, reverse=True)
+    #     # Clear outdated values from cache
+    #     self._cache = {'rec709TF': color}
+
+
+# ------------------------------------------------------------------------------
+# Legacy functions
+#
+# Old reference tables
+colors = colorNames
+# colorsHex = {key: Color(key, 'named').hex for key in colors}
+# colors255 = {key: Color(key, 'named').rgb255 for key in colors}
+
+
+# Old conversion functions
+def hex2rgb255(hexColor):
+    """Depreciated as of 2021.0
+
+    Converts a hex color string (e.g. "#05ff66") into an rgb triplet
+    ranging from 0:255
+    """
+    col = Color(hexColor, 'hex')
+    if len(hexColor.strip('#')) == 6:
+        return col.rgb255
+    elif len(hexColor.strip('#')) == 8:
+        return col.rgba255
+
+
+def isValidColor(color, space='rgb'):
+    """Depreciated as of 2021.0
+    """
+    logging.warning(
+        "DEPRECIATED: While psychopy.colors.isValidColor will still roughly "
+        "work, you should use a Color object, allowing you to check its "
+        "validity simply by converting it to a `bool` (e.g. `bool(myColor)` or "
+        "`if myColor:`). If you use this function for colors in any space "
+        "other than hex, named or rgb, please specify the color space.")
+    try:
+        buffer = Color(color, space)
+        return bool(buffer)
+    except:
+        return False

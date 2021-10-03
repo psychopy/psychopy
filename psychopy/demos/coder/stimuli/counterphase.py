@@ -21,10 +21,13 @@ from numpy import sin, pi
 win = visual.Window((600, 600), allowGUI=False, monitor='testMonitor', units='deg')
 
 # Initialize some stimuli
-grating1 = visual.GratingStim(win, tex="sin", mask="circle", texRes=128,
+grating1 = visual.GratingStim(
+    win, tex="sin", mask="circle", texRes=128,
     color='white', size=5, sf=2, ori=45, depth=0.5, autoLog=False)
-message = visual.TextStim(win, text='Any key to quit',
-    pos=(-0.95, -0.95), units='norm', alignVert='bottom', alignHoriz='left')
+message = visual.TextStim(
+    win, text='Any key to quit',
+    pos=(-0.95, -0.95), units='norm',
+    anchorVert='bottom', anchorHoriz='left')
 
 trialClock = core.Clock()
 t = 0

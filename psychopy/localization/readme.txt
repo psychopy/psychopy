@@ -40,7 +40,7 @@ Files:
 Process:
 Do once:
 - edit the .py files to add _translate() around text strings to be localized
-  e.g.: replace 'Welcome to PsychoPy2!' with _translate('Welcome to PsychoPy2!')
+  e.g.: replace 'Welcome to PsychoPy3!' with _translate('Welcome to PsychoPy3!')
   This process is mostly complete, but might be needed for new code.
 - use poedit to open a specific message catalog (*.po file).
   In poedit "properties", add _translate as one of the "Sources keywords"

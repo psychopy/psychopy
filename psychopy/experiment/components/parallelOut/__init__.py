@@ -2,30 +2,33 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, print_function
+from builtins import super  # provides Py3-style super() using python-future
 
 from os import path
+from pathlib import Path
 from psychopy.experiment.components import BaseComponent, Param, _translate
 from psychopy import prefs
-
-# the absolute path to the folder containing this path
-thisFolder = path.abspath(path.dirname(__file__))
-iconFile = path.join(thisFolder, 'parallelOut.png')
-tooltip = _translate('Parallel out: send signals from the parallel port')
+from psychopy.localization import _localized as __localized
+_localized = __localized.copy()
 
 # only use _localized values for label values, nothing functional:
-_localized = {'address': _translate('Port address'),
-              'startData': _translate("Start data"),
-              'stopData': _translate("Stop data"),
-              'syncScreen': _translate('Sync to screen')}
+_localized.update({'address': _translate('Port address'),
+                   'startData': _translate("Start data"),
+                   'stopData': _translate("Stop data"),
+                   'syncScreen': _translate('Sync to screen')})
 
 
 class ParallelOutComponent(BaseComponent):
     """A class for sending signals from the parallel port"""
+
     categories = ['I/O']
+    targets = ['PsychoPy']
+    iconFile = Path(__file__).parent / 'parallelOut.png'
+    tooltip = _translate('Parallel out: send signals from the parallel port')
 
     def __init__(self, exp, parentName, name='p_port',
                  startType='time (s)', startVal=0.0,
@@ -40,39 +43,41 @@ class ParallelOutComponent(BaseComponent):
             startEstim=startEstim, durationEstim=durationEstim)
 
         self.type = 'ParallelOut'
-        self.url = "http://www.psychopy.org/builder/components/parallelout.html"
-        self.categories = ['I/O']
+        self.url = "https://www.psychopy.org/builder/components/parallelout.html"
         self.exp.requirePsychopyLibs(['parallel'])
 
         # params
-        self.order = ['address', 'startData', 'stopData']
+        self.order += [
+            'startData', 'stopData',  # Data tab
+            'address',  # Hardware tab
+        ]
 
         # main parameters
-        addressOptions = prefs.general['parallelPorts'] + [u'LabJack U3']
+        addressOptions = prefs.hardware['parallelPorts'] + [u'LabJack U3'] + [u'USB2TTL8'] 
         if not address:
             address = addressOptions[0]
 
         msg = _translate("Parallel port to be used (you can change these "
                          "options in preferences>general)")
         self.params['address'] = Param(
-            address, valType='str', allowedVals=addressOptions,
+            address, valType='str', inputType="choice", allowedVals=addressOptions, categ='Hardware',
             hint=msg,
             label=_localized['address'])
 
         self.params['startData'] = Param(
-            startData, valType='code', allowedTypes=[],
+            startData, valType='code', inputType="single", allowedTypes=[], categ='Data',
             hint=_translate("Data to be sent at 'start'"),
             label=_localized['startData'])
 
         self.params['stopData'] = Param(
-            stopData, valType='code', allowedTypes=[],
+            stopData, valType='code', inputType="single", allowedTypes=[], categ='Data',
             hint=_translate("Data to be sent at 'end'"),
             label=_localized['stopData'])
 
         msg = _translate("If the parallel port data relates to visual "
                          "stimuli then sync its pulse to the screen refresh")
         self.params['syncScreen'] = Param(
-            syncScreen, valType='bool',
+            syncScreen, valType='bool', inputType="bool", categ='Data',
             allowedVals=[True, False],
             updates='constant', allowedUpdates=[],
             hint=msg,
@@ -82,6 +87,12 @@ class ParallelOutComponent(BaseComponent):
         if self.params['address'].val == 'LabJack U3':
             code = ("from psychopy.hardware import labjacks\n"
                     "%(name)s = labjacks.U3()\n"
+                    "%(name)s.status = None\n"
+                    % self.params)
+            buff.writeIndentedLines(code)
+        elif self.params['address'].val == 'USB2TTL8':
+            code = ("from psychopy.hardware import labhackers\n"
+                    "%(name)s = labhackers.USB2TTL8()\n"
                     "%(name)s.status = None\n"
                     % self.params)
             buff.writeIndentedLines(code)
@@ -114,7 +125,7 @@ class ParallelOutComponent(BaseComponent):
         if self.params['stopVal'].val not in ['', None, -1, 'None']:
             # writes an if statement to determine whether to draw etc
             self.writeStopTestCode(buff)
-            buff.writeIndented("%(name)s.status = STOPPED\n" % self.params)
+            buff.writeIndented("%(name)s.status = FINISHED\n" % self.params)
 
             if not self.params['syncScreen'].val:
                 code = "%(name)s.setData(int(%(stopData)s))\n" % self.params
@@ -125,7 +136,7 @@ class ParallelOutComponent(BaseComponent):
             buff.writeIndented(code)
 
             # to get out of the if statement
-            buff.setIndentLevel(-1, relative=True)
+            buff.setIndentLevel(-2, relative=True)
 
         # dedent
 # buff.setIndentLevel(-dedentAtEnd, relative=True)#'if' statement of the
@@ -142,3 +153,6 @@ class ParallelOutComponent(BaseComponent):
                     self.params)
 
         buff.writeIndented(code)
+
+        # get parent to write code too (e.g. store onset/offset times)
+        super().writeRoutineEndCode(buff)

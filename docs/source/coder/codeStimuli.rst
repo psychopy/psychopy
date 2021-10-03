@@ -9,37 +9,38 @@ Stimulus objects
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 Python is an 'object-oriented' programming language, meaning that most stimuli in PsychoPy are represented by python objects, with various associated methods and information.
 
-Typically you should create your stimulus once, at the beginning of the script, and then change it as you need to later using set____() commands. For instance, create your text and then change its color any time you like::
+Typically you should create your stimulus with the initial desired attributes once, at the beginning of the script, and then change select attributes later (see section below on setting stimulus attributes). For instance, create your text and then change its color any time you like::
 
     from psychopy import visual, core
     win = visual.Window([400,400])
     message = visual.TextStim(win, text='hello')
-    message.setAutoDraw(True)  # automatically draw every frame
+    message.autoDraw = True  # Automatically draw every frame
     win.flip()
     core.wait(2.0)
-    message.setText('world')  # change properties of existing stim
+    message.text = 'world'  # Change properties of existing stim
     win.flip()
     core.wait(2.0)
 
 Setting stimulus attributes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    Stimulus attributes are typically set using either
-         - a string, which is just some characters (as message.setText('world') above)
-         - a scalar (a number; see below)
-         - an x,y-pair (two numbers; see below)
+
+Stimulus attributes are typically set using either:
+
+- a string, which is just some characters (as `message.text = 'world'` above)
+- a scalar (a number; see below)
+- an x,y-pair (two numbers; see below)
 
 .. _attrib-xy:
 
 **x,y-pair:**
-    PsychoPy is very flexible in terms of input. You can specify the widely
-    used x,y-pairs using these types:
 
-        - A Tuple (x, y) with two elements
-        - A List [x, y] with two elements
-        - A numpy array([x, y]) with two elements
+PsychoPy is very flexible in terms of input. You can specify the widely used x,y-pairs using these types:
 
-    However, PsychoPy always converts the x,y-pairs to numpy arrays internally.
-    For example, all three assignments of pos are equivalent here::
+- A Tuple (x, y) with two elements
+- A List [x, y] with two elements
+- A numpy array([x, y]) with two elements
+
+However, PsychoPy always converts the x,y-pairs to numpy arrays internally. For example, all three assignments of pos are equivalent here::
 
         stim.pos = (0.5, -0.2)  # Right and a bit up from the center
         print stim.pos  # array([0.5, -0.2])
@@ -50,7 +51,7 @@ Setting stimulus attributes
         stim.pos = numpy.array([0.5, -0.2])
         print stim.pos  # array([0.5, -0.2])
 
-    Choose your favorite :-) However, you can't assign elementwise::
+Choose your favorite :-) However, you can't assign elementwise::
 
         stim.pos[1] = 4  # has no effect
 
@@ -118,17 +119,17 @@ Using core.wait(), as in the above example, is clear and intuitive in your scrip
 
     from psychopy import visual, core
 
-    #setup stimulus
-    win=visual.Window([400,400])
+    # Setup stimulus
+    win = visual.Window([400, 400])
     gabor = visual.GratingStim(win, tex='sin', mask='gauss', sf=5, name='gabor')
-    gabor.setAutoDraw(True)  # automatically draw every frame
-    gabor.autoLog=False#or we'll get many messages about phase change
+    gabor.autoDraw = True  # Automatically draw every frame
+    gabor.autoLog = False  # Or we'll get many messages about phase change
 
+    # Let's draw a stimulus for 2s, drifting for middle 0.5s
     clock = core.Clock()
-    #let's draw a stimulus for 2s, drifting for middle 0.5s
-    while clock.getTime() < 2.0:  # clock times are in seconds
+    while clock.getTime() < 2.0:  # Clock times are in seconds
         if 0.5 <= clock.getTime() < 1.0:
-            gabor.setPhase(0.1, '+')  # increment by 10th of cycle
+            gabor.phase += 0.1  # Increment by 10th of cycle
         win.flip()
 
 Clocks are accurate to around 1ms (better on some platforms), but using them to time stimuli is not very accurate because it fails to account for the fact that one frame on your monitor has a fixed frame rate. In the above, the stimulus does not actually get drawn for exactly 0.5s (500ms). If the screen is refreshing at 60Hz (16.7ms per frame) and the `getTime()` call reports that the time has reached 1.999s, then the stimulus will draw again for a frame, in accordance with the `while` loop statement and will ultimately be displayed for 2.0167s. Alternatively, if the time has reached 2.001s, there will not be an extra frame drawn. So using this method you get timing accurate to the nearest frame period but with little consistent precision. An error of 16.7ms might be acceptable to long-duration stimuli, but not to a brief presentation. It also might also give the false impression that a stimulus can be presented for any given period. At 60Hz refresh you can not present your stimulus for, say, 120ms; the frame period would limit you to a period of 116.7ms (7 frames) or 133.3ms (8 frames).
@@ -143,23 +144,22 @@ Using the concept of fixed frame periods and `flip()` calls that sync to those p
 
     from psychopy import visual, core
 
-    #setup stimulus
-    win=visual.Window([400,400])
+    # Setup stimulus
+    win = visual.Window([400, 400])
     gabor = visual.GratingStim(win, tex='sin', mask='gauss', sf=5,
         name='gabor', autoLog=False)
     fixation = visual.GratingStim(win, tex=None, mask='gauss', sf=0, size=0.02,
         name='fixation', autoLog=False)
 
-    clock = core.Clock()
-    #let's draw a stimulus for 200 frames, drifting for frames 50:100
-    for frameN in range(200):#for exactly 200 frames
-        if 10 <= frameN < 150:  # present fixation for a subset of frames
+    # Let's draw a stimulus for 200 frames, drifting for frames 50:100
+    for frameN in range(200):   # For exactly 200 frames
+        if 10 <= frameN < 150:  # Present fixation for a subset of frames
             fixation.draw()
-        if 50 <= frameN < 100:  # present stim for a different subset
-            gabor.setPhase(0.1, '+')  # increment by 10th of cycle
+        if 50 <= frameN < 100:  # Present stim for a different subset
+            gabor.phase += 0.1  # Increment by 10th of cycle
             gabor.draw()
         win.flip()
 
 Using autoDraw
 ~~~~~~~~~~~~~~~~~~~
-Stimuli are typically drawn manually on every frame in which they are needed, using the `draw()` function. You can also set any stimulus to start drawing every frame using `setAutoDraw(True)` or `setAutoDraw(False)`. If you use these commands on stimuli that also have `autoLog=True`, then these functions will also generate a log message on the frame when the first drawing occurs and on the first frame when it is confirmed to have ended.
+Stimuli are typically drawn manually on every frame in which they are needed, using the `draw()` function. You can also set any stimulus to start drawing every frame using `stim.autoDraw = True` or `stim.autoDraw = False`. If you use these commands on stimuli that also have `autoLog=True`, then these functions will also generate a log message on the frame when the first drawing occurs and on the first frame when it is confirmed to have ended.

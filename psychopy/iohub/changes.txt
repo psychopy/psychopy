@@ -1,0 +1,37 @@
+Changes made to iohub for 2021.2 Release
+----------------------------------------
+
+- Removed iohub ExpRuntime class (use iohub.launchHubServer() function)
+- Some eye tracker setting haves may have changed. If running an experiment created with a previous version of iohub,
+  please review your eye tracker settings and update as necessary.
+    - Do we need to list every specific setting change?
+- iohub can no longer be copied out of the psychopy package and used as a stand alone package
+  in your site-packages folder. Change `import iohub` to `import psychopy.iohub` for example.
+- Removed most device settings related to device hardware specifics (model_id, manufacturer_date, etc)
+  since they were never really used.
+- removed use of .iohpid
+- ** Changed datastore schema:
+    - increased experiment and session data string max length
+- Added wintab device for Wacom based digital pens. (Windows only)
+- Added iohub MouseGaze eye tracker simulator.
+- Added 'color_space' setting to Display settings.
+- Eyelink and tobii calibration gfx can now use color_type and unit_type settings, or same color space as window,
+  instead of always rgb255.
+    - TODO: Retest all eyetracking examples with all eye trackers on all OS's
+- Removed iohub/devices/display/unit_conversions.py. Moving to psychopy monitorutil functions.
+- launchHubServer now accepts:
+      - a psychopy window using the window kwarg
+      - a file path name for hdf5 using datastore_name kwarg
+  iohub display info is updated using window information like .monitor, .colorSpace, .units, .screen
+- If psychopy window (with monitor config) is passed to launchHubServer, no need for iohub Display config.
+- Added common eye tracker interface validation procedure. Coder Demo: demos/coder/iohub/eyetracking/validation.py
+    - TODO: Finalize functionality / api
+    - TODO: Retest all eye trackers
+- Updated psychopy.iohub API docs.
+- Added color_type and unit_type settings to EyeLink and Tobii config settings.
+     - note eyelink unit type must always be pix as calibration coords in eyelink are int's.
+- eyetracker.runSetupProcedure returns calibration result data, if available.
+  Return contents vary between eye tracker manufacturers. TODO: Doc return data for each eye tracker
+- eyetracker.runSetupProcedure accepts calibration_args dict, which must have the same structure as the eyetracker's
+  calibration settings section.
+- added iohub support for 'height' units.

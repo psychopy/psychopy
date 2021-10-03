@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2018 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """A Backend class defines the core low-level functions required by a Window
@@ -14,14 +14,27 @@ and initialize an instance using the attributes of the Window.
 """
 
 from __future__ import absolute_import, print_function
-import sys, os
+import atexit
+import sys
+import os
+import glob
 import numpy as np
-from psychopy import logging, event, prefs
+from psychopy import logging, event, prefs, core
 from psychopy.tools.attributetools import attributeSetter
+from psychopy.visual import window
+import psychopy.event as event
 from .gamma import createLinearRamp
+import psychopy.hardware.mouse as mouse
 from .. import globalVars
 from ._base import BaseBackend
 from PIL import Image
+import pyglet
+
+# on mac Standalone app check for packaged libglfw dylib
+if prefs.paths['libs']:
+    _possLibPaths = glob.glob(os.path.join(prefs.paths['libs'], 'libglfw*'))
+    if _possLibPaths:
+        os.environ['PYGLFW_LIBRARY'] = _possLibPaths[0]
 
 import glfw
 # initialize the GLFW library on import
@@ -30,23 +43,46 @@ if not glfw.init():
                        "has been correctly installed or use a "
                        "different backend. Exiting.")
 
-import pyglet
+atexit.register(glfw.terminate)
 pyglet.options['debug_gl'] = False
 GL = pyglet.gl
 
 retinaContext = None  # it will be set to an actual context if needed
 
 # generate and cache standard cursors
-_CURSORS_ = {
+_GLFW_CURSORS_ = {
     'arrow': glfw.create_standard_cursor(glfw.ARROW_CURSOR),
+    'default': glfw.create_standard_cursor(glfw.ARROW_CURSOR),
     'ibeam': glfw.create_standard_cursor(glfw.IBEAM_CURSOR),
+    'text': glfw.create_standard_cursor(glfw.IBEAM_CURSOR),
     'crosshair': glfw.create_standard_cursor(glfw.CROSSHAIR_CURSOR),
     'hand': glfw.create_standard_cursor(glfw.HAND_CURSOR),
     'hresize': glfw.create_standard_cursor(glfw.HRESIZE_CURSOR),
-    'vresize': glfw.create_standard_cursor(glfw.VRESIZE_CURSOR)}
+    'vresize': glfw.create_standard_cursor(glfw.VRESIZE_CURSOR),
+    # not supported, raises warning or error
+    'help': None,
+    'no': None,
+    'size': None,
+    'downleft': None,
+    'downright': None,
+    'lresize': None,
+    'rresize': None,
+    'uresize': None,
+    'upleft': None,
+    'upright': None,
+    'wait': None,
+    'waitarrow': None
+}
+
 # load window icon
 _WINDOW_ICON_ = Image.open(
     os.path.join(prefs.paths['resources'], 'psychopy.png'))
+
+_GLFW_MOUSE_BUTTONS_ = {
+    glfw.MOUSE_BUTTON_LEFT: mouse.MOUSE_BUTTON_LEFT,
+    glfw.MOUSE_BUTTON_MIDDLE: mouse.MOUSE_BUTTON_MIDDLE,
+    glfw.MOUSE_BUTTON_RIGHT: mouse.MOUSE_BUTTON_RIGHT
+}
 
 
 class GLFWBackend(BaseBackend):
@@ -115,49 +151,62 @@ class GLFWBackend(BaseBackend):
 
     """
     GL = pyglet.gl  # use Pyglet's OpenGL interface for now, should use PyOpenGL
+    winTypeName = 'glfw'  # needed to identify class for plugins
 
-    def __init__(self, win, *args, **kwargs):
+    def __init__(self, win, backendConf=None):
         """Set up the backend window according the params of the PsychoPy win
 
         Before PsychoPy 1.90.0 this code was executed in Window._setupPygame()
 
         Parameters
         ----------
-        win : psychopy.visual.Window instance
+        win : `psychopy.visual.Window` instance
             PsychoPy Window (usually not fully created yet).
-        share : psychopy.visual.Window instance
-            PsychoPy Window to share a context with
-        bpc : array_like
-            Bits per color (R, G, B).
-        refreshHz : int
-            Refresh rate in Hertz.
-        depthBits : int,
-            Framebuffer (back buffer) depth bits.
-        stencilBits : int
-            Framebuffer (back buffer) stencil bits.
-        swapInterval : int
-            Screen updates before swapping buffers.
-        winTitle : str
-            Optional window title string.
-        *args
-            Additional position arguments.
-        **kwargs
-            Additional keyword arguments.
+        backendConf : `dict` or `None`
+            Backend configuration options. Options are specified as a dictionary
+            where keys are option names and values are settings. For this
+            backend the following options are available:
+
+            * `share` (`psychopy.visual.Window instance`) PsychoPy Window to
+              share a context with.
+            * `refreshHz` (`int`) Refresh rate in Hertz.
+            * `bpc` (`array_like`) Bits per color (R, G, B).
+            * `swapInterval` (`int`) Swap interval for the current OpenGL
+              context.
+            * `depthBits` (`int`) Framebuffer (back buffer) depth bits.
+            * `stencilBits` (`int`) Framebuffer (back buffer) stencil bits.
+            * `winTitle` (`str`) Optional window title string.
+
+        Examples
+        --------
+        Create a window using the GLFW backend and specify custom options::
+
+            import psychopy.visual as visual
+
+            options = {'bpc': (8, 8, 8), 'depthBits': 24, 'stencilBits': 8}
+            win = visual.Window(winType='glfw', backendOptions=options)
 
         """
         BaseBackend.__init__(self, win)
 
+        # if `None`, change to `dict` to extract options
+        backendConf = backendConf if backendConf is not None else {}
+
+        if not isinstance(backendConf, dict):  # type check on options
+            raise TypeError(
+                'Object passed to `backendConf` must be type `dict`.')
+
         # window to share a context with
-        share_win = kwargs.get('share', None)
-        if share_win is not None:
-            if share_win.winType == 'glfw':
-                share_context = share_win.winHandle
+        shareWin = backendConf.get('share', None)
+        if shareWin is not None:
+            if shareWin.winType == 'glfw':
+                shareContext = shareWin.winHandle
             else:
                 logging.warning(
                     'Cannot share a context with a non-GLFW window. Disabling.')
-                share_context = None
+                shareContext = None
         else:
-            share_context = None
+            shareContext = None
 
         if sys.platform=='darwin' and not win.useRetina and pyglet.version >= "1.3":
             raise ValueError("As of PsychoPy 1.85.3 OSX windows should all be "
@@ -167,13 +216,16 @@ class GLFWBackend(BaseBackend):
                              "so setting to False has no effect.")
 
         # window framebuffer configuration
-        win.bpc = kwargs.get('bpc', (8, 8, 8))  # nearly all displays use 8 bpc
-        win.refreshHz = int(kwargs.get('refreshHz', 60))
-        win.depthBits = int(kwargs.get('depthBits', 8))
-        win.stencilBits = int(kwargs.get('stencilBits', 8))
+        bpc = backendConf.get('bpc', (8, 8, 8))
+        if isinstance(bpc, int):
+            win.bpc = (bpc, bpc, bpc)
+        else:
+            win.bpc = bpc
 
-        # TODO - make waitBlanking set this too, independent right now
-        win.swapInterval = int(kwargs.get('swapInterval', 1))  # vsync ON if 1
+        win.refreshHz = int(backendConf.get('refreshHz', 60))
+        win.depthBits = int(backendConf.get('depthBits', 8))
+        win.stencilBits = int(backendConf.get('stencilBits', 8))
+        # win.swapInterval = int(backendConf.get('swapInterval', 1))  # vsync ON if 1
 
         # get monitors, with GLFW the primary display is ALWAYS at index 0
         allScrs = glfw.get_monitors()
@@ -182,50 +234,66 @@ class GLFWBackend(BaseBackend):
                          "using first available.")
             win.screen = 0
 
-        this_screen = allScrs[win.screen]
+        thisScreen = allScrs[win.screen]
         if win.autoLog:
             logging.info('configured GLFW screen %i' % win.screen)
 
         # find a matching video mode (can we even support this configuration?)
-        vidmode_is_supported = False
-        for vidmode in glfw.get_video_modes(this_screen):
-            _size, _bpc, _hz = vidmode
+        isVidmodeSupported = False
+        for vidmode in glfw.get_video_modes(thisScreen):
+            size, bpc, hz = vidmode
             if win._isFullScr:  # size and refresh rate are ignored if windowed
-                has_size = _size == tuple(win.size)
-                has_hz = _hz == win.refreshHz
+                hasSize = size == tuple(win.size)
+                hasHz = hz == win.refreshHz
             else:
-                has_size = has_hz = True
-            has_bpc = _bpc == tuple(win.bpc)
-            if has_size and has_bpc and has_hz:
-                vidmode_is_supported = True
+                hasSize = hasHz = True
+            hasBpc = bpc == tuple(win.bpc)
+            if hasSize and hasBpc and hasHz:
+                isVidmodeSupported = True
                 break
 
-        _size, _bpc, _hz = glfw.get_video_mode(this_screen)
-        if not vidmode_is_supported:
+        nativeVidmode = glfw.get_video_mode(thisScreen)
+        if not isVidmodeSupported:
             # the requested video mode is not supported, use current
+
             logging.warning(
                 ("The specified video mode is not supported by this display, "
                  "using native mode ..."))
-            logging.warning(
-                ("Overriding user video settings: size {} -> {}, bpc {} -> "
-                 "{}, refreshHz {} -> {}".format(tuple(win.size),
-                                                 _size,
-                                                 tuple(win.bpc),
-                                                 _bpc,
-                                                 win.refreshHz,
-                                                 _hz)))
+
+            actualWidth, actualHeight = nativeVidmode.size
+            redBits, greenBits, blueBits = nativeVidmode.bits
             # change the window settings
-            win.bpc = _bpc
-            win.refreshHz = _hz
-            win.size = _size
+            if win._isFullScr:
+                logging.warning(
+                    ("Overriding user video settings: size {} -> {}, bpc {} -> "
+                     "{}, refreshHz {} -> {}".format(
+                        tuple(win.size),
+                        (actualWidth, actualHeight),
+                        tuple(win.bpc),
+                        (redBits, greenBits, blueBits),
+                        win.refreshHz,
+                        nativeVidmode.refresh_rate)))
+
+                win.clientSize = np.array((actualWidth, actualHeight), int)
+            else:
+                logging.warning(
+                    ("Overriding user video settings: bpc {} -> "
+                     "{}, refreshHz {} -> {}".format(
+                        tuple(win.bpc),
+                        (redBits, greenBits, blueBits),
+                        win.refreshHz,
+                        nativeVidmode.refresh_rate)))
+
+            win.bpc = (redBits, greenBits, blueBits)
+            win.refreshHz = nativeVidmode.refresh_rate
 
         if win._isFullScr:
-            use_display = this_screen
+            useDisplay = thisScreen
         else:
-            use_display = None
+            useDisplay = None
 
         # configure stereo
-        use_stereo = 0
+        useStereo = 0
         if win.stereo:
             # provide warning if stereo buffers are requested but unavailable
             if not glfw.extension_supported('GL_STEREO'):
@@ -234,31 +302,31 @@ class GLFWBackend(BaseBackend):
                     'card does not appear to support GL_STEREO')
                 win.stereo = False
             else:
-                use_stereo = 1
+                useStereo = 1
 
         # setup multisampling
         # This enables multisampling on the window backbuffer, not on other
         # framebuffers.
-        msaa_samples = 0
+        msaaSamples = 0
         if win.multiSample:
-            max_samples = (GL.GLint)()
-            GL.glGetIntegerv(GL.GL_MAX_SAMPLES, max_samples)
+            maxSamples = (GL.GLint)()
+            GL.glGetIntegerv(GL.GL_MAX_SAMPLES, maxSamples)
             if (win.numSamples & (win.numSamples - 1)) != 0:
                 # power of two?
                 logging.warning(
                     'Invalid number of MSAA samples provided, must be '
                     'power of two. Disabling.')
-            elif 0 > win.numSamples > max_samples.value:
+            elif 0 > win.numSamples > maxSamples.value:
                 # check if within range
                 logging.warning(
                     'Invalid number of MSAA samples provided, outside of valid '
                     'range. Disabling.')
             else:
-                msaa_samples = win.numSamples
-        win.multiSample = msaa_samples > 0
+                msaaSamples = win.numSamples
+        win.multiSample = msaaSamples > 0
 
         # disable stencil buffer
-        if win.allowStencil:
+        if not win.allowStencil:
             win.stencilBits = 0
 
         # set buffer configuration hints
@@ -266,36 +334,53 @@ class GLFWBackend(BaseBackend):
         glfw.window_hint(glfw.GREEN_BITS, win.bpc[1])
         glfw.window_hint(glfw.BLUE_BITS, win.bpc[2])
         glfw.window_hint(glfw.REFRESH_RATE, win.refreshHz)
-        glfw.window_hint(glfw.STEREO, use_stereo)
-        glfw.window_hint(glfw.SAMPLES, msaa_samples)
+        glfw.window_hint(glfw.STEREO, useStereo)
+        glfw.window_hint(glfw.SAMPLES, msaaSamples)
         glfw.window_hint(glfw.STENCIL_BITS, win.stencilBits)
         glfw.window_hint(glfw.DEPTH_BITS, win.depthBits)
+        glfw.window_hint(glfw.AUTO_ICONIFY, 0)
 
         # window appearance and behaviour hints
         if not win.allowGUI:
             glfw.window_hint(glfw.DECORATED, 0)
-        glfw.window_hint(glfw.AUTO_ICONIFY, 0)
-
-        # window title
-        title_text = str(kwargs.get('winTitle', "PsychoPy (GLFW)"))
 
         # create the window
-        self.winHandle = glfw.create_window(width=win.size[0],
-                                            height=win.size[1],
-                                            title=title_text,
-                                            monitor=use_display,
-                                            share=share_context)
-
-        # set the window icon
-        glfw.set_window_icon(self.winHandle, 1, _WINDOW_ICON_)
+        self.winHandle = glfw.create_window(
+            width=win.clientSize[0],
+            height=win.clientSize[1],
+            title=str(backendConf.get('winTitle', "PsychoPy (GLFW)")),
+            monitor=useDisplay,
+            share=shareContext)
 
         # The window's user pointer maps the Python Window object to its GLFW
         # representation.
         glfw.set_window_user_pointer(self.winHandle, win)
         glfw.make_context_current(self.winHandle)  # ready to use
 
+        # set the position of the window if not fullscreen
+        if not win._isFullScr:
+            # if no window position is specified, centre it on-screen
+            if win.pos is None:
+                size, bpc, hz = nativeVidmode
+                win.pos = [(size[0] - win.clientSize[0]) / 2.0,
+                           (size[1] - win.clientSize[1]) / 2.0]
+
+            # get the virtual position of the monitor, apply offset to the
+            # window position
+            px, py = glfw.get_monitor_pos(thisScreen)
+            glfw.set_window_pos(self.winHandle,
+                                int(win.pos[0] + px),
+                                int(win.pos[1] + py))
+
+        elif win._isFullScr and win.pos is not None:
+            logging.warn("Ignoring window 'pos' in fullscreen mode.")
+
+        # set the window icon
+        if hasattr(glfw, 'set_window_icon'):
+            glfw.set_window_icon(self.winHandle, 1, _WINDOW_ICON_)
+
         # set the window size to the framebuffer size
-        win.size = np.array(glfw.get_framebuffer_size(self.winHandle))
+        self._frameBufferSize = np.array(glfw.get_framebuffer_size(self.winHandle))
 
         if win.useFBO:  # check for necessary extensions
             if not glfw.extension_supported('GL_EXT_framebuffer_object'):
@@ -311,14 +396,15 @@ class GLFWBackend(BaseBackend):
 
         # Assign event callbacks, these are dispatched when 'poll_events' is
         # called.
-        glfw.set_mouse_button_callback(self.winHandle, event._onGLFWMouseButton)
-        glfw.set_scroll_callback(self.winHandle, event._onGLFWMouseScroll)
+        glfw.set_mouse_button_callback(self.winHandle, self.onMouseButton)
+        glfw.set_cursor_pos_callback(self.winHandle, self.onMouseMove)
+        glfw.set_cursor_enter_callback(self.winHandle, self.onMouseEnter)
+        glfw.set_scroll_callback(self.winHandle, self.onMouseScroll)
         glfw.set_key_callback(self.winHandle, event._onGLFWKey)
         glfw.set_char_mods_callback(self.winHandle, event._onGLFWText)
 
-        # enable vsync, GLFW has additional setting for this that might be
-        # useful.
-        glfw.swap_interval(win.swapInterval)
+        # set swap interval to manual setting, independent of waitBlanking
+        self.setSwapInterval(int(backendConf.get('swapInterval', 1)))
 
         # give the window class GLFW specific methods
         win.setMouseType = self.setMouseType
@@ -330,22 +416,19 @@ class GLFWBackend(BaseBackend):
 
         # TODO - handle window resizing
 
-        # Set the position of the window if not fullscreen.
-        if not win.pos:
-            # work out where the centre should be
-            win.pos = [(_size[0] - win.size[0]) / 2.0,
-                       (_size[1] - win.size[1]) / 2.0]
-        if not win._isFullScr:
-            # get the virtual position of the monitor, apply offset to pos
-            _px, _py = glfw.get_monitor_pos(this_screen)
-            glfw.set_window_pos(self.winHandle,
-                                int(win.pos[0] + _px),
-                                int(win.pos[1] + _py))
+    def setSwapInterval(self, interval):
+        """Set the swap interval for the current GLFW context."""
+        glfw.swap_interval(interval)
 
     @property
     def shadersSupported(self):
         # on pyglet shaders are fine so just check GL>2.0
         return pyglet.gl.gl_info.get_version() >= '2.0'
+
+    @property
+    def frameBufferSize(self):
+        """Framebuffer size (w, h)."""
+        return self._frameBufferSize
 
     def swapBuffers(self, flipThisFrame=True):
         """Performs various hardware events around the window flip and then
@@ -384,58 +467,76 @@ class GLFWBackend(BaseBackend):
         """Change the appearance of the cursor for this window. Cursor types
         provide contextual hints about how to interact with on-screen objects.
 
+        **Deprecated!** Use `setMouseCursor` instead.
+
+        Parameters
+        ----------
+        name : str
+            Type of standard cursor to use.
+
+        """
+        self.setMouseCursor(name)
+
+    def setMouseCursor(self, cursorType='arrow'):
+        """Change the appearance of the cursor for this window. Cursor types
+        provide contextual hints about how to interact with on-screen objects.
+
         The graphics used 'standard cursors' provided by the operating system.
         They may vary in appearance and hot spot location across platforms. The
         following names are valid on most platforms:
 
-                'arrow' : Default pointer
-                'ibeam' : Indicates text can be edited
-            'crosshair' : Crosshair with hot-spot at center
-                 'hand' : A pointing hand
-              'hresize' : Double arrows pointing horizontally
-              'vresize' : Double arrows pointing vertically
+        * ``arrow`` or ``default`` : Default system pointer.
+        * ``ibeam`` or ``text`` : Indicates text can be edited.
+        * ``crosshair`` : Crosshair with hot-spot at center.
+        * ``hand`` : A pointing hand.
+        * ``hresize`` : Double arrows pointing horizontally.
+        * ``vresize`` : Double arrows pointing vertically.
 
-        Note, on Windows the 'crosshair' option is XORed with the background
-        color. It will not be visible when placed over 50% grey fields.
-
-        :param name: str, type of standard cursor to use
-        :return:
+        Parameters
+        ----------
+        cursorType : str
+            Type of standard cursor to use.
 
         """
         try:
-            glfw.set_cursor(self.winHandle, _CURSORS_[name])
+            cursor = _GLFW_CURSORS_[cursorType]  # get cursor
+
+            if cursor is None:  # check supported by backend
+                logging.warn(
+                    "Cursor type name '{}', is not supported by this backend. "
+                    "Setting cursor to system default.".format(cursorType))
+
+                cursor = _GLFW_CURSORS_['default']  # all backends define this
+
         except KeyError:
             logging.warn(
-                "Invalid cursor type name '{}', using default.".format(type))
-            glfw.set_cursor(self.winHandle, _CURSORS_['arrow'])
+                "Invalid cursor type name '{}', using system default.".format(
+                    cursorType))
+
+            cursor = _GLFW_CURSORS_['default']
+
+        glfw.set_cursor(self.winHandle, cursor)
 
     def setCurrent(self):
         """Sets this window to be the current rendering target.
 
-        :return: None
+        Returns
+        -------
+        bool
+            ``True`` if the context was switched from another. ``False`` is
+            returned if ``setCurrent`` was called on an already current window.
 
         """
         if self != globalVars.currWindow:
             glfw.make_context_current(self.winHandle)
             globalVars.currWindow = self
 
-            win = self.win  # it's a weakref so faster to call just once
-            # if we are using an FBO, bind it
-            if hasattr(win, 'frameBuffer'):
-                GL.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT,
-                                        win.frameBuffer)
-                GL.glReadBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
-                GL.glDrawBuffer(GL.GL_COLOR_ATTACHMENT0_EXT)
+            return True
 
-                # NB - check if we need these
-                GL.glActiveTexture(GL.GL_TEXTURE0)
-                GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-                GL.glEnable(GL.GL_STENCIL_TEST)
+        return False
 
     def dispatchEvents(self):
         """Dispatch events to the event handler (typically called on each frame)
-
-        :return:
         """
         pass
 
@@ -562,25 +663,180 @@ class GLFWBackend(BaseBackend):
     def close(self):
         """Close the window and uninitialize the resources
         """
+        # Test if the window has already been closed
+        if glfw.window_should_close(self.winHandle):
+            return
+
         _hw_handle = None
+
         try:
-            _hw_handle = self.win._hw_handle
-            # We need to call this when closing a window, however the window
-            # object is None at this point! So the GLFW window object lives on.
-            win = glfw.get_window_user_pointer(self.winHandle)
-            glfw.destroy_window(win)
+            self.setMouseVisibility(True)
+            glfw.set_window_should_close(self.winHandle, 1)
+            glfw.destroy_window(self.winHandle)
         except Exception:
             pass
         # If iohub is running, inform it to stop looking for this win id
         # when filtering kb and mouse events (if the filter is enabled of
         # course)
         try:
-            if IOHUB_ACTIVE and _hw_handle:
+            if window.IOHUB_ACTIVE and _hw_handle:
                 from psychopy.iohub.client import ioHubConnection
                 conn = ioHubConnection.ACTIVE_CONNECTION
                 conn.unregisterWindowHandles(_hw_handle)
         except Exception:
             pass
+
+    def setFullScr(self, value):
+        """Sets the window to/from full-screen mode"""
+        raise NotImplementedError(
+            "Toggling fullscreen mode is not currently supported on GFLW "
+            "windows")
+
+    # --------------------------------------------------------------------------
+    # Mouse button event handlers
+    #
+
+    def onMouseButton(self, *args, **kwargs):
+        """Event handler for any mouse button event (pressed and released)."""
+        # don't process mouse events until ready
+        mouseEventHandler = mouse.Mouse.getInstance()
+        if mouseEventHandler is None:
+            event._onGLFWMouseButton(*args, **kwargs)
+            return
+
+        _, _, action, _ = args
+
+        # process actions
+        if action == glfw.PRESS:
+            self.onMouseButtonPress(*args)
+        elif action == glfw.RELEASE:
+            self.onMouseButtonRelease(*args)
+
+    def onMouseButtonPress(self, *args, **kwargs):
+        """Event handler for mouse press events."""
+        # don't process mouse events until ready
+        mouseEventHandler = mouse.Mouse.getInstance()
+        if mouseEventHandler is None:
+            event._onGLFWMouseButton(*args, **kwargs)
+            return
+
+        win_handle, button, _, _ = args
+        absTime = core.getTime()
+        mouseEventHandler.win = self.win
+        absPos = self.getMousePos()
+        mouseEventHandler.setMouseButtonState(
+            _GLFW_MOUSE_BUTTONS_[button], True, absPos, absTime)
+
+    def onMouseButtonRelease(self, *args, **kwargs):
+        """Event handler for mouse press events."""
+        # don't process mouse events until ready
+        mouseEventHandler = mouse.Mouse.getInstance()
+        if mouseEventHandler is None:
+            event._onGLFWMouseButton(*args, **kwargs)
+            return
+
+        win_handle, button, _, _ = args
+        absTime = core.getTime()
+        mouseEventHandler.win = self.win
+        absPos = self.getMousePos()
+        mouseEventHandler.setMouseButtonState(
+            _GLFW_MOUSE_BUTTONS_[button], False, absPos, absTime)
+
+    def onMouseScroll(self, *args, **kwargs):
+        """Event handler for mouse scroll events."""
+        # don't process mouse events until ready
+        mouseEventHandler = mouse.Mouse.getInstance()
+        if mouseEventHandler is None:
+            event._onGLFWMouseScroll(*args, **kwargs)
+            return
+
+        _, xoffset, yoffset = args
+        absPos = self.getMousePos()
+        absTime = core.getTime()
+        relOffset = self._windowCoordsToPix((xoffset, yoffset))
+        mouseEventHandler.win = self.win
+        mouseEventHandler.setMouseScrollState(absPos, relOffset, absTime)
+
+    def onMouseMove(self, *args, **kwargs):
+        """Event handler for mouse move events."""
+        # don't process mouse events until ready
+        mouseEventHandler = mouse.Mouse.getInstance()
+        if mouseEventHandler is None:
+            return
+
+        _, xpos, ypos = args
+        absTime = core.getTime()
+        absPos = self._windowCoordsToPix((xpos, ypos))
+        mouseEventHandler.win = self.win
+        mouseEventHandler.setMouseMotionState(absPos, absTime)
+
+    def onMouseEnter(self, *args, **kwargs):
+        """Event called when the mouse enters the window."""
+        win_handle, entered = args
+
+        # don't process mouse events until ready
+        mouseEventHandler = mouse.Mouse.getInstance()
+        if mouseEventHandler is None:
+            return
+
+        # check if auto focus is enabled
+        if mouseEventHandler.autoFocus:
+            if bool(entered):
+                mouseEventHandler.win = self.win
+            else:
+                mouseEventHandler.win = None
+
+    def onMouseLeave(self, *args, **kwargs):
+        """Event called when the mouse leaves the window. This does nothing
+        since `onMouseEnter` handles both enter and leave events. This is
+        implemented for completeness.
+        """
+        pass
+
+    def setMouseExclusive(self, exclusive):
+        """Set mouse exclusivity.
+
+        Parameters
+        ----------
+        exclusive : bool
+            Mouse exclusivity mode.
+
+        """
+        if exclusive:
+            glfw.set_input_mode(
+                self.winHandle, glfw.CURSOR, glfw.CURSOR_DISABLED)
+            glfw.set_input_mode(
+                self.winHandle, glfw.RAW_MOUSE_MOTION, glfw.TRUE)
+        else:
+            glfw.set_input_mode(
+                self.winHandle, glfw.CURSOR, glfw.CURSOR_NORMAL)
+            glfw.set_input_mode(
+                self.winHandle, glfw.RAW_MOUSE_MOTION, glfw.FALSE)
+
+    def getMousePos(self):
+        """Get the position of the mouse on the current window.
+
+        Returns
+        -------
+        ndarray
+            Position `(x, y)` in window coordinates.
+
+        """
+        winX, winY = glfw.get_cursor_pos(self.winHandle)
+        return self._windowCoordsToPix((winX, winY))
+
+    def setMousePos(self, pos):
+        """Set/move the position of the mouse on the current window.
+
+        Parameters
+        ----------
+        pos : ArrayLike
+            Position `(x, y)` in window coordinates.
+
+        """
+        wcs = self._pixToWindowCoords(pos)
+        glfw.set_cursor_pos(self.winHandle, int(wcs[0]), int(wcs[1]))
+
 
 def _onResize(width, height):
     """A default resize event handler.
@@ -606,7 +862,7 @@ def _onResize(width, height):
     else:
         back_width, back_height = width, height
 
-    GL.glViewport(0, 0, width, height)
+    GL.glViewport(0, 0, back_width, back_height)
     GL.glMatrixMode(GL.GL_PROJECTION)
     GL.glLoadIdentity()
     GL.glOrtho(-1, 1, -1, 1, -1, 1)

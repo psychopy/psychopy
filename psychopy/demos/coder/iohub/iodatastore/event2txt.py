@@ -1,16 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 This script demonstrates how to load a ioHub DataStore HDF5 file, read the
-session variable data collected via the Experiment Session Variable Dialog
-at the start of each experiment run ( if you did so, otherwise that is ignored)
+session variable data (if provided when experiment was run, otherwise ignored)
 and combine it with columns from a Device Event Table, saving the output as a
 tab delimited file.
 
-@author: Sol
+An iohub datastore file is required to run this demo. If you need
+an ioHub data file, first run the demos/coder/iohub/delaytest/run.py script
+and use the events.hdf5 file that is saved by that demo. 
 """
-
 from __future__ import absolute_import, division, print_function
 
 from builtins import str
@@ -18,10 +17,6 @@ import sys,os
 import psychopy
 from psychopy.core import getTime
 import psychopy.iohub
-if psychopy.iohub._DATA_STORE_AVAILABLE is False:
-    raise ImportError("DataStore module could not be imported. (Likely that pyTables hdf5dll could not be found). Exiting demo...")
-    sys.exit(1)
-
 from psychopy.iohub.datastore.util import displayDataFileSelectionDialog,displayEventTableSelectionDialog, ExperimentDataAccessUtility
 
 def writeOutputFileHeader(output_file, session_metadata_columns,log_entry_names):
@@ -52,8 +47,9 @@ if __name__ == '__main__':
     # Select the hdf5 file to process.
     data_file_path= displayDataFileSelectionDialog(psychopy.iohub.module_directory(writeOutputFileHeader))
     if data_file_path is None:
-        print("File Selection Cancelled, exiting...")
+        print("File Selection Canceled, exiting...")
         sys.exit(0)
+    data_file_path = data_file_path[0]
     dpath,dfile=os.path.split(data_file_path)
 
     # Lets time how long processing takes
@@ -75,28 +71,24 @@ if __name__ == '__main__':
     events_with_data=dataAccessUtil.getEventsByType()
 
     duration=getTime()-start_time
-
     # Select which event table to output by displaying a list of
     #   Event Class Names that have data available to the user...
     event_class_selection=displayEventTableSelectionDialog("Select Event Type to Save", "Event Type:",
-                [eventTableMappings[event_id].class_name for event_id in list(events_with_data.keys())])
+                [eventTableMappings[event_id].class_name.decode('utf-8') for event_id in list(events_with_data.keys())])
     if event_class_selection is None:
-        print("Event table Selection Cancelled, exiting...")
+        print("Event table Selection Canceled, exiting...")
         dataAccessUtil.close()
         sys.exit(0)
 
-    # restart processing time calculation...
-    #
     start_time=getTime()
 
-    # Lookup the correct event iterator fiven the event class name selected.
+    # Lookup the correct event iterator given the event class name selected.
     #
     event_iterator_for_output=None
     for event_id, mapping_info in eventTableMappings.items():
-        if mapping_info.class_name==event_class_selection:
+        if mapping_info.class_name.decode('utf-8') == event_class_selection:
             event_iterator_for_output=events_with_data[event_id]
             break
-
     # Read the session metadata table for all sessions saved to the file.
     #
     session_metadata=dataAccessUtil.getSessionMetaData()
@@ -114,9 +106,12 @@ if __name__ == '__main__':
 
     # Open a file to save the tab delimited output to.
     #
-    log_file_name="%s.%s.txt"%(dfile[:-5],event_class_selection)
+    if isinstance(event_class_selection, str):
+        log_file_name="%s.%s.txt"%(dfile[:-5],event_class_selection)
+    else:
+        log_file_name="%s.%s.txt"%(dfile[:-5],event_class_selection.decode('utf-8'))
+        
     with open(log_file_name,'w') as output_file:
-
         # write column header
         #
         writeOutputFileHeader(output_file,session_metadata_columns,
@@ -125,7 +120,7 @@ if __name__ == '__main__':
         print('Writing Data to %s:\n'%(log_file_name))
         for i,event in enumerate(event_iterator_for_output):
             # write out each row of the event data with session
-            # data as prepended columns.....
+            # data as appended columns.....
             #
             writeDataRow(output_file,sesion_meta_data_dict[event['session_id']],
                          session_uservar_columns,event[:][3:])
@@ -136,4 +131,4 @@ if __name__ == '__main__':
     duration=duration+(getTime()-start_time)
     print()
     print('\nOutput Complete. %d Events Saved to %s in %.3f seconds (%.2f events/seconds).\n'%(i,log_file_name,duration,i/duration))
-    print('%s will be in the same directory as the selected .hdf5 file'%(log_file_name))
+    print('Output saved to same directory as source .hdf5 file.')

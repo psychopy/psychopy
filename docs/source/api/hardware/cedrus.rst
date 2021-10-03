@@ -5,7 +5,7 @@ The pyxid package, written by Cedrus, is included in the Standalone PsychoPy dis
 
 Example usage::
 
-	import pyxid
+	import pyxid2 as pyxid
 
     # get a list of all attached XID devices
     devices = pyxid.get_xid_devices()
@@ -24,14 +24,11 @@ Example usage::
 Useful functions
 ------------------
 
-.. automodule:: pyxid
+.. automodule:: pyxid2
     :members:
 
 Device classes
 ---------------------------
 
-.. autoclass:: pyxid.ResponseDevice
-	:members:
-
-.. autoclass:: pyxid.XidDevice
+.. autoclass:: pyxid2.XidDevice
 	:members:

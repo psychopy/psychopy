@@ -1,12 +1,14 @@
 from __future__ import print_function
+from past.builtins import unicode
 
 from builtins import object
 import os
+import io
 import pytest
+import warnings
 
-from psychopy import prefs
-from psychopy.app import builder, projects
-from psychopy.experiment import getAllComponents
+from psychopy import constants
+from psychopy.experiment import getAllComponents, Param, utils
 from psychopy import experiment
 from pkg_resources import parse_version
 
@@ -53,13 +55,6 @@ class TestComponents(object):
                 pass  # not needed if can't import it
             cls.allComp = getAllComponents(fetchIcons=False)
 
-        cls.origProjectCatalog = projects.projectCatalog
-        projects.projectCatalog = {}
-
-    @classmethod
-    def teardown_class(cls):
-        projects.projectCatalog = cls.origProjectCatalog
-
     def setup(self):
         """This setup is done for each test individually
         """
@@ -69,7 +64,8 @@ class TestComponents(object):
         pass
 
     def test_component_attribs(self):
-        target = open(self.baselineProfile, 'rU').read()
+        with io.open(self.baselineProfile, 'r', encoding='utf-8-sig') as f:
+            target = f.read()
         targetLines = target.splitlines()
         targetTag = {}
         for line in targetLines:
@@ -92,13 +88,14 @@ class TestComponents(object):
                    'label',  # comment-out to compare labels when checking
                    'categ',
                    'next',
+                   'dollarSyntax',
                    ]
         for field in dir(param):
             if field.startswith("__"):
                 ignore.append(field)
         fields = set(dir(param)).difference(ignore)
 
-        err = []
+        mismatched = []
         for compName in sorted(self.allComp):
             comp = self.allComp[compName](parentName='x', exp=self.exp)
             order = '%s.order:%s' % (compName, eval("comp.order"))
@@ -107,15 +104,18 @@ class TestComponents(object):
                 tag = order.split(':',1)[0]
                 try:
                     mismatch = order + ' <== ' + targetTag[tag]
-                except IndexError: # missing
+                except (IndexError, KeyError): # missing
                     mismatch = order + ' <==> NEW (no matching param in the reference profile)'
                 print(mismatch.encode('utf8'))
 
                 if not ignoreOrder:
-                    err.append(mismatch)
+                    mismatched.append(mismatch)
 
             for parName in comp.params:
                 # default is what you get from param.__str__, which returns its value
+                if not constants.PY3:
+                    if isinstance(comp.params[parName].val, unicode):
+                        comp.params[parName].val = comp.params[parName].val.encode('utf8')
                 default = '%s.%s.default:%s' % (compName, parName, comp.params[parName])
                 lineFields = []
                 for field in fields:
@@ -158,10 +158,79 @@ class TestComponents(object):
                                 if item in mismatch:
                                     break
                             else:
-                                err.append(mismatch)
-                                print(mismatch.encode('utf8'))
+                                mismatched.append(mismatch)
                         else:
-                            err.append(mismatch)
-                            print(mismatch.encode('utf8'))
+                            mismatched.append(mismatch)
 
-        assert not err
+        for mismatch in mismatched:
+            warnings.warn("Non-identical Builder Param: {}".format(mismatch))
+
+
+def test_param_str():
+    exemplars = [
+        # Regular string
+        {"obj": Param("Hello there", "str"),
+         "py": "'Hello there'",
+         "js": "'Hello there'"},
+        # Dollar string
+        {"obj": Param("$win.color", "str"),
+         "py": "win.color",
+         "js": "psychoJS.window.color"},
+        # Integer
+        {"obj": Param("1", "int"),
+         "py": "1",
+         "js": "1"},
+        # Float
+        {"obj": Param("1", "num"),
+         "py": "1.0",
+         "js": "1.0"},
+        # File path
+        {"obj": Param("C://Downloads//file.ext", "file"),
+         "py": "'C:/Downloads/file.ext'",
+         "js": "'C:/Downloads/file.ext'"},
+        # Table path
+        {"obj": Param("C://Downloads//file.csv", "table"),
+         "py": "'C:/Downloads/file.csv'",
+         "js": "'C:/Downloads/file.csv'"},
+        # Color
+        {"obj": Param("red", "color"),
+         "py": "'red'",
+         "js": "'red'"},
+        # Code
+        {"obj": Param("win.color", "code"),
+         "py": "win.color",
+         "js": "psychoJS.window.color"},
+        # Extended code
+        {"obj": Param("for x in y:\n\tprint(y)", "extendedCode"),
+         "py": "for x in y:\n\tprint(y)",
+         "js": "for x in y:\n\tprint(y)"}, # this will change when snipped2js is fully working
+        # List
+        {"obj": Param("1, 2, 3", "list"),
+         "py": "[1, 2, 3]",
+         "js": "[1, 2, 3]"},
+    ]
+    tykes = [
+    ]
+
+    # Take note of what the script target started as
+    initTarget = utils.scriptTarget
+    # Try each case
+    for case in exemplars + tykes:
+        # Check Python compiles as expected
+        if "py" in case:
+            utils.scriptTarget = "PsychoPy"
+            assert str(case['obj']) == case['py']
+        # Check JS compiles as expected
+        if "js" in case:
+            utils.scriptTarget = "PsychoJS"
+            assert str(case['obj']) == case['js']
+    # Set script target back to init
+    utils.scriptTarget = initTarget
+
+
+@pytest.mark.components
+def test_flip_before_shutdown_in_settings_component():
+    exp = experiment.Experiment()
+    script = exp.writeScript()
+
+    assert 'Flip one final time' in script

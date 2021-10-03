@@ -1,0 +1,19 @@
+
+code: 4205
+cat: Coding
+msg: Python Syntax Error in '{codeTab}' tab. See '{code}' on line number {lineNumber} of the '{codeTab}' tab.
+
+# The following are typically used for online help pages, and support reStructured Text.
+label: Probable syntax error detected in your Python code
+
+synopsis: |
+  Python syntax error found in your code component.
+
+details: |
+  This *may* be spurious in that the code check may have failed to understand something that is a valid syntax (syntax in Python can change according to version) but this will become clear if you run your experiment and it fails to run. 
+
+solutions: |
+  Check the code carefully at the indicated line and on the few lines above. Check especially for things like un-matched parentheses or quote symbols.
+
+versions: |
+  All versions.

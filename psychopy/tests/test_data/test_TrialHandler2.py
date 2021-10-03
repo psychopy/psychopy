@@ -8,13 +8,13 @@ from os.path import join as pjoin
 import shutil
 from tempfile import mkdtemp, mkstemp
 import numpy as np
+import io
 import json_tricks
 import pytest
 
 from psychopy import data
 from psychopy.tools.filetools import fromFile
 from psychopy.tests import utils
-from psychopy.constants import PY3
 
 thisPath = os.path.split(__file__)[0]
 fixturesPath = os.path.join(thisPath,'..','data')
@@ -34,7 +34,7 @@ class TestTrialHandler2(object):
 
     def test_underscores_in_datatype_names2(self):
         trials = data.TrialHandler2([], 1, autoLog=False)
-        for trial in trials:#need to run trials or file won't be saved
+        for trial in trials:  # need to run trials or file won't be saved
             trials.addData('with_underscore', 0)
         base_data_filename = pjoin(self.temp_dir, self.rootName)
 
@@ -43,15 +43,8 @@ class TestTrialHandler2(object):
         trials.saveAsWideText(data_filename, delim=',', appendFile=False)
         assert os.path.exists(data_filename), "File not found: %s" %os.path.abspath(data_filename)
 
-        # Make sure the header line is correct
-        # Make sure the header line is correct
-        # We open the file with universal newline support (PEP-278).
-        if PY3:
-            with open(data_filename, 'r', newline=None) as f:
-                header = f.readline()
-        else:
-            with open(data_filename, 'rU') as f:
-                header = f.readline()
+        with io.open(data_filename, 'r', encoding='utf-8-sig') as f:
+            header = f.readline()
 
         expected_header = u'n,with_underscore_mean,with_underscore_raw,with_underscore_std,order\n'
         if expected_header != header:
@@ -189,8 +182,8 @@ class TestTrialHandler2(object):
         t.origin = ''
 
         t_loaded = json_tricks.loads(dump)
-        t_loaded._rng = np.random.RandomState()
-        t_loaded._rng.set_state(t_loaded._rng_state)
+        t_loaded._rng = np.random.default_rng()
+        t_loaded._rng.bit_generator.state = t_loaded._rng_state
         del t_loaded._rng_state
 
         assert t == t_loaded
@@ -203,8 +196,8 @@ class TestTrialHandler2(object):
         t.origin = ''
 
         t_loaded = json_tricks.loads(dump)
-        t_loaded._rng = np.random.RandomState()
-        t_loaded._rng.set_state(t_loaded._rng_state)
+        t_loaded._rng = np.random.default_rng()
+        t_loaded._rng.bit_generator.state = t_loaded._rng_state
         del t_loaded._rng_state
 
         assert t == t_loaded
@@ -217,8 +210,8 @@ class TestTrialHandler2(object):
         t.origin = ''
 
         t_loaded = json_tricks.loads(dump)
-        t_loaded._rng = np.random.RandomState()
-        t_loaded._rng.set_state(t_loaded._rng_state)
+        t_loaded._rng = np.random.default_rng()
+        t_loaded._rng.bit_generator.state = t_loaded._rng_state
         del t_loaded._rng_state
 
         assert t == t_loaded
@@ -232,8 +225,8 @@ class TestTrialHandler2(object):
         t.origin = ''
 
         t_loaded = json_tricks.loads(dump)
-        t_loaded._rng = np.random.RandomState()
-        t_loaded._rng.set_state(t_loaded._rng_state)
+        t_loaded._rng = np.random.default_rng()
+        t_loaded._rng.bit_generator.state = t_loaded._rng_state
         del t_loaded._rng_state
 
         assert t == t_loaded
@@ -295,13 +288,8 @@ class TestTrialHandler2Output(object):
         expected_header = self.trials.columns
         expected_header = expected_delim.join(expected_header) + '\n'
 
-        # Universal newline support.
-        if PY3:
-            with open(path + expected_suffix, 'r', newline=None) as f:
-                header = f.readline()
-        else:
-            with open(path + expected_suffix, 'rU') as f:
-                header = f.readline()
+        with io.open(path + expected_suffix, 'r', encoding='utf-8-sig') as f:
+            header = f.readline()
 
         assert header == expected_header
 
@@ -316,13 +304,8 @@ class TestTrialHandler2Output(object):
         expected_header = self.trials.columns
         expected_header = delim.join(expected_header) + '\n'
 
-        # Universal newline support.
-        if PY3:
-            with open(path + expected_suffix, 'r', newline=None) as f:
-                header = f.readline()
-        else:
-            with open(path + expected_suffix, 'rU') as f:
-                header = f.readline()
+        with io.open(path + expected_suffix, 'r', encoding='utf-8-sig') as f:
+            header = f.readline()
 
         assert header == expected_header
 
@@ -337,13 +320,8 @@ class TestTrialHandler2Output(object):
         expected_header = self.trials.columns
         expected_header = delim.join(expected_header) + '\n'
 
-        # Universal newline support.
-        if PY3:
-            with open(path + expected_suffix, 'r', newline=None) as f:
-                header = f.readline()
-        else:
-            with open(path + expected_suffix, 'rU') as f:
-                header = f.readline()
+        with io.open(path + expected_suffix, 'r', encoding='utf-8-sig') as f:
+            header = f.readline()
 
         assert header == expected_header
 
@@ -358,13 +336,8 @@ class TestTrialHandler2Output(object):
         expected_header = self.trials.columns
         expected_header = delim.join(expected_header) + '\n'
 
-        # Universal newline support.
-        if PY3:
-            with open(path + expected_suffix, 'r', newline=None) as f:
-                header = f.readline()
-        else:
-            with open(path + expected_suffix, 'rU') as f:
-                header = f.readline()
+        with io.open(path + expected_suffix, 'r', encoding='utf-8-sig') as f:
+            header = f.readline()
 
         assert header == expected_header
 
@@ -377,13 +350,8 @@ class TestTrialHandler2Output(object):
         expected_header = self.trials.columns
         expected_header = expected_delim.join(expected_header) + '\n'
 
-        # Universal newline support.
-        if PY3:
-            with open(path, 'r', newline=None) as f:
-                header = f.readline()
-        else:
-            with open(path, 'rU') as f:
-                header = f.readline()
+        with io.open(path, 'r', encoding='utf-8-sig') as f:
+            header = f.readline()
 
         assert header == expected_header
 
@@ -399,13 +367,8 @@ class TestTrialHandler2Output(object):
         expected_header = self.trials.columns
         expected_header = expected_delim.join(expected_header) + '\n'
 
-        # Universal newline support.
-        if PY3:
-            with open(path + expected_suffix, 'r', newline=None) as f:
-                header = f.readline()
-        else:
-            with open(path + expected_suffix, 'rU') as f:
-                header = f.readline()
+        with io.open(path + expected_suffix, 'r', encoding='utf-8-sig') as f:
+            header = f.readline()
 
         assert header == expected_header
 
@@ -420,15 +383,28 @@ class TestTrialHandler2Output(object):
         expected_header = self.trials.columns
         expected_header = expected_delim.join(expected_header) + '\n'
 
-        # Universal newline support.
-        if PY3:
-            with open(path, 'r', newline=None) as f:
-                header = f.readline()
-        else:
-            with open(path, 'rU') as f:
-                header = f.readline()
+        with io.open(path, 'r', encoding='utf-8-sig') as f:
+            header = f.readline()
 
         assert header == expected_header
+
+    def test_conditions_from_csv(self):
+        conditions_file = pjoin(fixturesPath, 'trialTypes.csv')
+        trials = data.TrialHandler2(conditions_file, nReps=1)
+
+        assert type(trials.columns) == list
+
+        for _ in trials:
+            pass
+
+    def test_conditions_from_xlsx(self):
+        conditions_file = pjoin(fixturesPath, 'trialTypes.xlsx')
+        trials = data.TrialHandler2(conditions_file, nReps=1)
+
+        assert type(trials.columns) == list
+
+        for _ in trials:
+            pass
 
 
 if __name__ == '__main__':

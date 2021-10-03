@@ -2,35 +2,55 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
 
 from builtins import map
+import sys
+import os
+import atexit
+import threading
+from itertools import chain
+from numpy import float64
 from psychopy import prefs, exceptions
-from sys import platform
 from psychopy import core, logging
-from psychopy.constants import (STARTED, PLAYING, PAUSED, FINISHED, STOPPED,
-                                NOT_STARTED, FOREVER)
+from psychopy.constants import (STARTED, FINISHED, STOPPED, NOT_STARTED,
+                                FOREVER, PY3)
+from ._base import _SoundBase
+
+
+travisCI = bool(str(os.environ.get('TRAVIS')).lower() == 'true')
 try:
     import pyo
 except ImportError as err:
-    # convert this import error to our own, pyo probably not installed
-    raise exceptions.DependencyError(repr(err))
+    if not travisCI:
+        # convert this import error to our own, pyo probably not installed
+        raise exceptions.DependencyError(repr(err))
 
-from ._base import _SoundBase
-import sounddevice
+if PY3:
+    from contextlib import redirect_stdout
+    from io import StringIO
+else:
+    from cStringIO import StringIO
+    from contextlib import contextmanager
+    @contextmanager
+    def redirect_stdout(target):
+        original = sys.stdout
+        sys.stdout = target
+        yield
+        sys.stdout = original
 
-import atexit
-import threading
+
 pyoSndServer = None
 audioDriver = None
+
 
 def _bestDriver(devNames, devIDs):
     """Find ASIO or Windows sound drivers
     """
-    preferredDrivers = prefs.general['audioDriver']
+    preferredDrivers = prefs.hardware['audioDriver']
     outputID = None
     audioDriver = None
     for prefDriver in preferredDrivers:
@@ -55,49 +75,34 @@ def _bestDriver(devNames, devIDs):
     else:
         return None, None
 
+
 def get_devices_infos():
-    devices = sounddevice.query_devices()
-    in_devices = {}
-    out_devices = {}
-    for id, device in enumerate(devices):
-        if device['max_input_channels'] > 0:
-            param = {'host api index':device['hostapi'],
-                     'latency':device['default_low_input_latency'],
-                     'default sr':device['default_samplerate'],
-                     'name':device['name']}
-            in_devices[id] = param
-        if device['max_output_channels'] > 0:
-            param = {'host api index':device['hostapi'],
-                     'latency':device['default_low_output_latency'],
-                     'default sr':device['default_samplerate'],
-                     'name':device['name']}
-            out_devices[id] = param
+    in_devices, out_devices = pyo.pa_get_devices_infos()
+    for index, device in chain(in_devices.items(), out_devices.items()):
+        device.update({
+            'default sr': '{} Hz'.format(device['default sr']),
+            'host api index': str(device['host api index']),
+            'latency': '{} s'.format(round(device['latency'], 6)),
+        })
     return (in_devices, out_devices)
 
 
 def get_output_devices():
-    devices = sounddevice.query_devices()
-    names = []
-    ids = []
-    for id, device in enumerate(devices):
-        if device['max_output_channels'] > 0:
-            names.append(device['name'])
-            ids.append(id)
-    return (names, ids)
+    _, out_devices = get_devices_infos()
+    return tuple(zip(*[
+        (device['name'], dev_id) for dev_id, device in out_devices.items()
+    ]))
 
 
 def get_input_devices():
-    devices = sounddevice.query_devices()
-    names = []
-    ids = []
-    for id, device in enumerate(devices):
-        if device['max_input_channels'] > 0:
-            names.append(device['name'])
-            ids.append(id)
-    return (names, ids)
+    in_devices, _ = get_devices_infos()
+    return tuple(zip(*[
+        (device['name'], dev_id) for dev_id, device in in_devices.items()
+    ]))
+
 
 def getDevices(kind=None):
-    """Returns a dict of dict of audio devices of sepcified `kind`
+    """Returns a dict of dict of audio devices of specified `kind`
 
     The dict keys are names and items are dicts of properties
     """
@@ -105,14 +110,15 @@ def getDevices(kind=None):
     if kind is None:
         allDevs = inputs.copy()
         allDevs.update(outputs)
-    elif kind=='output':
+    elif kind == 'output':
         allDevs = outputs
     else:
         allDevs = inputs
     devs = {}
     for ii in allDevs:  # in pyo this is a dict but keys are ii ! :-/
         dev = allDevs[ii]
-        devName = dev['name']
+        # newline characters must be removed
+        devName = dev['name'].replace('\r\n', '')
         devs[devName] = dev
         dev['id'] = ii
     return devs
@@ -170,8 +176,9 @@ def init(rate=44100, stereo=True, buffer=128):
                             buffersize=buffer, audio=audioDriver)
         pyoSndServer.boot()
     else:
-        if platform == 'win32':
+        if sys.platform == 'win32':
             # check for output device/driver
+            #todo: Throwing errors on one users' config https://discourse.psychopy.org/t/error-with-microphone-component-on-psychopy-2020/13168
             devNames, devIDs = get_output_devices()
             audioDriver, outputID = _bestDriver(devNames, devIDs)
             if outputID is None:
@@ -214,7 +221,7 @@ def init(rate=44100, stereo=True, buffer=128):
                 duplex = False
         # for other platforms set duplex to True (if microphone is available)
         else:
-            audioDriver = prefs.general['audioDriver'][0]
+            audioDriver = prefs.hardware['audioDriver'][0]
             maxInputChnls = pyo.pa_get_input_max_channels(
                 pyo.pa_get_default_input())
             maxOutputChnls = pyo.pa_get_output_max_channels(
@@ -234,7 +241,7 @@ def init(rate=44100, stereo=True, buffer=128):
             return -1
 
         # create the instance of the server:
-        if platform == 'darwin' or platform.startswith('linux'):
+        if sys.platform == 'darwin' or sys.platform.startswith('linux'):
             # for mac/linux we set the backend using the server audio param
             pyoSndServer = Server(sr=rate, nchnls=maxChnls,
                                   buffersize=buffer, audio=audioDriver)
@@ -244,24 +251,24 @@ def init(rate=44100, stereo=True, buffer=128):
             pyoSndServer = Server(sr=rate, nchnls=maxChnls, buffersize=buffer)
 
         pyoSndServer.setVerbosity(1)
-        if platform == 'win32':
+        if sys.platform == 'win32':
             pyoSndServer.setOutputDevice(outputID)
             if inputID is not None:
                 pyoSndServer.setInputDevice(inputID)
         # do other config here as needed (setDuplex? setOutputDevice?)
         pyoSndServer.setDuplex(duplex)
         pyoSndServer.boot()
-    core.wait(0.5)  # wait for server to boot before starting te sound stream
+    core.wait(0.5)  # wait for server to boot before starting the sound stream
     pyoSndServer.start()
-    
-    #atexit is filo, will call stop then shutdown upon closing
+
+    # atexit is filo, will call stop then shutdown upon closing
     atexit.register(pyoSndServer.shutdown)
     atexit.register(pyoSndServer.stop)
     try:
         Sound()  # test creation, no play
     except pyo.PyoServerStateException:
         msg = "Failed to start pyo sound Server"
-        if platform == 'darwin' and audioDriver != 'portaudio':
+        if sys.platform == 'darwin' and audioDriver != 'portaudio':
             msg += "; maybe try prefs.general.audioDriver 'portaudio'?"
         logging.error(msg)
         core.quit()
@@ -356,11 +363,14 @@ class SoundPyo(_SoundBase):
         self.setSound(value=value, secs=secs, octave=octave, hamming=hamming)
         self.needsUpdate = False
 
-    def play(self, loops=None, autoStop=True, log=True):
+    def play(self, loops=None, autoStop=True, log=True, when=None):
         """Starts playing the sound on an available channel.
 
         loops : int
-            (same as above)
+            How many times to repeat the sound after it plays once. If
+            `loops` == -1, the sound will repeat indefinitely until stopped.
+
+        when: not used but included for compatibility purposes
 
         For playing a sound file, you cannot specify the start and stop
         times when playing the sound, only when creating the sound initially.
@@ -415,6 +425,8 @@ class SoundPyo(_SoundBase):
     def _updateSnd(self):
         self.needsUpdate = False
         doLoop = bool(self.loops != 0)  # if True, end it via threading.Timer
+        if type(self.volume) == float64:
+            self.volume = self.volume.item()
         self._snd = pyo.TableRead(self._sndTable,
                                   freq=self._sndTable.getRate(),
                                   loop=doLoop, mul=self.volume)

@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+# Part of the PsychoPy library
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
+# Distributed under the terms of the GNU General Public License (GPL).
+
 from __future__ import absolute_import, division, print_function
 
 # from future import standard_library
@@ -10,6 +14,7 @@ from builtins import range
 from past.builtins import basestring
 import os
 import re
+import ast
 import pickle
 import time
 import codecs
@@ -19,8 +24,9 @@ import pandas as pd
 from collections import OrderedDict
 from pkg_resources import parse_version
 
-from psychopy import logging
+from psychopy import logging, exceptions
 from psychopy.constants import PY3
+from psychopy.tools.filetools import pathToString
 
 try:
     import openpyxl
@@ -34,11 +40,7 @@ try:
 except ImportError:
     haveOpenpyxl = False
 
-try:
-    import xlrd
-    haveXlrd = True
-except ImportError:
-    haveXlrd = False
+haveXlrd = False
 
 _nonalphanumeric_re = re.compile(r'\W')  # will match all bad var name chars
 
@@ -167,28 +169,60 @@ def indicesFromString(indsString):
         pass
 
 
+def listFromString(val, excludeEmpties=False):
+    """Take a string that looks like a list (with commas and/or [] and make
+    an actual python list"""
+    # was previously called strToList and str2list might have been an option!
+    # I'll leave those here for anyone doing a find-in-path for those
+    if type(val) == tuple:
+        return list(val)
+    elif type(val) == list:
+        return list(val)  # nothing to do
+    elif type(val) != str:
+        raise ValueError("listFromString requires a string as its input not {}"
+                         .format(repr(val)))
+    # try to evaluate with ast (works for "'yes,'no'" or "['yes', 'no']")
+    try:
+        iterable = ast.literal_eval(val)
+        if type(iterable) == tuple:
+            iterable = list(iterable)
+        return iterable
+    except (ValueError, SyntaxError):
+        pass  # e.g. "yes, no" won't work. We'll go on and try another way
+
+    val = val.strip()  # in case there are spaces
+    if val.startswith(('[', '(')) and val.endswith((']', ')')):
+        val = val[1:-1]
+    asList = val.split(",")
+    if excludeEmpties:
+        asList = [this.strip() for this in asList if this]
+    else:
+        asList = [this.strip() for this in asList]
+    return asList
+
+
 def importConditions(fileName, returnFieldNames=False, selection=""):
     """Imports a list of conditions from an .xlsx, .csv, or .pkl file
 
     The output is suitable as an input to :class:`TrialHandler`
-    `trialTypes` or to :class:`MultiStairHandler` as a `conditions` list.
+    `trialList` or to :class:`MultiStairHandler` as a `conditions` list.
 
     If `fileName` ends with:
 
-        - .csv:  import as a comma-separated-value file
+    - .csv:  import as a comma-separated-value file
             (header + row x col)
-        - .xlsx: import as Excel 2007 (xlsx) files.
+    - .xlsx: import as Excel 2007 (xlsx) files.
             No support for older (.xls) is planned.
-        - .pkl:  import from a pickle file as list of lists
+    - .pkl:  import from a pickle file as list of lists
             (header + row x col)
 
     The file should contain one row per type of trial needed and one column
     for each parameter that defines the trial type. The first row should give
     parameter names, which should:
 
-        - be unique
-        - begin with a letter (upper or lower case)
-        - contain no spaces or other punctuation (underscores are permitted)
+    - be unique
+    - begin with a letter (upper or lower case)
+    - contain no spaces or other punctuation (underscores are permitted)
 
 
     `selection` is used to select a subset of condition indices to be used
@@ -196,29 +230,66 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
     be parsed as either option.
     e.g.:
 
-        - "1,2,4" or [1,2,4] or (1,2,4) are the same
-        - "2:5"       # 2, 3, 4 (doesn't include last whole value)
-        - "-10:2:"    # tenth from last to the last in steps of 2
-        - slice(-10, 2, None)  # the same as above
-        - random(5) * 8  # five random vals 0-8
+    - "1,2,4" or [1,2,4] or (1,2,4) are the same
+    - "2:5"       # 2, 3, 4 (doesn't include last whole value)
+    - "-10:2:"    # tenth from last to the last in steps of 2
+    - slice(-10, 2, None)  # the same as above
+    - random(5) * 8  # five random vals 0-7
 
     """
+
+    def _attemptImport(fileName, sep=',', dec='.'):
+        """Attempts to import file with specified settings and raises
+        ConditionsImportError if fails due to invalid format
+
+        :param filename: str
+        :param sep: str indicating the separator for cells (',', ';' etc)
+        :param dec: str indicating the decimal point ('.', '.')
+        :return: trialList, fieldNames
+        """
+        if fileName.endswith(('.csv', '.tsv')):
+            trialsArr = pd.read_csv(fileName, encoding='utf-8-sig',
+                                    sep=sep, decimal=dec)
+            for col in trialsArr.columns:
+                for row, cell in enumerate(trialsArr[col]):
+                    if isinstance(cell, str):
+                        tryVal = cell.replace(",", ".")
+                        try:
+                            trialsArr[col][row] = float(tryVal)
+                        except ValueError:
+                            pass
+            logging.debug(u"Read csv file with pandas: {}".format(fileName))
+        elif fileName.endswith(('.xlsx', '.xlsm')):
+            trialsArr = pd.read_excel(fileName, engine='openpyxl')
+            logging.debug(u"Read Excel file with pandas: {}".format(fileName))
+        elif fileName.endswith('.xls'):
+            trialsArr = pd.read_excel(fileName, engine='xlrd')
+            logging.debug(u"Read Excel file with pandas: {}".format(fileName))
+        # then try to convert array to trialList and fieldnames
+        unnamed = trialsArr.columns.to_series().str.contains('^Unnamed: ')
+        trialsArr = trialsArr.loc[:, ~unnamed]  # clear unnamed cols
+        logging.debug(u"Clearing unnamed columns from {}".format(fileName))
+        trialList, fieldNames = pandasToDictList(trialsArr)
+
+        return trialList, fieldNames
 
     def _assertValidVarNames(fieldNames, fileName):
         """screens a list of names as candidate variable names. if all
         names are OK, return silently; else raise  with msg
         """
+        fileName = pathToString(fileName)
         if not all(fieldNames):
             msg = ('Conditions file %s: Missing parameter name(s); '
                    'empty cell(s) in the first row?')
-            raise ValueError(msg % fileName)
+            raise exceptions.ConditionsImportError(msg % fileName)
         for name in fieldNames:
             OK, msg = isValidVariableName(name)
             if not OK:
                 # tailor message to importConditions
                 msg = msg.replace('Variables', 'Parameters (column headers)')
-                raise ValueError('Conditions file %s: %s%s"%s"' %
-                                  (fileName, msg, os.linesep * 2, name))
+                raise exceptions.ConditionsImportError(
+                    'Conditions file %s: %s%s"%s"' %
+                    (fileName, msg, os.linesep * 2, name))
 
     if fileName in ['None', 'none', None]:
         if returnFieldNames:
@@ -234,10 +305,15 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
         """
         # convert the resulting dataframe to a numpy recarray
         trialsArr = dataframe.to_records(index=False)
+        # Check for new line characters in strings, and replace escaped characters
+        for record in trialsArr:
+            for idx, element in enumerate(record):
+                if isinstance(element, str):
+                    record[idx] = element.replace('\\n', '\n')
         if trialsArr.shape == ():
             # convert 0-D to 1-D with one element:
             trialsArr = trialsArr[np.newaxis]
-        fieldNames = trialsArr.dtype.names
+        fieldNames = list(trialsArr.dtype.names)
         _assertValidVarNames(fieldNames, fileName)
 
         # convert the record array into a list of dicts
@@ -252,7 +328,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
                         # val = eval('%s' %unicode(val.decode('utf8')))
                         val = eval(val)
                 elif type(val) == np.string_:
-                    val = str(val.decode('utf-8'))
+                    val = str(val.decode('utf-8-sig'))
                     # if it looks like a list, convert it:
                     if val.startswith('[') and val.endswith(']'):
                         # val = eval('%s' %unicode(val.decode('utf8')))
@@ -263,25 +339,21 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
             trialList.append(thisTrial)
         return trialList, fieldNames
 
-    if fileName.endswith('.csv'):
-        with open(fileName, 'rU') as fileUniv:
-            # use pandas reader, which can handle commas in fields, etc
-            trialsArr = pd.read_csv(fileUniv, encoding='utf-8')
-            logging.debug(u"Read csv file with pandas: {}".format(fileName))
-            unnamed = trialsArr.columns.to_series().str.contains('^Unnamed: ')
-            trialsArr = trialsArr.loc[:, ~unnamed]  # clear unnamed cols
-            logging.debug(u"Clearing unnamed columns from {}".format(fileName))
-            trialList, fieldNames = pandasToDictList(trialsArr)
+    if (fileName.endswith(('.csv', '.tsv'))
+            or (fileName.endswith(('.xlsx', '.xls', '.xlsm')) and haveXlrd)):
+        if fileName.endswith(('.csv', '.tsv', '.dlm')):  # delimited text file
+            for sep, dec in [ (',', '.'), (';', ','),  # most common in US, EU
+                              ('\t', '.'), ('\t', ','), (';', '.')]:
+                try:
+                    trialList, fieldNames = _attemptImport(fileName=fileName,
+                                                           sep=sep, dec=dec)
+                    break  # seems to have worked
+                except exceptions.ConditionsImportError as e:
+                    continue  # try a different format
+        else:
+            trialList, fieldNames = _attemptImport(fileName=fileName)
 
-    elif fileName.endswith(('.xlsx','.xls')) and haveXlrd:
-        trialsArr = pd.read_excel(fileName)
-        logging.debug(u"Read excel file with pandas: {}".format(fileName))
-        unnamed = trialsArr.columns.to_series().str.contains('^Unnamed: ')
-        trialsArr = trialsArr.loc[:, ~unnamed]  # clear unnamed cols
-        logging.debug(u"Clearing unnamed columns from {}".format(fileName))
-        trialList, fieldNames = pandasToDictList(trialsArr)
-
-    elif fileName.endswith('.xlsx'):
+    elif fileName.endswith(('.xlsx','.xlsm')):  # no xlsread so use openpyxl
         if not haveOpenpyxl:
             raise ImportError('openpyxl or xlrd is required for loading excel '
                               'files, but neither was found.')
@@ -305,22 +377,46 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
 
         # get parameter names from the first row header
         fieldNames = []
+        rangeCols = list(range(nCols))
         for colN in range(nCols):
-            fieldName = ws.cell(_getExcelCellName(col=colN, row=0)).value
-            fieldNames.append(fieldName)
+            if parse_version(openpyxl.__version__) < parse_version('2.0'):
+                fieldName = ws.cell(_getExcelCellName(col=colN, row=0)).value
+            else:
+                # From 2.0, cells are referenced with 1-indexing: A1 == cell(row=1, column=1)
+                fieldName = ws.cell(row=1, column=colN + 1).value
+            if fieldName:
+                # If column is named, add its name to fieldNames
+                fieldNames.append(fieldName)
+            else:
+                # Otherwise, ignore the column
+                rangeCols.remove(colN)
         _assertValidVarNames(fieldNames, fileName)
 
         # loop trialTypes
         trialList = []
         for rowN in range(1, nRows):  # skip header first row
             thisTrial = {}
-            for colN in range(nCols):
-                val = ws.cell(_getExcelCellName(col=colN, row=rowN)).value
+            for colN in rangeCols:
+                if parse_version(openpyxl.__version__) < parse_version('2.0'):
+                    val = ws.cell(_getExcelCellName(col=colN, row=0)).value
+                else:
+                    # From 2.0, cells are referenced with 1-indexing: A1 == cell(row=1, column=1)
+                    val = ws.cell(row=rowN + 1, column=colN + 1).value
                 # if it looks like a list or tuple, convert it
                 if (isinstance(val, basestring) and
                         (val.startswith('[') and val.endswith(']') or
                                  val.startswith('(') and val.endswith(')'))):
                     val = eval(val)
+                # if it has any line breaks correct them
+                if isinstance(val, str):
+                    val = val.replace('\\n', '\n')
+                # Convert from eu style decimals: replace , with . and try to make it a float
+                if isinstance(val, basestring):
+                    tryVal = val.replace(",", ".")
+                    try:
+                        val = float(tryVal)
+                    except ValueError:
+                        pass
                 fieldName = fieldNames[colN]
                 thisTrial[fieldName] = val
             trialList.append(thisTrial)
@@ -355,7 +451,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
             trialList.append(thisTrial)
     else:
         raise IOError('Your conditions file should be an '
-                      'xlsx, csv or pkl file')
+                      'xlsx, csv, dlm, tsv or pkl file')
 
     # if we have a selection then try to parse it
     if isinstance(selection, basestring) and len(selection) > 0:
@@ -374,8 +470,10 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
     elif len(selection) > 0:
         allConds = trialList
         trialList = []
+        print(selection)
+        print(len(allConds))
         for ii in selection:
-            trialList.append(allConds[int(round(ii))])
+            trialList.append(allConds[int(ii)])
 
     logging.exp('Imported %s as conditions, %d conditions, %d params' %
                 (fileName, len(trialList), len(fieldNames)))

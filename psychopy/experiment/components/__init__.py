@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Extensible set of components for the PsychoPy Builder view
@@ -21,9 +21,12 @@ from importlib import import_module  # helps python 2.7 -> 3.x migration
 from ._base import BaseVisualComponent, BaseComponent
 from ..params import Param
 from psychopy.localization import _translate
+from psychopy.experiment import py2js
 
-excludeComponents = ['BaseComponent', 'BaseVisualComponent',  # templates only
-                     'EyetrackerComponent']  # this one isn't ready yet
+excludeComponents = ['BaseComponent', 'BaseVisualComponent', 'BaseStandaloneRoutine'  # templates only
+                     ]  # this one isn't ready yet
+
+pluginComponents = {}  # components registered by loaded plugins
 
 # try to remove old pyc files in case they're detected as components
 pycFiles = glob.glob(join(split(__file__)[0], "*.pyc"))
@@ -38,12 +41,16 @@ for filename in pycFiles:
 
 def getAllCategories(folderList=()):
     allComps = getAllComponents(folderList)
-    allCats = ['Stimuli', 'Responses', 'Custom']
+    # Hardcode some categories to always appear first/last
+    firstCats = ['Favorites', 'Stimuli', 'Responses', 'Custom']
+    lastCats = ['I/O', 'Other']
+    # Start getting categories
+    allCats = firstCats
     for name, thisComp in list(allComps.items()):
         for thisCat in thisComp.categories:
-            if thisCat not in allCats:
+            if thisCat not in allCats + lastCats:
                 allCats.append(thisCat)
-    return allCats
+    return allCats + lastCats
 
 
 def getAllComponents(folderList=(), fetchIcons=True):
@@ -58,6 +65,10 @@ def getAllComponents(folderList=(), fetchIcons=True):
         userComps = getComponents(folder)
         for thisKey in userComps:
             components[thisKey] = userComps[thisKey]
+
+    # add components registered by plugins that have been loaded
+    components.update(pluginComponents)
+
     return components
 
 
@@ -143,11 +154,19 @@ def getComponents(folder=None, fetchIcons=True):
             explicit_rel_path = pkg + '.' + cmpfile[:-3]
         else:
             explicit_rel_path = pkg + '.' + cmpfile
-        module = import_module(explicit_rel_path, package=pkg)
+        try:
+            module = import_module(explicit_rel_path, package=pkg)
+        except ImportError:
+            continue  # not a valid module (no __init__.py?)
         # check for orphaned pyc files (__file__ is not a .py file)
-        if module.__file__.endswith('.pyc'):
-            if not os.path.isfile(module.__file__[:-1]):
-                continue  # looks like an orphaned pyc file
+        if hasattr(module, '__file__'):
+            if not module.__file__:
+                # with Py3, orphans have a __pycharm__ folder but no file
+                continue
+            elif module.__file__.endswith('.pyc'):
+                # with Py2, orphans have a xxxxx.pyc file
+                if not os.path.isfile(module.__file__[:-1]):
+                    continue  # looks like an orphaned pyc file
         # give a default category
         if not hasattr(module, 'categories'):
             module.categories = ['Custom']
@@ -166,8 +185,8 @@ def getComponents(folder=None, fetchIcons=True):
 
                 if hasattr(module, 'tooltip'):
                     tooltips[name] = module.tooltip
-                if hasattr(module, 'iconFile'):
-                    iconFiles[name] = module.iconFile
+                if hasattr(components[attrib], 'iconFile'):
+                    iconFiles[name] = components[attrib].iconFile
                 # assign the module categories to the Component
                 if not hasattr(components[attrib], 'categories'):
                     components[attrib].categories = ['Custom']
@@ -181,17 +200,15 @@ def getInitVals(params, target="PsychoPy"):
     """
     inits = copy.deepcopy(params)
     for name in params:
-
         if target == "PsychoJS":
-            # convert (0,0.5) to [0,0.5] but don't convert "rand()" to "rand[]"
+            # convert (0,0.5) to [0,0.5] but don't convert "rand()" to "rand[]" and don't convert text
             valStr = str(inits[name].val).strip()
-            if valStr.startswith("(") and valStr.endswith(")"):
-                inits[name].val = inits[name].val.replace("(", "[", 1)
-                inits[name].val = inits[name].val[::-1].replace(")", "]", 1)[::-1]  # replace from right
+            if valStr.startswith("(") and valStr.endswith(")") and name != 'text':
+                inits[name].val = py2js.expression2js(inits[name].val)
             # filenames (e.g. for image) need to be loaded from resources
-            if name in ["image", "mask", "sound"]:
+            if name in ["sound"]:
                 val = str(inits[name].val)
-                if val != "None":
+                if val not in [None, 'None', 'none', '']:
                     inits[name].val = ("psychoJS.resourceManager.getResource({})"
                                        .format(inits[name]))
                     inits[name].valType = 'code'
@@ -201,8 +218,12 @@ def getInitVals(params, target="PsychoPy"):
 
         # value should be None (as code)
         elif inits[name].val in [None, 'None', 'none', '']:
-            inits[name].val = 'None'
-            inits[name].valType = 'code'
+            if name in ['text']:
+                inits[name].val = None
+                inits[name].valType = 'extendedStr'
+            else:
+                inits[name].val = 'None'
+                inits[name].valType = 'code'
 
         # is constant so don't touch the parameter value
         elif inits[name].updates in ['constant', None, 'None']:
@@ -212,8 +233,10 @@ def getInitVals(params, target="PsychoPy"):
         elif name in ['pos', 'fieldPos']:
             inits[name].val = '[0,0]'
             inits[name].valType = 'code'
-        elif name in ['ori', 'sf', 'size', 'height', 'letterHeight',
-                      'color', 'lineColor', 'fillColor',
+        elif name in ['color', 'foreColor', 'borderColor', 'lineColor', 'fillColor']:
+            inits[name].val = 'white'
+            inits[name].valType = 'str'
+        elif name in ['ori', 'sf', 'size', 'height', 'letterHeight', 'lineWidth',
                       'phase', 'opacity',
                       'volume',  # sounds
                       'coherence', 'nDots', 'fieldSize', 'dotSize', 'dotLife',
@@ -240,7 +263,7 @@ def getInitVals(params, target="PsychoPy"):
             inits[name].val = "norm"
             inits[name].valType = 'str'
         elif name == 'text':
-            inits[name].val = "default text"
+            inits[name].val = ""
             inits[name].valType = 'str'
         elif name == 'flip':
             inits[name].val = ""
@@ -260,6 +283,18 @@ def getInitVals(params, target="PsychoPy"):
         elif name == 'noiseType':
             inits[name].val = 'Binary'
             inits[name].valType = 'str'
+        elif name == 'marker_label':
+            inits[name].val = 'Label'
+            inits[name].valType = 'str'
+        elif name == 'marker_value':
+            inits[name].val = 'Value'
+            inits[name].valType = 'str'
+        elif name == 'buttonRequired':
+            inits[name].val = "True"
+            inits[name].valType = 'code'
+        elif name == 'vertices':
+            inits[name].val = "[[-0.5,-0.5], [-0.5, 0.5], [0.5, 0.5], [0.5, -0.5]]"
+            inits[name].valType = 'code'
         else:
             print("I don't know the appropriate default value for a '%s' "
                   "parameter. Please email the mailing list about this error" %

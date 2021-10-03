@@ -36,7 +36,8 @@ class MessageDialog(wx.Dialog):
         if not title:
             title = type
         labels = {'Warning': _translate('Warning'),
-                  'Info': _translate('Info')}
+                  'Info': _translate('Info'),
+                  'Query': _translate('Query')}
         try:
             label = labels[title]
         except Exception:
@@ -56,20 +57,41 @@ class MessageDialog(wx.Dialog):
             self.Bind(wx.EVT_BUTTON, self.onButton, id=wx.ID_YES)
             self.Bind(wx.EVT_BUTTON, self.onButton, id=wx.ID_NO)
 #            self.Bind(wx.EVT_CLOSE, self.onEscape)
-            btnSizer.Add(self.noBtn, wx.ALIGN_LEFT)
-            btnSizer.Add((60, 20), 0, wx.EXPAND)
-            btnSizer.Add(self.cancelBtn, wx.ALIGN_RIGHT)
-            btnSizer.Add((5, 20), 0)
-            btnSizer.Add(self.yesBtn, wx.ALIGN_RIGHT)
+            btnSizer.Add(self.cancelBtn, 0,
+                         wx.ALL | wx.LEFT | wx.ALIGN_CENTER_VERTICAL,
+                         border=3)
+            btnSizer.AddStretchSpacer()
+            btnSizer.Add(self.noBtn, 0,
+                         wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
+                         border=3)
+            btnSizer.Add(self.yesBtn, 0,
+                         wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
+                         border=3)
+        elif type == 'Query':  # we need Yes,No
+            self.yesBtn = wx.Button(self, wx.ID_YES, _translate('Yes'))
+            self.yesBtn.SetDefault()
+            self.noBtn = wx.Button(self, wx.ID_NO, _translate('No'))
+            self.Bind(wx.EVT_BUTTON, self.onButton, id=wx.ID_YES)
+            self.Bind(wx.EVT_BUTTON, self.onButton, id=wx.ID_NO)
+#            self.Bind(wx.EVT_CLOSE, self.onEscape)
+            btnSizer.Add(self.noBtn, 0,
+                         wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
+                         border=3)
+            btnSizer.Add(self.yesBtn, 0,
+                         wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
+                         border=3)
         elif type == 'Info':  # just an OK button
             self.okBtn = wx.Button(self, wx.ID_OK, _translate('OK'))
             self.okBtn.SetDefault()
             self.Bind(wx.EVT_BUTTON, self.onButton, id=wx.ID_OK)
-            btnSizer.Add(self.okBtn, wx.ALIGN_RIGHT)
+            btnSizer.Add(self.okBtn, 0,
+                         wx.ALL | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
+                         border=3)
         else:
             raise NotImplementedError('Message type %s unknown' % type)
         # configure sizers and fit
-        sizer.Add(btnSizer, flag=wx.ALIGN_RIGHT | wx.ALL, border=5)
+        sizer.Add(btnSizer,
+                  flag=wx.ALL | wx.EXPAND, border=5)
         self.Center()
         self.SetSizerAndFit(sizer)
         self.timeout = timeout
@@ -387,6 +409,7 @@ class GlobSizer(wx.GridBagSizer):
 
     def ShiftRowsDown(self, startRow, endRow=None, startCol=None,
                       endCol=None):
+
         if endCol is None:
             endCol = self.GetCols()
         else:
@@ -398,7 +421,7 @@ class GlobSizer(wx.GridBagSizer):
         if startCol is None:
             startCol = 0
         for c in range(startCol, endCol):
-            for r in range(endRow, startRow - 1, -1):
+            for r in range(endRow, startRow, -1):
                 item = self.FindItemAtPosition((r, c))
                 if item:
                     w = item.GetWindow()
@@ -513,12 +536,12 @@ class ListWidget(GlobSizer):
         """
         GlobSizer.__init__(self, hgap=2, vgap=2)
         self.parent = parent
-        self.value = value or [{}]
-        if type(value) != list or len(value) < 1:
+        self.value = value if value else [{"Field":"", "Default": ""}]
+        if type(value) != list:
             msg = 'The initial value for a ListWidget must be a list of dicts'
             raise AttributeError(msg)
         # sort fieldNames using order information where possible
-        allNames = list(value[0].keys())
+        allNames = list(self.value[0].keys())
         self.fieldNames = []
         if order is None:
             order = []
@@ -534,21 +557,24 @@ class ListWidget(GlobSizer):
         self.fieldNames.extend(allNames)
         # set up controls
         self.createGrid()
+        self.AddGrowableCol(0)
+        self.AddGrowableCol(1)
 
     def createGrid(self):
         row = 0
-        for col, field in enumerate(self.fieldNames):
-            self.Add(wx.StaticText(self.parent, -1, label=_translate(field)),
-                     (row, col), flag=wx.ALL)
-        for entry in self.value:
-            row += 1
-            self.addEntryCtrls(row, entry)
+        if len(self.fieldNames) > 0:
+            for col, field in enumerate(self.fieldNames):
+                self.Add(wx.StaticText(self.parent, -1, label=_translate(field)),
+                         (row, col), flag=wx.ALL)
+            for entry in self.value:
+                row += 1
+                self.addEntryCtrls(row, entry)
         self.Layout()
 
     def addEntryCtrls(self, row, entry):
         for col, field in enumerate(self.fieldNames):
             c = wx.TextCtrl(self.parent, -1, str(entry[field]))
-            self.Add(c, (row, col), flag=wx.ALL)
+            self.Add(c, (row, col), flag=wx.ALL | wx.EXPAND)
         plusBtn = wx.Button(self.parent, -1, '+', style=wx.BU_EXACTFIT)
         self.Add(plusBtn, (row, col + 1), flag=wx.ALL)
         plusBtn.Bind(wx.EVT_BUTTON, self.onAddElement)
@@ -565,7 +591,7 @@ class ListWidget(GlobSizer):
         newEntry = {}
         for fieldName in self.fieldNames:
             newEntry[fieldName] = ""
-        self.addEntryCtrls(row, newEntry)
+        self.addEntryCtrls(row + 1, newEntry)
         self.Layout()
         self.parent.Fit()
 
@@ -602,6 +628,18 @@ class ListWidget(GlobSizer):
         Set every control to have the same tooltip?
         """
         pass
+
+    def SetValidator(self, validator):
+        # Set Validator on every applicable child element
+        for child in self.Children:
+            if hasattr(child.Window, "SetValidator"):
+                child.Window.SetValidator(validator)
+
+    def Validate(self):
+        # Call Validate on every applicable child element
+        for child in self.Children:
+            if hasattr(child.Window, "Validate"):
+                child.Window.Validate()
 
 
 if __name__ == '__main__':

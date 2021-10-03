@@ -1,0 +1,19 @@
+
+code: 9999
+cat: TEST_ISSUE
+msg: TEST_MSG {testString}
+
+# Each of the following key values supports reStructured Text.
+label: Test Alert
+
+synopsis: |
+  Provide a few sentences (at most) about the alert.
+
+details: |
+  Longer description with optional links to further information
+
+solutions: |
+  Describe fixes/workarounds for the user
+
+versions: |
+  Info about what versions are affected if this has been fixed

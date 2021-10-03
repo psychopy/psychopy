@@ -1,0 +1,21 @@
+
+code: 4310
+cat: Components
+msg: Cannot calculate parameter.
+
+# The following are typically used for online help pages, and support reStructured Text.
+label: Builder cannot check your parameter further
+
+synopsis: |
+  This alert is received when an integrity check has failed to calculate a parameter.
+  Most commonly, this is because a variable from code, or a conditions file, has been encountered,
+  and the value of the variable is not available to the integrity checking system.
+
+details: |
+  Longer description with optional links to further information
+
+solutions: |
+  This alert is for information only, and does not require any action.
+
+versions: |
+  >= 3.2.3

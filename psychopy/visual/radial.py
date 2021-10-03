@@ -5,7 +5,7 @@
 """
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 from __future__ import absolute_import, division, print_function
@@ -17,6 +17,9 @@ from builtins import str
 # up by the pyglet GL engine and have no effect.
 # Shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
 import pyglet
+
+from ..colors import Color
+
 pyglet.options['debug_gl'] = False
 import ctypes
 GL = pyglet.gl
@@ -118,17 +121,17 @@ class RadialStim(GratingStim):
         if rgb != None:
             logging.warning("Use of rgb arguments to stimuli are deprecated."
                             " Please use color and colorSpace args instead")
-            self.setColor(rgb, colorSpace='rgb', log=False)
+            self.color = Color(rgb, colorSpace='rgb')
         elif dkl != None:
             logging.warning("Use of dkl arguments to stimuli are deprecated. "
                             "Please use color and colorSpace args instead")
-            self.setColor(dkl, colorSpace='dkl', log=False)
+            self.color = Color(dkl, colorSpace='dkl')
         elif lms != None:
             logging.warning("Use of lms arguments to stimuli are deprecated."
                             " Please use color and colorSpace args instead")
-            self.setColor(lms, colorSpace='lms', log=False)
+            self.color = Color(lms, colorSpace='lms')
         else:
-            self.setColor(color, log=False)
+            self.color = color
 
         self.ori = float(ori)
         self.__dict__['angularRes'] = angularRes
@@ -177,11 +180,11 @@ class RadialStim(GratingStim):
         res = self.texRes  # resolution of texture - 128 is bearable
         step = 1.0/res
         rad = numpy.arange(0, 1 + step, step)
-        if type(self.mask) == numpy.ndarray:
+        if isinstance(self.mask, numpy.ndarray):
             # handle a numpy array
             intensity = 255 * self.mask.astype(float)
             res = len(intensity)
-        elif type(self.mask) == list:
+        elif isinstance(self.mask, list):
             # handle a numpy array
             intensity = 255 * numpy.array(self.mask, float)
             res = len(intensity)
@@ -215,10 +218,9 @@ class RadialStim(GratingStim):
             res = im.size[0]
             im = im.convert("L")  # force to intensity (in case it was rgb)
             intensity = numpy.asarray(im)
-            fromFile = 1
 
         data = intensity.astype(numpy.uint8)
-        mask = data.tostring()  # serialise
+        mask = data.tobytes()  # serialise
 
         # do the openGL binding
         if self.interpolate:
@@ -387,10 +389,7 @@ class RadialStim(GratingStim):
         self.win.setScale('pix')
         if self.useShaders:
             # setup color
-            desiredRGB = self._getDesiredRGB(self.rgb, self.colorSpace,
-                                             self.contrast)
-            GL.glColor4f(desiredRGB[0], desiredRGB[1], desiredRGB[2],
-                         self.opacity)
+            GL.glColor4f(*self._foreColor.render('rgba1'))
 
             # assign vertex array
             GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self.verticesPix.ctypes)
@@ -586,22 +585,22 @@ class RadialStim(GratingStim):
 
         # bind and enable textures
         # main texture
-        GL.glActiveTextureARB(GL.GL_TEXTURE0_ARB)
+        GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
         GL.glEnable(GL.GL_TEXTURE_2D)
         # mask
-        GL.glActiveTextureARB(GL.GL_TEXTURE1_ARB)
+        GL.glActiveTexture(GL.GL_TEXTURE1)
         GL.glBindTexture(GL.GL_TEXTURE_1D, self._maskID)
         GL.glDisable(GL.GL_TEXTURE_2D)
         GL.glEnable(GL.GL_TEXTURE_1D)
 
         # set pointers to visible textures
         # mask
-        GL.glClientActiveTextureARB(GL.GL_TEXTURE1_ARB)
+        GL.glClientActiveTexture(GL.GL_TEXTURE1)
         GL.glTexCoordPointer(2, GL.GL_DOUBLE, 0, self._visibleMask.ctypes)
         GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)
         # texture
-        GL.glClientActiveTextureARB(GL.GL_TEXTURE0_ARB)
+        GL.glClientActiveTexture(GL.GL_TEXTURE0)
         GL.glTexCoordPointer(2, GL.GL_DOUBLE, 0, self._visibleTexture.ctypes)
         GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)
 
@@ -610,9 +609,9 @@ class RadialStim(GratingStim):
 
         # disable set states
         GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
-        GL.glActiveTextureARB(GL.GL_TEXTURE0_ARB)
+        GL.glActiveTexture(GL.GL_TEXTURE0)
         GL.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY)
-        GL.glActiveTextureARB(GL.GL_TEXTURE1_ARB)
+        GL.glActiveTexture(GL.GL_TEXTURE1)
         GL.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY)
 
         GL.glEndList()
@@ -620,6 +619,9 @@ class RadialStim(GratingStim):
     def __del__(self):
         """Remove textures from graphics card to prevent crash
         """
-        if not self.useShaders:
-            GL.glDeleteLists(self._listID, 1)
-        self.clearTextures()
+        try:
+            if not self.useShaders:
+                GL.glDeleteLists(self._listID, 1)
+            self.clearTextures()
+        except (ImportError, ModuleNotFoundError, TypeError):
+            pass  # has probably been garbage-collected already

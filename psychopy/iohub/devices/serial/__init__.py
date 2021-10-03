@@ -1,14 +1,18 @@
 # -*- coding: utf-8 -*-
-# Part of the psychopy.iohub library.
-# Copyright (C) 2012-2016 iSolver Software Solutions
+# Part of the PsychoPy library
+# Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 import serial
+import sys
 import numpy as N
+import struct
 from ... import EXP_SCRIPT_DIRECTORY
 from .. import Device, DeviceEvent, Computer
 from ...errors import print2err, printExceptionDetailsToStdErr
 from ...constants import DeviceConstants, EventConstants
 getTime = Computer.getTime
+
+PY3 = sys.version_info.major >= 3
 
 
 class Serial(Device):
@@ -41,7 +45,7 @@ class Serial(Device):
     }
 
     DEVICE_TIMEBASE_TO_SEC = 1.0
-    _newDataTypes = [('port', N.str, 32), ('baud', N.str, 32), ]
+    _newDataTypes = [('port', '|S32'), ('baud', '|S32'), ]
     EVENT_CLASS_NAMES = ['SerialInputEvent', 'SerialByteChangeEvent']
     DEVICE_TYPE_ID = DeviceConstants.SERIAL
     DEVICE_TYPE_STRING = 'SERIAL'
@@ -280,7 +284,7 @@ class Serial(Device):
         self._serial.flushInput()
         inBytes = self._serial.inWaiting()
         if inBytes > 0:
-            self._serial.read(inBytes)
+            self._serial.read(inBytes)  # empty buffer and discard
         if self._byte_diff_mode:
             self._rx_buffer = None
         else:
@@ -293,13 +297,18 @@ class Serial(Device):
         self._serial.flush()
 
     def write(self, bytestring):
+        if type(bytestring) != bytes:
+            bytestring = bytestring.encode('utf-8')
         tx_count = self._serial.write(bytestring)
         self._serial.flush()
         return tx_count
 
     def read(self):
-        return self._serial.read(self._serial.inWaiting())
-
+        returned = self._serial.read(self._serial.inWaiting())
+        if PY3:
+            returned = returned.decode('utf-8')
+        return returned
+		
     def closeSerial(self):
         if self._serial:
             self._serial.close()
@@ -537,8 +546,8 @@ class Pstbox(Serial):
 
         # Convert the new state into a bitmask, collapse it into a
         # single byte and send it to the response box.
-        state_bits = (2**N.arange(9))[state]
-        self.write(chr(N.sum(state_bits)))
+        state_bits = (2**N.arange(8))[state]
+        self.write(struct.pack("B",(N.sum(state_bits))))
 
         # Set the `update lamp` bit to LOW again.
         state[6] = False
@@ -723,8 +732,8 @@ class Pstbox(Serial):
 
 class SerialInputEvent(DeviceEvent):
     _newDataTypes = [
-        ('port', N.str, 32),
-        ('data', N.str, 256)
+        ('port', '|S32'),
+        ('data', '|S256')
     ]
     PARENT_DEVICE = Serial
     EVENT_TYPE_ID = EventConstants.SERIAL_INPUT
@@ -738,7 +747,7 @@ class SerialInputEvent(DeviceEvent):
 
 class SerialByteChangeEvent(DeviceEvent):
     _newDataTypes = [
-        ('port', N.str, 32),
+        ('port', '|S32'),
         ('prev_byte', N.uint8),
         ('current_byte', N.uint8)
     ]
@@ -755,11 +764,11 @@ class SerialByteChangeEvent(DeviceEvent):
 class PstboxButtonEvent(DeviceEvent):
     # Add new fields for PstboxButtonEvent
     _newDataTypes = [
-        ('port', N.str, 32),  # could be needed to identify events
+        ('port', '|S32'),  # could be needed to identify events
                               # from >1 connected button box; if that is
                               # ever supported.
         ('button', N.uint8),
-        ('button_event', N.str, 7)
+        ('button_event', '|S7')
     ]
 
     PARENT_DEVICE = Pstbox

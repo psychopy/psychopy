@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 
 # Copyright (c) 1996-2002 Denis G. Pelli
 # Copyright (c) 1996-9 David Brainard
@@ -32,8 +32,8 @@
 # DAMAGE.
 
 from __future__ import absolute_import, division, print_function
+from past.builtins import raw_input
 
-from builtins import input
 from builtins import zip
 from builtins import range
 from builtins import object
@@ -63,8 +63,14 @@ class QuestObject(object):
 
     p2=delta*gamma+(1-delta)*(1-(1-gamma)*exp(-10**(beta*(x2+xThreshold))))
 
-    where x represents log10 contrast relative to threshold. The
-    Weibull function itself appears only in recompute(), which uses
+    where x2 represents log10 intensity relative to threshold
+    (i.e., x2 = x - T, where x is intensity, and T is threshold intensity).
+    xThreshold shifts the psychometric function along the intensity axis
+    such that threshold performance (specified as pThreshold below) will
+    occur at intensity x = T, i.e., x2 = x - T = 0. In the 
+    Watson & Pelli (1983) paper, xThreshold is denoted as epsilon and used
+    to perform testing at the "ideal sweat factor".
+    The Weibull function itself appears only in recompute(), which uses
     the specified parameter values in self to compute a psychometric
     function and store it in self. All the other methods simply use
     the psychometric function stored as instance
@@ -331,8 +337,8 @@ class QuestObject(object):
             raise RuntimeError('prior pdf is not finite')
 
         # recompute the pdf from the historical record of trials
-        for intensity, response in zip(self.intensity,self.response):
-            inten = max(-1e10,min(1e10,intensity)) # make intensity finite
+        for intensity, response in zip(self.intensity, self.response):
+            inten = max(-1e10,min(1e10, intensity)) # make intensity finite
             ii = len(self.pdf) + self.i-round((inten-self.tGuess)/self.grain)-1
             if ii[0]<0:
                 ii = ii-ii[0]
@@ -342,7 +348,7 @@ class QuestObject(object):
             if not num.allclose(ii,iii):
                 raise ValueError('truncation error')
             self.pdf = self.pdf*self.s2[response,iii]
-            if self.normalizePdf and k%100==0:
+            if self.normalizePdf and ii % 100 == 0:
                 self.pdf = self.pdf/num.sum(self.pdf) # avoid underflow; keep the pdf normalized
         if self.normalizePdf:
             self.pdf = self.pdf/num.sum(self.pdf) # avoid underflow; keep the pdf normalized
@@ -424,7 +430,7 @@ def demo():
     tActual = None
     while tActual is None:
         sys.stdout.write('Specify true threshold of simulated observer: ')
-        input = input()
+        input = raw_input()
         try:
             tActual = float(input)
         except Exception:
@@ -433,7 +439,7 @@ def demo():
     tGuess = None
     while tGuess is None:
         sys.stdout.write('Estimate threshold: ')
-        input = input()
+        input = raw_input()
         try:
             tGuess = float(input)
         except Exception:

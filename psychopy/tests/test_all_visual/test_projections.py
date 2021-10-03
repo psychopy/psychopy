@@ -2,6 +2,7 @@ from __future__ import division
 from builtins import range
 from builtins import object
 from past.utils import old_div
+import sys
 import pyglet
 from pyglet.window import key
 from psychopy.visual import Window, shape, TextStim, GratingStim, Circle
@@ -17,16 +18,9 @@ import pytest, copy
     py.test -k projections --cov-report term-missing --cov visual/windowwarp.py
 """
 
-RunningPyTest = False
+foregroundColor = [-1, -1, -1]
+backgroundColor = [1, 1, 1]
 
-def setup_module(module):
-    RunningPyTest = True
-
-def teardown_module(module):
-    RunningPyTest = False
-
-foregroundColor=[-1,-1,-1]
-backgroundColor=[1,1,1]
 
 class ProjectionsLinesAndCircles(object):
     """
@@ -40,7 +34,8 @@ class ProjectionsLinesAndCircles(object):
         self.win = win
         self.warper = warper
 
-        self.stimT = TextStim(self.win, text='Null warper', units = 'pix', pos=(0, -140), alignHoriz='center', height=20)
+        self.stimT = TextStim(self.win, text='Null warper', units = 'pix',
+                              pos=(0, -140), height=20)
 
         self.bl = old_div(-win.size, 2.0)
         self.tl = (self.bl[0], -self.bl[1])
@@ -50,16 +45,20 @@ class ProjectionsLinesAndCircles(object):
         self.degrees = 120
         nLines = 12
         for x in range(-nLines, nLines+1):
-            t = GratingStim(win,tex=None,units='deg',size=[2,win.size[1]],texRes=128,color=foregroundColor, pos=[float(x) / nLines * self.degrees,0])
+            t = GratingStim(win, tex=None, units='deg', size=[2, win.size[1]],
+                            texRes=128, color=foregroundColor,
+                            pos=[float(x) / nLines * self.degrees, 0])
             self.stims.append (t)
 
         for y in range (-nLines, nLines+1):
-            t = GratingStim(win,tex=None,units='deg',size=[win.size[0],2],texRes=128,color=foregroundColor,pos=[0,float(y)/nLines * self.degrees])
-            self.stims.append (t)
+            t = GratingStim(win, tex=None, units='deg', size=[win.size[0], 2],
+                            texRes=128, color=foregroundColor,
+                            pos=[0, float(y)/nLines * self.degrees])
+            self.stims.append(t)
 
         for c in range (1, nLines+1):
             t = Circle (win, radius=c * 10, edges=128, units='deg', lineWidth=4)
-            self.stims.append (t)
+            self.stims.append(t)
 
         self.updateInfo()
 
@@ -82,7 +81,12 @@ class ProjectionsLinesAndCircles(object):
 
     def updateInfo(self):
         try:
-            self.stimT.setText ("%s \n   eyePoint: %.3f, %.3f \n   eyeDistance: %.2f\n\nProjection: [s]pherical, [c]ylindrical, [n]one, warp[f]ile\nFlip: [h]orizontal, [v]ertical\nMouse: wheel = eye distance, click to set eyepoint\n[q]uit" % (
+            self.stimT.setText(
+                "%s \n   eyePoint: %.3f, %.3f \n   eyeDistance: %.2f\n\n"
+                "Projection: [s]pherical, [c]ylindrical, [n]one, warp[f]ile\n"
+                "Flip: [h]orizontal, [v]ertical\n"
+                "Mouse: wheel = eye distance, click to set eyepoint\n"
+                "[q]uit" % (
                 self.warper.warp,
                 self.warper.eyepoint[0], self.warper.eyepoint[1],
                 self.warper.dist_cm))
@@ -157,13 +161,12 @@ class ProjectionsLinesAndCircles(object):
             self.updateInfo()
 
 
-
-@pytest.mark.windowwarp
 class Test_class_WindowWarp(object):
     def setup_class(self):
         self.win = Window(monitor='testMonitor', screen=1, fullscr=True, color='gray', useFBO = True, autoLog=False)
-        self.warper = Warper (self.win, warp='spherical', warpfile = "", warpGridsize = 128, eyepoint = [0.5, 0.5], flipHorizontal = False, flipVertical = False)
-        self.warper.dist_cm=15
+        self.warper = Warper(self.win, warp='spherical', warpfile="", warpGridsize=128, eyepoint=[0.5, 0.5],
+                             flipHorizontal=False, flipVertical=False)
+        self.warper.dist_cm = 15
         self.g = ProjectionsLinesAndCircles(self.win, self.warper)
 
     def teardown_class(self):
@@ -210,24 +213,9 @@ class Test_class_WindowWarp(object):
         self.draw_projection()
 
 if __name__ == '__main__':
-    if RunningPyTest:
-        cls = Test_class_WindowWarp()
-        cls.setup_class()
-        cls.test_spherical()
-        cls.test_distance()
-        #cls.test_warpfile() #jayb todo
-        cls.test_flipHorizontal()
-        cls.test_flipHorizontal()
-        cls.test_flipVertical()
-        cls.test_flipVertical()
-
-        cls.test_spherical()
-
-        cls.teardown_class()
-    else:
         # running interactive
         cls = Test_class_WindowWarp()
         cls.setup_class()
         for i in range(2 * 60 * 60):
             cls.g.update_sweep()
-        win.close()
+        cls.win.close()

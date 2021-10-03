@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Part of the PsychoPy library
-# Copyright (C) 2015 Jonathan Peirce
+# Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
 """Audio capture and analysis using pyo"""
@@ -20,6 +20,7 @@ import os
 import glob
 import threading
 from psychopy.constants import PY3
+from psychopy.tools.filetools import pathToString
 
 if PY3:
     import urllib.request
@@ -40,7 +41,8 @@ else:
 import json
 import numpy as np
 from scipy.io import wavfile
-from psychopy import core, logging, sound, web, prefs
+from psychopy import core, logging, web, prefs
+from psychopy.sound import backend_pyo
 from psychopy.constants import NOT_STARTED, PLAYING, PSYCHOPY_USERAGENT
 # import pyo is done within switchOn to better encapsulate it, can be very
 # slow and don't want to delay up to 3 sec when importing microphone
@@ -109,8 +111,9 @@ class AudioCapture(object):
 
         def run(self, filename, sec, sampletype=0, buffering=16,
                 chnl=0, chnls=2):
+            filename = pathToString(filename)
             self.running = True
-            # chnl from psychopy.sound.backend.get_input_devices()
+            # chnl from psychopy.backend_pyo.get_input_devices()
             inputter = pyo.Input(chnl=chnl, mul=1)
             self.recorder = pyo.Record(inputter, filename, chnls=chnls,
                                        fileformat=0, sampletype=sampletype,
@@ -151,6 +154,7 @@ class AudioCapture(object):
                                   ' before AudioCapture or AdvancedCapture')
         self.name = name
         self.saveDir = saveDir
+        filename = pathToString(filename)
         if filename:
             self.wavOutFilename = filename
         else:
@@ -175,6 +179,12 @@ class AudioCapture(object):
         self.loggingId = self.__class__.__name__
         if self.name:
             self.loggingId += ' ' + self.name
+
+        if type(chnl) != int:
+            try:
+                chnl = int(chnl)
+            except (TypeError, ValueError):
+                raise TypeError("AudioCapture argument 'chnl' needs to be an int but received {}".format(repr(chnl)))
 
         # the recorder object needs to persist, or else get bus errors:
         self.recorder = self._Recorder()
@@ -219,6 +229,7 @@ class AudioCapture(object):
         return self._record(sec, filename=filename, block=block)
 
     def _record(self, sec, filename='', block=True, log=True):
+        filename = pathToString(filename)
         while self.recorder.running:
             pass
         self.duration = float(sec)
@@ -243,7 +254,7 @@ class AudioCapture(object):
         t0 = core.getTime()
         self.recorder.run(self.savedFile, self.duration, **self.options)
 
-        self.rate = sound.backend.pyoSndServer.getSamplingRate()
+        self.rate = backend_pyo.pyoSndServer.getSamplingRate()
         if block:
             core.wait(self.duration, 0)
             if log and self.autoLog:
@@ -281,7 +292,7 @@ class AudioCapture(object):
 
         # play this file:
         name = self.name + '.current_recording'
-        self.current_recording = sound.Sound(
+        self.current_recording = backend_pyo.SoundPyo(
             self.savedFile, name=name, loops=loops)
         self.current_recording.play()
         if block:
@@ -379,6 +390,7 @@ class AdvAudioCapture(AudioCapture):
         AudioCapture.__init__(self, name=name, filename=filename,
                               saveDir=saveDir, sampletype=sampletype,
                               buffering=buffering, chnl=chnl, stereo=stereo)
+
         self.setMarker()
         self.autoLog = autoLog
 
@@ -424,7 +436,7 @@ class AdvAudioCapture(AudioCapture):
                             ' will not be able to auto-detect onset')
         else:
             self.marker_hz = float(tone)
-            sampleRate = sound.backend.pyoSndServer.getSamplingRate()
+            sampleRate = backend_pyo.pyoSndServer.getSamplingRate()
             if sampleRate < 2 * self.marker_hz:
                 # NyquistError
                 msg = ("Recording rate (%i Hz) too slow for %i Hz-based"
@@ -433,7 +445,7 @@ class AdvAudioCapture(AudioCapture):
             if log and self.autoLog:
                 msg = 'frequency of recording onset marker: %.1f'
                 logging.exp(msg % self.marker_hz)
-            self.marker = sound.Sound(self.marker_hz, secs, volume=volume,
+            self.marker = backend_pyo.SoundPyo(self.marker_hz, secs, volume=volume,
                                       name=self.name + '.marker_tone')
 
     def playMarker(self):
@@ -562,6 +574,7 @@ def getMarkerOnset(filename, chunk=128, secs=0.5, marker_hz=19000,
 def readWavFile(filename):
     """Return (data, sampleRate) as read from a wav file, expects int16 data.
     """
+    filename = pathToString(filename)
     try:
         sampleRate, data = wavfile.read(filename)
     except Exception:
@@ -679,7 +692,7 @@ def getRMS(data):
         data_tr = np.transpose(data)
         data = data_tr / 32768.
     elif not isinstance(data, np.ndarray):
-        data = np.array(data).astype(np.float)
+        data = np.array(data).astype(float)
     return _rms(data)
 
 
@@ -925,7 +938,7 @@ class Speech2Text(object):
         # http://thejosephturner.com/blog/2011/03/19/https-certificate-verification-in-python-with-urllib2/
         # set up the https request:
         url = 'https://' + host + '?xjerr=1&' +\
-              'client=psychopy2&' +\
+              'client=psychopy3&' +\
               'lang=' + lang + '&'\
               'pfilter=%d' % pro_filter + '&'\
               'maxresults=%d' % results
@@ -1063,6 +1076,7 @@ def flac2wav(path, keep=True):
     """
     flac_path = _getFlacPath()
     flac_files = []
+    path = pathToString(path)
     if path.endswith('.flac'):
         flac_files = [path]
     elif type(path) == str and os.path.isdir(path):
@@ -1099,6 +1113,7 @@ def wav2flac(path, keep=True, level=5):
     """
     flac_path = _getFlacPath()
     wav_files = []
+    path = pathToString(path)
     if path.endswith('.wav'):
         wav_files = [path]
     elif type(path) == str and os.path.isdir(path):
@@ -1152,6 +1167,11 @@ def switchOn(sampleRate=48000, outputDevice=None, bufferSize=None):
     # imports pyo, creates sound.pyoSndServer using sound.initPyo() if not yet
     # created
     t0 = core.getTime()
+    if prefs.hardware['audioLib'][0] != 'pyo':
+        logging.warning("Starting Microphone but sound lib preference is set to be {}. "
+                        "Clashes might occur since 'pyo' is not "
+                        "preferred lib but is needed for Microphone"
+                        .format(prefs.hardware['audioLib']))
     try:
         global pyo
         import pyo
@@ -1159,20 +1179,20 @@ def switchOn(sampleRate=48000, outputDevice=None, bufferSize=None):
         haveMic = True
     except ImportError:  # pragma: no cover
         msg = ('Microphone class not available, needs pyo; '
-               'see http://code.google.com/p/pyo/')
+               'see http://ajaxsoundstudio.com/software/pyo/')
         logging.error(msg)
         raise ImportError(msg)
     if pyo.serverCreated():
-        sound.backend.pyoSndServer.setSamplingRate(sampleRate)
+        backend_pyo.pyoSndServer.setSamplingRate(sampleRate)
     else:
-        # sound.init() will create pyoSndServer. We want there only
+        # backend_pyo.init() will create pyoSndServer. We want there only
         # ever to be one server
         # will automatically use duplex=1 and stereo if poss
-        sound.init(rate=sampleRate)
+        backend_pyo.init(rate=sampleRate)
     if outputDevice:
-        sound.backend.pyoSndServer.setOutputDevice(outputDevice)
+        backend_pyo.pyoSndServer.setOutputDevice(outputDevice)
     if bufferSize:
-        sound.backend.pyoSndServer.setBufferSize(bufferSize)
+        backend_pyo.pyoSndServer.setBufferSize(bufferSize)
     logging.exp('%s: switch on (%dhz) took %.3fs' %
                 (__file__.strip('.py'), sampleRate, core.getTime() - t0))
 
