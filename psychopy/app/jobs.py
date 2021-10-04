@@ -116,9 +116,12 @@ class Job:
         self._pollTimer = wx.Timer()
 
         # user defined callbacks
-        self._inputCallback = inputCallback
-        self._errorCallback = errorCallback
-        self._terminateCallback = terminateCallback
+        self._inputCallback = None
+        self._errorCallback = None
+        self._terminateCallback = None
+        self.inputCallback = inputCallback
+        self.errorCallback = errorCallback
+        self.terminateCallback = terminateCallback
 
     def start(self):
         """Start the subprocess.
@@ -260,6 +263,48 @@ class Job:
 
         priority = max(min(int(priority), 100), 0)  # clip range
         self._process.SetPriority(priority)  # set it
+
+    @property
+    def inputCallback(self):
+        """Callback function called when data is available on the input stream
+        pipe (`callable` or `None`).
+        """
+        return self._inputCallback
+
+    @inputCallback.setter
+    def inputCallback(self, val):
+        if not callable(val) or None:
+            raise TypeError("Callback function must be `callable` or `None`.")
+
+        self._inputCallback = val
+
+    @property
+    def errorCallback(self):
+        """Callback function called when data is available on the error stream
+        pipe (`callable` or `None`).
+        """
+        return self._errorCallback
+
+    @errorCallback.setter
+    def errorCallback(self, val):
+        if not callable(val) or None:
+            raise TypeError("Callback function must be `callable` or `None`.")
+
+        self._errorCallback = val
+
+    @property
+    def terminateCallback(self):
+        """Callback function called when the subprocess is terminated
+        (`callable` or `None`).
+        """
+        return self._terminateCallback
+
+    @terminateCallback.setter
+    def terminateCallback(self, val):
+        if not callable(val) or None:
+            raise TypeError("Callback function must be `callable` or `None`.")
+
+        self._terminateCallback = val
 
     @property
     def isOutputAvailable(self):
