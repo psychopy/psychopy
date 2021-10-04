@@ -41,7 +41,7 @@ Keyboard:
 
     # use_keymap: What key map set / heuristics should be used? Options:
     #   psychopy: Use key map that is the same as used by event.getKeys()
-    #   original: Use original iohub key map
+    #   legacy: Use original iohub key map
     use_keymap: psychopy
 
     # save_events: *If* the ioHubDataStore is enabled for the experiment, then
