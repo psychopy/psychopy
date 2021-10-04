@@ -71,6 +71,21 @@ class Job:
     Parameters
     ----------
     command : str, list or tuple
+        Command to execute when the job is started. Similar to who you would
+        specify the command to `Popen`.
+    flags : int
+        Execution flags for the subprocess. These are specified using symbolic
+        constants ``EXEC_*`` at the module level.
+    terminateCallback : callable
+        Callback function to call when the process exits. This can be used to
+        inform the application that the subprocess is done.
+    inputCallback : callable
+        Callback function called when `poll` is invoked and the input pipe has
+        data. Data is passed to the first argument of the callable object.
+    errorCallback : callable
+        Callback function called when `poll` is invoked and the error pipe has
+        data. Data is passed to the first argument of the callable object. You
+        may set `inputCallback` and `errorCallback` using the same function.
     pollMillis : int or None
         Time in milliseconds between polling intervals. When interval specified
         by `pollMillis` elapses, the input and error streams will be read and
@@ -87,7 +102,6 @@ class Job:
         job = Job(command, flags=EXEC_ASYNC)
         # start it
         pid = job.start()  # returns a PID for the sub process
-        # read data from the subprocess
 
     """
     def __init__(self, command='', flags=EXEC_ASYNC, terminateCallback=None,
@@ -335,12 +349,28 @@ class Job:
         """Called when the process exits.
 
         Override for custom functionality. Right now we're just stopping the
-        polling timer and calling the user specified `terminateCallback`.
+        polling timer, doing a final `poll` to empty out the remaining data from
+        the pipes and calling the user specified `terminateCallback`.
+
+        If there is any data left in the pipes, it will be passed to the
+        `_inputCallback` and `_errorCallback` before `_terminateCallback` is
+        called.
+
+        Parameters
+        ----------
+        evt : wx.Event
+            Event object.
+
         """
         if self._pollTimer.IsRunning():
             self._pollTimer.Stop()
 
-        wx.CallAfter(self._terminateCallback)
+        # flush remaining data from pipes, process it
+        self.poll()
+
+        # if callback is provided, else nop
+        if self._terminateCallback is not None:
+            wx.CallAfter(self._terminateCallback)
 
     def onNotify(self):
         """Called when the polling timer elapses.

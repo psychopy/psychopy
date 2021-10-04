@@ -212,6 +212,13 @@ class ScriptProcess:
         if hasattr(self, 'stopBtn'):  # relies on this being a mixin class
             self.stopBtn.Disable()
 
+        # reactivate the current selection after running
+        if hasattr(self, 'expCtrl') and hasattr(self, 'runBtn'):
+            itemIdx = self.expCtrl.GetFirstSelected()
+            if itemIdx >= 0:
+                self.expCtrl.Select(itemIdx)
+                self.runBtn.Enable()
+
         EndBusyCursor()
 
 
