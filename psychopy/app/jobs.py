@@ -328,7 +328,7 @@ class Job:
 
     def poll(self):
         """Poll input and error streams for data, pass them to callbacks if
-        specified.
+        specified. Input stream data is processed before error.
         """
         if self._process is None:  # do nothing if there is no process
             return
