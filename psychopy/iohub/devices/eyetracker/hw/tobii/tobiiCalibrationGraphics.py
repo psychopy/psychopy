@@ -168,7 +168,7 @@ class TobiiPsychopyCalibrationGraphics:
             ek = event[self._keyboard_key_index]
             if isinstance(ek, bytes):
                 ek = ek.decode('utf-8')
-            if ek == ' ':
+            if ek == ' ' or ek == 'space':
                 self._msg_queue.append('SPACE_KEY_ACTION')
                 self.clearAllEventBuffers()
             elif ek == 'escape':

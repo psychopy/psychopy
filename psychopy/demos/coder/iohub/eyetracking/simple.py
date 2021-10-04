@@ -118,7 +118,7 @@ while t < TRIAL_COUNT:
         # Check any new keyboard char events for a space key.
         # If one is found, set the trial end variable.
         #
-        if keyboard.getPresses(keys=' '):
+        if keyboard.getPresses(keys='space'):
             run_trial = False
         elif core.getTime()-tstart_time > T_MAX:
             run_trial = False

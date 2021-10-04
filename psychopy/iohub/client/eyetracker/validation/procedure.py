@@ -342,15 +342,15 @@ class ValidationProcedure:
 
         if self.show_results_screen:
             self.showResultsScreen()
-            kb_presses = keyboard.waitForPresses(keys=[' ', self.terminate_key, self.targetsequence.gaze_cursor_key])
-            while ' ' not in kb_presses:
+            kb_presses = keyboard.waitForPresses(keys=['space', self.terminate_key, self.targetsequence.gaze_cursor_key])
+            while 'space' not in kb_presses:
                 if self.targetsequence.gaze_cursor_key in kb_presses:
                     self.targetsequence.display_gaze = not self.targetsequence.display_gaze
                     self.showResultsScreen()
                 if self.terminate_key in kb_presses:
                     print("Escape key pressed. Exiting validation")
                     break
-                kb_presses = keyboard.waitForPresses(keys=[' ',
+                kb_presses = keyboard.waitForPresses(keys=['space',
                                                            self.terminate_key,
                                                            self.targetsequence.gaze_cursor_key])
 

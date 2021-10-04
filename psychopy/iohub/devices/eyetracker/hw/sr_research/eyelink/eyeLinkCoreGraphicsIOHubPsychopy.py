@@ -484,8 +484,8 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
             elif char == 'return':
                 pylink_key = pylink.ENTER_KEY
                 self.state = None
-            elif char == ' ':
-                pylink_key = ord(char)
+            elif char == ' ' or char == 'space':
+                pylink_key = ord(' ')
             elif char == 'c':
                 pylink_key = ord(char)
                 self.state = 'calibration'
@@ -500,10 +500,10 @@ class EyeLinkCoreGraphicsIOHubPsychopy(pylink.EyeLinkCustomDisplay):
                 pylink_key = pylink.PAGE_UP
             elif char == 'pagedown':
                 pylink_key = pylink.PAGE_DOWN
-            elif char == '-':
-                pylink_key = ord(char)
-            elif char == '=':
-                pylink_key = ord(char)
+            elif char == '-' or char == 'minus':
+                pylink_key = ord('-')
+            elif char == '=' or char == 'equal':
+                pylink_key = ord('=')
             elif char == 'up':
                 pylink_key = pylink.CURS_UP
             elif char == 'down':
