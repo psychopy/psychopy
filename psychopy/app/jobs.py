@@ -259,7 +259,7 @@ class Job:
             return
 
         priority = max(min(int(priority), 100), 0)  # clip range
-        self._process.SetPriority(int(priority))  # set it
+        self._process.SetPriority(priority)  # set it
 
     @property
     def isOutputAvailable(self):
