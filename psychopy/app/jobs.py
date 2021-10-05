@@ -182,7 +182,7 @@ class Job:
             return  # nop
 
         # kill the process, check if itm was successful
-        isOk = wx.Process.Kill(self._pid, signal, flags) != wx.KILL_OK
+        isOk = wx.Process.Kill(self._pid, signal, flags) == wx.KILL_OK
         self._pollTimer.Stop()
 
         if isOk:
