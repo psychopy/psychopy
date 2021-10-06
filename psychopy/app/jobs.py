@@ -274,9 +274,6 @@ class Job:
 
     @inputCallback.setter
     def inputCallback(self, val):
-        # if not callable(val) or val is not None:
-        #     raise TypeError("Callback function must be `callable` or `None`.")
-
         self._inputCallback = val
 
     @property
@@ -288,9 +285,6 @@ class Job:
 
     @errorCallback.setter
     def errorCallback(self, val):
-        # if not callable(val) or val is not None:
-        #     raise TypeError("Callback function must be `callable` or `None`.")
-
         self._errorCallback = val
 
     @property
@@ -302,9 +296,6 @@ class Job:
 
     @terminateCallback.setter
     def terminateCallback(self, val):
-        # if not callable(val) or val is not None:
-        #     raise TypeError("Callback function must be `callable` or `None`.")
-
         self._terminateCallback = val
 
     @property
