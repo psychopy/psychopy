@@ -52,13 +52,14 @@ pil_image = Image.open(path_to_image_file)
 image_np = np.array(
     pil_image, order="C"
 )  # convert to numpy array with shape width, height, channels
-image_np = image_np.astype(np.float) / 255.0  # convert to float in 0--1 range
+image_np = (
+    image_np.astype(np.float) / 255.0
+)  # convert to float in 0--1 range, assuming image is 8-bit uint.
 
 # Note this float conversion is "quick and dirty" and will not
 # fix potential out-of-range problems if you're going
 # straight from a numpy array. See the img_as_float
 # function of scikit image for a more careful conversion.
-
 
 # flip image (row-axis upside down so we need to reverse it):
 image_np = np.flip(image_np, axis=0)
