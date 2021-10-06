@@ -540,7 +540,7 @@ class PreferencesDlg(wx.Dialog):
         self.sdbControlsOK.Bind(wx.EVT_BUTTON, self.OnOKClicked)
 
         # system fonts for font properties
-        self.fontList = ['From theme...'] + list(getSystemFonts(fixedWidthOnly=True))
+        self.fontList = [_translate('From theme...')] + list(getSystemFonts(fixedWidthOnly=True))
 
         # valid themes
         themePath = self.GetTopLevelParent().app.prefs.paths['themes']
