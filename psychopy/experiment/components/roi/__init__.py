@@ -74,7 +74,7 @@ class RegionOfInterestComponent(PolygonComponent):
 
         self.params['lookDur'] = Param(lookDur,
             valType='num', inputType='single', categ='Basic',
-            hint=_translate("How long (s) does the participant need to look at the ROI to count as a look?"),
+            hint=_translate("Minimum dwell time within roi (look at) or outside roi (look away)."),
             label=_translate("Min. Look Time")
         )
 
@@ -98,7 +98,7 @@ class RegionOfInterestComponent(PolygonComponent):
             allowedVals=['roi onset', 'experiment', 'routine'],
             updates='constant', direct=False,
             hint=_translate(
-                "What should the values of mouse.time should be "
+                "What should the values of roi.time should be "
                 "relative to?"),
             label=_translate('Time Relative To...'))
 
