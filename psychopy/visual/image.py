@@ -304,7 +304,7 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
         """The image file to be presented (most formats supported).
 	   
 	This can be a path-like object to an image file, or a numpy
-	array of shape [W, H, C] where C are channels. The third dim
+	array of shape [H, W, C] where C are channels. The third dim
 	will usually have length 1 (defining an intensity-only image), 3
 	(defining an RGB image) or 4 (defining an RGBA image).
 	
