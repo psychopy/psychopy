@@ -183,7 +183,7 @@ class Job:
             return  # nop
 
         # kill the process, check if itm was successful
-        isOk = wx.Process.Kill(self._pid, signal, flags) == wx.KILL_OK
+        isOk = wx.Process.Kill(self._pid, signal, flags) is wx.KILL_OK
         self._pollTimer.Stop()
 
         if isOk:
@@ -274,8 +274,8 @@ class Job:
 
     @inputCallback.setter
     def inputCallback(self, val):
-        if not callable(val) or None:
-            raise TypeError("Callback function must be `callable` or `None`.")
+        # if not callable(val) or val is not None:
+        #     raise TypeError("Callback function must be `callable` or `None`.")
 
         self._inputCallback = val
 
@@ -288,8 +288,8 @@ class Job:
 
     @errorCallback.setter
     def errorCallback(self, val):
-        if not callable(val) or None:
-            raise TypeError("Callback function must be `callable` or `None`.")
+        # if not callable(val) or val is not None:
+        #     raise TypeError("Callback function must be `callable` or `None`.")
 
         self._errorCallback = val
 
@@ -302,8 +302,8 @@ class Job:
 
     @terminateCallback.setter
     def terminateCallback(self, val):
-        if not callable(val) or None:
-            raise TypeError("Callback function must be `callable` or `None`.")
+        # if not callable(val) or val is not None:
+        #     raise TypeError("Callback function must be `callable` or `None`.")
 
         self._terminateCallback = val
 
