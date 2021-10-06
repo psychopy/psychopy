@@ -304,7 +304,30 @@ class Job:
         if not callable(val) or None:
             raise TypeError("Callback function must be `callable` or `None`.")
 
-        self._terminateCallback = val
+        self._pollMillis = val
+
+    @property
+    def pollMillis(self):
+        """Polling interval for input and error pipes (`int` or `None`).
+        """
+        return self._pollMillis
+
+    @pollMillis.setter
+    def pollMillis(self, val):
+        if isinstance(val, (int, float)):
+            self._pollMillis = int(val)
+        else:
+            raise TypeError("Value must be must be `int` or `None`.")
+
+        self._pollMillis = val
+
+        if not self._pollTimer.IsRunning():
+            return
+
+        if self._pollMillis is None:  # if `None`, stop the timer
+            self._pollTimer.Stop()
+        else:
+            self._pollTimer.Start(self._pollMillis, oneShot=wx.TIMER_CONTINUOUS)
 
     @property
     def isOutputAvailable(self):
