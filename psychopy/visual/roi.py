@@ -11,15 +11,15 @@ class ROI(ShapeStim):
     Parameters
     ----------
     win : :class:`~psychopy.visual.Window`
-        Window which eyetracking input will be relative to. The stimulus instance will
+        Window which device position input will be relative to. The stimulus instance will
         allocate its required resources using that Windows context. In many
         cases, a stimulus instance cannot be drawn on different windows
         unless those windows share the same OpenGL context, which permits
         resources to be shared between them.
     name : str
         Optional name of the ROI for logging.
-    tracker : :class:`~psychopy.iohub.devices.eyetracking.EyeTrackerDevice`
-        The eyetracker which this ROI is getting gaze data from.
+    device : :class:`~psychopy.iohub.devices.eyetracking.EyeTrackerDevice`
+        The device which this ROI is getting position data from.
     debug : bool
         If True, then the ROI becomes visible as a red shape on screen. This is intended purely for
         debugging purposes, so that you can see where on screen the ROI is when building an expriment.
@@ -55,7 +55,7 @@ class ROI(ShapeStim):
         List of times when the participant's gaze left the ROI.
     """
 
-    def __init__(self, win, name=None, tracker=None,
+    def __init__(self, win, name=None, device=None,
                  debug=False,
                  shape="rectangle",
                  units='', pos=(0, 0), size=(1, 1), ori=0.0,
@@ -68,10 +68,10 @@ class ROI(ShapeStim):
                          fillColor='red', opacity=int(debug),
                          autoLog=autoLog)
         self.opacity = int(debug)
-        if tracker is None:
-            self.tracker = Mouse(win=win)
+        if device is None:
+            self.device = Mouse(win=win)
         else:
-            self.tracker = tracker
+            self.device = device
         self.wasLookedIn = False
         self.clock = Clock()
         self.timesOn = []
@@ -85,19 +85,19 @@ class ROI(ShapeStim):
     @property
     def isLookedIn(self):
         """Is this ROI currently being looked at"""
-        # Get current eye position
-        if hasattr(self.tracker, "getPos"):
-            pos = self.tracker.getPos()
-        elif hasattr(self.tracker, "getPosition"):
-            pos = self.tracker.getPosition()
-        else:
-            # If there's no position functions, assume False
+        try:
+            # Get current device position
+            pos = self.device.getPos()
+            if not isinstance(pos, (list, tuple)):
+                # If there's no valid device position, assume False
+                return False
+            # Check contains
+            return bool(self.contains(pos[0], pos[1], self.win.units))
+        except Exception:
+            # If there's an exception getting device position,
+            # assume False
             return False
-        if pos is None:
-            # If there's no eye data (e.g. during a blink) assume False
-            return False
-        # Check contains
-        return bool(self.contains(pos[0], pos[1], self.win.units))
+        return False
 
     @property
     def currentLookTime(self):
@@ -119,9 +119,6 @@ class ROI(ShapeStim):
         else:
             # Otherwise, assume 0
             return 0
-
-
-
 
     def reset(self):
         """Clear stored data"""
