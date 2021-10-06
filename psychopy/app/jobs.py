@@ -348,7 +348,7 @@ class Job:
         (`ww.OutputStream`). This is used to write bytes which will show up in
         the 'stdin' pipe of the subprocess.
         """
-        if not self.isRunning():
+        if not self.isRunning:
             return None
 
         return self._process.OutputStream
@@ -369,7 +369,7 @@ class Job:
         (`wx.InputStream`). This is used to read bytes which the subprocess is
         writing to 'stdout'.
         """
-        if not self.isRunning():
+        if not self.isRunning:
             return None
 
         return self._process.InputStream
@@ -390,7 +390,7 @@ class Job:
         (`wx.InputStream`). This is used to read bytes which the subprocess is
         writing to 'stderr'.
         """
-        if not self.isRunning():
+        if not self.isRunning:
             return None
 
         return self._process.ErrorStream
