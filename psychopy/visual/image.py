@@ -302,14 +302,14 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
     @attributeSetter
     def image(self, value):
         """The image file to be presented (most formats supported).
-
-        This can be a path-like object to an image file, or a numpy
-        array of shape [W, H, C] where C are channels. The third dim
-        will usually have length 1 (defining an intensity-only image), 3
-        (defining an RGB image) or 4 (defining an RGBA image).
-        
-        If passing a numpy array to the image attribute,
-        the size attribute of ImageStim must be set explicitly.        
+	   
+	This can be a path-like object to an image file, or a numpy
+	array of shape [W, H, C] where C are channels. The third dim
+	will usually have length 1 (defining an intensity-only image), 3
+	(defining an RGB image) or 4 (defining an RGBA image).
+	
+	If passing a numpy array to the image attribute,
+	the size attribute of ImageStim must be set explicitly.
         """
         self.__dict__['image'] = self._imName = value
         # If given a color array, get it in rgb1
