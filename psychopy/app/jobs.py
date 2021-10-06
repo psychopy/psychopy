@@ -112,7 +112,7 @@ class Job:
         self._pid = None
         self._flags = flags
         self._process = None
-        self._pollMillis = pollMillis
+        self._pollMillis = None
         self._pollTimer = wx.Timer()
 
         # user defined callbacks
@@ -122,6 +122,7 @@ class Job:
         self.inputCallback = inputCallback
         self.errorCallback = errorCallback
         self.terminateCallback = terminateCallback
+        self.pollMillis = pollMillis
 
     def start(self):
         """Start the subprocess.
@@ -304,7 +305,7 @@ class Job:
         if not callable(val) or None:
             raise TypeError("Callback function must be `callable` or `None`.")
 
-        self._pollMillis = val
+        self._terminateCallback = val
 
     @property
     def pollMillis(self):
