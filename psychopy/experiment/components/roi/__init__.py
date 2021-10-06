@@ -236,16 +236,29 @@ class RegionOfInterestComponent(PolygonComponent):
         )
         buff.writeIndentedLines(code % inits)
         if self.params['endRoutineOn'].val == "look away":
+            buff.setIndentLevel(-1, relative=True)
             code = (
-                "if %(name)s.lastLookTime > %(lookDur)s: # check if last look was long enough\n"
+                f"# check if last look outside roi was long enough\n"
+                f"if len(%(name)s.timesOff) == 0 and %(name)s.clock.getTime() > %(lookDur)s:\n"
             )
             buff.writeIndentedLines(code % inits)
             buff.setIndentLevel(1, relative=True)
             code = (
-                    "continueRoutine = False # end routine after sufficiently long look\n"
+                    f"continueRoutine = False # end routine after sufficiently long look outside roi\n"
             )
             buff.writeIndentedLines(code % inits)
             buff.setIndentLevel(-1, relative=True)
+
+            code = (
+                f"elif len(%(name)s.timesOff) > 0 and %(name)s.clock.getTime() - %(name)s.timesOff[-1] > %(lookDur)s:\n"
+            )
+            buff.writeIndentedLines(code % inits)
+            buff.setIndentLevel(1, relative=True)
+            code = (
+                    f"continueRoutine = False # end routine after sufficiently long look outside roi\n"
+            )
+            buff.writeIndentedLines(code % inits)
+
         buff.setIndentLevel(-1, relative=True)
         code = (
             f"%(name)s.wasLookedIn = False  # if %(name)s is looked at next frame, it is a new look\n"
