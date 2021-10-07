@@ -124,4 +124,5 @@ class ROI(ShapeStim):
         """Clear stored data"""
         self.timesOn = []
         self.timesOff = []
+        self.clock.reset()
         self.wasLookedIn = False
