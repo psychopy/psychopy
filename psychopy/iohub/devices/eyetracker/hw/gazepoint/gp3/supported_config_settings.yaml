@@ -22,7 +22,7 @@ eyetracker.hw.gazepoint.gp3.EyeTracker:
     event_buffer_length: 
         IOHUB_INT:
             min: 1
-            max: 2048
+            max: 8192
     device_timer:
         interval:
             IOHUB_FLOAT:
