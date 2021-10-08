@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PsychoPy 2020.1.3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-10-06 20:17+0900\n"
-"PO-Revision-Date: 2021-10-06 20:17+0900\n"
+"POT-Creation-Date: 2021-10-08 15:05+0900\n"
+"PO-Revision-Date: 2021-10-08 15:40+0900\n"
 "Last-Translator: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language-Team: Hiroyuki Sogo <hsogo12600@gmail.com>\n"
 "Language: ja\n"
@@ -55,19 +55,40 @@ msgstr ""
 #: psychopy/alerts/alertsCatalogue/alertmsg.py:33
 #, python-brace-format
 msgid ""
+"Experiment was built in a future version of PsychoPy ({version}), we "
+"recommend either updating PsychoPy or changing the \"Use Version\" setting "
+"in Experiment Settings to this version."
+msgstr ""
+"実験が現在使用中のものより新しいバージョンのPsychoPy({version})で作成されてい"
+"ます. PsychoPyをアップデートするか, 実験の設定ダイアログの\"使用するPsychoPy"
+"のバージョン\"をこのバージョンに設定することを勧めます."
+
+#: psychopy/alerts/alertsCatalogue/alertmsg.py:37
+#, python-brace-format
+msgid ""
+"Experiment was built in a past version of PsychoPy ({version}), saving it in "
+"this version may add parameters which cannot be parsed."
+msgstr ""
+"実験が現在使用中のものより旧いバージョンのPsychoPy({version})で作成されていま"
+"す. 現在のバージョンのPsychoPyで保存すると旧バージョンで認識されないパラメー"
+"タが追加される可能性があります."
+
+#: psychopy/alerts/alertsCatalogue/alertmsg.py:41
+#, python-brace-format
+msgid ""
 "Your stimulus start {type} exceeds the stop {type}. Consider using a {type} "
 "duration."
 msgstr ""
 "刺激の開始({type})が終了({type})より後です. 実行時間による指定を検討してくだ"
 "さい."
 
-#: psychopy/alerts/alertsCatalogue/alertmsg.py:37
+#: psychopy/alerts/alertsCatalogue/alertmsg.py:45
 #, python-brace-format
 msgid ""
 "Your stimulus {type} type {frameType} must be expressed as a whole number."
 msgstr "刺激の{type}が{frameType}の場合は値が整数でなければいけません."
 
-#: psychopy/alerts/alertsCatalogue/alertmsg.py:41
+#: psychopy/alerts/alertsCatalogue/alertmsg.py:49
 #, python-brace-format
 msgid ""
 "Python Syntax Error in '{codeTab}' tab. See '{code}' on line number "
@@ -76,7 +97,7 @@ msgstr ""
 "'{codeTab}'タブに含まれるコードにPythonの文法エラーがあります. '{codeTab}'の"
 "{lineNumber}行目の'{code}'を確認してください."
 
-#: psychopy/alerts/alertsCatalogue/alertmsg.py:45
+#: psychopy/alerts/alertsCatalogue/alertmsg.py:53
 #, python-brace-format
 msgid ""
 "JavaScript Syntax Error in '{codeTab}' tab. See '{lineNumber}' in the "
@@ -85,17 +106,19 @@ msgstr ""
 "'{codeTab}'タブにJavaScriptの構文エラーがあります. '{codeTab}'タブ"
 "の'{lineNumber}'行目を確認してください."
 
-#: psychopy/alerts/alertsCatalogue/alertmsg.py:49
+#: psychopy/alerts/alertsCatalogue/alertmsg.py:57
+#, python-brace-format
 msgid ""
-"Your component is currently disabled and will not be written to your "
+"The component {name} is currently disabled and will not be written to your "
 "experiment script."
-msgstr "コンポーネントが無効化されているため実験のスクリプトに出力されません."
+msgstr ""
+"コンポーネント {name} が無効化されているため実験のスクリプトに出力されません."
 
-#: psychopy/alerts/alertsCatalogue/alertmsg.py:52
+#: psychopy/alerts/alertsCatalogue/alertmsg.py:60
 msgid "Cannot calculate parameter."
 msgstr "パラメータを計算できません."
 
-#: psychopy/alerts/alertsCatalogue/alertmsg.py:56
+#: psychopy/alerts/alertsCatalogue/alertmsg.py:64
 #, python-brace-format
 msgid ""
 "Builder cannot interpret value \"{param.val}\" of {param.label} for "
@@ -106,7 +129,7 @@ msgstr ""
 "{param.label}の\"{param.val}\"を解釈できません ($記号が適切に使われていませ"
 "ん)."
 
-#: psychopy/alerts/alertsCatalogue/alertmsg.py:60
+#: psychopy/alerts/alertsCatalogue/alertmsg.py:68
 #, python-brace-format
 msgid ""
 "Font `{param.val}` not found locally, will check Google Fonts on next run."
@@ -114,7 +137,114 @@ msgstr ""
 "{param.val}フォントが見つからないので, 次にこの実験を実行する時にGoogle Fonts"
 "から取得を試みます."
 
-#: psychopy/alerts/alertsCatalogue/alertmsg.py:64
+#: psychopy/alerts/alertsCatalogue/alertmsg.py:72
+#, python-brace-format
+msgid ""
+"Font `{font} {style}` not available in weight `{weight}`, component `{name}` "
+"will default to Open Sans Regular."
+msgstr ""
+"フォント `{font} {style}`はウェイト `{weight}`で使用できません. コンポーネン"
+"ト `{name}`のフォントは標準のOpen Sans Regularになります."
+
+#: psychopy/alerts/alertsCatalogue/alertmsg.py:76
+#, python-brace-format
+msgid "Recording device '{device}' not found, using default device instead."
+msgstr "録音デバイス '{device}' が見つかりません. 標準のデバイスを使用します."
+
+#: psychopy/alerts/alertsCatalogue/alertmsg.py:80
+#, python-brace-format
+msgid ""
+"Editable textbox component {textbox} and keyboard component {keyboard} in "
+"the same routine may compete for keypresses"
+msgstr ""
+"編集可能なTextboxコンポーネント {textbox} とキーボードコンポーネント "
+"{keyboard} が同じルーチンに配置されていて競合する可能性があります."
+
+#: psychopy/alerts/alertsCatalogue/alertmsg.py:83
+msgid ""
+"Experiment includes components or routines which use eyetracking, but no eye "
+"tracker is configured."
+msgstr ""
+"視線測定を使用するコンポーネントまたはルーチンが実験に含まれていますが, アイ"
+"トラッカーが設定されていません."
+
+#: psychopy/alerts/alertsCatalogue/alertmsg.py:87
+#, python-brace-format
+msgid ""
+"A {eyetracker} eye tracker has been configured, but no calibration routine "
+"is present."
+msgstr ""
+"アイトラッカー {eyetracker} が設定されましたが, キャリブレーションルーチンが"
+"フローにありません."
+
+#: psychopy/alerts/alertsCatalogue/alertmsg.py:90
+#, python-brace-format
+msgid ""
+"As {brand} eyetrackers do not support animations in their calibration "
+"routine, animation values have not been used in your calibration routine."
+msgstr ""
+"{brand}のアイトラッカーはキャリブレーション中のターゲットのアニメーションをサ"
+"ポートしていないので, アニメーションの設定は無効になります."
+
+#: psychopy/alerts/alertsCatalogue/alertmsg.py:93
+#, python-brace-format
+msgid "Eyetrackers by {brand} do not support manual pacing"
+msgstr ""
+"{brand}のアイトラッカーはキー押しによるキャリブレーション進行モードをサポート"
+"していません."
+
+#: psychopy/alerts/alertsCatalogue/alertmsg.py:97
+msgid ""
+"Window mode is set to be windowed, but eyetracking requires the window to be "
+"full screen."
+msgstr ""
+"フルスクリーンモードが解除されていますが, 視線測定をおこなうにはフルスクリー"
+"ンモードにする必要があります."
+
+#: psychopy/alerts/alertsCatalogue/alertmsg.py:101
+msgid ""
+"A monitor config is required for accurate eyetracking measurements, but none "
+"was found."
+msgstr "正確な視線測定にはモニター設定が必要ですが, 設定が見つかりません."
+
+#: psychopy/alerts/alertsCatalogue/alertmsg.py:105
+#, python-brace-format
+msgid ""
+"Region Of Interest component {name} is not accompanied by an Eyetracker "
+"Record component. Without an Eyetracker Record component, eye position will "
+"not be available."
+msgstr ""
+"ROIコンポーネント {name} がEyetracker Recordコンポーネントを伴っていません. "
+"Eyetracker Recordコンポーネントがなければ視線位置が取得できません."
+
+#: psychopy/alerts/alertsCatalogue/alertmsg.py:109
+#, python-brace-format
+msgid "Audio transcription service \"{transcriber}\" is not supported online."
+msgstr "音声文字変換サービス {transcriber} はオンラインでサポートされません."
+
+#: psychopy/alerts/alertsCatalogue/alertmsg.py:113
+#, python-brace-format
+msgid "Audio transcription service \"{transcriber}\" is not supported offline."
+msgstr "音声文字変換サービス {transcriber} はオフラインでサポートされません."
+
+#: psychopy/alerts/alertsCatalogue/alertmsg.py:117
+#, python-brace-format
+msgid ""
+"Chosen transcriber '{engine}' requires an API key, please supply one in "
+"Preferences."
+msgstr ""
+"音声文字変換サービス '{engine}' を使用するにはAPIキーが必要です. 設定ダイアロ"
+"グでキーを設定してください."
+
+#: psychopy/alerts/alertsCatalogue/alertmsg.py:121
+#, python-brace-format
+msgid ""
+"Device parameter of microphone component \"{name}\" will not be used online."
+msgstr ""
+"Microphoneコンポーネントのデバイスパラメータ \"{name}\" はオンラインで使用さ"
+"れません."
+
+#: psychopy/alerts/alertsCatalogue/alertmsg.py:125
 #, python-brace-format
 msgid ""
 "The file you are attempting to run does not seem to exist, the full path "
@@ -122,6 +252,24 @@ msgid ""
 msgstr ""
 "実行しようとしたファイルが存在しません. 実行しようとしたファイルのフルパスは "
 "{path} です."
+
+#: psychopy/alerts/alertsCatalogue/alertmsg.py:129
+#, python-brace-format
+msgid ""
+"Color space attribute `.{colorSpaceAttrib}` is no longer in use, as colors "
+"are no longer tied to one space."
+msgstr ""
+"色は特定の色空間に関連付けられなくなったため, 属性`.{colorSpaceAttrib}`は廃止"
+"されました."
+
+#: psychopy/alerts/alertsCatalogue/alertmsg.py:133
+#, python-brace-format
+msgid ""
+"RGB attribute `.{rgbAttrib}` is no longer in use, as non-RGB colors now "
+"handle their own conversion."
+msgstr ""
+"RGB以外の色表現が独自の変換処理をするようになったため, 属性`.{rgbAttrib}`は廃"
+"止されました."
 
 #: psychopy/app/Resources/psychopy.desktop:5
 #: psychopy/app/Resources/psychopy.desktop:6
