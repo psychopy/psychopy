@@ -193,7 +193,7 @@ class ScriptProcess:
         """
         self._onInputCallback(streamBytes)
 
-    def _onTerminateCallback(self):
+    def _onTerminateCallback(self, pid, exitCode):
         """Callback invoked when the subprocess exits.
 
         Default behavior is to push remaining data to the Runner output window
@@ -201,9 +201,17 @@ class ScriptProcess:
         disabled in Runner (if available) since the process has ended and no
         longer can be stopped. Also restores the user's cursor to the default.
 
+        Parameters
+        ----------
+        pid : int
+            Process ID number for the terminated subprocess.
+        exitCode : int
+            Program exit code.
+
         """
-        # write a close message
-        closeMsg = "##### Experiment ended. #####\n"
+        # write a close message, shows the exit code
+        closeMsg = "##### Experiment ended with exit code {} #####\n".format(
+            exitCode)
         self._writeOutput(closeMsg)
 
         self.scriptProcess = None  # reset

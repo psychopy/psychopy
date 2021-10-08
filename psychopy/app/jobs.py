@@ -405,7 +405,7 @@ class Job:
             if self._errorCallback is not None:
                 wx.CallAfter(self._errorCallback, stderrText)
 
-    def onTerminate(self, evt=None):
+    def onTerminate(self, evt):
         """Called when the process exits.
 
         Override for custom functionality. Right now we're just stopping the
@@ -418,7 +418,7 @@ class Job:
 
         Parameters
         ----------
-        evt : wx.Event
+        evt : wx.ProcessEvent
             Event object.
 
         """
@@ -430,7 +430,9 @@ class Job:
 
         # if callback is provided, else nop
         if self._terminateCallback is not None:
-            wx.CallAfter(self._terminateCallback)
+            pid = evt.GetPid()
+            exitCode = evt.GetExitCode()
+            wx.CallAfter(self._terminateCallback, pid, exitCode)
 
     def onNotify(self):
         """Called when the polling timer elapses.
