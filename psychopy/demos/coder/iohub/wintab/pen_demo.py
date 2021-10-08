@@ -81,7 +81,7 @@ last_evt=None
 last_evt_count=0
 pen_pos_range=None
 
-def start_iohub(sess_code=None, save_to=None):
+def start_iohub(myWin, sess_code=None, save_to=None):
     # Create initial default session code
     if sess_code is None:
         sess_code='S_{0}'.format(int(time.mktime(time.localtime())))
@@ -104,17 +104,17 @@ def start_iohub(sess_code=None, save_to=None):
 
     exp_code='wintab_evts_test'
 
-    kwargs={'experiment_code':exp_code,
-            'session_code':sess_code,
-            'datastore_name':save_to,
+    kwargs={'experiment_code': exp_code,
+            'session_code': sess_code,
+            'datastore_name': save_to,
             'wintab.Wintab':{'name':'pen', 
-                             'mouse_simulation': {'enable':True,
+                             'mouse_simulation': {'enable':False,
                                                   'leave_region_timeout':2.0
                                                 }
                                   }
            }
 
-    return launchHubServer(**kwargs)
+    return launchHubServer(window=myWin, **kwargs)
 
 def createPsychopyGraphics(myWin):
     #
@@ -163,12 +163,12 @@ if __name__ == '__main__':
                           prompt="Set Session Output File",
                           allowed="ioHub Data Files (*.hdf5)|*.hdf5")
 
-    myWin = visual.Window(units='pix', color=DEFAULT_SCREEN_COLOR,
+    myWin = visual.Window((1920,1080), units='pix', color=DEFAULT_SCREEN_COLOR,
                        colorSpace='rgb255', fullscr=True, allowGUI=False)
 
     # Start iohub process and create shortcut variables to the iohub devices
     # used during the experiment.
-    io = start_iohub(DEFAULT_SESSION_CODE, save_to)
+    io = start_iohub(myWin, DEFAULT_SESSION_CODE, save_to)
 
     keyboard = io.devices.keyboard
     mouse = io.devices.mouse
