@@ -540,7 +540,7 @@ class PreferencesDlg(wx.Dialog):
         self.sdbControlsOK.Bind(wx.EVT_BUTTON, self.OnOKClicked)
 
         # system fonts for font properties
-        self.fontList = [_translate('From theme...')] + list(getSystemFonts(fixedWidthOnly=True))
+        self.fontList = ['From theme...'] + list(getSystemFonts(fixedWidthOnly=True))
 
         # valid themes
         themePath = self.GetTopLevelParent().app.prefs.paths['themes']
@@ -624,11 +624,12 @@ class PreferencesDlg(wx.Dialog):
                         default = self.fontList.index(thisPref)
                     except ValueError:
                         default = 0
+                    labels = [_translate(font) for font in self.fontList]
                     self.proPrefs.addEnumItem(
                             sectionName,
                             pLabel,
                             prefName,
-                            labels=self.fontList,
+                            labels=labels,
                             values=[i for i in range(len(self.fontList))],
                             value=default, helpText=helpText)
                 elif prefName in ('theme',):
