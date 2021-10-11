@@ -5,8 +5,11 @@ Aperture Component
 
 This component can be used to filter the visual display, as if the subject is looking at it through an opening (i.e. add an image component, as the background image, then add an aperture to show part of the image). Currently, in builder, only circular apertures are supported (you can change the shape by specifying your aperture in a code component- we are hoping to make it easier to do this through builder soon!). Moreover, only one aperture is enabled at a time. You can't "double up": a second aperture takes precedence. Currently this component **does not run online**  (`see the status of online options <https://www.psychopy.org/online/status.html>`_, but you can achieve something similar online using an image with a mask: see an `example demo here <https://run.pavlovia.org/demos/dynamic_selective_inspect/html/>`_ with corresponding experiment files `here <https://gitlab.pavlovia.org/demos/dynamic_selective_inspect>`_ or by using the `MouseView plugin <https://run.pavlovia.org/demos/mouseview_demo/>`_.
 
-.. image:: ../images/aperture.gif
-    :width: 60%
+.. only:: html
+
+    .. image:: ../images/aperture.gif
+        :width: 60%
+
 Basic
 ======
 
@@ -28,6 +31,7 @@ expected duration(s) :
 
 Layout
 ======
+
 How should the stimulus be laid out? Padding, margins, size, position, etc.
 
 size : integer
@@ -35,6 +39,7 @@ size : integer
 
 pos : [X,Y]
     The position of the centre of the aperture, in the units specified by the stimulus or window.
+
 .. note::
     Top tip: You can make an aperture (or anything!) track the position of your mouse by adding a mouse component, then setting the position of your aperture to be :code:`mouse.getPos()` (and *set every frame*), where "mouse" corresponds to the name of your mouse component.
 
