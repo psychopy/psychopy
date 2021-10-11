@@ -854,6 +854,10 @@ class PreferencesDlg(wx.Dialog):
         # > sure, why not? - mdc
         self.populatePrefs()
 
+        # Update Builder window if needed
+        if self.app.builder:
+            self.app.builder.updateAllViews()
+
         # after validation, update the UI
         self.app.theme = self.app.theme
         self.updateFramesUI()

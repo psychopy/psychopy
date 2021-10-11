@@ -945,6 +945,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         """
         self.flowPanel.draw()
         self.routinePanel.redrawRoutines()
+        self.componentButtons.Refresh()
         self.updateWindowTitle()
 
     def layoutPanes(self):
@@ -2642,6 +2643,17 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         for button in self.compButtons:
             button.Enable(enable)
         self.Update()
+
+    def Refresh(self, eraseBackground=True, rect=None):
+        wx.Window.Refresh(self, eraseBackground, rect)
+        # Refresh view
+        if prefs.builder['componentFilter'] == "Both":
+            view = ["PsychoPy", "PsychoJS"]
+        elif prefs.builder['componentFilter'] == "Any":
+            view = []
+        else:
+            view = [prefs.builder['componentFilter']]
+        self.viewCtrl.SetValue(view)
 
     def setView(self, view=None):
         # If setting from an event, set as the value of the event
