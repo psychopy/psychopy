@@ -79,15 +79,19 @@ class ScriptProcess:
         stdOut.write(runMsg)
         stdOut.flush()
 
-        # build the shell command to run the script
-        command = [sys.executable, '-u', fullPath]
+        # interpreter path
+        pyExec = sys.executable
 
-        # option flags for the subprocess
+        # optional flags for the subprocess
         execFlags = jobs.EXEC_ASYNC  # all use `EXEC_ASYNC`
         if sys.platform == 'win32':
             execFlags |= jobs.EXEC_HIDE_CONSOLE
         else:
             execFlags |= jobs.EXEC_MAKE_GROUP_LEADER
+
+        # build the shell command to run the script
+        pyExec = '"' + pyExec + '"'  # use quotes, needed for Windows
+        command = [pyExec, '-u', fullPath]
 
         # create a new job with the user script
         self.scriptProcess = jobs.Job(
