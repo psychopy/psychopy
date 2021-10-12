@@ -90,8 +90,9 @@ class ScriptProcess:
             execFlags |= jobs.EXEC_MAKE_GROUP_LEADER
 
         # build the shell command to run the script
-        pyExec = '"' + pyExec + '"'  # use quotes, needed for Windows
-        command = [pyExec, '-u', fullPath]
+        pyExec = '"' + pyExec + '"'  # use quotes to prevent issues with spaces
+        fullPath = '"' + fullPath + '"'
+        command = [pyExec, '-u', fullPath]  # passed to the Job object
 
         # create a new job with the user script
         self.scriptProcess = jobs.Job(
