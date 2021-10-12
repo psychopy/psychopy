@@ -308,10 +308,10 @@ class Job:
     def pollMillis(self, val):
         if isinstance(val, (int, float)):
             self._pollMillis = int(val)
+        elif val is None:
+            self._pollMillis = None
         else:
             raise TypeError("Value must be must be `int` or `None`.")
-
-        self._pollMillis = val
 
         if not self._pollTimer.IsRunning():
             return
