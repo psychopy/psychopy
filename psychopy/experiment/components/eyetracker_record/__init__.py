@@ -5,6 +5,10 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
+from __future__ import absolute_import, print_function
+from builtins import super  # provides Py3-style super() using python-future
+
+from os import path
 from pathlib import Path
 from psychopy.experiment.components import BaseComponent, Param, _translate
 from psychopy.localization import _localized as __localized
@@ -17,14 +21,14 @@ class EyetrackerRecordComponent(BaseComponent):
     categories = ['Eyetracking']
     targets = ['PsychoPy']
     iconFile = Path(__file__).parent / 'eyetracker_record.png'
-    tooltip = _translate('Eyetracker: use one of several eyetrackers to follow '
-                         'gaze')
+    tooltip = _translate('Start and / or Stop recording data from the eye tracker')
     beta = True
 
     def __init__(self, exp, parentName, name='etRecord',
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim='',
+                 actionType="Start and Stop",
                  #legacy
                  save='final', configFile='myTracker.yaml'):
         BaseComponent.__init__(self, exp, parentName, name=name,
@@ -35,6 +39,40 @@ class EyetrackerRecordComponent(BaseComponent):
         self.url = "https://www.psychopy.org/builder/components/eyetracker.html"
         self.exp.requirePsychopyLibs(['iohub', 'hardware'])
 
+        self.params['actionType'] = Param(actionType,
+            valType='str', inputType='choice', categ='Basic',
+            allowedVals=["Start and Stop", "Start Only", "Stop Only"],
+            hint=_translate("Should this component start and / or stop eye tracker recording?"),
+            label=_translate("Record Actions")
+        )
+
+        # self.depends.append(
+        #     {"dependsOn": "actionType",  # must be param name
+        #      "condition": "=='Start Only'",  # val to check for
+        #      "param": "stopType",  # param property to alter
+        #      "true": "hide",  # what to do with param if condition is True
+        #      "false": "show",  # permitted: hide, show, enable, disable
+        #      }
+        # )
+        # self.depends.append(
+        #     {"dependsOn": "actionType",  # must be param name
+        #      "condition": "=='Start Only'",  # val to check for
+        #      "param": "stopValue",  # param property to alter
+        #      "true": "hide",  # what to do with param if condition is True
+        #      "false": "show",  # permitted: hide, show, enable, disable
+        #      }
+        # )
+        # self.depends.append(
+        #     {"dependsOn": "actionType",  # must be param name
+        #      "condition": "=='Start Only'",  # val to check for
+        #      "param": "durationEstim",  # param property to alter
+        #      "true": "hide",  # what to do with param if condition is True
+        #      "false": "show",  # permitted: hide, show, enable, disable
+        #      }
+        # )
+        self.order = self.order[:1]+['actionType']+self.order[1:]
+        #print(self.order)
+
     def writeInitCode(self, buff):
         inits = self.params
         # Make a controller object
@@ -44,8 +82,8 @@ class EyetrackerRecordComponent(BaseComponent):
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(1, relative=True)
         code = (
-                "server=ioServer,\n"
-                "tracker=eyetracker\n"
+                "tracker=eyetracker,\n"
+                "actionType=%(actionType)s\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
