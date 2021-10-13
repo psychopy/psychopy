@@ -46,32 +46,29 @@ class EyetrackerRecordComponent(BaseComponent):
             label=_translate("Record Actions")
         )
 
-        # self.depends.append(
-        #     {"dependsOn": "actionType",  # must be param name
-        #      "condition": "=='Start Only'",  # val to check for
-        #      "param": "stopType",  # param property to alter
-        #      "true": "hide",  # what to do with param if condition is True
-        #      "false": "show",  # permitted: hide, show, enable, disable
-        #      }
-        # )
-        # self.depends.append(
-        #     {"dependsOn": "actionType",  # must be param name
-        #      "condition": "=='Start Only'",  # val to check for
-        #      "param": "stopValue",  # param property to alter
-        #      "true": "hide",  # what to do with param if condition is True
-        #      "false": "show",  # permitted: hide, show, enable, disable
-        #      }
-        # )
-        # self.depends.append(
-        #     {"dependsOn": "actionType",  # must be param name
-        #      "condition": "=='Start Only'",  # val to check for
-        #      "param": "durationEstim",  # param property to alter
-        #      "true": "hide",  # what to do with param if condition is True
-        #      "false": "show",  # permitted: hide, show, enable, disable
-        #      }
-        # )
+        self.depends.append(
+             {"dependsOn": "actionType",  # must be param name
+              "condition": "=='Start Only'",  # val to check for
+              "param": "stop",  # param property to alter
+              "true": "hide",  # what to do with param if condition is True
+              "false": "show",  # permitted: hide, show, enable, disable
+              }
+         )
+        
+        self.depends.append(
+             {"dependsOn": "actionType",  # must be param name
+              "condition": "=='Stop Only'",  # val to check for
+              "param": "start",  # param property to alter
+              "true": "hide",  # what to do with param if condition is True
+              "false": "show",  # permitted: hide, show, enable, disable
+              }
+         )
+
+        # TODO: Display actionType control after component name.
+        #       Currently, adding params before start / stop time
+        #       in .order has no effect, so next line so not work
+        #       as intended.
         self.order = self.order[:1]+['actionType']+self.order[1:]
-        #print(self.order)
 
     def writeInitCode(self, buff):
         inits = self.params
