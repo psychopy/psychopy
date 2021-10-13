@@ -142,9 +142,6 @@ class UserPanel(wx.Panel):
                 icon = wx.Bitmap()
             self.icon.SetBitmap(icon)
             self.icon.Enable()
-            # Icon
-            self.icon.SetBitmap(wx.Bitmap())
-            self.icon.Enable()
             # Full name
             self.fullName.SetValue(user.attributes['name'] or "")
             self.fullName.Enable()
