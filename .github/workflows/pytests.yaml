@@ -35,6 +35,9 @@ jobs:
 
     - name: Install PsychoPy and dependencies
       run: |
+        # for pocketsphinx we need this adapted package:
+        pip install git+https://github.com/Im-Fran/pocketsphinx-python
+        # then use the standard requirements:
         pip install .
 
 #    - name: Lint with flake8
