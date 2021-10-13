@@ -120,3 +120,19 @@ class TestComponents(object):
         for (i, val) in enumerate(tykes):
             # Check the validity of each tyke param against the expected value
             assert tykeComponent.params[str(i)].dollarSyntax()[0] == tykes[val]
+
+    def testListParams(self):
+        # Define params and how they should compile
+        cases = [
+            {'val': "\"left\", \"down\", \"right\"", 'out': "[\"left\", \"down\", \"right\"]"},  # Double quotes naked list
+            {'val': "\'left\', \'down\', \'right\'", 'out': "['left', 'down', 'right']"},  # Single quotes naked list
+            {'val': "(\'left\', \'down\', \'right\')", 'out': "('left', 'down', 'right')"},  # Single quotes tuple syntax
+            {'val': "[\'left\', \'down\', \'right\']", 'out': "['left', 'down', 'right']"},  # Single quotes list syntax
+            {'val': "\"left\"", 'out': "[\"left\"]"},  # Single value
+            {'val': "[\"left\"]", 'out': "[\"left\"]"},  # Single value list syntax
+            {'val': "$left", 'out': "left"},  # Variable name
+        ]
+        # Stringify each and check it compiles correctly
+        for case in cases:
+            param = Param(case['val'], "list")
+            assert str(param) == case['out'], f"`{case['val']}` should compile to `{case['out']}`, not `{param}`"
