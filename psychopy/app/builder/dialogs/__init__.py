@@ -420,7 +420,7 @@ class StartStopCtrls(wx.GridBagSizer):
         self.AddGrowableCol(1)
 
     def getVisible(self):
-        all(ctrl.IsShown() for ctrl in self.ctrls.values())
+        return all(ctrl.IsShown() for ctrl in self.ctrls.values())
 
     def setVisible(self, visible=True):
         # Show/hide controls
