@@ -145,10 +145,8 @@ class SearchPanel(wx.Panel):
         # Add filter button
         self.filterBtn = wx.Button(self, label=_translate("Filter..."), style=wx.BORDER_NONE)
         self.filterTerms = {
-            "Author": [],
             "Status": [],
             "Platform": [],
-            "Visibility": [],
             "Tags": [],
         }
         self.filterOptions = {
@@ -387,7 +385,7 @@ class FilterDlg(wx.Dialog):
                     # Substitute [''] for [] so it's booleanised to False
                     return []
 
-    def __init__(self, parent, size=(250, 550),
+    def __init__(self, parent, size=(250, 400),
                  terms={},
                  options={}):
         wx.Dialog.__init__(self, parent, size=size,
