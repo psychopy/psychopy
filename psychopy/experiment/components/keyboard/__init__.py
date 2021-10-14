@@ -172,6 +172,9 @@ class KeyboardComponent(BaseComponent):
         allowedKeys = str(self.params['allowedKeys'])
         visualSync = self.params['syncScreenRefresh'].val
 
+        # Ensure allowedKeys is a list (accounts for older experiments)
+        self.params['allowedKeys'].valType = 'list'
+
         buff.writeIndented("\n")
         buff.writeIndented("# *%s* updates\n" % self.params['name'])
         if visualSync:
