@@ -124,18 +124,22 @@ class MovieComponent(BaseVisualComponent):
 
         if self.params['backend'].val == 'moviepy':
             code = ("%s = visual.MovieStim3(\n" % params['name'] +
-                    "    win=win, name='%s',%s\n" % (params['name'], unitsStr) +
+                    "    win=win, name='%s', units='%s',\n" % (
+                        params['name'], unitsStr) +
                     "    noAudio = %(No audio)s,\n" % params)
         elif self.params['backend'].val == 'avbin':
             code = ("%s = visual.MovieStim(\n" % params['name'] +
-                    "    win=win, name='%s',%s\n" % (params['name'], unitsStr))
+                    "    win=win, name='%s', units='%s'\n" % (
+                        params['name'], unitsStr))
         elif self.params['backend'].val == 'vlc':
             code = ("%s = visual.VlcMovieStim(\n" % params['name'] +
-                    "    win=win, name='%s',%s\n" % (params['name'], unitsStr))
+                    "    win=win, name='%s', units='%s'\n" % (
+                        params['name'], unitsStr))
         else:
             code = ("%s = visual.MovieStim2(\n" % params['name'] +
-                    "    win=win, name='%s',%s\n" % (params['name'], unitsStr) +
-                    "    noAudio = %(No audio)s,\n" % params)
+                    "    win=win, name='%s', units='%s',\n" % (
+                        params['name'], unitsStr) +
+                    "    noAudio=%(No audio)s,\n" % params)
 
         code += ("    filename=%(movie)s,\n"
                  "    ori=%(ori)s, pos=%(pos)s, opacity=%(opacity)s,\n"
