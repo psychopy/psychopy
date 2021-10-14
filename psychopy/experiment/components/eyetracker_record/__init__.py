@@ -54,7 +54,7 @@ class EyetrackerRecordComponent(BaseComponent):
               "false": "show",  # permitted: hide, show, enable, disable
               }
          )
-        
+
         self.depends.append(
              {"dependsOn": "actionType",  # must be param name
               "condition": "=='Stop Only'",  # val to check for
@@ -66,8 +66,7 @@ class EyetrackerRecordComponent(BaseComponent):
 
         # TODO: Display actionType control after component name.
         #       Currently, adding params before start / stop time
-        #       in .order has no effect, so next line so not work
-        #       as intended.
+        #       in .order has no effect
         self.order = self.order[:1]+['actionType']+self.order[1:]
 
     def writeInitCode(self, buff):
