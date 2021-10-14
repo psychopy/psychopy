@@ -129,11 +129,11 @@ class MovieComponent(BaseVisualComponent):
                     "    noAudio = %(No audio)s,\n" % params)
         elif self.params['backend'].val == 'avbin':
             code = ("%s = visual.MovieStim(\n" % params['name'] +
-                    "    win=win, name='%s', units='%s'\n" % (
+                    "    win=win, name='%s', units='%s',\n" % (
                         params['name'], unitsStr))
         elif self.params['backend'].val == 'vlc':
             code = ("%s = visual.VlcMovieStim(\n" % params['name'] +
-                    "    win=win, name='%s', units='%s'\n" % (
+                    "    win=win, name='%s', units='%s',\n" % (
                         params['name'], unitsStr))
         else:
             code = ("%s = visual.MovieStim2(\n" % params['name'] +
