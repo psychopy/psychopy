@@ -135,4 +135,6 @@ class TestComponents(object):
         # Stringify each and check it compiles correctly
         for case in cases:
             param = Param(case['val'], "list")
-            assert str(param) == case['out'], f"`{case['val']}` should compile to `{case['out']}`, not `{param}`"
+            assert str(param) in (
+                case['out'], case['out'].replace("\"", "'"), case['out'].replace("'", "\"")
+            ), f"`{case['val']}` should compile to `{case['out']}`, not `{param}`"
