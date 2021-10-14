@@ -73,7 +73,7 @@ class SimpleImageStim(MinimalStim, WindowMixin):
         self.units = units  # call attributeSetter
         # call attributeSetter. Use shaders if available by default, this is a
         # good thing
-        self.useShaders = win._haveShaders
+
         self.pos = pos  # call attributeSetter
         self.image = image  # call attributeSetter
         # check image size against window size

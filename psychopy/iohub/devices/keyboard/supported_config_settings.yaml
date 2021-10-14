@@ -20,6 +20,11 @@
             valid_values: [ KeyboardPressEvent, KeyboardReleaseEvent]
             min_length: 0
             max_length: 3
+    use_keymap:
+        IOHUB_LIST:
+            valid_values: [psychopy, legacy]
+            min_length: 0
+            max_length: 1
     device_number:
         IOHUB_INT:
             min: 0

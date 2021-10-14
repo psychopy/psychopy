@@ -419,6 +419,21 @@ class StartStopCtrls(wx.GridBagSizer):
                 self.Add(self.ctrls[name], (1, 1), border=6, flag=wx.EXPAND | wx.TOP | wx.BOTTOM)
         self.AddGrowableCol(1)
 
+    def getVisible(self):
+        return all(ctrl.IsShown() for ctrl in self.ctrls.values())
+
+    def setVisible(self, visible=True):
+        # Show/hide controls
+        for ctrl in self.ctrls.values():
+            ctrl.Show(visible)
+        # Show/hide labels
+        if hasattr(self, "estimLabel"):
+            self.estimLabel.Show(visible)
+        if hasattr(self, "label"):
+            self.label.Show(visible)
+        # Layout
+        self.parent.Layout()
+
     def updateCodeFont(self, evt=None):
         """Style input box according to code wanted"""
         if isinstance(evt, wx.TextCtrl):
@@ -463,14 +478,14 @@ class ParamNotebook(wx.Notebook, ThemeMixin):
                 if name in sortedParams:
                     startParams[name] = sortedParams.pop(name)
             if startParams:
-                self.addStartStopCtrl(startParams)
+                self.startCtrl = self.addStartStopCtrl(startParams)
             # Make stop controls
             stopParams = OrderedDict()
             for name in ['stopVal', 'stopType', 'durationEstim']:
                 if name in sortedParams:
                     stopParams[name] = sortedParams.pop(name)
             if stopParams:
-                self.addStartStopCtrl(stopParams)
+                self.stopCtrl = self.addStartStopCtrl(stopParams)
             # Make controls
             for name, param in sortedParams.items():
                 self.addParam(name, param)
@@ -516,6 +531,8 @@ class ParamNotebook(wx.Notebook, ThemeMixin):
             # Iterate row
             self.row += 1
 
+            return panel
+
         def checkDepends(self, event=None):
             """Checks the relationships between params that depend on each other
 
@@ -529,11 +546,17 @@ class ParamNotebook(wx.Notebook, ThemeMixin):
             isChanged = False
             for thisDep in self.parent.element.depends:
                 if not (
-                        thisDep['param'] in self.ctrls
+                        thisDep['param'] in list(self.ctrls) + ['start', 'stop']
                         and thisDep['dependsOn'] in self.ctrls):
                     # If params are on another page, skip
                     continue
-                dependentCtrls = self.ctrls[thisDep['param']]
+                # Get associated ctrl
+                if thisDep['param'] == 'start':
+                    dependentCtrls = self.startCtrl
+                elif thisDep['param'] == 'stop':
+                    dependentCtrls = self.stopCtrl
+                else:
+                    dependentCtrls = self.ctrls[thisDep['param']]
                 dependencyCtrls = self.ctrls[thisDep['dependsOn']]
                 condString = "dependencyCtrls.getValue() {}".format(thisDep['condition'])
                 if eval(condString):
