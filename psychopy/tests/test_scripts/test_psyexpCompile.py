@@ -129,15 +129,22 @@ class TestComponents(object):
         _rb = r"[\]\)]"  # right bracket
         # Define params and how they should compile
         cases = [
-            {'val': "\"left\", \"down\", \"right\"", 'out': f"{_lb}{_q}left{_q}, {_q}down{_q}, {_q}right{_q}{_rb}"},  # Double quotes naked list
-            {'val': "\'left\', \'down\', \'right\'", 'out': f"{_lb}{_q}left{_q}, {_q}down{_q}, {_q}right{_q}{_rb}"},  # Single quotes naked list
-            {'val': "(\'left\', \'down\', \'right\')", 'out': f"{_lb}{_q}left{_q}, {_q}down{_q}, {_q}right{_q}{_rb}"},  # Single quotes tuple syntax
-            {'val': "[\'left\', \'down\', \'right\']", 'out': f"{_lb}{_q}left{_q}, {_q}down{_q}, {_q}right{_q}{_rb}"},  # Single quotes list syntax
-            {'val': "\"left\"", 'out': f"{_lb}{_q}left{_q}{_rb}"},  # Single value
-            {'val': "[\"left\"]", 'out': f"{_lb}{_q}left{_q}{_rb}"},  # Single value list syntax
-            {'val': "$left", 'out': r"left"},  # Variable name
+            {'val': "\"left\", \"down\", \"right\"",
+             'out': f"{_lb}{_q}left{_q}, {_q}down{_q}, {_q}right{_q}{_rb}"},  # Double quotes naked list
+            {'val': "\'left\', \'down\', \'right\'",
+             'out': f"{_lb}{_q}left{_q}, {_q}down{_q}, {_q}right{_q}{_rb}"},  # Single quotes naked list
+            {'val': "(\'left\', \'down\', \'right\')",
+             'out': f"{_lb}{_q}left{_q}, {_q}down{_q}, {_q}right{_q}{_rb}"},  # Single quotes tuple syntax
+            {'val': "[\'left\', \'down\', \'right\']",
+             'out': f"{_lb}{_q}left{_q}, {_q}down{_q}, {_q}right{_q}{_rb}"},  # Single quotes list syntax
+            {'val': "\"left\"",
+             'out': f"{_lb}{_q}left{_q}{_rb}"},  # Single value
+            {'val': "[\"left\"]",
+             'out': f"{_lb}{_q}left{_q}{_rb}"},  # Single value list syntax
+            {'val': "$left",
+             'out': r"left"},  # Variable name
         ]
         # Stringify each and check it compiles correctly
         for case in cases:
             param = Param(case['val'], "list")
-            assert re.fullmatch(case['out'], str(param)), f"`{case['val']}` should compile to `{case['out']}`, not `{param}`"
+            assert re.fullmatch(case['out'], str(param)), f"`{case['val']}` should match the regex `{case['out']}`, but it was `{param}`"
