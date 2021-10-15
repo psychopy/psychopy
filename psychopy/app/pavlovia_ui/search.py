@@ -182,6 +182,9 @@ class SearchPanel(wx.Panel):
         # Layout
         self.Layout()
 
+        # Initial search
+        self.search()
+
     def search(self, evt=None):
         # Get search term
         if evt is None:
@@ -190,11 +193,6 @@ class SearchPanel(wx.Panel):
             term = evt
         else:
             term = evt.GetString()
-        # Abandom blank search
-        if term == "" and not self._mine and not any(bool(val) for val in self.filterTerms.values()):
-            self.projectList.DeleteAllItems()
-            self.projects = None
-            return
         # Do search
         self.projects = pavlovia.PavloviaSearch(term=term, filterBy=self.filterTerms, mine=self._mine)
 
