@@ -1,4 +1,5 @@
 import os.path
+import re
 from pathlib import Path
 import io
 import shutil
@@ -121,20 +122,22 @@ class TestComponents(object):
             # Check the validity of each tyke param against the expected value
             assert tykeComponent.params[str(i)].dollarSyntax()[0] == tykes[val]
 
-    def testListParams(self):
+    def test_list_params(self):
+        # Some regex shorthand
+        _q = r"[\"']"  # quotes
+        _lb = r"[\[\(]"  # left bracket
+        _rb = r"[\]\)]"  # right bracket
         # Define params and how they should compile
         cases = [
-            {'val': "\"left\", \"down\", \"right\"", 'out': "[\"left\", \"down\", \"right\"]"},  # Double quotes naked list
-            {'val': "\'left\', \'down\', \'right\'", 'out': "['left', 'down', 'right']"},  # Single quotes naked list
-            {'val': "(\'left\', \'down\', \'right\')", 'out': "('left', 'down', 'right')"},  # Single quotes tuple syntax
-            {'val': "[\'left\', \'down\', \'right\']", 'out': "['left', 'down', 'right']"},  # Single quotes list syntax
-            {'val': "\"left\"", 'out': "[\"left\"]"},  # Single value
-            {'val': "[\"left\"]", 'out': "[\"left\"]"},  # Single value list syntax
-            {'val': "$left", 'out': "left"},  # Variable name
+            {'val': "\"left\", \"down\", \"right\"", 'out': f"{_lb}{_q}left{_q}, {_q}down{_q}, {_q}right{_q}{_rb}"},  # Double quotes naked list
+            {'val': "\'left\', \'down\', \'right\'", 'out': f"{_lb}{_q}left{_q}, {_q}down{_q}, {_q}right{_q}{_rb}"},  # Single quotes naked list
+            {'val': "(\'left\', \'down\', \'right\')", 'out': f"{_lb}{_q}left{_q}, {_q}down{_q}, {_q}right{_q}{_rb}"},  # Single quotes tuple syntax
+            {'val': "[\'left\', \'down\', \'right\']", 'out': f"{_lb}{_q}left{_q}, {_q}down{_q}, {_q}right{_q}{_rb}"},  # Single quotes list syntax
+            {'val': "\"left\"", 'out': f"{_lb}{_q}left{_q}{_rb}"},  # Single value
+            {'val': "[\"left\"]", 'out': f"{_lb}{_q}left{_q}{_rb}"},  # Single value list syntax
+            {'val': "$left", 'out': r"left"},  # Variable name
         ]
         # Stringify each and check it compiles correctly
         for case in cases:
             param = Param(case['val'], "list")
-            assert str(param) in (
-                case['out'], case['out'].replace("\"", "'"), case['out'].replace("'", "\"")
-            ), f"`{case['val']}` should compile to `{case['out']}`, not `{param}`"
+            assert re.fullmatch(case['out'], str(param)), f"`{case['val']}` should compile to `{case['out']}`, not `{param}`"
