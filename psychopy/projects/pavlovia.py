@@ -519,7 +519,7 @@ class PavloviaSearch(pandas.DataFrame):
             else:
                 # Display demos for blank search
                 data = requests.get("https://pavlovia.org/api/v2/designers/5/experiments",
-                                    timeout=2).json()
+                                    timeout=5).json()
         except requests.exceptions.ReadTimeout:
             msg = "Could not connect to Pavlovia server. Please check that you are connected to the internet. If you are connected, then the Pavlovia servers may be down. You can check their status here: https://pavlovia.org/status"
             raise ConnectionError(msg)
