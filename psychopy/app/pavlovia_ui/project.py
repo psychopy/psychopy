@@ -384,7 +384,7 @@ class DetailsPanel(wx.Panel):
             if 'avatarUrl' in project.info:
                 try:
                     content = requests.get(project['avatar_url']).content
-                    icon = wx.Image(io.BytesIO(content)).ConvertToBitmap()
+                    icon = wx.Bitmap(wx.Image(io.BytesIO(content)))
                 except requests.exceptions.MissingSchema:
                     icon = wx.Bitmap()
             else:
