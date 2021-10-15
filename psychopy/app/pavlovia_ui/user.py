@@ -137,7 +137,7 @@ class UserPanel(wx.Panel):
         else:
             try:
                 content = requests.get(user.attributes['avatar_url']).content
-                icon = wx.Image(io.BytesIO(content)).ConvertToBitmap()
+                icon = wx.Bitmap(wx.Image(io.BytesIO(content)))
             except requests.exceptions.MissingSchema:
                 icon = wx.Bitmap()
             self.icon.SetBitmap(icon)
