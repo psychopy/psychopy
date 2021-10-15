@@ -149,7 +149,7 @@ class UserPanel(wx.Panel):
             self.organisation.SetValue(user.attributes['organization'] or "No organization")
             self.organisation.Enable()
             # Link
-            self.link.SetLabel("%(username)s (%(id)s)" % user.attributes)
+            self.link.SetLabel(user.attributes['username'])
             self.link.SetURL(user.attributes['web_url'] or "")
             self.link.Enable()
             # Hide logout and show login
