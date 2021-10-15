@@ -74,7 +74,7 @@ class SearchPanel(wx.Panel):
             # Add me mode
             mineLbl = ""
             if parent._mine:
-                mineLbl += "Owned by me. "
+                mineLbl += "Editable by me. "
             # Add sort params
             sortLbl = ""
             if len(parent.sortOrder):
