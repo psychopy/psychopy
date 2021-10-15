@@ -508,8 +508,15 @@ class PavloviaSearch(pandas.DataFrame):
             filterBy = {}
         # Ensure filter is a FilterTerm
         filterBy = self.FilterTerm(filterBy)
+        # Do search
         try:
-            data = requests.get(f"https://pavlovia.org/api/v2/experiments?search={term}{filterBy}", timeout=2).json()
+            if term:
+                data = requests.get(f"https://pavlovia.org/api/v2/experiments?search={term}{filterBy}",
+                                    timeout=2).json()
+            else:
+                # Display demos for blank search
+                data = requests.get("https://pavlovia.org/api/v2/designers/5/experiments",
+                                    timeout=2).json()
         except requests.exceptions.ReadTimeout:
             msg = "Could not connect to Pavlovia server. Please check that you are conencted to the internet. If you are connected, then the Pavlovia servers may be down. You can check their status here: https://pavlovia.org/status"
             raise ConnectionError(msg)
