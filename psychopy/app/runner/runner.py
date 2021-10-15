@@ -25,7 +25,6 @@ from subprocess import Popen, PIPE
 
 from psychopy import experiment
 from psychopy.app.utils import PsychopyPlateBtn, PsychopyToolbar, FrameSwitcher, FileDropTarget
-from psychopy.constants import PY3
 from psychopy.localization import _translate
 from psychopy.app.stdOutRich import StdOutRich
 from psychopy.projects.pavlovia import getProject
@@ -724,9 +723,8 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
         self.getPsychoJS()
 
         htmlPath = str(self.currentFile.parent / self.outputPath)
-        server = ["SimpleHTTPServer", "http.server"][PY3]
         pythonExec = Path(sys.executable)
-        command = [str(pythonExec), "-m", server, str(port)]
+        command = [str(pythonExec), "-m", "http.server", str(port)]
 
         if not os.path.exists(htmlPath):
             print('##### HTML output path: "{}" does not exist. '

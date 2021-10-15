@@ -4,7 +4,8 @@
 """Digital signal processing functions; pyo table, file, & sample conversions
 """
 
-from __future__ import absolute_import, division, print_function
+
+
 
 import os
 import sys

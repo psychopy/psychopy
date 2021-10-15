@@ -958,7 +958,7 @@ def getAttribLocations(program, builtins=False):
 # -----------------------------------
 
 
-class QueryObjectInfo(object):
+class QueryObjectInfo:
     """Object for querying information. This includes GPU timing information."""
     __slots__ = ['name', 'target']
 
@@ -1498,7 +1498,7 @@ def deleteRenderbuffer(renderBuffer):
 # use them with functions that require that type as input.
 #
 
-class TexImage2D(object):
+class TexImage2D:
     """Descriptor for a 2D texture.
 
     This class is used for bookkeeping 2D textures stored in video memory.
@@ -1785,7 +1785,7 @@ def createTexImage2dFromFile(imgFile, transpose=True):
     return textureDesc
 
 
-class TexCubeMap(object):
+class TexCubeMap:
     """Descriptor for a cube map texture..
 
     This class is used for bookkeeping cube maps stored in video memory.
@@ -2126,7 +2126,7 @@ def deleteTexture(texture):
 # Vertex Array Objects (VAO)
 #
 
-class VertexArrayInfo(object):
+class VertexArrayInfo:
     """Vertex array object (VAO) descriptor.
 
     This class only stores information about the VAO it refers to, it does not
@@ -2441,7 +2441,7 @@ def deleteVAO(vao):
 #
 
 
-class VertexBufferInfo(object):
+class VertexBufferInfo:
     """Vertex buffer object (VBO) descriptor.
 
     This class only stores information about the VBO it refers to, it does not
@@ -3171,7 +3171,7 @@ def createMaterial(params=(), textures=(), face=GL.GL_FRONT_AND_BACK):
     return matDesc
 
 
-class SimpleMaterial(object):
+class SimpleMaterial:
     """Class representing a simple material.
 
     This class stores material information to modify the appearance of drawn
@@ -3193,8 +3193,7 @@ class SimpleMaterial(object):
                  specularTexture=None,
                  opacity=1.0,
                  contrast=1.0,
-                 face='front',
-                 useShaders=False):
+                 face='front'):
         """
         Parameters
         ----------
@@ -3225,13 +3224,6 @@ class SimpleMaterial(object):
             Contrast of the material colors.
         face : str
             Face to apply material to. Values are `front`, `back` or `both`.
-        textures : dict, optional
-            Texture maps associated with this material. Textures are specified
-            as a list. The index of textures in the list will be used to set
-            the corresponding texture unit they are bound to.
-        useShaders : bool
-            Use per-pixel lighting when rendering this stimulus. By default,
-            Blinn-Phong shading will be used.
         """
         self.win = win
 
@@ -3272,7 +3264,6 @@ class SimpleMaterial(object):
         self._normalTexture = None
 
         self._useTextures = False  # keeps track if textures are being used
-        self._useShaders = useShaders
 
     @property
     def diffuseTexture(self):
@@ -3581,7 +3572,7 @@ def setAmbientLight(color):
 #
 
 
-class ObjMeshInfo(object):
+class ObjMeshInfo:
     """Descriptor for mesh data loaded from a Wavefront OBJ file.
 
     """

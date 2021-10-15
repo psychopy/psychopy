@@ -9,16 +9,8 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import, division, print_function
-
-from past.utils import old_div
 import numpy
 from numpy.fft import fft2, ifft2, fftshift, ifftshift
-from psychopy import logging
-try:
-    from PIL import Image
-except ImportError:
-    import Image
 
 
 def makeGrating(res,
@@ -50,11 +42,12 @@ def makeGrating(res,
     """
     # to prevent the sinusoid ever being exactly at zero (for sqr wave):
     tiny = 0.0000000000001
-    ori *= (old_div(-numpy.pi, 180))
-    phase *= (old_div(numpy.pi, 180))
+    ori *= -numpy.pi / 180.
+    phase *= numpy.pi / 180.
     cyclesTwoPi = cycles * 2.0 * numpy.pi
-    xrange, yrange = numpy.mgrid[0.0: cyclesTwoPi: old_div(cyclesTwoPi, res),
-                                 0.0: cyclesTwoPi: old_div(cyclesTwoPi, res)]
+    xrange, yrange = numpy.mgrid[
+                     0.0:cyclesTwoPi:(cyclesTwoPi / res),
+                     0.0:cyclesTwoPi:(cyclesTwoPi / res)]
 
     sin, cos = numpy.sin, numpy.cos
     if gratType == "none":
@@ -72,12 +65,14 @@ def makeGrating(res,
         intensity = sin(xrange) * sin(yrange)
     else:
         # might be a filename of an image
-        try:
-            im = Image.open(gratType)
-        except Exception:
-            logging.error("couldn't find tex...", gratType)
-            return
-        # todo: opened it, now what?
+        # try:
+        #     im = Image.open(gratType)
+        # except Exception:
+        #     logging.error("couldn't find tex...", gratType)
+        #     return
+        # # todo: opened it, now what?
+        raise ValueError("Invalid value for parameter `gratType`.")
+
     return intensity
 
 
@@ -179,22 +174,41 @@ def makeMask(matrixSize, shape='circle', radius=1.0, center=(0.0, 0.0),
 
 
 def makeRadialMatrix(matrixSize, center=(0.0, 0.0), radius=1.0):
-    """Generate a square matrix where each element val is
-    its distance from the centre of the matrix
+    """Generate a square matrix where each element values is its distance from
+    the centre of the matrix.
 
-    :Parameters:
-        matrixSize: integer
-            the size of the resulting matrix on both dimensions (e.g 256)
-        radius:  float
-            scale factor to be applied to the mask (circle with radius of
-            [1,1] will extend just to the edge of the matrix). Radius can
-            be asymmetric, e.g. [1.0,2.0] will be wider than it is tall.
-        center:  2x1 tuple or list (default=[0.0,0.0])
-            the centre of the mask in the matrix ([1,1] is top-right
-            corner, [-1,-1] is bottom-left)
+    Parameters
+    ----------
+    matrixSize : int
+        Matrix size. Corresponds to the number of elements along each dimension.
+        Must be >0.
+    radius:  float
+        scale factor to be applied to the mask (circle with radius of
+        [1,1] will extend just to the edge of the matrix). Radius can
+        be asymmetric, e.g. [1.0,2.0] will be wider than it is tall.
+    center:  2x1 tuple or list (default=[0.0,0.0])
+        the centre of the mask in the matrix ([1,1] is top-right
+        corner, [-1,-1] is bottom-left)
+
+    Returns
+    -------
+    ndarray
+        Square matrix populated with distance values and
+        `size == (matrixSize, matrixSize)`.
+
     """
     if type(radius) in [int, float]:
         radius = [radius, radius]
+
+    try:
+        matrixSize = int(matrixSize)
+    except ValueError:
+        raise TypeError('parameter `matrixSize` must be a numeric type')
+
+    if matrixSize <= 1:
+        raise ValueError(
+            'parameter `matrixSize` must be positive and greater than 1, got: {}'.format(
+                matrixSize))
 
     # NB need to add one step length because
     yy, xx = numpy.mgrid[0:matrixSize, 0:matrixSize]

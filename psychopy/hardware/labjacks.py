@@ -9,8 +9,6 @@
    `ioLab python library <http://github.com/ioLab/python-ioLabs>`_.
 """
 
-from __future__ import absolute_import, division, print_function
-
 try:
     from labjack import u3
 except ImportError:

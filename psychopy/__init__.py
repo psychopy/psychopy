@@ -12,14 +12,14 @@
 import os
 import sys
 
-__version__ = '2021.3.0'
+__version__ = '2021.3.1'
 __license__ = 'GNU GPLv3 (or more recent equivalent)'
 __author__ = 'Jonathan Peirce'
 __author_email__ = 'jon.peirce@gmail.com'
 __maintainer_email__ = 'jon.peirce@gmail.com'
 __url__ = 'https://www.psychopy.org/'
 __download_url__ = 'https://github.com/psychopy/psychopy/releases/'
-__git_sha__ = '963c661ab'
+__git_sha__ = 'n/a'
 __build_platform__ = 'n/a'
 
 __all__ = ["gui", "misc", "visual", "core",
@@ -46,6 +46,11 @@ if 'installing' not in locals():
         sys.path.append(pathName)
 
     from psychopy.tools.versionchooser import useVersion, ensureMinimal
+
+if sys.version_info.major < 3:
+    raise ImportError("psychopy does not support Python2 installations. "
+                      "The last version to support Python2.7 was PsychoPy "
+                      "2021.2.x")
 
 # import readline here to get around an issue with sounddevice
 # issues GH-2230 GH-2344 GH-2662

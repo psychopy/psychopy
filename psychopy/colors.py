@@ -3,8 +3,6 @@
 
 """Classes and functions for working with colors.
 """
-from __future__ import absolute_import, print_function
-
 import re
 from math import inf
 from psychopy import logging
@@ -231,7 +229,7 @@ for val in alphaSpaces:
     nonAlphaSpaces.remove(val)
 
 
-class Color(object):
+class Color:
     """A class to store colour details, knows what colour space it's in and can
     supply colours in any space.
 
@@ -348,7 +346,12 @@ class Color(object):
         """
         if space not in colorSpaces:
             raise ValueError(f"{space} is not a valid color space")
-        adj = np.clip(self.rgb * self.contrast, -1, 1)
+        # Transform contrast to match rgb
+        contrast = self.contrast
+        contrast = np.reshape(contrast, (-1, 1))
+        contrast = np.hstack((contrast, contrast, contrast))
+        # Multiply
+        adj = np.clip(self.rgb * contrast, -1, 1)
         buffer = self.copy()
         buffer.rgb = adj
         return getattr(buffer, space)

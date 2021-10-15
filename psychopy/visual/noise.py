@@ -16,8 +16,6 @@ orientation, frequencyand phase. Also does beat stimuli. """
 # up by the pyglet GL engine and have no effect.
 # Shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
 
-from __future__ import absolute_import, print_function, division
-
 import pyglet
 pyglet.options['debug_gl'] = False
 import ctypes
@@ -202,8 +200,7 @@ class NoiseStim(GratingStim):
                              name=name, autoLog=autoLog, autoDraw=autoDraw,
                              blendmode=blendmode,
                              maskParams=None)
-        # use shaders if available by default, this is a good thing
-        self.__dict__['useShaders'] = win._haveShaders
+
         # UGLY HACK: Some parameters depend on each other for processing.
         # They are set "superficially" here.
         # TO DO: postpone calls to _createTexture, setColor and

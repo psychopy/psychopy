@@ -5,7 +5,6 @@
 # Following strings are used to localize alerts.
 # Rebuild this file if alert messages in *.yaml files are modified.
 
-from __future__ import absolute_import, print_function
 from psychopy.localization import _translate
 
 # Alert 2115

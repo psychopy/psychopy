@@ -16,22 +16,15 @@ The code that writes out a *_lastrun.py experiment file is (in order):
     settings.SettingsComponent.writeEndCode()
 """
 
-from __future__ import absolute_import, print_function
-from builtins import object
 from copy import deepcopy
 from xml.etree.ElementTree import Element
-
-# from future import standard_library
 
 from psychopy.experiment import getInitVals
 from psychopy.localization import _localized, _translate
 from psychopy.experiment.params import Param
 from .components import getInitVals, getAllComponents
 
-# standard_library.install_aliases()
-
-
-class TrialHandler(object):
+class TrialHandler():
     """A looping experimental control object
             (e.g. generating a psychopy TrialHandler or StairHandler).
             """
@@ -334,7 +327,7 @@ class TrialHandler(object):
         return self.params['name'].val
 
 
-class StairHandler(object):
+class StairHandler:
     """A staircase experimental control object.
     """
 
@@ -480,7 +473,7 @@ class StairHandler(object):
         return 'StairHandler'
 
 
-class MultiStairHandler(object):
+class MultiStairHandler:
     """To handle multiple interleaved staircases
     """
 
@@ -727,7 +720,7 @@ class MultiStairHandler(object):
         pass
 
 
-class LoopInitiator(object):
+class LoopInitiator:
     """A simple class for inserting into the flow.
     This is created automatically when the loop is created"""
 
@@ -785,7 +778,7 @@ class LoopInitiator(object):
         pass
 
 
-class LoopTerminator(object):
+class LoopTerminator:
     """A simple class for inserting into the flow.
     This is created automatically when the loop is created"""
 

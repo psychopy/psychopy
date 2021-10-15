@@ -10,7 +10,6 @@ If you publish work using this script please cite the PsychoPy publications:
         Frontiers in Neuroinformatics, 2:10. doi: 10.3389/neuro.11.010.2008
 """
 
-from __future__ import absolute_import, division
 from psychopy import locale_setup, sound, gui, visual, core, data, event, logging, clock
 from psychopy.constants import (NOT_STARTED, STARTED, PLAYING, PAUSED,
                                 STOPPED, FINISHED, PRESSED, RELEASED, FOREVER)

@@ -7,12 +7,10 @@
 
 """Module containing validators for various parameters.
 """
-from __future__ import absolute_import, print_function
-
 import re
-from past.builtins import basestring
 import wx
 import psychopy.experiment.utils
+from psychopy.tools import stringtools
 from psychopy.localization import _translate
 from . import experiment
 from .localizedStrings import _localized
@@ -35,7 +33,7 @@ VALIDATOR_WARNING_FONT_MISSING = 3
 VALIDATOR_WARNING_COUNT = 4  # increment when adding more
 
 
-class ValidatorWarning(object):
+class ValidatorWarning():
     """Class for validator warnings.
 
     These are used internally by the `WarningManager`, do not create instances
@@ -126,7 +124,7 @@ class ValidatorWarning(object):
         """`True` if this is a non-critical message which doesn't disable the OK button"""
         return self.kind in [VALIDATOR_WARNING_FONT_MISSING]
 
-class WarningManager(object):
+class WarningManager():
     """Manager for warnings produced by validators associated with controls
     within the component properties dialog. Assumes that the `parent` dialog
     uses a standardized convention for attribute names for all components.
@@ -472,7 +470,7 @@ class CodeSnippetValidator(BaseValidator):
             return '', True  # mdc - why return anything here?
 
         val = control.GetValue()  # same as parent.params[self.fieldName].val
-        if not isinstance(val, basestring):
+        if not isinstance(val, str):
             return '', True
 
         field = self.fieldName
@@ -506,7 +504,7 @@ class CodeSnippetValidator(BaseValidator):
             # get var names from val, check against namespace:
             code = experiment.getCodeFromParamStr(val)
             try:
-                names = compile(code, '', 'exec').co_names
+                names = list(stringtools.getVariables(code))
                 parent.warnings.clearWarning(control)
             except (SyntaxError, TypeError) as e:
                 # empty '' compiles to a syntax error, ignore

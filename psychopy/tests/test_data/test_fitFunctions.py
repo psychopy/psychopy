@@ -1,25 +1,25 @@
 """Tests for psychopy.data.DataHandler"""
-from __future__ import division
-from past.utils import old_div
 import numpy
 from scipy import special
 from pytest import raises
 
-PLOTTING=False#turn this on to check it all looks right too
+PLOTTING = False #turn this on to check it all looks right too
 if PLOTTING:
     import pylab
 
 from psychopy import data
 
+
 def cumNorm(xx, sd, thresh, chance=0.5):
     """For a given x value (e.g. contrast) returns the probability (y) of
     the subject responding yes (or 'correctly')
     """
-    xx=numpy.asarray(xx)
-    y = (special.erf(old_div((xx-thresh),(numpy.sqrt(2)*sd)))+1)*0.5#NB numpy.special.erf() goes from -1:1
+    xx = numpy.asarray(xx)
+    y = (special.erf((xx-thresh) / (numpy.sqrt(2) * sd)) + 1) * 0.5  # NB numpy.special.erf() goes from -1:1
 #    y = special.erf((xx - thresh)*slope)/2.0+0.5 #cum norm from 0-1
-    y = y*(1-chance)+chance #scale to be from chance to 1
+    y = y * (1 - chance) + chance  # scale to be from chance to 1
     return y
+
 
 #create some data to test
 thresh=0.2

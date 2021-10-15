@@ -26,7 +26,7 @@ greenLight = LightSource(win, pos=(-5, -3, 0), diffuseColor=(0, .5, 0),
 win.lights = [redLight, blueLight, greenLight]
 
 # create the stimulus object, try other classes like SphereStim and PlaneStim
-boxStim = BoxStim(win, size=(.2, .2, .2), useShaders=True)
+boxStim = BoxStim(win, size=(.2, .2, .2))
 
 # set the position of the object by editing the associated rigid body pose
 boxStim.thePose.pos = (0, 0, -3)

@@ -1,21 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import absolute_import, division, print_function
-
 import errno
-from builtins import object
 import os
 import sys
 import platform
-from psychopy.constants import PY3
 from pkg_resources import parse_version
 import shutil
-import json
 
 try:
     import configobj
-    if (PY3 and sys.version_info.minor >= 7 and
+    if (sys.version_info.minor >= 7 and
             parse_version(configobj.__version__) < parse_version('5.1.0')):
         raise ImportError('Installed configobj does not support Python 3.7+')
     _haveConfigobj = True
@@ -36,7 +31,7 @@ else:  # Use our contrib package if configobj is not installed or too old.
 join = os.path.join
 
 
-class Preferences(object):
+class Preferences:
     """Users can alter preferences from the dialog box in the application,
     by editing their user preferences file (which is what the dialog box does)
     or, within a script, preferences can be controlled like this::

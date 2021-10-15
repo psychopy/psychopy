@@ -5,7 +5,6 @@
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
-from __future__ import division
 import copy
 import psychopy
 from .text import TextStim
@@ -16,8 +15,6 @@ from psychopy.visual.basevisual import (BaseVisualStim,
 from psychopy import logging
 from random import shuffle
 from pathlib import Path
-
-from psychopy.constants import PY3
 
 __author__ = 'Jon Peirce, David Bridges, Anthony Haffey'
 

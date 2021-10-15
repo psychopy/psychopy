@@ -5,10 +5,6 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import, print_function
-from builtins import super  # provides Py3-style super() using python-future
-
-from os import path
 from pathlib import Path
 from psychopy.experiment.components import getInitVals, _translate
 from psychopy.experiment.components.polygon import PolygonComponent
