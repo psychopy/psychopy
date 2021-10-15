@@ -3193,8 +3193,7 @@ class SimpleMaterial:
                  specularTexture=None,
                  opacity=1.0,
                  contrast=1.0,
-                 face='front',
-                 useShaders=False):
+                 face='front'):
         """
         Parameters
         ----------
@@ -3225,13 +3224,6 @@ class SimpleMaterial:
             Contrast of the material colors.
         face : str
             Face to apply material to. Values are `front`, `back` or `both`.
-        textures : dict, optional
-            Texture maps associated with this material. Textures are specified
-            as a list. The index of textures in the list will be used to set
-            the corresponding texture unit they are bound to.
-        useShaders : bool
-            Use per-pixel lighting when rendering this stimulus. By default,
-            Blinn-Phong shading will be used.
         """
         self.win = win
 
@@ -3272,7 +3264,6 @@ class SimpleMaterial:
         self._normalTexture = None
 
         self._useTextures = False  # keeps track if textures are being used
-        self._useShaders = useShaders
 
     @property
     def diffuseTexture(self):

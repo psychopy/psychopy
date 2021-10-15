@@ -163,8 +163,7 @@ class EnvelopeGrating(GratingStim):
                              depth=depth, interpolate=interpolate,
                              name=name, autoLog=autoLog, autoDraw=autoDraw,
                              maskParams=None)
-        # use shaders if available by default, this is a good thing
-        self.__dict__['useShaders'] = win._haveShaders
+
         # UGLY HACK: Some parameters depend on each other for processing.
         # They are set "superficially" here.
         # TO DO: postpone calls to _createTexture, setColor and
@@ -353,14 +352,9 @@ class EnvelopeGrating(GratingStim):
         (e.g. 256 x 256). If not then PsychoPy will upsample your stimulus
         to the next larger power of two.
         """
-        if self.useShaders == True:
-            self._createTexture(value, id=self._envelopeID,
-                                pixFormat=GL.GL_RGB, stim=self,
-                                res=self.texRes)
-        else:
-            self._createTexture(value, id=self._envelopeID,
-                                pixFormat=GL.GL_ALPHA, stim=self,
-                                res=self.texRes)
+        self._createTexture(value, id=self._envelopeID,
+                            pixFormat=GL.GL_RGB, stim=self,
+                            res=self.texRes)
 
         # if user requested size=None then update the size for new stim here
         if hasattr(self, '_requestedSize') and self._requestedSize is None:
@@ -382,10 +376,12 @@ class EnvelopeGrating(GratingStim):
            Landy and Oruc, Vis Res 2002.
            Note overall contrast (apparent carrier contrast) will be altered.
         """
-        if self.useShaders == True:
-            self._createTexture(numpy.ones((self.texRes,self.texRes))*value, id=self._powerID,
-                                pixFormat=GL.GL_RGB, stim=self,
-                                res=self.texRes)
+        self._createTexture(
+            numpy.ones((self.texRes,self.texRes)) * value,
+            id=self._powerID,
+            pixFormat=GL.GL_RGB,
+            stim=self,
+            res=self.texRes)
 
         # if user requested size=None then update the size for new stim here
         if hasattr(self, '_requestedSize') and self._requestedSize is None:
@@ -618,97 +614,6 @@ class EnvelopeGrating(GratingStim):
 
         GL.glUseProgram(0)
 
-        GL.glEndList()
-
-    # for the sake of older graphics cards------------------------------------
-    def _updateListNoShaders(self):
-        """EnvelopeGratings require shaders so this function should never be reached.
-        It currently combines the carrier and envelope as if they
-        add, so is plain wrong. Therefore there is an assertion in the
-        init function which will throw an error if the window object does
-        not have shaders. If someone without shaders wishes to do second-order
-        gratings they need to provide a new solution.
-        """
-        #The user shouldn't need this method since it gets called
-        #after every call to .set() Basically it updates the OpenGL
-        #representation of your stimulus if some parameter of the
-        #stimulus changes. Call it if you change a property manually
-        #rather than using the .set() command
-        #"""
-        self._needUpdate = False
-
-        # glColor can interfere with multitextures
-        GL.glColor4f(1.0, 1.0, 1.0, 1.0)
-        # mask
-        GL.glActiveTexture(GL.GL_TEXTURE2)
-        GL.glEnable(GL.GL_TEXTURE_2D)  # implicitly disables 1D
-        GL.glBindTexture(GL.GL_TEXTURE_2D, self._maskID)
-        # envelope (eg a grating but can be anything)
-        GL.glActiveTexture(GL.GL_TEXTURE1)
-        GL.glEnable(GL.GL_TEXTURE_2D)  # implicitly disables 1D
-        GL.glBindTexture(GL.GL_TEXTURE_2D, self._envelopeID)
-        # carrier (eg noise or textuture)
-        GL.glActiveTexture(GL.GL_TEXTURE0)
-        GL.glEnable(GL.GL_TEXTURE_2D)
-        GL.glBindTexture(GL.GL_TEXTURE_2D, self._carrierID)
-
-        # depth = self.depth
-
-        Lcar = (-self._cycles[0]/2) - self.phase[0] + 0.5
-        Rcar = (+self._cycles[0]/2) - self.phase[0] + 0.5
-        Tcar = (+self._cycles[1]/2) - self.phase[1] + 0.5
-        Bcar = (-self._cycles[1]/2) - self.phase[1] + 0.5
-
-        Lenv = (-self._envcycles[0]/2) - self.envphase[0] + 0.5
-        Renv = (+self._envcycles[0]/2) - self.envphase[0] + 0.5
-        Tenv = (+self._envcycles[1]/2) - self.envphase[1] + 0.5
-        Benv = (-self._envcycles[1]/2) - self.envphase[1] + 0.5
-
-        Lmask = Bmask = 0.0
-        Tmask = Rmask = 1.0  # mask
-
-        # access just once because it's slower than basic property
-        vertsPix = self.verticesPix
-        # draw a 4 sided polygon
-        GL.glBegin(GL.GL_QUADS)
-        # right bottom
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE0, Rcar, Bcar)
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE1, Renv, Benv)
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE2, Rmask, Bmask)
-        GL.glVertex2f(vertsPix[0, 0], vertsPix[0, 1])
-        # left bottom
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE0, Lcar, Bcar)
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE1, Lenv, Benv)
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE2, Lmask, Bmask)
-        GL.glVertex2f(vertsPix[1, 0], vertsPix[1, 1])
-        # left top
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE0, Lcar, Tcar)
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE1, Lenv, Tenv)
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE2, Lmask, Tmask)
-        GL.glVertex2f(vertsPix[2, 0], vertsPix[2, 1])
-        # right top
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE0, Rcar, Tcar)
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE1, Renv, Tenv)
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE2, Rmask, Tmask)
-        GL.glVertex2f(vertsPix[3, 0], vertsPix[3, 1])
-        GL.glEnd()
-
-        # disable mask
-        GL.glActiveTexture(GL.GL_TEXTURE2)
-        GL.glDisable(GL.GL_TEXTURE_2D)
-        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-
-        # disable mask
-        GL.glActiveTexture(GL.GL_TEXTURE1)
-        GL.glDisable(GL.GL_TEXTURE_2D)
-        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-
-        # main texture
-        GL.glActiveTexture(GL.GL_TEXTURE0)
-        GL.glDisable(GL.GL_TEXTURE_2D)
-        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-
-        # we're done!
         GL.glEndList()
 
     def clearTextures(self):
