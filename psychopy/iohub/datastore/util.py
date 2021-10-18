@@ -144,7 +144,6 @@ class ExperimentDataAccessUtility():
         try:
             self.hdfFile = openHubFile(hdfFilePath, hdfFileName, mode)
         except Exception as e:
-            print(e)
             raise ExperimentDataAccessException(e)
 
         self.getExperimentMetaData()
@@ -384,7 +383,6 @@ class ExperimentDataAccessUtility():
         """
         **Docstr TBC.**
         """
-
         if isinstance(value, (list, tuple)):
             resolvedValues = []
             for v in value:
@@ -446,6 +444,8 @@ class ExperimentDataAccessUtility():
             if len(result) != 1:
                 raise ExperimentDataAccessException("event_type_id passed to getEventAttribute should only return one row from CLASS_MAPPINGS.")
             tablePathString = result[0][3]
+            if isinstance(tablePathString, bytes):
+                tablePathString = tablePathString.decode('utf-8')
             deviceEventTable = getattr(self.hdfFile, get_node)(tablePathString)
 
             for ename in event_attribute_names:
