@@ -28,11 +28,11 @@ if __name__ == '__main__':
     data_file_path = data_file_path[0]
     dpath, dfile = os.path.split(data_file_path)
 
-    dataAccessUtil = ExperimentDataAccessUtility(dpath, dfile)
+    datafile = ExperimentDataAccessUtility(dpath, dfile)
 
-    samples_by_trial = dataAccessUtil.getEventAttributeValues(SAVE_EVENT_TYPE, SAVE_EVENT_FIELDS,
-                                                              startConditions={'time': ('>', '@TRIAL_START@')},
-                                                              endConditions={'time': ('<', '@TRIAL_END@')})
+    samples_by_trial = datafile.getEventAttributeValues(SAVE_EVENT_TYPE, SAVE_EVENT_FIELDS,
+                                                        startConditions={'time': ('>=', '@TRIAL_START@')},
+                                                        endConditions={'time': ('<=', '@TRIAL_END@')})
 
     scount = 0
 
@@ -58,4 +58,4 @@ if __name__ == '__main__':
                     sys.stdout.write('.')
 
     print("\n\nWrote %d samples."%scount)
-    dataAccessUtil.close()
+    datafile.close()
