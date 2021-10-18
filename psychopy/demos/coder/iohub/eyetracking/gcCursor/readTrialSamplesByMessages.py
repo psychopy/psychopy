@@ -15,14 +15,16 @@ from psychopy.iohub.datastore.util import displayDataFileSelectionDialog, Experi
 SAVE_EVENT_TYPE = 'MonocularEyeSampleEvent'
 SAVE_EVENT_FIELDS = ['time', 'gaze_x', 'gaze_y', 'pupil_measure1', 'status']
 
+
 def getTime():
     return core.getTime()
+
 
 if __name__ == '__main__':
     # Select the hdf5 file to process.
     data_file_path = displayDataFileSelectionDialog(psychopy.iohub.module_directory(getTime))
     if data_file_path is None:
-        print("File Selection Canceled, exiting...")
+        print("File Selection Cancelled, exiting...")
         sys.exit(0)
     data_file_path = data_file_path[0]
     dpath, dfile = os.path.split(data_file_path)
@@ -34,7 +36,7 @@ if __name__ == '__main__':
     trial_times = []
     trial_start_msgs = datafile.getEventTable('MessageEvent').where('text == b"TRIAL_START"')
     for mix, msg in enumerate(trial_start_msgs):
-        trial_times.append([mix+1, msg['time'], 0])
+        trial_times.append([mix + 1, msg['time'], 0])
 
     trial_end_msgs = datafile.getEventTable('MessageEvent').where('text == b"TRIAL_END"')
     for mix, msg in enumerate(trial_end_msgs):
@@ -61,7 +63,7 @@ if __name__ == '__main__':
             # Save a row for each eye sample within the trial period
             for sample in trial_samples:
                 sample_data = [str(sample[c]) for c in SAVE_EVENT_FIELDS]
-                output_file.write('\t'.join([str(tindex),]+sample_data))
+                output_file.write('\t'.join([str(tindex), ] + sample_data))
                 output_file.write('\n')
                 scount += 1
                 if scount % 100 == 0:
