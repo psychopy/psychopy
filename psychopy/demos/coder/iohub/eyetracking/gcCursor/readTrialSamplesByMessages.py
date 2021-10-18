@@ -29,6 +29,8 @@ if __name__ == '__main__':
 
     datafile = ExperimentDataAccessUtility(dpath, dfile)
 
+    # Create a table of trial_index, trial_start_time, trial_end_time for each trial by
+    # getting the time of 'TRIAL_START' and 'TRIAL_END' experiment messages.
     trial_times = []
     trial_start_msgs = datafile.getEventTable('MessageEvent').where('text == b"TRIAL_START"')
     for mix, msg in enumerate(trial_start_msgs):
@@ -40,20 +42,23 @@ if __name__ == '__main__':
 
     scount = 0
 
-    sample_selelct_proto = "(time >= %f) & (time <= %f)"
+    # str prototype used to select samples within a trial time period
+    sample_select_proto = "(time >= %f) & (time <= %f)"
 
     # Open a file to save the tab delimited output to.
     #
     output_file_name = "%s.txt" % (dfile[:-5])
     with open(output_file_name, 'w') as output_file:
         print('Writing Data to %s:\n' % (output_file_name))
+
+        # Save header row to file
         column_names = ['TRIAL_INDEX', ] + SAVE_EVENT_FIELDS
         output_file.write('\t'.join(column_names))
         output_file.write('\n')
 
-
         for tindex, tstart, tstop in trial_times:
-            trial_samples = datafile.getEventTable(SAVE_EVENT_TYPE).where(sample_selelct_proto % (tstart, tstop))
+            trial_samples = datafile.getEventTable(SAVE_EVENT_TYPE).where(sample_select_proto % (tstart, tstop))
+            # Save a row for each eye sample within the trial period
             for sample in trial_samples:
                 sample_data = [str(sample[c]) for c in SAVE_EVENT_FIELDS]
                 output_file.write('\t'.join([str(tindex),]+sample_data))
