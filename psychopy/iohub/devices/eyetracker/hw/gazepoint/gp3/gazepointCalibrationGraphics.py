@@ -9,6 +9,7 @@ import gevent
 from psychopy.iohub.util import convertCamelToSnake
 from psychopy.iohub.devices import DeviceEvent, Computer
 from psychopy.iohub.constants import EventConstants as EC
+from psychopy.iohub.devices.keyboard import KeyboardInputEvent
 from psychopy.iohub.errors import print2err
 
 currentTime = Computer.getTime
@@ -18,7 +19,7 @@ class GazepointPsychopyCalibrationGraphics:
     IOHUB_HEARTBEAT_INTERVAL = 0.050
     CALIBRATION_POINT_LIST = [(0.5, 0.5), (0.1, 0.1), (0.9, 0.1), (0.9, 0.9), (0.1, 0.9)]
 
-    _keyboard_key_index = EC.getClass(EC.KEYBOARD_RELEASE).CLASS_ATTRIBUTE_NAMES.index('key')
+    _keyboard_key_index = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('key')
 
     def __init__(self, eyetrackerInterface, calibration_args):
         self._eyetracker = eyetrackerInterface
