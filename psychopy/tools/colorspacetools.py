@@ -272,7 +272,7 @@ def cielab2rgb(lab,
     if conversionMatrix is None:
         # XYZ -> sRGB conversion matrix, assumes D65 white point
         # mdc - computed using makeXYZ2RGB with sRGB primaries
-        conversionMatrix = numpy.asmatrix([
+        conversionMatrix = numpy.asarray([
             [3.24096994, -1.53738318, -0.49861076],
             [-0.96924364, 1.8759675, 0.04155506],
             [0.05563008, -0.20397696, 1.05697151]
