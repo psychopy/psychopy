@@ -17,6 +17,15 @@ except ImportError:
 
 class U3(u3.U3):
     registerMappings = dict(FIO=6700, EIO=6701, CIO=6702)
+    FIO0 = 6000  # FIO bit 0
+    EIO0 = 6008  # EIO bit 0
+    def __init__(self, debug = False, autoOpen = True, **kargs):
+        u3.U3.__init__(self, debug, autoOpen, **kargs)
+        # Unless 1 bit is written to a register first, future calls
+        # to setData() will not update U3.
+        self.writeRegister(self.EIO0, 0)
+        self.writeRegister(self.FIO0, 0)
+
     def setData(self, byte, endian='big', address=6701):
         """Write 1 byte of data to the U3 register address (EIO default)
 
