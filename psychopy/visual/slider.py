@@ -183,7 +183,7 @@ class Slider(MinimalStim, ColorMixin):
         self._lineAspectRatio = 0.01
         self._updateMarkerPos = True
         self._dragging = False
-        self.mouse = event.Mouse()
+        self.mouse = event.Mouse(win=win)
         self._mouseStateClick = None  # so we can rule out long click probs
         self._mouseStateXY = None  # so we can rule out long click probs
 

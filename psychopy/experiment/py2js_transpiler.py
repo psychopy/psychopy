@@ -76,7 +76,7 @@ class pythonTransformer(ast.NodeTransformer):
 
     # operation from the math python module or builtin operations that are available
     # in util/Util.js:
-    utilOperations = ['sum', 'average', 'randint', 'range', 'sort', 'shuffle']
+    utilOperations = ['sum', 'average', 'randint', 'range', 'sort', 'shuffle', 'randchoice']
 
     def visit_BinOp(self, node):
 
@@ -204,11 +204,42 @@ class pythonTransformer(ast.NodeTransformer):
 
     def substitutionTransform(self, func, args):
 
+        # a = 'HELLO'
+        # a.lower() --> a.toLowerCase()
+        if func.attr == 'lower':
+            func.attr = 'toLowerCase'
+            return ast.Call(
+                func=func,
+                args=args,
+                keywords=[]
+            )
+
         # a = [1,2,3]
         # a.append(4) --> a.push(4)
         # value=Call(func=Attribute(value=Name(id='a', ctx=Load()), attr='append', ctx=Load()), args=[Num(n=4)], keywords=[])
         if func.attr == 'append':
             func.attr = 'push'
+            return ast.Call(
+                func=func,
+                args=args,
+                keywords=[]
+            )
+
+        # a = 'hello
+        # a.upper() --> a.toUpperCase()
+        # value=Call(func=Attribute(value=Name(id='a', ctx=Load()), attr='append', ctx=Load()), args=[Num(n=4)], keywords=[])
+        if func.attr == 'upper':
+            func.attr = 'toUpperCase'
+            return ast.Call(
+                func=func,
+                args=args,
+                keywords=[]
+            )
+
+        # a = [1,2,3]
+        # a.extend([4, 5, 6]) --> a.concat([4, 5, 6])
+        if func.attr == 'extend':
+            func.attr = 'concat'
             return ast.Call(
                 func=func,
                 args=args,
