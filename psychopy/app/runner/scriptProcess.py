@@ -90,8 +90,8 @@ class ScriptProcess:
             execFlags |= jobs.EXEC_MAKE_GROUP_LEADER
 
         # build the shell command to run the script
-        pyExec = '"' + pyExec + '"'  # use quotes to prevent issues with spaces
-        fullPath = '"' + fullPath + '"'
+        # pyExec = '"' + pyExec + '"'  # use quotes to prevent issues with spaces
+        # fullPath = '"' + fullPath + '"'
         command = [pyExec, '-u', fullPath]  # passed to the Job object
 
         # create a new job with the user script
@@ -101,7 +101,8 @@ class ScriptProcess:
             inputCallback=self._onInputCallback,  # both treated the same
             errorCallback=self._onErrorCallback,
             terminateCallback=self._onTerminateCallback,
-            pollMillis=120  # check input/error pipes every 120 ms
+            pollMillis=120,  # check input/error pipes every 120 ms
+            cwd=fullPath
         )
 
         BeginBusyCursor()  # visual feedback
