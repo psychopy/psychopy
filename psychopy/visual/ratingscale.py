@@ -1008,8 +1008,10 @@ class RatingScale(MinimalStim):
         self.accept.font = textFont
 
         self.acceptTextColor = markerColor
-        if markerColor in ['White']:
-            self.acceptTextColor = 'Black'
+        if isinstance(markerColor, str):
+            # warning raised if color not specified as a string
+            if markerColor in ['White']:
+                self.acceptTextColor = 'Black'
 
     def _getMarkerFromPos(self, mouseX):
         """Convert mouseX into units of tick marks, 0 .. high-low.
