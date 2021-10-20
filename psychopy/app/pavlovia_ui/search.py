@@ -172,7 +172,7 @@ class SearchPanel(wx.Panel):
         self.projectList.InsertColumn(0, _starred, width=36, format=wx.LIST_FORMAT_CENTER)  # Stars
         #self.projectList.InsertColumn(1, _translate('Status'), width=wx.LIST_AUTOSIZE, format=wx.LIST_FORMAT_LEFT)  # Status
         self.projectList.InsertColumn(2, _translate('Author'), width=wx.LIST_AUTOSIZE, format=wx.LIST_FORMAT_LEFT)  # Author
-        self.projectList.InsertColumn(3, _translate('Name'), width=wx.LIST_AUTOSIZE, format=wx.LIST_FORMAT_LEFT | wx.EXPAND)  # Name
+        self.projectList.InsertColumn(3, _translate('Name'), width=wx.LIST_AUTOSIZE, format=wx.LIST_FORMAT_LEFT)  # Name
         # Setup projects dict
         self.projects = None
 
