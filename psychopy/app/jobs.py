@@ -34,6 +34,7 @@ __all__ = [
 ]
 
 import wx
+import sys
 from subprocess import Popen, PIPE
 from threading import Thread, Event
 from queue import Queue, Empty
@@ -79,13 +80,12 @@ class PipeReader(Thread):
         Number of milliseconds to wait between pipe reads.
 
     """
-    def __init__(self, fdpipe, pollMillis=120):
+    def __init__(self, fdpipe):
         # setup the `Thread` stuff
         super(PipeReader, self).__init__()
         self.daemon = True
 
         self._fdpipe = fdpipe  # pipe file descriptor
-        self._pollSecs = float(pollMillis) / 1000.  # polling interval in seconds
         # queue objects for passing bytes to the main thread
         self._queue = Queue(maxsize=1)
         # Overflow buffer if the queue is full, prevents data loss if the
@@ -120,31 +120,31 @@ class PipeReader(Thread):
         """Payload routine for the thread. This reads bytes from the pipe and
         enqueues them.
         """
-        running = True
-        while running:
-            # read bytes in chunks
-            for pipeBytes in iter(self._fdpipe.readline, ''):
-                # put bytes into the queue, handle overflows if the queue is full
-                if not self._queue.full():
-                    # we have room, check if we have a backlog of bytes to send
-                    if self._overflowBuffer:
-                        pipeBytes = "".join(self._overflowBuffer) + pipeBytes
-                        self._overflowBuffer = []  # clear the overflow buffer
+        # read bytes in chunks until EOF
+        for pipeBytes in iter(self._fdpipe.readline, ''):
+            # put bytes into the queue, handle overflows if the queue is full
+            if not self._queue.full():
+                # we have room, check if we have a backlog of bytes to send
+                if self._overflowBuffer:
+                    pipeBytes = "".join(self._overflowBuffer) + pipeBytes
+                    self._overflowBuffer = []  # clear the overflow buffer
 
-                    # write bytes to the queue
-                    self._queue.put(pipeBytes)
-                else:
-                    # Put bytes into buffer if the queue hasn't been emptied
-                    # quick enough. These bytes will be passed along once the
-                    # queue has space.
-                    self._overflowBuffer.append(pipeBytes)
+                # write bytes to the queue
+                self._queue.put(pipeBytes)
+            else:
+                # Put bytes into buffer if the queue hasn't been emptied quick
+                # enough. These bytes will be passed along once the queue has
+                # space.
+                self._overflowBuffer.append(pipeBytes)
 
-            # put the thread to sleep for a bit
-            time.sleep(self._pollSecs)
+            # Put the thread to sleep for a bit, not sure if we need this since
+            # this loop will block execution of this thread if there is nothing
+            # to read.
+            time.sleep(0.1)
 
             # exit the loop
             if self._stopSignal.is_set():
-                running = False
+                break
 
         self._fdpipe.close()  # close the pipe if stopped
 
@@ -195,8 +195,7 @@ class Job:
 
     """
     def __init__(self, command='', flags=EXEC_ASYNC, terminateCallback=None,
-                 inputCallback=None, errorCallback=None, pollMillis=None,
-                 env=None):
+                 inputCallback=None, errorCallback=None, pollMillis=None):
 
         # command to be called, cannot be changed after spawning the process
         self._command = command
@@ -205,7 +204,6 @@ class Job:
         self._process = None
         self._pollMillis = None
         self._pollTimer = wx.Timer()
-        self._env = env
 
         # user defined callbacks
         self._inputCallback = None
@@ -293,16 +291,25 @@ class Job:
         if not self.isRunning:
             return False  # nop
 
-        # kill the process, check if itm was successful
         # isOk = wx.Process.Kill(self._pid, signal, flags) is wx.KILL_OK
         self._pollTimer.Stop()
-        self._process.terminate()
+        self._process.terminate()  # kill the process
 
-        self._stdoutReader.stop()  # stop the threads now
+        # Wait for the process to exit completely, return code will be incorrect
+        # if we don't.
+        processStillRunning = True
+        while processStillRunning:
+            wx.Yield()  # yield to the GUI main loop
+            processStillRunning = self._process.poll() is None
+            time.sleep(0.1)  # sleep a bit to avoid CPU over-utilization
+
+        # stop the pipe reader threads now
+        self._stdoutReader.stop()
         self._stderrReader.stop()
 
+        # get the return code of the subprocess
         retcode = self._process.returncode
-        self.onTerminate(self._process.returncode)
+        self.onTerminate(retcode)
 
         self._process = self._pid = None  # reset
         self._flags = 0

@@ -101,8 +101,7 @@ class ScriptProcess:
             inputCallback=self._onInputCallback,  # both treated the same
             errorCallback=self._onErrorCallback,
             terminateCallback=self._onTerminateCallback,
-            pollMillis=120,  # check input/error pipes every 120 ms
-            cwd=fullPath
+            pollMillis=120  # check input/error pipes every 120 ms
         )
 
         BeginBusyCursor()  # visual feedback
