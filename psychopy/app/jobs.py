@@ -279,22 +279,8 @@ class Job:
 
         return self._pid
 
-    def terminate(self, signal=SIGTERM, flags=KILL_NOCHILDREN):
-        """Stop/kill the subprocess associated with this object.
-
-        Parameters
-        ----------
-        signal : int
-            Signal to use (eg. `SIGTERM`, `SIGINT`, `SIGKILL`, etc.) These are
-            available as module level constants.
-        flags : int
-            Additional option flags, by default `KILL_NOCHILDREN` is specified
-            which prevents child processes of the active subprocess from being
-            signaled to terminate. Using `KILL_CHILDREN` will signal child
-            processes to terminate. Note that on UNIX, `KILL_CHILDREN` will only
-            have an effect if `EXEC_MAKE_GROUP_LEADER` was specified when the
-            process was spawned. These values are available as module level
-            constants.
+    def terminate(self):
+        """Terminate the subprocess associated with this object.
 
         Return
         ------
@@ -305,7 +291,7 @@ class Job:
 
         """
         if not self.isRunning:
-            return  # nop
+            return False  # nop
 
         # kill the process, check if itm was successful
         # isOk = wx.Process.Kill(self._pid, signal, flags) is wx.KILL_OK
@@ -315,14 +301,17 @@ class Job:
         self._stdoutReader.stop()  # stop the threads now
         self._stderrReader.stop()
 
+        retcode = self._process.returncode
         self.onTerminate(self._process.returncode)
 
         self._process = self._pid = None  # reset
         self._flags = 0
 
+        return retcode is None
+
     @property
     def command(self):
-        """Shell command to execute (`str`). Same as the `command` argument.
+        """Shell command to execute (`list`). Same as the `command` argument.
         Raises an error if this value is changed after `start()` was called.
         """
         return self._command
