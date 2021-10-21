@@ -2483,7 +2483,8 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         del self.components['SettingsComponent']
         self.routines = experiment.getAllStandaloneRoutines()
         # Get categories
-        self.categories = getAllCategories()
+        self.categories = getAllCategories(
+            self.app.prefs.builder['componentsFolders'])
         for name, rt in self.routines.items():
             for cat in rt.categories:
                 if cat not in self.categories:
