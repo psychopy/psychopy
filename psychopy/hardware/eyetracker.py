@@ -27,18 +27,18 @@ class EyetrackerControl:
             if old in (NOT_STARTED, STOPPED, FINISHED):
                 # If was previously at a full stop, clear events before starting again
                 if self.actionType.find('Start') >= 0 and EyetrackerControl.currentlyRecording is False:
-                    logging.warning("self.tracker.clearEvents()")
+                    logging.exp("eyetracker.clearEvents()")
                     self.tracker.clearEvents()
             # Start recording
             if self.actionType.find('Start') >= 0 and not EyetrackerControl.currentlyRecording:
                 self.tracker.setRecordingState(True)
-                logging.warning("self.tracker.setRecordingState(True)")
+                logging.exp("eyetracker.setRecordingState(True)")
                 EyetrackerControl.currentlyRecording = True
         # Stop recording if set to any stop constants
         if new in (NOT_STARTED, PAUSED, STOPPED, FINISHED):
             if self.actionType.find('Stop') >= 0 and EyetrackerControl.currentlyRecording:
                 self.tracker.setRecordingState(False)
-                logging.warning("self.tracker.setRecordingState(False)")
+                logging.exp("eyetracker.setRecordingState(False)")
                 EyetrackerControl.currentlyRecording = False
 
 class EyetrackerCalibration:
