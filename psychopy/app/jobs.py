@@ -473,17 +473,35 @@ class Job:
     #         return None
     #
     #     return self._process.OutputStream
-    #
-    # @property
-    # def isInputAvailable(self):
-    #     """Check if there are bytes available to be read from the input stream
-    #     (`bool`).
-    #     """
-    #     if self._process is None:
-    #         return False
-    #
-    #     return self._process.IsInputAvailable()
-    #
+
+    @property
+    def isInputAvailable(self):
+        """Check if there are bytes available to be read from the input stream
+        (`bool`).
+        """
+        if self._process is None:
+            return False
+
+        return self._stdoutReader.isAvailable
+
+    def getInputData(self):
+        """Get any new data which has shown up on the input pipe (stdout of the
+        subprocess).
+
+        Returns
+        -------
+        str
+            Data as a string. Returns and empty string if there is no new data.
+
+        """
+        if self._process is None:
+            return
+
+        if self._stdoutReader.isAvailable:
+            return self._stdoutReader.read()
+
+        return ''
+
     # @property
     # def inputStream(self):
     #     """Handle to the file-like object handling the standard input stream
@@ -494,17 +512,35 @@ class Job:
     #         return None
     #
     #     return self._process.InputStream
-    #
-    # @property
-    # def isErrorAvailable(self):
-    #     """Check if there are bytes available to be read from the error stream
-    #     (`bool`).
-    #     """
-    #     if self._process is None:
-    #         return False
-    #
-    #     return self._process.IsErrorAvailable()
-    #
+
+    @property
+    def isErrorAvailable(self):
+        """Check if there are bytes available to be read from the error stream
+        (`bool`).
+        """
+        if self._process is None:
+            return False
+
+        return self._stderrReader.isAvailable
+
+    def getErrorData(self):
+        """Get any new data which has shown up on the error pipe (stderr of the
+        subprocess).
+
+        Returns
+        -------
+        str
+            Data as a string. Returns and empty string if there is no new data.
+
+        """
+        if self._process is None:
+            return
+
+        if self._stderrReader.isAvailable:
+            return self._stderrReader.read()
+
+        return ''
+
     # @property
     # def errorStream(self):
     #     """Handle to the file-like object handling the standard error stream
@@ -527,13 +563,13 @@ class Job:
         retCode = self._process.poll()
 
         # get data from pipes
-        if self._stdoutReader.isAvailable:
-            stdinText = self._stdoutReader.read()
+        if self.isInputAvailable:
+            stdinText = self.getInputData()
             if self._inputCallback is not None:
                 wx.CallAfter(self._inputCallback, stdinText)
 
-        if self._stderrReader.isAvailable:
-            stderrText = self._stderrReader.read()
+        if self.isErrorAvailable:
+            stderrText = self.getErrorData()
             if self._errorCallback is not None:
                 wx.CallAfter(self._errorCallback, stderrText)
 

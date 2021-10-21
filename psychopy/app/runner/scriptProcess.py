@@ -70,7 +70,6 @@ class ScriptProcess:
         # if we have a runner frame, write to the output text box
         if hasattr(self.app, 'runner'):
             stdOut = self.app.runner.stdOut
-            stdOut.write(runMsg)
             stdOut.lenLastRun = len(self.app.runner.stdOut.getText())
         else:
             # if not, just write to the standard output pipe
