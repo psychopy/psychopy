@@ -4,10 +4,8 @@ Created on Fri Apr 28 11:20:49 2017
 
 @author: mrbki
 """
-from __future__ import absolute_import, print_function
 
 import json
-from os import path
 from pathlib import Path
 from psychopy.experiment.components import (BaseComponent, Param, getInitVals,
                                             _translate)

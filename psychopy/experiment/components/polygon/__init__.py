@@ -5,13 +5,8 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import, print_function
-
-from builtins import str
 from pathlib import Path
-from os import path
-import copy
-import numpy as np
+
 from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals, _translate
 from psychopy import logging
 from psychopy.localization import _localized as __localized
@@ -119,7 +114,7 @@ class PolygonComponent(BaseVisualComponent):
             "How should the image be interpolated if/when rescaled")
         self.params['interpolate'] = Param(
             interpolate, valType='str', inputType="choice", allowedVals=['linear', 'nearest'], categ='Texture',
-            updates='constant', allowedUpdates=[],
+            updates='constant', allowedUpdates=[], direct=False,
             hint=msg,
             label=_localized['interpolate'])
 
@@ -244,6 +239,10 @@ class PolygonComponent(BaseVisualComponent):
             code = ("{name} = new visual.Rect ({{\n"
                     "  win: psychoJS.window, name: '{name}', {unitsStr}\n"
                     "  width: {size}[0], height: {size}[1],\n")
+        elif vertices in ['circle', '100']:
+            code = ("{name} = new visual.Polygon({{\n"
+                    "  win: psychoJS.window, name: '{name}', {unitsStr}\n"
+                    "  edges: 100, size:{size},\n")
         elif vertices in ['star']:
             code = ("{name} = new visual.ShapeStim ({{\n"
                     "  win: psychoJS.window, name: '{name}', {unitsStr}\n"

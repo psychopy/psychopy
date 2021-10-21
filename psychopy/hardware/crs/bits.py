@@ -12,12 +12,6 @@
 #    Shader code for mono++ and color++ modes was based on code in Psychtoolbox
 #    (Kleiner) but does not actually use that code directly
 
-from __future__ import absolute_import, division, print_function
-
-# from future import standard_library
-# standard_library.install_aliases()
-from builtins import range
-from builtins import object
 import os
 import sys
 import time
@@ -231,9 +225,7 @@ class touch(dict):
         for k,v in value.items(): self[k]=v
 
 
-
-
-class BitsPlusPlus(object):
+class BitsPlusPlus:
     """The main class to control a Bits++ box.
     This is usually a class added within the window object and is
     typically accessed from there. e.g.::
@@ -2620,18 +2612,8 @@ class BitsSharp(BitsPlusPlus, serialdevice.SerialDevice):
                     event = 9
                 else:
                     event = ord(chr(msg[index*7]))
-            elif sys.version_info[0] == 2:
-                for i in range(index*7 +1 ,index*7 + 7):
-                    # i is ofset by index*7 so this is subtracted from 7 in line
-                    # below and then reinstated by adding index*7 back in.
-                    t = t + ord((msg[i])) * 256**(7-i + index*7 -1)
-                t=t / self.RTBoxTimeBase 
-                if msg[0] == 'Y': # Result of a clock request.
-                    event = 9
-                else:
-                    event = ord((msg[index*7]))
             else:
-                raise AssertionError("Bits# RTBox Only tested for PY2 and PY3")
+                raise AssertionError("Bits# RTBox Only tested for PY3")
             Direction = 'None'
             EV=99
             # Decode event bytes into a button number and a direction.
@@ -5214,8 +5196,9 @@ class DisplayPlusPlusTouch(DisplayPlusPlus):
         values = self.getTouchEvents(distance, t, type)
         value = values[N]
         return value
-        
-class Config(object):
+
+
+class Config:
 
     def __init__(self, bits):
         # we need to set bits reference using weakref to avoid circular refs

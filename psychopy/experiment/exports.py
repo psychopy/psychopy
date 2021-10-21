@@ -16,24 +16,15 @@ The code that writes out a *_lastrun.py experiment file is (in order):
     settings.SettingsComponent.writeEndCode()
 """
 
-from __future__ import absolute_import, print_function
-
 import io
 import keyword
 import re
 
-from builtins import object
-from builtins import str
-# from future import standard_library
-
 import psychopy
 from psychopy import constants
-from psychopy.constants import PY3
 from psychopy.localization import _translate
 from .components.settings import _numpyImports, _numpyRandomImports
 from .utils import nonalphanumeric_re, valid_var_re
-
-# standard_library.install_aliases()
 
 # predefine some regex's; deepcopy complains if do in NameSpace.__init__()
 
@@ -99,14 +90,11 @@ class IndentingBuffer(io.StringIO):
             self.indentLevel = newLevel
 
     def write(self, text):
-        if PY3:
-            io.StringIO.write(self, "{}".format(text))
-        else:
-            io.StringIO.write(self, u"{}".format(text))
+        io.StringIO.write(self, "{}".format(text))
 
 
 # noinspection PyUnresolvedReferences
-class NameSpace(object):
+class NameSpace:
     """class for managing variable names in builder-constructed experiments.
 
     The aim is to help detect and avoid name-space collisions from

@@ -2,10 +2,7 @@
 # Part of the PsychoPy library
 # Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
-from __future__ import division, absolute_import, print_function
 
-from builtins import zip
-from builtins import object
 import collections
 import copy
 import os
@@ -17,7 +14,7 @@ import numpy as np
 from .computer import Computer
 from ..errors import print2err, printExceptionDetailsToStdErr
 from ..util import convertCamelToSnake
-from future.utils import with_metaclass
+
 
 class ioDeviceError(Exception):
 
@@ -75,7 +72,7 @@ class ioObjectMetaClass(type):
         return parent
 
 
-class ioObject(with_metaclass(ioObjectMetaClass, object)):
+class ioObject(metaclass=ioObjectMetaClass):
     """The ioObject class is the base class for all ioHub Device and
     DeviceEvent classes.
 

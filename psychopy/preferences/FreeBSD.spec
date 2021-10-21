@@ -68,7 +68,7 @@
     # Show an error dialog when PsychoPy encounters an unhandled internal error.
     errorDialog = boolean(default='True')
     # Theme
-    theme = string(default='PsychopyLight')
+    theme = string(default='PsychopyDark')
 
 # Settings for the Coder window
 [coder]
@@ -121,6 +121,8 @@
     alwaysShowReadme = boolean(default=True)
     # Upper limit on how many components can be in favorites
     maxFavorites = integer(default=10)
+    # Ask for confirmation when closing a routine tab.
+    confirmRoutineClose = boolean(default=True)
 
 [hardware]
     # choice of audio library

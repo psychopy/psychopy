@@ -5,8 +5,6 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import, print_function
-
 from os import path
 from pathlib import Path
 from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals, _translate
@@ -127,7 +125,7 @@ class DotsComponent(BaseVisualComponent):
         self.params['refreshDots'] = Param(
             refreshDots, valType='str', inputType="choice", allowedVals=['none', 'repeat'], categ='Dots',
             allowedUpdates=[],
-            hint=msg,
+            hint=msg, direct=False,
             label=_localized['refreshDots'])
             
 

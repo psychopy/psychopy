@@ -1,11 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-from __future__ import absolute_import, print_function
-
 import json
 import sys
-from builtins import str
 import wx
 import wx.propgrid as pg
 import wx.py
@@ -875,6 +871,10 @@ class PreferencesDlg(wx.Dialog):
                 for ii in range(frame.shelf.GetPageCount()):
                     doc = frame.shelf.GetPage(ii)
                     doc.theme = prefs.app['theme']
+
+                # apply console font, not handled by theme system ATM
+                if hasattr(frame, 'shell'):
+                    frame.shell.setFonts()
 
     def OnApplyClicked(self, event):
         """Apply button clicked, this makes changes to the UI without leaving

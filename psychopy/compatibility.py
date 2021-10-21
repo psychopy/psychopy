@@ -1,20 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import absolute_import, print_function
-
-# from future import standard_library
-# standard_library.install_aliases()
-from builtins import str
-from builtins import object
-import codecs
-import pickle
 import psychopy.data
 
 ######### Begin Compatibility Class Definitions #########
 
 
-class _oldStyleBaseTrialHandler(object):
+class _oldStyleBaseTrialHandler():
     """Please excuse these ugly kluges, but in order to unpickle
         psydat pickled trial handlers that were created using the old-style
         (pre python 2.2) class, original classes have to be defined.
@@ -22,22 +14,22 @@ class _oldStyleBaseTrialHandler(object):
     pass
 
 
-class _oldStyleBaseStairHandler(object):
+class _oldStyleBaseStairHandler():
     """Stubbed compapatibility class for StairHandler"""
     pass
 
 
-class _oldStyleTrialHandler(object):
+class _oldStyleTrialHandler():
     """Stubbed compapatibility class for TrialHandler"""
     pass
 
 
-class _oldStyleStairHandler(object):
+class _oldStyleStairHandler():
     """Stubbed compapatibility class for StairHandler"""
     pass
 
 
-class _oldStyleMultiStairHandler(object):
+class _oldStyleMultiStairHandler():
     """Stubbed compapatibility class for MultiStairHandler"""
     pass
 ######### End Compatibility Class Definitions #########
@@ -67,73 +59,6 @@ def _convertToNewStyle(newClass, oldInstance):
             value = getattr(oldInstance, thisAttrib)
             setattr(newHandler, thisAttrib, value)
     return newHandler
-
-
-def fromFile(filename):
-    """In order to switch experiment handler to the new-style
-    (post-python 2.2, circa 2001) classes, this is a proof-of-concept loader
-    based on tools.filetools.fromFile that will load psydat files created
-    with either new or old style TrialHandlers or StairHandlers.
-
-    Since this is really just an example, it probably [hopefully] won't be
-    incorporated into upstream code, but it will work.
-
-    The method will try to load the file using a normal new-style Pickle
-    loader; however, if a type error occurs it will temporarily replace the
-    new-style class with a stubbed version of the old-style class and will
-    then instantiate a fresh new-style class with the original attributes.
-    """
-    with codecs.open(filename, 'rb') as f:
-        try:
-            # Try to load the psydat file into the new-style class.
-            contents = pickle.load(f)
-        except UnicodeDecodeError:
-            f.seek(0)  # reset to start of file to try again
-            contents = pickle.load(f, encoding='latin1')  # python 2 data files
-        except TypeError as e:
-            f.seek(0)  # reset to start of file to try again
-            # check er as string for one of our handlers
-            errStr = "{}".format(e)
-            name = ''
-            for thisHandler in ['TrialHandler','StairHandler','MultiStairHandler']:
-                if thisHandler in errStr:
-                    name = thisHandler
-            # if error is from something else try to deduce the class
-            if not name:
-                name = e.args[1].__name__
-            # then process accordingly
-            if name == 'TrialHandler':
-                currentHandler = psychopy.data.TrialHandler
-                # Temporarily replace new-style class
-                psychopy.data.TrialHandler = _oldStyleTrialHandler
-                oldContents = pickle.load(f)
-                psychopy.data.TrialHandler = currentHandler
-                contents = _convertToNewStyle(psychopy.data.TrialHandler,
-                                              oldContents)
-            elif name == 'StairHandler':
-                currentHandler = psychopy.data.StairHandler
-                # Temporarily replace new-style class
-                psychopy.data.StairHandler = _oldStyleStairHandler
-                oldContents = pickle.load(f)
-                psychopy.data.StairHandler = currentHandler
-                contents = _convertToNewStyle(
-                    psychopy.data.StairHandler, oldContents)
-            elif name == '':
-                newStair = psychopy.data.StairHandler
-                newMulti = psychopy.data.MultiStairHandler
-                # Temporarily replace new-style class
-                psychopy.data.StairHandler = _oldStyleStairHandler
-                # Temporarily replace new-style class
-                psychopy.data.MultiStairHandler = _oldStyleMultiStairHandler
-                oldContents = pickle.load(f)
-                psychopy.data.MultiStairHandler = newMulti
-                # Temporarily replace new-style class:
-                psychopy.data.StairHandler = newStair
-                contents = _convertToNewStyle(
-                    psychopy.data.MultiStairHandler, oldContents)
-            else:
-                raise TypeError("Didn't recognize %s" % name)
-    return contents
 
 
 def checkCompatibility(old, new, prefs=None, fix=True):

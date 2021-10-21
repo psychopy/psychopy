@@ -199,7 +199,7 @@ jobs:
 
     - name: Test with pytest
       run: |
-         xvfb-run -a --server-args="-screen 0 1024x768x24" pytest --ignore="psychopy/tests/test_app" -m "not needs_sound and not needs_wx and not needs_qt and not needs_pygame" --cov-config=.travis_coveragerc --cov=psychopy -v psychopy
+         xvfb-run -a --server-args="-screen 0 1024x768x24" pytest -m "not needs_sound and not needs_wx and not needs_qt and not needs_pygame" --cov-config=.travis_coveragerc --cov=psychopy -v psychopy
 
     - name: upload failed app data
       if: always()

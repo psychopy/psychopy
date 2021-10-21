@@ -137,7 +137,7 @@
 
   <xsd:complexType name="Routines">
     <xsd:sequence>
-      <xsd:group ref="RoutineGroup"/>
+      <xsd:group ref="RoutineGroup" minOccurs="0" maxOccurs="unbounded"/>
     </xsd:sequence>
   </xsd:complexType>
 

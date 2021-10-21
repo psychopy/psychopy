@@ -18,7 +18,7 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
                  innerFillColor='green', innerBorderColor='black', innerBorderWidth=2, innerRadius=0.0035,
                  fillColor='', borderColor="black", borderWidth=2, outerRadius=0.01,
                  colorSpace="rgb", units='from exp settings',
-                 targetLayout="NINE_POINTS", randomisePos=True,
+                 targetLayout="NINE_POINTS", randomisePos=True, textColor='white',
                  disabled=False
                  ):
         # Initialise base routine
@@ -30,6 +30,7 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
         self.order += [
             "targetLayout",
             "randomisePos",
+            "textColor"
         ]
 
         del self.params['stopVal']
@@ -45,7 +46,10 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
                                             valType='bool', inputType="bool", categ='Basic',
                                             hint=_translate("Should the order of target positions be randomised?"),
                                             label=_translate("Randomise Target Positions"))
-
+        self.params['textColor'] = Param(textColor,
+                                     valType='color', inputType="color", categ='Basic',
+                                     hint=_translate("Text foreground color"),
+                                     label=_translate("Text Color"))
         # Target Params
         self.order += [
             "targetStyle",
@@ -109,7 +113,7 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
 
         self.params['units'] = Param(units,
                                      valType='str', inputType="choice", categ='Target',
-                                     allowedVals=['from exp settings'],
+                                     allowedVals=['from exp settings'], direct=False,
                                      hint=_translate("Units of dimensions for this stimulus"),
                                      label=_translate("Spatial Units"))
 
@@ -254,7 +258,7 @@ class EyetrackerCalibrationRoutine(BaseStandaloneRoutine):
                 "eyetracker, %(name)sTarget,\n"
                 "units=%(units)s, colorSpace=%(colorSpace)s,\n"
                 "progressMode=%(progressMode)s, targetDur=%(targetDur)s, expandScale=%(expandScale)s,\n"
-                "targetLayout=%(targetLayout)s, randomisePos=%(randomisePos)s,\n"
+                "targetLayout=%(targetLayout)s, randomisePos=%(randomisePos)s, textColor=%(textColor)s,\n"
                 "movementAnimation=%(movementAnimation)s, targetDelay=%(targetDelay)s\n"
         )
         buff.writeIndentedLines(code % inits)

@@ -1,5 +1,3 @@
-from __future__ import print_function
-from builtins import object
 import pytest
 import shutil
 from tempfile import mkdtemp
@@ -14,6 +12,7 @@ To add a new stimulus test use _base so that it gets tested in all contexts
 """
 import psychopy
 from psychopy import experiment
+from psychopy.app import getAppInstance
 import psychopy.scripts.psyexpCompile as psyexpCompile
 
 import codecs
@@ -28,16 +27,17 @@ testsDataDir = psychoRoot/'tests/data'
 
 
 
-class Test_PsychoJS_from_Builder(object):
+class Test_PsychoJS_from_Builder():
     """Some tests just for the window - we don't really care about what's drawn inside it
     """
     @pytest.mark.usefixtures("get_app")
-    def setup_class(self, get_app):
+    def setup_class(self):
         if keepFiles:
             self.temp_dir = Path.home() / "Desktop" / "tmp"
         else:
             self.temp_dir = Path(mkdtemp(prefix='psychopy-test_psychojs'))
-        self.builderView = get_app().newBuilderFrame()  # self._app comes from requires_app
+
+        self.builderView = getAppInstance().newBuilderFrame()  # self._app comes from requires_app
 
     def teardown_class(self):
         if not keepFiles:

@@ -5,15 +5,8 @@
 # Copyright (C) 2009 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import, print_function
-
-# from future import standard_library
-# standard_library.install_aliases()
 from pathlib import Path
 
-from past.builtins import unicode
-from builtins import chr
-from builtins import range
 import wx
 import wx.stc
 import wx.richtext
@@ -49,6 +42,7 @@ from psychopy.app.coder.sourceTree import SourceTreePanel
 from psychopy.app.themes import ThemeMixin
 from psychopy.app.coder.folding import CodeEditorFoldingMixin
 from psychopy.app.coder.scriptOutput import ScriptOutputPanel
+from psychopy.app.coder.repl import PythonREPLCtrl
 # from ..plugin_manager import PluginManagerFrame
 
 try:
@@ -136,7 +130,7 @@ class PsychopyPyShell(wx.py.shell.Shell, ThemeMixin):
         """Called when the shell loses focus."""
         # Set the callback to use the dialog when errors occur outside the
         # shell.
-        if not self.app._called_from_test:
+        if not self.app.testMode:
             sys.excepthook = exceptionCallback
 
         if evt:
@@ -294,8 +288,8 @@ class UnitTestFrame(wx.Frame):
         def write(self, inStr):
             self.MoveEnd()  # always 'append' text rather than 'writing' it
             for thisLine in inStr.splitlines(True):
-                if not isinstance(thisLine, unicode):
-                    thisLine = unicode(thisLine)
+                if not isinstance(thisLine, str):
+                    thisLine = str(thisLine)
                 if thisLine.startswith('OK'):
                     self.BeginBold()
                     self.BeginTextColour(self.good)
@@ -1326,7 +1320,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
                     logging.warn(msg)
             if useDefaultShell:
                 # Default to Pyshell if iPython fails
-                self.shell = PsychopyPyShell(self)
+                self.shell = PythonREPLCtrl(self)
                 self._useShell = 'pyshell'
             # Add shell to output pane
             self.shell.SetName("PythonShell")

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 ################
 # see notes at bottom for requirements
-from __future__ import absolute_import, print_function
+
 import glob
 import os
 import sys
@@ -94,7 +94,7 @@ packages = ['wx', 'psychopy',
             'psychopy_ext', 'pyfilesec',
             'bidi', 'arabic_reshaper',  # for right-left language conversions
             # for Py3 compatibility
-            'future', 'past', 'lib2to3',
+            'lib2to3',
             'json_tricks',  # allows saving arrays/dates in json
             'git', 'gitlab',
             'astunparse', 'esprima',  # for translating/adapting py/JS
@@ -110,16 +110,8 @@ packages = ['wx', 'psychopy',
             'markdown_it',
             'speech_recognition', 'googleapiclient', 'pocketsphinx',
             'six',  # needed by configobj
+            'PyQt5',
             ]
-
-if sys.version_info.major >= 3:
-    packages.extend(['PyQt5'])
-else:
-    # not available or not working under Python3:
-    includes.extend(['UserString', 'ioLabs', 'FileDialog'])
-    packages.extend(['PyQt4', 'labjack', 'rusocsci'])
-    # is available but py2app can't seem to find it:
-    packages.extend(['OpenGL'])
 
 setup(
     app=['psychopy/app/psychopyApp.py'],

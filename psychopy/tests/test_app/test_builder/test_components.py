@@ -1,7 +1,5 @@
-from __future__ import print_function
-from past.builtins import unicode
+from pathlib import Path
 
-from builtins import object
 import os
 import io
 import pytest
@@ -33,10 +31,11 @@ ignoreList = ['<built-in method __', "<method-wrapper '__", '__slotnames__:']
 ignoreParallelOutAddresses = True
 
 @pytest.mark.components
-class TestComponents(object):
+class TestComponents():
     @classmethod
     def setup_class(cls):
-        cls.exp = experiment.Experiment() # create once, not every test
+        cls.expPy = experiment.Experiment() # create once, not every test
+        cls.expJS = experiment.Experiment()
         cls.here = os.path.abspath(os.path.dirname(__file__))
         cls.baselineProfile = os.path.join(cls.here, profile)
 
@@ -97,7 +96,7 @@ class TestComponents(object):
 
         mismatched = []
         for compName in sorted(self.allComp):
-            comp = self.allComp[compName](parentName='x', exp=self.exp)
+            comp = self.allComp[compName](parentName='x', exp=self.expPy)
             order = '%s.order:%s' % (compName, eval("comp.order"))
 
             if order+'\n' not in target:
@@ -113,9 +112,6 @@ class TestComponents(object):
 
             for parName in comp.params:
                 # default is what you get from param.__str__, which returns its value
-                if not constants.PY3:
-                    if isinstance(comp.params[parName].val, unicode):
-                        comp.params[parName].val = comp.params[parName].val.encode('utf8')
                 default = '%s.%s.default:%s' % (compName, parName, comp.params[parName])
                 lineFields = []
                 for field in fields:
@@ -164,6 +160,67 @@ class TestComponents(object):
 
         for mismatch in mismatched:
             warnings.warn("Non-identical Builder Param: {}".format(mismatch))
+
+    def test_icons(self):
+        """Check that all components have icons for each app theme"""
+        # Iterate through component classes
+        for comp in self.allComp.values():
+            # Pathify icon file path
+            icon = Path(comp.iconFile)
+            # Get paths for each theme
+            files = [
+                icon.parent / "light" / icon.name,
+                icon.parent / "dark" / icon.name,
+                icon.parent / "classic" / icon.name,
+            ]
+            # Check that each path is a file
+            for file in files:
+                assert file.is_file()
+
+    def test_params_used(self):
+        # Change eyetracking settings
+        self.expPy.settings.params['eyetracker'].val = "MouseGaze"
+        # Test both python and JS
+        for target, exp in {"PsychoPy": self.expPy, "PsychoJS": self.expJS}.items():
+            # todo: add JS exceptions
+            if target == "PsychoJS":
+                continue
+            # Iterate through each component
+            for compName, component in self.allComp.items():
+                # Skip if not valid for this (or any) target
+                if target not in component.targets:
+                    continue
+                if compName == "SettingsComponent":
+                    continue
+                if compName in ['RatingScaleComponent', 'PatchComponent']:
+                    continue
+                # Make a routine for this component
+                rt = exp.addRoutine(compName + "Routine")
+                comp = component(parentName=compName + "Routine", exp=exp)
+                rt.append(comp)
+                exp.flow.addRoutine(rt, 0)
+                # Compile script
+                script = exp.writeScript(target=target)
+                # Check that the string value of each param is present in the script
+                experiment.utils.scriptTarget = target
+                # Iterate through every param
+                for paramName, param in experiment.getInitVals(comp.params, target).items():
+                    # Conditions to skip...
+                    if not param.direct:
+                        # Marked as not direct
+                        continue
+                    if any(paramName in depend['param'] for depend in comp.depends):
+                        # Dependent on another param
+                        continue
+                    if param.val in [
+                        "from exp settings",  # units and color space, aliased
+                        'default',  # most of the time will be aliased
+                    ]:
+                        continue
+                    # Check that param is used
+                    assert str(param) in script, f"Could not find {target}.{type(comp).__name__}.{paramName}: <psychopy.experiment.params.Param: val={param.val}, valType={param.valType}> in script:\n\n{script}"
+                # Remove routine
+                exp.flow.removeComponent(rt)
 
 
 def test_param_str():

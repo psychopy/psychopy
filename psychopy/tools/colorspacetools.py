@@ -15,13 +15,11 @@ inputs to convert multiple color values at once.
 :class:`~psychopy.colors.Color` class for working with color coordinate values.
 
 """
-from __future__ import absolute_import, division, print_function
 
 __all__ = ['srgbTF', 'rec709TF', 'cielab2rgb', 'cielch2rgb', 'dkl2rgb',
            'dklCart2rgb', 'rgb2dklCart', 'hsv2rgb', 'rgb2lms', 'lms2rgb',
            'rgb2hsv', 'rescaleColor']
 
-from past.utils import old_div
 import numpy
 from psychopy import logging
 from psychopy.tools.coordinatetools import sph2cart
@@ -582,7 +580,7 @@ def hsv2rgb(hsv_Nx3):
     origShape = hsv_Nx3.shape
     hsv_Nx3 = hsv_Nx3.reshape([-1, 3])
 
-    H_ = old_div((hsv_Nx3[:, 0] % 360), 60.0)  # this is H' in the wikipedia version
+    H_ = (hsv_Nx3[:, 0] % 360) / 60.0  # this is H' in the wikipedia version
     # multiply H and V to give chroma (color intensity)
     C = hsv_Nx3[:, 1] * hsv_Nx3[:, 2]
     X = C * (1 - abs(H_ % 2 - 1))

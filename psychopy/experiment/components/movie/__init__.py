@@ -5,12 +5,9 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import, print_function
-
-from os import path
 from pathlib import Path
 import copy
-from psychopy import logging
+
 from psychopy.experiment.components import BaseVisualComponent, getInitVals, Param, _translate
 from psychopy.localization import _localized as __localized
 _localized = __localized.copy()
@@ -71,7 +68,7 @@ class MovieComponent(BaseVisualComponent):
         self.params['backend'] = Param(
             backend, valType='str', inputType="choice", categ='Playback',
             allowedVals=['moviepy', 'avbin', 'opencv', 'vlc'],
-            hint=msg,
+            hint=msg, direct=False,
             label=_localized['backend'])
 
         msg = _translate("Prevent the audio stream from being loaded/processed "

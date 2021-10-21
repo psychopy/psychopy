@@ -1,10 +1,5 @@
 """Test PsychoPy sound.py using pyo backend
 """
-from __future__ import division
-
-from builtins import object
-from past.utils import old_div
-
 import pytest
 import shutil, os
 from tempfile import mkdtemp
@@ -13,10 +8,8 @@ import numpy as np
 from psychopy import prefs, core
 from psychopy.tests import utils
 from psychopy import sound
-from psychopy.constants import PY3
 
-if PY3:
-    from importlib import reload
+from importlib import reload
 
 origSoundPref = prefs.hardware['audioLib']
 
@@ -24,7 +17,7 @@ origSoundPref = prefs.hardware['audioLib']
 
 
 @pytest.mark.needs_sound
-class TestSoundDevice(object):
+class TestSoundDevice():
     @classmethod
     def setup_class(self):
         self.contextName='sounddevice'
@@ -50,7 +43,7 @@ class TestSoundDevice(object):
             sound.Sound(-1)  # negative frequency makes no sense
 
         points = 100
-        snd = old_div(np.ones(points), 20)  # noqa
+        snd = np.ones(points) / 20  # noqa
 
         s = sound.Sound(self.testFile)  # noqa
 

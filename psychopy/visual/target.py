@@ -16,17 +16,22 @@ class TargetStim(ShapeStim):
                  pos=(0, 0),  units='height',
                  colorSpace="rgb",
                  autoLog=None, autoDraw=False):
+        # Make sure name is a string
+        if name is None:
+            name = "target"
         # Init super (creates outer circle)
+        if units is None:
+            units = win.units
         ShapeStim.__init__(self, win, name=name,
                            vertices="circle",
                            size=(radius*2, radius*2), pos=pos,
-                           lineWidth=lineWidth, units=(units or ''),
+                           lineWidth=lineWidth, units=units,
                            fillColor=fillColor, lineColor=borderColor, colorSpace=colorSpace,
                            autoLog=autoLog, autoDraw=autoDraw)
 
         self.inner = ShapeStim(win, name=name+"Inner",
                                vertices="circle",
-                               size=(innerRadius*2, innerRadius*2), pos=pos, units=(units or ''),
+                               size=(innerRadius*2, innerRadius*2), pos=pos, units=units,
                                lineWidth=(innerLineWidth or lineWidth),
                                fillColor=innerFillColor, lineColor=innerBorderColor, colorSpace=colorSpace,
                                autoLog=autoLog, autoDraw=autoDraw)
@@ -67,6 +72,20 @@ class TargetStim(ShapeStim):
         if hasattr(self, "inner"):
             self.inner.pos = value
 
+    @property
+    def size(self):
+        if hasattr(self, "_size"):
+            return self._size
+
+    @size.setter
+    def size(self, value):
+        if hasattr(self, "inner"):
+            self.inner.size = (
+                value[0] / self.size[0] * self.inner.size[0],
+                value[1] / self.size[1] * self.inner.size[1]
+            )
+        self._size = value
+
     @scale.setter
     def scale(self, newScale):
         oldScale = self.scale
@@ -75,11 +94,11 @@ class TargetStim(ShapeStim):
 
     @property
     def radius(self):
-        return sum(self.size)/2
+        return sum(self._size)/2
 
     @radius.setter
     def radius(self, value):
-        self.size = (value*2, value*2)
+        self._size = (value*2, value*2)
 
     @property
     def innerRadius(self):
@@ -92,15 +111,41 @@ class TargetStim(ShapeStim):
     @property
     def foreColor(self):
         # Return whichever inner color is not None
-        return self.inner.fillColor or self.inner.borderColor
+        if self.inner.fillColor is not None:
+            return self.inner.fillColor
+        if self.inner.borderColor is not None:
+            return self.inner.borderColor
 
     @foreColor.setter
     def foreColor(self, value):
+        ColorMixin.foreColor.fset(self, value)
         # Set whichever inner color is not None
         if self.inner.fillColor is not None:
             self.inner.fillColor = value
         if self.inner.borderColor is not None:
             self.inner.borderColor = value
+
+    @property
+    def win(self):
+        if hasattr(self, "_win"):
+            return self._win
+
+    @win.setter
+    def win(self, value):
+        self._win = value
+        if hasattr(self, "inner"):
+            self.inner.win = value
+
+    @property
+    def units(self):
+        if hasattr(self, "_units"):
+            return self._units
+
+    @units.setter
+    def units(self, value):
+        self._units = value
+        if hasattr(self, "inner"):
+            self.inner.units = value
 
     def draw(self, win=None, keepMatrix=False):
         ShapeStim.draw(self, win, keepMatrix)

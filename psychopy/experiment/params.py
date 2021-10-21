@@ -15,13 +15,7 @@ The code that writes out a *_lastrun.py experiment file is (in order):
         which will call the .writeBody() methods from each component
     settings.SettingsComponent.writeEndCode()
 """
-
-from __future__ import absolute_import, print_function
-# from future import standard_library
 from xml.etree.ElementTree import Element
-
-from past.builtins import basestring
-from builtins import object
 
 import re
 from pathlib import Path
@@ -30,7 +24,6 @@ from psychopy import logging
 from . import utils
 from . import py2js
 
-# standard_library.install_aliases()
 from ..colors import Color
 from numpy import ndarray
 from ..alerts import alert
@@ -63,7 +56,7 @@ legacyParams = [
     'lineColorSpace', 'borderColorSpace', 'fillColorSpace', 'foreColorSpace',  # 2021.1, we standardised colorSpace to be object-wide rather than param-specific
 ]
 
-class Param(object):
+class Param():
     r"""Defines parameters for Experiment Components
     A string representation of the parameter will depend on the valType:
 
@@ -121,7 +114,7 @@ class Param(object):
 
     def __init__(self, val, valType, inputType=None, allowedVals=None, allowedTypes=None,
                  hint="", label="", updates=None, allowedUpdates=None,
-                 allowedLabels=None,
+                 allowedLabels=None, direct=True,
                  categ="Basic"):
         """
         @param val: the value for this parameter
@@ -146,6 +139,9 @@ class Param(object):
         @param categ: category for this parameter
             will populate tabs in Component Dlg
         @type allowedUpdates: string
+        @param direct: purely used in the test suite, marks whether this
+            param's value is expected to appear in the script
+        @type direct: bool
         """
         super(Param, self).__init__()
         self.label = label
@@ -161,6 +157,7 @@ class Param(object):
         self.categ = categ
         self.readOnly = False
         self.codeWanted = False
+        self.direct = direct
         if inputType:
             self.inputType = inputType
         elif valType in inputDefaults:
@@ -188,7 +185,7 @@ class Param(object):
             # return repr if str wanted; this neatly handles "it's" and 'He
             # says "hello"'
             val = self.val
-            if isinstance(self.val, basestring):
+            if isinstance(self.val, str):
                 valid, val = self.dollarSyntax()
                 if self.codeWanted and valid:
                     # If code is wanted, return code (translated to JS if needed)
@@ -214,7 +211,7 @@ class Param(object):
                     return repr(val)                              
             return repr(self.val)
         elif self.valType in ['code', 'extendedCode']:
-            isStr = isinstance(self.val, basestring)
+            isStr = isinstance(self.val, str)
             if isStr and self.val.startswith("$"):
                 # a $ in a code parameter is unnecessary so remove it
                 val = "%s" % self.val[1:]

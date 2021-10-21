@@ -7,7 +7,8 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import, division, print_function
+
+
 
 import ctypes
 import os
@@ -15,12 +16,6 @@ import sys
 import weakref
 import atexit
 from itertools import product
-
-# from builtins import map
-from builtins import object
-from builtins import range
-from builtins import str
-from past.builtins import basestring
 from collections import deque
 
 from psychopy.contrib.lazy_import import lazy_import
@@ -138,7 +133,7 @@ class OpenWinList(list):
 openWindows = core.openWindows = OpenWinList()  # core needs this for wait()
 
 
-class Window(object):
+class Window():
     """Used to set up a context in which to draw objects,
     using either `pyglet <http://www.pyglet.org>`_,
     `pygame <http://www.pygame.org>`_, or `glfw <https://www.glfw.org>`_.
@@ -346,7 +341,7 @@ class Window(object):
         # convert to a Monitor object
         if not monitor:
             self.monitor = monitors.Monitor('__blank__', autoLog=autoLog)
-        elif isinstance(monitor, basestring):
+        elif isinstance(monitor, str):
             self.monitor = monitors.Monitor(monitor, autoLog=autoLog)
         elif hasattr(monitor, 'keys'):
             # convert into a monitor object

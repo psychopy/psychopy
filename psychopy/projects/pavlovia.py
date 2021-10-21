@@ -7,15 +7,15 @@
 
 """Helper functions in PsychoPy for interacting with Pavlovia.org
 """
-from future.builtins import object
 import glob
 import pathlib
-import os, time, socket
+import os
+import time
 import subprocess
 import traceback
 from pkg_resources import parse_version
 
-from psychopy import logging, prefs, constants, exceptions
+from psychopy import logging, prefs, exceptions
 from psychopy.tools.filetools import DictStorage, KnownProjects
 from psychopy import app
 from psychopy.localization import _translate
@@ -36,15 +36,8 @@ from uuid import uuid4
 
 from .gitignore import gitIgnoreText
 
-if constants.PY3:
-    from urllib import parse
-
-    urlencode = parse.quote
-else:
-    import urllib
-
-    urlencode = urllib.quote
-
+from urllib import parse
+urlencode = parse.quote
 
 # TODO: test what happens if we have a network initially but lose it
 # TODO: test what happens if we have a network but pavlovia times out
@@ -131,7 +124,7 @@ def logout():
             frame.setUser(None)
 
 
-class User(object):
+class User:
     """Class to combine what we know about the user locally and on gitlab
 
     (from previous logins and from the current session)"""

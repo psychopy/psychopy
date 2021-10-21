@@ -201,7 +201,7 @@ if __name__ == "__main__":
         # start trial instuctions have been displayed.
         #
         io_hub.clearEvents('all')
-        kb.waitForPresses(keys=[' ', ])
+        kb.waitForPresses(keys=['space', ])
 
         # Space Key has been pressed, start the trial.
         # Set the current session and trial id values to be saved
@@ -278,7 +278,7 @@ if __name__ == "__main__":
             # Check any new keyboard press events by a space key.
             # If one is found, set the trial end variable and break.
             # from the loop
-            if kb.getPresses(keys=[' ', ]):
+            if kb.getPresses(keys=['space', ]):
                 run_trial = False
                 break
 

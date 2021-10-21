@@ -9,8 +9,6 @@ Instructions: From the dialogue box select multiple staircases (Cmd-click
 or shift-click) to plot the results
 """
 
-from __future__ import absolute_import, division, print_function
-
 import matplotlib
 matplotlib.use('TKAgg')
 

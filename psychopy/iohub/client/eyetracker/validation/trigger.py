@@ -10,7 +10,7 @@ from psychopy.iohub.client import ioHubConnection
 getTime = core.getTime
 
 
-class Trigger(object):
+class Trigger:
     io = None
 
     def __init__(self, trigger_function=lambda a, b, c: True, user_kwargs={}, repeat_count=0):

@@ -35,7 +35,7 @@ from psychopy.iohub.client.eyetracker.validation import PositionGrid, Trigger, K
 getTime = Computer.getTime
 
 
-class TargetStim(object):
+class TargetStim:
     def __init__(self, win, radius=None, fillcolor=None, edgecolor=None, edgewidth=None,
                  dotcolor=None, dotradius=None, units=None, colorspace=None, opacity=1.0, contrast=1.0):
         """
@@ -159,8 +159,7 @@ def create17PointGrid():
     return [(0.0, 0.0), ] + sixteen_pos
 
 
-
-class ValidationProcedure(object):
+class ValidationProcedure:
     def __init__(self,
                  win=None,  # psychopy window
                  target=None,  # target stim
@@ -174,6 +173,7 @@ class ValidationProcedure(object):
                  unit_type=None,  # None == use window unit type (may need to enforce this for Validation)
                  progress_on_key=" ",  # str or None
                  gaze_cursor=None,  # None, color, or a stim object with setPos()
+                 text_color=None,
                  show_results_screen=True,  # bool
                  save_results_screen=False,  # bool
                  # args not used by Builder at this time
@@ -276,6 +276,18 @@ class ValidationProcedure(object):
         self.save_results_screen = save_results_screen
         self._validation_results = None
 
+        self.text_color = text_color
+        self.text_color_space = color_space
+
+        if text_color is None or text_color == 'auto':
+            # If no calibration text color provided, base it on the window background color
+            from psychopy.iohub.util import complement
+            sbcolor = win.color
+            from psychopy.colors import Color
+            tcolor_obj = Color(sbcolor, win.colorSpace)
+            self.text_color = complement(*tcolor_obj.rgb255)
+            self.text_color_space = 'rgb255'
+
         storeeventsfor = [self.io.devices.keyboard,
                           self.io.devices.tracker,
                           self.io.devices.experiment]
@@ -330,15 +342,15 @@ class ValidationProcedure(object):
 
         if self.show_results_screen:
             self.showResultsScreen()
-            kb_presses = keyboard.waitForPresses(keys=[' ', self.terminate_key, self.targetsequence.gaze_cursor_key])
-            while ' ' not in kb_presses:
+            kb_presses = keyboard.waitForPresses(keys=['space', self.terminate_key, self.targetsequence.gaze_cursor_key])
+            while 'space' not in kb_presses:
                 if self.targetsequence.gaze_cursor_key in kb_presses:
                     self.targetsequence.display_gaze = not self.targetsequence.display_gaze
                     self.showResultsScreen()
                 if self.terminate_key in kb_presses:
                     print("Escape key pressed. Exiting validation")
                     break
-                kb_presses = keyboard.waitForPresses(keys=[' ',
+                kb_presses = keyboard.waitForPresses(keys=['space',
                                                            self.terminate_key,
                                                            self.targetsequence.gaze_cursor_key])
 
@@ -359,8 +371,8 @@ class ValidationProcedure(object):
             self.intro_text_stim.setText(text)
             self.intro_text_stim.setPos(textpos)
         else:
-            self.intro_text_stim = visual.TextStim(self.win, text=text, pos=textpos, height=30, color=(0, 0, 0),
-                                                   colorSpace='rgb255', opacity=1.0, contrast=1.0, units='pix',
+            self.intro_text_stim = visual.TextStim(self.win, text=text, pos=textpos, height=30, color=self.text_color,
+                                                   colorSpace=self.text_color_space, opacity=1.0, contrast=1.0, units='pix',
                                                    ori=0.0, antialias=True, bold=False, italic=False,
                                                    anchorHoriz='center', anchorVert='center',
                                                    wrapWidth=self.win.size[0] * .8)
@@ -640,12 +652,12 @@ class ValidationProcedure(object):
                     ' Mean %.4f (%s units)' % (results['min_error'], results['max_error'],
                                                results['mean_error'], results['reporting_unit_type'])
         title_stim = visual.TextStim(self.win, text=title_txt, height=24, pos=(0.0, (self.win.size[1] / 2.0) * .95),
-                                     color=(0, 0, 0), colorSpace='rgb255', units='pix', antialias=True,
+                                     color=self.text_color, colorSpace=self.text_color_space, units='pix', antialias=True,
                                      anchorVert='center', anchorHoriz='center', wrapWidth=self.win.size[0] * .8)
         title_stim.draw()
 
         exit_text = visual.TextStim(self.win, text='Press SPACE to continue.', opacity=1.0, units='pix', height=None,
-                                    pos=(0.0, -(self.win.size[1] / 2.0) * .95), color=(0, 0, 0), colorSpace='rgb255',
+                                    pos=(0.0, -(self.win.size[1] / 2.0) * .95), color=self.text_color, colorSpace=self.text_color_space,
                                     antialias=True, bold=True, anchorVert='center', anchorHoriz='center',
                                     wrapWidth=self.win.size[0] * .8)
         exit_text.draw()
@@ -706,7 +718,7 @@ class ValidationProcedure(object):
             ci += 1
 
 
-class ValidationTargetRenderer(object):
+class ValidationTargetRenderer:
     TARGET_STATIONARY = 1
     TARGET_MOVING = 2
     TARGET_EXPANDING = 4

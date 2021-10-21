@@ -5,17 +5,8 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import, print_function
-
-from builtins import str
-from builtins import range
-from builtins import super  # provides Py3-style super() using python-future
-from past.builtins import basestring
-
-from os import path
 from pathlib import Path
 
-from psychopy.constants import PY3
 from psychopy.experiment.components import BaseComponent, Param, _translate
 from psychopy.experiment import CodeGenerationException, valid_var_re
 from psychopy.localization import _localized as __localized
@@ -94,7 +85,7 @@ class KeyboardComponent(BaseComponent):
         self.params['store'] = Param(
             store, valType='str', inputType="choice", allowedTypes=[], categ='Data',
             allowedVals=['last key', 'first key', 'all keys', 'nothing'],
-            updates='constant',
+            updates='constant', direct=False,
             hint=msg,
             label=_localized['store'])
 
@@ -130,7 +121,7 @@ class KeyboardComponent(BaseComponent):
         self.params['correctAns'] = Param(
             correctAns, valType='str', inputType="single", allowedTypes=[], categ='Data',
             updates='constant',
-            hint=msg,
+            hint=msg, direct=False,
             label=_localized['correctAns'])
 
         msg = _translate(
@@ -186,7 +177,7 @@ class KeyboardComponent(BaseComponent):
         if allowedKeysIsVar:
             # if it looks like a variable, check that the variable is suitable
             # to eval at run-time
-            stringType = '{}'.format(['basestring', 'str'][PY3])
+            stringType = 'str'
             code = ("# AllowedKeys looks like a variable named `{0}`\n"
                     "if not type({0}) in [list, tuple, np.ndarray]:\n"
                     "    if not isinstance({0}, {1}):\n"
@@ -241,17 +232,7 @@ class KeyboardComponent(BaseComponent):
         if allowedKeys in [None, "none", "None", "", "[]", "()"]:
             keyListStr = ""
         elif not allowedKeysIsVar:
-            try:
-                keyList = eval(allowedKeys)
-            except Exception:
-                raise CodeGenerationException(
-                    self.params["name"], "Allowed keys list is invalid.")
-            # this means the user typed "left","right" not ["left","right"]
-            if type(keyList) == tuple:
-                keyList = list(keyList)
-            elif isinstance(keyList, basestring):  # a single string/key
-                keyList = [keyList]
-            keyListStr = "%s" % repr(keyList)
+            keyListStr = self.params['allowedKeys']
 
         # check for keypresses
         code = ("theseKeys = {name}.getKeys(keyList={keyStr}, waitRelease=False)\n"
@@ -324,7 +305,7 @@ class KeyboardComponent(BaseComponent):
             #        "    logging.error('AllowedKeys variable `%s` is not defined.')\n"
             #        "    core.quit()\n"
             #        "if not type(%s) in [list, tuple, np.ndarray]:\n"
-            #        "    if not isinstance(%s, basestring):\n"
+            #        "    if not isinstance(%s, str):\n"
             #        "        logging.error('AllowedKeys variable `%s` is "
             #        "not string- or list-like.')\n"
             #        "        core.quit()\n" %
@@ -387,7 +368,7 @@ class KeyboardComponent(BaseComponent):
             # this means the user typed "left","right" not ["left","right"]
             if type(keyList) == tuple:
                 keyList = list(keyList)
-            elif isinstance(keyList, basestring):  # a single string/key
+            elif isinstance(keyList, str):  # a single string/key
                 keyList = [keyList]
             keyListStr = "%s" % repr(keyList)
 
@@ -531,24 +512,38 @@ class KeyboardComponent(BaseComponent):
 
             buff.writeIndentedLines(code % self.params)
 
-        if currLoop.type in ['StairHandler', 'MultiStairHandler']:
-            raise CodeGenerationException(
-                "StairHandlers not currently supported by PsychoJS")
+        code = (
+            "// update the trial handler\n"
+            "if (currentLoop instanceof MultiStairHandler) {\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+
+        buff.setIndentLevel(1, relative=True)
+        code = (
+                "currentLoop.addResponse(%(name)s.corr);\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+
+        buff.setIndentLevel(-1, relative=True)
+        code = (
+            "}\n"
+        )
+        buff.writeIndentedLines(code % self.params)
+
+        # always add keys
+        buff.writeIndented("psychoJS.experiment.addData('%(name)s.keys', %(name)s.keys);\n" % self.params)
+
+        if self.params['storeCorrect'].val == True:
+            buff.writeIndented("psychoJS.experiment.addData('%(name)s.corr', %(name)s.corr);\n" % self.params)
+
+        # only add an RT if we had a response
+        code = ("if (typeof {name}.keys !== 'undefined') {{  // we had a response\n"
+                "    psychoJS.experiment.addData('{name}.rt', {name}.rt);\n")
+        if forceEnd:
+            code += ("    routineTimer.reset();\n"
+                     "    }}\n\n")
         else:
-            # always add keys
-            buff.writeIndented("psychoJS.experiment.addData('%(name)s.keys', %(name)s.keys);\n" % self.params)
-
-            if self.params['storeCorrect'].val == True:
-                buff.writeIndented("psychoJS.experiment.addData('%(name)s.corr', %(name)s.corr);\n" % self.params)
-
-            # only add an RT if we had a response
-            code = ("if (typeof {name}.keys !== 'undefined') {{  // we had a response\n"
-                    "    psychoJS.experiment.addData('{name}.rt', {name}.rt);\n")
-            if forceEnd:
-                code += ("    routineTimer.reset();\n"
-                         "    }}\n\n")
-            else:
-                code += "    }}\n\n"
-            buff.writeIndentedLines(code.format(loopName=currLoop.params['name'], name=name))
+            code += "    }}\n\n"
+        buff.writeIndentedLines(code.format(loopName=currLoop.params['name'], name=name))
         # Stop keyboard
         buff.writeIndentedLines("%(name)s.stop();\n" % self.params)

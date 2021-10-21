@@ -4,12 +4,10 @@
 """Writes the current version, build platform etc.
 """
 
-from __future__ import absolute_import, print_function
 from setuptools.config import read_configuration
 import os
 import platform
 import subprocess
-from psychopy.constants import PY3
 from pathlib import Path
 
 root = Path(__file__).parent.parent
@@ -126,10 +124,9 @@ def _getGitShaString(dist=None, sha=None):
         proc = subprocess.Popen('git rev-parse --short HEAD',
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE,
+                                encoding='utf-8',
                                 cwd='.', shell=True)
         repo_commit, _ = proc.communicate()
-        if PY3:
-            repo_commit = repo_commit.decode('utf-8')
         del proc  # to get rid of the background process
         if repo_commit:
             shaStr = "{}".format(repo_commit.strip())
