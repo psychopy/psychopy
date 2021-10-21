@@ -108,6 +108,10 @@ class EyetrackerRecordComponent(BaseComponent):
         buff.setIndentLevel(-1, relative=True)
 
         # test for stop (only if there was some setting for duration or stop)
+        org_val = self.params['stopVal'].val
+        if self.params['actionType'].val.find('Start Only') >= 0:
+            self.params['stopVal'].val = 0
+
         if self.params['stopVal'].val not in ['', None, -1, 'None']:
             # writes an if statement to determine whether to draw etc
             self.writeStopTestCode(buff)
@@ -117,6 +121,8 @@ class EyetrackerRecordComponent(BaseComponent):
             buff.writeIndentedLines(code % self.params)
             # to get out of the if statement
             buff.setIndentLevel(-2, relative=True)
+
+        self.params['stopVal'].val = org_val
 
     def writeRoutineEndCode(self, buff):
         inits = self.params
