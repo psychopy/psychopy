@@ -68,11 +68,17 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
         self.Layout()
 
         # set font
-        self.setFonts()
+
         self.txtTerm.SetMargins(8)
 
         # capture keypresses
-        self.txtTerm.Bind(wx.EVT_CHAR, self.onChar)
+        if wx.Platform == '__WXMAC__':
+            # need to use this on Windows
+            keyDownBindingId = wx.EVT_KEY_DOWN
+        else:
+            keyDownBindingId = wx.EVT_CHAR
+
+        self.txtTerm.Bind(keyDownBindingId, self.onChar)
         self.txtTerm.Bind(wx.EVT_TEXT_MAXLEN, self.onMaxLength)
 
         # history
@@ -90,7 +96,11 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
         self._stdin_buffer = []
         self._lastTextPos = 0
 
-        # self.start()  # start an interpreter
+        # Disable smart substitutions for quotes and slashes, uses illegal
+        # characters that cannot be evaluated by the interpreter correctly.
+        if wx.Platform == '__WXMAC__':
+            self.txtTerm.OSXDisableAllSmartSubstitutions()
+            self.txtTerm.MacCheckSpelling(False)
 
         self.txtTerm.WriteText("Hit [Return] to start a Python session.")
         self._lastTextPos = self.txtTerm.GetLastPosition()
@@ -327,6 +337,8 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
             self.txtTerm.GetLastPosition())
 
     def onChar(self, event):
+        """Called when the shell gets a keypress event.
+        """
         self.resetCaret()
 
         if not self.isStarted:
