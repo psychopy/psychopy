@@ -21,7 +21,7 @@ _localized.update({'address': _translate('Port address'),
 class ParallelOutComponent(BaseComponent):
     """A class for sending signals from the parallel port"""
 
-    categories = ['I/O']
+    categories = ['I/O', 'EEG']
     targets = ['PsychoPy']
     iconFile = Path(__file__).parent / 'parallelOut.png'
     tooltip = _translate('Parallel out: send signals from the parallel port')
