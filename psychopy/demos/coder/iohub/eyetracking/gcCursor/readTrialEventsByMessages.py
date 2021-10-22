@@ -1,18 +1,27 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Example of reading BinocularEyeSampleEvent's from a hdf5 file, saving to a 
-tab delimited text file. Samples are split into trials by reading the time 
-of 'TRIAL_START' and 'TRIAL_END' experiment Message events.
+Example of reading events from a hdf5 file, saving to a tab delimited text file.
+
+Events are split into trials by reading the time of 'TRIAL_START' and
+'TRIAL_END' experiment Message events.
+
+SAVE_EVENT_TYPE and SAVE_EVENT_FIELDS specify the event type, and which event fields, are saved.
+
+This example can process hdf5 files saved by running the gcCursor demo.
 """
 import sys
 import os
-from psychopy.iohub.datastore.util import displayDataFileSelectionDialog
 from psychopy.iohub.datastore.util import ExperimentDataAccessUtility
+from psychopy.iohub.datastore.util import displayDataFileSelectionDialog
 
-SAVE_EVENT_TYPE = 'BinocularEyeSampleEvent'
-SAVE_EVENT_FIELDS = ['time', 'left_gaze_x', 'left_gaze_y', 'left_pupil_measure1',
-                     'right_gaze_x', 'right_gaze_y', 'right_pupil_measure1', 'status']
+# Specify which event type and event fields to save
+SAVE_EVENT_TYPE = 'MonocularEyeSampleEvent'
+SAVE_EVENT_FIELDS = ['time', 'gaze_x', 'gaze_y', 'pupil_measure1', 'status']
+
+#SAVE_EVENT_TYPE = 'BinocularEyeSampleEvent'
+#SAVE_EVENT_FIELDS = ['time', 'left_gaze_x', 'left_gaze_y', 'left_pupil_measure1',
+#                     'right_gaze_x', 'right_gaze_y', 'right_pupil_measure1', 'status']
 
 if __name__ == '__main__':
     # Select the hdf5 file to process.
@@ -36,10 +45,10 @@ if __name__ == '__main__':
     for mix, msg in enumerate(trial_end_msgs):
         trial_times[mix][2] = msg['time']
 
-    scount = 0
+    ecount = 0
 
-    # str prototype used to select samples within a trial time period
-    sample_select_proto = "(time >= %f) & (time <= %f)"
+    # str prototype used to select events within a trial time period
+    event_select_proto = "(time >= %f) & (time <= %f)"
 
     # Open a file to save the tab delimited output to.
     #
@@ -53,15 +62,15 @@ if __name__ == '__main__':
         output_file.write('\n')
 
         for tindex, tstart, tstop in trial_times:
-            trial_samples = datafile.getEventTable(SAVE_EVENT_TYPE).where(sample_select_proto % (tstart, tstop))
-            # Save a row for each eye sample within the trial period
-            for sample in trial_samples:
-                sample_data = [str(sample[c]) for c in SAVE_EVENT_FIELDS]
-                output_file.write('\t'.join([str(tindex), ] + sample_data))
+            trial_events = datafile.getEventTable(SAVE_EVENT_TYPE).where(event_select_proto % (tstart, tstop))
+            # Save a row for each event within the trial period
+            for event in trial_events:
+                event_data = [str(event[c]) for c in SAVE_EVENT_FIELDS]
+                output_file.write('\t'.join([str(tindex), ] + event_data))
                 output_file.write('\n')
-                scount += 1
-                if scount % 100 == 0:
+                ecount += 1
+                if ecount % 100 == 0:
                     sys.stdout.write('.')
 
-    print("\n\nWrote %d samples." % scount)
+    print("\n\nWrote %d events." % ecount)
     datafile.close()
