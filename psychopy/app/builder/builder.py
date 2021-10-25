@@ -77,6 +77,8 @@ _localized = {
     'edit': _translate('edit'),
     'remove': _translate('remove'),
     'copy': _translate('copy'),
+    'paste above': _translate('paste above'),
+    'paste below': _translate('paste below'),
     'move to top': _translate('move to top'),
     'move up': _translate('move up'),
     'move down': _translate('move down'),
@@ -1654,9 +1656,9 @@ class RoutineCanvas(wx.ScrolledWindow):
         self.lastpos = (0, 0)
         # use the ID of the drawn icon to retrieve component name:
         self.componentFromID = {}
-        self.contextMenuItems = ['copy', 'edit', 'remove',
-                                 'move to top', 'move up',
-                                 'move down', 'move to bottom']
+        self.contextMenuItems = [
+            'copy', 'paste above', 'paste below', 'edit', 'remove',
+            'move to top', 'move up', 'move down', 'move to bottom']
         # labels are only for display, and allow localization
         self.contextMenuLabels = {k: _localized[k]
                                   for k in self.contextMenuItems}
@@ -1719,6 +1721,9 @@ class RoutineCanvas(wx.ScrolledWindow):
             if len(icons):
                 self._menuComponent = self.componentFromID[icons[0]]
                 self.showContextMenu(self._menuComponent, xy=menuPos)
+            else:  # no context
+                self.showContextMenu(None, xy=menuPos)
+
         elif event.Dragging() or event.LeftUp():
             if self.dragid != -1:
                 pass
@@ -1739,13 +1744,44 @@ class RoutineCanvas(wx.ScrolledWindow):
         self.Scroll(xy[0], xy[1] - event.WheelRotation*multiplier)
 
     def showContextMenu(self, component, xy):
+        """Show a context menu in the routine view.
+        """
         menu = wx.Menu()
-        for item in self.contextMenuItems:
-            id = self.contextIDFromItem[item]
-            menu.Append(id, self.contextMenuLabels[item])
-            menu.Bind(wx.EVT_MENU, self.onContextSelect, id=id)
-        self.frame.PopupMenu(menu, xy)
-        menu.Destroy()  # destroy to avoid mem leak
+        if component is not None:
+            for item in self.contextMenuItems:
+                id = self.contextIDFromItem[item]
+                # don't show paste option unless something is copied
+                if item.startswith('paste'):
+                    if not self.app.copiedCompon:  # skip paste options
+                        continue
+                    itemLabel = " ".join(
+                        (self.contextMenuLabels[item],
+                         "({})".format(
+                             self.app.copiedCompon.params['name'].val)))
+                elif any([item.startswith(op) for op in ('copy', 'remove', 'edit')]):
+                    itemLabel = " ".join(
+                        (self.contextMenuLabels[item],
+                         "({})".format(component.params['name'].val)))
+                else:
+                    itemLabel = self.contextMenuLabels[item]
+
+                menu.Append(id, itemLabel)
+                menu.Bind(wx.EVT_MENU, self.onContextSelect, id=id)
+
+            self.frame.PopupMenu(menu, xy)
+            menu.Destroy()  # destroy to avoid mem leak
+        else:
+            # anywhere but a hotspot is clicked, show this menu
+            if self.app.copiedCompon:
+                itemLabel = " ".join(
+                    (_translate('paste'),
+                     "({})".format(
+                         self.app.copiedCompon.params['name'].val)))
+                menu.Append(wx.ID_ANY, itemLabel)
+                menu.Bind(wx.EVT_MENU, self.pasteCompon, id=wx.ID_ANY)
+
+                self.frame.PopupMenu(menu, xy)
+                menu.Destroy()
 
     def onContextSelect(self, event):
         """Perform a given action on the component chosen
@@ -1757,10 +1793,14 @@ class RoutineCanvas(wx.ScrolledWindow):
             self.editComponentProperties(component=component)
         elif op == 'copy':
             self.copyCompon(component=component)
+        elif op == 'paste above':
+            self.pasteCompon(index=r.index(component))
+        elif op == 'paste below':
+            self.pasteCompon(index=r.index(component) + 1)
         elif op == 'remove':
             r.removeComponent(component)
             self.frame.addToUndoStack(
-                "REMOVE `%s` from Routine" % (component.params['name'].val))
+                "REMOVE `%s` from Routine" % component.params['name'].val)
             self.frame.exp.namespace.remove(component.params['name'].val)
         elif op.startswith('move'):
             lastLoc = r.index(component)
@@ -2064,7 +2104,7 @@ class RoutineCanvas(wx.ScrolledWindow):
         """
         self.app.copiedCompon = copy.deepcopy(component)
 
-    def pasteCompon(self, event=None, component=None):
+    def pasteCompon(self, event=None, component=None, index=-1):
         if not self.app.copiedCompon:
             return -1  # not possible to paste if nothing copied
         exp = self.frame.exp
@@ -2084,7 +2124,7 @@ class RoutineCanvas(wx.ScrolledWindow):
             newCompon.params['name'].val = newName
             if 'name' in dir(newCompon):
                 newCompon.name = newName
-            self.routine.addComponent(newCompon)
+            self.routine.insertComponent(index, newCompon)
             self.frame.exp.namespace.user.append(newName)
             # could do redrawRoutines but would be slower?
             self.redrawRoutine()
