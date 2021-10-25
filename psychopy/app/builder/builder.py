@@ -2020,8 +2020,28 @@ class RoutineCanvas(wx.ScrolledWindow):
 
         iconYOffset = (6, 6, 0)[self.drawSize]
         icons = self.app.iconCache
-
+        # get default icon and bar color
         thisIcon = icons.getComponentBitmap(component, self.iconSize)
+        thisColor = ThemeMixin.appColors['rt_comp']
+        thisStyle = wx.BRUSHSTYLE_SOLID
+
+        # check True/False on ForceEndRoutine
+        if 'forceEndRoutine' in component.params:
+            if component.params['forceEndRoutine'].val:
+                thisColor = ThemeMixin.appColors['rt_comp_force']
+        # check True/False on ForceEndRoutineOnPress
+        if 'forceEndRoutineOnPress' in component.params:
+            if component.params['forceEndRoutineOnPress'].val:
+                thisColor = ThemeMixin.appColors['rt_comp_force']
+        # check True aliases on EndRoutineOn
+        if 'endRoutineOn' in component.params:
+            if component.params['endRoutineOn'].val in ['look at', 'look away']:
+                thisColor = ThemeMixin.appColors['rt_comp_force']
+        # grey bar if comp is disabled
+        if component.params['disabled'].val:
+            thisIcon = thisIcon.ConvertToDisabled()
+            thisColor = ThemeMixin.appColors['rt_comp_disabled']
+
         dc.DrawBitmap(thisIcon, self.iconXpos, yPos + iconYOffset, True)
         fullRect = wx.Rect(self.iconXpos, yPos,
                            thisIcon.GetWidth(), thisIcon.GetHeight())
@@ -2056,8 +2076,10 @@ class RoutineCanvas(wx.ScrolledWindow):
         # draw entries on timeline (if they have some time definition)
         if startTime is not None and duration is not None:
             # then we can draw a sensible time bar!
-            dc.SetPen(wx.Pen(ThemeMixin.appColors['rt_comp'],
-                             style=wx.TRANSPARENT))
+            thisPen = wx.Pen(thisColor, style=wx.TRANSPARENT)
+            thisBrush = wx.Brush(thisColor, style=thisStyle)
+            dc.SetPen(thisPen)
+            dc.SetBrush(thisBrush)
 
             if component.params['disabled'].val:
                 # Grey bar if comp is disabled
