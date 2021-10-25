@@ -3,7 +3,13 @@
 Color spaces
 ====================================
 
-The color of stimuli can be specified when creating a stimulus and when using setColor() in a variety of ways. There are three basic color spaces that PsychoPy can use, RGB, DKL and LMS but colors can also be specified by a name (e.g. 'DarkSalmon') or by a hexadecimal string (e.g. '#00FF00').
+
+.. image:: ../images/colorPicker.png
+
+*You can explore colors in PsychoPy Builder through accessing the color picker from any parameter that takes a color value.*
+
+
+The color of stimuli can be specified when creating a stimulus and when using setColor() in a variety of ways. From Builder view you can also use the color picker to pick the color you want and explore what value that color would correspond to in a variety of spaces. There are three basic color spaces that PsychoPy can use, RGB, DKL and LMS but colors can also be specified by a name (e.g. 'DarkSalmon') or by a hexadecimal string (e.g. '#00FF00').
 
 examples::
 
@@ -37,11 +43,11 @@ This is the simplest color space, in which colors are represented by a triplet o
 
 Examples:
 
-    * [1,1,1] is white
-    * [0,0,0] is grey
-    * [-1,-1,-1] is black
-    * [1.0,-1,-1] is red
-    * [1.0,0.6,0.6] is pink
+* :code:`[1,1,1]` is white
+* :code:`[0,0,0]` is grey
+* :code:`[-1,-1,-1]` is black
+* :code:`[1.0,-1,-1]` is red
+* :code:`[1.0,0.6,0.6]` is pink
 
 The reason that these colors are expressed ranging between 1 and -1 (rather than 0:1 or 0:255) is that many experiments, particularly in visual science where PsychoPy has its roots, express colors as deviations from a grey screen. Under that scheme a value of -1 is the maximum decrement from grey and +1 is the maximum increment above grey.
 
@@ -58,12 +64,12 @@ Another way to specify colors is in terms of their Hue, Saturation and 'Value' (
 
 Examples:
 
-    * [0,1,1] is red
-    * [0,0.5,1] is pink
-    * [90,1,1] is cyan
-    * [anything, 0, 1] is white
-    * [anything, 0, 0.5] is grey
-    * [anything, anything,0] is black
+* :code:`[0,1,1]` is red
+* :code:`[0,0.5,1]` is pink
+* :code:`[90,1,1]` is cyan
+* :code:`[anything, 0, 1]` is white
+* :code:`[anything, 0, 0.5]` is grey
+* :code:`[anything, anything,0]` is black
 
 Note that colors specified in this space (like in RGB space) are not going to be the same another monitor; they are device-specific. They simply specify the intensity of the 3 primaries of your monitor, but these differ between monitors. As with the RGB space gamma correction is automatically applied if available.
 
@@ -83,9 +89,9 @@ Note that not all colors that can be specified in DKL color space can be reprodu
 
 Examples:
 
-    * [90,0,1] is white (maximum elevation aligns the color with the luminance axis)
-    * [0,0,1] is an isoluminant stimulus, with azimuth 0 (S-axis)
-    * [0,45,1] is an isoluminant stimulus,with an oblique azimuth
+* :code:`[90,0,1]` is white (maximum elevation aligns the color with the luminance axis)
+* :code:`[0,0,1]` is an isoluminant stimulus, with azimuth 0 (S-axis)
+* :code:`[0,45,1]` is an isoluminant stimulus,with an oblique azimuth
 
 .. [#dkl1984] Derrington, A.M., Krauskopf, J., & Lennie, P. (1984). Chromatic Mechanisms in Lateral Geniculate Nucleus of Macaque. Journal of Physiology, 357, 241-265.
 
