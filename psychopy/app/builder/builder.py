@@ -2074,51 +2074,31 @@ class RoutineCanvas(wx.ScrolledWindow):
         # deduce start and stop times if possible
         startTime, duration, nonSlipSafe = component.getStartAndDuration()
         # draw entries on timeline (if they have some time definition)
-        if startTime is not None and duration is not None:
+        if duration is not None:
             # then we can draw a sensible time bar!
             thisPen = wx.Pen(thisColor, style=wx.TRANSPARENT)
             thisBrush = wx.Brush(thisColor, style=thisStyle)
             dc.SetPen(thisPen)
             dc.SetBrush(thisBrush)
+            # If there's a fixed end time and no start time, start 20px before 0
+            if component.params['stopType'] == 'time (s)' and startTime is None:
+                startTime = -20 * self.getSecsPerPixel()
+                # thisBrush.SetStyle(wx.BRUSHSTYLE_BDIAGONAL_HATCH)
+                # dc.SetBrush(thisBrush)
 
-            if component.params['disabled'].val:
-                # Grey bar if comp is disabled
-                dc.SetBrush(wx.Brush(ThemeMixin.appColors['rt_comp_disabled']))
-                dc.DrawBitmap(thisIcon.ConvertToDisabled(), self.iconXpos, yPos + iconYOffset, True)
-            elif any(key in component.params for key in ['forceEndRoutine', 'forceEndRoutineOnPress', 'endRoutineOn']):
-                # if component has force end params, check them and set bar as orange or blue accordingly
-                col = ThemeMixin.appColors['rt_comp']
-                # check True/False on ForceEndRoutine
-                if 'forceEndRoutine' in component.params:
-                    if component.params['forceEndRoutine'].val:
-                        col = ThemeMixin.appColors['rt_comp_force']
-                # check True/False on ForceEndRoutineOnPress
-                if 'forceEndRoutineOnPress' in component.params:
-                    if component.params['forceEndRoutineOnPress'].val:
-                        col = ThemeMixin.appColors['rt_comp_force']
-                # check True aliases on EndRoutineOn
-                if 'endRoutineOn' in component.params:
-                    if component.params['endRoutineOn'].val in ['look at', 'look away']:
-                        col = ThemeMixin.appColors['rt_comp_force']
-                dc.SetBrush(wx.Brush(col))
-                dc.DrawBitmap(thisIcon, self.iconXpos, yPos + iconYOffset, True)
-            else:
-                # Blue bar otherwise
-                dc.SetBrush(wx.Brush(ThemeMixin.appColors['rt_comp']))
-                dc.DrawBitmap(thisIcon, self.iconXpos, yPos + iconYOffset, True)
-
-            xScale = self.getSecsPerPixel()
-            yOffset = (3.5, 3.5, 0.5)[self.drawSize]
-            h = self.componentStep // (4, 3.25, 2.5)[self.drawSize]
-            xSt = self.timeXposStart + startTime // xScale
-            w = duration // xScale + 1
-            if w > 10000:
-                w = 10000  # limit width to 10000 pixels!
-            if w < 2:
-                w = 2  # make sure at least one pixel shows
-            dc.DrawRectangle(xSt, y + yOffset, w, h)
-            # update bounds to include time bar
-            fullRect.Union(wx.Rect(xSt, y + yOffset, w, h))
+            if startTime is not None:
+                xScale = self.getSecsPerPixel()
+                yOffset = (3.5, 3.5, 0.5)[self.drawSize]
+                h = self.componentStep // (4, 3.25, 2.5)[self.drawSize]
+                xSt = self.timeXposStart + startTime // xScale
+                w = duration // xScale + 1
+                if w > 10000:
+                    w = 10000  # limit width to 10000 pixels!
+                if w < 2:
+                    w = 2  # make sure at least one pixel shows
+                dc.DrawRectangle(xSt, y + yOffset, w, h)
+                # update bounds to include time bar
+                fullRect.Union(wx.Rect(xSt, y + yOffset, w, h))
         dc.SetIdBounds(id, fullRect)
 
     def copyCompon(self, event=None, component=None):
