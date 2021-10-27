@@ -7,7 +7,7 @@ from pathlib import Path
 from psychopy import visual, monitors, layout
 from psychopy.tests import utils
 from psychopy.visual import helpers
-from numpy import sqrt, array
+from numpy import sqrt
 import matplotlib
 
 mon = monitors.Monitor('testMonitor')
