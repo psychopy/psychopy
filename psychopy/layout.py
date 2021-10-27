@@ -297,8 +297,11 @@ class Vector(object):
         # Return cached value if present
         if 'degFlatPos' in self._cache:
             return self._cache['degFlatPos']
+
         # Otherwise, do conversion and cache
-        self._cache['degFlatPos'] = self.degFlat
+        vertices = tools.deg2pix(self.degFlat, self.monitor, correctFlat=False)
+        self._cache['degFlatPos'] = self.pix + vertices
+
         # Return new cached value
         return self._cache['degFlatPos']
 
