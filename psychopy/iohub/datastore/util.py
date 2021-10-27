@@ -13,21 +13,24 @@ from ..errors import print2err
 
 from pkg_resources import parse_version
 import tables
+
 if parse_version(tables.__version__) < parse_version('3'):
     from tables import openFile as open_file
+
     walk_groups = "walkGroups"
     list_nodes = "listNodes"
     get_node = "getNode"
     read_where = "readWhere"
 else:
     from tables import open_file
+
     walk_groups = "walk_groups"
     list_nodes = "list_nodes"
     get_node = "get_node"
     read_where = "read_where"
 
-
 _hubFiles = []
+
 
 def openHubFile(filepath, filename, mode):
     """
@@ -44,10 +47,9 @@ def displayDataFileSelectionDialog(starting_dir=None):
     processing."""
     from psychopy.gui.qtgui import fileOpenDlg
 
-    filePath = fileOpenDlg(tryFilePath=starting_dir, 
-                           prompt = "Select a ioHub HDF5 File",
+    filePath = fileOpenDlg(tryFilePath=starting_dir,
+                           prompt="Select a ioHub HDF5 File",
                            allowed='HDF5 Files (*.hdf5)')
-    
 
     if filePath is None:
         return None
@@ -55,11 +57,7 @@ def displayDataFileSelectionDialog(starting_dir=None):
     return filePath
 
 
-def displayEventTableSelectionDialog(
-        title,
-        list_label,
-        list_values,
-        default=u'Select'):
+def displayEventTableSelectionDialog(title, list_label, list_values, default=u'Select'):
     from psychopy import gui
     if default not in list_values:
         list_values.insert(0, default)
@@ -74,17 +72,19 @@ def displayEventTableSelectionDialog(
         return None
 
     while list(dlg_info.values())[0] == default and infoDlg.OK:
-            dlg_info=dict(selection_dict)
-            infoDlg = gui.DlgFromDict(dictionary=dlg_info, title=title)
+        dlg_info = dict(selection_dict)
+        infoDlg = gui.DlgFromDict(dictionary=dlg_info, title=title)
 
     if not infoDlg.OK:
         return None
 
     return list(dlg_info.values())[0]
+
+
 ########### Experiment / Experiment Session Based Data Access #################
 
 
-class ExperimentDataAccessUtility():
+class ExperimentDataAccessUtility:
     """The ExperimentDataAccessUtility  provides a simple, high level, way to
     access data saved in an ioHub DataStore HDF5 file. Data access is done by
     providing information at an experiment and session level, as well as
@@ -108,13 +108,7 @@ class ExperimentDataAccessUtility():
 
     """
 
-    def __init__(
-            self,
-            hdfFilePath,
-            hdfFileName,
-            experimentCode=None,
-            sessionCodes=[],
-            mode='r'):
+    def __init__(self, hdfFilePath, hdfFileName, experimentCode=None, sessionCodes=[], mode='r'):
         """An instance of the ExperimentDataAccessUtility class is created by
         providing the location and name of the file to read, as well as any
         session code filtering you want applied to the retieved datasets.
@@ -148,7 +142,7 @@ class ExperimentDataAccessUtility():
 
         self.getExperimentMetaData()
 
-    def printTableStructure(self,tableName):
+    def printTableStructure(self, tableName):
         """Print to stdout the current structure and content statistics of the
         specified DataStore table. To print out the complete structure of the
         DataStore file, including the name of all available tables, see the
@@ -193,7 +187,7 @@ class ExperimentDataAccessUtility():
                 expcols.append('sessions')
             ExperimentMetaDataInstance = namedtuple(
                 'ExperimentMetaDataInstance', expcols)
-            experiments=[]
+            experiments = []
             for e in self.hdfFile.root.data_collection.experiment_meta_data:
                 self._experimentID = e['experiment_id']
                 a_exp = list(e[:])
@@ -216,10 +210,9 @@ class ExperimentDataAccessUtility():
             sesscols = self.hdfFile.root.data_collection.session_meta_data.colnames
             SessionMetaDataInstance = namedtuple('SessionMetaDataInstance', sesscols)
             for r in self.hdfFile.root.data_collection.session_meta_data:
-                if (len(sessionCodes) == 0 or r['code'] in sessionCodes) and r[
-                        'experiment_id'] == self._experimentID:
-                    rcpy=list(r[:])
-                    rcpy[-1]=json.loads(rcpy[-1])
+                if (len(sessionCodes) == 0 or r['code'] in sessionCodes) and r['experiment_id'] == self._experimentID:
+                    rcpy = list(r[:])
+                    rcpy[-1] = json.loads(rcpy[-1])
                     sessions.append(SessionMetaDataInstance(*rcpy))
             return sessions
 
@@ -249,32 +242,29 @@ class ExperimentDataAccessUtility():
                     event_value = ''
                     tokens = event_type.split('_')
                     for t in tokens:
-                        event_value += t[0].upper()+t[1:].lower()
-                    event_value = event_type+'Event'
+                        event_value += t[0].upper() + t[1:].lower()
+                    event_value = event_type + 'Event'
             elif isinstance(event_type, numbers.Integral):
                 event_column = 'class_id'
                 event_value = event_type
             else:
-                print2err(
-                    'getEventTable error: event_type arguement must be a string or and int')
+                print2err('getEventTable error: event_type arguement must be a string or and int')
                 return None
 
             result = []
-            where_cls = '(%s == b"%s") & (class_type_id == 1)'%(event_column, event_value)
+            where_cls = '(%s == b"%s") & (class_type_id == 1)' % (event_column, event_value)
             for row in klassTables.where(where_cls):
                 result.append(row.fetch_all_fields())
 
             if len(result) == 0:
-                    return None
-                    
-            if len(result)!= 1:
-                print2err(
-                    'event_type_id passed to getEventAttribute can only return one row from CLASS_MAPPINGS: ',
-                    len(result))
+                return None
+
+            if len(result) != 1:
+                print2err('event_type_id passed to getEventAttribute can only return one row from CLASS_MAPPINGS.')
                 return None
             tablePathString = result[0][3]
             if isinstance(tablePathString, bytes):
-                tablePathString = tablePathString.decode('utf-8')         
+                tablePathString = tablePathString.decode('utf-8')
             return getattr(self.hdfFile, get_node)(tablePathString)
         return None
 
@@ -282,8 +272,8 @@ class ExperimentDataAccessUtility():
         """Returns details on how ioHub Event Types are mapped to tables within
         the given DataStore file."""
         if self.hdfFile:
-            eventMappings=dict()
-            class_2_table=self.hdfFile.root.class_table_mapping
+            eventMappings = dict()
+            class_2_table = self.hdfFile.root.class_table_mapping
             EventTableMapping = namedtuple(
                 'EventTableMapping',
                 self.hdfFile.root.class_table_mapping.colnames)
@@ -292,7 +282,7 @@ class ExperimentDataAccessUtility():
             return eventMappings
         return None
 
-    def getEventsByType(self, condition_str = None):
+    def getEventsByType(self, condition_str=None):
         """Returns a dict of all event tables within the DataStore file that
         have at least one event instance saved.
 
@@ -370,13 +360,13 @@ class ExperimentDataAccessUtility():
                         ConditionSetInstance(
                             *
                             r[:]) for r in ecvTable if all(
-                            [
-                                eval(
-                                    '{0} {1} {2}'.format(
-                                        r[conditionVarName],
-                                        conditionVarComparitor[0],
-                                        conditionVarComparitor[1])) for conditionVarName,
-                                conditionVarComparitor in filter.items()])])
+                        [
+                            eval(
+                                '{0} {1} {2}'.format(
+                                    r[conditionVarName],
+                                    conditionVarComparitor[0],
+                                    conditionVarComparitor[1])) for conditionVarName,
+                                                                    conditionVarComparitor in filter.items()])])
         return cvrows
 
     def getValuesForVariables(self, cv, value, cvNames):
@@ -386,15 +376,13 @@ class ExperimentDataAccessUtility():
         if isinstance(value, (list, tuple)):
             resolvedValues = []
             for v in value:
-                if isinstance(value, str) and value.startswith(
-                        '@') and value.endswith('@'):
-                    value=value[1:-1]
+                if isinstance(value, str) and value.startswith('@') and value.endswith('@'):
+                    value = value[1:-1]
                     if value in cvNames:
                         resolvedValues.append(getattr(cv, v))
                     else:
-                        raise ExperimentDataAccessException(
-                            'getEventAttributeValues: {0} is not a valid attribute name in {1}'.format(
-                                v, cvNames))
+                        raise ExperimentDataAccessException('getEventAttributeValues: {0} is not a valid attribute '
+                                                            'name in {1}'.format(v, cvNames))
                 elif isinstance(value, str):
                     resolvedValues.append(value)
             return resolvedValues
@@ -403,46 +391,38 @@ class ExperimentDataAccessUtility():
             if value in cvNames:
                 return getattr(cv, value)
             else:
-                raise ExperimentDataAccessException(
-                    'getEventAttributeValues: {0} is not a valid attribute name in {1}'.format(
-                        value, cvNames))
+                raise ExperimentDataAccessException('getEventAttributeValues: {0} is not a valid attribute name'
+                                                    ' in {1}'.format(value, cvNames))
         else:
-            raise ExperimentDataAccessException(
-                'Unhandled value type !: {0} is not a valid type for value {1}'.format(
-                    type(value), value))
+            raise ExperimentDataAccessException('Unhandled value type !: {0} is not a valid type for value '
+                                                '{1}'.format(type(value), value))
 
-    def getEventAttributeValues(
-            self,
-            event_type_id,
-            event_attribute_names,
-            filter_id=None,
-            conditionVariablesFilter=None,
-            startConditions=None,
-            endConditions=None):
+    def getEventAttributeValues(self, event_type_id, event_attribute_names, filter_id=None,
+                                conditionVariablesFilter=None, startConditions=None, endConditions=None):
         """
         **Docstr TBC.**
 
         Args:
             event_type_id
             event_attribute_names
+            filter_id
             conditionVariablesFilter
             startConditions
             endConditions
 
         Returns:
-            Values for the specified event type and event attribute columns which match the provided experiment condition variable filter, starting condition filer, and ending condition filter criteria.
+            Values for the specified event type and event attribute columns which match the provided experiment
+            condition variable filter, starting condition filer, and ending condition filter criteria.
         """
         if self.hdfFile:
             klassTables = self.hdfFile.root.class_table_mapping
 
             deviceEventTable = None
 
-            result = [
-                row.fetch_all_fields() for row in klassTables.where(
-                    '(class_id == %d) & (class_type_id == 1)' %
-                    (event_type_id))]
+            result = [row.fetch_all_fields() for row in klassTables.where('(class_id == %d) &'
+                                                                          ' (class_type_id == 1)' % (event_type_id))]
             if len(result) != 1:
-                raise ExperimentDataAccessException("event_type_id passed to getEventAttribute should only return one row from CLASS_MAPPINGS.")
+                raise ExperimentDataAccessException("event_type_id returned > 1 row from CLASS_MAPPINGS.")
             tablePathString = result[0][3]
             if isinstance(tablePathString, bytes):
                 tablePathString = tablePathString.decode('utf-8')
@@ -450,9 +430,8 @@ class ExperimentDataAccessUtility():
 
             for ename in event_attribute_names:
                 if ename not in deviceEventTable.colnames:
-                    raise ExperimentDataAccessException(
-                        'getEventAttribute: %s does not have a column named %s' %
-                        (deviceEventTable.title, event_attribute_names))
+                    raise ExperimentDataAccessException('getEventAttribute: %s does not have a column named %s' %
+                                                        (deviceEventTable.title, event_attribute_names))
 
             resultSetList = []
 
@@ -467,10 +446,9 @@ class ExperimentDataAccessUtility():
 
                 filteredConditionVariableList = None
                 if conditionVariablesFilter is None:
-                    filteredConditionVariableList= self.getConditionVariables()
+                    filteredConditionVariableList = self.getConditionVariables()
                 else:
-                    filteredConditionVariableList = self.getConditionVariables(
-                        conditionVariablesFilter)
+                    filteredConditionVariableList = self.getConditionVariables(conditionVariablesFilter)
 
                 cvNames = self.getConditionVariableNames()
 
@@ -479,14 +457,13 @@ class ExperimentDataAccessUtility():
                 if startConditions is None and endConditions is None:
                     for cv in filteredConditionVariableList:
 
-                        wclause = '( experiment_id == {0} ) & ( session_id == {1} )'.format(
-                            self._experimentID, cv.session_id)
+                        wclause = '( experiment_id == {0} ) & ( session_id == {1} )'.format(self._experimentID,
+                                                                                            cv.session_id)
 
                         wclause += ' & ( type == {0} ) '.format(event_type_id)
 
                         if filter_id is not None:
-                            wclause += '& ( filter_id == {0} ) '.format(
-                                filter_id)
+                            wclause += '& ( filter_id == {0} ) '.format(filter_id)
 
                         resultSetList.append([])
 
@@ -495,18 +472,17 @@ class ExperimentDataAccessUtility():
                         resultSetList[-1].append(wclause)
                         resultSetList[-1].append(cv)
 
-                        eventAttributeResults = EventAttributeResults(
-                            *resultSetList[-1])
-                        resultSetList[-1]=eventAttributeResults
+                        eventAttributeResults = EventAttributeResults(*resultSetList[-1])
+                        resultSetList[-1] = eventAttributeResults
 
                     return resultSetList
 
-                #start or end conditions exist....
+                # start or end conditions exist....
                 for cv in filteredConditionVariableList:
                     resultSetList.append([])
 
-                    wclause = '( experiment_id == {0} ) & ( session_id == {1} )'.format(
-                        self._experimentID, cv.session_id)
+                    wclause = '( experiment_id == {0} ) & ( session_id == {1} )'.format(self._experimentID,
+                                                                                        cv.session_id)
 
                     wclause += ' & ( type == {0} ) '.format(event_type_id)
 
@@ -517,24 +493,20 @@ class ExperimentDataAccessUtility():
                     if startConditions is not None:
                         wclause += '& ('
                         for conditionAttributeName, conditionAttributeComparitor in startConditions.items():
-                            avComparison,value=conditionAttributeComparitor
-                            value = self.getValuesForVariables(
-                                cv, value, cvNames)
-                            wclause += ' ( {0} {1} {2} ) & '.format(
-                                conditionAttributeName, avComparison, value)
-                        wclause=wclause[:-3]
+                            avComparison, value = conditionAttributeComparitor
+                            value = self.getValuesForVariables(cv, value, cvNames)
+                            wclause += ' ( {0} {1} {2} ) & '.format(conditionAttributeName, avComparison, value)
+                        wclause = wclause[:-3]
                         wclause += ' ) '
 
                     # end Conditions need to be added to where clause
                     if endConditions is not None:
                         wclause += ' & ('
                         for conditionAttributeName, conditionAttributeComparitor in endConditions.items():
-                            avComparison,value=conditionAttributeComparitor
-                            value = self.getValuesForVariables(
-                                cv, value, cvNames)
-                            wclause += ' ( {0} {1} {2} ) & '.format(
-                                conditionAttributeName, avComparison, value)
-                        wclause=wclause[:-3]
+                            avComparison, value = conditionAttributeComparitor
+                            value = self.getValuesForVariables(cv, value, cvNames)
+                            wclause += ' ( {0} {1} {2} ) & '.format(conditionAttributeName, avComparison, value)
+                        wclause = wclause[:-3]
                         wclause += ' ) '
 
                     for ename in event_attribute_names:
@@ -542,9 +514,8 @@ class ExperimentDataAccessUtility():
                     resultSetList[-1].append(wclause)
                     resultSetList[-1].append(cv)
 
-                    eventAttributeResults = EventAttributeResults(
-                        *resultSetList[-1])
-                    resultSetList[-1]=eventAttributeResults
+                    eventAttributeResults = EventAttributeResults(*resultSetList[-1])
+                    resultSetList[-1] = eventAttributeResults
 
                 return resultSetList
 
