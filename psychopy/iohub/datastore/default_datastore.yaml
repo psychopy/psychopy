@@ -4,5 +4,5 @@ data_store:
     parent_dir: "."
     storage_type: pytables
     multiple_experiments: False
-    multiple_sessions: True
+    multiple_sessions: False
     flush_interval: 32
