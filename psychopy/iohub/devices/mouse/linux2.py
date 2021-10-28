@@ -105,7 +105,9 @@ class Mouse(MouseDevice):
                     x, y = self._display_device._pixel2DisplayCoord(event_array[15], event_array[16], display_index)
                     event_array[15] = x
                     event_array[16] = y
-
+                else:
+                    x = event_array[15]
+                    y = event_array[16]
                 event_array[-2] = Keyboard._modifier_value
                 self._lastPosition = self._position
                 self._position = x, y
