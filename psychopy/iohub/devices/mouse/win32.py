@@ -177,8 +177,7 @@ class Mouse(MouseDevice):
     def _nativeEventCallback(self, event):
         if self.isReportingEvents():
             logged_time = currentSec()
-            report_system_wide_events = self.getConfiguration().get(
-                'report_system_wide_events', True)
+            report_system_wide_events = self.getConfiguration().get('report_system_wide_events', True)
             pyglet_window_hnds = self._iohub_server._pyglet_window_hnds
             if event.Window in pyglet_window_hnds:
                 pass
@@ -187,24 +186,23 @@ class Mouse(MouseDevice):
             self._scrollPositionY += event.Wheel
             event.WheelAbsolute = self._scrollPositionY
 
-            display_index = self.getDisplayIndexForMousePosition(
-                event.Position)
+            event.DisplayIndex = display_index = 0
 
-            if display_index == -1:
-                if self._last_display_index is not None:
-                    display_index = self._last_display_index
-                else:
-                    return True
+            use_desktop_position = self.getConfiguration().get('use_desktop_position', False)
+            if use_desktop_position is False:
+                display_index = self.getDisplayIndexForMousePosition(event.Position)
+                if display_index == -1:
+                    if self._last_display_index is not None:
+                        display_index = self._last_display_index
+                    else:
+                        # Do not report event to iohub if it does not map to a display
+                        # ?? Can this ever actually happen ??
+                        return True
 
-            mx, my = event.Position
-            event.DisplayIndex = display_index
-
-            #print2err("handleMouseEvt: pix pos={}, display_index: {}".format((int(mx), int(my)),display_index))
-
-            p = self._display_device._pixel2DisplayCoord(
-                mx, my, event.DisplayIndex)
-
-            event.Position = p
+                mx, my = event.Position
+                event.DisplayIndex = display_index
+                p = self._display_device._pixel2DisplayCoord(mx, my, event.DisplayIndex)
+                event.Position = p
 
             self._lastPosition = self._position
             self._position = event.Position
@@ -214,8 +212,7 @@ class Mouse(MouseDevice):
 
             bstate, etype, bnum = self._mouse_event_mapper[event.Message]
             if bnum is not MouseConstants.MOUSE_BUTTON_NONE:
-                self.activeButtons[bnum] = int(
-                    bstate == MouseConstants.MOUSE_BUTTON_STATE_PRESSED)
+                self.activeButtons[bnum] = int(bstate == MouseConstants.MOUSE_BUTTON_STATE_PRESSED)
 
             abuttonSum = 0
             for k, v in self.activeButtons.items():
