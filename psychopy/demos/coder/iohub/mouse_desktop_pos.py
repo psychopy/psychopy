@@ -9,22 +9,25 @@ launchHubServer(window=win, Mouse=dict(use_desktop_position=True))
 from psychopy import visual, core
 from psychopy.iohub import launchHubServer
 
+
 def isMouseOnPsychWin(mouse_event):
     for w in visual.window.openWindows:
         if w()._hw_handle == mouse_event.window_id:
-            return mouse_event.window_id
+            return w()
     return 0
+
 
 def mouseWindowPos(mouse_event):
     for w in visual.window.openWindows:
         if w()._hw_handle == mouse_event.window_id:
-            return mouse_event.x_position-w().pos[0], mouse_event.y_position-w().pos[1]
+            return mouse_event.x_position - w().pos[0], mouse_event.y_position - w().pos[1]
     return 'na', 'na'
 
-win = visual.Window((400, 400), pos=(0,30), units='height', fullscr=False, allowGUI=True, screen=0)
-win2 = visual.Window((600, 600), pos=(500,30), units='height', fullscr=False, allowGUI=True, screen=0)
-print('win handle: ',win._hw_handle, "pos:", win.pos)
-print('win2 handle: ',win2._hw_handle, "pos:", win2.pos)
+
+win = visual.Window((400, 400), pos=(0, 30), units='height', fullscr=False, allowGUI=True, screen=0)
+win2 = visual.Window((600, 600), pos=(500, 30), units='height', fullscr=False, allowGUI=True, screen=0)
+print('win handle: ', win._hw_handle, "pos:", win.pos)
+print('win2 handle: ', win2._hw_handle, "pos:", win2.pos)
 # create the process that will run in the background polling devices
 io = launchHubServer(window=win, Mouse=dict(use_desktop_position=True))
 
@@ -33,21 +36,20 @@ keyboard = io.devices.keyboard
 mouse = io.devices.mouse
 
 # TODO: How to handle setPos when mouse use_desktop_position=True
-#mouse.setPosition((0.0, .250))
-#win.setMouseVisible(False)
+# mouse.setPosition((0.0, .250))
+# win.setMouseVisible(False)
+
 quit_msg = visual.TextStim(win, pos=(0.0, -0.4), alignText='center', anchorHoriz='center', anchorVert='center',
                            height=.05, text='win._hw_handle: %d\nPress Any Key to Quit.' % win._hw_handle,
                            autoLog=False, wrapWidth=0.7)
 quit_msg2 = visual.TextStim(win2, pos=(0.0, -0.4), alignText='center', anchorHoriz='center', anchorVert='center',
-                           height=.05, text='win2._hw_handle: %d\nPress Any Key to Quit.' % win2._hw_handle,
+                            height=.05, text='win2._hw_handle: %d\nPress Any Key to Quit.' % win2._hw_handle,
                             autoLog=False, wrapWidth=0.7)
-last_wheelPosY = 0
-
 io.clearEvents('all')
 
 demo_timeout_start = core.getTime()
-# Run the example until a keyboard event is received.
 
+# Run the example until a keyboard event is received.
 kb_events = None
 while not kb_events:
     quit_msg.draw()
@@ -59,9 +61,10 @@ while not kb_events:
     mouse_events = mouse.getEvents()
     if mouse_events:
         for me in mouse_events:
-            if isMouseOnPsychWin(me):
-                print("Desktop: ", me.x_position, ",", me.y_position, " -> Win(%d):" % me.window_id, " ",
-                      mouseWindowPos(me))
+            psycho_win = isMouseOnPsychWin(me)
+            if psycho_win:
+                print("Desktop: ", me.x_position, ",", me.y_position, " -> Win(%d):" % me.window_id,
+                      " ", mouseWindowPos(me))
             else:
                 print("Desktop: ", me.x_position, ",", me.y_position)
 
