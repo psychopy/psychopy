@@ -13,6 +13,7 @@ _localized = __localized.copy()
 
 # only use _localized values for label values, nothing functional:
 _localized.update({'address': _translate('Port address'),
+                   'register': _translate('U3 Register'),
                    'startData': _translate("Start data"),
                    'stopData': _translate("Stop data"),
                    'syncScreen': _translate('Sync to screen')})
@@ -30,7 +31,7 @@ class ParallelOutComponent(BaseComponent):
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim='',
-                 address=None, startData="1", stopData="0",
+                 address=None, register='EIO', startData="1", stopData="0",
                  syncScreen=True):
         super(ParallelOutComponent, self).__init__(
             exp, parentName, name,
@@ -45,7 +46,7 @@ class ParallelOutComponent(BaseComponent):
         # params
         self.order += [
             'startData', 'stopData',  # Data tab
-            'address',  # Hardware tab
+            'address',  'register',   # Hardware tab
         ]
 
         # main parameters
@@ -56,9 +57,22 @@ class ParallelOutComponent(BaseComponent):
         msg = _translate("Parallel port to be used (you can change these "
                          "options in preferences>general)")
         self.params['address'] = Param(
-            address, valType='str', inputType="choice", allowedVals=addressOptions, categ='Hardware',
-            hint=msg,
-            label=_localized['address'])
+            address, valType='str', inputType="choice", allowedVals=addressOptions,
+            categ='Hardware', hint=msg, label=_localized['address'])
+
+        self.depends.append(
+            {"dependsOn": "address",  # must be param name
+             "condition": "=='LabJack U3'",  # val to check for
+             "param": "register",  # param property to alter
+             "true": "show",  # what to do with param if condition is True
+             "false": "hide",  # permitted: hide, show, enable, disable
+             }
+        )
+
+        msg = _translate("U3 Register to write byte to")
+        self.params['register'] = Param(register, valType='str',
+                                        inputType="choice", allowedVals=['EIO', 'FIO'],
+                                        categ='Hardware', hint=msg, label=_localized['register'])
 
         self.params['startData'] = Param(
             startData, valType='code', inputType="single", allowedTypes=[], categ='Data',
@@ -107,11 +121,18 @@ class ParallelOutComponent(BaseComponent):
         self.writeStartTestCode(buff)
         buff.writeIndented("%(name)s.status = STARTED\n" % self.params)
 
-        if not self.params['syncScreen'].val:
-            code = "%(name)s.setData(int(%(startData)s))\n" % self.params
+        if self.params['address'].val == 'LabJack U3':
+            if not self.params['syncScreen'].val:
+                code = "%(name)s.setData(int(%(startData)s), address=%(register)s)\n" % self.params
+            else:
+                code = ("win.callOnFlip(%(name)s.setData, int(%(startData)s), address=%(register)s)\n" %
+                        self.params)
         else:
-            code = ("win.callOnFlip(%(name)s.setData, int(%(startData)s))\n" %
-                    self.params)
+            if not self.params['syncScreen'].val:
+                code = "%(name)s.setData(int(%(startData)s))\n" % self.params
+            else:
+                code = ("win.callOnFlip(%(name)s.setData, int(%(startData)s))\n" %
+                        self.params)
 
         buff.writeIndented(code)
 
@@ -123,11 +144,18 @@ class ParallelOutComponent(BaseComponent):
             self.writeStopTestCode(buff)
             buff.writeIndented("%(name)s.status = FINISHED\n" % self.params)
 
-            if not self.params['syncScreen'].val:
-                code = "%(name)s.setData(int(%(stopData)s))\n" % self.params
+            if self.params['address'].val == 'LabJack U3':
+                if not self.params['syncScreen'].val:
+                    code = "%(name)s.setData(int(%(stopData)s), address=%(register)s)\n" % self.params
+                else:
+                    code = ("win.callOnFlip(%(name)s.setData, int(%(stopData)s), address=%(register)s)\n" %
+                            self.params)
             else:
-                code = ("win.callOnFlip(%(name)s.setData, int(%(stopData)s))\n" %
-                        self.params)
+                if not self.params['syncScreen'].val:
+                    code = "%(name)s.setData(int(%(stopData)s))\n" % self.params
+                else:
+                    code = ("win.callOnFlip(%(name)s.setData, int(%(stopData)s))\n" %
+                            self.params)
 
             buff.writeIndented(code)
 
@@ -142,11 +170,17 @@ class ParallelOutComponent(BaseComponent):
         # make sure that we do switch to stopData if the routine has been
         # aborted before our 'end'
         buff.writeIndented("if %(name)s.status == STARTED:\n" % self.params)
-        if not self.params['syncScreen'].val:
-            code = "    %(name)s.setData(int(%(stopData)s))\n" % self.params
+        if self.params['address'].val == 'LabJack U3':
+            if not self.params['syncScreen'].val:
+                code = "    %(name)s.setData(int(%(stopData)s), address=%(register)s)\n" % self.params
+            else:
+                code = ("    win.callOnFlip(%(name)s.setData, int(%(stopData)s), address=%(register)s)\n" %
+                        self.params)
         else:
-            code = ("    win.callOnFlip(%(name)s.setData, int(%(stopData)s))\n" %
-                    self.params)
+            if not self.params['syncScreen'].val:
+                code = "    %(name)s.setData(int(%(stopData)s))\n" % self.params
+            else:
+                code = ("    win.callOnFlip(%(name)s.setData, int(%(stopData)s))\n" % self.params)
 
         buff.writeIndented(code)
 
