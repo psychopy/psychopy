@@ -197,10 +197,7 @@ class Mouse(MouseDevice):
 
     def _poll(self):
         self._last_poll_time = currentSec()
-        while Qz.CFRunLoopRunInMode(
-                self._loop_mode,
-                0.0,
-                True) == Qz.kCFRunLoopRunHandledSource:
+        while Qz.CFRunLoopRunInMode(self._loop_mode, 0.0, True) == Qz.kCFRunLoopRunHandledSource:
             pass
 
     def _nativeEventCallback(self, *args):
@@ -210,48 +207,38 @@ class Mouse(MouseDevice):
                 logged_time = currentSec()
 
                 if etype == Qz.kCGEventTapDisabledByTimeout:
-                    print2err(
-                        '** WARNING: Mouse Tap Disabled due to timeout. Re-enabling....: ', etype)
+                    print2err('** WARNING: Mouse Tap Disabled due to timeout. Re-enabling....: ', etype)
                     Qz.CGEventTapEnable(self._tap, True)
                     return event
                 else:
                     confidence_interval = 0.0
                     delay = 0.0
                     iohub_time = logged_time
-                    device_time = Qz.CGEventGetTimestamp(
-                        event) * self.DEVICE_TIME_TO_SECONDS
+                    device_time = Qz.CGEventGetTimestamp(event) * self.DEVICE_TIME_TO_SECONDS
                     ioe_type = EventConstants.UNDEFINED
                     px, py = Qz.CGEventGetLocation(event)
-                    multi_click_count = Qz.CGEventGetIntegerValueField(
-                        event, Qz.kCGMouseEventClickState)
+                    multi_click_count = Qz.CGEventGetIntegerValueField(event, Qz.kCGMouseEventClickState)
                     mouse_event = NSEvent.eventWithCGEvent_(event)
+
+                    # TODO: window_handle seems to always be 0.
                     window_handle = mouse_event.windowNumber()
 
+                    display_index = 0
                     # TO DO: Implement multimonitor location based on mouse location support.
                     # Currently always uses monitor index 0
 
-                    display_index = self.getDisplayIndexForMousePosition(
-                        (px, py))
-                    if display_index == -1:
-                        if self._last_display_index is not None:
-                            display_index = self._last_display_index
-                        else:
-                            #print2err("!!! _nativeEventCallback error: mouse event pos {0} not in any display bounds!!!".format(event.Position))
-                            #print2err("!!!  -> SKIPPING EVENT")
-                            # print2err("===============")
-                            return event
+                    use_desktop_position = self.getConfiguration().get('use_desktop_position', False)
+                    if use_desktop_position is False:
+                        display_index = self.getDisplayIndexForMousePosition((px, py))
+                        if display_index == -1:
+                            if self._last_display_index is not None:
+                                display_index = self._last_display_index
+                            else:
+                                # Do not report event to iohub if it does not map to a display
+                                # ?? Can this ever actually happen ??
+                                return event
+                        px, py = self._display_device._pixel2DisplayCoord(px, py, display_index)
 
-#                    result=self._validateMousePosition((px,py),display_index)
-#                    if result != True:
-#                        #print2err("!!! _validateMousePosition made ajustment: {0} to {1}".format((px,py),result))
-#                        nx,ny=result
-#                        display_index=self.getDisplayIndexForMousePosition((nx,ny))
-#                        #print2err("Going to Update mousePosition: {0} => {1} on D {2}".format((px,py),(ny,ny),display_index))
-#                        px,py=nx,ny
-#                        self._nativeSetMousePos(px,py)
-
-                    px, py = self._display_device._pixel2DisplayCoord(
-                        px, py, display_index)
                     self._lastPosition = self._position
                     self._position = px, py
                     self._last_display_index = self._display_index
@@ -279,19 +266,16 @@ class Mouse(MouseDevice):
                         ioe_type = EventConstants.MOUSE_MOVE
                     elif etype == Qz.kCGEventScrollWheel:
                         ioe_type = EventConstants.MOUSE_SCROLL
-                        scroll_dy = Qz.CGEventGetIntegerValueField(
-                            event, Qz.kCGScrollWheelEventPointDeltaAxis1)
-                        scroll_dx = Qz.CGEventGetIntegerValueField(
-                            event, Qz.kCGScrollWheelEventPointDeltaAxis2)
+                        scroll_dy = Qz.CGEventGetIntegerValueField(event, Qz.kCGScrollWheelEventPointDeltaAxis1)
+                        scroll_dx = Qz.CGEventGetIntegerValueField(event, Qz.kCGScrollWheelEventPointDeltaAxis2)
                         self._scrollPositionX += scroll_dx
                         self._scrollPositionY += scroll_dy
 
-                    iohub_button_id = self._IOHUB_BUTTON_ID_MAPPINGS.get(
-                        etype, 0)
+                    iohub_button_id = self._IOHUB_BUTTON_ID_MAPPINGS.get(etype, 0)
 
                     if iohub_button_id in self.activeButtons:
-                        self.activeButtons[iohub_button_id] = int(
-                            button_state == MouseConstants.MOUSE_BUTTON_STATE_PRESSED)
+                        abuttons = int(button_state == MouseConstants.MOUSE_BUTTON_STATE_PRESSED)
+                        self.activeButtons[iohub_button_id] = abuttons
 
                     pressed_buttons = 0
                     for k, v in self.activeButtons.items():
