@@ -91,10 +91,9 @@ packages = ['wx', 'psychopy',
             'pandas', 'tables',  # 'cython',
             'msgpack', 'yaml', 'gevent',  # for ioHub
             # these aren't needed, but liked
-            'psychopy_ext', 'pyfilesec',
             'bidi', 'arabic_reshaper',  # for right-left language conversions
             # for Py3 compatibility
-            'lib2to3',
+            'ujson',  # faster than built-in json
             'json_tricks',  # allows saving arrays/dates in json
             'git', 'gitlab',
             'astunparse', 'esprima',  # for translating/adapting py/JS
