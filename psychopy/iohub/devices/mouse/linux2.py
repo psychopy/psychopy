@@ -84,34 +84,6 @@ class Mouse(MouseDevice):
             int(py))
         Mouse._xdll.XFlush(Mouse._xdisplay)
 
-    #def _nativeGetSystemCursorVisibility(self):
-    #    return self._cursorVisible
-
-    # def _nativeSetSystemCursorVisibility(self, v):
-    #     if Mouse._xfixsdll is None:
-    #         print2err(
-    #             'Xfixes DLL could not be loaded. Cursor visiblity support is unavailable.')
-    #         return True
-    #
-    #     if v is True and self._nativeGetSystemCursorVisibility() is False:
-    #         Mouse._xfixsdll.XFixesShowCursor(
-    #             Mouse._xdisplay, self._display_device._xwindow)
-    #         Mouse._xfixsdll.XFlush(Mouse._xdisplay)
-    #         self._cursorVisible = True
-    #     elif v is False and self._nativeGetSystemCursorVisibility() is True:
-    #         Mouse._xfixsdll.XFixesHideCursor(
-    #             Mouse._xdisplay, self._display_device._xwindow)
-    #         Mouse._xfixsdll.XFlush(Mouse._xdisplay)
-    #         self._cursorVisible = False
-    #
-    #     return self._nativeGetSystemCursorVisibility()
-
-    #def _nativeLimitCursorToBoundingRect(self, clip_rect):
-    #    print2err(
-    #        'WARNING: Mouse._nativeLimitCursorToBoundingRect not implemented on Linux yet.')
-    #    native_clip_rect = None
-    #    return native_clip_rect
-
     def _nativeEventCallback(self, event):
         try:
             if self.isReportingEvents():
@@ -120,17 +92,20 @@ class Mouse(MouseDevice):
 
                 psychowins = self._iohub_server._pyglet_window_hnds
                 report_all = self.getConfiguration().get('report_system_wide_events', True)
-                if report_all is False and psychowins and event_array[
-                        -1] not in psychowins:
+                if report_all is False and psychowins and event_array[-1] not in psychowins:
                     return True
 
                 event_array[3] = Device._getNextEventID()
 
-                display_index = self._display_device.getIndex()
-                x, y = self._display_device._pixel2DisplayCoord(
-                    event_array[15], event_array[16], display_index)
-                event_array[15] = x
-                event_array[16] = y
+                use_desktop_position = self.getConfiguration().get('use_desktop_position', False)
+                display_index = 0
+                if use_desktop_position is False:
+                    # convert mouse position to psychopy window coord space
+                    display_index = self._display_device.getIndex()
+                    x, y = self._display_device._pixel2DisplayCoord(event_array[15], event_array[16], display_index)
+                    event_array[15] = x
+                    event_array[16] = y
+
                 event_array[-2] = Keyboard._modifier_value
                 self._lastPosition = self._position
                 self._position = x, y
