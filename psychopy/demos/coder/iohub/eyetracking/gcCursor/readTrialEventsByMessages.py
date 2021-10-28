@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Example of reading events from a hdf5 file, saving to a tab delimited text file.
+Example of reading events from an iohub hdf5 file, saving to a tab delimited text file.
 
 Events are split into trials by reading the time of 'TRIAL_START' and
 'TRIAL_END' experiment Message events.

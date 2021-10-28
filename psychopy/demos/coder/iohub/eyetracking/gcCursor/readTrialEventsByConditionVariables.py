@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Example of events from a hdf5 file, saving to a tab delimited text file.
+Example of reading events from an iohub hdf5 file, saving to a tab delimited text file.
 The condition variables table is used to split samples into trial groupings,
 saving condition variable columns with each event.
 
