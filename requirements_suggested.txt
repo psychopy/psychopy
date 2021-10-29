@@ -1,6 +1,5 @@
 pylsl
 egi
-iolabs
 googleapiclient
 SpeechRecognition
 pyxid2
