@@ -34,12 +34,16 @@ mouse = io.devices.mouse
 # mouse.setPosition((0.0, .250))
 # win.setMouseVisible(False)
 
-quit_msg = visual.TextStim(win, pos=(0.0, -0.4), alignText='center', anchorHoriz='center', anchorVert='center',
-                           height=.05, text='win._hw_handle: %d\nPress Any Key to Quit.' % win._hw_handle,
-                           autoLog=False, wrapWidth=0.7)
-quit_msg2 = visual.TextStim(win2, pos=(0.0, -0.4), alignText='center', anchorHoriz='center', anchorVert='center',
-                            height=.05, text='win2._hw_handle: %d\nPress Any Key to Quit.' % win2._hw_handle,
-                            autoLog=False, wrapWidth=0.7)
+txt_proto = 'Desktop x,y: {},{}\nWin x,y: {},{}\n\nwin._hw_handle: {}\n\n\nPress Any Key to Quit.'
+win_stim={}
+win_stim[win._hw_handle] = visual.TextStim(win, pos=(0.0, 0.0), alignText='center', anchorHoriz='center',
+                                           anchorVert='center', height=.05, autoLog=False, wrapWidth=0.7,
+                                           text=txt_proto.format('?', '?', '?', '?', win._hw_handle))
+
+win_stim[win2._hw_handle] = visual.TextStim(win2, pos=(0.0, 0.0), alignText='center', anchorHoriz='center',
+                                            anchorVert='center', height=.05, autoLog=False, wrapWidth=0.7,
+                                            text=txt_proto.format('?', '?', '?', '?', win._hw_handle))
+
 io.clearEvents('all')
 
 demo_timeout_start = core.getTime()
@@ -47,21 +51,28 @@ demo_timeout_start = core.getTime()
 # Run the example until a keyboard event is received.
 kb_events = None
 while not kb_events:
-    quit_msg.draw()
-    quit_msg2.draw()
+    for stim in win_stim.values():
+        stim.draw()
     win.flip()  # redraw the buffer
     flip_time = win2.flip()  # redraw the buffer
 
     # Check for Mouse events
     mouse_events = mouse.getEvents()
     if mouse_events:
-        for me in mouse_events:
-            psycho_win, x, y = mouseWindowPos(me)
-            if psycho_win:
-                print("Desktop: ", me.x_position, ",", me.y_position, " -> Win(%d):" % psycho_win()._hw_handle,
-                      " ", (x, y))
-            else:
-                print("Desktop: ", me.x_position, ",", me.y_position)
+        # Only update display based on last received event
+        me = mouse_events[-1]
+        psycho_win, x, y = mouseWindowPos(me)
+        if psycho_win:
+            whndl = psycho_win()._hw_handle
+            win_stim[whndl].text = txt_proto.format(me.x_position, me.y_position, x, y, whndl)
+            for win_handle, stim in win_stim.items():
+                if win_handle != whndl:
+                    stim.text = txt_proto.format(me.x_position, me.y_position, '?', '?', win_handle)
+                    break
+
+        else:
+            for win_handle, stim in win_stim.items():
+                stim.text = txt_proto.format(me.x_position, me.y_position, '?', '?', win_handle)
 
         demo_timeout_start = mouse_events[-1].time
     # If 15 seconds passes without receiving any kb or mouse event,
