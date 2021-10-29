@@ -10,18 +10,13 @@ from psychopy import visual, core
 from psychopy.iohub import launchHubServer
 
 
-def isMouseOnPsychWin(mouse_event):
-    for w in visual.window.openWindows:
-        if w()._hw_handle == mouse_event.window_id:
-            return w()
-    return 0
-
-
 def mouseWindowPos(mouse_event):
     for w in visual.window.openWindows:
-        if w()._hw_handle == mouse_event.window_id:
-            return mouse_event.x_position - w().pos[0], mouse_event.y_position - w().pos[1]
-    return 'na', 'na'
+        mx , my = mouse_event.x_position, mouse_event.y_position
+        if w().pos[0] <= mx <= w().pos[0]+w().size[0]:
+            if w().pos[1] <= my <= w().pos[1] + w().size[1]:
+                return w, mx - w().pos[0], my - w().pos[1]
+    return None, None, None
 
 
 win = visual.Window((400, 400), pos=(0, 30), units='height', fullscr=False, allowGUI=True, screen=0)
@@ -61,10 +56,10 @@ while not kb_events:
     mouse_events = mouse.getEvents()
     if mouse_events:
         for me in mouse_events:
-            psycho_win = isMouseOnPsychWin(me)
+            psycho_win, x, y = mouseWindowPos(me)
             if psycho_win:
-                print("Desktop: ", me.x_position, ",", me.y_position, " -> Win(%d):" % me.window_id,
-                      " ", mouseWindowPos(me))
+                print("Desktop: ", me.x_position, ",", me.y_position, " -> Win(%d):" % psycho_win()._hw_handle,
+                      " ", (x, y))
             else:
                 print("Desktop: ", me.x_position, ",", me.y_position)
 
