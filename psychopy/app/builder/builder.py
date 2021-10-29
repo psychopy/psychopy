@@ -2081,7 +2081,11 @@ class RoutineCanvas(wx.ScrolledWindow):
             dc.SetPen(thisPen)
             dc.SetBrush(thisBrush)
             # If there's a fixed end time and no start time, start 20px before 0
-            if component.params['stopType'] == 'time (s)' and startTime is None:
+            if (
+                    component.params['stopType'] in ('time (s)', 'duration (s)')
+                    and component.params['startType'] in ('time (s)')
+                    and startTime is None
+            ):
                 startTime = -20 * self.getSecsPerPixel()
                 # thisBrush.SetStyle(wx.BRUSHSTYLE_BDIAGONAL_HATCH)
                 # dc.SetBrush(thisBrush)
