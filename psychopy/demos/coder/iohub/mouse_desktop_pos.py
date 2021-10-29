@@ -36,13 +36,10 @@ mouse = io.devices.mouse
 
 txt_proto = 'Desktop x,y: {},{}\nWin x,y: {},{}\n\nwin._hw_handle: {}\n\n\nPress Any Key to Quit.'
 win_stim={}
-win_stim[win._hw_handle] = visual.TextStim(win, pos=(0.0, 0.0), alignText='center', anchorHoriz='center',
-                                           anchorVert='center', height=.05, autoLog=False, wrapWidth=0.7,
-                                           text=txt_proto.format('?', '?', '?', '?', win._hw_handle))
-
-win_stim[win2._hw_handle] = visual.TextStim(win2, pos=(0.0, 0.0), alignText='center', anchorHoriz='center',
-                                            anchorVert='center', height=.05, autoLog=False, wrapWidth=0.7,
-                                            text=txt_proto.format('?', '?', '?', '?', win._hw_handle))
+for w in visual.window.openWindows:
+    win_stim[w()._hw_handle] = visual.TextStim(w(), pos=(0.0, 0.0), alignText='center', anchorHoriz='center',
+                                               anchorVert='center', height=.05, autoLog=False, wrapWidth=0.7,
+                                               text=txt_proto.format('?', '?', '?', '?', w()._hw_handle))
 
 io.clearEvents('all')
 
