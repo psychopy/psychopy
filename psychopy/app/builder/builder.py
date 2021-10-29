@@ -2087,6 +2087,7 @@ class RoutineCanvas(wx.ScrolledWindow):
                     and startTime is None
             ):
                 startTime = -20 * self.getSecsPerPixel()
+                duration += 20 * self.getSecsPerPixel()
                 # thisBrush.SetStyle(wx.BRUSHSTYLE_BDIAGONAL_HATCH)
                 # dc.SetBrush(thisBrush)
 
