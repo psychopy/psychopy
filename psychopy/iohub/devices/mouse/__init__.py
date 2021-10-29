@@ -352,9 +352,9 @@ class MouseInputEvent(DeviceEvent):
         ('pressed_buttons', np.uint8),
 
         # x position of the position when the event occurred
-        ('x_position', np.int16),
+        ('x_position', np.float64),
         # y position of the position when the event occurred
-        ('y_position', np.int16),
+        ('y_position', np.float64),
 
         # horizontal scroll wheel position change when the event occurred (OS X
         # only)
