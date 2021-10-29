@@ -49,6 +49,9 @@ class ColorPresets(ScrolledPanel):
         colorList = list(colorNames)
         btnSize = wx.Size(120, 24)
         for color in colorList:
+            if color == 'none':
+                continue
+
             btn = GenButton(self, size=btnSize, label=color, name=color)
             btn.colorData = col = Color(color, 'named')
 
