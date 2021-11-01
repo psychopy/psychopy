@@ -188,19 +188,19 @@ class Mouse(MouseDevice):
 
             event.DisplayIndex = display_index = 0
 
+            display_index = self.getDisplayIndexForMousePosition(event.Position)
+            event.DisplayIndex = display_index
+            if display_index == -1:
+                if self._last_display_index is not None:
+                    display_index = self._last_display_index
+                else:
+                    # Do not report event to iohub if it does not map to a display
+                    # ?? Can this ever actually happen ??
+                    return True
+
             use_desktop_position = self.getConfiguration().get('use_desktop_position', False)
             if use_desktop_position is False:
-                display_index = self.getDisplayIndexForMousePosition(event.Position)
-                if display_index == -1:
-                    if self._last_display_index is not None:
-                        display_index = self._last_display_index
-                    else:
-                        # Do not report event to iohub if it does not map to a display
-                        # ?? Can this ever actually happen ??
-                        return True
-
                 mx, my = event.Position
-                event.DisplayIndex = display_index
                 p = self._display_device._pixel2DisplayCoord(mx, my, event.DisplayIndex)
                 event.Position = p
 
