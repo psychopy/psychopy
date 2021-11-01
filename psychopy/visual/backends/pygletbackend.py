@@ -311,6 +311,7 @@ class PygletBackend(BaseBackend):
         self.winHandle.on_mouse_motion = self.onMouseMove
         self.winHandle.on_mouse_enter = self.onMouseEnter
         self.winHandle.on_mouse_leave = self.onMouseLeave
+        self.winHandle.on_move = self.onMove
 
         if not win.allowGUI:
             # make mouse invisible. Could go further and make it 'exclusive'
@@ -340,6 +341,9 @@ class PygletBackend(BaseBackend):
 
         # store properties of the system
         self._driver = pyglet.gl.gl_info.get_renderer()
+
+    def onMove(self, x, y):
+        self.win.pos = (x, y)
 
     @property
     def frameBufferSize(self):
