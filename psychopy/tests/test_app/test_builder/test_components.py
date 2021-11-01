@@ -210,6 +210,10 @@ def test_param_str():
          "js": "[1, 2, 3]"},
     ]
     tykes = [
+        # Name containing "var" (should no longer return blank as of #4336)
+        {"obj": Param("variableName", "code"),
+         "py": "variableName",
+         "js": "variableName"}
     ]
 
     # Take note of what the script target started as
