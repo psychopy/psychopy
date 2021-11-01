@@ -14,12 +14,50 @@ from psychopy.experiment.params import Param
 from psychopy import logging
 
 
+# Some regex shorthand
+_q = r"[\"']"  # quotes
+_lb = r"[\[\(]"  # left bracket
+_rb = r"[\]\)]"  # right bracket
+
+
 class TestComponents(object):
     def setup(self):
         self.temp_dir = mkdtemp()
 
     def teardown(self):
         shutil.rmtree(self.temp_dir)
+
+    def test_problem_experiments(self):
+        """
+        Tests that some known troublemaker experiments compile as intended. Cases are structured like so:
+        file : `.psyexp` file for the experiment
+        comparison : Type of comparison to do, can be any of:
+            - contains : Compiled script should contain the specified answer
+            - excludes : Compiled script should NOT contain the specified answer
+            - equals : Compiled script should match the answer
+        ans : The string to do specified comparison against
+        """
+        # Define some cases
+        tykes = [
+            {'file': Path(TESTS_DATA_PATH) / "retroListParam.psyexp", 'comparison': "contains",
+             'ans': f"{_lb}{_q}left{_q}, {_q}down{_q}, {_q}right{_q}{_rb}"}
+        ]
+        # Temp outfile to use
+        outfile = Path(mkdtemp()) / 'outfile.py'
+        # Run each case
+        for case in tykes:
+            # Compile experiment
+            psyexpCompile.compileScript(infile=case['file'], outfile=str(outfile))
+            # Get compiled script as a string
+            with open(outfile, "r") as f:
+                outscript = f.read()
+            # Do comparison
+            if case['comparison'] == "contains":
+                assert re.search(case['ans'], outscript)
+            if case['comparison'] == "excludes":
+                assert not re.search(case['ans'], outscript)
+            if case['comparison'] == "equals":
+                assert re.fullmatch(case['ans'], outscript)
 
     def test_component_is_written_to_script(self):
         psyexp_file = os.path.join(TESTS_DATA_PATH,
@@ -123,10 +161,6 @@ class TestComponents(object):
             assert tykeComponent.params[str(i)].dollarSyntax()[0] == tykes[val]
 
     def test_list_params(self):
-        # Some regex shorthand
-        _q = r"[\"']"  # quotes
-        _lb = r"[\[\(]"  # left bracket
-        _rb = r"[\]\)]"  # right bracket
         # Define params and how they should compile
         cases = [
             {'val': "\"left\", \"down\", \"right\"",
