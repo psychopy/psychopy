@@ -456,7 +456,12 @@ class Slider(MinimalStim, ColorMixin):
             rating = min(rating, self.ticks[-1])
         return rating
 
-    @attributeSetter
+    @property
+    def rating(self):
+        if hasattr(self, "_rating"):
+            return self._rating
+
+    @rating.setter
     def rating(self, rating):
         """The most recent rating from the participant or None.
         Note that the position of the marker can be set using current without
@@ -465,7 +470,7 @@ class Slider(MinimalStim, ColorMixin):
         self.markerPos = rating
         if self.categorical and (rating is not None):
             rating = self.labels[int(round(rating))]
-        self.__dict__['rating'] = rating
+        self._rating = rating
 
     @property
     def value(self):
