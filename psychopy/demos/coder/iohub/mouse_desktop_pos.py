@@ -6,13 +6,19 @@ To start iohub with mouse reporting in desktop coord's, use:
 
 launchHubServer(window=win, Mouse=dict(use_desktop_position=True))
 """
+import sys
+
 from psychopy import visual, core
 from psychopy.iohub import launchHubServer
+from psychopy.iohub.constants import EventConstants
+
+# True = print mouse events to stdout, False = do not
+PRINT_MOUSE_EVENTS = False
 
 
 def mouseWindowPos(mouse_event):
     for w in visual.window.openWindows:
-        mx , my = mouse_event.x_position, mouse_event.y_position
+        mx, my = mouse_event.x_position, mouse_event.y_position
         if w().pos[0] <= mx <= w().pos[0]+w().size[0]:
             if w().pos[1] <= my <= w().pos[1] + w().size[1]:
                 return w, mx - w().pos[0], my - w().pos[1]
@@ -20,11 +26,15 @@ def mouseWindowPos(mouse_event):
 
 
 win = visual.Window((400, 400), pos=(0, 30), units='height', fullscr=False, allowGUI=True, screen=0)
-win2 = visual.Window((600, 600), pos=(500, 30), units='height', fullscr=False, allowGUI=True, screen=0)
+win2 = visual.Window((600, 600), pos=(500, 30), units='height', fullscr=False, allowGUI=True, screen=1)
 print('win handle: ', win._hw_handle, "pos:", win.pos)
 print('win2 handle: ', win2._hw_handle, "pos:", win2.pos)
 # create the process that will run in the background polling devices
 io = launchHubServer(window=win, Mouse=dict(use_desktop_position=True))
+
+#display_pixel_bounds = io.devices.display.getAllDisplayBounds()
+#for i, dpb in enumerate(display_pixel_bounds):
+#    print('display %d bounds:' % i, dpb)
 
 # some default devices have been created that can now be used
 keyboard = io.devices.keyboard
@@ -56,6 +66,23 @@ while not kb_events:
     # Check for Mouse events
     mouse_events = mouse.getEvents()
     if mouse_events:
+        # Simple example of handling different mouse event types.
+        if PRINT_MOUSE_EVENTS:
+            for me in mouse_events:
+                if me.type == EventConstants.MOUSE_MOVE:
+                    print(me)
+                elif me.type == EventConstants.MOUSE_DRAG:
+                    print(me)
+                elif me.type == EventConstants.MOUSE_BUTTON_PRESS:
+                    print(me)
+                elif me.type == EventConstants.MOUSE_BUTTON_RELEASE:
+                    print(me)
+                elif me.type == EventConstants.MOUSE_SCROLL:
+                    print(me)
+                else:
+                    print("Unhandled event type:", me.type, me)
+                    sys.exit()
+
         # Only update display based on last received event
         me = mouse_events[-1]
         psycho_win, x, y = mouseWindowPos(me)
