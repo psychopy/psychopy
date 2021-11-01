@@ -10,7 +10,7 @@ from psychopy.alerts import alerttools
 from psychopy.experiment import Experiment
 from psychopy.experiment.routines import Routine, BaseStandaloneRoutine, UnknownRoutine
 from psychopy.experiment.components import BaseComponent
-from psychopy.experiment.params import Param
+from psychopy.experiment.params import Param, utils
 from psychopy import logging
 
 
@@ -164,21 +164,35 @@ class TestComponents(object):
         # Define params and how they should compile
         cases = [
             {'val': "\"left\", \"down\", \"right\"",
-             'out': f"{_lb}{_q}left{_q}, {_q}down{_q}, {_q}right{_q}{_rb}"},  # Double quotes naked list
+             'py': f"{_lb}{_q}left{_q}, {_q}down{_q}, {_q}right{_q}{_rb}",
+             'js': f"{_lb}{_q}left{_q}, {_q}down{_q}, {_q}right{_q}{_rb}"},  # Double quotes naked list
             {'val': "\'left\', \'down\', \'right\'",
-             'out': f"{_lb}{_q}left{_q}, {_q}down{_q}, {_q}right{_q}{_rb}"},  # Single quotes naked list
+             'py': f"{_lb}{_q}left{_q}, {_q}down{_q}, {_q}right{_q}{_rb}",
+             'js': f"{_lb}{_q}left{_q}, {_q}down{_q}, {_q}right{_q}{_rb}"},  # Single quotes naked list
             {'val': "(\'left\', \'down\', \'right\')",
-             'out': f"{_lb}{_q}left{_q}, {_q}down{_q}, {_q}right{_q}{_rb}"},  # Single quotes tuple syntax
+             'py': f"{_lb}{_q}left{_q}, {_q}down{_q}, {_q}right{_q}{_rb}",
+             'js': f"{_lb}{_q}left{_q}, {_q}down{_q}, {_q}right{_q}{_rb}"},  # Single quotes tuple syntax
             {'val': "[\'left\', \'down\', \'right\']",
-             'out': f"{_lb}{_q}left{_q}, {_q}down{_q}, {_q}right{_q}{_rb}"},  # Single quotes list syntax
+             'py': f"{_lb}{_q}left{_q}, {_q}down{_q}, {_q}right{_q}{_rb}",
+             'js': f"{_lb}{_q}left{_q}, {_q}down{_q}, {_q}right{_q}{_rb}"},  # Single quotes list syntax
             {'val': "\"left\"",
-             'out': f"{_lb}{_q}left{_q}{_rb}"},  # Single value
+             'py': f"{_lb}{_q}left{_q}{_rb}",
+             'js': f"{_lb}{_q}left{_q}{_rb}"},  # Single value
             {'val': "[\"left\"]",
-             'out': f"{_lb}{_q}left{_q}{_rb}"},  # Single value list syntax
+             'py': f"{_lb}{_q}left{_q}{_rb}",
+             'js': f"{_lb}{_q}left{_q}{_rb}"},  # Single value list syntax
             {'val': "$left",
-             'out': r"left"},  # Variable name
+             'py': r"left",
+             'js': r"left"},  # Variable name
         ]
         # Stringify each and check it compiles correctly
         for case in cases:
             param = Param(case['val'], "list")
-            assert re.fullmatch(case['out'], str(param)), f"`{case['val']}` should match the regex `{case['out']}`, but it was `{param}`"
+            # Test Python
+            utils.scriptTarget == "PsychoPy"
+            assert (re.fullmatch(case['py'], str(param)),
+                    f"`{case['val']}` should match the regex `{case['py']}`, but it was `{param}`")
+            # Test JS
+            utils.scriptTarget == "PsychoJS"
+            assert (re.fullmatch(case['js'],str(param)),
+                    f"`{case['val']}` should match the regex `{case['js']}`, but it was `{param}`")
