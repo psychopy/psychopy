@@ -288,13 +288,15 @@ class FileListCtrl(wx.ListBox, _ValidatorMixin, _HideMixin, _FileMixin):
         if type(choices) == str:
             choices = data.utils.listFromString(choices)
         self.Create(id=wx.ID_ANY, parent=parent, choices=choices, size=size, style=wx.LB_EXTENDED | wx.LB_HSCROLL)
+        self.addCustomBtn = wx.Button(parent, -1, size=(24,24), style=wx.BU_EXACTFIT, label="...")
+        self.addCustomBtn.Bind(wx.EVT_BUTTON, self.addCustomItem)
         self.addBtn = wx.Button(parent, -1, size=(24,24), style=wx.BU_EXACTFIT, label="+")
         self.addBtn.Bind(wx.EVT_BUTTON, self.addItem)
         self.subBtn = wx.Button(parent, -1, size=(24,24), style=wx.BU_EXACTFIT, label="-")
         self.subBtn.Bind(wx.EVT_BUTTON, self.removeItem)
         self._szr = wx.BoxSizer(wx.HORIZONTAL)
         self.btns = wx.BoxSizer(wx.VERTICAL)
-        self.btns.AddMany((self.addBtn, self.subBtn))
+        self.btns.AddMany((self.addCustomBtn, self.addBtn, self.subBtn))
         self._szr.Add(self, proportion=1, flag=wx.EXPAND)
         self._szr.Add(self.btns)
 
@@ -320,6 +322,18 @@ class FileListCtrl(wx.ListBox, _ValidatorMixin, _HideMixin, _FileMixin):
         items = [item for index, item in enumerate(self.Items)
                  if index not in i]
         self.SetItems(items)
+
+    def addCustomItem(self, event):
+        # Create string dialog
+        dlg = wx.TextEntryDialog(parent=self, message=_translate("Add custom item"))
+        # Show dialog
+        if dlg.ShowModal() != wx.ID_OK:
+            return
+        # Get string
+        stringEntry = dlg.GetValue()
+        # Add to list
+        if stringEntry:
+            self.InsertItems([stringEntry], 0)
 
     def GetValue(self):
         return self.Items
