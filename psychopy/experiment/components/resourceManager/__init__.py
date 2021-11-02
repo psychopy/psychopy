@@ -34,8 +34,8 @@ class ResourceManagerComponent(BaseComponent):
         self.params['actionType'] = Param(actionType,
             valType='str', inputType='choice', categ='Basic',
             allowedVals=["Start and Check", "Start Only", "Check Only"],
-            hint=_translate("Should this component start and / or stop eye tracker recording?"),
-            label=_translate("Record Actions")
+            hint=_translate("Should this component start an / or check resource preloading?"),
+            label=_translate("Preload Actions")
         )
 
         self.params['stopVal'].label = "Check"
