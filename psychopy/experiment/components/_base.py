@@ -542,22 +542,27 @@ class BaseComponent:
         value and can be used in non-slip global clock timing (e.g for fMRI)
         """
         if not 'startType' in self.params:
-            # this component does not have any start/stop
+            # this component does not have any start
             return None, None, True
 
-        startType = self.params['startType'].val
-        stopType = self.params['stopType'].val
-        numericStart = canBeNumeric(self.params['startVal'].val)
-        numericStop = canBeNumeric(self.params['stopVal'].val)
-
         # deduce a start time (s) if possible
-        # user has given a time estimate
+        startType = self.params['startType'].val
+        numericStart = canBeNumeric(self.params['startVal'].val)
+
         if canBeNumeric(self.params['startEstim'].val):
             startTime = float(self.params['startEstim'].val)
         elif startType == 'time (s)' and numericStart:
             startTime = float(self.params['startVal'].val)
         else:
             startTime = None
+
+        if 'stopType' not in self.params:
+            # this component does not have any stop
+            return startTime, 0, numericStart
+
+        # deduce stop time (s) if possible
+        stopType = self.params['stopType'].val
+        numericStop = canBeNumeric(self.params['stopVal'].val)
 
         if stopType == 'time (s)' and numericStop:
             duration = float(self.params['stopVal'].val) - (startTime or 0)
