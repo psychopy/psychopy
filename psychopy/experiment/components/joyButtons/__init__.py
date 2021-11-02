@@ -438,7 +438,7 @@ class JoyButtonsComponent(BaseComponent):
         if currLoop.type in ['StairHandler', 'MultiStairHandler']:
             # data belongs to a Staircase-type of object
             if self.params['storeCorrect'].val is True:
-                code = ("%s.addResponse(%s.corr)\n" %
+                code = ("%s.addResponse(%s.corr, level)\n" %
                         (currLoop.params['name'], name) +
                         "%s.addOtherData('%s.rt', %s.rt)\n"
                         % (currLoop.params['name'], name, name))
