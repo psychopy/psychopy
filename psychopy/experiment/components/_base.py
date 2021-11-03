@@ -335,6 +335,11 @@ class BaseComponent:
         buff.writeIndentedLines(f"if {params['name']}.status == STARTED:\n")
         buff.setIndentLevel(+1, relative=True)
 
+        # If start time is blank ad stop is a duration, raise alert
+        if self.params['stopType'] in ('duration (s)', 'duration (frames)'):
+            if ('startVal' not in self.params) or (self.params['startVal'] in ("", "None", None)):
+                alerttools.alert(4120, strFields={'component': self.params['name']})
+
         if self.params['stopType'].val == 'time (s)':
             code = (f"# is it time to stop? (based on local clock)\n"
                     f"if tThisFlip > {params['stopVal']}-frameTolerance:\n"
