@@ -1,3 +1,9 @@
+pylsl
 egi
 iolabs
+googleapiclient
 SpeechRecognition
+pyxid2
+badapted
+darc_toolbox
+pygaze

@@ -251,6 +251,22 @@ class Routine(list):
         """Add a component to the end of the routine"""
         self.append(component)
 
+    def insertComponent(self, index, component):
+        """Insert a component at some point of the routine.
+
+        Parameters
+        ----------
+        index : int
+            Position in the routine to insert the component.
+        component : object
+            Component object to insert.
+
+        """
+        try:
+            self.insert(index, component)
+        except IndexError:
+            self.append(component)  # just insert at the end on invalid index
+
     def removeComponent(self, component):
         """Remove a component from the end of the routine"""
         name = component.params['name']

@@ -106,13 +106,6 @@ class RegionOfInterestComponent(PolygonComponent):
         pass
 
     def writeInitCode(self, buff):
-        # Alert user if there's no eyetracker record component in this routine
-        recorded = False
-        for sibling in self.exp.routines[self.parentName]:
-            if isinstance(sibling, EyetrackerRecordComponent):
-                recorded = True
-        if not recorded:
-            alert(code=4550, strFields={"name": self.params['name']})
         # do we need units code?
         if self.params['units'].val == 'from exp settings':
             unitsStr = ""

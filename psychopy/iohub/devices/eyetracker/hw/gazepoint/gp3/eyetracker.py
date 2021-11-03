@@ -426,7 +426,7 @@ class EyeTracker(EyeTrackerDevice):
         Start the eye tracker calibration procedure.
         """
         cal_config = updateSettings(self.getConfiguration().get('calibration'), calibration_args)
-        print2err("gp3 cal_config:", cal_config)
+        #print2err("gp3 cal_config:", cal_config)
 
         use_builtin = cal_config.get('use_builtin')
         targ_timeout = cal_config.get('target_duration')
