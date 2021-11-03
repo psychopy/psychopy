@@ -12,7 +12,7 @@ class ResourceManagerComponent(BaseComponent):
                          "to load first")
     beta = True
 
-    def __init__(self, exp, parentName, name='preloadResources',
+    def __init__(self, exp, parentName, name='resources',
                  startType='time (s)', startVal=0,
                  stopType='duration (s)', stopVal='',
                  startEstim='', durationEstim='',
