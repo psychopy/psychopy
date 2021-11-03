@@ -50,6 +50,11 @@ class BaseBackend(ABC):
         :param: win is a PsychoPy Window (usually not fully created yet)
         """
         self.win = win  # this will use the @property to make/use a weakref
+
+        # callback functions
+        self._onMoveCallback = None
+        self._onResizeCallback = None
+
         super().__init__()
 
     @abstractmethod
@@ -106,10 +111,20 @@ class BaseBackend(ABC):
     def onResize(self, width, height):
         """A method that will be called if the window detects a resize event
         """
-        logging.warning("dispatchEvents() method in {} was called "
-                        "but is not implemented. Is it needed?"
-                        .format(self.win.winType)
-                        )
+        raise NotImplementedError(
+            "`onResize` is not yet implemented for this backend.")
+
+    def onMove(self, newPos):
+        """A method called when the window is moved by the user.
+
+        Parameters
+        ----------
+        cbfunc : callable
+            Callback function.
+
+        """
+        raise NotImplementedError(
+            "`onMove` is not yet implemented for this backend.")
 
     # Helper methods that don't need converting
 
