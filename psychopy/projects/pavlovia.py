@@ -606,7 +606,7 @@ class PavloviaProject(dict):
 
     def __setitem__(self, key, value):
         dict.__setitem__(self, key, value)
-        self.project.attributes[key] = value
+        self.project.__setattr__(key, value)
 
     @property
     def session(self):
