@@ -19,8 +19,12 @@ PRINT_MOUSE_EVENTS = False
 def mouseWindowPos(mouse_event):
     for w in visual.window.openWindows:
         mx, my = mouse_event.x_position, mouse_event.y_position
-        if w().pos[0] <= mx <= w().pos[0]+w().size[0]:
-            if w().pos[1] <= my <= w().pos[1] + w().size[1]:
+        ww, wh = w().size
+        if w().useRetina:
+            ww = ww / 2
+            wh = wh / 2
+        if w().pos[0] <= mx <= w().pos[0]+ww:
+            if w().pos[1] <= my <= w().pos[1] + wh:
                 return w, mx - w().pos[0], my - w().pos[1]
     return None, None, None
 
@@ -47,8 +51,8 @@ mouse = io.devices.mouse
 txt_proto = 'Desktop x,y: {},{}\nWin x,y: {},{}\n\nwin._hw_handle: {}\n\n\nPress Any Key to Quit.'
 win_stim={}
 for w in visual.window.openWindows:
-    win_stim[w()._hw_handle] = visual.TextStim(w(), pos=(0.0, 0.0), alignText='center', anchorHoriz='center',
-                                               anchorVert='center', height=.05, autoLog=False, wrapWidth=0.7,
+    win_stim[w()._hw_handle] = visual.TextStim(w(), pos=(-0.5, 0.0), alignText='left', anchorHoriz='left',
+                                               anchorVert='center', height=.03, autoLog=False, wrapWidth=0.7,
                                                text=txt_proto.format('?', '?', '?', '?', w()._hw_handle))
 
 io.clearEvents('all')
