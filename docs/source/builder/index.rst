@@ -14,7 +14,7 @@ Making your experiments using the PsychoPy builder is the approach that we gener
 There are a number of tutorials on how to get started making experiments in builder on the `PsychoPy Youtube channel <https://www.youtube.com/user/peircej>`_ as well as several written tutorials and `Experiment Recipes <https://workshops.psychopy.org/tutorials/index.html>`_.
 You can also find a range of `materials for teaching <https://workshops.psychopy.org/teaching/index.html>`_ using builder view.
 
-.. image:: ../images/builder.png
+.. image:: /images/builder.png
     :width: 100%
     :alt: The Builder view
 

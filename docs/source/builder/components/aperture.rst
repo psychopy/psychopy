@@ -7,7 +7,7 @@ This component can be used to filter the visual display, as if the subject is lo
 
 .. only:: html
 
-    .. image:: ../images/aperture.gif
+    .. image:: images/aperture.gif
         :width: 60%
 
 Basic

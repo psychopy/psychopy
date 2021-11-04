@@ -158,7 +158,6 @@ To activate the newly-created environment and run PsychoPy, exceute::
 
 .. _developers_install:
 
-
 Developers install
 ~~~~~~~~~~~~~~~~~~~~~~
 

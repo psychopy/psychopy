@@ -3,8 +3,10 @@
 Code Component
 -------------------------------
 
-.. image:: ../../images/code_component.gif
-   :alt: A code component in action
+.. only:: html
+
+    .. image:: images/code_component.gif
+       :alt: A code component in action
 
 The `Code Component` can be used to insert short pieces of python code into your experiments. This might be create a variable that you want for another :ref:`Component <components>`, to manipulate images before displaying them, to interact with hardware for which there isn't yet a pre-packaged component in `PsychoPy` (e.g. writing code to interact with the serial/parallel ports). See `code uses`_ below.
 

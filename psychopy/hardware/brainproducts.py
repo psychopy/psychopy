@@ -1,5 +1,5 @@
 """
-Python support for `BrainProducts <https://www.brainproducts.com>`_ hardware.
+Python support for `Brain Products GMBH <https://www.brainproducts.com>`_ hardware.
 
 Here we have implemented support for the Remote Control Server application,
 which allows you to control recordings, send annotations etc. all from Python.
@@ -206,7 +206,8 @@ class RemoteControlServer(object):
             Name of the state (e.g. "applicationState")
         permitted : list
             List of values that are permitted before returning
-=        """
+
+        """
         if type(permitted) is not list:
             raise TypeError("permitted must be a list of permitted values")
         while getattr(self, stateName) not in permitted:

@@ -368,16 +368,16 @@ class DlgFromDict(Dlg):
 
     labels : dict
         A dictionary defining labels (values) to be displayed instead of
-        key strings (keys) defined in ``dictionary´´. Not all keys in
-        ``dictionary´´ need to be contained in labels.
+        key strings (keys) defined in `dictionary`. Not all keys in
+        `dictionary` need to be contained in labels.
 
     fixed : list
         A list of keys for which the values shall be displayed in non-editable
         fields
     
     order : list
-        A list of keys defining the display order of keys in ``dictionary´´.
-        If not all keys in ``dictionary´´ are contained in ``order´´, those
+        A list of keys defining the display order of keys in `dictionary`.
+        If not all keys in `dictionary`` are contained in `order`, those
         will appear in random order after all ordered keys.
 
     tip : list
@@ -391,20 +391,20 @@ class DlgFromDict(Dlg):
         A boolean flag indicating that keys are to be sorted alphabetically.
 
     copyDict : bool
-        If False, modify ``dictionary`` in-place. If True, a copy of
+        If False, modify `dictionary` in-place. If True, a copy of
         the dictionary is created, and the altered version (after
         user interaction) can be retrieved from
         :attr:~`psychopy.gui.DlgFromDict.dictionary`.
         
     labels : dict
         A dictionary defining labels (dict values) to be displayed instead of
-        key strings (dict keys) defined in ``dictionary´´. Not all keys in
-        ``dictionary´´ need to be contained in labels.
+        key strings (dict keys) defined in `dictionary`. Not all keys in
+        `dictionary´ need to be contained in labels.
 
     show : bool
         Whether to immediately display the dialog upon instantiation.
-         If False, it can be displayed at a later time by calling
-         its `show()` method.
+        If False, it can be displayed at a later time by calling
+        its `show()` method.
 
     e.g.:
 
