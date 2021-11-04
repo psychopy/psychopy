@@ -382,7 +382,7 @@ class PsychoPyApp(wx.App, themes.ThemeMixin):
             for exp in [file for file in args if file.endswith('.psyexp') or file.endswith('.py')]:
                 self.runner.panel.runFile(exp)
 
-        # send anonymous info to www.psychopy.org/usage.php
+        # send anonymous info to https://usage.psychopy.org
         # please don't disable this, it's important for PsychoPy's development
         self._latestAvailableVersion = None
         self.updater = None
