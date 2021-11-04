@@ -936,6 +936,20 @@ class PavloviaProject(dict):
             config.set_value("user", "email", session.user.email)
             config.set_value("user", "name", session.user.name)
 
+    def fork(self, to=None):
+        # Sub in current user if none given
+        if to is None:
+            to = self.session.user.username
+        # Do fork
+        try:
+            glProj = self.project.forks.create({'namespace': to})
+        except gitlab.GitlabCreateError:
+            raise gitlab.GitlabCreateError(f"Project {self.session.user.username}/{self['name']} already exists!")
+        # Get new project
+        proj = PavloviaProject(glProj.id)
+        # Return new project
+        return proj
+
     def forkTo(self, groupName=None, projectName=None):
         """forks this project to a new namespace and (potentially) project name"""
         newProjInfo = {}
