@@ -53,7 +53,7 @@ from .dialogs import (DlgComponentProperties, DlgExperimentProperties,
                       DlgCodeComponentProperties, DlgLoopProperties,
                       ParamNotebook)
 from ..utils import (PsychopyToolbar, PsychopyPlateBtn, WindowFrozen,
-                     FileDropTarget, FrameSwitcher, updateDemosMenu)
+                     FileDropTarget, FrameSwitcher, updateDemosMenu, ToggleButtonArray)
 
 from psychopy.experiment import getAllStandaloneRoutines
 from psychopy.app import pavlovia_ui
@@ -947,6 +947,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         """
         self.flowPanel.draw()
         self.routinePanel.redrawRoutines()
+        self.componentButtons.Refresh()
         self.updateWindowTitle()
 
     def layoutPanes(self):
@@ -2562,6 +2563,10 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         # Setup sizer
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.sizer)
+        # Add view toggler
+        self.viewCtrl = ToggleButtonArray(self, ("PsychoPy", "PsychoJS"), multi=True)
+        self.viewCtrl.Bind(wx.EVT_CHOICE, self.setView)
+        self.sizer.Add(self.viewCtrl, border=0, flag=wx.ALL | wx.EXPAND)
         # Get components
         self.components = experiment.getAllComponents(
             self.app.prefs.builder['componentsFolders'])
@@ -2625,28 +2630,12 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         # Add component buttons to category sizers
         for btn in self.rtButtons:
             self.catSizers[btn.category].Add(btn, border=3, flag=wx.ALL)
-        # Set starting visibility
-        for cat, btn in self.catLabels.items():
-            if cat in ['Favorites']:
-                btn.ToggleMenu(True)
-            else:
-                btn.ToggleMenu(False)
-            # If every button in a category is hidden, hide the category
-            empty = True
-            for child in self.catSizers[cat].Children:
-                if isinstance(child.Window, self.ComponentButton):
-                    name = child.Window.component.__name__
-                elif isinstance(child.Window, self.RoutineButton):
-                    name = child.Window.routine.__name__
-                else:
-                    name = ""
-                if name not in prefs.builder['hiddenComponents'] + alwaysHidden:
-                    empty = False
-            btn.Show(not empty)
+        # Show favourites on startup
+        self.catLabels['Favorites'].ToggleMenu(True)
         # Do sizing
-        self.Layout()
         self.Fit()
-        self.SetupScrolling()
+        # Set view
+        self.viewCtrl.SetValue(self.filter)
         # double buffered better rendering except if retina
         self.SetDoubleBuffered(not self.frame.isRetina)
         # Apply theme
@@ -2701,6 +2690,51 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         for button in self.compButtons:
             button.Enable(enable)
         self.Update()
+
+    def Refresh(self, eraseBackground=True, rect=None):
+        wx.Window.Refresh(self, eraseBackground, rect)
+        # Refresh view
+        if prefs.builder['componentFilter'] == "Both":
+            view = ["PsychoPy", "PsychoJS"]
+        elif prefs.builder['componentFilter'] == "Any":
+            view = []
+        else:
+            view = [prefs.builder['componentFilter']]
+        self.viewCtrl.SetValue(view)
+
+    def setView(self, view=None):
+        # If setting from an event, set as the value of the event
+        if isinstance(view, wx.CommandEvent):
+            view = view.EventObject.GetValue()
+        # Set view
+        if "PsychoPy" in view and "PsychoJS" in view:
+            self.filter = prefs.builder['componentFilter'] = "Both"
+        if "PsychoPy" in view and "PsychoJS" not in view:
+            self.filter = prefs.builder['componentFilter'] = "PsychoPy"
+        if "PsychoPy" not in view and "PsychoJS" in view:
+            self.filter = prefs.builder['componentFilter'] = "PsychoJS"
+        if "PsychoPy" not in view and "PsychoJS" not in view:
+            self.filter = prefs.builder['componentFilter'] = "Any"
+        prefs.saveUserPrefs()
+        # Toggle all categories so they refresh
+        for btn in self.catLabels.values():
+            btn.ToggleMenu(btn.GetValue())
+        # If every button in a category is hidden, hide the category
+        for cat, btn in self.catLabels.items():
+            empty = True
+            for child in self.catSizers[cat].Children:
+                if isinstance(child.Window, self.ComponentButton):
+                    name = child.Window.component.__name__
+                elif isinstance(child.Window, self.RoutineButton):
+                    name = child.Window.routine.__name__
+                else:
+                    name = ""
+                if name not in prefs.builder['hiddenComponents'] + alwaysHidden:
+                    empty = False
+            btn.Show(not empty)
+        # Do sizing
+        self.Layout()
+        self.SetupScrolling()
 
 
 class ReadmeFrame(wx.Frame):
