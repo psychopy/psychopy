@@ -475,8 +475,9 @@ class DetailsPanel(wx.Panel):
         obj = evt.GetEventObject()
 
         # Update project attribute according to supplying object
-        if obj == self.title:
+        if obj == self.title and self.project.editable:
             self.project['name'] = self.title.Value
+            self.project.save()
         if obj == self.icon:
             pass
         if obj == self.starBtn:
@@ -484,16 +485,17 @@ class DetailsPanel(wx.Panel):
             self.starLbl.SetLabel(str(self.project.info['nbStars']))
         if obj == self.localRoot:
             self.project.localRoot = self.localRoot.Value
-        if obj == self.description:
+        if obj == self.description and self.project.editable:
             self.project['description'] = self.description.Value
-        if obj == self.visibility:
+            self.project.save()
+        if obj == self.visibility and self.project.editable:
             self.project['visibility'] = self.visibility.GetStringSelection()
-        if obj == self.status:
+            self.project.save()
+        if obj == self.status and self.project.editable:
             pass
-        if obj == self.tags:
+        if obj == self.tags and self.project.editable:
             self.project['tag_list'] = self.tags.GetValue()
-
-        self.project.save()
+            self.project.save()
 
 
 class ProjectFrame(wx.Dialog):
