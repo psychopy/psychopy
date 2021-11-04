@@ -178,7 +178,7 @@ class Mouse(MouseDevice):
         if self.isReportingEvents():
             logged_time = currentSec()
             report_system_wide_events = self.getConfiguration().get('report_system_wide_events', True)
-            pyglet_window_hnds = self._iohub_server._pyglet_window_hnds
+            pyglet_window_hnds = self._iohub_server._psychopy_windows.keys()
             if event.Window in pyglet_window_hnds:
                 pass
             elif len(pyglet_window_hnds) > 0 and report_system_wide_events is False:

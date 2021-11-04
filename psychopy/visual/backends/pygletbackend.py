@@ -24,6 +24,7 @@ from psychopy import logging, event, platform_specific
 from psychopy.visual import window
 from psychopy.tools.attributetools import attributeSetter
 from psychopy.tests import _vmTesting
+from psychopy.iohub.client import ioHubConnection
 from .gamma import setGamma, setGammaRamp, getGammaRamp, getGammaRampSize
 from .. import globalVars
 from ._base import BaseBackend
@@ -344,6 +345,8 @@ class PygletBackend(BaseBackend):
 
     def onMove(self, x, y):
         self.win.pos = (x, y)
+        if ioHubConnection.ACTIVE_CONNECTION:
+            ioHubConnection.ACTIVE_CONNECTION.updateWindowPos(self.win._hw_handle, self.win.pos)
 
     @property
     def frameBufferSize(self):

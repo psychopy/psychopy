@@ -399,14 +399,27 @@ class udpServer(DatagramServer):
     def registerWindowHandles(self, *win_hwhds):
         if self.iohub:
             for wh in win_hwhds:
-                if wh not in self.iohub._pyglet_window_hnds:
-                    self.iohub._pyglet_window_hnds.append(wh)
+                if wh['handle'] not in self.iohub._psychopy_windows.keys():
+                    self.iohub._psychopy_windows[wh['handle']] = wh
 
     def unregisterWindowHandles(self, *win_hwhds):
         if self.iohub:
             for wh in win_hwhds:
-                if wh in self.iohub._pyglet_window_hnds:
-                    self.iohub._pyglet_window_hnds.remove(wh)
+                if wh in self.iohub._psychopy_windows.keys():
+                    del self.iohub._psychopy_windows[wh]
+
+    def updateWindowPos(self, win_hwhd, pos):
+        """
+        Update stored psychopy window position.
+        :param win_hwhd:
+        :param pos:
+        :return:
+        """
+        winfo = self.iohub._psychopy_windows.get(win_hwhd)
+        if winfo:
+            winfo['pos'] = pos
+        else:
+            print2err('warning: win_hwhd {} not registered with iohub server.'.format(win_hwhd))
 
     def createExperimentSessionEntry(self, sessionInfoDict):
         sessionInfoDict = convertByteStrings(sessionInfoDict)
@@ -524,7 +537,7 @@ class ioServer():
     eventBuffer = None
     deviceDict = {}
     _logMessageBuffer = deque(maxlen=128)
-    _pyglet_window_hnds = []
+    _psychopy_windows = {}
     status = 'OFFLINE'
     def __init__(self, rootScriptPathDir, config=None):
         self._session_id = None

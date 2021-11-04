@@ -30,15 +30,13 @@ def mouseWindowPos(mouse_event):
 
 
 win = visual.Window((400, 400), pos=(0, 30), units='height', fullscr=False, allowGUI=True, screen=0)
-win2 = visual.Window((600, 600), pos=(500, 30), units='height', fullscr=False, allowGUI=True, screen=1)
 print('win handle: ', win._hw_handle, "pos:", win.pos)
-print('win2 handle: ', win2._hw_handle, "pos:", win2.pos)
+
 # create the process that will run in the background polling devices
 io = launchHubServer(window=win, Mouse=dict(use_desktop_position=True))
 
-#display_pixel_bounds = io.devices.display.getAllDisplayBounds()
-#for i, dpb in enumerate(display_pixel_bounds):
-#    print('display %d bounds:' % i, dpb)
+win2 = visual.Window((600, 600), pos=(500, 30), units='height', fullscr=False, allowGUI=True, screen=1)
+print('win2 handle: ', win2._hw_handle, "pos:", win2.pos)
 
 # some default devices have been created that can now be used
 keyboard = io.devices.keyboard
@@ -112,8 +110,10 @@ while not kb_events:
     # Check for keyboard events.
     kb_events = keyboard.getEvents()
 
-# End of Example
+win.close()
+win2.close()
 
 core.quit()
+# End of Example
 
 # The contents of this file are in the public domain.
