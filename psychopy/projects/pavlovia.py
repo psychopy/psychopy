@@ -950,21 +950,6 @@ class PavloviaProject(dict):
         # Return new project
         return proj
 
-    def forkTo(self, groupName=None, projectName=None):
-        """forks this project to a new namespace and (potentially) project name"""
-        newProjInfo = {}
-        # if projectName:
-        #    newProjInfo['name'] = projectName
-        # if groupName:
-        #     newProjInfo['namespace'] = groupName
-        # make the fork
-        fork = self.pavlovia.forks.create(newProjInfo)
-
-        id = fork.id
-        pavSession = refreshSession()
-        proj = pavSession.getProject(id)
-        return proj
-
     def getChanges(self):
         """Find all the not-yet-committed changes in the repository"""
         changeDict = {}
