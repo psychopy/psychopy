@@ -12,6 +12,7 @@ import traceback
 from urllib import request
 from pathlib import Path
 
+import gitlab
 import requests
 from .functions import (setLocalPath, showCommitDialog, logInPavlovia,
                         noGitWarning)
@@ -25,6 +26,7 @@ import wx
 from wx.lib import scrolledpanel as scrlpanel
 
 from .. import utils
+from ...projects.pavlovia import PavloviaProject
 
 try:
     import wx.lib.agw.hyperlink as wxhl  # 4.0+
@@ -453,10 +455,24 @@ class DetailsPanel(wx.Panel):
         pass
 
     def fork(self, evt=None):
-        # Do fork (todo:)
-        pass
-        # Get new project (todo:)
-        pass
+        # Do fork
+        try:
+            proj = self.project.fork()
+        except gitlab.GitlabCreateError as e:
+            # If project already exists, ask user if they want to view it rather than create again
+            dlg = wx.MessageDialog(self, f"{e.error_message}\n\nOpen forked project?", style=wx.YES_NO)
+            if dlg.ShowModal() == wx.ID_YES:
+                # If yes, show forked project
+                projData = requests.get(
+                    f"https://pavlovia.org/api/v2/experiments/{self.project.session.user.username}/{self.project['name']}"
+                ).json()
+                self.project = PavloviaProject(projData['experiment']['gitlabId'])
+                return
+            else:
+                # If no, return
+                return
+        # Switch to new project
+        self.project = proj
         # Sync
         dlg = wx.MessageDialog(self, "Fork created! Sync it to a local folder?", style=wx.YES_NO)
         if dlg.ShowModal() == wx.ID_YES:
