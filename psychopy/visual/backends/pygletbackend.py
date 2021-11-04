@@ -303,6 +303,8 @@ class PygletBackend(BaseBackend):
         self.winHandle.getGammaRamp = getGammaRamp
         self.winHandle.set_vsync(True)
         self.winHandle.on_text = self.onText
+        self.winHandle.on_move = self._onMove
+        self.winHandle.on_resize = self._onResize
         self.winHandle.on_text_motion = self.onCursorKey
         self.winHandle.on_key_press = self.onKey
         self.winHandle.on_mouse_press = self.onMouseButtonPress

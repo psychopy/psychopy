@@ -108,23 +108,55 @@ class BaseBackend(ABC):
                         .format(self.win.winType)
                         )
 
-    def onResize(self, width, height):
-        """A method that will be called if the window detects a resize event
+    @property
+    def onMoveCallback(self):
+        """Callback function for window move events (`callable` or `None`).
         """
-        raise NotImplementedError(
-            "`onResize` is not yet implemented for this backend.")
+        return self._onMoveCallback
 
-    def onMove(self, newPos):
+    @onMoveCallback.setter
+    def onMoveCallback(self, value):
+        if not callable(value) or value is not None:
+            raise TypeError(
+                'Value for `onMoveCallback` must be callable or `None`.')
+
+        self._onMoveCallback = value
+
+    @property
+    def onResizeCallback(self):
+        """Callback function for window resize events (`callable` or `None`).
+        """
+        return self._onResizeCallback
+
+    @onResizeCallback.setter
+    def onResizeCallback(self, value):
+        if not callable(value) or value is not None:
+            raise TypeError(
+                'Value for `onResizeCallback` must be callable or `None`.')
+
+        self._onResizeCallback = value
+
+    def _onResize(self, width, height):
+        """A method that will be called if the window detects a resize event.
+
+        This method is bound to the window backend resize event, data is
+        formatted and forwarded to the user's callback function.
+
+        """
+        # When overriding this function, at the very minimum we must call the
+        # user's function, passing the data they expect.
+        if self._onResizeCallback is not None:
+            self._onResizeCallback((width, height))
+
+    def _onMove(self, posX, posY):
         """A method called when the window is moved by the user.
 
-        Parameters
-        ----------
-        cbfunc : callable
-            Callback function.
+        This method is bound to the window backend move event, data is
+        formatted and forwarded to the user's callback function.
 
         """
-        raise NotImplementedError(
-            "`onMove` is not yet implemented for this backend.")
+        if self._onMoveCallback is not None:
+            self._onMoveCallback((posX, posY))
 
     # Helper methods that don't need converting
 
