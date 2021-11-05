@@ -73,7 +73,7 @@ class PythonREPLCtrl(wx.Panel, ThemeMixin):
 
         # capture keypresses
         if wx.Platform == '__WXMAC__':
-            # need to use this on Windows
+            # need to use this on MacOS
             keyDownBindingId = wx.EVT_KEY_DOWN
         else:
             keyDownBindingId = wx.EVT_CHAR
