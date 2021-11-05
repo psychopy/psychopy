@@ -1,10 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Test for using iohub mouse with event positions reported in desktop coord's.
-To start iohub with mouse reporting in desktop coord's, use:
+Test for using iohub mouse with multiple windows. To enable multi window support
+for the iohub Mouse device:
 
 launchHubServer(window=win, Mouse=dict(enable_multi_window=True))
+
+In this mode, if the mouse is over a psychopy window, mouse position is returned
+as the pix position within the window, with origin (0,0) at window center. mouse event
+window_id will equal a psychopy window handle (pyglet only).
+
+If the mouse is not over a psychopy window, desktop mouse position is returned with
+window_id = 0.
 """
 import sys
 
