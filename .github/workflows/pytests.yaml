@@ -91,6 +91,16 @@ jobs:
       with:
         fail_ci_if_error: false
 
+    - name: test docs to pdf
+      run: ammaraskar/sphinx-action@master
+      with:
+        docs-folder: "docs"
+        pre-build-command: |
+          brew install basictex
+          eval "$(/usr/libexec/path_helper)"
+        build-command: "make latexpdf"
+
+
 #    - name: Check bdist/sdist
 #      # checks whether different forms of build work (e.g. missing files in sdist)
 #      run: |
