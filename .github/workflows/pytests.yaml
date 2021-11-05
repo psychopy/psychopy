@@ -92,7 +92,7 @@ jobs:
         fail_ci_if_error: false
 
     - name: test docs to pdf
-      run: ammaraskar/sphinx-action@master
+      uses: ammaraskar/sphinx-action@master
       with:
         docs-folder: "docs"
         pre-build-command: |
