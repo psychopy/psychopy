@@ -263,7 +263,10 @@ class LegacyVisualMixin(object):
         self.__dict__['depth'] = value
 
 
-class LegacyColorMixin(object):
+class LegacyForeColorMixin:
+    """
+    Mixin class to give an object all of the legacy functions for setting foreground color
+    """
     def setDKL(self, color, operation=''):
         """DEPRECATED since v1.60.05: Please use the `color` attribute
         """
@@ -296,6 +299,36 @@ class LegacyColorMixin(object):
     def RGB(self, value):
         self.foreRGB = value
 
+    def setRGB(self, color, operation='', log=None):
+        """
+        DEPRECATED: Legacy setter for foreground RGB, instead set `obj._foreColor.rgb`
+        """
+        self.setForeColor(color, 'rgb', operation, log)
+
+    def setForeRGB(self, color, operation='', log=None):
+        """
+        DEPRECATED: Legacy setter for foreground RGB, instead set `obj._foreColor.rgb`
+        """
+        self.setForeColor(color, 'rgb', operation, log)
+
+    @property
+    def foreColorSpace(self):
+        """Deprecated, please use colorSpace to set color space for the entire
+        object.
+        """
+        return self.colorSpace
+
+    @foreColorSpace.setter
+    def foreColorSpace(self, value):
+        logging.warning(
+            "Setting color space by attribute rather than by object is deprecated. Value of foreColorSpace has been assigned to colorSpace.")
+        self.colorSpace = value
+
+
+class LegacyFillColorMixin:
+    """
+    Mixin class to give an object all of the legacy functions for setting fill color
+    """
     @property
     def fillRGB(self):
         """
@@ -312,33 +345,11 @@ class LegacyColorMixin(object):
         """
         DEPRECATED: Legacy property for setting the fill color of a stimulus in RGB, instead use `obj._fillColor.rgb`
         """
-        return self.borderRGB
+        return self.fillRGB
 
     @backRGB.setter
     def backRGB(self, value):
         self.fillRGB = value
-
-    @property
-    def borderRGB(self):
-        """
-        DEPRECATED: Legacy property for setting the border color of a stimulus in RGB, instead use `obj._borderColor.rgb`
-        """
-        return self._borderColor.rgb
-
-    @borderRGB.setter
-    def borderRGB(self, value):
-        self.borderColor = Color(value, 'rgb')
-
-    @property
-    def lineRGB(self):
-        """
-        DEPRECATED: Legacy property for setting the border color of a stimulus in RGB, instead use `obj._borderColor.rgb`
-        """
-        return self.borderRGB
-
-    @lineRGB.setter
-    def lineRGB(self, value):
-        self.borderRGB = value
 
     def setFillRGB(self, color, operation='', log=None):
         """
@@ -351,43 +362,6 @@ class LegacyColorMixin(object):
         DEPRECATED: Legacy setter for fill RGB, instead set `obj._fillColor.rgb`
         """
         self.setFillColor(color, 'rgb', operation, log)
-
-    def setRGB(self, color, operation='', log=None):
-        """
-        DEPRECATED: Legacy setter for foreground RGB, instead set `obj._foreColor.rgb`
-        """
-        self.setForeColor(color, 'rgb', operation, log)
-
-    def setForeRGB(self, color, operation='', log=None):
-        """
-        DEPRECATED: Legacy setter for foreground RGB, instead set `obj._foreColor.rgb`
-        """
-        self.setForeColor(color, 'rgb', operation, log)
-
-    def setBorderRGB(self, color, operation='', log=None):
-        """
-        DEPRECATED: Legacy setter for border RGB, instead set `obj._borderColor.rgb`
-        """
-        self.setBorderColor(color, 'rgb', operation, log)
-
-    def setLineRGB(self, color, operation='', log=None):
-        """
-        DEPRECATED: Legacy setter for border RGB, instead set `obj._borderColor.rgb`
-        """
-        self.setBorderColor(color, 'rgb', operation, log)
-
-    @property
-    def foreColorSpace(self):
-        """Deprecated, please use colorSpace to set color space for the entire
-        object.
-        """
-        return self.colorSpace
-
-    @foreColorSpace.setter
-    def foreColorSpace(self, value):
-        logging.warning(
-            "Setting color space by attribute rather than by object is deprecated. Value of foreColorSpace has been assigned to colorSpace.")
-        self.colorSpace = value
 
     @property
     def fillColorSpace(self):
@@ -410,8 +384,48 @@ class LegacyColorMixin(object):
 
     @backColorSpace.setter
     def backColorSpace(self, value):
-        logging.warning("Setting color space by attribute rather than by object is deprecated. Value of backColorSpace has been assigned to colorSpace.")
+        logging.warning(
+            "Setting color space by attribute rather than by object is deprecated. Value of backColorSpace has been assigned to colorSpace.")
         self.colorSpace = value
+
+
+class LegacyBorderColorMixin:
+    """
+    Mixin class to give an object all of the legacy functions for setting border color
+    """
+    @property
+    def borderRGB(self):
+        """
+        DEPRECATED: Legacy property for setting the border color of a stimulus in RGB, instead use `obj._borderColor.rgb`
+        """
+        return self._borderColor.rgb
+
+    @borderRGB.setter
+    def borderRGB(self, value):
+        self.borderColor = Color(value, 'rgb')
+
+    @property
+    def lineRGB(self):
+        """
+        DEPRECATED: Legacy property for setting the border color of a stimulus in RGB, instead use `obj._borderColor.rgb`
+        """
+        return self.borderRGB
+
+    @lineRGB.setter
+    def lineRGB(self, value):
+        self.borderRGB = value
+
+    def setBorderRGB(self, color, operation='', log=None):
+        """
+        DEPRECATED: Legacy setter for border RGB, instead set `obj._borderColor.rgb`
+        """
+        self.setBorderColor(color, 'rgb', operation, log)
+
+    def setLineRGB(self, color, operation='', log=None):
+        """
+        DEPRECATED: Legacy setter for border RGB, instead set `obj._borderColor.rgb`
+        """
+        self.setBorderColor(color, 'rgb', operation, log)
 
     @property
     def borderColorSpace(self):
@@ -440,10 +454,123 @@ class LegacyColorMixin(object):
         self.colorSpace = value
 
 
-class ColorMixin(LegacyColorMixin):
-    """Mixin class for visual stim that need color and or contrast.
+class LegacyColorMixin(LegacyForeColorMixin, LegacyFillColorMixin, LegacyBorderColorMixin):
+    """
+    Mixin class to give an object all of the legacy functions for setting all colors (fore, fill and border
     """
 
+
+class BaseColorMixin:
+    """
+    Mixin class giving base color methods (e.g. colorSpace) which are needed for any color stuff.
+    """
+    @property
+    def colorSpace(self):
+        """The name of the color space currently being used
+
+        Value should be: a string or None
+
+        For strings and hex values this is not needed.
+        If None the default colorSpace for the stimulus is
+        used (defined during initialisation).
+
+        Please note that changing colorSpace does not change stimulus
+        parameters. Thus you usually want to specify colorSpace before
+        setting the color. Example::
+
+            # A light green text
+            stim = visual.TextStim(win, 'Color me!',
+                                   color=(0, 1, 0), colorSpace='rgb')
+
+            # An almost-black text
+            stim.colorSpace = 'rgb255'
+
+            # Make it light green again
+            stim.color = (128, 255, 128)
+        """
+        if hasattr(self, '_colorSpace'):
+            return self._colorSpace
+        else:
+            return 'rgba'
+
+    @colorSpace.setter
+    def colorSpace(self, value):
+        if value in colorSpaces:
+            self._colorSpace = value
+        else:
+            logging.error(f"'{value}' is not a valid color space")
+
+    @property
+    def contrast(self):
+        """A value that is simply multiplied by the color.
+
+        Value should be: a float between -1 (negative) and 1 (unchanged).
+            :ref:`Operations <attrib-operations>` supported.
+
+        Set the contrast of the stimulus, i.e. scales how far the stimulus
+        deviates from the middle grey. You can also use the stimulus
+        `opacity` to control contrast, but that cannot be negative.
+
+        Examples::
+
+            stim.contrast =  1.0  # unchanged contrast
+            stim.contrast =  0.5  # decrease contrast
+            stim.contrast =  0.0  # uniform, no contrast
+            stim.contrast = -0.5  # slightly inverted
+            stim.contrast = -1.0  # totally inverted
+
+        Setting contrast outside range -1 to 1 is permitted, but may
+        produce strange results if color values exceeds the monitor limits.::
+
+            stim.contrast =  1.2  # increases contrast
+            stim.contrast = -1.2  # inverts with increased contrast
+
+        """
+        if hasattr(self, '_foreColor'):
+            return self._foreColor.contrast
+
+    @contrast.setter
+    def contrast(self, value):
+        if hasattr(self, '_foreColor'):
+            self._foreColor.contrast = value
+        if hasattr(self, '_fillColor'):
+            self._fillColor.contrast = value
+        if hasattr(self, '_borderColor'):
+            self._borderColor.contrast = value
+
+    def setContrast(self, newContrast, operation='', log=None):
+        """Usually you can use 'stim.attribute = value' syntax instead,
+        but use this method if you need to suppress the log message
+        """
+        if newContrast is not None:
+            self.contrast = newContrast
+        if operation in ['', '=']:
+            self.contrast = newContrast
+        elif operation in ['+']:
+            self.contrast += newContrast
+        elif operation in ['-']:
+            self.contrast -= newContrast
+        else:
+            logging.error(f"Operation '{operation}' not recognised.")
+
+    def _getDesiredRGB(self, rgb, colorSpace, contrast):
+        """ Convert color to RGB while adding contrast.
+        Requires self.rgb, self.colorSpace and self.contrast
+        """
+        col = Color(rgb, colorSpace)
+        col.contrast *= contrast or 0
+        return col.render('rgb')
+
+    def updateColors(self):
+        """Placeholder method to update colours when set externally, for example updating the `pallette` attribute of
+        a textbox"""
+        return
+
+
+class ForeColorMixin(BaseColorMixin, LegacyForeColorMixin):
+    """
+    Mixin class for visual stim that need fore color.
+    """
     @property
     def foreColor(self):
         """Foreground color of the stimulus
@@ -520,11 +647,28 @@ class ColorMixin(LegacyColorMixin):
     def color(self, value):
         self.foreColor = value
 
+    def setForeColor(self, color, colorSpace=None, operation='', log=None):
+        """Hard setter for foreColor, allows suppression of the log message,
+        simultaneous colorSpace setting and calls update methods.
+        """
+        setColor(obj=self, colorAttrib="foreColor", color=color, colorSpace=colorSpace or self.colorSpace, operation=operation)
+        # Trigger color update for components like Textbox which have different behaviours for a hard setter
+        self.updateColors()
+
+    def setColor(self, color, colorSpace=None, operation='', log=None):
+        self.setForeColor(color, colorSpace=colorSpace, operation=operation, log=log)
+
+
+class FillColorMixin(BaseColorMixin, LegacyFillColorMixin):
+    """
+    Mixin class for visual stim that need fill color.
+    """
+
     @property
     def fillColor(self):
         """Set the fill color for the shape."""
         if hasattr(self, '_fillColor'):
-            return getattr(self._fillColor, self.colorSpace) #return self._fillColor.render(self.colorSpace)
+            return getattr(self._fillColor, self.colorSpace)  # return self._fillColor.render(self.colorSpace)
 
     @fillColor.setter
     def fillColor(self, value):
@@ -548,6 +692,19 @@ class ColorMixin(LegacyColorMixin):
     def backColor(self, value):
         self.fillColor = value
 
+    def setFillColor(self, color, colorSpace=None, operation='', log=None):
+        """Hard setter for fillColor, allows suppression of the log message,
+        simultaneous colorSpace setting and calls update methods.
+        """
+        setColor(obj=self, colorAttrib="fillColor", color=color, colorSpace=colorSpace or self.colorSpace, operation=operation)
+        # Trigger color update for components like Textbox which have different behaviours for a hard setter
+        self.updateColors()
+
+    def setBackColor(self, color, colorSpace=None, operation='', log=None):
+        self.setFillColor(color, colorSpace=None, operation='', log=None)
+
+
+class BorderColorMixin(BaseColorMixin, LegacyBorderColorMixin):
     @property
     def borderColor(self):
         if hasattr(self, '_borderColor'):
@@ -575,102 +732,6 @@ class ColorMixin(LegacyColorMixin):
     def lineColor(self, value):
         self.borderColor = value
 
-    @property
-    def colorSpace(self):
-        """The name of the color space currently being used
-
-        Value should be: a string or None
-
-        For strings and hex values this is not needed.
-        If None the default colorSpace for the stimulus is
-        used (defined during initialisation).
-
-        Please note that changing colorSpace does not change stimulus
-        parameters. Thus you usually want to specify colorSpace before
-        setting the color. Example::
-
-            # A light green text
-            stim = visual.TextStim(win, 'Color me!',
-                                   color=(0, 1, 0), colorSpace='rgb')
-
-            # An almost-black text
-            stim.colorSpace = 'rgb255'
-
-            # Make it light green again
-            stim.color = (128, 255, 128)
-        """
-        if hasattr(self, '_colorSpace'):
-            return self._colorSpace
-        else:
-            return 'rgba'
-    @colorSpace.setter
-    def colorSpace(self, value):
-        if value in colorSpaces:
-            self._colorSpace = value
-        else:
-            logging.error(f"'{value}' is not a valid color space")
-
-    # ---legacy functions---
-    @property
-    def contrast(self):
-        """A value that is simply multiplied by the color.
-
-        Value should be: a float between -1 (negative) and 1 (unchanged).
-            :ref:`Operations <attrib-operations>` supported.
-
-        Set the contrast of the stimulus, i.e. scales how far the stimulus
-        deviates from the middle grey. You can also use the stimulus
-        `opacity` to control contrast, but that cannot be negative.
-
-        Examples::
-
-            stim.contrast =  1.0  # unchanged contrast
-            stim.contrast =  0.5  # decrease contrast
-            stim.contrast =  0.0  # uniform, no contrast
-            stim.contrast = -0.5  # slightly inverted
-            stim.contrast = -1.0  # totally inverted
-
-        Setting contrast outside range -1 to 1 is permitted, but may
-        produce strange results if color values exceeds the monitor limits.::
-
-            stim.contrast =  1.2  # increases contrast
-            stim.contrast = -1.2  # inverts with increased contrast
-
-        """
-        if hasattr(self, '_foreColor'):
-            return self._foreColor.contrast
-
-    @contrast.setter
-    def contrast(self, value):
-        if hasattr(self, '_foreColor'):
-            self._foreColor.contrast = value
-        if hasattr(self, '_fillColor'):
-            self._fillColor.contrast = value
-        if hasattr(self, '_borderColor'):
-            self._borderColor.contrast = value
-
-    def setForeColor(self, color, colorSpace=None, operation='', log=None):
-        """Hard setter for foreColor, allows suppression of the log message,
-        simultaneous colorSpace setting and calls update methods.
-        """
-        setColor(obj=self, colorAttrib="foreColor", color=color, colorSpace=colorSpace or self.colorSpace, operation=operation)
-        # Trigger color update for components like Textbox which have different behaviours for a hard setter
-        self.updateColors()
-
-    def setColor(self, color, colorSpace=None, operation='', log=None):
-        self.setForeColor(color, colorSpace=colorSpace, operation=operation, log=log)
-
-    def setFillColor(self, color, colorSpace=None, operation='', log=None):
-        """Hard setter for fillColor, allows suppression of the log message,
-        simultaneous colorSpace setting and calls update methods.
-        """
-        setColor(obj=self, colorAttrib="fillColor", color=color, colorSpace=colorSpace or self.colorSpace, operation=operation)
-        # Trigger color update for components like Textbox which have different behaviours for a hard setter
-        self.updateColors()
-
-    def setBackColor(self, color, colorSpace=None, operation='', log=None):
-        self.setFillColor(color, colorSpace=None, operation='', log=None)
-
     def setBorderColor(self, color, colorSpace=None, operation='', log=None):
         """Hard setter for `fillColor`, allows suppression of the log message,
         simultaneous colorSpace setting and calls update methods.
@@ -682,33 +743,11 @@ class ColorMixin(LegacyColorMixin):
     def setLineColor(self, color, colorSpace=None, operation='', log=None):
         self.setBorderColor(color, colorSpace=None, operation='', log=None)
 
-    def setContrast(self, newContrast, operation='', log=None):
-        """Usually you can use 'stim.attribute = value' syntax instead,
-        but use this method if you need to suppress the log message
-        """
-        if newContrast is not None:
-            self.contrast = newContrast
-        if operation in ['', '=']:
-            self.contrast = newContrast
-        elif operation in ['+']:
-            self.contrast += newContrast
-        elif operation in ['-']:
-            self.contrast -= newContrast
-        else:
-            logging.error(f"Operation '{operation}' not recognised.")
 
-    def _getDesiredRGB(self, rgb, colorSpace, contrast):
-        """ Convert color to RGB while adding contrast.
-        Requires self.rgb, self.colorSpace and self.contrast
-        """
-        col = Color(rgb, colorSpace)
-        col.contrast *= contrast or 0
-        return col.render('rgb')
-
-    def updateColors(self):
-        """Placeholder method to update colours when set externally, for example updating the `pallette` attribute of
-        a textbox"""
-        return
+class ColorMixin(ForeColorMixin, FillColorMixin, BorderColorMixin):
+    """
+    Mixin class for visual stim that need fill, fore and border color.
+    """
 
 
 class ContainerMixin(object):
