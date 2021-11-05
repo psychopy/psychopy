@@ -678,14 +678,29 @@ class PavloviaProject(dict):
 
     @property
     def localRoot(self):
-        if hasattr(self, "_localRoot"):
-            return self._localRoot
+        if self.project.path_with_namespace in knownProjects:
+            # If project has known local store, return its root
+            return knownProjects[self.project.path_with_namespace]['localRoot']
         else:
+            # Otherwise, return blank
             return ""
 
     @localRoot.setter
     def localRoot(self, value):
-        self._localRoot = value
+        if self.project.path_with_namespace in knownProjects:
+            # If project has known local store, update its root
+            knownProjects[self.project.path_with_namespace]['localRoot'] = value
+            knownProjects.save()
+        else:
+            # If project has no known local store, create one
+            knownProjects[self.project.path_with_namespace] = {
+                'id': self['path_with_namespace'],
+                'idNumer': self.id,
+                'localRoot': value,
+                'remoteHTTPS': f"https://gitlab.pavlovia.org/{self['path_with_namespace']}.git",
+                'remoteSSH': f"git@gitlab.pavlovia.org:{self['path_with_namespace']}.git"
+            }
+            knownProjects.save()
 
     def sync(self, infoStream=None):
         """Performs a pull-and-push operation on the remote

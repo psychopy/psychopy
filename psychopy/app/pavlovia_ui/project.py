@@ -9,6 +9,7 @@ import sys
 import time
 import os
 import traceback
+from pathlib import Path
 
 import gitlab
 import requests
@@ -420,9 +421,9 @@ class DetailsPanel(wx.Panel):
             self.syncLbl.SetLabel(f"{project['last_activity_at']:%d %B %Y, %I:%M%p}")
             self.syncLbl.Enable(project.editable)
             # Local root
-            self.localRootLabel.Enable(False)#bool(project.info['path']))
-            self.localRoot.SetValue("")#project.info['path'])
-            self.localRoot.Enable(False)#bool(project.info['path']) and project.editable)
+            self.localRoot.SetValue(project.localRoot or "")#project.info['path'])
+            self.localRootLabel.Enable(project.editable)  # bool(project.info['path']))
+            self.localRoot.Enable(project.editable)#bool(project.info['path']) and project.editable)
             # Description
             self.description.SetValue(project['description'])
             self.description.Enable(project.editable)
@@ -500,7 +501,14 @@ class DetailsPanel(wx.Panel):
             self.project.starred = self.starBtn.value
             self.starLbl.SetLabel(str(self.project.info['nbStars']))
         if obj == self.localRoot:
-            self.project.localRoot = self.localRoot.Value
+            if Path(self.localRoot.Value).is_dir():
+                self.project.localRoot = self.localRoot.Value
+            else:
+                dlg = wx.MessageDialog(self,
+                                 message=f"Could not find directory {self.localRoot.Value}, could not change local root.",
+                                 caption="Directory not found",
+                                 style=wx.ICON_ERROR)
+                dlg.ShowModal()
         if obj == self.description and self.project.editable:
             self.project['description'] = self.description.Value
             self.project.save()
