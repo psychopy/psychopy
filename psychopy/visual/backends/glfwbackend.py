@@ -396,6 +396,8 @@ class GLFWBackend(BaseBackend):
         # Assign event callbacks, these are dispatched when 'poll_events' is
         # called.
         glfw.set_mouse_button_callback(self.winHandle, self.onMouseButton)
+        glfw.set_window_size_callback(self.winHandle, self._onResize)
+        glfw.set_window_pos_callback(self.winHandle, self._onMove)
         glfw.set_cursor_pos_callback(self.winHandle, self.onMouseMove)
         glfw.set_cursor_enter_callback(self.winHandle, self.onMouseEnter)
         glfw.set_scroll_callback(self.winHandle, self.onMouseScroll)
