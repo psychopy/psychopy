@@ -9,8 +9,8 @@
 # $pyPaths = @("C:\Python36\", "C:\Python36_64\")
 # $names = @("PsychoPy3", "PsychoPy3")
 # $archs = @("win32", "win64")
-$pyPaths = @("C:\Python36_64\")
-$names = @("PsychoPy")
+$pyPaths = @("C:\Python36_64\", "C:\Program Files\Python38\")
+$names = @("PsychoPy_py36", "PsychoPy_py38")
 $archs = @("win64")
 
 # read from the version file
@@ -24,9 +24,7 @@ for ($i=0; $i -lt $pyPaths.Length; $i++) {
     Invoke-Expression ("{0}python.exe -m pip install . --no-deps --force" -f $pyPaths[$i])
     echo ("Installed current PsychoPy")
     xcopy /I /Y psychopy\*.txt $pyPaths[$i]
-    if ($i -eq '0') {
-        xcopy /Y C:\Windows\SysWOW64\py*27.dll C:\Python27
-    }
+
     # build the installer
     $thisPath = $pyPaths[$i]
     $thisName = $names[$i]
