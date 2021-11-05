@@ -589,7 +589,8 @@ class PavloviaProject(dict):
             if dtRegex.match(str(self.info[key])):
                 self.info[key] = pandas.to_datetime(self.info[key], format="%Y-%m-%d %H:%M:%S.%f")
         # Set local root
-        self.localRoot = localRoot
+        if localRoot is not None:
+            self.localRoot = localRoot
 
     def __getitem__(self, key):
         # Get either from self or project.attributes
