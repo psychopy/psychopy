@@ -110,7 +110,7 @@ class Polygon(BaseShapeStim):
                  lineWidth=1.5,
                  lineColor=None,
                  lineColorSpace=None,
-                 fillColor=None,
+                 fillColor='white',
                  fillColorSpace=None,
                  pos=(0, 0),
                  size=1.0,

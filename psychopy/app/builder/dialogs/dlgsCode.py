@@ -231,9 +231,9 @@ class DlgCodeComponentProperties(wx.Dialog):
         # If user doesn't have metapensiero and current choice is auto-js...
         if not hasMetapensiero and param.val.lower() == "auto->js" :
             # Throw up error dlg instructing to get metapensiero
-            msg = ("\nPy to JS auto-translation requires the metapensiero library.\n"
+            msg = _translate("\nPy to JS auto-translation requires the metapensiero library.\n"
                    "Available for Python 3.5+.\n")
-            dlg = CodeOverwriteDialog(self, -1, "Warning: requires the metapensiero library", msg)
+            dlg = CodeOverwriteDialog(self, -1, _translate("Warning: requires the metapensiero library"), msg)
             dlg.ShowModal()
             # Revert to previous choice
             self.undoCodeTypeChoice(prevCodeType)
@@ -265,9 +265,9 @@ class DlgCodeComponentProperties(wx.Dialog):
         # If code type has changed and previous code type isn't auto-js...
         if prevCodeType.lower() != 'auto->js' and self.codeChangeDetected():
             # Throw up a warning dlg to alert user of overwriting
-            msg = ("\nAuto-JS translation will overwrite your existing JavaScript code.\n"
+            msg = _translate("\nAuto-JS translation will overwrite your existing JavaScript code.\n"
                    "Press OK to continue, or Cancel.\n")
-            dlg = CodeOverwriteDialog(self, -1, "Warning: Python to JavaScript Translation", msg)
+            dlg = CodeOverwriteDialog(self, -1, _translate("Warning: Python to JavaScript Translation"), msg)
             retVal = dlg.ShowModal()
             # When window closes, if OK was not clicked revert to previous codetype
             if not retVal == wx.ID_OK:

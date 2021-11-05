@@ -1,24 +1,20 @@
 # -*- coding: utf-8 -*-
-# Part of the psychopy.iohub library.
-# Copyright (C) 2012-2016 iSolver Software Solutions
-# Distributed under the terms of the GNU General Public License (GPL).
-"""iohub wintab util objects / functions for stylus, position traces,
-and validation process psychopy graphics.
+"""
+Wintab util objects / functions for stylus, position traces.
 """
 
 import math
-from collections import OrderedDict
 
-import numpy as np
-
-from psychopy import visual, core
+from psychopy import visual
 from psychopy.visual.basevisual import MinimalStim
+
 
 class PenPositionStim(MinimalStim):
     """Draws the current pen x,y position with graphics that represent the
     pressure, z axis, and tilt data for the wintab sample used."""
-    def __init__(self, win, min_opacity=0.0, hover_color=(255,0,0), 
-                 touching_color=(0,255,0), tiltline_color=(255,255, 0),
+
+    def __init__(self, win, min_opacity=0.0, hover_color=(255, 0, 0),
+                 touching_color=(0, 255, 0), tiltline_color=(255, 255, 0),
                  tiltline_width=2,
                  min_size=0.033, size_range=0.1666, tiltline_scalar=1.0,
                  name=None, autoLog=None, depth=-10000, colorSpace='rgb255'):
@@ -59,9 +55,9 @@ class PenPositionStim(MinimalStim):
         self.tiltline_scalar = tiltline_scalar
         # Create a Gausian blob stim to use for pen position graphic
         self.pen_guass = visual.PatchStim(win, units='norm', tex='none',
-                                          mask='gauss', pos=(0, 0), 
+                                          mask='gauss', pos=(0, 0),
                                           colorSpace='rgb255',
-                                          size=(self.min_size,self.min_size),
+                                          size=(self.min_size, self.min_size),
                                           color=self.hover_color,
                                           autoLog=False,
                                           opacity=0.0)
@@ -73,7 +69,7 @@ class PenPositionStim(MinimalStim):
                                          colorSpace='rgb255',
                                          lineColor=self.tiltline_color,
                                          opacity=0.0)
-        #self.pen_tilt_line.opacity=0.0
+        # self.pen_tilt_line.opacity=0.0
 
     def updateFromEvent(self, evt):
         """Update the pen position and tilt graphics based on the data from
@@ -123,8 +119,8 @@ class PenPositionStim(MinimalStim):
             pen_tilt_xy = t1 * math.sin(t2), t1 * math.cos(t2)
 
         pen_pos = self.pen_guass.pos
-        tiltend = (pen_pos[0] + pen_tilt_xy[0]*self.tiltline_scalar, 
-                   pen_pos[1] + pen_tilt_xy[1]*self.tiltline_scalar)
+        tiltend = (pen_pos[0] + pen_tilt_xy[0] * self.tiltline_scalar,
+                   pen_pos[1] + pen_tilt_xy[1] * self.tiltline_scalar)
         self.pen_tilt_line.end = tiltend
 
     def draw(self):
@@ -151,6 +147,7 @@ class PenPositionStim(MinimalStim):
     def __del__(self):
         self.win = None
 
+
 class PenTracesStim(MinimalStim):
     """Graphics representing where the pen has been moved on the digitizer
     surface. Positions where sample pressure > 0 are included.
@@ -161,7 +158,8 @@ class PenTracesStim(MinimalStim):
     max_trace_len points before a new ShapeStim is created and made
     the 'current' pen trace'.
     """
-    def __init__( self, win, lineWidth=2, lineColor=(0, 0, 0), opacity=1.0,
+
+    def __init__(self, win, lineWidth=2, lineColor=(0, 0, 0), opacity=1.0,
                  maxlen=256, name=None, autoLog=None, depth=-1000):
         self.depth = depth
         self.win = win
@@ -176,11 +174,10 @@ class PenTracesStim(MinimalStim):
         self.current_points = []
         # The last pen position added to a pen trace.
         self.last_pos = [0, 0]
-        
-        self.lineWidth=lineWidth
-        self.lineColor=lineColor
-        self.opacity=opacity
 
+        self.lineWidth = lineWidth
+        self.lineColor = lineColor
+        self.opacity = opacity
 
     @property
     def traces(self):
@@ -282,6 +279,7 @@ class PenTracesStim(MinimalStim):
     def __del__(self):
         self.clear()
         self.win = None
+<<<<<<< HEAD
 
 #
 # Pen position validation process code
@@ -659,3 +657,5 @@ class ScreenPositionValidation:
 
     def __del__(self):
         self.free()
+=======
+>>>>>>> 5b59800a0991a2242f00fba82870aa20e3010500

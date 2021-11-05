@@ -181,7 +181,7 @@ class Slider(MinimalStim, ColorMixin):
         self.readOnly = readOnly
 
         self.categorical = False  # will become True if no ticks set only labels
-        self.startValue = self.rating =  self.markerPos = startValue
+        self.startValue = self.markerPos = startValue
         self.rt = None
         self.history = []
         self.marker = None
@@ -194,7 +194,7 @@ class Slider(MinimalStim, ColorMixin):
         self._lineAspectRatio = 0.01
         self._updateMarkerPos = True
         self._dragging = False
-        self.mouse = event.Mouse()
+        self.mouse = event.Mouse(win=win)
         self._mouseStateClick = None  # so we can rule out long click probs
         self._mouseStateXY = None  # so we can rule out long click probs
 
@@ -493,7 +493,12 @@ class Slider(MinimalStim, ColorMixin):
             rating = min(rating, self.ticks[-1])
         return rating
 
-    @attributeSetter
+    @property
+    def rating(self):
+        if hasattr(self, "_rating"):
+            return self._rating
+
+    @rating.setter
     def rating(self, rating):
         """The most recent rating from the participant or None.
         Note that the position of the marker can be set using current without
@@ -502,7 +507,7 @@ class Slider(MinimalStim, ColorMixin):
         self.markerPos = rating
         if self.categorical and (rating is not None):
             rating = self.labels[int(round(rating))]
-        self.__dict__['rating'] = rating
+        self._rating = rating
 
     @property
     def value(self):
