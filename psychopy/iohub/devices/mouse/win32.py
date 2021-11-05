@@ -198,12 +198,14 @@ class Mouse(MouseDevice):
                     # ?? Can this ever actually happen ??
                     return True
 
-            use_desktop_position = self.getConfiguration().get('use_desktop_position', False)
-            if use_desktop_position is False:
+            enable_multi_window = self.getConfiguration().get('enable_multi_window', False)
+            if enable_multi_window is False:
                 mx, my = event.Position
                 p = self._display_device._pixel2DisplayCoord(mx, my, event.DisplayIndex)
                 event.Position = p
-
+            else:
+                wid, wx, wy = self._desktopToWindowPos(event.Position)
+                print2err((wid, wx, wy))
             self._lastPosition = self._position
             self._position = event.Position
 

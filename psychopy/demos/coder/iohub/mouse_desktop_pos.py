@@ -4,7 +4,7 @@
 Test for using iohub mouse with event positions reported in desktop coord's.
 To start iohub with mouse reporting in desktop coord's, use:
 
-launchHubServer(window=win, Mouse=dict(use_desktop_position=True))
+launchHubServer(window=win, Mouse=dict(enable_multi_window=True))
 """
 import sys
 
@@ -33,7 +33,7 @@ win = visual.Window((400, 400), pos=(0, 30), units='height', fullscr=False, allo
 print('win handle: ', win._hw_handle, "pos:", win.pos)
 
 # create the process that will run in the background polling devices
-io = launchHubServer(window=win, Mouse=dict(use_desktop_position=True))
+io = launchHubServer(window=win, Mouse=dict(enable_multi_window=True))
 
 win2 = visual.Window((600, 600), pos=(500, 30), units='height', fullscr=False, allowGUI=True, screen=1)
 print('win2 handle: ', win2._hw_handle, "pos:", win2.pos)
@@ -42,7 +42,7 @@ print('win2 handle: ', win2._hw_handle, "pos:", win2.pos)
 keyboard = io.devices.keyboard
 mouse = io.devices.mouse
 
-# TODO: How to handle setPos when mouse use_desktop_position=True
+# TODO: How to handle setPos when mouse enable_multi_window=True
 # mouse.setPosition((0.0, .250))
 # win.setMouseVisible(False)
 

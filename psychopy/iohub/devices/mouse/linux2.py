@@ -97,9 +97,9 @@ class Mouse(MouseDevice):
 
                 event_array[3] = Device._getNextEventID()
 
-                use_desktop_position = self.getConfiguration().get('use_desktop_position', False)
+                enable_multi_window = self.getConfiguration().get('enable_multi_window', False)
                 display_index = 0
-                if use_desktop_position is False:
+                if enable_multi_window is False:
                     # convert mouse position to psychopy window coord space
                     display_index = self._display_device.getIndex()
                     x, y = self._display_device._pixel2DisplayCoord(event_array[15], event_array[16], display_index)

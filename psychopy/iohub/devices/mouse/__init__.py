@@ -167,6 +167,21 @@ class MouseDevice(Device):
             self._nativeSetMousePos(px, py)
         return self._position
 
+    def _desktopToWindowPos(self, dpos):
+        winfos = self._iohub_server._psychopy_windows
+        for w in winfos.values():
+            mx, my = dpos
+            wx, wy = w['pos'][0],  w['pos'][1]
+            ww, wh = w['size'][0], w['size'][1]
+            if w['useRetina']:
+                ww = ww / 2
+                wh = wh / 2
+            if wx <= mx <= wx+ww:
+                if wy <= my <= wy + wh:
+                    return w['handle'], mx - wx - ww/2, -(my - wy - wh/2)
+        return None, None, None
+
+
     def getDisplayIndex(self):
         """
         Returns the current display index of the ioHub Mouse Device.

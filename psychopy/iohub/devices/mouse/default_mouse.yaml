@@ -43,9 +43,14 @@ Mouse:
     report_system_wide_events: True
 
 
-    # use_desktop_position: Should mouse position be reported in raw / desktop coords (True)
-    #   or using the psychopy window unit type (False, default)
-    use_desktop_position: False
+    # enable_multi_window: If True, iohub Mouse can be used with multi-window,
+    #   or non full screen window, experiments. If mouse is over a PsychoPy window,
+    #   position is reported as window pixel position; window center as origin (0, 0).
+    #   window_id is set to the psychopy window handle. If mouse is not over psychopy window,
+    #   position is left in desktop pixels and window_id is set to 0.
+    #   If False (default), only a single full screen window is supported
+    #   and original mouse position mapping logic is used.
+    enable_multi_window: False
 
     # stream_events: Indicate if events from this device should be made available
     #   during experiment runtime to the Experiment / PsychoPy Process.

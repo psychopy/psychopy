@@ -227,8 +227,8 @@ class Mouse(MouseDevice):
                     # TO DO: Implement multimonitor location based on mouse location support.
                     # Currently always uses monitor index 0
 
-                    use_desktop_position = self.getConfiguration().get('use_desktop_position', False)
-                    if use_desktop_position is False:
+                    enable_multi_window = self.getConfiguration().get('enable_multi_window', False)
+                    if enable_multi_window is False:
                         display_index = self.getDisplayIndexForMousePosition((px, py))
                         if display_index == -1:
                             if self._last_display_index is not None:
