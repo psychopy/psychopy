@@ -1,5 +1,4 @@
-#NOTE: Example currently not working in Python 3.
-from __future__ import print_function
+# NOTE: Example currently not working in Python 3.
 
 import time
 import numpy as np
@@ -90,7 +89,6 @@ win.flip()
 while not pstbox.getEvents():
     if core.getTime() - start_time > 30:
         print('Timeout waiting for button event. Exiting...')
-        io.quit()
         core.quit()
 
 # Clear the screen.
@@ -165,5 +163,4 @@ print('---')
 pstbox.setLampState([0, 0, 0, 0, 0])
 
 # Close the window and quit the program.
-io.quit()
 core.quit()

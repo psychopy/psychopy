@@ -63,6 +63,40 @@ PsychoPy 2021.2.0
 - JS: various fixes to TextBox and Form styling
 - JS: Data files output now include information about their character encoding (BOM) supporting more locales of Excel
 
+PsychoPy 2021.2.1
+~~~~~~~~~~~~~~~~~
+
+Fixes:
+
+- macOS was crashing on launch (caused by missing files from psychtoolbox stripped by macOS GateKeeper)
+- added cryptography lib explicitly to requirements for pip install #267483d00
+- Runner local debug of PsychoJS experiments was failing with MIME-type errors (Runner didn't know about new psychojs packaging) #4153
+- extended timeout when querying Pavlovia from the app (e.g. searching for projects) #4148
+- corrected reset of clock for new Button Component
+- DlgFromDict was crashing if `labels` were used (in code) #4137
+- short (<0.5s) sounds were not labelled as finished in PsychoJS boilerplate #4117
+- contrast parameter was not being applied to ShapeStim #4111
+
+PsychoPy 2021.2.2
+~~~~~~~~~~~~~~~~~
+
+Fixes:
+
+- Builder outputs weren't fully honouring the `userVersion()` request, resulting in broken PsychoJS code #5f10b0a12 #017c18f2f31e
+- Better documentation of (high-performance) VLC movie backend
+- iohub.Mouse.setPosition was not handling units correctly when given a float
+- Builder boilerplate for Microphone was looking for a transcription even if none was requested #4163
+
+PsychoPy 2021.2.3
+~~~~~~~~~~~~~~~~~
+
+Fixes:
+
+- on macOS the long-standing issue of the **app freezing in the dock** has now been fixed #4214
+- smoother handling of trying to run an experiment on a computer with different mic hardware than where the experiment was created #4210
+- Minolta LS100/110 was not working due to broken bytes/unicode conversion #4186
+- ElementArray was not honouring the contrasts (contrs) parameter #4196
+- Code Components were giving unnecessary warning about namespace issues. Should only warn if a variable name is being _shadowed_ not if it's being _used_ #4193
 
 PsychoPy 2021.1
 ---------------

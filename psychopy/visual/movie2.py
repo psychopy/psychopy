@@ -65,7 +65,8 @@ Testing has only been done on Windows and Linux so far.
 # The MovieStim class was taken and rewritten to use cv2 and vlc instead
 # of avbin
 
-from __future__ import absolute_import, division, print_function
+
+
 
 # If True then, on each flip a new movie frame is displayed, the frame index,
 # flip time, and time since last movie frame flip will be printed

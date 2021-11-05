@@ -16,18 +16,13 @@ The code that writes out a *_lastrun.py experiment file is (in order):
     settings.SettingsComponent.writeEndCode()
 """
 
-from __future__ import absolute_import, print_function
-# from future import standard_library
-
-from past.builtins import basestring
-from builtins import object
 import os
 import codecs
 import xml.etree.ElementTree as xml
 from xml.dom import minidom
 from copy import deepcopy
 from pathlib import Path
-from packaging.version import Version
+from pkg_resources import parse_version
 
 import psychopy
 from psychopy import data, __version__, logging
@@ -44,8 +39,6 @@ from .components import getComponents, getAllComponents
 from psychopy.localization import _translate
 import locale
 
-# standard_library.install_aliases()
-
 from collections import namedtuple, OrderedDict
 
 from ..alerts import alert
@@ -56,7 +49,7 @@ RequiredImport = namedtuple('RequiredImport',
                                          'importAs'))
 
 
-class Experiment(object):
+class Experiment:
     """
     An experiment contains a single Flow and at least one
     Routine. The Flow controls how Routines are organised
@@ -562,10 +555,10 @@ class Experiment(object):
             return
         self.psychopyVersion = root.get('version')
         # If running an experiment from a future version, send alert to change "Use Version"
-        if Version(psychopy.__version__) < Version(self.psychopyVersion):
+        if parse_version(psychopy.__version__) < parse_version(self.psychopyVersion):
             alert(code=4051, strFields={'version': self.psychopyVersion})
         # If versions are either side of 2021, send alert
-        if Version(psychopy.__version__) >= Version("2021.1.0") > Version(self.psychopyVersion):
+        if parse_version(psychopy.__version__) >= parse_version("2021.1.0") > parse_version(self.psychopyVersion):
             alert(code=4052, strFields={'version': self.psychopyVersion})
 
         # Parse document nodes
@@ -853,14 +846,14 @@ class Experiment(object):
             if thisFile not in paths:
                 paths.append(thisFile)
             # does it look at all like an excel file?
-            if (not isinstance(filePath, basestring)
+            if (not isinstance(filePath, str)
                     or not os.path.splitext(filePath)[1] in ['.csv', '.xlsx',
                                                              '.xls']):
                 return paths
             conds = data.importConditions(thisFile['abs'])  # load the abs path
             for thisCond in conds:  # thisCond is a dict
                 for param, val in list(thisCond.items()):
-                    if isinstance(val, basestring) and len(val):
+                    if isinstance(val, str) and len(val):
                         # only add unique entries (can't use set() on a dict)
                         for thisFile in findPathsInFile(val):
                             if thisFile not in paths:
@@ -882,9 +875,9 @@ class Experiment(object):
                     for paramName in thisComp.params:
                         thisParam = thisComp.params[paramName]
                         thisFile = ''
-                        if isinstance(thisParam, basestring):
+                        if isinstance(thisParam, str):
                             thisFile = getPaths(thisParam)
-                        elif isinstance(thisParam.val, basestring):
+                        elif isinstance(thisParam.val, str):
                             thisFile = getPaths(thisParam.val)
                         # then check if it's a valid path and not yet included
                         if thisFile and thisFile not in resources:

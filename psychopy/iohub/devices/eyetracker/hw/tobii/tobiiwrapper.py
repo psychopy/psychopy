@@ -2,11 +2,6 @@
 # Part of the PsychoPy library
 # Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
-from __future__ import print_function
-# -*- coding: utf-8 -*-
-# Part of the psychopy.iohub library.
-# Copyright (C) 2012-2016 iSolver Software Solutions
-# Distributed under the terms of the GNU General Public License (GPL).
 
 import numpy as np
 from .....devices import Computer
@@ -21,7 +16,7 @@ except Exception:
     printExceptionDetailsToStdErr()
 
 # Tobii Eye Tracker
-class TobiiTracker(object):
+class TobiiTracker():
     try:
         CALIBRATION_STATUS_SUCCESS = tobii_research.CALIBRATION_STATUS_SUCCESS
     except:

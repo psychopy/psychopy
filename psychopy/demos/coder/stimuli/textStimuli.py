@@ -10,8 +10,6 @@ Demo of text rendering in pyglet, including:
 - bidirectional and reshaped Arabic/Farsi text
 """
 
-from __future__ import division
-
 from psychopy import visual, core, event
 from numpy import sin
 

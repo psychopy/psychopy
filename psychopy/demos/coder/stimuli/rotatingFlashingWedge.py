@@ -5,8 +5,6 @@
 Demo: Rotate flashing wedge
 """
 
-from __future__ import division
-
 from psychopy import visual, event, core
 
 win = visual.Window([800, 800])

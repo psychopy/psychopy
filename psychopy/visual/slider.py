@@ -7,7 +7,8 @@
 # Copyright (C) 2015 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import, division, print_function
+
+
 
 import copy
 import numpy as np
@@ -59,9 +60,9 @@ class Slider(MinimalStim, ColorMixin):
                  style='rating', styleTweaks=[],
                  granularity=0,
                  readOnly=False,
-                 color='White',
-                 fillColor='Red',
-                 borderColor='White',
+                 labelColor='White',
+                 markerColor='Red',
+                 lineColor='White',
                  colorSpace='rgb',
                  opacity=None,
                  font='Helvetica Bold',
@@ -70,7 +71,11 @@ class Slider(MinimalStim, ColorMixin):
                  labelHeight=None,
                  labelWrapWidth=None,
                  autoDraw=False,
-                 autoLog=True):
+                 autoLog=True,
+                 # Synonyms
+                 color=False,
+                 fillColor=False,
+                 borderColor=False):
         """
 
         Parameters
@@ -110,8 +115,14 @@ class Slider(MinimalStim, ColorMixin):
             (e.g. "VAS") scale. 1 gives a traditional likert scale. Something
             like 0.1 gives a limited fine-grained scale.
 
-        color :
-            Color of the line/ticks/labels according to the color space
+        labelColor / color :
+            Color of the labels according to the color space
+
+        markerColor / fillColor :
+            Color of the marker according to the color space
+
+        lineColor / borderColor :
+            Color of the line and ticks according to the color space
 
         font : font name
 
@@ -158,9 +169,9 @@ class Slider(MinimalStim, ColorMixin):
         self.flip = flip
         self.granularity = granularity
         self.colorSpace = colorSpace
-        self.color = color
-        self.fillColor = fillColor
-        self.borderColor = borderColor
+        self.color = color if color is not False else labelColor
+        self.fillColor = fillColor if fillColor is not False else markerColor
+        self.borderColor = borderColor if borderColor is not False else lineColor
         self.opacity = opacity
         self.font = font
         self.autoDraw = autoDraw
@@ -240,18 +251,21 @@ class Slider(MinimalStim, ColorMixin):
     @property
     def opacity(self):
         BaseVisualStim.opacity.fget(self)
+
     @opacity.setter
     def opacity(self, value):
         BaseVisualStim.opacity.fset(self, value)
         self.fillColor = self._fillColor.copy()
         self.borderColor = self._borderColor.copy()
         self.foreColor = self._foreColor.copy()
+
     def setOpacity(self, value):
         self.opacity = value
 
     @property
     def foreColor(self):
         ColorMixin.foreColor.fget(self)
+
     @foreColor.setter
     def foreColor(self, value):
         ColorMixin.foreColor.fset(self, value)
@@ -261,8 +275,20 @@ class Slider(MinimalStim, ColorMixin):
                 lbl.color = self._foreColor.copy()
 
     @property
+    def labelColor(self):
+        """
+        Synonym of Slider.foreColor
+        """
+        return self.foreColor
+
+    @labelColor.setter
+    def labelColor(self, value):
+        self.foreColor = value
+
+    @property
     def fillColor(self):
         ColorMixin.fillColor.fget(self)
+
     @fillColor.setter
     def fillColor(self, value):
         ColorMixin.fillColor.fset(self, value)
@@ -271,8 +297,20 @@ class Slider(MinimalStim, ColorMixin):
             self.marker.fillColor = self._foreColor.copy()
 
     @property
+    def markerColor(self):
+        """
+        Synonym of Slider.fillColor
+        """
+        return self.fillColor
+
+    @markerColor.setter
+    def markerColor(self, value):
+        self.fillColor = value
+
+    @property
     def borderColor(self):
         ColorMixin.borderColor.fget(self)
+
     @borderColor.setter
     def borderColor(self, value):
         ColorMixin.borderColor.fset(self, value)
@@ -286,7 +324,6 @@ class Slider(MinimalStim, ColorMixin):
         if hasattr(self, 'tickLines'):
             self.tickLines.colors = self._borderColor.copy()
             self.tickLines.opacities = self._borderColor.alpha
-
 
     def reset(self):
         """Resets the slider to its starting state (so that it can be restarted

@@ -5,9 +5,6 @@
 Demo of TrialHandler
 """
 
-from __future__ import absolute_import, division, print_function
-
-from builtins import range
 from random import random
 from psychopy import data
 

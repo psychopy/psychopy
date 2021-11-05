@@ -7,7 +7,6 @@ Demo for psychopy.visual.ShapeStim.contains() and .overlaps()
 Also inherited by various other stimulus types.
 """
 
-from __future__ import division
 from psychopy import visual, event, core
 
 win = visual.Window(size=(500, 500), monitor='testMonitor', units='norm')

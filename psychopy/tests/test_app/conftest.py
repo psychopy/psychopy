@@ -9,12 +9,12 @@ py.test fixtures to create an instance of PsychoPyApp for testing
 """
 
 import pytest
-from packaging import version
+from pkg_resources import parse_version
 import psychopy.app as app
 from PIL import Image
 Image.DEBUG = False
 
-if version.parse(pytest.__version__) < version.parse('5'):
+if parse_version(pytest.__version__) < parse_version('5'):
     class VersionError(Exception):
         pass
     raise VersionError("PsychoPy test suite requires pytest>=5.4")

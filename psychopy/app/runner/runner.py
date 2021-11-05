@@ -25,7 +25,6 @@ from subprocess import Popen, PIPE
 
 from psychopy import experiment
 from psychopy.app.utils import PsychopyPlateBtn, PsychopyToolbar, FrameSwitcher, FileDropTarget
-from psychopy.constants import PY3
 from psychopy.localization import _translate
 from psychopy.app.stdOutRich import StdOutRich
 from psychopy.projects.pavlovia import getProject
@@ -90,7 +89,13 @@ class RunnerFrame(wx.Frame, ThemeMixin):
 
     @property
     def filename(self):
-        if self.panel.currentSelection or self.panel.currentSelection == 0:
+        """Presently selected file name in Runner (`str` or `None`). If `None`,
+        not file is presently selected or the task list is empty.
+        """
+        if not self.panel.currentSelection:  # no selection or empty list
+            return
+
+        if self.panel.currentSelection >= 0:  # has valid item selected
             return self.panel.expCtrl.GetItem(self.panel.currentSelection).Text
 
     def addTask(self, evt=None, fileName=None):
@@ -473,7 +478,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
                                           name=title,
                                           )
         ScriptProcess.__init__(self, app)
-        self.Bind(wx.EVT_END_PROCESS, self.onProcessEnded)
+        #self.Bind(wx.EVT_END_PROCESS, self.onProcessEnded)
 
         # double buffered better rendering except if retina
         self.SetDoubleBuffered(parent.IsDoubleBuffered())
@@ -640,9 +645,9 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
         self.SetSizerAndFit(self.mainSizer)
         self.SetMinSize(self.Size)
 
-    def onProcessEnded(self):
-        ScriptProcess.onProcessEnded(self)
-        self.stopTask()
+    # def onProcessEnded(self):
+    #     ScriptProcess.onProcessEnded(self)
+    #     self.stopTask()
 
     def setAlertsVisible(self, new=True):
         if type(new) == bool:
@@ -724,9 +729,8 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
         self.getPsychoJS()
 
         htmlPath = str(self.currentFile.parent / self.outputPath)
-        server = ["SimpleHTTPServer", "http.server"][PY3]
         pythonExec = Path(sys.executable)
-        command = [str(pythonExec), "-m", server, str(port)]
+        command = [str(pythonExec), "-m", "http.server", str(port)]
 
         if not os.path.exists(htmlPath):
             print('##### HTML output path: "{}" does not exist. '

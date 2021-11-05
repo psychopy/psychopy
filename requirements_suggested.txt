@@ -1,7 +1,8 @@
-python-vlc  # only for MovieStim2
-pyserial
-pyparallel
+pylsl
 egi
-iolabs
-pyfilesec
-markdown-it
+google-api-python-client
+SpeechRecognition
+pyxid2
+badapted
+darc-experiment-toolbox
+python-pygaze

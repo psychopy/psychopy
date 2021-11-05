@@ -2,7 +2,7 @@
 """Tests for psychopy.tools.mathtools
 """
 
-from psychopy.tools.stringtools import *
+from psychopy.tools import stringtools as tools
 import pytest
 
 @pytest.mark.stringtools
@@ -19,4 +19,38 @@ def test_name_wrap():
         {"text": "Hello There", "wrap": 0, "ans": "Hello There"},  # Wrap = 0
     ]
     for case in exemplars + tykes:
-        assert prettyname(case['text'], case['wrap']) == case['ans']
+        assert tools.prettyname(case['text'], case['wrap']) == case['ans']
+
+
+@pytest.mark.stringtools
+def test_get_variables():
+    exemplars = [
+        {"code": "x=1\ny=2", "ans": {'x': 1, 'y': 2}},  # numbers
+        {"code": "x=\"a\"\ny=\"b\"", "ans": {'x': "a", 'y': "b"}},  # double quotes
+        {"code": "x='a'\ny='b'", "ans": {'x': "a", 'y': "b"}},  # single quotes
+        {"code": "x=(1, 2)\ny=(3, 4)", "ans": {'x': (1, 2), 'y': (3, 4)}},  # arrays
+    ]
+    tykes = [
+        {"code": "x='(1, 2)'\ny='(3, 4)'", "ans": {'x': "(1, 2)", 'y': "(3, 4)"}},  # string representation of array (single)
+        {"code": "x=\"(1, 2)\"\ny=\"(3, 4)\"", "ans": {'x': "(1, 2)", 'y': "(3, 4)"}},  # string representation of array (double)
+    ]
+    for case in exemplars + tykes:
+        assert tools.getVariables(case['code']) == case['ans']
+
+
+@pytest.mark.stringtools
+def test_get_arguments():
+    exemplars = [
+        {"code": "x=1,y=2", "ans": {'x': 1, 'y': 2}},  # numbers
+        {"code": "x=\"a\",y=\"b\"", "ans": {'x': "a", 'y': "b"}},  # double quotes
+        {"code": "x='a',y='b'", "ans": {'x': "a", 'y': "b"}},  # single quotes
+        {"code": "x=(1, 2), y=(3, 4)", "ans": {'x': (1, 2), 'y': (3, 4)}},  # arrays
+
+    ]
+    tykes = [
+        {"code": "(x=1, y=2)", "ans": {'x': 1, 'y': 2}},  # outer brackets
+        {"code": "x='(1, 2)', y='(3, 4)'", "ans": {'x': "(1, 2)", 'y': "(3, 4)"}},  # string representation of array (single)
+        {"code": "x=\"(1, 2)\", y=\"(3, 4)\"", "ans": {'x': "(1, 2)", 'y': "(3, 4)"}},  # string representation of array (double)
+    ]
+    for case in exemplars + tykes:
+        assert tools.getArgs(case['code']) == case['ans']

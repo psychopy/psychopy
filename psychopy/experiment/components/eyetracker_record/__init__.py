@@ -21,14 +21,14 @@ class EyetrackerRecordComponent(BaseComponent):
     categories = ['Eyetracking']
     targets = ['PsychoPy']
     iconFile = Path(__file__).parent / 'eyetracker_record.png'
-    tooltip = _translate('Eyetracker: use one of several eyetrackers to follow '
-                         'gaze')
+    tooltip = _translate('Start and / or Stop recording data from the eye tracker')
     beta = True
 
     def __init__(self, exp, parentName, name='etRecord',
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim='',
+                 actionType="Start and Stop",
                  #legacy
                  save='final', configFile='myTracker.yaml'):
         BaseComponent.__init__(self, exp, parentName, name=name,
@@ -39,6 +39,36 @@ class EyetrackerRecordComponent(BaseComponent):
         self.url = "https://www.psychopy.org/builder/components/eyetracker.html"
         self.exp.requirePsychopyLibs(['iohub', 'hardware'])
 
+        self.params['actionType'] = Param(actionType,
+            valType='str', inputType='choice', categ='Basic',
+            allowedVals=["Start and Stop", "Start Only", "Stop Only"],
+            hint=_translate("Should this component start and / or stop eye tracker recording?"),
+            label=_translate("Record Actions")
+        )
+
+        self.depends.append(
+             {"dependsOn": "actionType",  # must be param name
+              "condition": "=='Start Only'",  # val to check for
+              "param": "stop",  # param property to alter
+              "true": "hide",  # what to do with param if condition is True
+              "false": "show",  # permitted: hide, show, enable, disable
+              }
+         )
+
+        self.depends.append(
+             {"dependsOn": "actionType",  # must be param name
+              "condition": "=='Stop Only'",  # val to check for
+              "param": "start",  # param property to alter
+              "true": "hide",  # what to do with param if condition is True
+              "false": "show",  # permitted: hide, show, enable, disable
+              }
+         )
+
+        # TODO: Display actionType control after component name.
+        #       Currently, adding params before start / stop time
+        #       in .order has no effect
+        self.order = self.order[:1]+['actionType']+self.order[1:]
+
     def writeInitCode(self, buff):
         inits = self.params
         # Make a controller object
@@ -48,8 +78,8 @@ class EyetrackerRecordComponent(BaseComponent):
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(1, relative=True)
         code = (
-                "server=ioServer,\n"
-                "tracker=eyetracker\n"
+                "tracker=eyetracker,\n"
+                "actionType=%(actionType)s\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(-1, relative=True)
@@ -78,6 +108,10 @@ class EyetrackerRecordComponent(BaseComponent):
         buff.setIndentLevel(-1, relative=True)
 
         # test for stop (only if there was some setting for duration or stop)
+        org_val = self.params['stopVal'].val
+        if self.params['actionType'].val.find('Start Only') >= 0:
+            self.params['stopVal'].val = 0
+
         if self.params['stopVal'].val not in ['', None, -1, 'None']:
             # writes an if statement to determine whether to draw etc
             self.writeStopTestCode(buff)
@@ -87,6 +121,8 @@ class EyetrackerRecordComponent(BaseComponent):
             buff.writeIndentedLines(code % self.params)
             # to get out of the if statement
             buff.setIndentLevel(-2, relative=True)
+
+        self.params['stopVal'].val = org_val
 
     def writeRoutineEndCode(self, buff):
         inits = self.params

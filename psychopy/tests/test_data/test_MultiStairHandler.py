@@ -13,7 +13,7 @@ thisPath = os.path.split(__file__)[0]
 fixturesPath = os.path.join(thisPath, '..', 'data')
 
 
-class TestMultiStairHandler(object):
+class TestMultiStairHandler():
     def setup_class(self):
         self.temp_dir = mkdtemp(prefix='psychopy-tests-testdata')
         self.random_seed = 100

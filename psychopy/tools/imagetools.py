@@ -7,8 +7,6 @@
 
 """Functions and classes related to image handling"""
 
-from __future__ import absolute_import, print_function
-
 try:
     from PIL import Image
 except ImportError:

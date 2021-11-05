@@ -8,8 +8,6 @@
 """Backends provide the window creation and flipping commands.
 """
 
-from __future__ import absolute_import, print_function
-
 from psychopy import logging
 # import psychopy.plugins as plugins
 from ._base import BaseBackend

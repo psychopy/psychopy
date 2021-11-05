@@ -18,7 +18,7 @@ getEvents() are automatically converted to either namedtuple or dictionary
 objects with the same attributes / keys as the associated event class 
 attributes.
 
-.. autoclass:: psychopy.iohub.devices.mouse.MouseMoveEvent(object)
+.. autoclass:: psychopy.iohub.devices.mouse.MouseMoveEvent
 
     .. attribute:: time
 
@@ -69,7 +69,7 @@ attributes.
         or dictionary representations of an event based on the data from an
         event list.
     
-.. autoclass:: psychopy.iohub.devices.mouse.MouseDragEvent(object)
+.. autoclass:: psychopy.iohub.devices.mouse.MouseDragEvent
 
     .. attribute:: time
 
@@ -136,7 +136,7 @@ attributes.
         or dictionary representations of an event based on the data from an
         event list.
         
-.. autoclass:: psychopy.iohub.devices.mouse.MouseButtonPressEvent(object)
+.. autoclass:: psychopy.iohub.devices.mouse.MouseButtonPressEvent
 
     .. attribute:: time
 
@@ -203,7 +203,7 @@ attributes.
         or dictionary representations of an event based on the data from an
         event list.
         
-.. autoclass:: psychopy.iohub.devices.mouse.MouseButtonReleaseEvent(object)
+.. autoclass:: psychopy.iohub.devices.mouse.MouseButtonReleaseEvent
 
     .. attribute:: time
 
@@ -270,7 +270,7 @@ attributes.
         or dictionary representations of an event based on the data from an
         event list.
         
-.. autoclass:: psychopy.iohub.devices.mouse.MouseScrollEvent(object)
+.. autoclass:: psychopy.iohub.devices.mouse.MouseScrollEvent
 
     .. attribute:: time
 

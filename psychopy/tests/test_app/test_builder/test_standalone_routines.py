@@ -5,7 +5,7 @@ from psychopy import experiment
 
 
 @pytest.mark.stdroutines
-class TestStandaloneRoutines(object):
+class TestStandaloneRoutines:
     @classmethod
     def setup_class(cls):
         cls.routines = experiment.getAllStandaloneRoutines()

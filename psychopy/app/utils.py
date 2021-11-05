@@ -7,12 +7,8 @@
 
 """utility classes for the Builder
 """
-
-from __future__ import absolute_import, division, print_function
-
 import glob
 import os
-from builtins import object
 from pathlib import Path
 
 from wx.lib.agw.aui.aui_constants import *
@@ -65,7 +61,7 @@ class FileDropTarget(wx.FileDropTarget):
         return True
 
 
-class WindowFrozen(object):
+class WindowFrozen():
     """
     Equivalent to wxWindowUpdateLocker.
 
@@ -508,3 +504,69 @@ class FrameSwitcher(wx.Menu):
         self.frames[i].Raise()
         self.frames[i].Show()
         self.updateFrames()
+
+
+class ToggleButtonArray(wx.Window, ThemeMixin):
+
+    def __init__(self, parent, values, multi=False, ori=wx.HORIZONTAL):
+        wx.Window.__init__(self, parent)
+        self.parent = parent
+        self.multi = multi
+        # Setup sizer
+        self.sizer = wx.BoxSizer(ori)
+        self.SetSizer(self.sizer)
+        # Make buttons
+        self.buttons = {}
+        for val in values:
+            self.buttons[val] = wx.ToggleButton(self, style=wx.BORDER_NONE)
+            self.buttons[val].SetLabelText(val)
+            self.buttons[val].Bind(wx.EVT_TOGGLEBUTTON, self.processToggle)
+            self.sizer.Add(self.buttons[val], border=6, proportion=1, flag=wx.ALL)
+
+    def processToggle(self, evt):
+        obj = evt.GetEventObject()
+        if self.multi:
+            # Toggle self
+            self.SetValue(self.GetValue())
+        else:
+            # Selectself and deselect other buttons
+            for key, btn in self.buttons.items():
+                if btn == obj:
+                    self.SetValue(key)
+
+    def SetValue(self, value):
+        if not isinstance(value, (list, tuple)):
+            value = [value]
+        if not self.multi:
+            assert len(value) == 1, "When multi is False, ToggleButtonArray value must be a single value"
+        # Set corresponding button's value to be True and all others to be False
+        for key, btn in self.buttons.items():
+            btn.SetValue(key in value)
+        # Restyle
+        self._applyAppTheme()
+        # Emit event
+        evt = wx.CommandEvent(wx.EVT_CHOICE.typeId)
+        evt.SetEventObject(self)
+        wx.PostEvent(self, evt)
+
+    def GetValue(self):
+        # Return key of button(s) whose value is True
+        values = []
+        for key, btn in self.buttons.items():
+            if btn.GetValue():
+                values.append(key)
+        # If single select, only return first value
+        if not self.multi:
+            values = values[0]
+        return values
+
+    def _applyAppTheme(self, target=None):
+        for btn in self.buttons.values():
+            if btn.GetValue():
+                # Highlighted if selected
+                btn.SetForegroundColour(ThemeMixin.appColors['txtbutton_fg_hover'])
+                btn.SetBackgroundColour(ThemeMixin.appColors['txtbutton_bg_hover'])
+            else:
+                # Plain if deselected
+                btn.SetForegroundColour(ThemeMixin.appColors['text'])
+                btn.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])

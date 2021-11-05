@@ -13,8 +13,7 @@ from psychopy.iohub.errors import print2err
 
 currentTime = Computer.getTime
 
-
-class MouseGazePsychopyCalibrationGraphics(object):
+class MouseGazePsychopyCalibrationGraphics:
     IOHUB_HEARTBEAT_INTERVAL = 0.050
     CALIBRATION_POINT_LIST = [(0.5, 0.5), (0.1, 0.1), (0.9, 0.1), (0.9, 0.9), (0.1, 0.9)]
 
@@ -33,7 +32,7 @@ class MouseGazePsychopyCalibrationGraphics(object):
 
         updateSettings(self._device_config.get('calibration'), calibration_args)
         self._calibration_args = self._device_config.get('calibration')
-        print2err("self._calibration_args:", self._calibration_args)
+        #print2err("self._calibration_args:", self._calibration_args)
         unit_type = self.getCalibSetting('unit_type')
         if unit_type is None:
             unit_type = display.getCoordinateType()
@@ -135,8 +134,7 @@ class MouseGazePsychopyCalibrationGraphics(object):
             self._ioKeyboard = kbDevice
             self._ioKeyboard._addEventListener(self, eventIDs)
         else:
-            print2err(
-                'Warning: GazePoint Cal GFX could not connect to Keyboard device for events.')
+            print2err('Warning: GazePoint Cal GFX could not connect to Keyboard device for events.')
 
     def _unregisterEventMonitors(self):
         if self._ioKeyboard:
@@ -148,7 +146,7 @@ class MouseGazePsychopyCalibrationGraphics(object):
             ek = event[self._keyboard_key_index]
             if isinstance(ek, bytes):
                 ek = ek.decode('utf-8')
-            if ek == ' ':
+            if ek == ' ' or ek == 'space':
                 self._msg_queue.append('SPACE_KEY_ACTION')
                 self.clearAllEventBuffers()
             elif ek == 'escape':
@@ -207,10 +205,23 @@ class MouseGazePsychopyCalibrationGraphics(object):
                                                    opacity=1.0, interpolate=False,
                                                    edges=64, units=unit_type, colorSpace=color_type)
 
+        tctype = color_type
+        tcolor = self.getCalibSetting(['text_color'])
+        if tcolor is None:
+            # If no calibration text color provided, base it on the window background color
+            from psychopy.iohub.util import complement
+            sbcolor = self.getCalibSetting(['screen_background_color'])
+            if sbcolor is None:
+                sbcolor = self.window.color
+            from psychopy.colors import Color
+            tcolor_obj = Color(sbcolor, color_type)
+            tcolor = complement(*tcolor_obj.rgb255)
+            tctype = 'rgb255'
+
         instuction_text = 'Press SPACE to Start Calibration; ESCAPE to Exit.'
         self.textLineStim = visual.TextStim(self.window, text=instuction_text,
                                             pos=(0, 0), height=36,
-                                            color=(0, 0, 0), colorSpace='rgb255',
+                                            color=tcolor, colorSpace=tctype,
                                             units='pix', wrapWidth=self.width * 0.9)
 
     def runCalibration(self):

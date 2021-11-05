@@ -1,7 +1,4 @@
 
-from builtins import str
-from builtins import zip
-from builtins import object
 from psychopy import visual
 from psychopy.tests import utils
 import os
@@ -14,7 +11,7 @@ pgrn = (-n, -n)  # position for green square
 img_name = os.path.join(utils.TESTS_DATA_PATH, 'filltext.png')
 
 
-class Test_Win_Scale_Pos_Ori(object):
+class Test_Win_Scale_Pos_Ori:
     def setup_class(self):
         self.win = visual.Window(size=(200, 200), units='pix',
                                  allowGUI=False, autoLog=False)

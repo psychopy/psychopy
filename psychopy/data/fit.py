@@ -1,14 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import absolute_import, division, print_function
-
-from builtins import object
 import numpy as np
 # from scipy import optimize  # DON'T. It's slow and crashes on some machines
 
 
-class _baseFunctionFit(object):
+class _baseFunctionFit():
     """Not needed by most users except as a superclass for developing
     your own functions
 
@@ -242,7 +239,7 @@ class FitCumNormal(_baseFunctionFit):
               special.erfinv(((yy - _chance) / (1 - _chance) - 0.5) * 2))
         return xx
 
-class FitFunction(object):
+class FitFunction():
     """Deprecated: - use the specific functions; FitWeibull, FitLogistic...
     """
 

@@ -10,7 +10,7 @@
 import wx.stc
 
 
-class CodeEditorFoldingMixin(object):
+class CodeEditorFoldingMixin():
     """Mixin for adding code folding functionality to a CodeEditor control.
 
     """

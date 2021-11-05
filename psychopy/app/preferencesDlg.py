@@ -1,11 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-from __future__ import absolute_import, print_function
-
 import json
 import sys
-from builtins import str
 import wx
 import wx.propgrid as pg
 import wx.py
@@ -857,6 +853,10 @@ class PreferencesDlg(wx.Dialog):
         # may have changed vals?
         # > sure, why not? - mdc
         self.populatePrefs()
+
+        # Update Builder window if needed
+        if self.app.builder:
+            self.app.builder.updateAllViews()
 
         # after validation, update the UI
         self.app.theme = self.app.theme

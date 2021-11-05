@@ -5,7 +5,6 @@
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
-from __future__ import division
 import copy
 import psychopy
 from .text import TextStim
@@ -16,8 +15,6 @@ from psychopy.visual.basevisual import (BaseVisualStim,
 from psychopy import logging
 from random import shuffle
 from pathlib import Path
-
-from psychopy.constants import PY3
 
 __author__ = 'Jon Peirce, David Bridges, Anthony Haffey'
 
@@ -946,6 +943,24 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         self._layoutY()
 
     @property
+    def opacity(self):
+        return BaseVisualStim.opacity.fget(self)
+
+    @opacity.setter
+    def opacity(self, value):
+        BaseVisualStim.opacity.fset(self, value)
+        self.fillColor = self._fillColor
+        self.borderColor = self._borderColor
+        if hasattr(self, "_foreColor"):
+            self._foreColor.alpha = value
+        if hasattr(self, "_itemColor"):
+            self._itemColor.alpha = value
+        if hasattr(self, "_responseColor"):
+            self._responseColor.alpha = value
+        if hasattr(self, "_markerColor"):
+            self._markerColor.alpha = value
+
+    @property
     def complete(self):
         """A read-only property to determine if the current form is complete"""
         self.getData()
@@ -995,16 +1010,16 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         """
         Color of the text on form items
         """
-        return self._itemColor
+        return getattr(self._itemColor, self.colorSpace)
 
     @itemColor.setter
     def itemColor(self, value):
-        self._itemColor = value
+        self._itemColor = Color(value, self.colorSpace)
         # Set text color on each item
         for item in self.items:
             if 'itemCtrl' in item:
                 if isinstance(item['itemCtrl'], psychopy.visual.TextBox2):
-                    item['itemCtrl'].foreColor = value
+                    item['itemCtrl'].foreColor =  self._itemColor
 
     @property
     def responseColor(self):
@@ -1012,20 +1027,20 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         Color of the lines and text on form responses
         """
         if hasattr(self, "_responseColor"):
-            return self._responseColor
+            return getattr(self._responseColor, self.colorSpace)
 
     @responseColor.setter
     def responseColor(self, value):
-        self._responseColor = value
+        self._responseColor = Color(value, self.colorSpace)
         # Set line color on scrollbar
         if hasattr(self, "scrollbar"):
-            self.scrollbar.borderColor = value
+            self.scrollbar.borderColor = self._responseColor
         # Set line and label color on each item
         for item in self.items:
             if 'responseCtrl' in item:
                 if isinstance(item['responseCtrl'], psychopy.visual.Slider):
-                    item['responseCtrl'].borderColor = value
-                    item['responseCtrl'].foreColor = value
+                    item['responseCtrl'].borderColor = self._responseColor
+                    item['responseCtrl'].foreColor = self._responseColor
 
     @property
     def markerColor(self):
@@ -1033,19 +1048,19 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         Color of the marker on any sliders in this form
         """
         if hasattr(self, "_markerColor"):
-            return self._markerColor
+            return getattr(self._markerColor, self.colorSpace)
 
     @markerColor.setter
     def markerColor(self, value):
-        self._markerColor = value
+        self._markerColor = Color(value, self.colorSpace)
         # Set marker color on scrollbar
         if hasattr(self, "scrollbar"):
-            self.scrollbar.fillColor = value
+            self.scrollbar.fillColor = self._markerColor
         # Set marker color on each item
         for item in self.items:
             if 'responseCtrl' in item:
                 if isinstance(item['responseCtrl'], psychopy.visual.Slider):
-                    item['responseCtrl'].fillColor = value
+                    item['responseCtrl'].fillColor = self._markerColor
 
     @property
     def style(self):

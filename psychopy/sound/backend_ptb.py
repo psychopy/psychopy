@@ -4,8 +4,6 @@
 """
 New backend for the Psychtoolbox portaudio engine
 """
-from __future__ import absolute_import, division, print_function
-
 import sys
 import os
 import time
@@ -15,7 +13,7 @@ import weakref
 from psychopy import prefs, logging, exceptions
 from psychopy.constants import (STARTED, PAUSED, FINISHED, STOPPING,
                                 NOT_STARTED)
-from psychopy.exceptions import SoundFormatError, DependencyError
+from .exceptions import SoundFormatError, DependencyError
 from ._base import _SoundBase, HammingWindow
 
 try:
@@ -177,7 +175,7 @@ class _StreamsDict(dict):
         # todo: check if this is still needed on win32
         # on some systems more than one stream isn't supported so check
         elif sys.platform == 'win32' and len(self):
-            raise exceptions.SoundFormatError(
+            raise SoundFormatError(
                 "Tried to create audio stream {} but {} already exists "
                 "and {} doesn't support multiple portaudio streams"
                     .format(label, list(self.keys())[0], sys.platform)

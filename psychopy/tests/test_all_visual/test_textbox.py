@@ -1,4 +1,3 @@
-from builtins import object
 from pathlib import Path
 
 from psychopy import visual, event
@@ -203,9 +202,38 @@ class Test_textbox(_TestColorMixin):
                 #self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / case['screenshot'])
                 utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / case['screenshot'], self.win, crit=20)
 
-
     def test_basic(self):
         pass
+
+    def test_editable(self):
+        # Make textbox editable
+        self.textbox.editable = True
+        # Make a second textbox, which is editable from init
+        textbox2 = TextBox2(self.win, "", "Noto Sans",
+                                pos=(0.5, 0.5), size=(1, 1), units='height',
+                                letterHeight=0.1, colorSpace="rgb", editable=True)
+        # Check that both are editable children of the window
+        editables = []
+        for ref in self.win._editableChildren:
+            editables.append(ref())  # Actualise weakrefs
+        assert self.textbox in editables
+        assert textbox2 in editables
+        # Set current editable to textbox 1
+        self.win.currentEditable = self.textbox
+        # Make sure next editable is textbox 2
+        self.win.nextEditable()
+        assert self.win.currentEditable == textbox2
+        # Make each textbox no longer editable
+        self.textbox.editable = False
+        textbox2.editable = False
+        # Make sure they are no longer editable children of the window
+        editables = []
+        for ref in self.win._editableChildren:
+            editables.append(ref())  # Actualise weakrefs
+        assert self.textbox not in editables
+        assert textbox2 not in editables
+        # Cleanup
+        del textbox2
 
     def test_something(self):
         # to-do: test visual display, char position, etc
