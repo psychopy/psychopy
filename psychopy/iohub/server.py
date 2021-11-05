@@ -401,12 +401,14 @@ class udpServer(DatagramServer):
             for wh in win_hwhds:
                 if wh['handle'] not in self.iohub._psychopy_windows.keys():
                     self.iohub._psychopy_windows[wh['handle']] = wh
+                    self.iohub.log('Adding PsychoPy Win: {}'.format(wh))
 
     def unregisterWindowHandles(self, *win_hwhds):
         if self.iohub:
             for wh in win_hwhds:
                 if wh in self.iohub._psychopy_windows.keys():
                     del self.iohub._psychopy_windows[wh]
+                    self.iohub.log('Remove PsychoPy Win: {}'.format(wh))
 
     def updateWindowPos(self, win_hwhd, pos):
         """
@@ -418,8 +420,10 @@ class udpServer(DatagramServer):
         winfo = self.iohub._psychopy_windows.get(win_hwhd)
         if winfo:
             winfo['pos'] = pos
+            self.iohub.log('Update Win: {}'.format(winfo))
         else:
             print2err('warning: win_hwhd {} not registered with iohub server.'.format(win_hwhd))
+            self.iohub.log('updateWindowPos warning: win_hwhd {} not registered with iohub server.'.format(win_hwhd))
 
     def createExperimentSessionEntry(self, sessionInfoDict):
         sessionInfoDict = convertByteStrings(sessionInfoDict)
