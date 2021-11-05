@@ -205,7 +205,11 @@ class Mouse(MouseDevice):
                 event.Position = p
             else:
                 wid, wx, wy = self._desktopToWindowPos(event.Position)
-                print2err((wid, wx, wy))
+                if wid:
+                    event.Position = wx, wy
+                    event.Window = wid
+                else:
+                    event.Window = 0
             self._lastPosition = self._position
             self._position = event.Position
 

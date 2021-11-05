@@ -238,6 +238,13 @@ class Mouse(MouseDevice):
                                 # ?? Can this ever actually happen ??
                                 return event
                         px, py = self._display_device._pixel2DisplayCoord(px, py, display_index)
+                    else:
+                        wid, wx, wy = self._desktopToWindowPos((px, py))
+                        if wid:
+                            px, py = wx, wy
+                            window_handle = wid
+                        else:
+                            window_handle = 0
 
                     self._lastPosition = self._position
                     self._position = px, py

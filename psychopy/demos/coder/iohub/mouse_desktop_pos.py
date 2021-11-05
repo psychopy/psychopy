@@ -15,20 +15,6 @@ from psychopy.iohub.constants import EventConstants
 # True = print mouse events to stdout, False = do not
 PRINT_MOUSE_EVENTS = False
 
-
-def mouseWindowPos(mouse_event):
-    for w in visual.window.openWindows:
-        mx, my = mouse_event.x_position, mouse_event.y_position
-        ww, wh = w().size
-        if w().useRetina:
-            ww = ww / 2
-            wh = wh / 2
-        if w().pos[0] <= mx <= w().pos[0]+ww:
-            if w().pos[1] <= my <= w().pos[1] + wh:
-                return w, mx - w().pos[0], my - w().pos[1]
-    return None, None, None
-
-
 win = visual.Window((400, 400), pos=(0, 30), units='height', fullscr=False, allowGUI=True, screen=0)
 print('win handle: ', win._hw_handle, "pos:", win.pos)
 
@@ -50,7 +36,7 @@ txt_proto = 'Desktop x,y: {},{}\nWin x,y: {},{}\n\nwin._hw_handle: {}\n\n\nPress
 win_stim={}
 for w in visual.window.openWindows:
     win_stim[w()._hw_handle] = visual.TextStim(w(), pos=(-0.5, 0.0), alignText='left', anchorHoriz='left',
-                                               anchorVert='center', height=.03, autoLog=False, wrapWidth=0.7,
+                                               anchorVert='center', height=.04, autoLog=False, wrapWidth=0.7,
                                                text=txt_proto.format('?', '?', '?', '?', w()._hw_handle))
 
 io.clearEvents('all')
@@ -87,14 +73,12 @@ while not kb_events:
 
         # Only update display based on last received event
         me = mouse_events[-1]
-        psycho_win, x, y = mouseWindowPos(me)
-        if psycho_win:
-            whndl = psycho_win()._hw_handle
-            win_stim[whndl].text = txt_proto.format(me.x_position, me.y_position, x, y, whndl)
+        if me.window_id > 0:
             for win_handle, stim in win_stim.items():
-                if win_handle != whndl:
-                    stim.text = txt_proto.format(me.x_position, me.y_position, '?', '?', win_handle)
-                    break
+                if win_handle != me.window_id:
+                    stim.text = txt_proto.format('?', '?', '?', '?', win_handle)
+                else:
+                    stim.text = txt_proto.format('?', '?', me.x_position, me.y_position, win_handle)
 
         else:
             for win_handle, stim in win_stim.items():

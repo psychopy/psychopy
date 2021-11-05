@@ -106,8 +106,15 @@ class Mouse(MouseDevice):
                     event_array[15] = x
                     event_array[16] = y
                 else:
-                    x = event_array[15]
-                    y = event_array[16]
+                    wid, wx, wy = self._desktopToWindowPos((event_array[15], event_array[16]))
+                    if wid:
+                        event_array[15], event_array[16] = x, y = wx, wy
+                        event_array[-1] = wid
+                    else:
+                        event_array[-1] = 0
+                        x = event_array[15]
+                        y = event_array[16]
+
                 event_array[-2] = Keyboard._modifier_value
                 self._lastPosition = self._position
                 self._position = x, y
