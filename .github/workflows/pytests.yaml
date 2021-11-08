@@ -92,11 +92,13 @@ jobs:
         fail_ci_if_error: false
 
     - name: test docs to pdf
-      uses: ammaraskar/sphinx-action@master
+
       with:
         docs-folder: "docs"
         pre-build-command: |
+          pip install sphinx sphinxcontrib-napoleon
           brew install basictex
+          # update path after brew install
           eval "$(/usr/libexec/path_helper)"
         build-command: "make latexpdf"
 
