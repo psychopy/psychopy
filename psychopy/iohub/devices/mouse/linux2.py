@@ -127,6 +127,7 @@ class Mouse(MouseDevice):
                 self._lastPosition = self._position
                 self._position = x, y
 
+                event_array[11] = display_index
                 self._last_display_index = self._display_index
                 self._display_index = display_index
 
