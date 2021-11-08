@@ -80,6 +80,7 @@ while not kb_events:
 
         # Only update display based on last received event
         me = mouse_events[-1]
+        print("display: ", me.display_id)
         if me.window_id > 0:
             for win_handle, stim in win_stim.items():
                 if win_handle != me.window_id:

@@ -223,20 +223,17 @@ class Mouse(MouseDevice):
                     # TODO: window_handle seems to always be 0.
                     window_handle = mouse_event.windowNumber()
 
-                    display_index = 0
-                    # TO DO: Implement multimonitor location based on mouse location support.
-                    # Currently always uses monitor index 0
+                    display_index = self.getDisplayIndexForMousePosition((px, py))
+                    if display_index == -1:
+                        if self._last_display_index is not None:
+                            display_index = self._last_display_index
+                        else:
+                            # Do not report event to iohub if it does not map to a display
+                            # ?? Can this ever actually happen ??
+                            return event
 
                     enable_multi_window = self.getConfiguration().get('enable_multi_window', False)
                     if enable_multi_window is False:
-                        display_index = self.getDisplayIndexForMousePosition((px, py))
-                        if display_index == -1:
-                            if self._last_display_index is not None:
-                                display_index = self._last_display_index
-                            else:
-                                # Do not report event to iohub if it does not map to a display
-                                # ?? Can this ever actually happen ??
-                                return event
                         px, py = self._display_device._pixel2DisplayCoord(px, py, display_index)
                     else:
                         wid, wx, wy = self._desktopToWindowPos((px, py))

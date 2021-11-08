@@ -97,8 +97,16 @@ class Mouse(MouseDevice):
 
                 event_array[3] = Device._getNextEventID()
 
+                display_index = self.getDisplayIndexForMousePosition((event_array[15], event_array[16]))
+                if display_index == -1:
+                    if self._last_display_index is not None:
+                        display_index = self._last_display_index
+                    else:
+                        # Do not report event to iohub if it does not map to a display
+                        # ?? Can this ever actually happen ??
+                        return True
+
                 enable_multi_window = self.getConfiguration().get('enable_multi_window', False)
-                display_index = 0
                 if enable_multi_window is False:
                     # convert mouse position to psychopy window coord space
                     display_index = self._display_device.getIndex()
