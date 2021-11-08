@@ -21,7 +21,6 @@ import numpy as np
 from psychopy import logging, event, prefs, core
 from psychopy.tools.attributetools import attributeSetter
 from psychopy.visual import window
-import psychopy.event as event
 from .gamma import createLinearRamp
 import psychopy.hardware.mouse as mouse
 from .. import globalVars
@@ -87,105 +86,82 @@ _GLFW_MOUSE_BUTTONS_ = {
 class GLFWBackend(BaseBackend):
     """GLFW (Graphics Library Framework) backend class
 
-    Overview:
+    GLFW (Graphics Library Framework) backend using the 'glfw' ctypes library to
+    access the glfw3 API (https://http://www.glfw.org/). GLFW shared libraries
+    must be installed prior to using this backend. Pyglet is used as an OpenGL
+    loader so it must be installed.
 
-        GLFW (Graphics Library Framework) backend using the 'glfw' ctypes
-        library to access the glfw3 API (https://http://www.glfw.org/). GLFW
-        shared libraries must be installed prior to using this backend. Pyglet
-        is used as an OpenGL loader so it must be installed.
+    Additional keyword arguments can be passed to the GLFW backend when creating
+    a new window, allowing for advanced video mode and context configuration.
 
-        Additional keyword arguments can be passed to the GLFW backend when
-        creating a new window, allowing for advanced video mode and context
-        configuration.
+    You can set the video mode for a full screen window by explicitly specifying
+    bits per color (bpc), refresh rate (refreshHz) and size (size) when creating
+    a new window. If the video mode is supported, the specified screen for the
+    window will be set to that video mode. These options have no effect for
+    non-full screen windows. If an invalid video mode is specified, a warning is
+    printed and the native video mode of the display is used.
 
-    Video Modes:
+    You can see which video modes are available for a given display through your
+    operating system's graphics settings.
 
-        You can set the video mode for a full screen window by explicitly
-        specifying bits per color (bpc), refresh rate (refreshHz) and size
-        (size) when creating a new window. If the video mode is supported, the
-        specified screen for the window will be set to that video mode. These
-        options have no effect for non-full screen windows. If an invalid video
-        mode is specified, a warning is printed and the native video mode of the
-        display is used.
+    Specifying a window with the 'share' argument enables context sharing. This
+    allows data (textures, array buffers, etc.) to be shared across windows.
+    This is useful for multi-window setups where stimuli objects might be used
+    on multiple windows.
 
-        You can see which video modes are available for a given display through
-        your operating system's graphics settings.
+    If using multiple displays, waiting for multiple retraces may cause a
+    reduction in overall frame rate. Do the following to prevent this:
 
-    Context Sharing:
+        1. Pick a display as your primary screen.
+        2. When creating a window for your primary screen, set `swapInterval=1`
+           (default anyways).
+        3. Create windows for all other displays with swapInterval=0.
 
-        Specifying a window with the 'share' argument enables context sharing.
-        This allows data (textures, array buffers, etc.) to be shared across
-        windows. This is useful for multi-window setups where stimuli objects
-        might be used on multiple windows.
+    In most cases, drawing across all displays will be synchronized with your
+    primary display. However, there is no guarantee vertical retraces occur
+    simultaneously across multiple monitors. Therefore, stimulus onset times may
+    differ slightly after 'flip' is called. In some cases visual artifacts my
+    arise that affect your data (temporal disparities in a haploscope affect
+    perceived depth). If multi-display synchronization is absolutely critical,
+    check if your hardware supports 'gen-lock' or some other synchronization
+    method.
 
-    Multi-Display Timing:
+    Always check inter-display timings empirically (using a photo-diode,
+    oscilloscope or some other instrument)!
 
-        If using multiple displays, waiting for multiple retraces may cause a
-        reduction in overall frame rate. Do the following to prevent this:
+    Parameters
+    ----------
+    win : `psychopy.visual.Window` instance
+        PsychoPy Window (usually not fully created yet).
+    backendConf : `dict` or `None`
+        Backend configuration options. Options are specified as a dictionary
+        where keys are option names and values are settings. For this backend
+        the following options are available:
 
-            1. Pick a display as your primary screen.
-            2. When creating a window for your primary screen, set
-               swapInterval=1 (default anyways).
-            3. Create windows for all other displays with swapInterval=0.
+        * `share` (`psychopy.visual.Window instance`) PsychoPy Window to share a
+           context with.
+        * `refreshHz` (`int`) Refresh rate in Hertz.
+        * `bpc` (`array_like`) Bits per color (R, G, B).
+        * `swapInterval` (`int`) Swap interval for the current OpenGL
+          context.
+        * `depthBits` (`int`) Framebuffer (back buffer) depth bits.
+        * `stencilBits` (`int`) Framebuffer (back buffer) stencil bits.
+        * `winTitle` (`str`) Optional window title string.
 
-        In most cases, drawing across all displays will be synchronized with
-        your primary display. However, there is no guarantee vertical retraces
-        occur simultaneously across multiple monitors. Therefore, stimulus onset
-        times may differ slightly after 'flip' is called. In some cases visual
-        artifacts my arise that affect your data (temporal disparities in a
-        haploscope affect perceived depth). If multi-display synchronization is
-        absolutely critical, check if your hardware supports 'gen-lock' or some
-        other synchronization method.
+    Examples
+    --------
+    Create a window using the GLFW backend and specify custom options::
 
-        Always check inter-display timings empirically (using a photo-diode,
-        oscilloscope or some other instrument)!
+        import psychopy.visual as visual
 
-    Known Issues:
-
-        1. screenID does not report the X11 display number on linux.
-
-    Revision History (Major Changes):
-
-        M. Cutone 2018: Initial work on GLFW backend.
+        options = {'bpc': (8, 8, 8), 'depthBits': 24, 'stencilBits': 8}
+        win = visual.Window(winType='glfw', backendOptions=options)
 
     """
     GL = pyglet.gl  # use Pyglet's OpenGL interface for now, should use PyOpenGL
     winTypeName = 'glfw'  # needed to identify class for plugins
 
     def __init__(self, win, backendConf=None):
-        """Set up the backend window according the params of the PsychoPy win
-
-        Before PsychoPy 1.90.0 this code was executed in Window._setupPygame()
-
-        Parameters
-        ----------
-        win : `psychopy.visual.Window` instance
-            PsychoPy Window (usually not fully created yet).
-        backendConf : `dict` or `None`
-            Backend configuration options. Options are specified as a dictionary
-            where keys are option names and values are settings. For this
-            backend the following options are available:
-
-            * `share` (`psychopy.visual.Window instance`) PsychoPy Window to
-              share a context with.
-            * `refreshHz` (`int`) Refresh rate in Hertz.
-            * `bpc` (`array_like`) Bits per color (R, G, B).
-            * `swapInterval` (`int`) Swap interval for the current OpenGL
-              context.
-            * `depthBits` (`int`) Framebuffer (back buffer) depth bits.
-            * `stencilBits` (`int`) Framebuffer (back buffer) stencil bits.
-            * `winTitle` (`str`) Optional window title string.
-
-        Examples
-        --------
-        Create a window using the GLFW backend and specify custom options::
-
-            import psychopy.visual as visual
-
-            options = {'bpc': (8, 8, 8), 'depthBits': 24, 'stencilBits': 8}
-            win = visual.Window(winType='glfw', backendOptions=options)
-
-        """
         BaseBackend.__init__(self, win)
 
         # if `None`, change to `dict` to extract options
@@ -207,12 +183,12 @@ class GLFWBackend(BaseBackend):
         else:
             shareContext = None
 
-        if sys.platform=='darwin' and not win.useRetina and pyglet.version >= "1.3":
-            raise ValueError("As of PsychoPy 1.85.3 OSX windows should all be "
-                             "set to useRetina=True (or remove the argument). "
-                             "Pyglet 1.3 appears to be forcing "
-                             "us to use retina on any retina-capable screen "
-                             "so setting to False has no effect.")
+        if sys.platform == 'darwin' and not win.useRetina and pyglet.version >= "1.3":
+            raise ValueError(
+                "As of PsychoPy 1.85.3 OSX windows should all be set to "
+                "`useRetina=True` (or remove the argument). Pyglet 1.3 appears "
+                "to be forcing us to use retina on any retina-capable screen so "
+                "setting to False has no effect.")
 
         # window framebuffer configuration
         bpc = backendConf.get('bpc', (8, 8, 8))
@@ -396,8 +372,8 @@ class GLFWBackend(BaseBackend):
         # Assign event callbacks, these are dispatched when 'poll_events' is
         # called.
         glfw.set_mouse_button_callback(self.winHandle, self.onMouseButton)
-        glfw.set_window_size_callback(self.winHandle, self._onResize)
-        glfw.set_window_pos_callback(self.winHandle, self._onMove)
+        glfw.set_window_size_callback(self.winHandle, self.onResize)
+        glfw.set_window_pos_callback(self.winHandle, self.onMove)
         glfw.set_cursor_pos_callback(self.winHandle, self.onMouseMove)
         glfw.set_cursor_enter_callback(self.winHandle, self.onMouseEnter)
         glfw.set_scroll_callback(self.winHandle, self.onMouseScroll)
@@ -455,8 +431,9 @@ class GLFWBackend(BaseBackend):
     def setMouseVisibility(self, visibility):
         """Set mouse cursor visibility.
 
-        :param visibility: boolean
-        :return:
+        Parameters
+        ----------
+        visibility : bool
 
         """
         if visibility:
@@ -574,11 +551,21 @@ class GLFWBackend(BaseBackend):
         newLUT = np.tile(
             createLinearRamp(rampSize=self.getGammaRampSize()), (3, 1)
         ).T
-        if np.all(gamma == 1.0) == False:
+        if not np.all(gamma == 1.0):
             # correctly handles 1 or 3x1 gamma vals
             newLUT = newLUT ** (1.0 / np.array(gamma))
 
         self.setGammaRamp(newLUT)
+
+    @attributeSetter
+    def gammaRamp(self, gammaRamp):
+        """Sets the hardware CLUT using a specified 3xN array of floats 0:1.
+        Array must have a number of rows equal to 2^max(bpc).
+
+        """
+        self.__dict__['gammaRamp'] = gammaRamp
+        if gammaRamp is not None:
+            self.setGammaRamp(gammaRamp)
 
     def getGammaRamp(self):
         # get the current gamma ramp
@@ -595,24 +582,14 @@ class GLFWBackend(BaseBackend):
     def _setupGamma(self, gammaVal):
         pass
 
-    @attributeSetter
-    def gammaRamp(self, gammaRamp):
-        """Sets the hardware CLUT using a specified 3xN array of floats 0:1.
-        Array must have a number of rows equal to 2^max(bpc).
-
-        :param gammaRamp:
-        :return:
-        """
-        self.__dict__['gammaRamp'] = gammaRamp
-        if gammaRamp is not None:
-            self.setGammaRamp(gammaRamp)
-
     def setGammaRamp(self, gammaRamp):
         """Set the hardware CLUT to use the specified ramp. This is a custom
         function for doing so using GLFW.
 
-        :param gammaRamp:
-        :return:
+        Parameters
+        ----------
+        gammaRamp : Any
+            Gamma ramp as a 3xN array.
 
         """
         win = glfw.get_window_user_pointer(self.winHandle)
@@ -630,7 +607,11 @@ class GLFWBackend(BaseBackend):
         """Get the gamma ramp size for the current display. The size of the ramp
         depends on the bits-per-color of the current video mode.
 
-        :return:
+        Returns
+        -------
+        int
+            Size of the gamma ramp or look-up table.
+
         """
         # get the current gamma ramp
         win = glfw.get_window_user_pointer(self.winHandle)
