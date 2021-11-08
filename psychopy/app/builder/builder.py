@@ -25,6 +25,7 @@ from wx.lib import platebtn
 from wx.html import HtmlWindow
 
 from .validators import WarningManager
+from ..pavlovia_ui import sync
 from ...experiment.components import getAllCategories
 from ...experiment.routines import Routine, BaseStandaloneRoutine
 from ...tools.stringtools import prettyname
@@ -1334,12 +1335,16 @@ class BuilderFrame(wx.Frame, ThemeMixin):
                 return
 
         self.enablePavloviaButton(['pavloviaSync', 'pavloviaRun'], False)
-        try:
-            retVal = pavlovia_ui.syncProject(parent=self, project=self.project)
-            pavlovia.knownProjects.save()  # update projects.json
-            self.gitFeedback(retVal)
-        finally:
-            self.enablePavloviaButton(['pavloviaSync', 'pavloviaRun'], True)
+
+        if self.project is not None:
+            # If in a project, sync it
+            dlg = sync.SyncDialog(self, self.project)
+            dlg.ShowModal()
+        else:
+            # If not in a project, make one
+            pass
+
+        self.enablePavloviaButton(['pavloviaSync', 'pavloviaRun'], True)
 
     def onPavloviaRun(self, evt=None):
         if self._getExportPref('on save'):

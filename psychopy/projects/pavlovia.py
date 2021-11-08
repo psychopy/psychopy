@@ -761,7 +761,8 @@ class PavloviaProject(dict):
             infoStream.write("\nPulling changes from remote...")
         try:
             info = self.repo.git.pull(self.project.http_url_to_repo, 'master')
-            infoStream.write("\n{}".format(info))
+            if infoStream:
+                infoStream.write("\n{}".format(info))
         except git.exc.GitCommandError as e:
             if ("The project you were looking for could not be found" in
                     traceback.format_exc()):
@@ -792,7 +793,8 @@ class PavloviaProject(dict):
             infoStream.write("\nPushing changes from remote...")
         try:
             info = self.repo.git.push(self.remoteWithToken, 'master')
-            infoStream.write("\n{}".format(info))
+            if infoStream:
+                infoStream.write("\n{}".format(info))
         except git.exc.GitCommandError as e:
             if ("The project you were looking for could not be found" in
                     traceback.format_exc()):
