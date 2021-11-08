@@ -947,7 +947,7 @@ class TextBox(object):
         """
         Specify if changes to textBox attribute values should be logged
         automatically by PsychoPy. True enables auto logging; False disables it.
-        *Currently not supported by TextBox.
+        *Currently not supported by TextBox.*
         """
         self._auto_log = v
 

@@ -36,7 +36,7 @@ jobs:
     - name: Install PsychoPy and dependencies
       run: |
         # for pocketsphinx we need this adapted package:
-        brew install swig
+        brew install swig vlc
         brew install openal-soft
         pip install git+https://github.com/Im-Fran/pocketsphinx-python
         # then use the standard requirements:
@@ -51,7 +51,7 @@ jobs:
         cd docs
         make latexpdf
         cd ..
-        
+
 #    - name: Lint with flake8
 #      run: |
 #        # stop the build if there are Python syntax errors or undefined names
@@ -176,9 +176,6 @@ jobs:
 
         sudo apt-get install -y sphinx-doc sphinx-common
         sudo apt-get install -y latexmk xindy texlive-latex-recommended texlive-xetex texlive-latex-extra texlive-fonts-recommended texlive-fonts-extra
-        brew install basictex
-        # update path after brew install
-        eval "$(/usr/libexec/path_helper)"
         cd docs
         make latexpdf
         cd ..
