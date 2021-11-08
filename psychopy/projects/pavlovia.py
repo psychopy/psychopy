@@ -609,6 +609,17 @@ class PavloviaProject(dict):
         dict.__setitem__(self, key, value)
         self.project.__setattr__(key, value)
 
+    def refresh(self):
+        # Update Pavlovia info
+        self.info = requests.get("https://pavlovia.org/api/v2/experiments/" + str(self.id)).json()['experiment']
+        # Convert datetime
+        dtRegex = re.compile("\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d(.\d\d\d)?")
+        for key in self.info:
+            if dtRegex.match(str(self.info[key])):
+                self.info[key] = pandas.to_datetime(self.info[key], format="%Y-%m-%d %H:%M:%S.%f")
+        # Update base dict
+        self.update(self.project.attributes)
+
     @property
     def session(self):
         # If previous value is cached, return it
@@ -713,34 +724,25 @@ class PavloviaProject(dict):
         Optional params infoStream is needed if you
         want to update a sync window/panel
         """
-        self.repo = self.getRepo(forceRefresh=True, infoStream=infoStream)
-        if not self.repo:  # if we haven't been given a local copy of repo then find
-            self.getRepo(infoStream=infoStream)
-            # if cloned in last 2s then it was a fresh clone
-            if time.time() < self._lastKnownSync + 2:
-                return 1
-        # pull first then push
+        # Error catch local root
+        if not self.localRoot:
+            raise gitlab.GitlabGetError("Can't sync project without a local root.")
+        # Jot down start time
         t0 = time.time()
-        if self.emptyRemote:  # we don't have a repo there yet to do a 1st push
-            self.firstPush(infoStream=infoStream)
-        else:
-            status = self.pull(infoStream=infoStream)
-            if status == MISSING_REMOTE:
-                return -1
-            # for gitpython we need to keep getting fresh copies!
-            self.repo = git.Repo(self.localRoot)
-            time.sleep(0.1)
-            status = self.push(infoStream=infoStream)
-            if status == MISSING_REMOTE:
-                return -1
-
-        self._lastKnownSync = t1 = time.time()
+        # Pull and push
+        self.pull(infoStream)
+        self.push(infoStream)
+        # Write updates
+        t1 = time.time()
         msg = ("Successful sync at: {}, took {:.3f}s"
                .format(time.strftime("%H:%M:%S", time.localtime()), t1 - t0))
         logging.info(msg)
         if infoStream:
             infoStream.write("\n" + msg)
             time.sleep(0.5)
+        # Refresh info
+        self.refresh()
+
         return 1
 
     def pull(self, infoStream=None):
@@ -758,7 +760,7 @@ class PavloviaProject(dict):
         if infoStream:
             infoStream.write("\nPulling changes from remote...")
         try:
-            info = self.repo.git.pull(self.remoteWithToken, 'master')
+            info = self.repo.git.pull(self.project.http_url_to_repo, 'master')
             infoStream.write("\n{}".format(info))
         except git.exc.GitCommandError as e:
             if ("The project you were looking for could not be found" in
@@ -769,7 +771,7 @@ class PavloviaProject(dict):
             else:
                 raise e
 
-        logging.debug('pull complete: {}'.format(self.remoteHTTPS))
+        logging.debug('pull complete: {}'.format(self.project.http_url_to_repo))
         if infoStream:
             infoStream.write("\ndone")
         return 1
@@ -800,28 +802,29 @@ class PavloviaProject(dict):
             else:
                 raise e
 
-        logging.debug('push complete: {}'.format(self.remoteHTTPS))
+        logging.debug('push complete: {}'.format(self.project.http_url_to_repo))
         if infoStream:
             infoStream.write("done")
         return 1
 
-    def getRepo(self, infoStream=None, forceRefresh=False,
-                newRemote=False):
+    @property
+    def repo(self):
         """Will always try to return a valid local git repo
 
         Will try to clone if local is empty and remote is not"""
-
-        # refresh our representation of the local
-        if self.repo and not forceRefresh:
-            return self.repo
-
+        # If there's no local root, we can't find the repo
         if not self.localRoot:
-            raise AttributeError("Cannot fetch a PavloviaProject until we have "
-                                 "chosen a local folder.")
+            raise gitlab.GitlabGetError("Cannot fetch a PavloviaProject until we have chosen a local folder.")
+        # If repo is cached, return it
+        if hasattr(self, "_repo") and self._repo:
+            return self._repo
+
+        # Get git root
         gitRoot = getGitRoot(self.localRoot)
 
         if gitRoot is None:
-            self.newRepo(infoStream=infoStream)
+            # If there's no git root, make one
+            self._repo = git.Repo(self.localRoot)
         elif gitRoot not in [self.localRoot, str(pathlib.Path(self.localRoot).absolute())]:
             # this indicates that the requested root is inside another repo
             raise AttributeError("The requested local path for project\n\t{}\n"
@@ -830,15 +833,20 @@ class PavloviaProject(dict):
                                  "project local folder to be \n\t{}"
                                  .format(repr(self.localRoot), repr(gitRoot)))
         else:
-            self.repo = git.Repo(gitRoot)
-            self.configGitLocal()
+            # If there's a git root, return the associated repo
+            self._repo = git.Repo(gitRoot)
 
-        self.writeGitIgnore()
-        # also refresh our representation of the remote
-        if self.pavlovia and forceRefresh:
-            self.pavlovia = getCurrentSession().gitlab.projects.get(self.id)
+        return self._repo
 
-        return self.repo
+    @repo.setter
+    def repo(self, value):
+        self._repo = value
+
+    @property
+    def remoteWithToken(self):
+        """The remote for git sync using an oauth token (always as a bytes obj)
+        """
+        return f"https://oauth2:{self.session.token}@gitlab.pavlovia.org/{self['path_with_namespace']}"
 
     def writeGitIgnore(self):
         """Check that a .gitignore file exists and add it if not"""
@@ -866,9 +874,9 @@ class PavloviaProject(dict):
             os.makedirs(self.localRoot)
 
         # check if the remote repo is empty (if so then to init/push)
-        if self.pavlovia:
+        if self.project:
             try:
-                self.pavlovia.repository_tree()
+                self.project.repository_tree()
                 bareRemote = False
             except gitlab.GitlabGetError as e:
                 if "Tree Not Found" in str(e):
@@ -878,7 +886,7 @@ class PavloviaProject(dict):
 
         # if remote is new (or existed but is bare) then init and push
         if localFiles and (self._newRemote or bareRemote):  # existing folder
-            self.repo = git.Repo.init(self.localRoot)
+            repo = git.Repo.init(self.localRoot)
             self.configGitLocal()  # sets user.email and user.name
             # add origin remote and master branch (but no push)
             self.repo.create_remote('origin', url=self['remoteHTTPS'])
@@ -891,6 +899,8 @@ class PavloviaProject(dict):
             # no files locally so safe to try and clone from remote
             self.cloneRepo(infoStream=infoStream)
             # TODO: add the further case where there are remote AND local files!
+
+        return repo
 
     def firstPush(self, infoStream):
         if infoStream:

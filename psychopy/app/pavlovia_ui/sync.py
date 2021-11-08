@@ -6,35 +6,35 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import wx
+from psychopy.tools.versionchooser import _translate
 
 
-class SyncStatusPanel(wx.Panel):
-    def __init__(self, parent, id, *args, **kwargs):
-        # init super classes
-        wx.Panel.__init__(self, parent, id, *args, **kwargs)
-        # set self properties
-        self.parent = parent
-        self.infoStream = InfoStream(self, -1, size=(250, 150))
-        # self.progBar = wx.Gauge(self, -1, range=1, size=(200, -1))
-
-        self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-        self.mainSizer.Add(self.infoStream, 1, wx.ALL | wx.CENTER | wx.EXPAND,
-                           border=10)
-        # self.mainSizer.Add(self.progBar, 1, wx.ALL | wx.CENTER, border=10)
-
-        self.SetAutoLayout(True)
-        self.SetSizerAndFit(self.mainSizer)
+class SyncDialog(wx.Dialog):
+    def __init__(self, parent, project):
+        wx.Dialog.__init__(self, parent, title="Syncing project...")
+        self.project = project
+        # Setup sizer
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.SetSizer(self.sizer)
+        # Create status panel
+        self.status = InfoStream(self, id=wx.ID_ANY, size=(-1, -1),
+                                 value=_translate("Synchronising..."),
+                                 style=wx.TE_READONLY | wx.TE_MULTILINE)
+        self.sizer.Add(self.status, border=6, proportion=1, flag=wx.ALL | wx.EXPAND)
+        # Setup button sizer
+        self.btnSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.sizer.Add(self.btnSizer, border=6, flag=wx.ALL | wx.EXPAND)
+        self.btnSizer.AddStretchSpacer(1)
+        # Add buttons
+        self.OKbtn = wx.Button(self, label=_translate("Okay"), id=wx.ID_OK)
+        self.OKbtn.Disable()
+        self.btnSizer.Add(self.OKbtn, border=3, flag=wx.LEFT | wx.ALIGN_CENTER_VERTICAL)
+        # Layout
         self.Layout()
-
-    def setStatus(self, status):
-        self.infoStream.SetValue(status)
-        self.Refresh()
-        self.Layout()
-        wx.Yield()
-
-    def statusAppend(self, newText):
-        text = self.infoStream.GetValue() + newText
-        self.setStatus(text)
+        self.Show()
+        # Do sync
+        self.project.sync(self.status)
+        self.OKbtn.Enable()
 
 
 class InfoStream(wx.TextCtrl):

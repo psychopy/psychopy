@@ -216,7 +216,7 @@ class DetailsPanel(wx.Panel):
             self.value = (not self.value)
 
     def __init__(self, parent, project=None,
-                 size=(600, 500),
+                 size=(650, 550),
                  style=wx.NO_BORDER):
 
         wx.Panel.__init__(self, parent, -1,
@@ -450,8 +450,11 @@ class DetailsPanel(wx.Panel):
         # Enable ctrl now that there is a local root
         self.localRoot.Enable()
         self.localRootLabel.Enable()
-        # Do sync (todo:)
-        pass
+        # Show sync dlg (does sync)
+        dlg = sync.SyncDialog(self, self.project)
+        dlg.ShowModal()
+        # Update last sync date
+        self.syncLbl.SetLabel(f"{self.project['last_activity_at']:%d %B %Y, %I:%M%p}")
 
     def fork(self, evt=None):
         # Do fork
