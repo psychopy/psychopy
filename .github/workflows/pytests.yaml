@@ -42,6 +42,16 @@ jobs:
         # then use the standard requirements:
         pip install .
 
+    - name: test docs to pdf
+      run: |
+        pip install sphinx sphinxcontrib-napoleon
+        brew install basictex
+        # update path after brew install
+        eval "$(/usr/libexec/path_helper)"
+        cd docs
+        make latexpdf
+        cd ..
+        
 #    - name: Lint with flake8
 #      run: |
 #        # stop the build if there are Python syntax errors or undefined names
@@ -90,14 +100,6 @@ jobs:
       uses: codecov/codecov-action@v1
       with:
         fail_ci_if_error: false
-
-    - name: test docs to pdf
-      run: |
-        pip install sphinx sphinxcontrib-napoleon
-        brew install basictex
-        # update path after brew install
-        eval "$(/usr/libexec/path_helper)"
-        make latexpdf
 
 
 #    - name: Check bdist/sdist
@@ -168,6 +170,18 @@ jobs:
         sudo apt-get install -y -qq libxcb-randr0 libxcb-render-util0 libxcb-xinerama0 libxcb-xfixes0
         export LIBGL_ALWAYS_INDIRECT=0
         export QT_DEBUG_PLUGINS=1 # let us know about missing dependencies?
+
+    - name: test docs to pdf
+      run: |
+
+        sudo apt-get install -y sphinx-doc sphinx-common
+        sudo apt-get install -y latexmk xindy texlive-latex-recommended texlive-xetex texlive-latex-extra texlive-fonts-recommended texlive-fonts-extra
+        brew install basictex
+        # update path after brew install
+        eval "$(/usr/libexec/path_helper)"
+        cd docs
+        make latexpdf
+        cd ..
 
     - name: Install wxPython from source for linux
       if: runner.os=='Linux'
