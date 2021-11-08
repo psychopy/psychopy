@@ -6,6 +6,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 import io
 import sys
+import tempfile
 import time
 import os
 import traceback
@@ -499,7 +500,14 @@ class DetailsPanel(wx.Panel):
             self.project['name'] = self.title.Value
             self.project.save()
         if obj == self.icon:
-            pass
+            # Create temporary image file
+            _, temp = tempfile.mkstemp(suffix=".png")
+            self.icon.BitmapFull.SaveFile(temp, wx.BITMAP_TYPE_PNG)
+            # Load and upload from temp file
+            self.project['avatar'] = open(temp, "rb")
+            self.project.save()
+            # Delete temp file
+            #os.remove(temp)
         if obj == self.starBtn:
             self.project.starred = self.starBtn.value
             self.starLbl.SetLabel(str(self.project.info['nbStars']))
