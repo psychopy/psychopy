@@ -176,6 +176,17 @@ class User(dict):
     def __str__(self):
         return "pavlovia.User <{}>".format(self['username'])
 
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            # Compare gitlab ID for two User objects
+            return int(self['id']) == int(other['id'])
+        elif isinstance(other, (int, float)) or (isinstance(other, str) and other.isnumeric()):
+            # Compare gitlab ID for an int or int-like
+            return int(self['id']) == int(other)
+        elif isinstance(other, str):
+            # Compare username for a string
+            return self['username'] == other
+
     @property
     def session(self):
         # Cache session if not cached
