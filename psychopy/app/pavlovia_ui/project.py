@@ -435,7 +435,7 @@ class DetailsPanel(wx.Panel):
             self.status.SetStringSelection(project.info['status'])
             self.status.Enable(project.editable)
             # Tags
-            self.tags.items = []#project.info['tag_list']
+            self.tags.items = self.project['tag_list']
             self.tags.Enable(project.editable)
 
         # Layout
@@ -524,7 +524,7 @@ class DetailsPanel(wx.Panel):
             self.project['description'] = self.description.Value
             self.project.save()
         if obj == self.visibility and self.project.editable:
-            self.project['visibility'] = self.visibility.GetStringSelection()
+            self.project['visibility'] = self.visibility.GetStringSelection().lower()
             self.project.save()
         if obj == self.status and self.project.editable:
             pass
