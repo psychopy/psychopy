@@ -467,7 +467,7 @@ class DetailsPanel(wx.Panel):
             if dlg.ShowModal() == wx.ID_YES:
                 # If yes, show forked project
                 projData = requests.get(
-                    f"https://pavlovia.org/api/v2/experiments/{self.project.session.user.username}/{self.project['name']}"
+                    f"https://pavlovia.org/api/v2/experiments/{self.project.session.user['username']}/{self.project['name']}"
                 ).json()
                 self.project = PavloviaProject(projData['experiment']['gitlabId'])
                 return
@@ -604,7 +604,7 @@ def syncProject(parent, project=None, closeFrameWhenDone=False):
         # if we're going to create a project we need user to be logged in
         pavSession = pavlovia.getCurrentSession()
         try:
-            username = pavSession.user.username
+            username = pavSession.user['username']
         except:
             username = logInPavlovia(parent)
         if not username:
@@ -719,7 +719,7 @@ class ForkDlg(wx.Dialog):
 
         existingName = project.name
         session = pavlovia.getCurrentSession()
-        groups = [session.user.username]
+        groups = [session.user['username']]
         groups.extend(session.listUserGroups())
         msg = wx.StaticText(self, label="Where shall we fork to?")
         groupLbl = wx.StaticText(self, label="Group:")
