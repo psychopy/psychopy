@@ -106,8 +106,9 @@ def login(tokenOrUsername, rememberMe=True):
 
     # try actually logging in with token
     currentSession.setToken(token)
-    user = User(id=currentSession.user.get_id(), rememberMe=rememberMe)
-    prefs.appData['projects']['pavloviaUser'] = user['username']
+    if currentSession.user is not None:
+        user = currentSession.user
+        prefs.appData['projects']['pavloviaUser'] = user['username']
 
 
 def logout():
@@ -145,11 +146,14 @@ class User(dict):
             # If given a dict from Pavlovia rather than an ID, store it rather than requesting again
             self.info = id
         else:
-            raise TypeError("ID must be either an integer representing the user's numeric ID or a string representing their username.")
+            raise TypeError(f"ID must be either an integer representing the user's numeric ID or a string "
+                            f"representing their username, not `{id}`.")
         # Store own ID
         self.id = int(self.info['gitlabId'])
         # Get user object from GitLab
         self.user = self.session.gitlab.users.get(self.id)
+        # Add user email (mostly redundant but necessary for saving)
+        self.user.email = self.info['email']
         # Init dict
         dict.__init__(self, self.info)
         # Update local
@@ -170,7 +174,7 @@ class User(dict):
         self.user.__setattr__(key, value)
 
     def __str__(self):
-        return "pavlovia.User <{}>".format(self.username)
+        return "pavlovia.User <{}>".format(self['username'])
 
     @property
     def session(self):
@@ -183,6 +187,7 @@ class User(dict):
     def saveLocal(self):
         """Saves the data on the current user in the pavlovia/users json file"""
         knownUsers[self['username']] = self.user.attributes
+        knownUsers[self['username']]['token'] = self.session.getToken()
         knownUsers.save()
 
     def save(self):
@@ -372,9 +377,9 @@ class PavloviaSession:
             else:
                 self.gitlab = gitlab.Gitlab(rootURL, oauth_token=token, timeout=3)
             self.gitlab.auth()
-            self.username = self.user.username
-            self.userID = self.user.id  # populate when token property is set
-            self.userFullName = self.user.name
+            self.username = self.gitlab.user.username
+            self.userID = self.gitlab.user.id  # populate when token property is set
+            self.userFullName = self.gitlab.user.name
             self.authenticated = True
         else:
             if parse_version(gitlab.__version__) > parse_version("1.4"):
@@ -384,10 +389,18 @@ class PavloviaSession:
 
     @property
     def user(self):
-        if hasattr(self.gitlab, 'user'):
-            return self.gitlab.user
+        if not hasattr(self, "_user"):
+            if not hasattr(self.gitlab, "user") or self.gitlab.user.username is None:
+                return None
+            self._user = User(self.gitlab.user.username)
+        return self._user
+
+    @user.setter
+    def user(self, value):
+        if isinstance(value, User):
+            self._user = value
         else:
-            return None
+            self._user = User(value)
 
 
 class PavloviaSearch(pandas.DataFrame):
