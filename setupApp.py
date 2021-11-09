@@ -31,10 +31,11 @@ if platform != 'darwin':
 import bdist_mpkg
 import py2app
 resources = glob.glob('psychopy/app/Resources/*')
-frameworks = ["/usr/lib/libxml2.2.dylib", #"libyaml.dylib",
-              "libevent.dylib", "libffi.dylib",
-              "libmp3lame.0.dylib",
-              "/usr/local/Cellar/glfw/3.2.1/lib/libglfw.3.2.dylib",
+frameworks = [ # these installed using homebrew
+              "/usr/local/opt/libevent/lib/libevent.dylib", 
+              "/usr/local/opt/lame/lib/libmp3lame.0.dylib",
+              "/usr/local/opt/libffi/lib/libffi.dylib",
+              "/usr/local/opt/libglfw/lib/libglfw.3.2.dylib",
               ]
 opencvLibs = glob.glob(os.path.join(sys.exec_prefix, 'lib', 'libopencv*.2.4.dylib'))
 frameworks.extend(opencvLibs)

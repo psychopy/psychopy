@@ -9,7 +9,6 @@ opencv-python
 moviepy
 pyosf
 xlrd
-lxml
 openpyxl
 gevent
 psutil

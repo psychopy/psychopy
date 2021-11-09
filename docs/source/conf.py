@@ -186,7 +186,8 @@ htmlhelp_basename = 'PsychoPydoc'
 
 
 # -- Options for LaTeX output --------------------------------------------------
-latex_engine = 'xelatex'  # or pdflatex
+# xelatex or pdflatex (but pdflatex on mac struggles with Höchenberger!)
+latex_engine = 'xelatex'
 # latex_elements = {
 #    'babel': '\\usepackage{babel}',
 #    'inputenc': '\\usepackage[utf8]{inputenc}'
