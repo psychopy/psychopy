@@ -4,6 +4,7 @@
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
+import tempfile
 
 from .functions import logInPavlovia, logOutPavlovia
 from psychopy.localization import _translate
@@ -66,9 +67,11 @@ class UserPanel(wx.Panel):
         self.fullName.SetFont(
             wx.Font(24, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
         )
+        self.fullName.Bind(wx.EVT_TEXT, self.updateUser)
         self.titleSizer.Add(self.fullName, border=6, flag=wx.ALL | wx.EXPAND)
         # Organisation
         self.organisation = wx.TextCtrl(self, size=(-1, -1), value="---")
+        self.organisation.Bind(wx.EVT_TEXT, self.updateUser)
         self.titleSizer.Add(self.organisation, border=6, flag=wx.ALL | wx.EXPAND)
         # Spacer
         self.titleSizer.AddStretchSpacer(1)
@@ -103,12 +106,13 @@ class UserPanel(wx.Panel):
         self.sizer.Add(self.description, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
 
         # Populate
-        self.user = self.session.user
+        self.user = self.user
 
     @property
     def user(self):
-        if hasattr(self, "_user"):
-            return self._user
+        if not hasattr(self, "_user"):
+            self._user = self.session.user
+        return self._user
 
     @user.setter
     def user(self, user):
@@ -136,27 +140,27 @@ class UserPanel(wx.Panel):
             self.description.Disable()
         else:
             try:
-                content = requests.get(user.attributes['avatar_url']).content
+                content = requests.get(user['avatar_url']).content
                 icon = wx.Bitmap(wx.Image(io.BytesIO(content)))
             except requests.exceptions.MissingSchema:
                 icon = wx.Bitmap()
             self.icon.SetBitmap(icon)
             self.icon.Enable()
             # Full name
-            self.fullName.SetValue(user.attributes['name'] or "")
+            self.fullName.SetValue(user['name'] or "")
             self.fullName.Enable()
             # Organisation
-            self.organisation.SetValue(user.attributes['organization'] or "No organization")
+            self.organisation.SetValue(user['organization'] or "No organization")
             self.organisation.Enable()
             # Link
-            self.link.SetLabel(user.attributes['username'])
-            self.link.SetURL(user.attributes['web_url'] or "")
+            self.link.SetLabel(user['username'])
+            self.link.SetURL(user['web_url'] or "")
             self.link.Enable()
             # Hide logout and show login
             self.logout.Show()
             self.login.Hide()
             # Description
-            self.description.SetValue(user.attributes['bio'] or "")
+            self.description.SetValue(user['bio'] or "")
             self.description.Enable()
         self.Layout()
 
@@ -174,17 +178,21 @@ class UserPanel(wx.Panel):
         obj = evt.GetEventObject()
         # Update full name
         if obj == self.fullName:
-            self.session.user.attributes['full_name'] = self.fullName.GetValue()
+            self.user.name = self.fullName.GetValue()
+            #self.user.save()
         # Update organisation
         if obj == self.organisation:
-            self.session.user.attributes['organization'] = self.organisation.GetValue()
+            self.user.organization = self.organisation.GetValue()
+            #self.user.save()
         # Update bio
         if obj == self.description:
-            self.session.user.attributes['bio'] = self.description.GetValue()
+            self.user.bio = self.description.GetValue()
+            #self.user.save()
         # Update avatar
         if obj == self.icon:
-            if self.icon.path:
-                self.session.user.avatar = open(self.icon.path, 'rb')
-
-        # Save
-        #self.session.user.save()
+            # Create temporary image file
+            _, temp = tempfile.mkstemp(suffix=".png")
+            self.icon.BitmapFull.SaveFile(temp, wx.BITMAP_TYPE_PNG)
+            # Load and upload from temp file
+            self.user.avatar = open(temp, "rb")
+            #self.user.save()
