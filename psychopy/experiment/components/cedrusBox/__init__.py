@@ -40,7 +40,7 @@ class cedrusButtonBoxComponent(KeyboardComponent):
     targets = ['PsychoPy']
     iconFile = Path(__file__).parent / 'cedrusBox.png'
     tooltip = _translate('Cedrus Button Box: Cedrus response boxes, using the '
-                         'pyxid library provided by Cedrus')
+                         'pyxid2 library provided by Cedrus')
 
     def __init__(self, exp, parentName, name='buttonBox',
                  store='first key',

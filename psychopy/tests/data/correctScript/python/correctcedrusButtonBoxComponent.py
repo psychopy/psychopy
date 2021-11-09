@@ -54,7 +54,7 @@ logging.console.setLevel(logging.WARNING)  # this outputs to the screen, not a f
 endExpNow = False  # flag for 'escape' or other condition => quit the exp
 
 # Start Code - component code to be run before the window creation
-import pyxid  # to use the Cedrus response box
+import pyxid2 as pyxid  # to use the Cedrus response box
 
 # Setup the Window
 win = visual.Window(

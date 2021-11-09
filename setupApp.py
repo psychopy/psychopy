@@ -81,14 +81,14 @@ packages = ['wx', 'psychopy',
             'objc', 'Quartz', 'AppKit', 'QTKit', 'Cocoa',
             'Foundation', 'CoreFoundation',
             'pkg_resources',  # needed for objc
-            'pyolib', 'pyo',
+            'pyo',
             'requests', 'certifi', 'cryptography',
             # for unit testing
             'coverage',
             # handy external science libs
             'serial',
             'egi', 'pylink', 'tobiiresearch',
-            'pyxid', 'pyxid2', 'ftd2xx',  # ftd2xx is used by cedrus
+            'pyxid2', 'ftd2xx',  # ftd2xx is used by cedrus
             'pandas', 'tables',  # 'cython',
             'msgpack', 'yaml', 'gevent',  # for ioHub
             # these aren't needed, but liked

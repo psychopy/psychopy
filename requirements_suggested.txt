@@ -4,4 +4,5 @@ pyparallel
 egi
 iolabs
 pyfilesec
-markdown-it
+python-pygaze
+markdown-it-py
