@@ -122,7 +122,7 @@ def logout():
     """
     # create a new currentSession with no auth token
     global _existingSession
-    _existingSession = PavloviaSession()  # create an empty session (user is None)
+    _existingSession.user = None
     # set appData to None
     prefs.appData['projects']['pavloviaUser'] = None
     prefs.saveAppData()
@@ -408,7 +408,7 @@ class PavloviaSession:
 
     @user.setter
     def user(self, value):
-        if isinstance(value, User):
+        if isinstance(value, User) or value is None:
             self._user = value
         else:
             self._user = User(value)
@@ -602,12 +602,12 @@ class PavloviaProject(dict):
         Whether or not the project is editable by the current user
         """
         # If previous value is cached, return it
-        if hasattr(self, "_editable"):
+        if hasattr(self, "_editable") and self._lastEditableCheckUser == self.session.user:
             return self._editable
         # Otherwise, figure it out
         if self.session.user:
             # Get current user id
-            _id = self.session.user.attributes['id']
+            _id = self.session.user['id']
             # Get gitlab project users
             _users = self.project.users.list()
             # Return whether or not current user in in project users
@@ -615,6 +615,9 @@ class PavloviaProject(dict):
         else:
             # If there's no user, they can't edit, so return False
             self._editable = False
+        # Store user when last checked
+        self._lastEditableCheckUser = self.session.user
+
         return self._editable
 
     @property
@@ -922,12 +925,12 @@ class PavloviaProject(dict):
     def fork(self, to=None):
         # Sub in current user if none given
         if to is None:
-            to = self.session.user.username
+            to = self.session.user['username']
         # Do fork
         try:
             glProj = self.project.forks.create({'namespace': to})
         except gitlab.GitlabCreateError:
-            raise gitlab.GitlabCreateError(f"Project {self.session.user.username}/{self['name']} already exists!")
+            raise gitlab.GitlabCreateError(f"Project {self.session.user['username']}/{self['name']} already exists!")
         # Get new project
         proj = PavloviaProject(glProj.id)
         # Return new project
