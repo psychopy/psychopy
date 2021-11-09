@@ -106,8 +106,8 @@ def login(tokenOrUsername, rememberMe=True):
 
     # try actually logging in with token
     currentSession.setToken(token)
-    user = User(gitlabData=currentSession.user, rememberMe=rememberMe)
-    prefs.appData['projects']['pavloviaUser'] = user.username
+    user = User(id=currentSession.user.get_id(), rememberMe=rememberMe)
+    prefs.appData['projects']['pavloviaUser'] = user['username']
 
 
 def logout():
@@ -131,131 +131,62 @@ def logout():
             frame.setUser(None)
 
 
-class User:
+class User(dict):
     """Class to combine what we know about the user locally and on gitlab
 
     (from previous logins and from the current session)"""
 
-    def __init__(self, localData={}, gitlabData=None, rememberMe=True):
-        currentSession = getCurrentSession()
-        self.data = localData
-        self.gitlabData = gitlabData
-        # try looking for local data
-        if gitlabData and not localData:
-            if gitlabData.username in knownUsers:
-                self.data = knownUsers[gitlabData.username]
-
-        # then try again to populate fields
-        if gitlabData and not localData:
-            self.data['username'] = gitlabData.username
-            self.data['token'] = currentSession.getToken()
-            self.avatar = gitlabData.attributes['avatar_url']
-        elif 'avatar' in localData:
-            self.avatar = localData['avatar']
-        elif gitlabData:
-            self.avatar = gitlabData.attributes['avatar_url']
-
-        # check and/or create SSH keys
-        # sshIdPath = os.path.join(prefs.paths['userPrefsDir'],
-        #                          "ssh", self.username)
-        # if os.path.isfile(sshIdPath):
-        #     self.publicSSH = sshkeys.getPublicKey(sshIdPath + ".pub")
-        # else:
-        #     self.publicSSH = sshkeys.saveKeyPair(sshIdPath,
-        #                                          comment=gitlabData.email)
-        # # convert bytes to unicode if needed
-        # if type(self.publicSSH) == bytes:
-        #     self.publicSSH = self.publicSSH.decode('utf-8')
-        # push that key to gitlab.pavlovia if possible/needed
-        # if gitlabData:
-        #     keys = gitlabData.keys.list()
-        #     keyName = '{}@{}'.format(
-        #             self.username, socket.gethostname().strip(".local"))
-        #     remoteKey = None
-        #     for thisKey in keys:
-        #         if thisKey.title == keyName:
-        #             remoteKey = thisKey
-        #             break
-        #     if not remoteKey:
-        #         remoteKey = gitlabData.keys.create({'title': keyName,
-        #                                             'key': self.publicSSH})
+    def __init__(self, id, rememberMe=True):
+        # Get info from Pavlovia
+        if isinstance(id, (float, int, str)):
+            # If given a number or string, treat it as a user ID / username
+            self.info = requests.get("https://pavlovia.org/api/v2/designers/" + str(id)).json()['designer']
+        elif isinstance(id, dict) and 'gitlabId' in id:
+            # If given a dict from Pavlovia rather than an ID, store it rather than requesting again
+            self.info = id
+        else:
+            raise TypeError("ID must be either an integer representing the user's numeric ID or a string representing their username.")
+        # Store own ID
+        self.id = int(self.info['gitlabId'])
+        # Get user object from GitLab
+        self.user = self.session.gitlab.users.get(self.id)
+        # Init dict
+        dict.__init__(self, self.info)
+        # Update local
         if rememberMe:
             self.saveLocal()
+
+    def __getitem__(self, key):
+        # Get either from self or project.attributes
+        try:
+            value = dict.__getitem__(self, key)
+        except KeyError:
+            value = self.user.attributes[key]
+
+        return value
+
+    def __setitem__(self, key, value):
+        dict.__setitem__(self, key, value)
+        self.user.__setattr__(key, value)
 
     def __str__(self):
         return "pavlovia.User <{}>".format(self.username)
 
-    def __getattr__(self, name):
-        if name not in self.__dict__ and hasattr(self.gitlabData, name):
-            return getattr(self.gitlabData, name)
-        raise AttributeError(
-                "No attribute '{}' in this PavloviaUser".format(name))
-
     @property
-    def username(self):
-        if 'username' in self.gitlabData.attributes:
-            return self.gitlabData.username
-        elif 'username' in self.data:
-            return self.data['username']
-        else:
-            return None
-
-    @property
-    def url(self):
-        return self.gitlabData.web_url
-
-    @property
-    def name(self):
-        return self.gitlabData.name
-
-    @name.setter
-    def name(self, name):
-        self.gitlabData.name = name
-
-    @property
-    def token(self):
-        return self.data['token']
-
-    @property
-    def avatar(self):
-        if 'avatar' in self.data:
-            return self.data['avatar']
-        else:
-            return None
-
-    @avatar.setter
-    def avatar(self, location):
-        if os.path.isfile(location):
-            self.data['avatar'] = location
-
-    def _fetchRemoteAvatar(self, url=None):
-        if not url:
-            url = self.avatar_url
-        exten = url.split(".")[-1]
-        if exten not in ['jpg', 'png', 'tif']:
-            exten = 'jpg'
-        avatarLocal = os.path.join(pavloviaPrefsDir, ("avatar_{}.{}"
-                                                      .format(self.username,
-                                                              exten)))
-
-        # try to fetch the actual image file
-        r = requests.get(url, stream=True)
-        if r.status_code == 200:
-            with open(avatarLocal, 'wb') as f:
-                for chunk in r:
-                    f.write(chunk)
-            return avatarLocal
-        return None
+    def session(self):
+        # Cache session if not cached
+        if not hasattr(self, "_session"):
+            self._session = getCurrentSession()
+        # Return cached session
+        return self._session
 
     def saveLocal(self):
         """Saves the data on the current user in the pavlovia/users json file"""
-        # update stored tokens
-        tokens = knownUsers
-        tokens[self.username] = self.data
-        tokens.save()
+        knownUsers[self['username']] = self.user.attributes
+        knownUsers.save()
 
     def save(self):
-        self.gitlabData.save()
+        self.user.save()
 
 
 class PavloviaSession:
