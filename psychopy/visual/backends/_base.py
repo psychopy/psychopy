@@ -25,9 +25,9 @@ class BaseBackend(ABC):
     """The backend abstract base class that defines all the core low-level
     functions required by a :class:`~psychopy.visual.Window` class.
 
-    Such functions as the ability to create an OpenGL context, process events,
-    and flip the window. Sub-classes of this function must implement the
-    abstract methods shown here to be complete.
+    Such methods as the ability to create an OpenGL context, process events,
+    and flip the window are prototyped here. Sub-classes of this function must
+    implement the abstract methods shown here to be complete.
 
     Users simply call visual.Window(..., winType='pyglet') and the `winType` is
     then used by `backends.getBackend(winType)` which will locate the
@@ -114,7 +114,7 @@ class BaseBackend(ABC):
 
         Callback function must have the following signature::
 
-            callback(int: newPosX, int: newPosY, Any: winHandle) -> None
+            callback(Any: winHandle, int: newPosX, int: newPosY) -> None
 
         """
         return self._onMoveCallback
@@ -133,7 +133,7 @@ class BaseBackend(ABC):
 
         Callback function must have the following signature::
 
-            callback(int: newSizeW, int: newSizeH, Any: winHandle) -> None
+            callback(Any: winHandle, int: newSizeW, int: newSizeH) -> None
 
         """
         return self._onResizeCallback
@@ -156,7 +156,7 @@ class BaseBackend(ABC):
         # When overriding this function, at the very minimum we must call the
         # user's function, passing the data they expect.
         if self._onResizeCallback is not None:
-            self._onResizeCallback(width, height)
+            self._onResizeCallback(self.win, width, height)
 
     def onMove(self, posX, posY):
         """A method called when the window is moved by the user.
@@ -169,7 +169,7 @@ class BaseBackend(ABC):
             self.win.pos[:] = (posX, posY)
 
         if self._onMoveCallback is not None:
-            self._onMoveCallback(posX, posY)
+            self._onResizeCallback(self.win, posX, posY)
 
     # Helper methods that don't need converting
 
