@@ -23,6 +23,8 @@ from psychopy import visual, core, monitors
 from psychopy.iohub import launchHubServer
 from psychopy.iohub.constants import EventConstants
 
+# pyglet or glfw
+WIN_TYPE = 'pyglet'
 # True = print mouse events to stdout, False = do not
 PRINT_MOUSE_EVENTS = False
 
@@ -32,10 +34,15 @@ mon0.setDistance(60.0)
 mon0.setWidth(33.0)
 mon0.setSizePix((1280, 1024))
 win = visual.Window((400, 400), pos=(0, 30), units='norm', fullscr=False, allowGUI=True, screen=0, monitor=mon0,
-                    winType='pyglet')
+                    winType=WIN_TYPE)
 
 # start the iohub server
 io = launchHubServer(window=win, Mouse=dict(enable_multi_window=True))
+
+win2_backend_conf = None
+if WIN_TYPE == 'glfw':
+    win2_backend_conf = {'share': win}
+print("using window backend config: ", win2_backend_conf)
 
 # Test creating a monitor after starting iohub
 mon1 = monitors.Monitor('monitor1')
@@ -43,7 +50,7 @@ mon1.setDistance(60.0)
 mon1.setWidth(34.5)
 mon1.setSizePix((1920, 1080))
 win2 = visual.Window((600, 600), pos=(500, 30), units='cm', fullscr=False, allowGUI=True, screen=1, monitor=mon1,
-                     winType='pyglet')
+                     winType=WIN_TYPE, backendConf=win2_backend_conf)
 
 # access the iohub keyboard and mouse
 keyboard = io.devices.keyboard
