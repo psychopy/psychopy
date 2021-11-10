@@ -24,7 +24,6 @@ from psychopy import logging, event, platform_specific
 from psychopy.visual import window
 from psychopy.tools.attributetools import attributeSetter
 from psychopy.tests import _vmTesting
-from psychopy.iohub.client import ioHubConnection
 from .gamma import setGamma, setGammaRamp, getGammaRamp, getGammaRampSize
 from .. import globalVars
 from ._base import BaseBackend
