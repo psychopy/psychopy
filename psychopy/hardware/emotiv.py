@@ -102,6 +102,7 @@ class Cortex(object):
             logger.error("Not able to find a connected headset")
             raise CortexNoHeadsetException("Unable to find Emotiv headset")
         # EEG data 
+        self.synchronise()
         if EEG_ON:
             self.timestamps = []
             self.data = []
@@ -334,21 +335,44 @@ class Cortex(object):
         try:
             resp = self.send_wait_command('authorize', auth=False, **params)
         except CortexApiException as e:
-            msg = json.loads(str(e))['error']['message'].lower()
-            if "no access rights" in msg:
-                raise CortexApiException("Please open the EmotivApp and grant "
-                                         "permission to your applicationId")
-            else:
-                raise CortexApiException(msg)
+            msg = json.loads(str(e))['error']['message']
+            # if "no access rights" in msg:
+            #     raise CortexApiException("Please open the EmotivApp and grant "
+            #                              "permission to your applicationId")
+            # else:
+            raise CortexApiException(msg)
         logger.debug(f"{__name__} resp:\n{resp}")
         self.auth_token = resp['result']['cortexToken']
-
 
     ##
     # Here down are cortex specific commands
     # Each of them is documented thoroughly in the API documentation:
     # https://emotiv.gitbook.io/cortex-api
     ##
+    def synchronise(self):
+        delta = 1.0
+        logger.debug("Start synchronising")
+        while delta > 0.001:
+            params = {'headset': self.headsets[0],
+                      'monotonicTime': time.perf_counter(),
+                      'systemTime': time.time()}
+            try:
+                resp = self.send_wait_command('syncWithHeadsetClock', auth=False, **params)
+            except CortexApiException as e:
+                msg = json.loads(str(e))['error']['message']
+                code = json.loads(str(e))['error']['code']
+                if code == -32601:
+                    # Old version of Cortex
+                    print("Old version of Cortex detected. Synchronisation of headset clock failed.")
+                    return
+                else:
+                    raise CortexApiException(msg)
+            logger.debug(f"{__name__} resp:\n{resp}")
+            new_t0 = resp['result']['adjustment']
+            delta = abs(self.tt0 - new_t0)
+            self.tt0 = new_t0
+        logger.debug("Synchronised")
+
     def inspectApi(self):
         """ Return a list of available cortex methods """
         resp = self.send_wait_command('inspectApi', auth=False)
