@@ -48,6 +48,7 @@ jobs:
         brew install basictex
         # update path after brew install
         eval "$(/usr/libexec/path_helper)"
+        tlmgr install latexmk
         cd docs
         make latexpdf
         cd ..
@@ -240,7 +241,7 @@ jobs:
 
     - name: test docs to pdf
       run: |
-        sudo apt-get install -y sphinx-doc sphinx-common
+        sudo apt-get install -y python3-sphinx
         sudo apt-get install -y latexmk xindy texlive-latex-recommended texlive-xetex texlive-latex-extra texlive-fonts-recommended texlive-fonts-extra
         cd docs
         make latexpdf
