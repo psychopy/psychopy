@@ -6,6 +6,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 import tempfile
 
+from . import PavloviaMiniBrowser
 from .functions import logInPavlovia, logOutPavlovia
 from psychopy.localization import _translate
 from psychopy.projects import pavlovia
@@ -15,6 +16,9 @@ import io
 from psychopy import prefs
 import os
 import wx
+
+from ...projects.pavlovia import User
+
 try:
     import wx.lib.agw.hyperlink as wxhl  # 4.0+
 except ImportError:
@@ -37,7 +41,7 @@ class UserFrame(wx.Dialog):
 
 class UserPanel(wx.Panel):
     def __init__(self, parent,
-                 size=(600, 500),
+                 size=(600, 300),
                  style=wx.NO_BORDER):
         wx.Panel.__init__(self, parent, -1,
                           size=size,
@@ -55,29 +59,30 @@ class UserPanel(wx.Panel):
         self.headSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.sizer.Add(self.headSizer, border=0, flag=wx.EXPAND)
         # Icon
-        self.icon = utils.ImageCtrl(self, bitmap=wx.Bitmap(), size=(128, 128))
+        self.icon = wx.StaticBitmap(self, size=(128, 128))
         self.icon.SetBackgroundColour("#f2f2f2")
-        self.icon.Bind(wx.EVT_FILEPICKER_CHANGED, self.updateUser)
         self.headSizer.Add(self.icon, border=6, flag=wx.ALL)
         # Title sizer
         self.titleSizer = wx.BoxSizer(wx.VERTICAL)
         self.headSizer.Add(self.titleSizer, proportion=1, flag=wx.EXPAND)
         # Full name
-        self.fullName = wx.TextCtrl(self, size=(-1, -1), value="---")
+        self.fullName = wx.StaticText(self, size=(-1, -1), label="---", style=wx.ST_ELLIPSIZE_END)
         self.fullName.SetFont(
             wx.Font(24, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
         )
         self.fullName.Bind(wx.EVT_TEXT, self.updateUser)
         self.titleSizer.Add(self.fullName, border=6, flag=wx.ALL | wx.EXPAND)
         # Organisation
-        self.organisation = wx.TextCtrl(self, size=(-1, -1), value="---")
-        self.organisation.Bind(wx.EVT_TEXT, self.updateUser)
+        self.organisation = wx.StaticText(self, size=(-1, -1), label="---", style=wx.ST_ELLIPSIZE_END)
+        self.organisation.SetFont(
+            wx.Font(12, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_ITALIC, wx.FONTWEIGHT_NORMAL)
+        )
         self.titleSizer.Add(self.organisation, border=6, flag=wx.ALL | wx.EXPAND)
         # Spacer
         self.titleSizer.AddStretchSpacer(1)
         # Button sizer
         self.btnSizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.titleSizer.Add(self.btnSizer, flag=wx.EXPAND)
+        self.titleSizer.Add(self.btnSizer, border=6, flag=wx.TOP | wx.BOTTOM | wx.EXPAND)
         # Spacer
         self.btnSizer.AddStretchSpacer(1)
         # Pavlovia link
@@ -86,23 +91,28 @@ class UserPanel(wx.Panel):
                                        URL="https://gitlab.pavlovia.org/",
                                        )
         self.link.SetBackgroundColour(self.GetBackgroundColour())
-        self.btnSizer.Add(self.link, border=6, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
+        self.btnSizer.Add(self.link, border=6, flag=wx.RIGHT | wx.ALIGN_CENTER_VERTICAL)
+        # Edit
+        self.edit = wx.Button(self, label=chr(int("270E", 16)), size=(24, -1), style=wx.BORDER_NONE)
+        self.edit.Bind(wx.EVT_BUTTON, self.onEdit)
+        self.btnSizer.Add(self.edit, border=3, flag=wx.LEFT | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL)
         # Login
         self.login = wx.Button(self, label=_translate("Login"), style=wx.BORDER_NONE)
         self.login.SetBitmap(iconCache.getBitmap(name="person_off", size=16))
         self.login.Bind(wx.EVT_BUTTON, self.onLogin)
-        self.btnSizer.Add(self.login, border=6, flag=wx.ALL | wx.EXPAND)
+        self.btnSizer.Add(self.login, border=3, flag=wx.LEFT | wx.EXPAND)
         # Logout
         self.logout = wx.Button(self, label=_translate("Logout"), style=wx.BORDER_NONE)
         self.logout.SetBitmap(iconCache.getBitmap(name="person_off", size=16))
         self.logout.Bind(wx.EVT_BUTTON, self.onLogout)
-        self.btnSizer.Add(self.logout, border=6, flag=wx.ALL | wx.EXPAND)
+        self.btnSizer.Add(self.logout, border=3, flag=wx.LEFT | wx.EXPAND)
         # Sep
         self.sizer.Add(wx.StaticLine(self, -1), border=6, flag=wx.EXPAND | wx.ALL)
         # Bio
-        self.description = wx.TextCtrl(self, size=(-1, -1), value="", style=wx.TE_MULTILINE)
-        self.description.SetMaxLength(250)
-        self.description.Bind(wx.EVT_TEXT, self.updateUser)
+        self.description = wx.StaticText(self, size=(-1, -1), label="", style=wx.TE_MULTILINE)
+        self.description.SetFont(
+            wx.Font(11, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
+        )
         self.sizer.Add(self.description, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
 
         # Populate
@@ -123,10 +133,10 @@ class UserPanel(wx.Panel):
             self.icon.SetBitmap(wx.Bitmap())
             self.icon.Disable()
             # Full name
-            self.fullName.SetValue("---")
+            self.fullName.SetLabelText("---")
             self.fullName.Disable()
             # Organisation
-            self.organisation.SetValue("---")
+            self.organisation.SetLabelText("---")
             self.organisation.Disable()
             # Link
             self.link.SetLabel("")
@@ -135,22 +145,27 @@ class UserPanel(wx.Panel):
             # Hide logout and show login
             self.logout.Hide()
             self.login.Show()
+            # Disable edit
+            self.edit.Disable()
             # Description
-            self.description.SetValue("")
+            self.description.SetLabelText("")
             self.description.Disable()
         else:
             try:
                 content = requests.get(user['avatar_url']).content
-                icon = wx.Bitmap(wx.Image(io.BytesIO(content)))
+                buffer = wx.Image(io.BytesIO(content))
+                buffer = buffer.Scale(*self.icon.Size, quality=wx.IMAGE_QUALITY_HIGH)
+                icon = wx.BitmapFromImage(buffer)
             except requests.exceptions.MissingSchema:
                 icon = wx.Bitmap()
             self.icon.SetBitmap(icon)
+            self.icon.SetScaleMode(self.icon.Scale_AspectFit)
             self.icon.Enable()
             # Full name
-            self.fullName.SetValue(user['name'] or "")
+            self.fullName.SetLabelText(user.user.attributes['name'] or "")
             self.fullName.Enable()
             # Organisation
-            self.organisation.SetValue(user['organization'] or "No organization")
+            self.organisation.SetLabelText(user['organization'] or "No organization")
             self.organisation.Enable()
             # Link
             self.link.SetLabel(user['username'])
@@ -159,8 +174,10 @@ class UserPanel(wx.Panel):
             # Hide logout and show login
             self.logout.Show()
             self.login.Hide()
+            # Enable edit
+            self.edit.Enable()
             # Description
-            self.description.SetValue(user['bio'] or "")
+            self.description.SetLabelText(user['bio'] or "")
             self.description.Enable()
         self.Layout()
 
@@ -170,7 +187,18 @@ class UserPanel(wx.Panel):
     def onLogin(self, evt=None):
         self.user = logInPavlovia(parent=self.parent)
 
+    def onEdit(self, evt=None):
+        # Open edit window
+        dlg = PavloviaMiniBrowser(parent=self, loginOnly=False)
+        dlg.editUserPage()
+        dlg.ShowModal()
+        # Refresh user on close
+        self.user = User(self.user.id)
+
     def updateUser(self, evt=None):
+        """
+        Disabled for now, as fields are not editable.
+        """
         # Skip if no user
         if self.user is None or evt is None or self.session.user is None:
             return
