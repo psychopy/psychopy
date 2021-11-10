@@ -48,6 +48,7 @@ jobs:
         brew install basictex
         # update path after brew install
         eval "$(/usr/libexec/path_helper)"
+        sudo tlmgr update --self
         sudo tlmgr install latexmk
         cd docs
         make latexpdf
