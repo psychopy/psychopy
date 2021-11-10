@@ -19,7 +19,7 @@ There are many advantages to using PsychoPy, but here are some of the key ones
 - An active `user forum <https://discourse.psychopy.org/>`_ for help and support
 - Precise timing `(Bridges et al., 2021) <https://peerj.com/articles/9414/>`_
 - :ref:`builder` interface to guide experiment creation with minimal coding
-- :ref:`coder` interface for those that like to program from scratch (see :ref:`code` for the best of both worlds! Make experiments quickly using Builder and add code snippets for maximum flexibilty)
+- :ref:`coder` interface for those that like to program from scratch (see :ref:`code` for the best of both worlds! Make experiments quickly using Builder and add code snippets for maximum flexibility)
 - take experiments online with `pavlovia <https://pavlovia.org/>`_ (see :ref:`online`)
 - Platform independent - run the same script on Win, macOS or Linux
 - Flexible :ref:`stimulus units <units>` (degrees, cm, or pixels)
