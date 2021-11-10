@@ -2425,6 +2425,15 @@ class Window():
         """
         self._closed = True
 
+        # If iohub is running, inform it to stop using this win id
+        # for mouse events
+        try:
+            if IOHUB_ACTIVE:
+                from psychopy.iohub.client import ioHubConnection
+                ioHubConnection.ACTIVE_CONNECTION.unregisterWindowHandles(self._hw_handle)
+        except Exception:
+            pass
+
         self.backend.close()  # moved here, dereferencing the window prevents
                               # backend specific actions to take place
 

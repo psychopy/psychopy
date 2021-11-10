@@ -160,7 +160,7 @@ class GLFWBackend(BaseBackend):
     """
     GL = pyglet.gl  # use Pyglet's OpenGL interface for now, should use PyOpenGL
     winTypeName = 'glfw'  # needed to identify class for plugins
-
+    _next_hw_handle=1
     def __init__(self, win, backendConf=None):
         BaseBackend.__init__(self, win)
 
@@ -368,6 +368,9 @@ class GLFWBackend(BaseBackend):
                        "GL_ARB_texture_float is not supported. Disabling")
                 logging.warn(msg)
                 win.useFBO = False
+
+        win._hw_handle = GLFWBackend._next_hw_handle
+        GLFWBackend._next_hw_handle += 1
 
         # Assign event callbacks, these are dispatched when 'poll_events' is
         # called.
@@ -649,22 +652,10 @@ class GLFWBackend(BaseBackend):
         if glfw.window_should_close(self.winHandle):
             return
 
-        _hw_handle = None
-
         try:
             self.setMouseVisibility(True)
             glfw.set_window_should_close(self.winHandle, 1)
             glfw.destroy_window(self.winHandle)
-        except Exception:
-            pass
-        # If iohub is running, inform it to stop looking for this win id
-        # when filtering kb and mouse events (if the filter is enabled of
-        # course)
-        try:
-            if window.IOHUB_ACTIVE and _hw_handle:
-                from psychopy.iohub.client import ioHubConnection
-                conn = ioHubConnection.ACTIVE_CONNECTION
-                conn.unregisterWindowHandles(_hw_handle)
         except Exception:
             pass
 
