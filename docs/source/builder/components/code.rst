@@ -27,7 +27,7 @@ Code type:
     *   *Py* - Python code only (for local use)
     *   *JS* - Javascript only (for online use)
     *   *Auto -> JS* - Write in python code on the left and this will be auto translated to Javascript on the right.
-    *   *Both* - write both Python and Javascript, but independantly of one another (Python will be executed when you run the task locally, JS will be executed when you run the task online)
+    *   *Both* - write both Python and Javascript, but independently of one another (Python will be executed when you run the task locally, JS will be executed when you run the task online)
 
 Within a `Code Component` you can write code to be executed at 6 different points within the experiment. You can use as many or as few of these as you need for any `Code Component`:
 
