@@ -235,7 +235,6 @@ class MouseGazePsychopyCalibrationGraphics:
         auto_pace = self.getCalibSetting('auto_pace')
         cal_target_list = self.CALIBRATION_POINT_LIST
         randomize_points = self.getCalibSetting('randomize')
-        print2err('randomize:', randomize_points)
         if randomize_points is True:
             # Randomize all but first target position.
             cal_target_list = self.CALIBRATION_POINT_LIST[1:]
