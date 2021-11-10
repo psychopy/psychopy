@@ -508,6 +508,7 @@ class Window():
                     win_infos.append(winfo)
                     win_handles.append(self._hw_handle)
                 ioconn.ACTIVE_CONNECTION.registerWindowHandles(*win_infos)
+                self.backend.onMoveCallback = ioconn.ACTIVE_CONNECTION.updateWindowPos
 
         # near and far clipping planes
         self._nearClip = 0.1

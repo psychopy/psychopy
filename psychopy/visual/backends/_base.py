@@ -166,10 +166,10 @@ class BaseBackend(ABC):
 
         """
         if hasattr(self.win, 'pos'):  # write the new position of the window
-            self.win.pos[:] = (posX, posY)
+            self.win.pos = (posX, posY)
 
         if self._onMoveCallback is not None:
-            self._onResizeCallback(self.win, posX, posY)
+            self._onMoveCallback(self.win, posX, posY)
 
     # Helper methods that don't need converting
 
