@@ -31,7 +31,8 @@ mon0 = monitors.Monitor('monitor0')
 mon0.setDistance(60.0)
 mon0.setWidth(33.0)
 mon0.setSizePix((1280, 1024))
-win = visual.Window((400, 400), pos=(0, 30), units='norm', fullscr=False, allowGUI=True, screen=0, monitor=mon0)
+win = visual.Window((400, 400), pos=(0, 30), units='norm', fullscr=False, allowGUI=True, screen=0, monitor=mon0,
+                    winType='pyglet')
 
 # start the iohub server
 io = launchHubServer(window=win, Mouse=dict(enable_multi_window=True))
@@ -41,7 +42,8 @@ mon1 = monitors.Monitor('monitor1')
 mon1.setDistance(60.0)
 mon1.setWidth(34.5)
 mon1.setSizePix((1920, 1080))
-win2 = visual.Window((600, 600), pos=(500, 30), units='cm', fullscr=False, allowGUI=True, screen=1, monitor=mon1)
+win2 = visual.Window((600, 600), pos=(500, 30), units='cm', fullscr=False, allowGUI=True, screen=1, monitor=mon1,
+                     winType='pyglet')
 
 # access the iohub keyboard and mouse
 keyboard = io.devices.keyboard
