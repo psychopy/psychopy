@@ -5,6 +5,7 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 import io
+import re
 import sys
 import tempfile
 import time
@@ -274,6 +275,11 @@ class DetailsPanel(wx.Panel):
         self.forkBtn.SetBitmap(iconCache.getBitmap(name="fork", size=16))
         self.forkBtn.Bind(wx.EVT_BUTTON, self.fork)
         self.btnSizer.Add(self.forkBtn, border=6, flag=wx.ALL | wx.EXPAND)
+        # Create button
+        self.createBtn = wx.Button(self, label=_translate("Create"), style=wx.BORDER_NONE)
+        self.createBtn.SetBitmap(iconCache.getBitmap(name="plus", size=16))
+        self.createBtn.Bind(wx.EVT_BUTTON, self.create)
+        self.btnSizer.Add(self.createBtn, border=6, flag=wx.RIGHT | wx.TOP | wx.BOTTOM | wx.ALIGN_CENTER_VERTICAL)
         # Sync button
         self.syncBtn = wx.Button(self, label=_translate("Sync"), style=wx.BORDER_NONE)
         self.syncBtn.SetBitmap(iconCache.getBitmap(name="view-refresh", size=16))
@@ -362,8 +368,11 @@ class DetailsPanel(wx.Panel):
             # Fork label
             self.forkLbl.SetLabel("-")
             self.forkLbl.Disable()
+            # Create button
+            self.createBtn.Show()
+            self.createBtn.Enable(bool(self.session.user))
             # Sync button
-            self.syncBtn.Disable()
+            self.syncBtn.Hide()
             # Sync label
             self.syncLbl.SetLabel("---")
             self.syncLbl.Disable()
@@ -416,7 +425,10 @@ class DetailsPanel(wx.Panel):
             # Fork label
             self.forkLbl.SetLabel(str(project['forks_count']))
             self.forkLbl.Enable()
+            # Create button
+            self.createBtn.Hide()
             # Sync button
+            self.syncBtn.Show()
             self.syncBtn.Enable(project.editable)
             # Sync label
             self.syncLbl.SetLabel(f"{project['last_activity_at']:%d %B %Y, %I:%M%p}")
@@ -440,6 +452,22 @@ class DetailsPanel(wx.Panel):
 
         # Layout
         self.Layout()
+
+    @property
+    def session(self):
+        # Cache session if not cached
+        if not hasattr(self, "_session"):
+            self._session = pavlovia.getCurrentSession()
+        # Return cached session
+        return self._session
+
+    def create(self, evt=None):
+        """
+        Create a new project
+        """
+        dlg = CreateDlg(self, user=self.session.user)
+        dlg.ShowModal()
+        self.project = dlg.project
 
     def sync(self, evt=None):
         # If not synced locally, choose a folder
@@ -718,6 +746,78 @@ def syncProject(parent, project=None, closeFrameWhenDone=False):
         pass
 
     return 1
+
+
+class CreateDlg(wx.Dialog):
+    def __init__(self, parent, user):
+        wx.Dialog.__init__(self, parent=parent,
+                           title=_translate("New project..."),
+                           size=(500, 200), style=wx.DEFAULT_DIALOG_STYLE | wx.CLOSE_BOX)
+        self.user = user
+        self.session = parent.session
+        self.project = None
+
+        # Setup sizer
+        self.frame = wx.BoxSizer(wx.VERTICAL)
+        self.SetSizer(self.frame)
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.frame.Add(self.sizer, border=6, proportion=1, flag=wx.ALL | wx.EXPAND)
+
+        # Name label
+        self.nameLbl = wx.StaticText(self, label=_translate("Project name:"))
+        self.sizer.Add(self.nameLbl, border=3, flag=wx.ALL | wx.EXPAND)
+        # Name ctrls
+        self.nameSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.sizer.Add(self.nameSizer, border=3, flag=wx.ALL | wx.EXPAND)
+        # URL prefix
+        self.nameRootLbl = wx.StaticText(self, label=f"pavlovia.org/{user['username']}/")
+        self.nameSizer.Add(self.nameRootLbl, border=3, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
+        # Name ctrl
+        self.nameCtrl = wx.TextCtrl(self)
+        self.nameCtrl.Bind(wx.EVT_TEXT, self.validate)
+        self.nameSizer.Add(self.nameCtrl, border=3, proportion=1, flag=wx.ALL | wx.EXPAND)
+
+        # Local root label
+        self.rootLbl = wx.StaticText(self, label=_translate("Project folder:"))
+        self.sizer.Add(self.rootLbl, border=3, flag=wx.ALL | wx.EXPAND)
+        # Local root ctrl
+        self.rootCtrl = utils.FileCtrl(self, dlgtype="dir")
+        self.rootCtrl.Bind(wx.EVT_FILEPICKER_CHANGED, self.validate)
+        self.sizer.Add(self.rootCtrl, border=3, flag=wx.ALL | wx.EXPAND)
+
+        # Add OK button
+        self.sizer.AddStretchSpacer(1)
+        self.btnSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.sizer.Add(self.btnSizer, border=3, flag=wx.ALL | wx.EXPAND)
+        self.btnSizer.AddStretchSpacer(1)
+        self.OKbtn = wx.Button(self, label=_translate("Okay"))
+        self.OKbtn.Bind(wx.EVT_BUTTON, self.submit)
+        self.SetAffirmativeId(wx.ID_OK)
+        self.btnSizer.Add(self.OKbtn, border=3, flag=wx.ALL)
+
+        self.Layout()
+        self.validate()
+
+    def validate(self, evt=None):
+        # Test name
+        name = self.nameCtrl.GetValue()
+        nameValid = bool(re.fullmatch("\w+", name))
+        # Test path
+        path = Path(self.rootCtrl.GetValue())
+        pathValid = path.is_dir()
+        # Combine
+        valid = nameValid and pathValid
+        # Enable/disable Okay button
+        self.OKbtn.Enable(valid)
+
+        return valid
+
+    def submit(self, evt=None):
+        self.project = self.session.createProject(**self.GetValue())
+        self.Close()
+
+    def GetValue(self):
+        return {"name": self.nameCtrl.GetValue(), "localRoot": self.rootCtrl.GetValue()}
 
 
 class ForkDlg(wx.Dialog):
