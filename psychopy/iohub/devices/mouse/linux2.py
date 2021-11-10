@@ -116,6 +116,7 @@ class Mouse(MouseDevice):
                 else:
                     wid, wx, wy = self._desktopToWindowPos((event_array[15], event_array[16]))
                     if wid:
+                        wx, wy = self._pix2windowUnits(wid, (wx, wy))
                         event_array[15], event_array[16] = x, y = wx, wy
                         event_array[-1] = wid
                     else:

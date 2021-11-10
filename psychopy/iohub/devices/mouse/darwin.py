@@ -238,7 +238,7 @@ class Mouse(MouseDevice):
                     else:
                         wid, wx, wy = self._desktopToWindowPos((px, py))
                         if wid:
-                            px, py = wx, wy
+                            px, py = self._pix2windowUnits(wid, (wx, wy))
                             window_handle = wid
                         else:
                             window_handle = 0

@@ -34,8 +34,13 @@ getTime = Computer.getTime
 _currentSessionInfo = None
 
 def windowInfoDict(win):
-    return dict(handle=win._hw_handle, pos=win.pos, size=win.size,
-                units=win.units, useRetina=win.useRetina)
+    windict = dict(handle=win._hw_handle, pos=win.pos, size=win.size,
+                   units=win.units, useRetina=win.useRetina, monitor=None)
+    if win.monitor:
+        windict['monitor'] = dict(resolution=win.monitor.getSizePix(),
+                                  width=win.monitor.getWidth(),
+                                  distance=win.monitor.getDistance())
+    return windict
 
 def getFullClassName(klass):
     module = klass.__module__

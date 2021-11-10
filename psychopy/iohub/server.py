@@ -13,6 +13,8 @@ import gevent
 from gevent.server import DatagramServer
 from gevent import Greenlet
 
+import numpy
+
 try:
     import msgpack_numpy
     msgpack_numpy.patch()
@@ -401,14 +403,23 @@ class udpServer(DatagramServer):
             for wh in win_hwhds:
                 if wh['handle'] not in self.iohub._psychopy_windows.keys():
                     self.iohub._psychopy_windows[wh['handle']] = wh
-                    self.iohub.log('Adding PsychoPy Win: {}'.format(wh))
+                    wh['size'] = numpy.asarray(wh['size'])
+                    wh['pos'] = numpy.asarray(wh['pos'])
+                    if wh['monitor']:
+                        from psychopy import monitors
+                        monitor = wh['monitor']
+                        monitor['monitor'] = monitors.Monitor('{}'.format(wh['handle']))
+                        monitor['monitor'].setDistance(monitor['distance'])
+                        monitor['monitor'].setWidth(monitor['width'])
+                        monitor['monitor'].setSizePix(monitor['resolution'])
+                    self.iohub.log('Registered Win: {}'.format(wh))
 
     def unregisterWindowHandles(self, *win_hwhds):
         if self.iohub:
             for wh in win_hwhds:
                 if wh in self.iohub._psychopy_windows.keys():
                     del self.iohub._psychopy_windows[wh]
-                    self.iohub.log('Remove PsychoPy Win: {}'.format(wh))
+                    self.iohub.log('Removed Win: {}'.format(wh))
 
     def updateWindowPos(self, win_hwhd, pos):
         """

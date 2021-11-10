@@ -10,6 +10,7 @@ from .. import Device, Computer
 from ...constants import EventConstants, DeviceConstants
 from ...constants import MouseConstants, KeyboardConstants
 from ...errors import print2err, printExceptionDetailsToStdErr
+from psychopy.tools.monitorunittools import cm2pix, deg2pix, pix2cm, pix2deg
 
 RectangleBorder = namedtuple('RectangleBorderClass', 'left top right bottom')
 currentSec = Computer.getTime
@@ -181,6 +182,54 @@ class MouseDevice(Device):
                     return w['handle'], mx - wx - ww/2, -(my - wy - wh/2)
         return None, None, None
 
+    def _pix2windowUnits(self, win_handle, pos):
+        win = self._iohub_server._psychopy_windows.get(win_handle)
+        win_units = win['units']
+        monitor = win['monitor']
+        pos = np.asarray(pos)
+        if win_units == 'pix':
+            return pos
+        elif win_units == 'norm':
+            return pos * 2.0 / win['size']
+        elif win_units == 'cm':
+            if monitor:
+                return pix2cm(pos, monitor['monitor'])
+            else:
+                # should raise exception?
+                print2err("iohub Mouse error: Window is using units %s but has no Monitor definition." % win_units)
+        elif win_units == 'deg':
+            if monitor:
+                return pix2deg(pos, monitor['monitor'])
+            else:
+                # should raise exception?
+                print2err("iohub Mouse error: Window is using units %s but has no Monitor definition." % win_units)
+        elif win_units == 'height':
+            return pos / float(win['size'][1])
+
+    def _windowUnits2pix(self, win_handle, pos):
+        win = self._iohub_server._psychopy_windows.get(win_handle)
+        win_units = win['units']
+        monitor = win['monitor']
+        pos = np.asarray(pos)
+        if win_units == 'pix':
+            return pos
+        elif win_units == 'norm':
+            return pos * win['size'] / 2.0
+        elif win_units == 'cm':
+            if monitor:
+                return cm2pix(pos, monitor['monitor'])
+            else:
+                # should raise exception?
+                print2err("iohub Mouse error: Window is using units %s but has no Monitor definition." % win_units)
+
+        elif win_units == 'deg':
+            if monitor:
+                return deg2pix(pos, monitor['monitor'])
+            else:
+                # should raise exception
+                print2err("iohub Mouse error: Window is using units %s but has no Monitor definition." % win_units)
+        elif win_units == 'height':
+            return pos * float(win['size'][1])
 
     def getDisplayIndex(self):
         """

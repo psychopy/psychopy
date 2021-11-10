@@ -206,6 +206,7 @@ class Mouse(MouseDevice):
             else:
                 wid, wx, wy = self._desktopToWindowPos(event.Position)
                 if wid:
+                    wx, wy = self._pix2windowUnits(wid, (wx, wy))
                     event.Position = wx, wy
                     event.Window = wid
                 else:
