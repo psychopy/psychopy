@@ -24,6 +24,7 @@ from psychopy import logging, event, platform_specific
 from psychopy.visual import window
 from psychopy.tools.attributetools import attributeSetter
 from psychopy.tests import _vmTesting
+from psychopy.iohub.client import ioHubConnection
 from .gamma import setGamma, setGammaRamp, getGammaRamp, getGammaRampSize
 from .. import globalVars
 from ._base import BaseBackend
@@ -311,6 +312,7 @@ class PygletBackend(BaseBackend):
         self.winHandle.on_mouse_motion = self.onMouseMove
         self.winHandle.on_mouse_enter = self.onMouseEnter
         self.winHandle.on_mouse_leave = self.onMouseLeave
+        self.winHandle.on_move = self.onMove
 
         if not win.allowGUI:
             # make mouse invisible. Could go further and make it 'exclusive'
@@ -340,6 +342,11 @@ class PygletBackend(BaseBackend):
 
         # store properties of the system
         self._driver = pyglet.gl.gl_info.get_renderer()
+
+    def onMove(self, x, y):
+        self.win.pos = (x, y)
+        if ioHubConnection.ACTIVE_CONNECTION:
+            ioHubConnection.ACTIVE_CONNECTION.updateWindowPos(self.win._hw_handle, self.win.pos)
 
     @property
     def frameBufferSize(self):
