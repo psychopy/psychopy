@@ -366,6 +366,13 @@ class EyeTracker(EyeTrackerDevice):
                     eyelink.setAutoCalibrationPacing(int(cal_val * 1000))
                 elif cal_key == 'target_delay' and cal_val:  # in seconds.msec
                     eyelink.setAutoCalibrationPacing(int(cal_val * 1000))
+                elif cal_key == 'randomize':
+                    if cal_val is True:
+                        self._eyelink.sendCommand('randomize_calibration_order = YES')
+                        self._eyelink.sendCommand('randomize_validation_order = YES')
+                    else:
+                        self._eyelink.sendCommand('randomize_calibration_order = NO')
+                        self._eyelink.sendCommand('randomize_validation_order = NO')
                 elif cal_key == 'type':
                     VALID_CALIBRATION_TYPES = dict(THREE_POINTS='HV3', FIVE_POINTS='HV5', NINE_POINTS='HV9',
                                                    THIRTEEN_POINTS='HV13')
