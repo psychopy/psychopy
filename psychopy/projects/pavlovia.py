@@ -236,7 +236,7 @@ class PavloviaSession:
     def currentProject(self, value):
         self._currentProject = PavloviaProject(value)
 
-    def createProject(self, name, description="", tags=(), visibility='private',
+    def createProject(self, name, description="", tags=(), visibility='public',
                       localRoot='', namespace=''):
         """Returns a PavloviaProject object (derived from a gitlab.project)
 
@@ -274,16 +274,18 @@ class PavloviaSession:
             else:
                 raise ValueError("PavloviaSession.createProject was given a "
                                  "namespace that couldn't be found on gitlab.")
-        # TODO: add avatar option?
-        # TODO: add namespace option?
+        # Create project on GitLab
         try:
             gitlabProj = self.gitlab.projects.create(projDict)
         except gitlab.exceptions.GitlabCreateError as e:
             if 'has already been taken' in str(e.error_message):
-                gitlabProj = "{}/{}".format(namespace, name)
+                # wx.MessageDialog(self, message=_translate(f"Project `{namespace}/{name}` already exists, please choose another name."), style=wx.ICON_WARNING)
+                raise gitlab.exceptions.GitlabCreateError(f"Project `{self.username}/{name}` already exists, please choose another name.")
             else:
                 raise e
-        pavProject = PavloviaProject(gitlabProj, localRoot=localRoot)
+
+        # Create pavlovia project object
+        pavProject = PavloviaProject(gitlabProj.get_id(), localRoot=localRoot)
         return pavProject
 
     def getProject(self, id):
@@ -534,6 +536,8 @@ class PavloviaProject(dict):
         else:
             # If given an ID, get Pavlovia info
             self.info = requests.get("https://pavlovia.org/api/v2/experiments/" + str(id)).json()['experiment']
+            if self.info is None:
+                raise ValueError(f"Could not find project with id `{id}` on Pavlovia")
         # Store own id
         self.id = int(self.info['gitlabId'])
         # Init dict
