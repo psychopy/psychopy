@@ -42,7 +42,6 @@ io = launchHubServer(window=win, Mouse=dict(enable_multi_window=True))
 win2_backend_conf = None
 if WIN_TYPE == 'glfw':
     win2_backend_conf = {'share': win}
-print("using window backend config: ", win2_backend_conf)
 
 # Test creating a monitor after starting iohub
 mon1 = monitors.Monitor('monitor1')

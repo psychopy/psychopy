@@ -318,7 +318,6 @@ class PygletBackend(BaseBackend):
             # make mouse invisible. Could go further and make it 'exclusive'
             # (but need to alter x,y handling then)
             self.winHandle.set_mouse_visible(False)
-        self.winHandle.on_resize = _onResize  # avoid circular reference
         if not win.pos:
             # work out where the centre should be 
             if win.useRetina:
@@ -421,8 +420,9 @@ class PygletBackend(BaseBackend):
         formatted and forwarded to the user's callback function.
 
         """
-        # When overriding this function, at the very minimum we must call the
-        # user's function, passing the data they expect.
+        # Call original _onResize handler
+        _onResize(width, height)
+
         if self._onResizeCallback is not None:
             self._onResizeCallback(self.win, width, height)
 
@@ -451,9 +451,6 @@ class PygletBackend(BaseBackend):
         if currentEditable:
             keyName = pyglet.window.key.motion_string(evt)
             currentEditable._onCursorKeys(keyName)
-
-    def onResize(self, width, height):
-        _onResize(width, height)
 
     @attributeSetter
     def gamma(self, gamma):
