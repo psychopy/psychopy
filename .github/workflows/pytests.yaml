@@ -42,19 +42,19 @@ jobs:
         # then use the standard requirements:
         pip install .
 
-    - name: test docs to pdf
-      run: |
-        pip install sphinx sphinxcontrib-napoleon
-        brew install mactex # basictex
-        # update path after brew install
-        eval "$(/usr/libexec/path_helper)"
-        sudo tlmgr update --self
-        sudo tlmgr install latexmk
-        sudo tlmgr install collection-fontsrecommended
-        sudo tlmgr install collection-fontsextra
-        cd docs
-        make latexpdf
-        cd ..
+#    - name: test docs to pdf
+#      run: |
+#        pip install sphinx sphinxcontrib-napoleon
+#        brew install basictex  # or mactex
+#        # update path after brew install
+#        eval "$(/usr/libexec/path_helper)"
+#        sudo tlmgr update --self
+#        sudo tlmgr install latexmk
+#        sudo tlmgr install collection-fontsrecommended
+#        sudo tlmgr install collection-fontsextra
+#        cd docs
+#        make latexpdf
+#        cd ..
 
 #    - name: Lint with flake8
 #      run: |
