@@ -20,7 +20,6 @@ import glob
 import numpy as np
 from psychopy import logging, event, prefs, core
 from psychopy.tools.attributetools import attributeSetter
-from psychopy.visual import window
 from .gamma import createLinearRamp
 import psychopy.hardware.mouse as mouse
 from .. import globalVars
