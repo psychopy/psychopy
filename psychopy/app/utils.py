@@ -12,6 +12,7 @@ import os
 from pathlib import Path
 
 from wx.lib.agw.aui.aui_constants import *
+import wx.lib.statbmp
 from wx.lib.agw.aui.aui_utilities import IndentPressedBitmap, ChopText, TakeScreenShot
 import sys
 import wx
@@ -605,10 +606,11 @@ class SortCtrl(wx.Window):
         wx.Window.Layout(self)
 
 
-class ImageCtrl(wx.StaticBitmap):
+class ImageCtrl(wx.lib.statbmp.GenStaticBitmap):
     def __init__(self, parent, bitmap, size=(128, 128)):
-        wx.StaticBitmap.__init__(self, parent, bitmap=wx.Bitmap(), size=size)
+        wx.lib.statbmp.GenStaticBitmap.__init__(self, parent, ID=wx.ID_ANY, bitmap=wx.Bitmap(), size=size)
         self.parent = parent
+        self.iconCache = IconCache()
         # Set bitmap
         self.SetBitmap(bitmap)
         # Setup sizer
@@ -616,7 +618,7 @@ class ImageCtrl(wx.StaticBitmap):
         self.sizer.AddStretchSpacer(1)
         self.SetSizer(self.sizer)
         # Add edit button
-        self.editBtn = wx.Button(self, size=(24, 24), label=chr(int("270E", 16)), style=wx.BORDER_NONE)
+        self.editBtn = wx.Button(self, size=(24, 24), label=chr(int("270E", 16)))
         self.editBtn.Bind(wx.EVT_BUTTON, self.LoadBitmap)
         self.sizer.Add(self.editBtn, border=6, flag=wx.ALIGN_BOTTOM | wx.ALL)
 
@@ -640,8 +642,7 @@ class ImageCtrl(wx.StaticBitmap):
             bitmap = wx.Bitmap(bitmap)
         # Sub in blank bitmaps
         if not bitmap.IsOk():
-            wx.StaticBitmap.SetBitmap(self, wx.Bitmap())
-            return
+            bitmap = self.iconCache.getBitmap(name="user_none", size=128)
         # Store full size bitmap
         self._fullBitmap = bitmap
         # Resize bitmap
@@ -649,7 +650,7 @@ class ImageCtrl(wx.StaticBitmap):
         buffer = buffer.Scale(*self.Size, quality=wx.IMAGE_QUALITY_HIGH)
         scaledBitmap = wx.BitmapFromImage(buffer)
         # Set image
-        wx.StaticBitmap.SetBitmap(self, scaledBitmap)
+        wx.lib.statbmp.GenStaticBitmap.SetBitmap(self, scaledBitmap)
 
     @property
     def path(self):
