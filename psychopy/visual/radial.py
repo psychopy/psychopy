@@ -120,16 +120,16 @@ class RadialStim(GratingStim):
         self.colorSpace = colorSpace
         if rgb != None:
             logging.warning("Use of rgb arguments to stimuli are deprecated."
-                            " Please use color and colorSpace args instead")
-            self.color = Color(rgb, colorSpace='rgb')
+                            " Please use color and colorSpace args instead.")
+            self.color = Color(rgb, space='rgb')
         elif dkl != None:
-            logging.warning("Use of dkl arguments to stimuli are deprecated. "
-                            "Please use color and colorSpace args instead")
-            self.color = Color(dkl, colorSpace='dkl')
+            logging.warning("Use of dkl arguments to stimuli are deprecated."
+                            " Please use color and colorSpace args instead.")
+            self.color = Color(dkl, space='dkl')
         elif lms != None:
             logging.warning("Use of lms arguments to stimuli are deprecated."
-                            " Please use color and colorSpace args instead")
-            self.color = Color(lms, colorSpace='lms')
+                            " Please use color and colorSpace args instead.")
+            self.color = Color(lms, space='lms')
         else:
             self.color = color
 
