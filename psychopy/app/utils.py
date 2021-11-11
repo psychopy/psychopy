@@ -648,7 +648,7 @@ class ImageCtrl(wx.lib.statbmp.GenStaticBitmap):
         # Resize bitmap
         buffer = bitmap.ConvertToImage()
         buffer = buffer.Scale(*self.Size, quality=wx.IMAGE_QUALITY_HIGH)
-        scaledBitmap = wx.BitmapFromImage(buffer)
+        scaledBitmap = wx.Bitmap(buffer)
         # Set image
         wx.lib.statbmp.GenStaticBitmap.SetBitmap(self, scaledBitmap)
 
