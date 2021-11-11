@@ -128,22 +128,22 @@ class SearchPanel(wx.Panel):
         self.btnSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.sizer.Add(self.btnSizer, border=4, flag=wx.EXPAND | wx.ALL)
         # Add "me mode" button
-        self.mineBtn = wx.ToggleButton(self, size=(64, -1), label=_translate("Me"), style=wx.BORDER_NONE)
+        self.mineBtn = wx.ToggleButton(self, size=(64, -1), label=_translate("Me"))
         self.mineBtn.SetBitmap(iconCache.getBitmap("person_off", size=16))
         self.mineBtn.SetBitmapFocus(iconCache.getBitmap("person_on", size=16))
         self.mineBtn.SetBitmapPressed(iconCache.getBitmap("person_on", size=16))
         self._mine = False
         self.mineBtn.Bind(wx.EVT_TOGGLEBUTTON, self.onMineBtn)
         self.mineBtn.Enable(self.session.userID is not None)
-        self.btnSizer.Add(self.mineBtn, border=4, flag=wx.EXPAND | wx.RIGHT | wx.TOP | wx.BOTTOM)
+        self.btnSizer.Add(self.mineBtn, border=6, flag=wx.EXPAND | wx.RIGHT | wx.TOP | wx.BOTTOM)
         self.btnSizer.AddStretchSpacer(1)
         # Add sort button
-        self.sortBtn = wx.Button(self, label=_translate("Sort..."), style=wx.BORDER_NONE)
+        self.sortBtn = wx.Button(self, label=_translate("Sort..."))
         self.sortOrder = []
         self.sortBtn.Bind(wx.EVT_BUTTON, self.sort)
-        self.btnSizer.Add(self.sortBtn, border=6, flag=wx.LEFT | wx.RIGHT)
+        self.btnSizer.Add(self.sortBtn, border=6, flag=wx.LEFT | wx.RIGHT | wx.TOP | wx.BOTTOM)
         # Add filter button
-        self.filterBtn = wx.Button(self, label=_translate("Filter..."), style=wx.BORDER_NONE)
+        self.filterBtn = wx.Button(self, label=_translate("Filter..."))
         self.filterTerms = {
             "Status": [],
             "Platform": [],
@@ -157,7 +157,7 @@ class SearchPanel(wx.Panel):
             "Tags": None,
         }
         self.filterBtn.Bind(wx.EVT_BUTTON, self.filter)
-        self.btnSizer.Add(self.filterBtn, border=6, flag=wx.LEFT)
+        self.btnSizer.Add(self.filterBtn, border=6, flag=wx.LEFT | wx.TOP | wx.BOTTOM)
         # Add filter label
         self.filterLbl = self.FilterLabel(self, style=wx.ST_ELLIPSIZE_END)
         self.filterLbl.Bind(wx.EVT_ENTER_WINDOW, self.filterLbl.hoverOn)

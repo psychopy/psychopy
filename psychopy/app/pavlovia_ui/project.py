@@ -191,7 +191,7 @@ class DetailsPanel(wx.Panel):
 
     class StarBtn(wx.Button):
         def __init__(self, parent, iconCache, value=False):
-            wx.Button.__init__(self, parent, label=_translate("Star"), style=wx.BORDER_NONE)
+            wx.Button.__init__(self, parent, label=_translate("Star"))
             # Setup icons
             self.icons = {
                 True: iconCache.getBitmap(name="starred", size=16),
@@ -243,7 +243,7 @@ class DetailsPanel(wx.Panel):
         self.titleSizer = wx.BoxSizer(wx.VERTICAL)
         self.headSizer.Add(self.titleSizer, proportion=1, flag=wx.EXPAND)
         # Title
-        self.title = wx.TextCtrl(self, size=(-1, -1), value="")
+        self.title = wx.TextCtrl(self, size=(-1, 30), value="")
         self.title.Bind(wx.EVT_TEXT, self.updateProject)
         self.title.SetFont(
             wx.Font(24, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
@@ -271,17 +271,17 @@ class DetailsPanel(wx.Panel):
         # Fork button
         self.forkLbl = wx.StaticText(self, label="-")
         self.btnSizer.Add(self.forkLbl, border=6, flag=wx.LEFT | wx.TOP | wx.BOTTOM | wx.ALIGN_CENTER_VERTICAL)
-        self.forkBtn = wx.Button(self, label=_translate("Fork"), style=wx.BORDER_NONE)
+        self.forkBtn = wx.Button(self, label=_translate("Fork"))
         self.forkBtn.SetBitmap(iconCache.getBitmap(name="fork", size=16))
         self.forkBtn.Bind(wx.EVT_BUTTON, self.fork)
         self.btnSizer.Add(self.forkBtn, border=6, flag=wx.ALL | wx.EXPAND)
         # Create button
-        self.createBtn = wx.Button(self, label=_translate("Create"), style=wx.BORDER_NONE)
+        self.createBtn = wx.Button(self, label=_translate("Create"))
         self.createBtn.SetBitmap(iconCache.getBitmap(name="plus", size=16))
         self.createBtn.Bind(wx.EVT_BUTTON, self.create)
         self.btnSizer.Add(self.createBtn, border=6, flag=wx.RIGHT | wx.TOP | wx.BOTTOM | wx.ALIGN_CENTER_VERTICAL)
         # Sync button
-        self.syncBtn = wx.Button(self, label=_translate("Sync"), style=wx.BORDER_NONE)
+        self.syncBtn = wx.Button(self, label=_translate("Sync"))
         self.syncBtn.SetBitmap(iconCache.getBitmap(name="view-refresh", size=16))
         self.syncBtn.Bind(wx.EVT_BUTTON, self.sync)
         self.btnSizer.Add(self.syncBtn, border=6, flag=wx.ALL | wx.EXPAND)

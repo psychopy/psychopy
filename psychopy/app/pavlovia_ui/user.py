@@ -16,6 +16,7 @@ import io
 from psychopy import prefs
 import os
 import wx
+import wx.lib.statbmp
 
 from ...projects.pavlovia import User
 
@@ -59,7 +60,7 @@ class UserPanel(wx.Panel):
         self.headSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.sizer.Add(self.headSizer, border=0, flag=wx.EXPAND)
         # Icon
-        self.icon = wx.StaticBitmap(self, size=(128, 128))
+        self.icon = wx.lib.statbmp.GenStaticBitmap(self, ID=wx.ID_ANY, bitmap=iconCache.getBitmap(name="user_none", size=128), size=(128, 128))
         self.icon.SetBackgroundColour("#f2f2f2")
         self.headSizer.Add(self.icon, border=6, flag=wx.ALL)
         # Title sizer
@@ -93,16 +94,16 @@ class UserPanel(wx.Panel):
         self.link.SetBackgroundColour(self.GetBackgroundColour())
         self.btnSizer.Add(self.link, border=6, flag=wx.RIGHT | wx.ALIGN_CENTER_VERTICAL)
         # Edit
-        self.edit = wx.Button(self, label=chr(int("270E", 16)), size=(24, -1), style=wx.BORDER_NONE)
+        self.edit = wx.Button(self, label=chr(int("270E", 16)), size=(24, -1))
         self.edit.Bind(wx.EVT_BUTTON, self.onEdit)
         self.btnSizer.Add(self.edit, border=3, flag=wx.LEFT | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL)
         # Login
-        self.login = wx.Button(self, label=_translate("Login"), style=wx.BORDER_NONE)
+        self.login = wx.Button(self, label=_translate("Login"))
         self.login.SetBitmap(iconCache.getBitmap(name="person_off", size=16))
         self.login.Bind(wx.EVT_BUTTON, self.onLogin)
         self.btnSizer.Add(self.login, border=3, flag=wx.LEFT | wx.EXPAND)
         # Logout
-        self.logout = wx.Button(self, label=_translate("Logout"), style=wx.BORDER_NONE)
+        self.logout = wx.Button(self, label=_translate("Logout"))
         self.logout.SetBitmap(iconCache.getBitmap(name="person_off", size=16))
         self.logout.Bind(wx.EVT_BUTTON, self.onLogout)
         self.btnSizer.Add(self.logout, border=3, flag=wx.LEFT | wx.EXPAND)
@@ -110,9 +111,6 @@ class UserPanel(wx.Panel):
         self.sizer.Add(wx.StaticLine(self, -1), border=6, flag=wx.EXPAND | wx.ALL)
         # Bio
         self.description = wx.StaticText(self, size=(-1, -1), label="", style=wx.TE_MULTILINE)
-        self.description.SetFont(
-            wx.Font(11, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
-        )
         self.sizer.Add(self.description, proportion=1, border=6, flag=wx.ALL | wx.EXPAND)
 
         # Populate
@@ -129,8 +127,9 @@ class UserPanel(wx.Panel):
         self._user = user
 
         if user is None:
+            iconCache = self.parent.app.iconCache
             # Icon
-            self.icon.SetBitmap(wx.Bitmap())
+            self.icon.SetBitmap(iconCache.getBitmap(name="user_none", size=128))
             self.icon.Disable()
             # Full name
             self.fullName.SetLabelText("---")
