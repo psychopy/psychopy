@@ -158,7 +158,6 @@ class UserPanel(wx.Panel):
             except requests.exceptions.MissingSchema:
                 icon = wx.Bitmap()
             self.icon.SetBitmap(icon)
-            self.icon.SetScaleMode(self.icon.Scale_AspectFit)
             self.icon.Enable()
             # Full name
             self.fullName.SetLabelText(user.user.attributes['name'] or "")
