@@ -9,8 +9,8 @@
 # $pyPaths = @("C:\Python36\", "C:\Python36_64\")
 # $names = @("PsychoPy3", "PsychoPy3")
 # $archs = @("win32", "win64")
-$pyPaths = @("C:\Python36_64\", "C:\Program Files\Python38\")
-$names = @("PsychoPy_py36", "PsychoPy_py38")
+$pyPaths = @("C:\Python38\", "C:\Python36_64\")
+$names = @("PsychoPy_py38", "PsychoPy_py36")
 $archs = @("win64")
 
 # read from the version file
@@ -21,7 +21,7 @@ for ($i=0; $i -lt $pyPaths.Length; $i++) {
     [console]::beep(440,300); [console]::beep(880,300)
     # try to uninstall psychopy from site-packages
     # re-install the current version as editable/developer
-    Invoke-Expression ("{0}python.exe -m pip install . --no-deps --force" -f $pyPaths[$i])
+    Invoke-Expression ("& '{0}python.exe' -m pip install . --no-deps --force" -f $pyPaths[$i])
     echo ("Installed current PsychoPy")
     xcopy /I /Y psychopy\*.txt $pyPaths[$i]
 
@@ -36,11 +36,11 @@ for ($i=0; $i -lt $pyPaths.Length; $i++) {
 
     echo 'moving files to ..\dist'
 
-    Invoke-Expression ("{0}python.exe setup.py clean --all" -f $pyPaths[$i])  # clean up our build dir
+    Invoke-Expression ("& '{0}python.exe' setup.py clean --all" -f $pyPaths[$i])  # clean up our build dir
     # try to uninstall psychopy from site-packages
-    Invoke-Expression ("{0}python.exe -m pip uninstall -y psychopy" -f $pyPaths[$i])
+    Invoke-Expression ("& '{0}python.exe' -m pip uninstall -y psychopy" -f $pyPaths[$i])
     # re-install the current version as editable/developer
-    Invoke-Expression ("{0}python.exe -m pip install -e . --no-deps" -f $pyPaths[$i])
+    Invoke-Expression ("& '{0}python.exe' -m pip install -e . --no-deps" -f $pyPaths[$i])
 
 }
 
