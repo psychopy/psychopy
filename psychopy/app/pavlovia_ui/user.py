@@ -177,6 +177,7 @@ class UserPanel(wx.Panel):
             self.edit.Enable()
             # Description
             self.description.SetLabelText(user['bio'] or "")
+            self.description.Wrap(self.Size[0] - 36)
             self.description.Enable()
         self.Layout()
 
