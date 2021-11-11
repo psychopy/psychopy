@@ -45,11 +45,13 @@ jobs:
     - name: test docs to pdf
       run: |
         pip install sphinx sphinxcontrib-napoleon
-        brew install basictex
+        brew install mactex # basictex
         # update path after brew install
         eval "$(/usr/libexec/path_helper)"
         sudo tlmgr update --self
         sudo tlmgr install latexmk
+        tlmgr install collection-fontsrecommended
+        tlmgr install collection-fontsextra
         cd docs
         make latexpdf
         cd ..
