@@ -4420,7 +4420,7 @@ class DisplayPlusPlusTouch(DisplayPlusPlus):
         super(DisplayPlusPlusTouch,self).__del__()
 
 
-    def RTBoxEnable(self, mode=['CB6','Down','Trigger'], map=None):
+    def RTBoxEnable(self, mode=('CB6','Down','Trigger'), map=None):
         """ Overaload RTBoxEnable for Display++ with touch screen.
         Sets up the RTBox with preset or bespoke mappings 
         and enables event detection.
@@ -4482,6 +4482,8 @@ class DisplayPlusPlusTouch(DisplayPlusPlus):
             warning = ("Cannot use RTBox when touch screen is on")
             raise AssertionError(warning)
         else:
+            if type(mode) is tuple:
+                mode = list(mode)
             super(DisplayPlusPlusTouch, self).RTBoxEnable(mode = mode, map = map)
     
     def statusBoxEnable(self, mode=None, map=None, threshold = None):
