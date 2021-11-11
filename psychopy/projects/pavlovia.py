@@ -598,7 +598,7 @@ class PavloviaProject(dict):
             self._project = self.session.gitlab.projects.get(self.id)
             return self._project
         except gitlab.exceptions.GitlabGetError as e:
-            raise KeyError("Could not find project on GitLab from given id.")
+            raise KeyError(f"Could not find GitLab project with id {self.id}.")
 
     @property
     def editable(self):
