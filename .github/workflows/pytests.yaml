@@ -50,8 +50,8 @@ jobs:
         eval "$(/usr/libexec/path_helper)"
         sudo tlmgr update --self
         sudo tlmgr install latexmk
-        tlmgr install collection-fontsrecommended
-        tlmgr install collection-fontsextra
+        sudo tlmgr install collection-fontsrecommended
+        sudo tlmgr install collection-fontsextra
         cd docs
         make latexpdf
         cd ..
