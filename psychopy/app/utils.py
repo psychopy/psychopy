@@ -332,7 +332,7 @@ class ButtonArray(wx.Window):
 
     class ArrayBtn(wx.Button):
         def __init__(self, parent, label=""):
-            wx.Button.__init__(self, parent, label=label, style=wx.BORDER_NONE)
+            wx.Button.__init__(self, parent, label=label)
             self.parent = parent
             # Setup sizer
             self.sizer = wx.BoxSizer(wx.HORIZONTAL)
