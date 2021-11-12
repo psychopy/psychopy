@@ -20,7 +20,7 @@ from psychopy.localization import _translate
 from psychopy.projects import pavlovia
 from psychopy import logging
 
-from psychopy.app.pavlovia_ui import sync
+from psychopy.app.pavlovia_ui import sync, functions
 
 import wx
 from wx.lib import scrolledpanel as scrlpanel
@@ -483,7 +483,8 @@ class DetailsPanel(wx.Panel):
         self.localRootLabel.Enable()
         # Show sync dlg (does sync)
         dlg = sync.SyncDialog(self, self.project)
-        dlg.ShowModal()
+        functions.showCommitDialog(self, self.project, initMsg="", infoStream=dlg.status)
+        dlg.sync()
         # Update last sync date
         self.syncLbl.SetLabel(f"{self.project['last_activity_at']:%d %B %Y, %I:%M%p}")
 
@@ -625,7 +626,8 @@ def syncProject(parent, project, file="", closeFrameWhenDone=False):
     # If there is (now) a project, do sync
     if project is not None:
         dlg = sync.SyncDialog(parent, project)
-        dlg.ShowModal()
+        functions.showCommitDialog(parent, project, initMsg="", infoStream=dlg.status)
+        dlg.sync()
 
 
 class ForkDlg(wx.Dialog):

@@ -35,6 +35,8 @@ class SyncDialog(wx.Dialog):
         # Layout
         self.Layout()
         self.Show()
+
+    def sync(self):
         # Do sync
         self.project.sync(self.status)
         self.OKbtn.Enable()
