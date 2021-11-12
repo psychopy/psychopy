@@ -592,7 +592,7 @@ class ProjectFrame(wx.Dialog):
         self.Layout()
 
 
-def syncProject(parent, project, closeFrameWhenDone=False):
+def syncProject(parent, project, file="", closeFrameWhenDone=False):
     """A function to sync the current project (if there is one)
 
     Returns
@@ -608,7 +608,18 @@ def syncProject(parent, project, closeFrameWhenDone=False):
                                style=wx.OK | wx.CANCEL | wx.CENTER)
         dlg.SetOKLabel(_translate("Create a project"))
         if dlg.ShowModal() == wx.ID_OK:
-            dlg = sync.CreateDlg(parent, user=pavlovia.getCurrentSession().user)
+            # Get start path and name from builder/coder if possible
+            if file:
+                file = Path(file)
+                name = file.stem
+                path = file.parent
+            else:
+                name = path = ""
+            # Open dlg to create new project
+            dlg = sync.CreateDlg(parent,
+                                 user=pavlovia.getCurrentSession().user,
+                                 name=name,
+                                 path=path)
             dlg.ShowModal()
             project = dlg.project
     # If there is (now) a project, do sync

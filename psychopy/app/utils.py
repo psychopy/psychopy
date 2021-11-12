@@ -724,8 +724,8 @@ class PsychopyScrollbar(wx.ScrollBar):
 
 
 class FileCtrl(wx.TextCtrl):
-    def __init__(self, parent, dlgtype="file"):
-        wx.TextCtrl.__init__(self, parent, size=(-1, 24))
+    def __init__(self, parent, dlgtype="file", value=""):
+        wx.TextCtrl.__init__(self, parent, value=value, size=(-1, 24))
         # Store type
         self.dlgtype = dlgtype
         # Setup sizer
