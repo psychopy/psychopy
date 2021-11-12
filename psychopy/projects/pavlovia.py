@@ -534,8 +534,11 @@ class PavloviaProject(dict):
             # If given a dict from Pavlovia rather than an ID, store it rather than requesting again
             self.info = dict(id)
         else:
-            # If given an ID, get Pavlovia info
-            self.info = requests.get("https://pavlovia.org/api/v2/experiments/" + str(id)).json()['experiment']
+            # If given an ID, get Pavlovia info (for just created projects this can take a while, so allow 2s leeway)
+            start = time.time()
+            self.info = None
+            while self.info is None and time.time() - start < 2:
+                self.info = requests.get("https://pavlovia.org/api/v2/experiments/" + str(id)).json()['experiment']
             if self.info is None:
                 raise ValueError(f"Could not find project with id `{id}` on Pavlovia")
         # Store own id
@@ -691,6 +694,9 @@ class PavloviaProject(dict):
             raise gitlab.GitlabGetError("Can't sync project without a local root.")
         # Jot down start time
         t0 = time.time()
+        # If first commit, do initial push
+        if not bool(self['default_branch']):
+            self.firstPush(infoStream=infoStream)
         # Pull and push
         self.pull(infoStream)
         self.push(infoStream)
@@ -790,7 +796,18 @@ class PavloviaProject(dict):
 
         if gitRoot is None:
             # If there's no git root, make one
-            self._repo = None
+            if not any(pathlib.Path(self.localRoot).iterdir()):
+                # If folder is empty, set as None so that remote is cloned
+                self._repo = None
+            else:
+                # If there's any files, make a new repo to sync
+                self._repo = git.Repo.init(self.localRoot)
+                self.configGitLocal()
+                self.repo.create_remote('origin', url=self.project.http_url_to_repo)
+                self.repo.git.checkout(b="master")
+                self.writeGitIgnore()
+                self.stageFiles(['.gitignore'])
+                self.commit('Create repository (including .gitignore)')
         elif gitRoot not in [self.localRoot, str(pathlib.Path(self.localRoot).absolute())]:
             # this indicates that the requested root is inside another repo
             raise AttributeError("The requested local path for project\n\t{}\n"
@@ -801,6 +818,8 @@ class PavloviaProject(dict):
         else:
             # If there's a git root, return the associated repo
             self._repo = git.Repo(gitRoot)
+
+        self.writeGitIgnore()
 
         return self._repo
 
@@ -919,14 +938,13 @@ class PavloviaProject(dict):
         -------
         None
         """
-        session = getCurrentSession()
         localConfig = self.repo.git.config(l=True, local=True)  # list local
-        if session.user.email in localConfig:
-                return  # we already have it set up so can return
+        if self.session.user['email'] in localConfig:
+            return  # we already have it set up so can return
         # set the local config
         with self.repo.config_writer() as config:
-            config.set_value("user", "email", session.user.email)
-            config.set_value("user", "name", session.user.name)
+            config.set_value("user", "email", self.session.user['email'])
+            config.set_value("user", "name", self.session.user['name'])
 
     def fork(self, to=None):
         # Sub in current user if none given
