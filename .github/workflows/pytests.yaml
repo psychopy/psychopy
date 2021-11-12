@@ -105,16 +105,16 @@ jobs:
       with:
         fail_ci_if_error: false
 
-    - name: test docs to pdf
-      run: |
-          pip install sphinx sphinxcontrib-napoleon
-          brew install basictex
-          # update path after brew install
-          eval "$(/usr/libexec/path_helper)"
-          # go to the folder and make
-          cd docs
-          make latexpdf
-          cd ..
+#    - name: test docs to pdf
+#      run: |
+#          pip install sphinx sphinxcontrib-napoleon
+#          brew install basictex
+#          # update path after brew install
+#          eval "$(/usr/libexec/path_helper)"
+#          # go to the folder and make
+#          cd docs
+#          make latexpdf
+#          cd ..
 
 
 #    - name: Check bdist/sdist
@@ -242,13 +242,13 @@ jobs:
       with:
         fail_ci_if_error: false
 
-    - name: test docs to pdf
-      run: |
-        sudo apt-get install -y python3-sphinx
-        which sphinx-build
-        which python
-        python -c "import psychopy; psychopy"
-        #        sudo apt-get install -y latexmk xindy texlive-latex-recommended texlive-xetex texlive-latex-extra texlive-fonts-recommended texlive-fonts-extra
-        #        cd docs
-        #        make latexpdf
-        #        cd ..
+#    - name: test docs to pdf
+#      run: |
+#        sudo apt-get install -y python3-sphinx
+#        which sphinx-build
+#        which python
+#        python -c "import psychopy; psychopy"
+#        #        sudo apt-get install -y latexmk xindy texlive-latex-recommended texlive-xetex texlive-latex-extra texlive-fonts-recommended texlive-fonts-extra
+#        #        cd docs
+#        #        make latexpdf
+#        #        cd ..
