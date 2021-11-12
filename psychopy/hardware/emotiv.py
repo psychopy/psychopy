@@ -100,7 +100,7 @@ class Cortex(object):
             self.create_record(title=f"Psychopy_{subject}_{time_str}".replace(":",""))
         else:
             logger.error("Not able to find a connected headset")
-            raise CortexNoHeadsetException("Unable to find Emotiv headset")
+            raise CortexNoHeadsetException("No headset detected. Please connect the EMOTIV headset in Emotiv Launcher")
         # EEG data 
         self.synchronise()
         if EEG_ON:
@@ -148,7 +148,7 @@ class Cortex(object):
             logger.debug(f"raw response received: {resp}")
             if 'error' in resp:
                 logger.warning(
-                    f"Got error in {method} with params {kwargs}:\n{resp}")
+                    f"Got error in {method} with params {kwargs}: {resp}")
                 raise CortexApiException(resp)
             resp = json.loads(resp)
             if callback:
@@ -335,12 +335,12 @@ class Cortex(object):
         try:
             resp = self.send_wait_command('authorize', auth=False, **params)
         except CortexApiException as e:
+            code = json.loads(str(e))['error']['code']
             msg = json.loads(str(e))['error']['message']
-            # if "no access rights" in msg:
-            #     raise CortexApiException("Please open the EmotivApp and grant "
-            #                              "permission to your applicationId")
-            # else:
-            raise CortexApiException(msg)
+            if code == -32002:
+                raise CortexApiException("Invalid license key. Please create a new applicationId and do NOT check 'My App requires EEG access' or request API EEG access from Emotiv customer support.")
+            else:
+                raise CortexApiException(msg)
         logger.debug(f"{__name__} resp:\n{resp}")
         self.auth_token = resp['result']['cortexToken']
 
@@ -362,7 +362,7 @@ class Cortex(object):
                 msg = json.loads(str(e))['error']['message']
                 code = json.loads(str(e))['error']['code']
                 if code == -32601:
-                    # Old version of Cortex
+                    # Old version of Cortex... just return
                     print("Old version of Cortex detected. Synchronisation of headset clock failed.")
                     return
                 else:
@@ -406,12 +406,12 @@ class Cortex(object):
         if len(resp) == 0:
             logger.debug(resp)
             raise CortexApiException(
-                f"No user logged in! Please log in with the Emotiv App")
+                f"No user logged in! Please log in with the Emotiv Launcher")
         resp = resp[0]
         if 'loggedInOSUId' not in resp:
             logger.debug(resp)
             raise CortexApiException(
-                f"No user logged in! Please log in with the Emotiv App")
+                f"No user logged in! Please log in with the Emotiv Launcher")
         if resp['currentOSUId'] != resp['loggedInOSUId']:
             logger.debug(resp)
             raise CortexApiException(
@@ -456,7 +456,7 @@ class Cortex(object):
             code = json.loads(str(e))['error']['code']
             if code == -32004:
                 raise CortexNoHeadsetException("Please connect the headset using "
-                                         "EmotivApp or EmotivPro")
+                                         "EmotivLauncher or EmotivPRO")
         self.session_id = resp['result']['id']
         logger.debug(f"{__name__} resp:\n{resp}")
 
@@ -499,15 +499,23 @@ class Cortex(object):
 
     def update_marker(self, label= None, t=None, delta_time=None):
         ms_time = self.to_epoch(t, delta_time)
-        marker_id = self.marker_dict.get(label, None)
+        marker_id = self.marker_dict.pop(label, None)
         if marker_id is None:
-            raise Exception("no marker with that label")
-        params = {'cortexToken': self.auth_token,
-                  'session': self.session_id,
-                  'markerId': marker_id,
-                  'time': ms_time}
-        self.send_command('updateMarker', **params)
-        del self.marker_dict[label]
+            print("Warning: Unable to set stop marker. Probably marking too fast.")
+            method = 'injectMarker'
+            params = {'cortexToken': self.auth_token,
+                      'session': self.session_id,
+                      'label': label + '_stop',
+                      'value': 999,
+                      'port': 'psychopy',
+                      'time': ms_time}
+        else:
+            method = 'updateMarker'
+            params = {'cortexToken': self.auth_token,
+                      'session': self.session_id,
+                      'markerId': marker_id,
+                      'time': ms_time}
+        self.send_command(method, **params)
 
     def subscribe(self, streamList):
         params = {'cortexToken': self.auth_token,
