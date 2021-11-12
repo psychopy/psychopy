@@ -50,7 +50,7 @@ PsychoPy 2021.2.0
 - JS: audio playback can fade in/out to avoid clicks
 - JS: Builder loops (TrialHandlers) support and update properties such as thisN as in Python Experiments
 - JS: Form supports `formComplete()` call to check if all required items have a response
-- JS: Form supports itesm types: SLIDER, RADIO (synonyms for RATING and CHOICE)
+- JS: Form supports items types: SLIDER, RADIO (synonyms for RATING and CHOICE)
 - JS: Button Component now supported for text-based buttons (as in the Python Component already present)
 - JS: supports more options for color styles
 
@@ -353,12 +353,12 @@ PsychoPy 2020.2.4
 
 FIXES:
 
-- improved search for resources files whne compiling JS (was crashing if using root folder and using code to specify the conditions file) #09816985d5
+- improved search for resources files when compiling JS (was crashing if using root folder and using code to specify the conditions file) #09816985d5
 - the `Before Experiment` section of Code Components wasn't being written for JavaScript components #bbfd310
 - error with wx complaining about Alignment (in wx 4.1) #a32e2ca #ae508d6
 - TextBox Component default size is None (=autoexpand)
 - TextBox `editable=True` had no effect on the Builder outputs to JavaScript
-- themes menu correctly updates what thte current them is in all open windows #c5cdc49
+- themes menu correctly updates what the current them is in all open windows #c5cdc49
 - custom fonts that didn't provide a "family name" were causing the font search to crash #ef078ab
 - bug trying to us an invalid "useRunner" preference 3532e4c
 - JavaScript studies failed if there were 2 Mouse Components in a single Routine #0e0b26d4dcc #32a6be2
@@ -485,15 +485,15 @@ FIXED:
 - on the `pip install` version (incorrectly packaged) there was an error "NameError: name ‘pythonExec’ is not defined"
 - JS version system now drops the final (bugfix) release number (3.2.3 -> 3.2 in JS lib)
 - Cedrus response box now supports keys as a variable value in Builder #2608
-- QuestPlusHandler now supports "unkown" kwargs #2610
+- QuestPlusHandler now supports "unknown" kwargs #2610
 
 PsychoPy 3.2.2
 ~~~~~~~~~~~~~~~~~~~~~~
 
 FIXED:
 
-- timing of first frame was being given an extra (unecessary) delay if images were loaded #8ddab41
-- potential app crashes if no internet avilable #63aa7e0 #b3e15f9
+- timing of first frame was being given an extra (unnecessary) delay if images were loaded #8ddab41
+- potential app crashes if no internet available #63aa7e0 #b3e15f9
 - Builder under OS X was not launching experiments if filename contained a space #1b205df
 
 PsychoPy 3.2.1
@@ -2267,7 +2267,7 @@ Released: Sept 2010
 * ADDED: visual.RatingScale and a demo to show how to use it (Jeremy Gray)
 * ADDED: The Standalone distributions now includes the following external libs:
     - pynetstation (import psychopy.hardware.egi)
-    - ioLab library (import psychopy.harware.ioLab)
+    - ioLab library (import psychopy.hardware.ioLab)
 * ADDED: trial loops in builder can now be aborted by setting someLoopName.finished=True
 * ADDED: improved timing. *Support for blocking on VBL for all platforms* (may still not work on intel integrated chips)
 * FIXED: minor bug with closing Coder windows generating spurious error messages
@@ -2292,7 +2292,7 @@ Released: August 2010
 * FIXED: Builder remembers its window location
 * CHANGED: Builder demos now need to be fetched by the user - menu item opens a browser (this is slightly more effort, but means the demos aren't stored within the app which is good)
 * CHANGED: loops/routines now get inserted to Flow by clicking the mouse where you want them :-)
-* ADDED: you can now have multiple Builder windwos open with different experiments
+* ADDED: you can now have multiple Builder windows open with different experiments
 * ADDED: you can now copy and paste Routines form one Builder window to another (or itself) - useful for reusing 'template' routines
 * FIXED: color of window was incorrectly scaled for 'named' and 'rgb256' color spaces
 * ADDED: quicktime movie output for OSX 10.6 (10.5 support was already working)
@@ -2383,7 +2383,7 @@ Released: Feb 2010
 * FIXED minor bug with the new psychophysicsStaircase demo (Builder)
 * FIXED problem with importing wx.lib.agw.hyperlink (for users with wx<2.8.10)
 * FIXED bug in the new win.clearBuffer() method
-* CHANGED builder component variables so that the user inputs are interpretted as literal text unless preceded by $, in which case they are treated as variables/python code
+* CHANGED builder component variables so that the user inputs are interpreted as literal text unless preceded by $, in which case they are treated as variables/python code
 * CHANGED builder handling of keyboard 'allowedKeys' parameter. Instead of `['1','2','q']` you can now simply use `12q` to indicate those three keys. If you want a key like `'right'` and `'left'` you now have to use `$['right','left']`
 * TWITTER follow on http://twitter.com/psychopy
 * FIXED? win32 version now compatible with Vista/7? Still compatible with XP?
@@ -2757,7 +2757,7 @@ PsychoPy 0.93.0:
 ~~~~~~~~~~~~~~~~~~~~~~
 * new requirement of PyOpenGL3.0+ (and a graphics card with OpenGL2.0 drivers?)
 * much faster implementation of setRGB, setContrast and setOpacity (using fragment shaders)
-* images (and other textures) need not be square. They will be automatically resampled if they arent. Square power-of-two image textures are still recommended
+* images (and other textures) need not be square. They will be automatically resampled if they are not. Square power-of-two image textures are still recommended
 * Fixed problem in calibTools.DACrange caused by change in numpy rounding behaviour. (symptom was strange choice of lum values for calibrations)
 * numpy arrays as textures currently need to be NxM intensity arrays
 * multitexturing now handled by OpenGL2.0 rather than ARB
@@ -2865,7 +2865,7 @@ PsychoPy 0.90
 ~~~~~~~~~~~~~~~~~~~~~~
 * sounds now in stereo and a new function to allow you to choose the settings for the sound system.
 * LMS colors (cone-isolating stimuli) are now tested and accurate (when calibrated)
-* added logging module (erros, warnings, info). And removed other messages:
+* added logging module (errors, warnings, info). And removed other messages:
      * @Verbose@ flags have become log.info messages
      * @Warn@ commands have become log.warning messages
 * added minVal and maxVal arguments to data.StairHandler so that range can be bounded
@@ -2904,7 +2904,7 @@ Psychopy 0.84
 * NEW (alpha) support for radial patterns rather than linear ones
 * changed Clock behaviour to use time.clock() on win32 rather than time.time()
 * fixed a bug in the shuffle seeding behaviour
-* added a noise pattern to bacground in monitor calibration
+* added a noise pattern to background in monitor calibration
 
 Psychopy 0.83
 ~~~~~~~~~~~~~~~~~~~~~~
