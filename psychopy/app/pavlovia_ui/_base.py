@@ -4,6 +4,7 @@
 # Part of the PsychoPy library
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
+import sys
 
 import wx
 import wx.html2
@@ -189,8 +190,11 @@ class PavloviaCommitDialog(wx.Dialog):
                              (self.commitDescrLbl, 0, wx.ALIGN_RIGHT),
                              self.commitDescrCtrl])
         buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
-        buttonSizer.AddMany([self.btnCancel,
-                             self.btnOK])
+        if sys.platform == "win32":
+            btns = [self.btnOK, self.btnCancel]
+        else:
+            btns = [self.btnCancel, self.btnOK]
+        buttonSizer.AddMany(btns)
 
         # main sizer and layout
         mainSizer = wx.BoxSizer(wx.VERTICAL)

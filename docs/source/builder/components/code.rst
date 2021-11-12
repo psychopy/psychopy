@@ -3,6 +3,9 @@
 Code Component
 -------------------------------
 
+.. image:: ../../images/code_component.gif
+   :alt: A code component in action
+
 The `Code Component` can be used to insert short pieces of python code into your experiments. This might be create a variable that you want for another :ref:`Component <components>`, to manipulate images before displaying them, to interact with hardware for which there isn't yet a pre-packaged component in `PsychoPy` (e.g. writing code to interact with the serial/parallel ports). See `code uses`_ below.
 
 Be aware that the code for each of the components in your :ref:`Routine <routines>` are executed in the order they appear on the :ref:`Routine <routines>` display (from top to bottom). If you want your `Code Component` to alter a variable to be used by another component immediately, then it needs to be above that component in the view. You may want the code not to take effect until next frame however, in which case put it at the bottom of the :ref:`Routine <routines>`. You can move `Components` up and down the :ref:`Routine <routines>` by right-clicking on their icons.
@@ -53,6 +56,7 @@ Example code uses
 
 1. Set a random location for your target stimulus
 ====================================================
+
 There are many ways to do this, but you could add the following to the `Begin Routine` section of a `Code Component` at the top of your :ref:`Routine <routines>`. Then set your stimulus position to be `$(targetX, 0)` and set the correct answer field of a :ref:`keyboard` to be `$corrAns` (set both of these to update on every repeat of the Routine).::
     
     if random()>0.5:
@@ -64,11 +68,13 @@ There are many ways to do this, but you could add the following to the `Begin Ro
 
 2. Create a patch of noise 
 ====================================================
+
 As with the above there are many different ways to create noise, but a simple method would be to add the following to the `Begin Routine` section of a `Code Component` at the top of your :ref:`Routine <routines>`. Then set the image as `$noiseTexture`.::
 
     noiseTexture = random.rand((128,128)) * 2.0 - 1
 
 .. note::
+
     Don't expect all code components to work online. Remember that code components using specific python libraries such as numpy won't smoothly translate. You might want to view the `PsychoPy to Javascript crib sheet <https://discourse.psychopy.org/t/psychopy-python-to-javascript-crib-sheet/14601>`_ for useful info on using code components for online experiments.
 
 3. Send a feedback message at the end of the experiment

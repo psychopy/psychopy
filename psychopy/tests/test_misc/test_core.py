@@ -380,7 +380,7 @@ def test_StaticPeriod():
     static.complete()
 
     if _vmTesting:
-        tolerance = 0.005  # without a proper screen timing might not eb sub-ms
+        tolerance = 0.01  # without a proper screen timing might not eb sub-ms
     else:
         tolerance = 0.001
     assert np.allclose(timer.getTime(),

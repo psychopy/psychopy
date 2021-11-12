@@ -805,7 +805,7 @@ class Experiment:
             else:
                 thisFile['rel'] = filePath
                 thisFile['abs'] = os.path.normpath(join(srcRoot, filePath))
-                if os.path.isfile(thisFile['abs']):
+                if len(thisFile['abs']) <= 256 and os.path.isfile(thisFile['abs']):
                     return thisFile
 
         def findPathsInFile(filePath):
