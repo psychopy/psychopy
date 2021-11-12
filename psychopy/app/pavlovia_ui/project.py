@@ -590,7 +590,8 @@ class ProjectFrame(wx.Dialog):
             self.CenterOnParent()
         self.Layout()
 
-def syncProject(parent, project=None, closeFrameWhenDone=False):
+
+def syncProject(parent, project, closeFrameWhenDone=False):
     """A function to sync the current project (if there is one)
 
     Returns
@@ -599,154 +600,20 @@ def syncProject(parent, project=None, closeFrameWhenDone=False):
         0 for fail
         -1 for cancel at some point in the process
     """
-    if not pavlovia.haveGit:
-        noGitWarning(parent)
-        return 0
-
-    isCoder = hasattr(parent, 'currentDoc')
-
-    # Test and reject sync from invalid folders
-    if project:
-        expectedPath = Path(project.localRoot)
-    else:
-        expectedPath = None
-
-    if isCoder:
-        currentPath = Path(parent.currentDoc.filename).parent
-    else:
-        currentPath = Path(parent.filename).parent
-
-    currentPath = os.path.normcase(os.path.expanduser(currentPath))
-    invalidFolders = [os.path.normcase(os.path.expanduser('~/Desktop')),
-                      os.path.normcase(os.path.expanduser('~/My Documents'))]
-
-    if currentPath in invalidFolders:
-        wx.MessageBox(("You cannot sync projects from:\n\n"
-                      "  - Desktop\n"
-                      "  - My Documents\n\n"
-                      "Please move your project files to another folder, and try again."),
-                      "Project Sync Error",
-                      wx.ICON_QUESTION | wx.OK)
-        return -1
-    # If paths don't match, update project path to local
-    if expectedPath:
-        if not currentPath == expectedPath:
-            project.localRoot = str(currentPath)
-
-
-    if not project and "BuilderFrame" in repr(parent):
-        # try getting one from the frame
-        project = parent.project  # type: pavlovia.PavloviaProject
-
-    if not project:  # ask the user to create one
-
-        # if we're going to create a project we need user to be logged in
-        pavSession = pavlovia.getCurrentSession()
-        try:
-            username = pavSession.user['username']
-        except:
-            username = logInPavlovia(parent)
-        if not username:
-            return -1  # never logged in
-
-        # create project dialog
-        msg = _translate("This file doesn't belong to any existing project.")
-        style = wx.OK | wx.CANCEL | wx.CENTER
-        dlg = wx.MessageDialog(parent=parent, message=msg, style=style)
+    # If not in a project, make one
+    if project is None:
+        dlg = wx.MessageDialog(parent,
+                               message=_translate("This file doesn't belong to any existing project."),
+                               style=wx.OK | wx.CANCEL | wx.CENTER)
         dlg.SetOKLabel(_translate("Create a project"))
         if dlg.ShowModal() == wx.ID_OK:
-            if isCoder:
-                if parent.currentDoc:
-                    localRoot = os.path.dirname(parent.currentDoc.filename)
-                else:
-                    localRoot = ''
-            else:
-                localRoot = os.path.dirname(parent.filename)
-            # open the project editor (with no project to create one)
-            editor = ProjectEditor(parent=parent, localRoot=localRoot)
-            if editor.ShowModal() == wx.ID_OK:
-                project = editor.project
-            else:
-                project = None
-        else:
-            return -1  # user pressed cancel
-
-    if not project:  # we did our best for them. Give up!
-        return 0
-
-    # if project.localRoot doesn't exist, or is empty
-    if 'localRoot' not in project or not project.localRoot:
-        # we first need to choose a location for the repository
-        setLocalPath(parent, project)
-        parent.Raise()  # make sure that frame is still visible
-
-    #check that the project does exist remotely
-    if not project.pavlovia:
-        # project didn't exist at Pavlovia (deleted?)
-        recreatorDlg = ProjectRecreator(parent=parent, project=project)
-        ok = recreatorDlg.ShowModal()
-        if ok > 0:
-            project = recreatorDlg.project
-        else:
-            logging.error("Failed to recreate project to sync with")
-            return 0
-
-    # a sync will be necessary so set the target to Runner stdout
-    parent.app.showRunner()
-    syncFrame = parent.app.runner.stdOut
-
-    if project._newRemote:
-        # new remote so this will be a first push
-        if project.getRepo(forceRefresh=True) is None:
-            # no local repo yet so create one
-            project.newRepo(syncFrame)
-        # add the local files and commit them
-        ok = showCommitDialog(parent=parent, project=project,
-                              initMsg="First commit",
-                              infoStream=syncFrame)
-        if ok == -1:  # cancelled
-            syncFrame.Destroy()
-            return -1
-        syncFrame.setStatus("Pushing files to Pavlovia")
-        wx.Yield()
-        time.sleep(0.001)
-        # git push -u origin master
-        try:
-            project.firstPush(infoStream=syncFrame)
-            project._newRemote = False
-        except Exception as e:
-            closeFrameWhenDone = False
-            syncFrame.statusAppend(traceback.format_exc())
-    else:
-        # existing remote which we should sync (or clone)
-        try:
-            ok = project.getRepo(syncFrame)
-            if not ok:
-                closeFrameWhenDone = False
-        except Exception as e:
-            closeFrameWhenDone = False
-            syncFrame.statusAppend(traceback.format_exc())
-        # check for anything to commit before pull/push
-        outcome = showCommitDialog(parent, project,
-                                   infoStream=syncFrame)
-        # 0=nothing to do, 1=OK, -1=cancelled
-        if outcome == -1:  # user cancelled
-            return -1
-        try:
-            status = project.sync(syncFrame)
-            if status == -1:
-                syncFrame.statusAppend("Couldn't sync")
-        except Exception:  # not yet sure what errors might occur
-            # send the error to panel
-            syncFrame.statusAppend(traceback.format_exc())
-            return 0
-
-    wx.Yield()
-    project._lastKnownSync = time.time()
-    if closeFrameWhenDone:
-        pass
-
-    return 1
+            dlg = sync.CreateDlg(parent, user=pavlovia.getCurrentSession().user)
+            dlg.ShowModal()
+            project = dlg.project
+    # If there is (now) a project, do sync
+    if project is not None:
+        dlg = sync.SyncDialog(parent, project)
+        dlg.ShowModal()
 
 
 class ForkDlg(wx.Dialog):

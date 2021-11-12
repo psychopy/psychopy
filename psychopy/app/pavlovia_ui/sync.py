@@ -58,6 +58,11 @@ class InfoStream(wx.TextCtrl):
 
 
 class CreateDlg(wx.Dialog):
+    # List of folders which are invalid paths for a pavlovia project
+    invalidFolders = [Path.home() / 'Desktop',
+                      Path.home() / 'My Documents',
+                      Path.home() / 'Documents']
+
     def __init__(self, parent, user):
         wx.Dialog.__init__(self, parent=parent,
                            title=_translate("New project..."),
@@ -113,7 +118,7 @@ class CreateDlg(wx.Dialog):
         nameValid = bool(re.fullmatch("\w+", name))
         # Test path
         path = Path(self.rootCtrl.GetValue())
-        pathValid = path.is_dir()
+        pathValid = path.is_dir() and path not in self.invalidFolders
         # Combine
         valid = nameValid and pathValid
         # Enable/disable Okay button
