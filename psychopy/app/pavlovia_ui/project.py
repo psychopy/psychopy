@@ -242,7 +242,9 @@ class DetailsPanel(wx.Panel):
         self.titleSizer = wx.BoxSizer(wx.VERTICAL)
         self.headSizer.Add(self.titleSizer, proportion=1, flag=wx.EXPAND)
         # Title
-        self.title = wx.TextCtrl(self, size=(-1, 30), value="")
+        self.title = wx.TextCtrl(self,
+                                 size=(-1, 30 if sys.platform == 'darwin' else -1),
+                                 value="")
         self.title.Bind(wx.EVT_TEXT, self.updateProject)
         self.title.SetFont(
             wx.Font(24, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
