@@ -63,7 +63,7 @@ class CreateDlg(wx.Dialog):
                       Path.home() / 'My Documents',
                       Path.home() / 'Documents']
 
-    def __init__(self, parent, user):
+    def __init__(self, parent, user, name="", path=""):
         wx.Dialog.__init__(self, parent=parent,
                            title=_translate("New project..."),
                            size=(500, 200), style=wx.DEFAULT_DIALOG_STYLE | wx.CLOSE_BOX)
@@ -87,7 +87,7 @@ class CreateDlg(wx.Dialog):
         self.nameRootLbl = wx.StaticText(self, label=f"pavlovia.org/{user['username']}/")
         self.nameSizer.Add(self.nameRootLbl, border=3, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
         # Name ctrl
-        self.nameCtrl = wx.TextCtrl(self)
+        self.nameCtrl = wx.TextCtrl(self, value=str(name))
         self.nameCtrl.Bind(wx.EVT_TEXT, self.validate)
         self.nameSizer.Add(self.nameCtrl, border=3, proportion=1, flag=wx.ALL | wx.EXPAND)
 
@@ -95,7 +95,7 @@ class CreateDlg(wx.Dialog):
         self.rootLbl = wx.StaticText(self, label=_translate("Project folder:"))
         self.sizer.Add(self.rootLbl, border=3, flag=wx.ALL | wx.EXPAND)
         # Local root ctrl
-        self.rootCtrl = utils.FileCtrl(self, dlgtype="dir")
+        self.rootCtrl = utils.FileCtrl(self, value=str(path), dlgtype="dir")
         self.rootCtrl.Bind(wx.EVT_FILEPICKER_CHANGED, self.validate)
         self.sizer.Add(self.rootCtrl, border=3, flag=wx.ALL | wx.EXPAND)
 

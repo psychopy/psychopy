@@ -1339,7 +1339,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
                 return
 
         self.enablePavloviaButton(['pavloviaSync', 'pavloviaRun'], False)
-        pavlovia_ui.syncProject(parent=self, project=self.project)
+        pavlovia_ui.syncProject(parent=self, file=self.filename, project=self.project)
         self.enablePavloviaButton(['pavloviaSync', 'pavloviaRun'], True)
 
     def onPavloviaRun(self, evt=None):

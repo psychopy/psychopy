@@ -1142,6 +1142,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
 
     def __init__(self, parent, ID, title, files=(), app=None):
         self.app = app  # type: psychopy.app.PsychoPyApp
+        self.session = pavlovia.getCurrentSession()
         self.frameType = 'coder'
         # things the user doesn't set like winsize etc
         self.appData = self.app.prefs.appData['coder']
@@ -2846,7 +2847,7 @@ class CoderFrame(wx.Frame, ThemeMixin):
         """Push changes to project repo, or create new proj if proj is None"""
         self.project = pavlovia.getProject(self.currentDoc.filename)
         self.fileSave(self.currentDoc.filename)  # Must save on sync else changes not pushed
-        pavlovia_ui.syncProject(parent=self, project=self.project)
+        pavlovia_ui.syncProject(parent=self, file=self.currentDoc.filename, project=self.project)
 
     def onPavloviaRun(self, evt=None):
         # TODO: Allow user to run project from coder
