@@ -721,6 +721,8 @@ class PavloviaProject(dict):
         """
         if infoStream:
             infoStream.write("\nPulling changes from remote...")
+        if self.repo is None:
+            self.cloneRepo(infoStream)
         try:
             info = self.repo.git.pull(self.project.http_url_to_repo, 'master')
             if infoStream:
@@ -788,7 +790,7 @@ class PavloviaProject(dict):
 
         if gitRoot is None:
             # If there's no git root, make one
-            self._repo = git.Repo(self.localRoot)
+            self._repo = None
         elif gitRoot not in [self.localRoot, str(pathlib.Path(self.localRoot).absolute())]:
             # this indicates that the requested root is inside another repo
             raise AttributeError("The requested local path for project\n\t{}\n"
@@ -905,7 +907,7 @@ class PavloviaProject(dict):
                 self.localRoot,
         )
         # now change the remote to be the standard (without password token)
-        self.repo.remotes.origin.set_url(self.remoteHTTPS)
+        self.repo.remotes.origin.set_url(self.project.http_url_to_repo)
 
         self._lastKnownSync = time.time()
         self._newRemote = False

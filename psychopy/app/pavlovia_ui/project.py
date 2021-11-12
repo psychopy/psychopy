@@ -477,6 +477,7 @@ class DetailsPanel(wx.Panel):
         # If cancelled, return
         if not self.localRoot.GetValue():
             return
+        self.project.localRoot = self.localRoot.GetValue()
         # Enable ctrl now that there is a local root
         self.localRoot.Enable()
         self.localRootLabel.Enable()
