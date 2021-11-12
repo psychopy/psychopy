@@ -196,6 +196,10 @@ def test_param_str():
         {"obj": Param("red", "color"),
          "py": "'red'",
          "js": "'red'"},
+        # RGB Color
+        {"obj": Param("0.7, 0.7, 0.7", "color"),
+         "py": "[0.7, 0.7, 0.7]",
+         "js": "[0.7, 0.7, 0.7]"},
         # Code
         {"obj": Param("win.color", "code"),
          "py": "win.color",

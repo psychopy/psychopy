@@ -182,7 +182,7 @@ class Param(object):
                 return "%i" % self.val  # int and float -> str(int)
             except TypeError:
                 return "%s" % self.val  # try array of float instead?
-        elif self.valType in ['extendedStr','str', 'file', 'table', 'color']:
+        elif self.valType in ['extendedStr','str', 'file', 'table']:
             # at least 1 non-escaped '$' anywhere --> code wanted
             # return str if code wanted
             # return repr if str wanted; this neatly handles "it's" and 'He
@@ -235,6 +235,15 @@ class Param(object):
                 return valJS
             else:
                 return val
+        elif self.valType == 'color':
+            _, val = self.dollarSyntax()
+            if "," in val:
+                # Handle lists (e.g. RGB, HSV, etc.)
+                val = toList(val)
+                return "{}".format(val)
+            else:
+                # Otherwise, treat as string
+                return repr(val)
         elif self.valType == 'list':
             valid, val = self.dollarSyntax()
             val = toList(val)
