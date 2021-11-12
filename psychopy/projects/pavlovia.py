@@ -1026,7 +1026,7 @@ class PavloviaProject(dict):
     @pavloviaStatus.setter
     def pavloviaStatus(self, newStatus):
         url = 'https://pavlovia.org/server?command=update_project'
-        data = {'projectId': self.idNumber, 'projectStatus': 'ACTIVATED'}
+        data = {'projectId': self.id, 'projectStatus': 'ACTIVATED'}
         resp = requests.put(url, data)
         if resp.status_code == 200:
             self.__dict__['pavloviaStatus'] = newStatus
