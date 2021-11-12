@@ -744,7 +744,7 @@ class FileCtrl(wx.TextCtrl):
         file = Path(self.GetValue())
         # Open file or dir dlg
         if self.dlgtype == "dir":
-            dlg = wx.DirDialog(self, message=_translate("Specify folder..."), defaultPath=str(file))
+            dlg = wx.DirDialog(self, message=_translate("Specify folder..."), defaultPath=str(file) or "/")
         else:
             dlg = wx.FileDialog(self, message=_translate("Specify file..."), defaultDir=str(file))
         if dlg.ShowModal() != wx.ID_OK:
