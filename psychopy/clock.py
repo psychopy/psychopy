@@ -14,8 +14,6 @@ Clock logic.
 @author: Sol
 @author: Jon
 """
-from __future__ import absolute_import, division, print_function
-from builtins import object
 import time
 import sys
 from pkg_resources import parse_version
@@ -26,7 +24,7 @@ try:
 except ImportError:
     pass  # pyglet is not installed
 
-from psychopy.constants import STARTED, NOT_STARTED, FINISHED, PY3
+from psychopy.constants import STARTED, NOT_STARTED, FINISHED
 import psychopy.logging  # Absolute import to work around circularity
 
 
@@ -97,7 +95,7 @@ else:
     getTime = timeit.default_timer
 
 
-class MonotonicClock(object):
+class MonotonicClock():
     """A convenient class to keep track of time in your experiments using a
     sub-millisecond timer.
 
@@ -218,7 +216,7 @@ class CountdownTimer(Clock):
             Clock.reset(self, t)
 
 
-class StaticPeriod(object):
+class StaticPeriod():
     """A class to help insert a timing period that includes code to be run.
 
     Typical usage::

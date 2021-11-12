@@ -1,7 +1,6 @@
 """
 The Alert module
 """
-from __future__ import absolute_import, print_function
 from ._alerts import alert, catalog
 
 import yaml
@@ -20,6 +19,8 @@ def validateCatalogue(dev=False):
     # Make template object
     with open(root / "alertTemplate.yaml") as f:
         template = f.read()
+    # Create blank array to store missing alert keys in
+    missing = []
 
     def validate(spec):
         # Start off valid
@@ -30,7 +31,7 @@ def validateCatalogue(dev=False):
         else:
             cat = "Unknown"
         for key, val in spec.items():
-            if key == "cat":
+            if key == "cat" or key % 1000 == 0 or key == 9999:
                 # Skip category tags
                 continue
             if isinstance(val, str):
@@ -48,6 +49,9 @@ def validateCatalogue(dev=False):
                     with open(file, "w") as f:
                         f.write(newAlert)
                         f.close()
+            # Store missing key
+            if not valid:
+                missing.append(key)
             if isinstance(val, dict):
                 # Recursively search through dicts
                 valid = valid and validate(val)
@@ -58,4 +62,4 @@ def validateCatalogue(dev=False):
         spec = yaml.load(f, Loader=yaml.FullLoader)
     # Validate
     valid = validate(spec)
-    return valid
+    return valid, missing

@@ -41,7 +41,7 @@ AUDIO_CHANNEL_RIGHT = AUDIO_EAR_RIGHT = 1
 AUDIO_CHANNEL_COUNT = AUDIO_EAR_COUNT = 2
 
 
-class AudioClip(object):
+class AudioClip:
     """Class for storing audio clip data.
 
     This class is used to store and handle raw audio data, such as those

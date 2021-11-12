@@ -7,19 +7,9 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import, print_function
-from .. import constants
-
-from builtins import str
-from past.builtins import unicode
-
 haveQt = False  # until we confirm otherwise
-if constants.PY3:  # much more like to have PyQt5 on Python3
-    importOrder = ['PyQt5', 'PyQt4']
-else:  # more likely the other way on Py27
-    importOrder = ['PyQt4', 'PyQt5']
+importOrder = ['PyQt5', 'PyQt4']
 
-haveQt = False
 for libname in importOrder:
     try:
         exec("import {}".format(libname))
@@ -205,7 +195,7 @@ class Dlg(QtWidgets.QDialog):
                 thisType = self.inputFieldTypes[name]
 
                 try:
-                    if thisType in (str, unicode, bytes):
+                    if thisType in (str, bytes):
                         self.data[ix] = str(new_text)
                     elif thisType == tuple:
                         jtext = "[" + str(new_text) + "]"

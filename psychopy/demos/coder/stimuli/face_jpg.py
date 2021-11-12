@@ -7,8 +7,6 @@ visual.GratinGstim. It introduces some of the many attributes of these stimulus
 types.
 """
 
-from __future__ import division
-
 # Import the modules that we need in this script
 from psychopy import core, visual, event
 

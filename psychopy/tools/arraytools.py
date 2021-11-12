@@ -7,7 +7,6 @@
 
 """Functions and classes related to array handling
 """
-from __future__ import absolute_import, division, print_function
 
 __all__ = ["createXYs",
            "extendArr",
@@ -15,10 +14,9 @@ __all__ = ["createXYs",
            "ratioRange",
            "shuffleArray",
            "val2array",
-           "array2pointer"]
+           "array2pointer",
+           "createLumPattern"]
 
-from builtins import str
-from past.utils import old_div
 import numpy
 import ctypes
 
@@ -81,15 +79,11 @@ def extendArr(inArray, newSize):
     return newArr
 
 
-def makeRadialMatrix(matrixSize):
-    """Generate a square matrix where each element val is
-    its distance from the centre of the matrix
+def makeRadialMatrix(matrixSize, center=(0.0, 0.0), radius=1.0):
+    """DEPRECATED: please use psychopy.filters.makeRadialMatrix instead
     """
-    oneStep = old_div(2.0, (matrixSize - 1) or -1)
-    # NB need to add one step length because
-    xx, yy = numpy.mgrid[0:2 + oneStep:oneStep, 0:2 + oneStep:oneStep] - 1.0
-    rad = numpy.sqrt(xx**2 + yy**2)
-    return rad
+    from psychopy.visual import filters
+    return filters.makeRadialMatrix(matrixSize, center, radius)
 
 
 def ratioRange(start, nSteps=None, stop=None,
@@ -112,34 +106,37 @@ def ratioRange(start, nSteps=None, stop=None,
     badRange = "Can't calculate ratio ranges on negatives or zero"
     if start <= 0:
         raise RuntimeError(badRange)
+
     if stepdB is not None:
-        stepRatio = 10.0**(old_div(stepdB, 20.0))  # dB = 20*log10(ratio)
+        stepRatio = 10.0 ** (stepdB / 20.0)  # dB = 20*log10(ratio)
+
     if stepLogUnits is not None:
-        stepRatio = 10.0**stepLogUnits  # logUnit = log10(ratio)
+        stepRatio = 10.0 ** stepLogUnits  # logUnit = log10(ratio)
 
-    if (stepRatio != None) and (nSteps != None):
-        factors = stepRatio**numpy.arange(nSteps, dtype='d')
+    if stepRatio is not None and nSteps is not None:
+        factors = stepRatio ** numpy.arange(nSteps, dtype='d')
         output = start * factors
-
-    elif (nSteps != None) and (stop != None):
+    elif nSteps is not None and stop is not None:
         if stop <= 0:
             raise RuntimeError(badRange)
         lgStart = numpy.log10(start)
         lgStop = numpy.log10(stop)
-        lgStep = old_div((lgStop - lgStart), (nSteps - 1))
+        lgStep = (lgStop - lgStart) / (nSteps - 1)
         lgArray = numpy.arange(lgStart, lgStop + lgStep, lgStep)
         # if the above is a badly rounded float it may have one extra entry
         if len(lgArray) > nSteps:
             lgArray = lgArray[:-1]
-        output = 10**lgArray
-
-    elif (stepRatio != None) and (stop != None):
+        output = 10 ** lgArray
+    elif stepRatio is not None and stop is not None:
         thisVal = float(start)
         outList = []
         while thisVal < stop:
             outList.append(thisVal)
             thisVal *= stepRatio
         output = numpy.asarray(outList)
+    else:
+        # if any of the conditions above are not satisfied, throw this error.
+        raise ValueError('Invalid input parameters.')
 
     return output
 
@@ -220,3 +217,196 @@ def array2pointer(arr, dtype=None):
     # convert to ctypes, also we ensure the array is contiguous
     return numpy.ascontiguousarray(arr, dtype=dtype).ctypes.data_as(
         ctypes.POINTER(numpy.ctypeslib.as_ctypes_type(dtype)))
+
+
+def createLumPattern(patternType, res, texParams=None, maskParams=None):
+    """Create a luminance (single channel) defined pattern.
+
+    Parameters
+    ----------
+    patternType : str or None
+        Pattern to generate. Value may be one of: 'sin', 'sqr', 'saw', 'tri',
+        'sinXsin', 'sqrXsqr', 'circle', 'gauss', 'cross', 'radRamp' or
+        'raisedCos'. If `None`, 'none', 'None' or 'color' are specified, an
+        array of ones will be returned with `size==(res, res)`.
+    res : int
+        Resolution for the texture in texels.
+    texParams : dict or None
+        Additional parameters to control texture generation. Not currently used
+        but may in the future. These can be settings like duty-cycle, etc.
+        Passing valid values to this parameter do nothing yet.
+    maskParams : dict or None
+        Additional parameters to control how the texture's mask is applied.
+
+    Returns
+    -------
+    ndarray
+        Array of normalized intensity values containing the desired pattern
+        specified by `mode`.
+
+    Examples
+    --------
+    Create a gaussian bump luminance map with resolution 1024x1024 and standard
+    deviation of 0.5::
+
+        res = 1024
+        maskParams = {'sd': 0.5}
+        intensity = createLumPattern('gauss', res, None, maskParams)
+
+    """
+    # This code was originally in `TextureMixin._createTexture`, but moved here
+    # to clean up that class and to provide a reusable way of generating these
+    # textures.
+
+    # Check and sanitize parameters passed to this function before generating
+    # anything with them.
+    if res <= 0:
+        raise ValueError('invalid value for parameter `res`, must be >0')
+
+    # parameters to control texture generation, unused but roughed in for now
+    allTexParams = {}
+    if isinstance(texParams, dict):  # specified, override defaults if so
+        allTexParams.update(texParams)
+    elif texParams is None:  # if not specified, use empty dict
+        pass  # nop for now, change to `allTexParams = {}` when needed
+    else:
+        raise TypeError('parameter `texParams` must be type `dict` or `None`')
+
+    # mask parameters for additional parameters to control how maks are applied
+    allMaskParams = {'fringeWidth': 0.2, 'sd': 3}
+    if isinstance(maskParams, dict):  # specified, override defaults if so
+        allMaskParams.update(maskParams)
+    elif maskParams is None:  # if not specified, use empty dict
+        allMaskParams = {}
+    else:
+        raise TypeError('parameter `maskParams` must be type `dict` or `None`')
+
+    # correct `makeRadialMatrix` from filters, duplicated her to avoid importing
+    # all of visual to test this function out
+    def _makeRadialMatrix(matrixSize, center=(0.0, 0.0), radius=1.0):
+        if type(radius) in [int, float]:
+            radius = [radius, radius]
+
+        # NB need to add one step length because
+        yy, xx = numpy.mgrid[0:matrixSize, 0:matrixSize]
+        xx = ((1.0 - 2.0 / matrixSize * xx) + center[0]) / radius[0]
+        yy = ((1.0 - 2.0 / matrixSize * yy) + center[1]) / radius[1]
+        rad = numpy.sqrt(numpy.power(xx, 2) + numpy.power(yy, 2))
+
+        return rad
+
+    # here is where we generate textures
+    pi = numpy.pi
+    if patternType in (None, "none", "None", "color"):
+        res = 1
+        intensity = numpy.ones([res, res], numpy.float32)
+    elif patternType == "sin":
+        # NB 1j*res is a special mgrid notation
+        onePeriodX, onePeriodY = numpy.mgrid[0:res, 0:2 * pi:1j * res]
+        intensity = numpy.sin(onePeriodY - pi / 2)
+    elif patternType == "sqr":  # square wave (symmetric duty cycle)
+        # NB 1j*res is a special mgrid notation
+        onePeriodX, onePeriodY = numpy.mgrid[0:res, 0:2 * pi:1j * res]
+        sinusoid = numpy.sin(onePeriodY - pi / 2)
+        intensity = numpy.where(sinusoid > 0, 1, -1)
+    elif patternType == "saw":
+        intensity = \
+            numpy.linspace(-1.0, 1.0, res, endpoint=True) * numpy.ones([res, 1])
+    elif patternType == "tri":
+        # -1:3 means the middle is at +1
+        intens = numpy.linspace(-1.0, 3.0, res, endpoint=True)
+        # remove from 3 to get back down to -1
+        intens[res // 2 + 1:] = 2.0 - intens[res // 2 + 1:]
+        intensity = intens * numpy.ones([res, 1])  # make 2D
+    elif patternType == "sinXsin":
+        # NB 1j*res is a special mgrid notation
+        onePeriodX, onePeriodY = numpy.mgrid[0:2 * pi:1j * res,
+                                             0:2 * pi:1j * res]
+        intensity = \
+            numpy.sin(onePeriodX - pi / 2) * numpy.sin(onePeriodY - pi / 2)
+    elif patternType == "sqrXsqr":
+        # NB 1j*res is a special mgrid notation
+        onePeriodX, onePeriodY = numpy.mgrid[0:2 * pi:1j * res,
+                                             0:2 * pi:1j * res]
+        sinusoid = \
+            numpy.sin(onePeriodX - pi / 2) * numpy.sin(onePeriodY - pi / 2)
+        intensity = numpy.where(sinusoid > 0, 1, -1)
+    elif patternType == "circle":
+        rad = _makeRadialMatrix(res)
+        intensity = (rad <= 1) * 2 - 1
+    elif patternType == "gauss":
+        rad = _makeRadialMatrix(res)
+        # 3sd.s by the edge of the stimulus
+        try:
+            maskStdev = allMaskParams['sd']
+        except KeyError:
+            raise ValueError(
+                "Mask parameter 'sd' not provided but is required by "
+                "`mode='gauss'`")
+
+        invVar = (1.0 / maskStdev) ** 2.0
+        intensity = numpy.exp(-rad ** 2.0 / (2.0 * invVar)) * 2 - 1
+    elif patternType == "cross":
+        X, Y = numpy.mgrid[-1:1:1j * res, -1:1:1j * res]
+        tfNegCross = (((X < -0.2) & (Y < -0.2)) |
+                      ((X < -0.2) & (Y > 0.2)) |
+                      ((X > 0.2) & (Y < -0.2)) |
+                      ((X > 0.2) & (Y > 0.2)))
+        # tfNegCross == True at places where the cross is transparent,
+        # i.e. the four corners
+        intensity = numpy.where(tfNegCross, -1, 1)
+    elif patternType == "radRamp":  # a radial ramp
+        rad = _makeRadialMatrix(res)
+        intensity = 1 - 2 * rad
+        # clip off the corners (circular)
+        intensity = numpy.where(rad < -1, intensity, -1)
+    elif patternType == "raisedCos":  # A raised cosine
+        hammingLen = 1000  # affects the 'granularity' of the raised cos
+        rad = _makeRadialMatrix(res)
+        intensity = numpy.zeros_like(rad)
+        intensity[numpy.where(rad < 1)] = 1
+
+        maskFringeWidth = allMaskParams['fringeWidth']
+        raisedCosIdx = numpy.where(
+            [numpy.logical_and(rad <= 1, rad >= 1 - maskFringeWidth)])[1:]
+
+        # Make a raised_cos (half a hamming window):
+        raisedCos = numpy.hamming(hammingLen)[:hammingLen // 2]
+        raisedCos -= numpy.min(raisedCos)
+        raisedCos /= numpy.max(raisedCos)
+
+        # Measure the distance from the edge - this is your index into the
+        # hamming window:
+        dFromEdge = numpy.abs(
+            (1 - maskFringeWidth) - rad[raisedCosIdx])
+        dFromEdge /= numpy.max(dFromEdge)
+        dFromEdge *= numpy.round(hammingLen / 2)
+
+        # This is the indices into the hamming (larger for small distances
+        # from the edge!):
+        portionIdx = (-1 * dFromEdge).astype(int)
+
+        # Apply the raised cos to this portion:
+        intensity[raisedCosIdx] = raisedCos[portionIdx]
+
+        # Scale it into the interval -1:1:
+        intensity = intensity - 0.5
+        intensity /= numpy.max(intensity)
+
+        # Sometimes there are some remaining artifacts from this process,
+        # get rid of them:
+        artifactIdx = numpy.where(
+            numpy.logical_and(intensity == -1, rad < 0.99))
+        intensity[artifactIdx] = 1
+        artifactIdx = numpy.where(
+            numpy.logical_and(intensity == 1, rad > 0.99))
+        intensity[artifactIdx] = 0
+
+    else:
+        raise ValueError("invalid keyword or value for parameter `patternType`")
+
+    return intensity
+
+
+if __name__ == "__main__":
+    pass

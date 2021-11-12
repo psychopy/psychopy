@@ -5,15 +5,8 @@
 # Copyright (C) 2009 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import, print_function
-
-# from future import standard_library
-# standard_library.install_aliases()
 from pathlib import Path
 
-from past.builtins import unicode
-from builtins import chr
-from builtins import range
 import wx
 import wx.stc
 import wx.richtext
@@ -49,6 +42,7 @@ from psychopy.app.coder.sourceTree import SourceTreePanel
 from psychopy.app.themes import ThemeMixin
 from psychopy.app.coder.folding import CodeEditorFoldingMixin
 from psychopy.app.coder.scriptOutput import ScriptOutputPanel
+from psychopy.app.coder.repl import PythonREPLCtrl
 # from ..plugin_manager import PluginManagerFrame
 
 try:
@@ -136,7 +130,7 @@ class PsychopyPyShell(wx.py.shell.Shell, ThemeMixin):
         """Called when the shell loses focus."""
         # Set the callback to use the dialog when errors occur outside the
         # shell.
-        if not self.app._called_from_test:
+        if not self.app.testMode:
             sys.excepthook = exceptionCallback
 
         if evt:
@@ -294,8 +288,8 @@ class UnitTestFrame(wx.Frame):
         def write(self, inStr):
             self.MoveEnd()  # always 'append' text rather than 'writing' it
             for thisLine in inStr.splitlines(True):
-                if not isinstance(thisLine, unicode):
-                    thisLine = unicode(thisLine)
+                if not isinstance(thisLine, str):
+                    thisLine = str(thisLine)
                 if thisLine.startswith('OK'):
                     self.BeginBold()
                     self.BeginTextColour(self.good)
@@ -1309,29 +1303,14 @@ class CoderFrame(wx.Frame, ThemeMixin):
             self.pnlMain, wx.ID_ANY, size=wx.Size(600, 600),
             agwStyle=aui.AUI_NB_CLOSE_ON_ALL_TABS)
         #self.shelf.SetArtProvider(PsychopyTabArt())
+
         # Create shell
-        self._useShell = None
-        if haveCode:
-            useDefaultShell = True
-            if self.prefs['preferredShell'].lower() == 'ipython':
-                try:
-                    # Try to use iPython
-                    from IPython.gui.wx.ipython_view import IPShellWidget
-                    self.shell = IPShellWidget(self)
-                    useDefaultShell = False
-                    self._useShell = 'ipython'
-                except Exception:
-                    msg = _translate('IPython failed as shell, using pyshell'
-                                     ' (IPython v0.12 can fail on wx)')
-                    logging.warn(msg)
-            if useDefaultShell:
-                # Default to Pyshell if iPython fails
-                self.shell = PsychopyPyShell(self)
-                self._useShell = 'pyshell'
-            # Add shell to output pane
-            self.shell.SetName("PythonShell")
-            self.shelf.AddPage(self.shell, _translate('Shell'))
-            # Hide close button
+        self._useShell = 'pyshell'
+        self.shell = PythonREPLCtrl(self)
+
+        # Add shell to output pane
+        self.shell.SetName("PythonShell")
+        self.shelf.AddPage(self.shell, _translate('Shell'))
 
         # script output panel
         self.consoleOutput = ScriptOutputPanel(self.shelf)
@@ -1700,6 +1679,25 @@ class CoderFrame(wx.Frame, ThemeMixin):
         menu.AppendSubMenu(self.themesMenu,
                            _translate("Themes"))
 
+        # ---_view---#000000#FFFFFF-------------------------------------------
+        self.shellMenu = wx.Menu()
+        menuBar.Append(self.shellMenu, _translate('&Shell'))
+
+        menu = self.shellMenu
+        item = menu.Append(
+            wx.ID_ANY,
+            _translate("Start Python Session"),
+            _translate("Start a new Python session in the shell."),
+            wx.ITEM_NORMAL)
+        self.Bind(wx.EVT_MENU, self.onStartShellSession, id=item.GetId())
+        menu.AppendSeparator()
+        item = menu.Append(
+            wx.ID_ANY,
+            _translate("Run Line\tF6"),
+            _translate("Push the line at the caret to the shell."),
+            wx.ITEM_NORMAL)
+        self.Bind(wx.EVT_MENU, self.onPushLineToShell, id=item.GetId())
+
         # menu.Append(ID_UNFOLDALL, "Unfold All\tF3",
         #   "Unfold all lines", wx.ITEM_NORMAL)
         # self.Bind(wx.EVT_MENU,  self.unfoldAll, id=ID_UNFOLDALL)
@@ -1892,6 +1890,25 @@ class CoderFrame(wx.Frame, ThemeMixin):
 
             if dlg.ShowModal() == wx.ID_YES:
                 self.fileBrowserWindow.gotoDir(cwdpath)
+
+    def onStartShellSession(self, event):
+        """Start a new Python session in the shell."""
+        if hasattr(self, 'shell'):
+            self.shell.start()
+            self.shell.SetFocus()
+
+    def onPushLineToShell(self, event):
+        """Push the currently selected line in the editor to the console and
+        run it.."""
+        if hasattr(self, 'shell'):
+            ed = self.currentDoc
+            if ed is None:  # no document selected
+                return
+
+            lineText, _ = ed.GetCurLine()
+            self.shell.clearAndReplaceTyped(lineText)
+            self.shell.submit(self.shell.getTyped())
+            ed.LineDown()
 
     def onSetCWDFromBrowserPane(self, event):
         """Set the current working directory by browsing for it."""

@@ -11,15 +11,7 @@ _BaseVoiceKey is the main abstract class. Subclass and override the detect()
 method. See SimpleThresholdVoiceKey or OnsetVoiceKey for examples.
 """
 
-from __future__ import absolute_import, division, print_function
-
-from builtins import range
-from builtins import object
 __version__ = 0.5
-
-import sys
-import os
-import numpy as np
 
 # pyo: see http://ajaxsoundstudio.com/pyodoc
 try:
@@ -51,7 +43,7 @@ class VoiceKeyException(Exception):
     pass
 
 
-class _BaseVoiceKey(object):
+class _BaseVoiceKey:
     """Abstract base class for virtual voice-keys.
 
     Accepts data as real-time input (from a microphone by default) or off-line

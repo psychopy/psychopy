@@ -1,7 +1,3 @@
-from __future__ import print_function
-from __future__ import division
-from builtins import str
-from builtins import range
 from os.path import abspath, basename, dirname, isfile, join as pjoin
 import os.path
 import shutil

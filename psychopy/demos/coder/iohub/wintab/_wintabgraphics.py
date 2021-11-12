@@ -2,7 +2,6 @@
 """
 Wintab util objects / functions for stylus, position traces.
 """
-from __future__ import division, absolute_import
 
 import math
 

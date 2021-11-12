@@ -322,7 +322,6 @@ class pythonTransformer(ast.NodeTransformer):
             )
 
 
-
 class pythonAddonVisitor(ast.NodeVisitor):
     # operations that require an addon:
     addonOperations = ['list', 'pad']

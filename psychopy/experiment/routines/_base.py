@@ -8,8 +8,6 @@
 """Describes the Flow of an experiment
 """
 
-from __future__ import absolute_import, print_function
-
 from psychopy.constants import FOREVER
 from xml.etree.ElementTree import Element
 from pathlib import Path
@@ -52,14 +50,14 @@ class BaseStandaloneRoutine:
         self.params['stopType'] = Param(stopType,
             valType='str', inputType="choice", categ='Basic',
             allowedVals=['duration (s)', 'duration (frames)', 'condition'],
-            hint=msg,
+            hint=msg, direct=False,
             label=_translate('Stop Type...'))
 
         # Testing
         msg = _translate("Disable this component")
         self.params['disabled'] = Param(disabled,
             valType='bool', inputType="bool", categ="Testing",
-            hint=msg, allowedTypes=[],
+            hint=msg, allowedTypes=[], direct=False,
             label=_translate('Disable component'))
 
     def __repr__(self):
@@ -252,6 +250,22 @@ class Routine(list):
     def addComponent(self, component):
         """Add a component to the end of the routine"""
         self.append(component)
+
+    def insertComponent(self, index, component):
+        """Insert a component at some point of the routine.
+
+        Parameters
+        ----------
+        index : int
+            Position in the routine to insert the component.
+        component : object
+            Component object to insert.
+
+        """
+        try:
+            self.insert(index, component)
+        except IndexError:
+            self.append(component)  # just insert at the end on invalid index
 
     def removeComponent(self, component):
         """Remove a component from the end of the routine"""

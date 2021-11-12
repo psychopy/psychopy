@@ -20,7 +20,7 @@ _lb = r"[\[\(]"  # left bracket
 _rb = r"[\]\)]"  # right bracket
 
 
-class TestComponents(object):
+class TestComponents:
     def setup(self):
         self.temp_dir = mkdtemp()
 

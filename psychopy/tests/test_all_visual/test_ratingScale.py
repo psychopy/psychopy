@@ -1,10 +1,3 @@
-from __future__ import division
-
-from builtins import map
-from builtins import range
-from builtins import object
-from past.utils import old_div
-
 from psychopy.colors import Color
 from psychopy.visual import RatingScale, Window, shape, TextStim
 from psychopy import event, core
@@ -24,7 +17,7 @@ import pytest, copy
 
 
 @pytest.mark.ratingscale
-class Test_class_RatingScale(object):
+class Test_class_RatingScale:
     """RatingScale internal logic, no check that its drawn correctly
     """
     def setup_class(self):
@@ -99,7 +92,7 @@ class Test_class_RatingScale(object):
         r = RatingScale(self.win, pos=(0,.5), skipKeys='space', autoLog=False)
         r = RatingScale(self.winpix, pos=[1], autoLog=False)
         r = RatingScale(self.winpix, pos=['a','x'], autoLog=False)
-        assert r.pos == [0.0, old_div(-50.0, r.win.size[1])]
+        assert r.pos == [0.0, (-50.0 / r.win.size[1])]
         x, y = -3, 17
         r = RatingScale(self.winpix, pos=(x, y), size=.2, stretch=2, autoLog=False)
         assert r.offsetHoriz == 2. * x / r.win.size[0]
@@ -132,7 +125,7 @@ class Test_class_RatingScale(object):
         r.markerPosFixed = False
         r.draw()
 
-        class bad_customMarker(object):
+        class bad_customMarker():
             def __init__(self): pass
         r = RatingScale(self.win, marker=bad_customMarker(), autoLog=False)
         assert type(r.marker) == shape.ShapeStim

@@ -13,7 +13,6 @@ used by backends.getBackend(winType) which will locate the appropriate class
 and initialize an instance using the attributes of the Window.
 """
 
-from __future__ import absolute_import, print_function
 import sys
 import os
 import numpy as np
@@ -21,10 +20,11 @@ import numpy as np
 import psychopy
 from psychopy import core
 from psychopy.hardware import mouse
-from psychopy import logging, event, platform_specific, constants
+from psychopy import logging, event, platform_specific
 from psychopy.visual import window
 from psychopy.tools.attributetools import attributeSetter
 from psychopy.tests import _vmTesting
+from psychopy.iohub.client import ioHubConnection
 from .gamma import setGamma, setGammaRamp, getGammaRamp, getGammaRampSize
 from .. import globalVars
 from ._base import BaseBackend
@@ -304,6 +304,8 @@ class PygletBackend(BaseBackend):
         self.winHandle.getGammaRamp = getGammaRamp
         self.winHandle.set_vsync(True)
         self.winHandle.on_text = self.onText
+        self.winHandle.on_move = self.onMove
+        self.winHandle.on_resize = self.onResize
         self.winHandle.on_text_motion = self.onCursorKey
         self.winHandle.on_key_press = self.onKey
         self.winHandle.on_mouse_press = self.onMouseButtonPress
@@ -312,6 +314,7 @@ class PygletBackend(BaseBackend):
         self.winHandle.on_mouse_motion = self.onMouseMove
         self.winHandle.on_mouse_enter = self.onMouseEnter
         self.winHandle.on_mouse_leave = self.onMouseLeave
+        self.winHandle.on_move = self.onMove
 
         if not win.allowGUI:
             # make mouse invisible. Could go further and make it 'exclusive'
@@ -341,6 +344,11 @@ class PygletBackend(BaseBackend):
 
         # store properties of the system
         self._driver = pyglet.gl.gl_info.get_renderer()
+
+    def onMove(self, x, y):
+        self.win.pos = (x, y)
+        if ioHubConnection.ACTIVE_CONNECTION:
+            ioHubConnection.ACTIVE_CONNECTION.updateWindowPos(self.win._hw_handle, self.win.pos)
 
     @property
     def frameBufferSize(self):
@@ -413,8 +421,33 @@ class PygletBackend(BaseBackend):
         for win in wins:
             win.dispatch_events()
 
+    def onResize(self, width, height):
+        """A method that will be called if the window detects a resize event.
+
+        This method is bound to the window backend resize event, data is
+        formatted and forwarded to the user's callback function.
+
+        """
+        # When overriding this function, at the very minimum we must call the
+        # user's function, passing the data they expect.
+        if self._onResizeCallback is not None:
+            self._onResizeCallback(width, height)
+
+    def onMove(self, posX, posY):
+        """A method called when the window is moved by the user.
+
+        This method is bound to the window backend move event, data is
+        formatted and forwarded to the user's callback function.
+
+        """
+        if hasattr(self.win, 'pos'):
+            self.win.pos[:] = (posX, posY)
+
+        if self._onMoveCallback is not None:
+            self._onMoveCallback(posX, posY)
+
     def onKey(self, evt, modifiers):
-        "Check for tab key then pass all events to event package"
+        """Check for tab key then pass all events to event package."""
         if evt is not None:
             thisKey = pyglet.window.key.symbol_string(evt).lower()
             if thisKey == 'tab':
@@ -500,18 +533,11 @@ class PygletBackend(BaseBackend):
         """
         if sys.platform == 'win32':
             scrBytes = self.winHandle._dc
-            if constants.PY3:
-                try:
-                    _screenID = 0xFFFFFFFF & int.from_bytes(
-                        scrBytes, byteorder='little')
-                except TypeError:
-                    _screenID = 0xFFFFFFFF & scrBytes
-            else:
-                try:
-                    _screenID = 0xFFFFFFFF & scrBytes
-                except TypeError:
-                    _screenID = scrBytes
-
+            try:
+                _screenID = 0xFFFFFFFF & int.from_bytes(
+                    scrBytes, byteorder='little')
+            except TypeError:
+                _screenID = 0xFFFFFFFF & scrBytes
         elif sys.platform == 'darwin':
             try:
                 _screenID = self.winHandle._screen.id  # pyglet1.2alpha1

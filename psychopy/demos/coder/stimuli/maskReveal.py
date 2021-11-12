@@ -12,9 +12,6 @@ textures to the graphics card on each change. Instead, the more
 efficient way of doing this is to create an element array and alter the
 opacity of each element of the array to reveal what's behind it.
 """
-
-from __future__ import division
-
 from psychopy import core, visual, event
 from psychopy.tools.arraytools import createXYs
 import numpy

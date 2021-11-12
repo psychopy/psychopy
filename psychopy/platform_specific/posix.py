@@ -7,9 +7,6 @@
 
 """Placeholder for adding c (or ctypes) extensions to PsychoPy on linux
 """
-from __future__ import absolute_import, print_function
-
-
 def rush(value=True):
     """Raise the priority of the current thread/process.
     NOT YET IMPLEMENTED ON posix (but you can use

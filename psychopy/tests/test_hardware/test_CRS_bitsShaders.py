@@ -4,21 +4,15 @@ Created on Mon Dec 15 15:22:48 2014
 
 @author: lpzjwp
 """
-from __future__ import print_function  # for compatibility with python3
-from __future__ import division
-from builtins import str
-from builtins import range
 from psychopy import visual
 from psychopy.hardware import crs
 from psychopy.tests import skip_under_vm, _vmTesting
 import numpy as np
-import pytest
 
 try:
     from PIL import Image
 except ImportError:
     import Image
-import os
 
 
 array=np.array

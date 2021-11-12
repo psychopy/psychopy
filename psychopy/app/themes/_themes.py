@@ -1,6 +1,7 @@
 import os
 import subprocess
 import sys
+import builtins
 
 import wx
 import wx.lib.agw.aui as aui
@@ -10,7 +11,6 @@ from psychopy.localization import _translate
 from wx import py
 import numpy
 import keyword
-import builtins
 from pathlib import Path
 from psychopy import prefs
 from psychopy import logging
@@ -270,6 +270,7 @@ class ThemeMixin:
             for ln in range(target.GetNumberOfLines()):
                 i += target.GetLineLength(
                     ln) + 1  # +1 as \n is not included in character count
+            target.SetDefaultStyle(_style)
             target.SetStyle(0, i, _style)
 
         def applyToTextCtrl(target):

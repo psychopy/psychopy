@@ -5,10 +5,6 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import, print_function
-from builtins import super  # provides Py3-style super() using python-future
-
-from os import path
 from pathlib import Path
 from psychopy.experiment.components import BaseComponent, Param, _translate
 from psychopy.experiment import valid_var_re
@@ -65,7 +61,7 @@ class JoystickComponent(BaseComponent):
         self.params['saveJoystickState'] = Param(
             save, valType='str', inputType="choice", categ='Data',
             allowedVals=['final', 'on click', 'every frame', 'never'],
-            hint=msg,
+            hint=msg, direct=False,
             label=_localized['saveJoystickState'])
 
         msg = _translate("Should a button press force the end of the routine"
@@ -78,7 +74,7 @@ class JoystickComponent(BaseComponent):
             forceEndRoutineOnPress, valType='str', inputType="choice", categ='Basic',
             allowedVals=['never', 'any click', 'valid click'],
             updates='constant',
-            hint=msg,
+            hint=msg, direct=False,
             label=_localized['forceEndRoutineOnPress'])
 
         msg = _translate("What should the values of joystick.time should be "
@@ -86,7 +82,7 @@ class JoystickComponent(BaseComponent):
         self.params['timeRelativeTo'] = Param(
             timeRelativeTo, valType='str', inputType="choice", categ='Data',
             allowedVals=['joystick onset', 'experiment', 'routine'],
-            updates='constant',
+            updates='constant', direct=False,
             hint=msg,
             label=_localized['timeRelativeTo'])
 
@@ -108,7 +104,7 @@ class JoystickComponent(BaseComponent):
         self.params['saveParamsClickable'] = Param(
             'name,', valType='list', inputType="single", categ='Data',
             updates='constant', allowedUpdates=[],
-            hint=msg,
+            hint=msg, direct=False,
             label=_localized['Store params for clicked'])
 
         msg = _translate('Device number, if you have multiple devices which'

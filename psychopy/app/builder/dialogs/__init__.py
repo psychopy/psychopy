@@ -7,13 +7,8 @@
 
 """Dialog classes for the Builder, including ParamCtrls
 """
-
-from __future__ import absolute_import, division, print_function
 import sys
 
-from builtins import map
-from builtins import str
-from builtins import object
 import os
 import copy
 from collections import OrderedDict
@@ -45,7 +40,7 @@ codeSyntaxOkay = wx.Colour(220, 250, 220, 255)  # light green
 from ..localizedStrings import _localizedDialogs as _localized
 
 
-class ParamCtrls(object):
+class ParamCtrls():
 
     def __init__(self, dlg, label, param, parent, fieldName,
                  browse=False, noCtrls=False, advanced=False, appPrefs=None):
@@ -424,6 +419,27 @@ class StartStopCtrls(wx.GridBagSizer):
                 self.Add(self.ctrls[name], (1, 1), border=6, flag=wx.EXPAND | wx.TOP | wx.BOTTOM)
         self.AddGrowableCol(1)
 
+    def getVisible(self):
+        return all(ctrl.IsShown() for ctrl in self.ctrls.values())
+
+    def setVisible(self, visible=True):
+        # Show/hide controls
+        for ctrl in self.ctrls.values():
+            ctrl.Show(visible)
+        # Show/hide labels
+        if hasattr(self, "estimLabel"):
+            self.estimLabel.Show(visible)
+        if hasattr(self, "label"):
+            self.label.Show(visible)
+        # Set value to None if hidden (specific to start/stop)
+        if not visible:
+            if "startVal" in self.ctrls:
+                self.ctrls["startVal"].Value = ""
+            if "stopVal" in self.ctrls:
+                self.ctrls["stopVal"].Value = ""
+        # Layout
+        self.parent.Layout()
+
     def updateCodeFont(self, evt=None):
         """Style input box according to code wanted"""
         if isinstance(evt, wx.TextCtrl):
@@ -468,14 +484,14 @@ class ParamNotebook(wx.Notebook, ThemeMixin):
                 if name in sortedParams:
                     startParams[name] = sortedParams.pop(name)
             if startParams:
-                self.addStartStopCtrl(startParams)
+                self.startCtrl = self.addStartStopCtrl(startParams)
             # Make stop controls
             stopParams = OrderedDict()
             for name in ['stopVal', 'stopType', 'durationEstim']:
                 if name in sortedParams:
                     stopParams[name] = sortedParams.pop(name)
             if stopParams:
-                self.addStartStopCtrl(stopParams)
+                self.stopCtrl = self.addStartStopCtrl(stopParams)
             # Make controls
             for name, param in sortedParams.items():
                 self.addParam(name, param)
@@ -521,6 +537,8 @@ class ParamNotebook(wx.Notebook, ThemeMixin):
             # Iterate row
             self.row += 1
 
+            return panel
+
         def checkDepends(self, event=None):
             """Checks the relationships between params that depend on each other
 
@@ -534,11 +552,17 @@ class ParamNotebook(wx.Notebook, ThemeMixin):
             isChanged = False
             for thisDep in self.parent.element.depends:
                 if not (
-                        thisDep['param'] in self.ctrls
+                        thisDep['param'] in list(self.ctrls) + ['start', 'stop']
                         and thisDep['dependsOn'] in self.ctrls):
                     # If params are on another page, skip
                     continue
-                dependentCtrls = self.ctrls[thisDep['param']]
+                # Get associated ctrl
+                if thisDep['param'] == 'start':
+                    dependentCtrls = self.startCtrl
+                elif thisDep['param'] == 'stop':
+                    dependentCtrls = self.stopCtrl
+                else:
+                    dependentCtrls = self.ctrls[thisDep['param']]
                 dependencyCtrls = self.ctrls[thisDep['dependsOn']]
                 condString = "dependencyCtrls.getValue() {}".format(thisDep['condition'])
                 if eval(condString):
@@ -1673,10 +1697,14 @@ class DlgExperimentProperties(_BaseParamsDlg):
         self.Bind(wx.EVT_CHECKBOX, self.onFullScrChange,
                   self.paramCtrls['Full-screen window'].valueCtrl)
 
+        if timeout is not None:
+            wx.FutureCall(timeout, self.Destroy)
+
         # for all components
         self.show()
         if self.OK:
             self.params = self.getParams()  # get new vals from dlg
+
         self.Destroy()
 
     def onFullScrChange(self, event=None):

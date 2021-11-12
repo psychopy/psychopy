@@ -45,7 +45,7 @@ MOUSE_POS_CURRENT = 0
 MOUSE_POS_PREVIOUS = 1
 
 
-class Mouse(object):
+class Mouse:
     """Class for using pointing devices (e.g., mice, trackballs, etc.) as input.
 
     PsychoPy presently only supports one pointing device input at a time.

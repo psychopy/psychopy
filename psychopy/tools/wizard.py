@@ -10,9 +10,6 @@
 
 # Author: Jeremy Gray, Oct 2012; localization 2014
 
-from __future__ import absolute_import, division, print_function
-
-from builtins import map, str, range, object
 from pyglet.gl import gl_info
 import os
 import sys
@@ -28,7 +25,7 @@ else:
     tmpApp = wx.App(False)
 from psychopy.localization import _translate
 from psychopy import (info, data, visual, gui, core, __version__,
-                      prefs, event, constants)
+                      prefs, event)
 
 # set values, using a form that poedit can discover:
 _localized = {
@@ -65,7 +62,7 @@ _localized = {
 # can't just do the following, or messes up poedit autodiscovery:
 # _localized = {k: _translate(k) for k in _loKeys}
 
-class BaseWizard(object):
+class BaseWizard():
     """Base class of ConfigWizard and BenchmarkWizard.
     """
     def __init__(self):
@@ -320,10 +317,7 @@ class BaseWizard(object):
                 packages.append('pywin32')
                 packages.append('winioport')
 
-            if constants.PY3:
-                pkgError = ModuleNotFoundError
-            else:
-                pkgError = ImportError
+            pkgError = ModuleNotFoundError
             for pkg in packages:
                 try:
                     if pkg == 'PIL':

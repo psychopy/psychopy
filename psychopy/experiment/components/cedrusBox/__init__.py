@@ -5,14 +5,8 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import, print_function
-
-from builtins import str
-from past.builtins import basestring
-from os import path
 from pathlib import Path
 
-from psychopy.constants import PY3
 from psychopy.experiment.components import Param, _translate
 from psychopy.experiment.components.keyboard import KeyboardComponent
 from psychopy.experiment import CodeGenerationException, valid_var_re
@@ -150,14 +144,14 @@ class cedrusButtonBoxComponent(KeyboardComponent):
         if allowedKeysIsVar:
             # only insert this code if we think allowed keys is a variable.
             # check at run-time that the var is suitable to eval
-            stringType = '{}'.format(['basestring', 'str'][PY3])
+            stringType = 'str'
             code = ("# AllowedKeys looks like a variable named `{0}`\n"
                     "if not '{0}' in locals():\n"
                     "    logging.error('AllowedKeys variable `{0}` "
                     "is not defined.')\n"
                     "    core.quit()\n" +
                     "if not type({0}) in [list, tuple, np.ndarray]:\n"
-                    "    if not isinstance({0}, basestring):\n"
+                    "    if not isinstance({0}, str):\n"
                     "        logging.error('AllowedKeys variable `{0}`"
                     " is not string- or list-like.')\n"
                     "        core.quit()\n" +
@@ -180,7 +174,7 @@ class cedrusButtonBoxComponent(KeyboardComponent):
             # this means the user typed "left","right" not ["left","right"]
             if type(keyList) == tuple:
                 keyList = list(keyList)
-            elif isinstance(keyList, basestring):  # a single string/key
+            elif isinstance(keyList, str):  # a single string/key
                 keyList = [keyList]
             keyCheckStr = "%s" % (repr(keyList))
 

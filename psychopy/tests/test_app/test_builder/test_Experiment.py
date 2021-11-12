@@ -1,15 +1,11 @@
-from __future__ import print_function
-from past.builtins import execfile
-from builtins import object
 from pathlib import Path
-import xml.etree.ElementTree as xml
 
 import psychopy.experiment
 from psychopy.experiment.components.text import TextComponent
 from psychopy.experiment._experiment import RequiredImport
 from psychopy.tests.utils import TESTS_FONT
 from os import path
-import os, shutil, glob, sys
+import os, shutil, glob
 import py_compile
 import difflib
 from tempfile import mkdtemp
@@ -61,11 +57,15 @@ def _diff_file(a, b):
     return list(diff)
 
 
-class TestExpt(object):
+class TestExpt():
     @classmethod
     def setup_class(cls):
         cls.exp = psychopy.experiment.Experiment() # create once, not every test
-        cls.tmp_dir = mkdtemp(prefix='psychopy-tests-app')
+        try:
+            cls.tmp_dir = mkdtemp(dir=Path(__file__).root, prefix='psychopy-tests-app')
+        except PermissionError:
+            # can't write to root on Linux
+            cls.tmp_dir = mkdtemp(prefix='psychopy-tests-app')
 
     def setup(self):
         """This setup is done for each test individually
@@ -317,13 +317,11 @@ class TestExpt(object):
 
         # save it
         with codecs.open(py_file, 'w', 'utf-8-sig') as f:
-            f.write(script.replace("core.quit()", "pass"))
-            f.write("del thisExp\n") #garbage collect the experiment so files are auto-saved
+            f.write(script)
 
-        #run the file (and make sure we return to this location afterwards)
-        wd = os.getcwd()
-        execfile(py_file)
-        os.chdir(wd)
+        stdout, stderr = core.shellCall([sys.executable, py_file], stderr=True)
+        assert not stderr
+
         #load the data
         print("searching..." +datafileBase)
         print(glob.glob(datafileBase+'*'))
@@ -397,7 +395,7 @@ class TestExpt(object):
         assert namespace.makeLoopIndex('stimuli') == 'thisStimulus'
 
 
-class TestExpImports(object):
+class TestExpImports():
     def setup(self):
         self.exp = psychopy.experiment.Experiment()
         self.exp.requiredImports = []
@@ -483,7 +481,7 @@ class TestExpImports(object):
         assert 'import bar\n' in script
 
 
-class TestRunOnce(object):
+class TestRunOnce():
     def setup(self):
         from psychopy.experiment import exports
         self.buff = exports.IndentingBuffer()
@@ -519,7 +517,7 @@ class TestRunOnce(object):
         script = self.buff.getvalue()
         assert script.count(code) == 1
 
-class TestDisabledComponents(object):
+class TestDisabledComponents():
     def setup(self):
         self.exp = psychopy.experiment.Experiment()
         self.exp.addRoutine(routineName='Test Routine')

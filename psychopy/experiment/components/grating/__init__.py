@@ -5,9 +5,6 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import, print_function
-
-from os import path
 from pathlib import Path
 from psychopy.experiment.components import BaseVisualComponent, Param, \
     getInitVals, _translate
@@ -106,7 +103,7 @@ class GratingComponent(BaseVisualComponent):
         self.params['interpolate'] = Param(
             interpolate, valType='str', inputType="choice", allowedVals=['linear', 'nearest'], categ='Texture',
             updates='constant', allowedUpdates=[],
-            hint=msg,
+            hint=msg, direct=False,
             label=_localized['interpolate'])
 
         msg = _translate("OpenGL Blendmode: avg gives traditional transparency,"

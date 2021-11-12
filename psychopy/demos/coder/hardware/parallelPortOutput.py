@@ -7,9 +7,6 @@ parallel ports demo
 This is for win32 only.
 """
 
-from __future__ import absolute_import, division, print_function
-
-from builtins import range
 from psychopy import visual, core
 from psychopy import parallel
 

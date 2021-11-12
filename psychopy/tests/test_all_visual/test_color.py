@@ -37,7 +37,7 @@ tykes = [
     {'rgba': None, 'named': None, 'hex': None, 'hsva': None},  # None as a value
 ]
 
-class Test_Window(object):
+class Test_Window:
     """Some tests just for the window - we don't really care about what's drawn inside it
     """
     @classmethod

@@ -6,11 +6,6 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 # Author: Jeremy R. Gray, 2012
-
-from __future__ import absolute_import, print_function
-from builtins import super  # provides Py3-style super() using python-future
-
-from os import path
 from pathlib import Path
 
 from psychopy.alerts import alert
@@ -104,7 +99,7 @@ class MicrophoneComponent(BaseComponent):
         self.params['sampleRate'] = Param(
             sampleRate, valType='num', inputType="choice", categ='Hardware',
             allowedVals=list(sampleRates),
-            hint=msg,
+            hint=msg, direct=False,
             label=_translate('Sample Rate (Hz)'))
 
         msg = _translate(
@@ -163,7 +158,7 @@ class MicrophoneComponent(BaseComponent):
 
         self.params['transcribeBackend'] = Param(
             transcribeBackend, valType='code', inputType='choice', categ='Transcription',
-            allowedVals=list(allTranscribers),
+            allowedVals=list(allTranscribers), direct=False,
             hint=_translate("What transcription service to use to transcribe audio?"),
             label=_translate("Transcription Backend")
         )

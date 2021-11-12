@@ -33,15 +33,12 @@ After importing sound, the sound lib and driver being used will be stored as::
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import, division, print_function
-
 __all__ = []
 
-from builtins import str
-from past.types import basestring
 import sys
 import os
-from psychopy import logging, prefs, exceptions, constants
+from psychopy import logging, prefs, constants
+from .exceptions import DependencyError, SoundFormatError
 from .audiodevice import *
 from .audioclip import *  # import objects related to AudioClip
 from .microphone import *  # import objects related to the microphone class
@@ -62,7 +59,7 @@ if travisCI:
     # for sounddevice we built in some TravisCI protection but not in pyo
     prefs.hardware['audioLib'] = ['sounddevice']
 
-if isinstance(prefs.hardware['audioLib'], basestring):
+if isinstance(prefs.hardware['audioLib'], str):
     prefs.hardware['audioLib'] = [prefs.hardware['audioLib']]
 for thisLibName in prefs.hardware['audioLib']:
     try:
@@ -95,19 +92,19 @@ for thisLibName in prefs.hardware['audioLib']:
             getDevices = backend.getDevices
         logging.info('sound is using audioLib: %s' % audioLib)
         break
-    except exceptions.DependencyError as e:
+    except DependencyError as e:
         failed.append(thisLibName.lower())
         msg = '%s audio lib was requested but not loaded: %s'
         logging.warning(msg % (thisLibName, sys.exc_info()[1]))
         continue  # to try next audio lib
 
 if audioLib is None:
-    raise exceptions.DependencyError(
+    raise DependencyError(
             "No sound libs could be loaded. Tried: {}\n"
             "Check whether the necessary sound libs are installed"
             .format(prefs.hardware['audioLib']))
 elif audioLib.lower() != 'ptb':
-    if constants.PY3 and not bits32 and 'ptb' not in failed:  
+    if not bits32 and 'ptb' not in failed:
         # Could be running PTB, just aren't?
         logging.warning("We strongly recommend you activate the PTB sound "
                         "engine in PsychoPy prefs as the preferred audio "

@@ -3,8 +3,6 @@
 
 """Classes and functions for working with colors.
 """
-from __future__ import absolute_import, print_function
-
 import re
 from math import inf
 from psychopy import logging
@@ -231,7 +229,7 @@ for val in alphaSpaces:
     nonAlphaSpaces.remove(val)
 
 
-class Color(object):
+class Color:
     """A class to store colour details, knows what colour space it's in and can
     supply colours in any space.
 

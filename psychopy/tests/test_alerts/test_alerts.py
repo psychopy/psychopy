@@ -1,5 +1,10 @@
 import sys
-from psychopy.alerts import _alerts
+from psychopy.alerts import _alerts, validateCatalogue
+
+
+def test_catalogue():
+    valid, missing = validateCatalogue(dev=False)
+    assert valid, f"Missing alerts: {missing}"
 
 
 class TestAlertsModule():

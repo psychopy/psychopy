@@ -5,10 +5,6 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import, print_function
-from builtins import super  # provides Py3-style super() using python-future
-
-from os import path
 from pathlib import Path
 
 from psychopy.alerts import alert
@@ -78,7 +74,7 @@ class RegionOfInterestComponent(PolygonComponent):
 
         self.params['lookDur'] = Param(lookDur,
             valType='num', inputType='single', categ='Basic',
-            hint=_translate("How long (s) does the participant need to look at the ROI to count as a look?"),
+            hint=_translate("Minimum dwell time within roi (look at) or outside roi (look away)."),
             label=_translate("Min. Look Time")
         )
 
@@ -92,6 +88,7 @@ class RegionOfInterestComponent(PolygonComponent):
         self.params['save'] = Param(
             save, valType='str', inputType="choice", categ='Data',
             allowedVals=['first look', 'last look', 'every look', 'none'],
+            direct=False,
             hint=_translate(
                 "What looks on this ROI should be saved to the data output?"),
             label=_translate('Save...'))
@@ -99,9 +96,9 @@ class RegionOfInterestComponent(PolygonComponent):
         self.params['timeRelativeTo'] = Param(
             timeRelativeTo, valType='str', inputType="choice", categ='Data',
             allowedVals=['roi onset', 'experiment', 'routine'],
-            updates='constant',
+            updates='constant', direct=False,
             hint=_translate(
-                "What should the values of mouse.time should be "
+                "What should the values of roi.time should be "
                 "relative to?"),
             label=_translate('Time Relative To...'))
 
@@ -109,13 +106,6 @@ class RegionOfInterestComponent(PolygonComponent):
         pass
 
     def writeInitCode(self, buff):
-        # Alert user if there's no eyetracker record component in this routine
-        recorded = False
-        for sibling in self.exp.routines[self.parentName]:
-            if isinstance(sibling, EyetrackerRecordComponent):
-                recorded = True
-        if not recorded:
-            alert(code=4550, strFields={"name": self.params['name']})
         # do we need units code?
         if self.params['units'].val == 'from exp settings':
             unitsStr = ""
@@ -129,7 +119,7 @@ class RegionOfInterestComponent(PolygonComponent):
             inits['shape'] = self.params['vertices']
 
         code = (
-            "%(name)s = visual.ROI(win, name='%(name)s', tracker=eyetracker,\n"
+            "%(name)s = visual.ROI(win, name='%(name)s', device=eyetracker,\n"
         )
         buff.writeIndentedLines(code % inits)
         buff.setIndentLevel(1, relative=True)
@@ -239,16 +229,29 @@ class RegionOfInterestComponent(PolygonComponent):
         )
         buff.writeIndentedLines(code % inits)
         if self.params['endRoutineOn'].val == "look away":
+            buff.setIndentLevel(-1, relative=True)
             code = (
-                "if %(name)s.lastLookTime > %(lookDur)s: # check if last look was long enough\n"
+                f"# check if last look outside roi was long enough\n"
+                f"if len(%(name)s.timesOff) == 0 and %(name)s.clock.getTime() > %(lookDur)s:\n"
             )
             buff.writeIndentedLines(code % inits)
             buff.setIndentLevel(1, relative=True)
             code = (
-                    "continueRoutine = False # end routine after sufficiently long look\n"
+                    f"continueRoutine = False # end routine after sufficiently long look outside roi\n"
             )
             buff.writeIndentedLines(code % inits)
             buff.setIndentLevel(-1, relative=True)
+
+            code = (
+                f"elif len(%(name)s.timesOff) > 0 and %(name)s.clock.getTime() - %(name)s.timesOff[-1] > %(lookDur)s:\n"
+            )
+            buff.writeIndentedLines(code % inits)
+            buff.setIndentLevel(1, relative=True)
+            code = (
+                    f"continueRoutine = False # end routine after sufficiently long look outside roi\n"
+            )
+            buff.writeIndentedLines(code % inits)
+
         buff.setIndentLevel(-1, relative=True)
         code = (
             f"%(name)s.wasLookedIn = False  # if %(name)s is looked at next frame, it is a new look\n"

@@ -8,10 +8,6 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import, print_function
-
-from builtins import str
-from past.builtins import basestring
 import os
 
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
@@ -50,6 +46,7 @@ class Aperture(MinimalStim, ContainerMixin):
 
     If shape is 'square' or 'triangle' then that is what will be used
     If shape is 'circle' or `None` then a polygon with nVerts will be used (120 for a rough circle)
+    If shape is an integer, then a polygon with that many vertices will be used
     If shape is a list or numpy array (Nx2) then it will be used directly
         as the vertices to a :class:`~psychopy.visual.ShapeStim`
     If shape is a filename then it will be used to load and image as a
@@ -102,13 +99,17 @@ class Aperture(MinimalStim, ContainerMixin):
             # (sin,cos):
             vertices = [(0.5 * sin(radians(theta)), 0.5 * cos(radians(theta)))
                         for theta in numpy.linspace(0, 360, nVert, False)]
+        elif isinstance(shape, int):
+            # if given a number, take it as a number of vertices and behave as if shape=='circle and nVerts==shape
+            vertices = [(0.5 * sin(radians(theta)), 0.5 * cos(radians(theta)))
+                        for theta in numpy.linspace(0, 360, shape, False)]
         elif shape == 'square':
             vertices = [[0.5, -0.5], [-0.5, -0.5], [-0.5, 0.5], [0.5, 0.5]]
         elif shape == 'triangle':
             vertices = [[0.5, -0.5], [0, 0.5], [-0.5, -0.5]]
         elif type(shape) in [tuple, list, numpy.ndarray] and len(shape) > 2:
             vertices = shape
-        elif isinstance(shape, basestring):
+        elif isinstance(shape, str):
             # is a string - see if it points to a file
             if os.path.isfile(shape):
                 self.__dict__['filename'] = shape

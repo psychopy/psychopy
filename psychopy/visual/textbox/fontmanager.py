@@ -6,11 +6,6 @@ Created on Sun Nov 10 12:18:45 2013
 
 @author: Sol
 """
-
-from __future__ import absolute_import, division, print_function
-
-from builtins import chr
-from builtins import object
 import os
 import sys
 from pathlib import Path
@@ -69,7 +64,7 @@ def nextPow2(n):
     return int(pow(2, ceil(log(n, 2))))
 
 
-class FontManager(object):
+class FontManager:
     """FontManager provides a simple API for finding and loading font files
     (.ttf) via the FreeType lib
 
@@ -353,7 +348,7 @@ class FontManager(object):
             self._available_font_info = None
 
 
-class FontInfo(object):
+class FontInfo:
 
     def __init__(self, fp, face):
         self.path = fp
@@ -381,7 +376,7 @@ class FontInfo(object):
         return d
 
 
-class MonospaceFontAtlas(object):
+class MonospaceFontAtlas:
 
     def __init__(self, font_info, size, dpi):
         self.font_info = font_info

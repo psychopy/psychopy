@@ -9,8 +9,6 @@ in either dimension. One of the main stimuli for PsychoPy.
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import, division, print_function
-
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
 # other calls to pyglet or pyglet submodules, otherwise it may not get picked
 # up by the pyglet GL engine and have no effect.
@@ -104,8 +102,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         # initialise parent class
         super(GratingStim, self).__init__(win, units=units, name=name,
                                           autoLog=False)
-        # use shaders if available by default, this is a good thing
-        self.__dict__['useShaders'] = win._haveShaders
+
         # UGLY HACK: Some parameters depend on each other for processing.
         # They are set "superficially" here.
         # TO DO: postpone calls to _createTexture, setColor and
@@ -415,71 +412,6 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
 
         GL.glUseProgram(0)
 
-        GL.glEndList()
-
-    # for the sake of older graphics cards------------------------------------
-    def _updateListNoShaders(self):
-        """The user shouldn't need this method since it gets called
-        after every call to .set() Basically it updates the OpenGL
-        representation of your stimulus if some parameter of the
-        stimulus changes. Call it if you change a property manually
-        rather than using the .set() command
-        """
-        self._needUpdate = False
-
-        GL.glNewList(self._listID, GL.GL_COMPILE)
-        # glColor can interfere with multitextures
-        GL.glColor4f(1.0, 1.0, 1.0, 1.0)
-        # mask
-        GL.glActiveTexture(GL.GL_TEXTURE1)
-        GL.glEnable(GL.GL_TEXTURE_2D)
-        GL.glBindTexture(GL.GL_TEXTURE_2D, self._maskID)
-
-        # main texture
-        GL.glActiveTexture(GL.GL_TEXTURE0)
-        GL.glEnable(GL.GL_TEXTURE_2D)
-        GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
-
-        # depth = self.depth
-        Ltex = (-self._cycles[0] / 2) - self.phase[0] + 0.5
-        Rtex = (+self._cycles[0] / 2) - self.phase[0] + 0.5
-        Ttex = (+self._cycles[1] / 2) - self.phase[1] + 0.5
-        Btex = (-self._cycles[1] / 2) - self.phase[1] + 0.5
-        Lmask = Bmask = 0.0
-        Tmask = Rmask = 1.0  # mask
-
-        # access just once because it's slower than basic property
-        vertsPix = self.verticesPix
-        GL.glBegin(GL.GL_QUADS)  # draw a 4 sided polygon
-        # right bottom
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE0, Rtex, Btex)
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE1, Rmask, Bmask)
-        GL.glVertex2f(vertsPix[0, 0], vertsPix[0, 1])
-        # left bottom
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE0, Ltex, Btex)
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE1, Lmask, Bmask)
-        GL.glVertex2f(vertsPix[1, 0], vertsPix[1, 1])
-        # left top
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE0, Ltex, Ttex)
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE1, Lmask, Tmask)
-        GL.glVertex2f(vertsPix[2, 0], vertsPix[2, 1])
-        # right top
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE0, Rtex, Ttex)
-        GL.glMultiTexCoord2f(GL.GL_TEXTURE1, Rmask, Tmask)
-        GL.glVertex2f(vertsPix[3, 0], vertsPix[3, 1])
-        GL.glEnd()
-
-        # disable mask
-        GL.glActiveTexture(GL.GL_TEXTURE1)
-        GL.glDisable(GL.GL_TEXTURE_2D)
-        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-
-        # main texture
-        GL.glActiveTexture(GL.GL_TEXTURE0)
-        GL.glDisable(GL.GL_TEXTURE_2D)
-        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-
-        # we're done!
         GL.glEndList()
 
     def __del__(self):

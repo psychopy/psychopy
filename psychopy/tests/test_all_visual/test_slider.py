@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import division
-
 import pytest
 
 from psychopy.colors import Color
@@ -60,10 +58,23 @@ class Test_Slider(_TestColorMixin):
         assert s._lineW == (1 * s._lineAspectRatio)
 
     def test_horiz(self):
-        s = Slider(self.win, size=(1, 0.1))
-        assert s.horiz == True
-        s = Slider(self.win, size=(0.1, 1))
-        assert s.horiz == False
+        # Define cases
+        exemplars = [
+            {'size': (1, 0.1), 'ori': 0, 'horiz': True},  # Wide slider, no rotation
+            {'size': (0.1, 1), 'ori': 0, 'horiz': False},  # Tall slider, no rotation
+            {'size': (1, 0.1), 'ori': 90, 'horiz': False},  # Wide slider, 90deg rotation
+            {'size': (0.1, 1), 'ori': 90, 'horiz': True},  # Tall slider, 90deg rotation
+        ]
+        tykes = [
+            {'size': (1, 0.1), 'ori': 25, 'horiz': True},  # Wide slider, accute rotation
+            {'size': (0.1, 1), 'ori': 25, 'horiz': False},  # Tall slider, accute rotation
+            {'size': (1, 0.1), 'ori': 115, 'horiz': False},  # Wide slider, obtuse rotation
+            {'size': (0.1, 1), 'ori': 115, 'horiz': True},  # Tall slider, obtuse rotation
+        ]
+        # Try each case
+        for case in exemplars + tykes:
+            obj = Slider(self.win, size=case['size'], ori=case['ori'])
+            assert obj.horiz == case['horiz']
 
     def test_reset(self):
         s = Slider(self.win, size=(1, 0.1))

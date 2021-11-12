@@ -55,7 +55,7 @@ class CortexNoHeadsetException(Exception):
     pass
 
 
-class Cortex(object):
+class Cortex:
     if os.getenv('CORTEX_DEBUG', False):
         CORTEX_URL = "wss://localhost:7070"
     else:

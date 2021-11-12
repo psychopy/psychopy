@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from builtins import object
 from psychopy import data, logging
 import numpy as np
 import os, glob, shutil
@@ -12,7 +11,7 @@ from psychopy.tools.filetools import openOutputFile
 logging.console.setLevel(logging.DEBUG)
 
 
-class TestExperimentHandler(object):
+class TestExperimentHandler():
     def setup_class(self):
         self.tmpDir = mkdtemp(prefix='psychopy-tests-testExp')
         self.random_seed = 100
