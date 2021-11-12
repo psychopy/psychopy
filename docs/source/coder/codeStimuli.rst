@@ -23,23 +23,24 @@ Typically you should create your stimulus with the initial desired attributes on
 
 Setting stimulus attributes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    Stimulus attributes are typically set using either
-         - a string, which is just some characters (as `message.text = 'world'` above)
-         - a scalar (a number; see below)
-         - an x,y-pair (two numbers; see below)
+
+Stimulus attributes are typically set using either:
+
+- a string, which is just some characters (as `message.text = 'world'` above)
+- a scalar (a number; see below)
+- an x,y-pair (two numbers; see below)
 
 .. _attrib-xy:
 
 **x,y-pair:**
-    PsychoPy is very flexible in terms of input. You can specify the widely
-    used x,y-pairs using these types:
 
-        - A Tuple (x, y) with two elements
-        - A List [x, y] with two elements
-        - A numpy array([x, y]) with two elements
+PsychoPy is very flexible in terms of input. You can specify the widely used x,y-pairs using these types:
 
-    However, PsychoPy always converts the x,y-pairs to numpy arrays internally.
-    For example, all three assignments of pos are equivalent here::
+- A Tuple (x, y) with two elements
+- A List [x, y] with two elements
+- A numpy array([x, y]) with two elements
+
+However, PsychoPy always converts the x,y-pairs to numpy arrays internally. For example, all three assignments of pos are equivalent here::
 
         stim.pos = (0.5, -0.2)  # Right and a bit up from the center
         print stim.pos  # array([0.5, -0.2])
@@ -50,7 +51,7 @@ Setting stimulus attributes
         stim.pos = numpy.array([0.5, -0.2])
         print stim.pos  # array([0.5, -0.2])
 
-    Choose your favorite :-) However, you can't assign elementwise::
+Choose your favorite :-) However, you can't assign elementwise::
 
         stim.pos[1] = 4  # has no effect
 

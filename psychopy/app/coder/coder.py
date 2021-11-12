@@ -898,8 +898,8 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
                     calltipText = '\n    '.join(
                         textwrap.wrap(calltipText, 76))  # 80 cols after indent
                     y, x = foundRefs[0].bracket_start
-                    self.CallTipShow(
-                        self.XYToPosition(x + 1, y), calltipText)
+                    callTipPos = self.XYToPosition(x, y)
+                    self.CallTipShow(callTipPos, calltipText)
 
     def MacOpenFile(self, evt):
         logging.debug('PsychoPyCoder: got MacOpenFile event')
@@ -1096,8 +1096,9 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
         backward = not (findData.GetFlags() & wx.FR_DOWN)
         matchcase = (findData.GetFlags() & wx.FR_MATCHCASE) != 0
         end = self.GetLength()
-        textstring = self.GetTextRange(0, end)
-        findstring = findData.GetFindString()
+        # Byte string is necessary to let SetSelection() work properly
+        textstring = self.GetTextRangeRaw(0, end)
+        findstring = findData.GetFindString().encode('utf-8')
         if not matchcase:
             textstring = textstring.lower()
             findstring = findstring.lower()
@@ -1120,7 +1121,7 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
         # was it still not found?
         if loc == -1:
             dlg = dialogs.MessageDialog(self, message=_translate(
-                'Unable to find "%s"') % findstring, type='Info')
+                'Unable to find "%s"') % findstring.decode('utf-8'), type='Info')
             dlg.ShowModal()
             dlg.Destroy()
         else:
@@ -2640,28 +2641,35 @@ class CoderFrame(wx.Frame, ThemeMixin):
             else:
                 self.app.showRunner()
 
-    def copy(self, event):
-        foc = self.FindFocus()
-        foc.Copy()
-        if isinstance(foc, CodeEditor):
-            self.currentDoc.Copy()  # let the text ctrl handle this
-        # elif isinstance(foc, StdOutRich):
-
     def duplicateLine(self, event):
+        """Duplicate the current line."""
         self.currentDoc.LineDuplicate()
 
-    def cut(self, event):
+    def copy(self, event):
+        """Copy text to the clipboard from the focused widget."""
         foc = self.FindFocus()
-        foc.Copy()
         if isinstance(foc, CodeEditor):
-            self.currentDoc.Cut()  # let the text ctrl handle this
+            self.currentDoc.Copy()  # let the text ctrl handle this
+        elif hasattr(foc, 'Copy'):  # handle any other widget
+            foc.Copy()
+
+    def cut(self, event):
+        """Cut text from the focused widget to clipboard."""
+        foc = self.FindFocus()
+        if isinstance(foc, CodeEditor):
+            self.currentDoc.Cut()
             self.currentDoc.analyseScript()
+        elif hasattr(foc, 'Cut'):
+            foc.Cut()
 
     def paste(self, event):
+        """Paste text from the clipboard to the focused object."""
         foc = self.FindFocus()
-        if hasattr(foc, 'Paste'):
-            foc.Paste()
+        if isinstance(foc, CodeEditor):
+            self.currentDoc.Paste()
             self.currentDoc.analyseScript()
+        elif hasattr(foc, 'Paste'):
+            foc.Paste()
 
     def undo(self, event):
         if self.currentDoc:

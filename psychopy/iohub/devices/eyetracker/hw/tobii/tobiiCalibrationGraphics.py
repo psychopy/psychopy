@@ -11,6 +11,8 @@ from collections import OrderedDict
 from .....util import convertCamelToSnake, updateSettings
 from .... import DeviceEvent, Computer
 from .....constants import EventConstants
+from psychopy.iohub.devices.keyboard import KeyboardInputEvent
+
 from .....errors import print2err, printExceptionDetailsToStdErr
 
 currentTime = Computer.getTime
@@ -22,8 +24,7 @@ class TobiiPsychopyCalibrationGraphics:
 
     TEXT_POS = [0, 0]
     TEXT_HEIGHT = 36
-    _keyboard_key_index = EventConstants.getClass(
-        EventConstants.KEYBOARD_RELEASE).CLASS_ATTRIBUTE_NAMES.index('key')
+    _keyboard_key_index = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('key')
 
     def __init__(self, eyetrackerInterface, calibration_args={}):
         self._eyetrackerinterface = eyetrackerInterface
