@@ -112,6 +112,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         self.frameType = 'builder'
         self.filename = fileName
         self.htmlPath = None
+        self.session = pavlovia.getCurrentSession()
         self.btnHandles = {}  # stores toolbar buttons so they can be altered
         self.scriptProcess = None
         self.stdoutBuffer = None
@@ -1335,14 +1336,20 @@ class BuilderFrame(wx.Frame, ThemeMixin):
                 return
 
         self.enablePavloviaButton(['pavloviaSync', 'pavloviaRun'], False)
-
+        # If not in a project, make one
+        if self.project is None:
+            dlg = wx.MessageDialog(self,
+                                   message=_translate("This file doesn't belong to any existing project."),
+                                   style=wx.OK | wx.CANCEL | wx.CENTER)
+            dlg.SetOKLabel(_translate("Create a project"))
+            if dlg.ShowModal() == wx.ID_OK:
+                dlg = sync.CreateDlg(self, user=self.session.user)
+                dlg.ShowModal()
+                self.project = dlg.project
+        # If there is (now) a project, do sync
         if self.project is not None:
-            # If in a project, sync it
             dlg = sync.SyncDialog(self, self.project)
             dlg.ShowModal()
-        else:
-            # If not in a project, make one
-            pass
 
         self.enablePavloviaButton(['pavloviaSync', 'pavloviaRun'], True)
 
