@@ -14,7 +14,7 @@ The longer answer is that you should test the timing of your own experimental st
 - :ref:`keyboardDelays`
 - :ref:`audioDelays`
 
-The clocks that PsychoPy uses do have sub-millisecond precision but your keyboard has a latency of 4-25ms depending on your platform and keyboard. You could buy a response pad (e.g. a `Labhackers Millikey`_) for reponse timing with a sub-ms precision, but note that there will still be an apparent lag that is dependent on the monitor's absolute lag and the position of the stimulus on it.
+The clocks that PsychoPy uses do have sub-millisecond precision but your keyboard has a latency of 4-25ms depending on your platform and keyboard. You could buy a response pad (e.g. a `Labhackers Millikey`_) for response timing with a sub-ms precision, but note that there will still be an apparent lag that is dependent on the monitor's absolute lag and the position of the stimulus on it.
 
 Also note that the variance in terms of response times between your participants, and from trial to trial within a participant, probably dwarfs that of your keyboard and monitor issues!
 That said, PsychoPy does aim to give you as high a temporal precision as possible and, in a well-configured system achieves this very well.

@@ -12,6 +12,20 @@ class TestTranspiler:
         js = ("a = 1;\n")
         self.runTranspile(py, js)
 
+    def test_name(self):
+        # Some typical cases
+        exemplars = [
+            {'py': "normalName",
+             'js': "normalName;\n"}
+        ]
+        # Some problem cases
+        tykes = [
+            {'py': "variableName",
+             'js': "variableName;\n"}  # Name containing "var" (should no longer return blank as of #4336)
+        ]
+        for case in exemplars + tykes:
+            self.runTranspile(case['py'], case['js'])
+
     def test_if_statement(self):
         py = ("if True:\n    True")
         js = ("if (true) {\n    true;\n}\n")

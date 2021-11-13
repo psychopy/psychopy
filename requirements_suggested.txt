@@ -9,3 +9,5 @@ pyxid2
 badapted
 darc-experiment-toolbox
 python-pygaze
+-i https://pypi.sr-support.com
+sr-research-pylink 
