@@ -46,11 +46,11 @@ The top of the screen appears 5-15 ms before the bottom
 
 For most monitor technologies, the lines of pixels are drawn sequentially from the top to the bottom and once the bottom line has been drawn the screen is finished and the line returns to the top (the Vertical Blank Interval, VBI). Most of your frame interval is spent drawing the lines, with 1-2ms being left for the VBI. This means that the pixels at the bottom are drawn '''up to 10 ms later''' than the pixels at the top of the screen. At what point are you going to say your stimulus 'appeared' to the participant?
 
-.. figure:: ../../images/TopOfScreen.jpg
+.. figure:: /images/TopOfScreen.jpg
 
     Figure 1: photodiode trace at top of screen. The image above shows the luminance trace of a CRT recorded by a fast photo-sensitive diode at the top of the screen when a stimulus is requested (shown by the square wave). The square wave at the bottom is from a parallel port that indicates when the stimulus was flipped to the screen. Note that on a CRT the screen at any point is actually black for the majority of the time and just briefly bright. The visual system integrates over a large enough time window not to notice this. On the next frame after the stimulus 'presentation time' the luminance of the screen flash increased.
 
-.. figure:: ../../images/BottOfScreen.jpg
+.. figure:: /images/BottOfScreen.jpg
 
     Figure 2: photodiode trace of the same large stimulus at bottom of screen. The image above shows comes from exactly the same script as the above but the photodiode is positioned at the bottom of the screen. In this case, after the stimulus is 'requested' the current frame (which is dark) finishes drawing and then, 10ms later than the above image, the screen goes bright at the bottom.
 
@@ -140,7 +140,7 @@ Most recently we added support for the Psychophysics Toolbox audio library (Psyc
 
 For further information please see the documentation about the :ref:`Sound library <soundAPI>`
 
-.. figure:: ../../images/audioScope_Win10_PTB_mode3.png
+.. figure:: /images/audioScope_win10_PTB_mode3.png
 
     With the new PTB library you can achieve not only sub-millisecond precision, but roughly sub-millisecond lags!! You do need to know how to configure this though and testing it can only be done with hardware.
 

@@ -6,7 +6,7 @@ Why do we need a test suite?
 
 With any bit of software, no matter how perfect the code seems as you're writing it, there will be bugs. We use a test suite to make sure that we find as many of those bugs as we can before users do, it's always better to catch them in development than to have them mess up someone's experiment once the software is out in the wild. Remember - when a user finds a bug, they react like this:
 
-.. figure:: ..\images\user-bugs.jpg
+.. figure:: /images/user-bugs.jpg
   :alt: Starship Trooper flees from a giant bug
   :height: 100px
 
@@ -14,7 +14,7 @@ With any bit of software, no matter how perfect the code seems as you're writing
 
 ...but when the test suite finds a bug, developers react like this:
 
-.. figure:: ..\images\test-suite-bugs.jpg
+.. figure:: /images/test-suite-bugs.jpg
   :alt: Baby birds cry for food
   :height: 100px
 
@@ -28,13 +28,14 @@ The test suite uses a Python module called [pytest](https://pypi.org/project/pyt
 
 To mark something as a test, it needs three things:
 
-1. It must be somewhere in the folder `psychopy/psychopy/tests`
-2. It must contain the word `test` in its name (i.e. the class name and function names)
-4. It must be executable in code, a function or a method
+    1. It must be somewhere in the folder `psychopy/psychopy/tests`
+    2. It must contain the word `test` in its name (i.e. the class name and function names)
+    4. It must be executable in code, a function or a method
 
 So, for example, if you were to make a test for the `visual.Rect` class, you might call the file `test_rect.py` and put it in `psychopy/psychopy/tests/test_all_visual`, and the file might look like this:
 
 .. code-block:: python
+
     from psychopy import visual  # used to draw stimuli
 
     def test_rect():
@@ -53,17 +54,20 @@ Using `assert`
 Sometimes there's more to a bit of code than just running without error - we need to check not just that it doesn't crash, but that the output is as expected. The `assert` function allows us to do this. Essentially, `assert` will throw an `AssertionError` if the first input is `False`, with the text of this error determined by the second input. So, for example:
 
 .. code-block:: python
+
     assert 2 < 1, "2 is not less than 1"
 
 
 will raise:
 
 .. code-block:: python
+
     AssertionError: 2 is not less than 1
 
 In essence, an `assert` call is the same as saying:
 
 .. code-block:: python
+
     if condition == False:
         raise AssertionError(msg)
 
@@ -72,6 +76,7 @@ What this means is that we can raise an error if a value is not what we expect i
 You could use `assert` within the `test_rect` example like so:
 
 .. code-block:: python
+
     # Set the rectangle's fill color
     rect.colorSpace = 'rgb'
     rect.fillColor = (1, -1, -1)
@@ -87,6 +92,7 @@ Using classes
 In addition to individual methods, you can also create a `class` for tests. This approach is useful when you want to avoid making loads of objects for each test, as you can simple create an object once and then refer back to it. For example:
 
 .. code-block:: python
+
     class TestRect:
         """ A class to test the Rect class """
         @classmethod
@@ -119,7 +125,7 @@ Running tests in PyCharm
 
 One of the really useful features on PyCharm is its ability to run tests with just a click. If you have `pytest` installed, then any valid test will have a green play button next to its name, in the line margins:
 
-.. figure:: ..\images\run_btn.png
+.. figure:: /images/run_btn.png
   :alt: Arrow pointing to the run button in PyCharm
   :height: 100px
 
@@ -166,6 +172,7 @@ __________________________________________
 While you're welcome to lay out your tests however makes the most sense for that test, a useful format in some cases it to define `list`s of "exemplars" and "tykes" - `dict`s of attributes for use in a `for` loop, to save yourself from manually writing the same code over and over, with "exemplars" being very typical use cases which should definitely work as a bare minimum, and "tykes" being edge cases which should work but are not necessarily likely to occur. Here's an example of this structure:
 
 .. code-block:: python
+
     from psychopy import visual, colors  # used to draw stimuli
 
 
@@ -236,6 +243,7 @@ After opening any windows, initialising objects or opening any part of the app, 
 For functions, you can just do this at the end of the function, before it terminates. For classes, this needs to be done in a method called `teardown_class`; as `pytest` will call this method when the tests have completed. This method also needs to have a decorator marking it as a `classfunction`, like so:
 
 .. code-block:: python
+
     from psychopy import visual
 
     class ExampleTest:
@@ -277,6 +285,7 @@ __________________________________________
 Testing if a created rectangle has 4 vertices:
 
 .. code-block:: python
+
     def test_rect(self):
         """ Test that a rect object has 4 vertices """
         assert len(self.rect.vertices) == 4, f"Was expecting 4 vertices in a Rect object, got {len(self.rect.vertices)}"
@@ -285,6 +294,7 @@ Testing if a created rectangle has 4 vertices:
 Adding a `teardown_class` method to your TestRect class:
 
 .. code-block:: python
+
     class TestRect:
         """ A class to test the Rect class """
         @classmethod

@@ -186,14 +186,10 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
     def sf(self, value):
         """Spatial frequency of the grating texture
 
-        Should be a :ref:`x,y-pair <attrib-xy>` or
-        :ref:`scalar <attrib-scalar>` or None.
-        If `units` == 'deg' or 'cm' units are in
-            cycles per deg or cm as appropriate.
-        If `units` == 'norm' then sf units are in cycles per stimulus
-            (and so SF scales with stimulus size).
-        If texture is an image loaded from a file then sf=None
-            defaults to 1/stimSize to give one cycle of the image.
+        Should be a :ref:`x,y-pair <attrib-xy>` or :ref:`scalar <attrib-scalar>` or None.
+        If `units` == 'deg' or 'cm' units are in cycles per deg or cm as appropriate.
+        If `units` == 'norm' then sf units are in cycles per stimulus (and so SF scales with stimulus size).
+        If texture is an image loaded from a file then sf=None defaults to 1/stimSize to give one cycle of the image.
         """
 
         # Recode phase to numpy array

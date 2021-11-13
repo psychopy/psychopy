@@ -196,4 +196,3 @@ class TestComponents:
             utils.scriptTarget == "PsychoJS"
             assert (re.fullmatch(case['js'],str(param)),
                     f"`{case['val']}` should match the regex `{case['js']}`, but it was `{param}`")
-

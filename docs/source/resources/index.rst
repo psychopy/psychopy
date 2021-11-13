@@ -5,7 +5,7 @@ There are a number of further resources to help learn/teach about PsychoPy.
 
 If you also have PsychoPy materials/course then please let us know so that we can link to them from here too!
 
-.. image:: ../images/BuildingExperimentsCover_sm.jpg
+.. image:: /images/BuildingExperimentsCover_sm.jpg
     :align: right
     :width: 200px
     :alt: PsychoPy Builder book cover

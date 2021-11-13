@@ -1,4 +1,7 @@
 pylsl
+python-vlc  # only for MovieStim2
+pyserial
+pyparallel
 egi
 google-api-python-client
 SpeechRecognition
