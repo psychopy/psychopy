@@ -672,7 +672,7 @@ class PavloviaProject(dict):
             # If project has no known local store, create one
             knownProjects[self.project.path_with_namespace] = {
                 'id': self['path_with_namespace'],
-                'idNumer': self.id,
+                'idNumber': self.id,
                 'localRoot': value,
                 'remoteHTTPS': f"https://gitlab.pavlovia.org/{self['path_with_namespace']}.git",
                 'remoteSSH': f"git@gitlab.pavlovia.org:{self['path_with_namespace']}.git"
@@ -1127,6 +1127,40 @@ def getGitRoot(p):
                 return str(thisPath)  # convert Path back to str
 
 
+def getNameWithNamespace(p):
+    """
+    Return None or the root path of the repository
+    """
+    # Work out cwd
+    if not haveGit:
+        raise exceptions.DependencyError(
+                "gitpython and a git installation required for getGitRoot()")
+
+    p = pathlib.Path(p).absolute()
+    if not p.is_dir():
+        p = p.parent  # given a file instead of folder?
+    # Open git process
+    proc = subprocess.Popen('git config --get remote.origin.url',
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE,
+                            cwd=str(p), shell=True,
+                            universal_newlines=True)  # newlines forces stdout to unicode
+    stdout, stderr = proc.communicate()
+    # Find a gitlab url in the response
+    url = re.match("https:\/\/gitlab\.pavlovia\.org\/\w*\/\w*\.git", stdout)
+    if url:
+        # Get contents of url from response
+        url = url.string[url.pos:url.endpos]
+        # Get namespace/name string from url
+        path = url
+        path = re.sub("\.git[.\n]*", "", path)
+        path = re.sub("[.\n]*https:\/\/gitlab\.pavlovia\.org\/", "", path)
+        return path
+    else:
+        return None
+
+
+
 def getProject(filename):
     """Will try to find (locally synced) pavlovia Project for the filename
     """
@@ -1136,11 +1170,13 @@ def getProject(filename):
                 "gitpython and a git installation required for getProject()")
     # Get git root
     gitRoot = getGitRoot(filename)
+    # Get name with namespace
+    path = getNameWithNamespace(filename)
     # Get session
     session = getCurrentSession()
     # If already found, return
-    if gitRoot in knownProjects:
-        return knownProjects[gitRoot]
+    if path in knownProjects and 'idNumber' in knownProjects[path]:
+        return PavloviaProject(knownProjects[path]['idNumber'])
     elif gitRoot:
         # Existing repo but not in our knownProjects. Investigate
         logging.info("Investigating repo at {}".format(gitRoot))
