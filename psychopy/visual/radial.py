@@ -115,16 +115,16 @@ class RadialStim(GratingStim):
         self.colorSpace = colorSpace
         if rgb != None:
             logging.warning("Use of rgb arguments to stimuli are deprecated."
-                            " Please use color and colorSpace args instead")
-            self.color = Color(rgb, colorSpace='rgb')
+                            " Please use color and colorSpace args instead.")
+            self.color = Color(rgb, space='rgb')
         elif dkl != None:
-            logging.warning("Use of dkl arguments to stimuli are deprecated. "
-                            "Please use color and colorSpace args instead")
-            self.color = Color(dkl, colorSpace='dkl')
+            logging.warning("Use of dkl arguments to stimuli are deprecated."
+                            " Please use color and colorSpace args instead.")
+            self.color = Color(dkl, space='dkl')
         elif lms != None:
             logging.warning("Use of lms arguments to stimuli are deprecated."
-                            " Please use color and colorSpace args instead")
-            self.color = Color(lms, colorSpace='lms')
+                            " Please use color and colorSpace args instead.")
+            self.color = Color(lms, space='lms')
         else:
             self.color = color
 
@@ -175,11 +175,11 @@ class RadialStim(GratingStim):
         res = self.texRes  # resolution of texture - 128 is bearable
         step = 1.0/res
         rad = numpy.arange(0, 1 + step, step)
-        if type(self.mask) == numpy.ndarray:
+        if isinstance(self.mask, numpy.ndarray):
             # handle a numpy array
             intensity = 255 * self.mask.astype(float)
             res = len(intensity)
-        elif type(self.mask) == list:
+        elif isinstance(self.mask, list):
             # handle a numpy array
             intensity = 255 * numpy.array(self.mask, float)
             res = len(intensity)
@@ -213,10 +213,9 @@ class RadialStim(GratingStim):
             res = im.size[0]
             im = im.convert("L")  # force to intensity (in case it was rgb)
             intensity = numpy.asarray(im)
-            fromFile = 1
 
         data = intensity.astype(numpy.uint8)
-        mask = data.tostring()  # serialise
+        mask = data.tobytes()  # serialise
 
         # do the openGL binding
         if self.interpolate:

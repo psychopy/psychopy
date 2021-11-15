@@ -493,15 +493,21 @@ class Window():
         # iohub was active, also send them to iohub.
         #
         if IOHUB_ACTIVE:
-            from psychopy.iohub.client import ioHubConnection
-            if ioHubConnection.ACTIVE_CONNECTION:
-                winhwnds = []
+            from psychopy.iohub.client import ioHubConnection as ioconn
+            if ioconn.ACTIVE_CONNECTION:
+                from psychopy.iohub.client import windowInfoDict
+                win_infos = []
+                win_handles = []
                 for w in openWindows:
-                    winhwnds.append(w()._hw_handle)
-                if self.winHandle not in winhwnds:
-                    winhwnds.append(self._hw_handle)
-                conn = ioHubConnection.ACTIVE_CONNECTION
-                conn.registerWindowHandles(*winhwnds)
+                    winfo = windowInfoDict(w())
+                    win_infos.append(winfo)
+                    win_handles.append(w()._hw_handle)
+
+                if self._hw_handle not in win_handles:
+                    winfo = windowInfoDict(self)
+                    win_infos.append(winfo)
+                    win_handles.append(self._hw_handle)
+                ioconn.ACTIVE_CONNECTION.registerWindowHandles(*win_infos)
 
         # near and far clipping planes
         self._nearClip = 0.1

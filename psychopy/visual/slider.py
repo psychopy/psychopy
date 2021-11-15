@@ -25,7 +25,6 @@ from ..tools.attributetools import logAttrib, setAttribute, attributeSetter
 from ..constants import FINISHED, STARTED, NOT_STARTED
 
 
-
 class Slider(MinimalStim, ColorMixin):
     """A class for obtaining ratings, e.g., on a 1-to-7 or categorical scale.
 
@@ -57,6 +56,7 @@ class Slider(MinimalStim, ColorMixin):
                  size=None,
                  units=None,
                  flip=False,
+                 ori=0,
                  style='rating', styleTweaks=[],
                  granularity=0,
                  readOnly=False,
@@ -179,9 +179,10 @@ class Slider(MinimalStim, ColorMixin):
         self.name = name
         self.autoLog = autoLog
         self.readOnly = readOnly
+        self.ori = ori
 
         self.categorical = False  # will become True if no ticks set only labels
-        self.startValue = self.rating =  self.markerPos = startValue
+        self.startValue = self.markerPos = startValue
         self.rt = None
         self.history = []
         self.marker = None
@@ -194,7 +195,7 @@ class Slider(MinimalStim, ColorMixin):
         self._lineAspectRatio = 0.01
         self._updateMarkerPos = True
         self._dragging = False
-        self.mouse = event.Mouse()
+        self.mouse = event.Mouse(win=win)
         self._mouseStateClick = None  # so we can rule out long click probs
         self._mouseStateXY = None  # so we can rule out long click probs
 
@@ -239,7 +240,7 @@ class Slider(MinimalStim, ColorMixin):
     @property
     def horiz(self):
         """(readonly) determines from self.size whether the scale is horizontal"""
-        return self.size[0] > self.size[1]
+        return self.extent[0] > self.extent[1]
 
     @property
     def size(self):
@@ -247,6 +248,24 @@ class Slider(MinimalStim, ColorMixin):
             the ticks.
         """
         return self._size
+
+    @property
+    def extent(self):
+        """
+        The distance from the leftmost point on the slider to the rightmost point, and from the highest
+        point to the lowest.
+        """
+        # Get orientation (theta) and inverse orientation (atheta) in radans
+        theta = np.radians(self.ori)
+        atheta = np.radians(90-self.ori)
+        # Calculate adjacent sides to get vertical extent
+        A1 = np.cos(theta) * self.size[1]
+        A2 = np.cos(atheta) * self.size[0]
+        # Calculate opposite sides to get horizontal extent
+        O1 = np.sin(theta) * self.size[1]
+        O2 = np.sin(atheta) * self.size[0]
+        # Return extent
+        return O1 + O2, A1 + A2
 
     @property
     def opacity(self):
@@ -493,7 +512,12 @@ class Slider(MinimalStim, ColorMixin):
             rating = min(rating, self.ticks[-1])
         return rating
 
-    @attributeSetter
+    @property
+    def rating(self):
+        if hasattr(self, "_rating"):
+            return self._rating
+
+    @rating.setter
     def rating(self, rating):
         """The most recent rating from the participant or None.
         Note that the position of the marker can be set using current without
@@ -502,7 +526,7 @@ class Slider(MinimalStim, ColorMixin):
         self.markerPos = rating
         if self.categorical and (rating is not None):
             rating = self.labels[int(round(rating))]
-        self.__dict__['rating'] = rating
+        self._rating = rating
 
     @property
     def value(self):

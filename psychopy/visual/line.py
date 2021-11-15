@@ -123,7 +123,7 @@ class Line(ShapeStim):
                  end=(.5, .5),
                  units=None,
                  lineWidth=1.5,
-                 lineColor=None,
+                 lineColor='white',
                  fillColor=None, # Not used, but is supplied by Builder via Polygon
                  lineColorSpace=None,
                  pos=(0, 0),

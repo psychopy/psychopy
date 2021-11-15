@@ -559,8 +559,8 @@ class BaseComponent:
         else:
             startTime = None
 
-        if stopType == 'time (s)' and numericStop and startTime is not None:
-            duration = float(self.params['stopVal'].val) - startTime
+        if stopType == 'time (s)' and numericStop:
+            duration = float(self.params['stopVal'].val) - (startTime or 0)
         elif stopType == 'duration (s)' and numericStop:
             duration = float(self.params['stopVal'].val)
         else:

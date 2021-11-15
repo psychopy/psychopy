@@ -46,6 +46,7 @@ class Aperture(MinimalStim, ContainerMixin):
 
     If shape is 'square' or 'triangle' then that is what will be used
     If shape is 'circle' or `None` then a polygon with nVerts will be used (120 for a rough circle)
+    If shape is an integer, then a polygon with that many vertices will be used
     If shape is a list or numpy array (Nx2) then it will be used directly
         as the vertices to a :class:`~psychopy.visual.ShapeStim`
     If shape is a filename then it will be used to load and image as a
@@ -96,6 +97,10 @@ class Aperture(MinimalStim, ContainerMixin):
             # (sin,cos):
             vertices = [(0.5 * sin(radians(theta)), 0.5 * cos(radians(theta)))
                         for theta in numpy.linspace(0, 360, nVert, False)]
+        elif isinstance(shape, int):
+            # if given a number, take it as a number of vertices and behave as if shape=='circle and nVerts==shape
+            vertices = [(0.5 * sin(radians(theta)), 0.5 * cos(radians(theta)))
+                        for theta in numpy.linspace(0, 360, shape, False)]
         elif shape == 'square':
             vertices = [[0.5, -0.5], [-0.5, -0.5], [-0.5, 0.5], [0.5, 0.5]]
         elif shape == 'triangle':
