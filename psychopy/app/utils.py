@@ -743,9 +743,12 @@ class FileCtrl(wx.TextCtrl):
 
     def browse(self, evt=None):
         file = Path(self.GetValue())
+        # Sub in a / for blank paths to force the better folder navigator
+        if file == Path():
+            file = Path("/")
         # Open file or dir dlg
         if self.dlgtype == "dir":
-            dlg = wx.DirDialog(self, message=_translate("Specify folder..."), defaultPath=str(file) or "/")
+            dlg = wx.DirDialog(self, message=_translate("Specify folder..."), defaultPath=str(file))
         else:
             dlg = wx.FileDialog(self, message=_translate("Specify file..."), defaultDir=str(file))
         if dlg.ShowModal() != wx.ID_OK:
