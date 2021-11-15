@@ -31,7 +31,7 @@ postures = [
     {'ori': 0,   'size': layout.Size((1.0, 1.0), 'height', win), 'pos': layout.Position((0, 0), 'height', win)},
     {'ori': 0,   'size': layout.Size((1.0, 2.0), 'height', win), 'pos': layout.Position((0, 0), 'height', win)},
     {'ori': 45,  'size': layout.Size((1.0, 1.0), 'height', win), 'pos': layout.Position((0, 0), 'height', win)},
-    {'ori': 45,  'size': layout.Size((1.0, 2.0), 'height', win), 'pos': layout.Position((0, 0), 'height', win)},
+    {'ori': 45,  'size': layout.Size((2.0, 2.0), 'height', win), 'pos': layout.Position((0, 0), 'height', win)},
     {'ori': 0,   'size': layout.Size((1.0, 1.0), 'height', win), 'pos': layout.Position((unitDist*sqrt2, 0), 'height', win)},
     {'ori': 0,   'size': layout.Size((1.0, 2.0), 'height', win), 'pos': layout.Position((unitDist*sqrt2, 0), 'height', win)},
     {'ori': -45, 'size': layout.Size((1.0, 1.0), 'height', win), 'pos': layout.Position((unitDist*sqrt2, 0), 'height', win)},
@@ -41,11 +41,11 @@ correctResults = [
     (True, True, False, False, False, False),
     (True, True, True, False, False, False),
     (True, False, False, True, False, False),
-    (True, False, False, True, False, False),
+    (True, False, False, True, False, True),
     (False, False, False, False, True, False),
     (False, False, False, False, True, True),
     (False, False, False, True, True, False),
-    (False, False, False, False, True, False) ]
+    (False, False, False, False, True, False)]
 
 mon = monitors.Monitor('testMonitor')
 mon.setDistance(57)
@@ -94,27 +94,29 @@ def contains_overlaps(testType):
                     assert (shape.contains(x, y) == res)
                 elif testType == 'overlaps':
                     res = shape.overlaps(testPoints[j])
-                # Indicate contains via marker colour
-                if res:
-                    pointMarker.setFillColor('green', log=False)
                 else:
-                    pointMarker.setFillColor('red', log=False)
+                    raise ValueError('Invalid value for parameter `testType`.')
+
+                # Is the point within the shape? Green == yes, red == no.
+                pointMarker.setFillColor('green' if res else 'red', log=False)
                 pointMarker.draw()
+
                 # Assert
                 if res != correctResults[i][j]:
                     # Output debug image
-                    if correctResults[i][j]:
-                        pointMarker.setBorderColor('green', log=False)
-                    else:
-                        pointMarker.setBorderColor('red', log=False)
+                    pointMarker.setBorderColor(
+                        'green' if correctResults[i][j] else 'red', log=False)
                     for marker in testPoints:
                         marker.draw()
                     shape.draw()
                     win.flip()
-                    win.screenshot.save(Path(utils.TESTS_DATA_PATH) / f"{testType}_error_local_{i}_{j}.png")
+                    win.screenshot.save(
+                        Path(utils.TESTS_DATA_PATH) / f"{testType}_error_local_{i}_{j}.png")
                     # Raise error
+                    print(res, points[j], i, j)
                     raise AssertionError(dbgStr % (
-                        testType, units, postures[i]['ori'], shape._size, shape._pos, points[j], correctResults[i][j]
+                        testType, units, postures[i]['ori'], shape._size,
+                        shape._pos, points[j], correctResults[i][j]
                     ))
                 # Un-highlight marker
                 pointMarker.draw()
