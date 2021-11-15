@@ -9,6 +9,7 @@
 """
 import glob
 import os
+import re
 from pathlib import Path
 
 from wx.lib.agw.aui.aui_constants import *
@@ -913,6 +914,21 @@ class FrameSwitcher(wx.Menu):
         self.frames[i].Raise()
         self.frames[i].Show()
         self.updateFrames()
+
+
+def sanitize(inStr):
+    """
+    Process a string to remove any sensitive information, i.e. OAUTH keys
+    """
+    # Key-value pairs of patterns with what to replace them with
+    patterns = {
+        "https\:\/\/oauth2\:[\d\w]{64}@gitlab\.pavlovia\.org\/.*\.git": "[[OAUTH key hidden]]" # Remove any oauth keys
+    }
+    # Replace each pattern
+    for pattern, repl in patterns.items():
+        inStr = re.sub(pattern, repl, inStr)
+
+    return inStr
 
 
 class ToggleButtonArray(wx.Window, ThemeMixin):

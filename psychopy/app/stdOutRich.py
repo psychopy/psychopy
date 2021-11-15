@@ -6,11 +6,13 @@ import re
 import wx.richtext
 import locale
 from psychopy.localization import _translate
+from .utils import sanitize
 
 _prefEncoding = locale.getpreferredencoding()
 
 from psychopy.alerts._alerts import AlertEntry
 from psychopy.alerts._errorHandler import _BaseErrorHandler
+
 
 class StdOutRich(wx.richtext.RichTextCtrl, _BaseErrorHandler):
     """
@@ -130,16 +132,3 @@ class StdOutRich(wx.richtext.RichTextCtrl, _BaseErrorHandler):
 
         self.errors = []
         self.alerts = []
-
-
-def sanitize(inStr):
-    """Hide any sensitive info from the alert"""
-    # Key-value pairs of patterns with what to replace them with
-    patterns = {
-        "https\:\/\/oauth2\:[\d\w]{64}@gitlab\.pavlovia\.org\/.*\.git": "[[OAUTH key hidden]]" # Remove any oauth keys
-    }
-    # Replace each pattern
-    for pattern, repl in patterns.items():
-        inStr = re.sub(pattern, repl, inStr)
-
-    return inStr
