@@ -7,6 +7,7 @@
 
 import wx
 from .. import utils
+from . import functions
 import re
 from pathlib import Path
 from psychopy.tools.versionchooser import _translate
@@ -72,6 +73,10 @@ class CreateDlg(wx.Dialog):
         wx.Dialog.__init__(self, parent=parent,
                            title=_translate("New project..."),
                            size=(500, 200), style=wx.DEFAULT_DIALOG_STYLE | wx.CLOSE_BOX)
+        # If there's no user yet, login
+        if user is None:
+            user = functions.logInPavlovia(self)
+
         self.user = user
         self.session = parent.session
         self.project = None
