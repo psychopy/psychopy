@@ -55,6 +55,9 @@ class InfoStream(wx.TextCtrl):
     def write(self, text):
         if type(text) == bytes:
             text = text.decode('utf-8')
+        # Sanitize text (remove sensitive info like oauth keys)
+        text = utils.sanitize(text)
+        # Show
         self.SetValue(self.GetValue() + text)
         wx.Yield()
 
