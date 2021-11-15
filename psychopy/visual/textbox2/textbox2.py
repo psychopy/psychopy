@@ -373,6 +373,9 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
     
     @text.setter
     def text(self, text):
+        # Convert to string
+        text = str(text)
+        # Substitute HTML tags
         text = text.replace('<i>', codes['ITAL_START'])
         text = text.replace('</i>', codes['ITAL_END'])
         text = text.replace('<b>', codes['BOLD_START'])

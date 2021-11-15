@@ -27,7 +27,7 @@ Code type:
     *   *Py* - Python code only (for local use)
     *   *JS* - Javascript only (for online use)
     *   *Auto -> JS* - Write in python code on the left and this will be auto translated to Javascript on the right.
-    *   *Both* - write both Python and Javascript, but independantly of one another (Python will be executed when you run the task locally, JS will be executed when you run the task online)
+    *   *Both* - write both Python and Javascript, but independently of one another (Python will be executed when you run the task locally, JS will be executed when you run the task online)
 
 Within a `Code Component` you can write code to be executed at 6 different points within the experiment. You can use as many or as few of these as you need for any `Code Component`:
 
@@ -56,6 +56,7 @@ Example code uses
 
 1. Set a random location for your target stimulus
 ====================================================
+
 There are many ways to do this, but you could add the following to the `Begin Routine` section of a `Code Component` at the top of your :ref:`Routine <routines>`. Then set your stimulus position to be `$(targetX, 0)` and set the correct answer field of a :ref:`keyboard` to be `$corrAns` (set both of these to update on every repeat of the Routine).::
     
     if random()>0.5:
@@ -67,11 +68,13 @@ There are many ways to do this, but you could add the following to the `Begin Ro
 
 2. Create a patch of noise 
 ====================================================
+
 As with the above there are many different ways to create noise, but a simple method would be to add the following to the `Begin Routine` section of a `Code Component` at the top of your :ref:`Routine <routines>`. Then set the image as `$noiseTexture`.::
 
     noiseTexture = random.rand((128,128)) * 2.0 - 1
 
 .. note::
+
     Don't expect all code components to work online. Remember that code components using specific python libraries such as numpy won't smoothly translate. You might want to view the `PsychoPy to Javascript crib sheet <https://discourse.psychopy.org/t/psychopy-python-to-javascript-crib-sheet/14601>`_ for useful info on using code components for online experiments.
 
 3. Send a feedback message at the end of the experiment

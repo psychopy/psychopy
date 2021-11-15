@@ -15,7 +15,7 @@ For the easiest installation download and install the Standalone package.
 
     let filename;
     let url;
-    let version='2021.2.2';
+    let version='2021.2.3';
 
     let clientInfo = UAParser(navigator.userAgent);
     var osLabel;
@@ -149,9 +149,9 @@ open your terminal, navigate to the directory you saved the file to, and run::
 
 This will create an environment named ``psychopy``. On Linux, the ``wxPython`` dependency of PsychoPy is linked
 against ``webkitgtk``, which needs to be installed manually, e.g. via ``sudo apt install libwebkitgtk-1.0`` on Debian-based
-systems linke Ubuntu.
+systems like Ubuntu.
 
-To activate the newly-created environment and run PsychoPy, exceute::
+To activate the newly-created environment and run PsychoPy, execute::
 
   conda activate psychopy
   psychopy

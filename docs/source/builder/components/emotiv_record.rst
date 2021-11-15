@@ -9,7 +9,7 @@ can be sent to the datastream.
 The emotiv_record component should be added ONCE before any stimuli have been presented at the top of 
 first trial of the experiment. 
 
-We recommend that you use the EmotivApp and or EmotivPro software to
+We recommend that you use the EmotivLauncher and or EmotivPro software to
 establish that the headset is connected and the quality of the signals are good before running
 the experiment with Psychopy.
 
@@ -27,7 +27,9 @@ Getting Started
 ===============
 
 Before you can connect Psychopy to Emotiv hardware, you need to register your AppId on the Emotiv
-website (https://emotiv.com). **Note**: Normally you should **NOT** click the checkbox:
+website (https://emotiv.com).
+
+**Note**: Normally you should **NOT** click the checkbox:
 "My App requires EEG access".  Otherwise you will need to apply for a RAW EEG API license.
 
 Login to your account at emotiv.com, Goto My Account > Cortex Apps.
@@ -42,6 +44,14 @@ client secret.  A line beginning with a hash will be ignored. eg
 | client_id abcd1234...
 | client_secret wxyz78910....
 | ---end file---
+
+Troubleshooting
+=============
+
+* Check that the .emotiv_creds file does not have ".txt" file extension.
+* Ensure the file format is exactly correct (do **not** include the begin and end file lines)
+* Ensure that your AppId does not require EEG data **or** apply for RAW EEG API access through EMOTIV support.
+* Ensure you connect your headset using EmotivPro or EmotivLauncher before you run the experiment.
 
 Parameters
 ~~~~~~~~~~~~

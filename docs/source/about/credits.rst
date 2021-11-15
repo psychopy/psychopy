@@ -21,7 +21,7 @@ If you need substantial support from anyone in that team you may be able to hire
 
 **Jeremy Gray** added many features (including **audio recording** and the **Rating Scale**)
 
-**Sol Simpson** wrote ioHub (the most advanced Python library for eye-tracking and precise hardware interfacing). If you need support for some advanced Python code especially in the field of hardware and eyetracking you might want to chat wit Sol.
+**Sol Simpson** wrote ioHub (the most advanced Python library for eye-tracking and precise hardware interfacing). If you need support for some advanced Python code especially in the field of hardware and eyetracking you might want to chat with Sol.
 
 `Ilixa Ltd.`_ wrote the new **PsychoJS library** with funding from `Wellcome Trust`_. `PsychoJS` will allow PsychoPy Builder experiments to be launched online, and *Ilixa* have done a wonderful job of creating the JavaScript equivalent of the original PsychoPy Python library. If you need a `science programmer <http://www.ilixa.com>`_, then *Ilixa Ltd.* come with Jon's personal recommendation.
 
