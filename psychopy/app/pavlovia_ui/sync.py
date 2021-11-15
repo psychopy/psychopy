@@ -38,6 +38,9 @@ class SyncDialog(wx.Dialog):
         self.Show()
 
     def sync(self):
+        # If there's no user yet, login
+        if self.project.session.user is None:
+            functions.logInPavlovia(self)
         # Do sync
         self.project.sync(self.status)
         self.OKbtn.Enable()
