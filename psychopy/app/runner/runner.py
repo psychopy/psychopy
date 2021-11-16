@@ -89,7 +89,13 @@ class RunnerFrame(wx.Frame, ThemeMixin):
 
     @property
     def filename(self):
-        if self.panel.currentSelection or self.panel.currentSelection == 0:
+        """Presently selected file name in Runner (`str` or `None`). If `None`,
+        not file is presently selected or the task list is empty.
+        """
+        if not self.panel.currentSelection:  # no selection or empty list
+            return
+
+        if self.panel.currentSelection >= 0:  # has valid item selected
             return self.panel.expCtrl.GetItem(self.panel.currentSelection).Text
 
     def addTask(self, evt=None, fileName=None):
@@ -130,7 +136,7 @@ class RunnerFrame(wx.Frame, ThemeMixin):
              'label': _translate('Save list')+'\t%s'%keys['save'],
              'status': _translate('Saving task'),
              'func': self.saveTaskList},
-            {'id': wx.ID_COPY, 'label': _translate('Open list')+'\tCtrl-O',
+            {'id': wx.ID_OPEN, 'label': _translate('Open list')+'\tCtrl-O',
              'status': _translate('Loading task'),
              'func': self.loadTaskList},
             {'id': wx.ID_CLOSE_FRAME, 'label': _translate('Close')+'\tCtrl-W',
@@ -472,7 +478,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
                                           name=title,
                                           )
         ScriptProcess.__init__(self, app)
-        self.Bind(wx.EVT_END_PROCESS, self.onProcessEnded)
+        #self.Bind(wx.EVT_END_PROCESS, self.onProcessEnded)
 
         # double buffered better rendering except if retina
         self.SetDoubleBuffered(parent.IsDoubleBuffered())
@@ -639,9 +645,9 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
         self.SetSizerAndFit(self.mainSizer)
         self.SetMinSize(self.Size)
 
-    def onProcessEnded(self):
-        ScriptProcess.onProcessEnded(self)
-        self.stopTask()
+    # def onProcessEnded(self):
+    #     ScriptProcess.onProcessEnded(self)
+    #     self.stopTask()
 
     def setAlertsVisible(self, new=True):
         if type(new) == bool:

@@ -41,7 +41,7 @@ from psychopy.tools.monitorunittools import (cm2pix, deg2pix, pix2cm,
 from psychopy.visual.helpers import (pointInPolygon, polygonsOverlap,
                                      setColor, findImageFile)
 from psychopy.tools.typetools import float_uint8
-from psychopy.tools.arraytools import makeRadialMatrix
+from psychopy.tools.arraytools import makeRadialMatrix, createLumPattern
 from psychopy.tools.colorspacetools import dkl2rgb, lms2rgb  # pylint: disable=W0611
 
 from . import globalVars
@@ -897,13 +897,16 @@ class TextureMixin:
     def _createTexture(self, tex, id, pixFormat, stim, res=128, maskParams=None,
                        forcePOW2=True, dataType=None, wrapping=True):
 
+        # transform all variants of `None` to that, simplifies conditions below
+        if tex in ["none", "None", "color"]:
+            tex = None
+
         # Create an intensity texture, ranging -1:1.0
         notSqr = False  # most of the options will be creating a sqr texture
         wasImage = False  # change this if image loading works
-        useShaders = stim.useShaders
         interpolate = stim.interpolate
         if dataType is None:
-            if useShaders and pixFormat == GL.GL_RGB:
+            if pixFormat == GL.GL_RGB:
                 dataType = GL.GL_FLOAT
             else:
                 dataType = GL.GL_UNSIGNED_BYTE
@@ -916,7 +919,6 @@ class TextureMixin:
         allMaskParams = {'fringeWidth': 0.2, 'sd': 3}
         allMaskParams.update(maskParams)
 
-        sin = numpy.sin
         if type(tex) == numpy.ndarray:
             # handle a numpy array
             # for now this needs to be an NxN intensity array
@@ -939,7 +941,7 @@ class TextureMixin:
                 stim._tex1D = False
                 # check if it's a square power of two
                 maxDim = max(tex.shape)
-                powerOf2 = 2**numpy.ceil(numpy.log2(maxDim))
+                powerOf2 = 2 ** numpy.ceil(numpy.log2(maxDim))
                 if (forcePOW2 and
                         (tex.shape[0] != powerOf2 or
                          tex.shape[1] != powerOf2)):
@@ -947,118 +949,17 @@ class TextureMixin:
                                   "16 x 16, 256 x 256) texture but didn't "
                                   "receive one")
                 res = tex.shape[0]
-            if useShaders:
-                dataType = GL.GL_FLOAT
-        elif tex in (None, "none", "None", "color"):
-            # 4x4 (2x2 is SUPPOSED to be fine but generates weird colors!)
-            res = 1
-            intensity = numpy.ones([res, res], numpy.float32)
-            wasLum = True
-            wrapping = True  # override any wrapping setting for None
-        elif tex == "sin":
-            # NB 1j*res is a special mgrid notation
-            onePeriodX, onePeriodY = numpy.mgrid[0:res, 0:2 * pi:1j * res]
-            intensity = numpy.sin(onePeriodY - pi / 2)
-            wasLum = True
-        elif tex == "sqr":  # square wave (symmetric duty cycle)
-            # NB 1j*res is a special mgrid notation
-            onePeriodX, onePeriodY = numpy.mgrid[0:res, 0:2 * pi:1j * res]
-            sinusoid = numpy.sin(onePeriodY - pi / 2)
-            intensity = numpy.where(sinusoid > 0, 1, -1)
-            wasLum = True
-        elif tex == "saw":
-            intensity = (numpy.linspace(-1.0, 1.0, res, endpoint=True) *
-                         numpy.ones([res, 1]))
-            wasLum = True
-        elif tex == "tri":
-            # -1:3 means the middle is at +1
-            intens = numpy.linspace(-1.0, 3.0, res, endpoint=True)
-            # remove from 3 to get back down to -1
-            intens[res // 2 + 1 :] = 2.0 - intens[res // 2 + 1 :]
-            intensity = intens * numpy.ones([res, 1])  # make 2D
-            wasLum = True
-        elif tex == "sinXsin":
-            # NB 1j*res is a special mgrid notation
-            onePeriodX, onePeriodY = numpy.mgrid[0:2 * pi:1j * res,
-                                                 0:2 * pi:1j * res]
-            intensity = sin(onePeriodX - pi / 2) * sin(onePeriodY - pi / 2)
-            wasLum = True
-        elif tex == "sqrXsqr":
-            # NB 1j*res is a special mgrid notation
-            onePeriodX, onePeriodY = numpy.mgrid[0:2 * pi:1j * res,
-                                                 0:2 * pi:1j * res]
-            sinusoid = sin(onePeriodX - pi / 2) * sin(onePeriodY - pi / 2)
-            intensity = numpy.where(sinusoid > 0, 1, -1)
-            wasLum = True
-        elif tex == "circle":
-            rad = makeRadialMatrix(res)
-            intensity = (rad <= 1) * 2 - 1
-            wasLum = True
-        elif tex == "gauss":
-            rad = makeRadialMatrix(res)
-            # 3sd.s by the edge of the stimulus
-            invVar = (1.0 / allMaskParams['sd']) ** 2.0
-            intensity = numpy.exp( -rad**2.0 / (2.0 * invVar)) * 2 - 1
-            wasLum = True
-        elif tex == "cross":
-            X, Y = numpy.mgrid[-1:1:1j * res, -1:1:1j * res]
-            tfNegCross = (((X < -0.2) & (Y < -0.2)) |
-                          ((X < -0.2) & (Y > 0.2)) |
-                          ((X > 0.2) & (Y < -0.2)) |
-                          ((X > 0.2) & (Y > 0.2)))
-            # tfNegCross == True at places where the cross is transparent,
-            # i.e. the four corners
-            intensity = numpy.where(tfNegCross, -1, 1)
-            wasLum = True
-        elif tex == "radRamp":  # a radial ramp
-            rad = makeRadialMatrix(res)
-            intensity = 1 - 2 * rad
-            # clip off the corners (circular)
-            intensity = numpy.where(rad < -1, intensity, -1)
-            wasLum = True
-        elif tex == "raisedCos":  # A raised cosine
-            wasLum = True
-            hammingLen = 1000  # affects the 'granularity' of the raised cos
 
-            rad = makeRadialMatrix(res)
-            intensity = numpy.zeros_like(rad)
-            intensity[numpy.where(rad < 1)] = 1
-            frng = allMaskParams['fringeWidth']
-            raisedCosIdx = numpy.where(
-                [numpy.logical_and(rad <= 1, rad >= 1 - frng)])[1:]
+            dataType = GL.GL_FLOAT
+        elif tex in ("sin", "sqr", "saw", "tri", "sinXsin", "sqrXsqr", "circle",
+                     "gauss", "cross", "radRamp", "raisedCos", None):
+            if tex is None:
+                res = 1
+                wrapping = True  # override any wrapping setting for None
 
-            # Make a raised_cos (half a hamming window):
-            raisedCos = numpy.hamming(hammingLen)[ : hammingLen // 2]
-            raisedCos -= numpy.min(raisedCos)
-            raisedCos /= numpy.max(raisedCos)
-
-            # Measure the distance from the edge - this is your index into the
-            # hamming window:
-            dFromEdge = numpy.abs(
-                (1 - allMaskParams['fringeWidth']) - rad[raisedCosIdx])
-            dFromEdge /= numpy.max(dFromEdge)
-            dFromEdge *= numpy.round(hammingLen/2)
-
-            # This is the indices into the hamming (larger for small distances
-            # from the edge!):
-            portionIdx = (-1 * dFromEdge).astype(int)
-
-            # Apply the raised cos to this portion:
-            intensity[raisedCosIdx] = raisedCos[portionIdx]
-
-            # Scale it into the interval -1:1:
-            intensity = intensity - 0.5
-            intensity /= numpy.max(intensity)
-
-            # Sometimes there are some remaining artifacts from this process,
-            # get rid of them:
-            artifactIdx = numpy.where(numpy.logical_and(intensity == -1,
-                                                        rad < 0.99))
-            intensity[artifactIdx] = 1
-            artifactIdx = numpy.where(numpy.logical_and(intensity == 1,
-                                                        rad > 0.99))
-            intensity[artifactIdx] = 0
-
+            # compute array of intensity value for desired pattern
+            intensity = createLumPattern(tex, res, None, allMaskParams)
+            wasLum = True
         else:
             if isinstance(tex, (str, Path)):
                 # maybe tex is the name of a file:
@@ -1108,6 +1009,7 @@ class TextureMixin:
                         logging.warning("Multiple images have needed resizing"
                                         " - I'll stop bothering you!")
                         im = im.resize([powerOf2, powerOf2], Image.BILINEAR)
+
             # is it Luminance or RGB?
             if pixFormat == GL.GL_ALPHA and im.mode != 'L':
                 # we have RGB and need Lum
@@ -1115,13 +1017,15 @@ class TextureMixin:
                 im = im.convert("L")  # force to intensity (need if was rgb)
             elif im.mode == 'L':  # we have lum and no need to change
                 wasLum = True
-                if useShaders:
-                    dataType = GL.GL_FLOAT
+                dataType = GL.GL_FLOAT
             elif pixFormat == GL.GL_RGB:
                 # we want RGB and might need to convert from CMYK or Lm
                 # texture = im.tostring("raw", "RGB", 0, -1)
                 im = im.convert("RGBA")
                 wasLum = False
+            else:
+                raise ValueError('cannot determine if image is luminance or RGB')
+
             if dataType == GL.GL_FLOAT:
                 # convert from ubyte to float
                 # much faster to avoid division 2/255
@@ -1129,6 +1033,7 @@ class TextureMixin:
                     numpy.float32) * 0.0078431372549019607 - 1.0
             else:
                 intensity = numpy.array(im)
+
         if pixFormat == GL.GL_RGB and wasLum and dataType == GL.GL_FLOAT:
             # grating stim on good machine
             # keep as float32 -1:1
@@ -1150,8 +1055,7 @@ class TextureMixin:
             data[:, :, 2] = intensity  # B
         elif (pixFormat == GL.GL_RGB and
                 wasLum and
-                dataType != GL.GL_FLOAT and
-                stim.useShaders):
+                dataType != GL.GL_FLOAT):
             # was a lum image: stick with ubyte for speed
             internalFormat = GL.GL_RGB
             # initialise data array as a float
@@ -1160,27 +1064,6 @@ class TextureMixin:
             data[:, :, 0] = intensity  # R
             data[:, :, 1] = intensity  # G
             data[:, :, 2] = intensity  # B
-        # Grating on legacy hardware, or ImageStim with wasLum=True
-        elif pixFormat == GL.GL_RGB and wasLum and not stim.useShaders:
-            # scale by rgb and convert to ubyte
-            internalFormat = GL.GL_RGB
-            if hasattr(stim, '_foreColor'):
-                rgb = stim._foreColor.rgba
-            elif hasattr(stim, '_fillColor'):
-                rgb = stim._fillColor.rgba
-            # if wasImage it will also have ubyte values for the intensity
-            if wasImage:
-                intensity = (intensity / 127.5) - 1.0
-            # scale by rgb
-            # initialise data array as a float
-            data = numpy.ones((intensity.shape[0], intensity.shape[1], 4),
-                              numpy.float32)
-            data[:, :, 0] = intensity * rgb[0] + stim.rgbPedestal[0]  # R
-            data[:, :, 1] = intensity * rgb[1] + stim.rgbPedestal[1]  # G
-            data[:, :, 2] = intensity * rgb[2] + stim.rgbPedestal[2]  # B
-            data[:, :, :-1] = data[:, :, :-1] * stim.contrast
-            # convert to ubyte
-            data = float_uint8(data)
         elif pixFormat == GL.GL_RGB and dataType == GL.GL_FLOAT:
             # probably a custom rgb array or rgb image
             internalFormat = GL.GL_RGB32F_ARB
@@ -1197,6 +1080,9 @@ class TextureMixin:
                 data = intensity
             else:
                 data = float_uint8(intensity)
+        else:
+            raise ValueError("invalid or unsupported `pixFormat`")
+
         # check for RGBA textures
         if len(data.shape) > 2 and data.shape[2] == 4:
             if pixFormat == GL.GL_RGB:
@@ -1228,21 +1114,14 @@ class TextureMixin:
         if interpolate:
             GL.glTexParameteri(
                 GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR)
-            if useShaders:
-                # GL_GENERATE_MIPMAP was only available from OpenGL 1.4
-                GL.glTexParameteri(
-                    GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)
-                GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_GENERATE_MIPMAP,
-                                   GL.GL_TRUE)
-                GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, internalFormat,
-                                data.shape[1], data.shape[0], 0,
-                                pixFormat, dataType, texture)
-            else:  # use glu
-                GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER,
-                                   GL.GL_LINEAR_MIPMAP_NEAREST)
-                GL.gluBuild2DMipmaps(GL.GL_TEXTURE_2D, internalFormat,
-                                     data.shape[1], data.shape[0],
-                                     pixFormat, dataType, texture)
+            # GL_GENERATE_MIPMAP was only available from OpenGL 1.4
+            GL.glTexParameteri(
+                GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)
+            GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_GENERATE_MIPMAP,
+                               GL.GL_TRUE)
+            GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, internalFormat,
+                            data.shape[1], data.shape[0], 0,
+                            pixFormat, dataType, texture)
         else:
             GL.glTexParameteri(
                 GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST)
@@ -1251,10 +1130,12 @@ class TextureMixin:
             GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, internalFormat,
                             data.shape[1], data.shape[0], 0,
                             pixFormat, dataType, texture)
+
         GL.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE,
                      GL.GL_MODULATE)  # ?? do we need this - think not!
         # unbind our texture so that it doesn't affect other rendering
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+
         return wasLum
 
     def clearTextures(self):
@@ -1409,37 +1290,6 @@ class WindowMixin:
         except Exception:
             pass
 
-    @attributeSetter
-    def useShaders(self, value):
-        """Should shaders be used to render the stimulus
-        (typically leave as `True`)
-
-        If the system support the use of OpenGL shader language then leaving
-        this set to True is highly recommended. If shaders cannot be used then
-        various operations will be slower (notably, changes to stimulus color
-        or contrast)
-        """
-        if value == True and self.win._haveShaders == False:
-            logging.error("Shaders were requested but aren't available. "
-                          "Shaders need OpenGL 2.0+ drivers")
-        if value != self.useShaders:  # if there's a change...
-            self.__dict__['useShaders'] = value
-            if hasattr(self, 'tex'):
-                self.tex = self.tex  # calling attributeSetter
-            elif hasattr(self, 'mask'):
-                # calling attributeSetter (does the same as mask)
-                self.mask = self.mask
-            if hasattr(self, '_imName'):
-                self.setImage(self._imName, log=False)
-            if self.__class__.__name__ == 'TextStim':
-                self._needSetText = True
-            self._needUpdate = True
-
-    def setUseShaders(self, value=True, log=None):
-        """Usually you can use 'stim.attribute = value' syntax instead,
-        but use this method if you need to suppress the log message"""
-        setAttribute(self, 'useShaders', value, log)  # call attributeSetter
-
     def draw(self):
         raise NotImplementedError('Stimulus classes must override '
                                   'visual.BaseVisualStim.draw')
@@ -1455,10 +1305,7 @@ class WindowMixin:
         after every call to .set()
         Chooses between using and not using shaders each call.
         """
-        if self.useShaders:
-            self._updateListShaders()
-        else:
-            self._updateListNoShaders()
+        self._updateListShaders()
 
 
 class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin, LegacyColorMixin):

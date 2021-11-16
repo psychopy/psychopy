@@ -33,10 +33,10 @@ spherePose2 = RigidBodyPose((-0.1, 0.1, 0.1))
 spherePose3 = RigidBodyPose((0.1, -0.1 , -0.1))
 
 # create some sphere stim objects
-lightSphere = SphereStim(win, radius=0.05, color='white', useShaders=False)
-sphere1 = SphereStim(win, radius=0.05, color='red', useShaders=False)
-sphere2 = SphereStim(win, radius=0.1, color='green', useShaders=False)
-sphere3 = SphereStim(win, radius=0.075, color='blue', useShaders=False)
+lightSphere = SphereStim(win, radius=0.05, color='white')
+sphere1 = SphereStim(win, radius=0.05, color='red')
+sphere2 = SphereStim(win, radius=0.1, color='green')
+sphere3 = SphereStim(win, radius=0.075, color='blue')
 
 angle = 0.0
 while not event.getKeys():

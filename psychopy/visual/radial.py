@@ -92,9 +92,6 @@ class RadialStim(GratingStim):
         super(RadialStim, self).__init__(win, units=units, name=name,
                                          autoLog=False)  # start off false
 
-        # use shaders if available by default, this is a good thing
-        self.useShaders = win._haveShaders
-
         # UGLY HACK again. (See same section in GratingStim for ideas)
         self.__dict__['contrast'] = 1
         self.__dict__['size'] = 1
@@ -119,16 +116,16 @@ class RadialStim(GratingStim):
         self.colorSpace = colorSpace
         if rgb != None:
             logging.warning("Use of rgb arguments to stimuli are deprecated."
-                            " Please use color and colorSpace args instead")
-            self.color = Color(rgb, colorSpace='rgb')
+                            " Please use color and colorSpace args instead.")
+            self.color = Color(rgb, space='rgb')
         elif dkl != None:
-            logging.warning("Use of dkl arguments to stimuli are deprecated. "
-                            "Please use color and colorSpace args instead")
-            self.color = Color(dkl, colorSpace='dkl')
+            logging.warning("Use of dkl arguments to stimuli are deprecated."
+                            " Please use color and colorSpace args instead.")
+            self.color = Color(dkl, space='dkl')
         elif lms != None:
             logging.warning("Use of lms arguments to stimuli are deprecated."
-                            " Please use color and colorSpace args instead")
-            self.color = Color(lms, colorSpace='lms')
+                            " Please use color and colorSpace args instead.")
+            self.color = Color(lms, space='lms')
         else:
             self.color = color
 
@@ -179,11 +176,11 @@ class RadialStim(GratingStim):
         res = self.texRes  # resolution of texture - 128 is bearable
         step = 1.0/res
         rad = numpy.arange(0, 1 + step, step)
-        if type(self.mask) == numpy.ndarray:
+        if isinstance(self.mask, numpy.ndarray):
             # handle a numpy array
             intensity = 255 * self.mask.astype(float)
             res = len(intensity)
-        elif type(self.mask) == list:
+        elif isinstance(self.mask, list):
             # handle a numpy array
             intensity = 255 * numpy.array(self.mask, float)
             res = len(intensity)
@@ -217,10 +214,9 @@ class RadialStim(GratingStim):
             res = im.size[0]
             im = im.convert("L")  # force to intensity (in case it was rgb)
             intensity = numpy.asarray(im)
-            fromFile = 1
 
         data = intensity.astype(numpy.uint8)
-        mask = data.tostring()  # serialise
+        mask = data.tobytes()  # serialise
 
         # do the openGL binding
         if self.interpolate:
@@ -346,10 +342,6 @@ class RadialStim(GratingStim):
         self._updateMaskCoords()
         self._updateVerticesBase()
         self._updateVertices()  # is this necessary? Works fine without...
-        if not self.useShaders:
-            # generate a displaylist ID
-            self._listID = GL.glGenLists(1)
-            self._updateList()  # ie refresh display list
 
     @attributeSetter
     def angularRes(self, value):
@@ -387,66 +379,58 @@ class RadialStim(GratingStim):
         GL.glPushMatrix()  # push before the list, pop after
         # scale the viewport to the appropriate size
         self.win.setScale('pix')
-        if self.useShaders:
-            # setup color
-            GL.glColor4f(*self._foreColor.render('rgba1'))
+        # setup color
+        GL.glColor4f(*self._foreColor.render('rgba1'))
 
-            # assign vertex array
-            GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self.verticesPix.ctypes)
+        # assign vertex array
+        GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self.verticesPix.ctypes)
 
-            # then bind main texture
-            GL.glActiveTexture(GL.GL_TEXTURE0)
-            GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
-            GL.glEnable(GL.GL_TEXTURE_2D)
-            # and mask
-            GL.glActiveTexture(GL.GL_TEXTURE1)
-            GL.glBindTexture(GL.GL_TEXTURE_1D, self._maskID)
-            GL.glDisable(GL.GL_TEXTURE_2D)
-            GL.glEnable(GL.GL_TEXTURE_1D)
+        # then bind main texture
+        GL.glActiveTexture(GL.GL_TEXTURE0)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
+        GL.glEnable(GL.GL_TEXTURE_2D)
+        # and mask
+        GL.glActiveTexture(GL.GL_TEXTURE1)
+        GL.glBindTexture(GL.GL_TEXTURE_1D, self._maskID)
+        GL.glDisable(GL.GL_TEXTURE_2D)
+        GL.glEnable(GL.GL_TEXTURE_1D)
 
-            # setup the shaderprogram
-            prog = self.win._progSignedTexMask1D
-            GL.glUseProgram(prog)
-            # set the texture to be texture unit 0
-            GL.glUniform1i(GL.glGetUniformLocation(prog, b"texture"), 0)
-            # mask is texture unit 1
-            GL.glUniform1i(GL.glGetUniformLocation(prog, b"mask"), 1)
+        # setup the shaderprogram
+        prog = self.win._progSignedTexMask1D
+        GL.glUseProgram(prog)
+        # set the texture to be texture unit 0
+        GL.glUniform1i(GL.glGetUniformLocation(prog, b"texture"), 0)
+        # mask is texture unit 1
+        GL.glUniform1i(GL.glGetUniformLocation(prog, b"mask"), 1)
 
-            # set pointers to visible textures
-            GL.glClientActiveTexture(GL.GL_TEXTURE0)
-            GL.glTexCoordPointer(2, GL.GL_DOUBLE, 0,
-                                 self._visibleTexture.ctypes)
-            GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)
+        # set pointers to visible textures
+        GL.glClientActiveTexture(GL.GL_TEXTURE0)
+        GL.glTexCoordPointer(2, GL.GL_DOUBLE, 0,
+                             self._visibleTexture.ctypes)
+        GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)
 
-            # mask
-            GL.glClientActiveTexture(GL.GL_TEXTURE1)
-            GL.glTexCoordPointer(1, GL.GL_DOUBLE, 0,
-                                 self._visibleMask.ctypes)
-            GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)
+        # mask
+        GL.glClientActiveTexture(GL.GL_TEXTURE1)
+        GL.glTexCoordPointer(1, GL.GL_DOUBLE, 0,
+                             self._visibleMask.ctypes)
+        GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)
 
-            # do the drawing
-            GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
-            GL.glDrawArrays(GL.GL_TRIANGLES, 0, self._nVisible)
+        # do the drawing
+        GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
+        GL.glDrawArrays(GL.GL_TRIANGLES, 0, self._nVisible)
 
-            # unbind the textures
-            GL.glClientActiveTexture(GL.GL_TEXTURE1)
-            GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-            # main texture
-            GL.glClientActiveTexture(GL.GL_TEXTURE0)
-            GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
-            GL.glDisable(GL.GL_TEXTURE_2D)
-            # disable set states
-            GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
-            GL.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY)
+        # unbind the textures
+        GL.glClientActiveTexture(GL.GL_TEXTURE1)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+        # main texture
+        GL.glClientActiveTexture(GL.GL_TEXTURE0)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+        GL.glDisable(GL.GL_TEXTURE_2D)
+        # disable set states
+        GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
+        GL.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY)
 
-            GL.glUseProgram(0)
-        else:
-            # the list does the texture mapping
-            if self._needTextureUpdate:
-                self.setTex(value=self.tex, log=False)
-            if self._needUpdate:
-                self._updateList()
-            GL.glCallList(self._listID)
+        GL.glUseProgram(0)
 
         # return the view to previous state
         GL.glPopMatrix()
@@ -567,61 +551,10 @@ class RadialStim(GratingStim):
         # setup the shaderprogram
         GL.glEndList()
 
-    def _updateListNoShaders(self):
-        """The user shouldn't need this method since it gets called
-        after every call to .set() Basically it updates the OpenGL
-        representation of your stimulus if some parameter of the
-        stimulus changes. Call it if you change a property manually
-        rather than using the .set() command
-        """
-        self._needUpdate = False
-        GL.glNewList(self._listID, GL.GL_COMPILE)
-        # glColor can interfere with multitextures
-        GL.glColor4f(1.0, 1.0, 1.0, self.opacity)
-
-        # assign vertex array
-        GL.glVertexPointer(2, GL.GL_DOUBLE, 0, self.verticesPix.ctypes)
-        GL.glEnableClientState(GL.GL_VERTEX_ARRAY)
-
-        # bind and enable textures
-        # main texture
-        GL.glActiveTexture(GL.GL_TEXTURE0)
-        GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
-        GL.glEnable(GL.GL_TEXTURE_2D)
-        # mask
-        GL.glActiveTexture(GL.GL_TEXTURE1)
-        GL.glBindTexture(GL.GL_TEXTURE_1D, self._maskID)
-        GL.glDisable(GL.GL_TEXTURE_2D)
-        GL.glEnable(GL.GL_TEXTURE_1D)
-
-        # set pointers to visible textures
-        # mask
-        GL.glClientActiveTexture(GL.GL_TEXTURE1)
-        GL.glTexCoordPointer(2, GL.GL_DOUBLE, 0, self._visibleMask.ctypes)
-        GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)
-        # texture
-        GL.glClientActiveTexture(GL.GL_TEXTURE0)
-        GL.glTexCoordPointer(2, GL.GL_DOUBLE, 0, self._visibleTexture.ctypes)
-        GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)
-
-        # do the drawing
-        GL.glDrawArrays(GL.GL_TRIANGLES, 0, self._nVisible)
-
-        # disable set states
-        GL.glDisableClientState(GL.GL_VERTEX_ARRAY)
-        GL.glActiveTexture(GL.GL_TEXTURE0)
-        GL.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY)
-        GL.glActiveTexture(GL.GL_TEXTURE1)
-        GL.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY)
-
-        GL.glEndList()
-
     def __del__(self):
         """Remove textures from graphics card to prevent crash
         """
         try:
-            if not self.useShaders:
-                GL.glDeleteLists(self._listID, 1)
             self.clearTextures()
         except (ImportError, ModuleNotFoundError, TypeError):
             pass  # has probably been garbage-collected already

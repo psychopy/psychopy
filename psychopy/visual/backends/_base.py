@@ -25,9 +25,9 @@ class BaseBackend(ABC):
     """The backend abstract base class that defines all the core low-level
     functions required by a :class:`~psychopy.visual.Window` class.
 
-    Such functions as the ability to create an OpenGL context, process events,
-    and flip the window. Sub-classes of this function must implement the
-    abstract methods shown here to be complete.
+    Such methods as the ability to create an OpenGL context, process events,
+    and flip the window are prototyped here. Sub-classes of this function must
+    implement the abstract methods shown here to be complete.
 
     Users simply call visual.Window(..., winType='pyglet') and the `winType` is
     then used by `backends.getBackend(winType)` which will locate the
@@ -50,6 +50,11 @@ class BaseBackend(ABC):
         :param: win is a PsychoPy Window (usually not fully created yet)
         """
         self.win = win  # this will use the @property to make/use a weakref
+
+        # callback functions
+        self._onMoveCallback = None
+        self._onResizeCallback = None
+
         super().__init__()
 
     @abstractmethod
@@ -103,13 +108,68 @@ class BaseBackend(ABC):
                         .format(self.win.winType)
                         )
 
-    def onResize(self, width, height):
-        """A method that will be called if the window detects a resize event
+    @property
+    def onMoveCallback(self):
+        """Callback function for window move events (`callable` or `None`).
+
+        Callback function must have the following signature::
+
+            callback(Any: winHandle, int: newPosX, int: newPosY) -> None
+
         """
-        logging.warning("dispatchEvents() method in {} was called "
-                        "but is not implemented. Is it needed?"
-                        .format(self.win.winType)
-                        )
+        return self._onMoveCallback
+
+    @onMoveCallback.setter
+    def onMoveCallback(self, value):
+        if not (callable(value) or value is None):
+            raise TypeError(
+                'Value for `onMoveCallback` must be callable or `None`.')
+
+        self._onMoveCallback = value
+
+    @property
+    def onResizeCallback(self):
+        """Callback function for window resize events (`callable` or `None`).
+
+        Callback function must have the following signature::
+
+            callback(Any: winHandle, int: newSizeW, int: newSizeH) -> None
+
+        """
+        return self._onResizeCallback
+
+    @onResizeCallback.setter
+    def onResizeCallback(self, value):
+        if not (callable(value) or value is None):
+            raise TypeError(
+                'Value for `onResizeCallback` must be callable or `None`.')
+
+        self._onResizeCallback = value
+
+    def onResize(self, width, height):
+        """A method that will be called if the window detects a resize event.
+
+        This method is bound to the window backend resize event, data is
+        formatted and forwarded to the user's callback function.
+
+        """
+        # When overriding this function, at the very minimum we must call the
+        # user's function, passing the data they expect.
+        if self._onResizeCallback is not None:
+            self._onResizeCallback(self.win, width, height)
+
+    def onMove(self, posX, posY):
+        """A method called when the window is moved by the user.
+
+        This method is bound to the window backend move event, data is
+        formatted and forwarded to the user's callback function.
+
+        """
+        if hasattr(self.win, 'pos'):  # write the new position of the window
+            self.win.pos[:] = (posX, posY)
+
+        if self._onMoveCallback is not None:
+            self._onResizeCallback(self.win, posX, posY)
 
     # Helper methods that don't need converting
 

@@ -73,7 +73,7 @@ class SimpleImageStim(MinimalStim, WindowMixin):
         self.units = units  # call attributeSetter
         # call attributeSetter. Use shaders if available by default, this is a
         # good thing
-        self.useShaders = win._haveShaders
+
         self.pos = pos  # call attributeSetter
         self.image = image  # call attributeSetter
         # check image size against window size
@@ -146,7 +146,7 @@ class SimpleImageStim(MinimalStim, WindowMixin):
         setAttribute(self, 'flipVert', newVal, log)
 
     def _updateImageStr(self):
-        self._imStr = self.imArray.tostring()
+        self._imStr = self.imArray.tobytes()
         self._needStrUpdate = False
 
     def draw(self, win=None):
@@ -209,7 +209,7 @@ class SimpleImageStim(MinimalStim, WindowMixin):
         if op is None:
             op = ''
         # format the input value as float vectors
-        if type(val) in (tuple, list):
+        if isinstance(val, (tuple, list)):
             val = numpy.array(val, float)
 
         setAttribute(self, attrib, val, log, op)

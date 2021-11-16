@@ -223,7 +223,7 @@ class SliderComponent(BaseVisualComponent):
                    "    style={styles}, styleTweaks={styleTweaks}, opacity={opacity},\n"
                    "    labelColor={color}, markerColor={fillColor}, lineColor={borderColor}, colorSpace={colorSpace},\n"
                    "    font={font}, labelHeight={letterHeight},\n"
-                   "    flip={flip}, depth={depth}, readOnly={readOnly})\n"
+                   "    flip={flip}, ori={ori}, depth={depth}, readOnly={readOnly})\n"
                    .format(**inits))
         buff.writeIndented(initStr)
 
@@ -279,7 +279,7 @@ class SliderComponent(BaseVisualComponent):
         initStr = ("{name} = new visual.Slider({{\n"
                    "  win: psychoJS.window, name: '{name}',\n"
                    "  size: {size}, pos: {pos}, units: {units},\n"
-                   "  labels: {labels}, ticks: {ticks},\n"
+                   "  labels: {labels}, fontSize: {letterHeight}, ticks: {ticks},\n"
                    "  granularity: {granularity}, style: {styles},\n"
                    "  color: new util.Color({color}), markerColor: new util.Color({fillColor}), lineColor: new util.Color({borderColor}), \n"
                    "  fontFamily: {font}, bold: true, italic: false, depth: {depth}, \n"

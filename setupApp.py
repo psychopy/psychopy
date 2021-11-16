@@ -31,10 +31,11 @@ if platform != 'darwin':
 import bdist_mpkg
 import py2app
 resources = glob.glob('psychopy/app/Resources/*')
-frameworks = ["/usr/lib/libxml2.2.dylib", #"libyaml.dylib",
-              "libevent.dylib", "libffi.dylib",
-              "libmp3lame.0.dylib",
-              "/usr/local/Cellar/glfw/3.2.1/lib/libglfw.3.2.dylib",
+frameworks = [ # these installed using homebrew
+              "/usr/local/opt/libevent/lib/libevent.dylib", 
+              "/usr/local/opt/lame/lib/libmp3lame.0.dylib",
+              "/usr/local/opt/libffi/lib/libffi.dylib",
+              "/usr/local/opt/libglfw/lib/libglfw.3.2.dylib",
               ]
 opencvLibs = glob.glob(os.path.join(sys.exec_prefix, 'lib', 'libopencv*.2.4.dylib'))
 frameworks.extend(opencvLibs)
@@ -80,21 +81,20 @@ packages = ['wx', 'psychopy',
             'objc', 'Quartz', 'AppKit', 'QTKit', 'Cocoa',
             'Foundation', 'CoreFoundation',
             'pkg_resources',  # needed for objc
-            'pyolib', 'pyo',
+            'pyo',
             'requests', 'certifi', 'cryptography',
             # for unit testing
             'coverage',
             # handy external science libs
             'serial',
             'egi', 'pylink', 'tobiiresearch',
-            'pyxid', 'pyxid2', 'ftd2xx',  # ftd2xx is used by cedrus
+            'pyxid2', 'ftd2xx',  # ftd2xx is used by cedrus
             'pandas', 'tables',  # 'cython',
             'msgpack', 'yaml', 'gevent',  # for ioHub
             # these aren't needed, but liked
-            'psychopy_ext', 'pyfilesec',
             'bidi', 'arabic_reshaper',  # for right-left language conversions
             # for Py3 compatibility
-            'lib2to3',
+            'ujson',  # faster than built-in json
             'json_tricks',  # allows saving arrays/dates in json
             'git', 'gitlab',
             'astunparse', 'esprima',  # for translating/adapting py/JS

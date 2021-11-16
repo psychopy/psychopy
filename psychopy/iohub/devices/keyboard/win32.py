@@ -7,10 +7,10 @@ try:
     import pyHook
 except ImportError:
     import pyWinhook as pyHook
-
+import win32api
 import ctypes
 from unicodedata import category as ucategory
-from . import ioHubKeyboardDevice
+from . import ioHubKeyboardDevice, psychopy_key_mappings
 from ...constants import KeyboardConstants, EventConstants
 from .. import Computer, Device
 from ...errors import print2err, printExceptionDetailsToStdErr
@@ -43,6 +43,21 @@ numpad_key_value_mappings = dict(Numpad0='insert',
                                  )
 
 
+def updateToPsychopyKeymap():
+    global numpad_key_value_mappings
+    numpad_key_value_mappings = dict(Numpad0='num_0',
+                                     Numpad1='num_1',
+                                     Numpad2='num_2',
+                                     Numpad3='num_3',
+                                     Numpad4='num_4',
+                                     Numpad5='num_5',
+                                     Numpad6='num_6',
+                                     Numpad7='num_7',
+                                     Numpad8='num_8',
+                                     Numpad9='num_9',
+                                     Decimal='num_decimal'
+                                     )
+
 class Keyboard(ioHubKeyboardDevice):
     _win32_modifier_mapping = {
         win32_vk.VK_LCONTROL: 'lctrl',
@@ -65,6 +80,9 @@ class Keyboard(ioHubKeyboardDevice):
         self._user32 = ctypes.windll.user32
         self._keyboard_state = (ctypes.c_ubyte * 256)()
         self._unichar = (ctypes.c_wchar * 8)()
+
+        if self.use_psychopy_keymap:
+            updateToPsychopyKeymap()
 
         self.resetKeyAndModState()
 
@@ -191,13 +209,29 @@ class Keyboard(ioHubKeyboardDevice):
         if key is None:
             key = KeyboardConstants._getKeyName(event)
 
+        if isinstance(key, bytes):
+            key = str(key, 'utf-8')
+        if isinstance(char, bytes):
+            char = str(char, 'utf-8')
+
+        key = key.lower()
+
         # misc. char value cleanup.
         if key == 'return':
             char = '\n'.encode('utf-8')
         elif key in ('escape', 'backspace'):
             char = ''
 
-        return key.lower(), char
+        if Keyboard.use_psychopy_keymap and key in psychopy_key_mappings.keys():
+            key = psychopy_key_mappings[key]
+
+            # win32 specific handling of keypad / and - keys
+            if event.Key == 'Subtract':
+                key = 'num_subtract'
+            elif event.Key == 'Divide':
+                key = 'num_divide'
+
+        return key, char
 
     def _evt2json(self, event):
         return jdumps(dict(Type=event.Type,
@@ -226,7 +260,7 @@ class Keyboard(ioHubKeyboardDevice):
             report_system_wide_events = self.getConfiguration().get(
                 'report_system_wide_events', True)
             if report_system_wide_events is False:
-                pyglet_window_hnds = self._iohub_server._pyglet_window_hnds
+                pyglet_window_hnds = self._iohub_server._psychopy_windows.keys()
                 if len(
                         pyglet_window_hnds) > 0 and event.Window not in pyglet_window_hnds:
                     return True
@@ -311,3 +345,12 @@ class Keyboard(ioHubKeyboardDevice):
             return kb_event
         except Exception:
             printExceptionDetailsToStdErr()
+
+    def _syncPressedKeyState(self):
+        remove_keys = []
+        for kid in self._key_states.keys():
+            if win32api.GetAsyncKeyState(kid) == 0:
+                # Key is no longer pressed, remove it from pressed key dict
+                remove_keys.append(kid)
+        for kid in remove_keys:
+            del self._key_states[kid]

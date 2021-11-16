@@ -9,6 +9,7 @@ import gevent
 from psychopy.iohub.util import convertCamelToSnake
 from psychopy.iohub.devices import DeviceEvent, Computer
 from psychopy.iohub.constants import EventConstants as EC
+from psychopy.iohub.devices.keyboard import KeyboardInputEvent
 from psychopy.iohub.errors import print2err
 
 currentTime = Computer.getTime
@@ -18,7 +19,7 @@ class GazepointPsychopyCalibrationGraphics:
     IOHUB_HEARTBEAT_INTERVAL = 0.050
     CALIBRATION_POINT_LIST = [(0.5, 0.5), (0.1, 0.1), (0.9, 0.1), (0.9, 0.9), (0.1, 0.9)]
 
-    _keyboard_key_index = EC.getClass(EC.KEYBOARD_RELEASE).CLASS_ATTRIBUTE_NAMES.index('key')
+    _keyboard_key_index = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('key')
 
     def __init__(self, eyetrackerInterface, calibration_args):
         self._eyetracker = eyetrackerInterface
@@ -151,7 +152,7 @@ class GazepointPsychopyCalibrationGraphics:
             ek = event[self._keyboard_key_index]
             if isinstance(ek, bytes):
                 ek = ek.decode('utf-8')
-            if ek == ' ':
+            if ek == ' ' or ek == 'space':
                 self._msg_queue.append('SPACE_KEY_ACTION')
                 self.clearAllEventBuffers()
             elif ek == 'escape':
@@ -210,10 +211,23 @@ class GazepointPsychopyCalibrationGraphics:
                                                    opacity=1.0, interpolate=False,
                                                    edges=64, units=unit_type, colorSpace=color_type)
 
+        tctype = color_type
+        tcolor = self.getCalibSetting(['text_color'])
+        if tcolor is None:
+            # If no calibration text color provided, base it on the window background color
+            from psychopy.iohub.util import complement
+            sbcolor = self.getCalibSetting(['screen_background_color'])
+            if sbcolor is None:
+                sbcolor = self.window.color
+            from psychopy.colors import Color
+            tcolor_obj = Color(sbcolor, color_type)
+            tcolor = complement(*tcolor_obj.rgb255)
+            tctype = 'rgb255'
+
         instuction_text = 'Press SPACE to Start Calibration; ESCAPE to Exit.'
         self.textLineStim = visual.TextStim(self.window, text=instuction_text,
                                             pos=(0, 0), height=36,
-                                            color=(0, 0, 0), colorSpace='rgb255',
+                                            color=tcolor, colorSpace=tctype,
                                             units='pix', wrapWidth=self.width * 0.9)
 
     def runCalibration(self):
