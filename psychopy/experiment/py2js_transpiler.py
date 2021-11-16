@@ -408,7 +408,7 @@ def transformPsychoJsCode(psychoJsCode, addons):
     else:
         startIndex = 0
 
-    if lines[startIndex].find('var') == 0:
+    if lines[startIndex].find('var ') == 0:
         startIndex += 1
 
     for index in range(startIndex, len(lines)):

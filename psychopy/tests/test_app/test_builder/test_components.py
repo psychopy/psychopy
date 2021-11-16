@@ -200,6 +200,10 @@ def test_param_str():
         {"obj": Param("red", "color"),
          "py": "'red'",
          "js": "'red'"},
+        # RGB Color
+        {"obj": Param("0.7, 0.7, 0.7", "color"),
+         "py": "[0.7, 0.7, 0.7]",
+         "js": "[0.7, 0.7, 0.7]"},
         # Code
         {"obj": Param("win.color", "code"),
          "py": "win.color",
@@ -235,6 +239,10 @@ def test_param_str():
         {"obj": Param("This \\ that", "str"),
          "py": "'This \\\\ that'",
          "js": "'This \\\\ that'"},
+        # Name containing "var" (should no longer return blank as of #4336)
+        {"obj": Param("variableName", "code"),
+         "py": "variableName",
+         "js": "variableName"}
     ]
 
     # Take note of what the script target started as
