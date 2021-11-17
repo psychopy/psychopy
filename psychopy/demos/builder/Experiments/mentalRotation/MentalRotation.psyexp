@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" ?>
-<PsychoPy2experiment encoding="utf-8" version="2021.2.0">
+<PsychoPy2experiment encoding="utf-8" version="2021.2.3">
   <Settings>
     <Param name="Audio latency priority" updates="None" val="use prefs" valType="str"/>
     <Param name="Audio lib" updates="None" val="use prefs" valType="str"/>
@@ -141,7 +141,7 @@
         <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
         <Param name="stopVal" updates="constant" val="" valType="code"/>
         <Param name="syncScreenRefresh" updates="None" val="True" valType="bool"/>
-        <Param name="text" updates="constant" val="Welcome. You will see two letters on the screen that have been rotated. For each pair of letters, indicate if they are mirror images of each other when they two letters are in their normal upright position. (Ignore the rotations.) &amp;#10; &amp;#10;Press 'm' if they are mirror images of each other. Press 'n' if they are the same (not mirror images).   &amp;#10; &amp;#10;Press the 'm' to continue." valType="str"/>
+        <Param name="text" updates="constant" val="Welcome. You will see two letters on the screen that have been rotated. For each pair of letters, indicate if they are mirror images of each other when they two letters are in their normal upright position. (Ignore the rotations.) &amp;#10; &amp;#10;Press 'm' if they are mirror images of each other.&amp;#10;Press 'n' if they are not the same (not mirror images).   &amp;#10; &amp;#10;Press the 'm' to continue." valType="str"/>
         <Param name="units" updates="None" val="from exp settings" valType="str"/>
         <Param name="wrapWidth" updates="constant" val=".8" valType="code"/>
       </TextComponent>
@@ -583,7 +583,7 @@
         <Param name="stopType" updates="None" val="duration (s)" valType="str"/>
         <Param name="stopVal" updates="constant" val="" valType="code"/>
         <Param name="syncScreenRefresh" updates="None" val="True" valType="bool"/>
-        <Param name="text" updates="constant" val="'n' for &quot;different&quot; &amp;#10;'m' for &quot;same&quot;" valType="str"/>
+        <Param name="text" updates="constant" val="'n' for &quot;non mirrored&quot;/&quot;different&quot;&amp;#10;'m' for &quot;mirrored&quot;/&quot;same&quot;" valType="str"/>
         <Param name="units" updates="None" val="from exp settings" valType="str"/>
         <Param name="wrapWidth" updates="constant" val="" valType="code"/>
       </TextComponent>
@@ -650,6 +650,5 @@
     <Routine name="pause"/>
     <LoopTerminator name="trials"/>
     <Routine name="the_end"/>
-    <Routine name="plot_data"/>
   </Flow>
 </PsychoPy2experiment>
