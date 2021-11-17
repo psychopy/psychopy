@@ -505,7 +505,7 @@ class _baseVisualTest(object):
             mov.draw()
             if frameN==0:
                 utils.compareScreenshot('movFrame1_%s.png' %self.contextName,
-                                        win, crit=10)
+                                        win, crit=11)
             win.flip()
         "{}".format(mov) #check that str(xxx) is working
 
