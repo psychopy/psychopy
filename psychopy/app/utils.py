@@ -506,6 +506,62 @@ class FrameSwitcher(wx.Menu):
         self.updateFrames()
 
 
+class HoverMixin:
+    """
+    Mixin providing methods to handle hover on/off events for a wx.Window based class.
+    """
+    def SetupHover(self):
+        """
+        Helper method to setup hovering for this object
+        """
+        # Bind both hover on and hover off events to the OnHover method
+        self.Bind(wx.EVT_ENTER_WINDOW, self.OnHover)
+        self.Bind(wx.EVT_LEAVE_WINDOW, self.OnHover)
+
+    def OnHover(self, evt=None):
+        """
+        Method to handle hover events for buttons. To use, bind both `wx.EVT_ENTER_WINDOW` and `wx.EVT_LEAVE_WINDOW` events to this method.
+        """
+        if evt is not None and evt.EventType == wx.EVT_ENTER_WINDOW.typeId:
+            # If hovered over currently, use hover colours
+            self.SetForegroundColour(self.ForegroundColourHover)
+            self.SetBackgroundColour(self.BackgroundColourHover)
+        else:
+            # Otherwise, use regular colours
+            self.SetForegroundColour(self.ForegroundColourNoHover)
+            self.SetBackgroundColour(self.BackgroundColourNoHover)
+
+    @property
+    def ForegroundColourNoHover(self):
+        return ThemeMixin.appColors['text']
+
+    @property
+    def BackgroundColourNoHover(self):
+        return ThemeMixin.appColors['frame_bg']
+
+    @property
+    def ForegroundColourHover(self):
+        return ThemeMixin.appColors['txtbutton_fg_hover']
+
+    @property
+    def BackgroundColourHover(self):
+        return ThemeMixin.appColors['txtbutton_bg_hover']
+
+
+class ToggleButton(wx.ToggleButton, HoverMixin):
+    """
+    Extends wx.ToggleButton to give methods for handling color changes relating to hover events and value setting.
+    """
+    @property
+    def BackgroundColourNoHover(self):
+        if self.GetValue():
+            # Return a darker color if selected
+            return ThemeMixin.appColors['docker_bg']
+        else:
+            # Return the default color otherwise
+            return HoverMixin.BackgroundColourNoHover.fget(self)
+
+
 class ToggleButtonArray(wx.Window, ThemeMixin):
 
     def __init__(self, parent, values, multi=False, ori=wx.HORIZONTAL):
@@ -518,7 +574,8 @@ class ToggleButtonArray(wx.Window, ThemeMixin):
         # Make buttons
         self.buttons = {}
         for val in values:
-            self.buttons[val] = wx.ToggleButton(self, style=wx.BORDER_NONE)
+            self.buttons[val] = ToggleButton(self, style=wx.BORDER_NONE)
+            self.buttons[val].SetupHover()
             self.buttons[val].SetLabelText(val)
             self.buttons[val].Bind(wx.EVT_TOGGLEBUTTON, self.processToggle)
             self.sizer.Add(self.buttons[val], border=6, proportion=1, flag=wx.ALL)
@@ -561,12 +618,8 @@ class ToggleButtonArray(wx.Window, ThemeMixin):
         return values
 
     def _applyAppTheme(self, target=None):
+        # Set panel background
+        self.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
+        # Use OnHover event to set buttons to their default colors
         for btn in self.buttons.values():
-            if btn.GetValue():
-                # Highlighted if selected
-                btn.SetForegroundColour(ThemeMixin.appColors['txtbutton_fg_hover'])
-                btn.SetBackgroundColour(ThemeMixin.appColors['txtbutton_bg_hover'])
-            else:
-                # Plain if deselected
-                btn.SetForegroundColour(ThemeMixin.appColors['text'])
-                btn.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
+            btn.OnHover()
