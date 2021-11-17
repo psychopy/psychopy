@@ -53,7 +53,8 @@ from .dialogs import (DlgComponentProperties, DlgExperimentProperties,
                       DlgCodeComponentProperties, DlgLoopProperties,
                       ParamNotebook)
 from ..utils import (PsychopyToolbar, PsychopyPlateBtn, WindowFrozen,
-                     FileDropTarget, FrameSwitcher, updateDemosMenu, ToggleButtonArray)
+                     FileDropTarget, FrameSwitcher, updateDemosMenu,
+                     ToggleButtonArray, HoverMixin)
 
 from psychopy.experiment import getAllStandaloneRoutines
 from psychopy.app import pavlovia_ui
@@ -2255,7 +2256,7 @@ class StandaloneRoutineCanvas(scrolledpanel.ScrolledPanel, ThemeMixin):
 class ComponentsPanel(scrolledpanel.ScrolledPanel):
     """Panel containing buttons for each component, sorted by category"""
 
-    class CategoryButton(wx.ToggleButton):
+    class CategoryButton(wx.ToggleButton, HoverMixin):
         """Button to show/hide a category of components"""
         def __init__(self, parent, name, cat):
             if sys.platform == 'darwin':
@@ -2281,8 +2282,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             # Bind toggle function
             self.Bind(wx.EVT_TOGGLEBUTTON, self.ToggleMenu)
             # Bind hover functions
-            self.Bind(wx.EVT_ENTER_WINDOW, self.hoverOn)
-            self.Bind(wx.EVT_LEAVE_WINDOW, self.hoverOff)
+            self.SetupHover()
 
         def ToggleMenu(self, event):
             # If triggered manually with a bool, treat that as a substitute for event selection
@@ -2326,28 +2326,9 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             # Restyle
             self._applyAppTheme()
 
-        def hoverOn(self, event):
-            """Apply hover effect"""
-            self.hover = True
-            self._applyAppTheme()
-
-        def hoverOff(self, event):
-            """Unapply hover effect"""
-            self.hover = False
-            self._applyAppTheme()
-
         def _applyAppTheme(self):
             """Apply app theme to this button"""
-            if self.hover:
-                # If hovered over currently, use hover colours
-                self.SetForegroundColour(ThemeMixin.appColors['txtbutton_fg_hover'])
-                # self.icon.SetForegroundColour(ThemeMixin.appColors['txtbutton_fg_hover'])
-                self.SetBackgroundColour(ThemeMixin.appColors['txtbutton_bg_hover'])
-            else:
-                # Otherwise, use regular colours
-                self.SetForegroundColour(ThemeMixin.appColors['text'])
-                # self.icon.SetForegroundColour(ThemeMixin.appColors['text'])
-                self.SetBackgroundColour(ThemeMixin.appColors['frame_bg'])
+            self.OnHover()
 
     class ComponentButton(wx.Button):
         """Button to open component parameters dialog"""
