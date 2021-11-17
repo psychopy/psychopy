@@ -510,8 +510,6 @@ class HoverMixin:
     """
     Mixin providing methods to handle hover on/off events for a wx.Window based class.
     """
-    IsHovered = False
-
     def SetupHover(self):
         """
         Helper method to setup hovering for this object
@@ -524,66 +522,30 @@ class HoverMixin:
         """
         Method to handle hover events for buttons. To use, bind both `wx.EVT_ENTER_WINDOW` and `wx.EVT_LEAVE_WINDOW` events to this method.
         """
-        if evt is None:
-            # If calling without event, style according to last IsHovered measurement
-            if self.IsHovered:
-                self.SetForegroundColour(self.ForegroundColourHover)
-                self.SetBackgroundColour(self.BackgroundColourHover)
-            else:
-                self.SetForegroundColour(self.ForegroundColourNoHover)
-                self.SetBackgroundColour(self.BackgroundColourNoHover)
-        elif evt.EventType == wx.EVT_ENTER_WINDOW.typeId:
+        if evt is not None and evt.EventType == wx.EVT_ENTER_WINDOW.typeId:
             # If hovered over currently, use hover colours
             self.SetForegroundColour(self.ForegroundColourHover)
             self.SetBackgroundColour(self.BackgroundColourHover)
-            # and mark as hovered
-            self.IsHovered = True
         else:
             # Otherwise, use regular colours
             self.SetForegroundColour(self.ForegroundColourNoHover)
             self.SetBackgroundColour(self.BackgroundColourNoHover)
-            # and mark as unhovered
-            self.IsHovered = False
 
     @property
     def ForegroundColourNoHover(self):
-        if hasattr(self, "_ForegroundColourNoHover"):
-            return self._ForegroundColourNoHover
         return ThemeMixin.appColors['text']
-
-    @ForegroundColourNoHover.setter
-    def ForegroundColourNoHover(self, value):
-        self._ForegroundColourNoHover = value
 
     @property
     def BackgroundColourNoHover(self):
-        if hasattr(self, "_BackgroundColourNoHover"):
-            return self._BackgroundColourNoHover
         return ThemeMixin.appColors['frame_bg']
-
-    @BackgroundColourNoHover.setter
-    def BackgroundColourNoHover(self, value):
-        self._BackgroundColourNoHover = value
 
     @property
     def ForegroundColourHover(self):
-        if hasattr(self, "_ForegroundColourHover"):
-            return self._ForegroundColourHover
         return ThemeMixin.appColors['txtbutton_fg_hover']
-
-    @ForegroundColourHover.setter
-    def ForegroundColourHover(self, value):
-        self._ForegroundColourHover = value
 
     @property
     def BackgroundColourHover(self):
-        if hasattr(self, "_BackgroundColourHover"):
-            return self._BackgroundColourHover
         return ThemeMixin.appColors['txtbutton_bg_hover']
-
-    @BackgroundColourHover.setter
-    def BackgroundColourHover(self, value):
-        self._BackgroundColourHover = value
 
 
 class ToggleButton(wx.ToggleButton, HoverMixin):
