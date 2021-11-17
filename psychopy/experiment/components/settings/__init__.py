@@ -545,7 +545,7 @@ class SettingsComponent(object):
                                         "as a list of values."
                                         .format(val))
                 elif val in ['True', 'False']:
-                    infoDict[key] = ast.literal_eval(val)
+                    infoDict[key] = Param(val=val, valType='bool')
 
         except (ValueError, SyntaxError):
             """under Python3 {'participant':'', 'session':02} raises an error because 
@@ -799,10 +799,16 @@ class SettingsComponent(object):
                     "\n").format(version=useVer)
             buff.writeIndentedLines(code)
 
+        # Convert each item to str
+        expInfoStr = "{"
+        for key, value in self.getInfo().items():
+            expInfoStr += f"'{key}': {value}, "
+        expInfoStr = expInfoStr[:-2] + "}"
+
         code = ("\n// store info about the experiment session:\n"
                 "let expName = '%s';  // from the Builder filename that created this script\n"
                 "let expInfo = %s;\n"
-                "\n" % (jsFilename, self.getInfo()))
+                "\n" % (jsFilename, expInfoStr))
         buff.writeIndentedLines(code)
 
     def writeExpSetupCodeJS(self, buff, version):
