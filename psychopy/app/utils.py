@@ -510,6 +510,8 @@ class HoverMixin:
     """
     Mixin providing methods to handle hover on/off events for a wx.Window based class.
     """
+    IsHovered = False
+
     def SetupHover(self):
         """
         Helper method to setup hovering for this object
@@ -522,14 +524,26 @@ class HoverMixin:
         """
         Method to handle hover events for buttons. To use, bind both `wx.EVT_ENTER_WINDOW` and `wx.EVT_LEAVE_WINDOW` events to this method.
         """
-        if evt is not None and evt.EventType == wx.EVT_ENTER_WINDOW.typeId:
+        if evt is None:
+            # If calling without event, style according to last IsHovered measurement
+            if self.IsHovered:
+                self.SetForegroundColour(self.ForegroundColourHover)
+                self.SetBackgroundColour(self.BackgroundColourHover)
+            else:
+                self.SetForegroundColour(self.ForegroundColourNoHover)
+                self.SetBackgroundColour(self.BackgroundColourNoHover)
+        elif evt.EventType == wx.EVT_ENTER_WINDOW.typeId:
             # If hovered over currently, use hover colours
             self.SetForegroundColour(self.ForegroundColourHover)
             self.SetBackgroundColour(self.BackgroundColourHover)
+            # and mark as hovered
+            self.IsHovered = True
         else:
             # Otherwise, use regular colours
             self.SetForegroundColour(self.ForegroundColourNoHover)
             self.SetBackgroundColour(self.BackgroundColourNoHover)
+            # and mark as unhovered
+            self.IsHovered = False
 
     @property
     def ForegroundColourNoHover(self):
