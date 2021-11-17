@@ -217,7 +217,11 @@ def test_param_str():
         # Name containing "var" (should no longer return blank as of #4336)
         {"obj": Param("variableName", "code"),
          "py": "variableName",
-         "js": "variableName"}
+         "js": "variableName"},
+        # Color param with a $
+        {"obj": Param("$letterColor", "color"),
+         "py": "letterColor",
+         "js": "letterColor"},
     ]
 
     # Take note of what the script target started as

@@ -237,7 +237,10 @@ class Param(object):
                 return val
         elif self.valType == 'color':
             _, val = self.dollarSyntax()
-            if "," in val:
+            if self.codeWanted:
+                # Handle code
+                return val
+            elif "," in val:
                 # Handle lists (e.g. RGB, HSV, etc.)
                 val = toList(val)
                 return "{}".format(val)
