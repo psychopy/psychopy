@@ -1175,7 +1175,7 @@ def getProject(filename):
     # Get session
     session = getCurrentSession()
     # If already found, return
-    if path in knownProjects and 'idNumber' in knownProjects[path]:
+    if (knownProjects is not None) and (path in knownProjects) and ('idNumber' in knownProjects[path]):
         return PavloviaProject(knownProjects[path]['idNumber'])
     elif gitRoot:
         # Existing repo but not in our knownProjects. Investigate
