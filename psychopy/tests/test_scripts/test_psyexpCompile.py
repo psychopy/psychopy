@@ -40,7 +40,7 @@ class TestComponents:
         # Define some cases
         tykes = [
             {'file': Path(TESTS_DATA_PATH) / "retroListParam.psyexp", 'comparison': "contains",
-             'ans': f"{_lb}{_q}left{_q}, {_q}down{_q}, {_q}right{_q}{_rb}"}
+             'ans': f"{_lb}{_q}left{_q}, ?{_q}down{_q}, ?{_q}right{_q}{_rb}"}
         ]
         # Temp outfile to use
         outfile = Path(mkdtemp()) / 'outfile.py'
