@@ -93,7 +93,7 @@ class Vector(object):
         return self.valid
 
     def __repr__(self):
-        """If colour is printed, it will display its class and value"""
+        """If vector is printed, it will display its class and value"""
         if self:
             return f"<psychopy.layout.{self.__class__.__name__}: {numpy.round(self.pix, 3)}px>"
         else:
@@ -414,6 +414,13 @@ class Vertices(object):
         # Store base vertices
         self.base = verts
 
+    def __repr__(self):
+        """If vertices object is printed, it will display its class and value"""
+        if self:
+            return f"<psychopy.layout.{self.__class__.__name__}: {numpy.round(self.base, 3)} * {numpy.round(self.obj._size.pix, 3)} + {numpy.round(self.obj._pos.pix, 3)}>"
+        else:
+            return "<psychopy.layout.{self.__class__.__name__}: Invalid>"
+
     @property
     def pos(self):
         if isinstance(self._pos, Vector):
@@ -534,6 +541,14 @@ class Vertices(object):
     @deg.setter
     def deg(self, value):
         self.setas(value, 'deg')
+
+    @property
+    def degFlat(self):
+        return self.getas('degFlat')
+
+    @degFlat.setter
+    def degFlat(self, value):
+        self.setas(value, 'degFlat')
 
     @property
     def cm(self):
