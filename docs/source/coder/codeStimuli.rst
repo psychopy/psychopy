@@ -43,13 +43,13 @@ PsychoPy is very flexible in terms of input. You can specify the widely used x,y
 However, PsychoPy always converts the x,y-pairs to numpy arrays internally. For example, all three assignments of pos are equivalent here::
 
         stim.pos = (0.5, -0.2)  # Right and a bit up from the center
-        print stim.pos  # array([0.5, -0.2])
+        print(stim.pos)  # array([0.5, -0.2])
 
         stim.pos = [0.5, -0.2]
-        print stim.pos  # array([0.5, -0.2])
+        print(stim.pos)  # array([0.5, -0.2])
 
         stim.pos = numpy.array([0.5, -0.2])
-        print stim.pos  # array([0.5, -0.2])
+        print(stim.pos)  # array([0.5, -0.2])
 
 Choose your favorite :-) However, you can't assign elementwise::
 
@@ -69,7 +69,7 @@ Choose your favorite :-) However, you can't assign elementwise::
     x and y get the value of the scalar. E.g.::
 
         stim.size = 0.5
-        print stim.size  # array([0.5, 0.5])
+        print(stim.size)  # array([0.5, 0.5])
 
 .. _attrib-operations:
 
