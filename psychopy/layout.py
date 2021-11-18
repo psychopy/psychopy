@@ -272,44 +272,23 @@ class Vector(object):
     @property
     def degFlat(self):
         """
-
+        When dealing with positions/sizes in isolation; deg, degFlat and degFlatPos are synonymous - as the conversion is done at the vertex level.
         """
-        # Return cached value if present
-        if 'degFlat' in self._cache:
-            return self._cache['degFlat']
-        # Otherwise, do conversion and cache
-        self._cache['degFlat'] = tools.pix2deg(self.pix, self.monitor, correctFlat=True)
-        # Return new cached value
-        return self._cache['degFlat']
+        return self.deg
 
     @degFlat.setter
     def degFlat(self, value):
-        # Validate
-        value, units = self.validate(value, 'degFlat')
-        # Convert and set
-        self.pix = tools.deg2pix(value, self.monitor, correctFlat=True)
+        self.deg = value
 
     @property
     def degFlatPos(self):
         """
-
+        When dealing with positions/sizes in isolation; deg, degFlat and degFlatPos are synonymous - as the conversion is done at the vertex level.
         """
-        # Return cached value if present
-        if 'degFlatPos' in self._cache:
-            return self._cache['degFlatPos']
-
-        # Otherwise, do conversion and cache
-        vertices = tools.deg2pix(self.degFlat, self.monitor, correctFlat=False)
-        self._cache['degFlatPos'] = self.pix + vertices
-
-        # Return new cached value
-        return self._cache['degFlatPos']
+        return self.degFlat
 
     @degFlatPos.setter
     def degFlatPos(self, value):
-        # Validate
-        value, units = self.validate(value, 'degFlatPos')
-        # Convert and set
         self.degFlat = value
 
     @property
@@ -525,7 +504,14 @@ class Vertices(object):
         """
         Get absolute positions of vertices in pix units
         """
-        return self.getas('pix')
+        # If correcting for screen curve, use the old functions
+        if self.obj.units == 'degFlat':
+            return tools._degFlat2pix(self.base * self.obj.size, self.obj.pos, self.obj.win)
+        elif self.obj.units == 'degFlatPos':
+            return tools._degFlatPos2pix(self.base * self.obj.size, self.obj.pos, self.obj.win)
+        else:
+            # Otherwise, use standardised method
+            return self.getas('pix')
 
     @pix.setter
     def pix(self, value):
@@ -548,7 +534,8 @@ class Vertices(object):
 
     @degFlat.setter
     def degFlat(self, value):
-        self.setas(value, 'degFlat')
+        cm = tools.deg2cm(value, self.obj.win.monitor, correctFlat=True)
+        self.setas(cm, 'cm')
 
     @property
     def cm(self):
