@@ -40,7 +40,7 @@ class TestComponents:
         # Define some cases
         tykes = [
             {'file': Path(TESTS_DATA_PATH) / "retroListParam.psyexp", 'comparison': "contains",
-             'ans': f"{_lb}{_q}left{_q}, {_q}down{_q}, {_q}right{_q}{_rb}"}
+             'ans': f"{_lb}{_q}left{_q}, ?{_q}down{_q}, ?{_q}right{_q}{_rb}"}
         ]
         # Temp outfile to use
         outfile = Path(mkdtemp()) / 'outfile.py'
@@ -53,11 +53,17 @@ class TestComponents:
                 outscript = f.read()
             # Do comparison
             if case['comparison'] == "contains":
-                assert re.search(case['ans'], outscript)
+                assert re.search(case['ans'], outscript), (
+                    f"No match found for `{case['ans']}` in compile of {case['file'].name}. View compile here: {outfile}"
+                )
             if case['comparison'] == "excludes":
-                assert not re.search(case['ans'], outscript)
+                assert not re.search(case['ans'], outscript), (
+                    f"Unwanted match found for `{case['ans']}` in compile of {case['file'].name}. View compile here: {outfile}"
+                )
             if case['comparison'] == "equals":
-                assert re.fullmatch(case['ans'], outscript)
+                assert re.fullmatch(case['ans'], outscript), (
+                    f"Compile of {case['file'].name} did not match {case['ans']}. View compile here: {outfile}"
+                )
 
     def test_component_is_written_to_script(self):
         psyexp_file = os.path.join(TESTS_DATA_PATH,
