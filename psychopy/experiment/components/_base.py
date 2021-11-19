@@ -607,8 +607,7 @@ class BaseVisualComponent(BaseComponent):
                  startType='time (s)', startVal='',
                  stopType='duration (s)', stopVal='',
                  startEstim='', durationEstim='',
-                 saveStartStop=True, syncScreenRefresh=True,
-                 onsetMessage="", offsetMessage=""):
+                 saveStartStop=True, syncScreenRefresh=True):
 
         super(BaseVisualComponent, self).__init__(
             exp, parentName, name,
@@ -721,34 +720,6 @@ class BaseVisualComponent(BaseComponent):
 
         self.params['syncScreenRefresh'].readOnly = True
 
-        if self.exp.settings.params['Save hdf5 file'].val:
-            msg = _translate("HDF5 Experiment message to save at onset time")
-            self.params['onsetMessage'] = Param(onsetMessage,
-                valType='str', inputType="single", categ='Data',
-                hint=msg,
-                label=_translate('onsetMessage'))
-
-            msg = _translate("HDF5 Experiment message to save at offset time")
-            self.params['offsetMessage'] = Param(offsetMessage,
-                valType='str', inputType="single", categ='Data',
-                hint=msg,
-                label=_translate('offsetMessage'))
-
-            self.depends.append(
-                 {"dependsOn": "saveStartStop",  # must be param name
-                  "condition": "==True",  # val to check for
-                  "param": "onsetMessage",  # param property to alter
-                  "true": "show",  # what to do with param if condition is True
-                  "false": "hide",  # permitted: hide, show, enable, disable
-                  })
-            self.depends.append(
-                 {"dependsOn": "saveStartStop",  # must be param name
-                  "condition": "==True",  # val to check for
-                  "param": "offsetMessage",  # param property to alter
-                  "true": "show",  # what to do with param if condition is True
-                  "false": "hide",  # permitted: hide, show, enable, disable
-                  })
-
     def integrityCheck(self):
         """
         Run component integrity checks.
@@ -841,41 +812,27 @@ class BaseVisualComponent(BaseComponent):
     def writeRoutineEndCode(self, buff):
         """Write the iohub HDF5 experiment message code that will be called
          at the end of a routine.
-
-         TODO: Only gen code if experiment is saving to an hdf5 file
-         TODO: Send all experiment messages for routine at once, instead of needing to call
-               hdf5ExpMessages for each component.
         """
         BaseComponent.writeRoutineEndCode(self, buff)
         saveHdf5 = self.exp.settings.params['Save hdf5 file'].val
         if saveHdf5:
-            code = ""
             name = self.params['name']
+            comp_onset_tag = "%s_onset" % name
+            comp_offset_tag = "%s_offset" % name
             if 'saveStartStop' in self.params and self.params['saveStartStop'].val:
                 if self.params['syncScreenRefresh'].val:
-                    if self.params['onsetMessage'].val:
-                        code += (
+                        code = (
                             f"if ioServer:\n"
-                            f"    ioServer.cacheMessageEvent({self.params['onsetMessage']}, sec_time={name}.tStartRefresh)\n"
-                        )
-                    if self.params['offsetMessage'].val:
-                        code += (
-                            f"if ioServer:\n"
-                            f"    ioServer.cacheMessageEvent({self.params['offsetMessage']}, sec_time={name}.tStopRefresh)\n"
+                            f"    ioServer.cacheMessageEvent('{comp_onset_tag}', sec_time={name}.tStartRefresh)\n"
+                            f"    ioServer.cacheMessageEvent('{comp_offset_tag}', sec_time={name}.tStopRefresh)\n"
                         )
                 else:
-                    if self.params['onsetMessage'].val:
-                        code += (
+                       code = (
                             f"if ioServer:\n"
-                            f"    ioServer.cacheMessageEvent({self.params['onsetMessage']}, sec_time={name}.tStart)\n"
-                        )
-                    if self.params['offsetMessage'].val:
-                        code += (
-                            f"if ioServer:\n"
-                            f"    ioServer.cacheMessageEvent({self.params['offsetMessage']}, sec_time={name}.tStop)\n"
-                        )
+                            f"    ioServer.cacheMessageEvent('{comp_onset_tag}', sec_time={name}.tStart)\n"
+                            f"    ioServer.cacheMessageEvent('{comp_offset_tag}', sec_time={name}.tStop)\n"
+                       )
 
-            if code:
                 buff.writeIndentedLines(code)
 
 
