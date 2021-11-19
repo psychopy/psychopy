@@ -488,7 +488,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                     fakeBold = 0.0
                 elif self._styles[i] == ITALIC:
                     fakeItalic = 0.1 * font.size
-                elif self._styles[i] == ITALIC:
+                elif self._styles[i] == BOLD:
                     fakeBold = 0.3 * font.size
 
                 # handle newline
