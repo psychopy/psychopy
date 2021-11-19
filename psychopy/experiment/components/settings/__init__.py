@@ -1296,7 +1296,7 @@ class SettingsComponent(object):
         for thisRoutine in list(self.exp.routines.values()):
             # a single routine is a list of components:
             for thisComp in thisRoutine:
-                if thisComp.type == 'Code':
+                if thisComp.type in ['Code', 'EmotivRecording']:
                     buff.writeIndented("\n")
                     thisComp.writeExperimentEndCodeJS(buff)
                     buff.writeIndented("\n")

@@ -69,3 +69,16 @@ class EmotivRecordingComponent(BaseComponent):  # or (VisualComponent)
         )
         buff.writeIndentedLines(code)
 
+    def writeExperimentEndCodeJS(self, buff):
+        code = 'if (typeof emotiv != "undefined") {\n'
+        buff.writeIndented(code)
+        buff.setIndentLevel(1, relative=True)
+        code = 'if (typeof emotiv.end_experiment != "undefined") {\n'
+        buff.writeIndented(code)
+        buff.setIndentLevel(1, relative=True)
+        code = 'emotiv.end_experiment();\n'
+        buff.writeIndented(code)
+        buff.setIndentLevel(-1, relative=True)
+        buff.writeIndented('}\n')
+        buff.setIndentLevel(-1, relative=True)
+        buff.writeIndented('}\n')
