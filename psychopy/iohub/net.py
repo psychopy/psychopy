@@ -71,11 +71,21 @@ class SocketConnection(): # pylint: disable=too-many-instance-attributes
         self.sock.setblocking(blocking)
 
     def sendTo(self, data, address=None):
-        # TODO: Support sending payloads to server > max packet size
         if address is None:
             address = self._remote_host, self._remote_port
+        max_pkt_sz = 8192
         packed_data = self.pack(data)
-        self.sock.sendto(packed_data, address)
+        payload_size = len(packed_data)
+        if payload_size > max_pkt_sz:
+            # Send multi packet request to server
+            pkt_cnt = int(payload_size // max_pkt_sz) + 1
+            mpr_payload = ('IOHUB_MULTIPACKET_REQUEST', pkt_cnt)
+            self.sock.sendto(self.pack(mpr_payload), address)
+            for p in range(pkt_cnt):
+                si = p * max_pkt_sz
+                self.sock.sendto(packed_data[si:si + max_pkt_sz], address)
+        else:
+            self.sock.sendto(packed_data, address)
         return len(packed_data)
 
     def receive(self):
