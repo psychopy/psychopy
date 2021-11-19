@@ -71,6 +71,7 @@ class SocketConnection(): # pylint: disable=too-many-instance-attributes
         self.sock.setblocking(blocking)
 
     def sendTo(self, data, address=None):
+        # TODO: Support sending payloads to server > max packet size
         if address is None:
             address = self._remote_host, self._remote_port
         packed_data = self.pack(data)

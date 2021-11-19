@@ -25,7 +25,7 @@
     <Param val="False" valType="bool" updates="None" name="Show mouse"/>
     <Param val="height" valType="str" updates="None" name="Units"/>
     <Param val="" valType="str" updates="None" name="Use version"/>
-    <Param val="[1280, 1024]" valType="list" updates="None" name="Window size (pixels)"/>
+    <Param val="[1920, 1080]" valType="list" updates="None" name="Window size (pixels)"/>
     <Param val="avg" valType="str" updates="None" name="blendMode"/>
     <Param val="$[0,0,0]" valType="color" updates="None" name="color"/>
     <Param val="rgb" valType="str" updates="None" name="colorSpace"/>
@@ -60,9 +60,11 @@
         <Param val="False" valType="bool" updates="None" name="disabled"/>
         <Param val="" valType="code" updates="None" name="durationEstim"/>
         <Param val="look at" valType="str" updates="None" name="endRoutineOn"/>
-        <Param val="5" valType="num" updates="None" name="lookDur"/>
+        <Param val="2.5" valType="num" updates="None" name="lookDur"/>
         <Param val="4" valType="int" updates="constant" name="nVertices"/>
         <Param val="roi" valType="code" updates="None" name="name"/>
+        <Param val="" valType="str" updates="None" name="offsetMessage"/>
+        <Param val="" valType="str" updates="None" name="onsetMessage"/>
         <Param val="0" valType="num" updates="constant" name="ori"/>
         <Param val="(random()/2, random()/2)" valType="list" updates="set every repeat" name="pos"/>
         <Param val="every look" valType="str" updates="None" name="save"/>
@@ -90,6 +92,8 @@
         <Param val="1" valType="num" updates="constant" name="lineWidth"/>
         <Param val="4" valType="int" updates="constant" name="nVertices"/>
         <Param val="progress" valType="code" updates="None" name="name"/>
+        <Param val="" valType="str" updates="None" name="offsetMessage"/>
+        <Param val="" valType="str" updates="None" name="onsetMessage"/>
         <Param val="" valType="num" updates="constant" name="opacity"/>
         <Param val="0" valType="num" updates="constant" name="ori"/>
         <Param val="(-0.5, -0.4)" valType="list" updates="constant" name="pos"/>
@@ -116,6 +120,8 @@
         <Param val="10" valType="num" updates="constant" name="lineWidth"/>
         <Param val="4" valType="int" updates="constant" name="nVertices"/>
         <Param val="target" valType="code" updates="None" name="name"/>
+        <Param val="TARG_END" valType="str" updates="None" name="offsetMessage"/>
+        <Param val="TARG_START" valType="str" updates="None" name="onsetMessage"/>
         <Param val="0.2" valType="num" updates="constant" name="opacity"/>
         <Param val="0" valType="num" updates="constant" name="ori"/>
         <Param val="roi.pos" valType="list" updates="set every repeat" name="pos"/>
@@ -142,6 +148,8 @@
         <Param val="1" valType="num" updates="constant" name="lineWidth"/>
         <Param val="4" valType="int" updates="constant" name="nVertices"/>
         <Param val="gazeCursor" valType="code" updates="None" name="name"/>
+        <Param val="" valType="str" updates="None" name="offsetMessage"/>
+        <Param val="" valType="str" updates="None" name="onsetMessage"/>
         <Param val="" valType="num" updates="constant" name="opacity"/>
         <Param val="0" valType="num" updates="constant" name="ori"/>
         <Param val="eyetracker.getPos()" valType="list" updates="set every frame" name="pos"/>
@@ -157,23 +165,6 @@
         <Param val="from exp settings" valType="str" updates="None" name="units"/>
         <Param val="" valType="list" updates="constant" name="vertices"/>
       </PolygonComponent>
-      <CodeComponent name="send_trial_msgs">
-        <Param val="" valType="extendedCode" updates="constant" name="Before Experiment"/>
-        <Param val="" valType="extendedCode" updates="constant" name="Before JS Experiment"/>
-        <Param val="" valType="extendedCode" updates="constant" name="Begin Experiment"/>
-        <Param val="" valType="extendedCode" updates="constant" name="Begin JS Experiment"/>
-        <Param val="io.sendMessageEvent(&quot;TRIAL_START&quot;);&amp;#10;" valType="extendedCode" updates="constant" name="Begin JS Routine"/>
-        <Param val="ioServer.sendMessageEvent(&quot;TRIAL_START&quot;)" valType="extendedCode" updates="constant" name="Begin Routine"/>
-        <Param val="Py" valType="str" updates="None" name="Code Type"/>
-        <Param val="" valType="extendedCode" updates="constant" name="Each Frame"/>
-        <Param val="" valType="extendedCode" updates="constant" name="Each JS Frame"/>
-        <Param val="" valType="extendedCode" updates="constant" name="End Experiment"/>
-        <Param val="" valType="extendedCode" updates="constant" name="End JS Experiment"/>
-        <Param val="" valType="extendedCode" updates="constant" name="End JS Routine"/>
-        <Param val="ioServer.sendMessageEvent(&quot;TRIAL_END&quot;)" valType="extendedCode" updates="constant" name="End Routine"/>
-        <Param val="False" valType="bool" updates="None" name="disabled"/>
-        <Param val="send_trial_msgs" valType="code" updates="None" name="name"/>
-      </CodeComponent>
     </Routine>
     <EyetrackerCalibrationRoutine name="calibration">
       <Param name="borderColor" updates="None" val="black" valType="color"/>
@@ -221,6 +212,8 @@
         <Param val="0.05" valType="num" updates="constant" name="letterHeight"/>
         <Param val="1.0" valType="num" updates="constant" name="lineSpacing"/>
         <Param val="instructions" valType="code" updates="None" name="name"/>
+        <Param val="" valType="str" updates="None" name="offsetMessage"/>
+        <Param val="" valType="str" updates="None" name="onsetMessage"/>
         <Param val="" valType="num" updates="constant" name="opacity"/>
         <Param val="0" valType="num" updates="constant" name="ori"/>
         <Param val="0" valType="num" updates="constant" name="padding"/>
@@ -267,6 +260,8 @@
         <Param val="LTR" valType="str" updates="None" name="languageStyle"/>
         <Param val="0.1" valType="num" updates="constant" name="letterHeight"/>
         <Param val="text_2" valType="code" updates="None" name="name"/>
+        <Param val="" valType="str" updates="None" name="offsetMessage"/>
+        <Param val="" valType="str" updates="None" name="onsetMessage"/>
         <Param val="" valType="num" updates="constant" name="opacity"/>
         <Param val="0" valType="num" updates="constant" name="ori"/>
         <Param val="(0, 0)" valType="list" updates="constant" name="pos"/>
@@ -307,6 +302,8 @@
         <Param val="LTR" valType="str" updates="None" name="languageStyle"/>
         <Param val="0.1" valType="num" updates="constant" name="letterHeight"/>
         <Param val="text" valType="code" updates="None" name="name"/>
+        <Param val="FIX_END" valType="str" updates="None" name="offsetMessage"/>
+        <Param val="FIX_START" valType="str" updates="None" name="onsetMessage"/>
         <Param val="" valType="num" updates="constant" name="opacity"/>
         <Param val="0" valType="num" updates="constant" name="ori"/>
         <Param val="(0, 0)" valType="list" updates="constant" name="pos"/>
