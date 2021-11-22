@@ -822,7 +822,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 "specified.".format(lineBreaking))
 
         # Convert the vertices to be relative to content box and set
-        self.vertices = vertices / self._size.pix + (-0.5, 0.5)
+        self.vertices = vertices / self.contentBox._size.pix + (-0.5, 0.5)
 
         # if we had to add more glyphs to make possible then 
         if self.glFont._dirty:
