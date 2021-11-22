@@ -431,6 +431,12 @@ class StartStopCtrls(wx.GridBagSizer):
             self.estimLabel.Show(visible)
         if hasattr(self, "label"):
             self.label.Show(visible)
+        # Set value to None if hidden (specific to start/stop)
+        if not visible:
+            if "startVal" in self.ctrls:
+                self.ctrls["startVal"].Value = ""
+            if "stopVal" in self.ctrls:
+                self.ctrls["stopVal"].Value = ""
         # Layout
         self.parent.Layout()
 

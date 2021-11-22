@@ -89,8 +89,7 @@ class TextBox:
     very likely bugs in the existing TextBox code and the TextBox API will
     be further enhanced and improved (i.e. changed) over the next couple months.
 
-    TextBox Features
-    ~~~~~~~~~~~~~~~~
+    **TextBox Features**
 
     * Text character placement is very well defined, useful when the exact
       positioning of each letter needs to be known.
@@ -103,13 +102,12 @@ class TextBox:
       and styles that are available on the computer being used.
 
     * TextBox is a composite stimulus type, with the following graphical
-      elements:
+      elements, many of which can be changed to control many aspects of how
+      the TextBox is displayed.:
          - TextBox Border / Outline
          - TextBox Fill Area
          - Text Grid Cell Lines
          - Text Glyphs
-      Attributes for each of the TextBox graphical elements can be changed
-      to control many aspects of how the TextBox is displayed.
 
     * When using 'rgb' or 'rgb255' color spaces, colors can be specified as
       a list/tuple of 3 elements (red, green, blue), or with four elements
@@ -122,8 +120,7 @@ class TextBox:
 
     * Text Line Spacing can be controlled.
 
-    Textbox Limitations
-    ~~~~~~~~~~~~~~~~~~~
+    **Textbox Limitations**
 
     * Only Monospace Fonts are supported.
 
@@ -946,7 +943,7 @@ class TextBox:
         """
         Specify if changes to textBox attribute values should be logged
         automatically by PsychoPy. True enables auto logging; False disables it.
-        *Currently not supported by TextBox.
+        *Currently not supported by TextBox.*
         """
         self._auto_log = v
 

@@ -66,7 +66,7 @@ Sync timing with screen refresh: bool
     Whether to sync the start time of the component with the window refresh.
 
 Output File Type:
-    File type to save audio as (defualt is wav).
+    File type to save audio as (default is wav).
 
 Speaking Start/Stop Times: bool
     Save onset/offset of speech.

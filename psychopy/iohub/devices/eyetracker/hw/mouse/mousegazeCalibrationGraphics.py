@@ -9,6 +9,7 @@ import gevent
 from psychopy.iohub.util import convertCamelToSnake, updateSettings
 from psychopy.iohub.devices import DeviceEvent, Computer
 from psychopy.iohub.constants import EventConstants as EC
+from psychopy.iohub.devices.keyboard import KeyboardInputEvent
 from psychopy.iohub.errors import print2err
 
 currentTime = Computer.getTime
@@ -17,7 +18,7 @@ class MouseGazePsychopyCalibrationGraphics:
     IOHUB_HEARTBEAT_INTERVAL = 0.050
     CALIBRATION_POINT_LIST = [(0.5, 0.5), (0.1, 0.1), (0.9, 0.1), (0.9, 0.9), (0.1, 0.9)]
 
-    _keyboard_key_index = EC.getClass(EC.KEYBOARD_RELEASE).CLASS_ATTRIBUTE_NAMES.index('key')
+    _keyboard_key_index = KeyboardInputEvent.CLASS_ATTRIBUTE_NAMES.index('key')
 
     def __init__(self, eyetrackerInterface, calibration_args):
         self._eyetracker = eyetrackerInterface
@@ -32,7 +33,7 @@ class MouseGazePsychopyCalibrationGraphics:
 
         updateSettings(self._device_config.get('calibration'), calibration_args)
         self._calibration_args = self._device_config.get('calibration')
-        print2err("self._calibration_args:", self._calibration_args)
+        #print2err("self._calibration_args:", self._calibration_args)
         unit_type = self.getCalibSetting('unit_type')
         if unit_type is None:
             unit_type = display.getCoordinateType()

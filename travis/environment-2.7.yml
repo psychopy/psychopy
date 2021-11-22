@@ -18,7 +18,6 @@ dependencies:
 - greenlet
 - imageio<2.5
 - json_tricks
-- lxml
 - matplotlib
 - moviepy
 - msgpack-numpy

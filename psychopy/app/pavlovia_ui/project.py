@@ -8,6 +8,7 @@ import sys
 import time
 import os
 import traceback
+from pathlib import Path
 
 from .functions import (setLocalPath, showCommitDialog, logInPavlovia,
                         noGitWarning)
@@ -423,10 +424,15 @@ def syncProject(parent, project=None, closeFrameWhenDone=False):
     isCoder = hasattr(parent, 'currentDoc')
 
     # Test and reject sync from invalid folders
-    if isCoder:
-        currentPath = os.path.dirname(parent.currentDoc.filename)
+    if project:
+        expectedPath = Path(project.localRoot)
     else:
-        currentPath = os.path.dirname(parent.filename)
+        expectedPath = None
+
+    if isCoder:
+        currentPath = Path(parent.currentDoc.filename).parent
+    else:
+        currentPath = Path(parent.filename).parent
 
     currentPath = os.path.normcase(os.path.expanduser(currentPath))
     invalidFolders = [os.path.normcase(os.path.expanduser('~/Desktop')),
@@ -440,6 +446,11 @@ def syncProject(parent, project=None, closeFrameWhenDone=False):
                       "Project Sync Error",
                       wx.ICON_QUESTION | wx.OK)
         return -1
+    # If paths don't match, update project path to local
+    if expectedPath:
+        if not currentPath == expectedPath:
+            project.localRoot = str(currentPath)
+
 
     if not project and "BuilderFrame" in repr(parent):
         # try getting one from the frame

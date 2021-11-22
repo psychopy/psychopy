@@ -1,14 +1,14 @@
 from psychopy.constants import STARTED, NOT_STARTED, PAUSED, STOPPED, FINISHED
 from psychopy.alerts import alert
+from psychopy import logging
 from copy import copy
 import sys
 
 class EyetrackerControl:
-    def __init__(self, server, tracker=None):
-        if tracker is None:
-            tracker = server.getDevice('tracker')
-        self.server = server
+    currentlyRecording = False
+    def __init__(self, tracker, actionType="Start and Stop"):
         self.tracker = tracker
+        self.actionType = actionType
         self._status = NOT_STARTED
 
     @property
@@ -26,20 +26,20 @@ class EyetrackerControl:
         if new in (STARTED,):
             if old in (NOT_STARTED, STOPPED, FINISHED):
                 # If was previously at a full stop, clear events before starting again
-                self.server.clearEvents()
+                if self.actionType.find('Start') >= 0 and EyetrackerControl.currentlyRecording is False:
+                    logging.exp("eyetracker.clearEvents()")
+                    self.tracker.clearEvents()
             # Start recording
-            self.tracker.setRecordingState(True)
+            if self.actionType.find('Start') >= 0 and not EyetrackerControl.currentlyRecording:
+                self.tracker.setRecordingState(True)
+                logging.exp("eyetracker.setRecordingState(True)")
+                EyetrackerControl.currentlyRecording = True
         # Stop recording if set to any stop constants
         if new in (NOT_STARTED, PAUSED, STOPPED, FINISHED):
-            self.tracker.setRecordingState(False)
-
-    @property
-    def pos(self):
-        return self.tracker.getPosition()
-
-    def getPos(self):
-        return self.pos
-
+            if self.actionType.find('Stop') >= 0 and EyetrackerControl.currentlyRecording:
+                self.tracker.setRecordingState(False)
+                logging.exp("eyetracker.setRecordingState(False)")
+                EyetrackerControl.currentlyRecording = False
 
 class EyetrackerCalibration:
     def __init__(self, win,
@@ -92,6 +92,7 @@ class EyetrackerCalibration:
                 'type': self.targetLayout,
                 'auto_pace': self.progressMode == "time",
                 'pacing_speed': self.targetDelay,
+                'randomize': self.randomisePos,
                 'text_color': textColor,
                 'screen_background_color': getattr(self.win._color, self.colorSpace)
             }

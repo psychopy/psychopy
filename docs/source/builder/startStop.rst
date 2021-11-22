@@ -21,5 +21,5 @@ Examples
 ~~~~~~~~~~~~
 
 *   Use `time(s)` or `frameN` and simply enter numeric values into the start and duration boxes.
-*   Use `time(s)` or `frameN` and enter a numeric value into the start time and set the duration to a variable name by preceeding it with a $ as described :ref:`here <accessingParams>`. Then set `expected time` to see an approximation in your :ref:`routine <routines>`
+*   Use `time(s)` or `frameN` and enter a numeric value into the start time and set the duration to a variable name by preceding it with a $ as described :ref:`here <accessingParams>`. Then set `expected time` to see an approximation in your :ref:`routine <routines>`
 *   Use condition to cause the stimulus to start immediately after a movie component called myMovie, by entering `$myMovie.status==FINISHED` into the `start` time.
