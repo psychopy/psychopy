@@ -546,8 +546,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self._lineHeight = font.height * self.lineSpacing
 
         lineMax = self.contentBox._size.pix[0]
-
-        current = [0, 0 - self._lineHeight]
+        current = [0, 0 - font.ascender * self.lineSpacing]
         fakeItalic = 0.0
         fakeBold = 0.0
         # for some reason glyphs too wide when using alpha channel only
