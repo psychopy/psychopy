@@ -170,20 +170,6 @@ class Rect(BaseShapeStim):
             color=color,
             colorSpace=colorSpace)
 
-    @attributeSetter
-    def size(self, value):
-        """Size of the rectangle (`width` and `height`).
-        """
-        # Needed to override `size` to ensure `width` and `height` attrs
-        # are updated when it changes.
-        self.__dict__['size'] = np.array(value, float)
-
-        width, height = self.__dict__['size']
-        self.__dict__['width'] = width
-        self.__dict__['height'] = height
-
-        self._needVertexUpdate = True
-
     def setSize(self, size, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
@@ -192,29 +178,11 @@ class Rect(BaseShapeStim):
         """
         setAttribute(self, 'size', size, log, operation)
 
-    @attributeSetter
-    def width(self, value):
-        """Width of the Rectangle (in its respective units, if specified).
-
-        :ref:`Operations <attrib-operations>` supported.
-        """
-        self.__dict__['width'] = float(value)
-        self.size = (self.__dict__['width'], self.size[1])
-
     def setWidth(self, width, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
         but use this method if you need to suppress the log message
         """
         setAttribute(self, 'width', width, log, operation)
-
-    @attributeSetter
-    def height(self, value):
-        """Height of the Rectangle (in its respective units, if specified).
-
-        :ref:`Operations <attrib-operations>` supported.
-        """
-        self.__dict__['height'] = float(value)
-        self.size = (self.size[0], self.__dict__['height'])
 
     def setHeight(self, height, operation='', log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
