@@ -92,11 +92,11 @@ class TargetStim(ShapeStim):
 
     @property
     def radius(self):
-        return sum(self._size)/2
+        return sum(self.size)/2
 
     @radius.setter
     def radius(self, value):
-        self._size = (value*2, value*2)
+        setattr(self._size, self.units, (value*2, value*2))
 
     @property
     def innerRadius(self):
