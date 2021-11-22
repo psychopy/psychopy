@@ -353,12 +353,11 @@ class _TestUnitsMixin:
                     obj.pos = pos[units]
                     # Draw
                     obj.draw()
-                    win.flip()
-                    obj.draw()
                     # Compare screenshot
                     filename = f"{self.__class__.__name__}_units_{units}_{size['suffix']}{pos['suffix']}.png"
                     #win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / filename)
                     utils.compareScreenshot(filename, win)
+                    win.flip()
         # Cleanup
         win.close()
         del obj
