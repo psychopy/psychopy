@@ -15,6 +15,9 @@
 # up by the pyglet GL engine and have no effect.
 # Shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
 import pyglet
+
+from psychopy.layout import Size
+
 pyglet.options['debug_gl'] = False
 import ctypes
 GL = pyglet.gl
@@ -80,11 +83,12 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
         self._imName = image
         self.isLumImage = None
         self.interpolate = interpolate
+        self.vertices = None
         self.flipHoriz = flipHoriz
         self.flipVert = flipVert
         self._requestedSize = size
         self._origSize = None  # updated if an image texture gets loaded
-        self.size = val2array(size)
+        self.size = size
         self.pos = numpy.array(pos, float)
         self.ori = float(ori)
         self.depth = depth
@@ -286,7 +290,7 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
                                                   wrapping=False)
         # if user requested size=None then update the size for new stim here
         if hasattr(self, '_requestedSize') and self._requestedSize is None:
-            self.size = None  # set size to default
+            self.size = Size(numpy.array(self._origSize), units='pix', win=self.win)  # set size to default
         # if we switched to/from lum image then need to update shader rule
         if wasLumImage != self.isLumImage:
             self._needUpdate = True
