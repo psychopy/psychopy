@@ -195,7 +195,6 @@ if __name__ == "__main__":
         instructions_text_stim.setText(instuction_text)
         instructions_text_stim.draw()
         flip_time = window.flip()
-        io_hub.sendMessageEvent(text="EXPERIMENT_START", sec_time=flip_time)
 
         # Wait until a space key press event occurs after the
         # start trial instuctions have been displayed.
@@ -210,11 +209,6 @@ if __name__ == "__main__":
 
         trial['session_id'] = io_hub.getSessionID()
         trial['trial_id'] = t+1
-
-        # Send a msg to the ioHub indicating that the trial started, and the time of
-        # the first retrace displaying the trial stm.
-        #
-        io_hub.sendMessageEvent(text="TRIAL_START", sec_time=flip_time)
 
         # Start Recording Eye Data
         #
@@ -287,7 +281,7 @@ if __name__ == "__main__":
         #
         flip_time = window.flip()
         trial['TRIAL_END'] = flip_time
-        io_hub.sendMessageEvent(text="TRIAL_END %d" % t, sec_time=flip_time)
+        io_hub.sendMessageEvent(text="TRIAL_END", sec_time=flip_time)
 
         # Stop recording eye data.
         # In this example, we have no use for any eye data
