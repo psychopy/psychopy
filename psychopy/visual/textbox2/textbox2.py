@@ -45,26 +45,6 @@ codes = {'BOLD_START': u'\uE100',
          'ITAL_START': u'\uE102',
          'ITAL_END': u'\uE103'}
 
-defaultLetterHeight = {'cm': 1.0,
-                       'deg': 1.0,
-                       'degs': 1.0,
-                       'degFlatPos': 1.0,
-                       'degFlat': 1.0,
-                       'norm': 0.1,
-                       'height': 0.2,
-                       'pix': 20,
-                       'pixels': 20}
-
-defaultBoxWidth = {'cm': 15.0,
-                   'deg': 15.0,
-                   'degs': 15.0,
-                   'degFlatPos': 15.0,
-                   'degFlat': 15.0,
-                   'norm': 1,
-                   'height': 1,
-                   'pix': 500,
-                   'pixels': 500}
-
 wordBreaks = " -\n"  # what about ",."?
 
 
