@@ -711,10 +711,16 @@ class Experiment:
                                    "exists")
                             logging.warning(msg % (thisParamName, static))
                         else:
+                            thisRoutine = \
+                                self.routines[routine].getComponentFromName(
+                                    static)
+                            if thisRoutine is None:
+                                continue
                             self.routines[routine].getComponentFromName(
                                 static).addComponentUpdate(
                                 thisRoutine.params['name'],
                                 thisComp.params['name'], thisParamName)
+
         # fetch flow settings
         flowNode = root.find('Flow')
         loops = {}
