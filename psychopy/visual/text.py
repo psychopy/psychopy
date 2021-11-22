@@ -32,7 +32,7 @@ from psychopy import logging
 from psychopy.tools.monitorunittools import cm2pix, deg2pix, convertToPix
 from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.visual.basevisual import (BaseVisualStim, ColorMixin,
-    ContainerMixin)
+                                        ContainerMixin, WindowMixin)
 from psychopy.colors import Color
 
 # for displaying right-to-left (possibly bidirectional) text correctly:
@@ -179,7 +179,7 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self.__dict__['flipVert'] = flipVert
         self.__dict__['languageStyle'] = languageStyle
         self._pygletTextObj = None
-        self.__dict__['pos'] = numpy.array(pos, float)
+        self.pos = pos
         # deprecated attributes
         if alignVert:
             self.__dict__['alignVert'] = alignVert
@@ -262,6 +262,17 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
 
         # need to update the font to reflect the change
         self.setFont(self.font, log=False)
+        return self.__dict__['height']
+
+    @property
+    def size(self):
+        self.size = (self.height*len(self.text), self.height)
+        return WindowMixin.size.fget(self)
+
+    @size.setter
+    def size(self, value):
+        WindowMixin.size.fset(self, value)
+        self.height = getattr(self._size, self.units)[1]
 
     def setHeight(self, height, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
@@ -363,6 +374,7 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self._setTextShaders(text)
 
         self._needSetText = False
+        return self.__dict__['text']
 
     def setText(self, text=None, log=None):
         """Usually you can use 'stim.attribute = value' syntax instead,
@@ -657,10 +669,7 @@ class TextStim(BaseVisualStim, ColorMixin, ContainerMixin):
         # because this is a property getter we can check /on-access/ if it
         # needs updating :-)
         if self._needVertexUpdate:
-            self.__dict__['posPix'] = convertToPix(vertices=[0, 0],
-                                                   pos=self.pos,
-                                                   units=self.units,
-                                                   win=self.win)
+            self.__dict__['posPix'] = self._pos.pix
         self._needVertexUpdate = False
         return self.__dict__['posPix']
 

@@ -28,7 +28,7 @@ from psychopy.tools.monitorunittools import cm2pix, deg2pix, convertToPix
 from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.visual.shape import BaseShapeStim
 from psychopy.visual.image import ImageStim
-from psychopy.visual.basevisual import MinimalStim, ContainerMixin
+from psychopy.visual.basevisual import MinimalStim, ContainerMixin, WindowMixin
 
 import numpy
 from numpy import cos, sin, radians
@@ -79,8 +79,6 @@ class Aperture(MinimalStim, ContainerMixin):
             logging.error('Aperture has no effect in a window created '
                           'without allowStencil=True')
             core.quit()
-        self.__dict__['size'] = size
-        self.__dict__['pos'] = pos
         self.__dict__['ori'] = ori
         self.__dict__['inverted'] = inverted
         self.__dict__['filename'] = False
@@ -135,6 +133,9 @@ class Aperture(MinimalStim, ContainerMixin):
         # self._needReset = True on every call
         self._reset()
 
+        self.size = size
+        self.pos = pos
+
         # set autoLog now that params have been initialised
         wantLog = autoLog is None and self.win.autoLog
         self.__dict__['autoLog'] = autoLog or wantLog
@@ -180,8 +181,8 @@ class Aperture(MinimalStim, ContainerMixin):
 
             GL.glPopMatrix()
 
-    @attributeSetter
-    def size(self, size):
+    @property
+    def size(self):
         """Set the size (diameter) of the Aperture.
 
         This essentially controls a :class:`.ShapeStim` so see
@@ -192,8 +193,12 @@ class Aperture(MinimalStim, ContainerMixin):
 
         Use setSize() if you want to control logging and resetting.
         """
-        self.__dict__['size'] = size
-        self._shape.size = size  # _shape is a ShapeStim
+        return WindowMixin.size.fget(self)
+
+    @size.setter
+    def size(self, value):
+        WindowMixin.size.fset(self, value)
+        self._shape.size = value  # _shape is a ShapeStim
         self._reset()
 
     def setSize(self, size, needReset=True, log=None):
@@ -226,8 +231,8 @@ class Aperture(MinimalStim, ContainerMixin):
         self._needReset = needReset
         setAttribute(self, 'ori', ori, log)
 
-    @attributeSetter
-    def pos(self, pos):
+    @property
+    def pos(self):
         """Set the pos (centre) of the Aperture.
         :ref:`Operations <attrib-operations>` supported.
 
@@ -239,8 +244,12 @@ class Aperture(MinimalStim, ContainerMixin):
 
         Use setPos() if you want to control logging and resetting.
         """
-        self.__dict__['pos'] = numpy.array(pos)
-        self._shape.pos = self.pos  # a ShapeStim
+        return WindowMixin.pos.fget(self)
+
+    @pos.setter
+    def pos(self, value):
+        WindowMixin.pos.fset(self, value)
+        self._shape.pos = value  # a ShapeStim
         self._reset()
 
     def setPos(self, pos, needReset=True, log=None):
@@ -249,6 +258,24 @@ class Aperture(MinimalStim, ContainerMixin):
         """
         self._needReset = needReset
         setAttribute(self, 'pos', pos, log)
+
+    @property
+    def vertices(self):
+        return WindowMixin.vertices.fget(self)
+
+    @vertices.setter
+    def vertices(self, value):
+        WindowMixin.vertices.fset(self, value)
+        self._shape.vertices = value  # a ShapeStim
+
+    @property
+    def flip(self):
+        return WindowMixin.flip.fget(self)
+
+    @flip.setter
+    def flip(self, value):
+        WindowMixin.flip.fset(self, value)
+        self._shape.flip = value  # a ShapeStim
 
     @attributeSetter
     def inverted(self, value):
@@ -270,13 +297,13 @@ class Aperture(MinimalStim, ContainerMixin):
     def posPix(self):
         """The position of the aperture in pixels
         """
-        return self._shape.posPix
+        return self._shape._pos.pix
 
     @property
     def sizePix(self):
         """The size of the aperture in pixels
         """
-        return self._shape.sizePix
+        return self._shape._size.pix
 
     @attributeSetter
     def enabled(self, value):

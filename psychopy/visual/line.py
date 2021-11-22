@@ -121,7 +121,7 @@ class Line(ShapeStim):
                  win,
                  start=(-.5, -.5),
                  end=(.5, .5),
-                 units='',
+                 units=None,
                  lineWidth=1.5,
                  lineColor='white',
                  fillColor=None, # Not used, but is supplied by Builder via Polygon
@@ -151,7 +151,6 @@ class Line(ShapeStim):
 
         self.__dict__['start'] = numpy.array(start)
         self.__dict__['end'] = numpy.array(end)
-        self.__dict__['vertices'] = [start, end]
 
         super(Line, self).__init__(
             win,
@@ -161,7 +160,7 @@ class Line(ShapeStim):
             lineColorSpace=None,
             fillColor=None,
             fillColorSpace=lineColorSpace,  # have these set to the same
-            vertices=self.vertices,
+            vertices=None,
             closeShape=False,
             pos=pos,
             size=size,
@@ -177,6 +176,9 @@ class Line(ShapeStim):
             autoDraw=autoDraw,
             color=color,
             colorSpace=colorSpace)
+
+        self._vertices.setas([start, end], self.units)
+        del self._tesselVertices
 
     @property
     def color(self):
