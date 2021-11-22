@@ -103,7 +103,10 @@ class Vector(object):
     def __eq__(self, target):
         """== will compare position in pix"""
         if isinstance(target, Vector):
-            return self.pix == target.pix
+            if self.pix.size > 1:
+                return all(self.pix == target.pix)
+            else:
+                return self.pix == target.pix
         else:
             return False
 
