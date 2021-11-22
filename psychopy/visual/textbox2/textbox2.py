@@ -341,6 +341,23 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             self.contentBox.pos = self._pos
 
     @property
+    def vertices(self):
+        return WindowMixin.vertices.fget(self)
+
+    @vertices.setter
+    def vertices(self, value):
+        # If None, use defaut
+        if value is None:
+            value = [
+                [0.5, -0.5],
+                [-0.5, -0.5],
+                [-0.5, 0.5],
+                [0.5, 0.5],
+            ]
+        # Create Vertices object
+        self._vertices = layout.Vertices(value, obj=self.contentBox, flip=self.flip)
+
+    @property
     def padding(self):
         if hasattr(self, "_padding"):
             return getattr(self._padding, self.units)
@@ -550,7 +567,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
         lineMax = self.contentBox._size.pix[0]
 
-        current = [0, 0]
+        current = [0, 0 - self._lineHeight]
         fakeItalic = 0.0
         fakeBold = 0.0
         # for some reason glyphs too wide when using alpha channel only
@@ -600,13 +617,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                     xTopL = xMid - glyph.size[0] * alphaCorrection / 2 - fakeBold / 2
                     xTopR = xMid + glyph.size[0] * alphaCorrection / 2 + fakeBold / 2
 
-                    # Adjust for norm
-                    if self.units == 'norm':
-                        ratio = self.win.size[1]/self.win.size[0]
-                        xBotL *= ratio
-                        xTopL *= ratio
-                        xBotR *= ratio
-                        xTopR *= ratio
                     u0 = glyph.texcoords[0]
                     v0 = glyph.texcoords[1]
                     u1 = glyph.texcoords[2]
@@ -831,8 +841,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             raise ValueError("Unknown lineBreaking option ({}) is"
                 "specified.".format(lineBreaking))
 
-        # convert the vertices to stimulus units
-        self._rawVerts = vertices / self._pixelScaling
+        # Convert the vertices to be relative to content box and set
+        self.vertices = vertices / self._size.pix + (-0.5, 0.5)
 
         # if we had to add more glyphs to make possible then 
         if self.glFont._dirty:
@@ -1013,12 +1023,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             boxOffsetX = + self.size[0] / 2.0
         else:
             raise ValueError('Unexpected value for _anchorX')
-        self.vertices = self._rawVerts + (self._anchorOffsetX, self._anchorOffsetY)
 
-        vertsPix = convertToPix(vertices=self.vertices,
-                                pos=self.pos,
-                                win=self.win, units=self.units)
-        self.__dict__['verticesPix'] = vertsPix
+        self.__dict__['verticesPix'] = self._vertices.pix
 
         # tight bounding box
         if self.vertices.shape[0] < 1:  # editable box with no letters?
