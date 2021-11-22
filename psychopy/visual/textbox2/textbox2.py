@@ -589,12 +589,17 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                     elif charcode == " ":
                         # glyph size of space is smaller than actual size, so use size of dot instead
                         glyph.size = font[u"·"].size
-                    xBotL = current[0] + glyph.offset[0] - fakeItalic - fakeBold / 2
-                    xTopL = current[0] + glyph.offset[0] - fakeBold / 2
+                    # Get top and bottom coords
                     yTop = current[1] + glyph.offset[1]
-                    xBotR = xBotL + glyph.size[0] * alphaCorrection + fakeBold
-                    xTopR = xTopL + glyph.size[0] * alphaCorrection + fakeBold
                     yBot = yTop - glyph.size[1]
+                    # Get x mid point
+                    xMid = current[0] + glyph.offset[0] + glyph.size[0] * alphaCorrection / 2 + fakeBold / 2
+                    # Get left and right corners from midpoint
+                    xBotL = xMid - glyph.size[0] * alphaCorrection / 2 - fakeItalic - fakeBold / 2
+                    xBotR = xMid + glyph.size[0] * alphaCorrection / 2 - fakeItalic + fakeBold / 2
+                    xTopL = xMid - glyph.size[0] * alphaCorrection / 2 - fakeBold / 2
+                    xTopR = xMid + glyph.size[0] * alphaCorrection / 2 + fakeBold / 2
+
                     # Adjust for norm
                     if self.units == 'norm':
                         ratio = self.win.size[1]/self.win.size[0]
