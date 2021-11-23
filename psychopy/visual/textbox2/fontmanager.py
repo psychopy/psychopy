@@ -856,9 +856,9 @@ class FontManager():
         The GL Font object has all the standard GL Font attributes for layout, these work as follows:
         `.ascender`: The position of the ascent line relative to the baseline
         `.descender`: The position of the descent line relative to the baseline
-        `.height`: The position of the ascent line relative to the descent line
-        `.size`: The position of the cap line relative to the descent line
-        `.linegap`: The recommended position of the next row's ascent line relative to this row's descent line
+        `.height`: The distance between the ascent line and the descent line
+        `.size`: The distance between the cap line and the descent line
+        `.linegap`: The (recommended) distance between the next row's ascent line and this row's descent line
         PsychoPy also adds an additional attribute for convenience:
         `.capheight`: The position of the cap line relative to the baseline (in otherwords, `.descender` + `.size`)
         `.leading`: The recommended position of the next row's ascent line relative to this row's baseline
