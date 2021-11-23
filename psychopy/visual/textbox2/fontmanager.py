@@ -852,6 +852,18 @@ class FontManager():
         TextBox instances use the same font (with matching font properties)
         then the existing FontAtlas is returned. Otherwise, a new FontAtlas is
         created , added to the cache, and returned.
+
+        The GL Font object has all the standard GL Font attributes for layout, these work as follows:
+        `.ascender`: The position of the ascent line relative to the baseline
+        `.descender`: The position of the descent line relative to the baseline
+        `.height`: The position of the ascent line relative to the descent line
+        `.size`: The position of the cap line relative to the descent line
+        `.linegap`: The recommended position of the next row's ascent line relative to this row's descent line
+        PsychoPy also adds an additional attribute for convenience:
+        `.capheight`: The position of the cap line relative to the baseline (in otherwords, `.descender` + `.size`)
+        `.leading`: The recommended position of the next row's ascent line relative to this row's baseline
+
+        See the Coder demo "fontLayout.py" for a visualisation of these attributes
         """
         fontInfos = self.getFontsMatching(name, bold, italic, fallback=False)
         if not fontInfos:
@@ -871,6 +883,9 @@ class FontManager():
         if glFont is None:
             glFont = GLFont(fontInfo.path, size)
             self._glFonts[identifier] = glFont
+        # Work out cap height for convenience
+        glFont.capheight = glFont.descender + glFont.size
+        glFont.leading = glFont.descender - glFont.linegap
 
         return glFont
 

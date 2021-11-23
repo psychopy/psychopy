@@ -276,6 +276,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                     fontName,
                     size=self.letterHeightPix,
                     bold=self.bold, italic=self.italic)
+        self.lineSpacing = self.lineSpacing
 
     @property
     def size(self):
@@ -372,6 +373,21 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         elif isinstance(value, (list, tuple, np.ndarray)):
             # If given an array, convert it to a Vector
             self._letterHeight = layout.Size(value, units=self.units, win=self.win)
+
+    @property
+    def lineSpacing(self):
+        if hasattr(self, "_lineSpacing"):
+            return self._lineSpacing
+        else:
+            return 1
+
+    @lineSpacing.setter
+    def lineSpacing(self, value):
+        self._lineSpacing = value
+
+        if hasattr(self, "glFont"):
+            self.glFont.linegap = (value - 1) * self.glFont.height
+            self.glFont.leading = self.glFont.descender - self.glFont.linegap
 
     @property
     def letterHeightPix(self):
@@ -546,7 +562,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self._lineHeight = font.height * self.lineSpacing
 
         lineMax = self.contentBox._size.pix[0]
-        current = [0, 0 - font.ascender * self.lineSpacing]
+        current = [0, 0 - font.ascender]
         fakeItalic = 0.0
         fakeBold = 0.0
         # for some reason glyphs too wide when using alpha channel only
@@ -630,7 +646,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 if charcode == "\n":
                     lineWPix = current[0]
                     current[0] = 0
-                    current[1] -= self._lineHeight
+                    current[1] -= font.ascender - font.leading
                     lineN += 1
                     charsThisLine += 1
                     self._lineLenChars.append(charsThisLine)
@@ -660,7 +676,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                     lineN += 1
                     # and set current to correct location
                     current[0] = wordWidth
-                    current[1] -= self._lineHeight
+                    current[1] -= font.ascender - font.leading
                     charsThisLine = wordLen
                     wordsThisLine = 1
 
