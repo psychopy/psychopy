@@ -276,6 +276,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                     fontName,
                     size=self.letterHeightPix,
                     bold=self.bold, italic=self.italic)
+        # Refresh line spacing
         self.lineSpacing = self.lineSpacing
 
     @property
@@ -375,19 +376,12 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             self._letterHeight = layout.Size(value, units=self.units, win=self.win)
 
     @property
-    def lineSpacing(self):
-        if hasattr(self, "_lineSpacing"):
-            return self._lineSpacing
-        else:
-            return 1
-
-    @lineSpacing.setter
-    def lineSpacing(self, value):
-        self._lineSpacing = value
-
-        if hasattr(self, "glFont"):
-            self.glFont.linegap = (value - 1) * self.glFont.height
-            self.glFont.leading = self.glFont.descender - self.glFont.linegap
+    def _lineAdvance(self):
+        """
+        How many pixels to advance by when starting a new line. Gets leading and ascent from font, calculates additional leading based on lineSpacing
+        """
+        _extraLeading = (self.lineSpacing - 1) * self.glFont.height
+        return self.glFont.leading - _extraLeading - self.glFont.ascender
 
     @property
     def letterHeightPix(self):
@@ -646,7 +640,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 if charcode == "\n":
                     lineWPix = current[0]
                     current[0] = 0
-                    current[1] -= font.ascender - font.leading
+                    current[1] += self._lineAdvance
                     lineN += 1
                     charsThisLine += 1
                     self._lineLenChars.append(charsThisLine)
@@ -668,7 +662,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                     wordWidth = current[0] - lineBreakPt
                     # shift all chars of the word left by wordStartX
                     vertices[(i - wordLen + 1) * 4: (i + 1) * 4, 0] -= lineBreakPt
-                    vertices[(i - wordLen + 1) * 4: (i + 1) * 4, 1] -= self._lineHeight
+                    vertices[(i - wordLen + 1) * 4: (i + 1) * 4, 1] += self._lineAdvance
                     # update line values
                     self._lineNs[i - wordLen + 1: i + 1] += 1
                     self._lineLenChars.append(charsThisLine - wordLen)
@@ -676,15 +670,14 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                     lineN += 1
                     # and set current to correct location
                     current[0] = wordWidth
-                    current[1] -= font.ascender - font.leading
+                    current[1] += self._lineAdvance
                     charsThisLine = wordLen
                     wordsThisLine = 1
 
                 # have we stored the top/bottom of this line yet
                 if lineN + 1 > len(self._lineTops):
                     self._lineBottoms.append(current[1] + font.descender)
-                    self._lineTops.append(current[1] + self._lineHeight
-                                          + font.descender/2)
+                    self._lineTops.append(current[1] + font.ascender)
                 
             # finally add length of this (unfinished) line
             self._lineWidths.append(getLineWidthFromPix(current[0]))

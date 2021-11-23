@@ -10,10 +10,13 @@ drawList = []
 # Get a font with consistent proportions that are easy to spot
 allFonts = FontManager()
 font = allFonts.getFont("Outfit", size=50)
+# Add more line spacing so that the gap is visible
+font.linegap = 15
+font.leading = font.descender - font.linegap
 
 # Create a textbox using this font, whose vertical position is such that the baseline of the first line of text is at 0
 text = visual.TextBox2(
-    win=win, text="My text has an È!\nMy text has an È!", font=font, lineSpacing=1.2,
+    win=win, text="My text has an È!\nMy text has an È!", font=font,
     pos=(-50, font.ascender - font.height), size=(400, font.height*2), padding=0,
     color="black"
 )
