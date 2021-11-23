@@ -817,8 +817,8 @@ class BaseVisualComponent(BaseComponent):
         saveHdf5 = self.exp.settings.params['Save hdf5 file'].val
         if saveHdf5:
             name = self.params['name']
-            comp_onset_tag = "%s_onset" % name
-            comp_offset_tag = "%s_offset" % name
+            comp_onset_tag = "%s.started" % name
+            comp_offset_tag = "%s.stopped" % name
             if 'saveStartStop' in self.params and self.params['saveStartStop'].val:
                 if self.params['syncScreenRefresh'].val:
                         code = (
