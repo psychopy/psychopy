@@ -18,7 +18,7 @@ from psychopy.iohub.datastore.util import displayDataFileSelectionDialog
 
 # Specify the experiment message text used to split events into trial periods.
 TRIAL_START_MESSAGE = 'target.started'
-TRIAL_END_MESSAGE = 'target.stopped'
+TRIAL_END_MESSAGE = 'fix_end_stim.started'
 # Specify which event type and event fields to save
 SAVE_EVENT_TYPE = 'MonocularEyeSampleEvent'
 SAVE_EVENT_FIELDS = ['time', 'gaze_x', 'gaze_y', 'pupil_measure1', 'status']
