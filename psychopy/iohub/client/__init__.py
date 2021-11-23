@@ -483,7 +483,7 @@ class ioHubConnection():
                                              msg_offset=offset,
                                              sec_time=sec_time))
 
-    def sendMessageEvents(self, messageList):
+    def sendMessageEvents(self, messageList=[]):
         if messageList:
             self.cacheMessageEvents(messageList)
         if self._message_cache:
@@ -1277,6 +1277,9 @@ class ioHubConnection():
 
     def _shutDownServer(self):
         if self._shutdown_attempted is False:
+            # send any cached experiment messages
+            self.sendMessageEvents()
+
             try:
                 from psychopy.visual import window
                 window.IOHUB_ACTIVE = False
