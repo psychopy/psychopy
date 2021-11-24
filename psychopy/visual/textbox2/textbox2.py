@@ -50,6 +50,9 @@ wordBreaks = " -\n"  # what about ",."?
 
 END_OF_THIS_LINE = 983349843
 
+# Setting debug to True will make the sub-elements on TextBox2 to be outlined in red, making it easier to determine their position
+debug = False
+
 # If text is ". " we don't want to start next line with single space?
 
 class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
@@ -130,16 +133,16 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.contentBox = Rect(
             win,
             units=self.units, pos=(0, 0), size=(0, 0),  # set later by self.size and self.pos
-            colorSpace=colorSpace, lineColor=None, fillColor=None,
-            lineWidth=0, opacity=0,
+            colorSpace=colorSpace, lineColor='red', fillColor=None,
+            lineWidth=1, opacity=int(debug),
             autoLog=False
         )
         # Box around current content, wrapped tight - not drawn
         self.boundingBox = Rect(
             win,
             units=self.units, pos=(0, 0), size=(0, 0),  # set later by self.size and self.pos
-            colorSpace=colorSpace, lineColor=None, fillColor=None,
-            lineWidth=0, opacity=0,
+            colorSpace=colorSpace, lineColor='red', fillColor=None,
+            lineWidth=1, opacity=int(debug),
             autoLog=False
         )
         # Sizing params
@@ -864,6 +867,11 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             self._updateVertices()
         if self.fillColor is not None or self.borderColor is not None:
             self.box.draw()
+
+        # Draw sub-elements if in debug mode
+        if debug:
+            self.contentBox.draw()
+            self.boundingBox.draw()
 
         # self.boundingBox.draw()  # could draw for debug purposes
         gl.glPushMatrix()
