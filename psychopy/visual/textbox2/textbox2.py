@@ -293,6 +293,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             self.box.size = self._size
         if hasattr(self, "contentBox"):
             self.contentBox.size = self._size - self._padding * 2
+        # Refresh pos
+        self.pos = self.pos
 
     @property
     def pos(self):
@@ -323,7 +325,11 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         if hasattr(self, "box"):
             self.box.size = self._pos
         if hasattr(self, "contentBox"):
-            self.contentBox.pos = self._pos
+            # Content box should be anchored center relative to box, but its pos needs to be relative to box's vertices, not its pos
+            self.contentBox.pos = self.pos + self.size * self.box._vertices.anchorAdjust
+            self.contentBox._needVertexUpdate = True
+
+        self._needVertexUpdate = True
 
     @property
     def vertices(self):
@@ -405,28 +411,16 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         else:
             raise TypeError(f"Could not set font manager for TextBox2 object `{self.name}`, must be supplied with a FontManager object")
 
-    @attributeSetter
-    def anchor(self, anchor):
-        """anchor is a string of terms, top, bottom, left, right, center
+    @property
+    def anchor(self):
+        return self.box.anchor
 
-        e.g. 'top_center', 'center-right', 'topleft', 'center' are all valid"""
-        self.__dict__['anchor'] = anchor
-        # look for unambiguous terms first (top, bottom, left, right)
-        self._anchorY = None
-        self._anchorX = None
-        if 'top' in anchor:
-            self._anchorY = 'top'
-        elif 'bottom' in anchor:
-            self._anchorY = 'bottom'
-        if 'right' in anchor:
-            self._anchorX = 'right'
-        elif 'left' in anchor:
-            self._anchorX = 'left'
-        # then 'center' can apply to either axis that isn't already set
-        if self._anchorX is None:
-            self._anchorX = 'center'
-        if self._anchorY is None:
-            self._anchorY = 'center'
+    @anchor.setter
+    def anchor(self, anchor):
+        # Box should use this anchor
+        self.box.anchor = anchor
+        # Set pos again to update sub-element vertices
+        self.pos = self.pos
 
     @attributeSetter
     def alignment(self, alignment):
@@ -984,42 +978,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             flip[1] = -1  # True=(-1), False->(+1)
 
         font = self.glFont
-        # to start with the anchor is bottom left of *first line*
-        if self._anchorY == 'top':
-            self._anchorOffsetY = (-font.ascender / self._pixelScaling
-                                   - self.padding[1])
-            boxOffsetY = - self.size[1] / 2.0
-        elif self._anchorY == 'center':
-            self._anchorOffsetY = (
-                    self.size[1] / 2
-                    - (font.height / 2 - font.descender) / self._pixelScaling
-                    - self.padding[1]
-            )
-            boxOffsetY = 0
-        elif self._anchorY == 'bottom':
-            self._anchorOffsetY = (
-                    self.size[1]
-                    - (font.height / 2 + font.ascender) / self._pixelScaling
-            )
-            # self._anchorOffsetY = (-font.ascender / self._pixelScaling
-            #                        - self.padding)
-            boxOffsetY = + (self.size[1]) / 2.0
-        else:
-            raise ValueError('Unexpected value for _anchorY')
-
-        # calculate anchor offsets (text begins on left=0, box begins center=0)
-        if self._anchorX == 'right':
-            self._anchorOffsetX = - self.size[0] + self.padding[0]
-            boxOffsetX = - self.size[0] / 2.0
-        elif self._anchorX == 'center':
-            self._anchorOffsetX = - self.size[0] / 2.0 + self.padding[0]
-            boxOffsetX = 0
-        elif self._anchorX == 'left':
-            self._anchorOffsetX = 0 + self.padding[0]
-            boxOffsetX = + self.size[0] / 2.0
-        else:
-            raise ValueError('Unexpected value for _anchorX')
-
         self.__dict__['verticesPix'] = self._vertices.pix
 
         # tight bounding box
@@ -1039,7 +997,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             self.boundingBox.size = tightW, tightH
             self.boundingBox.pos = self.pos + (Xmid, Ymid)
         # box (larger than bounding box) needs anchor offest adding
-        self.box.pos = self.pos + (boxOffsetX, boxOffsetY)
+        self.box.pos = self.pos
         self.box.size = self.size  # this might have changed from _requested
 
         self._needVertexUpdate = False
