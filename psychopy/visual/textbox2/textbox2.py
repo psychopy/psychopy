@@ -216,7 +216,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
         # caret
         self.editable = editable
-        self.caret = Caret(self, color=self.color, width=5)
+        self.caret = Caret(self, color=self.color, width=2)
 
 
         self.autoLog = autoLog
@@ -545,8 +545,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
         # the following are used internally for layout
         self._lineNs = np.zeros(len(visible_text), dtype=int)
-        self._lineTops = []  # just length of nLines
-        self._lineBottoms = []
+        _lineBottoms = []
         self._lineLenChars = []  #
         self._lineWidths = []  # width in stim units of each line
 
@@ -672,10 +671,9 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                     wordsThisLine = 1
 
                 # have we stored the top/bottom of this line yet
-                if lineN + 1 > len(self._lineTops):
-                    self._lineBottoms.append(current[1] + font.descender)
-                    self._lineTops.append(current[1] + font.ascender)
-                
+                if lineN + 1 > len(_lineBottoms):
+                    _lineBottoms.append(current[1])
+
             # finally add length of this (unfinished) line
             self._lineWidths.append(getLineWidthFromPix(current[0]))
             self._lineLenChars.append(charsThisLine)
@@ -803,10 +801,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                         current[1] = current[1] + y_advance_list[i]
                         
                         # have we stored the top/bottom of this line yet
-                        if lineN + 1 > len(self._lineTops):
-                            self._lineBottoms.append(current[1] + font.descender)
-                            self._lineTops.append(current[1] + self._lineHeight
-                                                   + font.descender/2)
+                        if lineN + 1 > len(_lineBottoms):
+                            _lineBottoms.append(current[1])
 
                         # next chacactor
                         i += 1
@@ -828,21 +824,16 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
         # Convert the vertices to be relative to content box and set
         self.vertices = vertices / self.contentBox._size.pix + (-0.5, 0.5)
+        if len(_lineBottoms):
+            self._lineBottoms = max(self.contentBox._vertices.pix[:, 1]) + np.array(_lineBottoms)
+        else:
+            self._lineBottoms = np.array(_lineBottoms)
 
         # if we had to add more glyphs to make possible then 
         if self.glFont._dirty:
             self.glFont.upload()
             self.glFont._dirty = False
         self._needVertexUpdate = True
-
-    def _getStartingVertices(self):
-        """Returns vertices for a single non-printing char as a proxy
-        (needed to get location for caret when there are no actual chars)"""
-        yTop = self._anchorOffsetY - (self.glFont.height - self.glFont.ascender) * self.lineSpacing
-        yBot = yTop - self._lineHeight
-        x = 0
-        theseVertices = np.array([[x, yTop], [x, yBot], [x, yBot], [x, yTop]])
-        return theseVertices
 
     def draw(self):
         """Draw the text to the back buffer"""
@@ -1160,6 +1151,7 @@ class Caret(ColorMixin):
             return self.textbox._lineNs[-1]
         else:
             return self.textbox._lineNs[self.index]
+
     @row.setter
     def row(self, value):
         """Use line to index conversion to set index according to row value"""
@@ -1227,27 +1219,26 @@ class Caret(ColorMixin):
             self.index = len(textbox._text)
         if self.index < 0:
             self.index = 0
-        # get the verts of character next to caret (chr is the next one so use
-        # left edge unless last index then use the right of prev chr)
-        # lastChar = [bottLeft, topLeft, **bottRight**, **topRight**]
+        # Get vertices of caret based on characters and index
         ii = self.index
         if textbox.vertices.shape[0] == 0:
-            verts = textbox._getStartingVertices() / textbox._pixelScaling
-            verts[:,1] = verts[:,1]
-            verts[:,0] = verts[:,0] + float(textbox._anchorOffsetX)
+            # If there are no chars, put caret at start position
+            bottom = max(self.textbox.contentBox._vertices.pix[:, 1]) - self.textbox.glFont.height
+            x = min(self.textbox.contentBox._vertices.pix[:, 0])
         else:
-            if self.index >= len(textbox._lineNs):  # caret is after last chr
-                chrVerts = textbox.vertices[range((ii-1) * 4, (ii-1) * 4 + 4)]
+            if self.index >= len(textbox._lineNs):
+                # If the caret is after the last char, position it to the right
+                chrVerts = textbox._vertices.pix[range((ii-1) * 4, (ii-1) * 4 + 4)]
                 x = chrVerts[2, 0]  # x-coord of left edge (of final char)
             else:
-                chrVerts = textbox.vertices[range(ii * 4, ii * 4 + 4)]
+                # Otherwise, position it to the left
+                chrVerts = textbox._vertices.pix[range(ii * 4, ii * 4 + 4)]
                 x = chrVerts[1, 0]  # x-coord of right edge
-            # the y locations are the top and bottom of this line
-            y1 = textbox._lineBottoms[self.row] / textbox._pixelScaling
-            y2 = textbox._lineTops[self.row] / textbox._pixelScaling
-            # char x pos has been corrected for anchor already but lines haven't
-            verts = (np.array([[x, y1], [x, y2]])
-                     + (0, textbox._anchorOffsetY))
-
-        return convertToPix(vertices=verts, pos=textbox.pos,
-                            win=textbox.win, units=textbox.units)
+            # Get top of this line
+            bottom = textbox._lineBottoms[self.row]
+        # Top will always be line bottom + font height
+        top = bottom + self.textbox.glFont.size
+        return np.array([
+            [x, bottom],
+            [x, top]
+        ])
