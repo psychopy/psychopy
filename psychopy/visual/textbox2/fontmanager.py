@@ -341,19 +341,18 @@ class GLFont:
         """
         self.scale = 64.0
         self.atlas = _TextureAtlas(textureSize, textureSize, format='alpha')
+        self.format = self.atlas.format
         self.filename = filename
+        self.face = ft.Face(str(filename))  # ft.Face doesn't support Pathlib yet
         self.size = size
         self.glyphs = {}
-        face = ft.Face(str(filename))  # ft.Face doesn't support Pathlib yet
-        face.set_char_size(int(self.size * self.scale))
-        self.info = FontInfo(filename, face)
+        self.info = FontInfo(filename, self.face)
         self._dirty = False
-        metrics = face.size
+        # Get metrics
+        metrics = self.face.size
         self.ascender = metrics.ascender / self.scale
         self.descender = metrics.descender / self.scale
         self.height = metrics.height / self.scale
-        self.linegap = self.height - self.ascender + self.descender
-        self.format = self.atlas.format
 
     def __getitem__(self, charcode):
         """
@@ -366,6 +365,49 @@ class GLFont:
     def __str__(self):
         """Returns a string rep of the font, such as 'Arial_24_bold' """
         return "{}_{}".format(self.info, self.size)
+
+    @property
+    def leading(self):
+        """
+        Position of the next row's ascender line relative to this row's base line.
+        """
+        return self.ascender - self.height
+
+    @leading.setter
+    def leading(self, value):
+        self.height = self.ascender - value
+
+    @property
+    def linegap(self):
+        return -(self.leading - self.descender)
+
+    @linegap.setter
+    def linegap(self, value):
+        self.leading = self.descender - value
+
+    @property
+    def capheight(self):
+        """
+        Position of the top of capital letters relative to the base line.
+        """
+        return self.descender + self.size
+
+    @capheight.setter
+    def capheight(self, value):
+        self.size = value - self.descender
+
+    @property
+    def size(self):
+        """
+        Distance from the descender line to the capheight line.
+        """
+        if hasattr(self, "_size"):
+            return self._size
+
+    @size.setter
+    def size(self, value):
+        self._size = value
+        self.face.set_char_size(int(self.size * self.scale))
 
     @property
     def name(self):
@@ -883,9 +925,6 @@ class FontManager():
         if glFont is None:
             glFont = GLFont(fontInfo.path, size)
             self._glFonts[identifier] = glFont
-        # Work out cap height for convenience
-        glFont.capheight = glFont.descender + glFont.size
-        glFont.leading = glFont.descender - glFont.linegap
 
         return glFont
 
