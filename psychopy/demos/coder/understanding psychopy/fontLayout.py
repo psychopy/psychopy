@@ -1,3 +1,8 @@
+"""
+This demo produces a handy diagram showing how the metrics of a PsychoPy GLFont object affect the layout of rows in a textbox. A textbox is drawn such that the baseline of the first line is at the vertical coordinate 0, meaning that all other lines and shapes can be laid out relative to this line.
+"""
+
+
 from psychopy import visual, event
 from psychopy.visual.textbox2.fontmanager import FontManager
 
@@ -9,10 +14,7 @@ drawList = []
 
 # Get a font with consistent proportions that are easy to spot
 allFonts = FontManager()
-font = allFonts.getFont("Outfit", size=50)
-# Add more line spacing so that the gap is visible
-font.linegap = 15
-font.leading = font.descender - font.linegap
+font = allFonts.getFont("Outfit", size=50, lineSpacing=1.3)
 
 # Create a textbox using this font, whose vertical position is such that the baseline of the first line of text is at 0
 text = visual.TextBox2(
@@ -21,9 +23,6 @@ text = visual.TextBox2(
     color="black"
 )
 drawList += [text]
-
-
-# Draw the gapsize box
 
 # Draw the baseline
 baseline = visual.Line(win, start=(-250, 0), end=(250, 0), lineColor="green")
@@ -47,7 +46,7 @@ leadingLbl = visual.TextBox2(win, ".leading", "Outfit", color="purple", letterHe
 drawList += [leading, leadingLbl]
 
 # Draw the height box
-height = visual.Rect(win, fillColor="orange", pos=(215, (font.ascender + font.descender)/2), size=(20, font.height))
+height = visual.Rect(win, fillColor="orange", pos=(215, (font.ascender + font.leading)/2), size=(20, font.height))
 heightLbl = visual.TextStim(win, ".height", "Outfit", color="white", bold=True, pos=(215, (font.ascender + font.descender)/2), height=12, ori=90)
 drawList += [height, heightLbl]
 # Draw the size box
@@ -55,9 +54,8 @@ size = visual.Rect(win, fillColor="red", pos=(240, (font.capheight + font.descen
 sizeLbl = visual.TextStim(win, ".size", "Outfit", color="white", bold=True, pos=(240, (font.capheight + font.descender)/2), height=12, ori=90)
 drawList += [size, sizeLbl]
 # Draw linegap box
-linegap = visual.Rect(win, fillColor="purple", pos=(227.5, (font.descender + font.leading)/2), size=(45, font.linegap))
-linegapLbl = visual.TextStim(win, ".linegap", "Outfit", color="white", bold=True, pos=(225, (font.descender + font.leading)/2), height=10)
-drawList += [linegap, linegapLbl]
+linegap = visual.TextBox2(win, ".linegap", "Outfit", fillColor="purple", color="white", letterHeight=12, pos=(227.5, (font.descender + font.leading)/2), size=(45, font.linegap), padding=0)
+drawList += [linegap]
 
 # Rearrange order
 drawList += [drawList.pop(drawList.index(descender))]
