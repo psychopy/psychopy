@@ -321,9 +321,30 @@ class _TextureAtlas:
 class GLFont:
     """
     A GLFont gathers a set of glyphs for a given font filename and size.
+
+        size : int
+            Distance between the tops of capital letters and the bottoms of descenders
+
+        height : int
+            Total distance from one baseline to the next
+
+        capheight : int
+            Position of the tops of capital letters relative to the baseline
+
+        ascender : int
+            Position of the tops of ascenders relative to the baseline
+
+        descender : int
+            Position of the bottoms of descenders relative to the baseline
+
+        linegap : int
+            Distance between the bottoms of this line's descenders and the tops of the next line's ascenders
+
+        leading : int
+            Position of the tops of the next line's ascenders relative to this line's baseline
     """
 
-    def __init__(self, filename, size, textureSize=2048):
+    def __init__(self, filename, size, lineSpacing=1, textureSize=2048):
         """
         Initialize font
 
@@ -338,6 +359,9 @@ class GLFont:
 
         size : float
             Font size
+
+        lineSpacing : float
+            Leading between lines, proportional to font size
         """
         self.scale = 64.0
         self.atlas = _TextureAtlas(textureSize, textureSize, format='alpha')
@@ -353,6 +377,8 @@ class GLFont:
         self.ascender = metrics.ascender / self.scale
         self.descender = metrics.descender / self.scale
         self.height = metrics.height / self.scale
+        # Set spacing
+        self.lineSpacing = lineSpacing
 
     def __getitem__(self, charcode):
         """
@@ -408,6 +434,14 @@ class GLFont:
     def size(self, value):
         self._size = value
         self.face.set_char_size(int(self.size * self.scale))
+
+    @property
+    def lineSpacing(self):
+        return self.height / (self.ascender - self.descender)
+
+    @lineSpacing.setter
+    def lineSpacing(self, value):
+        self.height = value * (self.ascender - self.descender)
 
     @property
     def name(self):
@@ -886,7 +920,7 @@ class FontManager():
     # Class methods for FontManager below this comment should not need to be
     # used by user scripts in most situations. Accessing them is okay.
 
-    def getFont(self, name, size=32, bold=False, italic=False,
+    def getFont(self, name, size=32, bold=False, italic=False, lineSpacing=1,
                 monospace=False):
         """
         Return a FontAtlas object that matches the family name, style info,
@@ -894,18 +928,6 @@ class FontManager():
         TextBox instances use the same font (with matching font properties)
         then the existing FontAtlas is returned. Otherwise, a new FontAtlas is
         created , added to the cache, and returned.
-
-        The GL Font object has all the standard GL Font attributes for layout, these work as follows:
-        `.ascender`: The position of the ascent line relative to the baseline
-        `.descender`: The position of the descent line relative to the baseline
-        `.height`: The distance between the ascent line and the descent line
-        `.size`: The distance between the cap line and the descent line
-        `.linegap`: The (recommended) distance between the next row's ascent line and this row's descent line
-        PsychoPy also adds an additional attribute for convenience:
-        `.capheight`: The position of the cap line relative to the baseline (in otherwords, `.descender` + `.size`)
-        `.leading`: The recommended position of the next row's ascent line relative to this row's baseline
-
-        See the Coder demo "fontLayout.py" for a visualisation of these attributes
         """
         fontInfos = self.getFontsMatching(name, bold, italic, fallback=False)
         if not fontInfos:
@@ -923,7 +945,7 @@ class FontManager():
         identifier = "{}_{}".format(str(fontInfo), size)
         glFont = self._glFonts.get(identifier)
         if glFont is None:
-            glFont = GLFont(fontInfo.path, size)
+            glFont = GLFont(fontInfo.path, size, lineSpacing=lineSpacing)
             self._glFonts[identifier] = glFont
 
         return glFont

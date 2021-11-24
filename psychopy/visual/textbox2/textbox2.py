@@ -392,11 +392,12 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
     @property
     def lineSpacing(self):
-        return self.glFont.height / (self.glFont.ascender - self.glFont.descender)
+        return self.glFont.lineSpacing
 
     @lineSpacing.setter
     def lineSpacing(self, value):
-        self.glFont.height = value * (self.glFont.ascender - self.glFont.descender)
+        self.glFont.lineSpacing = value
+        self._needVertexUpdate = True
 
     @property
     def fontMGR(self):
