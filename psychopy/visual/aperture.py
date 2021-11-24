@@ -63,7 +63,7 @@ class Aperture(MinimalStim, ContainerMixin):
         2015, Thomas Emmerling added ImageStim option
     """
 
-    def __init__(self, win, size=1, pos=(0, 0), ori=0, nVert=120,
+    def __init__(self, win, size=1, pos=(0, 0), anchor=None, ori=0, nVert=120,
                  shape='circle', inverted=False, units=None,
                  name=None, autoLog=None):
         # what local vars are defined (these are the init params) for use by
@@ -124,7 +124,7 @@ class Aperture(MinimalStim, ContainerMixin):
         else:
             self._shape = BaseShapeStim(
                 win=self.win, vertices=vertices, fillColor=1, lineColor=None, colorSpace='rgb',
-                interpolate=False, pos=pos, size=size, autoLog=False, units=self.units)
+                interpolate=False, pos=pos, size=size, anchor=anchor, autoLog=False, units=self.units)
             self.vertices = self._shape.vertices
             self._needVertexUpdate = True
 
@@ -260,13 +260,20 @@ class Aperture(MinimalStim, ContainerMixin):
         setAttribute(self, 'pos', pos, log)
 
     @property
+    def anchor(self):
+        return WindowMixin.anchor.fget(self._shape)
+
+    @anchor.setter
+    def anchor(self, value):
+        WindowMixin.anchor.fset(self._shape, value)
+
+    @property
     def vertices(self):
-        return WindowMixin.vertices.fget(self)
+        return WindowMixin.vertices.fget(self._shape)
 
     @vertices.setter
     def vertices(self, value):
-        WindowMixin.vertices.fset(self, value)
-        self._shape.vertices = value  # a ShapeStim
+        WindowMixin.vertices.fset(self._shape, value)
 
     @property
     def flip(self):
