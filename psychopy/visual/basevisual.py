@@ -752,14 +752,14 @@ class ContainerMixin:
 
         verts = numpy.dot(self.vertices, self._rotationMatrix)
         # Convert to a vertices object if not already
-        verts = Vertices(verts, obj=self, flip=self.flip).pix
+        verts = Vertices(verts, obj=self, flip=self.flip, anchor=self.anchor).pix
         self.__dict__['verticesPix'] = self.__dict__['_borderPix'] = verts
 
         if hasattr(self, '_tesselVertices'):  # Shapes need to render from this
             tesselVerts = self._tesselVertices
             tesselVerts = numpy.dot(tesselVerts, self._rotationMatrix)
             # Convert to a vertices object if not already
-            tesselVerts = Vertices(tesselVerts, obj=self, flip=self.flip).pix
+            tesselVerts = Vertices(tesselVerts, obj=self, flip=self.flip, anchor=self.anchor).pix
             self.__dict__['verticesPix'] = tesselVerts
 
         self._needVertexUpdate = False
@@ -1306,7 +1306,7 @@ class WindowMixin:
                                 [-0.5, -0.5],
                                 [-0.5, 0.5],
                                 [0.5, 0.5],
-                            ]), obj=self, flip=self.flip)
+                            ]), obj=self, flip=self.flip, anchor=self.anchor)
         return verts.base
 
     @vertices.setter
@@ -1320,7 +1320,7 @@ class WindowMixin:
                 [0.5, 0.5],
             ]
         # Create Vertices object
-        self._vertices = Vertices(value, obj=self, flip=self.flip)
+        self._vertices = Vertices(value, obj=self, flip=self.flip, anchor=self.anchor)
 
     @property
     def flip(self):
@@ -1372,6 +1372,22 @@ class WindowMixin:
     @flipVert.setter
     def flipVert(self, value):
         self.flip = [self.flip[0, 0], value]
+
+    @property
+    def anchor(self):
+        if hasattr(self, "_vertices"):
+            return self._vertices.anchor
+        elif hasattr(self, "_anchor"):
+            # Return a backup value if there's no vertices yet
+            return self._anchor
+
+    @anchor.setter
+    def anchor(self, value):
+        if hasattr(self, "_vertices"):
+            self._vertices.anchor = value
+        else:
+            # Set a backup value if there's no vertices yet
+            self._anchor = value
 
     @property
     def units(self):

@@ -375,7 +375,7 @@ class Size(Vector):
 
 
 class Vertices(object):
-    def __init__(self, verts, obj=None, size=None, pos=None, flip=None):
+    def __init__(self, verts, obj=None, size=None, pos=None, flip=None, anchor=None):
         if obj is None and pos is None and size is None:
             raise ValueError("Vertices array needs either an object or values for pos and size.")
         # Store object
@@ -385,6 +385,8 @@ class Vertices(object):
         self._pos = pos
         # Store flip
         self.flip = flip
+        # Set anchor
+        self.anchor = anchor
         # Convert to numpy array
         verts = numpy.array(verts)
         # Make sure it's coercible to a Nx2 numpy array
@@ -465,10 +467,58 @@ class Vertices(object):
     def flipVert(self, value):
         self.flip = [self.flip[0, 0], value]
 
+    @property
+    def anchor(self):
+        """anchor is a string of terms, top, bottom, left, right, center
+
+        e.g. 'top_center', 'center-right', 'topleft', 'center' are all valid"""
+        if hasattr(self, "_anchorX") and hasattr(self, "_anchorY"):
+            # If set, return set values
+            return (self._anchorX, self._anchorY)
+        else:
+            # Otherwise, assume center
+            return ("center", "center")
+
+    @anchor.setter
+    def anchor(self, anchor):
+        # Set defaults
+        self._anchorY = None
+        self._anchorX = None
+        # Look for unambiguous terms first (top, bottom, left, right)
+        if 'top' in str(anchor):
+            self._anchorY = 'top'
+        elif 'bottom' in str(anchor):
+            self._anchorY = 'bottom'
+        if 'right' in str(anchor):
+            self._anchorX = 'right'
+        elif 'left' in str(anchor):
+            self._anchorX = 'left'
+        # Then 'center' can apply to either axis that isn't already set
+        if self._anchorX is None:
+            self._anchorX = 'center'
+        if self._anchorY is None:
+            self._anchorY = 'center'
+
+    @property
+    def anchorAdjust(self):
+        """
+        Map anchor values to numeric vertices adjustments
+        """
+        anchorAliases = {
+            'top': -0.5,
+            'bottom': 0.5,
+            'left': 0.5,
+            'right': -0.5,
+            'center': 0,
+        }
+        return [anchorAliases[a] for a in self.anchor]
+
     def getas(self, units):
         assert units in unitTypes, f"Unrecognised unit type '{units}'"
         # Start with base values
         verts = self.base.copy()
+        # Apply anchor
+        verts += self.anchorAdjust
         # Apply size
         if self.size is None:
             raise ValueError("Cannot not calculate absolute positions of vertices without a size attribute")
