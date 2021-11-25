@@ -19,8 +19,8 @@ font = allFonts.getFont("Outfit", size=50, lineSpacing=1.3)
 # Create a textbox using this font, whose vertical position is such that the baseline of the first line of text is at 0
 text = visual.TextBox2(
     win=win, text="My text has an È!\nMy text has an È!", font=font,
-    pos=(-50, font.ascender - font.height), size=(400, font.height*2), padding=0,
-    color="black"
+    pos=(-50, font.ascender), size=(400, font.height), padding=0,
+    color="black", anchor="top center", alignment="top left"
 )
 drawList += [text]
 
