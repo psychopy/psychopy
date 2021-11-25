@@ -534,7 +534,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         """Layout the text, calculating the vertex locations
         """
         def getLineWidthFromPix(pixVal):
-            return pixVal / self._pixelScaling + self.padding * 2
+            return pixVal / self._pixelScaling
         
         rgb = self._foreColor.render('rgba1')
         font = self.glFont
@@ -553,7 +553,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self._lineNs = np.zeros(len(visible_text), dtype=int)
         _lineBottoms = []
         self._lineLenChars = []  #
-        self._lineWidths = []  # width in stim units of each line
+        _lineWidths = []  # width in stim units of each line
 
         lineMax = self.contentBox._size.pix[0]
         current = [0, 0 - font.ascender]
@@ -644,7 +644,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                     lineN += 1
                     charsThisLine += 1
                     self._lineLenChars.append(charsThisLine)
-                    self._lineWidths.append(getLineWidthFromPix(lineWPix))
+                    _lineWidths.append(getLineWidthFromPix(lineWPix))
                     charsThisLine = 0
                     wordsThisLine = 0
                 elif charcode in wordBreaks:
@@ -666,7 +666,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                     # update line values
                     self._lineNs[i - wordLen + 1: i + 1] += 1
                     self._lineLenChars.append(charsThisLine - wordLen)
-                    self._lineWidths.append(getLineWidthFromPix(lineBreakPt))
+                    _lineWidths.append(getLineWidthFromPix(lineBreakPt))
                     lineN += 1
                     # and set current to correct location
                     current[0] = wordWidth
@@ -679,7 +679,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                     _lineBottoms.append(current[1])
 
             # add length of this (unfinished) line
-            self._lineWidths.append(getLineWidthFromPix(current[0]))
+            _lineWidths.append(getLineWidthFromPix(current[0]))
             self._lineLenChars.append(charsThisLine)
 
             # Apply vertical alignment
@@ -698,6 +698,13 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 # Adjust vertices and line bottoms
                 vertices[:, 1] = vertices[:, 1] - adjustY
                 _lineBottoms -= adjustY
+
+            # Apply horizontal alignment
+            if self.alignment[0] in ("right", "center"):
+                lineAdjustX = self.contentBox._size.pix[0] - np.array(_lineWidths)
+                adjustX = lineAdjustX[np.repeat(self._lineNs, 4)]
+                # Adjust vertices
+                vertices[:, 0] = vertices[:, 0] + adjustX
 
         elif self._lineBreaking == 'uax14':
 
@@ -847,8 +854,10 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.vertices = vertices / self.contentBox._size.pix + (-0.5, 0.5)
         if len(_lineBottoms):
             self._lineBottoms = max(self.contentBox._vertices.pix[:, 1]) + np.array(_lineBottoms)
+            self._lineWidths = min(self.contentBox._vertices.pix[:, 0]) + np.array(_lineWidths)
         else:
             self._lineBottoms = np.array(_lineBottoms)
+            self._lineWidths = np.array(_lineWidths)
 
         # if we had to add more glyphs to make possible then 
         if self.glFont._dirty:
