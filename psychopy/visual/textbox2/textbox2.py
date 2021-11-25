@@ -427,7 +427,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         if hasattr(self, "_alignX") and hasattr(self, "_alignY"):
             return (self._alignX, self._alignY)
         else:
-            return ("center", "center")
+            return ("top", "left")
 
     @alignment.setter
     def alignment(self, alignment):
