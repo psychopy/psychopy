@@ -422,9 +422,15 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         # Set pos again to update sub-element vertices
         self.pos = self.pos
 
-    @attributeSetter
+    @property
+    def alignment(self):
+        if hasattr(self, "_alignX") and hasattr(self, "_alignY"):
+            return (self._alignX, self._alignY)
+        else:
+            return ("center", "center")
+
+    @alignment.setter
     def alignment(self, alignment):
-        self.__dict__['alignment'] = alignment
         # look for unambiguous terms first (top, bottom, left, right)
         self._alignY = None
         self._alignX = None
@@ -672,9 +678,22 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                 if lineN + 1 > len(_lineBottoms):
                     _lineBottoms.append(current[1])
 
-            # finally add length of this (unfinished) line
+            # add length of this (unfinished) line
             self._lineWidths.append(getLineWidthFromPix(current[0]))
             self._lineLenChars.append(charsThisLine)
+
+            # Apply vertical alignment
+            if self.alignment[1] == "bottom":
+                # Get bottom of last line (or starting line, if there are none)
+                if len(_lineBottoms):
+                    lastLine = min(_lineBottoms)
+                else:
+                    lastLine = current[1]
+                # Work out how much we need to adjust vertices by
+                adjustY = lastLine + self.contentBox._size.pix[1]
+                # Adjust vertices and line bottoms accordingly
+                vertices[:, 1] = vertices[:, 1] - adjustY
+                _lineBottoms -= adjustY
 
         elif self._lineBreaking == 'uax14':
 
@@ -1220,10 +1239,14 @@ class Caret(ColorMixin):
         # Get vertices of caret based on characters and index
         ii = self.index
         if textbox.vertices.shape[0] == 0:
-            # If there are no chars, put caret at start position
-            bottom = max(self.textbox.contentBox._vertices.pix[:, 1]) - self.textbox.glFont.height
-            x = min(self.textbox.contentBox._vertices.pix[:, 0])
+            # If there are no chars, put caret at start position (determined by alignment)
+            if textbox.alignment[1] == "bottom":
+                bottom = min(textbox.contentBox._vertices.pix[:, 1])
+            else:
+                bottom = max(textbox.contentBox._vertices.pix[:, 1]) - self.textbox.glFont.height
+            x = min(textbox.contentBox._vertices.pix[:, 0])
         else:
+            # Otherwise, get caret position from character vertices
             if self.index >= len(textbox._lineNs):
                 # If the caret is after the last char, position it to the right
                 chrVerts = textbox._vertices.pix[range((ii-1) * 4, (ii-1) * 4 + 4)]
