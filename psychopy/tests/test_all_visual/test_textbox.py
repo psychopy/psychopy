@@ -256,6 +256,10 @@ class Test_textbox(_TestColorMixin):
             "someword",
             "more than two words",
         ]
+        # Get intial textbox params
+        initParams = {}
+        for param in ["units", "fillColor", "color", "padding", "letterHeight",  "alignment", "text"]:
+            initParams[param] = getattr(self.textbox, param)
         # Test
         for case in exemplars + tykes:
             for units in layout.unitTypes:
@@ -273,6 +277,9 @@ class Test_textbox(_TestColorMixin):
                 #self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / f"textbox_{self.textbox._lineBreaking}_align_{case.replace(' ', '_')}.png")
                 utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / f"textbox_{self.textbox._lineBreaking}_align_{case.replace(' ', '_')}.png", self.win, crit=20)
                 self.win.flip()
+        # Reset initial params
+        for param, value in initParams.items():
+            setattr(self.textbox, param, value)
             
     def test_alerts(self):
         noFontTextbox = TextBox2(self.win, "", font="Raleway Dots", bold=True)
