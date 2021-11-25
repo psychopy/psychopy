@@ -1249,7 +1249,7 @@ class Caret(ColorMixin):
             elif textbox.alignment[1] == "center":
                 bottom = (min(textbox.contentBox._vertices.pix[:, 1]) + max(textbox.contentBox._vertices.pix[:, 1]) - textbox.glFont.ascender - textbox.glFont.descender) / 2
             else:
-                bottom = max(textbox.contentBox._vertices.pix[:, 1]) - self.textbox.glFont.height
+                bottom = max(textbox.contentBox._vertices.pix[:, 1]) - textbox.glFont.ascender
             x = min(textbox.contentBox._vertices.pix[:, 0])
         else:
             # Otherwise, get caret position from character vertices
