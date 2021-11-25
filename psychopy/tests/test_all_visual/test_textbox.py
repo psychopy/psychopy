@@ -18,7 +18,7 @@ class Test_textbox(_TestColorMixin):
     def setup_class(self):
         self.win = Window([128,128], pos=[50,50], monitor="testMonitor", allowGUI=False, autoLog=False)
         self.error = _BaseErrorHandler()
-        self.textbox = TextBox2(self.win, "", "Noto Sans",
+        self.textbox = TextBox2(self.win, "", "Noto Sans", alignment="top left", lineSpacing=1,
                                 pos=(0, 0), size=(1, 1), units='height',
                                 letterHeight=0.1, colorSpace="rgb")
         self.obj = self.textbox  # point to textbox for mixin tests
