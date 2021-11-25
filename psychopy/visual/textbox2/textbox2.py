@@ -533,8 +533,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
     def _layout(self):
         """Layout the text, calculating the vertex locations
         """
-        def getLineWidthFromPix(pixVal):
-            return pixVal / self._pixelScaling
         
         rgb = self._foreColor.render('rgba1')
         font = self.glFont
@@ -644,7 +642,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                     lineN += 1
                     charsThisLine += 1
                     self._lineLenChars.append(charsThisLine)
-                    _lineWidths.append(getLineWidthFromPix(lineWPix))
+                    _lineWidths.append(lineWPix)
                     charsThisLine = 0
                     wordsThisLine = 0
                 elif charcode in wordBreaks:
@@ -666,7 +664,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                     # update line values
                     self._lineNs[i - wordLen + 1: i + 1] += 1
                     self._lineLenChars.append(charsThisLine - wordLen)
-                    _lineWidths.append(getLineWidthFromPix(lineBreakPt))
+                    _lineWidths.append(lineBreakPt)
                     lineN += 1
                     # and set current to correct location
                     current[0] = wordWidth
@@ -679,7 +677,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                     _lineBottoms.append(current[1])
 
             # add length of this (unfinished) line
-            _lineWidths.append(getLineWidthFromPix(current[0]))
+            _lineWidths.append(current[0])
             self._lineLenChars.append(charsThisLine)
 
         elif self._lineBreaking == 'uax14':
@@ -817,7 +815,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                     
                     lineBreakPt = vertices[(i-1) * 4, 0]
                     self._lineLenChars.append(len(line))
-                    _lineWidths.append(getLineWidthFromPix(lineBreakPt))
+                    _lineWidths.append(lineBreakPt)
 
                     # need not increase lineN when the last line doesn't end with '\n'
                     if lineN < len(lines)-1 or line[-1] == '\n' :
@@ -855,6 +853,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             adjustX = lineAdjustX[np.repeat(self._lineNs, 4)]
             # Adjust vertices
             vertices[:, 0] = vertices[:, 0] + adjustX
+        print(_lineWidths)
 
         # Convert the vertices to be relative to content box and set
         self.vertices = vertices / self.contentBox._size.pix + (-0.5, 0.5)
