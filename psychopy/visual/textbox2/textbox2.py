@@ -683,15 +683,19 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             self._lineLenChars.append(charsThisLine)
 
             # Apply vertical alignment
-            if self.alignment[1] == "bottom":
+            if self.alignment[1] in ("bottom", "center"):
                 # Get bottom of last line (or starting line, if there are none)
                 if len(_lineBottoms):
                     lastLine = min(_lineBottoms)
                 else:
                     lastLine = current[1]
-                # Work out how much we need to adjust vertices by
-                adjustY = lastLine + self.contentBox._size.pix[1]
-                # Adjust vertices and line bottoms accordingly
+                if self.alignment[1] == "bottom":
+                    # Work out how much we need to adjust by for the bottom base line to sit at the bottom of the content box
+                    adjustY = lastLine + self.contentBox._size.pix[1]
+                if self.alignment[1] == "center":
+                    # Work out how much we need to adjust by for the line midpoint (mean of ascender and descender) to sit in the middle of the content box
+                    adjustY = (lastLine + font.descender + self.contentBox._size.pix[1]) / 2
+                # Adjust vertices and line bottoms
                 vertices[:, 1] = vertices[:, 1] - adjustY
                 _lineBottoms -= adjustY
 
@@ -1242,6 +1246,8 @@ class Caret(ColorMixin):
             # If there are no chars, put caret at start position (determined by alignment)
             if textbox.alignment[1] == "bottom":
                 bottom = min(textbox.contentBox._vertices.pix[:, 1])
+            elif textbox.alignment[1] == "center":
+                bottom = (min(textbox.contentBox._vertices.pix[:, 1]) + max(textbox.contentBox._vertices.pix[:, 1]) - textbox.glFont.ascender - textbox.glFont.descender) / 2
             else:
                 bottom = max(textbox.contentBox._vertices.pix[:, 1]) - self.textbox.glFont.height
             x = min(textbox.contentBox._vertices.pix[:, 0])
