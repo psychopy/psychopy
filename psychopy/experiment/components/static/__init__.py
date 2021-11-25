@@ -143,7 +143,7 @@ class StaticComponent(BaseComponent):
                 #    'routine':routine}
                 compName = update['compName']
                 fieldName = update['fieldName']
-                routine = self.exp.routines[update['routine']]
+                # routine = self.exp.routines[update['routine']]
                 if hasattr(compName, 'params'):
                     prms = compName.params  # it's already a compon so get params
                 else:
