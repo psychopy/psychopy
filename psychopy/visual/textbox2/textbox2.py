@@ -856,7 +856,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             adjustX = lineAdjustX[np.repeat(self._lineNs, 4)]
             # Adjust vertices
             vertices[:, 0] = vertices[:, 0] + adjustX
-        print(_lineWidths)
 
         # Convert the vertices to be relative to content box and set
         self.vertices = vertices / self.contentBox._size.pix + (-0.5, 0.5)
