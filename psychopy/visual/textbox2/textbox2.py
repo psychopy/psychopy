@@ -449,6 +449,9 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             self._alignY = 'center'
 
         self._needVertexUpdate = True
+        if hasattr(self, "_text"):
+            # If text has been set, layout
+            self._layout()
 
     @property
     def text(self):
