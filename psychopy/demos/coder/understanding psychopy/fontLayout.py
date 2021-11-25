@@ -47,18 +47,21 @@ drawList += [leading, leadingLbl]
 
 # Draw the height box
 height = visual.Rect(win, fillColor="orange", pos=(215, (font.ascender + font.leading)/2), size=(20, font.height))
-heightLbl = visual.TextStim(win, ".height", "Outfit", color="white", bold=True, pos=(215, (font.ascender + font.descender)/2), height=12, ori=90)
+heightLbl = visual.TextStim(win, ".height", "Outfit", color="white", bold=True, pos=(215, (font.ascender + font.leading)/2), height=12, ori=90)
 drawList += [height, heightLbl]
 # Draw the size box
 size = visual.Rect(win, fillColor="red", pos=(240, (font.capheight + font.descender)/2), size=(20, font.size))
 sizeLbl = visual.TextStim(win, ".size", "Outfit", color="white", bold=True, pos=(240, (font.capheight + font.descender)/2), height=12, ori=90)
 drawList += [size, sizeLbl]
 # Draw linegap box
-linegap = visual.TextBox2(win, ".linegap", "Outfit", fillColor="purple", color="white", letterHeight=12, pos=(227.5, (font.descender + font.leading)/2), size=(45, font.linegap), padding=0)
+linegap = visual.TextBox2(win, ".linegap", "Outfit", fillColor="purple", color="white", letterHeight=12, pos=(160, (font.descender + font.leading)/2), size=(45, font.linegap), padding=0)
 drawList += [linegap]
 
 # Rearrange order
 drawList += [drawList.pop(drawList.index(descender))]
+drawList += [drawList.pop(drawList.index(height))]
+drawList += [drawList.pop(drawList.index(heightLbl))]
+drawList += [drawList.pop(drawList.index(leading))]
 
 while not event.getKeys("escape"):
     for obj in drawList:
