@@ -701,7 +701,13 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
 
             # Apply horizontal alignment
             if self.alignment[0] in ("right", "center"):
-                lineAdjustX = self.contentBox._size.pix[0] - np.array(_lineWidths)
+                if self.alignment[0] == "right":
+                    # Calculate adjust value per line
+                    lineAdjustX = self.contentBox._size.pix[0] - np.array(_lineWidths)
+                if self.alignment[0] == "center":
+                    # Calculate adjust value per line
+                    lineAdjustX = (self.contentBox._size.pix[0] - np.array(_lineWidths)) / 2
+                # Get adjust value per vertex
                 adjustX = lineAdjustX[np.repeat(self._lineNs, 4)]
                 # Adjust vertices
                 vertices[:, 0] = vertices[:, 0] + adjustX
