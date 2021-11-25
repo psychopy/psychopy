@@ -1265,7 +1265,12 @@ class Caret(ColorMixin):
                 bottom = (min(textbox.contentBox._vertices.pix[:, 1]) + max(textbox.contentBox._vertices.pix[:, 1]) - textbox.glFont.ascender - textbox.glFont.descender) / 2
             else:
                 bottom = max(textbox.contentBox._vertices.pix[:, 1]) - textbox.glFont.ascender
-            x = min(textbox.contentBox._vertices.pix[:, 0])
+            if textbox.alignment[0] == "right":
+                x = max(textbox.contentBox._vertices.pix[:, 0])
+            elif textbox.alignment[0] == "center":
+                x = (min(textbox.contentBox._vertices.pix[:, 0]) + max(textbox.contentBox._vertices.pix[:, 0])) / 2
+            else:
+                x = min(textbox.contentBox._vertices.pix[:, 0])
         else:
             # Otherwise, get caret position from character vertices
             if self.index >= len(textbox._lineNs):
