@@ -5,10 +5,10 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import numbers  # numbers.Integral is like (int, long) but supports Py3
-import sys
 import os
 from collections import namedtuple
 import json
+import numpy
 
 from ..errors import print2err
 
@@ -111,8 +111,10 @@ def saveEventReport(hdf5FilePath="", eventType="", eventFields=[], trialStartMes
         events_with_data=datafile.getEventsByType()
 
         # Select which event table to output
-        eventType = displayEventTableSelectionDialog("Select Event Type to Save", "Event Type:",
-                [eventTableMappings[event_id].class_name.decode('utf-8') for event_id in list(events_with_data.keys())])
+        eventNameList = []
+        for event_id in list(events_with_data.keys()):
+            eventNameList.append(eventTableMappings[event_id].class_name.decode('utf-8'))
+        eventType = displayEventTableSelectionDialog("Select Event Type to Save", "Event Type:", eventNameList)
         if eventType is None:
             print("Warning: saveEventReport requires eventType. No report saved.")
             datafile.close()
@@ -184,7 +186,14 @@ def saveEventReport(hdf5FilePath="", eventType="", eventFields=[], trialStartMes
         # Save a row for each event within the trial period
         for tid, trial_events in enumerate(event_groupings):
             for event in trial_events:
-                event_data = [str(event[c]) for c in eventFields]
+                event_data = []
+                for c in eventFields:
+                    cv = event[c]
+                    if type(cv) == numpy.bytes_:
+                        cv = event[c].decode('utf-8')
+                    if type(cv) == str and len(cv) == 0:
+                        cv = '.'
+                    event_data.append(str(cv))
                 if trial_times:
                     tindex, tstart, tstop = trial_times[tid]
                     output_file.write('\t'.join([str(tindex), str(tstart), str(tstop)] + event_data))
