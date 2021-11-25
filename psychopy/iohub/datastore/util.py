@@ -5,6 +5,7 @@
 # Distributed under the terms of the GNU General Public License (GPL).
 
 import numbers  # numbers.Integral is like (int, long) but supports Py3
+import sys
 import os
 from collections import namedtuple
 import json
@@ -65,7 +66,7 @@ def displayEventTableSelectionDialog(title, list_label, list_values, default=u'S
         list_values.remove(list_values)
         list_values.insert(0, default)
 
-    selection_dict = dict(list_label=list_values)
+    selection_dict = {list_label: list_values}
     dlg_info = dict(selection_dict)
     infoDlg = gui.DlgFromDict(dictionary=dlg_info, title=title)
     if not infoDlg.OK:
@@ -80,6 +81,121 @@ def displayEventTableSelectionDialog(title, list_label, list_values, default=u'S
 
     return list(dlg_info.values())[0]
 
+def saveEventReport(hdf5FilePath="", eventType="", eventFields=[], trialStartMessage=None, trialStopMessage=None):
+    """
+    Save a tab delimited event report, optionally splitting events into (trial) groups.
+
+    :param hdf5FilePath:
+    :param eventType:
+    :param eventFields:
+    :param trialStartMessage:
+    :param trialStopMessage:
+    :return:
+    """
+    # Select the hdf5 file to process.
+    if not hdf5FilePath:
+        selectedFilePath = displayDataFileSelectionDialog(os.getcwd())
+        if selectedFilePath:
+            hdf5FilePath = selectedFilePath[0]
+    if not hdf5FilePath:
+        print("Warning: saveEventReport requires hdf5FilePath. No report saved.")
+        return None
+
+    dpath, dfile = os.path.split(hdf5FilePath)
+    datafile = ExperimentDataAccessUtility(dpath, dfile)
+
+    if not eventType:
+        # Get a dict of all event types -> DataStore table info for the selected DataStore file.
+        eventTableMappings=datafile.getEventMappingInformation()
+        # Get event tables that have data...
+        events_with_data=datafile.getEventsByType()
+
+        # Select which event table to output
+        eventType = displayEventTableSelectionDialog("Select Event Type to Save", "Event Type:",
+                [eventTableMappings[event_id].class_name.decode('utf-8') for event_id in list(events_with_data.keys())])
+        if eventType is None:
+            print("Warning: saveEventReport requires eventType. No report saved.")
+            datafile.close()
+            return None
+
+    trial_times = []
+    if trialStartMessage and trialStopMessage:
+        # Create a table of trial_index, trial_start_time, trial_end_time for each trial by
+        # getting the time of 'TRIAL_START' and 'TRIAL_END' experiment messages.
+        mgs_table = datafile.getEventTable('MessageEvent')
+        trial_start_msgs = mgs_table.where('text == b"%s"' % trialStartMessage)
+        for mix, msg in enumerate(trial_start_msgs):
+            trial_times.append([mix + 1, msg['time']-0.0001, 0])
+        trial_end_msgs = mgs_table.where('text == b"%s"' % trialStopMessage)
+        for mix, msg in enumerate(trial_end_msgs):
+            trial_times[mix][2] = msg['time']+0.0001
+        del mgs_table
+    elif trialStartMessage == trialStopMessage == None:
+        # do not split events into trial groupings
+        pass
+    else:
+        print("Warning: saveEventReport requires trialStartMessage and trialStopMessage to be strings or both None."
+              " No report saved.")
+        datafile.close()
+        return None
+
+    # Get the event table to generate report for
+    event_table = datafile.getEventTable(eventType)
+
+    if not eventFields:
+        # If no event fields were specified, report (almost) all event fields.
+        eventFields = [c for c in event_table.colnames if c not in ['experiment_id', 'session_id', 'device_id',
+                                                                    'type', 'filter_id']]
+
+    if eventType == 'MessageEvent':
+        # Sort experiment messages by time since they may not be ordered chronologically.
+        event_table = event_table.read()
+        event_table.sort(order='time')
+
+    ecount = 0
+    # Open a file to save the tab delimited output to.
+    output_file_name = os.path.join(dpath, "%s.%s.txt" % (dfile[:-5], eventType))
+    with open(output_file_name, 'w') as output_file:
+        # Save header row to file
+        if trial_times:
+            column_names = ['TRIAL_INDEX', trialStartMessage, trialStopMessage] + eventFields
+        else:
+            column_names = eventFields
+
+        output_file.write('\t'.join(column_names))
+        output_file.write('\n')
+
+        event_groupings = []
+        if trial_times:
+            # Split events into trials
+            for tindex, tstart, tstop in trial_times:
+                if eventType == 'MessageEvent':
+                    event_groupings.append(event_table[(event_table['time'] >= tstart) & (event_table['time']
+                                                                                          <= tstop)])
+                else:
+                    event_groupings.append(event_table.where("(time >= %f) & (time <= %f)" % (tstart, tstop)))
+        else:
+            # Report events without splitting them into trials
+            if eventType == 'MessageEvent':
+                event_groupings.append(event_table)
+            else:
+                event_groupings.append(event_table.iterrows())
+
+        # Save a row for each event within the trial period
+        for tid, trial_events in enumerate(event_groupings):
+            for event in trial_events:
+                event_data = [str(event[c]) for c in eventFields]
+                if trial_times:
+                    tindex, tstart, tstop = trial_times[tid]
+                    output_file.write('\t'.join([str(tindex), str(tstart), str(tstop)] + event_data))
+                else:
+                    output_file.write('\t'.join(event_data))
+                output_file.write('\n')
+                ecount += 1
+
+    # Done report creation, close input file
+    datafile.close()
+    return output_file_name, ecount
 
 ########### Experiment / Experiment Session Based Data Access #################
 
