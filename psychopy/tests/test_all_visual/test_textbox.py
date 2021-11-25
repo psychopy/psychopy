@@ -270,8 +270,8 @@ class Test_textbox(_TestColorMixin):
                 self.textbox.alignment = case
                 # Draw and compare
                 self.textbox.draw()
-                #self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / f"textbox_align_{case.replace(' ', '_')}.png")
-                utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / f"textbox_align_{case.replace(' ', '_')}.png", self.win, crit=20)
+                #self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / f"textbox_{self.textbox._lineBreaking}_align_{case.replace(' ', '_')}.png")
+                utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / f"textbox_{self.textbox._lineBreaking}_align_{case.replace(' ', '_')}.png", self.win, crit=20)
                 self.win.flip()
             
     def test_alerts(self):
