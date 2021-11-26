@@ -89,12 +89,11 @@ class RadialStim(GratingStim):
         self._initParams = dir()
         self._initParams.remove('self')
 
-        super(RadialStim, self).__init__(win, units=units, name=name,
+        super(RadialStim, self).__init__(win, units=units, name=name, size=size,
                                          autoLog=False)  # start off false
 
         # UGLY HACK again. (See same section in GratingStim for ideas)
         self.__dict__['contrast'] = 1
-        self.__dict__['size'] = 1
         self.__dict__['sf'] = 1
         self.__dict__['tex'] = tex
 
@@ -139,7 +138,7 @@ class RadialStim(GratingStim):
         self.pos = numpy.array(pos, float)
         self.depth = depth
         self.__dict__['sf'] = 1
-        self.size = val2array(size, False)
+        self.size = size
 
         self.tex = tex
         self.mask = mask
@@ -337,7 +336,6 @@ class RadialStim(GratingStim):
         edge2 = (self._angles + self._triangleWidth) * (180/pi) > visW[1]
         self._visible[edge2] = False
         self._nVisible = numpy.sum(self._visible) * 3
-
         self._updateTextureCoords()
         self._updateMaskCoords()
         self._updateVerticesBase()
@@ -454,6 +452,7 @@ class RadialStim(GratingStim):
         vertsBase /= 2.0  # size should be 1.0, so radius should be 0.5
         vertsBase = vertsBase[self._visible, :, :]
         self._verticesBase = vertsBase.reshape(self._nVisible, 2)
+        self.vertices = self._verticesBase
 
     def _updateTextureCoords(self):
         """calculate texture coordinates if angularCycles or Phase change
