@@ -2526,6 +2526,34 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             # Refresh
             self.Refresh()
 
+    class FilterDialog(wx.Dialog, ThemeMixin):
+        def __init__(self, parent, size=(200, 300)):
+            wx.Dialog.__init__(self, parent, size=size)
+            self.parent = parent
+            # Setup sizer
+            self.border = wx.BoxSizer(wx.VERTICAL)
+            self.SetSizer(self.border)
+            self.sizer = wx.BoxSizer(wx.VERTICAL)
+            self.border.Add(self.sizer, border=6, proportion=1, flag=wx.ALL | wx.EXPAND)
+            # Label
+            self.label = wx.StaticText(self, label="Show components which \nwork with...")
+            self.sizer.Add(self.label, border=6, flag=wx.ALL | wx.EXPAND)
+            # Control
+            self.viewCtrl = ToggleButtonArray(self, ("PsychoPy", "PsychoJS", "Both", "Any"),
+                                              multi=False, ori=wx.VERTICAL)
+            self.sizer.Add(self.viewCtrl, border=6, flag=wx.ALL | wx.EXPAND)
+            self.viewCtrl.SetValue(prefs.builder['componentFilter'])
+            # OK
+            self.OKbtn = wx.Button(self, id=wx.ID_OK, label=_translate("Okay"))
+            self.SetAffirmativeId(wx.ID_OK)
+            self.border.Add(self.OKbtn, border=6, flag=wx.ALL | wx.ALIGN_RIGHT)
+
+            self.Layout()
+            self._applyAppTheme()
+
+        def GetValue(self):
+            return self.viewCtrl.GetValue()
+
     def __init__(self, frame, id=-1):
         """A panel that displays available components.
         """
@@ -2544,10 +2572,10 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         # Setup sizer
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.sizer)
-        # Add view toggler
-        self.viewCtrl = ToggleButtonArray(self, ("PsychoPy", "PsychoJS"), multi=True)
-        self.viewCtrl.Bind(wx.EVT_CHOICE, self.setView)
-        self.sizer.Add(self.viewCtrl, border=0, flag=wx.ALL | wx.EXPAND)
+        # Add filter button
+        self.filterBtn = wx.Button(self, size=(24, 24), style=wx.BORDER_NONE)
+        self.sizer.Add(self.filterBtn, border=0, flag=wx.ALL | wx.ALIGN_RIGHT)
+        self.filterBtn.Bind(wx.EVT_BUTTON, self.onFilterBtn)
         # Get components
         self.components = experiment.getAllComponents(
             self.app.prefs.builder['componentsFolders'])
@@ -2616,8 +2644,6 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         self.catLabels['Favorites'].ToggleMenu(True)
         # Do sizing
         self.Fit()
-        # Set view
-        self.viewCtrl.SetValue(self.filter)
         # double buffered better rendering except if retina
         self.SetDoubleBuffered(not self.frame.isRetina)
         # Apply theme
@@ -2635,6 +2661,14 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         for lbl in self.catLabels:
             self.catLabels[lbl].SetForegroundColour(cs['text'])
             # then apply to all children as well
+        # Style filter button
+        self.filterBtn.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
+        icon = self.app.iconCache.getBitmap("filter", size=16)
+        self.filterBtn.SetBitmap(icon)
+        self.filterBtn.SetBitmapCurrent(icon)
+        self.filterBtn.SetBitmapPressed(icon)
+        self.filterBtn.SetBitmapFocus(icon)
+        # Refresh
         for c in self.GetChildren():
             if hasattr(c, '_applyAppTheme'):
                 # if the object understands themes then request that
@@ -2675,29 +2709,13 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
 
     def Refresh(self, eraseBackground=True, rect=None):
         wx.Window.Refresh(self, eraseBackground, rect)
-        # Refresh view
+        # Get view value(s)
         if prefs.builder['componentFilter'] == "Both":
             view = ["PsychoPy", "PsychoJS"]
         elif prefs.builder['componentFilter'] == "Any":
             view = []
         else:
             view = [prefs.builder['componentFilter']]
-        self.viewCtrl.SetValue(view)
-
-    def setView(self, view=None):
-        # If setting from an event, set as the value of the event
-        if isinstance(view, wx.CommandEvent):
-            view = view.EventObject.GetValue()
-        # Set view
-        if "PsychoPy" in view and "PsychoJS" in view:
-            self.filter = prefs.builder['componentFilter'] = "Both"
-        if "PsychoPy" in view and "PsychoJS" not in view:
-            self.filter = prefs.builder['componentFilter'] = "PsychoPy"
-        if "PsychoPy" not in view and "PsychoJS" in view:
-            self.filter = prefs.builder['componentFilter'] = "PsychoJS"
-        if "PsychoPy" not in view and "PsychoJS" not in view:
-            self.filter = prefs.builder['componentFilter'] = "Any"
-        prefs.saveUserPrefs()
         # Toggle all categories so they refresh
         for btn in self.catLabels.values():
             btn.ToggleMenu(btn.GetValue())
@@ -2717,6 +2735,14 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
         # Do sizing
         self.Layout()
         self.SetupScrolling()
+
+    def onFilterBtn(self, evt=None):
+        dlg = self.FilterDialog(self)
+        exit = dlg.ShowModal()
+        if exit == wx.ID_OK:
+            self.filter = prefs.builder['componentFilter'] = dlg.GetValue()
+        prefs.saveUserPrefs()
+        self.Refresh()
 
 
 class ReadmeFrame(wx.Frame):
