@@ -616,7 +616,7 @@ class ToggleButtonArray(wx.Window, ThemeMixin):
             self.buttons[val].SetupHover()
             self.buttons[val].SetLabelText(val)
             self.buttons[val].Bind(wx.EVT_TOGGLEBUTTON, self.processToggle)
-            self.sizer.Add(self.buttons[val], border=6, proportion=1, flag=wx.ALL)
+            self.sizer.Add(self.buttons[val], border=6, proportion=1, flag=wx.ALL | wx.EXPAND)
 
     def processToggle(self, evt):
         obj = evt.GetEventObject()
