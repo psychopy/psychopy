@@ -81,7 +81,8 @@ def displayEventTableSelectionDialog(title, list_label, list_values, default=u'S
 
     return list(dlg_info.values())[0]
 
-def saveEventReport(hdf5FilePath="", eventType="", eventFields=[], trialStartMessage=None, trialStopMessage=None):
+def saveEventReport(hdf5FilePath="", eventType="", eventFields=[], trialStartMessage=None, trialStopMessage=None,
+                    timeMargins=(0.0, 0.0)):
     """
     Save a tab delimited event report, optionally splitting events into (trial) groups.
 
@@ -90,6 +91,7 @@ def saveEventReport(hdf5FilePath="", eventType="", eventFields=[], trialStartMes
     :param eventFields:
     :param trialStartMessage:
     :param trialStopMessage:
+    :param timeMargins:
     :return:
     """
     # Select the hdf5 file to process.
@@ -127,10 +129,10 @@ def saveEventReport(hdf5FilePath="", eventType="", eventFields=[], trialStartMes
         mgs_table = datafile.getEventTable('MessageEvent')
         trial_start_msgs = mgs_table.where('text == b"%s"' % trialStartMessage)
         for mix, msg in enumerate(trial_start_msgs):
-            trial_times.append([mix + 1, msg['time']-0.0001, 0])
+            trial_times.append([mix + 1, msg['time']-timeMargins[0], 0])
         trial_end_msgs = mgs_table.where('text == b"%s"' % trialStopMessage)
         for mix, msg in enumerate(trial_end_msgs):
-            trial_times[mix][2] = msg['time']+0.0001
+            trial_times[mix][2] = msg['time']+timeMargins[1]
         del mgs_table
     elif trialStartMessage == trialStopMessage == None:
         # do not split events into trial groupings
