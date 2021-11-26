@@ -546,15 +546,15 @@ class Experiment:
                 else:
                     # we found an unknown parameter (probably from the future)
                     params[name] = Param(
-                        val, valType=paramNode.get('valType'),
+                        val, valType=paramNode.get('valType'), inputType="inv",
                         allowedTypes=[], label=_translate(name),
                         hint=_translate(
                             "This parameter is not known by this version "
-                            "of PsychoPy. It might be worth upgrading"))
+                            "of PsychoPy. It might be worth upgrading, otherwise "
+                            "press the X button to remove this parameter."))
                     params[name].allowedTypes = paramNode.get('allowedTypes')
                     if params[name].allowedTypes is None:
                         params[name].allowedTypes = []
-                    params[name].readOnly = True
                     if name not in legacyParams + ['JS libs', 'OSF Project ID']:
                         # don't warn people if we know it's OK (e.g. for params
                         # that have been removed
