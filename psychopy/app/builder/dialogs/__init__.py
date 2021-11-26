@@ -166,6 +166,10 @@ class ParamCtrls():
             self.valueCtrl = paramCtrls.DictCtrl(parent,
                                                  val=self.exp.settings.getInfo(), valType=param.valType,
                                                  fieldName=fieldName)
+        elif param.inputType == 'inv':
+            self.valueCtrl = paramCtrls.InvalidCtrl(parent,
+                                                       val=str(param.val), valType=param.valType,
+                                                       fieldName=fieldName, size=wx.Size(self.valueWidth, 24))
         else:
             self.valueCtrl = paramCtrls.SingleLineCtrl(parent,
                                                    val=str(param.val), valType=param.valType,
@@ -657,6 +661,8 @@ class ParamNotebook(wx.Notebook, ThemeMixin):
             is returned. Instead, use GetSelection() to get index of selection
             and get untranslated value from _choices attribute.
         """
+        # Create empty list to store fieldnames of params for deletion
+        killList = []
         # get data from input fields
         for fieldName in self.params:
             param = self.params[fieldName]
@@ -687,6 +693,12 @@ class ParamNotebook(wx.Notebook, ThemeMixin):
                         self._updateStaticUpdates(fieldName,
                                                   param.updates, updates)
                         param.updates = updates
+            # If requested, mark param for deletion
+            if hasattr(ctrl, "valueCtrl") and isinstance(ctrl.valueCtrl, paramCtrls.InvalidCtrl) and ctrl.valueCtrl.forDeletion:
+                killList.append(fieldName)
+        # Delete params on kill list
+        for fieldName in killList:
+            del self.params[fieldName]
         return self.params
 
     def _updateStaticUpdates(self, fieldName, updates, newUpdates):
