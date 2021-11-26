@@ -124,7 +124,7 @@ class _HideMixin:
             self.Show(visible)
 
     def HideAll(self):
-        self.Show(True)
+        self.Show(False)
 
     def tunnelShow(self, sizer, visible):
         if sizer is not None:
@@ -162,6 +162,8 @@ class SingleLineCtrl(wx.TextCtrl, _ValidatorMixin, _HideMixin):
         wx.TextCtrl.Show(self, value)
         if hasattr(self, "dollarLbl"):
             self.dollarLbl.Show(value)
+        if hasattr(self, "deleteBtn"):
+            self.deleteBtn.Show(value)
 
 
 class MultiLineCtrl(SingleLineCtrl, _ValidatorMixin, _HideMixin):
@@ -171,6 +173,62 @@ class MultiLineCtrl(SingleLineCtrl, _ValidatorMixin, _HideMixin):
         SingleLineCtrl.__init__(self, parent, valType,
                                 val=val, fieldName=fieldName,
                                 size=size, style=wx.TE_MULTILINE)
+
+
+class InvalidCtrl(SingleLineCtrl, _ValidatorMixin, _HideMixin):
+    def __init__(self, parent, valType,
+                 val="", fieldName="",
+                 size=wx.Size(-1, 24), style=wx.DEFAULT):
+        SingleLineCtrl.__init__(self, parent, valType,
+                                val=val, fieldName=fieldName,
+                                size=size, style=style)
+        self.Disable()
+        # Add delete button
+        self.deleteBtn = wx.Button(parent, label="×", size=(24, 24))
+        self.deleteBtn.SetForegroundColour("red")
+        self.deleteBtn.Bind(wx.EVT_BUTTON, self.deleteParam)
+        self._szr.Add(self.deleteBtn, border=6, flag=wx.LEFT | wx.RIGHT)
+        # Add deleted label
+        self.deleteLbl = wx.StaticText(parent, label=_translate("DELETED"))
+        self.deleteLbl.SetForegroundColour("red")
+        self.deleteLbl.Hide()
+        self._szr.Add(self.deleteLbl, border=6, proportion=1, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
+        # Add undo delete button
+        self.undoBtn = wx.Button(parent, label="⟲", size=(24, 24))
+        self.undoBtn.Hide()
+        self.undoBtn.Bind(wx.EVT_BUTTON, self.undoDelete)
+        self._szr.Add(self.undoBtn, border=6, flag=wx.LEFT | wx.RIGHT)
+
+
+        # Set deletion flag
+        self.forDeletion = False
+
+    def deleteParam(self, evt=None):
+        """
+        When the remove button is pressed, mark this param as for deletion
+        """
+        # Mark for deletion
+        self.forDeletion = True
+        # Hide value ctrl and delete button
+        self.Hide()
+        self.deleteBtn.Hide()
+        # Show delete label and
+        self.undoBtn.Show()
+        self.deleteLbl.Show()
+
+        self._szr.Layout()
+
+    def undoDelete(self, evt=None):
+        # Mark not for deletion
+        self.forDeletion = False
+        # Show value ctrl and delete button
+        self.Show()
+        self.deleteBtn.Show()
+        # Hide delete label and
+        self.undoBtn.Hide()
+        self.deleteLbl.Hide()
+
+        self._szr.Layout()
 
 
 class IntCtrl(wx.SpinCtrl, _ValidatorMixin, _HideMixin):
