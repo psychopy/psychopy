@@ -15,7 +15,8 @@ __all__ = [
     'getAppFrame',
     'isAppStarted']
 
-from psychopy.app._psychopyApp import PsychoPyApp
+import sys
+import os
 from .frametracker import openFrames
 
 # Handle to the PsychoPy GUI application instance. We need to have this mainly
@@ -28,7 +29,7 @@ def startApp(showSplash=True, testMode=False, safeMode=False):
     Additional calls after the app starts will have no effect.
 
     After calling this function, you can get the handle to the created app's
-    `PsychoPyApp` instance by calling :func:`getApp`.
+    `PsychoPyApp` instance by calling :func:`getAppInstance`.
 
     Parameters
     ----------
@@ -44,11 +45,27 @@ def startApp(showSplash=True, testMode=False, safeMode=False):
     """
     global _psychopyApp
     if _psychopyApp is None:
+        # Make sure logging is started before loading the bulk of the main
+        # application UI to catch as many errors as possible.
+        if not testMode:
+            from psychopy.preferences import prefs
+            from psychopy.logging import console, DEBUG
+
+            # construct path the preferences
+            userPrefsDir = prefs.paths['userPrefsDir']
+            prefPath = os.path.join(userPrefsDir, 'last_app_load.log')
+            lastRunLog = open(prefPath, 'w')  # open the file for writing
+            sys.stderr = sys.stdout = lastRunLog  # redirect output to file
+            console.setLevel(DEBUG)
+
         # PsychoPyApp._called_from_test = testMode
-        _psychopyApp = PsychoPyApp(0, testMode=testMode, showSplash=showSplash)
+        # create the application instance which starts loading it
+        from psychopy.app._psychopyApp import PsychoPyApp
+        _psychopyApp = PsychoPyApp(
+            0, testMode=testMode, showSplash=showSplash)
 
         if not testMode:
-            _psychopyApp.MainLoop()
+            _psychopyApp.MainLoop()  # allow the UI to refresh itself
 
 
 def quitApp():
@@ -61,10 +78,13 @@ def quitApp():
         return
 
     global _psychopyApp
-    if isinstance(_psychopyApp, PsychoPyApp):  # type check
+    if hasattr(_psychopyApp, 'quit'):  # type check
         _psychopyApp.quit()
-        PsychoPyApp._called_from_test = False  # reset
+        # PsychoPyApp._called_from_test = False  # reset
         _psychopyApp = None
+    else:
+        raise AttributeError(
+            'Object for `_psychopyApp` does not have attribute `quit`.')
 
 
 def getAppInstance():
