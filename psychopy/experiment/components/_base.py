@@ -818,19 +818,16 @@ class BaseVisualComponent(BaseComponent):
         if saveHdf5:
             name = self.params['name']
             comp_onset_tag = "%s.started" % name
-            comp_offset_tag = "%s.stopped" % name
             if 'saveStartStop' in self.params and self.params['saveStartStop'].val:
                 if self.params['syncScreenRefresh'].val:
                         code = (
                             f"if ioServer:\n"
                             f"    ioServer.cacheMessageEvent('{comp_onset_tag}', sec_time={name}.tStartRefresh)\n"
-                            f"    ioServer.cacheMessageEvent('{comp_offset_tag}', sec_time={name}.tStopRefresh)\n"
                         )
                 else:
                        code = (
                             f"if ioServer:\n"
                             f"    ioServer.cacheMessageEvent('{comp_onset_tag}', sec_time={name}.tStart)\n"
-                            f"    ioServer.cacheMessageEvent('{comp_offset_tag}', sec_time={name}.tStop)\n"
                        )
 
                 buff.writeIndentedLines(code)
