@@ -998,3 +998,18 @@ class ToggleButtonArray(wx.Window, ThemeMixin):
                 # Plain if deselected
                 btn.SetForegroundColour(ThemeMixin.appColors['text'])
                 btn.SetBackgroundColour(ThemeMixin.appColors['panel_bg'])
+
+
+def sanitize(inStr):
+    """
+    Process a string to remove any sensitive information, i.e. OAUTH keys
+    """
+    # Key-value pairs of patterns with what to replace them with
+    patterns = {
+        "https\:\/\/oauth2\:[\d\w]{64}@gitlab\.pavlovia\.org\/.*\.git": "[[OAUTH key hidden]]" # Remove any oauth keys
+    }
+    # Replace each pattern
+    for pattern, repl in patterns.items():
+        inStr = re.sub(pattern, repl, inStr)
+
+    return inStr
