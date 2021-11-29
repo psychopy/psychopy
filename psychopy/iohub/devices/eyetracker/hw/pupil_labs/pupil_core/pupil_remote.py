@@ -9,7 +9,7 @@ import time
 import weakref
 
 import msgpack
-import zmq
+import zmq.green as zmq
 from psychopy.iohub.devices import Computer
 
 logger = logging.getLogger(__name__)
