@@ -11,6 +11,7 @@
 from pathlib import Path
 from statistics import mean
 from psychopy.colors import Color, colorSpaces
+from psychopy.layout import Vector, Position, Size, Vertices, unitTypes
 
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
 # other calls to pyglet or pyglet submodules, otherwise it may not get picked
@@ -748,37 +749,25 @@ class ContainerMixin:
         """Sets Stim.verticesPix and ._borderPix from pos, size, ori,
         flipVert, flipHoriz
         """
-        # check whether stimulus needs flipping in either direction
-        flip = numpy.array([1, 1])
-        if hasattr(self, 'flipHoriz') and self.flipHoriz:
-            flip[0] = -1 # True=(-1), False->(+1)
-        if hasattr(self, 'flipVert') and self.flipVert:
-            flip[1] = -1 # True=(-1), False->(+1)
+
+        verts = numpy.dot(self.vertices, self._rotationMatrix)
+        # If needed, sub in missing values for flip and anchor
+        flip = None
+        if hasattr(self, "flip"):
+            flip = self.flip
+        anchor = None
+        if hasattr(self, "anchor"):
+            anchor = self.anchor
+        # Convert to a vertices object if not already
+        verts = Vertices(verts, obj=self, flip=flip, anchor=anchor).pix
+        self.__dict__['verticesPix'] = self.__dict__['_borderPix'] = verts
 
         if hasattr(self, '_tesselVertices'):  # Shapes need to render from this
-            verts = self._tesselVertices
-        elif hasattr(self, 'vertices'):
-            verts = self.vertices
-        else:
-            verts = self._verticesBase
-
-        # set size and orientation, combine with position and convert to pix:
-        if hasattr(self, 'fieldSize'):
-            # this is probably a DotStim and size is handled differently
-            verts = numpy.dot(verts * flip, self._rotationMatrix)
-        else:
-            verts = numpy.dot(self.size * verts * flip, self._rotationMatrix)
-        verts = convertToPix(vertices=verts, pos=self.pos,
-                             win=self.win, units=self.units)
-        self.__dict__['verticesPix'] = verts
-
-        if hasattr(self, 'border'):
-            #border = self.border
-            border = numpy.dot(self.size * self.border *
-                               flip, self._rotationMatrix)
-            border = convertToPix(
-                vertices=border, pos=self.pos, win=self.win, units=self.units)
-            self.__dict__['_borderPix'] = border
+            tesselVerts = self._tesselVertices
+            tesselVerts = numpy.dot(tesselVerts, self._rotationMatrix)
+            # Convert to a vertices object if not already
+            tesselVerts = Vertices(tesselVerts, obj=self, flip=self.flip, anchor=self.anchor).pix
+            self.__dict__['verticesPix'] = tesselVerts
 
         self._needVertexUpdate = False
         self._needUpdate = True  # but we presumably need to update the list
@@ -1223,14 +1212,14 @@ class WindowMixin:
     Used by BaseVisualStim, SimpleImageStim and ElementArrayStim.
 
     """
-    @attributeSetter
-    def win(self, value):
+    @property
+    def win(self):
         """The :class:`~psychopy.visual.Window` object in which the
         stimulus will be rendered by default. (required)
 
-       Example, drawing same stimulus in two different windows and display
-       simultaneously. Assuming that you have two windows and a stimulus
-       (win1, win2 and stim)::
+        Example, drawing same stimulus in two different windows and display
+        simultaneously. Assuming that you have two windows and a stimulus
+        (win1, win2 and stim)::
 
            stim.win = win1  # stimulus will be drawn in win1
            stim.draw()  # stimulus is now drawn to win1
@@ -1248,11 +1237,183 @@ class WindowMixin:
            stim.draw(win2)
 
         """
-        self.__dict__['win'] = value
+        return self.__dict__['win']
 
-    @attributeSetter
+    @win.setter
+    def win(self, value):
+        self.__dict__['win'] = value
+        # Update window ref in size and pos objects
+        if hasattr(self, "_size") and isinstance(self._size, Vector):
+            self._size.win = value
+        if hasattr(self, "_pos") and isinstance(self._pos, Vector):
+            self._pos.win = value
+
+    @property
+    def pos(self):
+        if hasattr(self, "_pos"):
+            return getattr(self._pos, self.units)
+
+    @pos.setter
+    def pos(self, value):
+        self._pos = Position(value, units=self.units, win=self.win)
+
+    @property
+    def size(self):
+        if hasattr(self, "_size"):
+            return getattr(self._size, self.units)
+
+    @size.setter
+    def size(self, value):
+        if value is None:
+            value = (None, None)
+        self._size = Size(value, units=self.units, win=self.win)
+
+    @property
+    def width(self):
+        if len(self.size.shape) == 1:
+            # Return first value if a 1d array
+            return self.size[0]
+        elif len(self.size.shape) == 2:
+            # Return first column if a 2d array
+            return self.size[:, 0]
+
+    @width.setter
+    def width(self, value):
+        # Convert to a numpy array
+        value = numpy.array(value)
+        # Set size
+        if len(self.size.shape) == 1:
+            # Set first value if a 1d array
+            self.size[0] = value
+        elif len(self.size.shape) == 2:
+            # Set first column if a 2d array
+            self.size[:, 0] = value
+
+    @property
+    def height(self):
+        if len(self.size.shape) == 1:
+            # Return first value if a 1d array
+            return self.size[1]
+        elif len(self.size.shape) == 2:
+            # Return first column if a 2d array
+            return self.size[:, 1]
+
+    @height.setter
+    def height(self, value):
+        # Convert to a numpy array
+        value = numpy.array(value)
+        # Set size
+        if len(self.size.shape) == 1:
+            # Set first value if a 1d array
+            self.size[1] = value
+        elif len(self.size.shape) == 2:
+            # Set first column if a 2d array
+            self.size[:, 1] = value
+
+    @property
+    def vertices(self):
+        # Get or make Vertices object
+        if hasattr(self, "_vertices"):
+            verts = self._vertices
+        else:
+            # If not defined, assume vertices are just a square
+            verts = self._vertices = Vertices(numpy.array([
+                                [0.5, -0.5],
+                                [-0.5, -0.5],
+                                [-0.5, 0.5],
+                                [0.5, 0.5],
+                            ]), obj=self, flip=self.flip, anchor=self.anchor)
+        return verts.base
+
+    @vertices.setter
+    def vertices(self, value):
+        # If None, use defaut
+        if value is None:
+            value = [
+                [0.5, -0.5],
+                [-0.5, -0.5],
+                [-0.5, 0.5],
+                [0.5, 0.5],
+            ]
+        # Create Vertices object
+        self._vertices = Vertices(value, obj=self, flip=self.flip, anchor=self.anchor)
+
+    @property
+    def flip(self):
+        """
+        1x2 array for flipping vertices along each axis; set as True to flip or False to not flip. If set as a single value, will duplicate across both axes. Accessing the protected attribute (`._flip`) will give an array of 1s and -1s with which to multiply vertices.
+        """
+        # Get base value
+        if hasattr(self, "_flip"):
+            flip = self._flip
+        else:
+            flip = numpy.array([[False, False]])
+        # Convert from boolean
+        return flip == -1
+
+    @flip.setter
+    def flip(self, value):
+        if value is None:
+            value = False
+        # Convert to 1x2 numpy array
+        value = numpy.array(value)
+        value.resize((1, 2))
+        # Ensure values were bool
+        assert value.dtype == bool, "Flip values must be either a boolean (True/False) or an array of booleans"
+        # Set as multipliers rather than bool
+        self._flip = numpy.array([[
+            -1 if value[0, 0] else 1,
+            -1 if value[0, 1] else 1,
+        ]])
+        self._flipHoriz, self._flipVert = self._flip[0]
+        # Apply to vertices
+        if not hasattr(self, "_vertices"):
+            self.vertices = None
+        self._vertices.flip = self.flip
+        # Mark as needing vertex update
+        self._needVertexUpdate = True
+
+    @property
+    def flipHoriz(self):
+        return self.flip[0][0]
+
+    @flipHoriz.setter
+    def flipHoriz(self, value):
+        self.flip = [value, self.flip[0, 1]]
+
+    @property
+    def flipVert(self):
+        return self.flip[0][1]
+
+    @flipVert.setter
+    def flipVert(self, value):
+        self.flip = [self.flip[0, 0], value]
+
+    @property
+    def anchor(self):
+        if hasattr(self, "_vertices"):
+            return self._vertices.anchor
+        elif hasattr(self, "_anchor"):
+            # Return a backup value if there's no vertices yet
+            return self._anchor
+
+    @anchor.setter
+    def anchor(self, value):
+        if hasattr(self, "_vertices"):
+            self._vertices.anchor = value
+        else:
+            # Set a backup value if there's no vertices yet
+            self._anchor = value
+
+    @property
+    def units(self):
+        if hasattr(self, "_units"):
+            return self._units
+
+    @units.setter
     def units(self, value):
-        """Units to use when drawing.
+        """
+        Units to use when drawing.
 
         Possible options are: None, 'norm', 'cm', 'deg', 'degFlat',
         'degFlatPos', or 'pix'.
@@ -1273,22 +1434,10 @@ class WindowMixin:
             stim.units = 'deg'
 
         """
-        if value != None and len(value):
-            self.__dict__['units'] = value
+        if value in unitTypes:
+            self._units = value or self.win.units
         else:
-            self.__dict__['units'] = self.win.units
-
-        # Update size and position if they are defined (tested as numeric).
-        # If not, this is probably
-        # during some init and they will be defined later, given the new unit.
-        try:
-            # quick and dirty way to check that both are numeric. This avoids
-            # the heavier attributeSetter calls.
-            self.size * self.pos
-            self.size = self.size
-            self.pos = self.pos
-        except Exception:
-            pass
+            raise ValueError(f"Invalid unit type '{value}', must be one of: {unitTypes}")
 
     def draw(self):
         raise NotImplementedError('Stimulus classes must override '
@@ -1391,8 +1540,8 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin, LegacyColorMix
         self._needVertexUpdate = True  # need to update update vertices
         self._needUpdate = True
 
-    @attributeSetter
-    def size(self, value):
+    @property
+    def size(self):
         """The size (width, height) of the stimulus in the stimulus
         :ref:`units <units>`
 
@@ -1413,53 +1562,28 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin, LegacyColorMix
         Tip: if you can see the actual pixel range this corresponds to by
         looking at `stim._sizeRendered`
         """
-        array = numpy.array
-        value = val2array(value)  # Check correct user input
-        self._requestedSize = copy.copy(value)  # to track whether we're using a default
-        # None --> set to default
+        return WindowMixin.size.fget(self)
+
+    @size.setter
+    def size(self, value):
+        # Supply default for None
         if value is None:
-            # Set the size to default (e.g. to the size of the loaded image
-            # calculate new size
-            if self._origSize is None:  # not an image from a file
-                # this was PsychoPy's original default
-                value = numpy.array([0.5, 0.5])
-            else:
-                # we have an image; calculate the size in `units` that matches
-                # original pixel size
-                # also scale for retina display (virtual pixels are bigger)
-                if self.win.useRetina:
-                    winSize = self.win.size / 2
-                else:
-                    winSize = self.win.size
-                # then handle main scale
-                if self.units == 'pix':
-                    value = numpy.array(self._origSize)
-                elif self.units in ('deg', 'degFlatPos', 'degFlat'):
-                    # NB when no size has been set (assume to use orig size
-                    # in pix) this should not be corrected for flat anyway,
-                    # so degFlat == degFlatPos
-                    value = pix2deg(array(self._origSize, float),
-                                    self.win.monitor)
-                elif self.units == 'norm':
-                    value = 2 * array(self._origSize, float) / winSize
-                elif self.units == 'height':
-                    value = array(self._origSize, float) / winSize[1]
-                elif self.units == 'cm':
-                    value = pix2cm(array(self._origSize, float),
-                                   self.win.monitor)
-                else:
-                    msg = ("Failed to create default size for ImageStim. "
-                           "Unsupported unit, %s")
-                    raise AttributeError(msg % repr(self.units))
-        self.__dict__['size'] = value
+            value = Size((1, 1), units="height", win=self.win)
+        # Duplicate single values
+        if isinstance(value, (float, int)):
+            value = (value, value)
+        # Do setting
+        WindowMixin.size.fset(self, value)
+        # Mark any updates needed
         self._needVertexUpdate = True
         self._needUpdate = True
         if hasattr(self, '_calcCyclesPerStim'):
             self._calcCyclesPerStim()
 
-    @attributeSetter
-    def pos(self, value):
-        """The position of the center of the stimulus in the stimulus
+    @property
+    def pos(self):
+        """
+        The position of the center of the stimulus in the stimulus
         :ref:`units <units>`
 
         `value` should be an :ref:`x,y-pair <attrib-xy>`.
@@ -1480,7 +1604,16 @@ class BaseVisualStim(MinimalStim, WindowMixin, LegacyVisualMixin, LegacyColorMix
             posPix = posToPix(stim)
 
         """
-        self.__dict__['pos'] = val2array(value, False, False)
+        return WindowMixin.pos.fget(self)
+
+    @pos.setter
+    def pos(self, value):
+        # Supply defualt for None
+        if value is None:
+            value = Position((0, 0), units="height", win=self.win)
+        # Do setting
+        WindowMixin.pos.fset(self, value)
+        # Mark any updates needed
         self._needVertexUpdate = True
         self._needUpdate = True
 

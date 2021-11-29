@@ -324,7 +324,7 @@ class _TestUnitsMixin:
         if not self.obj:
             return
         # Setup window for this test
-        monitor = Monitor("testUnitsMonitor")
+        monitor = Monitor("testMonitor")
         monitor.setSizePix((256, 128))
         monitor.setWidth(4)
         monitor.setDistance(50)

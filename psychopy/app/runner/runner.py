@@ -136,7 +136,7 @@ class RunnerFrame(wx.Frame, ThemeMixin):
              'label': _translate('Save list')+'\t%s'%keys['save'],
              'status': _translate('Saving task'),
              'func': self.saveTaskList},
-            {'id': wx.ID_COPY, 'label': _translate('Open list')+'\tCtrl-O',
+            {'id': wx.ID_OPEN, 'label': _translate('Open list')+'\tCtrl-O',
              'status': _translate('Loading task'),
              'func': self.loadTaskList},
             {'id': wx.ID_CLOSE_FRAME, 'label': _translate('Close')+'\tCtrl-W',

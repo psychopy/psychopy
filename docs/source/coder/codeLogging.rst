@@ -3,7 +3,7 @@
 Logging data
 -------------------
 
-TrialHandler and StairHandler can both generate data outputs in which responses are stored, in relation to the stimulus conditions. In addition to those data outputs, PsychoPy can create detailed chronological log files of events during the experiment.
+:ref:`trialHandler` and :ref:`stairHandler` can both generate data outputs in which responses are stored, in relation to the stimulus conditions. In addition to those data outputs, PsychoPy can create detailed chronological log files of events during the experiment.
 
 Log levels and targets
 ~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -33,6 +33,15 @@ getTime = Computer.getTime
 
 _currentSessionInfo = None
 
+def windowInfoDict(win):
+    windict = dict(handle=win._hw_handle, pos=win.pos, size=win.size,
+                   units=win.units, useRetina=win.useRetina, monitor=None)
+    if win.monitor:
+        windict['monitor'] = dict(resolution=win.monitor.getSizePix(),
+                                  width=win.monitor.getWidth(),
+                                  distance=win.monitor.getDistance())
+    return windict
+
 def getFullClassName(klass):
     module = klass.__module__
     if module == 'builtins':
@@ -669,6 +678,10 @@ class ioHubConnection():
             ('RPC', 'unregisterWindowHandles', winHandles))
         return r[2]
 
+    def updateWindowPos(self, win_handle, pos):
+        r = self._sendToHubServer(('RPC', 'updateWindowPos', (win_handle, pos)))
+        return r[2]
+
     def getTime(self):
         """
         **Deprecated Method:** Use Computer.getTime instead. Remains here for
@@ -967,7 +980,8 @@ class ioHubConnection():
                 whs = []
                 # pylint: disable=protected-access
                 for w in window.openWindows:
-                    whs.append(w()._hw_handle)
+                    winfo = windowInfoDict(w())
+                    whs.append(winfo)
                 self.registerWindowHandles(*whs)
         except ImportError:
             pass

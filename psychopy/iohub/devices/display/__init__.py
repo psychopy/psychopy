@@ -50,9 +50,7 @@ class Display(Device):
             self._xwindow = None
 
         if Display._computer_display_runtime_info_list is None:
-            Display._computer_display_runtime_info_list =\
-                Display._createAllRuntimeInfoDicts()
-
+            Display._computer_display_runtime_info_list = Display._createAllRuntimeInfoDicts()
         self._addRuntimeInfoToDisplayConfig()
 
     def getDeviceNumber(self):
@@ -95,6 +93,15 @@ class Display(Device):
 
         """
         return len(cls._computer_display_runtime_info_list)
+
+    @classmethod
+    def getAllDisplayBounds(cls):
+        """
+        Returns pixel display bounds (l,t r,b) for each detected display.
+        
+        :return: list of (l,t r,b) tuples
+        """
+        return [d.get('bounds') for d in cls._computer_display_runtime_info_list]
 
     def getRuntimeInfo(self, display_index = None):
         """

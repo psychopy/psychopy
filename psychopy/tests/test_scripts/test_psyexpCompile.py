@@ -1,4 +1,5 @@
 import os.path
+import re
 from pathlib import Path
 import io
 import shutil
@@ -9,16 +10,60 @@ from psychopy.alerts import alerttools
 from psychopy.experiment import Experiment
 from psychopy.experiment.routines import Routine, BaseStandaloneRoutine, UnknownRoutine
 from psychopy.experiment.components import BaseComponent
-from psychopy.experiment.params import Param
+from psychopy.experiment.params import Param, utils
 from psychopy import logging
 
 
-class TestComponents():
+# Some regex shorthand
+_q = r"[\"']"  # quotes
+_lb = r"[\[\(]"  # left bracket
+_rb = r"[\]\)]"  # right bracket
+
+
+class TestComponents:
     def setup(self):
         self.temp_dir = mkdtemp()
 
     def teardown(self):
         shutil.rmtree(self.temp_dir)
+
+    def test_problem_experiments(self):
+        """
+        Tests that some known troublemaker experiments compile as intended. Cases are structured like so:
+        file : `.psyexp` file for the experiment
+        comparison : Type of comparison to do, can be any of:
+            - contains : Compiled script should contain the specified answer
+            - excludes : Compiled script should NOT contain the specified answer
+            - equals : Compiled script should match the answer
+        ans : The string to do specified comparison against
+        """
+        # Define some cases
+        tykes = [
+            {'file': Path(TESTS_DATA_PATH) / "retroListParam.psyexp", 'comparison': "contains",
+             'ans': f"{_lb}{_q}left{_q}, ?{_q}down{_q}, ?{_q}right{_q}{_rb}"}
+        ]
+        # Temp outfile to use
+        outfile = Path(mkdtemp()) / 'outfile.py'
+        # Run each case
+        for case in tykes:
+            # Compile experiment
+            psyexpCompile.compileScript(infile=case['file'], outfile=str(outfile))
+            # Get compiled script as a string
+            with open(outfile, "r") as f:
+                outscript = f.read()
+            # Do comparison
+            if case['comparison'] == "contains":
+                assert re.search(case['ans'], outscript), (
+                    f"No match found for `{case['ans']}` in compile of {case['file'].name}. View compile here: {outfile}"
+                )
+            if case['comparison'] == "excludes":
+                assert not re.search(case['ans'], outscript), (
+                    f"Unwanted match found for `{case['ans']}` in compile of {case['file'].name}. View compile here: {outfile}"
+                )
+            if case['comparison'] == "equals":
+                assert re.fullmatch(case['ans'], outscript), (
+                    f"Compile of {case['file'].name} did not match {case['ans']}. View compile here: {outfile}"
+                )
 
     def test_component_is_written_to_script(self):
         psyexp_file = os.path.join(TESTS_DATA_PATH,
@@ -120,3 +165,40 @@ class TestComponents():
         for (i, val) in enumerate(tykes):
             # Check the validity of each tyke param against the expected value
             assert tykeComponent.params[str(i)].dollarSyntax()[0] == tykes[val]
+
+    def test_list_params(self):
+        # Define params and how they should compile
+        cases = [
+            {'val': "\"left\", \"down\", \"right\"",
+             'py': f"{_lb}{_q}left{_q}, {_q}down{_q}, {_q}right{_q}{_rb}",
+             'js': f"{_lb}{_q}left{_q}, {_q}down{_q}, {_q}right{_q}{_rb}"},  # Double quotes naked list
+            {'val': "\'left\', \'down\', \'right\'",
+             'py': f"{_lb}{_q}left{_q}, {_q}down{_q}, {_q}right{_q}{_rb}",
+             'js': f"{_lb}{_q}left{_q}, {_q}down{_q}, {_q}right{_q}{_rb}"},  # Single quotes naked list
+            {'val': "(\'left\', \'down\', \'right\')",
+             'py': f"{_lb}{_q}left{_q}, {_q}down{_q}, {_q}right{_q}{_rb}",
+             'js': f"{_lb}{_q}left{_q}, {_q}down{_q}, {_q}right{_q}{_rb}"},  # Single quotes tuple syntax
+            {'val': "[\'left\', \'down\', \'right\']",
+             'py': f"{_lb}{_q}left{_q}, {_q}down{_q}, {_q}right{_q}{_rb}",
+             'js': f"{_lb}{_q}left{_q}, {_q}down{_q}, {_q}right{_q}{_rb}"},  # Single quotes list syntax
+            {'val': "\"left\"",
+             'py': f"{_lb}{_q}left{_q}{_rb}",
+             'js': f"{_lb}{_q}left{_q}{_rb}"},  # Single value
+            {'val': "[\"left\"]",
+             'py': f"{_lb}{_q}left{_q}{_rb}",
+             'js': f"{_lb}{_q}left{_q}{_rb}"},  # Single value list syntax
+            {'val': "$left",
+             'py': r"left",
+             'js': r"left"},  # Variable name
+        ]
+        # Stringify each and check it compiles correctly
+        for case in cases:
+            param = Param(case['val'], "list")
+            # Test Python
+            utils.scriptTarget == "PsychoPy"
+            assert (re.fullmatch(case['py'], str(param)),
+                    f"`{case['val']}` should match the regex `{case['py']}`, but it was `{param}`")
+            # Test JS
+            utils.scriptTarget == "PsychoJS"
+            assert (re.fullmatch(case['js'],str(param)),
+                    f"`{case['val']}` should match the regex `{case['js']}`, but it was `{param}`")

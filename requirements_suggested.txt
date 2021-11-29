@@ -1,9 +1,13 @@
 pylsl
+python-vlc  # only for MovieStim2
+pyserial
+pyparallel
 egi
-iolabs
-googleapiclient
+google-api-python-client
 SpeechRecognition
 pyxid2
 badapted
-darc_toolbox
-pygaze
+darc-experiment-toolbox
+python-pygaze
+-i https://pypi.sr-support.com
+sr-research-pylink 

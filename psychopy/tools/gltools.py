@@ -315,7 +315,7 @@ def compileShaderObjectARB(shaderSrc, shaderType):
     shaderSrc : str, list of str
         GLSL shader source code text.
     shaderType : GLenum
-        Shader program type. Must be *_ARB enums such as `GL_VERTEX_SHADER_ARB`,
+        Shader program type. Must be `*_ARB` enums such as `GL_VERTEX_SHADER_ARB`,
         `GL_FRAGMENT_SHADER_ARB`, `GL_GEOMETRY_SHADER_ARB`, etc.
 
     Returns
@@ -3087,6 +3087,7 @@ def createMaterial(params=(), textures=(), face=GL.GL_FRONT_AND_BACK):
 
     Parameters
     ----------
+
     params : :obj:`list` of :obj:`tuple`, optional
         List of material modes and values. Each mode is assigned a value as
         (mode, color). Modes can be GL_AMBIENT, GL_DIFFUSE, GL_SPECULAR,
@@ -3094,7 +3095,7 @@ def createMaterial(params=(), textures=(), face=GL.GL_FRONT_AND_BACK):
         a tuple of 4 floats which specify reflectance values for each RGBA
         component. The value of GL_SHININESS should be a single float. If no
         values are specified, an empty material will be created.
-    textures :obj:`list` of :obj:`tuple`, optional
+    textures : :obj:`list` of :obj:`tuple`, optional
         List of texture units and TexImage2D descriptors. These will be written
         to the 'textures' field of the returned descriptor. For example,
         [(GL.GL_TEXTURE0, texDesc0), (GL.GL_TEXTURE1, texDesc1)]. The number of
@@ -3105,7 +3106,7 @@ def createMaterial(params=(), textures=(), face=GL.GL_FRONT_AND_BACK):
 
     Returns
     -------
-    Material
+    Material :
         A descriptor with material properties.
 
     Examples
@@ -3603,9 +3604,9 @@ class ObjMeshInfo:
 def loadObjFile(objFile):
     """Load a Wavefront OBJ file (*.obj).
 
-    Loads vertex, normals, and texture coordinates from the provided *.obj file
+    Loads vertex, normals, and texture coordinates from the provided `*.obj` file
     into arrays. These arrays can be processed then loaded into vertex buffer
-    objects (VBOs) for rendering. The *.obj file must at least specify vertex
+    objects (VBOs) for rendering. The `*.obj` file must at least specify vertex
     position data to be loaded successfully. Normals and texture coordinates are
     optional.
 
@@ -3620,7 +3621,7 @@ def loadObjFile(objFile):
     Parameters
     ----------
     objFile : :obj:`str`
-        Path to the *.OBJ file to load.
+        Path to the `*.OBJ` file to load.
 
     Returns
     -------
@@ -3629,7 +3630,7 @@ def loadObjFile(objFile):
 
     See Also
     --------
-    loadMtlFile : Load a *.mtl file.
+    loadMtlFile : Load a `*.mtl` file.
 
     Notes
     -----
@@ -3640,7 +3641,7 @@ def loadObjFile(objFile):
 
     Examples
     --------
-    Loading a *.OBJ mode from file::
+    Loading a `*.obj` mode from file::
 
         objModel = loadObjFile('/path/to/file.obj')
         # load the material (*.mtl) file, textures are also loaded
@@ -3845,11 +3846,11 @@ def loadMtlFile(mtllib, texParams=None):
 
     See Also
     --------
-    loadObjFile : Load an *.OBJ file.
+    loadObjFile : Load an `*.OBJ` file.
 
     Examples
     --------
-    Load material associated with an *.OBJ file::
+    Load material associated with an `*.OBJ` file::
 
         objModel = loadObjFile('/path/to/file.obj')
         # load the material (*.mtl) file, textures are also loaded
