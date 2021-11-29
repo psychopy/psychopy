@@ -136,12 +136,11 @@ class TargetStim(ShapeStim):
 
     @property
     def units(self):
-        if hasattr(self, "_units"):
-            return self._units
+        return ShapeStim.units.fget(self)
 
     @units.setter
     def units(self, value):
-        self._units = value
+        ShapeStim.units.fset(self, value)
         if hasattr(self, "inner"):
             self.inner.units = value
 
