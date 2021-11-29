@@ -11,7 +11,7 @@
 from pathlib import Path
 from statistics import mean
 from psychopy.colors import Color, colorSpaces
-from psychopy.layout import Position, Size, Vertices, unitTypes
+from psychopy.layout import Vector, Position, Size, Vertices, unitTypes
 
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
 # other calls to pyglet or pyglet submodules, otherwise it may not get picked
@@ -751,15 +751,22 @@ class ContainerMixin:
         """
 
         verts = numpy.dot(self.vertices, self._rotationMatrix)
+        # If needed, sub in missing values for flip and anchor
+        flip = None
+        if hasattr(self, "flip"):
+            flip = self.flip
+        anchor = None
+        if hasattr(self, "anchor"):
+            anchor = self.anchor
         # Convert to a vertices object if not already
-        verts = Vertices(verts, obj=self, flip=self.flip).pix
+        verts = Vertices(verts, obj=self, flip=flip, anchor=anchor).pix
         self.__dict__['verticesPix'] = self.__dict__['_borderPix'] = verts
 
         if hasattr(self, '_tesselVertices'):  # Shapes need to render from this
             tesselVerts = self._tesselVertices
             tesselVerts = numpy.dot(tesselVerts, self._rotationMatrix)
             # Convert to a vertices object if not already
-            tesselVerts = Vertices(tesselVerts, obj=self, flip=self.flip).pix
+            tesselVerts = Vertices(tesselVerts, obj=self, flip=self.flip, anchor=self.anchor).pix
             self.__dict__['verticesPix'] = tesselVerts
 
         self._needVertexUpdate = False
@@ -1205,14 +1212,14 @@ class WindowMixin:
     Used by BaseVisualStim, SimpleImageStim and ElementArrayStim.
 
     """
-    @attributeSetter
-    def win(self, value):
+    @property
+    def win(self):
         """The :class:`~psychopy.visual.Window` object in which the
         stimulus will be rendered by default. (required)
 
-       Example, drawing same stimulus in two different windows and display
-       simultaneously. Assuming that you have two windows and a stimulus
-       (win1, win2 and stim)::
+        Example, drawing same stimulus in two different windows and display
+        simultaneously. Assuming that you have two windows and a stimulus
+        (win1, win2 and stim)::
 
            stim.win = win1  # stimulus will be drawn in win1
            stim.draw()  # stimulus is now drawn to win1
@@ -1230,7 +1237,16 @@ class WindowMixin:
            stim.draw(win2)
 
         """
+        return self.__dict__['win']
+
+    @win.setter
+    def win(self, value):
         self.__dict__['win'] = value
+        # Update window ref in size and pos objects
+        if hasattr(self, "_size") and isinstance(self._size, Vector):
+            self._size.win = value
+        if hasattr(self, "_pos") and isinstance(self._pos, Vector):
+            self._pos.win = value
 
     @property
     def pos(self):
@@ -1306,7 +1322,7 @@ class WindowMixin:
                                 [-0.5, -0.5],
                                 [-0.5, 0.5],
                                 [0.5, 0.5],
-                            ]), obj=self, flip=self.flip)
+                            ]), obj=self, flip=self.flip, anchor=self.anchor)
         return verts.base
 
     @vertices.setter
@@ -1320,7 +1336,7 @@ class WindowMixin:
                 [0.5, 0.5],
             ]
         # Create Vertices object
-        self._vertices = Vertices(value, obj=self, flip=self.flip)
+        self._vertices = Vertices(value, obj=self, flip=self.flip, anchor=self.anchor)
 
     @property
     def flip(self):
@@ -1372,6 +1388,22 @@ class WindowMixin:
     @flipVert.setter
     def flipVert(self, value):
         self.flip = [self.flip[0, 0], value]
+
+    @property
+    def anchor(self):
+        if hasattr(self, "_vertices"):
+            return self._vertices.anchor
+        elif hasattr(self, "_anchor"):
+            # Return a backup value if there's no vertices yet
+            return self._anchor
+
+    @anchor.setter
+    def anchor(self, value):
+        if hasattr(self, "_vertices"):
+            self._vertices.anchor = value
+        else:
+            # Set a backup value if there's no vertices yet
+            self._anchor = value
 
     @property
     def units(self):

@@ -116,6 +116,7 @@ class Rect(BaseShapeStim):
                  fillColorSpace=None,
                  pos=(0, 0),
                  size=None,
+                 anchor=None,
                  ori=0.0,
                  opacity=None,
                  contrast=1.0,
@@ -144,7 +145,6 @@ class Rect(BaseShapeStim):
                              [ .5,  .5],
                              [ .5, -.5],
                              [-.5, -.5]])
-
         super(Rect, self).__init__(
             win,
             units=units,
@@ -157,6 +157,7 @@ class Rect(BaseShapeStim):
             closeShape=True,
             pos=pos,
             size=size,
+            anchor=anchor,
             ori=ori,
             opacity=opacity,
             contrast=contrast,

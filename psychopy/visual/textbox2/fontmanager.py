@@ -321,9 +321,30 @@ class _TextureAtlas:
 class GLFont:
     """
     A GLFont gathers a set of glyphs for a given font filename and size.
+
+        size : int
+            Distance between the tops of capital letters and the bottoms of descenders
+
+        height : int
+            Total distance from one baseline to the next
+
+        capheight : int
+            Position of the tops of capital letters relative to the baseline
+
+        ascender : int
+            Position of the tops of ascenders relative to the baseline
+
+        descender : int
+            Position of the bottoms of descenders relative to the baseline
+
+        linegap : int
+            Distance between the bottoms of this line's descenders and the tops of the next line's ascenders
+
+        leading : int
+            Position of the tops of the next line's ascenders relative to this line's baseline
     """
 
-    def __init__(self, filename, size, textureSize=2048):
+    def __init__(self, filename, size, lineSpacing=1, textureSize=2048):
         """
         Initialize font
 
@@ -338,22 +359,26 @@ class GLFont:
 
         size : float
             Font size
+
+        lineSpacing : float
+            Leading between lines, proportional to font size
         """
         self.scale = 64.0
         self.atlas = _TextureAtlas(textureSize, textureSize, format='alpha')
+        self.format = self.atlas.format
         self.filename = filename
+        self.face = ft.Face(str(filename))  # ft.Face doesn't support Pathlib yet
         self.size = size
         self.glyphs = {}
-        face = ft.Face(str(filename))  # ft.Face doesn't support Pathlib yet
-        face.set_char_size(int(self.size * self.scale))
-        self.info = FontInfo(filename, face)
+        self.info = FontInfo(filename, self.face)
         self._dirty = False
-        metrics = face.size
+        # Get metrics
+        metrics = self.face.size
         self.ascender = metrics.ascender / self.scale
         self.descender = metrics.descender / self.scale
         self.height = metrics.height / self.scale
-        self.linegap = self.height - self.ascender + self.descender
-        self.format = self.atlas.format
+        # Set spacing
+        self.lineSpacing = lineSpacing
 
     def __getitem__(self, charcode):
         """
@@ -366,6 +391,57 @@ class GLFont:
     def __str__(self):
         """Returns a string rep of the font, such as 'Arial_24_bold' """
         return "{}_{}".format(self.info, self.size)
+
+    @property
+    def leading(self):
+        """
+        Position of the next row's ascender line relative to this row's base line.
+        """
+        return self.ascender - self.height
+
+    @leading.setter
+    def leading(self, value):
+        self.height = self.ascender - value
+
+    @property
+    def linegap(self):
+        return -(self.leading - self.descender)
+
+    @linegap.setter
+    def linegap(self, value):
+        self.leading = self.descender - value
+
+    @property
+    def capheight(self):
+        """
+        Position of the top of capital letters relative to the base line.
+        """
+        return self.descender + self.size
+
+    @capheight.setter
+    def capheight(self, value):
+        self.size = value - self.descender
+
+    @property
+    def size(self):
+        """
+        Distance from the descender line to the capheight line.
+        """
+        if hasattr(self, "_size"):
+            return self._size
+
+    @size.setter
+    def size(self, value):
+        self._size = value
+        self.face.set_char_size(int(self.size * self.scale))
+
+    @property
+    def lineSpacing(self):
+        return self.height / (self.ascender - self.descender)
+
+    @lineSpacing.setter
+    def lineSpacing(self, value):
+        self.height = value * (self.ascender - self.descender)
 
     @property
     def name(self):
@@ -844,7 +920,7 @@ class FontManager():
     # Class methods for FontManager below this comment should not need to be
     # used by user scripts in most situations. Accessing them is okay.
 
-    def getFont(self, name, size=32, bold=False, italic=False,
+    def getFont(self, name, size=32, bold=False, italic=False, lineSpacing=1,
                 monospace=False):
         """
         Return a FontAtlas object that matches the family name, style info,
@@ -869,7 +945,7 @@ class FontManager():
         identifier = "{}_{}".format(str(fontInfo), size)
         glFont = self._glFonts.get(identifier)
         if glFont is None:
-            glFont = GLFont(fontInfo.path, size)
+            glFont = GLFont(fontInfo.path, size, lineSpacing=lineSpacing)
             self._glFonts[identifier] = glFont
 
         return glFont
