@@ -20,7 +20,6 @@ tracker = io.devices.tracker
 # r = tracker.runSetupProcedure()
 
 tracker.setConnectionState(True)
-tracker.enableEventReporting(True)
 
 # Check for and print any eye tracker events received...
 tracker.setRecordingState(True)
