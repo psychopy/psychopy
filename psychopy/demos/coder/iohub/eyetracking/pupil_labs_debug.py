@@ -7,7 +7,17 @@ logging.console.setLevel(logging.DEBUG)
 iohub_config = {
     "eyetracker.hw.pupil_labs.pupil_core.EyeTracker": {
         "name": "tracker",
-        "runtime_settings": {"pupil_capture_recording": {"enabled": False}},
+        "runtime_settings": {
+            "pupillometry_only": False,
+            "surface_name": "psychopy_iohub_surface",
+            "gaze_confidence_threshold": 0.6,
+            "pupil_remote": {
+                "ip_address": "127.0.0.1",
+                "port": 50020,
+                "timeout_ms": 1000.0,
+            },
+            "pupil_capture_recording": {"enabled": True},
+        },
     }
 }
 
