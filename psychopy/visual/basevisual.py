@@ -1237,13 +1237,11 @@ class WindowMixin:
            stim.draw(win2)
 
         """
-        if not hasattr(self, "_win") or self._win is None:
-            raise AttributeError("Object {self} has no attached window.".format())
-        return self._win
+        return self.__dict__['win']
 
     @win.setter
     def win(self, value):
-        self._win = value
+        self.__dict__['win'] = value
         # Update window ref in size and pos objects
         if hasattr(self, "_size") and isinstance(self._size, Vector):
             self._size.win = value
