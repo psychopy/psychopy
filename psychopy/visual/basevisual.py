@@ -1377,6 +1377,8 @@ class WindowMixin:
     def units(self):
         if hasattr(self, "_units"):
             return self._units
+        else:
+            return self.win.units
 
     @units.setter
     def units(self, value):
