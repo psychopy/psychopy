@@ -13,7 +13,7 @@ class TargetStim(ShapeStim):
                  win, name=None, style="circles",
                  radius=.05, fillColor=(1, 1, 1, 0.1), borderColor="white", lineWidth=2,
                  innerRadius=.01, innerFillColor="red", innerBorderColor=None, innerLineWidth=None,
-                 pos=(0, 0),  units='height',
+                 pos=(0, 0),  units=None,
                  colorSpace="rgb",
                  autoLog=None, autoDraw=False):
         # Make sure name is a string
