@@ -125,12 +125,11 @@ class TargetStim(ShapeStim):
 
     @property
     def win(self):
-        if hasattr(self, "_win"):
-            return self._win
+        return ShapeStim.win.fget(self)
 
     @win.setter
     def win(self, value):
-        self._win = value
+        ShapeStim.win.fset(self, value)
         if hasattr(self, "inner"):
             self.inner.win = value
 
