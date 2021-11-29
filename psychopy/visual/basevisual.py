@@ -1212,14 +1212,14 @@ class WindowMixin:
     Used by BaseVisualStim, SimpleImageStim and ElementArrayStim.
 
     """
-    @attributeSetter
-    def win(self, value):
+    @property
+    def win(self):
         """The :class:`~psychopy.visual.Window` object in which the
         stimulus will be rendered by default. (required)
 
-       Example, drawing same stimulus in two different windows and display
-       simultaneously. Assuming that you have two windows and a stimulus
-       (win1, win2 and stim)::
+        Example, drawing same stimulus in two different windows and display
+        simultaneously. Assuming that you have two windows and a stimulus
+        (win1, win2 and stim)::
 
            stim.win = win1  # stimulus will be drawn in win1
            stim.draw()  # stimulus is now drawn to win1
@@ -1237,7 +1237,13 @@ class WindowMixin:
            stim.draw(win2)
 
         """
-        self.__dict__['win'] = value
+        if not hasattr(self, "_win") or self._win is None:
+            raise AttributeError("Object {self} has no attached window.".format())
+        return self._win
+
+    @win.setter
+    def win(self, value):
+        self._win = value
         # Update window ref in size and pos objects
         if hasattr(self, "_size") and isinstance(self._size, Vector):
             self._size.win = value
