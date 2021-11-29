@@ -11,7 +11,7 @@
 from pathlib import Path
 from statistics import mean
 from psychopy.colors import Color, colorSpaces
-from psychopy.layout import Position, Size, Vertices, unitTypes
+from psychopy.layout import Vector, Position, Size, Vertices, unitTypes
 
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
 # other calls to pyglet or pyglet submodules, otherwise it may not get picked
@@ -1238,6 +1238,11 @@ class WindowMixin:
 
         """
         self.__dict__['win'] = value
+        # Update window ref in size and pos objects
+        if hasattr(self, "_size") and isinstance(self._size, Vector):
+            self._size.win = value
+        if hasattr(self, "_pos") and isinstance(self._pos, Vector):
+            self._pos.win = value
 
     @property
     def pos(self):
