@@ -271,6 +271,20 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         self.opacity = value
 
     @property
+    def labelHeight(self):
+        if hasattr(self, "_labelHeight"):
+            return getattr(self._labelHeight, self.units)[1]
+
+    @labelHeight.setter
+    def labelHeight(self, value):
+        if isinstance(value, layout.Vector):
+            # If given a Size, use it
+            self._labelHeight = value
+        else:
+            # Otherwise, convert to a Size object
+            self._labelHeight = layout.Size([None, value], units=self.units, win=self.win)
+
+    @property
     def foreColor(self):
         ColorMixin.foreColor.fget(self)
 
@@ -383,7 +397,7 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
                 x = self.tickLocs[np.searchsorted(self.tickLocs[:, 0], x, side="left")][:, 0]
                 y = [self.pos[1]] * len(self.labels)
                 # Padding applied on vertical
-                padding = [0, self._tickL]
+                padding = [0, (self._tickL + self.labelHeight) / 2]
                 # Vertical align/anchor depend on flip
                 if not self.flip:
                     # Labels below means anchor them from the top
@@ -402,7 +416,7 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
                 y = self.tickLocs[np.searchsorted(self.tickLocs[:, 1], y, side="left")][:, 1]
                 x = [self.pos[0]] * len(self.labels)
                 # Padding applied on horizontal
-                padding = [self._tickL, 0]
+                padding = [(self._tickL + self.labelHeight) / 2, 0]
                 # Horizontal align/anchor depend on flip
                 if not self.flip:
                     # Labels left means anchor them from the right
