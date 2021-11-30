@@ -145,8 +145,8 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         self.win = win
         self.ticks = np.asarray(ticks)
         self.labels = labels
-        self.pos = pos
         self.units = units
+        self.pos = pos
 
         if size is None:
             self._size = layout.Size((1, 0.1), 'height', self.win)
