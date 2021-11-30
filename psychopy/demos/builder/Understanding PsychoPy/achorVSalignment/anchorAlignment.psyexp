@@ -27,7 +27,7 @@
     <Param val="" valType="str" updates="None" name="Use version"/>
     <Param val="[1080, 720]" valType="list" updates="None" name="Window size (pixels)"/>
     <Param val="avg" valType="str" updates="None" name="blendMode"/>
-    <Param val="$[0,0,0]" valType="color" updates="None" name="color"/>
+    <Param val="grey" valType="color" updates="None" name="color"/>
     <Param val="rgb" valType="str" updates="None" name="colorSpace"/>
     <Param val="100.1.1.1" valType="str" updates="None" name="elAddress"/>
     <Param val="FILTER_LEVEL_2" valType="str" updates="None" name="elDataFiltering"/>
@@ -89,7 +89,7 @@
         <Param val="duration (s)" valType="str" updates="None" name="stopType"/>
         <Param val="" valType="code" updates="constant" name="stopVal"/>
         <Param val="True" valType="bool" updates="None" name="syncScreenRefresh"/>
-        <Param val="$instr.text" valType="str" updates="set every repeat" name="text"/>
+        <Param val="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. &amp;#10;&amp;#10;Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat." valType="str" updates="constant" name="text"/>
         <Param val="from exp settings" valType="str" updates="None" name="units"/>
       </TextboxComponent>
       <SliderComponent name="alignmentSlider">
@@ -128,6 +128,43 @@
         <Param val="(0, 1, 2, 3, 4, 5, 6, 7, 8)" valType="list" updates="constant" name="ticks"/>
         <Param val="from exp settings" valType="str" updates="None" name="units"/>
       </SliderComponent>
+      <TextboxComponent name="alignmentLabel">
+        <Param val="top-center" valType="str" updates="constant" name="alignment"/>
+        <Param val="top-center" valType="str" updates="constant" name="anchor"/>
+        <Param val="True" valType="bool" updates="constant" name="autoLog"/>
+        <Param val="True" valType="bool" updates="constant" name="bold"/>
+        <Param val="None" valType="color" updates="constant" name="borderColor"/>
+        <Param val="2" valType="num" updates="constant" name="borderWidth"/>
+        <Param val="black" valType="color" updates="constant" name="color"/>
+        <Param val="rgb" valType="str" updates="constant" name="colorSpace"/>
+        <Param val="1" valType="num" updates="constant" name="contrast"/>
+        <Param val="False" valType="bool" updates="None" name="disabled"/>
+        <Param val="" valType="code" updates="None" name="durationEstim"/>
+        <Param val="False" valType="bool" updates="constant" name="editable"/>
+        <Param val="None" valType="color" updates="constant" name="fillColor"/>
+        <Param val="False" valType="bool" updates="constant" name="flipHoriz"/>
+        <Param val="False" valType="bool" updates="constant" name="flipVert"/>
+        <Param val="Open Sans" valType="str" updates="constant" name="font"/>
+        <Param val="False" valType="bool" updates="constant" name="italic"/>
+        <Param val="LTR" valType="str" updates="None" name="languageStyle"/>
+        <Param val="0.025" valType="num" updates="constant" name="letterHeight"/>
+        <Param val="1.0" valType="num" updates="constant" name="lineSpacing"/>
+        <Param val="alignmentLabel" valType="code" updates="None" name="name"/>
+        <Param val="" valType="num" updates="constant" name="opacity"/>
+        <Param val="0" valType="num" updates="constant" name="ori"/>
+        <Param val="0.025" valType="num" updates="constant" name="padding"/>
+        <Param val="(0, 0.5)" valType="list" updates="constant" name="pos"/>
+        <Param val="True" valType="bool" updates="None" name="saveStartStop"/>
+        <Param val="(None, None)" valType="list" updates="constant" name="size"/>
+        <Param val="" valType="code" updates="None" name="startEstim"/>
+        <Param val="time (s)" valType="str" updates="None" name="startType"/>
+        <Param val="0.0" valType="code" updates="None" name="startVal"/>
+        <Param val="duration (s)" valType="str" updates="None" name="stopType"/>
+        <Param val="" valType="code" updates="constant" name="stopVal"/>
+        <Param val="True" valType="bool" updates="None" name="syncScreenRefresh"/>
+        <Param val="Alignment" valType="str" updates="constant" name="text"/>
+        <Param val="from exp settings" valType="str" updates="None" name="units"/>
+      </TextboxComponent>
       <SliderComponent name="anchorSlider">
         <Param val="black" valType="color" updates="constant" name="borderColor"/>
         <Param val="black" valType="color" updates="constant" name="color"/>
@@ -164,6 +201,43 @@
         <Param val="(0, 1, 2, 3, 4, 5, 6, 7, 8)" valType="list" updates="constant" name="ticks"/>
         <Param val="from exp settings" valType="str" updates="None" name="units"/>
       </SliderComponent>
+      <TextboxComponent name="anchorLabel">
+        <Param val="top-center" valType="str" updates="constant" name="alignment"/>
+        <Param val="top-center" valType="str" updates="constant" name="anchor"/>
+        <Param val="True" valType="bool" updates="constant" name="autoLog"/>
+        <Param val="True" valType="bool" updates="constant" name="bold"/>
+        <Param val="None" valType="color" updates="constant" name="borderColor"/>
+        <Param val="2" valType="num" updates="constant" name="borderWidth"/>
+        <Param val="black" valType="color" updates="constant" name="color"/>
+        <Param val="rgb" valType="str" updates="constant" name="colorSpace"/>
+        <Param val="1" valType="num" updates="constant" name="contrast"/>
+        <Param val="False" valType="bool" updates="None" name="disabled"/>
+        <Param val="" valType="code" updates="None" name="durationEstim"/>
+        <Param val="False" valType="bool" updates="constant" name="editable"/>
+        <Param val="None" valType="color" updates="constant" name="fillColor"/>
+        <Param val="False" valType="bool" updates="constant" name="flipHoriz"/>
+        <Param val="False" valType="bool" updates="constant" name="flipVert"/>
+        <Param val="Open Sans" valType="str" updates="constant" name="font"/>
+        <Param val="False" valType="bool" updates="constant" name="italic"/>
+        <Param val="LTR" valType="str" updates="None" name="languageStyle"/>
+        <Param val="0.025" valType="num" updates="constant" name="letterHeight"/>
+        <Param val="1.0" valType="num" updates="constant" name="lineSpacing"/>
+        <Param val="anchorLabel" valType="code" updates="None" name="name"/>
+        <Param val="" valType="num" updates="constant" name="opacity"/>
+        <Param val="0" valType="num" updates="constant" name="ori"/>
+        <Param val="0.025" valType="num" updates="constant" name="padding"/>
+        <Param val="(0, -0.3)" valType="list" updates="constant" name="pos"/>
+        <Param val="True" valType="bool" updates="None" name="saveStartStop"/>
+        <Param val="(None, None)" valType="list" updates="constant" name="size"/>
+        <Param val="" valType="code" updates="None" name="startEstim"/>
+        <Param val="time (s)" valType="str" updates="None" name="startType"/>
+        <Param val="0.0" valType="code" updates="None" name="startVal"/>
+        <Param val="duration (s)" valType="str" updates="None" name="stopType"/>
+        <Param val="" valType="code" updates="constant" name="stopVal"/>
+        <Param val="True" valType="bool" updates="None" name="syncScreenRefresh"/>
+        <Param val="Anchor" valType="str" updates="constant" name="text"/>
+        <Param val="from exp settings" valType="str" updates="None" name="units"/>
+      </TextboxComponent>
       <CodeComponent name="updateTextbox">
         <Param val="" valType="extendedCode" updates="constant" name="Before Experiment"/>
         <Param val="" valType="extendedCode" updates="constant" name="Before JS Experiment"/>
@@ -208,66 +282,8 @@
         <Param val="" valType="list" updates="constant" name="vertices"/>
       </PolygonComponent>
     </Routine>
-    <Routine name="instructions">
-      <TextboxComponent name="instr">
-        <Param val="center" valType="str" updates="constant" name="alignment"/>
-        <Param val="center" valType="str" updates="constant" name="anchor"/>
-        <Param val="True" valType="bool" updates="constant" name="autoLog"/>
-        <Param val="False" valType="bool" updates="constant" name="bold"/>
-        <Param val="None" valType="color" updates="constant" name="borderColor"/>
-        <Param val="2" valType="num" updates="constant" name="borderWidth"/>
-        <Param val="white" valType="color" updates="constant" name="color"/>
-        <Param val="rgb" valType="str" updates="constant" name="colorSpace"/>
-        <Param val="1" valType="num" updates="constant" name="contrast"/>
-        <Param val="False" valType="bool" updates="None" name="disabled"/>
-        <Param val="" valType="code" updates="None" name="durationEstim"/>
-        <Param val="False" valType="bool" updates="constant" name="editable"/>
-        <Param val="None" valType="color" updates="constant" name="fillColor"/>
-        <Param val="False" valType="bool" updates="constant" name="flipHoriz"/>
-        <Param val="False" valType="bool" updates="constant" name="flipVert"/>
-        <Param val="Open Sans" valType="str" updates="constant" name="font"/>
-        <Param val="False" valType="bool" updates="constant" name="italic"/>
-        <Param val="LTR" valType="str" updates="None" name="languageStyle"/>
-        <Param val="0.05" valType="num" updates="constant" name="letterHeight"/>
-        <Param val="1.0" valType="num" updates="constant" name="lineSpacing"/>
-        <Param val="instr" valType="code" updates="None" name="name"/>
-        <Param val="" valType="num" updates="constant" name="opacity"/>
-        <Param val="0" valType="num" updates="constant" name="ori"/>
-        <Param val="0" valType="num" updates="constant" name="padding"/>
-        <Param val="(0, 0)" valType="list" updates="constant" name="pos"/>
-        <Param val="True" valType="bool" updates="None" name="saveStartStop"/>
-        <Param val="(1, 0.6)" valType="list" updates="constant" name="size"/>
-        <Param val="" valType="code" updates="None" name="startEstim"/>
-        <Param val="time (s)" valType="str" updates="None" name="startType"/>
-        <Param val="0.0" valType="code" updates="None" name="startVal"/>
-        <Param val="duration (s)" valType="str" updates="None" name="stopType"/>
-        <Param val="" valType="code" updates="constant" name="stopVal"/>
-        <Param val="True" valType="bool" updates="None" name="syncScreenRefresh"/>
-        <Param val="Anchor is not the same as alignment! Anchor is what point on the box is actually at its position, alignment is how the text sits within the box. &amp;#10;&amp;#10;In this demo, you can use sliders to control the alignment and anchoring of a textbox. Press any key to continue." valType="str" updates="constant" name="text"/>
-        <Param val="from exp settings" valType="str" updates="None" name="units"/>
-      </TextboxComponent>
-      <KeyboardComponent name="cont">
-        <Param val="" valType="list" updates="constant" name="allowedKeys"/>
-        <Param val="" valType="str" updates="constant" name="correctAns"/>
-        <Param val="False" valType="bool" updates="None" name="disabled"/>
-        <Param val="True" valType="bool" updates="constant" name="discard previous"/>
-        <Param val="" valType="code" updates="None" name="durationEstim"/>
-        <Param val="True" valType="bool" updates="constant" name="forceEndRoutine"/>
-        <Param val="cont" valType="code" updates="None" name="name"/>
-        <Param val="True" valType="bool" updates="None" name="saveStartStop"/>
-        <Param val="" valType="code" updates="None" name="startEstim"/>
-        <Param val="time (s)" valType="str" updates="None" name="startType"/>
-        <Param val="0.0" valType="code" updates="None" name="startVal"/>
-        <Param val="duration (s)" valType="str" updates="None" name="stopType"/>
-        <Param val="" valType="code" updates="constant" name="stopVal"/>
-        <Param val="last key" valType="str" updates="constant" name="store"/>
-        <Param val="False" valType="bool" updates="constant" name="storeCorrect"/>
-        <Param val="True" valType="bool" updates="constant" name="syncScreenRefresh"/>
-      </KeyboardComponent>
-    </Routine>
   </Routines>
   <Flow>
-    <Routine name="instructions"/>
     <Routine name="trial"/>
   </Flow>
 </PsychoPy2experiment>
