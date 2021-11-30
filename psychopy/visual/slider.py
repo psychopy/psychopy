@@ -302,7 +302,7 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         ColorMixin.fillColor.fset(self, value)
         # Set color of marker
         if hasattr(self, 'marker'):
-            self.marker.fillColor = self._foreColor.copy()
+            self.marker.fillColor = self._fillColor.copy()
 
     @property
     def markerColor(self):
