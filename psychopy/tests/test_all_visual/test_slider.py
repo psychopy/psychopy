@@ -93,9 +93,9 @@ class Test_Slider(_TestColorMixin):
         
     def test_ratingToPos(self):
         s = Slider(self.win, size=(1, 0.1), )
-        assert s._ratingToPos(3)[0][0] == 0
-        assert s._ratingToPos(1)[0][0] == -.5
-        assert s._ratingToPos(5)[0][0] == .5
+        assert s._ratingToPos(3)[0] == 0
+        assert s._ratingToPos(1)[0] == -.5
+        assert s._ratingToPos(5)[0] == .5
 
     def test_posToRatingToPos(self):
         s = Slider(self.win, size=(1, 0.1), )
@@ -113,11 +113,11 @@ class Test_Slider(_TestColorMixin):
 
     def test_labelLocs(self):
         s = Slider(self.win, size=(1, 0.1), labels=('a','b','c','d','e'))
-        assert s.labelLocs[0][0] == -.5 and s.labelLocs[0][1] == -.1
-        assert s.labelLocs[1][0] == -.25 and s.labelLocs[1][1] == -.1
-        assert s.labelLocs[2][0] == .0 and s.labelLocs[2][1] == -.1
-        assert s.labelLocs[3][0] == .25 and s.labelLocs[3][1] == -.1
-        assert s.labelLocs[4][0] == .5 and s.labelLocs[4][1] == -.1
+        assert s.labelLocs[0, 0] == -.5 and s.labelLocs[0, 1] == 0
+        assert s.labelLocs[1, 0] == -.25 and s.labelLocs[1, 1] == 0
+        assert s.labelLocs[2, 0] == .0 and s.labelLocs[2, 1] == 0
+        assert s.labelLocs[3, 0] == .25 and s.labelLocs[3, 1] == 0
+        assert s.labelLocs[4, 0] == .5 and s.labelLocs[4, 1] == 0
 
     def test_granularity(self):
         s = Slider(self.win, size=(1, 0.1), granularity=1)
