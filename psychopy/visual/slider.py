@@ -13,8 +13,8 @@
 import copy
 import numpy as np
 
-from psychopy import core, logging, event
-from .basevisual import MinimalStim, ColorMixin, BaseVisualStim
+from psychopy import core, logging, event, layout
+from .basevisual import MinimalStim, WindowMixin, ColorMixin, BaseVisualStim
 from .rect import Rect
 from .grating import GratingStim
 from .elementarray import ElementArrayStim
@@ -28,7 +28,7 @@ from ..constants import FINISHED, STARTED, NOT_STARTED
 debug = False
 
 
-class Slider(MinimalStim, ColorMixin):
+class Slider(MinimalStim, WindowMixin, ColorMixin):
     """A class for obtaining ratings, e.g., on a 1-to-7 or categorical scale.
 
     A simpler alternative to RatingScale, to be customised with code rather
@@ -55,7 +55,7 @@ class Slider(MinimalStim, ColorMixin):
                  ticks=(1, 2, 3, 4, 5),
                  labels=None,
                  startValue=None,
-                 pos=None,
+                 pos=(0, 0),
                  size=None,
                  units=None,
                  flip=False,
@@ -145,31 +145,14 @@ class Slider(MinimalStim, ColorMixin):
         self.win = win
         self.ticks = np.asarray(ticks)
         self.labels = labels
-
-        if pos is None:
-            self.__dict__['pos'] = (0, 0)
-        else:
-            self.__dict__['pos'] = pos
-
-        if units is None:
-            self.units = win.units
-        else:
-            self.units = units
+        self.pos = pos
+        self.units = units
 
         if size is None:
-            defaultSizes = {
-                None: [self.win.size[0]*1.0, self.win.size[1]*0.1],
-                'height': [1.0, 0.1],
-                'norm': [1.0, 0.1],
-                'deg': [3.14, 0.314],
-                'cm': [10, 1],
-                'pix': [self.win.size[0]*1.0, self.win.size[1]*0.1]
-            }
-            self._size = defaultSizes[self.units]
+            self._size = layout.Size((1, 0.1), 'height', self.win)
         else:
-            self._size = size
+            self.size = size
 
-        self.flip = flip
         self.granularity = granularity
         self.colorSpace = colorSpace
         self.color = color if color is not False else labelColor
@@ -183,6 +166,7 @@ class Slider(MinimalStim, ColorMixin):
         self.autoLog = autoLog
         self.readOnly = readOnly
         self.ori = ori
+        self.flip = flip
 
         self.categorical = False  # will become True if no ticks set only labels
         self.startValue = self.markerPos = startValue
@@ -194,7 +178,7 @@ class Slider(MinimalStim, ColorMixin):
         self.tickLocs = None
         self.labelLocs = None
         self.labelWrapWidth = labelWrapWidth
-        self.labelHeight = labelHeight or min(self._size)
+        self.labelHeight = labelHeight or min(self.size)
         self._lineAspectRatio = 0.01
         self._updateMarkerPos = True
         self._dragging = False
@@ -246,13 +230,6 @@ class Slider(MinimalStim, ColorMixin):
         return self.extent[0] > self.extent[1]
 
     @property
-    def size(self):
-        """The size for the scale defines the area taken up by the line and
-            the ticks.
-        """
-        return self._size
-
-    @property
     def extent(self):
         """
         The distance from the leftmost point on the slider to the rightmost point, and from the highest
@@ -269,6 +246,15 @@ class Slider(MinimalStim, ColorMixin):
         O2 = np.sin(atheta) * self.size[0]
         # Return extent
         return O1 + O2, A1 + A2
+
+    @property
+    def flip(self):
+        if hasattr(self, "_flip"):
+            return self._flip
+
+    @flip.setter
+    def flip(self, value):
+        self._flip = value
 
     @property
     def opacity(self):
@@ -455,58 +441,40 @@ class Slider(MinimalStim, ColorMixin):
         self.validArea = Rect(self.win, units=self.units,
                               pos=self.pos,
                               size=[d * 1.1 for d in self.size],
-                              lineColor='DarkGrey',
+                              fillColor=None, lineColor='red',
                               autoLog=False)
 
-    @attributeSetter
-    def pos(self, newPos):
-        """Set position of slider
-
-        Parameters
-        ----------
-        value: tuple, list
-            The new position of slider
-        """
-        newPos = np.array(newPos)
-        oldPos = self.__dict__['pos']
-        self.__dict__['pos'] = newPos
-        deltaPos = np.subtract(newPos, oldPos)
-        self.line.pos += deltaPos
-        self.validArea.pos += deltaPos
-        self.marker.pos += deltaPos
-        self.tickLines.xys += deltaPos
-        for label in self.labelObjs:
-            label.pos += deltaPos
-
     def _ratingToPos(self, rating):
-        try:
-            n = len(rating)
-        except:
-            n = 1
-        pos = np.ones([n, 2], 'f') * self.pos
-
-        scaleMag = self.ticks[-1] - self.ticks[0]
-        scaleLow = self.ticks[0]
-        if self.horiz:
-            pos[:, 0] = (((rating - scaleLow) / scaleMag - 0.5) * self._lineL +
-                         self.pos[0])
-        else:
-            pos[:, 1] = (((rating - scaleLow) / scaleMag - 0.5) * self._lineL +
-                         self.pos[1])
-
-        return pos
+        # Reshape rating to handle multiple values
+        rating = np.array(rating)
+        rating = rating.reshape((-1, 1))
+        rating = np.hstack((rating, rating))
+        # Adjust to scale bottom
+        magDelta = rating - self.ticks[0]
+        # Adjust to scale magnitude
+        delta = magDelta / (self.ticks[-1] - self.ticks[0])
+        # Adjust to scale size
+        delta = self._size.pix * (delta - 0.5)
+        # Adjust to scale pos
+        pos = delta + self._pos.pix
+        # Replace irrelevant value according to orientation
+        pos[:, int(self.horiz)] = self._pos.pix[int(self.horiz)]
+        # Convert to native units
+        return getattr(layout.Position(pos, units="pix", win=self.win), self.units)
 
     def _posToRating(self, pos):
-        scaleMag = self.ticks[-1] - self.ticks[0]
-        scaleLow = self.ticks[0]
-        if self.horiz:
-            rating = (((pos[0] - self.pos[0]) / self._lineL + 0.5)
-                      * scaleMag + scaleLow)
-        else:
-            rating = (((pos[1] - self.pos[1]) / self._lineL + 0.5)
-                      * scaleMag + scaleLow)
-
-        return rating
+        # Get in pix
+        pos = layout.Position(pos, units=self.win.units, win=self.win).pix
+        # Get difference from scale pos
+        delta = pos - self._pos.pix
+        # Adjust to scale size
+        delta = delta / self._size.pix + 0.5
+        # Adjust to scale magnitude
+        magDelta = delta * (self.ticks[-1] - self.ticks[0])
+        # Adjust to scale bottom
+        rating = magDelta + self.ticks[0]
+        # Return relevant value according to orientation
+        return rating[1-int(self.horiz)]
 
     def _setTickLocs(self):
         """ Calculates the locations of the line, tickLines and labels from
@@ -613,7 +581,8 @@ class Slider(MinimalStim, ColorMixin):
         """Draw the Slider, with all its constituent elements on this frame
         """
         self.getMouseResponses()
-        # self.validArea.draw()
+        if debug:
+            self.validArea.draw()
         self.line.draw()
         self.tickLines.draw()
         if self.markerPos is not None:
