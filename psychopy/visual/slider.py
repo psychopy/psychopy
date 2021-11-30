@@ -20,9 +20,12 @@ from .grating import GratingStim
 from .elementarray import ElementArrayStim
 from .circle import Circle
 from .shape import ShapeStim
-from .text import TextStim
+from . import TextBox2
 from ..tools.attributetools import logAttrib, setAttribute, attributeSetter
 from ..constants import FINISHED, STARTED, NOT_STARTED
+
+# Set to True to make borders visible for debugging
+debug = False
 
 
 class Slider(MinimalStim, ColorMixin):
@@ -374,37 +377,65 @@ class Slider(MinimalStim, ColorMixin):
                                           opacities=self._borderColor.alpha,
                                           sizes=tickSize, sfs=0,
                                           autoLog=False)
-
+        # Make labels
         self.labelObjs = []
         if self.labels is not None:
-            if not self.labelLocs:
-                self._setLabelLocs()
-            if self.horiz:
-                alignHoriz = 'center'
+            # Get coords of slider edges
+            top = self.pos[1] + self.size[1] / 2
+            bottom = self.pos[1] - self.size[1] / 2
+            left = self.pos[0] - self.size[0] / 2
+            right = self.pos[0] + self.size[0] / 2
+            # Work out where labels are relative to line
+            if self.horiz:  # horizontal
+                # Always centered horizontally
+                anchorHoriz = alignHoriz = 'center'
+                # Width as fraction of size, constant height
+                w = self.size[0] / len(self.ticks)
+                h = None
+                # Evenly spaced, constant y
+                x = np.linspace(left, right, num=len(self.labels))
+                x = self.tickLocs[np.searchsorted(self.tickLocs[:, 0], x, side="left")][:, 0]
+                y = [self.pos[1]] * len(self.labels)
+                # Padding applied on vertical
+                padding = [0, self._tickL]
+                # Vertical align/anchor depend on flip
                 if not self.flip:
-                    alignVert = 'top'
-                    self.labelLocs -= [0, self._tickL]
+                    # Labels below means anchor them from the top
+                    anchorVert = alignVert = 'top'
                 else:
-                    alignVert = 'bottom'
-                    self.labelLocs += [0, self._tickL]
+                    # Labels on top means anchor them from below
+                    anchorVert = alignVert = 'bottom'
             else:  # vertical
-                alignVert = 'center'
+                # Always centered vertically
+                anchorVert = alignVert = 'center'
+                # Height as fraction of size, constant width
+                h = self.size[1] / len(self.ticks)
+                w = None
+                # Evenly spaced and clipped to ticks, constant x
+                y = np.linspace(top, bottom, num=len(self.labels))
+                y = self.tickLocs[np.searchsorted(self.tickLocs[:, 1], y, side="left")][:, 1]
+                x = [self.pos[0]] * len(self.labels)
+                # Padding applied on horizontal
+                padding = [self._tickL, 0]
+                # Horizontal align/anchor depend on flip
                 if not self.flip:
-                    alignHoriz = 'right'
-                    self.labelLocs -= [self._tickL, 0]
+                    # Labels left means anchor them from the right
+                    anchorHoriz = alignHoriz = 'right'
                 else:
-                    alignHoriz = 'left'
-                    self.labelLocs += [self._tickL, 0]
+                    # Labels right means anchor them from the left
+                    anchorHoriz = alignHoriz = 'left'
+            # Create object for each label
             for tickN, label in enumerate(self.labels):
+                # Skip blank labels
                 if label is None:
                     continue
-
-                obj = TextStim(self.win, label, font=self.font,
-                               anchorHoriz=alignHoriz, anchorVert=alignVert,
-                               units=self.units, color=self._foreColor.copy(), colorSpace=self.colorSpace,
-                               pos=self.labelLocs[tickN, :],
-                               height=self.labelHeight, 
-                               wrapWidth=self.labelWrapWidth,
+                # Create textbox for each label
+                obj = TextBox2(self.win, label, font=self.font,
+                               pos=(x[tickN], y[tickN]), size=(w, h), padding=padding, units=self.units,
+                               anchor=(anchorHoriz, anchorVert), alignment=(alignHoriz, alignVert),
+                               color=self._foreColor.copy(), fillColor=None, colorSpace=self.colorSpace,
+                               borderColor="red" if debug else None,
+                               letterHeight=self.labelHeight,
                                autoLog=False)
                 self.labelObjs.append(obj)
 
@@ -490,17 +521,6 @@ class Slider(MinimalStim, ColorMixin):
             self.granularity = 1.0
 
         self.tickLocs = self._ratingToPos(self.ticks)
-
-    def _setLabelLocs(self):
-        """ Calculates the locations of the line, tickLines and labels from
-        the rating info
-        """
-        if not self.labels:
-            self.labelLocs = []
-            return
-        labelFractions = np.arange(len(self.labels)) / (len(self.labels) - 1)
-        tickIndices = np.round(labelFractions * (len(self.tickLocs) - 1))
-        self.labelLocs = self.tickLocs[tickIndices.astype('int')]
 
     def _granularRating(self, rating):
         """Handle granularity for the rating"""
@@ -868,10 +888,6 @@ class Slider(MinimalStim, ColorMixin):
 
         if 'labels45' in styleTweaks:
             for label in self.labelObjs:
-                if self.flip:
-                    label.alignHoriz = 'left'
-                else:
-                    label.alignHoriz = 'right'
                 label.ori = -45
 
         # Legacy
