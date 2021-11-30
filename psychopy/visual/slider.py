@@ -410,6 +410,8 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
                 else:
                     # Labels right means anchor them from the left
                     anchorHoriz = alignHoriz = 'left'
+            # Store label locations
+            self.labelLocs = np.vstack((x, y)).transpose(None)
             # Create object for each label
             for tickN, label in enumerate(self.labels):
                 # Skip blank labels
