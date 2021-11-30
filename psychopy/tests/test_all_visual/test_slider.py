@@ -36,19 +36,6 @@ class Test_Slider(_TestColorMixin):
     def teardown_class(self):
         self.win.close()
 
-    def test_size(self):
-        sizes = [(1, 0.1), (1.5, 0.5)]
-
-        for size in sizes:
-            s = Slider(self.win, size=size)
-            assert s.size == size
-
-    def test_change_size(self):
-        s = Slider(self.win, size=(1, 0.1))
-
-        with pytest.raises(AttributeError):
-            s.size = (1.5, 0.5)
-
     def test_lineLength(self):
         s = Slider(self.win, size=(1, 0.1))
         assert s._lineL == 1
