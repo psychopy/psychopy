@@ -2,8 +2,10 @@
 # Part of the PsychoPy library
 # Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
+import logging
 from collections import defaultdict
 
+from psychopy.iohub.constants import EyeTrackerConstants
 from psychopy.iohub.devices import Computer, Device
 from psychopy.iohub.devices.eyetracker import EyeTrackerDevice
 from psychopy.iohub.devices.eyetracker.hw.pupil_labs.pupil_core import (
@@ -11,9 +13,12 @@ from psychopy.iohub.devices.eyetracker.hw.pupil_labs.pupil_core import (
     pupil_remote,
 )
 from psychopy.iohub.devices.eyetracker.hw.pupil_labs.pupil_core.bisector import (
-    MutableBisector,
     DatumNotFoundError,
+    MutableBisector,
 )
+from psychopy.iohub.errors import print2err, printExceptionDetailsToStdErr
+
+logger = logging.getLogger(__name__)
 
 
 class EyeTracker(EyeTrackerDevice):
@@ -86,6 +91,9 @@ class EyeTracker(EyeTrackerDevice):
             self._pupil_remote_subscriptions = ["pupil"]
         else:
             self._pupil_remote_subscriptions = ["gaze.3d.", self.surface_topic]
+        # Calibration notifications are only being handled during runSetupProcedure()
+        # and are otherwise ignored.
+        self._pupil_remote_subscriptions.append("notify.calibration")
 
         capture_recording_settings = self._runtime_settings["pupil_capture_recording"]
         self._capture_recording_enabled = capture_recording_settings["enabled"]
@@ -192,7 +200,29 @@ class EyeTracker(EyeTrackerDevice):
         Args:
             None
         """
-        return self._pupil_remote.start_calibration()
+        self._pupil_remote.start_calibration()
+        logger.info("Waiting for calibration to complete")
+        try:
+            for topic, payload in self._pupil_remote.fetch(endless=True):
+                if topic.startswith("notify.calibration"):
+                    if topic.endswith("successful"):
+                        return EyeTrackerConstants.EYETRACKER_OK
+                    elif topic.endswith("stopped"):
+                        return EyeTrackerConstants.EYETRACKER_SETUP_ABORTED
+                    elif topic.endswith("failed"):
+                        print2err(f"Calibration failed: {payload}")
+                        return EyeTrackerConstants.EYETRACKER_CALIBRATION_ERROR
+                    elif "setup" in topic or "should" in topic or "start" in topic:
+                        # ignore setup data notification (includes raw reference and
+                        # pupil data that can be used to reproduce the calibration),
+                        # and calibration should_start/stop + started notifications.
+                        pass
+                    else:
+                        print2err(f"Handling for {topic} not implemented ({payload})")
+        except Exception:
+            print2err("Error during runSetupProcedure")
+            printExceptionDetailsToStdErr()
+        return EyeTrackerConstants.EYETRACKER_ERROR
 
     def setRecordingState(self, should_be_recording):
         """The setRecordingState method is used to start or stop the recording
