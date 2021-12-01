@@ -267,6 +267,14 @@ class ScriptProcess:
                     _focusOnOutput(self.app.coder)
                     self.app.coder.shelf.SetSelection(1)  # page for the console output
                     self.app.coder.shell.SetFocus()
+                else:  # coder is closed, open runner and show output instead
+                    if hasattr(self.app, 'runner') and \
+                            hasattr(self.app, 'showRunner'):
+                        # show runner if available
+                        if self.app.runner is None:
+                            self.app.showRunner()
+                        _focusOnOutput(self.app.runner)
+                        self.app.runner.stdOut.SetFocus()
             elif self.focusOnExit == 'runner' and hasattr(self.app, 'runner'):
                 if self.app.runner is not None:
                     _focusOnOutput(self.app.runner)
