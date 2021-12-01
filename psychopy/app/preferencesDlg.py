@@ -1,11 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-from __future__ import absolute_import, print_function
-
 import json
 import sys
-from builtins import str
 import wx
 import wx.propgrid as pg
 import wx.py
@@ -624,11 +620,12 @@ class PreferencesDlg(wx.Dialog):
                         default = self.fontList.index(thisPref)
                     except ValueError:
                         default = 0
+                    labels = [_translate(font) for font in self.fontList]
                     self.proPrefs.addEnumItem(
                             sectionName,
                             pLabel,
                             prefName,
-                            labels=self.fontList,
+                            labels=labels,
                             values=[i for i in range(len(self.fontList))],
                             value=default, helpText=helpText)
                 elif prefName in ('theme',):
@@ -858,6 +855,10 @@ class PreferencesDlg(wx.Dialog):
         # > sure, why not? - mdc
         self.populatePrefs()
 
+        # Update Builder window if needed
+        if self.app.builder:
+            self.app.builder.updateAllViews()
+
         # after validation, update the UI
         self.app.theme = self.app.theme
         self.updateFramesUI()
@@ -875,6 +876,10 @@ class PreferencesDlg(wx.Dialog):
                 for ii in range(frame.shelf.GetPageCount()):
                     doc = frame.shelf.GetPage(ii)
                     doc.theme = prefs.app['theme']
+
+                # apply console font, not handled by theme system ATM
+                if hasattr(frame, 'shell'):
+                    frame.shell.setFonts()
 
     def OnApplyClicked(self, event):
         """Apply button clicked, this makes changes to the UI without leaving

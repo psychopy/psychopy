@@ -48,7 +48,7 @@ events.
 Eye Samples
 ~~~~~~~~~~~
 
-.. autoclass:: psychopy.iohub.devices.eyetracker.MonocularEyeSampleEvent(object)
+.. autoclass:: psychopy.iohub.devices.eyetracker.MonocularEyeSampleEvent
 
     .. attribute:: time
 
@@ -130,7 +130,7 @@ Eye Samples
         0 = Eye sample is OK.
         2 = Eye sample is invalid.
 
-.. autoclass:: psychopy.iohub.devices.eyetracker.BinocularEyeSampleEvent(object)
+.. autoclass:: psychopy.iohub.devices.eyetracker.BinocularEyeSampleEvent
 
     .. attribute:: time
 
@@ -280,7 +280,7 @@ Fixation Events
 Successful eye tracker calibration must be performed prior to 
 reading (meaningful) fixation event data.
 
-.. autoclass:: psychopy.iohub.devices.eyetracker.FixationStartEvent(object)
+.. autoclass:: psychopy.iohub.devices.eyetracker.FixationStartEvent
 
     .. attribute:: time
 
@@ -334,7 +334,7 @@ reading (meaningful) fixation event data.
 
         Event status as reported by the eye tracker.
                   
-.. autoclass:: psychopy.iohub.devices.eyetracker.FixationEndEvent(object)
+.. autoclass:: psychopy.iohub.devices.eyetracker.FixationEndEvent
 
     .. attribute:: time
 
@@ -470,7 +470,7 @@ Saccade Events
 Successful eye tracker calibration must be performed prior to 
 reading (meaningful) saccade event data.
 
-.. autoclass:: psychopy.iohub.devices.eyetracker.SaccadeStartEvent(object)
+.. autoclass:: psychopy.iohub.devices.eyetracker.SaccadeStartEvent
 
     .. attribute:: time
 
@@ -525,7 +525,7 @@ reading (meaningful) saccade event data.
         Event status as reported by the eye tracker.
 
                   
-.. autoclass:: psychopy.iohub.devices.eyetracker.SaccadeEndEvent(object)
+.. autoclass:: psychopy.iohub.devices.eyetracker.SaccadeEndEvent
 
     .. attribute:: time
 
@@ -657,7 +657,7 @@ reading (meaningful) saccade event data.
 Blink Events
 ~~~~~~~~~~~~
 
-.. autoclass:: psychopy.iohub.devices.eyetracker.BlinkStartEvent(object)
+.. autoclass:: psychopy.iohub.devices.eyetracker.BlinkStartEvent
 
     .. attribute:: time
 
@@ -672,7 +672,7 @@ Blink Events
 
         Event status as reported by the eye tracker.
         
-.. autoclass:: psychopy.iohub.devices.eyetracker.BlinkEndEvent(object)
+.. autoclass:: psychopy.iohub.devices.eyetracker.BlinkEndEvent
 
     .. attribute:: time
 

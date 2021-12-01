@@ -5,19 +5,11 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import, division, print_function
-
-# from future import standard_library
-# standard_library.install_aliases()
-from builtins import str
-from builtins import range
-from past.builtins import basestring
 import os
 import re
 import ast
 import pickle
 import time
-import codecs
 import numpy as np
 import pandas as pd
 
@@ -25,7 +17,6 @@ from collections import OrderedDict
 from pkg_resources import parse_version
 
 from psychopy import logging, exceptions
-from psychopy.constants import PY3
 from psychopy.tools.filetools import pathToString
 
 try:
@@ -83,7 +74,7 @@ def isValidVariableName(name):
     """
     if not name:
         return False, "Variables cannot be missing, None, or ''"
-    if not isinstance(name, basestring):
+    if not isinstance(name, str):
         return False, "Variables must be string-like"
     try:
         name = str(name)  # convert from unicode if possible
@@ -323,7 +314,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
             for fieldN, fieldName in enumerate(fieldNames):
                 val = trialsArr[trialN][fieldN]
 
-                if isinstance(val, basestring):
+                if isinstance(val, str):
                     if val.startswith('[') and val.endswith(']'):
                         # val = eval('%s' %unicode(val.decode('utf8')))
                         val = eval(val)
@@ -403,7 +394,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
                     # From 2.0, cells are referenced with 1-indexing: A1 == cell(row=1, column=1)
                     val = ws.cell(row=rowN + 1, column=colN + 1).value
                 # if it looks like a list or tuple, convert it
-                if (isinstance(val, basestring) and
+                if (isinstance(val, str) and
                         (val.startswith('[') and val.endswith(']') or
                                  val.startswith('(') and val.endswith(')'))):
                     val = eval(val)
@@ -411,7 +402,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
                 if isinstance(val, str):
                     val = val.replace('\\n', '\n')
                 # Convert from eu style decimals: replace , with . and try to make it a float
-                if isinstance(val, basestring):
+                if isinstance(val, str):
                     tryVal = val.replace(",", ".")
                     try:
                         val = float(tryVal)
@@ -424,23 +415,19 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
     elif fileName.endswith('.pkl'):
         f = open(fileName, 'rb')
         # Converting newline characters.
-        if PY3:
-            # 'b' is necessary in Python3 because byte object is 
-            # returned when file is opened in binary mode.
-            buffer = f.read().replace(b'\r\n',b'\n').replace(b'\r',b'\n')
-        else:
-            buffer = f.read().replace('\r\n','\n').replace('\r','\n')
+        # 'b' is necessary in Python3 because byte object is
+        # returned when file is opened in binary mode.
+        buffer = f.read().replace(b'\r\n',b'\n').replace(b'\r',b'\n')
         try:
             trialsArr = pickle.loads(buffer)
         except Exception:
             raise IOError('Could not open %s as conditions' % fileName)
         f.close()
         trialList = []
-        if PY3:
-            # In Python3, strings returned by pickle() is unhashable.
-            # So, we have to convert them to str.
-            trialsArr = [[str(item) if isinstance(item, str) else item
-                          for item in row] for row in trialsArr]
+        # In Python3, strings returned by pickle() are unhashable so we have to
+        # convert them to str.
+        trialsArr = [[str(item) if isinstance(item, str) else item
+                      for item in row] for row in trialsArr]
         fieldNames = trialsArr[0]  # header line first
         _assertValidVarNames(fieldNames, fileName)
         for row in trialsArr[1:]:
@@ -454,7 +441,7 @@ def importConditions(fileName, returnFieldNames=False, selection=""):
                       'xlsx, csv, dlm, tsv or pkl file')
 
     # if we have a selection then try to parse it
-    if isinstance(selection, basestring) and len(selection) > 0:
+    if isinstance(selection, str) and len(selection) > 0:
         selection = indicesFromString(selection)
         if not isinstance(selection, slice):
             for n in selection:
@@ -658,13 +645,4 @@ def getDateStr(format="%Y_%b_%d_%H%M"):
         data.getDateStr(format=locale.nl_langinfo(locale.D_T_FMT))
     """
     now = time.strftime(format, time.localtime())
-    if PY3:
-        return now
-    else:
-        try:
-            now_decoded = codecs.utf_8_decode(now)[0]
-        except UnicodeDecodeError:
-            # '2011_03_16_1307'
-            now_decoded = time.strftime("%Y_%m_%d_%H%M", time.localtime())
-
-        return now_decoded
+    return now

@@ -8,10 +8,6 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import, division, print_function
-
-from past.builtins import basestring
-from builtins import range
 import os
 import copy
 from pkg_resources import parse_version
@@ -239,15 +235,14 @@ def setColor(obj, color, colorSpace=None, operation='',
 
 
 # set for groupFlipVert:
-immutables = {int, float, str, tuple, int, bool,
-              np.float64, np.float, np.int, np.long}
+immutables = {int, float, str, tuple, int, bool, np.float32, np.float64}
 
 
 def findImageFile(filename):
     """Tests whether the filename is an image file. If not will try some common
     alternatives (e.g. extensions .jpg .tif...)
     """
-    # if user supplied correct path then reutnr quickly
+    # if user supplied correct path then return quickly
     filename = pathToString(filename)
     isfile = os.path.isfile
     if isfile(filename):

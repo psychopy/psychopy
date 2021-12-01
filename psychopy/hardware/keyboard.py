@@ -82,8 +82,11 @@ except ImportError as err:
     havePTB = False
 
 defaultBufferSize = 10000
+# default ptb flush_type, used by macOS & linux
+_ptb_flush_type = 1
 
-# monkey-patch bug in PTB keyboard where winHandle=0 is documented but crashes
+# monkey-patch bug in PTB keyboard where winHandle=0 is documented but crashes.
+# Also set ptb _ptb_flush_type to 0 for win32.
 if havePTB and sys.platform == 'win32':
     from psychtoolbox import PsychHID
     # make a new function where we set default win_handle to be None instead of 0
@@ -92,6 +95,9 @@ if havePTB and sys.platform == 'win32':
                  None, 0, num_slots, flags, win_handle)
     # replace the broken function with ours
     hid.Keyboard._create_queue = _replacement_create_queue
+
+    # On win32, flush_type must be 0 or events can get flushed before being processed
+    _ptb_flush_type = 0
 
 
 def getKeyboards():
@@ -251,8 +257,6 @@ class Keyboard:
                     keys.append(thisKey)
         elif Keyboard.backend == 'iohub':
             watchForKeys = keyList
-            if watchForKeys:
-                watchForKeys = [' ' if k == 'space' else k for k in watchForKeys]
             if waitRelease:
                 key_events = Keyboard._iohubKeyboard.getReleases(keys=watchForKeys, clear=clear)
             else:
@@ -260,8 +264,6 @@ class Keyboard:
 
             for k in key_events:
                 kname = k.key
-                if kname == ' ':
-                    kname = 'space'
 
                 if waitRelease:
                     tDown = k.time-k.duration
@@ -453,11 +455,7 @@ class _KeyBuffer(object):
         self._processEvts()
 
     def _flushEvts(self):
-        # SS: sleep is only needed on Windows, but test further before
-        # committing to this.
-        #if sys.platform == 'win32':
-        ptb.WaitSecs('YieldSecs', 0.00001)
-        while self.dev.flush():
+        while self.dev.flush(flush_type=_ptb_flush_type):
             evt, remaining = self.dev.queue_get_event()
             key = {}
             key['keycode'] = int(evt['Keycode'])

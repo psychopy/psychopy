@@ -5,10 +5,6 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import, print_function
-from builtins import super  # provides Py3-style super() using python-future
-
-from os import path
 from pathlib import Path
 from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals, _translate
 from psychopy.localization import _localized as __localized
@@ -117,7 +113,7 @@ class EnvGratingComponent(BaseVisualComponent):
             "etc. For most cases a value of 256 pixels will suffice")
         self.params['texture resolution'] = Param(
             texRes,
-            valType='num', inputType="choice", allowedVals=['32', '64', '128', '256', '512'], categ="Carrier",
+            valType='code', inputType="choice", allowedVals=['32', '64', '128', '256', '512'], categ="Carrier",
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized['texture resolution'])

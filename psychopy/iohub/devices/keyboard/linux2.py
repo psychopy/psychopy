@@ -3,13 +3,27 @@
 # Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from . import ioHubKeyboardDevice
+from . import ioHubKeyboardDevice, psychopy_key_mappings
 from .. import Computer, Device
 from ...constants import EventConstants
-from ...errors import printExceptionDetailsToStdErr
+from ...errors import printExceptionDetailsToStdErr, print2err
 
 getTime = Computer.getTime
 
+NUMLOCK_MODIFIER = 8192
+
+psychopy_numlock_key_mappings = dict()
+psychopy_numlock_key_mappings['num_end'] = 'num_1'
+psychopy_numlock_key_mappings['num_down'] = 'num_2'
+psychopy_numlock_key_mappings['num_page_down'] = 'num_3'
+psychopy_numlock_key_mappings['num_left'] = 'num_4'
+psychopy_numlock_key_mappings['num_begin'] = 'num_5'
+psychopy_numlock_key_mappings['num_right'] = 'num_6'
+psychopy_numlock_key_mappings['num_home'] = 'num_7'
+psychopy_numlock_key_mappings['num_up'] = 'num_8'
+psychopy_numlock_key_mappings['num_page_up'] = 'num_9'
+psychopy_numlock_key_mappings['num_insert'] = 'num_0'
+psychopy_numlock_key_mappings['num_delete'] = 'num_decimal'
 
 class Keyboard(ioHubKeyboardDevice):
     event_id_index = None
@@ -37,15 +51,30 @@ class Keyboard(ioHubKeyboardDevice):
             self._last_callback_time = getTime()
             if self.isReportingEvents():
                 event_array = event[0]
+                
+                key = event_array[Keyboard.key_index]
+                if isinstance(key, bytes):
+                    event_array[Keyboard.key_index] = key = str(key, 'utf-8')                
+                
+                if Keyboard.use_psychopy_keymap:
+                    if key in psychopy_key_mappings.keys():
+                        key = event_array[Keyboard.key_index] = psychopy_key_mappings[key]
+                    elif key == 'num_next':
+                        key = event_array[Keyboard.key_index] = 'num_page_down'
+                    elif key == 'num_prior':
+                        key = event_array[Keyboard.key_index] = 'num_page_up'
 
+                    if (event_array[Keyboard.event_modifiers_index]&NUMLOCK_MODIFIER) > 0:
+                        if key in psychopy_numlock_key_mappings:
+                            key = event_array[Keyboard.key_index] = psychopy_numlock_key_mappings[key]  
+                            
                 # Check if key event window id is in list of psychopy
                 # windows and what report_system_wide_events value is
                 report_system_wide_events = self.getConfiguration().get(
                     'report_system_wide_events', True)
                 if report_system_wide_events is False:
-                    pyglet_window_hnds = self._iohub_server._pyglet_window_hnds
-                    if len(pyglet_window_hnds) > 0 and event_array[
-                            self.win_id_index] not in pyglet_window_hnds:
+                    pyglet_window_hnds = self._iohub_server._psychopy_windows.keys()
+                    if len(pyglet_window_hnds) > 0 and event_array[self.win_id_index] not in pyglet_window_hnds:
                         return True
 
                 is_pressed = event_array[

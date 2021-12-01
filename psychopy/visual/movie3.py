@@ -28,9 +28,9 @@ movie is long then audio will be huge and currently the whole thing gets
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import, division, print_function
 
-from builtins import str
+
+
 reportNDroppedFrames = 10
 
 import os
@@ -183,7 +183,7 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
 
     def reset(self):
         self._numpyFrame = None
-        self._nextFrameT = None
+        self._nextFrameT = 0.0
         self._texID = None
         self.status = NOT_STARTED
         self.nDroppedFrames = 0

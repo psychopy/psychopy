@@ -16,10 +16,7 @@ Tests the psychopy.core.getTime Function:
 Jan 2014, Jeremy Gray:
 - Coverage of .quit, .shellCall, and increased coverage of StaticPeriod()
 """
-from __future__ import print_function
-from __future__ import division
 
-from builtins import range
 import time
 import sys
 import numpy as np
@@ -383,7 +380,7 @@ def test_StaticPeriod():
     static.complete()
 
     if _vmTesting:
-        tolerance = 0.005  # without a proper screen timing might not eb sub-ms
+        tolerance = 0.01  # without a proper screen timing might not eb sub-ms
     else:
         tolerance = 0.001
     assert np.allclose(timer.getTime(),
@@ -400,7 +397,7 @@ def test_quit():
 
 
 @pytest.mark.shellCall
-class Test_shellCall(object):
+class Test_shellCall():
     def setup_class(self):
         if sys.platform == 'win32':
             self.cmd = 'findstr'

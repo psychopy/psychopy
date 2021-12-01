@@ -9,7 +9,8 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import, division, print_function
+
+
 
 import psychopy  # so we can get the __path__
 from psychopy import logging
@@ -120,9 +121,9 @@ class Line(ShapeStim):
                  win,
                  start=(-.5, -.5),
                  end=(.5, .5),
-                 units='',
+                 units=None,
                  lineWidth=1.5,
-                 lineColor=None,
+                 lineColor='white',
                  fillColor=None, # Not used, but is supplied by Builder via Polygon
                  lineColorSpace=None,
                  pos=(0, 0),
@@ -150,7 +151,6 @@ class Line(ShapeStim):
 
         self.__dict__['start'] = numpy.array(start)
         self.__dict__['end'] = numpy.array(end)
-        self.__dict__['vertices'] = [start, end]
 
         super(Line, self).__init__(
             win,
@@ -160,7 +160,7 @@ class Line(ShapeStim):
             lineColorSpace=None,
             fillColor=None,
             fillColorSpace=lineColorSpace,  # have these set to the same
-            vertices=self.vertices,
+            vertices=None,
             closeShape=False,
             pos=pos,
             size=size,
@@ -176,6 +176,9 @@ class Line(ShapeStim):
             autoDraw=autoDraw,
             color=color,
             colorSpace=colorSpace)
+
+        self._vertices.setas([start, end], self.units)
+        del self._tesselVertices
 
     @property
     def color(self):

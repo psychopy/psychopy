@@ -2,43 +2,40 @@
 
 py.test -k polygon --cov-report term-missing --cov visual/helpers.py
 """
-from __future__ import division
+from pathlib import Path
 
-from builtins import range
-from past.utils import old_div
-from psychopy import visual, monitors
+from psychopy import visual, monitors, layout
+from psychopy.tests import utils
 from psychopy.visual import helpers
-from numpy import sqrt, array
+from numpy import sqrt
 import matplotlib
 
-
-params = [
-    {'units':'pix',   'scaleFactor':500.0},
-    {'units':'height','scaleFactor':1.0},
-    {'units':'norm',  'scaleFactor':2.0},
-    {'units':'cm',    'scaleFactor':20.0},
-    {'units':'deg',   'scaleFactor':20.0} ]
+mon = monitors.Monitor('testMonitor')
+mon.setDistance(57)
+mon.setWidth(40.0)
+mon.setSizePix([1024,768])
+win = visual.Window([512,512], monitor=mon, winType='pyglet', autoLog=False)
 
 unitDist = 0.2
 sqrt2 = sqrt(2)
 
 points = [
-    array((0,0)),
-    array((0,unitDist)),
-    array((0,unitDist*2)),
-    array((old_div(unitDist,sqrt2),old_div(unitDist,sqrt2))),
-    array((unitDist*sqrt2,0)),
-    array((unitDist*sqrt2,unitDist*sqrt2)) ]
+    layout.Position((0, 0), 'height', win),
+    layout.Position((0, unitDist), 'height', win),
+    layout.Position((0, unitDist * 2), 'height', win),
+    layout.Position(((unitDist / sqrt2), (unitDist / sqrt2)), 'height', win),
+    layout.Position((unitDist * sqrt2, 0), 'height', win),
+    layout.Position((unitDist * sqrt2, unitDist * sqrt2), 'height', win)]
 
 postures = [
-    {'ori':  0,'size':(1.0,1.0),'pos':array((0,0))},
-    {'ori':  0,'size':(1.0,2.0),'pos':array((0,0))},
-    {'ori': 45,'size':(1.0,1.0),'pos':array((0,0))},
-    {'ori': 45,'size':(1.0,2.0),'pos':array((0,0))},
-    {'ori':  0,'size':(1.0,1.0),'pos':array((unitDist*sqrt2,0))},
-    {'ori':  0,'size':(1.0,2.0),'pos':array((unitDist*sqrt2,0))},
-    {'ori':-45,'size':(1.0,1.0),'pos':array((unitDist*sqrt2,0))},
-    {'ori':-90,'size':(1.0,2.0),'pos':array((unitDist*sqrt2,0))} ]
+    {'ori': 0,   'size': layout.Size((1.0, 1.0), 'height', win), 'pos': layout.Position((0, 0), 'height', win)},
+    {'ori': 0,   'size': layout.Size((1.0, 2.0), 'height', win), 'pos': layout.Position((0, 0), 'height', win)},
+    {'ori': 45,  'size': layout.Size((1.0, 1.0), 'height', win), 'pos': layout.Position((0, 0), 'height', win)},
+    {'ori': 45,  'size': layout.Size((2.0, 2.0), 'height', win), 'pos': layout.Position((0, 0), 'height', win)},
+    {'ori': 0,   'size': layout.Size((1.0, 1.0), 'height', win), 'pos': layout.Position((unitDist*sqrt2, 0), 'height', win)},
+    {'ori': 0,   'size': layout.Size((1.0, 2.0), 'height', win), 'pos': layout.Position((unitDist*sqrt2, 0), 'height', win)},
+    {'ori': -45, 'size': layout.Size((1.0, 1.0), 'height', win), 'pos': layout.Position((unitDist*sqrt2, 0), 'height', win)},
+    {'ori': -90, 'size': layout.Size((1.0, 2.0), 'height', win), 'pos': layout.Position((unitDist*sqrt2, 0), 'height', win)} ]
 
 correctResults = [
     (True, True, False, False, False, False),
@@ -48,7 +45,7 @@ correctResults = [
     (False, False, False, False, True, False),
     (False, False, False, False, True, True),
     (False, False, False, True, True, False),
-    (True, False, False, False, True, False) ]
+    (False, False, False, False, True, False)]
 
 mon = monitors.Monitor('testMonitor')
 mon.setDistance(57)
@@ -57,47 +54,72 @@ mon.setSizePix([1024,768])
 
 dbgStr = ('"%s" returns wrong value: unit=%s, ori=%.1f, size=%s, pos=%s, '
           'testpoint=%s, expected=%s')
-win = visual.Window([512,512], monitor=mon, winType='pyglet', autoLog=False)
 
 
 def contains_overlaps(testType):
-    for param in params:
-        win.units = param['units']
-        vertices = [( 0.05*param['scaleFactor'], 0.24*param['scaleFactor']),
-                    ( 0.05*param['scaleFactor'],-0.24*param['scaleFactor']),
-                    (-0.05*param['scaleFactor'],-0.24*param['scaleFactor']),
-                    (-0.05*param['scaleFactor'], 0.24*param['scaleFactor'])]
-
+    for units in ['pix', 'height', 'norm', 'cm', 'deg']:
+        win.units = units
+        # Create shape to test with
+        vertices = [(0.05, 0.24),
+                    (0.05, -0.24),
+                    (-0.05, -0.24),
+                    (-0.05, 0.24)]
         shape = visual.ShapeStim(win, vertices=vertices, autoLog=False)
-        testPoints = [visual.Circle(win, radius=0.02*param['scaleFactor'],
-                                    pos=p*param['scaleFactor'], units=param['units'], autoLog=False)
-                      for p in points]
-        #message = visual.TextStim(win, text='test:%s  units:%s'%(testType,param['units']),
-        #                          pos=(0,-0.4*param['scaleFactor']), height=0.04*param['scaleFactor'])
+        # Create circles to show where each point is on screen
+        testPoints = []
+        for p in points:
+            testPoints.append(
+                visual.Circle(win,
+                              size=layout.Size((10, 10), 'pix', win), pos=p,
+                              units=units,
+                              autoLog=False)
+            )
+        # Try each point / posture combo
         for i in range(len(postures)):
+            # Set shape attrs
             shape.setOri(postures[i]['ori'], log=False)
-            shape.setSize(postures[i]['size'], log=False)
-            shape.setPos(postures[i]['pos']*param['scaleFactor'], log=False)
+            shape.setSize(getattr(postures[i]['size'], units), log=False)
+            shape.setPos(getattr(postures[i]['pos'], units), log=False)
             shape.draw()
-            #message.draw()
+            # Test each point
             for j in range(len(testPoints)):
+                pointMarker = testPoints[j]
+                p = points[j]
+                # Check contains / overlap
                 if testType == 'contains':
-                    res = shape.contains(points[j]*param['scaleFactor'])
-                    #test for two parameters
-                    x = points[j][0] * param['scaleFactor']
-                    y = points[j][1] * param['scaleFactor']
+                    res = shape.contains(getattr(p, units))
+                    # test for two parameters
+                    x = getattr(p, units)[0]
+                    y = getattr(p, units)[1]
                     assert (shape.contains(x, y) == res)
                 elif testType == 'overlaps':
                     res = shape.overlaps(testPoints[j])
-                thisDebugStr = dbgStr % (testType, param['units'], postures[i]['ori'],
-                            postures[i]['size'], postures[i]['pos'], points[j],
-                            correctResults[i][j])
-                assert (res == correctResults[i][j]), thisDebugStr
-                if res:
-                    testPoints[j].setFillColor('green', log=False)
                 else:
-                    testPoints[j].setFillColor('red', log=False)
-                testPoints[j].draw()
+                    raise ValueError('Invalid value for parameter `testType`.')
+
+                # Is the point within the shape? Green == yes, red == no.
+                pointMarker.setFillColor('green' if res else 'red', log=False)
+                pointMarker.draw()
+
+                # Assert
+                if res != correctResults[i][j]:
+                    # Output debug image
+                    pointMarker.setBorderColor(
+                        'green' if correctResults[i][j] else 'red', log=False)
+                    for marker in testPoints:
+                        marker.draw()
+                    shape.draw()
+                    win.flip()
+                    win.screenshot.save(
+                        Path(utils.TESTS_DATA_PATH) / f"{testType}_error_local_{i}_{j}.png")
+                    # Raise error
+                    print(res, points[j], i, j)
+                    raise AssertionError(dbgStr % (
+                        testType, units, postures[i]['ori'], shape._size,
+                        shape._pos, points[j], correctResults[i][j]
+                    ))
+                # Un-highlight marker
+                pointMarker.draw()
             win.flip()
 
 mpl_version = matplotlib.__version__
@@ -198,8 +220,8 @@ def test_line_overlaps():
     assert line.overlaps(circle_1)
     assert circle_1.overlaps(circle_1)
 
-    assert (line.overlaps(circle_2) is False)
-    assert (circle_2.overlaps(line) is False)
+    assert not line.overlaps(circle_2)
+    assert not circle_2.overlaps(line)
 
 
 def test_line_contains():

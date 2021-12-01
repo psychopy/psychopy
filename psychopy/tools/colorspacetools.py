@@ -15,13 +15,11 @@ inputs to convert multiple color values at once.
 :class:`~psychopy.colors.Color` class for working with color coordinate values.
 
 """
-from __future__ import absolute_import, division, print_function
 
 __all__ = ['srgbTF', 'rec709TF', 'cielab2rgb', 'cielch2rgb', 'dkl2rgb',
            'dklCart2rgb', 'rgb2dklCart', 'hsv2rgb', 'rgb2lms', 'lms2rgb',
            'rgb2hsv', 'rescaleColor']
 
-from past.utils import old_div
 import numpy
 from psychopy import logging
 from psychopy.tools.coordinatetools import sph2cart
@@ -272,7 +270,7 @@ def cielab2rgb(lab,
     if conversionMatrix is None:
         # XYZ -> sRGB conversion matrix, assumes D65 white point
         # mdc - computed using makeXYZ2RGB with sRGB primaries
-        conversionMatrix = numpy.asmatrix([
+        conversionMatrix = numpy.asarray([
             [3.24096994, -1.53738318, -0.49861076],
             [-0.96924364, 1.8759675, 0.04155506],
             [0.05563008, -0.20397696, 1.05697151]
@@ -334,12 +332,12 @@ def cielch2rgb(lch,
                transferFunc=None,
                clip=False,
                **kwargs):
-    """Transform CIE L*C*h* coordinates to RGB tristimulus values.
+    """Transform CIE `L*C*h*` coordinates to RGB tristimulus values.
 
     Parameters
     ----------
     lch : tuple, list or ndarray
-        1-, 2-, 3-D vector of CIE L*C*h* coordinates to convert. The last
+        1-, 2-, 3-D vector of CIE `L*C*h*` coordinates to convert. The last
         dimension should be length-3 in all cases specifying a single
         coordinate. The hue angle *h is expected in degrees.
     whiteXYZ : tuple, list or ndarray
@@ -582,7 +580,7 @@ def hsv2rgb(hsv_Nx3):
     origShape = hsv_Nx3.shape
     hsv_Nx3 = hsv_Nx3.reshape([-1, 3])
 
-    H_ = old_div((hsv_Nx3[:, 0] % 360), 60.0)  # this is H' in the wikipedia version
+    H_ = (hsv_Nx3[:, 0] % 360) / 60.0  # this is H' in the wikipedia version
     # multiply H and V to give chroma (color intensity)
     C = hsv_Nx3[:, 1] * hsv_Nx3[:, 2]
     X = C * (1 - abs(H_ % 2 - 1))

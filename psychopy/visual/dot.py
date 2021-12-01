@@ -19,11 +19,6 @@ determines how they change on every call to the .draw() method.
 # Provide a visible wrapper function to refresh all the dot locations so that 
 # the whole field can be more easily refreshed between trials.
 
-from __future__ import absolute_import, division, print_function
-
-from builtins import str
-from builtins import range
-
 # Ensure setting pyglet.options['debug_gl'] to False is done prior to any
 # other calls to pyglet or pyglet submodules, otherwise it may not get picked
 # up by the pyglet GL engine and have no effect.
@@ -42,6 +37,7 @@ from psychopy.tools.attributetools import attributeSetter, setAttribute
 from psychopy.tools.arraytools import val2array
 from psychopy.visual.basevisual import (BaseVisualStim, ColorMixin,
                                         ContainerMixin)
+from psychopy.layout import Size
 
 import numpy as np
 
@@ -255,7 +251,6 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self.dotLife = dotLife
         self.signalDots = signalDots
 
-        self.useShaders = False  # not needed for dots?
         if rgb != None:
             logging.warning("Use of rgb arguments to stimuli are deprecated."
                             " Please use color and colorSpace args instead")
@@ -274,7 +269,7 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self.noiseDots = noiseDots
 
         # initialise a random array of X,Y
-        self._verticesBase = self._dotsXY = self._newDotsXY(self.nDots)
+        self.vertices = self._verticesBase = self._dotsXY = self._newDotsXY(self.nDots)
         # all dots have the same speed
         self._dotsSpeed = np.ones(self.nDots, dtype=float) * self.speed
         # abs() means we can ignore the -1 case (no life)
@@ -307,11 +302,16 @@ class DotStim(BaseVisualStim, ColorMixin, ContainerMixin):
         """
         self.__dict__['fieldShape'] = fieldShape
 
-    @attributeSetter
-    def dotSize(self, dotSize):
+    @property
+    def dotSize(self):
         """Float specified in pixels (overridden if `element` is specified).
         :ref:`operations <attrib-operations>` are supported."""
-        self.__dict__['dotSize'] = dotSize
+        if hasattr(self, "_dotSize"):
+            return getattr(self._dotSize, 'pix')[0]
+
+    @dotSize.setter
+    def dotSize(self, value):
+        self._dotSize = Size(value, units='pix', win=self.win)
 
     @attributeSetter
     def dotLife(self, dotLife):

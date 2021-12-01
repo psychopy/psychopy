@@ -45,7 +45,7 @@ def _init_all_pumps():
     [Pump(index=index) for index in range(1, n_pumps)]
 
 
-class Pump(object):
+class Pump:
     """
     An interface to Cetoni neMESYS syringe pumps, based on the
     `pyqmix <https://github.com/psyfood/pyqmix/>`_ library.
@@ -287,7 +287,7 @@ class Pump(object):
         self._pyqmix_pump.stop()
 
 
-class _PumpWrapperForBuilderComponent(object):
+class _PumpWrapperForBuilderComponent:
     """
     Merely for use in the corresponding Builder component, to allow
     re-using the same Pump (in different components) within the same

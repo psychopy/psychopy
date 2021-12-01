@@ -1,10 +1,5 @@
-from __future__ import print_function
-
 from pathlib import Path
 
-from past.builtins import unicode
-
-from builtins import object
 import os
 import io
 import pytest
@@ -36,7 +31,7 @@ ignoreList = ['<built-in method __', "<method-wrapper '__", '__slotnames__:']
 ignoreParallelOutAddresses = True
 
 @pytest.mark.components
-class TestComponents(object):
+class TestComponents():
     @classmethod
     def setup_class(cls):
         cls.expPy = experiment.Experiment() # create once, not every test
@@ -117,9 +112,6 @@ class TestComponents(object):
 
             for parName in comp.params:
                 # default is what you get from param.__str__, which returns its value
-                if not constants.PY3:
-                    if isinstance(comp.params[parName].val, unicode):
-                        comp.params[parName].val = comp.params[parName].val.encode('utf8')
                 default = '%s.%s.default:%s' % (compName, parName, comp.params[parName])
                 lineFields = []
                 for field in fields:
@@ -261,6 +253,10 @@ def test_param_str():
         {"obj": Param("red", "color"),
          "py": "'red'",
          "js": "'red'"},
+        # RGB Color
+        {"obj": Param("0.7, 0.7, 0.7", "color"),
+         "py": "[0.7, 0.7, 0.7]",
+         "js": "[0.7, 0.7, 0.7]"},
         # Code
         {"obj": Param("win.color", "code"),
          "py": "win.color",
@@ -275,6 +271,14 @@ def test_param_str():
          "js": "[1, 2, 3]"},
     ]
     tykes = [
+        # Name containing "var" (should no longer return blank as of #4336)
+        {"obj": Param("variableName", "code"),
+         "py": "variableName",
+         "js": "variableName"},
+        # Color param with a $
+        {"obj": Param("$letterColor", "color"),
+         "py": "letterColor",
+         "js": "letterColor"},
     ]
 
     # Take note of what the script target started as

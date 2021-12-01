@@ -7,7 +7,8 @@
 
 from ._alerts import _activeAlertHandlers
 
-class _BaseErrorHandler(object):
+
+class _BaseErrorHandler:
     """A base class for handling PsychoPy alerts and exceptions.
     """
 

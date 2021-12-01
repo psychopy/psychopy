@@ -8,8 +8,6 @@
 """Describes the Flow of an experiment
 """
 
-from __future__ import absolute_import, print_function
-
 from psychopy.constants import FOREVER
 from xml.etree.ElementTree import Element
 from pathlib import Path
@@ -140,6 +138,13 @@ class BaseStandaloneRoutine:
     def writeEachFrameCodeJS(self, buff, modular):
         return
 
+    def writeRoutineEndCode(self, buff):
+        # reset routineTimer at the *very end* of all non-nonSlip routines
+        code = ('# the Routine "%s" was not non-slip safe, so reset '
+                'the non-slip timer\n'
+                'routineTimer.reset()\n')
+        buff.writeIndentedLines(code % self.name)
+
     def writeRoutineEndCodeJS(self, buff, modular):
         return
 
@@ -245,6 +250,22 @@ class Routine(list):
     def addComponent(self, component):
         """Add a component to the end of the routine"""
         self.append(component)
+
+    def insertComponent(self, index, component):
+        """Insert a component at some point of the routine.
+
+        Parameters
+        ----------
+        index : int
+            Position in the routine to insert the component.
+        component : object
+            Component object to insert.
+
+        """
+        try:
+            self.insert(index, component)
+        except IndexError:
+            self.append(component)  # just insert at the end on invalid index
 
     def removeComponent(self, component):
         """Remove a component from the end of the routine"""
@@ -440,14 +461,6 @@ class Routine(list):
         for event in self:
             event.writeRoutineEndCode(buff)
 
-        # reset routineTimer at the *very end* of all non-nonSlip routines
-        if not useNonSlip:
-            code = ('# the Routine "%s" was not non-slip safe, so reset '
-                    'the non-slip timer\n'
-                    'routineTimer.reset()\n')
-            buff.writeIndentedLines(code % self.name)
-
-
     def writeRoutineBeginCodeJS(self, buff, modular):
 
         # create the frame loop for this routine
@@ -581,6 +594,17 @@ class Routine(list):
         buff.writeIndentedLines("};\n")
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndentedLines("}\n")
+
+    def writeRoutineEndCode(self, buff):
+        # can we use non-slip timing?
+        maxTime, useNonSlip = self.getMaxTime()
+
+        # reset routineTimer at the *very end* of all non-nonSlip routines
+        if not useNonSlip:
+            code = ('# the Routine "%s" was not non-slip safe, so reset '
+                    'the non-slip timer\n'
+                    'routineTimer.reset()\n')
+            buff.writeIndentedLines(code % self.name)
 
     def writeRoutineEndCodeJS(self, buff, modular):
         # can we use non-slip timing?

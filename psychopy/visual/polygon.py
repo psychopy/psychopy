@@ -8,9 +8,6 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import, print_function
-
-from builtins import range
 import psychopy  # so we can get the __path__
 from psychopy.visual.shape import BaseShapeStim
 from psychopy.tools.attributetools import attributeSetter, setAttribute
@@ -113,10 +110,11 @@ class Polygon(BaseShapeStim):
                  lineWidth=1.5,
                  lineColor=None,
                  lineColorSpace=None,
-                 fillColor=None,
+                 fillColor='white',
                  fillColorSpace=None,
                  pos=(0, 0),
                  size=1.0,
+                 anchor=None,
                  ori=0.0,
                  opacity=None,
                  contrast=1.0,
@@ -152,6 +150,7 @@ class Polygon(BaseShapeStim):
             closeShape=True,
             pos=pos,
             size=size,
+            anchor=anchor,
             ori=ori,
             opacity=opacity,
             contrast=contrast,

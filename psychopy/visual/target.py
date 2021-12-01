@@ -20,16 +20,18 @@ class TargetStim(ShapeStim):
         if name is None:
             name = "target"
         # Init super (creates outer circle)
+        if units is None:
+            units = win.units
         ShapeStim.__init__(self, win, name=name,
                            vertices="circle",
                            size=(radius*2, radius*2), pos=pos,
-                           lineWidth=lineWidth, units=(units or ''),
+                           lineWidth=lineWidth, units=units,
                            fillColor=fillColor, lineColor=borderColor, colorSpace=colorSpace,
                            autoLog=autoLog, autoDraw=autoDraw)
 
         self.inner = ShapeStim(win, name=name+"Inner",
                                vertices="circle",
-                               size=(innerRadius*2, innerRadius*2), pos=pos, units=(units or ''),
+                               size=(innerRadius*2, innerRadius*2), pos=pos, units=units,
                                lineWidth=(innerLineWidth or lineWidth),
                                fillColor=innerFillColor, lineColor=innerBorderColor, colorSpace=colorSpace,
                                autoLog=autoLog, autoDraw=autoDraw)
@@ -61,19 +63,17 @@ class TargetStim(ShapeStim):
     @property
     def pos(self):
         """For target stims, pos is overloaded so that it moves both the inner and outer shapes."""
-        return self._pos
+        return ShapeStim.pos.fget(self)
 
     @pos.setter
     def pos(self, value):
-        self._pos = value
-        ShapeStim.pos.__set__(self, value)
+        ShapeStim.pos.fset(self, value)
         if hasattr(self, "inner"):
             self.inner.pos = value
 
     @property
     def size(self):
-        if hasattr(self, "_size"):
-            return self._size
+        return ShapeStim.size.fget(self)
 
     @size.setter
     def size(self, value):
@@ -82,7 +82,7 @@ class TargetStim(ShapeStim):
                 value[0] / self.size[0] * self.inner.size[0],
                 value[1] / self.size[1] * self.inner.size[1]
             )
-        self._size = value
+        ShapeStim.size.fset(self, value)
 
     @scale.setter
     def scale(self, newScale):
@@ -125,12 +125,11 @@ class TargetStim(ShapeStim):
 
     @property
     def win(self):
-        if hasattr(self, "_win"):
-            return self._win
+        return ShapeStim.win.fget(self)
 
     @win.setter
     def win(self, value):
-        self._win = value
+        ShapeStim.win.fset(self, value)
         if hasattr(self, "inner"):
             self.inner.win = value
 

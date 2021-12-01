@@ -8,9 +8,9 @@ including the pointer graphic and bounding box."""
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import, division, print_function
 
-from builtins import str
+
+
 import os
 
 import psychopy  # so we can get the __path__

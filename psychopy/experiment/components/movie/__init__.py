@@ -5,12 +5,9 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import, print_function
-
-from os import path
 from pathlib import Path
 import copy
-from psychopy import logging
+
 from psychopy.experiment.components import BaseVisualComponent, getInitVals, Param, _translate
 from psychopy.localization import _localized as __localized
 _localized = __localized.copy()
@@ -111,9 +108,9 @@ class MovieComponent(BaseVisualComponent):
         #
         # leave units blank if not needed
         if self.params['units'].val == 'from exp settings':
-            unitsStr = ""
+            unitsStr = "units=''"
         else:
-            unitsStr = "units=%(units)s, " % self.params
+            unitsStr = "units=%(units)s" % self.params
 
         # If we're in writeInitCode then we need to convert params to initVals
         # because some (variable) params haven't been created yet.
@@ -124,18 +121,22 @@ class MovieComponent(BaseVisualComponent):
 
         if self.params['backend'].val == 'moviepy':
             code = ("%s = visual.MovieStim3(\n" % params['name'] +
-                    "    win=win, name='%s',%s\n" % (params['name'], unitsStr) +
+                    "    win=win, name='%s', %s,\n" % (
+                        params['name'], unitsStr) +
                     "    noAudio = %(No audio)s,\n" % params)
         elif self.params['backend'].val == 'avbin':
             code = ("%s = visual.MovieStim(\n" % params['name'] +
-                    "    win=win, name='%s',%s\n" % (params['name'], unitsStr))
+                    "    win=win, name='%s', %s,\n" % (
+                        params['name'], unitsStr))
         elif self.params['backend'].val == 'vlc':
             code = ("%s = visual.VlcMovieStim(\n" % params['name'] +
-                    "    win=win, name='%s',%s\n" % (params['name'], unitsStr))
+                    "    win=win, name='%s', %s,\n" % (
+                        params['name'], unitsStr))
         else:
             code = ("%s = visual.MovieStim2(\n" % params['name'] +
-                    "    win=win, name='%s',%s\n" % (params['name'], unitsStr) +
-                    "    noAudio = %(No audio)s,\n" % params)
+                    "    win=win, name='%s', %s,\n" % (
+                        params['name'], unitsStr) +
+                    "    noAudio=%(No audio)s,\n" % params)
 
         code += ("    filename=%(movie)s,\n"
                  "    ori=%(ori)s, pos=%(pos)s, opacity=%(opacity)s,\n"

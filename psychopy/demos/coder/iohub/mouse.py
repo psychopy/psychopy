@@ -4,8 +4,6 @@
 Demo of using the iohub mouse.
 """
 
-from __future__ import absolute_import, division, print_function
-
 import sys
 
 from psychopy import visual, core

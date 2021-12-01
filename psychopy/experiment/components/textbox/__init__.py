@@ -5,11 +5,7 @@
 # Copyright (C) 2002-2018 Jonathan Peirce (C) 2019-2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import, print_function
-
-from os import path
 from pathlib import Path
-import copy
 from psychopy.alerts import alerttools, alert
 from psychopy.experiment.components import BaseVisualComponent, Param, getInitVals, _translate
 from psychopy.localization import _localized as __localized
@@ -51,8 +47,9 @@ class TextboxComponent(BaseVisualComponent):
                  font='Open Sans', units='from exp settings', bold=False, italic=False,
                  color='white', colorSpace='rgb', opacity="",
                  pos=(0, 0), size=(None, None), letterHeight=0.05, ori=0,
+                 anchor='center', alignment='top-left',
                  lineSpacing=1.0, padding=0,  # gap between box and text
-                 startType='time (s)', startVal=0.0, anchor='center',
+                 startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim='',
                  languageStyle='LTR', fillColor="None",
@@ -154,6 +151,21 @@ class TextboxComponent(BaseVisualComponent):
             updates='constant',
             hint=_translate("Should text anchor to the top, center or bottom of the box?"),
             label=_localized['anchor'])
+        self.params['alignment'] = Param(
+            alignment, valType='str', inputType="choice", categ='Formatting',
+            allowedVals=['center',
+                         'top-center',
+                         'bottom-center',
+                         'center-left',
+                         'center-right',
+                         'top-left',
+                         'top-right',
+                         'bottom-left',
+                         'bottom-right',
+                         ],
+            updates='constant',
+            hint=_translate("How should text be laid out within the box?"),
+            label=_translate("Alignment"))
         self.params['borderWidth'] = Param(
             borderWidth, valType='num', inputType="single", allowedTypes=[], categ='Appearance',
             updates='constant', allowedUpdates=_allow3[:],
@@ -190,7 +202,7 @@ class TextboxComponent(BaseVisualComponent):
             "     opacity=%(opacity)s,\n"
             "     bold=%(bold)s, italic=%(italic)s,\n"
             "     lineSpacing=%(lineSpacing)s,\n"
-            "     padding=%(padding)s,\n"
+            "     padding=%(padding)s, alignment=%(alignment)s,\n"
             "     anchor=%(anchor)s,\n"
             "     fillColor=%(fillColor)s, borderColor=%(borderColor)s,\n"
             "     flipHoriz=%(flipHoriz)s, flipVert=%(flipVert)s,\n"

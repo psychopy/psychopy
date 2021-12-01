@@ -2,7 +2,7 @@
 # Part of the PsychoPy library
 # Copyright (C) 2012-2020 iSolver Software Solutions (C) 2021 Open Science Tools Ltd.
 # Distributed under the terms of the GNU General Public License (GPL).
-from past.builtins import basestring
+
 import socket
 import os
 import numbers  # numbers.Integral is like (int, long) but supports Py3
@@ -275,7 +275,7 @@ def isValidColor(config_param_name, color, constraints):
     raise ColorValueError(config_param_name, color)
 
 def isValidString(config_param_name, value, constraints):
-    if isinstance(value, basestring):
+    if isinstance(value, str):
         if value == constraints:
             # static string
             return value
@@ -412,7 +412,7 @@ def buildConfigParamValidatorMapping(
             current_param_path = '%s.%s' % (parent_name, param_name)
 
         keyword_validator_function = None
-        if isinstance(param_name, basestring):
+        if isinstance(param_name, str):
             keyword_validator_function = CONFIG_VALIDATION_KEY_WORD_MAPPINGS.get(
                 param_name, None)
 
@@ -420,7 +420,7 @@ def buildConfigParamValidatorMapping(
             param_validation_func_mapping[
                 parent_name] = keyword_validator_function, param_config
             #print2err('ADDED MAPPING1: ', current_param_path, " ", isValueValid, " ", param_config)
-        elif isinstance(param_config, basestring):
+        elif isinstance(param_config, str):
             keyword_validator_function = CONFIG_VALIDATION_KEY_WORD_MAPPINGS.get(
                 param_config, None)
             if keyword_validator_function:

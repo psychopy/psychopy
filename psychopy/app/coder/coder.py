@@ -5,15 +5,8 @@
 # Copyright (C) 2009 Jonathan Peirce
 # Distributed under the terms of the GNU General Public License (GPL).
 
-from __future__ import absolute_import, print_function
-
-# from future import standard_library
-# standard_library.install_aliases()
 from pathlib import Path
 
-from past.builtins import unicode
-from builtins import chr
-from builtins import range
 import wx
 import wx.stc
 import wx.richtext
@@ -295,8 +288,8 @@ class UnitTestFrame(wx.Frame):
         def write(self, inStr):
             self.MoveEnd()  # always 'append' text rather than 'writing' it
             for thisLine in inStr.splitlines(True):
-                if not isinstance(thisLine, unicode):
-                    thisLine = unicode(thisLine)
+                if not isinstance(thisLine, str):
+                    thisLine = str(thisLine)
                 if thisLine.startswith('OK'):
                     self.BeginBold()
                     self.BeginTextColour(self.good)
@@ -905,8 +898,8 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
                     calltipText = '\n    '.join(
                         textwrap.wrap(calltipText, 76))  # 80 cols after indent
                     y, x = foundRefs[0].bracket_start
-                    self.CallTipShow(
-                        self.XYToPosition(x + 1, y), calltipText)
+                    callTipPos = self.XYToPosition(x, y)
+                    self.CallTipShow(callTipPos, calltipText)
 
     def MacOpenFile(self, evt):
         logging.debug('PsychoPyCoder: got MacOpenFile event')
@@ -1103,8 +1096,9 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
         backward = not (findData.GetFlags() & wx.FR_DOWN)
         matchcase = (findData.GetFlags() & wx.FR_MATCHCASE) != 0
         end = self.GetLength()
-        textstring = self.GetTextRange(0, end)
-        findstring = findData.GetFindString()
+        # Byte string is necessary to let SetSelection() work properly
+        textstring = self.GetTextRangeRaw(0, end)
+        findstring = findData.GetFindString().encode('utf-8')
         if not matchcase:
             textstring = textstring.lower()
             findstring = findstring.lower()
@@ -1127,7 +1121,7 @@ class CodeEditor(BaseCodeEditor, CodeEditorFoldingMixin, ThemeMixin):
         # was it still not found?
         if loc == -1:
             dlg = dialogs.MessageDialog(self, message=_translate(
-                'Unable to find "%s"') % findstring, type='Info')
+                'Unable to find "%s"') % findstring.decode('utf-8'), type='Info')
             dlg.ShowModal()
             dlg.Destroy()
         else:
@@ -1309,29 +1303,14 @@ class CoderFrame(wx.Frame, ThemeMixin):
             self.pnlMain, wx.ID_ANY, size=wx.Size(600, 600),
             agwStyle=aui.AUI_NB_CLOSE_ON_ALL_TABS)
         #self.shelf.SetArtProvider(PsychopyTabArt())
+
         # Create shell
-        self._useShell = None
-        if haveCode:
-            useDefaultShell = True
-            if self.prefs['preferredShell'].lower() == 'ipython':
-                try:
-                    # Try to use iPython
-                    from IPython.gui.wx.ipython_view import IPShellWidget
-                    self.shell = IPShellWidget(self)
-                    useDefaultShell = False
-                    self._useShell = 'ipython'
-                except Exception:
-                    msg = _translate('IPython failed as shell, using pyshell'
-                                     ' (IPython v0.12 can fail on wx)')
-                    logging.warn(msg)
-            if useDefaultShell:
-                # Default to Pyshell if iPython fails
-                self.shell = PythonREPLCtrl(self)
-                self._useShell = 'pyshell'
-            # Add shell to output pane
-            self.shell.SetName("PythonShell")
-            self.shelf.AddPage(self.shell, _translate('Shell'))
-            # Hide close button
+        self._useShell = 'pyshell'
+        self.shell = PythonREPLCtrl(self)
+
+        # Add shell to output pane
+        self.shell.SetName("PythonShell")
+        self.shelf.AddPage(self.shell, _translate('Shell'))
 
         # script output panel
         self.consoleOutput = ScriptOutputPanel(self.shelf)
@@ -1700,6 +1679,25 @@ class CoderFrame(wx.Frame, ThemeMixin):
         menu.AppendSubMenu(self.themesMenu,
                            _translate("Themes"))
 
+        # ---_view---#000000#FFFFFF-------------------------------------------
+        self.shellMenu = wx.Menu()
+        menuBar.Append(self.shellMenu, _translate('&Shell'))
+
+        menu = self.shellMenu
+        item = menu.Append(
+            wx.ID_ANY,
+            _translate("Start Python Session"),
+            _translate("Start a new Python session in the shell."),
+            wx.ITEM_NORMAL)
+        self.Bind(wx.EVT_MENU, self.onStartShellSession, id=item.GetId())
+        menu.AppendSeparator()
+        item = menu.Append(
+            wx.ID_ANY,
+            _translate("Run Line\tF6"),
+            _translate("Push the line at the caret to the shell."),
+            wx.ITEM_NORMAL)
+        self.Bind(wx.EVT_MENU, self.onPushLineToShell, id=item.GetId())
+
         # menu.Append(ID_UNFOLDALL, "Unfold All\tF3",
         #   "Unfold all lines", wx.ITEM_NORMAL)
         # self.Bind(wx.EVT_MENU,  self.unfoldAll, id=ID_UNFOLDALL)
@@ -1892,6 +1890,25 @@ class CoderFrame(wx.Frame, ThemeMixin):
 
             if dlg.ShowModal() == wx.ID_YES:
                 self.fileBrowserWindow.gotoDir(cwdpath)
+
+    def onStartShellSession(self, event):
+        """Start a new Python session in the shell."""
+        if hasattr(self, 'shell'):
+            self.shell.start()
+            self.shell.SetFocus()
+
+    def onPushLineToShell(self, event):
+        """Push the currently selected line in the editor to the console and
+        run it.."""
+        if hasattr(self, 'shell'):
+            ed = self.currentDoc
+            if ed is None:  # no document selected
+                return
+
+            lineText, _ = ed.GetCurLine()
+            self.shell.clearAndReplaceTyped(lineText)
+            self.shell.submit(self.shell.getTyped())
+            ed.LineDown()
 
     def onSetCWDFromBrowserPane(self, event):
         """Set the current working directory by browsing for it."""
@@ -2624,28 +2641,35 @@ class CoderFrame(wx.Frame, ThemeMixin):
             else:
                 self.app.showRunner()
 
-    def copy(self, event):
-        foc = self.FindFocus()
-        foc.Copy()
-        if isinstance(foc, CodeEditor):
-            self.currentDoc.Copy()  # let the text ctrl handle this
-        # elif isinstance(foc, StdOutRich):
-
     def duplicateLine(self, event):
+        """Duplicate the current line."""
         self.currentDoc.LineDuplicate()
 
-    def cut(self, event):
+    def copy(self, event):
+        """Copy text to the clipboard from the focused widget."""
         foc = self.FindFocus()
-        foc.Copy()
         if isinstance(foc, CodeEditor):
-            self.currentDoc.Cut()  # let the text ctrl handle this
+            self.currentDoc.Copy()  # let the text ctrl handle this
+        elif hasattr(foc, 'Copy'):  # handle any other widget
+            foc.Copy()
+
+    def cut(self, event):
+        """Cut text from the focused widget to clipboard."""
+        foc = self.FindFocus()
+        if isinstance(foc, CodeEditor):
+            self.currentDoc.Cut()
             self.currentDoc.analyseScript()
+        elif hasattr(foc, 'Cut'):
+            foc.Cut()
 
     def paste(self, event):
+        """Paste text from the clipboard to the focused object."""
         foc = self.FindFocus()
-        if hasattr(foc, 'Paste'):
-            foc.Paste()
+        if isinstance(foc, CodeEditor):
+            self.currentDoc.Paste()
             self.currentDoc.analyseScript()
+        elif hasattr(foc, 'Paste'):
+            foc.Paste()
 
     def undo(self, event):
         if self.currentDoc:

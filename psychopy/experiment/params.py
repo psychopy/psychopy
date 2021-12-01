@@ -15,13 +15,7 @@ The code that writes out a *_lastrun.py experiment file is (in order):
         which will call the .writeBody() methods from each component
     settings.SettingsComponent.writeEndCode()
 """
-
-from __future__ import absolute_import, print_function
-# from future import standard_library
 from xml.etree.ElementTree import Element
-
-from past.builtins import basestring
-from builtins import object
 
 import re
 from pathlib import Path
@@ -30,7 +24,6 @@ from psychopy import logging
 from . import utils
 from . import py2js
 
-# standard_library.install_aliases()
 from ..colors import Color
 from numpy import ndarray
 from ..alerts import alert
@@ -63,7 +56,7 @@ legacyParams = [
     'lineColorSpace', 'borderColorSpace', 'fillColorSpace', 'foreColorSpace',  # 2021.1, we standardised colorSpace to be object-wide rather than param-specific
 ]
 
-class Param(object):
+class Param():
     r"""Defines parameters for Experiment Components
     A string representation of the parameter will depend on the valType:
 
@@ -186,13 +179,13 @@ class Param(object):
                 return "%i" % self.val  # int and float -> str(int)
             except TypeError:
                 return "%s" % self.val  # try array of float instead?
-        elif self.valType in ['extendedStr','str', 'file', 'table', 'color']:
+        elif self.valType in ['extendedStr','str', 'file', 'table']:
             # at least 1 non-escaped '$' anywhere --> code wanted
             # return str if code wanted
             # return repr if str wanted; this neatly handles "it's" and 'He
             # says "hello"'
             val = self.val
-            if isinstance(self.val, basestring):
+            if isinstance(self.val, str):
                 valid, val = self.dollarSyntax()
                 if self.codeWanted and valid:
                     # If code is wanted, return code (translated to JS if needed)
@@ -218,7 +211,7 @@ class Param(object):
                     return repr(val)                              
             return repr(self.val)
         elif self.valType in ['code', 'extendedCode']:
-            isStr = isinstance(self.val, basestring)
+            isStr = isinstance(self.val, str)
             if isStr and self.val.startswith("$"):
                 # a $ in a code parameter is unnecessary so remove it
                 val = "%s" % self.val[1:]
@@ -239,6 +232,18 @@ class Param(object):
                 return valJS
             else:
                 return val
+        elif self.valType == 'color':
+            _, val = self.dollarSyntax()
+            if self.codeWanted:
+                # Handle code
+                return val
+            elif "," in val:
+                # Handle lists (e.g. RGB, HSV, etc.)
+                val = toList(val)
+                return "{}".format(val)
+            else:
+                # Otherwise, treat as string
+                return repr(val)
         elif self.valType == 'list':
             valid, val = self.dollarSyntax()
             val = toList(val)

@@ -13,7 +13,8 @@ local installation of VLC media player (https://www.videolan.org/).
 # class was taken and rewritten to use only VLC.
 #
 
-from __future__ import absolute_import, division, print_function
+
+
 
 import os
 import sys
@@ -36,7 +37,7 @@ try:
     # check if the lib can be loaded
     import vlc
 except Exception as err:
-    if "wrong architecture" in err:
+    if "wrong architecture" in str(err):
         msg = ("Failed to import `vlc` module required by `vlcmoviestim`.\n"
                "You're using %i-bit python. Is your VLC install the same?"
                % 64 if sys.maxsize == 2 ** 64 else 32)
