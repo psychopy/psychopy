@@ -1,6 +1,7 @@
 from psychopy import logging
-from psychopy.core import getTime, wait
+from psychopy.core import getTime, wait, quit
 from psychopy.iohub import launchHubServer
+from psychopy.iohub.constants import EyeTrackerConstants
 
 logging.console.setLevel(logging.DEBUG)
 
@@ -27,7 +28,12 @@ io = launchHubServer(**iohub_config)
 tracker = io.devices.tracker
 
 # run eyetracker calibration
-# r = tracker.runSetupProcedure()
+setup_result = tracker.runSetupProcedure()
+if setup_result != EyeTrackerConstants.EYETRACKER_OK:
+    logging.error(f"Calibration failed: {EyeTrackerConstants.getName(setup_result)}")
+    io.quit()
+    quit()
+
 
 tracker.setConnectionState(True)
 
