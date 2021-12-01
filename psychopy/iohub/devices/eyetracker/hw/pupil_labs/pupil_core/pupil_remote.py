@@ -119,9 +119,9 @@ class PupilRemote:
         self._zmq_req_socket.send_string("v")
         return self._zmq_req_socket.recv_string()
 
-    def fetch(self):
+    def fetch(self, endless=False):
         while True:
-            if not self.has_new_data:
+            if not endless and not self.has_new_data:
                 break
 
             topic = self._zmq_sub_socket.recv_string()
