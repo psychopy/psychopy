@@ -108,6 +108,7 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
                  closeShape=True,
                  pos=(0, 0),
                  size=1,
+                 anchor=None,
                  ori=0.0,
                  opacity=None,
                  contrast=1.0,
@@ -177,6 +178,7 @@ class BaseShapeStim(BaseVisualStim, ColorMixin, ContainerMixin):
         self.size = size  # make sure that it's 2D
         if vertices != ():  # flag for when super-init'ing a ShapeStim
             self.vertices = vertices  # call attributeSetter
+        self.anchor = anchor
         self.autoDraw = autoDraw  # call attributeSetter
 
         # set autoLog now that params have been initialised
@@ -436,6 +438,7 @@ class ShapeStim(BaseShapeStim):
                  closeShape=True,  # False for a line
                  pos=(0, 0),
                  size=1,
+                 anchor=None,
                  ori=0.0,
                  opacity=1.0,
                  contrast=1.0,
@@ -468,6 +471,7 @@ class ShapeStim(BaseShapeStim):
                                         closeShape=self.closeShape,
                                         pos=pos,
                                         size=size,
+                                        anchor=anchor,
                                         ori=ori,
                                         opacity=opacity,
                                         contrast=contrast,
