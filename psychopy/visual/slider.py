@@ -168,7 +168,6 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         self.ori = ori
         self.flip = flip
 
-        self.categorical = False  # will become True if no ticks set only labels
         self.startValue = self.markerPos = startValue
         self.rt = None
         self.history = []
@@ -228,6 +227,11 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
     def horiz(self):
         """(readonly) determines from self.size whether the scale is horizontal"""
         return self.extent[0] > self.extent[1]
+
+    @property
+    def categorical(self):
+        """(readonly) determines from labels and ticks whether the slider is categorical"""
+        return self.ticks is None
 
     @property
     def extent(self):
@@ -496,10 +500,6 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         """ Calculates the locations of the line, tickLines and labels from
         the rating info
         """
-        try:
-            n = len(self.ticks)
-        except TypeError:
-            self.categorical = True
         if self.categorical:
             self.ticks = np.arange(len(self.labels))
             self.granularity = 1.0
