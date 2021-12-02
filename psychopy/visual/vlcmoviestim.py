@@ -13,9 +13,6 @@ local installation of VLC media player (https://www.videolan.org/).
 # class was taken and rewritten to use only VLC.
 #
 
-
-
-
 import os
 import sys
 import threading

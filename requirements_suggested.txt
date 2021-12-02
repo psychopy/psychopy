@@ -4,7 +4,6 @@ pyserial
 pyparallel
 egi
 google-api-python-client
-SpeechRecognition
 pyxid2
 badapted
 darc-experiment-toolbox
