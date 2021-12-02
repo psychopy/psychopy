@@ -194,7 +194,7 @@ if __name__ == "__main__":
         instuction_text = "Press Space Key To Start Trial %d" % t
         instructions_text_stim.setText(instuction_text)
         instructions_text_stim.draw()
-        flip_time = window.flip()
+        window.flip()
 
         # Wait until a space key press event occurs after the
         # start trial instuctions have been displayed.

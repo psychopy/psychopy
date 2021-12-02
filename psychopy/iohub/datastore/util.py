@@ -81,6 +81,7 @@ def displayEventTableSelectionDialog(title, list_label, list_values, default=u'S
 
     return list(dlg_info.values())[0]
 
+
 def saveEventReport(hdf5FilePath="", eventType="", eventFields=[], trialStartMessage=None, trialStopMessage=None,
                     timeMargins=(0.0, 0.0)):
     """
@@ -108,9 +109,9 @@ def saveEventReport(hdf5FilePath="", eventType="", eventFields=[], trialStartMes
 
     if not eventType:
         # Get a dict of all event types -> DataStore table info for the selected DataStore file.
-        eventTableMappings=datafile.getEventMappingInformation()
+        eventTableMappings = datafile.getEventMappingInformation()
         # Get event tables that have data...
-        events_with_data=datafile.getEventsByType()
+        events_with_data = datafile.getEventsByType()
 
         # Select which event table to output
         eventNameList = []
@@ -129,12 +130,12 @@ def saveEventReport(hdf5FilePath="", eventType="", eventFields=[], trialStartMes
         mgs_table = datafile.getEventTable('MessageEvent')
         trial_start_msgs = mgs_table.where('text == b"%s"' % trialStartMessage)
         for mix, msg in enumerate(trial_start_msgs):
-            trial_times.append([mix + 1, msg['time']-timeMargins[0], 0])
+            trial_times.append([mix + 1, msg['time'] - timeMargins[0], 0])
         trial_end_msgs = mgs_table.where('text == b"%s"' % trialStopMessage)
         for mix, msg in enumerate(trial_end_msgs):
-            trial_times[mix][2] = msg['time']+timeMargins[1]
+            trial_times[mix][2] = msg['time'] + timeMargins[1]
         del mgs_table
-    elif trialStartMessage == trialStopMessage == None:
+    elif trialStartMessage is None and trialStopMessage is None:
         # do not split events into trial groupings
         pass
     else:
@@ -207,6 +208,7 @@ def saveEventReport(hdf5FilePath="", eventType="", eventFields=[], trialStartMes
     # Done report creation, close input file
     datafile.close()
     return output_file_name, ecount
+
 
 ########### Experiment / Experiment Session Based Data Access #################
 

@@ -10,8 +10,6 @@ SAVE_EVENT_TYPE and SAVE_EVENT_FIELDS specify the event type, and which event fi
 
 This example can process hdf5 files saved by running the gcCursor demo.
 """
-import sys
-import os
 from psychopy.iohub.datastore.util import saveEventReport
 
 # Specify which event type and event fields to save
