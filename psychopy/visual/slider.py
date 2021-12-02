@@ -392,23 +392,24 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
             autoLog=False
         )
         # Make labels
-        self._getLabelParams()
         self.labelObjs = []
-        for n, label in enumerate(self.labels):
-            # Skip blank labels
-            if label is None:
-                continue
-            # Create textbox for each label
-            obj = TextBox2(
-                self.win, label, font=self.font,
-                pos=self.labelParams['pos'][n], size=self.labelParams['size'][n], padding=self.labelParams['padding'][n], units=self.units,
-                anchor=self.labelParams['anchor'][n], alignment=self.labelParams['alignment'][n],
-                color=self._foreColor.copy(), fillColor=None, colorSpace=self.colorSpace,
-                borderColor="red" if debug else None,
-                letterHeight=self.labelHeight,
-                autoLog=False
-            )
-            self.labelObjs.append(obj)
+        if self.labels is not None:
+            self._getLabelParams()
+            for n, label in enumerate(self.labels):
+                # Skip blank labels
+                if label is None:
+                    continue
+                # Create textbox for each label
+                obj = TextBox2(
+                    self.win, label, font=self.font,
+                    pos=self.labelParams['pos'][n], size=self.labelParams['size'][n], padding=self.labelParams['padding'][n], units=self.units,
+                    anchor=self.labelParams['anchor'][n], alignment=self.labelParams['alignment'][n],
+                    color=self._foreColor.copy(), fillColor=None, colorSpace=self.colorSpace,
+                    borderColor="red" if debug else None,
+                    letterHeight=self.labelHeight,
+                    autoLog=False
+                )
+                self.labelObjs.append(obj)
         # Make marker
         self._getMarkerParams()
         self.marker = ShapeStim(
