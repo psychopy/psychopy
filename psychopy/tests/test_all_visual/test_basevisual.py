@@ -292,26 +292,26 @@ class _TestUnitsMixin:
         {'suffix': "_center_center",
          'norm': (0, 0), 'height': (0, 0), 'pix': (0, 0), 'cm': (0, 0)},
         {'suffix': "_bottom_left",
-         'norm': (-1, -1), 'height': (-1, -0.5), 'pix': (-128, -64), 'cm': (-2, -1)},
+         'norm': (-0.5, -1), 'height': (-1, -0.5), 'pix': (-128, -64), 'cm': (-2, -1)},
         {'suffix': "_top_left",
-         'norm': (-1, 1), 'height': (-1, 0.5), 'pix': (-128, 64), 'cm': (-2, 1)},
+         'norm': (-0.5, 1), 'height': (-1, 0.5), 'pix': (-128, 64), 'cm': (-2, 1)},
         {'suffix': "_bottom_right",
-         'norm': (1, -1), 'height': (1, -0.5), 'pix': (128, -64), 'cm': (2, -1)},
+         'norm': (0.5, -1), 'height': (1, -0.5), 'pix': (128, -64), 'cm': (2, -1)},
         {'suffix': "_top_right",
-         'norm': (1, 1), 'height': (1, 0.5), 'pix': (128, 64), 'cm': (2, 1)},
+         'norm': (0.5, 1), 'height': (1, 0.5), 'pix': (128, 64), 'cm': (2, 1)},
     ]
     posTykes = []
 
     # Define exemplar sizes (assumes win.pos = (256, 128) and 1cm = 64 pix)
     sizeExemplars = [
         {'suffix': "_w128h128",
-         'norm': (0.5, 1), 'height': (1, 1), 'pix': (128, 128), 'cm': (2, 2)},
+         'norm': (1, 1), 'height': (1, 1), 'pix': (128, 128), 'cm': (2, 2)},
         {'suffix': "_w128h64",
-         'norm': (0.5, 0.5), 'height': (1, 0.5), 'pix': (128, 64), 'cm': (2, 1)},
+         'norm': (1, 0.5), 'height': (1, 0.5), 'pix': (128, 64), 'cm': (2, 1)},
         {'suffix': "_w64h128",
-         'norm': (0.25, 1), 'height': (0.5, 1), 'pix': (64, 128), 'cm': (1, 2)},
+         'norm': (0.5, 1), 'height': (0.5, 1), 'pix': (64, 128), 'cm': (1, 2)},
         {'suffix': "_w64h64",
-         'norm': (0.25, 0.5), 'height': (0.5, 0.5), 'pix': (64, 64), 'cm': (1, 1)},
+         'norm': (0.5, 0.5), 'height': (0.5, 0.5), 'pix': (64, 64), 'cm': (1, 1)},
     ]
     sizeTykes = []
 
