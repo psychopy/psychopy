@@ -408,8 +408,9 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 units=self.units,
                 letterHeight=self.textHeight * letterScale,
                 anchor='top-left',
+                alignment='center-left',
                 pos=(self.leftEdge+self.itemPadding, 0),  # y pos irrelevant
-                size=[w, None],  # expand height with text
+                size=[w, 0.1],  # expand height with text
                 autoLog=False,
                 colorSpace=self.colorSpace,
                 color=item['itemColor'] or self.itemColor,
@@ -420,6 +421,11 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 editable=False,
                 bold=bold,
                 font=item['font'] or self.font)
+        # Resize textbox to be at least as tall as the text
+        question._updateVertices()
+        if question.boundingBox.size[1] > question.size[1]:
+            question.size[1] = question.boundingBox.size[1] + question.padding[1] * 2
+            question._layout()
 
         questionHeight = question.size[1]
         questionWidth = question.size[0]
@@ -605,7 +611,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 self.win,
                 text='',
                 pos=(x, 0),  # y pos irrelevant now (handled by scrollbar)
-                size=(w, None),
+                size=(w, 0.1),
                 letterHeight=self.textHeight,
                 units=self.units,
                 anchor='top-right',
@@ -620,6 +626,11 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         )
         if debug:
             resp.borderColor = "red"
+        # Resize textbox to be at least as tall as the text
+        resp._updateVertices()
+        if resp.boundingBox.size[1] > resp.size[1]:
+            resp.size[1] = resp.boundingBox.size[1] + resp.padding[1] * 2
+            resp._layout()
 
         respHeight = resp.size[1]
         # store virtual pos to combine with scroll bar for actual pos
@@ -742,9 +753,9 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
             questionHeight = self._getItemHeight(item=item, ctrl=question)
 
             # go on to next line if together they're too wide
-            oneLine = (item['itemWidth']+item['responseWidth'] > 1
+            oneLine = (item['itemWidth']+item['responseWidth'] <= 1
                        or not response)
-            if oneLine:
+            if not oneLine:
                 # response on next line
                 self._currentVirtualY -= questionHeight + self.itemPadding
 
@@ -757,7 +768,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
             # update item baseY
             # slider needs to align by middle
             if type(response) == psychopy.visual.Slider:
-                response._baseY = self._currentVirtualY - respHeight/2
+                response._baseY = self._currentVirtualY - max(questionHeight, respHeight)/2
             else:  # hopefully we have an object that can anchor at top?
                 response._baseY = self._currentVirtualY
 
