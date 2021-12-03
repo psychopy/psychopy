@@ -14,6 +14,7 @@ import copy
 import numpy as np
 
 from psychopy import core, logging, event, layout
+from psychopy.tools import arraytools
 from .basevisual import MinimalStim, WindowMixin, ColorMixin, BaseVisualStim
 from .rect import Rect
 from .grating import GratingStim
@@ -580,7 +581,7 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
             h = None
             # Evenly spaced, constant y
             x = np.linspace(left, right, num=n)
-            x = self.tickParams['xys'][np.searchsorted(self.tickParams['xys'][:, 0], x, side="left")][:, 0]
+            x = arraytools.snapto(x, points=self.tickParams['xys'][:, 0])
             y = [self.pos[1]] * n
             # Padding applied on vertical
             paddingHoriz = 0
@@ -600,7 +601,7 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
             w = None
             # Evenly spaced and clipped to ticks, constant x
             y = np.linspace(top, bottom, num=n)
-            y = self.tickParams['xys'][np.searchsorted(self.tickParams['xys'][:, 1], y, side="left")][:, 1]
+            y = arraytools.snapto(y, points=self.tickParams['xys'][:, 1])
             x = [self.pos[0]] * n
             # Padding applied on horizontal
             paddingHoriz = (self._tickL + self.labelHeight) / 2
