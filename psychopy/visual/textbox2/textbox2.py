@@ -1009,10 +1009,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.__dict__['verticesPix'] = self._vertices.pix
 
         # tight bounding box
-        if self.vertices.shape[0] < 1:  # editable box with no letters?
-            self.boundingBox.size = 0, 0
-            self.boundingBox.pos = self.pos
-        else:
+        if hasattr(self._vertices, self.units) and self.vertices.shape[0] >= 1:
             verts = getattr(self._vertices, self.units)
             L = verts[:, 0].min()
             R = verts[:, 0].max()
@@ -1025,6 +1022,9 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             # for the tight box anchor offset is included in vertex calcs
             self.boundingBox.size = tightW, tightH
             self.boundingBox.pos = self.pos + (Xmid, Ymid)
+        else:
+            self.boundingBox.size = 0, 0
+            self.boundingBox.pos = self.pos
         # box (larger than bounding box) needs anchor offest adding
         self.box.pos = self.pos
         self.box.size = self.size  # this might have changed from _requested
