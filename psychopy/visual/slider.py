@@ -26,7 +26,7 @@ from ..tools.attributetools import logAttrib, setAttribute, attributeSetter
 from ..constants import FINISHED, STARTED, NOT_STARTED
 
 # Set to True to make borders visible for debugging
-debug = False
+debug = True
 
 
 class Slider(MinimalStim, WindowMixin, ColorMixin):
@@ -220,6 +220,25 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         """The length of the line (in the size units)
         """
         return min(self.size)
+
+    @property
+    def units(self):
+        return WindowMixin.units.fget(self)
+
+    @units.setter
+    def units(self, value):
+        WindowMixin.units.fset(self, value)
+        if hasattr(self, "line"):
+            self.line.units = value
+        if hasattr(self, "marker"):
+            self.marker.units = value
+        if hasattr(self, "tickLines"):
+            self.tickLines.units = value
+        if hasattr(self, "labelObjs"):
+            for label in self.labelObjs:
+                label.units = value
+        if hasattr(self, "validArea"):
+            self.validArea.units = value
 
     @property
     def pos(self):
