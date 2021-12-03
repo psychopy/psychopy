@@ -530,13 +530,14 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
         # Set radio button layout
         if item['layout'] == 'horiz':
-            w = (item['responseWidth'] * self.size[0]
-                - self._scrollBarSize[0] - self.itemPadding) * 0.8
+            w = item['responseWidth'] * (self.size[0] - self._scrollBarSize[0] - self.itemPadding * 2)
             h = 0.03
+            x = self.pos[0] + self.size[0] / 2 - self.itemPadding - w / 2
         elif item['layout'] == 'vert':
             # for vertical take into account the nOptions
             w = 0.03
             h = self.textHeight*len(item['options'])
+            x = self.pos[0]
             item['options'].reverse()
 
         # Create Slider
