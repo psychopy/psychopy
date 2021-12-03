@@ -9,7 +9,7 @@ from psychopy.visual.window import Window
 from psychopy.visual.slider import Slider
 from psychopy.visual.grating import GratingStim
 from psychopy.visual.elementarray import ElementArrayStim
-from psychopy.visual.circle import Circle
+from psychopy.visual.shape import ShapeStim
 from psychopy.visual.rect import Rect
 from psychopy import constants
 from numpy import array_equal
@@ -18,7 +18,7 @@ import random
 
 class Test_Slider(_TestColorMixin):
     def setup_class(self):
-        self.win = Window([128,128], pos=[50,50], allowGUI=False,
+        self.win = Window([128,128], pos=[50,50], monitor="testMonitor", allowGUI=False,
                           autoLog=False)
         self.obj = Slider(self.win, units="height", size=(1, 0.1), pos=(0, 0.5), style='radio')
         self.obj.markerPos = 1
@@ -35,14 +35,6 @@ class Test_Slider(_TestColorMixin):
 
     def teardown_class(self):
         self.win.close()
-
-    def test_lineLength(self):
-        s = Slider(self.win, size=(1, 0.1))
-        assert s._lineL == 1
-
-    def test_tickWidth(self):
-        s = Slider(self.win, size=(1, 0.1))
-        assert s._lineW == (1 * s._lineAspectRatio)
 
     def test_horiz(self):
         # Define cases
@@ -79,9 +71,9 @@ class Test_Slider(_TestColorMixin):
 
     def test_elements(self):
         s = Slider(self.win, size=(1, 0.1))
-        assert type(s.line) == type(GratingStim(self.win))
+        assert type(s.line) == type(Rect(self.win))
         assert type(s.tickLines) == type(ElementArrayStim(self.win))
-        assert type(s.marker) == type(Circle(self.win))
+        assert type(s.marker) == type(ShapeStim(self.win))
         assert type(s.validArea) == type(Rect(self.win))
         
     def test_pos(self):
@@ -105,19 +97,19 @@ class Test_Slider(_TestColorMixin):
 
     def test_tickLocs(self):
         s = Slider(self.win, size=(1, 0.1), )
-        assert s.tickLocs[0][0] == -.5 and s.tickLocs[0][1] == 0.0
-        assert s.tickLocs[1][0] == -.25 and s.tickLocs[1][1] == 0.0
-        assert s.tickLocs[2][0] == .0 and s.tickLocs[2][1] == 0.0
-        assert s.tickLocs[3][0] == .25 and s.tickLocs[3][1] == 0.0
-        assert s.tickLocs[4][0] == .5 and s.tickLocs[4][1] == 0.0
+        assert s.tickParams['xys'][0][0] == -.5 and s.tickParams['xys'][0][1] == 0.0
+        assert s.tickParams['xys'][1][0] == -.25 and s.tickParams['xys'][1][1] == 0.0
+        assert s.tickParams['xys'][2][0] == .0 and s.tickParams['xys'][2][1] == 0.0
+        assert s.tickParams['xys'][3][0] == .25 and s.tickParams['xys'][3][1] == 0.0
+        assert s.tickParams['xys'][4][0] == .5 and s.tickParams['xys'][4][1] == 0.0
 
     def test_labelLocs(self):
         s = Slider(self.win, size=(1, 0.1), labels=('a','b','c','d','e'))
-        assert s.labelLocs[0, 0] == -.5 and s.labelLocs[0, 1] == 0
-        assert s.labelLocs[1, 0] == -.25 and s.labelLocs[1, 1] == 0
-        assert s.labelLocs[2, 0] == .0 and s.labelLocs[2, 1] == 0
-        assert s.labelLocs[3, 0] == .25 and s.labelLocs[3, 1] == 0
-        assert s.labelLocs[4, 0] == .5 and s.labelLocs[4, 1] == 0
+        assert s.labelParams['pos'][0, 0] == -.5 and s.labelParams['pos'][0, 1] == 0
+        assert s.labelParams['pos'][1, 0] == -.25 and s.labelParams['pos'][1, 1] == 0
+        assert s.labelParams['pos'][2, 0] == .0 and s.labelParams['pos'][2, 1] == 0
+        assert s.labelParams['pos'][3, 0] == .25 and s.labelParams['pos'][3, 1] == 0
+        assert s.labelParams['pos'][4, 0] == .5 and s.labelParams['pos'][4, 1] == 0
 
     def test_granularity(self):
         s = Slider(self.win, size=(1, 0.1), granularity=1)
