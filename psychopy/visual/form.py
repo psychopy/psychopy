@@ -56,6 +56,9 @@ _synonyms = {
     'free text': 'textBox'
 }
 
+# Setting debug to True will set the sub-elements on Form to be outlined in red, making it easier to determine their position
+debug = False
+
 
 class Form(BaseVisualStim, ContainerMixin, ColorMixin):
     """A class to add Forms to a `psychopy.visual.Window`
@@ -413,7 +416,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 fillColor=None,
                 padding=0,  # handle this by padding between items
                 borderWidth=1,
-                borderColor=None,  # add borderColor to help debug
+                borderColor='red' if debug else None,  # add borderColor to help debug
                 editable=False,
                 bold=bold,
                 font=item['font'] or self.font)
@@ -525,8 +528,6 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 granularity = 1
             style = kind
 
-        # Create x position of response object
-        x = self.pos[0]
         # Set radio button layout
         if item['layout'] == 'horiz':
             w = (item['responseWidth'] * self.size[0]
@@ -616,6 +617,8 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 fillColor=None,
                 onTextCallback=self._layoutY,
         )
+        if debug:
+            resp.borderColor = "red"
 
         respHeight = resp.size[1]
         # store virtual pos to combine with scroll bar for actual pos
