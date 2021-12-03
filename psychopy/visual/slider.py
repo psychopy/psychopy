@@ -143,7 +143,10 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         super(Slider, self).__init__(name=name, autoLog=False)
 
         self.win = win
-        self.ticks = np.asarray(ticks)
+        if ticks is None:
+            self.ticks = None
+        else:
+            self.ticks = np.array(ticks)
         self.labels = labels
         # Set pos and size via base method as objects don't yet exist to layout
         self.units = units
@@ -470,14 +473,19 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
             setattr(self.validArea, param, value)
 
     def _ratingToPos(self, rating):
+        # Get ticks or substitute
+        if self.ticks is not None:
+            ticks = self.ticks
+        else:
+            ticks = [0, 1]
         # Reshape rating to handle multiple values
         rating = np.array(rating)
         rating = rating.reshape((-1, 1))
         rating = np.hstack((rating, rating))
         # Adjust to scale bottom
-        magDelta = rating - self.ticks[0]
+        magDelta = rating - ticks[0]
         # Adjust to scale magnitude
-        delta = magDelta / (self.ticks[-1] - self.ticks[0])
+        delta = magDelta / (ticks[-1] - ticks[0])
         # Adjust to scale size
         delta = self._size.pix * (delta - 0.5)
         # Adjust to scale pos
@@ -488,6 +496,11 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         return getattr(layout.Position(pos, units="pix", win=self.win), self.units)
 
     def _posToRating(self, pos):
+        # Get ticks or substitute
+        if self.ticks is not None:
+            ticks = self.ticks
+        else:
+            ticks = [0, 1]
         # Get in pix
         pos = layout.Position(pos, units=self.win.units, win=self.win).pix
         # Get difference from scale pos
@@ -495,9 +508,9 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         # Adjust to scale size
         delta = delta / self._size.pix + 0.5
         # Adjust to scale magnitude
-        magDelta = delta * (self.ticks[-1] - self.ticks[0])
+        magDelta = delta * (ticks[-1] - ticks[0])
         # Adjust to scale bottom
-        rating = magDelta + self.ticks[0]
+        rating = magDelta + ticks[0]
         # Return relevant value according to orientation
         return rating[1-int(self.horiz)]
 
