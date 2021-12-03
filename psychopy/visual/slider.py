@@ -595,9 +595,9 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         if self.horiz:  # horizontal
             # Always centered horizontally
             anchorHoriz = alignHoriz = 'center'
-            # Width as fraction of size, constant height
+            # Width as fraction of size, height starts at double slider
             w = self.size[0] / len(self.ticks)
-            h = None
+            h = self.size[1] * 2
             # Evenly spaced, constant y
             x = np.linspace(left, right, num=n)
             x = arraytools.snapto(x, points=self.tickParams['xys'][:, 0])
@@ -615,9 +615,9 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         else:  # vertical
             # Always centered vertically
             anchorVert = alignVert = 'center'
-            # Height as fraction of size, constant width
+            # Height as fraction of size, width starts at double slider
             h = self.size[1] / len(self.ticks)
-            w = None
+            w = self.size[0] * 2
             # Evenly spaced and clipped to ticks, constant x
             y = np.linspace(top, bottom, num=n)
             y = arraytools.snapto(y, points=self.tickParams['xys'][:, 1])
