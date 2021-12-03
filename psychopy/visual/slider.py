@@ -26,7 +26,7 @@ from ..tools.attributetools import logAttrib, setAttribute, attributeSetter
 from ..constants import FINISHED, STARTED, NOT_STARTED
 
 # Set to True to make borders visible for debugging
-debug = True
+debug = False
 
 
 class Slider(MinimalStim, WindowMixin, ColorMixin):
