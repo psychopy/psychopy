@@ -141,7 +141,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.boundingBox = Rect(
             win,
             units='pix', pos=(0, 0), size=(0, 0),  # set later by self.size and self.pos
-            colorSpace=colorSpace, lineColor='red', fillColor=None,
+            colorSpace=colorSpace, lineColor='blue', fillColor=None,
             lineWidth=1, opacity=int(debug),
             autoLog=False
         )
