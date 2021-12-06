@@ -819,9 +819,6 @@ class BaseVisualComponent(BaseComponent):
             name = self.params['name']
             comp_onset_tag = "%s.started" % name
             if 'saveStartStop' in self.params and self.params['saveStartStop'].val:
-                if self.params['syncScreenRefresh'].val:
-                        code = (
-                            f"if ioServer:\n"
                 code = (
                         f"if ioServer:\n"
                 )
@@ -837,15 +834,6 @@ class BaseVisualComponent(BaseComponent):
                         )
                 buff.writeIndentedLines(code)
                 buff.setIndentLevel(-1, relative=True)
-                        )
-                else:
-                       code = (
-                            f"if ioServer:\n"
-                            f"    ioServer.cacheMessageEvent('{comp_onset_tag}', sec_time={name}.tStart)\n"
-                       )
-
-                buff.writeIndentedLines(code)
-
 
 def canBeNumeric(inStr):
     """Determines whether the input can be converted to a float
