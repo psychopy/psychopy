@@ -822,7 +822,21 @@ class BaseVisualComponent(BaseComponent):
                 if self.params['syncScreenRefresh'].val:
                         code = (
                             f"if ioServer:\n"
-                            f"    ioServer.cacheMessageEvent('{comp_onset_tag}', sec_time={name}.tStartRefresh)\n"
+                code = (
+                        f"if ioServer:\n"
+                )
+                buff.writeIndentedLines(code)
+                buff.setIndentLevel(1, relative=True)
+                if self.params['syncScreenRefresh'].val:
+                        code = (
+                                f"ioServer.cacheMessageEvent('{comp_onset_tag}', sec_time={name}.tStartRefresh)\n"
+                        )
+                else:
+                        code = (
+                                f"ioServer.cacheMessageEvent('{comp_onset_tag}', sec_time={name}.tStart)\n"
+                        )
+                buff.writeIndentedLines(code)
+                buff.setIndentLevel(-1, relative=True)
                         )
                 else:
                        code = (
