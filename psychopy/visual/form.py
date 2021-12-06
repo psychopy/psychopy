@@ -492,9 +492,6 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         """
         # Slider dict
 
-        def _sliderLabelWidths():
-            return (item['responseWidth'] * self.size[0]) \
-                   / (len(item['options']))
         kind = item['type'].lower()
 
         # what are the ticks for the scale/slider?
@@ -536,15 +533,21 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
             style = kind
 
         # Set radio button layout
+        maxArea = (
+            item['responseWidth'] * (self.size[0] - self._scrollBarSize[0] - self.itemPadding * 2),  # Max width
+            self.textHeight * 1.1 * len(item['options'])  # Max height
+        )
         if item['layout'] == 'horiz':
-            w = item['responseWidth'] * (self.size[0] - self._scrollBarSize[0] - self.itemPadding * 2)
+            x = self.pos[0] + self.size[0] / 2 - self.itemPadding - maxArea[0] / 2
+            w = maxArea[0]
             h = 0.03
-            x = self.pos[0] + self.size[0] / 2 - self.itemPadding - w / 2
+            wrap = None  # Slider defaults are fine for horizontal
         elif item['layout'] == 'vert':
             # for vertical take into account the nOptions
+            x = self.pos[0] + self.size[0] / 2 - self.itemPadding - maxArea[0]
             w = 0.03
-            h = self.textHeight*len(item['options'])
-            x = self.pos[0]
+            h = maxArea[1]
+            wrap = maxArea[0] / 2
             item['options'].reverse()
 
         # Create Slider
@@ -556,7 +559,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 labels=tickLabels,
                 units=self.units,
                 labelHeight=self.textHeight,
-                labelWrapWidth=_sliderLabelWidths(),
+                labelWrapWidth=wrap,
                 granularity=granularity,
                 flip=True,
                 style=style,
