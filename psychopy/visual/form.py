@@ -166,7 +166,6 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
             self.foreColor = color
         if foreColor:
             self.foreColor = color
-        self.style = style
 
         self.font = font or "Open Sans"
 
@@ -189,6 +188,8 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
         # Create layout of form
         self._createItemCtrls()
+
+        self.style = style
 
         if self.autoLog:
             logging.exp("Created {} = {}".format(self.name, repr(self)))
@@ -1057,7 +1058,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         # Set line and label color on each item
         for item in self.items:
             if 'responseCtrl' in item:
-                if isinstance(item['responseCtrl'], psychopy.visual.Slider):
+                if isinstance(item['responseCtrl'], psychopy.visual.Slider) or isinstance(item['responseCtrl'], psychopy.visual.TextBox2):
                     item['responseCtrl'].borderColor = self._responseColor
                     item['responseCtrl'].foreColor = self._responseColor
 
