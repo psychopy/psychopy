@@ -467,7 +467,7 @@ class ExperimentDataAccessUtility:
             session_ids = []
             for s in self.getExperimentMetaData()[0].sessions:
                 session_ids.append(s.session_id)
-            filter = dict(session_id=(' in ', session_ids))
+            filter = dict(SESSION_ID=(' in ', session_ids))
 
         ConditionSetInstance = None
 
@@ -586,8 +586,8 @@ class ExperimentDataAccessUtility:
                 if startConditions is None and endConditions is None:
                     for cv in filteredConditionVariableList:
 
-                        wclause = '( experiment_id == {0} ) & ( session_id == {1} )'.format(self._experimentID,
-                                                                                            cv.session_id)
+                        wclause = '( experiment_id == {0} ) & ( SESSION_ID == {1} )'.format(self._experimentID,
+                                                                                            cv.SESSION_ID)
 
                         wclause += ' & ( type == {0} ) '.format(event_type_id)
 
@@ -611,7 +611,7 @@ class ExperimentDataAccessUtility:
                     resultSetList.append([])
 
                     wclause = '( experiment_id == {0} ) & ( session_id == {1} )'.format(self._experimentID,
-                                                                                        cv.session_id)
+                                                                                        cv.SESSION_ID)
 
                     wclause += ' & ( type == {0} ) '.format(event_type_id)
 
