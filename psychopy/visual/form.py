@@ -534,7 +534,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
         # Set radio button layout
         maxArea = (
-            item['responseWidth'] * (self.size[0] - self._scrollBarSize[0] - self.itemPadding * 2),  # Max width
+            (item['responseWidth'] - self.itemPadding * 2) * (self.size[0] - self._scrollBarSize[0]),  # Max width
             self.textHeight * 1.1 * len(item['options'])  # Max height
         )
         if item['layout'] == 'horiz':
@@ -547,7 +547,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
             x = self.pos[0] + self.size[0] / 2 - self.itemPadding - maxArea[0]
             w = 0.03
             h = maxArea[1]
-            wrap = maxArea[0] / 2
+            wrap = maxArea[0]
             item['options'].reverse()
 
         # Create Slider
@@ -608,8 +608,8 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         respHeight
             The height of the response object as type float
         """
-        w = item['responseWidth'] * (self.size[0] - self.itemPadding * 2 - self._scrollBarSize[0])
-        x = self.rightEdge-self.itemPadding-self._scrollBarSize[0]
+        w = (item['responseWidth'] - self.itemPadding * 2) * (self.size[0] - self._scrollBarSize[0])
+        x = self.rightEdge - self.itemPadding - self._scrollBarSize[0]
         resp = psychopy.visual.TextBox2(
                 self.win,
                 text='',
