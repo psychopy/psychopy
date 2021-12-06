@@ -185,7 +185,7 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         self.line = None
         self.tickLines = None
         self.labelWrapWidth = labelWrapWidth
-        self.labelHeight = labelHeight or min(self.size)
+        self.labelHeight = labelHeight or min(self.size) / 2
         self._updateMarkerPos = True
         self._dragging = False
         self.mouse = event.Mouse(win=win)
@@ -597,7 +597,7 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
             anchorHoriz = alignHoriz = 'center'
             # Width as fraction of size, height starts at double slider
             w = self.size[0] / len(self.ticks)
-            h = self.size[1] * 2
+            h = self.size[1] * 3
             # Evenly spaced, constant y
             x = np.linspace(left, right, num=n)
             x = arraytools.snapto(x, points=self.tickParams['xys'][:, 0])
@@ -617,7 +617,7 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
             anchorVert = alignVert = 'center'
             # Height as fraction of size, width starts at double slider
             h = self.size[1] / len(self.ticks)
-            w = self.size[0] * 2
+            w = self.size[0] * 3
             # Evenly spaced and clipped to ticks, constant x
             y = np.linspace(top, bottom, num=n)
             y = arraytools.snapto(y, points=self.tickParams['xys'][:, 1])
