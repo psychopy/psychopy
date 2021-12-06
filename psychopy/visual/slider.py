@@ -324,6 +324,22 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
             self._labelHeight = layout.Size([None, value], units=self.units, win=self.win)
 
     @property
+    def labelWrapWidth(self):
+        if hasattr(self, "_labelWrapWidth"):
+            return getattr(self._labelWrapWidth, self.units)[0]
+
+    @labelWrapWidth.setter
+    def labelWrapWidth(self, value):
+        if value is None:
+            pass
+        elif isinstance(value, layout.Vector):
+            # If given a Size, use it
+            self._labelWrapWidth = value
+        else:
+            # Otherwise, convert to a Size object
+            self._labelWrapWidth = layout.Size([value, None], units=self.units, win=self.win)
+
+    @property
     def foreColor(self):
         ColorMixin.foreColor.fget(self)
 
@@ -592,11 +608,13 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
         left = self.pos[0] - self.size[0] / 2
         right = self.pos[0] + self.size[0] / 2
         # Work out where labels are relative to line
+        w = self.labelWrapWidth
         if self.horiz:  # horizontal
             # Always centered horizontally
             anchorHoriz = alignHoriz = 'center'
             # Width as fraction of size, height starts at double slider
-            w = self.size[0] / len(self.ticks)
+            if w is None:
+                w = self.size[0] / len(self.ticks)
             h = self.size[1] * 3
             # Evenly spaced, constant y
             x = np.linspace(left, right, num=n)
@@ -617,7 +635,8 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
             anchorVert = alignVert = 'center'
             # Height as fraction of size, width starts at double slider
             h = self.size[1] / len(self.ticks)
-            w = self.size[0] * 3
+            if w is None:
+                w = self.size[0] * 3
             # Evenly spaced and clipped to ticks, constant x
             y = np.linspace(top, bottom, num=n)
             y = arraytools.snapto(y, points=self.tickParams['xys'][:, 1])
