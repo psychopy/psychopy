@@ -140,7 +140,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         # Box around current content, wrapped tight - not drawn
         self.boundingBox = Rect(
             win,
-            units=self.units, pos=(0, 0), size=(0, 0),  # set later by self.size and self.pos
+            units='pix', pos=(0, 0), size=(0, 0),  # set later by self.size and self.pos
             colorSpace=colorSpace, lineColor='red', fillColor=None,
             lineWidth=1, opacity=int(debug),
             autoLog=False
@@ -280,6 +280,20 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                     fontName,
                     size=self.letterHeightPix,
                     bold=self.bold, italic=self.italic)
+
+    @property
+    def units(self):
+        return WindowMixin.units.fget(self)
+
+    @units.setter
+    def units(self, value):
+        WindowMixin.units.fset(self, value)
+        if hasattr(self, "box"):
+            self.box.units = value
+        if hasattr(self, "contentBox"):
+            self.contentBox.units = value
+        if hasattr(self, "caret"):
+            self.caret.units = value
 
     @property
     def size(self):
@@ -1005,15 +1019,11 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         if hasattr(self, 'flipVert') and self.flipVert:
             flip[1] = -1  # True=(-1), False->(+1)
 
-        font = self.glFont
         self.__dict__['verticesPix'] = self._vertices.pix
 
         # tight bounding box
-        if self.vertices.shape[0] < 1:  # editable box with no letters?
-            self.boundingBox.size = 0, 0
-            self.boundingBox.pos = self.pos
-        else:
-            verts = getattr(self._vertices, self.units)
+        if hasattr(self._vertices, self.units) and self.vertices.shape[0] >= 1:
+            verts = self._vertices.pix
             L = verts[:, 0].min()
             R = verts[:, 0].max()
             B = verts[:, 1].min()
@@ -1025,6 +1035,9 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             # for the tight box anchor offset is included in vertex calcs
             self.boundingBox.size = tightW, tightH
             self.boundingBox.pos = self.pos + (Xmid, Ymid)
+        else:
+            self.boundingBox.size = 0, 0
+            self.boundingBox.pos = self.pos
         # box (larger than bounding box) needs anchor offest adding
         self.box.pos = self.pos
         self.box.size = self.size  # this might have changed from _requested
