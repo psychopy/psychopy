@@ -608,8 +608,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
         respHeight
             The height of the response object as type float
         """
-        w = (item['responseWidth']*self.size[0]
-             - self.itemPadding - self._scrollBarSize[0])
+        w = item['responseWidth'] * (self.size[0] - self.itemPadding * 2 - self._scrollBarSize[0])
         x = self.rightEdge-self.itemPadding-self._scrollBarSize[0]
         resp = psychopy.visual.TextBox2(
                 self.win,
