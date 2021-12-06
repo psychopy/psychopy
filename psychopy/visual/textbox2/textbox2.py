@@ -282,6 +282,22 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                     bold=self.bold, italic=self.italic)
 
     @property
+    def units(self):
+        return WindowMixin.units.fget(self)
+
+    @units.setter
+    def units(self, value):
+        WindowMixin.units.fset(self, value)
+        if hasattr(self, "box"):
+            self.box.units = value
+        if hasattr(self, "contentBox"):
+            self.contentBox.units = value
+        if hasattr(self, "boundingBox"):
+            self.boundingBox.units = value
+        if hasattr(self, "caret"):
+            self.caret.units = value
+
+    @property
     def size(self):
         return WindowMixin.size.fget(self)
 
