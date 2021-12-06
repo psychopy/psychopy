@@ -423,8 +423,9 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 font=item['font'] or self.font)
         # Resize textbox to be at least as tall as the text
         question._updateVertices()
-        if question.boundingBox.size[1] > question.size[1]:
-            question.size[1] = question.boundingBox.size[1] + question.padding[1] * 2
+        textHeight = getattr(question.boundingBox._size, question.units)[1]
+        if textHeight > question.size[1]:
+            question.size[1] = textHeight + question.padding[1] * 2
             question._layout()
 
         questionHeight = question.size[1]
@@ -628,8 +629,9 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
             resp.borderColor = "red"
         # Resize textbox to be at least as tall as the text
         resp._updateVertices()
-        if resp.boundingBox.size[1] > resp.size[1]:
-            resp.size[1] = resp.boundingBox.size[1] + resp.padding[1] * 2
+        textHeight = getattr(resp.boundingBox._size, resp.units)[1]
+        if textHeight > resp.size[1]:
+            resp.size[1] = textHeight + resp.padding[1] * 2
             resp._layout()
 
         respHeight = resp.size[1]
