@@ -203,7 +203,7 @@ class DotsComponent(BaseVisualComponent):
                 "    win=win, name='%s',%s\n" % (inits['name'], unitsStr) +
                 "    nDots=%(nDots)s, dotSize=%(dotSize)s,\n" % inits +
                 "    speed=%(speed)s, dir=%(dir)s, coherence=%(coherence)s,\n" % inits +
-                "    fieldPos=%(fieldPos)s, fieldSize=%(fieldSize)s,fieldShape=%(fieldShape)s,\n" % inits +
+                "    fieldPos=%(fieldPos)s, fieldSize=%(fieldSize)s, fieldAnchor=%(anchor)s, fieldShape=%(fieldShape)s,\n" % inits +
                 "    signalDots=%(signalDots)s, noiseDots=%(noiseDots)s,dotLife=%(dotLife)s,\n" % inits +
                 "    color=%(color)s, colorSpace=%(colorSpace)s, opacity=%(opacity)s,\n" % inits +
                 "    depth=%.1f)\n" % depth)
