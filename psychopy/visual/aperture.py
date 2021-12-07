@@ -82,7 +82,6 @@ class Aperture(MinimalStim, ContainerMixin):
         self.__dict__['ori'] = ori
         self.__dict__['inverted'] = inverted
         self.__dict__['filename'] = False
-        self.anchor = anchor
 
         # unit conversions
         if units != None and len(units):
