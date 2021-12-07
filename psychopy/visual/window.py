@@ -3105,36 +3105,53 @@ class Window():
 
         """
         if nIdentical > nMaxFrames:
-            raise ValueError('nIdentical must be equal to or '
-                             'less than nMaxFrames')
+            raise ValueError(
+                'Parameter `nIdentical` must be equal to or less than '
+                '`nMaxFrames`')
+
+        # log that we're measuring the frame rate now
+        msg = "{}: Attempting to measure frame rate of screen ({:d}) ..."
+        logging.exp(msg.format(self.name, self.screen))
+
+        # Only log changing `recordFrameIntervals` if differs from the user's
+        # settings. Disable recording for the warmup period.
         recordFrmIntsOrig = self.recordFrameIntervals
-        # run warm-ups
-        self.recordFrameIntervals = False
+        self.setRecordFrameIntervals(False, log=logging.DEBUG)
+
+        # warm-up, allow the system to settle a bit before measuring frames
         for frameN in range(nWarmUpFrames):
             self.flip()
+
         # run test frames
-        self.recordFrameIntervals = True
+        self.setRecordFrameIntervals(True, log=logging.DEBUG)
+        threshSecs = threshold / 1000.0
         for frameN in range(nMaxFrames):
             self.flip()
+            recentFrames = self.frameIntervals[-nIdentical:]
             if (len(self.frameIntervals) >= nIdentical and
-                    (numpy.std(self.frameIntervals[-nIdentical:]) <
-                     (threshold / 1000.0))):
-                rate = 1.0 / numpy.mean(self.frameIntervals[-nIdentical:])
+                    (numpy.std(recentFrames) < threshSecs)):
+                rate = 1.0 / numpy.mean(recentFrames)
                 if self.screen is None:
                     scrStr = ""
                 else:
                     scrStr = " (%i)" % self.screen
+
                 if self.autoLog:
-                    msg = 'Screen%s actual frame rate measured at %.2f'
-                    logging.debug(msg % (scrStr, rate))
-                self.recordFrameIntervals = recordFrmIntsOrig
+                    msg = "Screen{} actual frame rate measured at {:.2f}Hz"
+                    logging.exp(msg.format(scrStr, rate))
+
+                self.setRecordFrameIntervals(
+                    recordFrmIntsOrig, log=logging.DEBUG)
                 self.frameIntervals = []
+
                 return rate
+
         # if we got here we reached end of maxFrames with no consistent value
-        msg = ("Couldn't measure a consistent frame rate.\n"
+        msg = ("Couldn't measure a consistent frame rate!\n"
                "  - Is your graphics card set to sync to vertical blank?\n"
                "  - Are you running other processes on your computer?\n")
         logging.warning(msg)
+
         return None
 
     def getMsPerFrame(self, nFrames=60, showVisual=False, msg='', msDelay=0.):
