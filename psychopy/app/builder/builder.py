@@ -2539,7 +2539,9 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
             self.label = wx.StaticText(self, label="Show components which \nwork with...")
             self.sizer.Add(self.label, border=6, flag=wx.ALL | wx.EXPAND)
             # Control
-            self.viewCtrl = ToggleButtonArray(self, ("PsychoPy", "PsychoJS", "Both", "Any"),
+            self.viewCtrl = ToggleButtonArray(self,
+                                              labels=("PsychoPy (local)", "PsychoJS (online)", "Both", "Any"),
+                                              values=("PsychoPy", "PsychoJS", "Both", "Any"),
                                               multi=False, ori=wx.VERTICAL)
             self.sizer.Add(self.viewCtrl, border=6, flag=wx.ALL | wx.EXPAND)
             self.viewCtrl.SetValue(prefs.builder['componentFilter'])
