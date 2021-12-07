@@ -195,7 +195,7 @@ class RemoteControlServer(object):
                     self._listener.messages.remove(reply)
                     return reply
 
-    def waitForState(self, stateName, permitted):
+    def waitForState(self, stateName, permitted, timeout=10):
         """Helper function to wait for a particular state (or any attribute, for that matter)
          to have a particular value. Beware this will wait indefinitely, so only call
          if you are confident that the state will eventually arrive!
@@ -209,8 +209,14 @@ class RemoteControlServer(object):
 =        """
         if type(permitted) is not list:
             raise TypeError("permitted must be a list of permitted values")
+        t0 = time.time()
         while getattr(self, stateName) not in permitted:
             time.sleep(0.01)
+            if time.time()-t0 > timeout:
+                logging.warning(
+                    f'RCS {stateName} not achieved: expected states {permitted} but state is {getattr(self, stateName)}'
+                )
+                return
 
     def open(self, expName, participant, workspace):
         """Opens a study/workspace on the RCS server
@@ -372,11 +378,11 @@ class RemoteControlServer(object):
             self.waitForState("recordingState", ["Monitoring"])
             self.waitForState("acquisitionState", ["Running"])
         elif mode in ['test', 'tes']:
-            self.waitForState("recordingState", ["Saving calibration"])
+            self.waitForState("recordingState", ["Monitoring"])
             self.waitForState("acquisitionState", ["Running"])
         elif mode in ['default', 'def', None]:
-            self.waitForState("recordingState", ["Stopped"])
-            self.waitForState("acquisitionState", ["Idle"])
+            self.waitForState("recordingState", ["Idle"])
+            self.waitForState("acquisitionState", ["Stopped"])
 
     @property
     def timeout(self):
