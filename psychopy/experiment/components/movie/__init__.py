@@ -106,7 +106,7 @@ class MovieComponent(BaseVisualComponent):
                          ],
             updates='constant',
             hint=_translate("Which point on the stimulus should be anchored to its exact position?"),
-            label=_translate['Anchor'])
+            label=_translate('Anchor'))
 
         # these are normally added but we don't want them for a movie
         del self.params['color']

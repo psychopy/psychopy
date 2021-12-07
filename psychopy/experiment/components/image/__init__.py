@@ -114,7 +114,7 @@ class ImageComponent(BaseVisualComponent):
                          ],
             updates='constant',
             hint=_translate("Which point on the stimulus should be anchored to its exact position?"),
-            label=_translate['Anchor'])
+            label=_translate('Anchor'))
 
         del self.params['fillColor']
         del self.params['borderColor']

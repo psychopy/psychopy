@@ -101,7 +101,7 @@ class PolygonComponent(BaseVisualComponent):
                          ],
             updates='constant',
             hint=_translate("Which point on the stimulus should be anchored to its exact position?"),
-            label=_localized['anchor'])
+            label=_translate("Anchor"))
 
         msg = _translate("What shape is this? With 'regular polygon...' you "
                          "can set number of vertices and with 'custom "

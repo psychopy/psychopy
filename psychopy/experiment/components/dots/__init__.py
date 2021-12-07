@@ -176,7 +176,7 @@ class DotsComponent(BaseVisualComponent):
                          ],
             updates='constant',
             hint=_translate("Which point on the field should be anchored to its exact position?"),
-            label=_translate['Field Anchor'])
+            label=_translate('Field Anchor'))
 
         # Reword colour parameters
         self.params['color'].label = _translate("Dot Color")

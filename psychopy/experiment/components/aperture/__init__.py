@@ -65,7 +65,7 @@ class ApertureComponent(PolygonComponent):
                          ],
             updates='constant',
             hint=_translate("Which point on the aperture should be anchored to its exact position?"),
-            label=_translate['Anchor'])
+            label=_translate("Anchor"))
 
         # only localize hints and labels
         self.params['size'].label = _translate("Size")

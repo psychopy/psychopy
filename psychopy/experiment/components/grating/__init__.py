@@ -93,7 +93,7 @@ class GratingComponent(BaseVisualComponent):
                          ],
             updates='constant',
             hint=_translate("Which point on the stimulus should be anchored to its exact position?"),
-            label=_translate['Anchor'])
+            label=_translate('Anchor'))
 
         msg = _translate("Spatial positioning of the image on the grating "
                          "(wraps in range 0-1.0)")
