@@ -89,9 +89,9 @@ class ApertureComponent(PolygonComponent):
             inits['units'].val = None
 
         if self.params['shape'] == 'regular polygon...':
-            inits['vertices'].val = self.params['nVertices'].val
+            inits['vertices'] = self.params['nVertices']
         elif self.params['shape'] != 'custom polygon...':
-            inits['vertices'].val = self.params['shape'].val
+            inits['vertices'] = self.params['shape']
 
         code = (
             "%(name)s = visual.Aperture(\n"
