@@ -33,7 +33,7 @@ class PolygonComponent(BaseVisualComponent):
                          '...circle)')
 
     def __init__(self, exp, parentName, name='polygon', interpolate='linear',
-                 units='from exp settings',
+                 units='from exp settings', anchor='center',
                  lineColor='white', lineColorSpace='rgb', lineWidth=1,
                  fillColor='white', fillColorSpace='rgb',
                  shape='triangle', nVertices=4, vertices="",
@@ -87,6 +87,21 @@ class PolygonComponent(BaseVisualComponent):
             hint=msg,
             label=_translate("Vertices")
         )
+        self.params['anchor'] = Param(
+            anchor, valType='str', inputType="choice", categ='Layout',
+            allowedVals=['center',
+                         'top-center',
+                         'bottom-center',
+                         'center-left',
+                         'center-right',
+                         'top-left',
+                         'top-right',
+                         'bottom-left',
+                         'bottom-right',
+                         ],
+            updates='constant',
+            hint=_translate("Which point on the stimulus should be anchored to its exact position?"),
+            label=_localized['anchor'])
 
         msg = _translate("What shape is this? With 'regular polygon...' you "
                          "can set number of vertices and with 'custom "
@@ -96,7 +111,7 @@ class PolygonComponent(BaseVisualComponent):
             allowedVals=["line", "triangle", "rectangle", "circle", "cross", "star",
                          "regular polygon...", "custom polygon..."],
             hint=msg, direct=False,
-            label=_localized['shape'])
+            label=_translate['Anchor'])
 
         self.params['lineColor'] = self.params['borderColor']
         del self.params['borderColor']
@@ -180,7 +195,7 @@ class PolygonComponent(BaseVisualComponent):
                     "    win=win, name='%s', vertices=%s,%s\n" % (inits['name'], vertices, unitsStr) +
                     "    size=%(size)s,\n" % inits)
 
-        code += ("    ori=%(ori)s, pos=%(pos)s,\n"
+        code += ("    ori=%(ori)s, pos=%(pos)s, anchor=%(anchor)s,\n"
                  "    lineWidth=%(lineWidth)s, "
                  "    colorSpace=%(colorSpace)s,  lineColor=%(lineColor)s, fillColor=%(fillColor)s,\n"
                  "    opacity=%(opacity)s, " % inits)
