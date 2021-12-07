@@ -82,6 +82,7 @@ class Aperture(MinimalStim, ContainerMixin):
         self.__dict__['ori'] = ori
         self.__dict__['inverted'] = inverted
         self.__dict__['filename'] = False
+        self.anchor = anchor
 
         # unit conversions
         if units != None and len(units):
@@ -266,6 +267,9 @@ class Aperture(MinimalStim, ContainerMixin):
     @anchor.setter
     def anchor(self, value):
         WindowMixin.anchor.fset(self._shape, value)
+
+    def setAnchor(self, value, log=None):
+        setAttribute(self, 'anchor', value, log)
 
     @property
     def vertices(self):
