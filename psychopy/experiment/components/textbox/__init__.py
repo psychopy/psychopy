@@ -149,8 +149,8 @@ class TextboxComponent(BaseVisualComponent):
                          'bottom-right',
                          ],
             updates='constant',
-            hint=_translate("Should text anchor to the top, center or bottom of the box?"),
-            label=_localized['anchor'])
+            hint=_translate("Which point on the stimulus should be anchored to its exact position?"),
+            label=_translate['Anchor'])
         self.params['alignment'] = Param(
             alignment, valType='str', inputType="choice", categ='Formatting',
             allowedVals=['center',
