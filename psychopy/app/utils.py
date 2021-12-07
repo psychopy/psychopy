@@ -602,19 +602,26 @@ class ToggleButton(wx.ToggleButton, HoverMixin):
 
 class ToggleButtonArray(wx.Window, ThemeMixin):
 
-    def __init__(self, parent, values, multi=False, ori=wx.HORIZONTAL):
+    def __init__(self, parent, labels=None, values=None, multi=False, ori=wx.HORIZONTAL):
         wx.Window.__init__(self, parent)
         self.parent = parent
         self.multi = multi
         # Setup sizer
         self.sizer = wx.BoxSizer(ori)
         self.SetSizer(self.sizer)
+        # Alias values and labels
+        if labels is None:
+            labels = values
+        if values is None:
+            values = labels
+        if values is None and labels is None:
+            values = labels = []
         # Make buttons
         self.buttons = {}
-        for val in values:
+        for i, val in enumerate(values):
             self.buttons[val] = ToggleButton(self, style=wx.BORDER_NONE)
             self.buttons[val].SetupHover()
-            self.buttons[val].SetLabelText(val)
+            self.buttons[val].SetLabelText(labels[i])
             self.buttons[val].Bind(wx.EVT_TOGGLEBUTTON, self.processToggle)
             self.sizer.Add(self.buttons[val], border=6, proportion=1, flag=wx.ALL | wx.EXPAND)
 
