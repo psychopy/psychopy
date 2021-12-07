@@ -150,7 +150,7 @@ class TextboxComponent(BaseVisualComponent):
                          ],
             updates='constant',
             hint=_translate("Which point on the stimulus should be anchored to its exact position?"),
-            label=_translate['Anchor'])
+            label=_translate('Anchor'))
         self.params['alignment'] = Param(
             alignment, valType='str', inputType="choice", categ='Formatting',
             allowedVals=['center',
