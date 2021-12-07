@@ -131,7 +131,7 @@ class ImageComponent(BaseVisualComponent):
         code = ("{inits[name]} = visual.ImageStim(\n"
                 "    win=win,\n"
                 "    name='{inits[name]}', {units}\n"
-                "    image={inits[image]}, mask={inits[mask]}, anchor={inits[anchor},\n"
+                "    image={inits[image]}, mask={inits[mask]}, anchor={inits[anchor]},\n"
                 "    ori={inits[ori]}, pos={inits[pos]}, size={inits[size]},\n"
                 "    color={inits[color]}, colorSpace={inits[colorSpace]}, opacity={inits[opacity]},\n"
                 "    flipHoriz={inits[flipHoriz]}, flipVert={inits[flipVert]},\n"

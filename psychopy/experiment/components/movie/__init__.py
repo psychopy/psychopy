@@ -155,7 +155,7 @@ class MovieComponent(BaseVisualComponent):
 
         code += ("    filename=%(movie)s,\n"
                  "    ori=%(ori)s, pos=%(pos)s, opacity=%(opacity)s,\n"
-                 "    loop=%(loop)s, anchor=%(anchor)s\n"
+                 "    loop=%(loop)s, anchor=%(anchor)s,\n"
                  % params)
 
         buff.writeIndentedLines(code)
