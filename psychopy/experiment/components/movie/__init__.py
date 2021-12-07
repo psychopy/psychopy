@@ -31,7 +31,7 @@ class MovieComponent(BaseVisualComponent):
 
     def __init__(self, exp, parentName, name='movie', movie='',
                  units='from exp settings',
-                 pos=(0, 0), size='', ori=0,
+                 pos=(0, 0), size='', anchor="center", ori=0,
                  startType='time (s)', startVal=0.0,
                  stopType='duration (s)', stopVal=1.0,
                  startEstim='', durationEstim='',
@@ -92,6 +92,21 @@ class MovieComponent(BaseVisualComponent):
             loop, valType='bool', inputType="bool", categ='Playback',
             hint=msg,
             label=_translate('Loop playback'))
+        self.params['anchor'] = Param(
+            anchor, valType='str', inputType="choice", categ='Layout',
+            allowedVals=['center',
+                         'top-center',
+                         'bottom-center',
+                         'center-left',
+                         'center-right',
+                         'top-left',
+                         'top-right',
+                         'bottom-left',
+                         'bottom-right',
+                         ],
+            updates='constant',
+            hint=_translate("Which point on the stimulus should be anchored to its exact position?"),
+            label=_translate['Anchor'])
 
         # these are normally added but we don't want them for a movie
         del self.params['color']
@@ -140,7 +155,7 @@ class MovieComponent(BaseVisualComponent):
 
         code += ("    filename=%(movie)s,\n"
                  "    ori=%(ori)s, pos=%(pos)s, opacity=%(opacity)s,\n"
-                 "    loop=%(loop)s,\n"
+                 "    loop=%(loop)s, anchor=%(anchor)s\n"
                  % params)
 
         buff.writeIndentedLines(code)

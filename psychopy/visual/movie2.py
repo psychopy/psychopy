@@ -188,6 +188,7 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
                  units='pix',
                  size=None,
                  pos=(0.0, 0.0),
+                 anchor="center",
                  ori=0.0,
                  flipVert=False,
                  flipHoriz=False,
@@ -242,6 +243,7 @@ class MovieStim2(BaseVisualStim, ContainerMixin):
         self.flipVert = flipVert
         self.flipHoriz = flipHoriz
         self.pos = numpy.asarray(pos, float)
+        self.anchor = anchor
         self.depth = depth
         self.opacity = float(opacity)
         self.volume = volume
