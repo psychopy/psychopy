@@ -39,7 +39,7 @@ class DotsComponent(BaseVisualComponent):
                  direction=0.0, speed=0.1, coherence=1.0,
                  dotSize=2,
                  dotLife=3, signalDots='same', noiseDots='direction', refreshDots='repeat',
-                 fieldShape='circle', fieldSize=1.0, fieldPos=(0.0, 0.0),
+                 fieldShape='circle', fieldSize=1.0, fieldAnchor="center", fieldPos=(0.0, 0.0),
                  color='$[1.0,1.0,1.0]', colorSpace='rgb',
                  opacity="",
                  units='from exp settings',
@@ -161,6 +161,22 @@ class DotsComponent(BaseVisualComponent):
             allowedUpdates=['constant', 'set every repeat', 'set every frame'],
             hint=msg,
             label=_localized['fieldPos'])
+
+        self.params['anchor'] = Param(
+            fieldAnchor, valType='str', inputType="choice", categ='Layout',
+            allowedVals=['center',
+                         'top-center',
+                         'bottom-center',
+                         'center-left',
+                         'center-right',
+                         'top-left',
+                         'top-right',
+                         'bottom-left',
+                         'bottom-right',
+                         ],
+            updates='constant',
+            hint=_translate("Which point on the field should be anchored to its exact position?"),
+            label=_translate['Field Anchor'])
 
         # Reword colour parameters
         self.params['color'].label = _translate("Dot Color")
