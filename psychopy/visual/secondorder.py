@@ -117,6 +117,7 @@ class EnvelopeGrating(GratingStim):
                  carrier="noise",
                  mask="none",
                  envelope="sin",
+                 anchor="center",
                  units="",
                  pos=(0.0, 0.0),
                  size=None,
@@ -157,7 +158,7 @@ class EnvelopeGrating(GratingStim):
         # initialise parent class
         GratingStim.__init__(self, win,
                              units=units, pos=pos, size=size, sf=sf,
-                             ori=ori, phase=phase,
+                             ori=ori, phase=phase, anchor=anchor,
                              color=color, colorSpace=colorSpace,
                              contrast=contrast, opacity=opacity,
                              depth=depth, interpolate=interpolate,
