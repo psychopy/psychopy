@@ -111,7 +111,7 @@ class PolygonComponent(BaseVisualComponent):
             allowedVals=["line", "triangle", "rectangle", "circle", "cross", "star",
                          "regular polygon...", "custom polygon..."],
             hint=msg, direct=False,
-            label=_translate['Anchor'])
+            label=_translate("Shape"))
 
         self.params['lineColor'] = self.params['borderColor']
         del self.params['borderColor']
