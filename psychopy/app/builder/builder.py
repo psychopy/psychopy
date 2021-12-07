@@ -2543,6 +2543,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
                                               labels=("PsychoPy (local)", "PsychoJS (online)", "Both", "Any"),
                                               values=("PsychoPy", "PsychoJS", "Both", "Any"),
                                               multi=False, ori=wx.VERTICAL)
+            self.viewCtrl.Bind(wx.EVT_CHOICE, self.onChange)
             self.sizer.Add(self.viewCtrl, border=6, flag=wx.ALL | wx.EXPAND)
             self.viewCtrl.SetValue(prefs.builder['componentFilter'])
             # OK
@@ -2555,6 +2556,11 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
 
         def GetValue(self):
             return self.viewCtrl.GetValue()
+
+        def onChange(self, evt=None):
+            self.parent.filter = prefs.builder['componentFilter'] = self.GetValue()
+            prefs.saveUserPrefs()
+            self.parent.Refresh()
 
     def __init__(self, frame, id=-1):
         """A panel that displays available components.
@@ -2740,11 +2746,7 @@ class ComponentsPanel(scrolledpanel.ScrolledPanel):
 
     def onFilterBtn(self, evt=None):
         dlg = self.FilterDialog(self)
-        exit = dlg.ShowModal()
-        if exit == wx.ID_OK:
-            self.filter = prefs.builder['componentFilter'] = dlg.GetValue()
-        prefs.saveUserPrefs()
-        self.Refresh()
+        dlg.Show()
 
 
 class ReadmeFrame(wx.Frame):
