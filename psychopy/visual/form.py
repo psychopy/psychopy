@@ -539,13 +539,13 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
             self.textHeight * 1.1 * len(item['options'])  # Max height
         )
         if item['layout'] == 'horiz':
-            x = self.pos[0] + self.size[0] / 2 - self.itemPadding - maxArea[0] / 2
+            x = self.pos[0] + self.size[0] / 2 - self.itemPadding - self._scrollBarSize[0] - maxArea[0] / 2
             w = maxArea[0]
             h = 0.03
             wrap = None  # Slider defaults are fine for horizontal
         elif item['layout'] == 'vert':
             # for vertical take into account the nOptions
-            x = self.pos[0] + self.size[0] / 2 - self.itemPadding - maxArea[0]
+            x = self.pos[0] + self.size[0] / 2 - self.itemPadding - self._scrollBarSize[0] - maxArea[0]
             w = 0.03
             h = maxArea[1]
             wrap = maxArea[0]
