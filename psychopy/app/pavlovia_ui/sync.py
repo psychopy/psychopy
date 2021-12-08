@@ -97,8 +97,15 @@ class CreateDlg(wx.Dialog):
         self.nameSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.sizer.Add(self.nameSizer, border=3, flag=wx.ALL | wx.EXPAND)
         # URL prefix
-        self.nameRootLbl = wx.StaticText(self, label=f"pavlovia.org/{user['username']}/")
+        self.nameRootLbl = wx.StaticText(self, label="pavlovia.org /")
         self.nameSizer.Add(self.nameRootLbl, border=3, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
+        # Namespace ctrl
+        self.namespaceCtrl = wx.Choice(self, choices=[user['username']] + user.session.listUserGroups(namesOnly=True))
+        self.namespaceCtrl.SetStringSelection(user['username'])
+        self.nameSizer.Add(self.namespaceCtrl, border=3, flag=wx.ALL | wx.EXPAND)
+        # Slash
+        self.slashLbl = wx.StaticText(self, label="/")
+        self.nameSizer.Add(self.slashLbl, border=3, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
         # Name ctrl
         self.nameCtrl = wx.TextCtrl(self, value=str(name))
         self.nameCtrl.Bind(wx.EVT_TEXT, self.validate)
@@ -144,4 +151,8 @@ class CreateDlg(wx.Dialog):
         self.Close()
 
     def GetValue(self):
-        return {"name": self.nameCtrl.GetValue(), "localRoot": self.rootCtrl.GetValue()}
+        return {
+            "name": self.nameCtrl.GetValue(),
+            "localRoot": self.rootCtrl.GetValue(),
+            "namespace": self.namespaceCtrl.GetStringSelection()
+        }
