@@ -766,6 +766,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
 
             # update response baseY
             if not response:
+                self._currentVirtualY -= questionHeight + self.itemPadding
                 continue
             # get height to update current Y
             respHeight = self._getItemHeight(item=item, ctrl=response)
