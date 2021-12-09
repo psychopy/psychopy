@@ -623,6 +623,23 @@ def syncProject(parent, project, file="", closeFrameWhenDone=False):
                                  path=path)
             dlg.ShowModal()
             project = dlg.project
+    # If no local root, prompt to make one
+    if not project.localRoot:
+        defaultRoot = Path(file).parent
+        # Ask user if they want to
+        dlg = wx.MessageDialog(parent, message=_translate("Project root folder is not yet specified, specify one now?"), style=wx.YES_NO)
+        # Open folder picker
+        if dlg.ShowModal() == wx.ID_YES:
+            dlg = wx.DirDialog(parent, message=_translate("Specify folder..."), defaultPath=str(defaultRoot))
+            if dlg.ShowModal() == wx.ID_OK:
+                localRoot = Path(dlg.GetPath())
+                project.localRoot = str(localRoot)
+            else:
+                # If cancelled, cancel sync
+                return
+        else:
+            # If they don't want to specify, cancel sync
+            return
     # If there is (now) a project, do sync
     if project is not None:
         dlg = sync.SyncDialog(parent, project)
