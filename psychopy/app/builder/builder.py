@@ -25,6 +25,7 @@ from wx.lib import platebtn
 from wx.html import HtmlWindow
 
 from .validators import WarningManager
+from ..pavlovia_ui import sync
 from ...experiment.components import getAllCategories
 from ...experiment.routines import Routine, BaseStandaloneRoutine
 from ...tools.stringtools import prettyname
@@ -114,7 +115,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         self.frameType = 'builder'
         self.filename = fileName
         self.htmlPath = None
-        self.project = None  # type: pavlovia.PavloviaProject
+        self.session = pavlovia.getCurrentSession()
         self.btnHandles = {}  # stores toolbar buttons so they can be altered
         self.scriptProcess = None
         self.stdoutBuffer = None
@@ -706,11 +707,7 @@ class BuilderFrame(wx.Frame, ThemeMixin):
         if self.app.runner:
             self.app.runner.addTask(fileName=self.filename)  # Add to Runner
 
-        try:
-            self.project = pavlovia.getProject(filename)
-        except Exception as e:  # failed for
-            self.project = None
-            print(e)
+        self.project = pavlovia.getProject(filename)
         self.app.updateWindowMenu()
 
     def fileSave(self, event=None, filename=None):
@@ -1343,38 +1340,26 @@ class BuilderFrame(wx.Frame, ThemeMixin):
                 return
 
         self.enablePavloviaButton(['pavloviaSync', 'pavloviaRun'], False)
-        try:
-            retVal = pavlovia_ui.syncProject(parent=self, project=self.project)
-            pavlovia.knownProjects.save()  # update projects.json
-            self.gitFeedback(retVal)
-        finally:
-            self.enablePavloviaButton(['pavloviaSync', 'pavloviaRun'], True)
+        pavlovia_ui.syncProject(parent=self, file=self.filename, project=self.project)
+        self.enablePavloviaButton(['pavloviaSync', 'pavloviaRun'], True)
 
     def onPavloviaRun(self, evt=None):
-        if self._getExportPref('on save'):
-            self.fileSave()
-            retVal = pavlovia_ui.syncProject(parent=self, project=self.project,
-                                             closeFrameWhenDone=False)
-            self.gitFeedback(retVal)
-        elif self._getExportPref('on sync'):
-            self.fileExport(htmlPath=self._getHtmlPath(self.filename))
-            retVal = pavlovia_ui.syncProject(parent=self, project=self.project,
-                                             closeFrameWhenDone=False)
-            self.gitFeedback(retVal)
+        if self._getExportPref('on save') or self._getExportPref('on sync'):
+            # If export on save/sync, sync now
+            pavlovia_ui.syncProject(parent=self, project=self.project)
         elif self._getExportPref('manually'):
-            # Check htmlpath and projects exists
-            noHtmlFolder = not os.path.isdir(self._getHtmlPath(self.filename))
-            noProject = not bool(pavlovia.getProject(self.filename))
-            if noHtmlFolder:
-                self.fileExport()
-            if noProject or noHtmlFolder:
-                retVal = pavlovia_ui.syncProject(parent=self, project=self.project,
-                                                 closeFrameWhenDone=False)
-                self.gitFeedback(retVal)
-        if self.project:
-            htmlPath = self.exp.settings.params['HTML path'].val
+            # If set to manual, only sync if needed to create a project to run
+            if self.project is None:
+                pavlovia_ui.syncProject(parent=self, project=self.project)
+
+        if self.project is not None:
+            # Make sure we have a html file to run
+            if not (Path(self.project.localRoot) / 'index.html').is_file():
+                self.fileExport(htmlPath=Path(self.project.localRoot) / 'index.html')
+            # Update project status
             self.project.pavloviaStatus = 'ACTIVATED'
-            url = "https://pavlovia.org/run/{}/{}".format(self.project.id, htmlPath)
+            # Run
+            url = "https://pavlovia.org/run/{}".format(self.project['path_with_namespace'])
             wx.LaunchDefaultBrowser(url)
 
     def enablePavloviaButton(self, buttons, enable):
@@ -1433,16 +1418,16 @@ class BuilderFrame(wx.Frame, ThemeMixin):
     def project(self):
         """A PavloviaProject object if one is known for this experiment
         """
-        if 'project' in self.__dict__ and self.__dict__['project']:
-            return self.__dict__['project']
-        elif self.filename and pavlovia.getProject(self.filename):
+        if hasattr(self, "_project"):
+            return self._project
+        elif self.filename:
             return pavlovia.getProject(self.filename)
         else:
             return None
 
     @project.setter
     def project(self, project):
-        self.__dict__['project'] = project
+        self._project = project
 
 
 class RoutinesNotebook(aui.AuiNotebook, ThemeMixin):
