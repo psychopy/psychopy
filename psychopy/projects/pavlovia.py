@@ -540,7 +540,7 @@ class PavloviaProject(dict):
             while self.info is None and time.time() - start < 2:
                 self.info = requests.get("https://pavlovia.org/api/v2/experiments/" + str(id)).json()['experiment']
             if self.info is None:
-                raise ValueError(f"Could not find project with id `{id}` on Pavlovia")
+                raise LookupError(f"Could not find project with id `{id}` on Pavlovia")
         # Store own id
         self.id = int(self.info['gitlabId'])
         # Init dict
@@ -601,7 +601,7 @@ class PavloviaProject(dict):
             self._project = self.session.gitlab.projects.get(self.id)
             return self._project
         except gitlab.exceptions.GitlabGetError as e:
-            raise KeyError(f"Could not find GitLab project with id {self.id}.")
+            raise LookupError(f"Could not find GitLab project with id {self.id}.")
 
     @property
     def editable(self):
@@ -1188,7 +1188,12 @@ def getProject(filename):
     session = getCurrentSession()
     # If already found, return
     if (knownProjects is not None) and (path in knownProjects) and ('idNumber' in knownProjects[path]):
-        return PavloviaProject(knownProjects[path]['idNumber'])
+        try:
+            return PavloviaProject(knownProjects[path]['idNumber'])
+        except LookupError as err:
+            # If project not found, print warning and return None
+            logging.warn(str(err))
+            return None
     elif gitRoot:
         # Existing repo but not in our knownProjects. Investigate
         logging.info("Investigating repo at {}".format(gitRoot))
