@@ -422,7 +422,7 @@ class DetailsPanel(wx.Panel):
             self.starLbl.SetLabel(str(project['star_count']))
             self.starLbl.Enable()
             # Fork button
-            self.forkBtn.Enable(bool(project.session.user) and not project.editable)
+            self.forkBtn.Enable(bool(project.session.user) and not project.owned)
             # Fork label
             self.forkLbl.SetLabel(str(project['forks_count']))
             self.forkLbl.Enable()

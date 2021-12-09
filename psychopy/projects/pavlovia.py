@@ -628,6 +628,18 @@ class PavloviaProject(dict):
         return self._editable
 
     @property
+    def owned(self):
+        """
+        Whether or not the project is owned by the current user
+        """
+        if bool(self.session.user):
+            # If there is a user, return True if they're the owner of this project
+            return self['path_with_namespace'].split('/')[0] == self.session.user['username']
+        else:
+            # If there isn't a user, then they can't own this project, so return False
+            return False
+
+    @property
     def starred(self):
         """
         Star/unstar the project, or view starred status
