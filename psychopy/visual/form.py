@@ -762,7 +762,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                        or not response)
             if not oneLine:
                 # response on next line
-                self._currentVirtualY -= questionHeight + self.itemPadding
+                self._currentVirtualY -= questionHeight + self.itemPadding / 4
 
             # update response baseY
             if not response:
