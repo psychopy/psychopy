@@ -95,7 +95,7 @@ else:
     getTime = timeit.default_timer
 
 
-class MonotonicClock():
+class MonotonicClock:
     """A convenient class to keep track of time in your experiments using a
     sub-millisecond timer.
 
@@ -216,10 +216,23 @@ class CountdownTimer(Clock):
             Clock.reset(self, t)
 
 
-class StaticPeriod():
+class StaticPeriod:
     """A class to help insert a timing period that includes code to be run.
 
-    Typical usage::
+    Parameters
+    ----------
+    screenHz : int or None
+    the frame rate of the monitor (leave as None if you
+            don't want this accounted for)
+    win : :class:`~psychopy.visual.Window`
+        If a :class:`~psychopy.visual.Window` is given then StaticPeriod will
+        also pause/restart frame interval recording.
+    name : str
+        Give this StaticPeriod a name for more informative logging messages.
+
+    Examples
+    --------
+    Typical usage for the static period::
 
         fixation.draw()
         win.flip()
@@ -235,31 +248,31 @@ class StaticPeriod():
 
     """
     def __init__(self, screenHz=None, win=None, name='StaticPeriod'):
-        """
-        :param screenHz: the frame rate of the monitor (leave as None if you
-            don't want this accounted for)
-        :param win: if a visual.Window is given then StaticPeriod will
-            also pause/restart frame interval recording
-        :param name: give this StaticPeriod a name for more informative
-            logging messages
-        """
         self.status = NOT_STARTED
         self.countdown = CountdownTimer()
         self.name = name
         self.win = win
+
         if screenHz is None:
             self.frameTime = 0
         else:
             self.frameTime = 1.0 / screenHz
 
+        self._winWasRecordingIntervals = False
+
     def start(self, duration):
         """Start the period. If this is called a second time, the timer will
         be reset and starts again
 
-        :param duration: The duration of the period, in seconds.
+        Parameters
+        ----------
+        duration : float or int
+            The duration of the period, in seconds.
+
         """
         self.status = STARTED
         self.countdown.reset(duration - self.frameTime)
+
         # turn off recording of frame intervals throughout static period
         if self.win:
             self._winWasRecordingIntervals = self.win.recordFrameIntervals
@@ -267,23 +280,31 @@ class StaticPeriod():
 
     def complete(self):
         """Completes the period, using up whatever time is remaining with a
-        call to wait()
+        call to `wait()`.
 
-        :return: 1 for success, 0 for fail (the period overran)
+        Returns
+        -------
+        float
+            `1` for success, `0` for fail (the period overran).
+
         """
         self.status = FINISHED
         timeRemaining = self.countdown.getTime()
+
         if self.win:
             self.win.recordFrameIntervals = self._winWasRecordingIntervals
+
         if timeRemaining < 0:
             msg = ('We overshot the intended duration of %s by %.4fs. The '
                    'intervening code took too long to execute.')
             vals = self.name, abs(timeRemaining)
             psychopy.logging.warn(msg % vals)
+
             return 0
-        else:
-            wait(timeRemaining)
-            return 1
+
+        wait(timeRemaining)
+
+        return 1
 
 
 def wait(secs, hogCPUperiod=0.2):
