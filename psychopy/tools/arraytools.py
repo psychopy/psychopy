@@ -247,9 +247,9 @@ def snapto(x, points):
     """
 
     # Force values to 1d numpy arrays, though keep track of original shape of x
-    x = numpy.array(x)
+    x = numpy.asarray(x)
     x1d = x.reshape((-1, 1))
-    points = numpy.array(points).reshape((1, -1))
+    points = numpy.asarray(points).reshape((1, -1))
     # Get differences
     deltas = numpy.abs(x1d - points)
     # Get indices of smallest deltas
