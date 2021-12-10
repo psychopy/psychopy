@@ -27,14 +27,14 @@ _knownFields = {
     'index': None,  # optional field to index into the rows
     'itemText': _REQUIRED,  # (question used until 2020.2)
     'itemColor': None,
-    'itemWidth': 0.8,  # fraction of the form
+    'itemWidth': 1,  # fraction of the form
     'type': _REQUIRED,  # type of response box (see below)
     'options': ('Yes', 'No'),  # for choice box
     'ticks': None,#(1, 2, 3, 4, 5, 6, 7),
     'tickLabels': None,
     'font': None,
     # for rating/slider
-    'responseWidth': 0.8,  # fraction of the form
+    'responseWidth': 1,  # fraction of the form
     'responseColor': None,
     'markerColor': None,
     'layout': 'horiz',  # can be vert or horiz
