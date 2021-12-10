@@ -498,7 +498,7 @@ class DetailsPanel(wx.Panel):
             if dlg.ShowModal() == wx.ID_YES:
                 # If yes, show forked project
                 projData = requests.get(
-                    f"https://pavlovia.org/api/v2/experiments/{self.project.session.user['username']}/{self.project['name']}"
+                    f"https://pavlovia.org/api/v2/experiments/{self.project.session.user['username']}/{self.project.info['pathWithNamespace'].split('/')[1]}"
                 ).json()
                 self.project = PavloviaProject(projData['experiment']['gitlabId'])
                 return
