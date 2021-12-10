@@ -140,7 +140,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         # Box around current content, wrapped tight - not drawn
         self.boundingBox = Rect(
             win,
-            units=self.units, pos=(0, 0), size=(0, 0),  # set later by self.size and self.pos
+            units='pix', pos=(0, 0), size=(0, 0),  # set later by self.size and self.pos
             colorSpace=colorSpace, lineColor='red', fillColor=None,
             lineWidth=1, opacity=int(debug),
             autoLog=False
@@ -292,8 +292,6 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             self.box.units = value
         if hasattr(self, "contentBox"):
             self.contentBox.units = value
-        if hasattr(self, "boundingBox"):
-            self.boundingBox.units = value
         if hasattr(self, "caret"):
             self.caret.units = value
 
@@ -1021,12 +1019,11 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         if hasattr(self, 'flipVert') and self.flipVert:
             flip[1] = -1  # True=(-1), False->(+1)
 
-        font = self.glFont
         self.__dict__['verticesPix'] = self._vertices.pix
 
         # tight bounding box
         if hasattr(self._vertices, self.units) and self.vertices.shape[0] >= 1:
-            verts = getattr(self._vertices, self.units)
+            verts = self._vertices.pix
             L = verts[:, 0].min()
             R = verts[:, 0].max()
             B = verts[:, 1].min()

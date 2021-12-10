@@ -219,6 +219,27 @@ def array2pointer(arr, dtype=None):
         ctypes.POINTER(numpy.ctypeslib.as_ctypes_type(dtype)))
 
 
+def snapto(x, points):
+    """
+    Snap values in array x to their closest equivalent in an array of target values.
+    """
+
+    # Force values to 1d numpy arrays, though keep track of original shape of x
+    x = numpy.array(x)
+    x1d = x.reshape((-1, 1))
+    points = numpy.array(points).reshape((1, -1))
+    # Get differences
+    deltas = numpy.abs(x1d - points)
+    # Get indices of smallest deltas
+    i = numpy.argmin(deltas, axis=1)
+    # Get corresponding points
+    snapped1d = points[0, i]
+    # Reshape to original shape of x
+    snapped = snapped1d.reshape(x.shape)
+
+    return snapped
+
+
 def createLumPattern(patternType, res, texParams=None, maskParams=None):
     """Create a luminance (single channel) defined pattern.
 
