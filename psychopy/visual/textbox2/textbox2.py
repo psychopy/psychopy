@@ -342,6 +342,10 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             self.contentBox.pos = self.pos + self.size * self.box._vertices.anchorAdjust
             self.contentBox._needVertexUpdate = True
 
+        # Set caret pos again so it recalculates its vertices
+        if hasattr(self, "caret"):
+            self.caret.index = self.caret.index
+
         self._needVertexUpdate = True
 
     @property
