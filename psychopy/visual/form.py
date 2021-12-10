@@ -8,6 +8,7 @@
 import copy
 import psychopy
 from .text import TextStim
+from .rect import Rect
 from psychopy.data.utils import importConditions, listFromString
 from psychopy.visual.basevisual import (BaseVisualStim,
                                         ContainerMixin,
@@ -533,22 +534,33 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 granularity = 1
             style = kind
 
-        # Set radio button layout
-        maxArea = (
-            (item['responseWidth'] - self.itemPadding * 2) * (self.size[0] - self._scrollBarSize[0]),  # Max width
-            self.textHeight * 1.1 * len(item['options'])  # Max height
-        )
+        # Make invisible guide rect to help with laying out slider
+        w = (item['responseWidth'] - self.itemPadding * 2) * (self.size[0] - self._scrollBarSize[0]) * 0.8
         if item['layout'] == 'horiz':
-            x = self.pos[0] + self.size[0] / 2 - self.itemPadding - self._scrollBarSize[0] - maxArea[0] / 2
-            w = maxArea[0]
+            h = self.textHeight * 2 + 0.03
+        elif item['layout'] == 'vert':
+            h = self.textHeight * 1.1 * len(item['options'])
+        x = self.rightEdge - self.itemPadding - self._scrollBarSize[0] - w * 0.1
+        guide = Rect(
+            self.win,
+            size=(w, h),
+            pos=(x, 0),
+            anchor="top-right",
+            lineColor="red",
+            fillColor=None,
+            units=self.units
+        )
+        # Get slider pos and size
+        x = guide.pos[0] - guide.size[0] / 2
+        if item['layout'] == 'horiz':
+            w = guide.size[0]
             h = 0.03
             wrap = None  # Slider defaults are fine for horizontal
         elif item['layout'] == 'vert':
             # for vertical take into account the nOptions
-            x = self.pos[0] + self.size[0] / 2 - self.itemPadding - self._scrollBarSize[0] - maxArea[0]
             w = 0.03
-            h = maxArea[1]
-            wrap = maxArea[0]
+            h = guide.size[1]
+            wrap = guide.size[0] / 2 - 0.03
             item['options'].reverse()
 
         # Create Slider
@@ -570,14 +582,12 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 fillColor=item['markerColor'] or self.markerColor,
                 borderColor=item['responseColor'] or self.responseColor,
                 colorSpace=self.colorSpace)
-
-        if item['layout'] == 'horiz':
-            h += self.textHeight*2
+        resp.guide = guide
 
         # store virtual pos to combine with scroll bar for actual pos
-        resp._baseY = self._currentVirtualY - h/2 - self.itemPadding
+        resp._baseY = self._currentVirtualY - guide.size[1] / 2 - self.itemPadding
 
-        return resp, h
+        return resp, guide.size[1]
 
     def _getItemHeight(self, item, ctrl=None):
         """Returns the full height of the item to be inserted in the form"""
@@ -840,6 +850,10 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                                element._baseY - self._getScrollOffset())
                 if self._inRange(element):
                     element.draw()
+                    if debug and hasattr(element, "guide"):
+                        # If debugging, draw position guide too
+                        element.guide.pos = (element.guide.pos[0], element._baseY - self._getScrollOffset() + element.guide.size[1] / 2)
+                        element.guide.draw()
 
     def setAutoDraw(self, value, log=None):
         """Sets autoDraw for Form and any responseCtrl contained within
