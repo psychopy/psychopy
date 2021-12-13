@@ -797,7 +797,7 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
                 )
             else:
                 # response on next line
-                self._currentVirtualY -= respHeight + self.itemPadding
+                self._currentVirtualY -= respHeight + self.itemPadding * 5/4
 
         self._setDecorations()  # choose whether show/hide scroolbar
 
