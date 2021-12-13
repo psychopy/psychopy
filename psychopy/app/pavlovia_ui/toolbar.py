@@ -4,7 +4,7 @@ from os.path import join
 from .. import icons
 from .project import syncProject, ProjectFrame
 from .search import SearchFrame
-from .user import UserEditor
+from .user import UserFrame
 
 from psychopy.localization import _translate
 
@@ -73,11 +73,8 @@ class PavloviaButtons:
             wx.LaunchDefaultBrowser(url)
 
     def onPavloviaUser(self, evt=None):
-        userDlg = UserEditor()
-        if userDlg.user:
-            userDlg.ShowModal()
-        else:
-            userDlg.Destroy()
+        userDlg = UserFrame(self.frame)
+        userDlg.ShowModal()
 
     def onPavloviaSearch(self, evt=None):
         searchDlg = SearchFrame(
@@ -86,7 +83,7 @@ class PavloviaButtons:
         searchDlg.Show()
 
     def onPavloviaProject(self, evt=None):
-        if self.frame.project and self.frame.project.id is not None:
+        if self.frame.project:
             dlg = ProjectFrame(app=self.frame.app,
                                project=self.frame.project)
         else:
