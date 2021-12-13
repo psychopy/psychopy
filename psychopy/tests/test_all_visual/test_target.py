@@ -28,8 +28,8 @@ class TestTarget(_TestColorMixin, _TestUnitsMixin):
         for case in cases:
             # Set radiae (radiuses?) and units
             self.obj.units = case['units']
-            self.obj.radius = case['outer']
+            self.obj.outerRadius = case['outer']
             self.obj.innerRadius = case['inner']
             # Check that the target's size is set to twice the radius value
-            assert self.obj._size == layout.Size(case['outer']*2, case['units'], self.win)
+            assert self.obj.outer._size == layout.Size(case['outer']*2, case['units'], self.win)
             assert self.obj.inner._size == layout.Size(case['inner']*2, case['units'], self.win)
