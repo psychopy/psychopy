@@ -80,9 +80,11 @@ class Vector(object):
         if (value == None).any() or numpy.isnan(value).any():
             win = Vector((1, 1), units="norm", win=self.win)
             if len(value.shape) == 1:
-                value[0] = getattr(win, units)[0]
-                value[1] = getattr(win, units)[1]
+                value[value == None] = getattr(win, units)[value == None]
+                value[numpy.isnan(value)] = getattr(win, units)[numpy.isnan(value)]
             else:
+                value[numpy.isnan(value[:, 0]), 0] = getattr(win, units)[0]
+                value[numpy.isnan(value[:, 1]), 1] = getattr(win, units)[1]
                 value[value[:, 0] == None, 0] = getattr(win, units)[0]
                 value[value[:, 1] == None, 1] = getattr(win, units)[1]
         assert self.valid, f"Array of position/size values must be either Nx1, Nx2 or Nx3, not {value.shape}"
