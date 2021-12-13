@@ -202,7 +202,7 @@ class MouseGazePsychopyCalibrationGraphics:
             autoLog=False
         )
         self.calibrationPointINNER = self.calibrationPoint.inner
-        self.calibrationPointOUTER = self.calibrationPoint
+        self.calibrationPointOUTER = self.calibrationPoint.outer
 
         tctype = color_type
         tcolor = self.getCalibSetting(['text_color'])
@@ -295,10 +295,6 @@ class MouseGazePsychopyCalibrationGraphics:
                     # Change target size from outer diameter to inner diameter over target_duration seconds.
                     t = elapsed_time / target_duration
                     d = outer_diameter - t * (outer_diameter - inner_diameter)
-                    self.calibrationPointOUTER.radius = d / 2
-                    self.calibrationPointOUTER.draw()
-                    self.calibrationPointINNER.draw()
-                    self.window.flip(clearBuffer=True)
                 elif animate_expansion_ratio not in [1, 1.0]:
                     if elapsed_time <= target_duration/2:
                         # In expand phase
@@ -309,9 +305,8 @@ class MouseGazePsychopyCalibrationGraphics:
                         t = (elapsed_time-target_duration/2) / (target_duration/2)
                         d = outer_diameter*animate_expansion_ratio - t * (outer_diameter*animate_expansion_ratio - inner_diameter)
                 if d:
-                    self.calibrationPointOUTER.radius = d / 2
-                    self.calibrationPointOUTER.draw()
-                    self.calibrationPointINNER.draw()
+                    self.calibrationPoint.outerRadius = d / 2
+                    self.calibrationPoint.draw()
                     self.window.flip(clearBuffer=True)
 
             if auto_pace is False:
