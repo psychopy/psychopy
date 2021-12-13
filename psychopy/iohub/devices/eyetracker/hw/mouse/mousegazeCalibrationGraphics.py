@@ -186,25 +186,23 @@ class MouseGazePsychopyCalibrationGraphics:
         color_type = self.getCalibSetting('color_type')
         unit_type = self.getCalibSetting('unit_type')
 
-        lwidth = self.getCalibSetting(['target_attributes', 'outer_stroke_width'])
-        radius = self.getCalibSetting(['target_attributes', 'outer_diameter']) / 2.0
-        fcolor = self.getCalibSetting(['target_attributes', 'outer_fill_color'])
-        lcolor = self.getCalibSetting(['target_attributes', 'outer_line_color'])
-        self.calibrationPointOUTER = visual.Circle(self.window, pos=(0, 0), name='CP_OUTER',
-                                                   radius=radius, lineWidth=lwidth,
-                                                   fillColor=fcolor, lineColor=lcolor,
-                                                   opacity=1.0, interpolate=False,
-                                                   edges=64, units=unit_type, colorSpace=color_type)
-
-        lwidth = self.getCalibSetting(['target_attributes', 'inner_stroke_width'])
-        radius = self.getCalibSetting(['target_attributes', 'inner_diameter']) / 2.0
-        fcolor = self.getCalibSetting(['target_attributes', 'inner_fill_color'])
-        lcolor = self.getCalibSetting(['target_attributes', 'inner_line_color'])
-        self.calibrationPointINNER = visual.Circle(self.window, pos=(0, 0), name='CP_INNER',
-                                                   radius=radius, lineWidth=lwidth,
-                                                   fillColor=fcolor, lineColor=lcolor,
-                                                   opacity=1.0, interpolate=False,
-                                                   edges=64, units=unit_type, colorSpace=color_type)
+        self.calibrationPoint = visual.TargetStim(
+            self.window, name="CP", style="circles",
+            radius=self.getCalibSetting(['target_attributes', 'outer_diameter']) / 2.0,
+            fillColor=self.getCalibSetting(['target_attributes', 'outer_fill_color']),
+            borderColor=self.getCalibSetting(['target_attributes', 'outer_line_color']),
+            lineWidth=self.getCalibSetting(['target_attributes', 'outer_stroke_width']),
+            innerRadius=self.getCalibSetting(['target_attributes', 'inner_diameter']) / 2.0,
+            innerFillColor=self.getCalibSetting(['target_attributes', 'inner_fill_color']),
+            innerBorderColor=self.getCalibSetting(['target_attributes', 'inner_line_color']),
+            innerLineWidth=self.getCalibSetting(['target_attributes', 'inner_stroke_width']),
+            pos=(0, 0),
+            units=unit_type,
+            colorSpace=color_type,
+            autoLog=False
+        )
+        self.calibrationPointINNER = self.calibrationPoint.inner
+        self.calibrationPointOUTER = self.calibrationPoint
 
         tctype = color_type
         tcolor = self.getCalibSetting(['text_color'])
