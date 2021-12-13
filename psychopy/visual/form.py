@@ -551,13 +551,14 @@ class Form(BaseVisualStim, ContainerMixin, ColorMixin):
             units=self.units
         )
         # Get slider pos and size
-        x = guide.pos[0] - guide.size[0] / 2
         if item['layout'] == 'horiz':
+            x = guide.pos[0] - guide.size[0] / 2
             w = guide.size[0]
             h = 0.03
             wrap = None  # Slider defaults are fine for horizontal
         elif item['layout'] == 'vert':
             # for vertical take into account the nOptions
+            x = guide.pos[0] - guide.size[0]
             w = 0.03
             h = guide.size[1]
             wrap = guide.size[0] / 2 - 0.03
