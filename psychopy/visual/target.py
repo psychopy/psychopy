@@ -58,10 +58,12 @@ class TargetStim(ColorMixin, WindowMixin):
 
     @property
     def scale(self):
-        if hasattr(self, "_scale"):
-            return self._scale
-        else:
-            return 1
+        # Work out current ratio between inner and outer radiuses
+        return self.innerRadius / self.outerRadius
+
+    @scale.setter
+    def scale(self, value):
+        self.innerRadius = self.outerRadius * value
 
     @property
     def anchor(self):
@@ -88,11 +90,11 @@ class TargetStim(ColorMixin, WindowMixin):
 
     @size.setter
     def size(self, value):
+        # Get original scale
+        ogScale = self.scale
+        # Set new sizes
         self.outer.size = value
-        self.inner.size = (
-            value[0] / self.outer.size[0] * self.inner.size[0],
-            value[1] / self.outer.size[1] * self.inner.size[1]
-        )
+        self.inner.size = self.outer.size * ogScale
 
     @property
     def units(self):
@@ -118,12 +120,6 @@ class TargetStim(ColorMixin, WindowMixin):
         if hasattr(self, "outer"):
             self.outer.win = value
 
-    @scale.setter
-    def scale(self, newScale):
-        oldScale = self.scale
-        self.radius = self.radius / oldScale * newScale
-        self._scale = newScale
-
     @property
     def lineWidth(self):
         return self.outer.lineWidth
@@ -138,12 +134,10 @@ class TargetStim(ColorMixin, WindowMixin):
 
     @radius.setter
     def radius(self, value):
-        # Work out current ratio between inner and outer radiuses
-        scale = self.innerRadius / self.outerRadius
         # Set outer radius
         self.outerRadius = value
         # Set inner radius to maintain scale
-        self.innerRadius = value * scale
+        self.innerRadius = value * self.scale
 
     @property
     def outerRadius(self):
