@@ -18,7 +18,6 @@ class TargetStim(ColorMixin, WindowMixin):
                  colorSpace="rgb",
                  autoLog=None, autoDraw=False):
         self.win = win
-        self.units = units
         # Make sure name is a string
         if name is None:
             name = "target"
@@ -95,6 +94,18 @@ class TargetStim(ColorMixin, WindowMixin):
             value[1] / self.outer.size[1] * self.inner.size[1]
         )
 
+    @property
+    def units(self):
+        if hasattr(self, "outer"):
+            return self.outer.units
+
+    @units.setter
+    def units(self, value):
+        if hasattr(self, "outer"):
+            self.outer.units = value
+        if hasattr(self, "inner"):
+            self.inner.units = value
+
     @scale.setter
     def scale(self, newScale):
         oldScale = self.scale
@@ -154,11 +165,39 @@ class TargetStim(ColorMixin, WindowMixin):
 
     @foreColor.setter
     def foreColor(self, value):
+        ColorMixin.foreColor.fset(self, value)
         # Set whichever inner color is not None
         if self.inner.fillColor is not None:
             self.inner.fillColor = value
         if self.inner.borderColor is not None:
             self.inner.borderColor = value
+
+    @property
+    def borderColor(self):
+        return self.outer.borderColor
+
+    @borderColor.setter
+    def borderColor(self, value):
+        ColorMixin.borderColor.fset(self, value)
+        self.outer.borderColor = value
+
+    @property
+    def fillColor(self):
+        return self.outer.fillColor
+
+    @fillColor.setter
+    def fillColor(self, value):
+        ColorMixin.fillColor.fset(self, value)
+        self.outer.fillColor = value
+
+    @property
+    def opacity(self):
+        return self.outer.opacity
+
+    @opacity.setter
+    def opacity(self, value):
+        self.outer.opacity = value
+        self.inner.opacity = value
 
     def draw(self, win=None, keepMatrix=False):
         self.outer.draw(win, keepMatrix)
