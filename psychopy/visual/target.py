@@ -191,6 +191,15 @@ class TargetStim(ColorMixin, WindowMixin):
         self.outer.fillColor = value
 
     @property
+    def colorSpace(self):
+        return self.outer.colorSpace
+
+    @colorSpace.setter
+    def colorSpace(self, value):
+        self.outer.colorSpace = value
+        self.inner.colorSpace = value
+
+    @property
     def opacity(self):
         return self.outer.opacity
 
