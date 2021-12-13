@@ -1439,6 +1439,7 @@ class WindowMixin:
         """
         if value in unitTypes:
             self._units = value or self.win.units
+            self._needVertexUpdate = True
         else:
             raise ValueError(f"Invalid unit type '{value}', must be one of: {unitTypes}")
 
