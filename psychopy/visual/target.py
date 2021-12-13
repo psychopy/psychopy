@@ -106,6 +106,18 @@ class TargetStim(ColorMixin, WindowMixin):
         if hasattr(self, "inner"):
             self.inner.units = value
 
+    @property
+    def win(self):
+        return WindowMixin.win.fget(self)
+
+    @win.setter
+    def win(self, value):
+        WindowMixin.win.fset(self, value)
+        if hasattr(self, "inner"):
+            self.inner.win = value
+        if hasattr(self, "outer"):
+            self.outer.win = value
+
     @scale.setter
     def scale(self, newScale):
         oldScale = self.scale
