@@ -141,7 +141,7 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         self.boundingBox = Rect(
             win,
             units='pix', pos=(0, 0), size=(0, 0),  # set later by self.size and self.pos
-            colorSpace=colorSpace, lineColor='red', fillColor=None,
+            colorSpace=colorSpace, lineColor='blue', fillColor=None,
             lineWidth=1, opacity=int(debug),
             autoLog=False
         )
@@ -341,6 +341,10 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             # Content box should be anchored center relative to box, but its pos needs to be relative to box's vertices, not its pos
             self.contentBox.pos = self.pos + self.size * self.box._vertices.anchorAdjust
             self.contentBox._needVertexUpdate = True
+
+        # Set caret pos again so it recalculates its vertices
+        if hasattr(self, "caret"):
+            self.caret.index = self.caret.index
 
         self._needVertexUpdate = True
 

@@ -761,7 +761,6 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
             self.marker.pos = self._ratingToPos(rating)
             self.markerPos = rating
             self._updateMarkerPos = False
-        self.marker.draw()
 
     def draw(self):
         """Draw the Slider, with all its constituent elements on this frame
@@ -852,6 +851,7 @@ class Slider(MinimalStim, WindowMixin, ColorMixin):
                     self._dragging):
                 self.markerPos = self._posToRating(xy)  # updates marker
                 self._dragging = True
+            self._updateMarkerPos = True
         else:  # mouse is up - check if it *just* came up
             if self._dragging:
                 self._dragging = False
