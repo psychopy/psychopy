@@ -1,6 +1,7 @@
 from .shape import ShapeStim
 from .basevisual import ColorMixin
 from psychopy.colors import Color
+from .. import layout
 
 knownStyles = ["circles", "cross", ]
 
@@ -13,7 +14,7 @@ class TargetStim(ShapeStim):
                  win, name=None, style="circles",
                  radius=.05, fillColor=(1, 1, 1, 0.1), borderColor="white", lineWidth=2,
                  innerRadius=.01, innerFillColor="red", innerBorderColor=None, innerLineWidth=None,
-                 pos=(0, 0),  units=None,
+                 pos=(0, 0), units=None, anchor="center",
                  colorSpace="rgb",
                  autoLog=None, autoDraw=False):
         # Make sure name is a string
@@ -22,20 +23,27 @@ class TargetStim(ShapeStim):
         # Init super (creates outer circle)
         if units is None:
             units = win.units
+        # Convert radius values to size values
+        _buffer = layout.Size((0, radius * 2), units=units, win=win)
+        size = layout.Size((_buffer.pix[1], _buffer.pix[1]), units='pix', win=win)
+        _buffer = layout.Size((0, innerRadius * 2), units=units, win=win)
+        innerSize = layout.Size((_buffer.pix[1], _buffer.pix[1]), units='pix', win=win)
+        # Create shapes
         ShapeStim.__init__(self, win, name=name,
                            vertices="circle",
-                           size=(radius*2, radius*2), pos=pos,
+                           size=size, pos=pos,
                            lineWidth=lineWidth, units=units,
                            fillColor=fillColor, lineColor=borderColor, colorSpace=colorSpace,
                            autoLog=autoLog, autoDraw=autoDraw)
 
         self.inner = ShapeStim(win, name=name+"Inner",
                                vertices="circle",
-                               size=(innerRadius*2, innerRadius*2), pos=pos, units=units,
+                               size=innerSize, pos=pos, units=units,
                                lineWidth=(innerLineWidth or lineWidth),
                                fillColor=innerFillColor, lineColor=innerBorderColor, colorSpace=colorSpace,
                                autoLog=autoLog, autoDraw=autoDraw)
         self.style = style
+        self.anchor = anchor
 
     @property
     def style(self):
@@ -59,6 +67,16 @@ class TargetStim(ShapeStim):
             return self._scale
         else:
             return 1
+
+    @property
+    def anchor(self):
+        return ShapeStim.anchor.fget(self)
+
+    @anchor.setter
+    def anchor(self, value):
+        ShapeStim.anchor.fset(self, value)
+        if hasattr(self, "_vertices"):
+            self.inner.pos = self.pos + self.size * self._vertices.anchorAdjust
 
     @property
     def pos(self):
