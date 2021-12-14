@@ -483,8 +483,8 @@ class DetailsPanel(wx.Panel):
         self.localRootLabel.Enable()
         # Show sync dlg (does sync)
         dlg = sync.SyncDialog(self, self.project)
-        functions.showCommitDialog(self, self.project, initMsg="", infoStream=dlg.status)
         dlg.sync()
+        functions.showCommitDialog(self, self.project, initMsg="", infoStream=dlg.status)
         # Update last sync date
         self.syncLbl.SetLabel(f"{self.project['last_activity_at']:%d %B %Y, %I:%M%p}")
 

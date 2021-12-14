@@ -547,6 +547,7 @@ class PavloviaProject(dict):
                 self.info = requests.get(f"https://pavlovia.org/api/v2/experiments/{id}{self.session.getOauthSuffix('?')}").json()['experiment']
             if self.info is None:
                 raise LookupError(f"Could not find project with id `{id}` on Pavlovia")
+        self._newRemote = False  # False can also indicate 'unknown'
         # Store own id
         self.id = int(self.info['gitlabId'])
         # Init dict
@@ -710,6 +711,8 @@ class PavloviaProject(dict):
         # Error catch local root
         if not self.localRoot:
             raise gitlab.GitlabGetError("Can't sync project without a local root.")
+        # Reset local repo so it checks again (rather than erroring if it's been deleted without an app restart)
+        self._repo = None
         # Jot down start time
         t0 = time.time()
         # If first commit, do initial push
@@ -813,19 +816,7 @@ class PavloviaProject(dict):
         gitRoot = getGitRoot(self.localRoot)
 
         if gitRoot is None:
-            # If there's no git root, make one
-            if not any(pathlib.Path(self.localRoot).iterdir()):
-                # If folder is empty, set as None so that remote is cloned
-                self._repo = None
-            else:
-                # If there's any files, make a new repo to sync
-                self._repo = git.Repo.init(self.localRoot)
-                self.configGitLocal()
-                self.repo.create_remote('origin', url=self.project.http_url_to_repo)
-                self.repo.git.checkout(b="master")
-                self.writeGitIgnore()
-                self.stageFiles(['.gitignore'])
-                self.commit('Create repository (including .gitignore)')
+            self.newRepo()
         elif gitRoot not in [self.localRoot, str(pathlib.Path(self.localRoot).absolute())]:
             # this indicates that the requested root is inside another repo
             raise AttributeError("The requested local path for project\n\t{}\n"
@@ -900,7 +891,7 @@ class PavloviaProject(dict):
             self._newRemote = True
         else:
             # no files locally so safe to try and clone from remote
-            self.cloneRepo(infoStream=infoStream)
+            repo = self.cloneRepo(infoStream=infoStream)
             # TODO: add the further case where there are remote AND local files!
 
         return repo
@@ -948,6 +939,8 @@ class PavloviaProject(dict):
 
         self._lastKnownSync = time.time()
         self._newRemote = False
+
+        return self.repo
 
     def configGitLocal(self):
         """Set the local repo to have the correct name and email for user
