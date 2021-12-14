@@ -702,8 +702,8 @@ class ioHubConnection():
             ('RPC', 'unregisterWindowHandles', winHandles))
         return r[2]
 
-    def updateWindowPos(self, win_handle, pos):
-        r = self._sendToHubServer(('RPC', 'updateWindowPos', (win_handle, pos)))
+    def updateWindowPos(self, win, x, y):
+        r = self._sendToHubServer(('RPC', 'updateWindowPos', (win._hw_handle, (x, y))))
         return r[2]
 
     def getTime(self):
@@ -1007,6 +1007,7 @@ class ioHubConnection():
                 for w in window.openWindows:
                     winfo = windowInfoDict(w())
                     whs.append(winfo)
+                    w().backend.onMoveCallback = self.updateWindowPos
                 self.registerWindowHandles(*whs)
         except ImportError:
             pass
