@@ -239,14 +239,6 @@ class MouseComponent(BaseComponent):
         elif timeRelative in ['routine', 'mouse onset']:
             self.clockStr = '%s.mouseClock' % self.params['name'].val
 
-        # only write code for cases where we are storing data as we go (each
-        # frame or each click)
-
-        # might not be saving clicks, but want it to force end of trial
-        if (self.params['saveMouseState'].val not in
-                ['every frame', 'on click'] and forceEnd == 'never'):
-            return
-
         buff.writeIndented("# *%s* updates\n" % self.params['name'])
 
         # writes an if statement to determine whether to draw etc
@@ -275,6 +267,14 @@ class MouseComponent(BaseComponent):
             buff.writeIndented("%(name)s.status = FINISHED\n" % self.params)
             # to get out of the if statement
             buff.setIndentLevel(-2, relative=True)
+
+        # only write code for cases where we are storing data as we go (each
+        # frame or each click)
+
+        # might not be saving clicks, but want it to force end of trial
+        if (self.params['saveMouseState'].val not in
+                ['every frame', 'on click'] and forceEnd == 'never'):
+            return
 
         # if STARTED and not FINISHED!
         code = ("if %(name)s.status == STARTED:  "

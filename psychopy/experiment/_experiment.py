@@ -49,6 +49,52 @@ RequiredImport = namedtuple('RequiredImport',
                                          'importAs'))
 
 
+# Some params have previously had types which cause errors compiling in new versions, so we need to keep track of them and force them to the new type if needed
+forceType = {
+    'pos': 'list',
+    'size': 'list',
+    ('KeyboardComponent', 'allowedKeys'): 'list',
+    ('cedrusButtonBoxComponent', 'allowedKeys'): 'list',
+    ('DotsComponent', 'fieldPos'): 'list',
+    ('JoyButtonsComponent', 'allowedKeys'): 'list',
+    ('JoyButtonsComponent', 'correctAns'): 'list',
+    ('JoystickComponent', 'clickable'): 'list',
+    ('JoystickComponent', 'saveParamsClickable'): 'list',
+    ('JoystickComponent', 'allowedButtons'): 'list',
+    ('MicrophoneComponent', 'transcribeWords'): 'list',
+    ('MouseComponent', 'clickable'): 'list',
+    ('MouseComponent', 'saveParamsClickable'): 'list',
+    ('NoiseStimComponent', 'noiseElementSize'): 'list',
+    ('PatchComponent', 'sf'): 'list',
+    ('RatingScaleComponent', 'categoryChoices'): 'list',
+    ('RatingScaleComponent', 'labels'): 'list',
+    ('RegionOfInterestComponent', 'vertices'): 'list',
+    ('SettingsComponent', 'Window size (pixels)'): 'list',
+    ('SettingsComponent', 'Resources'): 'list',
+    ('SettingsComponent', 'mgBlink'): 'list',
+    ('SliderComponent', 'ticks'): 'list',
+    ('SliderComponent', 'labels'): 'list',
+    ('SliderComponent', 'styleTweaks'): 'list'
+}
+
+# # Code to generate force list
+# comps = experiment.components.getAllComponents()
+# exp = experiment._experiment.Experiment()
+# rt = experiment.routines.Routine("routine", exp)
+# exp.addRoutine("routine", rt)
+#
+# forceType = {
+#     'pos': 'list',
+#     'size': 'list',
+#     'vertices': 'list',
+# }
+# for Comp in comps.values():
+#     comp = Comp(exp=exp, parentName="routine")
+#     for key, param in comp.params.items():
+#         if param.valType == 'list' and key not in forceType:
+#             forceType[(Comp.__name__, key)] = 'list'
+
+
 class Experiment:
     """
     An experiment contains a single Flow and at least one
@@ -735,6 +781,20 @@ class Experiment:
         if duplicateNames:
             msg = 'duplicate variable names: %s'
             logging.warning(msg % ', '.join(list(set(duplicateNames))))
+        # Modernise params
+        for rt in self.routines.values():
+            if not isinstance(rt, list):
+                # Treat standalone routines as a routine with one component
+                rt = [rt]
+            for comp in rt:
+                # For each param, if it's pointed to in the forceType array, set it to the new valType
+                for paramName, param in comp.params.items():
+                    # Param pointed to by name
+                    if paramName in forceType:
+                        param.valType = forceType[paramName]
+                    if (type(comp).__name__, paramName) in forceType:
+                        param.valType = forceType[(type(comp).__name__, paramName)]
+
         # if we succeeded then save current filename to self
         self.filename = filename
 
@@ -805,7 +865,7 @@ class Experiment:
             else:
                 thisFile['rel'] = filePath
                 thisFile['abs'] = os.path.normpath(join(srcRoot, filePath))
-                if os.path.isfile(thisFile['abs']):
+                if len(thisFile['abs']) <= 256 and os.path.isfile(thisFile['abs']):
                     return thisFile
 
         def findPathsInFile(filePath):

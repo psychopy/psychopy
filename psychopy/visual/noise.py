@@ -232,7 +232,7 @@ class NoiseStim(GratingStim):
         self.local = numpy.ones((texRes, texRes), dtype=numpy.ubyte)
         self.local_p = self.local.ctypes
         self._sideLength=1.0   
-        self._size=512         # in unlikely case where it does not get set anywhere else before use.
+        self._mysize=512         # in unlikely case where it does not get set anywhere else before use.
         self.buildNoise()
         self._needBuild = False
 
@@ -487,7 +487,7 @@ class NoiseStim(GratingStim):
         """ Helper function to apply Butterworth filter in 
             frequensy domain.
         """
-        filterSize = numpy.max(self._size)
+        filterSize = numpy.max(self._mysize)
         pin=filters.makeRadialMatrix(matrixSize=filterSize, center=(0,0), radius=1.0)
         pin[int(filterSize / 2)][int(filterSize / 2)] = 0.00000001  # Prevents divide by zero error. This is DC and is set to zero later anyway.
         FT = numpy.multiply(FT,(pin) ** self.noiseFractalPower)
@@ -522,17 +522,17 @@ class NoiseStim(GratingStim):
         """ Helper function to apply isotropic filter in 
             frequensy domain.
         """
-        if self._sf > self._size / 2:
+        if self._sf > self._mysize / 2:
             msg = ('Base frequency for isotropic '
                   'noise is  too high (exceeds Nyquist limit).')
             raise Warning(msg)
-        localf = self._sf / self._size
+        localf = self._sf / self._mysize
         linbw = 2 ** self.noiseBW
         lowf = 2.0 * localf / (linbw+1.0)
         highf = linbw * lowf
         FWF = highf - lowf
         sigmaF = FWF / (2*numpy.sqrt(2*numpy.log(2)))
-        pin = filters.makeRadialMatrix(matrixSize=self._size, center=(0,0), radius=2)
+        pin = filters.makeRadialMatrix(matrixSize=self._mysize, center=(0,0), radius=2)
         filter = filters.makeGauss(pin, mean=localf, sd=sigmaF)
         return FT*filter
         
@@ -540,11 +540,11 @@ class NoiseStim(GratingStim):
         """ Helper function to apply Gabor filter in 
             frequensy domain.
         """
-        if self._sf > self._size / 2:
+        if self._sf > self._mysize / 2:
             msg = ('Base frequency for Gabor '
                   'noise is  too high (exceeds Nyquist limit).')
             raise Warning(msg)
-        localf = self._sf / self._size
+        localf = self._sf / self._mysize
         linbw = 2 ** self.noiseBW
         lowf = 2.0 * localf / (linbw + 1.0)
         highf = linbw * lowf
@@ -552,9 +552,9 @@ class NoiseStim(GratingStim):
         sigmaF = FWF/(2*numpy.sqrt(2*numpy.log(2)))
         FWO = 2.0*localf*numpy.tan(numpy.pi*self.noiseBWO/360.0)
         sigmaO = FWO/(2*numpy.sqrt(2*numpy.log(2)))
-        yy, xx = numpy.mgrid[0:self._size, 0:self._size]
-        xx = (0.5 - 1.0 / self._size * xx) 
-        yy = (0.5 - 1.0 / self._size * yy) 
+        yy, xx = numpy.mgrid[0:self._mysize, 0:self._mysize]
+        xx = (0.5 - 1.0 / self._mysize * xx)
+        yy = (0.5 - 1.0 / self._mysize * yy)
         filter=filters.make2DGauss(xx,yy,mean=(localf,0), sd=(sigmaF,sigmaO))
         filter=filter+filters.make2DGauss(xx,yy, mean=(-localf,0), sd=(sigmaF,sigmaO))
         filter = numpy.array(
@@ -572,8 +572,8 @@ class NoiseStim(GratingStim):
 
         if not(self.noiseType in ['binary','Binary','normal','Normal','uniform','Uniform']):
             if (self.noiseType in ['image', 'Image']) and (self.imageComponent in ['amplitude','Amplitude']):
-                self.noiseTex = numpy.random.uniform(0,1,int(self._size**2))
-                self.noiseTex = numpy.reshape(self.noiseTex,(int(self._size),int(self._size)))
+                self.noiseTex = numpy.random.uniform(0,1,int(self._mysize**2))
+                self.noiseTex = numpy.reshape(self.noiseTex,(int(self._mysize),int(self._mysize)))
                 if self.filter in ['Butterworth','butterworth']:
                     self.noiseTex = fftshift(self._filter(self.noiseTex))
                 elif self.filter in ['Gabor','gabor']:
@@ -584,8 +584,8 @@ class NoiseStim(GratingStim):
                 In = self.noiseTex * exp(1j*self.noisePh)
                 Im = numpy.real(ifft2(In))
             else:
-                Ph = numpy.random.uniform(0,2*numpy.pi,int(self._size**2))
-                Ph = numpy.reshape(Ph,(int(self._size),int(self._size)))
+                Ph = numpy.random.uniform(0,2*numpy.pi,int(self._mysize**2))
+                Ph = numpy.reshape(Ph,(int(self._mysize),int(self._mysize)))
                 In = self.noiseTex * exp(1j*Ph)
                 Im = numpy.real(ifft2(In))
                 Im = ifftshift(Im)
@@ -603,10 +603,10 @@ class NoiseStim(GratingStim):
         if self.noiseType in ['binary','Binary','normal','Normal','uniform','Uniform']:
             if self.filter in ['butterworth', 'Butterworth', 'Gabor','gabor','Isotropic','isotropic']:
                 if self.units == 'pix':
-                    if self._size[0] == self._size[1]:
+                    if self._mysize[0] == self._mysize[1]:
                         baseImage = numpy.array(
                                 Image.fromarray(self.noiseTex).resize(
-                                        (int(self._size[0]), int(self._size[1])),
+                                        (int(self._mysize[0]), int(self._mysize[1])),
                                         Image.NEAREST
                                 )
                         )
@@ -616,7 +616,7 @@ class NoiseStim(GratingStim):
                 else:
                     baseImage = numpy.array(
                             Image.fromarray(self.noiseTex).resize(
-                                    (int(self._size), int(self._size)),
+                                    (int(self._mysize), int(self._mysize)),
                                     Image.NEAREST
                             )
                     )
@@ -666,7 +666,7 @@ class NoiseStim(GratingStim):
             lowsf = self.size[0]*self.noiseFilterLower
             upsf = self.size[0]*self.noiseFilterUpper
        
-        self._size = mysize  # store for use by updateNoise()
+        self._mysize = mysize  # store for use by updateNoise()
         self._sf = mysf
         self._lowsf = lowsf
         self._upsf = upsf
@@ -689,7 +689,7 @@ class NoiseStim(GratingStim):
                 im = Image.open(self.noiseImage)
                 im = im.transpose(Image.FLIP_TOP_BOTTOM)
                 im = im.convert("L")  # FORCE TO LUMINANCE
-                im = im.resize((int(self._size),int(self._size)),
+                im = im.resize((int(self._mysize),int(self._mysize)),
                                Image.BILINEAR)
                 intensity = numpy.array(im).astype(
                         numpy.float32) * 0.0078431372549019607 - 1.0
@@ -697,8 +697,8 @@ class NoiseStim(GratingStim):
                     self.noiseTex = numpy.absolute(fftshift(fft2(intensity))) # fftshift here is undone later
                 elif self.imageComponent in ['amplitude', 'Amplitude']:
                     self.noisePh = numpy.angle((fft2(intensity))) # fftshift here is undone later
-                    self.noiseTex = numpy.random.uniform(0,1,int(self._size**2))
-                    self.noiseTex = numpy.reshape(self.noiseTex,(int(self._size),int(self._size)))
+                    self.noiseTex = numpy.random.uniform(0,1,int(self._mysize**2))
+                    self.noiseTex = numpy.reshape(self.noiseTex,(int(self._mysize),int(self._mysize)))
                 else:
                     raise ValueError("Unknown value for imageComponent in noiseStim")
             else:

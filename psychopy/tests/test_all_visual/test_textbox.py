@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from psychopy import visual, event
+from psychopy import visual, event, layout
 from psychopy.alerts._errorHandler import _BaseErrorHandler
 from psychopy.tests.test_all_visual.test_basevisual import _TestColorMixin
 from psychopy.visual import Window
@@ -16,9 +16,9 @@ from psychopy.tests import utils
 @pytest.mark.textbox
 class Test_textbox(_TestColorMixin):
     def setup_class(self):
-        self.win = Window([128,128], pos=[50,50], allowGUI=False, autoLog=False)
+        self.win = Window([128,128], pos=[50,50], monitor="testMonitor", allowGUI=False, autoLog=False)
         self.error = _BaseErrorHandler()
-        self.textbox = TextBox2(self.win, "", "Noto Sans",
+        self.textbox = TextBox2(self.win, "", "Noto Sans", alignment="top left", lineSpacing=1,
                                 pos=(0, 0), size=(1, 1), units='height',
                                 letterHeight=0.1, colorSpace="rgb")
         self.obj = self.textbox  # point to textbox for mixin tests
@@ -235,9 +235,51 @@ class Test_textbox(_TestColorMixin):
         # Cleanup
         del textbox2
 
-    def test_something(self):
-        # to-do: test visual display, char position, etc
-        pass
+    def test_alignment(self):
+        # Define classic use cases
+        exemplars = [
+            "top left",
+            "top center",
+            "top right",
+            "center left",
+            "center center",
+            "center right",
+            "bottom left",
+            "bottom center",
+            "bottom right",
+        ]
+        # Some potentially problematic use cases which should be handled
+        tykes = [
+            "center",
+            "centre",
+            "centre centre",
+            "someword",
+            "more than two words",
+        ]
+        # Get intial textbox params
+        initParams = {}
+        for param in ["units", "fillColor", "color", "padding", "letterHeight",  "alignment", "text"]:
+            initParams[param] = getattr(self.textbox, param)
+        # Test
+        for case in exemplars + tykes:
+            for units in layout.unitTypes:
+                # Setup textbox
+                self.textbox.text = "A PsychoPy zealot knows a smidge of wx but JavaScript is the question."
+                self.textbox.fillColor = "white"
+                self.textbox.color = "black"
+                self.textbox.padding = 0
+                self.textbox.letterHeight = layout.Size((0, 10), units="pix", win=self.win)
+                # Set test attributes
+                self.textbox.units = units
+                self.textbox.alignment = case
+                # Draw and compare
+                self.textbox.draw()
+                #self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / f"textbox_{self.textbox._lineBreaking}_align_{case.replace(' ', '_')}.png")
+                utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / f"textbox_{self.textbox._lineBreaking}_align_{case.replace(' ', '_')}.png", self.win, crit=20)
+                self.win.flip()
+        # Reset initial params
+        for param, value in initParams.items():
+            setattr(self.textbox, param, value)
             
     def test_alerts(self):
         noFontTextbox = TextBox2(self.win, "", font="Raleway Dots", bold=True)

@@ -75,7 +75,7 @@ A public experiment is visible to anyone to clone and fork. To make your experim
 
 Adding a team member
 ~~~~~~~~~~~~~~~~~~~~
-If you'd like to share your experiment only with specific researchers, navigate to your experiment, then select > View code <> > settings > Members. At this page: select a member, give them a role (to be able to fork your experiment, they should at least be Developer), optionally an access experation date, and then add them. See :numref:`addingUserToGitlab`.
+If you'd like to share your experiment only with specific researchers, navigate to your experiment, then select > View code <> > settings > Members. At this page: select a member, give them a role (to be able to fork your experiment, they should at least be Developer), optionally an access expiration date, and then add them. See :numref:`addingUserToGitlab`.
 
 .. figure:: /images/addingUserToGitlab.png
     :name: addingUserToGitlab

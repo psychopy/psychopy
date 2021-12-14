@@ -29,65 +29,31 @@ def launchHubServer(**kwargs):
     To customize how the ioHub Server is initialized when started, use
     one or more of the following keyword arguments when calling the function:
 
-    +---------------------+-----------------+---------------+-----------------+
-    | kwarg Name          | Value Type      | Description                     |
-    +=====================+=================+===============+=================+
-    | experiment_code     | str, <= 256 char | If experiment_code is provided, |
-    |                     |                 | an ioHub HDF5 file will be      |
-    |                     |                 | created for the session.        |
-    +---------------------+-----------------+---------------+-----------------+
-    | session_code        | str, <= 256 char | When specified, used as the name|
-    |                     |                 | of the ioHub HDF5 file created  |
-    |                     |                 | for the session.                |
-    +---------------------+-----------------+---------------+-----------------+
-    | experiment_info     | dict            | Can be used to save the         |
-    |                     |                 | following experiment metadata   |
-    |                     |                 | fields:                         |
-    +---------------------+-----------------+---------------+-----------------+
-    |                                       | - code:         str, <= 256 char |
-    |                                       | - title:        str, <= 256 char |
-    |                                       | - description:  str, <= 4096 char |
-    |                                       | - version:      str, <= 32 char  |
-    +---------------------+-----------------+---------------+-----------------+
-    | session_info        | dict            | Can be used to save the         |
-    |                     |                 | following session metadata      |
-    |                     |                 | fields:                         |
-    +---------------------+-----------------+---------------+-----------------+
-    |                                       | - code:         str, <= 256 char |
-    |                                       | - name:         str, <= 256 char |
-    |                                       | - comments:     str, < 4096 char |
-    |                                       | - user_variables:          dict |
-    +---------------------+-----------------+---------------+-----------------+
-    | datastore_name      | str             | Used to provide an ioHub HDF5   |
-    |                     |                 | file name different than the    |
-    |                     |                 | session_code.                   |
-    +---------------------+-----------------+---------------+-----------------+
-    | window              | psychopy.visual | The psychoPy experiment window  |
-    |                     | .Window         | being used. Information like    |
-    |                     |                 | display size, viewing distance, |
-    |                     |                 | coord / color type is used to   |
-    |                     |                 | update the ioHub Display device.|
-    +---------------------+-----------------+---------------+-----------------+
-    | psychopy_monitor    | str             | Provides the path of a          |
-    | (Deprecated)        |                 | PsychoPy Monitor Center config  |
-    |                     |                 | file. Information like display  |
-    |                     |                 | size is read and used to update |
-    |                     |                 | the ioHub Display Device config.|
-    +---------------------+-----------------+---------------+-----------------+
-    | iohub_config_name   | str             | Specifies the name of the       |
-    |                     |                 | iohub_config.yaml file that     |
-    |                     |                 | contains the ioHub Device       |
-    |                     |                 | list to be used by the ioHub    |
-    |                     |                 | Server. i.e. the 'device_list'  |
-    |                     |                 | section of the yaml file.       |
-    +---------------------+-----------------+---------------+-----------------+
-    | iohub.device.path   | dict            | Add an ioHub Device by using the|
-    |                     |                 | device class path as the key,   |
-    | Multiple Device's   |                 | and the device's configuration  |
-    | can be specified    |                 | in a dict value.                |
-    | using separate      |                 |                                 |
-    | kwarg entries.      |                 |                                 |
-    +---------------------+-----------------+---------------+-----------------+
+    Parameters
+    -----------
+    experiment_code : str, <= 256 char
+        If experiment_code is provided, an ioHub HDF5 file will be created for the session.
+    session_code : str, <= 256 char
+        When specified, used as the name of the ioHub HDF5 file created for the session.
+    experiment_info : dict
+        Can be used to save the following experiment metadata fields:
+        code (<=256 chars), title (<=256 chars), description (<=4096 chars), version (<=32 chars)
+    session_info : dict
+        Can be used to save the following session metadata fields:
+        code (<=256 chars), name (<=256 chars), comments (<=4096 chars), user_variables (dict)
+    datastore_name : str
+        Used to provide an ioHub HDF5 file name different than the session_code.
+    window : :class:`psychopy.visual.Window`
+        The psychoPy experiment window being used. Information like display size, viewing distance,
+        coord / color type is used to update the ioHub Display device.
+    iohub_config_name : str
+        Specifies the name of the iohub_config.yaml file that contains the ioHub Device
+        list to be used by the ioHub Server. i.e. the 'device_list' section of the yaml file.
+    iohub.device.path : str
+        Add an ioHub Device by using the device class path as the key, and the device's configuration
+        in a dict value.
+    psychopy_monitor : (deprecated)
+        The path to a Monitor Center config file
 
     Examples:
 

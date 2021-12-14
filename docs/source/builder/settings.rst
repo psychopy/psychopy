@@ -100,7 +100,7 @@ Data filename:
         '$os.path.relpath(os.path.join(os.path.expanduser('~'), 'dropbox', 'data', expName, expInfo['participant'] + '-' + expInfo['date']))
 
 Data file delimiter
-    What delimiter should your data file use to seperate the columns
+    What delimiter should your data file use to separate the columns
 
 Save Excel file
 	If this box is checked an Excel data file (.xlsx) will be stored.

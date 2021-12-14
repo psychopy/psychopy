@@ -109,6 +109,142 @@ class Test_Form(_TestColorMixin):
         self.survey = Form(self.win, items=self.fileName_xlsx,
                            size=(1.0, 0.3), pos=(0.0, 0.0), randomize=False, autoLog=False)
 
+    def test_combinations(self):
+        """
+        Test that question options interact well
+        """
+        types = ['heading', 'description', 'rating', 'slider', 'free text', 'choice', 'radio']
+        # Define sets of each option
+        exemplars = {
+            'bigResp': [  # Resp is bigger than item
+                {
+                    'index': 1,
+                    'itemText': "A PsychoPy zealot knows a smidge of wx but JavaScript is the question",
+                    'options': [1, "a", "multiple word"],
+                    'ticks': [1, 2, 3],
+                    'layout': 'vert',
+                    'itemColor': 'darkslateblue',
+                    'itemWidth': 0.3,
+                    'responseColor': 'darkred',
+                    'responseWidth': 0.7,
+                    'font': 'Open Sans',
+                },
+                {
+                    'index': 0,
+                    'itemText': "A PsychoPy zealot knows a smidge of wx but JavaScript is the question",
+                    'options': [1, "a", "multiple word"],
+                    'ticks': [1, 2, 3],
+                    'layout': 'horiz',
+                    'itemColor': 'darkred',
+                    'itemWidth': 0.3,
+                    'responseColor': 'darkslateblue',
+                    'responseWidth': 0.7,
+                    'font': 'Open Sans',
+                },
+            ],
+            'bigItem': [  # Item is bigger than resp
+                {
+                    'index': 1,
+                    'itemText': "A PsychoPy zealot knows a smidge of wx but JavaScript is the question",
+                    'options': [1, "a", "multiple word"],
+                    'ticks': [1, 2, 3],
+                    'layout': 'vert',
+                    'itemColor': 'darkslateblue',
+                    'itemWidth': 0.7,
+                    'responseColor': 'darkred',
+                    'responseWidth': 0.3,
+                    'font': 'Open Sans',
+                },
+                {
+                    'index': 0,
+                    'itemText': "A PsychoPy zealot knows a smidge of wx but JavaScript is the question",
+                    'options': [1, "a", "multiple word"],
+                    'ticks': [1, 2, 3],
+                    'layout': 'horiz',
+                    'itemColor': 'darkred',
+                    'itemWidth': 0.7,
+                    'responseColor': 'darkslateblue',
+                    'responseWidth': 0.3,
+                    'font': 'Open Sans',
+                },
+            ],
+        }
+        tykes = {
+            'bigRespOverflow': [  # Resp is bigger than item, both together flow over form edge
+                {
+                    'index': 1,
+                    'itemText': "A PsychoPy zealot knows a smidge of wx but JavaScript is the question",
+                    'options': [1, "a", "multiple word"],
+                    'ticks': [1, 2, 3],
+                    'layout': 'vert',
+                    'itemColor': 'darkslateblue',
+                    'itemWidth': 0.4,
+                    'responseColor': 'darkred',
+                    'responseWidth': 0.8,
+                    'font': 'Open Sans',
+                },
+                {
+                    'index': 0,
+                    'itemText': "A PsychoPy zealot knows a smidge of wx but JavaScript is the question",
+                    'options': [1, "a", "multiple word"],
+                    'ticks': [1, 2, 3],
+                    'layout': 'horiz',
+                    'itemColor': 'darkred',
+                    'itemWidth': 0.4,
+                    'responseColor': 'darkslateblue',
+                    'responseWidth': 0.8,
+                    'font': 'Open Sans',
+                },
+            ],
+            'bigItemOverflow': [  # Item is bigger than resp, both together flow over form edge
+                {
+                    'index': 1,
+                    'itemText': "A PsychoPy zealot knows a smidge of wx but JavaScript is the question",
+                    'options': [1, "a", "multiple word"],
+                    'ticks': [1, 2, 3],
+                    'layout': 'vert',
+                    'itemColor': 'darkslateblue',
+                    'itemWidth': 0.8,
+                    'responseColor': 'darkred',
+                    'responseWidth': 0.4,
+                    'font': 'Open Sans',
+                },
+                {
+                    'index': 0,
+                    'itemText': "A PsychoPy zealot knows a smidge of wx but JavaScript is the question",
+                    'options': [1, "a", "multiple word"],
+                    'ticks': [1, 2, 3],
+                    'layout': 'horiz',
+                    'itemColor': 'darkred',
+                    'itemWidth': 0.8,
+                    'responseColor': 'darkslateblue',
+                    'responseWidth': 0.4,
+                    'font': 'Open Sans',
+                },
+            ],
+        }
+        cases = exemplars.copy()
+        cases.update(tykes)
+        # Test every case
+        self.win.flip()
+        for name, case in cases.items():
+            # Test it for each type
+            for thisType in types:
+                # Set type
+                for i, q in enumerate(case):
+                    case[i]['type'] = thisType
+                # Make form
+                survey = Form(self.win, units="height", size=(1, 1), fillColor="white", items=case)
+                survey.draw()
+                # Get name of answer file
+                filename = f"test_form_combinations_{thisType}_{name}.png"
+                # Do comparison
+                #self.win.getMovieFrame(buffer='back').save(Path(utils.TESTS_DATA_PATH) / filename)
+                utils.compareScreenshot(Path(utils.TESTS_DATA_PATH) / filename, self.win, crit=20)
+                self.win.flip()
+
+
+
     def test_set_scroll_speed(self):
         items = 2
         for multipliers in [1,2,3,4]:

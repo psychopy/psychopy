@@ -89,12 +89,11 @@ class RadialStim(GratingStim):
         self._initParams = dir()
         self._initParams.remove('self')
 
-        super(RadialStim, self).__init__(win, units=units, name=name,
+        super(RadialStim, self).__init__(win, units=units, name=name, size=size,
                                          autoLog=False)  # start off false
 
         # UGLY HACK again. (See same section in GratingStim for ideas)
         self.__dict__['contrast'] = 1
-        self.__dict__['size'] = 1
         self.__dict__['sf'] = 1
         self.__dict__['tex'] = tex
 
@@ -116,16 +115,16 @@ class RadialStim(GratingStim):
         self.colorSpace = colorSpace
         if rgb != None:
             logging.warning("Use of rgb arguments to stimuli are deprecated."
-                            " Please use color and colorSpace args instead")
-            self.color = Color(rgb, colorSpace='rgb')
+                            " Please use color and colorSpace args instead.")
+            self.color = Color(rgb, space='rgb')
         elif dkl != None:
-            logging.warning("Use of dkl arguments to stimuli are deprecated. "
-                            "Please use color and colorSpace args instead")
-            self.color = Color(dkl, colorSpace='dkl')
+            logging.warning("Use of dkl arguments to stimuli are deprecated."
+                            " Please use color and colorSpace args instead.")
+            self.color = Color(dkl, space='dkl')
         elif lms != None:
             logging.warning("Use of lms arguments to stimuli are deprecated."
-                            " Please use color and colorSpace args instead")
-            self.color = Color(lms, colorSpace='lms')
+                            " Please use color and colorSpace args instead.")
+            self.color = Color(lms, space='lms')
         else:
             self.color = color
 
@@ -139,7 +138,7 @@ class RadialStim(GratingStim):
         self.pos = numpy.array(pos, float)
         self.depth = depth
         self.__dict__['sf'] = 1
-        self.size = val2array(size, False)
+        self.size = size
 
         self.tex = tex
         self.mask = mask
@@ -176,11 +175,11 @@ class RadialStim(GratingStim):
         res = self.texRes  # resolution of texture - 128 is bearable
         step = 1.0/res
         rad = numpy.arange(0, 1 + step, step)
-        if type(self.mask) == numpy.ndarray:
+        if isinstance(self.mask, numpy.ndarray):
             # handle a numpy array
             intensity = 255 * self.mask.astype(float)
             res = len(intensity)
-        elif type(self.mask) == list:
+        elif isinstance(self.mask, list):
             # handle a numpy array
             intensity = 255 * numpy.array(self.mask, float)
             res = len(intensity)
@@ -214,10 +213,9 @@ class RadialStim(GratingStim):
             res = im.size[0]
             im = im.convert("L")  # force to intensity (in case it was rgb)
             intensity = numpy.asarray(im)
-            fromFile = 1
 
         data = intensity.astype(numpy.uint8)
-        mask = data.tostring()  # serialise
+        mask = data.tobytes()  # serialise
 
         # do the openGL binding
         if self.interpolate:
@@ -338,7 +336,6 @@ class RadialStim(GratingStim):
         edge2 = (self._angles + self._triangleWidth) * (180/pi) > visW[1]
         self._visible[edge2] = False
         self._nVisible = numpy.sum(self._visible) * 3
-
         self._updateTextureCoords()
         self._updateMaskCoords()
         self._updateVerticesBase()
@@ -455,6 +452,7 @@ class RadialStim(GratingStim):
         vertsBase /= 2.0  # size should be 1.0, so radius should be 0.5
         vertsBase = vertsBase[self._visible, :, :]
         self._verticesBase = vertsBase.reshape(self._nVisible, 2)
+        self.vertices = self._verticesBase
 
     def _updateTextureCoords(self):
         """calculate texture coordinates if angularCycles or Phase change

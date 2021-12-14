@@ -10,8 +10,8 @@ See http://www.cedrus.com/
 
 DEPRECATED:
 This sub-package is out of date. Please use the cedrus-written
-pyxid package instead (bundled with Standalone PsychoPy)::
-    import pyxid
+pyxid2 package instead (bundled with Standalone PsychoPy)::
+    import pyxid2
 
 ----------
 """

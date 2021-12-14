@@ -15,6 +15,9 @@
 # up by the pyglet GL engine and have no effect.
 # Shaders will work but require OpenGL2.0 drivers AND PyOpenGL3.0+
 import pyglet
+
+from psychopy.layout import Size
+
 pyglet.options['debug_gl'] = False
 import ctypes
 GL = pyglet.gl
@@ -80,11 +83,12 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
         self._imName = image
         self.isLumImage = None
         self.interpolate = interpolate
+        self.vertices = None
         self.flipHoriz = flipHoriz
         self.flipVert = flipVert
         self._requestedSize = size
         self._origSize = None  # updated if an image texture gets loaded
-        self.size = val2array(size)
+        self.size = size
         self.pos = numpy.array(pos, float)
         self.ori = float(ori)
         self.depth = depth
@@ -255,6 +259,14 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
     @attributeSetter
     def image(self, value):
         """The image file to be presented (most formats supported).
+	   
+	This can be a path-like object to an image file, or a numpy
+	array of shape [H, W, C] where C are channels. The third dim
+	will usually have length 1 (defining an intensity-only image), 3
+	(defining an RGB image) or 4 (defining an RGBA image).
+	
+	If passing a numpy array to the image attribute,
+	the size attribute of ImageStim must be set explicitly.
         """
         self.__dict__['image'] = self._imName = value
         # If given a color array, get it in rgb1
@@ -278,7 +290,7 @@ class ImageStim(BaseVisualStim, ContainerMixin, ColorMixin, TextureMixin):
                                                   wrapping=False)
         # if user requested size=None then update the size for new stim here
         if hasattr(self, '_requestedSize') and self._requestedSize is None:
-            self.size = None  # set size to default
+            self.size = Size(numpy.array(self._origSize), units='pix', win=self.win)  # set size to default
         # if we switched to/from lum image then need to update shader rule
         if wasLumImage != self.isLumImage:
             self._needUpdate = True

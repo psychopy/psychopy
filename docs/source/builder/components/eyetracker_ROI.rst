@@ -5,7 +5,7 @@ Eye Tracker Region of Interest Component
 
 Please note: This is a new component, and is subject to change.
 
-Record eye movement events occuring within a defined Regio of Interest (ROI). Note that you will still need to add an
+Record eye movement events occurring within a defined Region of Interest (ROI). Note that you will still need to add an
 Eyetracker Record component to this routine to save eye movement data.
 
 Parameters

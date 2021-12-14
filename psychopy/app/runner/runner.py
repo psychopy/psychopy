@@ -136,7 +136,7 @@ class RunnerFrame(wx.Frame, ThemeMixin):
              'label': _translate('Save list')+'\t%s'%keys['save'],
              'status': _translate('Saving task'),
              'func': self.saveTaskList},
-            {'id': wx.ID_COPY, 'label': _translate('Open list')+'\tCtrl-O',
+            {'id': wx.ID_OPEN, 'label': _translate('Open list')+'\tCtrl-O',
              'status': _translate('Loading task'),
              'func': self.loadTaskList},
             {'id': wx.ID_CLOSE_FRAME, 'label': _translate('Close')+'\tCtrl-W',
@@ -683,7 +683,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
         if self.currentSelection:
             self.runBtn.Enable()
 
-    def runLocal(self, evt):
+    def runLocal(self, evt, focusOnExit='runner'):
         """Run experiment from new process using inherited ScriptProcess class methods."""
         if self.currentSelection is None:
             return
@@ -692,7 +692,7 @@ class RunnerPanel(wx.Panel, ScriptProcess, ThemeMixin):
         if self.currentFile.suffix == '.psyexp':
             generateScript(experimentPath=currentFile.replace('.psyexp', '_lastrun.py'),
                            exp=self.loadExperiment())
-        self.runFile(fileName=currentFile)
+        self.runFile(fileName=currentFile, focusOnExit=focusOnExit)
 
         # Enable/Disable btns
         self.runBtn.Disable()

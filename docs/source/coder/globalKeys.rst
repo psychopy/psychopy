@@ -252,7 +252,7 @@ We can now check if a global shutdown key has been automatically created.
 
 And indeed, it worked!
 
-What happened behind the scences? When importing the `psychopy.event`
+What happened behind the scenes? When importing the `psychopy.event`
 module, the initialization of `event.globalKeys` checked for valid shutdown key
 preferences and automatically initialized a shutdown key accordingly.
 This key is associated with the :func:~`psychopy.core.quit` function, which will

@@ -36,11 +36,25 @@ jobs:
     - name: Install PsychoPy and dependencies
       run: |
         # for pocketsphinx we need this adapted package:
-        brew install swig
+        brew install swig vlc
         brew install openal-soft
         pip install git+https://github.com/Im-Fran/pocketsphinx-python
         # then use the standard requirements:
         pip install .
+
+#    - name: test docs to pdf
+#      run: |
+#        pip install sphinx sphinxcontrib-napoleon
+#        brew install basictex  # or mactex
+#        # update path after brew install
+#        eval "$(/usr/libexec/path_helper)"
+#        sudo tlmgr update --self
+#        sudo tlmgr install latexmk
+#        sudo tlmgr install collection-fontsrecommended
+#        sudo tlmgr install collection-fontsextra
+#        cd docs
+#        make latexpdf
+#        cd ..
 
 #    - name: Lint with flake8
 #      run: |
@@ -90,6 +104,18 @@ jobs:
       uses: codecov/codecov-action@v1
       with:
         fail_ci_if_error: false
+
+#    - name: test docs to pdf
+#      run: |
+#          pip install sphinx sphinxcontrib-napoleon
+#          brew install basictex
+#          # update path after brew install
+#          eval "$(/usr/libexec/path_helper)"
+#          # go to the folder and make
+#          cd docs
+#          make latexpdf
+#          cd ..
+
 
 #    - name: Check bdist/sdist
 #      # checks whether different forms of build work (e.g. missing files in sdist)
@@ -215,3 +241,14 @@ jobs:
       uses: codecov/codecov-action@v1
       with:
         fail_ci_if_error: false
+
+#    - name: test docs to pdf
+#      run: |
+#        sudo apt-get install -y python3-sphinx
+#        which sphinx-build
+#        which python
+#        python -c "import psychopy; psychopy"
+#        #        sudo apt-get install -y latexmk xindy texlive-latex-recommended texlive-xetex texlive-latex-extra texlive-fonts-recommended texlive-fonts-extra
+#        #        cd docs
+#        #        make latexpdf
+#        #        cd ..

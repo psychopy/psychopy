@@ -113,7 +113,7 @@ class EnvGratingComponent(BaseVisualComponent):
             "etc. For most cases a value of 256 pixels will suffice")
         self.params['texture resolution'] = Param(
             texRes,
-            valType='num', inputType="choice", allowedVals=['32', '64', '128', '256', '512'], categ="Carrier",
+            valType='code', inputType="choice", allowedVals=['32', '64', '128', '256', '512'], categ="Carrier",
             updates='constant', allowedUpdates=[],
             hint=msg,
             label=_localized['texture resolution'])
