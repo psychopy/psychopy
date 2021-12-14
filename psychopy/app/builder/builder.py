@@ -1208,22 +1208,27 @@ class BuilderFrame(wx.Frame, ThemeMixin):
                                  caption=_translate('Paste Routine'))
         if dlg.ShowModal() == wx.ID_OK:
             routineName = dlg.GetValue()
-            newRoutine = copy.deepcopy(self.app.copiedRoutine)
             if not routineName:
                 routineName = defaultName
-            newRoutine.name = self.exp.namespace.makeValid(routineName)
-            newRoutine.params['name'] = newRoutine.name
-            self.exp.namespace.add(newRoutine.name)
-            # add to the experiment
-            self.exp.addRoutine(newRoutine.name, newRoutine)
-            for newComp in newRoutine:  # routine == list of components
-                newName = self.exp.namespace.makeValid(newComp.params['name'])
-                self.exp.namespace.add(newName)
-                newComp.params['name'].val = newName
-            # could do redrawRoutines but would be slower?
-            self.routinePanel.addRoutinePage(newRoutine.name, newRoutine)
-            self.addToUndoStack("PASTE Routine `%s`" % newRoutine.name)
+            newRoutine = copy.deepcopy(self.app.copiedRoutine)
+            self.pasteRoutine(newRoutine, routineName)
         dlg.Destroy()
+
+    def pasteRoutine(self, newRoutine, routineName):
+        """
+        Paste a copied Routine into the current Experiment
+        """
+        newRoutine.name = self.exp.namespace.makeValid(routineName)
+        newRoutine.params['name'] = newRoutine.name
+        self.exp.namespace.add(newRoutine.name)
+        # add to the experiment
+        self.exp.addRoutine(newRoutine.name, newRoutine)
+        for newComp in newRoutine:  # routine == list of components
+            newName = self.exp.namespace.makeValid(newComp.params['name'])
+            self.exp.namespace.add(newName)
+            newComp.params['name'].val = newName
+        # could do redrawRoutines but would be slower?
+        self.routinePanel.addRoutinePage(newRoutine.name, newRoutine)
 
     def onPasteCompon(self, event=None):
         """
