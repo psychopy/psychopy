@@ -52,7 +52,7 @@ from psychopy import logging, data
 from psychopy.tools.filetools import mergeFolder
 from .dialogs import (DlgComponentProperties, DlgExperimentProperties,
                       DlgCodeComponentProperties, DlgLoopProperties,
-                      ParamNotebook)
+                      ParamNotebook, DlgNewRoutine)
 from ..utils import (PsychopyToolbar, PsychopyPlateBtn, WindowFrozen,
                      FileDropTarget, FrameSwitcher, updateDemosMenu,
                      ToggleButtonArray, HoverMixin)
@@ -94,8 +94,33 @@ alwaysHidden = [
     'SettingsComponent', 'UnknownComponent', 'UnknownRoutine', 'UnknownStandaloneRoutine'
 ]
 
+
+class TemplateManager(dict):
+    mainFolder = Path(prefs.paths['resources']).absolute() / 'routine_templates'
+    userFolder = Path(prefs.paths['userPrefsDir']).absolute() / 'routine_templates'
+    experimentFiles = {}
+
+    def __init__(self):
+        dict.__init__(self)
+        self.updateTemplates()
+
+    def updateTemplates(self, ):
+        """Search and import templates in the standard files"""
+        for folder in [TemplateManager.mainFolder, TemplateManager.userFolder]:
+            categs = folder.glob("*.psyexp")
+            for filePath in categs:
+                thisExp = experiment.Experiment()
+                thisExp.loadFromXML(filePath)
+                categName = filePath.stem
+                self[categName]={}
+                for routineName in thisExp.routines:
+                    self[categName][routineName] = copy.copy(thisExp.routines[routineName])
+
+
 class BuilderFrame(wx.Frame, ThemeMixin):
     """Defines construction of the Psychopy Builder Frame"""
+
+    routineTemplates = TemplateManager()
 
     def __init__(self, parent, id=-1, title='PsychoPy (Experiment Builder)',
                  pos=wx.DefaultPosition, fileName=None, frameData=None,
@@ -3767,6 +3792,7 @@ class FlowPanel(wx.ScrolledWindow):
         self.componentFromID[id] = loop
         # set the area for this component
         dc.SetIdBounds(id, rect)
+
 
 def extractText(stream):
     """Take a byte stream (or any file object of type b?) and return
