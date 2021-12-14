@@ -219,6 +219,49 @@ def array2pointer(arr, dtype=None):
         ctypes.POINTER(numpy.ctypeslib.as_ctypes_type(dtype)))
 
 
+def snapto(x, points):
+    """
+    Snap values in array x to their closest equivalent in an array of target values, returning an array of the closest value in `points` to each value in `x`.
+
+    Parameters
+    ----------
+    x : list, tuple or numpy.ndarray
+        Array of values to be snapped to `points`
+    points : list, tuple or numpy.ndarray
+        Array of values to be snapped to
+
+    Returns
+    -------
+    snapped
+        Array of values, each corresponds to a value in `x` and is the closest value in `points`.
+
+    Examples
+    --------
+    Snap labels on a Slider to the x positions of each tick::
+
+        labelPositions = [-1, -2/3, -1/3, 1/3, 2/3, 1]
+        tickPositions = [-1, -0.8, -0.6, -0.4, -0.2, 0, 0.2, 0.4, 0.6, 0.8, 1]
+        snappedLabelPositions = snapto(x=labelPositions, points=tickPositions)
+
+        assert snappedLabelPositions = [-1, -0.6, -0.4, 0.4, 0.6, 1]
+    """
+
+    # Force values to 1d numpy arrays, though keep track of original shape of x
+    x = numpy.asarray(x)
+    x1d = x.reshape((-1, 1))
+    points = numpy.asarray(points).reshape((1, -1))
+    # Get differences
+    deltas = numpy.abs(x1d - points)
+    # Get indices of smallest deltas
+    i = numpy.argmin(deltas, axis=1)
+    # Get corresponding points
+    snapped1d = points[0, i]
+    # Reshape to original shape of x
+    snapped = snapped1d.reshape(x.shape)
+
+    return snapped
+
+
 def createLumPattern(patternType, res, texParams=None, maskParams=None):
     """Create a luminance (single channel) defined pattern.
 

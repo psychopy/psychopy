@@ -596,6 +596,13 @@ class Routine(list):
         buff.writeIndentedLines("}\n")
 
     def writeRoutineEndCode(self, buff):
+        saveHdf5 = self.exp.settings.params['Save hdf5 file'].val
+        if saveHdf5:
+            code = ('# save any cached experiment messages to hdf5 file\n'
+                    'if ioServer:\n'
+                    '    ioServer.sendMessageEvents([])\n')
+            buff.writeIndentedLines(code)
+
         # can we use non-slip timing?
         maxTime, useNonSlip = self.getMaxTime()
 

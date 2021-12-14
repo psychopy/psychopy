@@ -140,8 +140,8 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         # Box around current content, wrapped tight - not drawn
         self.boundingBox = Rect(
             win,
-            units=self.units, pos=(0, 0), size=(0, 0),  # set later by self.size and self.pos
-            colorSpace=colorSpace, lineColor='red', fillColor=None,
+            units='pix', pos=(0, 0), size=(0, 0),  # set later by self.size and self.pos
+            colorSpace=colorSpace, lineColor='blue', fillColor=None,
             lineWidth=1, opacity=int(debug),
             autoLog=False
         )
@@ -282,6 +282,20 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
                     bold=self.bold, italic=self.italic)
 
     @property
+    def units(self):
+        return WindowMixin.units.fget(self)
+
+    @units.setter
+    def units(self, value):
+        WindowMixin.units.fset(self, value)
+        if hasattr(self, "box"):
+            self.box.units = value
+        if hasattr(self, "contentBox"):
+            self.contentBox.units = value
+        if hasattr(self, "caret"):
+            self.caret.units = value
+
+    @property
     def size(self):
         return WindowMixin.size.fget(self)
 
@@ -327,6 +341,10 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             # Content box should be anchored center relative to box, but its pos needs to be relative to box's vertices, not its pos
             self.contentBox.pos = self.pos + self.size * self.box._vertices.anchorAdjust
             self.contentBox._needVertexUpdate = True
+
+        # Set caret pos again so it recalculates its vertices
+        if hasattr(self, "caret"):
+            self.caret.index = self.caret.index
 
         self._needVertexUpdate = True
 
@@ -1005,18 +1023,15 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
         if hasattr(self, 'flipVert') and self.flipVert:
             flip[1] = -1  # True=(-1), False->(+1)
 
-        font = self.glFont
         self.__dict__['verticesPix'] = self._vertices.pix
 
         # tight bounding box
-        if self.vertices.shape[0] < 1:  # editable box with no letters?
-            self.boundingBox.size = 0, 0
-            self.boundingBox.pos = self.pos
-        else:
-            L = self.vertices[:, 0].min()
-            R = self.vertices[:, 0].max()
-            B = self.vertices[:, 1].min()
-            T = self.vertices[:, 1].max()
+        if hasattr(self._vertices, self.units) and self.vertices.shape[0] >= 1:
+            verts = self._vertices.pix
+            L = verts[:, 0].min()
+            R = verts[:, 0].max()
+            B = verts[:, 1].min()
+            T = verts[:, 1].max()
             tightW = R-L
             Xmid = (R+L)/2
             tightH = T-B
@@ -1024,6 +1039,9 @@ class TextBox2(BaseVisualStim, ContainerMixin, ColorMixin):
             # for the tight box anchor offset is included in vertex calcs
             self.boundingBox.size = tightW, tightH
             self.boundingBox.pos = self.pos + (Xmid, Ymid)
+        else:
+            self.boundingBox.size = 0, 0
+            self.boundingBox.pos = self.pos
         # box (larger than bounding box) needs anchor offest adding
         self.box.pos = self.pos
         self.box.size = self.size  # this might have changed from _requested

@@ -508,6 +508,7 @@ class Window():
                     win_infos.append(winfo)
                     win_handles.append(self._hw_handle)
                 ioconn.ACTIVE_CONNECTION.registerWindowHandles(*win_infos)
+                self.backend.onMoveCallback = ioconn.ACTIVE_CONNECTION.updateWindowPos
 
         # near and far clipping planes
         self._nearClip = 0.1
@@ -2423,6 +2424,15 @@ class Window():
         """Close the window (and reset the Bits++ if necess).
         """
         self._closed = True
+
+        # If iohub is running, inform it to stop using this win id
+        # for mouse events
+        try:
+            if IOHUB_ACTIVE:
+                from psychopy.iohub.client import ioHubConnection
+                ioHubConnection.ACTIVE_CONNECTION.unregisterWindowHandles(self._hw_handle)
+        except Exception:
+            pass
 
         self.backend.close()  # moved here, dereferencing the window prevents
                               # backend specific actions to take place

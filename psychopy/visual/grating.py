@@ -72,6 +72,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
                  tex="sin",
                  mask="none",
                  units=None,
+                 anchor="center",
                  pos=(0.0, 0.0),
                  size=None,
                  sf=None,
@@ -150,6 +151,7 @@ class GratingStim(BaseVisualStim, TextureMixin, ColorMixin, ContainerMixin):
         self.sf = val2array(sf)
         self.pos = val2array(pos, False, False)
         self.depth = depth
+        self.anchor = anchor
 
         self.tex = tex
         self.mask = mask
