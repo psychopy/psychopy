@@ -3103,7 +3103,7 @@ class Window():
             The number of frames to display before starting the test
             (this is in place to allow the system to settle after opening
             the `Window` for the first time.
-        threshold : int, optional
+        threshold : int or float, optional
             The threshold for the std deviation (in ms) before the set
             are considered a match.
 
@@ -3119,44 +3119,46 @@ class Window():
                 'Parameter `nIdentical` must be equal to or less than '
                 '`nMaxFrames`')
 
-        # log that we're measuring the frame rate now
-        msg = "{}: Attempting to measure frame rate of screen ({:d}) ..."
-        logging.exp(msg.format(self.name, self.screen))
+        screen = self.screen
+        name = self.name
 
-        # Only log changing `recordFrameIntervals` if differs from the user's
-        # settings. Disable recording for the warmup period.
+        # log that we're measuring the frame rate now
+        if self.autoLog:
+            msg = "{}: Attempting to measure frame rate of screen ({:d}) ..."
+            logging.exp(msg.format(name, screen))
+
+        # Disable `recordFrameIntervals` prior to the warmup as we expect to see
+        # some instability here.
         recordFrmIntsOrig = self.recordFrameIntervals
-        self.setRecordFrameIntervals(False, log=logging.DEBUG)
+        self.recordFrameIntervals = False
 
         # warm-up, allow the system to settle a bit before measuring frames
         for frameN in range(nWarmUpFrames):
             self.flip()
 
         # run test frames
-        self.setRecordFrameIntervals(True, log=logging.DEBUG)
-        threshSecs = threshold / 1000.0
+        self.recordFrameIntervals = True  # record intervals for actual test
+        threshSecs = threshold / 1000.0  # must be in seconds
         for frameN in range(nMaxFrames):
             self.flip()
             recentFrames = self.frameIntervals[-nIdentical:]
-            if (len(self.frameIntervals) >= nIdentical and
-                    (numpy.std(recentFrames) < threshSecs)):
-                rate = 1.0 / numpy.mean(recentFrames)
-                if self.screen is None:
-                    scrStr = ""
-                else:
-                    scrStr = " (%i)" % self.screen
-
+            nIntervals = len(self.frameIntervals)
+            recentFramesStd = numpy.std(recentFrames)  # compute variability
+            if nIntervals >= nIdentical and recentFramesStd < threshSecs:
+                # average duration of recent frames
+                period = numpy.mean(recentFrames)  # log this too?
+                rate = 1.0 / period  # compute frame rate in Hz
                 if self.autoLog:
+                    scrStr = "" if screen is None else " (%i)" % screen
                     msg = "Screen{} actual frame rate measured at {:.2f}Hz"
                     logging.exp(msg.format(scrStr, rate))
 
-                self.setRecordFrameIntervals(
-                    recordFrmIntsOrig, log=logging.DEBUG)
+                self.recordFrameIntervals = recordFrmIntsOrig
                 self.frameIntervals = []
 
                 return rate
 
-        # if we got here we reached end of maxFrames with no consistent value
+        # if we get here we reached end of `maxFrames` with no consistent value
         msg = ("Couldn't measure a consistent frame rate!\n"
                "  - Is your graphics card set to sync to vertical blank?\n"
                "  - Are you running other processes on your computer?\n")
