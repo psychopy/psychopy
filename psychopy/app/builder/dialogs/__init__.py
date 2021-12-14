@@ -1781,13 +1781,12 @@ class DlgNewRoutine(wx.Dialog):
         self.sizer.Add(self.templateCtrl, border=6, flag=wx.ALL | wx.ALIGN_TOP | wx.EXPAND)
         # Buttons
         self.btnSizer = wx.StdDialogButtonSizer()
-        self.buttons = [wx.Button(self, wx.ID_CANCEL, "Cancel"), wx.Button(self, wx.ID_OK, "OK")]
-        if sys.platform == "win32":
-            self.buttons.reverse()  # Cancel on right for Windows
-        self.btnSizer.Add(self.buttons[0], border=6, flag=wx.RIGHT | wx.TOP)
-        self.btnSizer.Add(self.buttons[1], border=6, flag=wx.RIGHT | wx.TOP)
+        self.CANCEL = wx.Button(self, wx.ID_CANCEL, "Cancel")
+        self.btnSizer.AddButton(self.CANCEL)
+        self.OK = wx.Button(self, wx.ID_OK, "OK")
+        self.btnSizer.AddButton(self.OK)
         self.btnSizer.Realize()
-        self.border.Add(self.btnSizer, border=12, flag=wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.ALIGN_RIGHT)
+        self.border.Add(self.btnSizer, border=12, flag=wx.ALL | wx.ALIGN_RIGHT)
 
         self.Fit()
         self.Center()
