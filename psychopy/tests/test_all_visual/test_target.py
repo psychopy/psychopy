@@ -16,7 +16,7 @@ class TestTarget(_TestColorMixin, _TestUnitsMixin):
     def setup_class(cls):
         cls.win = visual.Window(size=(128, 128))
         cls.obj = visual.TargetStim(cls.win, "TargetStim", units='pix', pos=(-64, 64),
-                                    innerRadius=20, radius=60, lineWidth=20)
+                                    innerRadius=20, radius=60, lineWidth=10, innerLineWidth=5)
 
     def test_radius(self):
         # Define some cases to test
