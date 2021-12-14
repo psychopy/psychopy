@@ -80,6 +80,7 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
                  units='pix',
                  size=None,
                  pos=(0.0, 0.0),
+                 anchor="center",
                  ori=0.0,
                  flipVert=False,
                  flipHoriz=False,
@@ -115,6 +116,7 @@ class MovieStim3(BaseVisualStim, ContainerMixin, TextureMixin):
         self.flipVert = flipVert
         self.flipHoriz = flipHoriz
         self.pos = numpy.asarray(pos, float)
+        self.anchor = anchor
         self.depth = depth
         self.opacity = opacity
         self.interpolate = interpolate

@@ -1405,6 +1405,9 @@ class WindowMixin:
             # Set a backup value if there's no vertices yet
             self._anchor = value
 
+    def setAnchor(self, value, log=None):
+        setAttribute(self, 'anchor', value, log)
+
     @property
     def units(self):
         if hasattr(self, "_units"):

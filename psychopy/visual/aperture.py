@@ -267,6 +267,9 @@ class Aperture(MinimalStim, ContainerMixin):
     def anchor(self, value):
         WindowMixin.anchor.fset(self._shape, value)
 
+    def setAnchor(self, value, log=None):
+        setAttribute(self, 'anchor', value, log)
+
     @property
     def vertices(self):
         return WindowMixin.vertices.fget(self._shape)

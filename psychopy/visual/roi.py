@@ -58,12 +58,12 @@ class ROI(ShapeStim):
     def __init__(self, win, name=None, device=None,
                  debug=False,
                  shape="rectangle",
-                 units='', pos=(0, 0), size=(1, 1), ori=0.0,
+                 units='', pos=(0, 0), size=(1, 1), anchor="center", ori=0.0,
                  autoLog=None):
 
         # Create red polygon which doesn't draw if `debug == False`
         ShapeStim.__init__(self, win, name=name,
-                         units=units, pos=pos, size=size, ori=ori,
+                         units=units, pos=pos, size=size, anchor=anchor, ori=ori,
                          vertices=shape,
                          fillColor='red', opacity=int(debug),
                          autoLog=autoLog)
